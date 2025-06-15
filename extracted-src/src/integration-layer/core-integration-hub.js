@@ -1,23 +1,14 @@
 /**
  * RinaWarp Terminal - Core Integration Hub
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file contains proprietary and confidential information.
- * Unauthorized reproduction or distribution is strictly prohibited.
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * Innovation: Unified Event-Driven Terminal Feature Integration System
- */
-
-/**
- * Core Integration Hub - Central orchestrator for all RinaWarp Terminal features
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
  * 
- * PATENT-WORTHY INNOVATIONS:
- * 1. Unified Event System with Smart Dependency Resolution
- * 2. Dynamic Feature Loading with Performance Optimization
- * 3. Cross-Component State Synchronization Architecture
- * 4. AI-Driven Feature Interaction Prediction
- * 5. Zero-Trust Security Integration at the Core Level
+ * Project repository: https://github.com/rinawarp/terminal
  */
 class CoreIntegrationHub {
     constructor() {
@@ -41,10 +32,7 @@ class CoreIntegrationHub {
         this.registerCoreEventHandlers();
     }
 
-    /**
-     * Initialize the integration hub and all registered features
-     * Innovation: Sequential initialization with dependency awareness
-     */
+    
     async initialize() {
         if (this.isInitialized) return;
         if (this.initializationPromise) return this.initializationPromise;
@@ -98,10 +86,7 @@ class CoreIntegrationHub {
         }
     }
 
-    /**
-     * Register a feature with the integration hub
-     * Innovation: Automatic dependency detection and validation
-     */
+    
     registerFeature(name, feature, metadata = {}) {
         if (!feature || typeof feature !== 'object') {
             throw new IntegrationError(`Invalid feature registration: ${name}`);
@@ -138,9 +123,7 @@ class CoreIntegrationHub {
         return this;
     }
 
-    /**
-     * Get a feature instance by name with security validation
-     */
+    
     getFeature(name, requestingContext = null) {
         const feature = this.features.get(name);
         if (!feature) {
@@ -155,16 +138,12 @@ class CoreIntegrationHub {
         return feature.instance;
     }
 
-    /**
-     * Patent-worthy: AI-powered feature interaction prediction
-     */
+    
     async predictFeatureInteractions(currentContext) {
         return await this.interactionPredictor.predict(currentContext);
     }
 
-    /**
-     * Setup automatic cross-feature communication channels
-     */
+    
     setupFeatureInterconnections() {
         // AI Context Engine ↔ Performance Monitor
         this.eventBus.on('ai:context-analysis', (data) => {
@@ -196,9 +175,7 @@ class CoreIntegrationHub {
         });
     }
 
-    /**
-     * Validate that a feature implements the required interface
-     */
+    
     validateFeatureInterface(feature, name) {
         const requiredMethods = [];
         const optionalMethods = ['initialize', 'shutdown', 'getStatus', 'configure'];
@@ -211,9 +188,7 @@ class CoreIntegrationHub {
         }
     }
 
-    /**
-     * Extract feature dependencies automatically through code analysis
-     */
+    
     extractFeatureDependencies(feature) {
         const dependencies = [];
         
@@ -233,9 +208,7 @@ class CoreIntegrationHub {
         return dependencies;
     }
 
-    /**
-     * Register core event handlers for system-wide events
-     */
+    
     registerCoreEventHandlers() {
         // Handle feature errors
         this.eventBus.on('feature:error', (data) => {
@@ -254,9 +227,7 @@ class CoreIntegrationHub {
         });
     }
 
-    /**
-     * Graceful shutdown of all features
-     */
+    
     async shutdown() {
         console.log('[RinaWarp] Shutting down Integration Hub...');
         
@@ -278,9 +249,7 @@ class CoreIntegrationHub {
         this.eventBus.emit('hub:shutdown');
     }
 
-    /**
-     * Get comprehensive system status
-     */
+    
     getSystemStatus() {
         const status = {
             hubVersion: this.version,
@@ -303,10 +272,7 @@ class CoreIntegrationHub {
     }
 }
 
-/**
- * Event Bus for inter-feature communication
- * Innovation: Smart event routing with performance optimization
- */
+
 class EventBus {
     constructor() {
         this.listeners = new Map();
@@ -357,10 +323,7 @@ class EventBus {
     }
 }
 
-/**
- * Unified State Manager for cross-feature state synchronization
- * Patent-worthy innovation: Real-time state conflict resolution
- */
+
 class UnifiedStateManager {
     constructor() {
         this.state = new Map();
@@ -427,10 +390,7 @@ class UnifiedStateManager {
     }
 }
 
-/**
- * Smart Dependency Resolver
- * Innovation: Dynamic dependency resolution with circular dependency detection
- */
+
 class SmartDependencyResolver {
     constructor() {
         this.dependencyGraph = new Map();
@@ -477,10 +437,7 @@ class SmartDependencyResolver {
     }
 }
 
-/**
- * AI Feature Interaction Predictor
- * Patent-worthy: Machine learning-based feature usage prediction
- */
+
 class AIFeatureInteractionPredictor {
     constructor() {
         this.interactionHistory = [];
@@ -542,9 +499,7 @@ class SimpleInteractionModel {
     }
 }
 
-/**
- * Configuration Manager
- */
+
 class ConfigurationManager {
     constructor() {
         this.config = new Map();
@@ -584,9 +539,7 @@ class ConfigurationManager {
     }
 }
 
-/**
- * State Conflict Resolver
- */
+
 class StateConflictResolver {
     resolve(key, previous, current, source) {
         // Simple last-write-wins for now
@@ -599,9 +552,7 @@ class StateConflictResolver {
     }
 }
 
-/**
- * Custom Error Classes
- */
+
 class IntegrationError extends Error {
     constructor(message, cause = null) {
         super(message);

@@ -1,3 +1,15 @@
+/**
+ * RinaWarp Terminal - Terminal Sharing
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
+ */
 // Terminal Sharing - Minimal Implementation
 class TerminalSharing {
     constructor() {
@@ -9,28 +21,8 @@ if (typeof window !== 'undefined') {
     window.TerminalSharing = TerminalSharing;
 }
 
-/**
- * RinaWarp Terminal - Live Terminal Sharing
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
- * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
- * AI assistance, live collaboration, and enterprise-grade security features.
- * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * For licensing inquiries, contact: licensing@rinawarp.com
- */
-/**
- * Live Terminal Sharing - Real-time Collaboration System
- * Features: Live sharing, multi-user editing, voice chat, session recording
- */
+
+
 
 class LiveTerminalSharing {
     constructor() {
@@ -55,9 +47,7 @@ class LiveTerminalSharing {
         console.log('🤝 Live Terminal Sharing initialized');
     }
 
-    /**
-     * KILLER FEATURE 1: Start Terminal Sharing Session
-     */
+    
     async startSharingSession(options = {}) {
         try {
             this.sessionId = this.generateSessionId();
@@ -107,9 +97,7 @@ class LiveTerminalSharing {
         }
     }
 
-    /**
-     * KILLER FEATURE 2: Join Existing Session
-     */
+    
     async joinSession(sessionId, accessCode = null) {
         try {
             // Validate session
@@ -148,9 +136,7 @@ class LiveTerminalSharing {
         }
     }
 
-    /**
-     * KILLER FEATURE 3: Real-time Command Synchronization
-     */
+    
     async syncCommand(command, cursorPosition, userId) {
         if (!this.isSharing && !this.isJoinedSession) return;
 
@@ -174,9 +160,7 @@ class LiveTerminalSharing {
         this.logCollaborationEvent('command-sync', commandData);
     }
 
-    /**
-     * KILLER FEATURE 4: Multi-User Cursor Tracking
-     */
+    
     updateCollaborativeCursors(userId, position) {
         const cursor = this.cursors.get(userId) || this.createUserCursor(userId);
         
@@ -198,9 +182,7 @@ class LiveTerminalSharing {
         }, 3000);
     }
 
-    /**
-     * KILLER FEATURE 5: Voice Chat Integration
-     */
+    
     async startVoiceChat() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -219,9 +201,7 @@ class LiveTerminalSharing {
         }
     }
 
-    /**
-     * KILLER FEATURE 6: Session Recording & Playback
-     */
+    
     async startSessionRecording() {
         const recordingConfig = {
             includeAudio: true,
@@ -240,9 +220,7 @@ class LiveTerminalSharing {
         };
     }
 
-    /**
-     * KILLER FEATURE 7: Smart Collaboration Insights
-     */
+    
     async generateCollaborationInsights() {
         const insights = {
             sessionDuration: Date.now() - this.sessionStartTime,
@@ -256,9 +234,7 @@ class LiveTerminalSharing {
         return insights;
     }
 
-    /**
-     * Real-time Communication Infrastructure
-     */
+    
     async setupSharingInfrastructure(config) {
         // Setup WebRTC for peer-to-peer communication
         this.rtcConfiguration = {
@@ -322,9 +298,7 @@ class LiveTerminalSharing {
         return connection;
     }
 
-    /**
-     * UI Components for Collaboration
-     */
+    
     createSharingUI() {
         const sharingContainer = document.createElement('div');
         sharingContainer.id = 'terminal-sharing-ui';
@@ -461,9 +435,7 @@ class LiveTerminalSharing {
         return cursor;
     }
 
-    /**
-     * Event Handlers and Communication
-     */
+    
     attachSharingEventListeners() {
         // Start sharing
         document.getElementById('start-sharing-btn')?.addEventListener('click', async () => {
@@ -597,9 +569,7 @@ class LiveTerminalSharing {
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    /**
-     * Utility Methods
-     */
+    
     generateSessionId() {
         return 'rina-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
     }
@@ -738,9 +708,7 @@ class LiveTerminalSharing {
     }
 }
 
-/**
- * Supporting Classes
- */
+
 class VoiceChat {
     constructor() {
         this.isActive = false;

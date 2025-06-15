@@ -1,11 +1,15 @@
 /**
  * RinaWarp Terminal - Preload Script
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This preload script provides a secure bridge between the main process
- * and the renderer process, exposing only necessary APIs.
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose protected methods that allow the renderer process to use

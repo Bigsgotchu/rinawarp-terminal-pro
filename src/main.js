@@ -1,22 +1,15 @@
 /**
  * RinaWarp Terminal - Main Process
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
+ * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
  * 
- * For licensing inquiries, contact: licensing@rinawarp.com
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 import { app, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
 import path from 'path';
 import os from 'os';

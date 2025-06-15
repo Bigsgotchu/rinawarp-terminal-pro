@@ -1,26 +1,26 @@
 /**
- * RinaWarp Terminal - Integration Initialization
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * RinaWarp Terminal - Integration Init
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file initializes the complete RinaWarp Terminal integration system
- * Patent Pending - Advanced Terminal Integration Architecture
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 // Import integration modules
 import '../integration-layer/main-integration.js';
 
-/**
- * Initialize RinaWarp Terminal Integration System
- */
+
 class RinaWarpInitializer {
     constructor() {
         this.isInitialized = false;
         this.integrationSystem = null;
     }
 
-    /**
-     * Initialize the complete RinaWarp system
-     */
+    
     async initialize() {
         if (this.isInitialized) {
             console.log('[RinaWarp] System already initialized');
@@ -66,9 +66,7 @@ class RinaWarpInitializer {
         }
     }
 
-    /**
-     * Setup global event handlers for system-wide coordination
-     */
+    
     setupGlobalEventHandlers() {
         // Handle system errors
         window.addEventListener('error', (event) => {
@@ -106,9 +104,7 @@ class RinaWarpInitializer {
         });
     }
 
-    /**
-     * Integrate with the existing terminal manager
-     */
+    
     integrateWithTerminalManager() {
         // Check if TerminalManager exists
         if (typeof window.TerminalManager !== 'undefined') {
@@ -139,9 +135,7 @@ class RinaWarpInitializer {
         }
     }
 
-    /**
-     * Setup system status monitoring
-     */
+    
     setupStatusMonitoring() {
         // Monitor system status every 30 seconds
         setInterval(() => {
@@ -159,9 +153,7 @@ class RinaWarpInitializer {
         }, 30000);
     }
 
-    /**
-     * Display comprehensive system status
-     */
+    
     displaySystemStatus() {
         if (!this.integrationSystem) return;
         
@@ -184,16 +176,12 @@ class RinaWarpInitializer {
         console.groupEnd();
     }
 
-    /**
-     * Get the integration system instance
-     */
+    
     getIntegrationSystem() {
         return this.integrationSystem;
     }
 
-    /**
-     * Shutdown the integration system
-     */
+    
     async shutdown() {
         if (this.integrationSystem) {
             console.log('[RinaWarp] Shutting down integration system...');

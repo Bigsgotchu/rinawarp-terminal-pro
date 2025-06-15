@@ -1,10 +1,15 @@
 /**
- * RinaWarp Terminal - Jest Test Setup
- * Copyright (c) 2025 RinaWarp Terminal. All rights reserved.
- * This software is protected by copyright and international treaties.
- * Unauthorized copying, reproduction, or distribution is strictly prohibited.
+ * RinaWarp Terminal - Setup
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 // Global test setup configuration
 global.console = {
   ...console,

@@ -1,26 +1,15 @@
 /**
- * RinaWarp Terminal - Enhanced Security Module
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * RinaWarp Terminal - Enhanced Security
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
+ * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
  * 
- * For licensing inquiries, contact: licensing@rinawarp.com
+ * Project repository: https://github.com/rinawarp/terminal
  */
-/**
- * Enhanced Security Features - Enterprise-Grade Terminal Security
- * Zero-Trust Terminal, Command Auditing, Compliance Checking, Secret Scanning
- */
-
 class EnhancedSecurityEngine {
     constructor() {
         this.auditLogger = new CommandAuditLogger();
@@ -40,9 +29,7 @@ class EnhancedSecurityEngine {
         this.initializeZeroTrust();
     }
 
-    /**
-     * Zero-Trust Terminal - Every command verified before execution
-     */
+    
     async verifyCommandExecution(command, context) {
         const verificationResult = {
             command: command,
@@ -100,9 +87,7 @@ class EnhancedSecurityEngine {
         }
     }
 
-    /**
-     * Command Auditing with Tamper-Proof Logs
-     */
+    
     async auditCommand(command, result, context) {
         const auditEntry = {
             id: this.generateAuditId(),
@@ -141,9 +126,7 @@ class EnhancedSecurityEngine {
         return auditEntry;
     }
 
-    /**
-     * Real-time Secret Scanning
-     */
+    
     async scanForSecrets(command) {
         const secretPatterns = {
             apiKey: /\b[A-Za-z0-9]{32,}\b/g,
@@ -183,9 +166,7 @@ class EnhancedSecurityEngine {
         };
     }
 
-    /**
-     * Compliance Checking (SOX, HIPAA, PCI-DSS, etc.)
-     */
+    
     async checkCompliance(command, context) {
         const complianceResults = {
             sox: await this.checkSOXCompliance(command, context),
@@ -220,9 +201,7 @@ class EnhancedSecurityEngine {
         return overallCompliance;
     }
 
-    /**
-     * Privilege Escalation Detection
-     */
+    
     async monitorPrivilegeEscalation(command, context) {
         const escalationIndicators = {
             sudo: /^sudo\s/.test(command),
@@ -258,9 +237,7 @@ class EnhancedSecurityEngine {
         };
     }
 
-    /**
-     * Security Dashboard and Reporting
-     */
+    
     generateSecurityReport(timeRange = '24h') {
         const report = {
             timeRange: timeRange,
@@ -435,9 +412,7 @@ class EnhancedSecurityEngine {
     }
 }
 
-/**
- * Supporting Security Classes
- */
+
 class CommandAuditLogger {
     constructor() {
         this.auditLog = [];

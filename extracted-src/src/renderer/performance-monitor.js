@@ -1,3 +1,15 @@
+/**
+ * RinaWarp Terminal - Performance Monitor
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
+ */
 // Performance Monitor - Minimal Implementation
 class PerformanceMonitoringDashboard {
     constructor() {
@@ -9,28 +21,8 @@ if (typeof window !== 'undefined') {
     window.PerformanceMonitoringDashboard = PerformanceMonitoringDashboard;
 }
 
-/**
- * RinaWarp Terminal - Performance Monitoring System
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
- * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
- * AI assistance, live collaboration, and enterprise-grade security features.
- * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * For licensing inquiries, contact: licensing@rinawarp.com
- */
-/**
- * Performance Monitor - Real-time Performance Insights
- * Features: Command metrics, resource monitoring, optimization suggestions
- */
+
+
 
 class PerformanceMonitor {
     constructor() {
@@ -53,9 +45,7 @@ class PerformanceMonitor {
         console.log('📊 Performance Monitor initialized');
     }
 
-    /**
-     * KILLER FEATURE 1: Real-time Command Performance Tracking
-     */
+    
     async trackCommandStart(command, context) {
         const commandId = this.generateCommandId();
         const startMetrics = {
@@ -100,9 +90,7 @@ class PerformanceMonitor {
         return performance;
     }
 
-    /**
-     * KILLER FEATURE 2: Resource Usage Dashboard
-     */
+    
     async getSystemHealth() {
         const health = {
             timestamp: Date.now(),
@@ -136,9 +124,7 @@ class PerformanceMonitor {
         return health;
     }
 
-    /**
-     * KILLER FEATURE 3: Performance Optimization Suggestions
-     */
+    
     async analyzePerformance(performance) {
         const optimizations = [];
         const warnings = [];
@@ -187,9 +173,7 @@ class PerformanceMonitor {
         }
     }
 
-    /**
-     * KILLER FEATURE 4: Predictive Resource Management
-     */
+    
     async predictResourceUsage(command, context) {
         const prediction = {
             estimatedTime: 0,
@@ -217,9 +201,7 @@ class PerformanceMonitor {
         return prediction;
     }
 
-    /**
-     * KILLER FEATURE 5: Performance History Analytics
-     */
+    
     getPerformanceAnalytics(timeRange = '24h') {
         const now = Date.now();
         const timeMs = this.parseTimeRange(timeRange);
@@ -247,9 +229,7 @@ class PerformanceMonitor {
         return analytics;
     }
 
-    /**
-     * KILLER FEATURE 6: Smart Caching and Optimization
-     */
+    
     async optimizeCommand(command, context) {
         // Check cache first
         const cacheKey = this.generateCacheKey(command, context);
@@ -279,9 +259,7 @@ class PerformanceMonitor {
         return optimizations;
     }
 
-    /**
-     * Real-time System Monitoring
-     */
+    
     startSystemMonitoring() {
         // Monitor system resources every second
         setInterval(async () => {
@@ -320,9 +298,7 @@ class PerformanceMonitor {
         }
     }
 
-    /**
-     * Optimization Pattern Recognition
-     */
+    
     loadOptimizationPatterns() {
         this.patterns = {
             // Git optimizations
@@ -390,9 +366,7 @@ class PerformanceMonitor {
         return optimizations;
     }
 
-    /**
-     * Command Optimization Strategies
-     */
+    
     async applyParallelization(command) {
         // Add parallelization where possible
         if (command.includes('find') && !command.includes('-exec')) {
@@ -441,9 +415,7 @@ class PerformanceMonitor {
         return command;
     }
 
-    /**
-     * System Resource Monitoring
-     */
+    
     async getCpuUsage() {
         // Estimate CPU usage (browser limitation)
         const start = performance.now();
@@ -495,9 +467,7 @@ class PerformanceMonitor {
         }
     }
 
-    /**
-     * Analytics and Insights
-     */
+    
     findSimilarCommands(command) {
         const baseCommand = command.split(' ')[0];
         return this.historicalData.filter(metric => 
@@ -556,9 +526,7 @@ class PerformanceMonitor {
         };
     }
 
-    /**
-     * UI Integration Methods
-     */
+    
     showPerformanceInsights(insights) {
         // Create performance insights panel
         const panel = document.createElement('div');
@@ -606,9 +574,7 @@ class PerformanceMonitor {
         }
     }
 
-    /**
-     * Utility Methods
-     */
+    
     generateCommandId() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
@@ -776,10 +742,7 @@ if (typeof module !== 'undefined' && module.exports) {
     window.PerformanceMonitor = PerformanceMonitor;
 }
 
-/**
- * Performance Monitoring Dashboard - Real-time Terminal Intelligence
- * Tracks execution times, resource usage, and provides optimization insights
- */
+
 
 class PerformanceMonitoringDashboard {
     constructor() {
@@ -800,9 +763,7 @@ class PerformanceMonitoringDashboard {
         this.loadHistoricalData();
     }
 
-    /**
-     * Create the Performance Dashboard UI
-     */
+    
     createDashboardUI() {
         const dashboardContainer = document.createElement('div');
         dashboardContainer.id = 'performance-dashboard';
@@ -905,9 +866,7 @@ class PerformanceMonitoringDashboard {
         this.attachEventListeners();
     }
 
-    /**
-     * Track Command Performance
-     */
+    
     async trackCommandExecution(command, startTime, endTime, result) {
         const executionTime = endTime - startTime;
         const commandKey = this.normalizeCommand(command);
@@ -943,9 +902,7 @@ class PerformanceMonitoringDashboard {
         }
     }
 
-    /**
-     * Real-time Resource Monitoring
-     */
+    
     startResourceMonitoring() {
         this.resourceMonitor.startMonitoring();
         
@@ -957,9 +914,7 @@ class PerformanceMonitoringDashboard {
         }, 1000);
     }
 
-    /**
-     * Performance Analysis Engine
-     */
+    
     async analyzePerformance(metrics) {
         const analysis = {
             isSlowCommand: metrics.executionTime > 5000, // 5 seconds
@@ -991,9 +946,7 @@ class PerformanceMonitoringDashboard {
         return analysis;
     }
 
-    /**
-     * Predictive Performance Analysis
-     */
+    
     async predictPerformanceImpact(command) {
         const commandKey = this.normalizeCommand(command);
         const history = this.commandHistory.get(commandKey) || [];
@@ -1022,9 +975,7 @@ class PerformanceMonitoringDashboard {
         };
     }
 
-    /**
-     * Dashboard UI Updates
-     */
+    
     updateRealTimeMetrics(metrics) {
         const totalCommands = Array.from(this.commandHistory.values())
             .reduce((sum, history) => sum + history.length, 0);
@@ -1102,9 +1053,7 @@ class PerformanceMonitoringDashboard {
         });
     }
 
-    /**
-     * Event Handlers
-     */
+    
     attachEventListeners() {
         document.getElementById('toggle-monitoring')?.addEventListener('click', () => {
             this.toggleMonitoring();
@@ -1190,9 +1139,7 @@ class PerformanceMonitoringDashboard {
     }
 }
 
-/**
- * Supporting Classes
- */
+
 class ResourceMonitor {
     constructor() {
         this.isMonitoring = false;

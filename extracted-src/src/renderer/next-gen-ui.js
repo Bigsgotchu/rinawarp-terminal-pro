@@ -1,26 +1,15 @@
 /**
- * RinaWarp Terminal - Next Generation UI Components
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * RinaWarp Terminal - Next Generation UI
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
+ * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
  * 
- * For licensing inquiries, contact: licensing@rinawarp.com
+ * Project repository: https://github.com/rinawarp/terminal
  */
-/**
- * Next-Gen UI Features - Revolutionary Terminal Interface
- * 3D Visualization, Command Flow Diagrams, Gesture Control, Adaptive Interface
- */
-
 class NextGenUIEngine {
     constructor() {
         this.visualizationEngine = new ThreeDVisualizationEngine();
@@ -46,9 +35,7 @@ class NextGenUIEngine {
         console.log('Next-Gen UI Engine initialized successfully!');
     }
 
-    /**
-     * 3D Terminal Visualization
-     */
+    
     async enable3DMode() {
         if (!this.isInitialized) await this.initialize();
         
@@ -81,9 +68,7 @@ class NextGenUIEngine {
         this.showModeTransitionAnimation('2D Mode Activated');
     }
 
-    /**
-     * Command Flow Diagrams - Visual representation of command pipelines
-     */
+    
     async visualizeCommandFlow(command) {
         const flowData = this.parseCommandFlow(command);
         return await this.commandFlowVisualizer.createFlowDiagram(flowData);
@@ -132,9 +117,7 @@ class NextGenUIEngine {
         };
     }
 
-    /**
-     * Gesture Control System
-     */
+    
     async enableGestureControl() {
         await this.gestureController.initialize();
         
@@ -160,9 +143,7 @@ class NextGenUIEngine {
         console.log('Gesture control enabled with', Object.keys(gestures).length, 'gestures');
     }
 
-    /**
-     * Adaptive Interface - UI changes based on context
-     */
+    
     async enableAdaptiveInterface() {
         await this.adaptiveInterface.initialize();
         
@@ -192,9 +173,7 @@ class NextGenUIEngine {
         this.adaptiveInterface.startMonitoring();
     }
 
-    /**
-     * Interactive Tutorial System
-     */
+    
     async startInteractiveTutorial(topic) {
         const tutorials = {
             'basic-commands': this.createBasicCommandsTutorial(),
@@ -245,9 +224,7 @@ class NextGenUIEngine {
         };
     }
 
-    /**
-     * Holographic Mode (AR/VR Interface)
-     */
+    
     async enableHolographicMode() {
         if (!this.holoMode.isSupported()) {
             throw new Error('Holographic mode not supported on this device');
@@ -281,9 +258,7 @@ class NextGenUIEngine {
         console.log('Holographic mode activated!');
     }
 
-    /**
-     * Dynamic Layout System
-     */
+    
     async optimizeLayoutForTask(taskType) {
         const layouts = {
             'development': {
@@ -339,9 +314,7 @@ class NextGenUIEngine {
         this.showNotification(`Layout optimized for ${layout.arrangement}`);
     }
 
-    /**
-     * Context-Sensitive UI Elements
-     */
+    
     updateUIForContext(context) {
         // Update color scheme based on context
         if (context.environment === 'production') {
@@ -361,9 +334,7 @@ class NextGenUIEngine {
         }
     }
 
-    /**
-     * Smart Quick Actions
-     */
+    
     updateQuickActions(context) {
         const quickActions = [];
         
@@ -485,9 +456,7 @@ class NextGenUIEngine {
     }
 }
 
-/**
- * Supporting UI Classes
- */
+
 class ThreeDVisualizationEngine {
     constructor() {
         this.scene = null;

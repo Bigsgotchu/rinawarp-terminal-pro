@@ -1,60 +1,15 @@
 /**
- * RinaWarp Terminal - Advanced Terminal Emulator
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * RinaWarp Terminal - Phase1 Demo
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
- * AI assistance, enterprise security, cloud sync, and revolutionary features.
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * U.S. Patent Application Filed: 2025
- * International Patent Applications: PCT, EU, CN, JP
- * 
- * Licensed under RinaWarp Commercial License.
+ * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
  * 
- * For licensing inquiries, contact: licensing@rinawarp.com
- * 
- * @author RinaWarp Technologies
- * @copyright 2025 RinaWarp Technologies. All rights reserved.
- * @license RinaWarp Commercial License
- * @version 1.0.0
- * @since 2025-01-01
+ * Project repository: https://github.com/rinawarp/terminal
  */
-/**
- * RinaWarp Terminal - Advanced Terminal Emulator
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
- * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
- * AI assistance, enterprise security, cloud sync, and revolutionary features.
- * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * U.S. Patent Application Filed: 2025
- * International Patent Applications: PCT, EU, CN, JP
- * 
- * Licensed under RinaWarp Commercial License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * For licensing inquiries, contact: licensing@rinawarp.com
- * 
- * @author RinaWarp Technologies
- * @copyright 2025 RinaWarp Technologies. All rights reserved.
- * @license RinaWarp Commercial License
- * @version 1.0.0
- * @since 2025-01-01
- */
-/**
- * RinaWarp Terminal - Phase 1 Demo Script
- * Showcases revolutionary AI and Performance features that surpass Warp
- */
-
 // Import the Phase 1 modules
 const AdvancedAIEngine = require('../src/ai/AdvancedAIEngine.js');
 const PerformanceDashboard = require('../src/performance/PerformanceDashboard.js');

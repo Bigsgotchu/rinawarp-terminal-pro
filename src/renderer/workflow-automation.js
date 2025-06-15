@@ -1,26 +1,15 @@
 /**
- * RinaWarp Terminal - Workflow Automation Engine
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * RinaWarp Terminal - Workflow Automation
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
+ * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
  * 
- * For licensing inquiries, contact: licensing@rinawarp.com
+ * Project repository: https://github.com/rinawarp/terminal
  */
-/**
- * Workflow Automation - Record and Replay Complex Workflows
- * Features: Smart recording, conditional workflows, cross-system integration, workflow marketplace
- */
-
 class WorkflowAutomation {
     constructor() {
         this.isRecording = false;
@@ -43,9 +32,7 @@ class WorkflowAutomation {
         console.log('🎯 Workflow Automation initialized');
     }
 
-    /**
-     * KILLER FEATURE 1: Smart Workflow Recording
-     */
+    
     async startRecording(workflowName, options = {}) {
         try {
             this.currentWorkflow = {
@@ -96,9 +83,7 @@ class WorkflowAutomation {
         }
     }
 
-    /**
-     * KILLER FEATURE 2: Intelligent Step Recording
-     */
+    
     async recordStep(command, result, context) {
         if (!this.isRecording || !this.currentWorkflow) return;
 
@@ -143,9 +128,7 @@ class WorkflowAutomation {
         this.autoSaveWorkflow();
     }
 
-    /**
-     * KILLER FEATURE 3: Stop Recording and Process Workflow
-     */
+    
     async stopRecording() {
         if (!this.isRecording || !this.currentWorkflow) {
             return { success: false, error: 'No active recording' };
@@ -189,9 +172,7 @@ class WorkflowAutomation {
         }
     }
 
-    /**
-     * KILLER FEATURE 4: Smart Workflow Playback
-     */
+    
     async executeWorkflow(workflowId, options = {}) {
         const workflow = this.workflows.get(workflowId);
         if (!workflow) {
@@ -290,9 +271,7 @@ class WorkflowAutomation {
         }
     }
 
-    /**
-     * KILLER FEATURE 5: Conditional Workflow Engine
-     */
+    
     async createConditionalWorkflow(baseWorkflow, conditions) {
         const conditionalWorkflow = {
             ...baseWorkflow,
@@ -316,9 +295,7 @@ class WorkflowAutomation {
         return conditionalWorkflow;
     }
 
-    /**
-     * KILLER FEATURE 6: Cross-System Integration
-     */
+    
     async integrateWithExternalSystems(workflowId, integrations) {
         const workflow = this.workflows.get(workflowId);
         if (!workflow) {
@@ -353,9 +330,7 @@ class WorkflowAutomation {
         }
     }
 
-    /**
-     * KILLER FEATURE 7: Workflow Marketplace
-     */
+    
     async publishToMarketplace(workflowId, publishOptions) {
         const workflow = this.workflows.get(workflowId);
         if (!workflow) {
@@ -390,9 +365,7 @@ class WorkflowAutomation {
         return { success: false, error: 'Failed to download workflow' };
     }
 
-    /**
-     * AI-Powered Workflow Processing
-     */
+    
     async processRecordedWorkflow(workflow) {
         // Analyze and optimize the recorded workflow
         const optimizedSteps = await this.optimizeWorkflowSteps(workflow.steps);
@@ -422,9 +395,7 @@ class WorkflowAutomation {
         };
     }
 
-    /**
-     * UI Components
-     */
+    
     createWorkflowUI() {
         const workflowContainer = document.createElement('div');
         workflowContainer.id = 'workflow-automation-ui';
@@ -619,9 +590,7 @@ class WorkflowAutomation {
     }
 }
 
-/**
- * Supporting Classes
- */
+
 class SmartWorkflowRecorder {
     constructor() {
         this.patterns = new Map();
@@ -724,10 +693,7 @@ class CrossSystemIntegration {
 // ES6 export for module system
 export { WorkflowAutomation, WorkflowAutomationEngine };
 
-/**
- * Advanced Workflow Automation Engine - Revolutionary Terminal Automation
- * Smart Macros, Conditional Workflows, Cross-System Integration
- */
+
 
 class WorkflowAutomationEngine {
     constructor() {
@@ -748,9 +714,7 @@ class WorkflowAutomationEngine {
         this.startTriggerMonitoring();
     }
 
-    /**
-     * Smart Macro Recording and Replay
-     */
+    
     async startMacroRecording(name, options = {}) {
         const macro = {
             id: this.generateMacroId(),
@@ -859,9 +823,7 @@ class WorkflowAutomationEngine {
         };
     }
 
-    /**
-     * Conditional Workflow Engine
-     */
+    
     async createConditionalWorkflow(name, definition) {
         const workflow = {
             id: this.generateWorkflowId(),
@@ -967,9 +929,7 @@ class WorkflowAutomationEngine {
         };
     }
 
-    /**
-     * Cross-System Integration
-     */
+    
     async initializeIntegrations() {
         const integrations = {
             slack: new SlackIntegration(),
@@ -999,9 +959,7 @@ class WorkflowAutomationEngine {
         return await integration.execute(action, data);
     }
 
-    /**
-     * Environmental Awareness
-     */
+    
     async adaptCommandToEnvironment(command, targetEnvironment) {
         const currentEnv = await this.detectCurrentEnvironment();
         
@@ -1026,9 +984,7 @@ class WorkflowAutomationEngine {
         return this.addEnvironmentFlags(command, targetEnvironment);
     }
 
-    /**
-     * Workflow Marketplace
-     */
+    
     async publishWorkflow(workflowId, metadata) {
         const workflow = this.workflows.get(workflowId);
         if (!workflow) {

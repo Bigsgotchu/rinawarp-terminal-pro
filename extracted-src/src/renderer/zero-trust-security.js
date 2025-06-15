@@ -1,3 +1,15 @@
+/**
+ * RinaWarp Terminal - Zero Trust Security
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
+ */
 // Zero Trust Security - Minimal Implementation
 class ZeroTrustSecurity {
     constructor() {
@@ -9,28 +21,8 @@ if (typeof window !== 'undefined') {
     window.ZeroTrustSecurity = ZeroTrustSecurity;
 }
 
-/**
- * RinaWarp Terminal - Zero Trust Security Framework
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
- * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
- * AI assistance, live collaboration, and enterprise-grade security features.
- * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * For licensing inquiries, contact: licensing@rinawarp.com
- */
-/**
- * Zero-Trust Security Engine - Enterprise-Grade Command Verification
- * Features: Real-time threat detection, policy enforcement, compliance logging, biometric auth
- */
+
+
 
 class ZeroTrustSecurity {
     constructor() {
@@ -56,9 +48,7 @@ class ZeroTrustSecurity {
         console.log('🔒 Zero-Trust Security Engine initialized');
     }
 
-    /**
-     * KILLER FEATURE 1: Real-time Command Threat Detection
-     */
+    
     async analyzeCommandThreat(command, context) {
         const threatAnalysis = {
             command: command,
@@ -122,9 +112,7 @@ class ZeroTrustSecurity {
         }
     }
 
-    /**
-     * KILLER FEATURE 2: Dynamic Policy Enforcement
-     */
+    
     async applySecurityPolicies(command, threatAnalysis, context) {
         const policyResult = {
             shouldBlock: false,
@@ -171,9 +159,7 @@ class ZeroTrustSecurity {
         return policyResult;
     }
 
-    /**
-     * KILLER FEATURE 3: Biometric Authentication for Sensitive Commands
-     */
+    
     async requireBiometricAuth(command, threatLevel) {
         if (threatLevel === 'low') {
             return { success: true, method: 'none' };
@@ -227,9 +213,7 @@ class ZeroTrustSecurity {
         }
     }
 
-    /**
-     * KILLER FEATURE 4: Real-time Compliance Monitoring
-     */
+    
     async enforceComplianceStandards(command, context) {
         const complianceCheck = {
             standards: [],
@@ -278,9 +262,7 @@ class ZeroTrustSecurity {
         return complianceCheck;
     }
 
-    /**
-     * KILLER FEATURE 5: Advanced Secret Detection and Prevention
-     */
+    
     async preventSecretLeakage(command, context) {
         const secretScan = {
             secretsFound: [],
@@ -336,9 +318,7 @@ class ZeroTrustSecurity {
         }
     }
 
-    /**
-     * KILLER FEATURE 6: Behavioral Analysis and Anomaly Detection
-     */
+    
     async detectAnomalousActivity(command, context) {
         const behaviorAnalysis = {
             isAnomalous: false,
@@ -391,9 +371,7 @@ class ZeroTrustSecurity {
         }
     }
 
-    /**
-     * KILLER FEATURE 7: Command Sandboxing and Isolation
-     */
+    
     async executeInSandbox(command, securityContext) {
         const sandboxConfig = {
             isolationLevel: this.determineSandboxLevel(securityContext.riskLevel),
@@ -442,9 +420,7 @@ class ZeroTrustSecurity {
         }
     }
 
-    /**
-     * Security UI Components
-     */
+    
     createSecurityUI() {
         const securityContainer = document.createElement('div');
         securityContainer.id = 'zero-trust-security-ui';
@@ -621,9 +597,7 @@ class ZeroTrustSecurity {
         });
     }
 
-    /**
-     * Security Policy Management
-     */
+    
     loadSecurityPolicies() {
         const defaultPolicies = [
             {
@@ -760,9 +734,7 @@ class ZeroTrustSecurity {
     }
 }
 
-/**
- * Supporting Security Engines
- */
+
 class ThreatDetectionEngine {
     async detectMaliciousPatterns(command) {
         const threats = [];

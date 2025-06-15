@@ -1,3 +1,15 @@
+/**
+ * RinaWarp Terminal - AI Context Engine
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
+ */
 // AI Context Engine - Minimal Implementation to prevent loading errors
 class AdvancedAIContextEngine {
     constructor() {
@@ -9,28 +21,8 @@ if (typeof window !== 'undefined') {
     window.AdvancedAIContextEngine = AdvancedAIContextEngine;
 }
 
-/**
- * RinaWarp Terminal - AI Context Engine
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
- * 
- * This file is part of RinaWarp Terminal, an advanced terminal emulator with
- * AI assistance, live collaboration, and enterprise-grade security features.
- * 
- * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
- * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
- * 
- * Patent Pending - Advanced Terminal Integration Architecture
- * 
- * Licensed under RinaWarp Commercial License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * For licensing inquiries, contact: licensing@rinawarp.com
- */
-/**
- * AI Context Engine - Revolutionary AI features that surpass Warp Terminal
- * Features: Code review, predictive completion, error prevention, smart documentation
- */
+
+
 
 class AIContextEngine {
     constructor() {
@@ -56,10 +48,7 @@ class AIContextEngine {
         console.log('🧠 AI Context Engine initialized');
     }
 
-    /**
-     * KILLER FEATURE 1: Predictive Command Completion
-     * Learns user patterns and predicts entire workflows
-     */
+    
     async predictNextCommands(currentCommand, workingDir) {
         const context = await this.analyzeContext(workingDir);
         const patterns = this.findCommandPatterns(currentCommand);
@@ -73,10 +62,7 @@ class AIContextEngine {
         return predictions;
     }
 
-    /**
-     * KILLER FEATURE 2: Error Prevention System
-     * AI warns before dangerous operations
-     */
+    
     async analyzeCommandSafety(command, context) {
         const safetyAnalysis = {
             dangerLevel: 'safe',
@@ -109,10 +95,7 @@ class AIContextEngine {
         return safetyAnalysis;
     }
 
-    /**
-     * KILLER FEATURE 3: Smart Documentation Generator
-     * AI generates documentation for commands
-     */
+    
     async generateCommandDocumentation(command) {
         const docs = {
             explanation: '',
@@ -144,10 +127,7 @@ class AIContextEngine {
         return docs;
     }
 
-    /**
-     * KILLER FEATURE 4: Code Review Integration
-     * Real-time code analysis and suggestions
-     */
+    
     async performCodeReview(filePath) {
         const review = {
             issues: [],
@@ -185,9 +165,7 @@ class AIContextEngine {
         return review;
     }
 
-    /**
-     * KILLER FEATURE 5: Performance Optimization Suggestions
-     */
+    
     async analyzePerformance(command) {
         const analysis = {
             currentPerformance: 'unknown',
@@ -212,9 +190,7 @@ class AIContextEngine {
         return analysis;
     }
 
-    /**
-     * Advanced Context Analysis
-     */
+    
     async analyzeContext(workingDir) {
         const context = {
             projectType: 'unknown',
@@ -250,9 +226,7 @@ class AIContextEngine {
         return context;
     }
 
-    /**
-     * Natural Language Command Processing
-     */
+    
     async processNaturalLanguage(input) {
         const commands = {
             'deploy to production': 'npm run build && npm run deploy:prod',
@@ -390,10 +364,7 @@ if (typeof module !== 'undefined' && module.exports) {
     window.AIContextEngine = AIContextEngine;
 }
 
-/**
- * Advanced AI Context Engine - Revolutionary Terminal Intelligence
- * This engine provides next-level AI assistance with deep context understanding
- */
+
 
 class AdvancedAIContextEngine {
     constructor() {
@@ -442,9 +413,7 @@ class AdvancedAIContextEngine {
         ]);
     }
 
-    /**
-     * Revolutionary AI Code Review - Real-time analysis
-     */
+    
     async performRealTimeCodeReview(command, context) {
         const analysis = {
             security: await this.securityAnalyzer.analyze(command),
@@ -462,9 +431,7 @@ class AdvancedAIContextEngine {
         };
     }
 
-    /**
-     * Predictive Command Completion - AI learns user patterns
-     */
+    
     async predictNextCommands(currentCommand, context) {
         const userPatterns = this.analyzeUserPatterns(context.userId);
         const projectContext = this.getProjectContext(context.projectPath);
@@ -487,9 +454,7 @@ class AdvancedAIContextEngine {
         }));
     }
 
-    /**
-     * Error Prevention Engine - Warns before dangerous operations
-     */
+    
     async preventErrors(command, context) {
         const risks = [];
         
@@ -518,9 +483,7 @@ class AdvancedAIContextEngine {
         return risks;
     }
 
-    /**
-     * Smart Documentation Generator
-     */
+    
     async generateSmartDocumentation(command, context) {
         const analysis = await this.aiProviders[this.activeProvider].analyze({
             command: command,
@@ -538,9 +501,7 @@ class AdvancedAIContextEngine {
         };
     }
 
-    /**
-     * Voice Control Integration
-     */
+    
     async processVoiceCommand(audioData) {
         const transcript = await this.voiceControl.transcribe(audioData);
         const intent = await this.voiceControl.parseIntent(transcript);
@@ -557,9 +518,7 @@ class AdvancedAIContextEngine {
         }
     }
 
-    /**
-     * AI Debugging Assistant
-     */
+    
     async analyzeErrorAndSuggestFix(errorOutput, command, context) {
         const errorAnalysis = await this.aiProviders[this.activeProvider].analyze({
             error: errorOutput,
@@ -582,9 +541,7 @@ class AdvancedAIContextEngine {
         };
     }
 
-    /**
-     * Context-Aware Learning
-     */
+    
     learnFromUserBehavior(command, result, context) {
         const userId = context.userId;
         const pattern = {
@@ -610,9 +567,7 @@ class AdvancedAIContextEngine {
         this.updateUserPatterns(userId, pattern);
     }
 
-    /**
-     * Project Context Analysis
-     */
+    
     async analyzeProjectContext(projectPath) {
         const context = {
             type: await this.detectProjectType(projectPath),
@@ -661,9 +616,7 @@ class AdvancedAIContextEngine {
     }
 }
 
-/**
- * AI Provider Classes
- */
+
 class OpenAIProvider {
     constructor() {
         this.apiKey = process.env.OPENAI_API_KEY || localStorage.getItem('openai_api_key');
@@ -744,9 +697,7 @@ class AzureOpenAIProvider {
     }
 }
 
-/**
- * Supporting Engine Classes
- */
+
 class CodeGenerationEngine {
     async generateCode(type, requirements) {
         const templates = {

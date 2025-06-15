@@ -1,8 +1,15 @@
 /**
- * UltData-like Data Recovery User Interface
- * Provides GUI components for data recovery operations
+ * RinaWarp Terminal - Recovery Ui
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 import { DataRecoveryEngine } from './recovery-engine.js';
 
 export class DataRecoveryUI {

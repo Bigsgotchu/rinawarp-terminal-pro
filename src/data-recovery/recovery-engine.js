@@ -1,13 +1,15 @@
 /**
- * UltData-like Data Recovery Engine
- * Implements comprehensive data recovery capabilities including:
- * - Deleted file recovery
- * - Partition recovery
- * - Deep scan for lost data
- * - File carving and signature analysis
- * - RAW partition recovery
+ * RinaWarp Terminal - Recovery Engine
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
@@ -43,9 +45,7 @@ export class DataRecoveryEngine extends EventEmitter {
     };
   }
 
-  /**
-   * Get available drives for scanning
-   */
+  
   async getAvailableDrives() {
     try {
       const drives = [];
@@ -93,9 +93,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Quick scan for recently deleted files
-   */
+  
   async quickScan(drivePath, options = {}) {
     this.isScanning = true;
     this.scanProgress = 0;
@@ -137,9 +135,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Deep scan using file carving techniques
-   */
+  
   async deepScan(drivePath, options = {}) {
     this.isScanning = true;
     this.scanProgress = 0;
@@ -181,9 +177,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Scan recycle bin for deleted files
-   */
+  
   async scanRecycleBin() {
     try {
       const recycleBinPaths = [];
@@ -213,9 +207,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Scan directory recursively for recoverable files
-   */
+  
   async scanDirectory(dirPath, options = {}) {
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -238,9 +230,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Analyze file for recovery potential
-   */
+  
   async analyzeFile(filePath, options = {}) {
     try {
       const stats = await fs.stat(filePath);
@@ -273,9 +263,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Read file header for signature analysis
-   */
+  
   async readFileHeader(filePath, bytes = 16) {
     try {
       const fd = await fs.open(filePath, 'r');
@@ -288,9 +276,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Check file integrity based on header signature
-   */
+  
   checkFileIntegrity(header, extension) {
     const ext = extension.replace('.', '').toLowerCase();
     const signature = this.fileSignatures[ext];
@@ -309,9 +295,7 @@ export class DataRecoveryEngine extends EventEmitter {
     return false; // Header matches, likely intact
   }
 
-  /**
-   * Get file category based on extension
-   */
+  
   getFileCategory(extension) {
     for (const [category, extensions] of Object.entries(this.supportedFormats)) {
       if (extensions.includes(extension)) {
@@ -321,9 +305,7 @@ export class DataRecoveryEngine extends EventEmitter {
     return null;
   }
 
-  /**
-   * Calculate recovery chance percentage
-   */
+  
   calculateRecoveryChance(stats, isCorrupted, options = {}) {
     let chance = 100;
     
@@ -353,9 +335,7 @@ export class DataRecoveryEngine extends EventEmitter {
     return Math.max(0, Math.min(100, chance));
   }
 
-  /**
-   * Check if file is recoverable based on criteria
-   */
+  
   isRecoverableFile(fileInfo) {
     // Skip system files and very small files
     if (fileInfo.size < 100 || fileInfo.name.startsWith('.')) {
@@ -366,9 +346,7 @@ export class DataRecoveryEngine extends EventEmitter {
     return fileInfo.recoveryChance > 30;
   }
 
-  /**
-   * Scan recent files (last 30 days)
-   */
+  
   async scanRecentFiles(drivePath, options = {}) {
     const cutoffDate = new Date(Date.now() - (30 * 24 * 60 * 60 * 1000));
     
@@ -383,9 +361,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Scan temporary directories
-   */
+  
   async scanTempDirectories() {
     const tempPaths = [];
     
@@ -408,9 +384,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Scan browser data (cache, downloads, etc.)
-   */
+  
   async scanBrowserData() {
     const browserPaths = [];
     const userProfile = process.env.USERPROFILE || process.env.HOME;
@@ -441,9 +415,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Scan free space for file signatures (file carving)
-   */
+  
   async scanFreeSpace(drivePath, options = {}) {
     // This is a simplified implementation
     // In a real implementation, you would need to:
@@ -455,26 +427,20 @@ export class DataRecoveryEngine extends EventEmitter {
     // Placeholder for file carving implementation
   }
 
-  /**
-   * Scan unallocated space
-   */
+  
   async scanUnallocatedSpace(drivePath, options = {}) {
     // This would require low-level disk access
     // Implementation would need native modules or system tools
     console.log('Scanning unallocated space...');
   }
 
-  /**
-   * Analyze file system structures
-   */
+  
   async analyzeFileSystem(drivePath, options = {}) {
     // Analyze MFT (NTFS), inodes (ext4), etc.
     console.log('Analyzing file system structures...');
   }
 
-  /**
-   * Recover file to specified location
-   */
+  
   async recoverFile(fileInfo, outputPath) {
     try {
       const outputDir = path.dirname(outputPath);
@@ -498,9 +464,7 @@ export class DataRecoveryEngine extends EventEmitter {
     }
   }
 
-  /**
-   * Recover multiple files
-   */
+  
   async recoverFiles(fileInfos, outputDirectory) {
     const results = [];
     
@@ -518,17 +482,13 @@ export class DataRecoveryEngine extends EventEmitter {
     return results;
   }
 
-  /**
-   * Stop current scan
-   */
+  
   stopScan() {
     this.isScanning = false;
     this.emit('scanStopped');
   }
 
-  /**
-   * Get scan status
-   */
+  
   getScanStatus() {
     return {
       isScanning: this.isScanning,
@@ -537,9 +497,7 @@ export class DataRecoveryEngine extends EventEmitter {
     };
   }
 
-  /**
-   * Filter recovered files by criteria
-   */
+  
   filterFiles(criteria = {}) {
     let filtered = [...this.recoveredFiles];
     
