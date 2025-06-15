@@ -1,3 +1,14 @@
+// Terminal Sharing - Minimal Implementation
+class TerminalSharing {
+    constructor() {
+        console.log('🤝 Terminal Sharing - Fallback Mode');
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.TerminalSharing = TerminalSharing;
+}
+
 /**
  * RinaWarp Terminal - Live Terminal Sharing
  * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.

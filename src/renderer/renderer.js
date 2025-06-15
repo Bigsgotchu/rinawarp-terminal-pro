@@ -1744,6 +1744,31 @@ class TerminalManager {
         this.performanceMonitor = null;
         this.aiEngine = null;
         
+        // Command input tracking
+        this.commandBuffers = new Map(); // Track current input for each terminal
+        this.suggestionBoxes = new Map(); // Track suggestion boxes
+        
+        // Settings
+        this.settings = {
+            theme: 'dark',
+            fontSize: 14,
+            commandSuggestions: true,
+            aiAssistance: true,
+            realAI: false,
+            aiProvider: 'openai', // openai, anthropic, local
+            aiApiKey: '',
+            cloudSync: false,
+            syncProvider: 'github',
+            autoSaveSession: true,
+            autoErrorAnalysis: false
+        };
+        
+        // Load settings from storage
+        this.loadSettings();
+        
+        // Initialize the terminal manager
+        this.init();
+        
         // Debounced window resize
         const debouncedResize = this.debounce(() => {
             this.resizeActiveTerminal();
@@ -2311,28 +2336,6 @@ class TerminalManager {
             }
         }
     }
-        
-        // Command input tracking
-        this.commandBuffers = new Map(); // Track current input for each terminal
-        this.suggestionBoxes = new Map(); // Track suggestion boxes
-        
-        // Settings
-        this.settings = {
-            theme: 'dark',
-            fontSize: 14,
-            commandSuggestions: true,
-            aiAssistance: true,
-            realAI: false,
-            aiProvider: 'openai', // openai, anthropic, local
-            aiApiKey: '',
-            cloudSync: false,
-            syncProvider: 'github',
-            autoSaveSession: true
-        };
-        
-        this.loadSettings();
-        this.init();
-    }
 
     async init() {
         // Setup window controls
@@ -2439,6 +2442,19 @@ class TerminalManager {
             this.pluginAPI.showNotification('Session deleted', 'info');
         }
     }
+    
+    setupWindowControls() {
+        document.getElementById('minimize-btn').addEventListener('click', () => {
+            ipcRenderer.send('window-minimize');
+        });
+
+        document.getElementById('maximize-btn').addEventListener('click', () => {
+            ipcRenderer.send('window-maximize');
+        });
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            ipcRenderer.send('window-close');
+        });
         
         // Setup settings modal
         this.setupSettingsModal();
@@ -2452,20 +2468,6 @@ class TerminalManager {
         }, 100);
         
         window.addEventListener('resize', debouncedResize);
-    }
-
-    setupWindowControls() {
-        document.getElementById('minimize-btn').addEventListener('click', () => {
-            ipcRenderer.send('window-minimize');
-        });
-
-        document.getElementById('maximize-btn').addEventListener('click', () => {
-            ipcRenderer.send('window-maximize');
-        });
-
-        document.getElementById('close-btn').addEventListener('click', () => {
-            ipcRenderer.send('window-close');
-        });
     }
     
     loadSettings() {
@@ -3938,15 +3940,46 @@ class AdvancedGitIntegration {
     }
 }
 
+// Window controls event handlers
+function setupWindowControls() {
+    // Minimize button
+    document.getElementById('minimize-btn').addEventListener('click', () => {
+        ipcRenderer.send('window-minimize');
+    });
+    
+    // Maximize button
+    document.getElementById('maximize-btn').addEventListener('click', () => {
+        ipcRenderer.send('window-maximize');
+    });
+    
+    // Close button
+    document.getElementById('close-btn').addEventListener('click', () => {
+        ipcRenderer.send('window-close');
+    });
+    
+    // Title bar drag region - simple implementation
+    const titleBarDragRegion = document.querySelector('.title-bar-drag-region');
+    if (titleBarDragRegion) {
+        titleBarDragRegion.style.webkitAppRegion = 'drag';
+    }
+    
+    // Make buttons non-draggable
+    document.querySelectorAll('.title-bar-control, .menu-btn').forEach(btn => {
+        btn.style.webkitAppRegion = 'no-drag';
+    });
+}
+
 // Initialize when DOM is loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        setupWindowControls();
         window.terminalManager = new TerminalManager();
         window.pluginDevAPI = new PluginDevelopmentAPI(window.terminalManager);
         window.nlProcessor = new NaturalLanguageProcessor();
         window.advancedGit = new AdvancedGitIntegration(window.terminalManager);
     });
 } else {
+    setupWindowControls();
     window.terminalManager = new TerminalManager();
     window.pluginDevAPI = new PluginDevelopmentAPI(window.terminalManager);
     window.nlProcessor = new NaturalLanguageProcessor();

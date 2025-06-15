@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "RinaWarp Terminal - An advanced open-source terminal emulator with AI assistance, themes, and plugins",
   "main": "src/main.js",
+  "type": "module",
   "author": "Your Name",
   "license": "MIT",
   "scripts": {

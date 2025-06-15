@@ -645,12 +645,55 @@ class SmartWorkflowRecorder {
 }
 
 class ConditionalWorkflowEngine {
+    constructor() {
+        this.conditions = new Map();
+        this.evaluators = new Map();
+        this.initializeBuiltInEvaluators();
+    }
+
     async createBranch(condition) {
         return {
             condition: condition,
             steps: [],
             executionStrategy: 'sequential'
         };
+    }
+
+    async evaluateConditions(conditions, context) {
+        if (!conditions || conditions.length === 0) {
+            return true;
+        }
+
+        for (const condition of conditions) {
+            const result = await this.evaluateCondition(condition, context);
+            if (!result) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    async evaluateCondition(condition, context) {
+        const evaluator = this.evaluators.get(condition.type);
+        if (!evaluator) {
+            throw new Error(`Unknown condition type: ${condition.type}`);
+        }
+        return await evaluator(condition, context);
+    }
+
+    initializeBuiltInEvaluators() {
+        this.evaluators.set('success', (condition, context) => {
+            const stepResult = context.results.get(condition.step);
+            return stepResult && stepResult.success;
+        });
+
+        this.evaluators.set('failure', (condition, context) => {
+            const stepResult = context.results.get(condition.step);
+            return stepResult && !stepResult.success;
+        });
+
+        this.evaluators.set('always', () => true);
+        this.evaluators.set('never', () => false);
     }
 }
 
@@ -668,126 +711,18 @@ class CrossSystemIntegration {
     }
 }
 
-class WorkflowMarketplace {
-    constructor() {
-        this.workflows = new Map();
-        this.loadFeaturedWorkflows();
-    }
+// WorkflowMarketplace class moved to avoid duplication - see line 1304
 
-    async publishWorkflow(workflow) {
-        // In a real implementation, this would publish to a server
-        const marketplaceId = 'mp-' + Math.random().toString(36).substr(2, 9);
-        this.workflows.set(marketplaceId, workflow);
-        return { success: true, marketplaceId: marketplaceId };
-    }
+// Integration Classes moved to avoid duplication - see line 1351
 
-    async browseWorkflows(filters) {
-        // Return filtered workflows from marketplace
-        return Array.from(this.workflows.values());
-    }
+// GitHubIntegration class moved to avoid duplication - see line 1360
 
-    async downloadWorkflow(marketplaceId) {
-        return this.workflows.get(marketplaceId);
-    }
+// JiraIntegration class moved to avoid duplication - see line 1372
 
-    loadFeaturedWorkflows() {
-        // Load some featured workflows
-        const featured = [
-            {
-                id: 'featured-1',
-                name: 'Full Stack Deployment',
-                description: 'Complete deployment workflow for full-stack applications',
-                category: 'deployment',
-                rating: 4.8,
-                downloads: 1250
-            },
-            {
-                id: 'featured-2', 
-                name: 'Automated Testing Suite',
-                description: 'Comprehensive testing workflow with multiple test types',
-                category: 'testing',
-                rating: 4.6,
-                downloads: 890
-            }
-        ];
-        
-        featured.forEach(workflow => {
-            this.workflows.set(workflow.id, workflow);
-        });
-    }
-}
+// DockerIntegration class moved to avoid duplication - see line 1403
 
-// Integration Classes
-class SlackIntegration {
-    constructor(config) {
-        this.config = config;
-    }
-
-    async generateSteps(workflow) {
-        return [
-            {
-                command: `curl -X POST -H 'Content-type: application/json' --data '{"text":"Workflow ${workflow.name} started"}' ${this.config.webhookUrl}`,
-                description: 'Send Slack notification'
-            }
-        ];
-    }
-}
-
-class GitHubIntegration {
-    constructor(config) {
-        this.config = config;
-    }
-
-    async generateSteps(workflow) {
-        return [
-            {
-                command: `gh api repos/${this.config.repo}/dispatches -f event_type=workflow_trigger`,
-                description: 'Trigger GitHub Actions workflow'
-            }
-        ];
-    }
-}
-
-class JiraIntegration {
-    constructor(config) {
-        this.config = config;
-    }
-
-    async generateSteps(workflow) {
-        return [
-            {
-                command: `curl -X POST -u ${this.config.auth} -H "Content-Type: application/json" -d '{"fields":{"project":{"key":"${this.config.project}"},"summary":"Workflow completed","issuetype":{"name":"Task"}}}' ${this.config.url}/rest/api/2/issue/`,
-                description: 'Create Jira ticket'
-            }
-        ];
-    }
-}
-
-class DockerIntegration {
-    constructor(config) {
-        this.config = config;
-    }
-
-    async generateSteps(workflow) {
-        return [
-            {
-                command: `docker build -t ${this.config.imageName} .`,
-                description: 'Build Docker image'
-            },
-            {
-                command: `docker push ${this.config.imageName}`,
-                description: 'Push Docker image'
-            }
-        ];
-    }
-}
-
-// Export for use in renderer
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = WorkflowAutomation;
-} else {
-    window.WorkflowAutomation = WorkflowAutomation;
-}
+// ES6 export for module system
+export { WorkflowAutomation, WorkflowAutomationEngine };
 
 /**
  * Advanced Workflow Automation Engine - Revolutionary Terminal Automation
@@ -1194,46 +1129,6 @@ class WorkflowAutomationEngine {
     }
 }
 
-/**
- * Supporting Classes
- */
-class ConditionalWorkflowEngine {
-    async evaluateConditions(conditions, context) {
-        if (conditions.length === 0) return true;
-
-        for (const condition of conditions) {
-            const result = await this.evaluateCondition(condition, context);
-            if (!result) return false;
-        }
-        
-        return true;
-    }
-
-    async evaluateCondition(condition, context) {
-        switch (condition.type) {
-            case 'success':
-                const stepResult = context.results.get(condition.step);
-                return stepResult && stepResult.success;
-            
-            case 'failure':
-                const failedResult = context.results.get(condition.step);
-                return failedResult && !failedResult.success;
-            
-            case 'file_exists':
-                return require('fs').existsSync(condition.path);
-            
-            case 'environment':
-                return process.env[condition.variable] === condition.value;
-            
-            case 'time_range':
-                const currentHour = new Date().getHours();
-                return currentHour >= condition.start && currentHour <= condition.end;
-            
-            default:
-                return true;
-        }
-    }
-}
 
 class SmartMacroRecorder {
     constructor() {

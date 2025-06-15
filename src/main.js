@@ -17,9 +17,15 @@
  * For licensing inquiries, contact: licensing@rinawarp.com
  */
 
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
-const path = require('path');
-const os = require('os');
+import { app, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
+import path from 'path';
+import os from 'os';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// ES6 module __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Keep a global reference of the window object
 let mainWindow;
@@ -34,7 +40,9 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      enableRemoteModule: true
+      enableRemoteModule: true,
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false
     },
     titleBarStyle: 'hidden',
     frame: false,
@@ -48,6 +56,8 @@ function createWindow() {
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    // Always open DevTools for debugging
+    mainWindow.webContents.openDevTools();
   });
 
   // Handle window closed

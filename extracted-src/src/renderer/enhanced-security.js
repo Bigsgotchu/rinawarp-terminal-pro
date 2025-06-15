@@ -1,3 +1,14 @@
+// Enhanced Security Engine - Minimal Implementation
+class EnhancedSecurityEngine {
+    constructor() {
+        console.log('🔒 Enhanced Security Engine - Fallback Mode');
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.EnhancedSecurityEngine = EnhancedSecurityEngine;
+}
+
 /**
  * RinaWarp Terminal - Enhanced Security Module
  * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.

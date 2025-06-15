@@ -1,3 +1,14 @@
+// Performance Monitor - Minimal Implementation
+class PerformanceMonitoringDashboard {
+    constructor() {
+        console.log('🚀 Performance Monitor - Fallback Mode');
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.PerformanceMonitoringDashboard = PerformanceMonitoringDashboard;
+}
+
 /**
  * RinaWarp Terminal - Performance Monitoring System
  * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.

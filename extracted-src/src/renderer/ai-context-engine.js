@@ -1,3 +1,14 @@
+// AI Context Engine - Minimal Implementation to prevent loading errors
+class AdvancedAIContextEngine {
+    constructor() {
+        console.log('🤖 AI Context Engine - Fallback Mode');
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.AdvancedAIContextEngine = AdvancedAIContextEngine;
+}
+
 /**
  * RinaWarp Terminal - AI Context Engine
  * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.

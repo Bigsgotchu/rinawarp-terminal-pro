@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:; connect-src 'self' https: wss:;">
     <title>RinaWarp Terminal</title>
     <link rel="stylesheet" href="../../styles/main.css">
     <link rel="stylesheet" href="../../node_modules/@xterm/xterm/css/xterm.css">
@@ -287,14 +288,14 @@
     </div>
 
     <!-- Scripts -->
-    <!-- Load advanced features first -->
-    <script src="ai-context-engine.js"></script>
-    <script src="enhanced-security.js"></script>
-    <script src="zero-trust-security.js"></script>
-    <script src="terminal-sharing.js"></script>
-    <script src="workflow-automation.js"></script>
-    <script src="performance-monitor.js"></script>
-    <script src="next-gen-ui.js"></script>
+    <!-- Load advanced features first as modules -->
+    <script type="module" src="ai-context-engine.js"></script>
+    <script type="module" src="enhanced-security.js"></script>
+    <script type="module" src="zero-trust-security.js"></script>
+    <script type="module" src="terminal-sharing.js"></script>
+    <script type="module" src="workflow-automation.js"></script>
+    <script type="module" src="performance-monitor.js"></script>
+    <script type="module" src="next-gen-ui.js"></script>
     
     <!-- RinaWarp Integration Layer (Patent Pending) -->
     <script type="module" src="../integration-layer/core-integration-hub.js"></script>
@@ -302,7 +303,7 @@
     <script type="module" src="integration-init.js"></script>
     
     <!-- Main renderer loads after integration system -->
-    <script src="renderer.js"></script>
+    <script type="module" src="renderer.js"></script>
     
     <!-- Initialize RinaWarp Integration on load -->
     <script>

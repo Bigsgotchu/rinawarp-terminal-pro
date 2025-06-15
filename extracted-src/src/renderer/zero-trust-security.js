@@ -1,3 +1,14 @@
+// Zero Trust Security - Minimal Implementation
+class ZeroTrustSecurity {
+    constructor() {
+        console.log('🛡️ Zero Trust Security - Fallback Mode');
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.ZeroTrustSecurity = ZeroTrustSecurity;
+}
+
 /**
  * RinaWarp Terminal - Zero Trust Security Framework
  * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
