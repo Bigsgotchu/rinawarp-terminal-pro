@@ -1,14 +1,13 @@
 /**
  * RinaWarp Terminal - Main Renderer Process
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
  * 
- * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * This file is part of RinaWarp Terminal, a commercial terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * Licensed under the MIT License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * Project repository: https://github.com/rinawarp/terminal
+ * PROPRIETARY SOFTWARE - All rights reserved.
+ * For licensing information: https://rinawarp.com/pricing
+ * For enterprise inquiries: sales@rinawarp.com
  */
 const { ipcRenderer } = require('electron');
 const { Terminal } = require('@xterm/xterm');
@@ -22,6 +21,23 @@ const fs = require('fs');
 // Import Revolutionary Phase 1-3 Features
 // These will be loaded dynamically to prevent bundling issues
 let AdvancedAIContextEngine, PerformanceMonitoringDashboard, WorkflowAutomationEngine, EnhancedSecurityEngine, NextGenUIEngine;
+
+// Initialize License Manager
+let licenseManager;
+try {
+    licenseManager = new LicenseManager();
+    licenseManager.startTrial(); // Start trial for new users
+    console.log('License Manager initialized:', licenseManager.getStatus());
+} catch (error) {
+    console.error('License Manager failed to initialize:', error);
+    // Fallback to basic functionality
+    licenseManager = {
+        hasFeature: () => true,
+        canUseAI: () => true,
+        showUpgradeDialog: () => {},
+        getStatus: () => ({ tier: 'trial', isValid: true })
+    };
+}
 
 // Load all advanced features dynamically
 async function loadAdvancedFeatures() {
@@ -168,96 +184,8 @@ class CommandHistoryManager {
 // Theme Manager
 class ThemeManager {
     constructor() {
-        this.currentTheme = 'dark';
+        this.currentTheme = 'mermaid'; // Set Mermaid as default
         this.themes = {
-            dark: {
-                background: '#1a1a1a',
-                foreground: '#ffffff',
-                cursor: '#ffffff',
-                selection: '#3e3e3e',
-                black: '#000000',
-                red: '#ff6b6b',
-                green: '#51cf66',
-                yellow: '#ffd93d',
-                blue: '#74c0fc',
-                magenta: '#f06292',
-                cyan: '#4dd0e1',
-                white: '#ffffff',
-                brightBlack: '#6c6c6c',
-                brightRed: '#ff8a80',
-                brightGreen: '#69f0ae',
-                brightYellow: '#ffff8d',
-                brightBlue: '#82b1ff',
-                brightMagenta: '#ff80ab',
-                brightCyan: '#84ffff',
-                brightWhite: '#ffffff'
-            },
-            light: {
-                background: '#ffffff',
-                foreground: '#000000',
-                cursor: '#000000',
-                selection: '#b4d5ff',
-                black: '#000000',
-                red: '#c91b00',
-                green: '#00c200',
-                yellow: '#c7c400',
-                blue: '#0037da',
-                magenta: '#c800c8',
-                cyan: '#00c5c7',
-                white: '#c7c7c7',
-                brightBlack: '#767676',
-                brightRed: '#ff0000',
-                brightGreen: '#00ff00',
-                brightYellow: '#ffff00',
-                brightBlue: '#0000ff',
-                brightMagenta: '#ff00ff',
-                brightCyan: '#00ffff',
-                brightWhite: '#ffffff'
-            },
-            solarized: {
-                background: '#002b36',
-                foreground: '#839496',
-                cursor: '#93a1a1',
-                selection: '#073642',
-                black: '#073642',
-                red: '#dc322f',
-                green: '#859900',
-                yellow: '#b58900',
-                blue: '#268bd2',
-                magenta: '#d33682',
-                cyan: '#2aa198',
-                white: '#eee8d5',
-                brightBlack: '#002b36',
-                brightRed: '#cb4b16',
-                brightGreen: '#586e75',
-                brightYellow: '#657b83',
-                brightBlue: '#839496',
-                brightMagenta: '#6c71c4',
-                brightCyan: '#93a1a1',
-                brightWhite: '#fdf6e3'
-            },
-            monokai: {
-                background: '#272822',
-                foreground: '#f8f8f2',
-                cursor: '#f8f8f0',
-                selection: '#49483e',
-                black: '#272822',
-                red: '#f92672',
-                green: '#a6e22e',
-                yellow: '#f4bf75',
-                blue: '#66d9ef',
-                magenta: '#ae81ff',
-                cyan: '#a1efe4',
-                white: '#f8f8f2',
-                brightBlack: '#75715e',
-                brightRed: '#f92672',
-                brightGreen: '#a6e22e',
-                brightYellow: '#f4bf75',
-                brightBlue: '#66d9ef',
-                brightMagenta: '#ae81ff',
-                brightCyan: '#a1efe4',
-                brightWhite: '#f9f8f5'
-            },
             mermaid: {
                 background: '#0a0b1e', // Deep ocean midnight
                 foreground: '#ff1493', // Hot pink primary text
@@ -279,6 +207,204 @@ class ThemeManager {
                 brightMagenta: '#da70d6', // Orchid
                 brightCyan: '#40e0d0', // Turquoise
                 brightWhite: '#ffffff' // Pure white
+            },
+            cyberpunk: {
+                background: '#0d0221', // Dark purple black
+                foreground: '#00ff41', // Matrix green
+                cursor: '#ff2a6d', // Hot pink cursor
+                selection: '#1a0330', // Dark purple selection
+                black: '#0d0221',
+                red: '#ff073a', // Neon red
+                green: '#00ff41', // Matrix green
+                yellow: '#ffce00', // Electric yellow
+                blue: '#005aff', // Electric blue
+                magenta: '#ff2a6d', // Hot pink
+                cyan: '#01cdfe', // Neon cyan
+                white: '#ffffff',
+                brightBlack: '#2a2139',
+                brightRed: '#ff4081',
+                brightGreen: '#39ff14',
+                brightYellow: '#ffff00',
+                brightBlue: '#00bfff',
+                brightMagenta: '#ff1493',
+                brightCyan: '#00ffff',
+                brightWhite: '#ffffff'
+            },
+            forest: {
+                background: '#0b1426', // Deep forest night
+                foreground: '#7dc383', // Soft green
+                cursor: '#98fb98', // Pale green cursor
+                selection: '#1b3d2e', // Dark forest selection
+                black: '#0b1426',
+                red: '#e74c3c', // Autumn red
+                green: '#27ae60', // Forest green
+                yellow: '#f1c40f', // Sunlight yellow
+                blue: '#3498db', // Sky blue
+                magenta: '#9b59b6', // Lavender
+                cyan: '#1abc9c', // Teal
+                white: '#ecf0f1',
+                brightBlack: '#34495e',
+                brightRed: '#c0392b',
+                brightGreen: '#2ecc71',
+                brightYellow: '#f39c12',
+                brightBlue: '#2980b9',
+                brightMagenta: '#8e44ad',
+                brightCyan: '#16a085',
+                brightWhite: '#ffffff'
+            },
+            sunset: {
+                background: '#2d1b3d', // Deep sunset purple
+                foreground: '#ffa500', // Orange text
+                cursor: '#ff6347', // Tomato cursor
+                selection: '#4a2c4a', // Purple selection
+                black: '#2d1b3d',
+                red: '#ff4757', // Sunset red
+                green: '#2ed573', // Mint green
+                yellow: '#ffa502', // Sunset orange
+                blue: '#3742fa', // Deep blue
+                magenta: '#ff3838', // Pink
+                cyan: '#7bed9f', // Light green
+                white: '#ffffff',
+                brightBlack: '#57606f',
+                brightRed: '#ff6b7a',
+                brightGreen: '#7bed9f',
+                brightYellow: '#ffbe76',
+                brightBlue: '#70a1ff',
+                brightMagenta: '#ff9ff3',
+                brightCyan: '#7bed9f',
+                brightWhite: '#ffffff'
+            },
+            galaxy: {
+                background: '#0d0d23', // Deep space
+                foreground: '#e6e6fa', // Lavender
+                cursor: '#ba55d3', // Medium orchid cursor
+                selection: '#1a1a3e', // Dark space selection
+                black: '#0d0d23',
+                red: '#ff1493', // Deep pink
+                green: '#00ff7f', // Spring green
+                yellow: '#ffd700', // Gold
+                blue: '#4169e1', // Royal blue
+                magenta: '#da70d6', // Orchid
+                cyan: '#00bfff', // Deep sky blue
+                white: '#e6e6fa',
+                brightBlack: '#483d8b',
+                brightRed: '#ff69b4',
+                brightGreen: '#98fb98',
+                brightYellow: '#ffffe0',
+                brightBlue: '#87ceeb',
+                brightMagenta: '#dda0dd',
+                brightCyan: '#e0ffff',
+                brightWhite: '#ffffff'
+            },
+            vampire: {
+                background: '#1a0a0a', // Dark blood red
+                foreground: '#ff6b6b', // Blood red
+                cursor: '#dc143c', // Crimson cursor
+                selection: '#330a0a', // Dark red selection
+                black: '#1a0a0a',
+                red: '#ff0000', // Pure red
+                green: '#32cd32', // Lime green
+                yellow: '#ffd700', // Gold
+                blue: '#4682b4', // Steel blue
+                magenta: '#ff1493', // Deep pink
+                cyan: '#00ced1', // Dark turquoise
+                white: '#f5f5f5',
+                brightBlack: '#696969',
+                brightRed: '#ff4500',
+                brightGreen: '#90ee90',
+                brightYellow: '#ffff00',
+                brightBlue: '#87ceeb',
+                brightMagenta: '#ff69b4',
+                brightCyan: '#00ffff',
+                brightWhite: '#ffffff'
+            },
+            arctic: {
+                background: '#0f1419', // Dark ice
+                foreground: '#e6ffff', // Light cyan
+                cursor: '#87ceeb', // Sky blue cursor
+                selection: '#1e3a5f', // Ice blue selection
+                black: '#0f1419',
+                red: '#ff6b7a', // Soft red
+                green: '#7bed9f', // Mint
+                yellow: '#ffbe76', // Soft yellow
+                blue: '#70a1ff', // Ice blue
+                magenta: '#9ff3ff', // Light cyan
+                cyan: '#7bed9f', // Mint cyan
+                white: '#e6ffff',
+                brightBlack: '#57606f',
+                brightRed: '#ff9ff3',
+                brightGreen: '#7bed9f',
+                brightYellow: '#ffbe76',
+                brightBlue: '#70a1ff',
+                brightMagenta: '#ff9ff3',
+                brightCyan: '#7bed9f',
+                brightWhite: '#ffffff'
+            },
+            neon: {
+                background: '#000000', // Pure black
+                foreground: '#00ff00', // Neon green
+                cursor: '#ff00ff', // Neon magenta cursor
+                selection: '#1a1a1a', // Dark selection
+                black: '#000000',
+                red: '#ff0080', // Neon pink
+                green: '#00ff00', // Neon green
+                yellow: '#ffff00', // Neon yellow
+                blue: '#0080ff', // Neon blue
+                magenta: '#ff00ff', // Neon magenta
+                cyan: '#00ffff', // Neon cyan
+                white: '#ffffff',
+                brightBlack: '#808080',
+                brightRed: '#ff4080',
+                brightGreen: '#40ff40',
+                brightYellow: '#ffff80',
+                brightBlue: '#4080ff',
+                brightMagenta: '#ff40ff',
+                brightCyan: '#40ffff',
+                brightWhite: '#ffffff'
+            },
+            retro: {
+                background: '#2e1f08', // Retro amber background
+                foreground: '#ff9500', // Amber text
+                cursor: '#ffaa00', // Bright amber cursor
+                selection: '#4a3318', // Dark amber selection
+                black: '#2e1f08',
+                red: '#ff6b47', // Retro red
+                green: '#a4e400', // Retro green
+                yellow: '#ffaa00', // Amber yellow
+                blue: '#5a9fd4', // Retro blue
+                magenta: '#ad4e85', // Retro magenta
+                cyan: '#4fb8cc', // Retro cyan
+                white: '#f5deb3',
+                brightBlack: '#8b7355',
+                brightRed: '#ff8c69',
+                brightGreen: '#c7f464',
+                brightYellow: '#ffd700',
+                brightBlue: '#87ceeb',
+                brightMagenta: '#dda0dd',
+                brightCyan: '#87ceeb',
+                brightWhite: '#ffffff'
+            },
+            matrix: {
+                background: '#000000', // Pure black matrix
+                foreground: '#00ff00', // Matrix green
+                cursor: '#39ff14', // Bright matrix green cursor
+                selection: '#003300', // Dark green selection
+                black: '#000000',
+                red: '#ff0000', // Error red
+                green: '#00ff00', // Matrix green
+                yellow: '#33ff33', // Light green
+                blue: '#0066ff', // Blue accent
+                magenta: '#66ff66', // Light matrix green
+                cyan: '#00ffcc', // Cyan accent
+                white: '#ccffcc',
+                brightBlack: '#006600',
+                brightRed: '#ff3333',
+                brightGreen: '#33ff33',
+                brightYellow: '#66ff66',
+                brightBlue: '#3366ff',
+                brightMagenta: '#99ff99',
+                brightCyan: '#66ffcc',
+                brightWhite: '#ffffff'
             }
         };
         this.loadTheme();
@@ -289,15 +415,38 @@ class ThemeManager {
         if (saved && this.themes[saved]) {
             this.currentTheme = saved;
         }
+        // Apply the theme immediately on load
+        this.applyTheme(this.currentTheme);
     }
 
     setTheme(themeName) {
         if (this.themes[themeName]) {
             this.currentTheme = themeName;
             localStorage.setItem('rinawarp-terminal-theme', themeName);
+            this.applyTheme(themeName);
             return true;
         }
         return false;
+    }
+
+    applyTheme(themeName) {
+        // Apply theme to body and terminal
+        document.body.className = `theme-${themeName}`;
+        
+        // Add special effects for mermaid theme
+        if (themeName === 'mermaid') {
+            document.body.style.backgroundAttachment = 'fixed';
+            console.log('🧜‍♀️ Mermaid theme activated with special effects!');
+        } else {
+            document.body.style.backgroundAttachment = 'initial';
+        }
+        
+        // Update any existing terminals
+        const terminalManager = window.terminalManager;
+        if (terminalManager && terminalManager.terminal) {
+            terminalManager.terminal.options.theme = this.themes[themeName];
+            terminalManager.terminal.refresh(0, terminalManager.terminal.rows - 1);
+        }
     }
 
     getCurrentTheme() {
@@ -1869,6 +2018,11 @@ class TerminalManager {
                 );
             }, 2000);
             
+            // Show commercial licensing notification after a delay
+            setTimeout(() => {
+                this.showCommercialWelcome();
+            }, 3000);
+            
         } catch (error) {
             console.warn('⚠️ Phase 1 features initialization failed:', error);
             // Graceful fallback - terminal will still work without these features
@@ -2339,6 +2493,17 @@ class TerminalManager {
         this.platform = await ipcRenderer.invoke('get-platform');
         this.shell = await ipcRenderer.invoke('get-shell');
         
+        // Check if this is first run and show welcome screen
+        const isFirstRun = !localStorage.getItem('rinawarp-onboarding-completed');
+        if (isFirstRun) {
+            this.showWelcomeScreen();
+            return; // Don't proceed with normal initialization until onboarding is complete
+        }
+        
+        this.completeInitialization();
+    }
+    
+    completeInitialization() {
         // Update status bar
         this.updateStatusBar();
         
@@ -2452,6 +2617,33 @@ class TerminalManager {
         
         // Setup settings modal
         this.setupSettingsModal();
+        
+        // Setup quick theme switch button
+        this.setupQuickThemeSwitch();
+    }
+    
+    setupQuickThemeSwitch() {
+        const themeQuickBtn = document.getElementById('theme-quick-btn');
+        if (themeQuickBtn) {
+            themeQuickBtn.addEventListener('click', () => {
+                // Quick toggle between dark and mermaid themes
+                const currentTheme = this.themeManager.currentTheme;
+                const newTheme = currentTheme === 'mermaid' ? 'dark' : 'mermaid';
+                
+                this.switchTheme(newTheme);
+                
+                // Update button tooltip
+                const isNowMermaid = newTheme === 'mermaid';
+                themeQuickBtn.title = isNowMermaid ? 'Switch to Dark Theme' : 'Switch to Mermaid Theme';
+                
+                // Show notification with special message for mermaid theme
+                if (isNowMermaid) {
+                    this.pluginAPI.showNotification('🧜‍♀️ Welcome to the Mermaid Theme! Experience the magic of the deep!', 'success', 4000);
+                } else {
+                    this.pluginAPI.showNotification('🌙 Switched to Dark Theme', 'info', 2000);
+                }
+            });
+        }
         
         // Setup command suggestions
         this.setupCommandSuggestions();
@@ -2607,8 +2799,18 @@ class TerminalManager {
         
         const suggestions = this.historyManager.getSuggestions(input);
         
-        // Get AI suggestions if enabled
+        // Get AI suggestions if enabled and license allows
         if (this.settings.aiAssistance) {
+            if (!licenseManager.canUseAI()) {
+                // Show upgrade prompt for AI features
+                licenseManager.showUpgradeDialog('AI Assistance');
+                this.showSuggestions(suggestions);
+                return;
+            }
+            
+            // Track AI usage
+            licenseManager.trackAIUsage();
+            
             const aiSuggestions = await this.pluginManager.executeHook('command-suggestion', input);
             aiSuggestions.flat().forEach(suggestion => {
                 if (!suggestions.includes(suggestion)) {
@@ -3046,8 +3248,221 @@ class TerminalManager {
         document.getElementById('shell-info').textContent = path.basename(this.shell);
         document.getElementById('current-dir').textContent = process.cwd();
         
+        // Update license status
+        this.updateLicenseStatus();
+        
         // Update git info through plugin
         this.pluginManager.executeHook('directory-changed', { terminalId: this.activeTerminalId }, process.cwd());
+    }
+    
+    updateLicenseStatus() {
+        const licenseElement = document.getElementById('license-status');
+        if (licenseElement && licenseManager) {
+            const status = licenseManager.getStatus();
+            
+            let statusText = '';
+            let statusColor = '';
+            
+            switch(status.tier) {
+                case 'trial':
+                    statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+                    statusColor = '#ffd93d';
+                    break;
+                case 'personal':
+                    statusText = '👤 Personal';
+                    statusColor = '#51cf66';
+                    break;
+                case 'professional':
+                    statusText = '💼 Professional';
+                    statusColor = '#74c0fc';
+                    break;
+                case 'team':
+                    statusText = '👥 Team';
+                    statusColor = '#9775fa';
+                    break;
+                case 'enterprise':
+                    statusText = '🏢 Enterprise';
+                    statusColor = '#ff8c42';
+                    break;
+                case 'expired':
+                    statusText = '❌ Expired';
+                    statusColor = '#f92672';
+                    break;
+                default:
+                    statusText = '❓ Unknown';
+                    statusColor = '#666';
+            }
+            
+            licenseElement.textContent = statusText;
+            licenseElement.style.color = statusColor;
+            
+            // Make it clickable to show upgrade options
+            licenseElement.style.cursor = 'pointer';
+            licenseElement.onclick = () => this.showLicenseManager();
+        }
+    }
+    
+    showLicenseManager() {
+        const status = licenseManager.getStatus();
+        
+        const licenseModal = this.pluginAPI.createModal('🔑 License Manager', `
+            <div class="license-manager">
+                <div class="license-status-section">
+                    <h4>Current License Status</h4>
+                    <div class="current-license">
+                        <div class="license-tier">${status.tier.toUpperCase()}</div>
+                        <div class="license-details">
+                            ${status.tier === 'trial' ? 
+                                `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>` :
+                                '<p>License is active</p>'
+                            }
+                            ${status.aiQueriesRemaining !== 'unlimited' ? 
+                                `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>` :
+                                '<p>Unlimited AI queries</p>'
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="license-actions">
+                    <h4>License Actions</h4>
+                    <div class="action-buttons">
+                        <button id="view-pricing" class="btn btn-primary">View Pricing & Upgrade</button>
+                        <button id="enter-license" class="btn btn-secondary">Enter License Key</button>
+                        ${status.tier === 'trial' ? '<button id="extend-trial" class="btn btn-secondary">Extend Trial</button>' : ''}
+                    </div>
+                </div>
+                
+                <div class="license-info">
+                    <h4>Feature Comparison</h4>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <span class="feature-name">AI Queries per Day</span>
+                            <span class="feature-value">${status.tier === 'personal' ? '5' : status.tier === 'trial' ? 'Unlimited (trial)' : 'Unlimited'}</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Cloud Sync</span>
+                            <span class="feature-value">${['professional', 'team', 'enterprise', 'trial'].includes(status.tier) ? '✅' : '❌'}</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Team Features</span>
+                            <span class="feature-value">${['team', 'enterprise'].includes(status.tier) ? '✅' : '❌'}</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Enterprise Security</span>
+                            <span class="feature-value">${status.tier === 'enterprise' ? '✅' : '❌'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `, {
+            footer: '<button class="btn btn-secondary close-modal">Close</button>'
+        });
+        
+        this.setupLicenseActions(licenseModal);
+    }
+    
+    setupLicenseActions(modal) {
+        // View pricing button
+        modal.querySelector('#view-pricing')?.addEventListener('click', () => {
+            // Open pricing page in browser
+            require('electron').shell.openExternal('https://rinawarp.com/pricing');
+        });
+        
+        // Enter license key
+        modal.querySelector('#enter-license')?.addEventListener('click', () => {
+            const licenseKey = prompt('Enter your license key:');
+            if (licenseKey) {
+                const licenseType = prompt('Enter license type (personal/professional/team/enterprise):');
+                if (licenseType) {
+                    try {
+                        licenseManager.activateLicense(licenseKey, licenseType);
+                        this.updateLicenseStatus();
+                        this.pluginAPI.showNotification('License activated successfully!', 'success');
+                        modal.querySelector('.close-modal').click();
+                    } catch (error) {
+                        this.pluginAPI.showNotification('License activation failed', 'error');
+                    }
+                }
+            }
+        });
+        
+        // Extend trial (placeholder)
+        modal.querySelector('#extend-trial')?.addEventListener('click', () => {
+            this.pluginAPI.showNotification('Trial extension is not yet implemented', 'info');
+        });
+    }
+    
+    showCommercialWelcome() {
+        const status = licenseManager.getStatus();
+        
+        if (status.tier === 'trial' && status.trialDaysRemaining > 0) {
+            const welcomeModal = this.pluginAPI.createModal('🎉 Welcome to RinaWarp Terminal!', `
+                <div class="commercial-welcome">
+                    <div class="welcome-header">
+                        <h3>Thank you for trying RinaWarp Terminal</h3>
+                        <p>You're currently on a <strong>30-day free trial</strong> with full Professional features!</p>
+                    </div>
+                    
+                    <div class="trial-status">
+                        <div class="trial-info">
+                            <span class="trial-days">${status.trialDaysRemaining}</span>
+                            <span class="trial-label">days remaining</span>
+                        </div>
+                        <div class="trial-features">
+                            <h4>What's included in your trial:</h4>
+                            <ul>
+                                <li>✅ Unlimited AI-powered command assistance</li>
+                                <li>✅ Advanced Git workflow integration</li>
+                                <li>✅ Cloud sync across devices</li>
+                                <li>✅ Custom themes and layouts</li>
+                                <li>✅ Session management</li>
+                                <li>✅ Priority email support</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-actions">
+                        <h4>Ready to get the most out of RinaWarp?</h4>
+                        <div class="action-buttons">
+                            <button id="view-pricing-welcome" class="btn btn-primary">View Pricing Plans</button>
+                            <button id="learn-features" class="btn btn-secondary">Explore Features</button>
+                            <button id="dismiss-welcome" class="btn btn-secondary">Continue with Trial</button>
+                        </div>
+                    </div>
+                    
+                    <div class="commercial-note">
+                        <p><small>RinaWarp Terminal is now a commercial product. After your trial expires, you'll need a license to continue using advanced features.</small></p>
+                    </div>
+                </div>
+            `, {
+                footer: ''
+            });
+            
+            this.setupCommercialWelcomeActions(welcomeModal);
+        }
+    }
+    
+    setupCommercialWelcomeActions(modal) {
+        // View pricing button
+        modal.querySelector('#view-pricing-welcome')?.addEventListener('click', () => {
+            require('electron').shell.openExternal('https://rinawarp.com/pricing');
+            modal.querySelector('.close-modal')?.click();
+        });
+        
+        // Learn features button
+        modal.querySelector('#learn-features')?.addEventListener('click', () => {
+            this.showAIFeatures();
+            modal.querySelector('.close-modal')?.click();
+        });
+        
+        // Dismiss welcome
+        modal.querySelector('#dismiss-welcome')?.addEventListener('click', () => {
+            modal.querySelector('.close-modal')?.click();
+        });
+        
+        // Don't show this again for this session
+        sessionStorage.setItem('rinawarp_welcome_shown', 'true');
     }
     
     // Performance optimization: Debounced resize

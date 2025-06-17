@@ -1,14 +1,13 @@
 /**
  * RinaWarp Terminal - Main UI
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
  * 
- * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * This file is part of RinaWarp Terminal, a commercial terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * Licensed under the MIT License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * Project repository: https://github.com/rinawarp/terminal
+ * PROPRIETARY SOFTWARE - All rights reserved.
+ * For licensing information: https://rinawarp.com/pricing
+ * For enterprise inquiries: sales@rinawarp.com
  */
 <!DOCTYPE html>
 <html lang="en">
@@ -30,6 +29,7 @@
                 <div class="title-bar-menu">
                     <button class="menu-btn" id="sessions-btn" title="Sessions">📂</button>
                     <button class="menu-btn" id="cloud-sync-btn" title="Cloud Sync">☁️</button>
+                    <button class="menu-btn" id="theme-quick-btn" title="Switch to Mermaid Theme">🧜‍♀️</button>
                     <button class="menu-btn" id="settings-btn" title="Settings">⚙️</button>
                 </div>
                 <div class="title-bar-controls">
@@ -88,6 +88,7 @@
             <div class="status-right">
                 <span class="status-item" id="session-info">Default Session</span>
                 <span class="status-item" id="sync-status">⚪ Not synced</span>
+                <span class="status-item" id="license-status">🔑 Trial</span>
                 <span class="status-item" id="shell-info"></span>
                 <span class="status-item" id="platform-info"></span>
             </div>
@@ -297,9 +298,268 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Welcome Screen Overlay -->
+        <div id="welcome-overlay" class="welcome-overlay hidden">
+            <div class="welcome-container">
+                <div class="welcome-header">
+                    <div class="logo-section">
+                        <div class="app-logo">🚀</div>
+                        <h1>Welcome to RinaWarp Terminal</h1>
+                        <p class="subtitle">Your AI-powered development companion</p>
+                    </div>
+                </div>
+                
+                <div class="welcome-content">
+                    <div class="feature-highlights">
+                        <div class="feature-card">
+                            <div class="feature-icon">🤖</div>
+                            <h3>AI Assistant</h3>
+                            <p>Get intelligent command suggestions and code help</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎨</div>
+                            <h3>Beautiful Themes</h3>
+                            <p>Customize your terminal with stunning color schemes</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">⚡</div>
+                            <h3>Lightning Fast</h3>
+                            <p>Enhanced performance with modern web technologies</p>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-actions">
+                        <button id="start-quick-setup" class="btn btn-primary btn-large">
+                            Quick Setup (2 minutes)
+                        </button>
+                        <button id="skip-welcome" class="btn btn-secondary">
+                            Skip & Explore
+                        </button>
+                    </div>
+                    
+                    <div class="welcome-footer">
+                        <p>Need help? Press <kbd>Ctrl+Shift+P</kbd> to open the command palette anytime</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Setup Modal -->
+        <div id="quick-setup-modal" class="modal hidden">
+            <div class="modal-content setup-modal">
+                <div class="modal-header">
+                    <h3>Quick Setup - <span id="setup-step-title">Welcome</span></h3>
+                    <div class="setup-progress">
+                        <div class="progress-bar">
+                            <div id="setup-progress-fill" class="progress-fill"></div>
+                        </div>
+                        <span id="setup-step-counter">Step 1 of 4</span>
+                    </div>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Step 1: Theme Selection -->
+                    <div id="setup-step-1" class="setup-step active">
+                        <h4>Choose Your Style</h4>
+                        <p class="step-description">Select a theme that matches your preference</p>
+                        
+                        <div class="theme-grid">
+                            <div class="theme-option" data-theme="mermaid">
+                                <div class="theme-preview mermaid-preview">
+                                    <div class="preview-titlebar"></div>
+                                    <div class="preview-terminal">
+                                        <div class="preview-line">
+                                            <span class="preview-prompt">❯</span>
+                                            <span class="preview-command">npm start</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="theme-name">Mermaid (Default)</span>
+                            </div>
+                            
+                            <div class="theme-option" data-theme="dark">
+                                <div class="theme-preview dark-preview">
+                                    <div class="preview-titlebar"></div>
+                                    <div class="preview-terminal">
+                                        <div class="preview-line">
+                                            <span class="preview-prompt">❯</span>
+                                            <span class="preview-command">npm start</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="theme-name">Dark Pro</span>
+                            </div>
+                            
+                            <div class="theme-option" data-theme="light">
+                                <div class="theme-preview light-preview">
+                                    <div class="preview-titlebar"></div>
+                                    <div class="preview-terminal">
+                                        <div class="preview-line">
+                                            <span class="preview-prompt">❯</span>
+                                            <span class="preview-command">npm start</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="theme-name">Light Mode</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Shell Configuration -->
+                    <div id="setup-step-2" class="setup-step">
+                        <h4>Configure Your Shell</h4>
+                        <p class="step-description">Set up your preferred shell and startup directory</p>
+                        
+                        <div class="form-group">
+                            <label for="setup-shell">Default Shell:</label>
+                            <select id="setup-shell" class="form-control">
+                                <option value="auto">Auto-detect</option>
+                                <option value="powershell">PowerShell</option>
+                                <option value="cmd">Command Prompt</option>
+                                <option value="wsl">WSL (Ubuntu)</option>
+                                <option value="git-bash">Git Bash</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="setup-startup-dir">Startup Directory:</label>
+                            <input type="text" id="setup-startup-dir" class="form-control" placeholder="Leave empty for home directory">
+                            <button id="browse-startup-dir" class="btn btn-small btn-secondary">Browse</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: AI Features -->
+                    <div id="setup-step-3" class="setup-step">
+                        <h4>AI Assistant Settings</h4>
+                        <p class="step-description">Configure intelligent features to boost your productivity</p>
+                        
+                        <div class="feature-toggles">
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="enable-ai-suggestions" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="toggle-content">
+                                    <h5>Smart Command Suggestions</h5>
+                                    <p>Get contextual command recommendations as you type</p>
+                                </div>
+                            </div>
+                            
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="enable-auto-complete" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="toggle-content">
+                                    <h5>Enhanced Auto-completion</h5>
+                                    <p>Intelligent file and command completion</p>
+                                </div>
+                            </div>
+                            
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="enable-error-help">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="toggle-content">
+                                    <h5>Error Analysis & Help</h5>
+                                    <p>Get suggestions when commands fail</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Summary -->
+                    <div id="setup-step-4" class="setup-step">
+                        <h4>You're All Set!</h4>
+                        <p class="step-description">Here's what we've configured for you:</p>
+                        
+                        <div class="setup-summary">
+                            <div class="summary-item">
+                                <span class="summary-label">Theme:</span>
+                                <span id="summary-theme">Mermaid</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Shell:</span>
+                                <span id="summary-shell">Auto-detect</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">AI Features:</span>
+                                <span id="summary-ai">Enabled</span>
+                            </div>
+                        </div>
+                        
+                        <div class="next-steps">
+                            <h5>What's Next?</h5>
+                            <ul>
+                                <li>Press <kbd>Ctrl+Shift+P</kbd> to open the command palette</li>
+                                <li>Try typing <code>git status</code> to see AI suggestions</li>
+                                <li>Use <kbd>Ctrl+,</kbd> to access advanced settings anytime</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer setup-footer">
+                    <button id="setup-prev" class="btn btn-secondary" disabled>Previous</button>
+                    <div class="footer-spacer"></div>
+                    <button id="setup-skip" class="btn btn-text">Skip Setup</button>
+                    <button id="setup-next" class="btn btn-primary">Next</button>
+                    <button id="setup-finish" class="btn btn-primary" style="display: none;">Start Terminal</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Command Palette -->
+        <div id="command-palette" class="command-palette hidden">
+            <div class="palette-container">
+                <div class="palette-header">
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="palette-search" placeholder="Type a command or search..." autocomplete="off">
+                        <span class="palette-shortcut">Esc to close</span>
+                    </div>
+                </div>
+                
+                <div class="palette-results">
+                    <div class="results-section">
+                        <div class="section-title">Quick Actions</div>
+                        <div id="palette-quick-actions" class="results-list"></div>
+                    </div>
+                    
+                    <div class="results-section">
+                        <div class="section-title">Settings</div>
+                        <div id="palette-settings" class="results-list"></div>
+                    </div>
+                    
+                    <div class="results-section">
+                        <div class="section-title">Features</div>
+                        <div id="palette-features" class="results-list"></div>
+                    </div>
+                </div>
+                
+                <div class="palette-footer">
+                    <div class="palette-help">
+                        <span><kbd>↑↓</kbd> Navigate</span>
+                        <span><kbd>Enter</kbd> Execute</span>
+                        <span><kbd>Esc</kbd> Close</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tooltips Container -->
+        <div id="tooltip-container"></div>
+        
+        <!-- Feature Callouts -->
+        <div id="feature-callouts"></div>
     </div>
 
     <!-- Scripts -->
+    <!-- Load license system first -->
+    <script src="../license-manager.js"></script>
+    
     <!-- Load advanced features first as modules -->
     <script type="module" src="ai-context-engine.js"></script>
     <script type="module" src="enhanced-security.js"></script>
