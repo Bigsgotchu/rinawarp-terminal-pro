@@ -10,11 +10,12 @@
  * 
  * Project repository: https://github.com/rinawarp/terminal
  */
-module.exports = {
+export default {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   testMatch: [
-    '<rootDir>/tests*.spec.js'
+    '<rootDir>/tests/**/*.test.js',
+    '<rootDir>/tests/**/*.spec.js'
   ],
   collectCoverageFrom: [
     'srcnode_modules/**'

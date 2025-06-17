@@ -1,6 +1,6 @@
 # RinaWarp Terminal
 
-An advanced open-source terminal emulator with enterprise-grade features, built with Electron. RinaWarp Terminal provides all the power of modern terminals with AI assistance, cloud sync, session management, and extensive customization - completely free and open source.
+An advanced commercial terminal emulator with enterprise-grade features, built with Electron. RinaWarp Terminal provides all the power of modern terminals with AI assistance, cloud sync, session management, and extensive customization for professional developers and enterprise teams.
 
 ## Features
 
@@ -114,7 +114,10 @@ rinawarp-terminal/
 
 ## License
 
-MIT License - see LICENSE file for details.
+Proprietary Software - Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+
+For licensing information and pricing, visit: https://rinawarp.com/pricing  
+For enterprise inquiries, contact: sales@rinawarp.com
 
 ## Advanced Usage
 
