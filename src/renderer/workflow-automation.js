@@ -691,7 +691,7 @@ class CrossSystemIntegration {
 // DockerIntegration class moved to avoid duplication - see line 1403
 
 // ES6 export for module system
-export { WorkflowAutomation, WorkflowAutomationEngine };
+export { WorkflowAutomation };
 
 
 
@@ -1382,6 +1382,7 @@ class KubernetesIntegration {
     }
 }
 
+// Export WorkflowAutomationEngine as well
 export { WorkflowAutomationEngine };
 
 

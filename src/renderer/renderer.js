@@ -22,6 +22,9 @@ const fs = require('fs');
 // These will be loaded dynamically to prevent bundling issues
 let AdvancedAIContextEngine, PerformanceMonitoringDashboard, WorkflowAutomationEngine, EnhancedSecurityEngine, NextGenUIEngine;
 
+// Multimodal Agent Manager
+let MultimodalAgentManager;
+
 // Initialize License Manager
 let licenseManager;
 try {
@@ -53,16 +56,21 @@ async function loadAdvancedFeatures() {
         // Phase 2: Next-Gen UI Features
         const uiModule = await import('./next-gen-ui.js');
         
+        // Phase 3: Multimodal Agent Framework
+        const agentModule = await import('./multimodal-agent-manager.js');
+        
         AdvancedAIContextEngine = aiModule.AdvancedAIContextEngine;
         PerformanceMonitoringDashboard = perfModule.PerformanceMonitoringDashboard;
         WorkflowAutomationEngine = workflowModule.WorkflowAutomationEngine;
         EnhancedSecurityEngine = securityModule.EnhancedSecurityEngine;
         NextGenUIEngine = uiModule.NextGenUIEngine;
+        MultimodalAgentManager = agentModule.MultimodalAgentManager;
         
         console.log('🚀 All Advanced Features Loaded Successfully!');
         console.log('✅ Phase 1: AI Context Engine & Performance Monitor');
         console.log('✅ Phase 1: Workflow Automation & Enhanced Security');
         console.log('✅ Phase 2: Next-Gen UI with 3D/AR capabilities');
+        console.log('✅ Phase 3: Multimodal AI Agent Framework');
         
         return true;
     } catch (error) {
@@ -73,6 +81,7 @@ async function loadAdvancedFeatures() {
         WorkflowAutomationEngine = class { constructor() { console.log('Workflow Automation - Fallback Mode'); } };
         EnhancedSecurityEngine = class { constructor() { console.log('Enhanced Security - Fallback Mode'); } };
         NextGenUIEngine = class { constructor() { console.log('Next-Gen UI - Fallback Mode'); } };
+        MultimodalAgentManager = class { constructor() { console.log('Multimodal Agent Manager - Fallback Mode'); } };
         
         return false;
     }
@@ -2485,6 +2494,12 @@ class TerminalManager {
         }
     }
 
+    showWelcomeScreen() {
+        // Skip welcome screen for now and mark onboarding as complete
+        localStorage.setItem('rinawarp-onboarding-completed', 'true');
+        this.completeInitialization();
+    }
+    
     async init() {
         // Setup window controls
         this.setupWindowControls();
@@ -4376,6 +4391,14 @@ function setupWindowControls() {
     document.querySelectorAll('.title-bar-control, .menu-btn').forEach(btn => {
         btn.style.webkitAppRegion = 'no-drag';
     });
+    
+    // Enhanced UI toggle button
+    const enhancedUIToggle = document.getElementById('enhanced-ui-toggle');
+    if (enhancedUIToggle) {
+        enhancedUIToggle.addEventListener('click', () => {
+            toggleEnhancedUI();
+        });
+    }
 }
 
 // Initialize when DOM is loaded
@@ -4386,6 +4409,16 @@ if (document.readyState === 'loading') {
         window.pluginDevAPI = new PluginDevelopmentAPI(window.terminalManager);
         window.nlProcessor = new NaturalLanguageProcessor();
         window.advancedGit = new AdvancedGitIntegration(window.terminalManager);
+        
+        // Initialize Multimodal Agent Manager after other components
+        if (MultimodalAgentManager) {
+            try {
+                window.agentManager = new MultimodalAgentManager(window.terminalManager);
+                console.log('🤖 Multimodal Agent Manager initialized successfully');
+            } catch (error) {
+                console.error('❌ Failed to initialize Multimodal Agent Manager:', error);
+            }
+        }
     });
 } else {
     setupWindowControls();
@@ -4393,6 +4426,44 @@ if (document.readyState === 'loading') {
     window.pluginDevAPI = new PluginDevelopmentAPI(window.terminalManager);
     window.nlProcessor = new NaturalLanguageProcessor();
     window.advancedGit = new AdvancedGitIntegration(window.terminalManager);
+}
+
+// Enhanced UI Toggle Function
+function toggleEnhancedUI() {
+    // Check if enhanced UI is available
+    if (typeof window.initializeBeginnerFriendlyUI === 'function') {
+        try {
+            // Get current state
+            const enhancedUIContainer = document.getElementById('enhanced-ui-container');
+            
+            if (enhancedUIContainer) {
+                // Toggle visibility
+                const isCurrentlyVisible = !enhancedUIContainer.classList.contains('hidden');
+                
+                if (isCurrentlyVisible) {
+                    enhancedUIContainer.classList.add('hidden');
+                    window.terminalManager?.pluginAPI?.showNotification('Enhanced UI disabled', 'info', 2000);
+                } else {
+                    enhancedUIContainer.classList.remove('hidden');
+                    window.terminalManager?.pluginAPI?.showNotification('Enhanced UI enabled', 'success', 2000);
+                }
+            } else {
+                // Initialize enhanced UI for the first time
+                window.initializeBeginnerFriendlyUI().then(() => {
+                    window.terminalManager?.pluginAPI?.showNotification('Enhanced Beginner-Friendly UI activated!', 'success', 3000);
+                }).catch(error => {
+                    console.error('Failed to initialize enhanced UI:', error);
+                    window.terminalManager?.pluginAPI?.showNotification('Failed to load Enhanced UI', 'error', 3000);
+                });
+            }
+        } catch (error) {
+            console.error('Error toggling enhanced UI:', error);
+            window.terminalManager?.pluginAPI?.showNotification('Enhanced UI toggle failed', 'error', 2000);
+        }
+    } else {
+        // Enhanced UI not available
+        window.terminalManager?.pluginAPI?.showNotification('Enhanced UI not available. Please ensure integration-init.js is loaded.', 'error', 4000);
+    }
 }
 
 // Add global keyboard shortcuts

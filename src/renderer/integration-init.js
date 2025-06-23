@@ -50,6 +50,9 @@ class RinaWarpInitializer {
             // Setup status monitoring
             this.setupStatusMonitoring();
 
+            // Initialize Enhanced Beginner-Friendly UI
+            await this.initializeBeginnerFriendlyUI();
+
             this.isInitialized = true;
             
             console.log('[RinaWarp] ✅ Integration system initialized successfully!');
@@ -151,6 +154,35 @@ class RinaWarpInitializer {
                 this.integrationSystem.hub.eventBus.emit('system:status-update', status);
             }
         }, 30000);
+    }
+
+    async initializeBeginnerFriendlyUI() {
+        try {
+            console.log('[RinaWarp] 🎯 Initializing Enhanced Beginner-Friendly UI...');
+            
+            // Dynamic import to avoid bundling issues
+            const beginnerUIModule = await import('./beginner-friendly-ui.js');
+            const BeginnerFriendlyUI = beginnerUIModule.BeginnerFriendlyUI;
+            
+            // Create and initialize the UI
+            window.beginnerUI = new BeginnerFriendlyUI(window.terminalManager);
+            
+            // Register with integration system
+            if (this.integrationSystem && this.integrationSystem.hub) {
+                this.integrationSystem.hub.registerFeature('beginner-ui', {
+                    name: 'Enhanced Beginner-Friendly UI',
+                    version: '2.0.0',
+                    status: 'active',
+                    instance: window.beginnerUI
+                });
+            }
+            
+            console.log('[RinaWarp] 🎯 ✅ Enhanced Beginner-Friendly UI initialized successfully!');
+            
+        } catch (error) {
+            console.warn('[RinaWarp] ⚠️ Could not load Enhanced Beginner-Friendly UI:', error.message);
+            console.log('[RinaWarp] Continuing without enhanced UI features...');
+        }
     }
 
     

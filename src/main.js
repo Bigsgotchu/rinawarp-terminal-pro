@@ -10,7 +10,7 @@
  * 
  * Project repository: https://github.com/rinawarp/terminal
  */
-import { app, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, BrowserView, Menu, ipcMain, dialog } from 'electron';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
@@ -62,6 +62,23 @@ function createWindow() {
   if (process.argv.includes('--dev')) {
     mainWindow.webContents.openDevTools();
   }
+}
+
+// Create browser pane method
+function createBrowserPane(url = 'https://google.com') {
+  const browserView = new BrowserView({
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true
+    }
+  });
+  
+  mainWindow.setBrowserView(browserView);
+  browserView.setBounds({ x: 0, y: 100, width: 800, height: 600 });
+  browserView.webContents.loadURL(url);
+  
+  return browserView;
 }
 
 // Set unique application ID to prevent conflicts
