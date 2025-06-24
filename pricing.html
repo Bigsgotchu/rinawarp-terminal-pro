@@ -16,6 +16,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RinaWarp Terminal - Pricing</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="icon" type="image/png" href="assets/png/sizes/monogram-mermaid-favicon-32px.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
@@ -211,16 +213,36 @@
     <script src="https://js.stripe.com/v3/"></script>
     
     <script>
-        // TODO: Replace with your actual Stripe publishable key
-        const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY_HERE');
+        // Stripe configuration - loaded securely from backend API
+        let STRIPE_CONFIG = null;
+        let stripe = null;
+        
+        // Load configuration from secure backend API
+        async function loadStripeConfig() {
+            try {
+                const response = await fetch('/api/stripe-config');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                STRIPE_CONFIG = await response.json();
+                stripe = Stripe(STRIPE_CONFIG.publishableKey);
+                console.log('Stripe configuration loaded successfully');
+            } catch (error) {
+                console.error('Failed to load Stripe configuration:', error);
+                alert('Failed to load payment configuration. Please refresh the page.');
+            }
+        }
+        
+        // Initialize Stripe config when page loads
+        document.addEventListener('DOMContentLoaded', loadStripeConfig);
         
         function purchasePlan(plan) {
-            // TODO: Replace these with your actual Stripe Price IDs from Step 1
-            const prices = {
-                personal: 'price_1234567890_personal',     // Replace with actual Price ID
-                professional: 'price_1234567890_professional', // Replace with actual Price ID  
-                team: 'price_1234567890_team'                   // Replace with actual Price ID
-            };
+            if (!STRIPE_CONFIG || !stripe) {
+                alert('Payment system is still loading. Please try again in a moment.');
+                return;
+            }
+            
+            const prices = STRIPE_CONFIG.prices;
             
             if (!prices[plan]) {
                 alert('Invalid plan selected');

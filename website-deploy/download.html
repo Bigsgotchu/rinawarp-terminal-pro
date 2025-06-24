@@ -198,21 +198,20 @@
     
     <script>
         function downloadWindows() {
-            // TODO: Replace with actual download link
-            alert('Windows download will be available soon! For now, please check back in a few hours or contact support@rinawarp.com');
-            // window.location.href = 'https://releases.rinawarp.com/windows/RinaWarp-Terminal-Setup.exe';
+            // Direct download for Windows installer
+            window.location.href = '/releases/RinaWarp-Terminal-Setup-Windows.exe';
         }
         
         function downloadMac() {
-            // TODO: Replace with actual download link
-            alert('macOS download will be available soon! For now, please check back in a few hours or contact support@rinawarp.com');
-            // window.location.href = 'https://releases.rinawarp.com/mac/RinaWarp-Terminal.dmg';
+            // macOS build not available on Windows - redirect to GitHub releases
+            alert('macOS download will be available soon! We\'re working on cross-platform builds. Please check back soon or contact support@rinawarp.com');
+            // For now, direct users to potential future GitHub releases
+            // window.location.href = 'https://github.com/rinawarp/terminal/releases/latest/download/RinaWarp-Terminal.dmg';
         }
         
         function downloadLinux() {
-            // TODO: Replace with actual download link
-            alert('Linux download will be available soon! For now, please check back in a few hours or contact support@rinawarp.com');
-            // window.location.href = 'https://releases.rinawarp.com/linux/RinaWarp-Terminal.AppImage';
+            // Direct download for Linux tar.gz
+            window.location.href = '/releases/RinaWarp-Terminal-Linux.tar.gz';
         }
     </script>
 </body>

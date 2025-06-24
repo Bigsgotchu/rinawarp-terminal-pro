@@ -118,6 +118,8 @@ foreach ($svgFile in $svgFiles) {
         
         if (Test-Path $outputFile) {
             Write-Host "  ✓ Created $outputFile" -ForegroundColor Green
+        } else {
+            Write-Host "  ❌ Failed to create $outputFile" -ForegroundColor Red
         }
         
         # Create specific sizes for logos and monograms
@@ -135,6 +137,12 @@ foreach ($svgFile in $svgFiles) {
                     "rsvg-convert" {
                         & rsvg-convert --format=png --width=$($size.Size) --height=$($size.Size) --output=$sizedOutput $svgFile.File
                     }
+                }
+                
+                if (Test-Path $sizedOutput) {
+                    Write-Host "    ✓ Created $($size.Name) ($($size.Size)px)" -ForegroundColor Green
+                } else {
+                    Write-Host "    ❌ Failed to create $($size.Name) ($($size.Size)px)" -ForegroundColor Red
                 }
             }
         }
@@ -165,6 +173,8 @@ if ($converter.Name -eq "Magick") {
     
     if (Test-Path "rinawarp-icon-mermaid.ico") {
         Write-Host "  ✓ Created rinawarp-icon-mermaid.ico" -ForegroundColor Green
+    } else {
+        Write-Host "  ❌ Failed to create rinawarp-icon-mermaid.ico" -ForegroundColor Red
     }
 }
 

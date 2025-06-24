@@ -124,20 +124,39 @@ class LicenseManager {
         return Math.max(0, Math.ceil(trialDays - elapsed));
     }
 
-    // Validate with server (placeholder for now)
+    // Validate with server
     async validateWithServer() {
         try {
-            // TODO: Implement actual server validation
-            // const response = await fetch('https://api.rinawarp.com/validate', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ licenseKey: this.licenseKey })
-            // });
-            // const result = await response.json();
+            const response = await fetch('/api/validate-license', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey: this.licenseKey })
+            });
             
-            localStorage.setItem('rinawarp_last_validation', Date.now().toString());
+            const result = await response.json();
+            
+            if (result.valid) {
+                // Update local license information
+                this.licenseType = result.licenseType;
+                localStorage.setItem('rinawarp_license_type', result.licenseType);
+                localStorage.setItem('rinawarp_last_validation', Date.now().toString());
+                
+                if (result.expires) {
+                    localStorage.setItem('rinawarp_license_expires', result.expires.toString());
+                }
+                
+                console.log('License validation successful:', result.licenseType);
+                return true;
+            } else {
+                console.error('License validation failed:', result.error);
+                this.licenseType = 'expired';
+                localStorage.setItem('rinawarp_license_type', 'expired');
+                return false;
+            }
+            
         } catch (error) {
-            console.log('License validation failed, using cached license');
+            console.log('License validation failed, using cached license:', error);
+            return false;
         }
     }
 

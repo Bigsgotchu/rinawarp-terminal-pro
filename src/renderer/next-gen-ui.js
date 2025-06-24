@@ -771,6 +771,109 @@ class InteractiveTutorialSystem {
     }
 }
 
+class ContextualHintSystem {
+    constructor() {
+        this.hints = new Map();
+        this.contextAnalyzers = [];
+        this.isActive = false;
+    }
+
+    async initialize() {
+        console.log('Initializing contextual hint system...');
+        this.setupDefaultHints();
+        this.isActive = true;
+    }
+
+    setupDefaultHints() {
+        // Default hints for common scenarios
+        this.addHint('git-uncommitted', {
+            condition: () => this.hasUncommittedChanges(),
+            message: 'You have uncommitted changes. Consider using "git commit" to save your work.',
+            priority: 'medium'
+        });
+
+        this.addHint('large-output', {
+            condition: (context) => context.outputLines > 100,
+            message: 'Large output detected. Use "| less" or "| head" to paginate results.',
+            priority: 'low'
+        });
+
+        this.addHint('permission-denied', {
+            condition: (context) => context.error && context.error.includes('Permission denied'),
+            message: 'Try using "sudo" for administrative commands or check file permissions.',
+            priority: 'high'
+        });
+    }
+
+    addHint(id, hintConfig) {
+        this.hints.set(id, hintConfig);
+    }
+
+    async analyzeContext(command, result) {
+        if (!this.isActive) return null;
+
+        const context = {
+            command,
+            result,
+            outputLines: result?.output?.split('\n').length || 0,
+            error: result?.error,
+            timestamp: Date.now()
+        };
+
+        // Check all hints for applicable ones
+        const applicableHints = [];
+        for (const [id, hint] of this.hints) {
+            try {
+                if (hint.condition(context)) {
+                    applicableHints.push({ id, ...hint });
+                }
+            } catch (e) {
+                console.warn(`Error evaluating hint ${id}:`, e);
+            }
+        }
+
+        // Sort by priority and return the highest priority hint
+        if (applicableHints.length > 0) {
+            const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+            applicableHints.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+            return applicableHints[0];
+        }
+
+        return null;
+    }
+
+    async hasUncommittedChanges() {
+        // Simplified check - in real implementation, this would check git status
+        return false;
+    }
+
+    showHint(hint) {
+        const hintElement = document.createElement('div');
+        hintElement.className = `contextual-hint priority-${hint.priority}`;
+        hintElement.innerHTML = `
+            <div class="hint-content">
+                <span class="hint-icon">💡</span>
+                <span class="hint-message">${hint.message}</span>
+                <button class="hint-dismiss" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        const terminal = document.querySelector('.terminal-container');
+        if (terminal) {
+            terminal.appendChild(hintElement);
+            
+            // Auto-dismiss lower priority hints
+            if (hint.priority === 'low') {
+                setTimeout(() => {
+                    if (hintElement.parentElement) {
+                        hintElement.remove();
+                    }
+                }, 5000);
+            }
+        }
+    }
+}
+
 class HolographicMode {
     isSupported() {
         // Check if AR/VR is supported

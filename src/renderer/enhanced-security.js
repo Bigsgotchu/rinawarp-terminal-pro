@@ -29,6 +29,240 @@ class EnhancedSecurityEngine {
         this.initializeZeroTrust();
     }
 
+    startSecurityMonitoring() {
+        // Initialize security monitoring subsystems
+        console.log('🔒 Starting security monitoring...');
+        
+        // Start real-time threat monitoring
+        this.threatMonitoringInterval = setInterval(() => {
+            this.performThreatAssessment();
+        }, 30000); // Every 30 seconds
+        
+        // Initialize security metrics
+        this.securityMetrics = {
+            commandsAnalyzed: 0,
+            threatsDetected: 0,
+            complianceViolations: 0,
+            lastThreatAssessment: Date.now()
+        };
+        
+        // Start audit log rotation
+        this.startAuditLogRotation();
+        
+        console.log('✅ Security monitoring started successfully');
+    }
+
+    performThreatAssessment() {
+        // Perform periodic threat assessment
+        try {
+            const currentTime = Date.now();
+            this.securityMetrics.lastThreatAssessment = currentTime;
+            
+            // Check for anomalous activity patterns
+            this.checkActivityPatterns();
+            
+            // Update threat indicators
+            this.updateThreatIndicators();
+            
+            // Check for compliance drift
+            this.checkComplianceDrift();
+            
+            console.log('🔍 Threat assessment completed', {
+                timestamp: currentTime,
+                metrics: this.securityMetrics
+            });
+        } catch (error) {
+            console.error('❌ Threat assessment failed:', error);
+        }
+    }
+
+    startAuditLogRotation() {
+        // Start audit log rotation to manage storage
+        setInterval(() => {
+            this.rotateAuditLogs();
+        }, 3600000); // Every hour
+    }
+
+    rotateAuditLogs() {
+        // Rotate audit logs to prevent excessive storage usage
+        const maxLogSize = 50 * 1024 * 1024; // 50MB
+        const currentLogSize = this.estimateLogSize();
+        
+        if (currentLogSize > maxLogSize) {
+            this.auditLogger.rotateLog();
+            console.log('📝 Audit logs rotated due to size limit');
+        }
+    }
+
+    checkActivityPatterns() {
+        // Check for suspicious activity patterns
+        const recentActivity = this.auditLogger.getRecentActivity(3600000); // Last hour
+        
+        // Check for rapid command execution
+        if (recentActivity.length > 100) {
+            this.raiseSecurityAlert('HIGH_ACTIVITY_VOLUME', {
+                commandCount: recentActivity.length,
+                timeWindow: '1 hour'
+            });
+        }
+        
+        // Check for privilege escalation patterns
+        const escalationCommands = recentActivity.filter(cmd => 
+            /sudo|su|runas/.test(cmd.command)
+        );
+        
+        if (escalationCommands.length > 10) {
+            this.raiseSecurityAlert('REPEATED_ESCALATION', {
+                escalationCount: escalationCommands.length
+            });
+        }
+    }
+
+    updateThreatIndicators() {
+        // Update threat level indicators based on recent activity
+        const threatLevel = this.calculateCurrentThreatLevel();
+        
+        if (threatLevel !== this.lastThreatLevel) {
+            this.lastThreatLevel = threatLevel;
+            this.notifyThreatLevelChange(threatLevel);
+        }
+    }
+
+    checkComplianceDrift() {
+        // Check for compliance policy drift
+        const complianceScore = this.calculateComplianceScore();
+        
+        if (complianceScore < 0.8) {
+            this.raiseSecurityAlert('COMPLIANCE_DRIFT', {
+                score: complianceScore,
+                threshold: 0.8
+            });
+        }
+    }
+
+    raiseSecurityAlert(type, details) {
+        const alert = {
+            id: this.generateAlertId(),
+            type: type,
+            details: details,
+            timestamp: Date.now(),
+            severity: this.getAlertSeverity(type)
+        };
+        
+        this.securityAlerts.set(alert.id, alert);
+        console.warn('🚨 Security Alert:', alert);
+        
+        // Notify security dashboard if available
+        this.notifySecurityDashboard(alert);
+    }
+
+    generateAlertId() {
+        return `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    getAlertSeverity(type) {
+        const severityMap = {
+            'HIGH_ACTIVITY_VOLUME': 'medium',
+            'REPEATED_ESCALATION': 'high',
+            'COMPLIANCE_DRIFT': 'medium',
+            'THREAT_DETECTED': 'high',
+            'POLICY_VIOLATION': 'medium'
+        };
+        
+        return severityMap[type] || 'low';
+    }
+
+    notifySecurityDashboard(alert) {
+        // Notify security dashboard of new alert
+        if (window.securityDashboard) {
+            window.securityDashboard.addAlert(alert);
+        }
+    }
+
+    notifyThreatLevelChange(newLevel) {
+        console.log(`🔄 Threat level changed to: ${newLevel}`);
+        
+        if (window.securityDashboard) {
+            window.securityDashboard.updateThreatLevel(newLevel);
+        }
+    }
+
+    calculateCurrentThreatLevel() {
+        // Calculate current threat level based on various factors
+        const recentThreats = this.getRecentThreats();
+        const activeAlerts = this.getActiveAlerts();
+        
+        if (activeAlerts.some(alert => alert.severity === 'critical')) {
+            return 'CRITICAL';
+        }
+        
+        if (activeAlerts.some(alert => alert.severity === 'high') || recentThreats.length > 5) {
+            return 'HIGH';
+        }
+        
+        if (activeAlerts.some(alert => alert.severity === 'medium') || recentThreats.length > 2) {
+            return 'MEDIUM';
+        }
+        
+        if (recentThreats.length > 0) {
+            return 'LOW';
+        }
+        
+        return 'NONE';
+    }
+
+    calculateComplianceScore() {
+        // Calculate overall compliance score
+        const recentActivity = this.auditLogger.getRecentActivity(86400000); // Last 24 hours
+        
+        if (recentActivity.length === 0) {
+            return 1.0; // Perfect score with no activity
+        }
+        
+        const violations = recentActivity.filter(activity => 
+            activity.complianceViolations && activity.complianceViolations.length > 0
+        );
+        
+        return Math.max(0, 1 - (violations.length / recentActivity.length));
+    }
+
+    getRecentThreats(timeWindow = 3600000) {
+        // Get threats detected in the specified time window (default: 1 hour)
+        const cutoff = Date.now() - timeWindow;
+        return Array.from(this.securityAlerts.values())
+            .filter(alert => alert.timestamp > cutoff && alert.type.includes('THREAT'));
+    }
+
+    getActiveAlerts() {
+        // Get all active security alerts
+        const cutoff = Date.now() - 86400000; // Last 24 hours
+        return Array.from(this.securityAlerts.values())
+            .filter(alert => alert.timestamp > cutoff);
+    }
+
+    estimateLogSize() {
+        // Estimate current log size in bytes
+        try {
+            const logData = localStorage.getItem(this.auditLogger.storageKey);
+            return logData ? logData.length : 0;
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    initializeZeroTrust() {
+        // Initialize Zero Trust security policies
+        console.log('🛡️ Initializing Zero Trust security...');
+        
+        // Set up zero trust verification requirements
+        this.zeroTrustEngine.setupVerificationRequirements();
+        
+        // Initialize trust score baselines
+        this.zeroTrustEngine.initializeTrustBaselines();
+        
+        console.log('✅ Zero Trust security initialized');
+    }
+
     
     async verifyCommandExecution(command, context) {
         const verificationResult = {
@@ -455,6 +689,26 @@ class CommandAuditLogger {
     getAuditHistory(limit = 100) {
         return this.auditLog.slice(0, limit);
     }
+
+    getRecentActivity(timeWindow = 3600000) {
+        // Get recent activity within the specified time window (default: 1 hour)
+        const cutoff = Date.now() - timeWindow;
+        return this.auditLog.filter(entry => entry.timestamp > cutoff);
+    }
+
+    rotateLog() {
+        // Rotate audit logs when they get too large
+        const rotatedEntries = this.auditLog.splice(5000); // Keep last 5000 entries
+        
+        // Store rotated entries separately if needed
+        try {
+            const rotatedKey = `${this.storageKey}_rotated_${Date.now()}`;
+            localStorage.setItem(rotatedKey, JSON.stringify(rotatedEntries));
+            console.log(`📁 Rotated ${rotatedEntries.length} audit log entries`);
+        } catch (error) {
+            console.error('Failed to store rotated audit log:', error);
+        }
+    }
 }
 
 class PrivilegeEscalationMonitor {
@@ -576,6 +830,64 @@ class ZeroTrustEngine {
     constructor() {
         this.trustScores = new Map();
         this.verificationRequirements = new Map();
+        this.trustBaselines = new Map();
+    }
+
+    setupVerificationRequirements() {
+        // Set up verification requirements for different command types
+        console.log('🔐 Setting up verification requirements...');
+        
+        const requirements = {
+            'privilege_escalation': {
+                minTrustScore: 0.8,
+                requiresMFA: true,
+                requiresApproval: true,
+                timeWindow: 3600000 // 1 hour
+            },
+            'system_modification': {
+                minTrustScore: 0.7,
+                requiresMFA: false,
+                requiresApproval: false,
+                timeWindow: 1800000 // 30 minutes
+            },
+            'data_access': {
+                minTrustScore: 0.6,
+                requiresMFA: false,
+                requiresApproval: false,
+                timeWindow: 900000 // 15 minutes
+            },
+            'network_operations': {
+                minTrustScore: 0.5,
+                requiresMFA: false,
+                requiresApproval: false,
+                timeWindow: 600000 // 10 minutes
+            }
+        };
+        
+        for (const [category, requirement] of Object.entries(requirements)) {
+            this.verificationRequirements.set(category, requirement);
+        }
+        
+        console.log('✅ Verification requirements configured');
+    }
+
+    initializeTrustBaselines() {
+        // Initialize trust score baselines for different entities
+        console.log('📊 Initializing trust baselines...');
+        
+        const baselines = {
+            'new_user': 0.3,
+            'established_user': 0.7,
+            'privileged_user': 0.8,
+            'system_account': 0.9,
+            'external_user': 0.2
+        };
+        
+        for (const [userType, baseline] of Object.entries(baselines)) {
+            this.trustBaselines.set(userType, baseline);
+        }
+        
+        console.log('✅ Trust baselines initialized');
     }
 
     async evaluateTrustScore(command, context) {
