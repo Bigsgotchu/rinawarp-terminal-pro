@@ -1412,6 +1412,7 @@ class KubernetesIntegration {
     }
 }
 
-export { WorkflowAutomationEngine };
+// Export removed to prevent conflicts with main src file
+// export { WorkflowAutomationEngine };
 
 

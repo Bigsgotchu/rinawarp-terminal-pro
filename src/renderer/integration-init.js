@@ -175,6 +175,9 @@ class RinaWarpInitializer {
                     status: 'active',
                     instance: window.beginnerUI
                 });
+                
+                // Register other available features
+                this.registerAvailableFeatures();
             }
             
             console.log('[RinaWarp] 🎯 ✅ Enhanced Beginner-Friendly UI initialized successfully!');
@@ -214,6 +217,80 @@ class RinaWarpInitializer {
     }
 
     
+    registerAvailableFeatures() {
+        try {
+            // Register Performance Monitor if available
+            if (window.PerformanceMonitoringDashboard) {
+                this.integrationSystem.hub.registerFeature('performance-monitor', {
+                    name: 'Performance Monitoring Dashboard',
+                    version: '1.0.0',
+                    status: 'active',
+                    instance: new window.PerformanceMonitoringDashboard()
+                });
+                console.log('[RinaWarp] ✅ Performance Monitor registered');
+            }
+
+            // Register AI Context Engine if available
+            if (window.AdvancedAIContextEngine) {
+                this.integrationSystem.hub.registerFeature('ai-context', {
+                    name: 'Advanced AI Context Engine',
+                    version: '1.0.0',
+                    status: 'active',
+                    instance: window.AdvancedAIContextEngine
+                });
+                console.log('[RinaWarp] ✅ AI Context Engine registered');
+            }
+
+            // Register Enhanced Security if available
+            if (window.EnhancedSecurityEngine) {
+                this.integrationSystem.hub.registerFeature('enhanced-security', {
+                    name: 'Enhanced Security Engine',
+                    version: '1.0.0',
+                    status: 'active',
+                    instance: window.EnhancedSecurityEngine
+                });
+                console.log('[RinaWarp] ✅ Enhanced Security registered');
+            }
+
+            // Register Workflow Automation if available
+            if (window.WorkflowAutomationEngine) {
+                this.integrationSystem.hub.registerFeature('workflow-automation', {
+                    name: 'Workflow Automation Engine',
+                    version: '1.0.0',
+                    status: 'active',
+                    instance: window.WorkflowAutomationEngine
+                });
+                console.log('[RinaWarp] ✅ Workflow Automation registered');
+            }
+
+            // Register Next-Gen UI if available
+            if (window.NextGenUIEngine) {
+                this.integrationSystem.hub.registerFeature('nextgen-ui', {
+                    name: 'Next-Generation UI Engine',
+                    version: '2.0.0',
+                    status: 'active',
+                    instance: window.NextGenUIEngine
+                });
+                console.log('[RinaWarp] ✅ Next-Gen UI registered');
+            }
+
+            // Register Multimodal Agent Manager if available
+            if (window.MultimodalAgentManager) {
+                this.integrationSystem.hub.registerFeature('multimodal-agents', {
+                    name: 'Multimodal AI Agent Framework',
+                    version: '3.0.0',
+                    status: 'active',
+                    instance: window.MultimodalAgentManager
+                });
+                console.log('[RinaWarp] ✅ Multimodal Agent Manager registered');
+            }
+
+            console.log('[RinaWarp] 🚀 All available features have been registered with the integration system');
+        } catch (error) {
+            console.warn('[RinaWarp] ⚠️ Error registering some features:', error);
+        }
+    }
+
     async shutdown() {
         if (this.integrationSystem) {
             console.log('[RinaWarp] Shutting down integration system...');

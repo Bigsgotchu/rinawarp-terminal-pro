@@ -1,19 +1,15 @@
 /**
- * RinaWarp Terminal - Phase 2 Integration Controller v2.0
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * RinaWarp Terminal - Phase2 Integration
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This module serves as the main integration point for Phase 2 of the RinaWarp Terminal
- * next-generation UI system. It orchestrates the initialization, configuration, and
- * coordination between all Phase 2 components.
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * Key Responsibilities:
- * - Initialize and coordinate all Phase 2 UI components
- * - Manage integration with existing terminal functionality
- * - Handle seamless transition between UI modes
- * - Provide unified API for external integrations
- * - Monitor and optimize overall system performance
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 import Phase2UIManager from './phase2-ui-manager.js';
 
 class Phase2Integration {
@@ -38,11 +34,7 @@ class Phase2Integration {
         console.log('🌟 Phase 2 Integration Controller initialized');
     }
 
-    /**
-     * Initialize Phase 2 integration
-     * @param {Object} config - Configuration options
-     * @param {Object} terminalManager - Reference to terminal manager
-     */
+    
     async initialize(config = {}, terminalManager = null) {
         console.log('🚀 Starting Phase 2 integration initialization...');
         
@@ -88,9 +80,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Check if browser supports required features for Phase 2
-     */
+    
     checkBrowserCompatibility() {
         const requiredFeatures = [
             'CSS.supports',
@@ -137,9 +127,7 @@ class Phase2Integration {
         return true;
     }
 
-    /**
-     * Load required stylesheets for Phase 2
-     */
+    
     async loadStylesheets() {
         const stylesheets = [
             '../../styles/phase2-ui.css'
@@ -164,9 +152,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Initialize the Phase 2 UI Manager
-     */
+    
     async initializeUIManager() {
         this.uiManager = new Phase2UIManager(this.terminalManager);
         
@@ -199,9 +185,7 @@ class Phase2Integration {
         });
     }
 
-    /**
-     * Setup integration-specific event handlers
-     */
+    
     setupIntegrationEventHandlers() {
         // Window resize handler
         this.eventListeners.set('resize', () => {
@@ -234,9 +218,7 @@ class Phase2Integration {
         window.addEventListener('unhandledrejection', this.eventListeners.get('unhandledrejection'));
     }
 
-    /**
-     * Perform initial setup tasks
-     */
+    
     async performInitialSetup() {
         // Backup original terminal elements
         this.backupOriginalElements();
@@ -253,9 +235,7 @@ class Phase2Integration {
         await this.loadUserPreferences();
     }
 
-    /**
-     * Backup original terminal elements for potential restoration
-     */
+    
     backupOriginalElements() {
         const elementsToBackup = [
             '.app-container',
@@ -279,9 +259,7 @@ class Phase2Integration {
         console.log('💾 Original terminal elements backed up');
     }
 
-    /**
-     * Setup performance monitoring for Phase 2
-     */
+    
     setupPerformanceMonitoring() {
         if (typeof PerformanceObserver !== 'undefined') {
             const observer = new PerformanceObserver((list) => {
@@ -297,9 +275,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Initialize feature flags for Phase 2
-     */
+    
     initializeFeatureFlags() {
         this.featureFlags = new Map([
             ['adaptiveUI', this.integrationConfig.enableAdaptiveUI],
@@ -310,9 +286,7 @@ class Phase2Integration {
         ]);
     }
 
-    /**
-     * Load user preferences for Phase 2
-     */
+    
     async loadUserPreferences() {
         try {
             const preferences = localStorage.getItem('rinawarp-phase2-preferences');
@@ -330,9 +304,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Get default user preferences
-     */
+    
     getDefaultPreferences() {
         return {
             uiMode: 'adaptive',
@@ -353,9 +325,7 @@ class Phase2Integration {
         };
     }
 
-    /**
-     * Activate Phase 2 integration
-     */
+    
     async activate() {
         if (this.isEnabled) {
             console.log('ℹ️ Phase 2 is already active');
@@ -390,9 +360,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Show activation animation
-     */
+    
     async showActivationAnimation() {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
@@ -449,9 +417,7 @@ class Phase2Integration {
         });
     }
 
-    /**
-     * Transition original UI elements smoothly
-     */
+    
     async transitionOriginalElements() {
         const mainContent = document.querySelector('.main-content');
         if (mainContent) {
@@ -465,9 +431,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Apply user preferences to Phase 2 UI
-     */
+    
     async applyUserPreferences() {
         if (this.uiManager && this.userPreferences) {
             // Apply UI mode
@@ -487,9 +451,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Apply accessibility settings
-     */
+    
     async applyAccessibilitySettings(settings) {
         const container = document.querySelector('.phase2-ui-container');
         if (container) {
@@ -502,9 +464,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Apply performance settings
-     */
+    
     async applyPerformanceSettings(settings) {
         if (settings.enableOptimizations) {
             // Enable performance optimizations
@@ -512,17 +472,13 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Enable performance optimizations
-     */
+    
     enablePerformanceOptimizations() {
         // Implement performance optimizations
         console.log('⚡ Performance optimizations enabled');
     }
 
-    /**
-     * Show welcome notification
-     */
+    
     showWelcomeNotification() {
         if (this.uiManager) {
             this.uiManager.showNotification(
@@ -533,9 +489,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Deactivate Phase 2 integration
-     */
+    
     async deactivate() {
         if (!this.isEnabled) {
             console.log('ℹ️ Phase 2 is already inactive');
@@ -565,9 +519,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Restore original terminal elements
-     */
+    
     async restoreOriginalElements() {
         this.originalTerminalElements.forEach((backup, selector) => {
             const currentElement = document.querySelector(selector);
@@ -578,9 +530,7 @@ class Phase2Integration {
         });
     }
 
-    /**
-     * Toggle Phase 2 activation
-     */
+    
     async toggle() {
         if (this.isEnabled) {
             await this.deactivate();
@@ -589,9 +539,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Event handler methods
-     */
+    
     handleWindowResize() {
         if (this.isEnabled && this.uiManager) {
             // Handle responsive updates
@@ -626,9 +574,7 @@ class Phase2Integration {
         console.error('🚨 Unhandled promise rejection in Phase 2:', event.reason);
     }
 
-    /**
-     * Utility methods
-     */
+    
     pauseNonCriticalOperations() {
         console.log('⏸️ Pausing non-critical operations');
     }
@@ -647,9 +593,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Public API methods
-     */
+    
     isActive() {
         return this.isEnabled;
     }
@@ -677,9 +621,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Register Phase 2 with the RinaWarp integration system
-     */
+    
     registerWithIntegrationSystem() {
         try {
             // Check if RinaWarp integration system is available
@@ -761,9 +703,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Event system
-     */
+    
     emit(event, ...args) {
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent(`rinawarp-phase2-${event}`, { 
@@ -786,9 +726,7 @@ class Phase2Integration {
         }
     }
 
-    /**
-     * Cleanup and destruction
-     */
+    
     cleanup() {
         // Remove event listeners
         this.eventListeners.forEach((listener, event) => {
@@ -813,9 +751,7 @@ class Phase2Integration {
         console.log('🧹 Phase 2 integration cleaned up');
     }
 
-    /**
-     * Destroy the integration
-     */
+    
     destroy() {
         this.deactivate();
         this.cleanup();

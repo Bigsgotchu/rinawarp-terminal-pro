@@ -1,14 +1,15 @@
 /**
- * RinaWarp Terminal - Multimodal AI Agent Manager
+ * RinaWarp Terminal - Multimodal Agent Manager
  * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file integrates the multimodal multi-agent framework with RinaWarp Terminal,
- * providing collaborative AI agents for enhanced terminal experience.
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
  * 
  * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 class MultimodalAgentManager {
     constructor(terminal) {
         this.terminal = terminal;

@@ -1,20 +1,15 @@
 /**
- * RinaWarp Terminal - Phase 2 Next-Generation UI Manager v2.0
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * RinaWarp Terminal - Phase2 Ui Manager
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This revolutionary module implements Phase 2 of the RinaWarp Terminal UI evolution,
- * featuring comprehensive next-generation interface integration, advanced user experience
- * enhancements, and cutting-edge accessibility features.
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * Key Features:
- * - Adaptive UI that learns from user behavior
- * - Advanced multimodal interaction modes
- * - Intelligent context-aware assistance
- * - Professional-grade accessibility compliance
- * - Enterprise-ready collaboration features
- * - Real-time performance optimization
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 import { EventEmitter } from 'events';
 
 class Phase2UIManager extends EventEmitter {

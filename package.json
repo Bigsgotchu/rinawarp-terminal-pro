@@ -10,12 +10,20 @@
     "start": "electron src/main.js",
     "test": "jest",
     "build": "electron-builder",
-    "dev": "electron src/main.js --dev"
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
+    "dist": "electron-builder --publish=never",
+    "release": "electron-builder --publish=always",
+    "dev": "electron src/main.js --dev",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
-    "@xterm/xterm": "^5.5.0"
+    "@xterm/xterm": "^5.5.0",
+    "brace-expansion": "^4.0.1"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.27.1",

@@ -18,7 +18,9 @@ export default {
     '<rootDir>/tests/**/*.spec.js'
   ],
   collectCoverageFrom: [
-    'srcnode_modules/**'
+    'src/**/*.js',
+    '!src/**/*.test.js',
+    '!src/**/*.spec.js'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
@@ -30,6 +32,11 @@ export default {
   },
   transformIgnorePatterns: [
     'node_modules/(?!(@testing-library|@xterm)/)'
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/extracted-src-backup/',
+    '<rootDir>/phase2-backup/',
+    '<rootDir>/node_modules/'
   ],
   testTimeout: 10000,
   verbose: true

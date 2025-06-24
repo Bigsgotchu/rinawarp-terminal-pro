@@ -1,16 +1,15 @@
 /**
- * RinaWarp Terminal - Enhanced Beginner-Friendly UI System v2.0
+ * RinaWarp Terminal - Beginner Friendly Ui
  * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This completely redesigned module creates an intuitive, accessible interface that
- * transforms the terminal experience for users of all technical levels. Features include:
- * - Visual command builder with drag-and-drop
- * - Interactive tutorials and guided workflows  
- * - Smart contextual help and explanations
- * - Accessibility features and multiple interaction modes
- * - Progressive disclosure of advanced features
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 class BeginnerFriendlyUI {
     constructor(terminalManager) {
         this.terminalManager = terminalManager;

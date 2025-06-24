@@ -749,6 +749,39 @@ class PerformanceMonitoringDashboard {
         this.loadHistoricalData();
     }
 
+    loadHistoricalData() {
+        try {
+            // Load historical performance data from localStorage
+            const storedData = localStorage.getItem('rinawarp_performance_history');
+            if (storedData) {
+                const historicalData = JSON.parse(storedData);
+                this.metrics = new Map(historicalData.metrics || []);
+                this.commandHistory = new Map(historicalData.commandHistory || []);
+                console.log('📊 Loaded historical performance data');
+            } else {
+                console.log('📊 No historical performance data found, starting fresh');
+            }
+        } catch (error) {
+            console.warn('⚠️ Failed to load historical performance data:', error);
+            // Initialize with empty data
+            this.metrics = new Map();
+            this.commandHistory = new Map();
+        }
+    }
+
+    saveHistoricalData() {
+        try {
+            const dataToSave = {
+                metrics: Array.from(this.metrics.entries()),
+                commandHistory: Array.from(this.commandHistory.entries()),
+                lastSaved: Date.now()
+            };
+            localStorage.setItem('rinawarp_performance_history', JSON.stringify(dataToSave));
+        } catch (error) {
+            console.warn('⚠️ Failed to save historical performance data:', error);
+        }
+    }
+
     
     createDashboardUI() {
         const dashboardContainer = document.createElement('div');

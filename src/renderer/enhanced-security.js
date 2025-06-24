@@ -766,6 +766,9 @@ class ThreatDetector {
 }
 
 // ES6 exports for module system
-export { EnhancedSecurityEngine, ZeroTrustSecurity, EnhancedSecurity };
+const EnhancedSecurity = EnhancedSecurityEngine;
+const ZeroTrustSecurity = ZeroTrustEngine;
+
+export { EnhancedSecurityEngine, ZeroTrustSecurity, EnhancedSecurity, ZeroTrustEngine, ThreatDetector, ComplianceChecker, CommandAuditLogger };
 
 

@@ -1,13 +1,14 @@
 /**
  * RinaWarp Terminal - Main Renderer Process
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * This file is part of RinaWarp Terminal, a commercial terminal emulator with
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
  * 
- * PROPRIETARY SOFTWARE - All rights reserved.
- * For licensing information: https://rinawarp.com/pricing
- * For enterprise inquiries: sales@rinawarp.com
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
 const { ipcRenderer } = require('electron');
 const { Terminal } = require('@xterm/xterm');

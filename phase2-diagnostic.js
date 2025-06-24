@@ -1,9 +1,15 @@
 /**
- * RinaWarp Terminal - Phase 2 Diagnostic and Fix Script
+ * RinaWarp Terminal - Phase2 Diagnostic
+ * Copyright (c) 2025 RinaWarp Technologies
  * 
- * Run this in the browser console to diagnose and fix Phase 2 integration issues
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
  */
-
 console.log('\n🔧 RinaWarp Phase 2 Diagnostic Tool');
 console.log('=====================================\n');
 

@@ -1,3 +1,15 @@
+/**
+ * RinaWarp Terminal - Main UI
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
+ */
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +30,7 @@
     <meta name="description" content="RinaWarp Terminal - Next-generation AI-powered terminal with enhanced accessibility and collaboration features">
     <meta name="author" content="RinaWarp Technologies">
     <meta name="theme-color" content="#00ff88">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:; connect-src 'self' https: wss:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:; connect-src 'self' https: wss:;">
     <title>RinaWarp Terminal</title>
     <link rel="stylesheet" href="../../styles/main.css">
     <link rel="stylesheet" href="../../styles/phase2-ui.css">
@@ -587,7 +599,7 @@
     <script type="module" src="renderer.js"></script>
     
     <!-- Initialize RinaWarp Integration on load -->
-    <script>
+    <script type="module">
         console.log('%c🚀 RinaWarp Terminal v1.0.0', 'color: #00ff88; font-weight: bold; font-size: 16px;');
         console.log('%c   Copyright (c) 2025 RinaWarp Technologies', 'color: #888;');
         console.log('%c   Patent Pending - Advanced Terminal Integration Architecture', 'color: #888;');

@@ -690,8 +690,7 @@ class CrossSystemIntegration {
 
 // DockerIntegration class moved to avoid duplication - see line 1403
 
-// ES6 export for module system
-export { WorkflowAutomation };
+// Export statements moved to end of file after all classes are defined
 
 
 
@@ -712,6 +711,26 @@ class WorkflowAutomationEngine {
         this.loadBuiltInWorkflows();
         this.initializeIntegrations();
         this.startTriggerMonitoring();
+    }
+
+    startTriggerMonitoring() {
+        // Initialize trigger monitoring system
+        this.triggerMonitors = new Map();
+        this.isMonitoring = false;
+        console.log('🔍 Trigger monitoring system initialized');
+    }
+
+    initializeIntegrations() {
+        // Initialize available integrations
+        try {
+            this.integrations.set('slack', new SlackIntegration());
+            this.integrations.set('github', new GitHubIntegration());
+            this.integrations.set('jira', new JiraIntegration());
+            this.integrations.set('docker', new DockerIntegration());
+            console.log('🔗 Workflow integrations initialized');
+        } catch (error) {
+            console.warn('Some integrations failed to initialize:', error.message);
+        }
     }
 
     
@@ -1382,7 +1401,7 @@ class KubernetesIntegration {
     }
 }
 
-// Export WorkflowAutomationEngine as well
+// ES6 export for module system
 export { WorkflowAutomationEngine };
 
 
