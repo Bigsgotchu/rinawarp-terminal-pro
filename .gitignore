@@ -155,3 +155,10 @@ logs
 package-lock.json
 # yarn.lock
 
+
+# Local Netlify folder
+.netlify
+
+# Large deployment archives
+netlify-deploy-*.zip
+*.exe
