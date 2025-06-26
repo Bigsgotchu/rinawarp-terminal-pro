@@ -1,6 +1,6 @@
 {
   "name": "rinawarp-terminal",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
   "main": "src/main.js",
   "type": "module",
