@@ -1,6 +1,57 @@
+<div align="center">
+
+![RinaWarp Terminal Logo](./assets/png/logo-mermaid.png)
+
 # RinaWarp Terminal
 
-An advanced commercial terminal emulator with enterprise-grade features, built with Electron. RinaWarp Terminal provides all the power of modern terminals with AI assistance, cloud sync, session management, and extensive customization for professional developers and enterprise teams.
+### 🚀 The Next-Generation AI-Powered Terminal Emulator
+
+[![License](https://img.shields.io/badge/license-Commercial-blue.svg)](#license)
+[![Version](https://img.shields.io/badge/version-1.0.2-green.svg)](https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#-installation)
+[![Downloads](https://img.shields.io/github/downloads/Bigsgotchu/rinawarp-terminal/total.svg)](https://github.com/Bigsgotchu/rinawarp-terminal/releases)
+
+**An advanced commercial terminal emulator with enterprise-grade features, built with Electron.**  
+RinaWarp Terminal provides all the power of modern terminals with AI assistance, cloud sync, session management, and extensive customization for professional developers and enterprise teams.
+
+[🎬 Watch Demo](#-demo) • [📥 Download](#-installation) • [📖 Documentation](#-documentation) • [🌟 Features](#-key-features)
+
+![Terminal Screenshot](./assets/marketing/github-banner.svg)
+
+</div>
+
+---
+
+## 🎬 Demo
+
+### See RinaWarp Terminal in Action
+
+**🎥 Video Demo** (Coming Soon)
+> A comprehensive video walkthrough showing all features in action
+
+**✨ Key Highlights:**
+- 🤖 **AI-Powered Command Suggestions** - Smart autocomplete based on context
+- 🎨 **Beautiful Themes** - Dark, Light, Solarized, and Monokai themes
+- 🔀 **Split Panes** - Horizontal and vertical terminal splitting
+- 📝 **Command History** - Persistent history with intelligent suggestions
+- 🌿 **Git Integration** - Real-time branch status and repository information
+- ⚡ **Performance Optimized** - Fast, responsive, and memory efficient
+
+### Quick Feature Tour
+
+```bash
+# 1. Smart Command Suggestions
+$ git st...  # Suggests: git status, git stash, git start
+
+# 2. AI-Powered Assistance
+$ npm i...   # Suggests: npm install, npm init, npm info
+
+# 3. Git Integration (automatic detection)
+[main ✓] $ git status  # Shows branch and clean status
+
+# 4. Theme Switching (Ctrl+,)
+Settings → Themes → Choose from 4 beautiful themes
+```
 
 ## Features
 
