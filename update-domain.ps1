@@ -1,3 +1,19 @@
+# RinaWarp Terminal - Advanced Terminal Emulator
+# Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+# 
+# This file is part of RinaWarp Terminal, an advanced terminal emulator with
+# AI assistance, enterprise security, cloud sync, and revolutionary features.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# This source code is proprietary and confidential information of RinaWarp Technologies.
+# Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
+# 
+# Patent Pending - Advanced Terminal Integration Architecture
+# 
+# Licensed under RinaWarp Commercial License.
+# See LICENSE file for detailed terms and conditions.
+# 
+# For licensing inquiries, contact: licensing@rinawarp.com
 # RinaWarp Terminal - Domain Update Script
 # Run this script after registering your domain to update all references
 
@@ -120,3 +136,4 @@ Write-Host "4. Configure DNS records" -ForegroundColor White
 Write-Host "`n💡 Usage examples:" -ForegroundColor Magenta
 Write-Host ".\update-domain.ps1 -NewDomain 'rinawarp.com'" -ForegroundColor Gray
 Write-Host ".\update-domain.ps1 -NewDomain 'rinawarp.dev' -SalesEmail 'contact@rinawarp.dev'" -ForegroundColor Gray
+

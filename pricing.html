@@ -1,15 +1,3 @@
-/**
- * RinaWarp Terminal - Pricing
- * Copyright (c) 2025 RinaWarp Technologies
- * 
- * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
- * AI assistance, live collaboration, and enterprise-grade security features.
- * 
- * Licensed under the MIT License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * Project repository: https://github.com/rinawarp/terminal
- */
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,6 +84,67 @@
         .faq-item { margin-bottom: 20px; }
         .faq-question { font-weight: bold; margin-bottom: 5px; }
         .faq-answer { color: #666; }
+        
+        .footer {
+            background: #1e1e1e;
+            color: #ccc;
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        .legal-info {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .legal-toggle {
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .legal-toggle:hover {
+            background: #333;
+            border-color: #777;
+        }
+        
+        .legal-content {
+            display: none;
+            text-align: left;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        
+        .legal-content.show {
+            display: block;
+        }
+        
+        .legal-content h4 {
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .legal-content p {
+            margin-bottom: 10px;
+        }
+        
+        .legal-content a {
+            color: #007acc;
+            text-decoration: none;
+        }
+        
+        .legal-content a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +258,23 @@
         </div>
     </div>
     
+    <!-- Footer with Legal Information -->
+    <div class="footer">
+        <div class="container">
+            <div class="legal-info">
+                <button class="legal-toggle" onclick="toggleLegal()">Legal Information & Licensing</button>
+                <div class="legal-content" id="legalContent">
+                    <h4>RinaWarp Terminal - Pricing</h4>
+                    <p><strong>Copyright (c) 2025 RinaWarp Technologies</strong></p>
+                    <p>This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with AI assistance, live collaboration, and enterprise-grade security features.</p>
+                    <p><strong>Licensed under the MIT License.</strong><br>
+                    See LICENSE file for detailed terms and conditions.</p>
+                    <p><strong>Project repository:</strong> <a href="https://github.com/rinawarp/terminal" target="_blank">https://github.com/rinawarp/terminal</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
     
@@ -278,7 +344,21 @@
         }
         
         function contactSales() {
-            window.open('mailto:sales@rinawarp.com?subject=Enterprise Inquiry&body=Hi, I\'m interested in RinaWarp Terminal Enterprise. Please contact me to discuss our needs.');
+            // Open local email client with placeholder email
+            window.open('mailto:sales@https://rinawarp-terminal.netlify.app?subject=Enterprise Inquiry&body=Hi, I%27m interested in RinaWarp Terminal Enterprise. Please contact me to discuss our needs.');
+        }
+        
+        function toggleLegal() {
+            const content = document.getElementById('legalContent');
+            const button = document.querySelector('.legal-toggle');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                button.textContent = 'Legal Information & Licensing';
+            } else {
+                content.classList.add('show');
+                button.textContent = 'Hide Legal Information';
+            }
         }
     </script>
 </body>

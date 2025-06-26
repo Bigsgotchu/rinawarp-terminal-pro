@@ -1,0 +1,10 @@
+# RinaWarp Terminal Redirects
+/pricing     /           301
+/download    /download.html    200
+/success     /success.html     200
+
+# API endpoints (if you add backend later)
+/api/*       https://api./:splat   200
+
+# Fallback for SPA routing
+/*           /index.html       200

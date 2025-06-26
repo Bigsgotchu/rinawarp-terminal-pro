@@ -1175,7 +1175,7 @@ class SmartMacroRecorder {
 class WorkflowMarketplace {
     constructor() {
         this.localCache = new Map();
-        this.remoteEndpoint = 'https://api.rinawarp.com/workflows'; // Placeholder
+        this.remoteEndpoint = 'https://api.https://rinawarp-terminal.netlify.app/workflows'; // Placeholder
     }
 
     async search(criteria) {

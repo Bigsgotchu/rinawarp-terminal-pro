@@ -1,4 +1,30 @@
 /**
+ * RinaWarp Terminal - Advanced Terminal Emulator
+ * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * 
+ * This file is part of RinaWarp Terminal, an advanced terminal emulator with
+ * AI assistance, enterprise security, cloud sync, and revolutionary features.
+ * 
+ * CONFIDENTIAL AND PROPRIETARY
+ * This source code is proprietary and confidential information of RinaWarp Technologies.
+ * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
+ * 
+ * Patent Pending - Advanced Terminal Integration Architecture
+ * U.S. Patent Application Filed: 2025
+ * International Patent Applications: PCT, EU, CN, JP
+ * 
+ * Licensed under RinaWarp Commercial License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * For licensing inquiries, contact: licensing@rinawarp.com
+ * 
+ * @author RinaWarp Technologies
+ * @copyright 2025 RinaWarp Technologies. All rights reserved.
+ * @license RinaWarp Commercial License
+ * @version 1.0.0
+ * @since 2025-01-01
+ */
+/**
  * Configuration loader for RinaWarp Terminal
  * Loads environment variables securely
  */
@@ -47,3 +73,4 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.Config = Config;
 }
+

@@ -1124,8 +1124,7 @@ class SmartHintSystem {
             }
         }, duration);
     }
-}
-
+    
     setupUIEventListeners() {
         // Mode switching
         document.querySelectorAll('.mode-btn').forEach(btn => {

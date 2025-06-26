@@ -1220,6 +1220,305 @@ body.theme-mermaid ::selection {
     color: #00e5ff;
 }
 
+/* WEBSITE THEME - MATCHING WEBPAGE COLORS */
+body.theme-website {
+    --bg-primary: #0D1F2D;
+    --bg-secondary: #1a2f42;
+    --bg-tertiary: #2a4058;
+    --text-primary: #ffffff;
+    --text-secondary: #A1F0E2;
+    --text-muted: #7fb3a3;
+    --border-color: #1DE9B6;
+    --accent-color: #1DE9B6;
+    background: linear-gradient(135deg, #0D1F2D 0%, #1a2f42 50%, #2a4058 100%);
+    background-attachment: fixed;
+}
+
+/* Website theme title bar */
+body.theme-website .title-bar {
+    background: linear-gradient(90deg, #0D1F2D, #1a2f42);
+    border-bottom: 2px solid #1DE9B6;
+    box-shadow: 0 2px 8px rgba(29, 233, 182, 0.3);
+}
+
+body.theme-website .title-bar-title {
+    color: #1DE9B6;
+    text-shadow: 0 0 10px rgba(29, 233, 182, 0.5);
+    font-weight: bold;
+}
+
+/* Website theme status bar */
+body.theme-website .status-bar {
+    background: linear-gradient(90deg, #0D1F2D, #1a2f42);
+    border-top: 2px solid #1DE9B6;
+    box-shadow: 0 -2px 8px rgba(29, 233, 182, 0.3);
+}
+
+/* Website theme tab styling */
+body.theme-website .tab {
+    background: linear-gradient(135deg, #1a2f42, #2a4058);
+    border: 1px solid #1DE9B6;
+    color: #A1F0E2;
+    box-shadow: 0 2px 4px rgba(29, 233, 182, 0.2);
+    transition: all 0.3s ease;
+}
+
+body.theme-website .tab:hover {
+    background: linear-gradient(135deg, #2a4058, #3a5068);
+    color: #1DE9B6;
+    box-shadow: 0 4px 8px rgba(29, 233, 182, 0.4);
+    transform: translateY(-1px);
+}
+
+body.theme-website .tab.active {
+    background: linear-gradient(135deg, #1DE9B6, #2ae6c7);
+    color: #0D1F2D;
+    border-color: #FF2E88;
+    box-shadow: 0 4px 12px rgba(29, 233, 182, 0.6);
+    font-weight: bold;
+}
+
+/* Website theme terminal wrapper */
+body.theme-website .terminal-wrapper {
+    background: linear-gradient(135deg, #0D1F2D 0%, #1a2f42 100%);
+    border: 1px solid #1DE9B6;
+    border-radius: 8px;
+    box-shadow: inset 0 0 20px rgba(29, 233, 182, 0.1), 0 0 20px rgba(29, 233, 182, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Website theme glow effect for terminal */
+body.theme-website .terminal-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #1DE9B6, #FF2E88, #A1F0E2, #1DE9B6);
+    border-radius: 10px;
+    z-index: -1;
+    animation: websiteGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes websiteGlow {
+    0% {
+        opacity: 0.3;
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 0.6;
+        filter: blur(1px);
+    }
+}
+
+/* Website theme scrollbar */
+body.theme-website ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+body.theme-website ::-webkit-scrollbar-track {
+    background: linear-gradient(135deg, #0D1F2D, #1a2f42);
+    border-radius: 6px;
+}
+
+body.theme-website ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #1DE9B6, #2ae6c7);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(29, 233, 182, 0.3);
+}
+
+body.theme-website ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #A1F0E2, #1DE9B6);
+    box-shadow: 0 2px 8px rgba(29, 233, 182, 0.5);
+}
+
+/* Website theme buttons */
+body.theme-website .btn {
+    background: linear-gradient(135deg, #1DE9B6, #2ae6c7);
+    border: 1px solid #FF2E88;
+    color: #0D1F2D;
+    text-shadow: none;
+    box-shadow: 0 2px 4px rgba(29, 233, 182, 0.3);
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+body.theme-website .btn:hover {
+    background: linear-gradient(135deg, #FF2E88, #ff4499);
+    color: white;
+    box-shadow: 0 4px 8px rgba(255, 46, 136, 0.4);
+    transform: translateY(-1px);
+}
+
+body.theme-website .btn-primary {
+    background: linear-gradient(135deg, #1DE9B6, #2ae6c7);
+    border-color: #0D1F2D;
+}
+
+body.theme-website .btn-secondary {
+    background: linear-gradient(135deg, #2a4058, #3a5068);
+    border-color: #A1F0E2;
+    color: #A1F0E2;
+}
+
+body.theme-website .btn-danger {
+    background: linear-gradient(135deg, #FF2E88, #ff4499);
+    border-color: #1DE9B6;
+    color: white;
+}
+
+/* Website theme modal */
+body.theme-website .modal-content {
+    background: linear-gradient(135deg, #0D1F2D, #1a2f42);
+    border: 2px solid #1DE9B6;
+    box-shadow: 0 8px 32px rgba(29, 233, 182, 0.3), inset 0 0 20px rgba(29, 233, 182, 0.1);
+}
+
+body.theme-website .modal-header {
+    border-bottom: 1px solid #1DE9B6;
+    background: linear-gradient(90deg, transparent, rgba(29, 233, 182, 0.1), transparent);
+}
+
+body.theme-website .modal-header h3 {
+    color: #1DE9B6;
+    text-shadow: 0 0 10px rgba(29, 233, 182, 0.5);
+}
+
+/* Website theme notifications */
+body.theme-website .notification {
+    border: 1px solid #1DE9B6;
+    background: linear-gradient(135deg, #1a2f42, #2a4058) !important;
+    color: #A1F0E2 !important;
+    box-shadow: 0 4px 12px rgba(29, 233, 182, 0.4);
+}
+
+/* Website theme suggestions */
+body.theme-website .suggestions {
+    background: linear-gradient(135deg, #0D1F2D, #1a2f42);
+    border: 2px solid #1DE9B6;
+    box-shadow: 0 4px 12px rgba(29, 233, 182, 0.4);
+}
+
+body.theme-website .suggestions-header {
+    background: linear-gradient(90deg, #1DE9B6, #2ae6c7);
+    color: #0D1F2D;
+    text-shadow: none;
+}
+
+body.theme-website .suggestion-item {
+    color: #A1F0E2;
+    border-bottom-color: #1DE9B6;
+}
+
+body.theme-website .suggestion-item:hover,
+body.theme-website .suggestion-item.selected {
+    background: linear-gradient(90deg, #1DE9B6, #2ae6c7);
+    color: #0D1F2D;
+}
+
+/* Website theme context menu */
+body.theme-website .context-menu {
+    background: linear-gradient(135deg, #0D1F2D, #1a2f42);
+    border: 2px solid #1DE9B6;
+    box-shadow: 0 4px 12px rgba(29, 233, 182, 0.4);
+}
+
+body.theme-website .context-menu-item {
+    color: #A1F0E2;
+}
+
+body.theme-website .context-menu-item:hover {
+    background: linear-gradient(90deg, #1DE9B6, #2ae6c7);
+    color: #0D1F2D;
+}
+
+/* Website theme form elements */
+body.theme-website input,
+body.theme-website select,
+body.theme-website textarea {
+    background: linear-gradient(135deg, #0D1F2D, #1a2f42);
+    border: 1px solid #1DE9B6;
+    color: #A1F0E2;
+    box-shadow: inset 0 2px 4px rgba(29, 233, 182, 0.1);
+}
+
+body.theme-website input:focus,
+body.theme-website select:focus,
+body.theme-website textarea:focus {
+    border-color: #FF2E88;
+    box-shadow: 0 0 10px rgba(255, 46, 136, 0.4);
+}
+
+/* Website theme status items */
+body.theme-website .status-item {
+    color: #A1F0E2;
+    text-shadow: 0 0 5px rgba(161, 240, 226, 0.3);
+}
+
+body.theme-website .status-item button {
+    background: linear-gradient(135deg, rgba(29, 233, 182, 0.2), rgba(255, 46, 136, 0.2));
+    border-color: #1DE9B6;
+    color: #A1F0E2;
+    box-shadow: 0 2px 4px rgba(29, 233, 182, 0.3);
+}
+
+body.theme-website .status-item button:hover {
+    background: linear-gradient(135deg, #1DE9B6, #2ae6c7);
+    color: #0D1F2D;
+    box-shadow: 0 4px 8px rgba(29, 233, 182, 0.4);
+    transform: translateY(-1px) scale(1.05);
+}
+
+/* Website theme tab bar */
+body.theme-website .tab-bar {
+    background: linear-gradient(90deg, #0D1F2D, #1a2f42, #0D1F2D);
+    border-bottom: 2px solid #1DE9B6;
+    position: relative;
+    overflow: hidden;
+}
+
+body.theme-website .tab-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(29, 233, 182, 0.1), transparent);
+    animation: websiteShimmer 4s ease-in-out infinite;
+}
+
+@keyframes websiteShimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Website theme menu buttons */
+body.theme-website .menu-btn {
+    color: #A1F0E2;
+    transition: all 0.3s ease;
+}
+
+body.theme-website .menu-btn:hover {
+    background: linear-gradient(135deg, rgba(29, 233, 182, 0.3), rgba(255, 46, 136, 0.3));
+    color: #1DE9B6;
+    text-shadow: 0 0 10px rgba(29, 233, 182, 0.7);
+    transform: scale(1.1);
+}
+
+/* Website theme selection styling */
+body.theme-website ::selection {
+    background: rgba(29, 233, 182, 0.3);
+    color: #FF2E88;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .modal-content {

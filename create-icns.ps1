@@ -1,3 +1,19 @@
+# RinaWarp Terminal - Advanced Terminal Emulator
+# Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+# 
+# This file is part of RinaWarp Terminal, an advanced terminal emulator with
+# AI assistance, enterprise security, cloud sync, and revolutionary features.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# This source code is proprietary and confidential information of RinaWarp Technologies.
+# Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
+# 
+# Patent Pending - Advanced Terminal Integration Architecture
+# 
+# Licensed under RinaWarp Commercial License.
+# See LICENSE file for detailed terms and conditions.
+# 
+# For licensing inquiries, contact: licensing@rinawarp.com
 # Create ICNS files from PNG assets using ImageMagick
 # This script creates macOS ICNS icon files from existing PNG assets
 
@@ -124,3 +140,4 @@ if (Test-Path $icnsDir) {
 Write-Host "`nNext steps:" -ForegroundColor Magenta
 Write-Host "1. Update package.json to use .icns files for macOS builds" -ForegroundColor White
 Write-Host "2. Test macOS build configuration" -ForegroundColor White
+

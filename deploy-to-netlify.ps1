@@ -1,3 +1,19 @@
+# RinaWarp Terminal - Advanced Terminal Emulator
+# Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+# 
+# This file is part of RinaWarp Terminal, an advanced terminal emulator with
+# AI assistance, enterprise security, cloud sync, and revolutionary features.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# This source code is proprietary and confidential information of RinaWarp Technologies.
+# Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
+# 
+# Patent Pending - Advanced Terminal Integration Architecture
+# 
+# Licensed under RinaWarp Commercial License.
+# See LICENSE file for detailed terms and conditions.
+# 
+# For licensing inquiries, contact: licensing@rinawarp.com
 # Deploy RinaWarp Terminal Website to Netlify
 # Run this script to update your live website
 
@@ -51,4 +67,5 @@ Start-Sleep 2
 Start-Process "https://rinawrapterminal.netlify.app"
 
 Write-Host "✨ Deployment package ready! Follow the manual steps above." -ForegroundColor Green
+
 

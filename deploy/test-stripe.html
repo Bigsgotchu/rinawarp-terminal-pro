@@ -1,0 +1,75 @@
+/**
+ * RinaWarp Terminal - Test Stripe
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
+ * AI assistance, live collaboration, and enterprise-grade security features.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
+ */
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stripe Test - RinaWarp Terminal</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <h1>🧪 Stripe Integration Test</h1>
+    <p>This page tests your Stripe configuration without making real purchases.</p>
+    
+    <div id="test-results"></div>
+    
+    <button onclick="testStripeKeys()">Test Stripe Keys</button>
+    <button onclick="testPriceIds()">Test Price IDs</button>
+    
+    <script>
+        // Your LIVE Stripe key from the website
+        const stripeKey = 'pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj';
+        
+        // Your Price IDs
+        const prices = {
+            personal: 'price_1RaypMG2ToGP7ChnzbKQOAPF',
+            professional: 'price_1RayqKG2ToGP7ChnTMT6gwce', 
+            team: 'price_1RayrCG2ToGP7ChnKWA7tstz'
+        };
+        
+        function log(message, type = 'info') {
+            const div = document.getElementById('test-results');
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue';
+            div.innerHTML += `<p style="color: ${color};">${message}</p>`;
+        }
+        
+        function testStripeKeys() {
+            log('Testing Stripe initialization...');
+            try {
+                const stripe = Stripe(stripeKey);
+                log('✅ Stripe initialized successfully!', 'success');
+                log(`✅ Using key: ${stripeKey.substring(0, 20)}...`, 'success');
+            } catch (error) {
+                log(`❌ Stripe initialization failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function testPriceIds() {
+            log('Testing Price IDs...');
+            Object.entries(prices).forEach(([plan, priceId]) => {
+                if (priceId.startsWith('price_1')) {
+                    log(`✅ ${plan}: ${priceId} (Valid format)`, 'success');
+                } else {
+                    log(`❌ ${plan}: ${priceId} (Invalid format)`, 'error');
+                }
+            });
+        }
+        
+        // Auto-run tests
+        window.onload = function() {
+            testStripeKeys();
+            testPriceIds();
+        }
+    </script>
+</body>
+</html>
+

@@ -1,3 +1,19 @@
+# RinaWarp Terminal - Advanced Terminal Emulator
+# Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+# 
+# This file is part of RinaWarp Terminal, an advanced terminal emulator with
+# AI assistance, enterprise security, cloud sync, and revolutionary features.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# This source code is proprietary and confidential information of RinaWarp Technologies.
+# Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
+# 
+# Patent Pending - Advanced Terminal Integration Architecture
+# 
+# Licensed under RinaWarp Commercial License.
+# See LICENSE file for detailed terms and conditions.
+# 
+# For licensing inquiries, contact: licensing@rinawarp.com
 # AD360 Prerequisites Fixer for Current System
 # This script addresses the issues found in the pre-installation assessment
 
@@ -503,4 +519,5 @@ Write-LogMessage "3. Production: Use production deployment plan"
 
 Write-LogMessage "\nLog saved to: $LogPath"
 Write-LogMessage "Prerequisites fixing completed at: $(Get-Date)" "INFO"
+
 

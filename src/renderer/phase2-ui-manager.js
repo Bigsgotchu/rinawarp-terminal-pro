@@ -10,7 +10,31 @@
  * 
  * Project repository: https://github.com/rinawarp/terminal
  */
-import { EventEmitter } from 'events';
+// Use browser-compatible EventEmitter or create a simple one
+class EventEmitter {
+    constructor() {
+        this.events = {};
+    }
+    
+    on(event, listener) {
+        if (!this.events[event]) {
+            this.events[event] = [];
+        }
+        this.events[event].push(listener);
+    }
+    
+    emit(event, ...args) {
+        if (this.events[event]) {
+            this.events[event].forEach(listener => listener(...args));
+        }
+    }
+    
+    removeListener(event, listener) {
+        if (this.events[event]) {
+            this.events[event] = this.events[event].filter(l => l !== listener);
+        }
+    }
+}
 
 class Phase2UIManager extends EventEmitter {
     constructor(terminalManager) {

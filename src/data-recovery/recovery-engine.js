@@ -10,7 +10,31 @@
  * 
  * Project repository: https://github.com/rinawarp/terminal
  */
-import { EventEmitter } from 'events';
+// Use browser-compatible EventEmitter
+class EventEmitter {
+    constructor() {
+        this.events = {};
+    }
+    
+    on(event, listener) {
+        if (!this.events[event]) {
+            this.events[event] = [];
+        }
+        this.events[event].push(listener);
+    }
+    
+    emit(event, ...args) {
+        if (this.events[event]) {
+            this.events[event].forEach(listener => listener(...args));
+        }
+    }
+    
+    removeListener(event, listener) {
+        if (this.events[event]) {
+            this.events[event] = this.events[event].filter(l => l !== listener);
+        }
+    }
+}
 import fs from 'fs/promises';
 import path from 'path';
 import { execSync, spawn } from 'child_process';
