@@ -6,10 +6,14 @@
   "type": "module",
   "author": {
     "name": "RinaWarp Technologies",
-    "email": "support@rinawarp.com",
-    "url": "https://rinawarp.com"
+    "email": "support@https://rinawarp-terminal.netlify.app",
+    "url": "https://https://rinawarp-terminal.netlify.app"
   },
-  "homepage": "https://rinawarp.com",
+  "homepage": "https://https://rinawarp-terminal.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rinawarp/terminal"
+  },
   "license": "PROPRIETARY",
   "scripts": {
     "start": "electron src/main.js",

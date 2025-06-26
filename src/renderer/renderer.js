@@ -415,6 +415,28 @@ class ThemeManager {
                 brightMagenta: '#99ff99',
                 brightCyan: '#66ffcc',
                 brightWhite: '#ffffff'
+            },
+            website: {
+                background: '#0D1F2D', // Dark navy background
+                foreground: '#A1F0E2', // Light teal text
+                cursor: '#1DE9B6', // Teal cursor
+                selection: '#1DE9B6', // Teal selection with opacity
+                black: '#0D1F2D',
+                red: '#FF2E88', // Hot pink for errors
+                green: '#1DE9B6', // Teal for success
+                yellow: '#A1F0E2', // Light teal for warnings
+                blue: '#1DE9B6', // Teal for info
+                magenta: '#FF2E88', // Hot pink for highlights
+                cyan: '#A1F0E2', // Light teal for accents
+                white: '#ffffff',
+                brightBlack: '#1a2f42',
+                brightRed: '#ff4499',
+                brightGreen: '#2ae6c7',
+                brightYellow: '#b3f3e7',
+                brightBlue: '#2ae6c7',
+                brightMagenta: '#ff6bb3',
+                brightCyan: '#c9f5ed',
+                brightWhite: '#ffffff'
             }
         };
         this.loadTheme();
@@ -3042,8 +3064,14 @@ class TerminalManager {
             setTimeout(() => this.sessionManager.updateCurrentSession(), 1000);
         }
         
-        // Focus the terminal
-        terminal.focus();
+        // Focus the terminal and ensure it can receive input
+        setTimeout(() => {
+            terminal.focus();
+            // Ensure the terminal element is focusable and focused
+            terminalElement.setAttribute('tabindex', '0');
+            terminalElement.focus();
+            console.log(`Terminal ${terminalId} focused and ready for input`);
+        }, 100);
     }
 
     setupTabManagement() {
@@ -3382,7 +3410,8 @@ class TerminalManager {
         // View pricing button
         modal.querySelector('#view-pricing')?.addEventListener('click', () => {
             // Open pricing page in browser
-            require('electron').shell.openExternal('https://rinawarp.com/pricing');
+            // Open pricing page in local development
+            require('electron').shell.openExternal(`https://rinawarp-terminal.netlify.app/pricing`);
         });
         
         // Enter license key
@@ -3462,7 +3491,8 @@ class TerminalManager {
     setupCommercialWelcomeActions(modal) {
         // View pricing button
         modal.querySelector('#view-pricing-welcome')?.addEventListener('click', () => {
-            require('electron').shell.openExternal('https://rinawarp.com/pricing');
+            // Open pricing page in local development
+            require('electron').shell.openExternal(`https://rinawarp-terminal.netlify.app/pricing`);
             modal.querySelector('.close-modal')?.click();
         });
         
