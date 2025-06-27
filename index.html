@@ -74,6 +74,14 @@
         "screenshot": "https://rinawarp-terminal.netlify.app/assets/screenshot.png"
     }
     </script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5LDNPV8Z');</script>
+    <!-- End Google Tag Manager -->
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
     
@@ -1094,6 +1102,10 @@
     </style>
 </head>
 <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5LDNPV8Z"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <!-- Sticky Navigation Header -->
     <nav class="navbar">
         <div class="container">
@@ -1227,7 +1239,7 @@
                         </div>
                         <div style="color: #00ff88; margin-top: 20px; font-size: 1.1rem;">✨ Click to see full interactive demo</div>
                     </div>
-                    <div class="play-button" onclick="playDemo()"></div>
+                    <div class="play-button" onclick="playDemo(); trackDemoPlay();"></div>
                 </div>
                 
                 <div class="demo-stats">
@@ -1404,7 +1416,7 @@
                     <li>Community support</li>
                 </ul>
                 
-                <a href="/download.html" class="btn secondary" style="display: inline-block; text-decoration: none; text-align: center;">Download Free</a>
+                <a href="/download.html" class="btn secondary" style="display: inline-block; text-decoration: none; text-align: center;" onclick="trackDownload('free', 'personal')">Download Free</a>
             </div>
             
             <!-- Professional Plan -->
@@ -1423,7 +1435,7 @@
                     <li>Email support (48h)</li>
                 </ul>
                 
-                <a href="/download.html" class="btn" style="display: inline-block; text-decoration: none; text-align: center;">Download Free Trial</a>
+                <a href="/download.html" class="btn" style="display: inline-block; text-decoration: none; text-align: center;" onclick="trackDownload('trial', 'professional')">Download Free Trial</a>
             </div>
             
             <!-- Team Plan -->
@@ -2007,7 +2019,51 @@
             const pricingSection = document.querySelector('.pricing-grid');
             if (pricingSection) {
                 pricingSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // GTM Event Tracking
+                dataLayer.push({
+                    'event': 'scroll_to_pricing',
+                    'event_category': 'engagement',
+                    'event_label': 'pricing_section'
+                });
             }
+        }
+        
+        // GTM Enhanced Event Tracking Functions
+        function trackDownload(downloadType, planType) {
+            dataLayer.push({
+                'event': 'download_intent',
+                'event_category': 'conversion',
+                'event_label': downloadType,
+                'download_type': downloadType,
+                'plan_type': planType,
+                'value': planType === 'free' ? 0 : 29
+            });
+        }
+        
+        function trackDemoPlay() {
+            dataLayer.push({
+                'event': 'demo_play',
+                'event_category': 'engagement',
+                'event_label': 'video_demo',
+                'engagement_time_msec': Date.now()
+            });
+        }
+        
+        function trackPricingPlanView(planName, planPrice) {
+            dataLayer.push({
+                'event': 'view_item',
+                'event_category': 'ecommerce',
+                'currency': 'USD',
+                'value': planPrice,
+                'items': [{
+                    'item_id': planName.toLowerCase(),
+                    'item_name': planName + ' Plan',
+                    'item_category': 'subscription',
+                    'price': planPrice,
+                    'quantity': 1
+                }]
+            });
         }
     </script>
 </body>

@@ -39,7 +39,9 @@
 
 ## ⚡ **TRY IT NOW (CORRECT LINK!):**
 
-### **🔗 https://rinawarp-terminal.netlify.app**
+### **🔗 Download Links:**
+#### Windows Portable: [Download Here](https://drive.google.com/file/d/1BGRL_0IeHb1jBBsMbfkvE7Ihir9L_YT9/view?usp=drive_link)
+#### Windows Installer: [Download Here](https://drive.google.com/file/d/1JGiIc-OoKWE29yHHIoJbs5_FNa3sggKP/view?usp=drive_link)
 
 *(Sorry about the broken link in my last email - this one actually works! 😅)*
 
@@ -90,7 +92,9 @@
 - 😤 What annoys you
 - 🎨 UI/UX feedback
 
-**Just reply to this email or text me!**
+**Just reply to this email or contact: hello@rinawarp.com**
+
+💬 **Quick feedback questions:** [Feedback Form](https://forms.gle/WsXoqZQ1b7Mzoesu7)
 
 ---
 
@@ -161,7 +165,7 @@ Ready to join the terminal revolution? 🚀
 ---
 
 **Cheers,**  
-**[Your Name]**
+**The RinaWarp Team**
 
 P.S. - If you love it, feel free to share with other developer friends. They get the same beta access, and you get karma points! 
 
@@ -173,9 +177,10 @@ P.P.S. - Seriously though, reply and let me know what you think. This is the fun
 
 - **Download:** https://rinawarp-terminal.netlify.app
 - **Feedback:** Just reply to this email
-- **Bug Reports:** [your-email@gmail.com]
-- **Feature Requests:** [your-email@gmail.com]
-- **Emergency Contact:** [your-phone-number] (if it breaks everything)
+- **Bug Reports:** support@rinawarp.com
+- **Feature Requests:** hello@rinawarp.com
+- **Emergency Contact:** beta@rinawarp.com (if it breaks everything)
+- **Quick Feedback Form:** https://forms.gle/WsXoqZQ1b7Mzoesu7
 
 ---
 

@@ -57,7 +57,9 @@ Instead of waiting months between phases, I've built all 3 phases directly into 
 
 ## ⚡ **YOUR BETA ACCESS:**
 
-### **🔗 Download: https://rinawarp-terminal.netlify.app**
+### **🔗 Download Links:**
+#### Windows Portable: [Download Here](https://drive.google.com/file/d/1BGRL_0IeHb1jBBsMbfkvE7Ihir9L_YT9/view?usp=drive_link)
+#### Windows Installer: [Download Here](https://drive.google.com/file/d/1JGiIc-OoKWE29yHHIoJbs5_FNa3sggKP/view?usp=drive_link)
 
 **As my friend/early tester, you get:**
 - 🎯 **Full Phase 3 access** for 30 days (everything unlocked)
@@ -221,7 +223,7 @@ I want RinaWarp to be the terminal that developers actually enjoy using every da
 **🔗 https://rinawarp-terminal.netlify.app**
 
 **Cheers,**  
-**[Your Name]**
+**The RinaWarp Team**
 
 P.S. - The 3-phase system is live and working. No more broken links, no more waiting - everything is ready to test RIGHT NOW! 🚀
 
@@ -234,8 +236,9 @@ P.P.S. - Reply and let me know which phase feels like the sweet spot for your wo
 **If something doesn't work:**
 - Run `rinawarp doctor` for diagnostics
 - Check `rinawarp logs` for error details  
-- Contact me directly: [your-email]
-- Emergency: [your-phone] (if it's really broken)
+- Contact me directly: hello@rinawarp.com
+- Emergency: beta@rinawarp.com (if it's really broken)
+- **Quick Feedback Form:** https://forms.gle/WsXoqZQ1b7Mzoesu7
 
 **Phase switching issues:**
 - Run `rinawarp reset` to refresh your access
