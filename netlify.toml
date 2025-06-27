@@ -1,6 +1,7 @@
 [build]
   functions = "netlify"
   publish = "."
+  command = "echo 'Deploying RinaWarp Terminal'"
 
 [functions]
   node_bundler = "esbuild"

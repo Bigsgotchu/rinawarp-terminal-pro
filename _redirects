@@ -1,0 +1,11 @@
+# RinaWarp Terminal Redirects - Homepage Fix
+/                    /index.html       200
+/pricing             /pricing.html     200
+/download            /download.html    200
+/success             /success.html     200
+
+# API endpoints (if you add backend later)
+/api/*               https://api.rinawarp.com/:splat   200
+
+# Fallback for SPA routing - serve index.html for all other routes
+/*                   /index.html       200

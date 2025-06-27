@@ -6,10 +6,10 @@
   "type": "module",
   "author": {
     "name": "RinaWarp Technologies",
-    "email": "support@https://rinawarp-terminal.netlify.app",
-    "url": "https://https://rinawarp-terminal.netlify.app"
+    "email": "support@rinawarp-terminal.netlify.app",
+    "url": "https://rinawarp-terminal.netlify.app"
   },
-  "homepage": "https://https://rinawarp-terminal.netlify.app",
+  "homepage": "https://rinawarp-terminal.netlify.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/rinawarp/terminal"
