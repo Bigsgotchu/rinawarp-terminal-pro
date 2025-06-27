@@ -399,23 +399,16 @@
         let stripe = null;
         
         // Load configuration from secure backend API
-        async function loadStripeConfig() {
-            try {
-                const response = await fetch('/api/stripe-config');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                STRIPE_CONFIG = await response.json();
-                stripe = Stripe(STRIPE_CONFIG.publishableKey);
-                console.log('Stripe configuration loaded successfully');
-            } catch (error) {
-                console.error('Failed to load Stripe configuration:', error);
-                alert('Failed to load payment configuration. Please refresh the page.');
+        // Direct Stripe configuration - LIVE PAYMENTS ENABLED
+        STRIPE_CONFIG = {
+            publishableKey: 'pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj',
+            prices: {
+                personal: 'price_1RaypMG2ToGP7ChnzbKQOAPF',
+                professional: 'price_1RayqKG2ToGP7ChnTMT6gwce',
+                team: 'price_1RayrCG2ToGP7ChnKWA7tstz'
             }
-        }
-        
-        // Initialize Stripe config when page loads
-        document.addEventListener('DOMContentLoaded', loadStripeConfig);
+        };
+        stripe = Stripe(STRIPE_CONFIG.publishableKey);
         
         function purchasePlan(plan) {
             if (!STRIPE_CONFIG || !stripe) {
