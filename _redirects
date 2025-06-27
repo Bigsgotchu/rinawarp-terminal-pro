@@ -1,5 +1,6 @@
 # RinaWarp Terminal Redirects - Homepage Fix
-/                    /index.html       200
+# Serve index.html at root - CRITICAL FIX
+/                    /index.html       200!
 /pricing             /pricing.html     200
 /download            /download.html    200
 /success             /success.html     200
