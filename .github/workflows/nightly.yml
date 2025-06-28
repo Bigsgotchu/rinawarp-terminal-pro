@@ -37,13 +37,20 @@ jobs:
       - name: Check for changes in last 24 hours
         id: check
         run: |
-          # Check if there are any commits in the last 24 hours
+          # For manual dispatch or schedule, always build
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Manual trigger or scheduled run - will build"
+            exit 0
+          fi
+          
+          # For other triggers, check if there are any commits in the last 24 hours
           COMMITS=$(git log --since="24 hours ago" --oneline | wc -l)
           echo "Commits in last 24h: $COMMITS"
           
-          if [ "$COMMITS" -gt 0 ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "$COMMITS" -gt 0 ]; then
             echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "Changes detected or manual trigger - will build"
+            echo "Changes detected - will build"
           else
             echo "should_build=false" >> $GITHUB_OUTPUT
             echo "No changes in last 24h - skipping build"
