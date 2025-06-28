@@ -183,8 +183,8 @@ rinawarp-terminal/
 
 Proprietary Software - Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
 
-For licensing information and pricing, visit: https://https://rinawarp-terminal.netlify.app/pricing  
-For enterprise inquiries, contact: sales@https://rinawarp-terminal.netlify.app
+For licensing information and pricing, visit: https://rinawarp-terminal.web.app/pricing  
+For enterprise inquiries, contact: sales@rinawarp-terminal.web.app
 
 ## Advanced Usage
 
