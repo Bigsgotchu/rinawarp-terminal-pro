@@ -60,13 +60,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Debug - List files in repository
+      - name: Debug - Comprehensive file analysis
         run: |
+          echo "=== Environment Debug ==="
           echo "Current directory: $(pwd)"
-          echo "Files in root:"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "Runner working directory: $(pwd)"
+          echo ""
+          echo "=== File System Analysis ==="
+          echo "All files in current directory:"
           ls -la
-          echo "Looking for lock files:"
-          find . -maxdepth 1 -name "*lock*" -o -name "yarn.lock" -o -name "package-lock.json" -o -name "npm-shrinkwrap.json"
+          echo ""
+          echo "Package.json exists:"
+          ls -la package.json || echo "package.json NOT FOUND"
+          echo ""
+          echo "Lock file search (current dir):"
+          find . -maxdepth 1 -name "*lock*" -o -name "yarn.lock" -o -name "package-lock.json" -o -name "npm-shrinkwrap.json" || echo "No lock files found"
+          echo ""
+          echo "Recursive lock file search:"
+          find . -name "package-lock.json" -o -name "yarn.lock" -o -name "npm-shrinkwrap.json" || echo "No lock files found recursively"
+          echo ""
+          echo "Git status:"
+          git status --porcelain || echo "Git status failed"
+          echo ""
+          echo "Git ls-files for lock files:"
+          git ls-files | grep -E "(package-lock\.json|yarn\.lock|npm-shrinkwrap\.json)" || echo "No lock files in git"
+
+      - name: Create package-lock.json if missing
+        run: |
+          if [ ! -f "package-lock.json" ]; then
+            echo "package-lock.json not found, creating it..."
+            npm install --package-lock-only
+            echo "Created package-lock.json:"
+            ls -la package-lock.json
+          else
+            echo "package-lock.json found:"
+            ls -la package-lock.json
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -76,7 +106,9 @@ jobs:
           # cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          echo "Installing dependencies with npm ci..."
+          npm ci
 
       - name: Run tests
         run: npm test
