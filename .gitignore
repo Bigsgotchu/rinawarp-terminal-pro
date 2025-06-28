@@ -256,3 +256,64 @@ releases/
 # Google verification files
 googleb4c21a9fc7fba8ea.html
 google-site-verification.html
+
+# Additional Marketing and Business Files (Keep private)
+AD_IMAGES_GUIDE.md
+ADVERTISING_HEADLINES_AND_COPY.md
+BETA_AND_STORE_ACTION_PLAN.md
+BETA_RECRUITMENT_TEMPLATES.md
+BETA_TESTER_EMAIL_TEMPLATE.md
+BETA_TESTER_QUICK_GUIDE.md
+BRAND_LAUNCH_CHECKLIST.md
+BRANDING_COMPLETION_REPORT.md
+CONVERT_TO_PNG_FOR_GOOGLE_ADS.md
+DOMAIN_REGISTRATION_GUIDE.md
+DOMAIN_STRATEGY.md
+EMAIL_SETUP_GUIDE.md
+HOSTING_DEPLOYMENT_GUIDE.md
+MARKETING_LAUNCH_KIT.md
+QUICK_DEPLOYMENT_GUIDE.md
+SEO_OPTIMIZATION_GUIDE.md
+SITE_TESTING_CHECKLIST.md
+TASKS_B-D_COMPLETION_REPORT.md
+
+# Development and Archive Folders
+automation/
+certs/
+demo/
+deploy/
+images/
+input_files/
+lab/
+multimodal-agents/
+netlify/
+png/
+production/
+reports/
+scripts/
+social-proof-screenshots/
+store-listings/
+archive/
+backup/
+
+# Executable Files
+*.exe
+*.tar.gz
+gdrive.exe
+gdrive.tar.gz
+RinaWarp-Terminal-BETA-*.exe
+
+# Configuration Files (Some should be private)
+config.js
+_redirects
+netlify.toml
+sitemap.xml
+robots.txt
+security-test-commands.md
+
+# Debug and Log Files
+pglite-debug.log
+*.debug.log
+
+# Public folder (if it's a build output)
+public/
