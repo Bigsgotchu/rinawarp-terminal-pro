@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bigsgotchu.github.io/rinawarp-terminal/sitemap.xml
