@@ -3425,7 +3425,7 @@ class TerminalManager {
         modal.querySelector('#view-pricing')?.addEventListener('click', () => {
             // Open pricing page in browser
             // Open pricing page in local development
-            require('electron').shell.openExternal(`https://rinawarp-terminal.netlify.app/pricing`);
+            require('electron').shell.openExternal(`https://rinawarp-terminal.web.app/pricing`);
         });
         
         // Enter license key
@@ -3506,7 +3506,7 @@ class TerminalManager {
         // View pricing button
         modal.querySelector('#view-pricing-welcome')?.addEventListener('click', () => {
             // Open pricing page in local development
-            require('electron').shell.openExternal(`https://rinawarp-terminal.netlify.app/pricing`);
+            require('electron').shell.openExternal(`https://rinawarp-terminal.web.app/pricing`);
             modal.querySelector('.close-modal')?.click();
         });
         

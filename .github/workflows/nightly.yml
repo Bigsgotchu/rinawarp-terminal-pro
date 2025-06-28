@@ -1,0 +1,264 @@
+name: Nightly Builds
+
+on:
+  schedule:
+    # Run every night at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: 'Platforms to build for'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - windows
+        - macos
+        - linux
+
+env:
+  APP_NAME: "RinaWarp Terminal"
+  NODE_VERSION: "18"
+
+jobs:
+  check-changes:
+    name: Check for Changes
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for changes in last 24 hours
+        id: check
+        run: |
+          # Check if there are any commits in the last 24 hours
+          COMMITS=$(git log --since="24 hours ago" --oneline | wc -l)
+          echo "Commits in last 24h: $COMMITS"
+          
+          if [ "$COMMITS" -gt 0 ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Changes detected or manual trigger - will build"
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "No changes in last 24h - skipping build"
+          fi
+
+  nightly-build:
+    name: Nightly Build
+    needs: check-changes
+    if: needs.check-changes.outputs.should_build == 'true'
+    
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            target: nsis,portable
+            artifact_name: windows
+            enabled: ${{ github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'windows' || github.event_name == 'schedule' }}
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            target: AppImage,deb
+            artifact_name: linux
+            enabled: ${{ github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux' || github.event_name == 'schedule' }}
+          - os: macos-latest
+            platform: darwin
+            arch: x64
+            target: dmg
+            artifact_name: macos
+            enabled: ${{ github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'macos' || github.event_name == 'schedule' }}
+
+    runs-on: ${{ matrix.os }}
+    if: matrix.enabled
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Platform-specific setup
+      - name: Setup Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Create self-signed certificate for nightly builds
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=RinaWarp Technologies (Nightly)" -KeyAlgorithm RSA -KeyLength 2048 -Provider "Microsoft Enhanced RSA and AES Cryptographic Provider" -KeyExportPolicy Exportable -KeyUsage DigitalSignature -CertStoreLocation Cert:\CurrentUser\My
+          Export-PfxCertificate -Cert $cert -FilePath "rinawarp-codesign.pfx" -Password (ConvertTo-SecureString -String "RinaWarp2025!" -Force -AsPlainText)
+        shell: pwsh
+
+      - name: Setup Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2 libxcomposite-dev libxdamage-dev libxrandr-dev libgbm-dev libxss-dev libasound2-dev
+
+      # Update version for nightly
+      - name: Update version for nightly
+        run: |
+          DATE=$(date +%Y%m%d)
+          COMMIT=$(git rev-parse --short HEAD)
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NIGHTLY_VERSION="${CURRENT_VERSION}-nightly.${DATE}.${COMMIT}"
+          
+          echo "Updating version to: $NIGHTLY_VERSION"
+          npm version $NIGHTLY_VERSION --no-git-tag-version
+          
+          # Update productName for nightly builds
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            powershell -Command "(Get-Content package.json) -replace '\"RinaWarp Terminal\"', '\"RinaWarp Terminal (Nightly)\"' | Set-Content package.json"
+          else
+            sed -i 's/"RinaWarp Terminal"/"RinaWarp Terminal (Nightly)"/g' package.json
+          fi
+        shell: bash
+
+      # Build the application
+      - name: Build application
+        env:
+          CSC_LINK: ${{ matrix.os == 'windows-latest' && './rinawarp-codesign.pfx' || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.os == 'windows-latest' && 'RinaWarp2025!' || '' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run build:win
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            npm run build:linux
+          else
+            npm run build:mac
+          fi
+        shell: bash
+
+      # Upload artifacts with date
+      - name: Upload nightly artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nightly-${{ matrix.artifact_name }}-$(date +%Y%m%d)
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+          retention-days: 14
+
+  create-nightly-release:
+    name: Create Nightly Release
+    needs: [check-changes, nightly-build]
+    runs-on: ubuntu-latest
+    if: needs.check-changes.outputs.should_build == 'true' && (github.event_name == 'schedule' || github.event.inputs.platforms == 'all')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate nightly tag
+        id: tag
+        run: |
+          DATE=$(date +%Y%m%d)
+          COMMIT=$(git rev-parse --short HEAD)
+          TAG="nightly-${DATE}-${COMMIT}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+
+      # Download all nightly artifacts
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ./nightly-release
+
+      # Create nightly release
+      - name: Create Nightly Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: RinaWarp Terminal Nightly ${{ steps.tag.outputs.date }}
+          body: |
+            # 🌙 Nightly Build - ${{ steps.tag.outputs.date }}
+            
+            This is an automated nightly build of RinaWarp Terminal.
+            
+            **⚠️ Warning**: This is a development build and may contain bugs or unstable features.
+            
+            ## What's Included
+            - Latest features and bug fixes from the main branch
+            - All platforms: Windows, macOS, and Linux
+            - Code-signed executables (self-signed for nightly builds)
+            
+            ## Installation
+            - **Windows**: Download the installer (.exe) or portable version
+            - **macOS**: Download the DMG file
+            - **Linux**: Download the AppImage or DEB package
+            
+            ## Build Information
+            - **Commit**: ${{ github.sha }}
+            - **Build Date**: ${{ steps.tag.outputs.date }}
+            - **Branch**: ${{ github.ref_name }}
+            
+            ---
+            
+            For stable releases, visit the [main releases page](https://github.com/${{ github.repository }}/releases).
+            
+            Report issues: [GitHub Issues](https://github.com/${{ github.repository }}/issues)
+          draft: false
+          prerelease: true
+          files: |
+            nightly-release/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Clean up old nightly releases (keep last 7)
+      - name: Clean up old nightlies
+        run: |
+          echo "Cleaning up old nightly releases..."
+          # This would need additional API calls to clean up old releases
+          # For now, just log that we would do this
+          echo "Would clean up nightly releases older than 7 days"
+
+  notify-status:
+    name: Notify Build Status
+    needs: [check-changes, nightly-build, create-nightly-release]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Build Status Summary
+        run: |
+          echo "## Nightly Build Summary"
+          echo "Date: $(date)"
+          echo "Trigger: ${{ github.event_name }}"
+          
+          if [ "${{ needs.check-changes.outputs.should_build }}" = "true" ]; then
+            echo "✅ Changes detected - build executed"
+          else
+            echo "ℹ️ No changes - build skipped"
+          fi
+          
+          if [ "${{ needs.nightly-build.result }}" = "success" ]; then
+            echo "✅ Nightly build successful"
+          elif [ "${{ needs.nightly-build.result }}" = "skipped" ]; then
+            echo "⏭️ Nightly build skipped"
+          else
+            echo "❌ Nightly build failed"
+          fi
+          
+          if [ "${{ needs.create-nightly-release.result }}" = "success" ]; then
+            echo "🚀 Nightly release created"
+          elif [ "${{ needs.create-nightly-release.result }}" = "skipped" ]; then
+            echo "⏭️ Nightly release skipped"
+          else
+            echo "❌ Nightly release failed"
+          fi

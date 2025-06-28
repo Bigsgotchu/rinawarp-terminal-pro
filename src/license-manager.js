@@ -170,7 +170,7 @@ class LicenseManager {
                     <p>The feature "${feature}" requires a higher license tier.</p>
                     <p>Current tier: <strong>${this.getLicenseTier()}</strong></p>
                     <div style="margin: 20px 0;">
-                        <button onclick="window.open('https://https://rinawarp-terminal.netlify.app/pricing', '_blank')" style="background: #007acc; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">View Pricing</button>
+                        <button onclick="window.open('https://rinawarp-terminal.web.app/pricing', '_blank')" style="background: #007acc; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">View Pricing</button>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">Close</button>
                     </div>
                 </div>

@@ -112,7 +112,12 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "certificateFile": "rinawarp-codesign.pfx",
+      "certificatePassword": "RinaWarp2025!",
+      "signingHashAlgorithms": ["sha256"],
+      "publisherName": "RinaWarp Technologies",
+      "verifyUpdateCodeSignature": false
     },
     "mac": {
       "icon": "assets/icns/icon.icns",
