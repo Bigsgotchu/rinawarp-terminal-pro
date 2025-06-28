@@ -1,8 +1,0 @@
-{
-  "name": "rinawarp-netlify-functions",
-  "version": "1.0.0",
-  "description": "Netlify functions for RinaWarp Terminal",
-  "dependencies": {
-    "stripe": "^14.11.0"
-  }
-}
