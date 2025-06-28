@@ -347,7 +347,7 @@
         // Load configuration from secure backend API
         async function loadStripeConfig() {
             try {
-                const response = await fetch('/api/stripe-config');
+                const response = await fetch('https://rinawarp-terminal.web.app/api/stripe-config');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
