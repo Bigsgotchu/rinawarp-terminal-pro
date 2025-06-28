@@ -6,13 +6,13 @@
 
 ## 🚀 **Quick Start (2 minutes)**
 
-### Option 1: Run Installer
-1. **Download:** [RinaWarp-Terminal-BETA-Setup.exe](https://drive.google.com/file/d/YOUR_INSTALLER_FILE_ID/view?usp=sharing)
+### Option 1: Run Installer (Recommended)
+1. **Download:** [RinaWarp-Terminal-BETA-Setup.exe](https://github.com/Bigsgotchu/rinawarp-terminal/releases/download/v1.0.2/RinaWarp-Terminal-BETA-Setup.exe)
 2. Run installer (might get Windows security warning - click "More info" → "Run anyway")
 3. Launch from Start Menu: "RinaWarp Terminal"
 
 ### Option 2: Portable Version
-1. **Download:** [RinaWarp-Terminal-BETA-Portable.exe](https://drive.google.com/file/d/YOUR_PORTABLE_FILE_ID/view?usp=sharing)
+1. **Download:** [RinaWarp-Terminal-BETA-Portable.exe](https://github.com/Bigsgotchu/rinawarp-terminal/releases/download/v1.0.2/RinaWarp-Terminal-BETA-Portable.exe)
 2. Run directly (no installation needed)
 
 ---
@@ -38,20 +38,9 @@
 
 ---
 
-## 🐛 **Found a Bug?**
-
-Please note:
-- **What happened** (brief description)
-- **Steps to reproduce** (1, 2, 3...)
-- **Your system** (Windows 10/11, etc.)
-
----
-
 ## 📝 **Feedback Form**
 
-**Please fill out this quick form:** https://forms.gle/CfAwr634VdA9pXQG8
-
-Or email feedback to: [YOUR_EMAIL_HERE]
+**Please fill out this quick form:** https://forms.gle/WsXoqZQ1b7Mzoesu7
 
 ---
 
@@ -76,14 +65,13 @@ Or email feedback to: [YOUR_EMAIL_HERE]
 
 ## 🆘 **Need Help?**
 
-- **Email**: [YOUR_EMAIL_HERE]
+- **Email**: support@rinawarp-terminal.netlify.app
 - **Response time**: Usually within 2-4 hours
 
 Thanks for helping make RinaWarp Terminal awesome! 🚀
 
 ---
 
-**Beta Version**: 1.0.0  
-**Test Duration**: June 17 - July 1, 2025  
+**Beta Version**: 1.0.2  
+**Test Duration**: June 28 - July 12, 2025  
 **Questions?** Just ask!
-
