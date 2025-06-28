@@ -192,3 +192,67 @@ apple-dev*
 # Production environment variables
 .env.production
 .env.prod
+
+# Firebase and Cloud Services
+.firebase/
+.firebaserc
+firebase-debug.log
+firebase.json
+
+# Social Media Automation (Keep private)
+social-media-bot.js
+run-social-bot.js
+weekly-social-schedule.json
+weekly-social-schedule.md
+
+# Business Documents (Confidential)
+business/
+*.docx
+*.pdf
+*.ott
+
+# Development Scripts (Moved to tools/)
+*.ps1
+*.bat
+*.sh
+
+# Test and Debug Files
+*-test.html
+*-debug.*
+energy-report.html
+seo-audit.html
+temp_*.html
+quick-security-test.html
+test-deployment.html
+test-downloads.html
+test-stripe.html
+stripe-test.html
+
+# Deployment Folders (Cleaned up)
+deploy/
+deployment-*/
+website-deploy*/
+
+# Business Setup Files (Keep private)
+BUSINESS_SETUP_CHECKLIST.md
+CERTIFICATE_SETUP_GUIDE.md
+LLC_FILING_INFO.md
+UTAH_LLC_REGISTRATION_GUIDE.md
+WINDOWS_CERT_PURCHASE_GUIDE.md
+WHILE_WAITING_FOR_LLC_ACTION_PLAN.md
+SOCIAL_MEDIA_AUTOMATION_SETUP.md
+ENHANCED_FEATURES_FROM_WARP.md
+LAUNCH_POSTS_READY.md
+NEXT_STEPS.md
+PROJECT_STATUS.md
+
+# Archive and Temporary Folders
+extracted-*/
+phase*-backup/
+*-FIXED/
+*-clean/
+releases/
+
+# Google verification files
+googleb4c21a9fc7fba8ea.html
+google-site-verification.html

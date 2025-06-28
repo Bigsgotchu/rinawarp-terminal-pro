@@ -136,21 +136,37 @@ chmod +x RinaWarp-Terminal.AppImage
 📝 **[Complete Installation Guide](INSTALL.md)** - Detailed instructions, troubleshooting, and advanced setup  
 🚀 **[Quick Start Guide](QUICKSTART.md)** - Get up and running in 2 minutes!
 
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 rinawarp-terminal/
-├── src/
-│   ├── main.js              # Main Electron process
-│   └── renderer/
-│       ├── index.html       # Main UI with settings modal
-│       └── renderer.js      # Advanced terminal logic with plugins
-├── styles/
-│   └── main.css             # Comprehensive styles with themes
-├── assets/                  # Icons and images
-├── package.json             # Project configuration
-├── README.md               # Documentation
-└── SETUP.md                # Setup instructions
+├── src/                    # Application source code
+│   ├── main.js            # Electron main process
+│   ├── preload.js         # Preload scripts
+│   └── renderer/          # Renderer process files
+│       ├── index.html     # Main UI
+│       ├── renderer.js    # Core terminal logic
+│       ├── next-gen-ui.js # Advanced UI features
+│       └── enhanced-terminal-features.js # Extended functionality
+├── assets/                # Icons, images, and resources
+│   ├── ico/              # Windows icons
+│   ├── icns/             # macOS icons
+│   ├── png/              # PNG images and logos
+│   └── marketing/        # Marketing materials
+├── styles/               # CSS stylesheets
+│   ├── main.css         # Main application styles
+│   ├── next-gen-ui.css  # Advanced UI styles
+│   └── *.css            # Theme and component styles
+├── tests/                # Test files and utilities
+├── tools/                # Build and deployment scripts
+├── docs/                 # Documentation and guides
+├── business/             # Business and legal documents
+├── .github/workflows/    # CI/CD workflows
+├── index.html           # Website landing page
+├── success.html         # Purchase success page
+├── pricing.html         # Pricing information
+├── package.json         # Project configuration
+└── README.md            # This file
 ```
 
 ## Technologies Used
