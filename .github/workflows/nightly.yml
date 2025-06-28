@@ -135,19 +135,27 @@ jobs:
         shell: bash
 
       # Build the application
-      - name: Build application
+      - name: Build application (Windows)
+        if: matrix.os == 'windows-latest'
         env:
-          CSC_LINK: ${{ matrix.os == 'windows-latest' && './rinawarp-codesign.pfx' || '' }}
-          CSC_KEY_PASSWORD: ${{ matrix.os == 'windows-latest' && 'RinaWarp2025!' || '' }}
+          CSC_LINK: './rinawarp-codesign.pfx'
+          CSC_KEY_PASSWORD: 'RinaWarp2025!'
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npm run build:win
-          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            npm run build:linux
-          else
-            npm run build:mac
-          fi
+        run: npm run build:win
+        shell: bash
+
+      - name: Build application (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build:linux
+        shell: bash
+
+      - name: Build application (macOS)
+        if: matrix.os == 'macos-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build:mac
         shell: bash
 
       # Upload artifacts with date
