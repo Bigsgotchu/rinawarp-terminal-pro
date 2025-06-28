@@ -199,74 +199,27 @@ jobs:
             
             This is an automated nightly build of RinaWarp Terminal.
             
-            **⚠️ Warning**: This is a development build and may contain bugs or unstable features.
+            **⚠️ Disclaimer:** This is a development build and may contain bugs.
             
-            ## What's Included
-            - Latest features and bug fixes from the main branch
-            - All platforms: Windows, macOS, and Linux
-            - Code-signed executables (self-signed for nightly builds)
+            ## What's New
+            - Latest commits from the main branch
+            - Development features and fixes
             
-            ## Installation
-            - **Windows**: Download the installer (.exe) or portable version
-            - **macOS**: Download the DMG file
-            - **Linux**: Download the AppImage or DEB package
+            ## Downloads
+            - **Windows**: `.exe` installer and portable version
+            - **Linux**: AppImage and DEB packages
+            - **macOS**: DMG installer (unsigned)
             
-            ## Build Information
-            - **Commit**: ${{ github.sha }}
-            - **Build Date**: ${{ steps.tag.outputs.date }}
-            - **Branch**: ${{ github.ref_name }}
+            ## Installation Notes
+            - Windows builds are code-signed with a development certificate
+            - macOS builds are unsigned and will show security warnings
+            - Linux builds work without additional setup
             
             ---
             
-            For stable releases, visit the [main releases page](https://github.com/${{ github.repository }}/releases).
+            Build from commit: ${{ github.sha }}
             
-            Report issues: [GitHub Issues](https://github.com/${{ github.repository }}/issues)
+          files: ./nightly-release/**/*
           draft: false
           prerelease: true
-          files: |
-            nightly-release/**/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Clean up old nightly releases (keep last 7)
-      - name: Clean up old nightlies
-        run: |
-          echo "Cleaning up old nightly releases..."
-          # This would need additional API calls to clean up old releases
-          # For now, just log that we would do this
-          echo "Would clean up nightly releases older than 7 days"
-
-  notify-status:
-    name: Notify Build Status
-    needs: [check-changes, nightly-build, create-nightly-release]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-      - name: Build Status Summary
-        run: |
-          echo "## Nightly Build Summary"
-          echo "Date: $(date)"
-          echo "Trigger: ${{ github.event_name }}"
-          
-          if [ "${{ needs.check-changes.outputs.should_build }}" = "true" ]; then
-            echo "✅ Changes detected - build executed"
-          else
-            echo "ℹ️ No changes - build skipped"
-          fi
-          
-          if [ "${{ needs.nightly-build.result }}" = "success" ]; then
-            echo "✅ Nightly build successful"
-          elif [ "${{ needs.nightly-build.result }}" = "skipped" ]; then
-            echo "⏭️ Nightly build skipped"
-          else
-            echo "❌ Nightly build failed"
-          fi
-          
-          if [ "${{ needs.create-nightly-release.result }}" = "success" ]; then
-            echo "🚀 Nightly release created"
-          elif [ "${{ needs.create-nightly-release.result }}" = "skipped" ]; then
-            echo "⏭️ Nightly release skipped"
-          else
-            echo "❌ Nightly release failed"
-          fi
+          token: ${{ secrets.GITHUB_TOKEN }}
