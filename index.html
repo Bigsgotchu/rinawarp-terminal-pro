@@ -1239,7 +1239,7 @@
                         </div>
                         <div style="color: #00ff88; margin-top: 20px; font-size: 1.1rem;">✨ Click to see full interactive demo</div>
                     </div>
-                    <div class="play-button" onclick="playDemo(); trackDemoPlay();"></div>
+                    <div class="play-button" onclick="try { playDemo(); trackDemoPlay(); } catch(e) { console.error('Demo error:', e); alert('Demo starting...'); playDemo(); }" title="Click to start interactive demo"></div>
                 </div>
                 
                 <div class="demo-stats">
