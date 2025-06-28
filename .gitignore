@@ -152,8 +152,8 @@ logs
 *.log
 
 # Lock files (keep only one)
-package-lock.json
-# yarn.lock
+# package-lock.json
+yarn.lock
 
 
 # Local Netlify folder

@@ -62,7 +62,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quick-build-${{ github.sha }}
           path: |
@@ -149,7 +149,7 @@ jobs:
         run: npm audit --json > audit-results.json || true
 
       - name: Upload audit results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-audit-${{ github.sha }}
           path: audit-results.json
