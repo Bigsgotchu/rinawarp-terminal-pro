@@ -62,22 +62,22 @@ jobs:
             arch: x64
             target: nsis,portable
             artifact_name: windows
-            enabled: ${{ github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'windows' || github.event_name == 'schedule' }}
+            enabled: true
           - os: ubuntu-latest
             platform: linux
             arch: x64
             target: AppImage,deb
             artifact_name: linux
-            enabled: ${{ github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux' || github.event_name == 'schedule' }}
+            enabled: true
           - os: macos-latest
             platform: darwin
             arch: x64
             target: dmg
             artifact_name: macos
-            enabled: ${{ github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'macos' || github.event_name == 'schedule' }}
+            enabled: true
 
     runs-on: ${{ matrix.os }}
-    if: matrix.enabled
+    if: ${{ matrix.enabled && (github.event.inputs.platforms == 'all' || github.event.inputs.platforms == matrix.artifact_name || github.event_name == 'schedule') }}
     
     steps:
       - name: Checkout code
@@ -118,12 +118,20 @@ jobs:
           echo "Updating version to: $NIGHTLY_VERSION"
           npm version $NIGHTLY_VERSION --no-git-tag-version
           
-          # Update productName for nightly builds
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            powershell -Command "(Get-Content package.json) -replace '\"RinaWarp Terminal\"', '\"RinaWarp Terminal (Nightly)\"' | Set-Content package.json"
-          else
-            sed -i 's/"RinaWarp Terminal"/"RinaWarp Terminal (Nightly)"/g' package.json
-          fi
+          echo "DATE=$DATE" >> $GITHUB_ENV
+          echo "COMMIT=$COMMIT" >> $GITHUB_ENV
+        shell: bash
+        
+      - name: Update product name for nightly (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          (Get-Content package.json) -replace '\"RinaWarp Terminal\"', '\"RinaWarp Terminal (Nightly)\"' | Set-Content package.json
+        shell: pwsh
+        
+      - name: Update product name for nightly (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          sed -i 's/"RinaWarp Terminal"/"RinaWarp Terminal (Nightly)"/g' package.json
         shell: bash
 
       # Build the application
@@ -146,7 +154,7 @@ jobs:
       - name: Upload nightly artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: nightly-${{ matrix.artifact_name }}-$(date +%Y%m%d)
+          name: nightly-${{ matrix.artifact_name }}-${{ env.DATE }}
           path: |
             dist/*.exe
             dist/*.dmg
