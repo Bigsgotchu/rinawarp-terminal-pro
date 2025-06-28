@@ -317,3 +317,13 @@ pglite-debug.log
 
 # Public folder (if it's a build output)
 public/
+
+# Business and Marketing Files (Keep Private)
+beta-launch-emails.txt
+business-calendar-master.md
+calendar-setup-guide.md
+facebook-stars-application.txt
+hotfix-beta.js
+instagram-demo-scripts.md
+instagram-testimonial-templates.md
+social-media-posts.txt
