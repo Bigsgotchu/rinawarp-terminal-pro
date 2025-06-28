@@ -26,6 +26,20 @@ let AdvancedAIContextEngine, PerformanceMonitoringDashboard, WorkflowAutomationE
 // Multimodal Agent Manager
 let MultimodalAgentManager;
 
+// Enhanced Terminal Features from Warp Projects
+let MultiTabTerminalManager, TerminalSignalHandler, EnhancedTerminalThemeManager;
+
+// Load enhanced terminal features
+try {
+    const enhancedFeatures = require('./enhanced-terminal-features.js');
+    MultiTabTerminalManager = enhancedFeatures.MultiTabTerminalManager;
+    TerminalSignalHandler = enhancedFeatures.TerminalSignalHandler;
+    EnhancedTerminalThemeManager = enhancedFeatures.EnhancedTerminalThemeManager;
+    console.log('✅ Enhanced terminal features loaded from warp projects');
+} catch (error) {
+    console.warn('Enhanced terminal features not available:', error.message);
+}
+
 // Initialize License Manager
 let licenseManager;
 try {

@@ -34,9 +34,10 @@ export default {
     'node_modules/(?!(@testing-library|@xterm)/)'
   ],
   testPathIgnorePatterns: [
-    '<rootDir>/extracted-src-backup/',
-    '<rootDir>/phase2-backup/',
-    '<rootDir>/node_modules/'
+    '<rootDir>/node_modules/',
+    '<rootDir>/dist/',
+    '<rootDir>/reports/',
+    '<rootDir>/tools/'
   ],
   testTimeout: 10000,
   verbose: true

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Stripe Payment Test - RinaWarp Terminal</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0D1F2D 0%, #1DE9B6 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        .test-button {
+            background: linear-gradient(135deg, #FF2E88, #FF2E88);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 46, 136, 0.3);
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 46, 136, 0.4);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .success { background: rgba(40, 167, 69, 0.2); border: 2px solid #28a745; }
+        .error { background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; }
+        .info { background: rgba(23, 162, 184, 0.2); border: 2px solid #17a2b8; }
+        .warning { background: rgba(255, 193, 7, 0.2); border: 2px solid #ffc107; }
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Stripe Payment Test</h1>
+        <p>This page tests your Stripe integration to ensure payments work correctly.</p>
+        
+        <div id="status" class="status info">
+            📊 <strong>Status:</strong> Ready to test payments
+        </div>
+        
+        <h2>🎯 Test Your Payment Plans</h2>
+        
+        <div style="margin: 20px 0;">
+            <button class="test-button" onclick="testPayment('personal')">
+                💻 Test Personal ($29/year)
+            </button>
+            <button class="test-button" onclick="testPayment('professional')">
+                🚀 Test Professional ($99/year)
+            </button>
+            <button class="test-button" onclick="testPayment('team')">
+                👥 Test Team ($199/year)
+            </button>
+        </div>
+        
+        <h2>📋 Checklist</h2>
+        <div style="text-align: left;">
+            <p>✅ <strong>Stripe Account:</strong> Created and verified</p>
+            <p>✅ <strong>Products:</strong> Personal, Professional, Team plans created</p>
+            <p>✅ <strong>API Keys:</strong> Live keys configured</p>
+            <p>🔍 <strong>Domain:</strong> Add your domain to Stripe dashboard</p>
+            <p>🧪 <strong>Test:</strong> Click buttons above to test payments</p>
+        </div>
+        
+        <h2>🔧 Current Configuration</h2>
+        <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p><strong>Publishable Key:</strong> <code id="pubKey">Loading...</code></p>
+            <p><strong>Price IDs:</strong></p>
+            <ul style="font-family: monospace; font-size: 14px;">
+                <li>Personal: <code id="personalPrice">Loading...</code></li>
+                <li>Professional: <code id="professionalPrice">Loading...</code></li>
+                <li>Team: <code id="teamPrice">Loading...</code></li>
+            </ul>
+        </div>
+        
+        <h2>📞 Next Steps</h2>
+        <div style="background: rgba(29, 233, 182, 0.1); padding: 20px; border-radius: 10px; border: 2px solid #1DE9B6;">
+            <p><strong>If payments work:</strong></p>
+            <ol>
+                <li>🌐 Deploy website to Netlify</li>
+                <li>📱 Set up social media accounts</li>
+                <li>📧 Launch to your personal network</li>
+                <li>💰 Start making money!</li>
+            </ol>
+            
+            <p><strong>If payments fail:</strong></p>
+            <ol>
+                <li>Check your Stripe dashboard for errors</li>
+                <li>Verify your domain is whitelisted</li>
+                <li>Ensure you're in live mode (not test mode)</li>
+                <li>Contact Stripe support if needed</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <script>
+        // Get the current configuration from your main site
+        const stripe = Stripe('pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj');
+        
+        const prices = {
+            personal: 'price_1RaypMG2ToGP7ChnzbKQOAPF',
+            professional: 'price_1RayqKG2ToGP7ChnTMT6gwce',
+            team: 'price_1RayrCG2ToGP7ChnKWA7tstz'
+        };
+        
+        // Display current configuration
+        document.getElementById('pubKey').textContent = 'pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj';
+        document.getElementById('personalPrice').textContent = prices.personal;
+        document.getElementById('professionalPrice').textContent = prices.professional;
+        document.getElementById('teamPrice').textContent = prices.team;
+        
+        function testPayment(plan) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status info';
+            statusEl.innerHTML = '🔄 <strong>Testing:</strong> Redirecting to Stripe checkout...';
+            
+            stripe.redirectToCheckout({
+                lineItems: [{
+                    price: prices[plan],
+                    quantity: 1,
+                }],
+                mode: 'subscription',
+                successUrl: window.location.origin + '/success.html?test=true',
+                cancelUrl: window.location.href,
+            }).then(function (result) {
+                if (result.error) {
+                    statusEl.className = 'status error';
+                    statusEl.innerHTML = '❌ <strong>Error:</strong> ' + result.error.message;
+                    
+                    // Common error solutions
+                    if (result.error.message.includes('domain')) {
+                        statusEl.innerHTML += '<br><br>🔧 <strong>Solution:</strong> Add your domain to Stripe dashboard → Settings → Checkout → Domains';
+                    }
+                }
+            });
+        }
+        
+        // Check if this is a successful return
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('test') === 'true') {
+            document.getElementById('status').className = 'status success';
+            document.getElementById('status').innerHTML = '🎉 <strong>SUCCESS!</strong> Your Stripe integration is working perfectly!';
+        }
+    </script>
+</body>
+</html>

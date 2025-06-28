@@ -1435,7 +1435,7 @@
                     <li>Email support (48h)</li>
                 </ul>
                 
-                <a href="/download.html" class="btn" style="display: inline-block; text-decoration: none; text-align: center;" onclick="trackDownload('trial', 'professional')">Download Free Trial</a>
+                <button class="btn" onclick="purchasePlan('professional', event)" style="display: inline-block; text-decoration: none; text-align: center; width: 100%; cursor: pointer;">Start Free Trial</button>
             </div>
             
             <!-- Team Plan -->
@@ -1454,7 +1454,7 @@
                     <li>Priority support (24h)</li>
                 </ul>
                 
-                <a href="/download.html" class="btn" style="display: inline-block; text-decoration: none; text-align: center;">Download Free Trial</a>
+                <button class="btn" onclick="purchasePlan('team', event)" style="display: inline-block; text-decoration: none; text-align: center; width: 100%; cursor: pointer;">Start Free Trial</button>
             </div>
             
             <!-- Enterprise Plan -->
@@ -1798,7 +1798,7 @@
         // LIVE Stripe publishable key - READY FOR REAL PAYMENTS!
         const stripe = Stripe('pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj');
         
-        function purchasePlan(plan) {
+        function purchasePlan(plan, event) {
             // LIVE Price IDs - REAL PAYMENTS ENABLED!
             const prices = {
                 personal: 'price_1RaypMG2ToGP7ChnzbKQOAPF',        // Personal Plan

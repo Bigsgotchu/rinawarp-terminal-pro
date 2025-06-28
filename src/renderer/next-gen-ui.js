@@ -189,15 +189,16 @@ class NextGenUIEngine {
 
     
     async enableGestureControl() {
-        await this.gestureController.initialize();
-        
-        // Define gesture mappings
-        const gestures = {
-            'swipe-right': () => this.switchToNextTab(),
-            'swipe-left': () => this.switchToPreviousTab(),
-            'swipe-up': () => this.showCommandHistory(),
-            'swipe-down': () => this.hideCommandHistory(),
-            'pinch-out': () => this.increaseFontSize(),
+        try {
+            await this.gestureController.initialize();
+            
+            // Define gesture mappings
+            const gestures = {
+                'swipe-right': () => this.switchToNextTab(),
+                'swipe-left': () => this.switchToPreviousTab(),
+                'swipe-up': () => this.showCommandHistory(),
+                'swipe-down': () => this.hideCommandHistory(),
+                'pinch-out': () => this.increaseFontSize(),
             'pinch-in': () => this.decreaseFontSize(),
             'circle-clockwise': () => this.enable3DMode(),
             'circle-counterclockwise': () => this.disable3DMode(),
@@ -211,6 +212,9 @@ class NextGenUIEngine {
         }
         
         console.log('Gesture control enabled with', Object.keys(gestures).length, 'gestures');
+        } catch (error) {
+            console.warn('Error enabling gesture control:', error);
+        }
     }
 
     
@@ -329,6 +333,112 @@ class NextGenUIEngine {
     }
 
     
+    // Missing methods that are referenced in adaptive interface
+    enableNightMode() {
+        console.log('🌙 Enabling night mode...');
+        document.body.classList.add('night-mode');
+        // Apply dark theme styles
+        const terminal = document.querySelector('.terminal');
+        if (terminal) {
+            terminal.style.backgroundColor = '#0d1117';
+            terminal.style.color = '#c9d1d9';
+        }
+    }
+    
+    enableDebuggingMode() {
+        console.log('🐛 Enabling debugging mode...');
+        document.body.classList.add('debugging-mode');
+        // Show debugging panels and tools
+    }
+    
+    enableCalmedMode() {
+        console.log('😌 Enabling calmed mode for stress reduction...');
+        document.body.classList.add('calmed-mode');
+        // Apply calming colors and reduce visual noise
+    }
+    
+    switchToNextTab() {
+        console.log('➡️ Switching to next tab');
+        // Tab switching logic
+    }
+    
+    switchToPreviousTab() {
+        console.log('⬅️ Switching to previous tab');
+        // Tab switching logic
+    }
+    
+    showCommandHistory() {
+        console.log('📜 Showing command history');
+        // Show command history panel
+    }
+    
+    hideCommandHistory() {
+        console.log('🙈 Hiding command history');
+        // Hide command history panel
+    }
+    
+    increaseFontSize() {
+        console.log('🔍 Increasing font size');
+        // Font size increase logic
+    }
+    
+    decreaseFontSize() {
+        console.log('🔍 Decreasing font size');
+        // Font size decrease logic
+    }
+    
+    
+    showQuickActions() {
+        console.log('⚡ Showing quick actions panel');
+        // Quick actions panel logic
+    }
+    
+    showContextMenu() {
+        console.log('📋 Showing context menu');
+        // Context menu logic
+    }
+    
+    analyzeCurrentTask() {
+        // Analyze what the user is currently doing
+        const lastCommand = this.getLastCommand();
+        if (lastCommand) {
+            if (lastCommand.includes('git') || lastCommand.includes('debug') || lastCommand.includes('gdb')) {
+                return 'debugging';
+            } else if (lastCommand.includes('npm') || lastCommand.includes('node') || lastCommand.includes('python')) {
+                return 'development';
+            }
+        }
+        return 'general';
+    }
+    
+    analyzeUserStress() {
+        // Simple stress detection based on typing patterns
+        return Math.random() * 0.5; // Placeholder - would use real metrics
+    }
+    
+    analyzeTimeContext() {
+        const hour = new Date().getHours();
+        if (hour >= 22 || hour <= 6) {
+            return 'night';
+        } else if (hour >= 6 && hour <= 12) {
+            return 'morning';
+        } else if (hour >= 12 && hour <= 18) {
+            return 'afternoon';
+        } else {
+            return 'evening';
+        }
+    }
+    
+    analyzeProjectType() {
+        // Analyze project type based on files in current directory
+        return 'web'; // Placeholder
+    }
+    
+    getLastCommand() {
+        // Get the last executed command
+        return window.lastExecutedCommand || '';
+    }
+
     async optimizeLayoutForTask(taskType) {
         const layouts = {
             'development': {
@@ -503,27 +613,6 @@ class NextGenUIEngine {
         }, 3000);
     }
 
-    analyzeCurrentTask() {
-        // Analyze current task based on recent commands
-        return 'development'; // Mock
-    }
-
-    analyzeUserStress() {
-        // Analyze user stress based on typing patterns, error rates, etc.
-        return 0.3; // Mock stress level (0-1)
-    }
-
-    analyzeTimeContext() {
-        const hour = new Date().getHours();
-        if (hour >= 22 || hour <= 6) return 'night';
-        if (hour >= 9 && hour <= 17) return 'work';
-        return 'personal';
-    }
-
-    analyzeProjectType() {
-        // Analyze project type based on files in directory
-        return 'web'; // Mock
-    }
 }
 
 

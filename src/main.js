@@ -11,6 +11,8 @@
  * Project repository: https://github.com/rinawarp/terminal
  */
 import { app, BrowserWindow, BrowserView, Menu, ipcMain, dialog } from 'electron';
+import pkg from 'electron-updater';
+const { autoUpdater } = pkg;
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
@@ -119,7 +121,24 @@ ipcMain.handle('get-platform', () => {
 
 ipcMain.handle('get-shell', () => {
   if (process.platform === 'win32') {
-    return process.env.COMSPEC || 'powershell.exe';
+    // Advanced shell detection for Windows
+    // Try PowerShell Core first, then Windows PowerShell, then CMD
+    try {
+      const { execSync } = require('child_process');
+      try {
+        execSync('pwsh --version', { stdio: 'pipe' });
+        return 'pwsh.exe';
+      } catch {
+        try {
+          execSync('powershell -Command "$PSVersionTable.PSVersion"', { stdio: 'pipe' });
+          return 'powershell.exe';
+        } catch {
+          return 'cmd.exe';
+        }
+      }
+    } catch {
+      return process.env.COMSPEC || 'cmd.exe';
+    }
   } else {
     return process.env.SHELL || '/bin/bash';
   }
@@ -157,5 +176,57 @@ app.on('web-contents-created', (event, contents) => {
       event.preventDefault();
     }
   });
+});
+
+// Auto-updater configuration
+autoUpdater.checkForUpdatesAndNotify();
+
+// Auto-updater event handlers
+autoUpdater.on('checking-for-update', () => {
+  console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('Update available.');
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Update Available',
+    message: 'A new version is available. It will be downloaded in the background.',
+    buttons: ['OK']
+  });
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  console.log('Update not available.');
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Error in auto-updater. ' + err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+  console.log(log_message);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Update downloaded');
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Update Ready',
+    message: 'Update downloaded. The application will restart to apply the update.',
+    buttons: ['Restart Now', 'Later']
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+
+// IPC handlers for manual update checks
+ipcMain.handle('check-for-updates', async () => {
+  return await autoUpdater.checkForUpdatesAndNotify();
 });
 

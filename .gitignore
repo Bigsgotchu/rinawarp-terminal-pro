@@ -162,3 +162,33 @@ package-lock.json
 # Large deployment archives
 netlify-deploy-*.zip
 *.exe
+
+# Backup and temporary directories
+*-backup/
+*_backup/
+*.backup
+*.bak
+phase*-backup/
+extracted-*-backup/
+
+# Reports and documentation builds
+reports/*.html
+!reports/.gitkeep
+
+# Debug logs
+*.debug.log
+
+# Certificates and signing keys (NEVER COMMIT THESE)
+certs/
+*.p12
+*.pfx
+*.pem
+*.crt
+*.cer
+private-key*
+code-signing*
+apple-dev*
+
+# Production environment variables
+.env.production
+.env.prod
