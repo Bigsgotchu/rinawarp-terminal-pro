@@ -27,24 +27,25 @@ jobs:
       - name: Create website directory
         run: |
           mkdir -p website
-          # Copy main website files
-          cp public/index.html website/
+          # Copy main website files from root directory
+          cp index.html website/
+          cp success.html website/ 2>/dev/null || echo "No success.html found"
+          cp pricing.html website/ 2>/dev/null || echo "No pricing.html found"
+          # Copy directories if they exist
           cp -r assets website/ 2>/dev/null || echo "No assets directory found"
           cp -r styles website/ 2>/dev/null || echo "No styles directory found"
           cp -r js website/ 2>/dev/null || echo "No js directory found"
           cp -r images website/ 2>/dev/null || echo "No images directory found"
-          cp public/success.html website/ 2>/dev/null || echo "No success.html found"
-          cp public/pricing.html website/ 2>/dev/null || echo "No pricing.html found"
+          # Copy test files
           cp test-*.html website/ 2>/dev/null || echo "No test files found"
+          # Copy verification and config files
           cp googleb4c21a9fc7fba8ea.html website/ 2>/dev/null || echo "No Google verification file found"
+          cp robots.txt website/ 2>/dev/null || echo "No robots.txt found"
+          cp sitemap.xml website/ 2>/dev/null || echo "No sitemap.xml found"
+          # Copy favicon files if they exist
           cp assets/ico/favicon.ico website/ 2>/dev/null || echo "No favicon.ico found"
           cp assets/favicon.svg website/ 2>/dev/null || echo "No favicon.svg found"
           cp assets/png/favicon.png website/ 2>/dev/null || echo "No favicon.png found"
-          cp public/robots.txt website/ 2>/dev/null || echo "No robots.txt found"
-          cp public/sitemap.xml website/ 2>/dev/null || echo "No sitemap.xml found"
-          # Copy other root files that might be needed
-          cp robots.txt website/ 2>/dev/null || echo "No robots.txt found"
-          cp sitemap.xml website/ 2>/dev/null || echo "No sitemap.xml found"
           # List what we're deploying
           echo "Files to be deployed:"
           find website -type f -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.png" -o -name "*.jpg" -o -name "*.ico" -o -name "*.svg" | head -30
