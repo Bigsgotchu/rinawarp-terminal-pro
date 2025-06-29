@@ -100,6 +100,9 @@
     "webpack-cli": "^5.1.4",
     "webpack-obfuscator": "^3.5.1"
   },
+  "optionalDependencies": {
+    "dmg-license": "^1.0.11"
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
@@ -152,7 +155,17 @@
     },
     "mac": {
       "icon": "assets/icns/icon.icns",
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ]
     },
     "linux": {
       "icon": "assets/png/sizes/monogram-mermaid-icon-large-256px.png",

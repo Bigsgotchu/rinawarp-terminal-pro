@@ -1,13 +1,13 @@
 /**
  * RinaWarp Terminal - Renderer.Test
  * Copyright (c) 2025 RinaWarp Technologies
- * 
+ *
  * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
- * 
+ *
  * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
- * 
+ *
  * Project repository: https://github.com/rinawarp/terminal
  */
 const path = require('path');
@@ -24,9 +24,9 @@ describe('RinaWarp Terminal Renderer', () => {
     const htmlFiles = [
       path.join(__dirname, '..', 'src', 'renderer', 'index.html'),
       path.join(__dirname, '..', 'index.html'),
-      path.join(__dirname, '..', 'src', 'index.html')
+      path.join(__dirname, '..', 'src', 'index.html'),
     ];
-    
+
     const hasHtmlFile = htmlFiles.some(file => fs.existsSync(file));
     expect(hasHtmlFile).toBe(true);
   });
@@ -47,4 +47,3 @@ describe('RinaWarp Terminal Renderer', () => {
     }
   });
 });
-

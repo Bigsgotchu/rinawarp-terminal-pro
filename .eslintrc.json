@@ -1,0 +1,109 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true,
+    "jest": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "coverage/",
+    "*.min.js",
+    "webpack.config.js",
+    "obfuscation-config.js",
+    "ip-evidence-*/**",
+    "config.js",
+    "**/obfuscated/**",
+    "**/build-evidence/**",
+    "**/code-evidence/**"
+  ],
+  "rules": {
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "no-unused-vars": ["warn", { 
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_",
+      "caughtErrorsIgnorePattern": "^_"
+    }],
+    "no-console": ["warn", { 
+      "allow": ["warn", "error", "info"]
+    }],
+    "no-debugger": ["error"],
+    "no-trailing-spaces": ["error"],
+    "eol-last": ["error"],
+    "prefer-const": ["error"],
+    "no-var": ["error"],
+    "no-undef": ["error"],
+    "no-redeclare": ["error"],
+    "no-useless-escape": ["error"]
+  },
+  "globals": {
+    "electronAPI": "readonly",
+    "require": "readonly",
+    "module": "readonly",
+    "__dirname": "readonly",
+    "__filename": "readonly",
+    "process": "readonly",
+    "Buffer": "readonly",
+    "global": "readonly",
+    "window": "readonly",
+    "document": "readonly",
+    "console": "readonly",
+    "setTimeout": "readonly",
+    "setInterval": "readonly",
+    "clearTimeout": "readonly",
+    "clearInterval": "readonly",
+    "fetch": "readonly",
+    "webkitSpeechRecognition": "readonly",
+    "SpeechRecognition": "readonly",
+    "spawn": "readonly",
+    "LicenseManager": "readonly",
+    "ComplianceAuditLogger": "readonly",
+    "AccessControlEngine": "readonly",
+    "BiometricAuthentication": "readonly",
+    "BehaviorAnalyzer": "readonly",
+    "RiskAssessmentEngine": "readonly"
+  },
+  "overrides": [
+    {
+      "files": [
+        "demo/**/*.js", 
+        "test/**/*.js", 
+        "tests/**/*.js",
+        "*-bot.js",
+        "hotfix-*.js",
+        "scripts/**/*.js",
+        "server.js",
+        "run-*.js",
+        "start-*.js",
+        "src/monitoring/**/*.js",
+        "src/licensing/**/*.js",
+        "netlify/**/*.js"
+      ],
+      "rules": {
+        "no-console": "off",
+        "no-unused-vars": "warn"
+      }
+    },
+    {
+      "files": ["src/renderer/**/*.js", "src/integration-layer/**/*.js"],
+      "rules": {
+        "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+        "no-unused-vars": ["warn", { 
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_"
+        }]
+      }
+    }
+  ]
+}

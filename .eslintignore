@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.min.js
+webpack.config.js
+obfuscation-config.js
+ip-evidence-*/**
+config.js
+**/obfuscated/**
+**/build-evidence/**
+**/code-evidence/**
+y/

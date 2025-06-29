@@ -28,20 +28,20 @@ jobs:
         run: |
           mkdir -p website
           # Copy main website files
-          cp index.html website/
+          cp public/index.html website/
           cp -r assets website/ 2>/dev/null || echo "No assets directory found"
           cp -r styles website/ 2>/dev/null || echo "No styles directory found"
           cp -r js website/ 2>/dev/null || echo "No js directory found"
           cp -r images website/ 2>/dev/null || echo "No images directory found"
-          # Copy additional HTML files
-          cp success.html website/ 2>/dev/null || echo "No success.html found"
-          cp pricing.html website/ 2>/dev/null || echo "No pricing.html found"
+          cp public/success.html website/ 2>/dev/null || echo "No success.html found"
+          cp public/pricing.html website/ 2>/dev/null || echo "No pricing.html found"
           cp test-*.html website/ 2>/dev/null || echo "No test files found"
           cp googleb4c21a9fc7fba8ea.html website/ 2>/dev/null || echo "No Google verification file found"
-          # Copy favicon files to root for proper browser access
           cp assets/ico/favicon.ico website/ 2>/dev/null || echo "No favicon.ico found"
           cp assets/favicon.svg website/ 2>/dev/null || echo "No favicon.svg found"
           cp assets/png/favicon.png website/ 2>/dev/null || echo "No favicon.png found"
+          cp public/robots.txt website/ 2>/dev/null || echo "No robots.txt found"
+          cp public/sitemap.xml website/ 2>/dev/null || echo "No sitemap.xml found"
           # Copy other root files that might be needed
           cp robots.txt website/ 2>/dev/null || echo "No robots.txt found"
           cp sitemap.xml website/ 2>/dev/null || echo "No sitemap.xml found"

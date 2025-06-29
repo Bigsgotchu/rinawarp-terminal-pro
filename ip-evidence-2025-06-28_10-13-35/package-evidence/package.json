@@ -1,0 +1,147 @@
+{
+  "name": "rinawarp-terminal",
+  "version": "1.0.2",
+  "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
+  "main": "src/main.js",
+  "type": "module",
+  "author": {
+    "name": "RinaWarp Technologies",
+    "email": "support@rinawarp-terminal.web.app",
+    "url": "https://rinawarp-terminal.web.app"
+  },
+  "homepage": "https://rinawarp-terminal.web.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bigsgotchu/rinawarp-terminal"
+  },
+  "license": "PROPRIETARY",
+  "scripts": {
+    "start": "electron src/main.js",
+    "server": "node server.js",
+    "server-dev": "nodemon server.js",
+    "test": "jest",
+    "dev": "electron src/main.js --dev",
+    "lint": "echo \"Linting not configured yet\"",
+    "format": "echo \"Formatting not configured yet\"",
+    
+    "build": "electron-builder",
+    "build:dir": "electron-builder --dir",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
+    
+    "build:portable": "electron-builder --win portable",
+    "build:nsis": "electron-builder --win nsis",
+    "build:dmg": "electron-builder --mac dmg",
+    "build:pkg": "electron-builder --mac pkg",
+    "build:mas": "electron-builder --mac mas",
+    "build:appimage": "electron-builder --linux AppImage",
+    "build:snap": "electron-builder --linux snap",
+    "build:deb": "electron-builder --linux deb",
+    "build:rpm": "electron-builder --linux rpm",
+    "build:tar.gz": "electron-builder --linux tar.gz",
+    "build:appx": "electron-builder --win appx",
+    
+    "obfuscate": "node obfuscation-config.js obfuscate",
+    "obfuscate:verify": "node obfuscation-config.js verify",
+    "obfuscate:all": "node obfuscation-config.js all",
+    "build:protected": "npm run obfuscate:all && npm run build",
+    
+    "publish": "electron-builder --publish=always",
+    "publish:github": "electron-builder --publish=always --config.publish.provider=github",
+    "publish:s3": "electron-builder --publish=always --config.publish.provider=s3",
+    
+    "dist": "electron-builder --publish=never",
+    "dist:win": "npm run build:win && npm run publish",
+    "dist:mac": "npm run build:mac && npm run publish",
+    "dist:linux": "npm run build:linux && npm run publish",
+    
+    "release": "electron-builder --publish=always",
+    "release:patch": "npm version patch && npm run release",
+    "release:minor": "npm version minor && npm run release",
+    "release:major": "npm version major && npm run release",
+    
+    "prepack": "npm run lint && npm run test",
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "echo \"Clean script not configured yet\"",
+    "rebuild": "npm run clean && npm install && npm run build"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "@xterm/xterm": "^5.5.0",
+    "brace-expansion": "^4.0.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
+    "@jest/globals": "^29.7.0",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.0",
+    "electron-updater": "^6.1.7",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.0",
+    "nodemon": "^3.0.1",
+    "javascript-obfuscator": "^4.0.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-obfuscator": "^3.5.1"
+  },
+  "build": {
+    "appId": "com.rinawarp.terminal",
+    "productName": "RinaWarp Terminal",
+    "directories": {
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Bigsgotchu",
+      "repo": "rinawarp-terminal"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "styles/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "assets/ico/rinawarp-terminal.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "certificateFile": "rinawarp-codesign.pfx",
+      "certificatePassword": "RinaWarp2025!",
+      "signingHashAlgorithms": ["sha256"],
+      "publisherName": "RinaWarp Technologies",
+      "verifyUpdateCodeSignature": false
+    },
+    "mac": {
+      "icon": "assets/icns/icon.icns",
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "icon": "assets/png/sizes/monogram-mermaid-icon-large-256px.png",
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}

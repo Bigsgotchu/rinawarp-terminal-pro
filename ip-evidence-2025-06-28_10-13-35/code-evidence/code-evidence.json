@@ -1,0 +1,42 @@
+﻿{
+    "timestamp":  "2025-06-28 10:13:36 UTC",
+    "evidence_type":  "source_code",
+    "files":  [
+                  {
+                      "hash":  "13DF1674EF2C89CBAA3C7A93740E121CD66D24D599E5FA642465970454A8DDE0",
+                      "original_path":  "src/core/protected/core-algorithms.js",
+                      "last_modified":  "2025-06-28 09:35:11 UTC",
+                      "size":  24259
+                  },
+                  {
+                      "hash":  "80C3454ADA82D8740F35AF8842B89AA331BCDD8BD93FEBF167E24399AD834423",
+                      "original_path":  "src/licensing/protected/license-validator.js",
+                      "last_modified":  "2025-06-28 08:32:45 UTC",
+                      "size":  8015
+                  },
+                  {
+                      "hash":  "57D69F1D581A019874D78D0FEA1ACD9B53A019EB6592CC5BFB5A5E6B350CDFD4",
+                      "original_path":  "src/ai/protected/ai-core.js",
+                      "last_modified":  "2025-06-28 09:25:30 UTC",
+                      "size":  1442
+                  },
+                  {
+                      "hash":  "EA1E0F9FEAAC2BA5601ED14547AE5339E6945D442E1CE19D8D42C340E7365176",
+                      "original_path":  "src/payment/protected/payment-processor.js",
+                      "last_modified":  "2025-06-28 09:25:43 UTC",
+                      "size":  1848
+                  },
+                  {
+                      "hash":  "F6196160AA7DF96C1F57D96822A420F8492229AE4C56F5F6FA833A282A0C79F8",
+                      "original_path":  "package.json",
+                      "last_modified":  "2025-06-28 08:36:51 UTC",
+                      "size":  4896
+                  },
+                  {
+                      "hash":  "541AD27CC84313D1184903DB0B3E167A71BF59B3819E137F9F21F101E7C33A58",
+                      "original_path":  "README.md",
+                      "last_modified":  "2025-06-28 02:03:00 UTC",
+                      "size":  13126
+                  }
+              ]
+}

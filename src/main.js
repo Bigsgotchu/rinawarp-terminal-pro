@@ -1,13 +1,13 @@
 /**
  * RinaWarp Terminal - Main Process
  * Copyright (c) 2025 RinaWarp Technologies
- * 
+ *
  * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
- * 
+ *
  * Licensed under the MIT License.
  * See LICENSE file for detailed terms and conditions.
- * 
+ *
  * Project repository: https://github.com/rinawarp/terminal
  */
 import { app, BrowserWindow, BrowserView, Menu, ipcMain, dialog } from 'electron';
@@ -37,12 +37,12 @@ function createWindow() {
       contextIsolation: false,
       enableRemoteModule: true,
       allowRunningInsecureContent: false,
-      experimentalFeatures: false
+      experimentalFeatures: false,
     },
     titleBarStyle: 'hidden',
     frame: false,
     show: false,
-    icon: path.join(__dirname, '../assets/ico/rinawarp-terminal.ico')
+    icon: path.join(__dirname, '../assets/ico/rinawarp-terminal.ico'),
   });
 
   // Load the index.html file
@@ -72,14 +72,14 @@ function createBrowserPane(url = 'https://google.com') {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true
-    }
+      sandbox: true,
+    },
   });
-  
+
   mainWindow.setBrowserView(browserView);
   browserView.setBounds({ x: 0, y: 100, width: 800, height: 600 });
   browserView.webContents.loadURL(url);
-  
+
   return browserView;
 }
 
@@ -171,7 +171,7 @@ ipcMain.on('window-close', () => {
 app.on('web-contents-created', (event, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
-    
+
     if (parsedUrl.origin !== 'file://') {
       event.preventDefault();
     }
@@ -186,47 +186,48 @@ autoUpdater.on('checking-for-update', () => {
   console.log('Checking for update...');
 });
 
-autoUpdater.on('update-available', (info) => {
+autoUpdater.on('update-available', info => {
   console.log('Update available.');
   dialog.showMessageBox(mainWindow, {
     type: 'info',
     title: 'Update Available',
     message: 'A new version is available. It will be downloaded in the background.',
-    buttons: ['OK']
+    buttons: ['OK'],
   });
 });
 
-autoUpdater.on('update-not-available', (info) => {
+autoUpdater.on('update-not-available', info => {
   console.log('Update not available.');
 });
 
-autoUpdater.on('error', (err) => {
+autoUpdater.on('error', err => {
   console.error('Error in auto-updater. ' + err);
 });
 
-autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+autoUpdater.on('download-progress', progressObj => {
+  let log_message = 'Download speed: ' + progressObj.bytesPerSecond;
   log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+  log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')';
   console.log(log_message);
 });
 
-autoUpdater.on('update-downloaded', (info) => {
+autoUpdater.on('update-downloaded', info => {
   console.log('Update downloaded');
-  dialog.showMessageBox(mainWindow, {
-    type: 'info',
-    title: 'Update Ready',
-    message: 'Update downloaded. The application will restart to apply the update.',
-    buttons: ['Restart Now', 'Later']
-  }).then((result) => {
-    if (result.response === 0) {
-      autoUpdater.quitAndInstall();
-    }
-  });
+  dialog
+    .showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Ready',
+      message: 'Update downloaded. The application will restart to apply the update.',
+      buttons: ['Restart Now', 'Later'],
+    })
+    .then(result => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
 });
 
 // IPC handlers for manual update checks
 ipcMain.handle('check-for-updates', async () => {
   return await autoUpdater.checkForUpdatesAndNotify();
 });
-

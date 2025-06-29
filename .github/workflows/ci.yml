@@ -30,8 +30,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Run linting (if configured)
-        run: npm run lint || echo "Linting not configured"
+      - name: Run linting
+        run: npm run lint
 
   build-quick:
     name: Quick Build Check
@@ -111,10 +111,10 @@ jobs:
         run: npm ci
 
       - name: Check code formatting
-        run: npm run format || echo "Formatting not configured"
+        run: npm run format:check || echo "Code formatting issues found"
 
       - name: Lint code
-        run: npm run lint || echo "Linting not configured"
+        run: npm run lint
 
       - name: Check package.json
         run: |

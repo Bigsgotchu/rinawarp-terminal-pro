@@ -1,0 +1,40 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.rinawarp.terminal
+productName: RinaWarp Terminal
+publish:
+  provider: github
+  owner: Bigsgotchu
+  repo: rinawarp-terminal
+files:
+  - filter:
+      - src/**/*
+      - assets/**/*
+      - styles/**/*
+      - package.json
+win:
+  icon: assets/ico/rinawarp-terminal.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  certificateFile: rinawarp-codesign.pfx
+  certificatePassword: <stripped sensitive data>
+  signingHashAlgorithms:
+    - sha256
+  publisherName: RinaWarp Technologies
+  verifyUpdateCodeSignature: false
+mac:
+  icon: assets/icns/icon.icns
+  category: public.app-category.developer-tools
+linux:
+  icon: assets/png/sizes/monogram-mermaid-icon-large-256px.png
+  target:
+    - target: deb
+      arch:
+        - x64
+electronVersion: 28.3.3

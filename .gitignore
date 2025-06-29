@@ -151,8 +151,7 @@ releases/Uninstall.ps1
 logs
 *.log
 
-# Lock files (keep only one)
-# package-lock.json
+# Lock files (commit package-lock.json for npm, ignore yarn.lock)
 yarn.lock
 
 
@@ -327,3 +326,19 @@ hotfix-beta.js
 instagram-demo-scripts.md
 instagram-testimonial-templates.md
 social-media-posts.txt
+
+# Protected Commercial Modules (Do Not Commit)
+src/core/protected/
+src/licensing/protected/
+src/enterprise/protected/
+src/ai/protected/
+src/payment/protected/
+
+# Obfuscated build outputs
+dist/protected/
+build/obfuscated/
+
+# License validation files
+*.license-key
+license-server.config
+validation-*.json

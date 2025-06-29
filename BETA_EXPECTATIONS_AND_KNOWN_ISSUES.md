@@ -202,7 +202,7 @@ This is a **BETA VERSION** with expected limitations. Please read this before te
 ## 🤝 **Beta Tester Support**
 
 ### **Getting Help:**
-- **Email**: support@rinawarp-terminal.netlify.app
+- **Email**: support@rinawarp-terminal.web.app
 - **Response time**: Within 4-8 hours during beta
 - **Priority**: Critical issues addressed first
 
@@ -233,4 +233,4 @@ Don't hesitate to reach out if anything is unclear or if you encounter issues no
 
 **Beta Version**: 1.0.2-beta  
 **Last Updated**: June 28, 2025  
-**Support**: support@rinawarp-terminal.netlify.app
+**Support**: support@rinawarp-terminal.web.app

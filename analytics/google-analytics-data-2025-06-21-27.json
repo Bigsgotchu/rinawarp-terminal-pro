@@ -1,0 +1,88 @@
+{
+  "report_period": {
+    "start_date": "2025-06-21",
+    "end_date": "2025-06-27",
+    "duration_days": 7
+  },
+  "metadata": {
+    "data_completeness": "100%",
+    "report_generated": "2025-06-28T18:19:30Z",
+    "property": "RinaWarp Terminal Website"
+  },
+  "page_views": {
+    "total_views": 74,
+    "pages": [
+      {
+        "title": "RinaWarp Terminal - Your Terminal. Reimagined. | AI-Powered Command Line",
+        "views": 72,
+        "percentage": 97.3
+      },
+      {
+        "title": "Download RinaWarp Terminal | AI-Powered Command Line",
+        "views": 2,
+        "percentage": 2.7
+      }
+    ]
+  },
+  "user_demographics": {
+    "active_users": 17,
+    "countries": [
+      {
+        "country": "United States",
+        "active_users": 15,
+        "percentage": 88.2
+      },
+      {
+        "country": "Sweden",
+        "active_users": 2,
+        "percentage": 11.8
+      },
+      {
+        "country": "China",
+        "active_users": 0,
+        "percentage": 0
+      }
+    ]
+  },
+  "traffic_sources": {
+    "total_sessions": 31,
+    "channels": [
+      {
+        "channel": "Direct",
+        "sessions": 20,
+        "percentage": 64.5
+      },
+      {
+        "channel": "Organic Social",
+        "sessions": 8,
+        "percentage": 25.8
+      },
+      {
+        "channel": "Organic Search",
+        "sessions": 3,
+        "percentage": 9.7
+      }
+    ]
+  },
+  "key_metrics": {
+    "conversion_rate": {
+      "main_to_download": 2.8,
+      "note": "2 download page views from 72 main page views"
+    },
+    "geographic_concentration": {
+      "us_dominance": 88.2,
+      "note": "Strong US user base concentration"
+    },
+    "traffic_quality": {
+      "direct_traffic": 64.5,
+      "note": "High direct traffic suggests good brand recognition"
+    }
+  },
+  "insights": [
+    "Strong US market presence with 88% of active users",
+    "High direct traffic (64.5%) indicates good brand awareness",
+    "Low conversion from main page to download page (2.8%) - potential optimization opportunity",
+    "Social media contributing 25.8% of sessions",
+    "Organic search presence is minimal (9.7%) - SEO optimization needed"
+  ]
+}
