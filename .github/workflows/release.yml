@@ -173,6 +173,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install macOS-specific dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          npm install --save-dev dmg-license
+
       # Platform-specific setup
       - name: Setup Windows signing
         if: matrix.os == 'windows-latest'
