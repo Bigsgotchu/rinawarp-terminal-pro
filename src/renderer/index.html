@@ -1,15 +1,3 @@
-/**
- * RinaWarp Terminal - Main UI
- * Copyright (c) 2025 RinaWarp Technologies
- * 
- * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
- * AI assistance, live collaboration, and enterprise-grade security features.
- * 
- * Licensed under the MIT License.
- * See LICENSE file for detailed terms and conditions.
- * 
- * Project repository: https://github.com/rinawarp/terminal
- */
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,12 +5,13 @@
      RinaWarp Terminal - Main UI
      Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
      
-     This file is part of RinaWarp Terminal, a commercial terminal emulator with
+     This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
      AI assistance, live collaboration, and enterprise-grade security features.
      
-     PROPRIETARY SOFTWARE - All rights reserved.
-     For licensing information: https://rinawarp.com/pricing
-     For enterprise inquiries: sales@rinawarp.com
+     Licensed under the MIT License.
+     See LICENSE file for detailed terms and conditions.
+     
+     Project repository: https://github.com/rinawarp/terminal
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,8 +21,9 @@
     <meta name="theme-color" content="#00ff88">
     <title>RinaWarp Terminal</title>
     <link rel="stylesheet" href="../../styles/main.css">
+    <link rel="stylesheet" href="../../styles/themes/theme-collection.css">
     <link rel="stylesheet" href="../../styles/phase2-ui.css">
-    <link rel="stylesheet" href="../../node_modules/@xterm/xterm/css/xterm.css">
+    <!-- <link rel="stylesheet" href="../../node_modules/@xterm/xterm/css/xterm.css"> -->
     <!-- Beta hotfix script -->
     <script src="../../hotfix-beta.js"></script>
 </head>
@@ -599,6 +589,9 @@
     <!-- Scripts -->
     <!-- Load license system first -->
     <script src="../license-manager.js"></script>
+    
+    <!-- Theme Manager -->
+    <script type="module" src="theme-manager.js"></script>
     
     <!-- Load advanced features first as modules -->
     <script type="module" src="ai-context-engine.js"></script>

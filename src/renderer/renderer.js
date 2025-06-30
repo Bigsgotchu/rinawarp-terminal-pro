@@ -4668,6 +4668,13 @@ function setupWindowControls() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     setupWindowControls();
+
+    // Initialize Theme Manager
+    if (typeof ThemeManager !== 'undefined') {
+      window.themeManager = new ThemeManager();
+      console.log('🎨 Theme Manager initialized successfully');
+    }
+
     window.terminalManager = new TerminalManager();
     window.pluginDevAPI = new PluginDevelopmentAPI(window.terminalManager);
     window.nlProcessor = new NaturalLanguageProcessor();
