@@ -11,6 +11,48 @@
 
 import Phase2UIManager from './phase2-ui-manager.js';
 
+// Simple EventEmitter implementation for TerminalManager compatibility
+class EventEmitter {
+  constructor() {
+    this.events = {};
+  }
+
+  on(event, listener) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+    this.events[event].push(listener);
+  }
+
+  once(event, listener) {
+    const onceWrapper = (...args) => {
+      listener(...args);
+      this.removeListener(event, onceWrapper);
+    };
+    this.on(event, onceWrapper);
+  }
+
+  emit(event, ...args) {
+    if (this.events[event]) {
+      this.events[event].forEach(listener => listener(...args));
+    }
+  }
+
+  removeListener(event, listener) {
+    if (this.events[event]) {
+      this.events[event] = this.events[event].filter(l => l !== listener);
+    }
+  }
+
+  removeAllListeners(event) {
+    if (event) {
+      delete this.events[event];
+    } else {
+      this.events = {};
+    }
+  }
+}
+
 class Phase2MainIntegration {
   constructor() {
     this.phase2UIManager = null;

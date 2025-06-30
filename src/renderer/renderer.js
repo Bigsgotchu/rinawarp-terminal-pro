@@ -2034,8 +2034,51 @@ class PluginAPI {
   }
 }
 
-class TerminalManager {
+// Simple EventEmitter for TerminalManager
+class SimpleEventEmitter {
   constructor() {
+    this.events = {};
+  }
+
+  on(event, listener) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+    this.events[event].push(listener);
+  }
+
+  once(event, listener) {
+    const onceWrapper = (...args) => {
+      listener(...args);
+      this.removeListener(event, onceWrapper);
+    };
+    this.on(event, onceWrapper);
+  }
+
+  emit(event, ...args) {
+    if (this.events[event]) {
+      this.events[event].forEach(listener => listener(...args));
+    }
+  }
+
+  removeListener(event, listener) {
+    if (this.events[event]) {
+      this.events[event] = this.events[event].filter(l => l !== listener);
+    }
+  }
+
+  removeAllListeners(event) {
+    if (event) {
+      delete this.events[event];
+    } else {
+      this.events = {};
+    }
+  }
+}
+
+class TerminalManager extends SimpleEventEmitter {
+  constructor() {
+    super();
     this.terminals = new Map();
     this.activeTerminalId = 1;
     this.nextTerminalId = 2;
@@ -3312,18 +3355,23 @@ class TerminalManager {
     });
 
     // Store terminal data
-    this.terminals.set(terminalId, {
+    const terminalData = {
       terminal,
       shellProcess,
       fitAddon,
       element: terminalElement,
-    });
+      terminalId,
+    };
+    this.terminals.set(terminalId, terminalData);
 
     // Initialize command buffer for this terminal
     this.commandBuffers.set(terminalId, '');
 
     // Execute plugin hooks
     this.pluginManager.executeHook('terminal-created', { terminalId, terminal, shellProcess });
+
+    // Emit terminal-created event for Phase 2 integration
+    this.emit('terminal-created', terminalData);
 
     // Auto-save session if enabled
     if (this.settings.autoSaveSession) {
@@ -3438,6 +3486,9 @@ class TerminalManager {
     if (terminalData) {
       terminalData.terminal.focus();
       terminalData.fitAddon.fit();
+
+      // Emit terminal-focused event for Phase 2 integration
+      this.emit('terminal-focused', terminalId);
     }
   }
 
@@ -3459,6 +3510,9 @@ class TerminalManager {
       terminalData.terminal.dispose();
       this.terminals.delete(terminalId);
     }
+
+    // Emit terminal-closed event for Phase 2 integration
+    this.emit('terminal-closed', terminalId);
 
     // Remove tab element
     const tabElement = document.querySelector(`.tab[data-tab-id="${terminalId}"]`);

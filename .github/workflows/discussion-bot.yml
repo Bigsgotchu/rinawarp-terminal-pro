@@ -1,0 +1,240 @@
+name: 🤖 Discussion Bot
+
+on:
+  schedule:
+    # Morning tips at 9 AM UTC (adjusts for timezones)
+    - cron: '0 9 * * *'
+    # Afternoon community questions at 2 PM UTC  
+    - cron: '0 14 * * *'
+    # Evening features at 6 PM UTC
+    - cron: '0 18 * * *'
+    # Weekly stats on Mondays at 10 AM UTC
+    - cron: '0 10 * * 1'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Bot action to perform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - tip
+        - feature
+        - post
+        - stats
+      dry_run:
+        description: 'Run in dry-run mode'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  discussion-bot:
+    runs-on: ubuntu-latest
+    permissions:
+      discussions: write
+      contents: read
+    
+    steps:
+    - name: 🛒 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🤖 Determine bot action
+      id: determine-action
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
+          echo "dry_run=${{ github.event.inputs.dry_run }}" >> $GITHUB_OUTPUT
+        else
+          # Determine action based on current time (UTC)
+          hour=$(date +%H)
+          day=$(date +%u)  # 1=Monday, 7=Sunday
+          
+          if [ "$hour" = "09" ]; then
+            echo "action=tip" >> $GITHUB_OUTPUT
+          elif [ "$hour" = "14" ]; then
+            echo "action=post" >> $GITHUB_OUTPUT
+          elif [ "$hour" = "18" ]; then
+            echo "action=feature" >> $GITHUB_OUTPUT
+          elif [ "$hour" = "10" ] && [ "$day" = "1" ]; then
+            echo "action=stats" >> $GITHUB_OUTPUT
+          else
+            echo "action=all" >> $GITHUB_OUTPUT
+          fi
+          echo "dry_run=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: 🎯 Run Discussion Bot
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO_OWNER: ${{ github.repository_owner }}
+        REPO_NAME: ${{ github.event.repository.name }}
+      run: |
+        # Install GitHub CLI if not present
+        if ! command -v gh &> /dev/null; then
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+        fi
+        
+        # Create the bot script inline (simplified version)
+        cat > discussion_bot.sh << 'EOF'
+        #!/bin/bash
+        
+        ACTION="${1:-all}"
+        DRY_RUN="${2:-false}"
+        
+        log() {
+          echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$2] $1"
+        }
+        
+        post_discussion() {
+          local title="$1"
+          local body="$2"
+          local category="${3:-general}"
+          
+          if [ "$DRY_RUN" = "true" ]; then
+            log "DRY RUN - Would post: $title" "WARN"
+            return 0
+          fi
+          
+          # Use GitHub CLI to create discussion
+          gh api repos/$REPO_OWNER/$REPO_NAME/discussions -X POST \
+            -f title="$title" \
+            -f body="$body" \
+            -f category_slug="$category" && \
+          log "Posted discussion: $title" "SUCCESS" || \
+          log "Failed to post discussion: $title" "ERROR"
+        }
+        
+        post_tip() {
+          local tips=(
+            "💡 Pro Tip: Custom AI Prompts|**Tip of the Day**: You can create custom AI prompts for your most common tasks!\n\nTry these examples:\n- \`!explain [command]\` - Get detailed explanations of any command\n- \`!fix [error]\` - Get help fixing errors\n- \`!optimize [script]\` - Get suggestions to improve your scripts\n\nWhat custom prompts would be helpful for your workflow? Share your ideas below! 👇"
+            "⚡ Speed Tip: Keyboard Shortcuts|**Quick Productivity Boost**: Master these RinaWarp shortcuts to work faster!\n\n🔥 Essential shortcuts:\n- \`Ctrl+Shift+A\` - Quick AI assist\n- \`Ctrl+\`\` - Toggle AI panel\n- \`Ctrl+Shift+H\` - Command history with AI context\n- \`F1\` - Help and tips\n\nWhich shortcuts do you use most? Any suggestions for new ones? 💬"
+          )
+          
+          local tip_data="${tips[$RANDOM % ${#tips[@]}]}"
+          local title="${tip_data%%|*}"
+          local body="${tip_data##*|}"
+          
+          post_discussion "$title" "$body" "general"
+        }
+        
+        post_feature() {
+          local features=(
+            "🌟 Feature Spotlight: Smart Error Recovery|**This Week's Feature**: Smart Error Recovery 🛠️\n\nWhen commands fail, RinaWarp doesn't just show the error - it:\n✅ Analyzes what went wrong\n✅ Suggests multiple fix options\n✅ Learns from your choices\n✅ Prevents similar issues in the future\n\n**Try it out**: Run a command that fails and see the AI assistance in action!\n\nHave you experienced this feature yet? Share your results! 💬"
+            "🎨 Feature Spotlight: Customizable AI Personality|**Feature Deep Dive**: AI Personality Customization 🎭\n\nDid you know you can customize how the AI assistant communicates?\n\n🎯 Available styles:\n- **Professional**: Formal, business-focused responses\n- **Casual**: Friendly, conversational tone\n- **Technical**: Deep technical explanations\n- **Beginner**: Extra explanations and guidance\n\n**How to change**: Settings → AI Preferences → Communication Style\n\nWhat style works best for you? 🤖✨"
+          )
+          
+          local feature_data="${features[$RANDOM % ${#features[@]}]}"
+          local title="${feature_data%%|*}"
+          local body="${feature_data##*|}"
+          
+          post_discussion "$title" "$body" "general"
+        }
+        
+        post_community_question() {
+          local questions=(
+            "💬 Community Question: Your Biggest Terminal Challenge|**Community Discussion**: What's your biggest challenge when working in the terminal?\n\nWe're always looking to improve RinaWarp based on real user needs. Share:\n\n🔍 **What tasks take you the longest?**\n🤔 **What do you find most confusing?**\n🎯 **What would make you 10x more productive?**\n\nYour feedback directly shapes our roadmap! Every comment helps make RinaWarp better for everyone. 🚀\n\n**Bonus**: The most helpful response this week gets early access to our next beta feature! 🎁"
+            "🎯 Beta Feedback: What Should We Build Next?|**Beta Tester Input Needed**: Help us prioritize the roadmap! 🗺️\n\nWhich features would have the biggest impact on your workflow?\n\n🔥 **Vote by reacting**:\n👍 - Better git integration\n❤️ - Cloud sync for AI context\n🚀 - Custom command templates\n😍 - Multi-terminal session management\n🎉 - Advanced scripting assistance\n\n**Or comment** with your own feature ideas!\n\nYour input as beta testers is incredibly valuable - you're shaping the future of AI-powered terminals! 💪"
+          )
+          
+          local question_data="${questions[$RANDOM % ${#questions[@]}]}"
+          local title="${question_data%%|*}"
+          local body="${question_data##*|}"
+          
+          post_discussion "$title" "$body" "ideas"
+        }
+        
+        post_stats() {
+          local repo_data=$(gh repo view --json stargazerCount,forkCount,watchers,issues,pullRequests)
+          local stars=$(echo "$repo_data" | jq -r '.stargazerCount')
+          local forks=$(echo "$repo_data" | jq -r '.forkCount')
+          local watchers=$(echo "$repo_data" | jq -r '.watchers.totalCount')
+          local issues=$(echo "$repo_data" | jq -r '.issues.totalCount')
+          local prs=$(echo "$repo_data" | jq -r '.pullRequests.totalCount')
+          
+          local release_data=$(gh release view --json tagName,publishedAt 2>/dev/null || echo '{}')
+          local release_info=""
+          if [ "$release_data" != "{}" ]; then
+            local tag=$(echo "$release_data" | jq -r '.tagName')
+            local date=$(echo "$release_data" | jq -r '.publishedAt' | cut -d'T' -f1)
+            release_info="📦 **Latest Release**: $tag ($date)"
+          fi
+          
+          local stats_body="**📊 RinaWarp Terminal Beta Stats Update**
+
+🌟 **Community Growth**:
+- ⭐ Stars: $stars
+- 🍴 Forks: $forks  
+- 👀 Watchers: $watchers
+- 🐛 Open Issues: $issues
+- 🔄 Open PRs: $prs
+
+$release_info
+
+**🎯 This Week's Focus**: Gathering beta feedback and improving core features
+
+Thanks to everyone contributing to our growing community! Your feedback and engagement make RinaWarp better every day. 🚀
+
+What metrics would you like to see in future updates? 💬"
+          
+          post_discussion "📊 Weekly Community Stats & Updates" "$stats_body" "general"
+        }
+        
+        # Main execution
+        log "Starting GitHub Discussion Bot (Action: $ACTION, DryRun: $DRY_RUN)" "INFO"
+        
+        case "$ACTION" in
+          "tip")
+            post_tip
+            ;;
+          "feature")
+            post_feature
+            ;;
+          "post")
+            post_community_question
+            ;;
+          "stats")
+            post_stats
+            ;;
+          "all")
+            # Randomize action to keep content varied
+            actions=("tip" "feature" "post")
+            selected_action=${actions[$RANDOM % ${#actions[@]}]}
+            log "Selected random action: $selected_action" "INFO"
+            
+            case "$selected_action" in
+              "tip") post_tip ;;
+              "feature") post_feature ;;
+              "post") post_community_question ;;
+            esac
+            
+            # 20% chance to also post stats
+            if [ $((RANDOM % 5)) -eq 0 ]; then
+              sleep 2
+              post_stats
+            fi
+            ;;
+          *)
+            log "Unknown action: $ACTION" "ERROR"
+            exit 1
+            ;;
+        esac
+        
+        log "Discussion bot completed successfully!" "SUCCESS"
+        EOF
+        
+        chmod +x discussion_bot.sh
+        ./discussion_bot.sh "${{ steps.determine-action.outputs.action }}" "${{ steps.determine-action.outputs.dry_run }}"
+    
+    - name: 📝 Log completion
+      run: |
+        echo "✅ Discussion bot run completed!"
+        echo "Action: ${{ steps.determine-action.outputs.action }}"
+        echo "Dry Run: ${{ steps.determine-action.outputs.dry_run }}"
+        echo "Time: $(date)"

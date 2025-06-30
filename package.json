@@ -71,6 +71,15 @@
     "security:full": "npm run security:check && npm run security:outdated",
     "audit:repository": "powershell -ExecutionPolicy Bypass -File scripts/maintenance/audit-and-clean.ps1 -DryRun",
     "audit:repository:fix": "powershell -ExecutionPolicy Bypass -File scripts/maintenance/audit-and-clean.ps1",
+    "bot:post": "pwsh -ExecutionPolicy Bypass -File scripts/automation/github-discussion-bot.ps1 -Action post",
+    "bot:tip": "pwsh -ExecutionPolicy Bypass -File scripts/automation/github-discussion-bot.ps1 -Action tip",
+    "bot:feature": "pwsh -ExecutionPolicy Bypass -File scripts/automation/github-discussion-bot.ps1 -Action feature",
+    "bot:stats": "pwsh -ExecutionPolicy Bypass -File scripts/automation/github-discussion-bot.ps1 -Action stats",
+    "bot:all": "pwsh -ExecutionPolicy Bypass -File scripts/automation/github-discussion-bot.ps1 -Action all",
+    "bot:dry-run": "pwsh -ExecutionPolicy Bypass -File scripts/automation/github-discussion-bot.ps1 -Action all -DryRun",
+    "bot:schedule:setup": "pwsh -ExecutionPolicy Bypass -File scripts/automation/schedule-discussion-bot.ps1 -Setup",
+    "bot:schedule:status": "pwsh -ExecutionPolicy Bypass -File scripts/automation/schedule-discussion-bot.ps1 -Status",
+    "bot:schedule:remove": "pwsh -ExecutionPolicy Bypass -File scripts/automation/schedule-discussion-bot.ps1 -Remove",
     "prepare": "husky"
   },
   "dependencies": {
