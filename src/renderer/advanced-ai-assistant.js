@@ -25,8 +25,8 @@ class AdvancedIntellectualAI {
     await this.loadKnowledgeBase();
     await this.initializePersonality();
     await this.calibrateUserExpertise();
-    const greeting = this.personality.getGreeting();
-    // console.log(`🧠 ${greeting}`);
+    // Greeting is loaded for personality but not used in console
+    this.personality.getGreeting();
   }
 
   async analyzeUserIntent(input, context) {
@@ -87,7 +87,7 @@ class AdvancedIntellectualAI {
     return response;
   }
 
-  addPersonalityFlavor(query, intent) {
+  addPersonalityFlavor(query, _intent) {
     const flavors = {
       'rm -rf': "🚨 Whoa there, destroyer of worlds! Let's talk about this first.",
       git: "🐙 Ah, Git! The version control system that's saved more relationships than couples therapy.",
@@ -127,7 +127,7 @@ class AdvancedIntellectualAI {
     return encouragements[Math.floor(Math.random() * encouragements.length)];
   }
 
-  async generateExplanationWithPersonality(query, intent) {
+  async generateExplanationWithPersonality(query, _intent) {
     const explanations = {
       git_workflow:
         '🎭 Git is like that friend who remembers EVERYTHING you\'ve ever said (and when you said it). This distributed version control system tracks your code changes with the dedication of a detective. The workflow is like a well-choreographed dance: Working Directory → Staging Area → Repository. Think of it as your code\'s journey from "rough draft" to "ready for prime time!"',
@@ -151,11 +151,11 @@ class AdvancedIntellectualAI {
     const category = await this.categorizeQuery(query);
     return (
       explanations[category] ||
-      (await this.generateContextualExplanationWithPersonality(query, intent))
+      (await this.generateContextualExplanationWithPersonality(query, _intent))
     );
   }
 
-  async generateContextualExplanationWithPersonality(query, intent) {
+  async generateContextualExplanationWithPersonality(_query, _intent) {
     // Fallback with personality for unknown categories
     return "🤖 Well, this is interesting! You've stumped me momentarily, but don't worry - I'm like a Swiss Army knife, I've got tools for everything. Let me break down what you're trying to do and we'll figure this out together. After all, every great coder started with a question just like this one!";
   }
@@ -165,7 +165,7 @@ class AdvancedIntellectualAI {
     return await this.generateExplanationWithPersonality(query, intent);
   }
 
-  async explainReasoningWithFlair(query, intent) {
+  async explainReasoningWithFlair(query, _intent) {
     const personalizedReasons = [
       `🔍 Alright, let me break down my thought process here! For your query "${query}", I'm like a detective analyzing clues:`,
       `🧠 Time for some AI brain flexing! Here's how I'm approaching "${query}":`,
@@ -188,7 +188,7 @@ class AdvancedIntellectualAI {
     return await this.explainReasoningWithFlair(query, intent);
   }
 
-  async generateAlternatives(query, context) {
+  async generateAlternatives(query, _context) {
     const alternatives = [];
 
     // Analyze query for common patterns and suggest alternatives
@@ -229,7 +229,7 @@ class AdvancedIntellectualAI {
     return alternatives;
   }
 
-  async generateEducationalContent(query, intent) {
+  async generateEducationalContent(query, _intent) {
     const concepts = await this.extractConcepts(query);
     let content = '';
 
@@ -340,7 +340,7 @@ class AdvancedIntellectualAI {
     return securityAnalysis;
   }
 
-  async analyzePerformance(query, context) {
+  async analyzePerformance(query, _context) {
     const performance = {
       estimated_time: 'fast',
       resource_usage: 'low',
@@ -375,7 +375,7 @@ class AdvancedIntellectualAI {
     return performance;
   }
 
-  async suggestBestPractices(query, context) {
+  async suggestBestPractices(query, _context) {
     const practices = [];
 
     // Git best practices
@@ -431,13 +431,13 @@ class AdvancedIntellectualAI {
   // Missing method implementations
   async loadKnowledgeBase() {
     // Initialize knowledge base with common patterns and solutions
-    // console.log('📚 Loading knowledge base...');
+    // Knowledge base loading completed silently
   }
 
   async initializePersonality() {
     // Initialize personality traits and context adaptation
     this.personality.adaptToContext({ current_time: new Date().toISOString() });
-    // console.log('🎭 Personality initialized!');
+    // Personality initialization completed silently
   }
 
   async assessRequiredExpertise(input) {
@@ -701,13 +701,13 @@ class DeepContextEngine {
     };
   }
 
-  async detectWorkflowPhase(commands) {
+  async detectWorkflowPhase(_commands) {
     // Detect what phase of development workflow user is in
     const phases = ['development', 'testing', 'debugging', 'deployment', 'maintenance'];
     return phases[0]; // Simplified for demo
   }
 
-  async inferUserGoals(commands) {
+  async inferUserGoals(_commands) {
     // Infer what the user is trying to achieve
     return ['complete_feature', 'fix_bug', 'optimize_performance'];
   }
@@ -723,8 +723,12 @@ class DeepContextEngine {
 }
 
 // Export the advanced AI assistant
+export { AdvancedIntellectualAI };
+
+// Legacy compatibility
+if (typeof window !== 'undefined') {
+  window.AdvancedIntellectualAI = AdvancedIntellectualAI;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { AdvancedIntellectualAI };
-} else {
-  window.AdvancedIntellectualAI = AdvancedIntellectualAI;
 }

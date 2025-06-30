@@ -10,6 +10,9 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
+
+// Import AI Copilot UI
+import AICopilotUI from './ai-copilot-ui.js';
 // Use browser-compatible EventEmitter or create a simple one
 class EventEmitter {
   constructor() {
@@ -65,6 +68,10 @@ class Phase2UIManager extends EventEmitter {
     this.collaborationHub = new CollaborationHub();
     this.performanceMonitor = new UIPerformanceMonitor();
 
+    // Initialize layout and feature managers
+    this.layoutManager = new LayoutManager();
+    this.featureManager = new FeatureManager();
+
     this.isInitialized = false;
     this.uiElements = new Map();
     this.activeModules = new Set();
@@ -76,6 +83,9 @@ class Phase2UIManager extends EventEmitter {
     console.log('🚀 Initializing Phase 2 Next-Generation UI...');
 
     try {
+      // Load CSS styles
+      await this.loadCSS();
+
       // Load user profile and preferences
       await this.userProfile.load();
 
@@ -93,6 +103,10 @@ class Phase2UIManager extends EventEmitter {
 
       // Apply initial configuration
       await this.applyUserPreferences();
+
+      // Apply theme and mode
+      this.applyTheme(this.userProfile.getPreference('theme', 'dark'));
+      this.updateUIForMode(this.currentMode);
 
       this.isInitialized = true;
       console.log('✅ Phase 2 UI successfully initialized');
@@ -162,43 +176,168 @@ class Phase2UIManager extends EventEmitter {
   }
 
   async setupAdaptiveInterface() {
-    console.log('✅ Setting up adaptive interface...');
-    // Implementation for adaptive interface
+    await this.adaptiveEngine.initialize(this.userProfile);
   }
 
   async initializeMultimodalInteractions() {
-    console.log('✅ Initializing multimodal interactions...');
-    // Implementation for multimodal interactions
+    await this.multimodalManager.initialize();
   }
 
   async setupContextualAssistance() {
-    console.log('✅ Setting up contextual assistance...');
-    // Implementation for contextual assistance
+    await this.contextEngine.initialize();
   }
 
   async configureAccessibilityFeatures() {
-    console.log('✅ Configuring accessibility features...');
-    // Implementation for accessibility features
+    await this.accessibilityManager.initialize();
   }
 
   async initializeCollaborationFeatures() {
-    console.log('✅ Initializing collaboration features...');
-    // Implementation for collaboration features
+    await this.collaborationHub.initialize();
   }
 
   async setupPerformanceMonitoring() {
-    console.log('✅ Setting up performance monitoring...');
-    // Implementation for performance monitoring
+    await this.performanceMonitor.initialize();
   }
 
   setupEventHandlers() {
     console.log('✅ Setting up event handlers...');
-    // Implementation for event handlers
+
+    // Setup global keyboard shortcuts
+    document.addEventListener('keydown', this.handleGlobalKeyboard.bind(this));
+
+    // Setup UI element event handlers
+    this.setupUIEventHandlers();
+  }
+
+  setupUIEventHandlers() {
+    // Add click handlers for UI controls once the DOM is ready
+    setTimeout(() => {
+      // Mode selector
+      const modeSelector = document.getElementById('ui-mode-selector');
+      if (modeSelector) {
+        modeSelector.addEventListener('click', () => this.showModeSelector());
+      }
+
+      // Context assistant toggle
+      const contextAssistant = document.getElementById('context-assistant');
+      if (contextAssistant) {
+        contextAssistant.addEventListener('click', () => this.toggleContextAssistant());
+      }
+
+      // Collaboration hub
+      const collaborationHub = document.getElementById('collaboration-hub');
+      if (collaborationHub) {
+        collaborationHub.addEventListener('click', () => this.openCollaborationHub());
+      }
+
+      // Accessibility panel
+      const accessibilityPanel = document.getElementById('accessibility-panel');
+      if (accessibilityPanel) {
+        accessibilityPanel.addEventListener('click', () => this.openAccessibilityPanel());
+      }
+    }, 100);
+  }
+
+  async loadCSS() {
+    console.log('🎨 Loading Phase 2 UI styles...');
+
+    // Load both Phase 2 UI styles and AI Copilot styles
+    const stylesheets = ['../../styles/phase2-ui.css', '../../styles/ai-copilot.css'];
+
+    const loadPromises = stylesheets.map(href => {
+      return new Promise(resolve => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = href;
+
+        link.onload = () => {
+          console.log(`✅ Loaded stylesheet: ${href}`);
+          resolve(true);
+        };
+
+        link.onerror = () => {
+          console.warn(`⚠️ Failed to load stylesheet: ${href}`);
+          resolve(false);
+        };
+
+        document.head.appendChild(link);
+      });
+    });
+
+    const results = await Promise.all(loadPromises);
+
+    // Check if any stylesheets failed to load
+    const failedToLoad = results.some(success => !success);
+    if (failedToLoad) {
+      console.warn('⚠️ Some stylesheets failed to load, applying fallback');
+      this.loadFallbackCSS();
+    }
+
+    console.log('✅ Phase 2 UI styles loading completed');
+  }
+
+  loadFallbackCSS() {
+    // Create basic fallback styles if external CSS fails
+    const style = document.createElement('style');
+    style.textContent = `
+      .phase2-ui-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #0f172a;
+        color: #f8fafc;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
+      }
+      .phase2-header {
+        background: #1e293b;
+        border-bottom: 1px solid #475569;
+        padding: 1rem;
+      }
+      .phase2-workspace {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+      .enhanced-terminal-container {
+        flex: 1;
+        background: #0f172a;
+      }
+    `;
+    document.head.appendChild(style);
+    console.log('✅ Fallback CSS applied');
+  }
+
+  applyTheme(theme) {
+    console.log(`🎨 Applying theme: ${theme}`);
+    document.documentElement.setAttribute('data-theme', theme);
+    this.userProfile.setPreference('theme', theme);
   }
 
   async applyUserPreferences() {
     console.log('✅ Applying user preferences...');
-    // Implementation for user preferences
+
+    // Apply saved theme
+    const savedTheme = this.userProfile.getPreference('theme', 'dark');
+    this.applyTheme(savedTheme);
+
+    // Apply saved UI mode
+    const savedMode = this.userProfile.getPreference('uiMode', 'adaptive');
+    if (savedMode !== this.currentMode) {
+      await this.switchMode(savedMode);
+    }
+
+    // Apply other preferences
+    const sidebarCollapsed = this.userProfile.getPreference('sidebarCollapsed', false);
+    if (sidebarCollapsed) {
+      const sidebar = document.getElementById('contextual-sidebar');
+      if (sidebar) sidebar.classList.add('collapsed');
+    }
   }
 
   createPhase2Container() {
@@ -473,6 +612,98 @@ class Phase2UIManager extends EventEmitter {
 
   getPerformanceMetrics() {
     return this.performanceMonitor.getMetrics();
+  }
+
+  // UI Handler Methods
+  showModeSelector() {
+    console.log('🎛️ Showing mode selector');
+    // Implementation for mode selector
+    this.showNotification('Mode selector opened', 'info');
+  }
+
+  toggleContextAssistant() {
+    console.log('🧠 Toggling context assistant');
+    const panel = document.getElementById('context-panel');
+    if (panel) {
+      const isVisible = panel.style.display !== 'none';
+      panel.style.display = isVisible ? 'none' : 'block';
+      this.showNotification(
+        isVisible ? 'Context assistant hidden' : 'Context assistant shown',
+        'info'
+      );
+    }
+  }
+
+  openCollaborationHub() {
+    console.log('👥 Opening collaboration hub');
+    this.showNotification('Collaboration hub opened', 'info');
+  }
+
+  openAccessibilityPanel() {
+    console.log('♿ Opening accessibility panel');
+    this.showNotification('Accessibility panel opened', 'info');
+  }
+
+  showHelpSystem() {
+    console.log('❓ Showing help system');
+    this.showNotification('Help system activated', 'info');
+  }
+
+  activateAIAssistant() {
+    console.log('🤖 Activating AI assistant');
+    this.showNotification('AI assistant activated', 'info');
+
+    // Initialize AI Copilot UI if not already done
+    if (!this.aiCopilotUI) {
+      this.aiCopilotUI = new AICopilotUI();
+
+      // Store reference for later use
+      this.uiElements.set('ai-copilot-ui', this.aiCopilotUI);
+    }
+
+    // Show the AI Copilot UI
+    this.aiCopilotUI.show();
+  }
+
+  openSettings() {
+    console.log('⚙️ Opening settings');
+    this.showNotification('Settings panel opened', 'info');
+  }
+
+  // Terminal Integration Methods
+  embedTerminal(terminalElement) {
+    console.log('🖥️ Embedding terminal into Phase 2 UI...');
+
+    const terminalContainer = document.querySelector('.enhanced-terminal-container');
+    if (!terminalContainer) {
+      console.error('Enhanced terminal container not found');
+      return false;
+    }
+
+    // Clear any existing content
+    terminalContainer.innerHTML = '';
+
+    // Move the terminal element into the Phase 2 container
+    if (terminalElement) {
+      terminalContainer.appendChild(terminalElement);
+
+      // Apply terminal-specific styling
+      terminalElement.style.width = '100%';
+      terminalElement.style.height = '100%';
+      terminalElement.style.border = 'none';
+      terminalElement.style.outline = 'none';
+
+      console.log('✅ Terminal successfully embedded');
+      this.showNotification('Terminal embedded in Phase 2 UI', 'success');
+      return true;
+    } else {
+      console.error('No terminal element provided');
+      return false;
+    }
+  }
+
+  getTerminalContainer() {
+    return document.querySelector('.enhanced-terminal-container');
   }
 
   // Cleanup
@@ -820,6 +1051,319 @@ class PeerConnectionManager {
 class SharingEngine {
   constructor() {
     console.log('📡 Sharing engine initialized');
+  }
+}
+
+// Layout Manager for handling UI layout changes
+class LayoutManager {
+  constructor() {
+    this.currentLayout = 'default';
+    this.layoutConfigs = new Map();
+    this.initializeLayouts();
+  }
+
+  initializeLayouts() {
+    // Define layout configurations for different modes
+    this.layoutConfigs.set('guided', {
+      sidebar: { visible: true, width: '300px' },
+      contextPanel: { visible: true, position: 'right' },
+      toolbar: { visible: true, style: 'expanded' },
+      hints: true,
+    });
+
+    this.layoutConfigs.set('visual', {
+      sidebar: { visible: true, width: '250px' },
+      contextPanel: { visible: true, position: 'right' },
+      toolbar: { visible: true, style: 'compact' },
+      visualMode: true,
+    });
+
+    this.layoutConfigs.set('traditional', {
+      sidebar: { visible: false },
+      contextPanel: { visible: false },
+      toolbar: { visible: false },
+      terminalFocus: true,
+    });
+
+    this.layoutConfigs.set('expert', {
+      sidebar: { visible: true, width: '200px', collapsed: true },
+      contextPanel: { visible: true, position: 'bottom' },
+      toolbar: { visible: true, style: 'minimal' },
+      shortcuts: true,
+    });
+
+    this.layoutConfigs.set('adaptive', {
+      sidebar: { visible: true, width: '280px', adaptive: true },
+      contextPanel: { visible: true, position: 'right', adaptive: true },
+      toolbar: { visible: true, style: 'adaptive' },
+      smartLayout: true,
+    });
+  }
+
+  updateForMode(mode) {
+    console.log(`🎨 Updating layout for mode: ${mode}`);
+
+    const config = this.layoutConfigs.get(mode);
+    if (!config) {
+      console.warn(`Layout config not found for mode: ${mode}`);
+      return;
+    }
+
+    this.currentLayout = mode;
+    this.applyLayoutConfig(config);
+  }
+
+  applyLayoutConfig(config) {
+    try {
+      // Apply sidebar configuration
+      if (config.sidebar) {
+        this.configureSidebar(config.sidebar);
+      }
+
+      // Apply context panel configuration
+      if (config.contextPanel) {
+        this.configureContextPanel(config.contextPanel);
+      }
+
+      // Apply toolbar configuration
+      if (config.toolbar) {
+        this.configureToolbar(config.toolbar);
+      }
+
+      // Apply special mode configurations
+      this.applyModeSpecificConfig(config);
+    } catch (error) {
+      console.error('Error applying layout config:', error);
+    }
+  }
+
+  configureSidebar(sidebarConfig) {
+    const sidebar = document.getElementById('contextual-sidebar');
+    if (!sidebar) return;
+
+    if (sidebarConfig.visible) {
+      sidebar.style.display = 'block';
+      sidebar.style.width = sidebarConfig.width || '280px';
+
+      if (sidebarConfig.collapsed) {
+        sidebar.classList.add('collapsed');
+      } else {
+        sidebar.classList.remove('collapsed');
+      }
+    } else {
+      sidebar.style.display = 'none';
+    }
+  }
+
+  configureContextPanel(panelConfig) {
+    const panel = document.getElementById('context-panel');
+    if (!panel) return;
+
+    if (panelConfig.visible) {
+      panel.style.display = 'block';
+      panel.className = `context-panel position-${panelConfig.position || 'right'}`;
+    } else {
+      panel.style.display = 'none';
+    }
+  }
+
+  configureToolbar(toolbarConfig) {
+    const toolbar = document.querySelector('.enhancement-toolbar');
+    if (!toolbar) return;
+
+    if (toolbarConfig.visible) {
+      toolbar.style.display = 'flex';
+      toolbar.className = `enhancement-toolbar style-${toolbarConfig.style || 'default'}`;
+    } else {
+      toolbar.style.display = 'none';
+    }
+  }
+
+  applyModeSpecificConfig(config) {
+    const container = document.getElementById('phase2-ui-container');
+    if (!container) return;
+
+    // Add mode-specific classes
+    container.classList.remove(
+      'hints-enabled',
+      'visual-mode',
+      'terminal-focus',
+      'shortcuts-enabled',
+      'smart-layout'
+    );
+
+    if (config.hints) container.classList.add('hints-enabled');
+    if (config.visualMode) container.classList.add('visual-mode');
+    if (config.terminalFocus) container.classList.add('terminal-focus');
+    if (config.shortcuts) container.classList.add('shortcuts-enabled');
+    if (config.smartLayout) container.classList.add('smart-layout');
+  }
+
+  getCurrentLayout() {
+    return this.currentLayout;
+  }
+
+  destroy() {
+    console.log('🧹 Layout manager destroyed');
+  }
+}
+
+// Feature Manager for handling feature availability based on mode
+class FeatureManager {
+  constructor() {
+    this.availableFeatures = new Set();
+    this.featureConfigs = new Map();
+    this.initializeFeatures();
+  }
+
+  initializeFeatures() {
+    // Define feature availability for different modes
+    this.featureConfigs.set('guided', {
+      features: ['smart-suggestions', 'contextual-help', 'workflow-recorder', 'visual-feedback'],
+      restrictions: ['advanced-shortcuts', 'raw-terminal-access'],
+      enhancements: ['step-by-step-guidance', 'error-explanations'],
+    });
+
+    this.featureConfigs.set('visual', {
+      features: ['visual-commander', 'smart-suggestions', 'workflow-recorder', 'ai-copilot'],
+      restrictions: ['terminal-only-mode'],
+      enhancements: ['visual-command-builder', 'graphical-feedback'],
+    });
+
+    this.featureConfigs.set('traditional', {
+      features: ['raw-terminal-access'],
+      restrictions: ['visual-enhancements', 'ai-assistance', 'contextual-panels'],
+      enhancements: ['pure-terminal-experience'],
+    });
+
+    this.featureConfigs.set('expert', {
+      features: ['all-shortcuts', 'advanced-customization', 'ai-copilot', 'collaboration'],
+      restrictions: ['beginner-hints', 'step-by-step-guidance'],
+      enhancements: ['power-user-features', 'advanced-scripting'],
+    });
+
+    this.featureConfigs.set('adaptive', {
+      features: ['smart-adaptation', 'context-awareness', 'learning-system'],
+      restrictions: [],
+      enhancements: ['dynamic-ui-adjustment', 'behavioral-learning'],
+    });
+  }
+
+  updateForMode(mode) {
+    console.log(`⚙️ Updating features for mode: ${mode}`);
+
+    const config = this.featureConfigs.get(mode);
+    if (!config) {
+      console.warn(`Feature config not found for mode: ${mode}`);
+      return;
+    }
+
+    this.applyFeatureConfig(config);
+  }
+
+  applyFeatureConfig(config) {
+    try {
+      // Clear current features
+      this.availableFeatures.clear();
+
+      // Enable features for this mode
+      if (config.features) {
+        config.features.forEach(feature => {
+          this.enableFeature(feature);
+        });
+      }
+
+      // Apply restrictions
+      if (config.restrictions) {
+        config.restrictions.forEach(feature => {
+          this.disableFeature(feature);
+        });
+      }
+
+      // Apply enhancements
+      if (config.enhancements) {
+        config.enhancements.forEach(enhancement => {
+          this.enableEnhancement(enhancement);
+        });
+      }
+
+      this.updateFeatureUI();
+    } catch (error) {
+      console.error('Error applying feature config:', error);
+    }
+  }
+
+  enableFeature(featureName) {
+    this.availableFeatures.add(featureName);
+    console.log(`✅ Feature enabled: ${featureName}`);
+
+    // Enable corresponding UI elements
+    const element = document.getElementById(featureName.replace('_', '-'));
+    if (element) {
+      element.style.display = 'block';
+      element.disabled = false;
+      element.classList.remove('feature-disabled');
+    }
+  }
+
+  disableFeature(featureName) {
+    this.availableFeatures.delete(featureName);
+    console.log(`❌ Feature disabled: ${featureName}`);
+
+    // Disable corresponding UI elements
+    const element = document.getElementById(featureName.replace('_', '-'));
+    if (element) {
+      element.style.display = 'none';
+      element.disabled = true;
+      element.classList.add('feature-disabled');
+    }
+  }
+
+  enableEnhancement(enhancementName) {
+    console.log(`🚀 Enhancement enabled: ${enhancementName}`);
+
+    // Apply enhancement-specific logic
+    const container = document.getElementById('phase2-ui-container');
+    if (container) {
+      container.classList.add(`enhancement-${enhancementName.replace('_', '-')}`);
+    }
+  }
+
+  updateFeatureUI() {
+    // Update UI based on available features
+    const toolbar = document.querySelector('.enhancement-toolbar');
+    if (!toolbar) return;
+
+    const buttons = toolbar.querySelectorAll('.enhance-btn');
+    buttons.forEach(button => {
+      const featureName = button.id.replace('-', '_');
+      if (this.isFeatureAvailable(featureName)) {
+        button.classList.remove('feature-unavailable');
+        button.style.opacity = '1';
+        button.disabled = false;
+      } else {
+        button.classList.add('feature-unavailable');
+        button.style.opacity = '0.5';
+        button.disabled = true;
+      }
+    });
+  }
+
+  isFeatureAvailable(featureName) {
+    return (
+      this.availableFeatures.has(featureName) ||
+      this.availableFeatures.has(featureName.replace('_', '-')) ||
+      this.availableFeatures.has(featureName.replace('-', '_'))
+    );
+  }
+
+  getAvailableFeatures() {
+    return Array.from(this.availableFeatures);
+  }
+
+  destroy() {
+    this.availableFeatures.clear();
+    console.log('🧹 Feature manager destroyed');
   }
 }
 

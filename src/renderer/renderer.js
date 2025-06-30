@@ -4673,6 +4673,9 @@ if (document.readyState === 'loading') {
     window.nlProcessor = new NaturalLanguageProcessor();
     window.advancedGit = new AdvancedGitIntegration(window.terminalManager);
 
+    // Initialize Phase 2 UI Manager
+    initializePhase2UI();
+
     // Initialize Multimodal Agent Manager after other components
     if (MultimodalAgentManager) {
       try {
@@ -4689,6 +4692,9 @@ if (document.readyState === 'loading') {
   window.pluginDevAPI = new PluginDevelopmentAPI(window.terminalManager);
   window.nlProcessor = new NaturalLanguageProcessor();
   window.advancedGit = new AdvancedGitIntegration(window.terminalManager);
+
+  // Initialize Phase 2 UI Manager
+  initializePhase2UI();
 }
 
 // Enhanced UI Toggle Function
@@ -4749,6 +4755,37 @@ function toggleEnhancedUI() {
       'error',
       4000
     );
+  }
+}
+
+// Phase 2 UI Initialization Function
+async function initializePhase2UI() {
+  try {
+    console.log('🚀 Starting Phase 2 UI initialization...');
+
+    // Import Phase2MainIntegration dynamically
+    const { default: Phase2MainIntegration } = await import('./phase2-main-integration.js');
+
+    // Initialize Phase 2 Main Integration
+    window.phase2Integration = new Phase2MainIntegration();
+
+    // Initialize with terminal manager
+    await window.phase2Integration.initialize(window.terminalManager);
+
+    console.log('✅ Phase 2 UI integration completed successfully');
+  } catch (error) {
+    console.error('❌ Phase 2 UI integration failed:', error);
+
+    // Show fallback notification
+    if (window.terminalManager?.pluginAPI) {
+      window.terminalManager.pluginAPI.showNotification(
+        '⚠️ Phase 2 UI failed to load, using standard UI',
+        'warning',
+        4000
+      );
+    }
+
+    // Graceful fallback - terminal still works without Phase 2 UI
   }
 }
 
