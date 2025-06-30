@@ -95,15 +95,45 @@
     <!-- End Google Tag Manager -->
     
     <!-- Local Stylesheets -->
-    <link rel="stylesheet" href="./styles/main.css">
-    <link rel="stylesheet" href="./styles/phase2-ui.css">
-    <link rel="stylesheet" href="./styles/next-gen-ui.css">
+    <link rel="stylesheet" href="./styles/main.css" onerror="console.warn('Failed to load main.css')">
+    <link rel="stylesheet" href="./styles/phase2-ui.css" onerror="console.warn('Failed to load phase2-ui.css')">
+    <link rel="stylesheet" href="./styles/next-gen-ui.css" onerror="console.warn('Failed to load next-gen-ui.css')">
     
-    <!-- Google Fonts with fallback -->
+    <!-- Google Fonts with proper fallback -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"></noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" onerror="console.warn('Failed to load Google Fonts'); this.remove();">
+    
+    <!-- CSS Loading Status Script -->
+    <script>
+        // Track CSS loading for debugging
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('link[rel="stylesheet"]');
+            console.log('🎨 Checking CSS loading status...');
+            
+            links.forEach((link, index) => {
+                const href = link.href;
+                const fileName = href.split('/').pop();
+                
+                link.addEventListener('load', () => {
+                    console.log(`✅ CSS loaded successfully: ${fileName}`);
+                });
+                
+                link.addEventListener('error', () => {
+                    console.error(`❌ CSS failed to load: ${fileName} (${href})`);
+                });
+                
+                // Check if already loaded
+                try {
+                    if (link.sheet && link.sheet.cssRules) {
+                        console.log(`✅ CSS already loaded: ${fileName}`);
+                    }
+                } catch (e) {
+                    console.warn(`⚠️ Cannot access stylesheet: ${fileName} (CORS or loading issue)`);
+                }
+            });
+        });
+    </script>
     
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-53W5ZBDPC5"></script>
@@ -1123,6 +1153,9 @@
     </style>
 </head>
 <body>
+    <div style="background-color:#FFDB58; padding:10px; text-align:center;">
+        <strong>Important Update:</strong> Temporary suspension due to an incorrect flag. Please <a href="release-notice.html">click here</a> for details.
+    </div>
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GT-T5P23L6C"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -1135,20 +1168,21 @@
                 <span>RinaWarp</span>
             </a>
             
-            <ul class="navbar-nav">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#themes">Themes</a></li>
-                <li><a href="#docs">Docs</a></li>
-                <li><a href="https://github.com/rinawarp/terminal" target="_blank">GitHub</a></li>
-            </ul>
+            	<ul class="navbar-nav">
+                	<li><a href="#features">Features</a></li>
+                	<li><a href="#themes">Themes</a></li>
+                	<li><a href="about.html">About</a></li>
+                	<li><a href="#docs">Docs</a></li>
+                	<li><a href="https://github.com/rinawarp/terminal" target="_blank">GitHub</a></li>
+            	</ul>
             
-            <a href="#pricing" class="navbar-cta" onclick="scrollToPricing()">Pre-Order 50% OFF</a>
+                    <a href="#pricing" class="navbar-cta" onclick="scrollToPricing()">Try Beta Version</a>
         </div>
     </nav>
 
-    <!-- Promotional Banner -->
+    <!-- Notice Banner -->
     <div class="promo-banner">
-        🔥 LAUNCH SPECIAL: First 100 customers get 50% off their first year! <span class="urgency-badge">LIMITED TIME</span>
+        🎯 Beta Testing Program: Free access to advanced terminal features during development phase
     </div>
     
     <!-- Hero Section -->
@@ -1164,7 +1198,7 @@
                 
                 <!-- New CTA Buttons -->
                 <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;">
-                    <a href="#pricing" onclick="scrollToPricing()" style="
+                    <a href="/download.html" style="
                         background: linear-gradient(135deg, #FF2E88, #ff1a7a);
                         color: white;
                         padding: 15px 30px;
@@ -1178,7 +1212,7 @@
                         align-items: center;
                         gap: 8px;
                     " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 46, 136, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 46, 136, 0.3)'">
-                        🔥 Pre-Order 50% OFF
+                        🚀 Download Beta
                     </a>
                     <a href="#video-demo" style="
                         background: transparent;
@@ -1212,8 +1246,8 @@
                         <span>30-Day Free Trial</span>
                     </div>
                     <div class="trust-badge">
-                        <span class="emoji">💰</span>
-                        <span>Money-Back Guarantee</span>
+                        <span class="emoji">📖</span>
+                        <span>Open Source Project</span>
                     </div>
                 </div>
             </div>
@@ -1287,16 +1321,16 @@
             <div class="live-usage-content">
                 <div class="live-stats">
                     <div class="live-stat">
-                        <span class="live-number" id="activeUsers">1,247</span>
-                        <div class="live-label">Developers Online</div>
+                        <span class="live-number" id="activeUsers">Beta</span>
+                        <div class="live-label">Testing Phase</div>
                     </div>
                     <div class="live-stat">
-                        <span class="live-number" id="commandsToday">28,394</span>
-                        <div class="live-label">AI Commands Today</div>
+                        <span class="live-number" id="commandsToday">Live</span>
+                        <div class="live-label">Demo Available</div>
                     </div>
                     <div class="live-stat">
-                        <span class="live-number" id="timesSaved">156h</span>
-                        <div class="live-label">Time Saved Today</div>
+                        <span class="live-number" id="timesSaved">Free</span>
+                        <div class="live-label">30-Day Trial</div>
                     </div>
                 </div>
                 <div class="status-indicator">
@@ -1307,30 +1341,30 @@
         </div>
     </div>
     
-    <!-- Customer Logos Section -->
+    <!-- Community Features Section -->
     <div class="customer-logos">
         <div class="container">
-            <h2>🏢 Trusted by Developers at Leading Companies</h2>
-            <div class="subtitle">Join thousands of developers from top tech companies who've accelerated their workflow</div>
+            <h2>🏢 Growing Developer Community</h2>
+            <div class="subtitle">Join our growing community of developers exploring the future of terminal interfaces</div>
             
             <div class="logos-grid">
                 <div class="customer-logo">
-                    <div class="logo-text logo-microsoft">Microsoft</div>
+                    <div class="logo-text">🚀 Early Adopters</div>
                 </div>
                 <div class="customer-logo">
-                    <div class="logo-text logo-github">GitHub</div>
+                    <div class="logo-text">💻 Open Source</div>
                 </div>
                 <div class="customer-logo">
-                    <div class="logo-text logo-google">Google</div>
+                    <div class="logo-text">🌟 Community Driven</div>
                 </div>
                 <div class="customer-logo">
-                    <div class="logo-text logo-aws">AWS</div>
+                    <div class="logo-text">⚡ Performance First</div>
                 </div>
                 <div class="customer-logo">
-                    <div class="logo-text logo-meta">Meta</div>
+                    <div class="logo-text">🎨 Beautiful Design</div>
                 </div>
                 <div class="customer-logo">
-                    <div class="logo-text logo-netflix">Netflix</div>
+                    <div class="logo-text">🤖 AI Powered</div>
                 </div>
             </div>
         </div>
@@ -1504,20 +1538,20 @@
         <div class="container">
             <div class="stats-grid">
                 <div class="stat">
-                    <span class="stat-number">10,000+</span>
-                    <span class="stat-label">Developers Using RinaWarp</span>
+                    <span class="stat-number">Beta</span>
+                    <span class="stat-label">Early Access Program</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">3x</span>
-                    <span class="stat-label">Faster Development</span>
+                    <span class="stat-number">Open</span>
+                    <span class="stat-label">Source Project</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">50+</span>
-                    <span class="stat-label">Enterprise Customers</span>
+                    <span class="stat-number">AI</span>
+                    <span class="stat-label">Powered Features</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">99.9%</span>
-                    <span class="stat-label">Uptime Guarantee</span>
+                    <span class="stat-number">Free</span>
+                    <span class="stat-label">30-Day Trial</span>
                 </div>
             </div>
         </div>
@@ -1526,8 +1560,8 @@
     <!-- Testimonials Section -->
     <div class="testimonials">
         <div class="container">
-            <h2>🗣️ What Developers Are Saying</h2>
-            <div class="subtitle">Join thousands of developers who've supercharged their workflow</div>
+            <h2>🗣️ What Beta Testers Are Saying</h2>
+            <div class="subtitle">Early feedback from our beta testing community</div>
             
             <div class="testimonial-grid">
                 <div class="testimonial">
@@ -1670,7 +1704,7 @@
                 border: 1px solid rgba(255, 255, 255, 0.2);
             ">
                 <p style="margin: 0; font-size: 1.1rem; opacity: 0.9;">
-                    🚀 Join 10,000+ developers • ⚡ 30-day free trial • 🛡️ Money-back guarantee
+                    🚀 Join our beta community • ⚡ 30-day free trial • 🛡️ Money-back guarantee
                 </p>
             </div>
         </div>
@@ -1760,10 +1794,10 @@
                         align-items: center;
                         gap: 8px;
                     " onmouseover="this.style.color='#1DE9B6'; this.style.transform='translateY(-2px)'" onmouseout="this.style.color='#A1F0E2'; this.style.transform='translateY(0)'">
-                        🐙 GitHub
+                        🐙 GitHub Repository
                     </a>
                     
-                    <a href="https://twitter.com/rinawarp" style="
+                    <a href="mailto:support@rinawarp.com" style="
                         color: #A1F0E2;
                         text-decoration: none;
                         font-weight: 500;
@@ -1772,10 +1806,10 @@
                         align-items: center;
                         gap: 8px;
                     " onmouseover="this.style.color='#1DE9B6'; this.style.transform='translateY(-2px)'" onmouseout="this.style.color='#A1F0E2'; this.style.transform='translateY(0)'">
-                        🐦 Twitter
+                        📧 Technical Support
                     </a>
                     
-                    <a href="#docs" style="
+                    <a href="privacy-policy.html" style="
                         color: #A1F0E2;
                         text-decoration: none;
                         font-weight: 500;
@@ -1784,10 +1818,10 @@
                         align-items: center;
                         gap: 8px;
                     " onmouseover="this.style.color='#1DE9B6'; this.style.transform='translateY(-2px)'" onmouseout="this.style.color='#A1F0E2'; this.style.transform='translateY(0)'">
-                        📚 Docs
+                        📋 Privacy Policy
                     </a>
                     
-                    <a href="mailto:hello@rinawarp.com" style="
+                    <a href="terms-of-service.html" style="
                         color: #A1F0E2;
                         text-decoration: none;
                         font-weight: 500;
@@ -1796,8 +1830,38 @@
                         align-items: center;
                         gap: 8px;
                     " onmouseover="this.style.color='#1DE9B6'; this.style.transform='translateY(-2px)'" onmouseout="this.style.color='#A1F0E2'; this.style.transform='translateY(0)'">
-                        💌 Contact
+                        📄 Terms of Service
                     </a>
+                </div>
+                
+                <!-- Company Information -->
+                <div style="
+                    background: rgba(255, 255, 255, 0.1);
+                    padding: 25px;
+                    border-radius: 15px;
+                    margin-bottom: 30px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                ">
+                    <h4 style="color: #1DE9B6; margin-bottom: 15px; font-size: 1.1rem;">Company Information</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; font-size: 0.9rem;">
+                        <div>
+                            <strong style="color: #FF2E88;">RinaWarp Technologies</strong><br>
+                            Open Source Terminal Project<br>
+                            MIT Licensed Software
+                        </div>
+                        <div>
+                            <strong style="color: #FF2E88;">Contact Information</strong><br>
+                            📧 General: hello@rinawarp.com<br>
+                            🛠️ Support: support@rinawarp.com<br>
+                            💼 Business: business@rinawarp.com
+                        </div>
+                        <div>
+                            <strong style="color: #FF2E88;">Project Information</strong><br>
+                            📊 Version: 1.0.5 Beta<br>
+                            📅 Last Updated: January 2025<br>
+                            🔧 Status: Active Development
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1807,7 +1871,12 @@
                 font-size: 0.9rem;
                 opacity: 0.8;
             ">
-                <p style="margin: 0;">© 2024 RinaWarp Terminal. All rights reserved. Made with ❤️ for developers who believe in magic.</p>
+                <p style="margin: 0 0 10px 0;">© 2025 RinaWarp Technologies. All rights reserved. Made with ❤️ for developers who believe in magic.</p>
+                <p style="margin: 0; font-size: 0.8rem; opacity: 0.7;">
+                    This is an open-source project under MIT License. | 
+                    <a href="https://github.com/rinawarp/terminal" style="color: #A1F0E2;">View Source Code</a> | 
+                    Built for educational and development purposes
+                </p>
             </div>
         </div>
     </footer>
@@ -2048,6 +2117,39 @@
                     'event_label': 'pricing_section'
                 });
             }
+        }
+        
+        // Privacy Policy and Terms of Service Functions
+        function showPrivacyPolicy() {
+            alert('Privacy Policy\n\n' +
+                'RinaWarp Technologies Privacy Policy\n\n' +
+                'Last Updated: January 2025\n\n' +
+                '1. Information We Collect:\n' +
+                '   - Only basic usage analytics for product improvement\n' +
+                '   - No personal data collection without explicit consent\n\n' +
+                '2. Data Usage:\n' +
+                '   - Usage data helps improve terminal features\n' +
+                '   - No data sharing with third parties\n\n' +
+                '3. Your Rights:\n' +
+                '   - Request data deletion at any time\n' +
+                '   - Full transparency on data usage\n\n' +
+                'Contact: privacy@rinawarp.com for questions');
+        }
+        
+        function showTermsOfService() {
+            alert('Terms of Service\n\n' +
+                'RinaWarp Terminal Terms of Service\n\n' +
+                'Last Updated: January 2025\n\n' +
+                '1. Open Source License:\n' +
+                '   - RinaWarp Terminal is licensed under MIT License\n' +
+                '   - Source code available on GitHub\n\n' +
+                '2. Beta Testing Phase:\n' +
+                '   - Current version is for testing purposes\n' +
+                '   - Features may change during development\n\n' +
+                '3. Support:\n' +
+                '   - Community support via GitHub Issues\n' +
+                '   - Direct support: support@rinawarp.com\n\n' +
+                'Full terms available on our GitHub repository');
         }
         
         // GTM Enhanced Event Tracking Functions

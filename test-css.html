@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Loading Test</title>
+    
+    <!-- Test local CSS files -->
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/phase2-ui.css">
+    <link rel="stylesheet" href="./styles/next-gen-ui.css">
+    
+    <!-- Test Google Fonts with fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 20px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        
+        .orbitron-test {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+        
+        .sora-test {
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="orbitron-test">CSS Loading Test - Orbitron Font</h1>
+    
+    <div class="test-section">
+        <h2 class="sora-test">Local CSS Test</h2>
+        <p>If you can see styled content here, local CSS files are loading correctly.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2 class="orbitron-test">Google Fonts Test</h2>
+        <p class="sora-test">This text should use Sora font if Google Fonts are loading.</p>
+        <p class="orbitron-test">This text should use Orbitron font if Google Fonts are loading.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>CSS Load Status</h2>
+        <div id="css-status"></div>
+    </div>
+    
+    <script>
+        // Check if CSS files loaded successfully
+        function checkCSSLoading() {
+            const statusDiv = document.getElementById('css-status');
+            const links = document.querySelectorAll('link[rel="stylesheet"]');
+            
+            links.forEach((link, index) => {
+                const href = link.href;
+                const fileName = href.split('/').pop();
+                
+                // Try to access the stylesheet
+                try {
+                    if (link.sheet) {
+                        statusDiv.innerHTML += `<p style="color: green;">✅ ${fileName} - Loaded successfully</p>`;
+                    } else {
+                        statusDiv.innerHTML += `<p style="color: red;">❌ ${fileName} - Failed to load</p>`;
+                    }
+                } catch (e) {
+                    statusDiv.innerHTML += `<p style="color: orange;">⚠️ ${fileName} - Access restricted (possible CORS)</p>`;
+                }
+            });
+        }
+        
+        // Check after DOM loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkCSSLoading, 1000);
+        });
+        
+        // Also check for load errors
+        document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+            link.addEventListener('load', () => {
+                console.log('✅ CSS loaded:', link.href);
+            });
+            
+            link.addEventListener('error', () => {
+                console.error('❌ CSS failed to load:', link.href);
+            });
+        });
+    </script>
+</body>
+</html>
