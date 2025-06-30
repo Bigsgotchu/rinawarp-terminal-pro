@@ -136,20 +136,28 @@ class RinaWarpInitializer {
   }
 
   setupStatusMonitoring() {
-    // Monitor system status every 30 seconds
+    // Monitor system status every 5 minutes and only warn once about missing features
+    let hasWarnedAboutFeatures = false;
+
     setInterval(() => {
       if (this.integrationSystem) {
         const status = this.integrationSystem.getSystemStatus();
 
-        // Check for any issues
-        if (status.hub.featureCount === 0) {
+        // Check for any issues (only warn once)
+        if (status.hub.featureCount === 0 && !hasWarnedAboutFeatures) {
           console.warn('[RinaWarp] ⚠️ No features registered in integration system');
+          hasWarnedAboutFeatures = true;
+        }
+
+        // Reset warning flag if features are registered
+        if (status.hub.featureCount > 0) {
+          hasWarnedAboutFeatures = false;
         }
 
         // Emit status update event
         this.integrationSystem.hub.eventBus.emit('system:status-update', status);
       }
-    }, 30000);
+    }, 300000); // Every 5 minutes instead of 30 seconds
   }
 
   async initializeBeginnerFriendlyUI() {

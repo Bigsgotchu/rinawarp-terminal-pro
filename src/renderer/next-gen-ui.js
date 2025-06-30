@@ -328,13 +328,16 @@ class NextGenUIEngine {
 
   // Missing methods that are referenced in adaptive interface
   enableNightMode() {
-    console.log('🌙 Enabling night mode...');
-    document.body.classList.add('night-mode');
-    // Apply dark theme styles
-    const terminal = document.querySelector('.terminal');
-    if (terminal) {
-      terminal.style.backgroundColor = '#0d1117';
-      terminal.style.color = '#c9d1d9';
+    // Only enable if not already enabled
+    if (!document.body.classList.contains('night-mode')) {
+      console.log('🌙 Enabling night mode...');
+      document.body.classList.add('night-mode');
+      // Apply dark theme styles
+      const terminal = document.querySelector('.terminal');
+      if (terminal) {
+        terminal.style.backgroundColor = '#0d1117';
+        terminal.style.color = '#c9d1d9';
+      }
     }
   }
 
@@ -819,7 +822,7 @@ class AdaptiveInterface {
     this.monitoringInterval = setInterval(() => {
       this.analyzeContext();
       this.applyAdaptations();
-    }, 5000); // Check every 5 seconds
+    }, 300000); // Check every 5 minutes instead of 5 seconds
   }
 
   async analyzeContext() {

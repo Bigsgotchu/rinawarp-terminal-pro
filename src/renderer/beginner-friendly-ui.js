@@ -1583,7 +1583,90 @@ class SmartHintSystem {
   }
 
   enableTooltips() {
-    // Enable helpful tooltips
+    // Enable helpful tooltips for beginner mode
+    const tooltipElements = [
+      { selector: '.mode-btn', attribute: 'title' },
+      { selector: '.task-btn', attribute: 'data-tooltip' },
+      { selector: '.quick-action', attribute: 'title' },
+      { selector: '.feature-toggle', attribute: 'title' },
+    ];
+
+    // Add tooltip functionality to existing elements
+    tooltipElements.forEach(({ selector, attribute }) => {
+      document.querySelectorAll(selector).forEach(element => {
+        if (element.getAttribute(attribute) || element.getAttribute('title')) {
+          this.addTooltipToElement(element, attribute);
+        }
+      });
+    });
+
+    // Add global tooltip styles if not already present
+    if (!document.getElementById('tooltip-styles')) {
+      this.addTooltipStyles();
+    }
+  }
+
+  addTooltipToElement(element, attribute) {
+    // Add tooltip functionality to an element
+    const tooltipText = element.getAttribute(attribute) || element.getAttribute('title');
+    if (!tooltipText) return;
+
+    // Create tooltip element
+    let tooltip = null;
+
+    element.addEventListener('mouseenter', e => {
+      tooltip = document.createElement('div');
+      tooltip.className = 'custom-tooltip';
+      tooltip.textContent = tooltipText;
+      document.body.appendChild(tooltip);
+
+      // Position tooltip
+      const rect = element.getBoundingClientRect();
+      tooltip.style.left = `${rect.left + rect.width / 2}px`;
+      tooltip.style.top = `${rect.top - tooltip.offsetHeight - 8}px`;
+    });
+
+    element.addEventListener('mouseleave', () => {
+      if (tooltip && tooltip.parentNode) {
+        tooltip.remove();
+        tooltip = null;
+      }
+    });
+  }
+
+  addTooltipStyles() {
+    // Add CSS styles for tooltips
+    const styles = document.createElement('style');
+    styles.id = 'tooltip-styles';
+    styles.textContent = `
+      .custom-tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10000;
+        pointer-events: none;
+        transform: translateX(-50%);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+      
+      .custom-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid rgba(0, 0, 0, 0.9);
+      }
+    `;
+    document.head.appendChild(styles);
   }
 
   setupSafetyConfirmations() {

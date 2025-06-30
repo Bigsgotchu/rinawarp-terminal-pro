@@ -30,10 +30,14 @@ let AdvancedAIContextEngine,
 // Multimodal Agent Manager
 let MultimodalAgentManager;
 
+// Voice Engine and UI
+let VoiceEngine, VoiceControlUI;
+let voiceEngine, voiceControlUI;
+
 // Enhanced Terminal Features from Warp Projects
 // These features are loaded but currently used in other parts of the application
 try {
-  const enhancedFeatures = require('./enhanced-terminal-features.js');
+  const enhancedFeatures = await import('./enhanced-terminal-features.js');
   // Store features globally for use by other modules
   window.enhancedTerminalFeatures = {
     MultiTabTerminalManager: enhancedFeatures.MultiTabTerminalManager,
@@ -2092,6 +2096,29 @@ class TerminalManager {
       // Load all advanced features dynamically
       const featuresLoaded = await loadAdvancedFeatures();
 
+      // Initialize Voice Engine
+      try {
+        const voiceModule = await import('./voice-engine.js');
+        const voiceUIModule = await import('./voice-control-ui.js');
+
+        VoiceEngine = voiceModule.VoiceEngine;
+        VoiceControlUI = voiceUIModule.VoiceControlUI;
+
+        voiceEngine = new VoiceEngine();
+        voiceControlUI = new VoiceControlUI(voiceEngine, this.pluginAPI);
+
+        // Make voice engines globally available
+        window.voiceEngine = voiceEngine;
+        window.voiceControlUI = voiceControlUI;
+
+        console.log('🎤 Voice Engine initialized successfully');
+
+        // Add voice control button to status bar
+        voiceControlUI.addVoiceControlButton();
+      } catch (error) {
+        console.warn('⚠️ Voice Engine not available:', error.message);
+      }
+
       if (featuresLoaded) {
         // Initialize Advanced AI Context Engine
         if (AdvancedAIContextEngine) {
@@ -2192,28 +2219,23 @@ class TerminalManager {
         );
       }
 
-      console.log('🎉 Phase 1 Features Successfully Initialized!');
+      console.log('🎉 Advanced Features Successfully Initialized!');
 
       // Show initialization notification
       setTimeout(() => {
         this.pluginAPI?.showNotification(
-          '🚀 Phase 1 Features Loaded: AI Engine + Performance Monitor',
+          '🚀 Advanced Features Loaded: AI Engine + Performance Monitor',
           'success',
           4000
         );
       }, 2000);
-
-      // Show commercial licensing notification after a delay
-      setTimeout(() => {
-        this.showCommercialWelcome();
-      }, 3000);
     } catch (error) {
-      console.warn('⚠️ Phase 1 features initialization failed:', error);
+      console.warn('⚠️ Advanced features initialization failed:', error);
       // Graceful fallback - terminal will still work without these features
     }
   }
 
-  // Phase 1 Feature Access Methods
+  // Advanced Feature Access Methods
   showPerformanceDashboard() {
     if (this.performanceMonitor) {
       this.performanceMonitor.showDashboard();
@@ -2952,6 +2974,60 @@ class TerminalManager {
       this.settings.aiAssistance = aiAssistanceCheck.checked;
       this.saveSettings();
     });
+
+    // Voice settings
+    const voiceEnabledCheck = document.getElementById('voice-enabled');
+    const voiceMutedCheck = document.getElementById('voice-muted');
+    const recordVoiceBtn = document.getElementById('record-voice-btn');
+    const voiceSettingsBtn = document.getElementById('voice-settings-btn');
+
+    if (voiceEnabledCheck) {
+      voiceEnabledCheck.checked = window.voiceEngine ? window.voiceEngine.isEnabled : false;
+      voiceEnabledCheck.addEventListener('change', () => {
+        if (window.voiceEngine) {
+          if (voiceEnabledCheck.checked) {
+            window.voiceEngine.enable();
+          } else {
+            window.voiceEngine.disable();
+          }
+        }
+      });
+    }
+
+    if (voiceMutedCheck) {
+      voiceMutedCheck.checked = window.voiceEngine ? window.voiceEngine.isMuted : false;
+      voiceMutedCheck.addEventListener('change', () => {
+        if (window.voiceEngine) {
+          if (voiceMutedCheck.checked) {
+            window.voiceEngine.mute();
+          } else {
+            window.voiceEngine.unmute();
+          }
+        }
+      });
+    }
+
+    if (recordVoiceBtn) {
+      recordVoiceBtn.addEventListener('click', () => {
+        if (window.voiceControlUI) {
+          settingsModal.classList.add('hidden');
+          window.voiceControlUI.showVoiceRecordingModal();
+        } else {
+          this.pluginAPI.showNotification('Voice control not available', 'error');
+        }
+      });
+    }
+
+    if (voiceSettingsBtn) {
+      voiceSettingsBtn.addEventListener('click', () => {
+        if (window.voiceControlUI) {
+          settingsModal.classList.add('hidden');
+          window.voiceControlUI.showVoiceSettingsModal();
+        } else {
+          this.pluginAPI.showNotification('Voice control not available', 'error');
+        }
+      });
+    }
   }
 
   setupCommandSuggestions() {
@@ -2993,6 +3069,12 @@ class TerminalManager {
         // Command executed
         if (buffer.trim()) {
           this.historyManager.addCommand(buffer.trim());
+
+          // Voice Engine: Announce command if enabled
+          if (window.voiceEngine) {
+            window.voiceEngine.announceCommand(buffer.trim());
+          }
+
           await this.pluginManager.executeHook('terminal-created', {
             terminalId: this.activeTerminalId,
           });
@@ -3632,83 +3714,6 @@ class TerminalManager {
     modal.querySelector('#extend-trial')?.addEventListener('click', () => {
       this.pluginAPI.showNotification('Trial extension is not yet implemented', 'info');
     });
-  }
-
-  showCommercialWelcome() {
-    const status = licenseManager.getStatus();
-
-    if (status.tier === 'trial' && status.trialDaysRemaining > 0) {
-      const welcomeModal = this.pluginAPI.createModal(
-        '🎉 Welcome to RinaWarp Terminal!',
-        `
-                <div class="commercial-welcome">
-                    <div class="welcome-header">
-                        <h3>Thank you for trying RinaWarp Terminal</h3>
-                        <p>You're currently on a <strong>30-day free trial</strong> with full Professional features!</p>
-                    </div>
-                    
-                    <div class="trial-status">
-                        <div class="trial-info">
-                            <span class="trial-days">${status.trialDaysRemaining}</span>
-                            <span class="trial-label">days remaining</span>
-                        </div>
-                        <div class="trial-features">
-                            <h4>What's included in your trial:</h4>
-                            <ul>
-                                <li>✅ Unlimited AI-powered command assistance</li>
-                                <li>✅ Advanced Git workflow integration</li>
-                                <li>✅ Cloud sync across devices</li>
-                                <li>✅ Custom themes and layouts</li>
-                                <li>✅ Session management</li>
-                                <li>✅ Priority email support</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="welcome-actions">
-                        <h4>Ready to get the most out of RinaWarp?</h4>
-                        <div class="action-buttons">
-                            <button id="view-pricing-welcome" class="btn btn-primary">View Pricing Plans</button>
-                            <button id="learn-features" class="btn btn-secondary">Explore Features</button>
-                            <button id="dismiss-welcome" class="btn btn-secondary">Continue with Trial</button>
-                        </div>
-                    </div>
-                    
-                    <div class="commercial-note">
-                        <p><small>RinaWarp Terminal is now a commercial product. After your trial expires, you'll need a license to continue using advanced features.</small></p>
-                    </div>
-                </div>
-            `,
-        {
-          footer: '',
-        }
-      );
-
-      this.setupCommercialWelcomeActions(welcomeModal);
-    }
-  }
-
-  setupCommercialWelcomeActions(modal) {
-    // View pricing button
-    modal.querySelector('#view-pricing-welcome')?.addEventListener('click', () => {
-      // Open pricing page in local development
-      require('electron').shell.openExternal('https://rinawarp-terminal.web.app/pricing');
-      modal.querySelector('.close-modal')?.click();
-    });
-
-    // Learn features button
-    modal.querySelector('#learn-features')?.addEventListener('click', () => {
-      this.showAIFeatures();
-      modal.querySelector('.close-modal')?.click();
-    });
-
-    // Dismiss welcome
-    modal.querySelector('#dismiss-welcome')?.addEventListener('click', () => {
-      modal.querySelector('.close-modal')?.click();
-    });
-
-    // Don't show this again for this session
-    sessionStorage.setItem('rinawarp_welcome_shown', 'true');
   }
 
   // Performance optimization: Debounced resize

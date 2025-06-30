@@ -36,7 +36,7 @@ class EnhancedSecurityEngine {
     // Start real-time threat monitoring
     this.threatMonitoringInterval = setInterval(() => {
       this.performThreatAssessment();
-    }, 30000); // Every 30 seconds
+    }, 300000); // Every 5 minutes instead of 30 seconds
 
     // Initialize security metrics
     this.securityMetrics = {

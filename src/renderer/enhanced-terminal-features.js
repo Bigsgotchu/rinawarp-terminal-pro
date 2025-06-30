@@ -142,9 +142,9 @@ class MultiTabTerminalManager {
   }
 
   async initializeTerminal(id) {
-    const { Terminal } = require('@xterm/xterm');
-    const { FitAddon } = require('@xterm/addon-fit');
-    const { WebLinksAddon } = require('@xterm/addon-web-links');
+    const { Terminal } = await import('@xterm/xterm');
+    const { FitAddon } = await import('@xterm/addon-fit');
+    const { WebLinksAddon } = await import('@xterm/addon-web-links');
 
     const terminalElement = document.getElementById(`xterm-${id}`);
     if (!terminalElement) return;
@@ -268,7 +268,7 @@ class MultiTabTerminalManager {
 
   async getOptimalShell() {
     if (process.platform === 'win32') {
-      const { execSync } = require('child_process');
+      const { execSync } = await import('child_process');
       try {
         // Try PowerShell Core first
         execSync('pwsh --version', { stdio: 'pipe' });
@@ -457,14 +457,8 @@ class EnhancedTerminalThemeManager {
   }
 }
 
-// Export enhanced features
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    MultiTabTerminalManager,
-    TerminalSignalHandler,
-    EnhancedTerminalThemeManager,
-  };
-}
+// Export enhanced features for ES modules
+export { MultiTabTerminalManager, TerminalSignalHandler, EnhancedTerminalThemeManager };
 
 // Global access for browser environment
 if (typeof window !== 'undefined') {

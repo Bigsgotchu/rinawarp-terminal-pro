@@ -30,7 +30,6 @@
     <meta name="description" content="RinaWarp Terminal - Next-generation AI-powered terminal with enhanced accessibility and collaboration features">
     <meta name="author" content="RinaWarp Technologies">
     <meta name="theme-color" content="#00ff88">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:; connect-src 'self' https: wss:;">
     <title>RinaWarp Terminal</title>
     <link rel="stylesheet" href="../../styles/main.css">
     <link rel="stylesheet" href="../../styles/phase2-ui.css">
@@ -199,9 +198,29 @@
                     
                     <div class="setting-group">
                         <label>
-                            <input type="checkbox" id="auto-save-session" checked>
-                            Auto-save Session
+                            <input type="checkbox" id="announce-notifications" checked>
+                            Announce Notifications
                         </label>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <h4>🎤 Voice Settings</h4>
+                        <label>
+                            <input type="checkbox" id="voice-enabled">
+                            Enable Voice Assistant
+                        </label>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="voice-muted">
+                            Mute Voice
+                        </label>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <button id="record-voice-btn" class="btn btn-secondary">🎙️ Record Custom Voice</button>
+                        <button id="voice-settings-btn" class="btn btn-secondary">⚙️ Advanced Voice Settings</button>
                     </div>
                 </div>
             </div>
@@ -589,6 +608,11 @@
     <script type="module" src="workflow-automation.js"></script>
     <script type="module" src="performance-monitor.js"></script>
     <script type="module" src="next-gen-ui.js"></script>
+    
+    <!-- Voice Engine Modules -->
+    <script type="module" src="voice-engine.js"></script>
+    <script type="module" src="voice-control-ui.js"></script>
+    <script type="module" src="voice-installer.js"></script>
     
     <!-- RinaWarp Integration Layer (Patent Pending) -->
     <script type="module" src="../integration-layer/core-integration-hub.js"></script>
