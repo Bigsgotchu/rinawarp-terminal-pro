@@ -556,27 +556,39 @@ class NextGenUIEngine {
       document.body.appendChild(quickActionsPanel);
     }
 
+    // Store actions with safe references
+    this.quickActionMap = new Map();
+
     quickActionsPanel.innerHTML = actions
-      .map(
-        action => `
-            <button class="quick-action-btn" data-command="${action.command || ''}" data-action="${action.action || ''}">
+      .map((action, index) => {
+        // Store action function safely
+        if (action.action && typeof action.action === 'function') {
+          this.quickActionMap.set(index, action.action);
+        }
+
+        return `
+            <button class="quick-action-btn" data-command="${action.command || ''}" data-action-index="${action.action ? index : ''}">
                 <span class="action-icon">${action.icon}</span>
                 <span class="action-label">${action.label}</span>
             </button>
-        `
-      )
+          `;
+      })
       .join('');
 
     // Attach event listeners
     quickActionsPanel.querySelectorAll('.quick-action-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         const command = e.currentTarget.dataset.command;
-        const action = e.currentTarget.dataset.action;
+        const actionIndex = e.currentTarget.dataset.actionIndex;
 
         if (command) {
           this.executeCommand(command);
-        } else if (action) {
-          eval(action)();
+        } else if (actionIndex !== '' && this.quickActionMap.has(parseInt(actionIndex))) {
+          // Safely execute the stored function
+          const actionFunction = this.quickActionMap.get(parseInt(actionIndex));
+          if (typeof actionFunction === 'function') {
+            actionFunction();
+          }
         }
       });
     });

@@ -10,17 +10,12 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
-import { app, BrowserWindow, BrowserView, Menu, ipcMain, dialog } from 'electron';
-import pkg from 'electron-updater';
-const { autoUpdater } = pkg;
-import path from 'path';
-import os from 'os';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+const { app, BrowserWindow, BrowserView, Menu, ipcMain, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
+const path = require('path');
+const os = require('os');
 
-// ES6 module __dirname equivalent
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// __dirname is available in CommonJS
 
 // Keep a global reference of the window object
 let mainWindow;

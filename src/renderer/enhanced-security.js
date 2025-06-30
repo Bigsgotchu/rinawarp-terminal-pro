@@ -364,7 +364,7 @@ class EnhancedSecurityEngine {
       privateKey: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g,
       password: /(password|pwd|pass)\s*[:=]\s*["']?([^\s"']+)/gi,
       connectionString: /(mongodb|mysql|postgres):\/\/[^\s]+/gi,
-      creditCard: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})\b/g,
+      creditCard: /\b(?:4\d{12}(?:\d{3})?|5[1-5]\d{14}|3[47]\d{13})\b/g,
     };
 
     const detectedSecrets = [];
