@@ -69,6 +69,8 @@
     "security:check": "npm run security:audit && npm run security:lint",
     "security:outdated": "npm outdated",
     "security:full": "npm run security:check && npm run security:outdated",
+    "audit:repository": "powershell -ExecutionPolicy Bypass -File scripts/maintenance/audit-and-clean.ps1 -DryRun",
+    "audit:repository:fix": "powershell -ExecutionPolicy Bypass -File scripts/maintenance/audit-and-clean.ps1",
     "prepare": "husky"
   },
   "dependencies": {
