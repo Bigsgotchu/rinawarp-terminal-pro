@@ -69,14 +69,19 @@ app.get('/api/stripe-config', (req, res) => {
   res.json(config);
 });
 
-// Serve the pricing page
+// Serve the main page (index.html)
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve the pricing page
+app.get('/pricing', (req, res) => {
   res.sendFile(path.join(__dirname, 'pricing.html'));
 });
 
 // Serve download page
 app.get('/download', (req, res) => {
-  res.sendFile(path.join(__dirname, 'website-deploy', 'download.html'));
+  res.sendFile(path.join(__dirname, 'download.html'));
 });
 
 // Serve success page

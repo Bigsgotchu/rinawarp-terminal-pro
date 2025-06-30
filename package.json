@@ -3,7 +3,6 @@
   "version": "1.0.6",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
   "main": "src/main.js",
-  "type": "module",
   "author": {
     "name": "RinaWarp Technologies",
     "email": "rinawarptechnologies25@gmail.com",
@@ -73,6 +72,7 @@
     "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "brace-expansion": "^4.0.1",
+    "electron-updater": "^6.1.7",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.1",
     "helmet": "^8.1.0",
@@ -84,10 +84,11 @@
     "@babel/plugin-transform-modules-commonjs": "^7.27.1",
     "@babel/preset-env": "^7.27.2",
     "@jest/globals": "^29.7.0",
+    "@types/plist": "^3.0.5",
+    "@types/verror": "^1.10.11",
     "concurrently": "^9.2.0",
     "electron": "^37.1.0",
     "electron-builder": "^26.0.12",
-    "electron-updater": "^6.1.7",
     "eslint": "^8.57.1",
     "husky": "^9.1.7",
     "javascript-obfuscator": "^4.0.2",
@@ -145,12 +146,6 @@
           ]
         }
       ],
-      "certificateFile": "rinawarp-codesign.pfx",
-      "certificatePassword": "RinaWarp2025!",
-      "signingHashAlgorithms": [
-        "sha256"
-      ],
-      "publisherName": "RinaWarp Technologies",
       "verifyUpdateCodeSignature": false
     },
     "mac": {
