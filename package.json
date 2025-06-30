@@ -63,6 +63,12 @@
     "ip-monitor": "node scripts/start-ip-monitor.js",
     "services": "concurrently \"npm run license-server\" \"npm run ip-monitor\"",
     "services:dev": "concurrently --kill-others-on-fail \"npm run license-server\" \"npm run ip-monitor\"",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:audit:fix": "npm audit fix",
+    "security:lint": "eslint . --config .eslintrc.security.json --ext .js",
+    "security:check": "npm run security:audit && npm run security:lint",
+    "security:outdated": "npm outdated",
+    "security:full": "npm run security:check && npm run security:outdated",
     "prepare": "husky"
   },
   "dependencies": {
@@ -90,6 +96,7 @@
     "electron": "^37.1.0",
     "electron-builder": "^26.0.12",
     "eslint": "^8.57.1",
+    "eslint-plugin-security": "^3.0.1",
     "husky": "^9.1.7",
     "javascript-obfuscator": "^4.0.2",
     "jest": "^29.7.0",
@@ -97,6 +104,7 @@
     "lint-staged": "^16.1.2",
     "nodemon": "^3.0.1",
     "prettier": "^3.6.2",
+    "retire": "^5.2.7",
     "webpack": "^5.96.1",
     "webpack-cli": "^6.0.1",
     "webpack-obfuscator": "^3.5.1"

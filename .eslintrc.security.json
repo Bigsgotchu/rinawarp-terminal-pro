@@ -1,7 +1,4 @@
 {
-  "extends": [
-    "plugin:security/recommended"
-  ],
   "plugins": [
     "security"
   ],
