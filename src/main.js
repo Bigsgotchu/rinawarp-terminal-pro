@@ -10,10 +10,11 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
-const { app, BrowserWindow, BrowserView, Menu, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, BrowserView, Menu: _Menu, ipcMain, dialog } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const os = require('os');
+const logger = require('./utils/logger');
 
 // __dirname is available in CommonJS
 
@@ -62,7 +63,7 @@ function createWindow() {
 }
 
 // Create browser pane method
-function createBrowserPane(url = 'https://google.com') {
+function _createBrowserPane(url = 'https://google.com') {
   const browserView = new BrowserView({
     webPreferences: {
       nodeIntegration: false,
@@ -103,7 +104,7 @@ app.on('window-all-closed', () => {
 
 // Handle app security
 app.on('web-contents-created', (event, contents) => {
-  contents.on('new-window', (event, navigationUrl) => {
+  contents.on('new-window', (event, _navigationUrl) => {
     event.preventDefault();
     // You can add logic here to handle external links
   });
@@ -178,11 +179,11 @@ autoUpdater.checkForUpdatesAndNotify();
 
 // Auto-updater event handlers
 autoUpdater.on('checking-for-update', () => {
-  console.log('Checking for update...');
+  logger.info('Checking for update...', { component: 'auto-updater' });
 });
 
-autoUpdater.on('update-available', info => {
-  console.log('Update available.');
+autoUpdater.on('update-available', _info => {
+  logger.info('Update available.', { component: 'auto-updater', updateInfo: _info });
   dialog.showMessageBox(mainWindow, {
     type: 'info',
     title: 'Update Available',
@@ -191,23 +192,27 @@ autoUpdater.on('update-available', info => {
   });
 });
 
-autoUpdater.on('update-not-available', info => {
-  console.log('Update not available.');
+autoUpdater.on('update-not-available', _info => {
+  logger.info('Update not available.', { component: 'auto-updater' });
 });
 
 autoUpdater.on('error', err => {
-  console.error('Error in auto-updater. ' + err);
+  logger.error('Error in auto-updater', {
+    component: 'auto-updater',
+    error: err.message,
+    stack: err.stack,
+  });
 });
 
 autoUpdater.on('download-progress', progressObj => {
   let log_message = 'Download speed: ' + progressObj.bytesPerSecond;
   log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
   log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')';
-  console.log(log_message);
+  console.info(log_message);
 });
 
-autoUpdater.on('update-downloaded', info => {
-  console.log('Update downloaded');
+autoUpdater.on('update-downloaded', _info => {
+  console.info('Update downloaded');
   dialog
     .showMessageBox(mainWindow, {
       type: 'info',

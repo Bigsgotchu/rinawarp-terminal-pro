@@ -167,7 +167,7 @@ class LicenseManager {
           localStorage.setItem('rinawarp_license_expires', result.expires.toString());
         }
 
-        console.log('License validation successful:', result.licenseType);
+        console.info('License validation successful:', result.licenseType);
         return true;
       } else {
         console.error('License validation failed:', result.error);
@@ -176,7 +176,7 @@ class LicenseManager {
         return false;
       }
     } catch (error) {
-      console.log('License validation failed, using cached license:', error);
+      console.error('License validation failed, using cached license:', error);
       return false;
     }
   }
@@ -191,7 +191,7 @@ class LicenseManager {
                     <p>The feature "${feature}" requires a higher license tier.</p>
                     <p>Current tier: <strong>${this.getLicenseTier()}</strong></p>
                     <div style="margin: 20px 0;">
-                        <button onclick="window.open('https://rinawarp-terminal.web.app/pricing', '_blank')" style="background: #007acc; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">View Pricing</button>
+                        <button onclick="window.open('https://7928-136-36-239-142.ngrok-free.app/pricing', '_blank')" style="background: #007acc; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">View Pricing</button>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #666; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">Close</button>
                     </div>
                 </div>

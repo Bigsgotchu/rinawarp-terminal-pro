@@ -342,3 +342,22 @@ build/obfuscated/
 *.license-key
 license-server.config
 validation-*.json
+
+# Python temporary files and cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Temporary appeal and automation files
+attachments.zip
+manual_email_content.txt
+ngrok_output.txt
+*.py
+test_*.py
+send_*.py
+*_organizer.py
+
+# External repositories
+wondersharedrfone-github/

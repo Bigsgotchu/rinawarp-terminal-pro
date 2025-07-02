@@ -10,36 +10,56 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
-// Import integration modules
-import '../integration-layer/main-integration.js';
+
+// Import centralized global management
+import { globalObjectManager } from '../utils/global-object-manager.js';
+import { initializeGlobalRegistry } from '../utils/global-registry.js';
+
+// Import centralized logger
+const logger = (() => {
+  if (typeof require !== 'undefined') {
+    return require('../utils/logger');
+  } else {
+    // Fallback for browser environment
+    return {
+      debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
+      info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
+      warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
+      error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
+      system: (msg, ctx) => console.info(`[SYSTEM] ${msg}`, ctx),
+    };
+  }
+})();
 
 class RinaWarpInitializer {
   constructor() {
     this.isInitialized = false;
     this.integrationSystem = null;
+    this.globalManager = globalObjectManager;
   }
 
   async initialize() {
     if (this.isInitialized) {
-      console.log('[RinaWarp] System already initialized');
+      logger.info('System already initialized', { component: 'integration-init' });
       return this.integrationSystem;
     }
 
     try {
-      console.log('[RinaWarp] Starting RinaWarp Terminal Integration System...');
-      console.log('[RinaWarp] Version: 1.0.0');
-      console.log('[RinaWarp] Copyright (c) 2025 RinaWarp Technologies');
+      logger.system('Starting RinaWarp Terminal Integration System...', {
+        component: 'integration-init',
+      });
+      logger.system('Version: 1.0.0', { component: 'integration-init' });
+      logger.system('Copyright (c) 2025 RinaWarp Technologies', { component: 'integration-init' });
 
-      // Check if integration system is available
-      if (typeof window.rinaWarpIntegration === 'undefined') {
-        throw new Error(
-          'Integration system not loaded. Please ensure all modules are properly imported.'
-        );
+      // Step 1: Initialize global registry
+      await initializeGlobalRegistry();
+      logger.system('Global registry initialized', { component: 'integration-init' });
+
+      // Step 2: Get the integration system through global manager
+      this.integrationSystem = await this.globalManager.get('rinaWarpIntegration');
+      if (!this.integrationSystem) {
+        throw new Error('Failed to initialize integration system through global manager');
       }
-
-      // Initialize the integration system
-      this.integrationSystem = window.rinaWarpIntegration;
-      await this.integrationSystem.initialize();
 
       // Setup global event handlers
       this.setupGlobalEventHandlers();

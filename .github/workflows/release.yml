@@ -349,13 +349,13 @@ jobs:
           - 👥 **Team**: \$99/year - Team collaboration features
           - 🏢 **Enterprise**: Custom pricing - Enterprise security + support
           
-          **[📊 View Full Pricing](https://rinawarp-terminal.web.app/pricing)**
+          **[📊 View Full Pricing](https://7928-136-36-239-142.ngrok-free.app/pricing)**
           
           ## 📚 Resources
           
-          - 📖 **[Documentation](https://rinawarp-terminal.web.app/docs)**
-          - 🎥 **[Video Tutorials](https://rinawarp-terminal.web.app/tutorials)**
-          - 💬 **[Community Support](https://rinawarp-terminal.web.app/community)**
+          - 📖 **[Documentation](https://7928-136-36-239-142.ngrok-free.app/docs)**
+          - 🎥 **[Video Tutorials](https://7928-136-36-239-142.ngrok-free.app/tutorials)**
+          - 💬 **[Community Support](https://7928-136-36-239-142.ngrok-free.app/community)**
           - 🐛 **[Report Issues](https://github.com/${{ github.repository }}/issues)**
           - ✉️ **[Email Support](mailto:support@rinawarp-terminal.web.app)**
           
@@ -433,7 +433,7 @@ jobs:
               
               ### 📦 Download Links
               - [GitHub Releases](https://github.com/${context.repo.owner}/${context.repo.repo}/releases/tag/${tagName})
-              - [Official Website](https://rinawarp-terminal.web.app/download)
+              - [Official Website](https://7928-136-36-239-142.ngrok-free.app/download)
               
               ### 📢 Spread the Word
               - [ ] Update website download links

@@ -13,6 +13,22 @@
 // Import the core integration hub
 import { CoreIntegrationHub } from './core-integration-hub.js';
 
+// Import centralized logger
+const logger = (() => {
+  if (typeof require !== 'undefined') {
+    return require('../utils/logger');
+  } else {
+    // Fallback for browser environment
+    return {
+      debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
+      info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
+      warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
+      error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
+      system: (msg, ctx) => console.info(`[SYSTEM] ${msg}`, ctx),
+    };
+  }
+})();
+
 class RinaWarpIntegration {
   constructor() {
     this.hub = new CoreIntegrationHub();
@@ -26,7 +42,9 @@ class RinaWarpIntegration {
   async initialize() {
     if (this.isInitialized) return this;
 
-    console.log('[RinaWarp] Starting RinaWarp Terminal Integration v1.0.0');
+    logger.system('Starting RinaWarp Terminal Integration v1.0.0', {
+      component: 'main-integration',
+    });
 
     try {
       // Step 1: Initialize the core hub
@@ -45,85 +63,150 @@ class RinaWarpIntegration {
       this.startAIOptimizations();
 
       this.isInitialized = true;
-      console.log('[RinaWarp] Integration completed successfully!');
+      logger.system('Integration completed successfully', { component: 'main-integration' });
 
       return this;
     } catch (error) {
-      console.error('[RinaWarp] Integration failed:', error);
+      logger.error('Integration failed', {
+        component: 'main-integration',
+        error: error.message,
+        stack: error.stack,
+      });
       throw error;
     }
   }
 
   async registerAllFeatures() {
-    console.log('[RinaWarp] Registering all features...');
+    logger.info('Registering all features', { component: 'main-integration' });
 
-    // Register AI Context Engine
-    if (window.AIContextEngine) {
-      this.features.aiContextEngine = new window.AIContextEngine();
-      this.hub.registerFeature('ai-context-engine', this.features.aiContextEngine, {
-        version: '1.0.0',
-        capabilities: ['context-analysis', 'predictive-suggestions', 'natural-language-processing'],
-        securityLevel: 'high',
-        dependencies: ['performance-monitor'],
+    // Import global object manager
+    const { globalObjectManager } = await import('../utils/global-object-manager.js');
+
+    try {
+      // Register AI Context Engine through global manager
+      try {
+        this.features.aiContextEngine = await globalObjectManager.get('aiContextEngine');
+        if (this.features.aiContextEngine) {
+          this.hub.registerFeature('ai-context-engine', this.features.aiContextEngine, {
+            version: '1.0.0',
+            capabilities: [
+              'context-analysis',
+              'predictive-suggestions',
+              'natural-language-processing',
+            ],
+            securityLevel: 'high',
+            dependencies: ['performance-monitor'],
+          });
+        }
+      } catch (error) {
+        logger.warn('Failed to register AI Context Engine', {
+          component: 'main-integration',
+          error: error.message,
+        });
+      }
+
+      // Register Performance Monitor through global manager
+      try {
+        this.features.performanceMonitor = await globalObjectManager.get('performanceMonitor');
+        if (this.features.performanceMonitor) {
+          this.hub.registerFeature('performance-monitor', this.features.performanceMonitor, {
+            version: '1.0.0',
+            capabilities: ['system-monitoring', 'performance-analytics', 'resource-optimization'],
+            securityLevel: 'standard',
+            dependencies: [],
+          });
+        }
+      } catch (error) {
+        logger.warn('Failed to register Performance Monitor', {
+          component: 'main-integration',
+          error: error.message,
+        });
+      }
+
+      // Register Live Sharing through global manager
+      try {
+        this.features.liveSharing = await globalObjectManager.get('terminalSharing');
+        if (this.features.liveSharing) {
+          this.hub.registerFeature('live-sharing', this.features.liveSharing, {
+            version: '1.0.0',
+            capabilities: ['real-time-collaboration', 'session-sharing', 'remote-access'],
+            securityLevel: 'critical',
+            dependencies: ['zero-trust-security', 'performance-monitor'],
+          });
+        }
+      } catch (error) {
+        logger.warn('Failed to register Live Sharing', {
+          component: 'main-integration',
+          error: error.message,
+        });
+      }
+
+      // Register Workflow Automation through global manager
+      try {
+        this.features.workflowAutomation = await globalObjectManager.get('workflowAutomation');
+        if (this.features.workflowAutomation) {
+          this.hub.registerFeature('workflow-automation', this.features.workflowAutomation, {
+            version: '1.0.0',
+            capabilities: ['task-automation', 'workflow-orchestration', 'smart-scripting'],
+            securityLevel: 'high',
+            dependencies: ['ai-context-engine', 'performance-monitor'],
+          });
+        }
+      } catch (error) {
+        logger.warn('Failed to register Workflow Automation', {
+          component: 'main-integration',
+          error: error.message,
+        });
+      }
+
+      // Register Zero-Trust Security through global manager
+      try {
+        this.features.zeroTrustSecurity = await globalObjectManager.get('securityManager');
+        if (this.features.zeroTrustSecurity) {
+          this.hub.registerFeature('zero-trust-security', this.features.zeroTrustSecurity, {
+            version: '1.0.0',
+            capabilities: ['threat-detection', 'access-control', 'security-monitoring'],
+            securityLevel: 'critical',
+            dependencies: ['performance-monitor'],
+          });
+        }
+      } catch (error) {
+        logger.warn('Failed to register Zero-Trust Security', {
+          component: 'main-integration',
+          error: error.message,
+        });
+      }
+
+      // Register Next-Gen UI through global manager
+      try {
+        this.features.nextGenUI = await globalObjectManager.get('nextGenUI');
+        if (this.features.nextGenUI) {
+          this.hub.registerFeature('next-gen-ui', this.features.nextGenUI, {
+            version: '1.0.0',
+            capabilities: ['adaptive-interface', 'ui-personalization', 'accessibility'],
+            securityLevel: 'standard',
+            dependencies: ['ai-context-engine'],
+          });
+        }
+      } catch (error) {
+        logger.warn('Failed to register Next-Gen UI', {
+          component: 'main-integration',
+          error: error.message,
+        });
+      }
+
+      logger.info('Features registered successfully', {
+        component: 'main-integration',
+        featureCount: Object.keys(this.features).length,
+        registeredFeatures: Object.keys(this.features),
+      });
+    } catch (error) {
+      logger.error('Error during feature registration', {
+        component: 'main-integration',
+        error: error.message,
+        stack: error.stack,
       });
     }
-
-    // Register Performance Monitor
-    if (window.PerformanceMonitor) {
-      this.features.performanceMonitor = new window.PerformanceMonitor();
-      this.hub.registerFeature('performance-monitor', this.features.performanceMonitor, {
-        version: '1.0.0',
-        capabilities: ['system-monitoring', 'performance-analytics', 'resource-optimization'],
-        securityLevel: 'standard',
-        dependencies: [],
-      });
-    }
-
-    // Register Live Sharing
-    if (window.TerminalSharing) {
-      this.features.liveSharing = new window.TerminalSharing();
-      this.hub.registerFeature('live-sharing', this.features.liveSharing, {
-        version: '1.0.0',
-        capabilities: ['real-time-collaboration', 'session-sharing', 'remote-access'],
-        securityLevel: 'critical',
-        dependencies: ['zero-trust-security', 'performance-monitor'],
-      });
-    }
-
-    // Register Workflow Automation
-    if (window.WorkflowAutomation) {
-      this.features.workflowAutomation = new window.WorkflowAutomation();
-      this.hub.registerFeature('workflow-automation', this.features.workflowAutomation, {
-        version: '1.0.0',
-        capabilities: ['task-automation', 'workflow-orchestration', 'smart-scripting'],
-        securityLevel: 'high',
-        dependencies: ['ai-context-engine', 'performance-monitor'],
-      });
-    }
-
-    // Register Zero-Trust Security
-    if (window.ZeroTrustSecurity || window.EnhancedSecurity) {
-      this.features.zeroTrustSecurity = new (window.ZeroTrustSecurity || window.EnhancedSecurity)();
-      this.hub.registerFeature('zero-trust-security', this.features.zeroTrustSecurity, {
-        version: '1.0.0',
-        capabilities: ['threat-detection', 'access-control', 'security-monitoring'],
-        securityLevel: 'critical',
-        dependencies: ['performance-monitor'],
-      });
-    }
-
-    // Register Next-Gen UI
-    if (window.NextGenUI) {
-      this.features.nextGenUI = new window.NextGenUI();
-      this.hub.registerFeature('next-gen-ui', this.features.nextGenUI, {
-        version: '1.0.0',
-        capabilities: ['adaptive-interface', 'ui-personalization', 'accessibility'],
-        securityLevel: 'standard',
-        dependencies: ['ai-context-engine'],
-      });
-    }
-
-    console.log(`[RinaWarp] Registered ${Object.keys(this.features).length} features`);
   }
 
   setupAdvancedIntegrations() {
@@ -185,7 +268,11 @@ class RinaWarpIntegration {
         // Optimize feature interactions
         this.optimizeFeatureInteractions(predictions);
       } catch (error) {
-        console.error('[RinaWarp] AI coordination error:', error);
+        logger.error('AI coordination error', {
+          component: 'main-integration',
+          error: error.message,
+          stack: error.stack,
+        });
       }
     }, 5000); // Every 5 seconds
   }

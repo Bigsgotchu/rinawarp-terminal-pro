@@ -34,28 +34,28 @@ async function testExports() {
     console.log('\nTesting other Phase 2 modules...');
 
     try {
-      const aiModule = await import('./src/renderer/ai-context-engine.js');
+      const _aiModule = await import('./src/renderer/ai-context-engine.js');
       console.log('✅ AI Context Engine module loaded');
     } catch (error) {
       console.log('⚠️  AI Context Engine:', error.message);
     }
 
     try {
-      const perfModule = await import('./src/renderer/performance-monitor.js');
+      const _perfModule = await import('./src/renderer/performance-monitor.js');
       console.log('✅ Performance Monitor module loaded');
     } catch (error) {
       console.log('⚠️  Performance Monitor:', error.message);
     }
 
     try {
-      const securityModule = await import('./src/renderer/enhanced-security.js');
+      const _securityModule = await import('./src/renderer/enhanced-security.js');
       console.log('✅ Enhanced Security module loaded');
     } catch (error) {
       console.log('⚠️  Enhanced Security:', error.message);
     }
 
     try {
-      const uiModule = await import('./src/renderer/next-gen-ui.js');
+      const _uiModule = await import('./src/renderer/next-gen-ui.js');
       console.log('✅ Next-Gen UI module loaded');
     } catch (error) {
       console.log('⚠️  Next-Gen UI:', error.message);

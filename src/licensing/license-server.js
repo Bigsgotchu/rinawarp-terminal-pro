@@ -104,7 +104,7 @@ class LicenseServer {
    */
   async validateLicense(req, res) {
     try {
-      const { licenseKey, hardwareId, version } = req.body;
+      const { licenseKey, hardwareId, version: _version } = req.body;
 
       if (!licenseKey || !hardwareId) {
         return res.status(400).json({

@@ -1,12 +1,12 @@
 // Simple voice test script
 // Run this in the browser console to test voice functionality
 
-console.log('🎤 Testing Voice Engine...');
+console.info('🎤 Testing Voice Engine...');
 
 // Check if voice engine is available
 if (window.voiceEngine) {
-  console.log('✅ Voice Engine found!');
-  console.log('Status:', window.voiceEngine.getStatus());
+  console.info('✅ Voice Engine found!');
+  console.info('Status:', window.voiceEngine.getStatus());
 
   // Test basic TTS
   try {
@@ -15,13 +15,13 @@ if (window.voiceEngine) {
       type: 'notification',
       interrupt: true,
     });
-    console.log('✅ Voice test completed');
+    console.info('✅ Voice test completed');
   } catch (error) {
     console.error('❌ Voice test failed:', error);
   }
 } else {
-  console.log('❌ Voice Engine not found');
-  console.log(
+  console.info('❌ Voice Engine not found');
+  console.info(
     'Available on window:',
     Object.keys(window).filter(k => k.includes('voice'))
   );
@@ -29,31 +29,31 @@ if (window.voiceEngine) {
 
 // Check if voice control UI is available
 if (window.voiceControlUI) {
-  console.log('✅ Voice Control UI found!');
+  console.info('✅ Voice Control UI found!');
 
   // Test opening voice recording modal
   try {
     // Uncomment the line below to test the recording modal
     // window.voiceControlUI.showVoiceRecordingModal();
-    console.log('✅ Voice Control UI is working');
+    console.info('✅ Voice Control UI is working');
   } catch (error) {
     console.error('❌ Voice Control UI test failed:', error);
   }
 } else {
-  console.log('❌ Voice Control UI not found');
+  console.info('❌ Voice Control UI not found');
 }
 
 // Check Web Speech API support
 if ('speechSynthesis' in window) {
-  console.log('✅ Browser supports Speech Synthesis');
-  console.log('Available voices:', speechSynthesis.getVoices().length);
+  console.info('✅ Browser supports Speech Synthesis');
+  console.info('Available voices:', speechSynthesis.getVoices().length);
 } else {
-  console.log('❌ Browser does not support Speech Synthesis');
+  console.info('❌ Browser does not support Speech Synthesis');
 }
 
 // Check MediaDevices API for recording
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-  console.log('✅ Browser supports voice recording');
+  console.info('✅ Browser supports voice recording');
 } else {
-  console.log('❌ Browser does not support voice recording');
+  console.info('❌ Browser does not support voice recording');
 }

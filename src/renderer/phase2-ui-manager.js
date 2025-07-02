@@ -13,6 +13,22 @@
 
 // Import AI Copilot UI
 import AICopilotUI from './ai-copilot-ui.js';
+
+// Import centralized logger
+const logger = (() => {
+  if (typeof require !== 'undefined') {
+    return require('../utils/logger');
+  } else {
+    // Fallback for browser environment
+    return {
+      debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
+      info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
+      warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
+      error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
+      system: (msg, ctx) => console.info(`[SYSTEM] ${msg}`, ctx),
+    };
+  }
+})();
 // Use browser-compatible EventEmitter or create a simple one
 class EventEmitter {
   constructor() {
@@ -80,7 +96,7 @@ class Phase2UIManager extends EventEmitter {
   }
 
   async initialize() {
-    console.log('🚀 Initializing Phase 2 Next-Generation UI...');
+    logger.system('Initializing Phase 2 Next-Generation UI', { component: 'phase2-ui-manager' });
 
     try {
       // Load CSS styles
@@ -109,11 +125,15 @@ class Phase2UIManager extends EventEmitter {
       this.updateUIForMode(this.currentMode);
 
       this.isInitialized = true;
-      console.log('✅ Phase 2 UI successfully initialized');
+      logger.system('Phase 2 UI successfully initialized', { component: 'phase2-ui-manager' });
 
       this.emit('phase2-ready');
     } catch (error) {
-      console.error('❌ Phase 2 UI initialization failed:', error);
+      logger.error('Phase 2 UI initialization failed', {
+        component: 'phase2-ui-manager',
+        error: error.message,
+        stack: error.stack,
+      });
       this.emit('phase2-error', error);
     }
   }
@@ -135,7 +155,10 @@ class Phase2UIManager extends EventEmitter {
 
   // Add missing methods
   async initializeAdaptiveDashboard() {
-    console.log('✅ Initializing Adaptive Dashboard...');
+    logger.system('Initializing Adaptive Dashboard', {
+      component: 'phase2-ui-manager',
+      module: 'adaptive-dashboard',
+    });
     // Implementation for adaptive dashboard
     const dashboard = document.createElement('div');
     dashboard.id = 'adaptive-dashboard';
@@ -144,7 +167,10 @@ class Phase2UIManager extends EventEmitter {
   }
 
   async initializeSmartWorkspace() {
-    console.log('✅ Initializing Smart Workspace...');
+    logger.system('Initializing Smart Workspace', {
+      component: 'phase2-ui-manager',
+      module: 'smart-workspace',
+    });
     // Implementation for smart workspace
     const workspace = document.createElement('div');
     workspace.id = 'smart-workspace';
@@ -153,7 +179,10 @@ class Phase2UIManager extends EventEmitter {
   }
 
   async initializeContextualPanels() {
-    console.log('✅ Initializing Contextual Panels...');
+    logger.system('Initializing Contextual Panels', {
+      component: 'phase2-ui-manager',
+      module: 'contextual-panels',
+    });
     // Implementation for contextual panels
     const panels = document.createElement('div');
     panels.id = 'contextual-panels';
@@ -162,7 +191,10 @@ class Phase2UIManager extends EventEmitter {
   }
 
   async initializeAdvancedTerminalEnhancements() {
-    console.log('✅ Initializing Advanced Terminal Enhancements...');
+    logger.system('Initializing Advanced Terminal Enhancements', {
+      component: 'phase2-ui-manager',
+      module: 'terminal-enhancements',
+    });
     // Implementation for terminal enhancements
     const enhancements = document.createElement('div');
     enhancements.id = 'terminal-enhancements';
@@ -171,7 +203,10 @@ class Phase2UIManager extends EventEmitter {
   }
 
   setupResponsiveLayout() {
-    console.log('✅ Setting up responsive layout...');
+    logger.system('Setting up responsive layout', {
+      component: 'phase2-ui-manager',
+      module: 'responsive-layout',
+    });
     // Implementation for responsive layout
   }
 
@@ -200,7 +235,10 @@ class Phase2UIManager extends EventEmitter {
   }
 
   setupEventHandlers() {
-    console.log('✅ Setting up event handlers...');
+    logger.system('Setting up event handlers', {
+      component: 'phase2-ui-manager',
+      module: 'event-handlers',
+    });
 
     // Setup global keyboard shortcuts
     document.addEventListener('keydown', this.handleGlobalKeyboard.bind(this));

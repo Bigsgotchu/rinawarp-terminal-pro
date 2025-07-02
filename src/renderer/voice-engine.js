@@ -5,6 +5,22 @@
  * Advanced Text-to-Speech engine with custom voice recording and cloning capabilities
  */
 
+// Import centralized logger
+const logger = (() => {
+  if (typeof require !== 'undefined') {
+    return require('../utils/logger');
+  } else {
+    // Fallback for browser environment
+    return {
+      debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
+      info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
+      warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
+      error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
+      system: (msg, ctx) => console.info(`[SYSTEM] ${msg}`, ctx),
+    };
+  }
+})();
+
 export class VoiceEngine {
   constructor() {
     this.isEnabled = false;
@@ -66,17 +82,24 @@ export class VoiceEngine {
       // Load custom voices
       await this.loadCustomVoices();
 
-      console.log('🎤 Voice Engine initialized successfully');
+      logger.system('Voice Engine initialized successfully', { component: 'voice-engine' });
       return true;
     } catch (error) {
-      console.error('Voice Engine initialization failed:', error);
+      logger.error('Voice Engine initialization failed', {
+        component: 'voice-engine',
+        error: error.message,
+        stack: error.stack,
+      });
       return false;
     }
   }
 
   loadVoices() {
     this.voices = this.synth.getVoices();
-    console.log(`📢 Loaded ${this.voices.length} system voices`);
+    logger.info('System voices loaded', {
+      component: 'voice-engine',
+      voiceCount: this.voices.length,
+    });
 
     // Try to find a good default voice
     if (!this.currentVoice && this.voices.length > 0) {
@@ -170,7 +193,10 @@ export class VoiceEngine {
       // Event handlers
       utterance.onend = () => resolve();
       utterance.onerror = error => {
-        console.error('Speech synthesis error:', error);
+        logger.error('Speech synthesis error', {
+          component: 'voice-engine',
+          error: error.message || error,
+        });
         resolve();
       };
 
@@ -183,7 +209,10 @@ export class VoiceEngine {
     // This would use the recorded custom voice
     // For now, fall back to system voice
     // In a real implementation, you'd use voice cloning AI here
-    console.log(`🎤 Speaking with custom voice: "${text}"`);
+    logger.debug('Speaking with custom voice', {
+      component: 'voice-engine',
+      text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+    });
     return this.speakWithSystemVoice(text, options);
   }
 

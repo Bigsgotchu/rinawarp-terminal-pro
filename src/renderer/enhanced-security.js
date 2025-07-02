@@ -10,6 +10,23 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
+
+// Import centralized logger
+const logger = (() => {
+  if (typeof require !== 'undefined') {
+    return require('../utils/logger');
+  } else {
+    // Fallback for browser environment
+    return {
+      debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
+      info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
+      warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
+      error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
+      security: (msg, ctx) => console.warn(`[SECURITY] ${msg}`, ctx),
+      system: (msg, ctx) => console.info(`[SYSTEM] ${msg}`, ctx),
+    };
+  }
+})();
 class EnhancedSecurityEngine {
   constructor() {
     this.auditLogger = new CommandAuditLogger();
@@ -31,7 +48,10 @@ class EnhancedSecurityEngine {
 
   startSecurityMonitoring() {
     // Initialize security monitoring subsystems
-    console.log('🔒 Starting security monitoring...');
+    logger.security('Starting security monitoring', {
+      component: 'enhanced-security',
+      module: 'monitoring',
+    });
 
     // Start real-time threat monitoring
     this.threatMonitoringInterval = setInterval(() => {
@@ -49,7 +69,10 @@ class EnhancedSecurityEngine {
     // Start audit log rotation
     this.startAuditLogRotation();
 
-    console.log('✅ Security monitoring started successfully');
+    logger.security('Security monitoring started successfully', {
+      component: 'enhanced-security',
+      module: 'monitoring',
+    });
   }
 
   performThreatAssessment() {
@@ -67,12 +90,19 @@ class EnhancedSecurityEngine {
       // Check for compliance drift
       this.checkComplianceDrift();
 
-      console.log('🔍 Threat assessment completed', {
+      logger.security('Threat assessment completed', {
+        component: 'enhanced-security',
+        module: 'threat-assessment',
         timestamp: currentTime,
         metrics: this.securityMetrics,
       });
     } catch (error) {
-      console.error('❌ Threat assessment failed:', error);
+      logger.error('Threat assessment failed', {
+        component: 'enhanced-security',
+        module: 'threat-assessment',
+        error: error.message,
+        stack: error.stack,
+      });
     }
   }
 
@@ -90,7 +120,12 @@ class EnhancedSecurityEngine {
 
     if (currentLogSize > maxLogSize) {
       this.auditLogger.rotateLog();
-      console.log('📝 Audit logs rotated due to size limit');
+      logger.info('Audit logs rotated due to size limit', {
+        component: 'enhanced-security',
+        module: 'audit-rotation',
+        currentLogSize,
+        maxLogSize,
+      });
     }
   }
 
@@ -148,7 +183,11 @@ class EnhancedSecurityEngine {
     };
 
     this.securityAlerts.set(alert.id, alert);
-    console.warn('🚨 Security Alert:', alert);
+    logger.security('Security Alert raised', {
+      component: 'enhanced-security',
+      module: 'alert-system',
+      alert: alert,
+    });
 
     // Notify security dashboard if available
     this.notifySecurityDashboard(alert);
@@ -178,7 +217,12 @@ class EnhancedSecurityEngine {
   }
 
   notifyThreatLevelChange(newLevel) {
-    console.log(`🔄 Threat level changed to: ${newLevel}`);
+    logger.security('Threat level changed', {
+      component: 'enhanced-security',
+      module: 'threat-monitoring',
+      newLevel: newLevel,
+      timestamp: Date.now(),
+    });
 
     if (window.securityDashboard) {
       window.securityDashboard.updateThreatLevel(newLevel);

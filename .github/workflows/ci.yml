@@ -104,6 +104,25 @@ jobs:
       - name: Check for vulnerable JavaScript libraries
         run: retire --path . --outputformat json --outputpath retire-report.json || true
 
+      - name: Run Bandit security scanner for Python files
+        run: |
+          if ls *.py 1> /dev/null 2>&1; then
+            pip install bandit
+            bandit -r . -f json -o bandit-report.json || true
+          else
+            echo "No Python files found, skipping Bandit scan"
+          fi
+
+      - name: Run Semgrep security analysis
+        run: |
+          npm install -g @semgrep/cli
+          semgrep --config=auto --json --output=semgrep-report.json . || true
+
+      - name: Check for secrets in code
+        run: |
+          npm install -g detect-secrets
+          detect-secrets scan --all-files --force-use-all-plugins --baseline .secrets.baseline || true
+
       - name: Upload security reports
         uses: actions/upload-artifact@v4
         with:

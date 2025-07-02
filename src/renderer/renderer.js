@@ -2774,6 +2774,9 @@ class TerminalManager extends SimpleEventEmitter {
     // Update status bar
     this.updateStatusBar();
 
+    // Start periodic time updates
+    this.startTimeUpdates();
+
     // Create first terminal
     this.createTerminal(1);
 
@@ -3614,6 +3617,9 @@ class TerminalManager extends SimpleEventEmitter {
     document.getElementById('shell-info').textContent = path.basename(this.shell);
     document.getElementById('current-dir').textContent = process.cwd();
 
+    // Update time display with local time
+    this.updateTimeDisplay();
+
     // Update license status
     this.updateLicenseStatus();
 
@@ -3623,6 +3629,52 @@ class TerminalManager extends SimpleEventEmitter {
       { terminalId: this.activeTerminalId },
       process.cwd()
     );
+  }
+
+  updateTimeDisplay() {
+    // Add time display to the status bar using local time
+    let timeElement = document.getElementById('time-display');
+    if (!timeElement) {
+      // Create time display element if it doesn't exist
+      timeElement = document.createElement('span');
+      timeElement.id = 'time-display';
+      timeElement.className = 'status-item';
+
+      // Insert it before license status in the right section
+      const statusRight = document.querySelector('.status-right');
+      const licenseStatus = document.getElementById('license-status');
+      if (statusRight && licenseStatus) {
+        statusRight.insertBefore(timeElement, licenseStatus);
+      } else if (statusRight) {
+        statusRight.appendChild(timeElement);
+      }
+    }
+
+    // Update time display with local time
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', {
+      hour12: true,
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    const dateString = now.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+
+    timeElement.textContent = `🕐 ${dateString} ${timeString}`;
+    timeElement.style.color = '#74c0fc';
+    timeElement.title = 'Current local time';
+  }
+
+  startTimeUpdates() {
+    // Update time display every minute
+    this.timeUpdateInterval = setInterval(() => {
+      this.updateTimeDisplay();
+    }, 60000); // Update every 60 seconds
+
+    // Initial update
+    this.updateTimeDisplay();
   }
 
   updateLicenseStatus() {
@@ -3743,7 +3795,7 @@ class TerminalManager extends SimpleEventEmitter {
     modal.querySelector('#view-pricing')?.addEventListener('click', () => {
       // Open pricing page in browser
       // Open pricing page in local development
-      require('electron').shell.openExternal('https://rinawarp-terminal.web.app/pricing');
+      require('electron').shell.openExternal('https://7928-136-36-239-142.ngrok-free.app/pricing');
     });
 
     // Enter license key

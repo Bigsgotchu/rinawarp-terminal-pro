@@ -420,7 +420,9 @@ class NextGenUIEngine {
   }
 
   analyzeTimeContext() {
-    const hour = new Date().getHours();
+    // Use local time instead of UTC
+    const now = new Date();
+    const hour = now.getHours(); // This already returns local time
     if (hour >= 22 || hour <= 6) {
       return 'night';
     } else if (hour >= 6 && hour <= 12) {
