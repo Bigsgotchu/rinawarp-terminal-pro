@@ -189,7 +189,7 @@ const ActionBuilders = {
   /**
      * Log a message
      */
-  log: (message, level = 'info') => new Action(
+  log: (message) => new Action(
     (context) => {
       console.info(`[Rule Engine] ${message}`, context);
     },

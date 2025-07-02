@@ -40,7 +40,7 @@ class Logger {
     /**
      * Send telemetry data (placeholder for future implementation)
      */
-    sendTelemetry(level, message, context = {}) {
+    sendTelemetry(level, message, _context = {}) {
         if (!this.enableTelemetry) return;
         
         // TODO: Implement actual telemetry service integration
@@ -66,7 +66,7 @@ class Logger {
         const formattedMessage = this.formatMessage('debug', message, context);
         
         if (this.isDevelopment) {
-            console.log(formattedMessage);
+            // console.log(formattedMessage);
         }
         
         this.sendTelemetry('debug', message, context);

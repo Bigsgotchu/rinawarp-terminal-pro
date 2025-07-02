@@ -333,7 +333,7 @@ function validateRegistry() {
     const visited = new Set();
     const visiting = new Set();
 
-    function checkCircular(currentName) {
+  function checkCircular(currentName) {
       if (visiting.has(currentName)) {
         issues.push({
           type: 'circular-dependency',
@@ -390,13 +390,13 @@ export function getDependencyOrder() {
       return;
     }
 
-    const config = GLOBAL_REGISTRY[name];
-    if (!config) {
+    const _config = GLOBAL_REGISTRY[name];
+    if (!_config) {
       return;
     }
 
     // Visit dependencies first
-    for (const dep of config.dependencies) {
+    for (const dep of _config.dependencies) {
       visit(dep);
     }
 
