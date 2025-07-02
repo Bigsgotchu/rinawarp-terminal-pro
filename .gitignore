@@ -308,7 +308,7 @@ _redirects
 netlify.toml
 sitemap.xml
 robots.txt
-security-test-commands.md
+SECURITY_TEST_COMMANDS.md
 
 # Debug and Log Files
 pglite-debug.log
