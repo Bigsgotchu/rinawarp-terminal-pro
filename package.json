@@ -174,7 +174,7 @@
                               "verifyUpdateCodeSignature":  false
                           },
                   "mac":  {
-                              "icon":  "assets/icns/icon.icns",
+                              "icon":  "assets/png/sizes/monogram-mermaid-icon-large-256px.png",
                               "category":  "public.app-category.developer-tools",
                               "target":  [
                                              {
