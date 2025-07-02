@@ -1,6 +1,6 @@
 {
     "name":  "rinawarp-terminal",
-    "version":  "1.0.6",
+    "version":  "1.0.7",
     "description":  "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
     "main":  "src/main.js",
     "author":  {
@@ -82,7 +82,11 @@
     "bot:schedule:remove": "pwsh -ExecutionPolicy Bypass -File scripts/automation/schedule-discussion-bot.ps1 -Remove",
     "prepare": "husky",
     "test:logging": "node scripts/test-logging.js",
-    "console:replace": "node scripts/replace-console-statements.js"
+    "console:replace": "node scripts/replace-console-statements.js",
+    "telemetry:validate": "node scripts/validate-telemetry.js",
+    "telemetry:validate:staging": "NODE_ENV=staging npm run telemetry:validate",
+    "telemetry:validate:production": "NODE_ENV=production npm run telemetry:validate",
+    "telemetry:test": "node scripts/test-telemetry.js"
                 },
     "dependencies":  {
                          "@xterm/addon-fit":  "^0.10.0",
