@@ -1,6 +1,6 @@
 {
   "name": "rinawarp-terminal",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
   "type": "module",
   "main": "src/main.cjs",
@@ -130,6 +130,7 @@
     "@babel/preset-env": "7.28.0",
     "@fortawesome/fontawesome-free": "6.7.2",
     "@jest/globals": "29.7.0",
+    "@npmcli/package-json": "6.2.0",
     "@types/plist": "3.0.5",
     "@types/verror": "1.10.11",
     "@vercel/speed-insights": "1.2.0",
@@ -163,6 +164,7 @@
     "recorder-js": "1.0.7",
     "retire": "5.2.7",
     "standard-version": "9.5.0",
+    "stringify-package": "1.0.1",
     "tailwindcss": "3.4.17",
     "vosk-browser": "0.0.8",
     "webpack": "5.99.9",
@@ -172,8 +174,7 @@
   "overrides": {
     "rimraf": "^4.4.1",
     "glob": "^9.3.5",
-    "@npmcli/move-file": "@npmcli/fs",
-    "stringify-package": "@npmcli/package-json"
+    "@npmcli/move-file": "@npmcli/fs"
   },
   "resolutions": {
     "rimraf": "^4.4.1",
