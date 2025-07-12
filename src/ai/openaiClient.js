@@ -8,9 +8,11 @@ dotenv.config();
 const hasApiKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
 
 // Initialize OpenAI client with newer API (only if API key is available)
-const openai = hasApiKey ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-}) : null;
+const openai = hasApiKey
+  ? new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+  : null;
 
 // Fallback responses for when OpenAI is not available
 const fallbackResponses = {
@@ -19,17 +21,19 @@ const fallbackResponses = {
     'show files': 'ls',
     'current directory': 'pwd',
     'change directory': 'cd',
-    'git': 'git status',
-    'npm': 'npm --help',
-    'node': 'node --version',
-    'test': 'npm test'
+    git: 'git status',
+    npm: 'npm --help',
+    node: 'node --version',
+    test: 'npm test',
   },
   explanations: {
-    'ls -la': 'Lists all files and directories in the current directory with detailed information including hidden files.',
-    'git status': 'Shows the current state of your Git repository, including staged, unstaged, and untracked files.',
+    'ls -la':
+      'Lists all files and directories in the current directory with detailed information including hidden files.',
+    'git status':
+      'Shows the current state of your Git repository, including staged, unstaged, and untracked files.',
     'npm test': 'Runs the test script defined in package.json to execute your project tests.',
-    'pwd': 'Prints the current working directory path.'
-  }
+    pwd: 'Prints the current working directory path.',
+  },
 };
 
 function findBestMatch(input, dictionary) {
@@ -60,20 +64,24 @@ export async function getCommandPrediction(prompt, context = '') {
 
   try {
     const fullPrompt = `${context ? `Context: ${context}\n` : ''}Command prediction for: "${prompt}"\n\nSuggest the most appropriate terminal command:`;
-    
+
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{
-        role: 'system',
-        content: 'You are a terminal command assistant. Provide accurate, safe terminal commands based on user input. Only return the command, no explanations unless asked.'
-      }, {
-        role: 'user',
-        content: fullPrompt
-      }],
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a terminal command assistant. Provide accurate, safe terminal commands based on user input. Only return the command, no explanations unless asked.',
+        },
+        {
+          role: 'user',
+          content: fullPrompt,
+        },
+      ],
       max_tokens: 150,
       temperature: 0.3,
     });
-    
+
     return response.choices[0].message.content.trim();
   } catch (error) {
     console.error('Error fetching command prediction:', error.message);
@@ -100,7 +108,7 @@ export async function getWorkflowAutomation(commandHistory) {
         type: 'script',
         description: 'Create a deployment script',
         command: 'npm run deploy',
-        automation: 'npm install && npm test && npm run build'
+        automation: 'npm install && npm test && npm run build',
       });
     }
     return { suggestions, fallback: true };
@@ -110,17 +118,21 @@ export async function getWorkflowAutomation(commandHistory) {
     const historyText = commandHistory.join('\n');
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{
-        role: 'system',
-        content: 'You are a workflow automation assistant. Analyze command patterns and suggest automation opportunities. Return JSON format with suggestions.'
-      }, {
-        role: 'user',
-        content: `Analyze this command history and suggest automation opportunities:\n${historyText}`
-      }],
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a workflow automation assistant. Analyze command patterns and suggest automation opportunities. Return JSON format with suggestions.',
+        },
+        {
+          role: 'user',
+          content: `Analyze this command history and suggest automation opportunities:\n${historyText}`,
+        },
+      ],
       max_tokens: 300,
       temperature: 0.4,
     });
-    
+
     return JSON.parse(response.choices[0].message.content);
   } catch (error) {
     console.error('Error fetching workflow automation:', error.message);
@@ -146,17 +158,21 @@ export async function explainCommand(command) {
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{
-        role: 'system',
-        content: 'You are a terminal command explainer. Provide clear, concise explanations of what commands do, including potential risks if applicable.'
-      }, {
-        role: 'user',
-        content: `Explain this command: ${command}`
-      }],
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a terminal command explainer. Provide clear, concise explanations of what commands do, including potential risks if applicable.',
+        },
+        {
+          role: 'user',
+          content: `Explain this command: ${command}`,
+        },
+      ],
       max_tokens: 200,
       temperature: 0.2,
     });
-    
+
     return response.choices[0].message.content.trim();
   } catch (error) {
     console.error('Error explaining command:', error.message);

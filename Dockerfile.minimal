@@ -1,0 +1,16 @@
+FROM node:20
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN node -v && npm -v && which npm || echo "npm not found"
+
+# Remove husky prepare script to avoid "husky: not found" error
+RUN npm pkg delete scripts.prepare
+
+RUN npm install --omit=dev --no-audit --no-fund
+
+COPY . .
+
+CMD ["node", "simple-server.js"]

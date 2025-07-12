@@ -154,29 +154,33 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Apply helmet security headers
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ['\'self\''],
-      scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
-      styleSrc: ['\'self\'', '\'unsafe-inline\''],
-      imgSrc: ['\'self\'', 'data:', 'https:'],
-      fontSrc: ['\'self\'', 'data:'],
-      connectSrc: ['\'self\'', 'wss:', 'ws:'],
-      objectSrc: ['\'none\''],
-      baseUri: ['\'self\'']
-    }
-  }
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ['\'self\''],
+        scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
+        styleSrc: ['\'self\'', '\'unsafe-inline\''],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\'', 'data:'],
+        connectSrc: ['\'self\'', 'wss:', 'ws:'],
+        objectSrc: ['\'none\''],
+        baseUri: ['\'self\''],
+      },
+    },
+  })
+);
 
 // Apply morgan logging middleware for detailed request logging
-app.use(morgan('combined', {
-  stream: {
-    write: (message) => {
-      console.log(message.trim());
-    }
-  }
-}));
+app.use(
+  morgan('combined', {
+    stream: {
+      write: message => {
+        console.log(message.trim());
+      },
+    },
+  })
+);
 
 // Apply custom logging middleware to all requests
 app.use(logRequest);
@@ -199,10 +203,15 @@ app.use('/webhook', express.raw({ type: 'application/json' }));
 
 // Input validation schemas using Joi
 const licenseValidationSchema = Joi.object({
-  licenseKey: Joi.string().required().min(10).max(200)
-    .pattern(/^[A-Z0-9\-]+$/).messages({
-      'string.pattern.base': 'License key must contain only uppercase letters, numbers, and hyphens'
-    })
+  licenseKey: Joi.string()
+    .required()
+    .min(10)
+    .max(200)
+    .pattern(/^[A-Z0-9\-]+$/)
+    .messages({
+      'string.pattern.base':
+        'License key must contain only uppercase letters, numbers, and hyphens',
+    }),
 });
 
 const checkoutValidationSchema = Joi.object({
@@ -211,16 +220,18 @@ const checkoutValidationSchema = Joi.object({
   cancelUrl: Joi.string().uri().optional(),
   customerEmail: Joi.string().email().optional(),
   userId: Joi.string().optional(),
-  metadata: Joi.object().optional()
+  metadata: Joi.object().optional(),
 });
 
 const emailValidationSchema = Joi.object({
   email: Joi.string().email().required(),
-  licenseType: Joi.string().valid('trial', 'personal', 'professional', 'team', 'enterprise').default('personal')
+  licenseType: Joi.string()
+    .valid('trial', 'personal', 'professional', 'team', 'enterprise')
+    .default('personal'),
 });
 
 // Joi validation middleware factory
-const validateJoi = (schema) => {
+const validateJoi = schema => {
   return (req, res, next) => {
     const { error } = schema.validate(req.body);
     if (error) {
@@ -228,8 +239,8 @@ const validateJoi = (schema) => {
         error: 'Validation failed',
         details: error.details.map(detail => ({
           field: detail.path.join('.'),
-          message: detail.message
-        }))
+          message: detail.message,
+        })),
       });
     }
     next();
@@ -917,21 +928,26 @@ async function handleInvoicePayment(invoice) {
 }
 
 // Enhanced license validation with real data
-app.post('/api/validate-license', licenseValidationLimiter, validateJoi(licenseValidationSchema), (req, res) => {
-  const { licenseKey } = req.body;
+app.post(
+  '/api/validate-license',
+  licenseValidationLimiter,
+  validateJoi(licenseValidationSchema),
+  (req, res) => {
+    const { licenseKey } = req.body;
 
-  // Enhanced license validation
-  const licenseData = validateLicenseKey(licenseKey);
+    // Enhanced license validation
+    const licenseData = validateLicenseKey(licenseKey);
 
-  if (!licenseData) {
-    return res.status(400).json({
-      valid: false,
-      error: 'Invalid license key',
-    });
+    if (!licenseData) {
+      return res.status(400).json({
+        valid: false,
+        error: 'Invalid license key',
+      });
+    }
+
+    res.json(licenseData);
   }
-
-  res.json(licenseData);
-});
+);
 
 // Generate new license endpoint (for testing)
 app.post('/api/generate-license', (req, res) => {
@@ -1016,92 +1032,96 @@ app.post('/api/test-post', (req, res) => {
 });
 
 // Stripe checkout session creation endpoint
-app.post('/api/create-checkout-session', validateJoi(checkoutValidationSchema), async (req, res) => {
-  try {
-    const { priceId, successUrl, cancelUrl, customerEmail, userId, metadata } = req.body;
+app.post(
+  '/api/create-checkout-session',
+  validateJoi(checkoutValidationSchema),
+  async (req, res) => {
+    try {
+      const { priceId, successUrl, cancelUrl, customerEmail, userId, metadata } = req.body;
 
-    console.log('🛒 Creating checkout session for price:', priceId);
-    console.log('📧 Customer email:', customerEmail);
-    console.log('👤 User ID:', userId);
+      console.log('🛒 Creating checkout session for price:', priceId);
+      console.log('📧 Customer email:', customerEmail);
+      console.log('👤 User ID:', userId);
 
-    if (!stripe) {
-      return res.status(500).json({ error: 'Stripe not configured' });
-    }
+      if (!stripe) {
+        return res.status(500).json({ error: 'Stripe not configured' });
+      }
 
-    // Use the provided URLs or defaults
-    const defaultSuccessUrl = `${req.protocol}://${req.get('host')}/success.html?session_id={CHECKOUT_SESSION_ID}`;
-    const defaultCancelUrl = `${req.protocol}://${req.get('host')}/pricing.html`;
+      // Use the provided URLs or defaults
+      const defaultSuccessUrl = `${req.protocol}://${req.get('host')}/success.html?session_id={CHECKOUT_SESSION_ID}`;
+      const defaultCancelUrl = `${req.protocol}://${req.get('host')}/pricing.html`;
 
-    // Fetch the price object to determine if it's recurring or one-time
-    const price = await stripe.prices.retrieve(priceId);
-    const mode = price.recurring ? 'subscription' : 'payment';
+      // Fetch the price object to determine if it's recurring or one-time
+      const price = await stripe.prices.retrieve(priceId);
+      const mode = price.recurring ? 'subscription' : 'payment';
 
-    console.log(
-      `💡 Price ${priceId} is ${price.recurring ? 'recurring' : 'one-time'}, using mode: ${mode}`
-    );
+      console.log(
+        `💡 Price ${priceId} is ${price.recurring ? 'recurring' : 'one-time'}, using mode: ${mode}`
+      );
 
-    // Build session configuration
-    const sessionConfig = {
-      mode,
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      success_url: successUrl || defaultSuccessUrl,
-      cancel_url: cancelUrl || defaultCancelUrl,
-      automatic_tax: { enabled: true },
-      billing_address_collection: 'required',
-      metadata: {
-        priceId: priceId,
-        product: 'RinaWarp Terminal',
-        priceType: price.recurring ? 'recurring' : 'one-time',
-        mode: mode,
-        ...(userId && { userId: userId }),
-        ...(metadata && typeof metadata === 'object' && metadata),
-      },
-    };
-
-    // Only add customer_creation for one-time payments
-    // Stripe automatically creates customers for subscriptions
-    if (mode === 'payment') {
-      sessionConfig.customer_creation = 'always';
-    }
-
-    // Add customer email if provided
-    if (customerEmail) {
-      sessionConfig.customer_email = customerEmail;
-    }
-
-    // Add subscription-specific configurations
-    if (mode === 'subscription') {
-      sessionConfig.subscription_data = {
+      // Build session configuration
+      const sessionConfig = {
+        mode,
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        success_url: successUrl || defaultSuccessUrl,
+        cancel_url: cancelUrl || defaultCancelUrl,
+        automatic_tax: { enabled: true },
+        billing_address_collection: 'required',
         metadata: {
           priceId: priceId,
           product: 'RinaWarp Terminal',
+          priceType: price.recurring ? 'recurring' : 'one-time',
+          mode: mode,
           ...(userId && { userId: userId }),
+          ...(metadata && typeof metadata === 'object' && metadata),
         },
       };
+
+      // Only add customer_creation for one-time payments
+      // Stripe automatically creates customers for subscriptions
+      if (mode === 'payment') {
+        sessionConfig.customer_creation = 'always';
+      }
+
+      // Add customer email if provided
+      if (customerEmail) {
+        sessionConfig.customer_email = customerEmail;
+      }
+
+      // Add subscription-specific configurations
+      if (mode === 'subscription') {
+        sessionConfig.subscription_data = {
+          metadata: {
+            priceId: priceId,
+            product: 'RinaWarp Terminal',
+            ...(userId && { userId: userId }),
+          },
+        };
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionConfig);
+
+      console.log('✅ Checkout session created:', session.id);
+
+      res.json({
+        sessionId: session.id,
+        url: session.url,
+      });
+    } catch (error) {
+      console.error('❌ Error creating checkout session:', error);
+      res.status(500).json({
+        error: 'Failed to create checkout session',
+        details: error.message,
+      });
     }
-
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-
-    console.log('✅ Checkout session created:', session.id);
-
-    res.json({
-      sessionId: session.id,
-      url: session.url,
-    });
-  } catch (error) {
-    console.error('❌ Error creating checkout session:', error);
-    res.status(500).json({
-      error: 'Failed to create checkout session',
-      details: error.message,
-    });
   }
-});
+);
 
 // License utility functions
 function validateLicenseKey(licenseKey) {

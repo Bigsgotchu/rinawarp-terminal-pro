@@ -94,11 +94,11 @@ app.setPath('logs', path.join(os.homedir(), '.rinawarp-terminal', 'logs'));
 app.whenReady().then(() => {
   // Handle microphone permissions
   const { session } = require('electron');
-  
+
   // Enable microphone access
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     const allowedPermissions = ['microphone', 'camera', 'media', 'mediaKeySystem'];
-    
+
     if (allowedPermissions.includes(permission)) {
       console.log(`Granting permission: ${permission}`);
       callback(true);
@@ -107,15 +107,17 @@ app.whenReady().then(() => {
       callback(false);
     }
   });
-  
+
   // Grant microphone permission by default
-  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
-    if (permission === 'microphone' || permission === 'media') {
-      return true;
+  session.defaultSession.setPermissionCheckHandler(
+    (webContents, permission, requestingOrigin, details) => {
+      if (permission === 'microphone' || permission === 'media') {
+        return true;
+      }
+      return false;
     }
-    return false;
-  });
-  
+  );
+
   createWindow();
 
   app.on('activate', () => {

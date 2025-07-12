@@ -25,7 +25,7 @@ export class PredictiveCompletionPlugin extends Plugin {
 
   async initialize(_context) {
     console.log('🔮 Initializing Enhanced Predictive Completion Plugin...');
-    
+
     // Test OpenAI connectivity
     try {
       await getCommandPrediction('test', 'initialization test');
@@ -38,18 +38,18 @@ export class PredictiveCompletionPlugin extends Plugin {
 
   async execute(context) {
     const { terminal } = context;
-    
+
     terminal.onInput(async input => {
       try {
         let suggestion = null;
-        
+
         // Try OpenAI first if available
         if (this.useOpenAI && input.trim().length > 2) {
           try {
             const workingDir = context.workingDirectory || process.cwd();
             const contextInfo = `Working directory: ${workingDir}`;
             suggestion = await getCommandPrediction(input, contextInfo);
-            
+
             if (suggestion && suggestion.trim()) {
               terminal.showSuggestion(suggestion.trim());
               return;
@@ -59,7 +59,7 @@ export class PredictiveCompletionPlugin extends Plugin {
             this.useOpenAI = false; // Temporarily disable for this session
           }
         }
-        
+
         // Fallback to local AI context engine
         if (this.fallbackToLocal) {
           const analysis = await this.contextEngine.analyzeCommand(input, context);
@@ -71,7 +71,7 @@ export class PredictiveCompletionPlugin extends Plugin {
         console.error('Prediction error:', error.message);
       }
     });
-    
+
     console.log('🔮 Enhanced Predictive Completion Plugin activated');
   }
 
@@ -84,7 +84,7 @@ export class PredictiveCompletionPlugin extends Plugin {
         console.warn('OpenAI explanation failed:', error.message);
       }
     }
-    
+
     // Fallback explanation
     return `Command: ${command} - Use 'man ${command.split(' ')[0]}' for detailed information.`;
   }

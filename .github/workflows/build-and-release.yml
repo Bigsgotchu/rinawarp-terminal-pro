@@ -1,3 +1,9 @@
+# 🧜‍♀️ Upgraded to GitHub Actions v4 - 2025-07-12
+# 5 improvements applied
+# - Latest action versions for better performance and security
+# - Node.js 20 LTS for enhanced capabilities  
+# - Optimized caching for faster builds
+
 name: Build and Release
 
 on:
@@ -28,7 +34,7 @@ env:
   APP_ID: "com.rinawarp.terminal"
   
   # Build configuration
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"  # Latest LTS with enhanced performance
   ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
   ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
 
@@ -102,18 +108,23 @@ jobs:
           cache: 'npm'
 
       # Cache electron and electron-builder
-      - name: Cache Electron
-        uses: actions/cache@v3
+      - name: Cache Electron & Dependencies
+        uses: actions/cache@v4
         with:
-          path: ${{ env.ELECTRON_CACHE }}
+          path: |
+            ${{ env.ELECTRON_CACHE }}
+            ~/.npm
           key: ${{ runner.os }}-electron-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-electron-
 
-      - name: Cache Electron Builder
-        uses: actions/cache@v3
+      - name: Cache Electron Builder & Dependencies
+        uses: actions/cache@v4
         with:
-          path: ${{ env.ELECTRON_BUILDER_CACHE }}
+          path: |
+            ${{ env.ELECTRON_BUILDER_CACHE }}
+            ~/.cache/electron-builder
+            ~/.npm
           key: ${{ runner.os }}-electron-builder-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-electron-builder-
@@ -238,38 +249,38 @@ jobs:
 
       # Download all artifacts
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-windows-${{ github.sha }}
           path: ./release/windows
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-linux-${{ github.sha }}
           path: ./release/linux
 
       - name: Download macOS x64 artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-macos-${{ github.sha }}
           path: ./release/macos
 
       - name: Download macOS ARM64 artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-macos-arm64-${{ github.sha }}
           path: ./release/macos-arm64
 
       # Cleanup cache
       - name: Cleanup build cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.ELECTRON_CACHE }}
 
       # Download checksums
       - name: Download checksums
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           pattern: checksums-*-${{ github.sha }}
           path: ./release/checksums

@@ -1,0 +1,52 @@
+# Alternative Dockerfile using Ubuntu base (more reliable than Alpine)
+# Use this if Alpine version fails on Railway
+FROM node:20
+
+# Set working directory
+WORKDIR /app
+
+# Build arguments for authentication
+ARG GITHUB_TOKEN
+ARG NODE_AUTH_TOKEN
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV NODE_AUTH_TOKEN=${NODE_AUTH_TOKEN:-${GITHUB_TOKEN}}
+ENV PORT=8080
+
+# Verify Node.js and npm are available
+RUN node -v && npm -v && which node && which npm
+
+# Install build dependencies for native modules
+# Ubuntu-based images are more reliable for native compilation
+RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
+
+# Verify Node.js and npm are still available after package install
+RUN node -v && npm -v && which node && which npm
+
+# Copy package files first
+COPY package.json package-lock.json ./
+
+# Create clean npmrc for Docker build
+RUN echo "registry=https://registry.npmjs.org/" > .npmrc && \
+    echo "fund=false" >> .npmrc && \
+    echo "audit=false" >> .npmrc && \
+    echo "progress=false" >> .npmrc && \
+    echo "loglevel=error" >> .npmrc && \
+    echo "prefer-offline=false" >> .npmrc && \
+    echo "cache=/tmp/.npm" >> .npmrc
+
+# Debug npm before install
+RUN echo "PATH: $PATH" && ls -la $(which npm)
+
+# Install dependencies
+RUN npm ci --omit=dev --no-audit --no-fund
+
+# Copy application code
+COPY . .
+
+# Expose the port
+EXPOSE 8080
+
+# Start the server
+CMD ["node", "simple-server.js"]

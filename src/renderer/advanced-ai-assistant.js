@@ -170,7 +170,7 @@ class AdvancedIntellectualAI {
       console.warn('Expected a string input for addPersonalityFlavor, received:', query);
       return '🧜‍♀️ Just a moment, let me gather my thoughts...';
     }
-    
+
     const queryLower = query.toLowerCase();
     const flavors = {
       'rm -rf':
