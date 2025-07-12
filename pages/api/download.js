@@ -18,7 +18,24 @@ export default async function handler(req, res) {
     return;
   }
   
-  const file = 'RinaWarp-Terminal-Setup-Windows.exe';
+  // Determine which file to serve based on query parameter
+  let file;
+  const fileType = req.query.file;
+  
+  switch (fileType) {
+    case 'portable':
+      file = 'RinaWarp-Terminal-Portable-Windows.exe';
+      break;
+    case 'linux':
+      file = 'RinaWarp-Terminal-Linux.tar.gz';
+      break;
+    case 'macos':
+      file = 'RinaWarp-Terminal-macOS.dmg';
+      break;
+    default:
+      file = 'RinaWarp-Terminal-Setup-Windows.exe';
+  }
+  
   const filePath = path.resolve('./public/releases', file);
 
   try {
