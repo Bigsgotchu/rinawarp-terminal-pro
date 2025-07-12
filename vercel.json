@@ -8,19 +8,7 @@
   "outputDirectory": "public",
   "rewrites": [
     {
-      "source": "/api/download",
-      "destination": "/api/download"
-    },
-    {
-      "source": "/api/download/(.*)",
-      "destination": "/api/download"
-    },
-    {
       "source": "/api/(stripe-config|validate-license|create-checkout-session|test.*)",
-      "destination": "https://rinawarp-terminal-production.up.railway.app/api/$1"
-    },
-    {
-      "source": "/api/(.*)",
       "destination": "https://rinawarp-terminal-production.up.railway.app/api/$1"
     }
   ],

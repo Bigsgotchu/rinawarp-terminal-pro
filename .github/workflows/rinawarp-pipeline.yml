@@ -49,7 +49,7 @@ jobs:
     name: 🔒 Security Checks
     runs-on: ubuntu-latest
     needs: core-validation
-    if: ${{ false }} # Set to true when ready to enable security scans
+    if: ${{ true }} # Security scans enabled
     
     steps:
       - name: 📂 Checkout Code
@@ -81,7 +81,7 @@ jobs:
     name: 🚀 Deployment Matrix
     runs-on: ubuntu-latest
     needs: core-validation
-    if: ${{ false && github.ref == 'refs/heads/main' }} # Set to true when ready
+    if: ${{ github.ref == 'refs/heads/main' }} # Deployments enabled
     
     strategy:
       matrix:
@@ -126,7 +126,7 @@ jobs:
     name: 🤖 Automation & Dependencies
     runs-on: ubuntu-latest
     needs: core-validation
-    if: ${{ false }} # Set to true when ready
+    if: ${{ true }} # Automation checks enabled
     
     steps:
       - name: 📂 Checkout Code
