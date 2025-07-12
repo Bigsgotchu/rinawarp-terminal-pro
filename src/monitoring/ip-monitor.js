@@ -129,8 +129,8 @@ class IPMonitoringSystem {
           },
           headers: this.config.githubToken
             ? {
-              Authorization: `token ${this.config.githubToken}`,
-            }
+                Authorization: `token ${this.config.githubToken}`,
+              }
             : {},
         });
 

@@ -86,18 +86,18 @@ class AIContextEngine {
     const baseCommand = parts[0];
 
     switch (baseCommand) {
-    case 'git':
-      docs.explanation = `Git version control operation: ${parts[1] || 'status'}`;
-      docs.examples = this.getGitExamples(parts[1]);
-      docs.relatedCommands = ['git status', 'git log', 'git diff'];
-      break;
-    case 'docker':
-      docs.explanation = `Docker container operation: ${parts[1] || 'ps'}`;
-      docs.examples = this.getDockerExamples(parts[1]);
-      docs.relatedCommands = ['docker ps', 'docker images', 'docker logs'];
-      break;
-    default:
-      docs.explanation = await this.getAIExplanation(command);
+      case 'git':
+        docs.explanation = `Git version control operation: ${parts[1] || 'status'}`;
+        docs.examples = this.getGitExamples(parts[1]);
+        docs.relatedCommands = ['git status', 'git log', 'git diff'];
+        break;
+      case 'docker':
+        docs.explanation = `Docker container operation: ${parts[1] || 'ps'}`;
+        docs.examples = this.getDockerExamples(parts[1]);
+        docs.relatedCommands = ['docker ps', 'docker images', 'docker logs'];
+        break;
+      default:
+        docs.explanation = await this.getAIExplanation(command);
     }
 
     return docs;
@@ -117,16 +117,16 @@ class AIContextEngine {
 
       // Language-specific analysis
       switch (extension) {
-      case 'js':
-      case 'ts':
-        review.issues = await this.analyzeJavaScript(content);
-        break;
-      case 'py':
-        review.issues = await this.analyzePython(content);
-        break;
-      case 'java':
-        review.issues = await this.analyzeJava(content);
-        break;
+        case 'js':
+        case 'ts':
+          review.issues = await this.analyzeJavaScript(content);
+          break;
+        case 'py':
+          review.issues = await this.analyzePython(content);
+          break;
+        case 'java':
+          review.issues = await this.analyzeJava(content);
+          break;
       }
 
       // Security analysis
@@ -480,14 +480,14 @@ class AdvancedAIContextEngine {
     const intent = await this.voiceControl.parseIntent(transcript);
 
     switch (intent.type) {
-    case 'execute':
-      return this.convertVoiceToCommand(intent.command);
-    case 'query':
-      return this.answerVoiceQuery(intent.question);
-    case 'navigate':
-      return this.handleVoiceNavigation(intent.target);
-    default:
-      return { error: 'Unknown voice command intent' };
+      case 'execute':
+        return this.convertVoiceToCommand(intent.command);
+      case 'query':
+        return this.answerVoiceQuery(intent.question);
+      case 'navigate':
+        return this.handleVoiceNavigation(intent.target);
+      default:
+        return { error: 'Unknown voice command intent' };
     }
   }
 

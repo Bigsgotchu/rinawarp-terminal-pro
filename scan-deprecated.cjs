@@ -18,52 +18,52 @@ const skipDirs = ['node_modules', '.git', 'dist', 'build', 'coverage', 'backup-'
 const targets = [
   // Q promises
   'require("q")',
-  'require(\'q\')',
+  "require('q')",
   'import.*from.*[\'"]q[\'"]',
   'Q.fcall',
   'Q.defer',
 
   // lodash.isequal
   'require("lodash.isequal")',
-  'require(\'lodash.isequal\')',
+  "require('lodash.isequal')",
   'import.*from.*[\'"]lodash.isequal[\'"]',
   'isEqual(',
 
   // rimraf (legacy versions)
   'require("rimraf")',
-  'require(\'rimraf\')',
+  "require('rimraf')",
   'import.*from.*[\'"]rimraf[\'"]',
   'rimraf(',
   'rimraf.sync',
 
   // uuid (old patterns)
   'require("uuid")',
-  'require(\'uuid\')',
+  "require('uuid')",
   'uuid.v4',
   'uuidv4(',
 
   // mkdirp
   'require("mkdirp")',
-  'require(\'mkdirp\')',
+  "require('mkdirp')",
   'mkdirp(',
 
   // request (deprecated HTTP library)
   'require("request")',
-  'require(\'request\')',
+  "require('request')",
   'import.*from.*[\'"]request[\'"]',
 
   // async.js patterns
   'require("async")',
-  'require(\'async\')',
+  "require('async')",
   'async.series',
   'async.parallel',
   'async.waterfall',
 
   // Other deprecated patterns
   'require("bluebird")',
-  'require(\'bluebird\')',
+  "require('bluebird')",
   'require("graceful-fs")',
-  'require(\'graceful-fs\')',
+  "require('graceful-fs')",
 ];
 
 let foundCount = 0;

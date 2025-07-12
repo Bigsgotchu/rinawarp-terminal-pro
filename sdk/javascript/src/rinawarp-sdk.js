@@ -300,34 +300,34 @@ class RinaWarpSDK {
 
   handleWebSocketMessage(message) {
     switch (message.type) {
-    case 'connected':
-      this.emit('connect', message);
-      break;
+      case 'connected':
+        this.emit('connect', message);
+        break;
 
-    case 'subscribed':
-      this.emit('subscribed', message.channel);
-      break;
+      case 'subscribed':
+        this.emit('subscribed', message.channel);
+        break;
 
-    case 'terminal_output':
-      const terminalCallback = this.subscriptions.get(`terminal:${message.terminalId}`);
-      if (terminalCallback) {
-        terminalCallback(message);
-      }
-      break;
+      case 'terminal_output':
+        const terminalCallback = this.subscriptions.get(`terminal:${message.terminalId}`);
+        if (terminalCallback) {
+          terminalCallback(message);
+        }
+        break;
 
-    case 'performance_alert':
-      const alertCallback = this.subscriptions.get('performance:alerts');
-      if (alertCallback) {
-        alertCallback(message);
-      }
-      break;
+      case 'performance_alert':
+        const alertCallback = this.subscriptions.get('performance:alerts');
+        if (alertCallback) {
+          alertCallback(message);
+        }
+        break;
 
-    case 'error':
-      this.emit('error', new Error(message.error));
-      break;
+      case 'error':
+        this.emit('error', new Error(message.error));
+        break;
 
-    default:
-      this.emit('message', message);
+      default:
+        this.emit('message', message);
     }
   }
 

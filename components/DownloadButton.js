@@ -32,7 +32,7 @@ export default function DownloadButton({ fileName = 'rinawarp.zip' }) {
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
       console.error('Download error:', err);
-      setMessage('🧜‍♀️ Uh-oh! Rina might\'ve misplaced the bundle in a whirlpool. Try again soon!');
+      setMessage("🧜‍♀️ Uh-oh! Rina might've misplaced the bundle in a whirlpool. Try again soon!");
 
       // Clear error message after 5 seconds
       setTimeout(() => setMessage(''), 5000);
