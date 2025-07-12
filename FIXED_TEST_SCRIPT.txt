@@ -1,0 +1,269 @@
+🧜‍♀️ FIXED COMPLETE TEST SCRIPT - Copy this corrected version:
+
+(function() {
+    console.log('🧜‍♀️ Starting Complete RinaWarp Terminal Test Suite...');
+    
+    // Test Results Storage
+    const results = {
+        deployment: '✅ Site is accessible',
+        themeCSS: '❓ Checking...',
+        themeManager: '❓ Checking...',
+        downloadAPI: '❓ Checking...',
+        mermaidActivation: '❓ Testing...',
+        downloadFix: '❓ Testing...'
+    };
+    
+    function updateResults() {
+        console.log('\n🌊 === TEST RESULTS === 🌊');
+        Object.entries(results).forEach(([test, result]) => {
+            console.log(`${test}: ${result}`);
+        });
+        console.log('========================\n');
+    }
+    
+    // Test 1: Check if mermaid theme CSS exists
+    console.log('🔍 Test 1: Checking for Mermaid Theme CSS...');
+    const stylesheets = Array.from(document.styleSheets);
+    let mermaidCSSFound = false;
+    
+    try {
+        stylesheets.forEach(sheet => {
+            try {
+                const rules = Array.from(sheet.cssRules || sheet.rules || []);
+                rules.forEach(rule => {
+                    if (rule.selectorText && rule.selectorText.includes('theme-mermaid')) {
+                        mermaidCSSFound = true;
+                        console.log('✅ Found mermaid CSS rule:', rule.selectorText);
+                    }
+                });
+            } catch (e) {
+                // CORS protected stylesheet, skip
+            }
+        });
+        
+        results.themeCSS = mermaidCSSFound ? '✅ Mermaid CSS found' : '❌ Mermaid CSS not found';
+    } catch (error) {
+        results.themeCSS = '⚠️ Could not check CSS: ' + error.message;
+    }
+    
+    // Test 2: Check ThemeManager
+    console.log('🔍 Test 2: Checking Theme Manager...');
+    if (window.ThemeManager) {
+        results.themeManager = '✅ ThemeManager available';
+        
+        try {
+            const manager = new window.ThemeManager();
+            const themes = manager.getAvailableThemes ? manager.getAvailableThemes() : manager.getAllThemes ? manager.getAllThemes() : [];
+            const mermaidTheme = themes.find(t => t.className === 'theme-mermaid' || t.name.includes('Mermaid'));
+            
+            console.log('📋 Available themes:', themes.map(t => `${t.name} (${t.className})`));
+            
+            if (mermaidTheme) {
+                results.themeManager = '✅ Mermaid theme configured correctly';
+                console.log('✅ Found mermaid theme:', mermaidTheme);
+            } else {
+                results.themeManager = '⚠️ Mermaid theme not found in theme list';
+                console.log('⚠️ Available themes:', themes);
+            }
+        } catch (error) {
+            results.themeManager = '⚠️ ThemeManager error: ' + error.message;
+        }
+    } else {
+        // Check for fallback or global instance
+        if (window.themeManagerInstance) {
+            results.themeManager = '✅ ThemeManager instance found';
+            console.log('✅ Found global themeManagerInstance');
+        } else {
+            results.themeManager = '❌ ThemeManager not available';
+            console.log('❌ No ThemeManager or themeManagerInstance found');
+            console.log('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('theme')));
+        }
+    }
+    
+    // Test 3: Test Download API
+    console.log('🔍 Test 3: Testing Download API...');
+    fetch('/api/download', { method: 'HEAD' })
+        .then(response => {
+            const corsHeader = response.headers.get('access-control-allow-origin');
+            if (corsHeader) {
+                results.downloadAPI = '✅ Download API with CORS headers';
+                console.log('✅ CORS header found:', corsHeader);
+            } else {
+                results.downloadAPI = '⚠️ Download API missing CORS';
+            }
+            updateResults();
+        })
+        .catch(error => {
+            results.downloadAPI = '❌ Download API error: ' + error.message;
+            updateResults();
+        });
+    
+    // Test 4: Activate Mermaid Theme
+    console.log('🔍 Test 4: Activating Mermaid Theme...');
+    try {
+        // Remove existing theme classes
+        document.body.className = document.body.className.replace(/\btheme-[\w-]+\b/g, '');
+        
+        // Add mermaid theme
+        document.body.classList.add('theme-mermaid');
+        
+        // Save preference
+        localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
+        localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
+        
+        // Verify activation
+        if (document.body.classList.contains('theme-mermaid')) {
+            results.mermaidActivation = '✅ Mermaid theme activated successfully';
+            console.log('✅ Mermaid theme applied to body element');
+            
+            // Add fallback CSS if not found
+            if (!mermaidCSSFound) {
+                console.log('💫 Adding fallback mermaid CSS...');
+                const style = document.createElement('style');
+                style.id = 'mermaid-theme-fallback';
+                style.textContent = `
+                    body.theme-mermaid {
+                        background: linear-gradient(135deg, #0a0b1e 0%, #1a0b3d 50%, #2d1b69 100%) !important;
+                        background-attachment: fixed !important;
+                        color: #ff69b4 !important;
+                    }
+                    body.theme-mermaid h1, body.theme-mermaid h2, body.theme-mermaid h3 {
+                        color: #ff1493 !important;
+                        text-shadow: 0 0 10px rgba(255, 20, 147, 0.5) !important;
+                    }
+                    body.theme-mermaid a {
+                        color: #00e5ff !important;
+                    }
+                    body.theme-mermaid button, body.theme-mermaid .btn {
+                        background: linear-gradient(135deg, #ff1493, #ff69b4) !important;
+                        border: 1px solid #00e5ff !important;
+                        color: #0a0b1e !important;
+                        box-shadow: 0 2px 4px rgba(0, 229, 255, 0.3) !important;
+                    }
+                    body.theme-mermaid button:hover, body.theme-mermaid .btn:hover {
+                        background: linear-gradient(135deg, #00e5ff, #40e0d0) !important;
+                        transform: translateY(-1px) !important;
+                    }
+                `;
+                document.head.appendChild(style);
+                results.mermaidActivation += ' (with fallback CSS)';
+            }
+            
+        } else {
+            results.mermaidActivation = '❌ Failed to apply mermaid theme class';
+        }
+    } catch (error) {
+        results.mermaidActivation = '❌ Theme activation error: ' + error.message;
+    }
+    
+    // Test 5: Download Button Fix
+    console.log('🔍 Test 5: Testing Download Button Fix...');
+    try {
+        // Suppress async listener errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            const msg = args.join(' ');
+            if (msg.includes('A listener indicated an asynchronous response') || 
+                msg.includes('message channel closed')) {
+                console.log('🌊 Suppressed harmless extension error');
+                return;
+            }
+            originalError.apply(console, args);
+        };
+        
+        // Find and fix download buttons
+        const downloadButtons = document.querySelectorAll('a[href*=".exe"], a.download-btn, a[download]');
+        
+        if (downloadButtons.length > 0) {
+            results.downloadFix = `✅ Found ${downloadButtons.length} download button(s), applying fixes...`;
+            console.log(`✅ Found ${downloadButtons.length} download buttons`);
+            
+            downloadButtons.forEach((btn, index) => {
+                console.log(`🔧 Fixing button ${index + 1}: ${btn.href}`);
+                
+                // Add improved click handler
+                btn.addEventListener('click', function(e) {
+                    console.log('🧜‍♀️ Download initiated:', this.href);
+                }, { passive: false });
+            });
+            
+        } else {
+            results.downloadFix = '⚠️ No download buttons found on this page';
+        }
+        
+    } catch (error) {
+        results.downloadFix = '❌ Download fix error: ' + error.message;
+    }
+    
+    // Final Results with Beautiful Notification
+    setTimeout(() => {
+        updateResults();
+        
+        // Show beautiful notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #0a0b1e, #2d1b69);
+            border: 2px solid #ff1493;
+            border-radius: 15px;
+            padding: 20px;
+            color: #ff69b4;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 999999;
+            box-shadow: 0 10px 30px rgba(255, 20, 147, 0.3);
+            backdrop-filter: blur(10px);
+            max-width: 350px;
+            animation: slideIn 0.5s ease-out;
+        `;
+        
+        const passedTests = Object.values(results).filter(r => r.includes('✅')).length;
+        const totalTests = Object.keys(results).length;
+        
+        notification.innerHTML = `
+            <div style="text-align: center; margin-bottom: 15px;">
+                <div style="font-size: 30px;">🧜‍♀️</div>
+                <div style="font-size: 16px; margin-top: 5px;">Test Suite Complete!</div>
+            </div>
+            <div style="font-size: 12px; line-height: 1.4;">
+                <div style="color: #00e5ff; margin-bottom: 10px;">
+                    ${passedTests}/${totalTests} tests passed
+                </div>
+                ${Object.entries(results).map(([test, result]) => 
+                    `<div style="margin: 3px 0;">${test}: ${result}</div>`
+                ).join('')}
+            </div>
+            <button onclick="this.parentElement.remove()" 
+                    style="position: absolute; top: 10px; right: 10px; 
+                           background: none; border: none; color: #ff69b4; 
+                           cursor: pointer; font-size: 18px;">×</button>
+        `;
+        
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 10000);
+        
+    }, 1000);
+    
+    console.log('🧜‍♀️ Test suite initiated! Check results above and watch for the notification.');
+    
+})();

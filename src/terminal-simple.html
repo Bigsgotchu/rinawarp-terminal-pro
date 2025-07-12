@@ -608,6 +608,9 @@
         </div>
     </div>
 
+    <!-- Global ThemeManager Initialization -->
+    <script src="../public/global-theme-manager-init.js"></script>
+    
     <script>
         const { ipcRenderer } = require('electron');
         
@@ -640,7 +643,8 @@
                 
                 // Initialize components
                 terminalManager = new SimpleTerminalManager();
-                themeManager = new ThemeManager();
+       themeManager = new ThemeManager();
+       window.ThemeManager = ThemeManager;
                 
                 // Create terminal
                 const terminal = terminalManager.createTerminal(1);
