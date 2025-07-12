@@ -1,11 +1,6 @@
-import path from 'path';
-import fs from 'fs';
-import { promisify } from 'util';
-
-const stat = promisify(fs.stat);
-
-export default async function handler(req, res) {
-  console.log('🧜‍♀️ Download request received');
+// Next.js API route handler
+export default function handler(req, res) {
+  console.log('🧜‍♀️ Download request received:', req.query);
   
   // Set CORS headers to prevent cross-origin issues
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,64 +13,29 @@ export default async function handler(req, res) {
     return;
   }
   
-  // Determine which file to serve based on query parameter
-  let file;
-  const fileType = req.query.file;
+  // Determine which file to redirect to based on query parameter
+  let filename;
+  const fileType = req.query.file || req.query.platform;
   
   switch (fileType) {
     case 'portable':
-      file = 'RinaWarp-Terminal-Portable-Windows.exe';
+      filename = 'RinaWarp-Terminal-Portable-Windows.exe';
       break;
     case 'linux':
-      file = 'RinaWarp-Terminal-Linux.tar.gz';
+      filename = 'RinaWarp-Terminal-Linux.tar.gz';
       break;
     case 'macos':
-      file = 'RinaWarp-Terminal-macOS.dmg';
+      filename = 'RinaWarp-Terminal-macOS.dmg';
       break;
+    case 'windows':
     default:
-      file = 'RinaWarp-Terminal-Setup-Windows.exe';
+      filename = 'RinaWarp-Terminal-Setup-Windows.exe';
+      break;
   }
   
-  const filePath = path.resolve('./public/releases', file);
-
-  try {
-    const fileStat = await stat(filePath);
-    
-    console.log(`🧜‍♀️ File found: ${file} (${fileStat.size} bytes)`);
-    
-    // Set proper headers for file download
-    res.setHeader('Content-Disposition', `attachment; filename="${file}"`);
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Length', fileStat.size);
-    res.setHeader('Cache-Control', 'no-cache');
-    
-    // Create read stream and handle errors properly
-    const stream = fs.createReadStream(filePath);
-    
-    stream.on('error', (streamErr) => {
-      console.error('🧜‍♀️ Stream error:', streamErr);
-      if (!res.headersSent) {
-        res.status(500).json({
-          error: 'Stream error',
-          message: 'The mermaid magic failed during transfer. Please try again!',
-        });
-      }
-    });
-    
-    stream.on('end', () => {
-      console.log('🧜‍♀️ Download completed successfully');
-    });
-    
-    // Pipe the file to response
-    stream.pipe(res);
-    
-  } catch (err) {
-    console.error('🧜‍♀️ File not found:', err);
-    if (!res.headersSent) {
-      res.status(404).json({
-        error: 'File not found',
-        message: 'Rina might\'ve dropped it in a whirlpool. Try again later!',
-      });
-    }
-  }
+  // Redirect to the static file in the public folder
+  const fileUrl = `/releases/${filename}`;
+  console.log(`🧜‍♀️ Redirecting to: ${fileUrl}`);
+  
+  res.redirect(302, fileUrl);
 }
