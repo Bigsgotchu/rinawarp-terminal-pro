@@ -42,7 +42,15 @@ const commands = [
             option.setName('feedback')
                 .setDescription('Your feedback')
                 .setRequired(true)
-        )
+        ),
+    
+    new SlashCommandBuilder()
+        .setName('invite')
+        .setDescription('Get a server invite link to share with friends'),
+    
+    new SlashCommandBuilder()
+        .setName('promote')
+        .setDescription('Get promotion materials for RinaWarp Terminal (Admin only)')
 ];
 
 // Register slash commands
@@ -150,12 +158,73 @@ client.on('interactionCreate', async interaction => {
                 await interaction.reply({ content: '✅ Thank you for your feedback!', ephemeral: true });
                 break;
 
+            case 'invite':
+                // Create an invite link for the server
+                const channel = interaction.guild.channels.cache.find(ch => ch.type === 0); // Find first text channel
+                
+                if (!channel) {
+                    await interaction.reply({ content: '❌ Unable to find a text channel to create invite from.', ephemeral: true });
+                    break;
+                }
+                
+                const invite = await channel.createInvite({
+                    maxAge: 0, // Never expires
+                    maxUses: 0, // Unlimited uses
+                    unique: false
+                });
+                
+                const inviteEmbed = new EmbedBuilder()
+                    .setColor('#667eea')
+                    .setTitle('🧜‍♀️ Invite Friends to RinaWarp Terminal!')
+                    .setDescription('Share this link to invite friends to our underwater coding community!')
+                    .addFields(
+                        { name: '🔗 Server Invite', value: `https://discord.gg/${invite.code}`, inline: false },
+                        { name: '🌊 What They\'ll Get', value: '• Access to RinaWarp Terminal beta\n• AI coding assistance community\n• Beautiful oceanic themes\n• Developer support' },
+                        { name: '📱 How to Share', value: 'Copy the invite link above and share it with friends, on social media, or in other communities!' }
+                    )
+                    .setFooter({ text: 'Help us grow our underwater coding community!' })
+                    .setTimestamp();
+                
+                await interaction.reply({ embeds: [inviteEmbed] });
+                break;
+
+            case 'promote':
+                // Check if user has admin permissions
+                if (!interaction.member.permissions.has('ADMINISTRATOR')) {
+                    await interaction.reply({ content: '❌ You need admin permissions to use this command!', ephemeral: true });
+                    return;
+                }
+                
+                const promoteEmbed = new EmbedBuilder()
+                    .setColor('#4ecdc4')
+                    .setTitle('🚀 RinaWarp Terminal Promotion Kit')
+                    .setDescription('Ready-to-use promotion materials for RinaWarp Terminal!')
+                    .addFields(
+                        { name: '📱 Social Media Copy', value: '"🧜‍♀️ Join the underwater coding revolution! RinaWarp Terminal - the world\'s first mermaid-themed AI terminal with intelligent coding assistance. Beta now available! #RinaWarp #AI #Terminal"' },
+                        { name: '🌊 Discord Message', value: 'Hey everyone! 🧜‍♀️ Check out RinaWarp Terminal - a magical AI terminal with oceanic themes and intelligent coding assistance. Free beta access available now!' },
+                        { name: '🔗 Links to Share', value: '• Beta Page: https://rinawarp-terminal.vercel.app/beta\n• Discord Server: Use `/invite` command\n• GitHub: https://github.com/Bigsgotchu/rinawarp-terminal' },
+                        { name: '🎯 Target Audience', value: '• Developers & Programmers\n• Terminal enthusiasts\n• AI/ML community\n• Open source contributors\n• Tech students & educators' }
+                    )
+                    .setFooter({ text: 'RinaWarp Terminal - Dive into the future of coding!' })
+                    .setTimestamp();
+                
+                await interaction.reply({ embeds: [promoteEmbed], ephemeral: true });
+                break;
+
             default:
                 await interaction.reply({ content: '❓ Unknown command!', ephemeral: true });
         }
     } catch (error) {
         console.error('Error handling command:', error);
-        await interaction.reply({ content: '❌ An error occurred while processing your command.', ephemeral: true });
+        
+        // Check if interaction has already been replied to
+        if (!interaction.replied && !interaction.deferred) {
+            try {
+                await interaction.reply({ content: '❌ An error occurred while processing your command.', ephemeral: true });
+            } catch (replyError) {
+                console.error('Error sending error reply:', replyError);
+            }
+        }
     }
 });
 

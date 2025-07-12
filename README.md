@@ -8,6 +8,8 @@
 
 ⏰ **Latest Test**: Pipeline test at 2025-07-12 12:31 UTC
 
+🎯 **Project Started**: June 28, 2025 - Initial stable release with full feature set
+
 ### 🚀 The Next-Generation AI-Powered Terminal Emulator
 
 [![License](https://img.shields.io/badge/license-Commercial-blue.svg)](#license)
@@ -329,8 +331,8 @@ Proprietary Software - Copyright (c) 2025 RinaWarp Technologies. All rights rese
 
 📄 **[View Complete Licensing Information](PROPRIETARY_NOTICE.md)** - Detailed licensing terms and commercial options
 
-For licensing information and pricing, visit: https://rinawarp-terminal-fresh-2024.web.app/pricing  
-For enterprise inquiries, contact: sales@rinawarp-terminal-fresh-2024.web.app
+For licensing information and pricing, visit: https://rinawarp-terminal.vercel.app/pricing  
+For enterprise inquiries, contact: rinawarptechnologies25@gmail.com
 
 ## Advanced Usage
 
@@ -445,9 +447,9 @@ If you encounter any issues, please create an issue on GitHub.
 
 ### Contact for Access
 
-1. **Business inquiries**: sales@rinawarp-terminal-fresh-2024.web.app
-2. **Partnership opportunities**: partnerships@rinawarp-terminal-fresh-2024.web.app
-3. **Development licensing**: licensing@rinawarp-terminal-fresh-2024.web.app
+1. **Business inquiries**: rinawarptechnologies25@gmail.com
+2. **Partnership opportunities**: rinawarptechnologies25@gmail.com
+3. **Development licensing**: rinawarptechnologies25@gmail.com
 
 ### Development Workflow
 
@@ -571,7 +573,7 @@ class MyPlugin {
 
 **For licensed customers only:**
 
-When reporting issues, contact support@rinawarp-terminal-fresh-2024.web.app with:
+When reporting issues, contact rinawarptechnologies25@gmail.com with:
 - **License information**: Your license key and tier
 - **Environment details**: OS version, application version
 - **Issue description**: Clear steps to reproduce
@@ -581,7 +583,7 @@ When reporting issues, contact support@rinawarp-terminal-fresh-2024.web.app with
 ### Feature Requests
 
 **Enterprise and Team license customers** can submit feature requests:
-- **Contact**: enterprise@rinawarp-terminal-fresh-2024.web.app
+- **Contact**: rinawarptechnologies25@gmail.com
 - **Include**: Business justification and use case
 - **Priority**: Based on license tier and business impact
 
@@ -702,7 +704,7 @@ APPLE_ID=your_apple_id
 
 #### Official Channels
 - **GitHub Releases**: Primary distribution
-- **Website**: https://rinawarp-terminal-fresh-2024.web.app
+- **Website**: https://rinawarp-terminal.vercel.app
 - **NPM**: Package management integration
 
 #### Package Managers (Planned)
@@ -898,7 +900,7 @@ npm run security:outdated   # Outdated package check
 
 To report security vulnerabilities:
 1. **Do NOT** create a public issue
-2. Email: security@rinawarp-terminal-fresh-2024.web.app
+2. Email: rinawarptechnologies25@gmail.com
 3. Include detailed reproduction steps
 4. We'll respond within 24 hours
 
@@ -916,7 +918,7 @@ Security updates are prioritized and released immediately:
 - **Documentation**: [Complete Guides](docs/)
 - **GitHub Issues**: [Report bugs or request features](https://github.com/Bigsgotchu/rinawarp-terminal/issues)
 - **Discussions**: [Community discussions](https://github.com/Bigsgotchu/rinawarp-terminal/discussions)
-- **Email Support**: support@rinawarp-terminal-fresh-2024.web.app
+- **Email Support**: rinawarptechnologies25@gmail.com
 
 ### Commercial Support
 
@@ -926,11 +928,11 @@ For enterprise customers:
 - **Training**: Team training and onboarding
 - **Consulting**: Architecture and implementation guidance
 
-Contact: enterprise@rinawarp-terminal-fresh-2024.web.app
+Contact: rinawarptechnologies25@gmail.com
 
 ---
 
-**Built with ❤️ by [RinaWarp Technologies](https://rinawarp-terminal-fresh-2024.web.app)**
+**Built with ❤️ by [RinaWarp Technologies](https://rinawarp-terminal.vercel.app)**
 *Empowering developers with next-generation terminal experiences*
 
 \\
