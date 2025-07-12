@@ -160,7 +160,7 @@ class ThemeManager {
         name: '🧜‍♀️ Mermaid Depths',
         description: 'Mystical underwater theme with hot pinks and teal blues',
         category: 'Nature',
-        className: 'theme-mermaid-depths',
+        className: 'theme-mermaid',
       },
     ];
 
