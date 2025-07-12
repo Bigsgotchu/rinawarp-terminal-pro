@@ -205,7 +205,7 @@ const schema = buildSchema(`
 // Root resolver with comprehensive implementations
 const root = {
   // Queries
-  terminal: async ({ id }, context) => {
+  terminal: async ({ id }, _context) => {
     // Placeholder implementation - would connect to terminal service
     return {
       id,
@@ -213,13 +213,13 @@ const root = {
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
-      userId: context.user?.id || '1',
-      organizationId: context.user?.organizationId,
+      userId: _context.user?.id || '1',
+      organizationId: _context.user?.organizationId,
       activeSessions: [],
     };
   },
 
-  terminals: async (args, context) => {
+  terminals: async (_args, _context) => {
     // Return user's terminals
     return [
       {
@@ -228,14 +228,14 @@ const root = {
         status: 'ACTIVE',
         createdAt: new Date().toISOString(),
         lastActivity: new Date().toISOString(),
-        userId: context.user?.id || '1',
-        organizationId: context.user?.organizationId,
+        userId: _context.user?.id || '1',
+        organizationId: _context.user?.organizationId,
         activeSessions: [],
       },
     ];
   },
 
-  performanceMetrics: async ({ terminalId, timeRange }, context) => {
+  performanceMetrics: async ({ _terminalId, _timeRange }, _context) => {
     // Fetch performance data from analytics service
     return {
       averageExecutionTime: 0.5,
@@ -254,12 +254,12 @@ const root = {
     };
   },
 
-  commandHistory: async ({ terminalId, limit }, context) => {
+  commandHistory: async ({ _terminalId, _limit }, _context) => {
     // Fetch command history
     return [];
   },
 
-  user: async ({ id }, context) => {
+  user: async ({ id }, _context) => {
     return {
       id,
       email: 'user@example.com',
@@ -271,7 +271,7 @@ const root = {
     };
   },
 
-  organization: async ({ id }, context) => {
+  organization: async ({ id }, _context) => {
     return {
       id,
       name: 'Example Corp',
@@ -282,7 +282,7 @@ const root = {
   },
 
   // Mutations
-  createTerminal: async ({ input }, context) => {
+  createTerminal: async ({ input }, _context) => {
     const terminalId = Math.random().toString(36).substr(2, 9);
     return {
       id: terminalId,
@@ -290,13 +290,13 @@ const root = {
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
-      userId: context.user?.id || '1',
-      organizationId: input.organizationId || context.user?.organizationId,
+      userId: _context.user?.id || '1',
+      organizationId: input.organizationId || _context.user?.organizationId,
       activeSessions: [],
     };
   },
 
-  executeCommand: async ({ terminalId, command }, context) => {
+  executeCommand: async ({ _terminalId, command }, _context) => {
     const startTime = Date.now();
 
     // Execute command through terminal service
@@ -312,7 +312,7 @@ const root = {
     };
   },
 
-  startSession: async ({ terminalId }, context) => {
+  startSession: async ({ terminalId }, _context) => {
     return {
       id: Math.random().toString(36).substr(2, 9),
       terminalId,
@@ -323,7 +323,7 @@ const root = {
     };
   },
 
-  endSession: async ({ sessionId }, context) => {
+  endSession: async ({ _sessionId }, _context) => {
     // End session logic
     return true;
   },
