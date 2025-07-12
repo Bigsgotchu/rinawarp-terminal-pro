@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { RinaWarpSDK } from '@rinawarp/terminal-sdk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LineChart } from 'react-native-chart-kit';
 
 const API_KEY_STORAGE = '@rinawarp_api_key';
 const API_URL = 'https://api.rinawarp.com';
