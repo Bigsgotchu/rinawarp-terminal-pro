@@ -13,7 +13,7 @@ on:
       - main
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -37,7 +37,7 @@ jobs:
         run: npm ci
         
       - name: 🏗️ Build Application
-        run: npm run build
+        run: npm run build:web
         
       - name: 🧪 Run Tests
         run: npm test
@@ -80,7 +80,7 @@ jobs:
         run: npm ci
         
       - name: 🏗️ Build for Preview
-        run: npm run build
+        run: npm run build:web
         env:
           NEXT_PUBLIC_ENV: preview
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -154,7 +154,7 @@ jobs:
         run: npm ci
         
       - name: 🏗️ Build for Production
-        run: npm run build
+        run: npm run build:web
         env:
           NEXT_PUBLIC_ENV: production
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
