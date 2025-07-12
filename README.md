@@ -2,7 +2,9 @@
 
 ![RinaWarp Terminal Logo](./assets/png/logo-mermaid.png)
 
-# RinaWarp Terminal
+# RinaWarp Terminal Fresh
+
+🚀 **CI/CD Pipeline Test** - Testing automatic deployments!
 
 ### 🚀 The Next-Generation AI-Powered Terminal Emulator
 
