@@ -1,0 +1,336 @@
+name: 🚀 Release & Distribution
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+      dry_run:
+        description: 'Dry run (skip publishing)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: 20
+  ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+  ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
+
+jobs:
+  prepare-release:
+    name: 📋 Prepare Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+      release_notes: ${{ steps.changelog.outputs.release_notes }}
+    
+    steps:
+      - name: 📂 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🔍 Run Quality Checks
+        run: |
+          npm run qa:fix
+          npm run security:check
+
+      - name: 📊 Generate Version
+        id: version
+        run: |
+          if [ "${{ inputs.dry_run }}" == "true" ]; then
+            echo "🔍 Dry run - showing what would be released..."
+            npm run release:dry-run
+            NEW_VERSION=$(npm run release:dry-run 2>/dev/null | grep "tagging release" | sed 's/.*v\([0-9.]*\).*/\1/')
+          else
+            echo "🚀 Creating release ${{ inputs.release_type }}..."
+            npm run release:${{ inputs.release_type }}
+            NEW_VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "📋 New version: $NEW_VERSION"
+
+      - name: 📝 Extract Release Notes
+        id: changelog
+        run: |
+          # Extract the latest release notes from CHANGELOG.md
+          RELEASE_NOTES=$(sed -n '/^## \[/,/^## \[/p' CHANGELOG.md | head -n -1 | tail -n +2)
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🏷️ Push Tags (if not dry run)
+        if: inputs.dry_run != true
+        run: |
+          git push --follow-tags origin main
+
+  test-matrix:
+    name: 🧪 Test Matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [20, 22]
+        exclude:
+          # Only test LTS Node versions on non-Linux
+          - os: windows-latest
+            node-version: 22
+          - os: macos-latest
+            node-version: 22
+    
+    steps:
+      - name: 📂 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🧪 Run Tests
+        run: npm test -- --passWithNoTests
+
+      - name: 🏗️ Test Build
+        run: npm run build:web
+
+  build-electron:
+    name: 🔨 Build Electron Apps
+    needs: test-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            arch: x64
+            artifact: 'RinaWarp-Terminal-*.exe'
+          - os: macos-latest
+            platform: mac
+            arch: universal
+            artifact: 'RinaWarp-Terminal-*.dmg'
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            artifact: 'RinaWarp-Terminal-*.AppImage'
+    
+    steps:
+      - name: 📂 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 💾 Cache Electron
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.ELECTRON_CACHE }}
+          key: electron-cache-${{ matrix.platform }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            electron-cache-${{ matrix.platform }}-
+
+      - name: 💾 Cache Electron Builder
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.ELECTRON_BUILDER_CACHE }}
+          key: electron-builder-cache-${{ matrix.platform }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            electron-builder-cache-${{ matrix.platform }}-
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🔐 Setup Code Signing (Windows)
+        if: matrix.platform == 'win' && github.event_name == 'push'
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          if [ -n "$CSC_LINK" ]; then
+            echo "Code signing certificate configured"
+          else
+            echo "⚠️ No code signing certificate - builds will be unsigned"
+          fi
+
+      - name: 🔐 Setup Code Signing (macOS)
+        if: matrix.platform == 'mac' && github.event_name == 'push'
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASS: ${{ secrets.APPLE_ID_PASS }}
+        run: |
+          if [ -n "$CSC_LINK" ]; then
+            echo "Code signing certificate configured"
+          else
+            echo "⚠️ No code signing certificate - builds will be unsigned"
+          fi
+
+      - name: 🏗️ Build Electron App
+        run: |
+          case "${{ matrix.platform }}" in
+            win) npm run build:win ;;
+            mac) npm run build:mac ;;
+            linux) npm run build:linux ;;
+          esac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}-build
+          path: |
+            dist/${{ matrix.artifact }}
+            dist/latest*.yml
+          retention-days: 30
+
+  create-release:
+    name: 🎉 Create GitHub Release
+    needs: [build-electron]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: 📂 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: 📝 Extract Version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 📝 Extract Release Notes
+        id: changelog
+        run: |
+          # Extract release notes for this version from CHANGELOG.md
+          VERSION_SECTION=$(sed -n '/^## \[${{ steps.version.outputs.version }}\]/,/^## \[/p' CHANGELOG.md | head -n -1)
+          if [ -z "$VERSION_SECTION" ]; then
+            # Fallback: extract latest section
+            VERSION_SECTION=$(sed -n '/^## \[/,/^## \[/p' CHANGELOG.md | head -n -1)
+          fi
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$VERSION_SECTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🎉 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "RinaWarp Terminal ${{ steps.version.outputs.version }}"
+          body: |
+            ## 🌊 RinaWarp Terminal ${{ steps.version.outputs.version }}
+            
+            ${{ steps.changelog.outputs.release_notes }}
+            
+            ### 📦 Installation
+            
+            - **Windows**: Download `RinaWarp-Terminal-Setup-${{ steps.version.outputs.version }}.exe`
+            - **macOS**: Download `RinaWarp-Terminal-${{ steps.version.outputs.version }}.dmg`
+            - **Linux**: Download `RinaWarp-Terminal-${{ steps.version.outputs.version }}.AppImage`
+            
+            ### 🔄 Auto-Update
+            
+            Existing installations will automatically update to this version.
+            
+            ### 🐛 Issues
+            
+            Report issues at: https://github.com/Bigsgotchu/rinawarp-terminal/issues
+          files: |
+            artifacts/**/*
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-web:
+    name: 🌐 Deploy Web Versions
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: 📂 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🏗️ Build Web Version
+        run: npm run build:web
+
+      - name: 🔥 Deploy to Firebase
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          npm install -g firebase-tools
+          firebase deploy --only hosting --token=$FIREBASE_TOKEN
+
+      - name: 🌊 Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npm install -g vercel
+          vercel --prod --token=$VERCEL_TOKEN --confirm
+
+  notify-release:
+    name: 📢 Notify Release
+    needs: [create-release, deploy-web]
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: 📊 Release Summary
+        run: |
+          echo "## 🎉 Release Summary"
+          echo "- GitHub Release: ${{ needs.create-release.result }}"
+          echo "- Web Deploy: ${{ needs.deploy-web.result }}"
+          
+          if [ "${{ needs.create-release.result }}" == "success" ] && [ "${{ needs.deploy-web.result }}" == "success" ]; then
+            echo "🎊 Release ${{ github.ref_name }} deployed successfully!"
+          else
+            echo "⚠️ Some deployment steps failed - check logs"
+          fi

@@ -5,6 +5,47 @@ All notable changes to RinaWarp Terminal will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2025-07-12
+
+### Added
+- 🚀 Enhanced GitHub Actions release workflow with automated builds
+- 🔨 Multi-platform Electron builds (Windows, macOS, Linux)
+- 🌐 Automated web deployment to Firebase and Vercel
+- 📦 Build artifact caching and optimization
+- 🎯 Custom 404 error page with analytics tracking
+- 🔗 Functional download API endpoint at `/api/download.js`
+- 🧪 Comprehensive test matrix across OS and Node.js versions
+- 📊 Release workflow with automatic changelog generation
+- 🎨 Mermaid theme support and enhanced UI components
+
+### Changed
+- 🔧 Migrated from deprecated `.eslintignore` to `eslint.config.js`
+- ⚡ Improved CI/CD pipeline with modular job architecture
+- 🌊 Enhanced Vercel deployment configuration
+- 📱 Cleaned up React components for better maintainability
+- 🔄 Updated build system to support both web and Electron targets
+
+### Fixed
+- 🐛 Resolved 404 errors in production deployment
+- 🔗 Fixed download links and API routes
+- 🚨 Addressed ESLint warnings and code quality issues
+- 📦 Corrected Vercel API compatibility issues
+- 🎯 Fixed Firebase deployment configuration
+- 🔧 Resolved build script dependencies and missing files
+
+### Technical
+- 🏗️ Complete CI/CD pipeline redesign with staged jobs
+- 🔒 Enhanced security scanning with CodeQL integration
+- 📈 Improved build performance with intelligent caching
+- 🧹 Code cleanup and dependency optimization
+- 🔐 Secrets management for automated deployments
+
+### Infrastructure
+- 🌊 Production-ready Vercel API routes
+- 🔥 Firebase hosting with custom domain support
+- 📊 Analytics integration across all deployment targets
+- 🛡️ Enhanced security scanning and dependency audits
+
 ## [1.0.7] - 2025-07-04
 
 ### Added
