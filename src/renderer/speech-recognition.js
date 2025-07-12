@@ -685,27 +685,27 @@ export class SpeechRecognitionEngine {
     const text = this.speechIndicator.querySelector('.speech-text');
 
     switch (state) {
-    case 'listening':
-      icon.textContent = '🔴';
-      text.textContent = 'Listening...';
-      this.speechIndicator.className = 'speech-indicator listening';
-      break;
-    case 'speaking':
-      icon.textContent = '🗣️';
-      text.textContent = 'Speaking detected';
-      this.speechIndicator.className = 'speech-indicator speaking';
-      break;
-    case 'processing':
-      icon.textContent = '🤖';
-      text.textContent = 'Processing...';
-      this.speechIndicator.className = 'speech-indicator processing';
-      break;
-    case 'idle':
-    default:
-      icon.textContent = '🎤';
-      text.textContent = 'Speech Recognition';
-      this.speechIndicator.className = 'speech-indicator idle';
-      break;
+      case 'listening':
+        icon.textContent = '🔴';
+        text.textContent = 'Listening...';
+        this.speechIndicator.className = 'speech-indicator listening';
+        break;
+      case 'speaking':
+        icon.textContent = '🗣️';
+        text.textContent = 'Speaking detected';
+        this.speechIndicator.className = 'speech-indicator speaking';
+        break;
+      case 'processing':
+        icon.textContent = '🤖';
+        text.textContent = 'Processing...';
+        this.speechIndicator.className = 'speech-indicator processing';
+        break;
+      case 'idle':
+      default:
+        icon.textContent = '🎤';
+        text.textContent = 'Speech Recognition';
+        this.speechIndicator.className = 'speech-indicator idle';
+        break;
     }
 
     // Update confidence indicator

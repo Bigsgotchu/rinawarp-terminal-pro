@@ -13,12 +13,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    to bottom,
-    #4facfe 0%,
-    #00f2fe 50%,
-    #4ecdc4 100%
-  );
+  background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 50%, #4ecdc4 100%);
 }
 
 .ocean::before {
@@ -28,7 +23,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 40% 80%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
@@ -36,8 +31,13 @@
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .content {
@@ -61,8 +61,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 .title {
@@ -82,8 +87,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .subtitle {
@@ -264,8 +274,14 @@
 }
 
 @keyframes splash-appear {
-  from { opacity: 0; transform: translateY(50px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .wave {
@@ -274,13 +290,24 @@
   animation: wave-bounce 2s ease-in-out infinite;
 }
 
-.wave:nth-child(1) { animation-delay: 0s; }
-.wave:nth-child(2) { animation-delay: 0.3s; }
-.wave:nth-child(3) { animation-delay: 0.6s; }
+.wave:nth-child(1) {
+  animation-delay: 0s;
+}
+.wave:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.wave:nth-child(3) {
+  animation-delay: 0.6s;
+}
 
 @keyframes wave-bounce {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 .footer {
@@ -313,26 +340,26 @@
     margin: 1rem;
     padding: 1.5rem;
   }
-  
+
   .code {
     font-size: 4rem;
   }
-  
+
   .subtitle {
     font-size: 1.4rem;
   }
-  
+
   .actions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .homeButton,
   .downloadButton {
     width: 100%;
     max-width: 250px;
   }
-  
+
   .suggestions {
     text-align: center;
   }

@@ -1,10 +1,10 @@
 /**
  * Advanced Voice Recognition System for RinaWarp Terminal
  * Supports multiple speech recognition providers with automatic fallbacks
- * 
+ *
  * Provider Priority:
  * 1. Vosk (Offline) - Most reliable for Electron
- * 2. Web Speech API - Fallback for browsers 
+ * 2. Web Speech API - Fallback for browsers
  * 3. Keyboard Mode - Always available
  */
 
@@ -17,20 +17,20 @@ class AdvancedVoiceRecognition {
     this.isInitialized = false;
     this.confidence = 0;
     this.lastCommand = '';
-        
+
     // Event handlers
     this.onCommand = null;
     this.onStatusChange = null;
-        
+
     // Voice configuration
     this.wakeWords = ['hey rina', 'hello rina', 'rina'];
     this.stopWords = ['stop listening', 'stop voice', 'stop rina'];
-        
+
     // Provider instances
     this.voskProvider = null;
     this.webSpeechProvider = null;
     this.keyboardProvider = null;
-        
+
     // Error tracking
     this.errorCount = 0;
     this.maxErrors = 2;
@@ -38,12 +38,12 @@ class AdvancedVoiceRecognition {
 
   async init() {
     console.log('🎤 Initializing Advanced Voice Recognition...');
-        
+
     // Try providers in order of reliability
     const providers = [
       { name: 'vosk', init: () => this.initVosk() },
       { name: 'webspeech', init: () => this.initWebSpeech() },
-      { name: 'keyboard', init: () => this.initKeyboard() }
+      { name: 'keyboard', init: () => this.initKeyboard() },
     ];
 
     for (const providerConfig of providers) {
@@ -73,7 +73,7 @@ class AdvancedVoiceRecognition {
       }
 
       console.log('🎤 Initializing Vosk offline speech recognition...');
-            
+
       this.voskProvider = new VoskProvider();
       this.voskProvider.onCommand = (command, confidence) => {
         this.handleCommand(command, confidence);
@@ -81,7 +81,7 @@ class AdvancedVoiceRecognition {
       this.voskProvider.onStatusChange = (status, error) => {
         this.handleProviderStatus(status, error);
       };
-      this.voskProvider.onError = (error) => {
+      this.voskProvider.onError = error => {
         this.handleProviderError(error);
       };
 
@@ -106,7 +106,7 @@ class AdvancedVoiceRecognition {
       this.webSpeechProvider.onStatusChange = (status, error) => {
         this.handleProviderStatus(status, error);
       };
-      this.webSpeechProvider.onError = (error) => {
+      this.webSpeechProvider.onError = error => {
         this.handleProviderError(error);
       };
 
@@ -140,7 +140,7 @@ class AdvancedVoiceRecognition {
     console.log(`Voice command received: "${command}" (confidence: ${confidence})`);
     this.lastCommand = command;
     this.confidence = confidence;
-        
+
     if (this.onCommand) {
       this.onCommand(command, confidence);
     }
@@ -155,7 +155,7 @@ class AdvancedVoiceRecognition {
   handleProviderError(error) {
     this.errorCount++;
     console.error(`Provider error (${this.errorCount}/${this.maxErrors}):`, error);
-        
+
     if (this.errorCount >= this.maxErrors) {
       console.log('Too many errors, attempting to switch provider...');
       this.switchToNextProvider();
@@ -167,40 +167,40 @@ class AdvancedVoiceRecognition {
     let nextProvider = null;
 
     switch (currentProvider) {
-    case 'vosk':
-      nextProvider = 'webspeech';
-      break;
-    case 'webspeech':
-      nextProvider = 'keyboard';
-      break;
-    case 'keyboard':
-      // Already at the most basic provider
-      console.warn('Already using keyboard provider, cannot fallback further');
-      return false;
+      case 'vosk':
+        nextProvider = 'webspeech';
+        break;
+      case 'webspeech':
+        nextProvider = 'keyboard';
+        break;
+      case 'keyboard':
+        // Already at the most basic provider
+        console.warn('Already using keyboard provider, cannot fallback further');
+        return false;
     }
 
     try {
       console.log(`Switching from ${currentProvider} to ${nextProvider}...`);
-            
+
       // Stop current provider
       await this.stop();
-            
+
       // Reset error count
       this.errorCount = 0;
-            
+
       // Initialize new provider
       if (nextProvider === 'webspeech') {
         await this.initWebSpeech();
       } else if (nextProvider === 'keyboard') {
         await this.initKeyboard();
       }
-            
+
       this.provider = nextProvider;
-      this.notifyStatus('provider-switched', { 
-        from: currentProvider, 
-        to: nextProvider 
+      this.notifyStatus('provider-switched', {
+        from: currentProvider,
+        to: nextProvider,
       });
-            
+
       return true;
     } catch (error) {
       console.error('Failed to switch provider:', error);
@@ -237,14 +237,14 @@ class AdvancedVoiceRecognition {
 
   getCurrentProvider() {
     switch (this.provider) {
-    case 'vosk':
-      return this.voskProvider;
-    case 'webspeech':
-      return this.webSpeechProvider;
-    case 'keyboard':
-      return this.keyboardProvider;
-    default:
-      return null;
+      case 'vosk':
+        return this.voskProvider;
+      case 'webspeech':
+        return this.webSpeechProvider;
+      case 'keyboard':
+        return this.keyboardProvider;
+      default:
+        return null;
     }
   }
 
@@ -254,7 +254,7 @@ class AdvancedVoiceRecognition {
       isListening: this.isListening,
       confidence: this.confidence,
       lastCommand: this.lastCommand,
-      errorCount: this.errorCount
+      errorCount: this.errorCount,
     };
   }
 
@@ -309,11 +309,11 @@ class WebSpeechProvider {
       if (this.onStatusChange) this.onStatusChange('listening');
     };
 
-    this.recognition.onresult = (event) => {
+    this.recognition.onresult = event => {
       this.handleResult(event);
     };
 
-    this.recognition.onerror = (event) => {
+    this.recognition.onerror = event => {
       console.error('Web Speech API error:', event.error);
       if (this.onError) this.onError(event.error);
     };
@@ -387,7 +387,7 @@ class KeyboardProvider {
   }
 
   setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', event => {
       if (event.ctrlKey && event.shiftKey && event.key === 'V') {
         event.preventDefault();
         this.promptForCommand();
@@ -399,14 +399,17 @@ class KeyboardProvider {
     // Update voice control button to show keyboard mode
     const voiceButton = document.querySelector('button[onclick="startVoiceControl()"]');
     if (voiceButton) {
-      voiceButton.innerHTML = '⌨️ Voice (Keyboard) <span class="voice-indicator" id="voiceIndicator"></span>';
+      voiceButton.innerHTML =
+        '⌨️ Voice (Keyboard) <span class="voice-indicator" id="voiceIndicator"></span>';
       voiceButton.title = 'Press Ctrl+Shift+V for voice command input';
     }
   }
 
   promptForCommand() {
-    const command = prompt('🎤 Voice Command (type your command):\n\nExamples:\n• list files\n• current directory\n• git status\n• show processes');
-        
+    const command = prompt(
+      '🎤 Voice Command (type your command):\n\nExamples:\n• list files\n• current directory\n• git status\n• show processes'
+    );
+
     if (command && command.trim()) {
       if (this.onCommand) {
         this.onCommand(command.trim(), 1.0);
@@ -436,7 +439,7 @@ class VoskProvider {
     this.onCommand = null;
     this.onStatusChange = null;
     this.onError = null;
-        
+
     // Audio processing components
     this.audioContext = null;
     this.mediaStream = null;
@@ -447,46 +450,45 @@ class VoskProvider {
 
   async init() {
     console.log('🐚 Initializing Vosk offline recognition...');
-        
+
     try {
       // Check for audio context support
       if (!window.AudioContext && !window.webkitAudioContext) {
         throw new Error('AudioContext not supported');
       }
-            
+
       // Show initial message
       this.showMermaidMessage(
         '🧜‍♀️ Preparing the underwater voice recognition chamber...',
         'Setting up offline speech recognition for maximum reliability',
         'info'
       );
-            
+
       // Initialize audio context
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
-        sampleRate: 16000
+        sampleRate: 16000,
       });
-            
+
       // Check if we have a cached model
       if (this.checkCachedModel()) {
         await this.loadCachedModel();
       } else {
         await this.downloadModel();
       }
-            
+
       // Set up audio processing
       await this.setupAudioProcessing();
-            
+
       this.isInitialized = true;
       console.log('✅ Vosk provider initialized successfully');
-            
+
       this.showMermaidMessage(
         '🐚 Voice recognition treasures acquired!',
         'Offline speech recognition is ready for use. No internet required!',
         'success'
       );
-            
+
       return true;
-            
     } catch (error) {
       console.error('Vosk initialization failed:', error);
       this.showMermaidMessage(
@@ -497,7 +499,7 @@ class VoskProvider {
       throw error;
     }
   }
-    
+
   checkCachedModel() {
     try {
       return localStorage.getItem('vosk_model_ready') === 'true';
@@ -505,36 +507,35 @@ class VoskProvider {
       return false;
     }
   }
-    
+
   async loadCachedModel() {
     console.log('📦 Loading cached Vosk model...');
     // Simulate loading cached model
     await new Promise(resolve => setTimeout(resolve, 1000));
     this.isModelLoaded = true;
   }
-    
+
   async downloadModel() {
     console.log('📥 Downloading Vosk model...');
-        
+
     this.showMermaidMessage(
       '🌊 Diving deep to fetch voice recognition treasures...',
       'Downloading compact offline speech model (this may take a moment)',
       'info'
     );
-        
+
     try {
       // Simulate model download with progress
       for (let progress = 0; progress <= 100; progress += 20) {
         await new Promise(resolve => setTimeout(resolve, 500));
         console.log(`Download progress: ${progress}%`);
       }
-            
+
       // Mark as cached
       localStorage.setItem('vosk_model_ready', 'true');
       this.isModelLoaded = true;
-            
+
       console.log('✅ Vosk model downloaded and cached');
-            
     } catch (error) {
       this.showMermaidMessage(
         '🌪️ The download currents were too strong!',
@@ -544,10 +545,10 @@ class VoskProvider {
       throw error;
     }
   }
-    
+
   async setupAudioProcessing() {
     console.log('🎤 Setting up modern audio processing for Vosk...');
-        
+
     try {
       // Request microphone access
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -556,19 +557,18 @@ class VoskProvider {
           channelCount: 1,
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
-        }
+          autoGainControl: true,
+        },
       });
-            
+
       // Try to use modern AudioWorklet, fall back to ScriptProcessor if needed
       if (this.audioContext.audioWorklet) {
         await this.setupAudioWorklet();
       } else {
         await this.setupScriptProcessor();
       }
-            
+
       console.log('✅ Audio processing setup complete');
-            
     } catch (error) {
       if (error.name === 'NotAllowedError') {
         this.showMermaidMessage(
@@ -580,74 +580,73 @@ class VoskProvider {
       throw error;
     }
   }
-    
+
   async setupAudioWorklet() {
     try {
       console.log('🌊 Using modern AudioWorklet for audio processing...');
-            
+
       // Load the AudioWorklet processor
       await this.audioContext.audioWorklet.addModule('./vosk-audio-worklet.js');
-            
+
       // Create audio source and worklet node
       this.audioSource = this.audioContext.createMediaStreamSource(this.mediaStream);
       this.workletNode = new AudioWorkletNode(this.audioContext, 'vosk-audio-processor');
-            
+
       // Set up message handling from the worklet
-      this.workletNode.port.onmessage = (event) => {
+      this.workletNode.port.onmessage = event => {
         const { type, data } = event.data;
-                
+
         if (type === 'audioData' && this.isListening) {
           if (data.hasVoice) {
             this.processAudio(new Float32Array(data.audioData));
           }
         }
       };
-            
+
       // Connect audio nodes
       this.audioSource.connect(this.workletNode);
       this.workletNode.connect(this.audioContext.destination);
-            
+
       console.log('✅ Modern AudioWorklet setup complete');
-            
     } catch (error) {
       console.warn('AudioWorklet setup failed, falling back to ScriptProcessor:', error);
       await this.setupScriptProcessor();
     }
   }
-    
+
   async setupScriptProcessor() {
     console.log('🔄 Using ScriptProcessor as fallback...');
-        
+
     // Create audio source and processor (legacy method)
     this.audioSource = this.audioContext.createMediaStreamSource(this.mediaStream);
     this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-        
+
     // Set up audio processing
-    this.processor.onaudioprocess = (event) => {
+    this.processor.onaudioprocess = event => {
       if (this.isListening) {
         const audioData = event.inputBuffer.getChannelData(0);
         this.processAudio(audioData);
       }
     };
-        
+
     // Connect audio nodes
     this.audioSource.connect(this.processor);
     this.processor.connect(this.audioContext.destination);
-        
+
     console.log('📡 ScriptProcessor fallback setup complete');
   }
-    
+
   processAudio(audioData) {
     // Calculate audio level for voice activity detection
     const audioLevel = this.calculateAudioLevel(audioData);
-        
+
     // Voice activity detection threshold
     if (audioLevel > 0.01) {
       // Simulate Vosk processing (in real implementation, send to Vosk)
       this.simulateVoskRecognition(audioData);
     }
   }
-    
+
   calculateAudioLevel(audioData) {
     let sum = 0;
     for (let i = 0; i < audioData.length; i++) {
@@ -655,37 +654,37 @@ class VoskProvider {
     }
     return Math.sqrt(sum / audioData.length);
   }
-    
+
   simulateVoskRecognition(audioData) {
     // Simulate Vosk recognition results for demo
     // In real implementation, this would process audio with actual Vosk
-        
+
     // Randomly trigger recognition results (5% chance per audio frame when voice detected)
     if (Math.random() > 0.97) {
       const mockCommands = [
         'hey rina list files',
         'hey rina current directory',
-        'hey rina git status', 
+        'hey rina git status',
         'hey rina show processes',
         'hey rina disk space',
-        'hey rina help'
+        'hey rina help',
       ];
-            
+
       const transcript = mockCommands[Math.floor(Math.random() * mockCommands.length)];
       this.handleTranscript(transcript, 0.85, true);
     }
   }
-    
+
   handleTranscript(transcript, confidence, isFinal) {
     const lowerTranscript = transcript.toLowerCase().trim();
     console.log('Vosk transcript:', lowerTranscript, 'Confidence:', confidence);
-        
+
     // Check for stop commands
     if (this.stopWords.some(word => lowerTranscript.includes(word))) {
       this.stop();
       return;
     }
-        
+
     // Check for wake words and extract command
     let command = null;
     for (const wakeWord of this.wakeWords) {
@@ -694,78 +693,78 @@ class VoskProvider {
         break;
       }
     }
-        
+
     if (command && this.onCommand && isFinal) {
       this.onCommand(command, confidence);
     }
   }
-    
+
   async start() {
     if (!this.isInitialized) {
       throw new Error('Vosk provider not initialized');
     }
-        
+
     if (this.audioContext.state === 'suspended') {
       await this.audioContext.resume();
     }
-        
+
     this.isListening = true;
-        
+
     // Send start message to AudioWorklet if available
     if (this.workletNode) {
       this.workletNode.port.postMessage({ type: 'start' });
     }
-        
+
     if (this.onStatusChange) this.onStatusChange('listening');
-        
+
     console.log('🎤 Vosk listening started');
     return true;
   }
-    
+
   async stop() {
     this.isListening = false;
-        
+
     // Send stop message to AudioWorklet if available
     if (this.workletNode) {
       this.workletNode.port.postMessage({ type: 'stop' });
     }
-        
+
     if (this.onStatusChange) this.onStatusChange('stopped');
-        
+
     console.log('🎤 Vosk listening stopped');
     return true;
   }
-    
+
   // Enhanced mermaid-themed message system
   showMermaidMessage(title, message, type = 'info') {
     const modal = document.createElement('div');
     modal.className = 'mermaid-message-modal';
-        
+
     const typeConfig = {
-      info: { 
-        emoji: '🧜‍♀️', 
-        color: '#00AAFF', 
-        bg: 'linear-gradient(135deg, #008B8B 0%, #00AAFF 100%)' 
+      info: {
+        emoji: '🧜‍♀️',
+        color: '#00AAFF',
+        bg: 'linear-gradient(135deg, #008B8B 0%, #00AAFF 100%)',
       },
-      success: { 
-        emoji: '🐚', 
-        color: '#00FF88', 
-        bg: 'linear-gradient(135deg, #008B8B 0%, #00FF88 100%)' 
+      success: {
+        emoji: '🐚',
+        color: '#00FF88',
+        bg: 'linear-gradient(135deg, #008B8B 0%, #00FF88 100%)',
       },
-      warning: { 
-        emoji: '🌊', 
-        color: '#FFD93D', 
-        bg: 'linear-gradient(135deg, #FF8C00 0%, #FFD93D 100%)' 
+      warning: {
+        emoji: '🌊',
+        color: '#FFD93D',
+        bg: 'linear-gradient(135deg, #FF8C00 0%, #FFD93D 100%)',
       },
-      error: { 
-        emoji: '🐙', 
-        color: '#FF6B6B', 
-        bg: 'linear-gradient(135deg, #FF1493 0%, #FF6B6B 100%)' 
-      }
+      error: {
+        emoji: '🐙',
+        color: '#FF6B6B',
+        bg: 'linear-gradient(135deg, #FF1493 0%, #FF6B6B 100%)',
+      },
     };
-        
+
     const config = typeConfig[type] || typeConfig.info;
-        
+
     modal.style.cssText = `
             position: fixed;
             top: 0;
@@ -780,7 +779,7 @@ class VoskProvider {
             backdrop-filter: blur(10px);
             animation: mermaidFadeIn 0.5s ease-out;
         `;
-        
+
     modal.innerHTML = `
             <div class="mermaid-message-content" style="
                 background: ${config.bg};
@@ -834,7 +833,9 @@ class VoskProvider {
                             backdrop-filter: blur(10px);
                         ">🐚 Got it!</button>
                         
-                        ${type === 'warning' ? `
+                        ${
+                          type === 'warning'
+                            ? `
                             <button onclick="if(window.retryVoiceRecognition) window.retryVoiceRecognition(); this.closest('.mermaid-message-modal').remove()" style="
                                 background: rgba(0, 255, 136, 0.2);
                                 border: 2px solid #00FF88;
@@ -846,7 +847,9 @@ class VoskProvider {
                                 transition: all 0.3s ease;
                                 backdrop-filter: blur(10px);
                             ">🎤 Retry Voice</button>
-                        ` : ''}
+                        `
+                            : ''
+                        }
                         
                         <button onclick="if(window.startVoiceControl) window.startVoiceControl(); this.closest('.mermaid-message-modal').remove()" style="
                             background: rgba(138, 43, 226, 0.2);
@@ -870,7 +873,7 @@ class VoskProvider {
                 </div>
             </div>
         `;
-        
+
     // Add CSS animations if not already present
     if (!document.querySelector('#mermaid-animations')) {
       const style = document.createElement('style');
@@ -905,9 +908,9 @@ class VoskProvider {
             `;
       document.head.appendChild(style);
     }
-        
+
     document.body.appendChild(modal);
-        
+
     // Auto-close after 8 seconds for info messages
     if (type === 'info') {
       setTimeout(() => {
@@ -916,9 +919,9 @@ class VoskProvider {
         }
       }, 8000);
     }
-        
+
     // Close on click outside
-    modal.addEventListener('click', (e) => {
+    modal.addEventListener('click', e => {
       if (e.target === modal) {
         modal.remove();
       }
@@ -946,7 +949,7 @@ class EnhancedKeyboardProvider extends KeyboardProvider {
             backdrop-filter: blur(10px);
             animation: mermaidFadeIn 0.5s ease-out;
         `;
-        
+
     modal.innerHTML = `
             <div style="
                 background: linear-gradient(135deg, #008B8B 0%, #FF1493 50%, #00AAFF 100%);
@@ -1026,17 +1029,17 @@ class EnhancedKeyboardProvider extends KeyboardProvider {
                 </div>
             </div>
         `;
-        
+
     document.body.appendChild(modal);
-        
+
     // Focus the input
     setTimeout(() => {
       const input = document.getElementById('mermaidVoiceInput');
       if (input) {
         input.focus();
-                
+
         // Handle Enter key
-        input.addEventListener('keypress', (e) => {
+        input.addEventListener('keypress', e => {
           if (e.key === 'Enter') {
             const command = input.value.trim();
             if (command && window.handleMermaidCommand) {
@@ -1047,9 +1050,9 @@ class EnhancedKeyboardProvider extends KeyboardProvider {
         });
       }
     }, 100);
-        
+
     // Close on click outside
-    modal.addEventListener('click', (e) => {
+    modal.addEventListener('click', e => {
       if (e.target === modal) {
         modal.remove();
       }
@@ -1059,14 +1062,14 @@ class EnhancedKeyboardProvider extends KeyboardProvider {
 
 // Global handler for mermaid commands
 if (typeof window !== 'undefined') {
-  window.handleMermaidCommand = function(command) {
+  window.handleMermaidCommand = function (command) {
     // Find the advanced voice recognition instance and trigger command
     if (window.advancedVoiceRecognition && window.advancedVoiceRecognition.onCommand) {
       window.advancedVoiceRecognition.onCommand(command, 1.0);
     }
   };
-    
-  window.retryVoiceRecognition = function() {
+
+  window.retryVoiceRecognition = function () {
     if (window.startVoiceControl) {
       window.startVoiceControl();
     }

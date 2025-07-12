@@ -14,14 +14,14 @@ const securityHeaders = (req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader(
     'Content-Security-Policy',
-    'default-src \'self\'; ' +
-      'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'; ' +
-      'style-src \'self\' \'unsafe-inline\'; ' +
-      'img-src \'self\' data: https:; ' +
-      'font-src \'self\' data:; ' +
-      'connect-src \'self\' wss: ws:; ' +
-      'object-src \'none\'; ' +
-      'base-uri \'self\';'
+    "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: https:; " +
+      "font-src 'self' data:; " +
+      "connect-src 'self' wss: ws:; " +
+      "object-src 'none'; " +
+      "base-uri 'self';"
   );
 
   // Additional security headers

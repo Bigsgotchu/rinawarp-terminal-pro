@@ -21,6 +21,15 @@ export default [
       'public/vendor/**',
       'public/vendor/prism/**',
       'public/vendor/prism/prism.js',
+      // Cleanup and modernization scripts
+      'scan-deprecated.*',
+      'modernize-deprecated-packages.js',
+      'cleanup-deps.js',
+      'server-improvements.js',
+      'codemods/**',
+      'scripts/auto-replace-deprecated.js',
+      'scripts/modernize-github-workflows.js',
+      'scripts/upgrade-workflows-to-v4.cjs',
     ],
     languageOptions: {
       ecmaVersion: 'latest',

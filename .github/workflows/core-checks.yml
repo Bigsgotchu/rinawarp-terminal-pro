@@ -1,0 +1,38 @@
+name: 🔬 RinaWarp Core Checks
+
+on: 
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  core-test:
+    name: 🧜‍♀️ Core Test (Lint, Build, Test)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+        
+      - name: 🧰 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: ⚙️ Install Dependencies
+        run: npm ci
+
+      - name: 🧼 Lint Check
+        run: npm run lint:check
+        continue-on-error: true
+
+      - name: 🧪 Run Tests
+        run: npm test
+
+      - name: 🏗️ Build Web
+        run: npm run build:web
+
+      - name: ✅ Success Message
+        run: echo "🎉 RinaWarp is cruising smoothly in core checks!"

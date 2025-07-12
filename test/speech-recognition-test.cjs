@@ -11,7 +11,7 @@ const mockTerminal = {
 };
 
 const mockAiAssistant = {
-  getCommandSuggestion: jest.fn(async (transcript) => {
+  getCommandSuggestion: jest.fn(async transcript => {
     if (transcript.includes('list files')) return 'ls -la';
     if (transcript.includes('git status')) return 'git status';
     return 'echo Hello World';
@@ -58,7 +58,7 @@ function simulateRecognitionResult(transcript, confidence = 1) {
 // Tests
 (async () => {
   console.log('Testing Speech Recognition Engine...');
-  
+
   // Start listening
   engine.startListening();
   console.log('Started listening');

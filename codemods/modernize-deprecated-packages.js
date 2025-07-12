@@ -436,10 +436,10 @@ module.exports = function transformer(fileInfo, api) {
 
   return hasChanges
     ? root.toSource({
-      quote: 'single',
-      reuseParsers: true,
-      lineTerminator: '\n',
-    })
+        quote: 'single',
+        reuseParsers: true,
+        lineTerminator: '\n',
+      })
     : null;
 };
 

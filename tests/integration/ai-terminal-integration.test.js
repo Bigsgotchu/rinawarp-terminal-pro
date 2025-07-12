@@ -12,18 +12,18 @@ class MockAIAssistant {
           suggestions: [
             'git status - Check repository status',
             'git add . - Stage all changes',
-            'git commit -m "message" - Commit changes'
-          ]
+            'git commit -m "message" - Commit changes',
+          ],
         },
         npm: {
           description: 'Node package manager',
           suggestions: [
             'npm install - Install dependencies',
             'npm start - Start application',
-            'npm test - Run tests'
-          ]
-        }
-      }
+            'npm test - Run tests',
+          ],
+        },
+      },
     };
   }
 
@@ -31,18 +31,18 @@ class MockAIAssistant {
     if (!query || query.trim() === '') {
       return 'Please provide a command to get suggestions';
     }
-    
+
     const words = query.toLowerCase().split(' ');
     const command = words[0];
-    
+
     if (this.knowledgeBase.commands[command]) {
       return this.knowledgeBase.commands[command].suggestions[0].split(' - ')[0];
     }
-    
+
     if (query.includes('list')) return 'ls -la';
     if (query.includes('copy')) return 'cp source dest';
     if (query.includes('move')) return 'mv source dest';
-    
+
     return `Try: ${command} --help`;
   }
 
@@ -50,7 +50,7 @@ class MockAIAssistant {
     if (!command) {
       return 'No command provided for explanation';
     }
-    
+
     if (command.includes('ls')) {
       return 'Lists directory contents and files';
     }
@@ -60,7 +60,7 @@ class MockAIAssistant {
     if (command.includes('npm')) {
       return 'Node Package Manager command for handling dependencies';
     }
-    
+
     return `Command: ${command} - General command line utility`;
   }
 
@@ -68,14 +68,14 @@ class MockAIAssistant {
     if (!task) {
       return 'No task specified for workflow';
     }
-    
+
     if (task.includes('deploy')) {
       return ['git add .', 'git commit -m "Deploy"', 'git push', 'npm run build'];
     }
     if (task.includes('project')) {
       return ['mkdir project', 'cd project', 'npm init -y', 'git init'];
     }
-    
+
     return `Workflow for: ${task}`;
   }
 
@@ -93,7 +93,7 @@ class MockTerminalManager {
   constructor() {
     this.initialized = false;
   }
-  
+
   init(terminal) {
     this.terminal = terminal;
     this.initialized = true;
@@ -108,31 +108,31 @@ class MockPredictiveCompletion {
   constructor() {
     this.initialized = false;
   }
-  
+
   init() {
     this.initialized = true;
   }
-  
+
   async getSuggestions(input, context = {}, config = {}) {
     if (!input) return [];
-    
+
     const suggestions = [];
-    
+
     if (input.startsWith('gi')) {
       suggestions.push({ text: 'git', score: 0.9 });
       suggestions.push({ text: 'git status', score: 0.8 });
     }
-    
+
     if (input.startsWith('npm')) {
       suggestions.push({ text: 'npm install', score: 0.9 });
       suggestions.push({ text: 'npm start', score: 0.8 });
     }
-    
+
     if (input.startsWith('ls')) {
       suggestions.push({ text: 'ls -la', score: 0.9 });
       suggestions.push({ text: 'ls -l', score: 0.8 });
     }
-    
+
     const maxSuggestions = config.maxSuggestions || 5;
     return suggestions.slice(0, maxSuggestions);
   }
@@ -201,12 +201,12 @@ describe('AI Terminal Integration Tests', () => {
     test('should integrate with AI assistant', () => {
       const mockTerminal = {
         write: jest.fn(),
-        onData: jest.fn()
+        onData: jest.fn(),
       };
-      
+
       // Initialize terminal manager
       terminalManager.init(mockTerminal);
-      
+
       // Should not throw errors
       expect(mockTerminal.onData).toHaveBeenCalled();
     });
@@ -223,7 +223,7 @@ describe('AI Terminal Integration Tests', () => {
       const suggestions = await predictiveCompletion.getSuggestions('gi');
       expect(suggestions).toBeDefined();
       expect(Array.isArray(suggestions)).toBe(true);
-      
+
       if (suggestions.length > 0) {
         expect(suggestions[0]).toHaveProperty('text');
         expect(suggestions[0]).toHaveProperty('score');
@@ -233,9 +233,9 @@ describe('AI Terminal Integration Tests', () => {
     test('should handle context-aware suggestions', async () => {
       const context = {
         currentDirectory: '/home/user/project',
-        recentCommands: ['git status', 'npm install']
+        recentCommands: ['git status', 'npm install'],
       };
-      
+
       const suggestions = await predictiveCompletion.getSuggestions('git', context);
       expect(suggestions).toBeDefined();
       expect(Array.isArray(suggestions)).toBe(true);
@@ -246,11 +246,11 @@ describe('AI Terminal Integration Tests', () => {
       if (!global.window) {
         global.window = {};
       }
-      
+
       // Temporarily disable AI features
       const originalAI = global.window.aiEnabled;
       global.window.aiEnabled = false;
-      
+
       try {
         const suggestions = await predictiveCompletion.getSuggestions('ls');
         expect(suggestions).toBeDefined();
@@ -269,7 +269,7 @@ describe('AI Terminal Integration Tests', () => {
     test('should handle command execution with AI feedback', async () => {
       const command = 'git status';
       const mockOutput = 'On branch main\nnothing to commit, working tree clean';
-      
+
       // Test AI analysis of command output
       const analysis = await aiAssistant.analyzeCommandOutput(command, mockOutput);
       expect(analysis).toBeDefined();
@@ -278,9 +278,9 @@ describe('AI Terminal Integration Tests', () => {
     test('should provide contextual help', async () => {
       const context = {
         command: 'git merge',
-        error: 'CONFLICT (content): Merge conflict in file.txt'
+        error: 'CONFLICT (content): Merge conflict in file.txt',
       };
-      
+
       const help = await aiAssistant.getContextualHelp(context);
       expect(help).toBeDefined();
       expect(typeof help).toBe('string');
@@ -292,9 +292,9 @@ describe('AI Terminal Integration Tests', () => {
       const promises = [
         aiAssistant.getCommandSuggestion('list'),
         aiAssistant.getCommandSuggestion('copy'),
-        aiAssistant.getCommandSuggestion('move')
+        aiAssistant.getCommandSuggestion('move'),
       ];
-      
+
       const results = await Promise.all(promises);
       expect(results).toHaveLength(3);
       results.forEach(result => {
@@ -306,7 +306,7 @@ describe('AI Terminal Integration Tests', () => {
       const startTime = Date.now();
       const result = await aiAssistant.getCommandSuggestion('complex query that might take long');
       const endTime = Date.now();
-      
+
       // Should complete within reasonable time (10 seconds)
       expect(endTime - startTime).toBeLessThan(10000);
       expect(result).toBeDefined();
@@ -325,13 +325,13 @@ describe('AI Terminal Integration Tests', () => {
       const config = {
         aiEnabled: true,
         fallbackEnabled: true,
-        maxSuggestions: 5
+        maxSuggestions: 5,
       };
-      
+
       // Test configuration application
       const suggestions = await predictiveCompletion.getSuggestions('test', {}, config);
       expect(suggestions).toBeDefined();
-      
+
       if (suggestions.length > 0) {
         expect(suggestions.length).toBeLessThanOrEqual(config.maxSuggestions);
       }
@@ -341,7 +341,7 @@ describe('AI Terminal Integration Tests', () => {
       // Simulate missing API key
       const originalEnv = process.env.OPENAI_API_KEY;
       delete process.env.OPENAI_API_KEY;
-      
+
       try {
         const suggestion = await aiAssistant.getCommandSuggestion('help');
         expect(suggestion).toBeDefined();
@@ -355,13 +355,13 @@ describe('AI Terminal Integration Tests', () => {
 
     test('should handle API rate limiting gracefully', async () => {
       // Simulate rate limiting by making many requests quickly
-      const requests = Array(10).fill().map(() => 
-        aiAssistant.getCommandSuggestion('test')
-      );
-      
+      const requests = Array(10)
+        .fill()
+        .map(() => aiAssistant.getCommandSuggestion('test'));
+
       const results = await Promise.allSettled(requests);
       const successful = results.filter(r => r.status === 'fulfilled');
-      
+
       // Should handle gracefully - either succeed or fail gracefully
       expect(successful.length).toBeGreaterThan(0);
     });
@@ -369,12 +369,8 @@ describe('AI Terminal Integration Tests', () => {
 
   describe('Real-world Usage Scenarios', () => {
     test('should handle git workflow assistance', async () => {
-      const gitCommands = [
-        'git add .',
-        'git commit -m "test"',
-        'git push origin main'
-      ];
-      
+      const gitCommands = ['git add .', 'git commit -m "test"', 'git push origin main'];
+
       for (const command of gitCommands) {
         const explanation = await aiAssistant.explainCommand(command);
         expect(explanation).toBeDefined();
@@ -384,7 +380,7 @@ describe('AI Terminal Integration Tests', () => {
 
     test('should handle file system operations', async () => {
       const fsCommands = ['ls', 'cd', 'mkdir', 'cp', 'mv', 'rm'];
-      
+
       for (const command of fsCommands) {
         const suggestion = await aiAssistant.getCommandSuggestion(`how to ${command}`);
         expect(suggestion).toBeDefined();
@@ -394,7 +390,7 @@ describe('AI Terminal Integration Tests', () => {
     test('should handle development workflows', async () => {
       const devWorkflow = await aiAssistant.suggestWorkflow('setup new project');
       expect(devWorkflow).toBeDefined();
-      
+
       if (Array.isArray(devWorkflow)) {
         expect(devWorkflow.length).toBeGreaterThan(0);
       }

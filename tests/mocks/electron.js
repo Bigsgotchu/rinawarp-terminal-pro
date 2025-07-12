@@ -3,13 +3,13 @@ module.exports = {
   app: {
     getName: jest.fn(() => 'RinaWarp Terminal'),
     getVersion: jest.fn(() => '1.0.0'),
-    getPath: jest.fn((name) => {
+    getPath: jest.fn(name => {
       const paths = {
         home: '/mock/home',
         userData: '/mock/userData',
         temp: '/mock/temp',
         exe: '/mock/exe',
-        appData: '/mock/appData'
+        appData: '/mock/appData',
       };
       return paths[name] || '/mock/default';
     }),
@@ -17,7 +17,7 @@ module.exports = {
     quit: jest.fn(),
     on: jest.fn(),
     whenReady: jest.fn(() => Promise.resolve()),
-    isReady: jest.fn(() => true)
+    isReady: jest.fn(() => true),
   },
 
   BrowserWindow: jest.fn().mockImplementation(() => ({
@@ -31,10 +31,10 @@ module.exports = {
     webContents: {
       send: jest.fn(),
       on: jest.fn(),
-      openDevTools: jest.fn()
+      openDevTools: jest.fn(),
     },
     isVisible: jest.fn(() => true),
-    isFocused: jest.fn(() => true)
+    isFocused: jest.fn(() => true),
   })),
 
   ipcMain: {
@@ -42,7 +42,7 @@ module.exports = {
     on: jest.fn(),
     once: jest.fn(),
     removeListener: jest.fn(),
-    removeAllListeners: jest.fn()
+    removeAllListeners: jest.fn(),
   },
 
   ipcRenderer: {
@@ -51,47 +51,53 @@ module.exports = {
     on: jest.fn(),
     once: jest.fn(),
     removeListener: jest.fn(),
-    removeAllListeners: jest.fn()
+    removeAllListeners: jest.fn(),
   },
 
   shell: {
     openExternal: jest.fn(() => Promise.resolve()),
     openPath: jest.fn(() => Promise.resolve()),
-    showItemInFolder: jest.fn()
+    showItemInFolder: jest.fn(),
   },
 
   dialog: {
-    showOpenDialog: jest.fn(() => Promise.resolve({
-      canceled: false,
-      filePaths: ['/mock/file/path']
-    })),
-    showSaveDialog: jest.fn(() => Promise.resolve({
-      canceled: false,
-      filePath: '/mock/save/path'
-    })),
-    showMessageBox: jest.fn(() => Promise.resolve({
-      response: 0
-    }))
+    showOpenDialog: jest.fn(() =>
+      Promise.resolve({
+        canceled: false,
+        filePaths: ['/mock/file/path'],
+      })
+    ),
+    showSaveDialog: jest.fn(() =>
+      Promise.resolve({
+        canceled: false,
+        filePath: '/mock/save/path',
+      })
+    ),
+    showMessageBox: jest.fn(() =>
+      Promise.resolve({
+        response: 0,
+      })
+    ),
   },
 
   Menu: {
     buildFromTemplate: jest.fn(() => ({
-      popup: jest.fn()
+      popup: jest.fn(),
     })),
-    setApplicationMenu: jest.fn()
+    setApplicationMenu: jest.fn(),
   },
 
   nativeTheme: {
     shouldUseDarkColors: true,
-    on: jest.fn()
+    on: jest.fn(),
   },
 
   screen: {
     getPrimaryDisplay: jest.fn(() => ({
       workAreaSize: { width: 1920, height: 1080 },
-      size: { width: 1920, height: 1080 }
+      size: { width: 1920, height: 1080 },
     })),
     getAllDisplays: jest.fn(() => []),
-    on: jest.fn()
-  }
+    on: jest.fn(),
+  },
 };

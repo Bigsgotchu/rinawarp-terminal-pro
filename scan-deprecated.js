@@ -13,11 +13,11 @@ const path = require('path');
 
 const targets = [
   'require("q")',
-  'require(\'q\')',
+  "require('q')",
   'require("lodash.isequal")',
-  'require(\'lodash.isequal\')',
+  "require('lodash.isequal')",
   'require("rimraf")',
-  'require(\'rimraf\')',
+  "require('rimraf')",
 ];
 
 function scanDir(dir) {
