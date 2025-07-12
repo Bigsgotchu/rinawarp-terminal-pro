@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-test
     environment:
-      name: preview
+      name: Preview
       url: ${{ steps.deploy.outputs.preview-url }}
     
     steps:
