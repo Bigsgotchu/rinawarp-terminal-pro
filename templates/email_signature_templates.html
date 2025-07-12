@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RinaWarp Terminal Email Signature Templates</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .signature { border: 1px solid #ddd; padding: 15px; margin: 20px 0; }
+        .signature-title { color: #00ff88; font-weight: bold; margin-bottom: 10px; }
+        .copy-button { background: #00ff88; color: #000; padding: 5px 10px; border: none; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>RinaWarp Terminal Email Signature Templates</h1>
+    
+    <!-- Basic Professional Signature -->
+    <div class="signature">
+        <div class="signature-title">Basic Professional Signature</div>
+        <div id="basic-sig">
+            <strong>RinaWarp Technologies</strong><br>
+            Email: rinawarptechnologies25@gmail.com<br>
+            Website: <a href="https://rinawarp-terminal.vercel.app/">https://rinawarp-terminal.vercel.app/</a><br>
+            Feedback: <a href="https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform">Share Your Experience</a><br>
+            <em>Advanced Terminal Emulator with AI Assistance</em>
+        </div>
+        <button class="copy-button" onclick="copySignature('basic-sig')">Copy HTML</button>
+    </div>
+
+    <!-- Professional with Branding -->
+    <div class="signature">
+        <div class="signature-title">Professional with Branding</div>
+        <div id="branded-sig">
+            <table style="border-collapse: collapse;">
+                <tr>
+                    <td style="padding-right: 15px; vertical-align: top;">
+                        <div style="color: #00ff88; font-size: 18px; font-weight: bold;">🌊 RinaWarp Technologies</div>
+                        <div style="color: #333; font-size: 14px; margin-top: 5px;">Advanced Terminal Emulator</div>
+                    </td>
+                    <td style="border-left: 2px solid #00ff88; padding-left: 15px; vertical-align: top;">
+                        <div style="color: #333; font-size: 13px; line-height: 1.5;">
+                            📧 rinawarptechnologies25@gmail.com<br>
+                            🌐 <a href="https://rinawarp-terminal.vercel.app/" style="color: #00ff88; text-decoration: none;">https://rinawarp-terminal.vercel.app/</a><br>
+                            📝 <a href="https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform" style="color: #00ff88; text-decoration: none;">Share Feedback</a><br>
+                            💡 AI-Powered Terminal Experience
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <button class="copy-button" onclick="copySignature('branded-sig')">Copy HTML</button>
+    </div>
+
+    <!-- Compact Signature -->
+    <div class="signature">
+        <div class="signature-title">Compact Signature</div>
+        <div id="compact-sig">
+            <strong>RinaWarp Technologies</strong> | rinawarptechnologies25@gmail.com | <a href="https://rinawarp-terminal.vercel.app/">https://rinawarp-terminal.vercel.app/</a> | <a href="https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform">Feedback</a>
+        </div>
+        <button class="copy-button" onclick="copySignature('compact-sig')">Copy HTML</button>
+    </div>
+
+    <!-- Detailed Corporate Signature -->
+    <div class="signature">
+        <div class="signature-title">Detailed Corporate Signature</div>
+        <div id="corporate-sig">
+            <div style="border-bottom: 2px solid #00ff88; padding-bottom: 10px; margin-bottom: 10px;">
+                <div style="color: #00ff88; font-size: 16px; font-weight: bold;">RinaWarp Technologies</div>
+                <div style="color: #666; font-size: 12px; font-style: italic;">Advanced Terminal Emulator with AI Assistance</div>
+            </div>
+            <div style="color: #333; font-size: 13px; line-height: 1.6;">
+                📧 <strong>Email:</strong> rinawarptechnologies25@gmail.com<br>
+                🌐 <strong>Website:</strong> <a href="https://rinawarp-terminal.vercel.app/" style="color: #00ff88;">https://rinawarp-terminal.vercel.app/</a><br>
+                📝 <strong>Feedback:</strong> <a href="https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform" style="color: #00ff88;">Share Your Experience</a><br>
+                🚀 <strong>Product:</strong> AI-Powered Terminal Experience<br>
+                ⚡ <strong>Features:</strong> Cloud Sync, Themes, Enterprise Security
+            </div>
+        </div>
+        <button class="copy-button" onclick="copySignature('corporate-sig')">Copy HTML</button>
+    </div>
+
+    <!-- Plain Text Versions -->
+    <div class="signature">
+        <div class="signature-title">Plain Text Signature Options</div>
+        <div id="plain-text">
+            <pre>
+<strong>Option 1 - Basic:</strong>
+Best regards,
+RinaWarp Technologies
+Email: rinawarptechnologies25@gmail.com
+Website: https://rinawarp-terminal.vercel.app/
+Feedback: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
+
+<strong>Option 2 - Detailed:</strong>
+---
+RinaWarp Technologies
+Advanced Terminal Emulator with AI Assistance
+
+📧 rinawarptechnologies25@gmail.com
+🌐 https://rinawarp-terminal.vercel.app/
+📝 https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
+💡 AI-Powered Terminal Experience
+---
+
+<strong>Option 3 - Compact:</strong>
+RinaWarp Technologies | rinawarptechnologies25@gmail.com | https://rinawarp-terminal.vercel.app/ | Feedback Form
+            </pre>
+        </div>
+        <button class="copy-button" onclick="copyPlainText()">Copy Plain Text</button>
+    </div>
+
+    <script>
+        function copySignature(elementId) {
+            const element = document.getElementById(elementId);
+            const html = element.innerHTML;
+            navigator.clipboard.writeText(html).then(() => {
+                alert('HTML signature copied to clipboard!');
+            });
+        }
+
+        function copyPlainText() {
+            const plainText = `Best regards,
+RinaWarp Technologies
+Email: rinawarptechnologies25@gmail.com
+Website: https://rinawarp-terminal.vercel.app/
+Feedback: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
+
+---
+RinaWarp Technologies
+Advanced Terminal Emulator with AI Assistance
+
+📧 rinawarptechnologies25@gmail.com
+🌐 https://rinawarp-terminal.vercel.app/
+📝 https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
+💡 AI-Powered Terminal Experience
+---
+
+RinaWarp Technologies | rinawarptechnologies25@gmail.com | https://rinawarp-terminal.vercel.app/ | Feedback Form`;
+            
+            navigator.clipboard.writeText(plainText).then(() => {
+                alert('Plain text signatures copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

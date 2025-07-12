@@ -10,15 +10,15 @@ console.log('🌊 RinaWarp Terminal - Dependency Cleanup Tool');
 console.log('================================================');
 
 const overrides = {
-  "rimraf": "^4.4.1",
-  "glob": "^9.3.5", 
-  "lodash.isequal": undefined, // migrate to native
-  "q": undefined,              // migrate to Promise
-  "@npmcli/move-file": "@npmcli/fs",
-  "stringify-package": "@npmcli/package-json",
-  "inflight": undefined,       // migrate to lru-cache
-  "abab": undefined,           // use native atob/btoa
-  "domexception": undefined    // use native DOMException
+  rimraf: '^4.4.1',
+  glob: '^9.3.5',
+  'lodash.isequal': undefined, // migrate to native
+  q: undefined, // migrate to Promise
+  '@npmcli/move-file': '@npmcli/fs',
+  'stringify-package': '@npmcli/package-json',
+  inflight: undefined, // migrate to lru-cache
+  abab: undefined, // use native atob/btoa
+  domexception: undefined, // use native DOMException
 };
 
 const pkgPath = path.resolve('package.json');
@@ -40,8 +40,8 @@ for (const [oldPkg, newPkg] of Object.entries(overrides)) {
 
 // Add resolutions for better compatibility
 pkg.resolutions = pkg.resolutions || {};
-pkg.resolutions.rimraf = "^4.4.1";
-pkg.resolutions.glob = "^9.3.5";
+pkg.resolutions.rimraf = '^4.4.1';
+pkg.resolutions.glob = '^9.3.5';
 
 // Write updated package.json
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));

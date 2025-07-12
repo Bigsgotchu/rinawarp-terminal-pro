@@ -60,4 +60,4 @@ registries:
   npm-github-packages:
     type: npm-registry
     url: https://npm.pkg.github.com
-    token: ${{secrets.GH_TOKEN}}
+    token: ${{ secrets.GH_TOKEN }}

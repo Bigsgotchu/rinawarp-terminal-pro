@@ -134,7 +134,7 @@ class AIIntegrationManager {
   setupFallbackAI() {
     // Simplified AI for when modules can't be loaded
     const fallbackAI = {
-      addPersonalityFlavor: (query) => {
+      addPersonalityFlavor: query => {
         const responses = {
           git: '🐙 Git! Making waves in version control!',
           docker: '🐳 Docker! Containerizing like a pro!',
@@ -162,7 +162,7 @@ class AIIntegrationManager {
         };
       },
     };
-    
+
     this.aiAssistant = fallbackAI;
   }
 

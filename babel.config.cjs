@@ -6,13 +6,11 @@ module.exports = {
         targets: {
           node: 'current',
         },
-        modules: 'commonjs'
+        modules: 'commonjs',
       },
     ],
   ],
-  plugins: [
-    '@babel/plugin-transform-modules-commonjs'
-  ],
+  plugins: ['@babel/plugin-transform-modules-commonjs'],
   env: {
     test: {
       presets: [
@@ -22,7 +20,7 @@ module.exports = {
             targets: {
               node: 'current',
             },
-            modules: 'commonjs'
+            modules: 'commonjs',
           },
         ],
       ],

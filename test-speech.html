@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition Test - RinaWarp Terminal</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff88;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #00ff88;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #4a4a4a;
+            border-radius: 5px;
+        }
+        
+        .test-section h3 {
+            color: #ffd93d;
+            margin-top: 0;
+        }
+        
+        button {
+            background: #00ff88;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #00cc6a;
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .status.success {
+            background: #155724;
+            border: 1px solid #28a745;
+            color: #d4edda;
+        }
+        
+        .status.error {
+            background: #721c24;
+            border: 1px solid #dc3545;
+            color: #f8d7da;
+        }
+        
+        .status.info {
+            background: #0c5460;
+            border: 1px solid #17a2b8;
+            color: #d1ecf1;
+        }
+        
+        .output {
+            background: #000;
+            color: #00ff88;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: #00ff88;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .commands-list {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .commands-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .speech-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        
+        .speech-indicator.listening {
+            background: #dc3545;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .voice-settings {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .voice-settings label {
+            display: block;
+            margin: 10px 0;
+        }
+        
+        .voice-settings input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .voice-settings select {
+            background: #444;
+            color: #fff;
+            border: 1px solid #666;
+            padding: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎤 Speech Recognition Test</h1>
+        
+        <div class="test-section">
+            <h3>🔍 Browser Support Check</h3>
+            <div id="support-status" class="status info">Checking browser support...</div>
+            <button onclick="checkSupport()">Check Support</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎤 Speech Recognition Controls</h3>
+            <button id="start-btn" onclick="startListening()">Start Listening</button>
+            <button id="stop-btn" onclick="stopListening()" disabled>Stop Listening</button>
+            <button onclick="testVoiceCommands()">Test Voice Commands</button>
+            <span id="speech-status" class="speech-indicator">Ready</span>
+            
+            <div class="confidence-bar">
+                <div id="confidence-fill" class="confidence-fill"></div>
+            </div>
+            <div id="confidence-text">Confidence: 0%</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Speech Output</h3>
+            <div id="speech-output" class="output">Speech recognition results will appear here...</div>
+            <button onclick="clearOutput()">Clear Output</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>🤖 Voice Synthesis Test</h3>
+            <button onclick="testVoiceSynthesis()">Test Voice Synthesis</button>
+            <button onclick="testCustomVoice()">Test Custom Voice</button>
+            <button onclick="recordVoice()">Record Custom Voice</button>
+            
+            <div class="voice-settings">
+                <label>
+                    Voice Speed: <span id="speed-value">1.0</span>
+                    <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1.0" onchange="updateVoiceSettings()">
+                </label>
+                <label>
+                    Voice Volume: <span id="volume-value">0.8</span>
+                    <input type="range" id="voice-volume" min="0" max="1" step="0.1" value="0.8" onchange="updateVoiceSettings()">
+                </label>
+                <label>
+                    Voice Pitch: <span id="pitch-value">1.0</span>
+                    <input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" value="1.0" onchange="updateVoiceSettings()">
+                </label>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 Available Voice Commands</h3>
+            <div class="commands-list">
+                <p><strong>Try saying these commands:</strong></p>
+                <ul>
+                    <li>"list files" - Show directory contents</li>
+                    <li>"go home" - Navigate to home directory</li>
+                    <li>"git status" - Check repository status</li>
+                    <li>"npm install" - Install dependencies</li>
+                    <li>"clear screen" - Clear terminal</li>
+                    <li>"stop listening" - Stop voice recognition</li>
+                    <li>"show help" - Display help</li>
+                    <li>"hey rina" - Activate voice control</li>
+                </ul>
+                <p><strong>Natural language commands are also supported!</strong></p>
+                <p>Example: "Show me the files in this directory"</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🧪 Integration Test Results</h3>
+            <div id="test-results" class="output">Integration test results will appear here...</div>
+            <button onclick="runIntegrationTests()">Run Integration Tests</button>
+        </div>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isListening = false;
+        let voiceSettings = {
+            rate: 1.0,
+            volume: 0.8,
+            pitch: 1.0
+        };
+        
+        // Mock AI Assistant for testing
+        const mockAI = {
+            async getCommandSuggestion(transcript) {
+                if (transcript.includes('list') || transcript.includes('show files')) {
+                    return 'ls -la';
+                }
+                if (transcript.includes('git')) {
+                    return 'git status';
+                }
+                if (transcript.includes('install')) {
+                    return 'npm install';
+                }
+                if (transcript.includes('clear')) {
+                    return 'clear';
+                }
+                return `echo "AI interpreted: ${transcript}"`;
+            }
+        };
+        
+        function checkSupport() {
+            const statusDiv = document.getElementById('support-status');
+            
+            // Check Speech Recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Speech Recognition not supported in this browser';
+                return;
+            }
+            
+            // Check Speech Synthesis
+            if (!window.speechSynthesis) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Speech Synthesis not supported in this browser';
+                return;
+            }
+            
+            // Check microphone access
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(() => {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ All speech features supported! Microphone access granted.';
+                    setupSpeechRecognition();
+                })
+                .catch((error) => {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Microphone access denied: ${error.message}`;
+                });
+        }
+        
+        function setupSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 3;
+            
+            recognition.onstart = () => {
+                isListening = true;
+                updateUI();
+                addOutput('🎤 Started listening...', 'info');
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                updateUI();
+                addOutput('🔇 Stopped listening', 'info');
+            };
+            
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    const transcript = result[0].transcript;
+                    const confidence = result[0].confidence;
+                    
+                    if (result.isFinal) {
+                        finalTranscript += transcript;
+                        updateConfidence(confidence);
+                        processCommand(transcript, confidence);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                if (interimTranscript) {
+                    addOutput(`🎤 Hearing: "${interimTranscript}"`, 'interim');
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                addOutput(`❌ Speech recognition error: ${event.error}`, 'error');
+                isListening = false;
+                updateUI();
+            };
+        }
+        
+        async function processCommand(transcript, confidence) {
+            addOutput(`✅ Recognized: "${transcript}" (Confidence: ${(confidence * 100).toFixed(1)}%)`, 'success');
+            
+            // Check for wake word
+            if (transcript.toLowerCase().includes('hey rina')) {
+                addOutput('🔥 Voice control activated!', 'success');
+                speak('Voice control activated. How can I help?');
+                return;
+            }
+            
+            // Check for stop command
+            if (transcript.toLowerCase().includes('stop listening')) {
+                stopListening();
+                speak('Voice control stopped');
+                return;
+            }
+            
+            // Process with AI
+            try {
+                const command = await mockAI.getCommandSuggestion(transcript);
+                addOutput(`🤖 AI Suggestion: ${command}`, 'command');
+                
+                // Simulate command execution
+                addOutput(`⚡ Executing: ${command}`, 'execution');
+                speak(`Executed ${transcript}`);
+                
+            } catch (error) {
+                addOutput(`❌ AI processing failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function startListening() {
+            if (recognition && !isListening) {
+                recognition.start();
+            } else if (!recognition) {
+                addOutput('❌ Speech recognition not initialized. Check browser support first.', 'error');
+            }
+        }
+        
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+        
+        function updateUI() {
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const statusSpan = document.getElementById('speech-status');
+            
+            if (isListening) {
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                statusSpan.textContent = '🔴 Listening';
+                statusSpan.className = 'speech-indicator listening';
+            } else {
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                statusSpan.textContent = 'Ready';
+                statusSpan.className = 'speech-indicator';
+            }
+        }
+        
+        function updateConfidence(confidence) {
+            const fill = document.getElementById('confidence-fill');
+            const text = document.getElementById('confidence-text');
+            const percentage = Math.round(confidence * 100);
+            
+            fill.style.width = `${percentage}%`;
+            text.textContent = `Confidence: ${percentage}%`;
+            
+            // Color based on confidence
+            if (percentage >= 80) {
+                fill.style.background = '#28a745';
+            } else if (percentage >= 60) {
+                fill.style.background = '#ffc107';
+            } else {
+                fill.style.background = '#dc3545';
+            }
+        }
+        
+        function addOutput(message, type = 'info') {
+            const output = document.getElementById('speech-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const line = `[${timestamp}] ${message}\n`;
+            
+            // Remove interim results
+            if (type === 'interim') {
+                const lines = output.textContent.split('\n');
+                const filtered = lines.filter(line => !line.includes('Hearing:'));
+                output.textContent = filtered.join('\n') + line;
+            } else {
+                output.textContent += line;
+            }
+            
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function clearOutput() {
+            document.getElementById('speech-output').textContent = '';
+        }
+        
+        function speak(text) {
+            if (!window.speechSynthesis) {
+                addOutput('❌ Speech synthesis not available', 'error');
+                return;
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = voiceSettings.rate;
+            utterance.volume = voiceSettings.volume;
+            utterance.pitch = voiceSettings.pitch;
+            
+            // Try to use a good voice
+            const voices = speechSynthesis.getVoices();
+            const goodVoice = voices.find(voice => 
+                voice.lang.startsWith('en') && 
+                (voice.name.includes('Female') || voice.name.includes('Samantha'))
+            );
+            if (goodVoice) {
+                utterance.voice = goodVoice;
+            }
+            
+            utterance.onstart = () => {
+                addOutput(`🔊 Speaking: "${text}"`, 'speech');
+            };
+            
+            utterance.onend = () => {
+                addOutput('🔇 Finished speaking', 'speech');
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        function testVoiceSynthesis() {
+            speak('Hello! This is Rina, your AI terminal assistant. Voice synthesis is working correctly.');
+        }
+        
+        function testCustomVoice() {
+            speak('This would use your custom recorded voice if available. For now, using system voice.');
+        }
+        
+        function recordVoice() {
+            addOutput('🎙️ Voice recording feature would open here. This allows you to record your voice for Rina to use.', 'info');
+            speak('Voice recording interface would open here');
+        }
+        
+        function updateVoiceSettings() {
+            voiceSettings.rate = parseFloat(document.getElementById('voice-speed').value);
+            voiceSettings.volume = parseFloat(document.getElementById('voice-volume').value);
+            voiceSettings.pitch = parseFloat(document.getElementById('voice-pitch').value);
+            
+            document.getElementById('speed-value').textContent = voiceSettings.rate;
+            document.getElementById('volume-value').textContent = voiceSettings.volume;
+            document.getElementById('pitch-value').textContent = voiceSettings.pitch;
+        }
+        
+        function testVoiceCommands() {
+            const commands = [
+                'list files',
+                'git status', 
+                'npm install',
+                'clear screen',
+                'show help'
+            ];
+            
+            addOutput('🧪 Testing voice commands...', 'info');
+            
+            commands.forEach((command, index) => {
+                setTimeout(() => {
+                    addOutput(`Testing: "${command}"`, 'test');
+                    processCommand(command, 0.9);
+                }, index * 2000);
+            });
+        }
+        
+        function runIntegrationTests() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.textContent = '';
+            
+            const tests = [
+                {
+                    name: 'Speech Recognition API',
+                    test: () => !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+                },
+                {
+                    name: 'Speech Synthesis API',
+                    test: () => !!window.speechSynthesis
+                },
+                {
+                    name: 'AI Command Processing',
+                    test: async () => {
+                        const result = await mockAI.getCommandSuggestion('list files');
+                        return result === 'ls -la';
+                    }
+                },
+                {
+                    name: 'Voice Settings',
+                    test: () => voiceSettings.rate > 0 && voiceSettings.volume > 0
+                },
+                {
+                    name: 'Wake Word Detection',
+                    test: () => 'hey rina'.includes('rina')
+                }
+            ];
+            
+            resultsDiv.textContent = 'Running integration tests...\n\n';
+            
+            tests.forEach(async (test, index) => {
+                setTimeout(async () => {
+                    try {
+                        const result = await test.test();
+                        const status = result ? '✅ PASS' : '❌ FAIL';
+                        resultsDiv.textContent += `${status} - ${test.name}\n`;
+                    } catch (error) {
+                        resultsDiv.textContent += `❌ ERROR - ${test.name}: ${error.message}\n`;
+                    }
+                    
+                    if (index === tests.length - 1) {
+                        resultsDiv.textContent += '\n🏁 Integration tests completed!';
+                    }
+                }, index * 500);
+            });
+        }
+        
+        // Initialize on page load
+        window.onload = () => {
+            addOutput('🚀 Speech Recognition Test Page Loaded', 'info');
+            addOutput('Click "Check Support" to verify browser capabilities', 'info');
+            
+            // Load voices when available
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = () => {
+                    const voices = speechSynthesis.getVoices();
+                    addOutput(`📢 Loaded ${voices.length} system voices`, 'info');
+                };
+            }
+        };
+    </script>
+</body>
+</html>

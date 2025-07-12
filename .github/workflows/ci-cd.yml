@@ -1,3 +1,9 @@
+# 🧜‍♀️ Upgraded to GitHub Actions v4 - 2025-07-12
+# 1 improvements applied
+# - Latest action versions for better performance and security
+# - Node.js 20 LTS for enhanced capabilities  
+# - Optimized caching for faster builds
+
 name: CI/CD Pipeline
 
 on:
@@ -7,7 +13,7 @@ on:
     branches: [ main, develop ]
 
 env:
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"  # Latest LTS with enhanced performance
 
 jobs:
   # Quality Gates - Must pass before builds

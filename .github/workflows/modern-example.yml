@@ -1,0 +1,77 @@
+# 🧜‍♀️ Modern RinaWarp Terminal CI/CD Example
+# This workflow demonstrates all the latest v4 improvements
+
+name: 🌊 Modern RinaWarp Build & Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+env:
+  NODE_VERSION: "20"  # Latest LTS with enhanced performance
+  CACHE_VERSION: "v2"
+
+jobs:
+  modern-build:
+    name: 🧪 Modern Build & Test Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🧜‍♀️ Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'  # Native npm caching for faster installs
+
+      - name: 🌊 Enhanced dependency caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.npm
+            .cache
+          key: ${{ runner.os }}-deps-${{ env.CACHE_VERSION }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-${{ env.CACHE_VERSION }}-
+            ${{ runner.os }}-deps-
+
+      - name: 🐚 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run linting
+        run: npm run lint
+
+      - name: 🔍 Run tests with coverage
+        run: npm test -- --coverage
+
+      - name: 🐠 Build project
+        run: npm run build
+
+      - name: 📊 Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ github.sha }}
+          path: |
+            coverage/
+            test-results.xml
+          retention-days: 7
+
+      - name: ✨ Success notification
+        if: success()
+        run: |
+          echo "🧜‍♀️ RinaWarp build completed successfully!"
+          echo "🌊 All tests passed and artifacts uploaded"
+          echo "✨ Your code is swimming in pristine waters!"
