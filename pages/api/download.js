@@ -1,41 +1,28 @@
-// Next.js API route handler
-export default function handler(req, res) {
-  console.log('🧜‍♀️ Download request received:', req.query);
-  
-  // Set CORS headers to prevent cross-origin issues
+module.exports = function handler(req, res) {
+  // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
   
-  // Determine which file to redirect to based on query parameter
-  let filename;
-  const fileType = req.query.file || req.query.platform;
+  // Get platform parameter
+  const platform = req.query.platform || req.query.file || 'windows';
   
-  switch (fileType) {
-    case 'portable':
-      filename = 'RinaWarp-Terminal-Portable-Windows.exe';
-      break;
-    case 'linux':
-      filename = 'RinaWarp-Terminal-Linux.tar.gz';
-      break;
-    case 'macos':
-      filename = 'RinaWarp-Terminal-macOS.dmg';
-      break;
-    case 'windows':
-    default:
-      filename = 'RinaWarp-Terminal-Setup-Windows.exe';
-      break;
-  }
+  // Map platform to filename
+  const fileMap = {
+    'portable': 'RinaWarp-Terminal-Portable-Windows.exe',
+    'linux': 'RinaWarp-Terminal-Linux.tar.gz', 
+    'macos': 'RinaWarp-Terminal-macOS.dmg',
+    'windows': 'RinaWarp-Terminal-Setup-Windows.exe'
+  };
   
-  // Redirect to the static file in the public folder
+  const filename = fileMap[platform] || fileMap.windows;
   const fileUrl = `/releases/${filename}`;
-  console.log(`🧜‍♀️ Redirecting to: ${fileUrl}`);
   
+  // Redirect to static file
   res.redirect(302, fileUrl);
-}
+};
