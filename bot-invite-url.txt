@@ -1,0 +1,27 @@
+🧜‍♀️ RinaWarp Terminal Bot Invite URL
+==========================================
+
+Your bot invite URL:
+https://discord.com/api/oauth2/authorize?client_id=1393604261799264459&permissions=2147600448&scope=bot%20applications.commands
+
+This URL includes these permissions:
+✅ Send Messages
+✅ Use Slash Commands  
+✅ Embed Links
+✅ Read Message History
+✅ Manage Messages
+✅ Read Messages/View Channels
+
+Instructions:
+1. Click the URL above
+2. Select your Discord server
+3. Click "Authorize"
+4. Your bot will join the server!
+
+Alternative: Manual Setup
+========================
+1. Go to Discord Developer Portal
+2. Go to OAuth2 → URL Generator
+3. Select scopes: "bot" + "applications.commands"
+4. Select permissions above
+5. Copy generated URL and visit it

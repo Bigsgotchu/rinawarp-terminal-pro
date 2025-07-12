@@ -1,8 +1,21 @@
 name: 🔥 Firebase Hosting Deploy
 
 on:
+  # Deploy only on release tags to save Actions minutes
   push:
-    branches: [main]  # Or set to deploy from a release branch
+    tags:
+      - 'v*'  # Deploy on version tags like v1.0.0
+  # Manual trigger option
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 jobs:
   firebase-deploy:
@@ -22,15 +35,26 @@ jobs:
       - name: 📁 Install dependencies
         run: npm ci
 
-      - name: 🛠️ Build app
+      - name: 🛠️ Build application
         run: npm run build
 
-      - name: 🧜‍♀️ Firebase Deploy
+      - name: 🚀 Deploy to Firebase Hosting
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           npm install -g firebase-tools
-          firebase deploy --only hosting
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "🌊 Deploying to ${{ github.event.inputs.environment }} environment"
+            firebase deploy --only hosting --project rinawarp-terminal
+          else
+            echo "🌊 Deploying production release"
+            firebase deploy --only hosting --project rinawarp-terminal
+          fi
 
       - name: ✨ Deployment Status
-        run: echo "🌊 RinaWarp is now live on Firebase Hosting!"
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "🌊 RinaWarp deployed to ${{ github.event.inputs.environment }}!"
+          else
+            echo "🌊 RinaWarp is now live on Firebase Hosting!"
+          fi
