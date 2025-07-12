@@ -1,0 +1,20 @@
+🧜‍♀️ INSTANT MERMAID THEME ACTIVATION 🧜‍♀️
+
+Copy and paste this into your browser console while on https://rinawarp-terminal.vercel.app/:
+
+document.body.className=document.body.className.replace(/\btheme-[\w-]+\b/g,'');document.body.classList.add('theme-mermaid');document.head.insertAdjacentHTML('beforeend','<style id="mermaid-theme">body.theme-mermaid{background:linear-gradient(135deg,#0a0b1e 0%,#1a0b3d 50%,#2d1b69 100%)!important;background-attachment:fixed!important}body.theme-mermaid,body.theme-mermaid *{color:#ff69b4!important}body.theme-mermaid h1,body.theme-mermaid h2,body.theme-mermaid h3{color:#ff1493!important;text-shadow:0 0 10px rgba(255,20,147,0.5)!important}body.theme-mermaid a{color:#00e5ff!important}body.theme-mermaid button,body.theme-mermaid .btn{background:linear-gradient(135deg,#ff1493,#ff69b4)!important;border:1px solid #00e5ff!important;color:#0a0b1e!important;box-shadow:0 2px 4px rgba(0,229,255,0.3)!important}body.theme-mermaid button:hover,body.theme-mermaid .btn:hover{background:linear-gradient(135deg,#00e5ff,#40e0d0)!important;transform:translateY(-1px)!important}</style>');localStorage.setItem('rinawarp-current-theme','mermaid-depths');console.log('🧜‍♀️ Mermaid theme activated!');
+
+🌊 WHAT IT DOES:
+- Removes any existing theme
+- Applies beautiful mermaid colors
+- Deep ocean blues and purples background
+- Hot pink text and cyan accents
+- Saves your preference
+- Works instantly!
+
+🚀 HOW TO USE:
+1. Go to https://rinawarp-terminal.vercel.app/
+2. Press F12 to open Developer Tools
+3. Click on the "Console" tab
+4. Paste the code above and press Enter
+5. Enjoy your mystical underwater terminal! 🐚✨
