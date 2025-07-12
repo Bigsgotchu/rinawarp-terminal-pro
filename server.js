@@ -395,6 +395,58 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Download API endpoint - redirects to GitHub releases
+app.get('/api/download', (req, res) => {
+  const { file } = req.query;
+  
+  // Map of request types to GitHub release URLs
+  const githubReleaseBaseUrl = 'https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download';
+  const allowedFiles = {
+    'rinawarp.zip': `${githubReleaseBaseUrl}/rinawarp.zip`,
+    'portable': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Portable-Windows.exe`,
+    'linux': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Linux.tar.gz`,
+    'macos': `${githubReleaseBaseUrl}/RinaWarp-Terminal-macOS.dmg`,
+    'setup': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Setup-Windows.exe`
+  };
+  
+  // Default to main installer if no file specified
+  const downloadUrl = file ? allowedFiles[file] : allowedFiles['setup'];
+  
+  if (!downloadUrl) {
+    return res.status(400).json({ 
+      error: 'Invalid file requested',
+      available: Object.keys(allowedFiles),
+      message: 'Please specify one of the available file types'
+    });
+  }
+  
+  console.log(`[DOWNLOAD] Redirecting to: ${downloadUrl}`);
+  
+  // Check if files exist locally first (for development)
+  if (process.env.NODE_ENV === 'development') {
+    const fileName = downloadUrl.split('/').pop();
+    const releasesPath = path.join(_PUBLIC_DIR, 'releases', fileName);
+    const publicPath = path.join(_PUBLIC_DIR, fileName);
+    
+    if (fs.existsSync(releasesPath)) {
+      console.log(`[DOWNLOAD] Serving local file: ${releasesPath}`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.sendFile(releasesPath);
+    } else if (fs.existsSync(publicPath)) {
+      console.log(`[DOWNLOAD] Serving local file: ${publicPath}`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.sendFile(publicPath);
+    }
+  }
+  
+  // Redirect to GitHub releases for production
+  res.redirect(302, downloadUrl);
+});
+
 // API endpoint to get Stripe configuration
 app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
   console.log('[STRIPE] Config requested');
@@ -1016,6 +1068,7 @@ app.get('/api/license-status/:licenseKey', (req, res) => {
 
   res.json(licenseData);
 });
+
 
 // Test endpoint for debugging
 app.get('/api/test', (req, res) => {

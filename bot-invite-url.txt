@@ -1,8 +1,8 @@
 🧜‍♀️ RinaWarp Terminal Bot Invite URL
 ==========================================
 
-Your bot invite URL:
-https://discord.com/api/oauth2/authorize?client_id=1393604261799264459&permissions=2147600448&scope=bot%20applications.commands
+Your bot invite URL (with invite permissions):
+https://discord.com/api/oauth2/authorize?client_id=1393604261799264459&permissions=2147600449&scope=bot%20applications.commands
 
 This URL includes these permissions:
 ✅ Send Messages

@@ -43,9 +43,9 @@
   "author": {
     "name": "RinaWarp Technologies",
     "email": "rinawarptechnologies25@gmail.com",
-    "url": "https://rinawarp-terminal.web.app"
+    "url": "https://rinawarp-terminal.vercel.app"
   },
-  "homepage": "https://rinawarp-terminal.web.app",
+  "homepage": "https://rinawarp-terminal.vercel.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/Bigsgotchu/rinawarp-terminal"
