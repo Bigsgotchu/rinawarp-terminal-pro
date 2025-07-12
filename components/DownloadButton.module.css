@@ -1,0 +1,155 @@
+.downloadContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.downloadBtn {
+  position: relative;
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+  min-width: 200px;
+}
+
+.downloadBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+  background: linear-gradient(135deg, #44a08d, #4ecdc4);
+}
+
+.downloadBtn:active {
+  transform: translateY(0);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.downloadBtn::after {
+  content: '🌊';
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: splash 2s ease-in-out infinite;
+  font-size: 18px;
+}
+
+@keyframes splash {
+  0% { 
+    right: -30px; 
+    opacity: 0; 
+    transform: translateY(-50%) scale(0.8);
+  }
+  50% { 
+    right: 20px; 
+    opacity: 1; 
+    transform: translateY(-50%) scale(1);
+  }
+  100% { 
+    right: -30px; 
+    opacity: 0; 
+    transform: translateY(-50%) scale(0.8);
+  }
+}
+
+.spinner {
+  font-size: 28px;
+  animation: spin 1.5s linear infinite, float 2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-8px); }
+}
+
+.messageBox {
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(78, 205, 196, 0.1);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  color: #2c3e50;
+  animation: fadeIn 0.3s ease-in;
+  max-width: 300px;
+  line-height: 1.4;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0);
+  }
+}
+
+/* Bubble effect for extra magic */
+.downloadBtn::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  left: 20px;
+  top: 20px;
+  animation: bubble 3s ease-in-out infinite;
+}
+
+@keyframes bubble {
+  0% { 
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  50% { 
+    transform: translateY(-10px) scale(1.2);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(-20px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .downloadBtn {
+    padding: 10px 20px;
+    font-size: 14px;
+    min-width: 180px;
+  }
+  
+  .messageBox {
+    font-size: 12px;
+    max-width: 250px;
+  }
+  
+  .spinner {
+    font-size: 24px;
+  }
+}

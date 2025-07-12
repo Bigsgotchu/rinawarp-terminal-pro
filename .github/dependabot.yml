@@ -1,0 +1,63 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "Bigsgotchu"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    # Only create PRs for security updates and important updates
+    versioning-strategy: increase-if-necessary
+    # Registry configuration for private packages
+    registries:
+      - npm-github-packages
+    
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    
+  # Security-only updates for critical dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    # Focus on security updates only
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+      - dependency-type: "indirect"
+        update-type: "security"
+    commit-message:
+      prefix: "security"
+      include: "scope"
+    reviewers:
+      - "Bigsgotchu"
+    labels:
+      - "security"
+      - "dependencies"
+    # Registry configuration for private packages
+    registries:
+      - npm-github-packages
+
+# Registry configurations for private packages
+registries:
+  npm-github-packages:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    token: ${{secrets.GH_TOKEN}}

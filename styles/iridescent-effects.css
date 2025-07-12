@@ -1,0 +1,658 @@
+/**
+ * RinaWarp Terminal - Iridescent Effects
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * This file contains shimmer, glow, and iridescent effects for buttons, cards, 
+ * and interactive elements to create dynamic user interactions.
+ * 
+ * Licensed under the MIT License.
+ * See LICENSE file for detailed terms and conditions.
+ * 
+ * Project repository: https://github.com/rinawarp/terminal
+ */
+
+/* ==========================================================================
+   Global Iridescent Variables
+   ========================================================================== */
+
+:root {
+  --iridescent-primary: linear-gradient(45deg, #ff1493, #00bfff, #ffd700, #9370db, #00ff7f);
+  --iridescent-secondary: linear-gradient(45deg, #1de9b6, #ff2e88, #a1f0e2, #1de9b6);
+  --shimmer-speed: 2s;
+  --glow-intensity: 0.4;
+  --hover-scale: 1.05;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   Shimmer Animation Keyframes
+   ========================================================================== */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes shimmerReverse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes iridescent {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 5px var(--accent-color, #00ff88),
+      0 0 10px var(--accent-color, #00ff88),
+      0 0 15px var(--accent-color, #00ff88);
+  }
+  50% {
+    box-shadow:
+      0 0 10px var(--accent-color, #00ff88),
+      0 0 20px var(--accent-color, #00ff88),
+      0 0 30px var(--accent-color, #00ff88);
+  }
+}
+
+@keyframes rainbow-border {
+  0% {
+    border-image: linear-gradient(0deg, #ff1493, #00bfff, #ffd700) 1;
+  }
+  33% {
+    border-image: linear-gradient(120deg, #00bfff, #ffd700, #9370db) 1;
+  }
+  66% {
+    border-image: linear-gradient(240deg, #ffd700, #9370db, #00ff7f) 1;
+  }
+  100% {
+    border-image: linear-gradient(360deg, #9370db, #00ff7f, #ff1493) 1;
+  }
+}
+
+/* ==========================================================================
+   Enhanced Button Styles with Iridescent Effects
+   ========================================================================== */
+
+.btn,
+.button,
+.control-btn,
+.enhance-btn,
+.quick-action-btn,
+.mode-btn,
+.panel-btn,
+.menu-btn,
+button:not(.unstyled) {
+  position: relative;
+  background: linear-gradient(135deg, #2d2d2d, #4d4d4d);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Shimmer Effect for Buttons */
+.btn::before,
+.button::before,
+.control-btn::before,
+.enhance-btn::before,
+.quick-action-btn::before,
+.mode-btn::before,
+.panel-btn::before,
+.menu-btn::before,
+button:not(.unstyled)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+  z-index: -1;
+}
+
+/* Iridescent Background for Primary Buttons */
+.btn-primary,
+.button-primary,
+.btn.primary,
+.activate-feature,
+.execute-btn {
+  background: var(--iridescent-primary);
+  background-size: 400% 400%;
+  animation: iridescent 3s ease-in-out infinite;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Hover Effects for All Buttons */
+.btn:hover,
+.button:hover,
+.control-btn:hover,
+.enhance-btn:hover,
+.quick-action-btn:hover,
+.mode-btn:hover,
+.panel-btn:hover,
+.menu-btn:hover,
+button:not(.unstyled):hover {
+  transform: translateY(-2px) scale(var(--hover-scale));
+  box-shadow:
+    0 8px 25px rgba(0, 255, 136, var(--glow-intensity)),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: rgba(0, 255, 136, 0.6);
+}
+
+.btn:hover::before,
+.button:hover::before,
+.control-btn:hover::before,
+.enhance-btn:hover::before,
+.quick-action-btn:hover::before,
+.mode-btn:hover::before,
+.panel-btn:hover::before,
+.menu-btn:hover::before,
+button:not(.unstyled):hover::before {
+  left: 100%;
+}
+
+/* Active/Pressed States */
+.btn:active,
+.button:active,
+.control-btn:active,
+.enhance-btn:active,
+.quick-action-btn:active,
+.mode-btn:active,
+.panel-btn:active,
+.menu-btn:active,
+button:not(.unstyled):active {
+  transform: translateY(0) scale(0.98);
+  box-shadow:
+    0 4px 15px rgba(0, 255, 136, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   Enhanced Card Styles with Iridescent Effects
+   ========================================================================== */
+
+.card,
+.category-card,
+.expert-feature,
+.task-card,
+.session-item,
+.notification,
+.modal-content,
+.palette-container,
+.setup-modal,
+.walkthrough-content,
+.terminal-wrapper {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+  overflow: hidden;
+}
+
+/* Iridescent Border Animation for Cards */
+.card::before,
+.category-card::before,
+.expert-feature::before,
+.task-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--iridescent-primary);
+  background-size: 400% 400%;
+  border-radius: 14px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: iridescent 4s ease-in-out infinite;
+}
+
+/* Card Hover Effects */
+.card:hover,
+.category-card:hover,
+.expert-feature:hover,
+.task-card:hover,
+.session-item:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow:
+    0 15px 35px rgba(0, 255, 136, 0.3),
+    0 5px 15px rgba(0, 0, 0, 0.3);
+  border-color: rgba(0, 255, 136, 0.5);
+}
+
+.card:hover::before,
+.category-card:hover::before,
+.expert-feature:hover::before,
+.task-card:hover::before {
+  opacity: 1;
+}
+
+/* Special Card Types */
+.card.featured,
+.card.premium,
+.expert-feature.advanced {
+  background: linear-gradient(135deg, #0a0b1e, #2d1b69, #4b0082);
+  border: 1px solid #ff1493;
+  box-shadow: 0 0 20px rgba(255, 20, 147, 0.3);
+}
+
+.card.featured::before,
+.card.premium::before,
+.expert-feature.advanced::before {
+  background: linear-gradient(45deg, #ff1493, #00bfff, #ffd700, #9370db);
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   Terminal Wrapper Enhancements
+   ========================================================================== */
+
+.terminal-wrapper {
+  position: relative;
+  background: radial-gradient(ellipse at center, #0a0a0a 0%, #1a1a1a 70%, #2a2a2a 100%);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  box-shadow:
+    inset 0 0 20px rgba(0, 255, 136, 0.1),
+    0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-wrapper::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg, #00ff88, #00bfff, #ffd700, #ff1493);
+  background-size: 400% 400%;
+  border-radius: 8px;
+  z-index: -1;
+  opacity: 0;
+  animation: iridescent 3s ease-in-out infinite;
+  transition: opacity 0.3s ease;
+}
+
+.terminal-wrapper:hover::after {
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   Notification System Enhancements
+   ========================================================================== */
+
+.notification {
+  background: linear-gradient(135deg, rgba(10, 11, 30, 0.95), rgba(26, 26, 26, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(0, 255, 136, 0.2);
+}
+
+.notification.notification-success {
+  border-left: 4px solid #00ff7f;
+  box-shadow:
+    0 8px 32px rgba(0, 255, 127, 0.3),
+    0 0 20px rgba(0, 255, 127, 0.2);
+}
+
+.notification.notification-error {
+  border-left: 4px solid #ff4757;
+  box-shadow:
+    0 8px 32px rgba(255, 71, 87, 0.3),
+    0 0 20px rgba(255, 71, 87, 0.2);
+}
+
+.notification.notification-warning {
+  border-left: 4px solid #ffd700;
+  box-shadow:
+    0 8px 32px rgba(255, 215, 0, 0.3),
+    0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.notification.notification-info {
+  border-left: 4px solid #00bfff;
+  box-shadow:
+    0 8px 32px rgba(0, 191, 255, 0.3),
+    0 0 20px rgba(0, 191, 255, 0.2);
+}
+
+/* ==========================================================================
+   Modal Enhancements
+   ========================================================================== */
+
+.modal-content,
+.palette-container,
+.setup-modal,
+.walkthrough-content {
+  background: linear-gradient(135deg, #0a0a0a, #1a1a1a, #2a2a2a);
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(40px);
+}
+
+.modal-content::before,
+.palette-container::before,
+.setup-modal::before,
+.walkthrough-content::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--iridescent-primary);
+  background-size: 400% 400%;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.3;
+  animation: iridescent 6s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Tab Enhancements
+   ========================================================================== */
+
+.tab {
+  position: relative;
+  background: linear-gradient(135deg, #2d2d2d, #3d3d3d);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: var(--transition-smooth);
+  overflow: hidden;
+}
+
+.tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.tab:hover {
+  background: linear-gradient(135deg, #3d3d3d, #4d4d4d);
+  border-color: rgba(0, 255, 136, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+  transform: translateY(-1px);
+}
+
+.tab:hover::before {
+  left: 100%;
+}
+
+.tab.active {
+  background: var(--iridescent-primary);
+  background-size: 400% 400%;
+  animation: iridescent 4s ease-in-out infinite;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+}
+
+/* ==========================================================================
+   Status Bar Enhancements
+   ========================================================================== */
+
+.status-bar {
+  background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+  border-top: 1px solid rgba(0, 255, 136, 0.3);
+  box-shadow:
+    0 -2px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.status-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Input Field Enhancements
+   ========================================================================== */
+
+input[type='text'],
+input[type='search'],
+input[type='password'],
+textarea,
+select {
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #ffffff;
+  transition: var(--transition-smooth);
+  position: relative;
+}
+
+input[type='text']:focus,
+input[type='search']:focus,
+input[type='password']:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(0, 255, 136, 0.6);
+  box-shadow:
+    0 0 0 3px rgba(0, 255, 136, 0.2),
+    0 0 20px rgba(0, 255, 136, 0.3);
+  outline: none;
+}
+
+/* ==========================================================================
+   Scrollbar Enhancements
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--iridescent-primary);
+  background-size: 400% 400%;
+  border-radius: 6px;
+  animation: iridescent 5s ease-in-out infinite;
+  border: 2px solid #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--iridescent-secondary);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+/* ==========================================================================
+   Special Effects for Theme-Specific Elements
+   ========================================================================== */
+
+/* Mermaid Theme Iridescent Enhancements */
+body.theme-mermaid .btn,
+body.theme-mermaid .card,
+body.theme-mermaid .tab {
+  background: linear-gradient(135deg, #0a0b1e, #2d1b69, #4b0082);
+  border-color: rgba(255, 20, 147, 0.5);
+}
+
+body.theme-mermaid .btn:hover,
+body.theme-mermaid .card:hover,
+body.theme-mermaid .tab:hover {
+  box-shadow:
+    0 8px 25px rgba(255, 20, 147, 0.4),
+    0 0 20px rgba(0, 229, 255, 0.3);
+  border-color: rgba(0, 229, 255, 0.7);
+}
+
+/* Website Theme Iridescent Enhancements */
+body.theme-website .btn,
+body.theme-website .card,
+body.theme-website .tab {
+  background: linear-gradient(135deg, #0d1f2d, #1a2f42, #2a4058);
+  border-color: rgba(29, 233, 182, 0.5);
+}
+
+body.theme-website .btn:hover,
+body.theme-website .card:hover,
+body.theme-website .tab:hover {
+  box-shadow:
+    0 8px 25px rgba(29, 233, 182, 0.4),
+    0 0 20px rgba(255, 46, 136, 0.3);
+  border-color: rgba(255, 46, 136, 0.7);
+}
+
+/* ==========================================================================
+   Loading and Progress Indicators
+   ========================================================================== */
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid;
+  border-image: var(--iridescent-primary) 1;
+  border-radius: 50%;
+  animation:
+    spin 1s linear infinite,
+    iridescent 3s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.progress-bar {
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  background: var(--iridescent-primary);
+  background-size: 400% 400%;
+  animation: iridescent 2s ease-in-out infinite;
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .btn,
+  .button,
+  .card {
+    transform: none !important;
+  }
+
+  .btn:hover,
+  .button:hover,
+  .card:hover {
+    transform: scale(1.02) !important;
+  }
+
+  .card:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Support
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    background-attachment: initial !important;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Mode Support
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  .btn,
+  .button,
+  .card,
+  .tab {
+    border-width: 2px;
+    border-color: #ffffff;
+  }
+
+  .btn:hover,
+  .button:hover,
+  .card:hover,
+  .tab:hover {
+    background: #ffffff;
+    color: #000000;
+  }
+}

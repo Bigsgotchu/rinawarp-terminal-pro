@@ -1,0 +1,66 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist
+build
+# Note: public and releases folders are needed for the web server
+# public
+# releases
+
+# Development and testing
+.env*
+.nyc_output
+coverage
+*.log
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git and CI/CD
+.git
+.gitignore
+.github
+.husky
+
+# Documentation
+*.md
+!package.json
+!package-lock.json
+!docs/
+docs/**/*.md
+
+# Frontend HTML files (keep for web server)
+# index.html
+# website-layout.html  
+# *.html - commented out to allow HTML files
+!docs/**/*.html
+
+# Config files (keep essential ones)
+jest.config.js
+obfuscation-config.js
+webpack.config.js
+.eslintrc*
+.prettierrc*
+babel.config.js
+gpg-keygen-batch.txt
+railway-env.txt
+
+# Scripts (exclude non-essential)
+scripts/test-*
+scripts/automation
+scripts/maintenance
+
+# Electron specific (not needed for web server)
+elektron-builder.yml

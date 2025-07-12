@@ -1,0 +1,186 @@
+name: Cleanup Old Artifacts
+
+# Restrict permissions for security - only allow artifact cleanup
+permissions:
+  actions: write  # Required to delete artifacts
+  contents: read
+
+on:
+  schedule:
+    # Run daily at 3 AM UTC to cleanup old artifacts
+    - cron: '0 3 * * *'
+  # workflow_dispatch removed to prevent unauthorized artifact deletion
+  # Only scheduled cleanup is allowed for security
+
+env:
+  # Default retention period for manual cleanup
+  DEFAULT_RETENTION_DAYS: 14
+
+jobs:
+  cleanup-artifacts:
+    name: Clean Up Old Artifacts
+    runs-on: ubuntu-latest
+    # Explicit job-level permissions for artifact cleanup
+    permissions:
+      actions: write        # Required to delete artifacts
+      contents: read        # Required to read repository content
+      metadata: read        # Required to read repository metadata
+      # No access to secrets, packages, or other sensitive operations
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+        
+      - name: Setup cleanup parameters
+        id: params
+        run: |
+          # Only scheduled execution is allowed
+          DAYS_TO_KEEP="${{ env.DEFAULT_RETENTION_DAYS }}"
+          DRY_RUN="false"
+          
+          echo "days_to_keep=$DAYS_TO_KEEP" >> $GITHUB_OUTPUT
+          echo "dry_run=$DRY_RUN" >> $GITHUB_OUTPUT
+          echo "cutoff_date=$(date -d "${DAYS_TO_KEEP} days ago" -Iseconds)" >> $GITHUB_OUTPUT
+          
+          echo "Cleanup configuration:"
+          echo "- Days to keep: $DAYS_TO_KEEP"
+          echo "- Dry run: $DRY_RUN"
+          echo "- Cutoff date: $(date -d "${DAYS_TO_KEEP} days ago" -Iseconds)"
+          
+      - name: List all artifacts
+        id: list_artifacts
+        run: |
+          echo "📋 Listing all artifacts in repository..."
+          gh api -X GET "/repos/${{ github.repository }}/actions/artifacts" \
+            --jq '.artifacts[] | {id: .id, name: .name, size_in_bytes: .size_in_bytes, created_at: .created_at}' \
+            > all_artifacts.json
+          
+          echo "Total artifacts found: $(cat all_artifacts.json | wc -l)"
+          
+          # Show current artifacts summary
+          echo ""
+          echo "## Current Artifacts Summary"
+          echo "| Name | Size (MB) | Created |"
+          echo "|------|-----------|---------|"
+          jq -r '. | "\(.name) | \((.size_in_bytes / 1048576 | floor)) | \(.created_at)"' all_artifacts.json | head -10
+          
+      - name: Identify old artifacts
+        id: identify_old
+        run: |
+          CUTOFF_DATE="${{ steps.params.outputs.cutoff_date }}"
+          
+          echo "🔍 Identifying artifacts older than $CUTOFF_DATE..."
+          
+          # Filter artifacts older than cutoff date
+          jq --arg cutoff "$CUTOFF_DATE" '
+            select(.created_at < $cutoff)
+          ' all_artifacts.json > old_artifacts.json
+          
+          OLD_COUNT=$(cat old_artifacts.json | wc -l)
+          
+          if [ "$OLD_COUNT" -eq 0 ]; then
+            echo "✅ No old artifacts found for cleanup"
+            echo "has_old_artifacts=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "has_old_artifacts=true" >> $GITHUB_OUTPUT
+          echo "old_count=$OLD_COUNT" >> $GITHUB_OUTPUT
+          
+          # Calculate total size of old artifacts
+          TOTAL_SIZE=$(jq -s 'map(.size_in_bytes) | add' old_artifacts.json)
+          TOTAL_SIZE_MB=$((TOTAL_SIZE / 1048576))
+          
+          echo "📊 Found $OLD_COUNT old artifacts (${TOTAL_SIZE_MB}MB total)"
+          echo ""
+          echo "## Artifacts to be cleaned up"
+          echo "| Name | Size (MB) | Created |"
+          echo "|------|-----------|---------|"
+          jq -r '. | "\(.name) | \((.size_in_bytes / 1048576 | floor)) | \(.created_at)"' old_artifacts.json
+          
+      - name: Delete old artifacts (dry run)
+        if: steps.identify_old.outputs.has_old_artifacts == 'true' && steps.params.outputs.dry_run == 'true'
+        run: |
+          echo "🔍 DRY RUN: Would delete the following artifacts:"
+          jq -r '.id' old_artifacts.json | while read artifact_id; do
+            ARTIFACT_INFO=$(jq -r --arg id "$artifact_id" 'select(.id == ($id | tonumber)) | "\(.name) (ID: \(.id))"' old_artifacts.json)
+            echo "  - Would delete: $ARTIFACT_INFO"
+          done
+          
+          echo ""
+          echo "::notice::Dry run complete. ${{ steps.identify_old.outputs.old_count }} artifacts would be deleted."
+          
+      - name: Delete old artifacts
+        if: steps.identify_old.outputs.has_old_artifacts == 'true' && steps.params.outputs.dry_run == 'false'
+        run: |
+          echo "🗑️  Deleting old artifacts..."
+          
+          DELETED_COUNT=0
+          FAILED_COUNT=0
+          
+          jq -r '.id' old_artifacts.json | while read artifact_id; do
+            ARTIFACT_INFO=$(jq -r --arg id "$artifact_id" 'select(.id == ($id | tonumber)) | "\(.name) (ID: \(.id))"' old_artifacts.json)
+            
+            echo "Deleting: $ARTIFACT_INFO"
+            
+            if gh api -X DELETE "/repos/${{ github.repository }}/actions/artifacts/$artifact_id"; then
+              echo "  ✅ Successfully deleted"
+              ((DELETED_COUNT++))
+            else
+              echo "  ❌ Failed to delete"
+              ((FAILED_COUNT++))
+            fi
+            
+            # Small delay to avoid rate limiting
+            sleep 1
+          done
+          
+          echo ""
+          echo "## Cleanup Summary"
+          echo "- Successfully deleted: $DELETED_COUNT artifacts"
+          echo "- Failed to delete: $FAILED_COUNT artifacts"
+          
+          if [ "$FAILED_COUNT" -gt 0 ]; then
+            echo "::warning::Some artifacts failed to delete. This may be due to rate limiting or permissions."
+          else
+            echo "::notice::All old artifacts successfully deleted! ✅"
+          fi
+          
+      - name: Post-cleanup summary
+        if: always()
+        run: |
+          echo "## 🧹 Artifact Cleanup Complete"
+          echo ""
+          echo "### Configuration"
+          echo "- Retention period: ${{ steps.params.outputs.days_to_keep }} days"
+          echo "- Cutoff date: ${{ steps.params.outputs.cutoff_date }}"
+          echo "- Dry run: ${{ steps.params.outputs.dry_run }}"
+          echo ""
+          
+          if [ "${{ steps.identify_old.outputs.has_old_artifacts }}" = "true" ]; then
+            echo "### Results"
+            echo "- Old artifacts found: ${{ steps.identify_old.outputs.old_count }}"
+            
+            if [ "${{ steps.params.outputs.dry_run }}" = "true" ]; then
+              echo "- Action taken: Listed for review (dry run)"
+            else
+              echo "- Action taken: Deleted"
+            fi
+          else
+            echo "### Results"
+            echo "- No old artifacts found for cleanup"
+          fi
+          
+          echo ""
+          echo "### Current Artifact Retention Policies"
+          echo "- Test results: 7 days"
+          echo "- Security reports: 14 days"
+          echo "- Coverage reports: 7 days"
+          echo "- Build artifacts: 14 days (7 days for nightly)"
+          echo "- Quick build artifacts: 7 days"
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

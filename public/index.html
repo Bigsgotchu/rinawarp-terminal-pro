@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+            margin-bottom: 2rem;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: #00ff88;
+            color: #1a1a2e;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+        
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .download-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .download-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .platform-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #00ff88;
+        }
+        
+        .platform-desc {
+            color: #b0b0b0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            color: #1a1a2e;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .file-size {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+        
+        .features {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .features h2 {
+            color: #00ff88;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .feature-icon {
+            color: #00ff88;
+        }
+        
+        .api-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .api-section h2 {
+            color: #00ff88;
+            margin-bottom: 1rem;
+        }
+        
+        .api-example {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .api-example code {
+            color: #00ff88;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+        }
+        
+        .footer-links {
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links a {
+            color: #00ff88;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .download-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧜‍♀️ RinaWarp Terminal</h1>
+            <p class="subtitle">The Advanced Terminal Emulator with AI Magic</p>
+            <div class="version-badge">v1.0.7 Beta</div>
+        </header>
+        
+        <div class="download-grid">
+            <div class="download-card">
+                <div class="platform-icon">🪟</div>
+                <h3 class="platform-title">Windows</h3>
+                <p class="platform-desc">Full installer with all features</p>
+                <a href="/RinaWarp-Terminal-Setup-Windows.exe" class="download-btn">Download Installer</a>
+                <div class="file-size">~45MB | Windows 10/11</div>
+            </div>
+            
+            <div class="download-card">
+                <div class="platform-icon">💼</div>
+                <h3 class="platform-title">Windows Portable</h3>
+                <p class="platform-desc">No installation required</p>
+                <a href="/RinaWarp-Terminal-Portable-Windows.exe" class="download-btn">Download Portable</a>
+                <div class="file-size">~35MB | Run from USB</div>
+            </div>
+            
+            <div class="download-card">
+                <div class="platform-icon">🐧</div>
+                <h3 class="platform-title">Linux</h3>
+                <p class="platform-desc">Universal tarball for all distros</p>
+                <a href="/RinaWarp-Terminal-Linux.tar.gz" class="download-btn">Download Archive</a>
+                <div class="file-size">~40MB | Ubuntu/Debian/Arch</div>
+            </div>
+            
+            <div class="download-card">
+                <div class="platform-icon">🍎</div>
+                <h3 class="platform-title">macOS</h3>
+                <p class="platform-desc">Notarized disk image</p>
+                <a href="/RinaWarp-Terminal-macOS.dmg" class="download-btn">Download DMG</a>
+                <div class="file-size">~50MB | macOS 11+</div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2>✨ What's Included</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <span class="feature-icon">🤖</span>
+                    <span>AI Assistant Integration</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎨</span>
+                    <span>Beautiful Themes</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔊</span>
+                    <span>Voice Control</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔐</span>
+                    <span>Enterprise Security</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">☁️</span>
+                    <span>Cloud Sync</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🚀</span>
+                    <span>Lightning Fast</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h2>🔧 API Download Endpoint</h2>
+            <p>You can also download files programmatically using our API:</p>
+            <div class="api-example">
+                <code>curl -L "https://rinawarp-terminal.vercel.app/api/download?file=rinawarp.zip" -o rinawarp.zip</code>
+            </div>
+            <p>Available files: <code>rinawarp.zip</code>, <code>RinaWarp-Terminal-Setup-Windows.exe</code>, 
+               <code>RinaWarp-Terminal-Linux.tar.gz</code>, <code>RinaWarp-Terminal-macOS.dmg</code></p>
+        </div>
+        
+        <footer>
+            <div class="footer-links">
+                <a href="/pricing">Pricing</a>
+                <a href="/beta">Beta Program</a>
+                <a href="mailto:support@rinawarp.com">Support</a>
+                <a href="https://github.com/Bigsgotchu/rinawarp-terminal">GitHub</a>
+            </div>
+            <p>&copy; 2025 RinaWarp Technologies. All rights reserved.</p>
+            <p>Made with 💙 by developers, for developers</p>
+        </footer>
+    </div>
+</body>
+</html>

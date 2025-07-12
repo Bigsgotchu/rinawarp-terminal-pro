@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal Downloads 🧜‍♀️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1e3a8a 100%);
+            min-height: 100vh;
+            color: #e6f7ff;
+            overflow-x: hidden;
+        }
+
+        .ocean-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 150, 255, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ffff, #0080ff, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #64b5f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #b3d9ff;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .downloads-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .download-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: rotate 4s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .download-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .download-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .download-title {
+            font-size: 1.5rem;
+            color: #00ffff;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .download-description {
+            color: #b3d9ff;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            color: #0a192f;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 255, 255, 0.4);
+            background: linear-gradient(45deg, #00ccff, #0066ff);
+        }
+
+        .download-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #64b5f6;
+        }
+
+        .features-section {
+            margin-top: 4rem;
+            text-align: center;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .features-title {
+            font-size: 2rem;
+            color: #00ffff;
+            margin-bottom: 2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.4);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-name {
+            font-size: 1.2rem;
+            color: #00ffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: #b3d9ff;
+            font-size: 0.9rem;
+        }
+
+        .rina-quote {
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 4px solid #00ffff;
+            padding: 1.5rem;
+            margin: 3rem 0;
+            border-radius: 10px;
+            font-style: italic;
+            text-align: center;
+            animation: fadeInUp 1s ease-out 0.9s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: #64b5f6;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .download-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ocean-bg"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="logo">🧜‍♀️ RinaWarp Terminal</div>
+            <div class="subtitle">AI-Powered Voice Terminal with Mermaid Magic</div>
+            <div class="description">
+                Meet Rina, your sassy AI mermaid assistant! Experience the future of terminal interaction with advanced voice recognition, personality-driven responses, and oceanic elegance.
+            </div>
+        </div>
+
+        <div class="downloads-section">
+            <div class="download-card">
+                <div class="download-icon">🏗️</div>
+                <div class="download-title">Full Installer</div>
+                <div class="download-description">
+                    Complete installation with all features, automatic updates, and desktop integration. Perfect for permanent installation.
+                </div>
+                <a href="/releases/RinaWarp-Terminal-Setup-Windows.exe" class="download-btn">
+                    Download Installer
+                </a>
+                <div class="download-info">
+                    <span>Windows 10+</span>
+                    <span>~87 MB</span>
+                </div>
+            </div>
+
+            <div class="download-card">
+                <div class="download-icon">🎒</div>
+                <div class="download-title">Portable Version</div>
+                <div class="download-description">
+                    No installation required! Run directly from any folder or USB drive. Perfect for testing or portable use.
+                </div>
+                <a href="/releases/RinaWarp-Terminal-Portable-Windows.exe" class="download-btn">
+                    Download Portable
+                </a>
+                <div class="download-info">
+                    <span>Windows 10+</span>
+                    <span>~86 MB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="rina-quote">
+            <p>🧜‍♀️ <em>"Ready to dive into the future of terminal interaction? I'm here to make your computing experience as smooth as sea silk and twice as magical!"</em></p>
+            <p><strong>- Rina, Your AI Mermaid Assistant</strong></p>
+        </div>
+
+        <div class="features-section">
+            <div class="features-title">🌊 Features That Make Waves</div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <div class="feature-name">Advanced Voice Recognition</div>
+                    <div class="feature-description">Multi-provider voice input with offline support via Vosk, Web Speech API, and keyboard fallback</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <div class="feature-name">AI Personality Engine</div>
+                    <div class="feature-description">Dynamic, context-aware responses with mood-based interactions and learning capabilities</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-name">Oceanic UI Theme</div>
+                    <div class="feature-description">Beautiful mermaid-inspired interface with animated backgrounds and responsive design</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-name">Modern Audio Processing</div>
+                    <div class="feature-description">AudioWorklet-powered real-time audio processing with voice activity detection</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <div class="feature-name">Smart Command Handling</div>
+                    <div class="feature-description">Intelligent command prediction, auto-completion, and context-aware suggestions</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-name">Session Analytics</div>
+                    <div class="feature-description">Track your productivity with detailed session statistics and usage patterns</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🌊 Built with love and oceanic magic • Version 1.0.7 • © 2025 RinaWarp Terminal</p>
+            <p>For support or feedback, dive into our documentation or reach out to the development team!</p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive magic
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Add download analytics or tracking here if needed
+                console.log('🧜‍♀️ Download started:', this.href);
+            });
+        });
+
+        // Animated particles for extra ocean effect
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.style.position = 'fixed';
+            bubble.style.left = Math.random() * 100 + '%';
+            bubble.style.width = Math.random() * 10 + 5 + 'px';
+            bubble.style.height = bubble.style.width;
+            bubble.style.background = 'rgba(0, 255, 255, 0.3)';
+            bubble.style.borderRadius = '50%';
+            bubble.style.bottom = '-50px';
+            bubble.style.animation = `bubble-rise ${Math.random() * 3 + 2}s linear`;
+            bubble.style.pointerEvents = 'none';
+            bubble.style.zIndex = '0';
+            
+            document.body.appendChild(bubble);
+            
+            setTimeout(() => {
+                bubble.remove();
+            }, 5000);
+        }
+
+        // Add bubble animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bubble-rise {
+                to {
+                    transform: translateY(-100vh);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Create bubbles periodically
+        setInterval(createBubble, 3000);
+    </script>
+</body>
+</html>

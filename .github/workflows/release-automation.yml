@@ -1,0 +1,240 @@
+name: Release Automation
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: "18"
+
+jobs:
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Validate directory structure
+      run: |
+        echo "🔍 Validating directory structure for release..."
+        
+        # Check for essential directories
+        directories=("src" "public" "styles" "scripts" "tests" "docs" "docs/guides" "build" "releases" "reports")
+        
+        for dir in "${directories[@]}"; do
+          if [ ! -d "$dir" ]; then
+            echo "❌ Missing directory: $dir"
+            exit 1
+          else
+            echo "✅ Found directory: $dir"
+          fi
+        done
+        
+    - name: Validate documentation
+      run: |
+        echo "📚 Validating documentation..."
+        
+        # Check for essential documentation
+        docs=("README.md" "CONTRIBUTING.md" "docs/guides/QUICKSTART.md" "docs/guides/SETUP.md" "docs/guides/INSTALL.md" "docs/API.md")
+        
+        for doc in "${docs[@]}"; do
+          if [ ! -f "$doc" ]; then
+            echo "❌ Missing documentation: $doc"
+            exit 1
+          else
+            echo "✅ Found documentation: $doc"
+          fi
+        done
+        
+    - name: Validate package.json
+      run: |
+        echo "📦 Validating package.json..."
+        
+        # Extract version from tag
+        TAG=${GITHUB_REF#refs/tags/}
+        VERSION=${TAG#v}
+        
+        # Check if package.json version matches tag
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        
+        if [ "$PACKAGE_VERSION" != "$VERSION" ]; then
+          echo "❌ Version mismatch: package.json has $PACKAGE_VERSION but tag is $VERSION"
+          exit 1
+        else
+          echo "✅ Version matches: $VERSION"
+        fi
+
+  build-release:
+    name: Build Release
+    runs-on: ${{ matrix.os }}
+    needs: validate-release
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Run security audit
+      run: npm audit --audit-level=moderate
+      
+    - name: Copy assets
+      run: npm run copy-assets
+      
+    - name: Build CSS
+      run: npm run build:css
+      
+    - name: Build application
+      run: npm run build
+      env:
+        CI: true
+        
+    - name: Create release directory
+      run: |
+        mkdir -p releases
+        echo "Release built on $(date)" > releases/build-info.txt
+        echo "OS: ${{ matrix.os }}" >> releases/build-info.txt
+        echo "Node: ${{ env.NODE_VERSION }}" >> releases/build-info.txt
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-${{ matrix.os }}
+        path: |
+          dist/
+          releases/
+        retention-days: 30
+
+  publish-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: build-release
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts/
+        
+    - name: Extract version
+      id: version
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+        VERSION=${TAG#v}
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Generate changelog
+      run: |
+        echo "# Release Notes for ${{ steps.version.outputs.tag }}" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "## What's New" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        
+        # Extract commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -n "$LAST_TAG" ]; then
+          echo "### Changes since $LAST_TAG" >> RELEASE_NOTES.md
+          git log --oneline $LAST_TAG..HEAD --pretty=format:"- %s" >> RELEASE_NOTES.md
+        else
+          echo "### Initial Release" >> RELEASE_NOTES.md
+          echo "- First release of RinaWarp Terminal" >> RELEASE_NOTES.md
+        fi
+        
+        echo "" >> RELEASE_NOTES.md
+        echo "## Installation" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "Please see the [Installation Guide](docs/guides/INSTALL.md) for detailed instructions." >> RELEASE_NOTES.md
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: RinaWarp Terminal ${{ steps.version.outputs.version }}
+        body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
+        files: |
+          artifacts/*/dist/*
+          artifacts/*/releases/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Update releases directory
+      run: |
+        echo "📦 Updating releases directory..."
+        
+        # Copy artifacts to releases directory
+        cp -r artifacts/*/dist/* releases/ 2>/dev/null || true
+        cp -r artifacts/*/releases/* releases/ 2>/dev/null || true
+        
+        # Create release manifest
+        echo "{\n  \"version\": \"${{ steps.version.outputs.version }}\",\n  \"tag\": \"${{ steps.version.outputs.tag }}\",\n  \"date\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\n  \"files\": [\n" > releases/manifest.json
+        
+        # List all files in releases directory
+        find releases -type f -name "*.exe" -o -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" | while read file; do
+          echo "    \"$(basename $file)\"," >> releases/manifest.json
+        done
+        
+        # Close JSON array (remove last comma)
+        sed -i '$s/,$//' releases/manifest.json
+        echo "  ]\n}" >> releases/manifest.json
+        
+    - name: Commit and push release files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add releases/
+        git commit -m "Update releases directory for ${{ steps.version.outputs.tag }}" || exit 0
+        git push || exit 0
+
+  notify-release:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [validate-release, build-release, publish-release]
+    if: always()
+    
+    steps:
+    - name: Notify on success
+      if: needs.publish-release.result == 'success'
+      run: |
+        echo "🎉 Release published successfully!"
+        echo "✅ Validation: ${{ needs.validate-release.result }}"
+        echo "✅ Build: ${{ needs.build-release.result }}"
+        echo "✅ Publish: ${{ needs.publish-release.result }}"
+        
+    - name: Notify on failure
+      if: needs.validate-release.result == 'failure' || needs.build-release.result == 'failure' || needs.publish-release.result == 'failure'
+      run: |
+        echo "❌ Release failed!"
+        echo "Validation: ${{ needs.validate-release.result }}"
+        echo "Build: ${{ needs.build-release.result }}"
+        echo "Publish: ${{ needs.publish-release.result }}"
+        exit 1
+
