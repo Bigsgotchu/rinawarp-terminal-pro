@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="80" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="rinaGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00FF88;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00AAFF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="warpGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00AAFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8A2BE2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Terminal cursor symbol -->
+  <rect x="10" y="25" width="3" height="30" fill="#00FF88" rx="1">
+    <animate attributeName="opacity" values="1;0;1" dur="1.5s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- Warp effect lines -->
+  <g opacity="0.6">
+    <line x1="20" y1="30" x2="35" y2="30" stroke="#00AAFF" stroke-width="1" opacity="0.8"/>
+    <line x1="20" y1="40" x2="40" y2="40" stroke="#00AAFF" stroke-width="1" opacity="0.6"/>
+    <line x1="20" y1="50" x2="35" y2="50" stroke="#00AAFF" stroke-width="1" opacity="0.4"/>
+  </g>
+  
+  <!-- RinaWarp Text -->
+  <text x="50" y="50" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="url(#rinaGradient)">Rina</text>
+  <text x="140" y="50" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="url(#warpGradient)">Warp</text>
+  
+  <!-- Terminal subtitle -->
+  <text x="50" y="68" font-family="Arial, sans-serif" font-size="12" fill="#888888">Terminal</text>
+  
+  <!-- AI indicator -->
+  <circle cx="270" cy="30" r="8" fill="none" stroke="#8A2BE2" stroke-width="2" opacity="0.7">
+    <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.7;0.3;0.7" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="270" cy="30" r="3" fill="#8A2BE2"/>
+  <text x="258" y="55" font-family="Arial, sans-serif" font-size="8" fill="#8A2BE2">AI</text>
+</svg>
+

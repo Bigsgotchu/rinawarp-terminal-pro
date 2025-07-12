@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "voices": [
+    {
+      "name": "creator_voice",
+      "displayName": "RinaWarp Creator Voice",
+      "version": "1.0.0",
+      "createdAt": "2025-06-30T11:19:55.370Z",
+      "format": "webm",
+      "sampleRate": 16000,
+      "channelCount": 1,
+      "duration": 26.22,
+      "checksum": "45",
+      "isDefault": true,
+      "isBuiltIn": true,
+      "description": "Official RinaWarp Terminal voice by the creator"
+    }
+  ],
+  "defaultVoice": "creator_voice",
+  "lastUpdated": "2025-06-30T11:19:55.409Z"
+}

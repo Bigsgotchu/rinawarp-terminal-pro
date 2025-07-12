@@ -1,0 +1,53 @@
+{
+  "generated": "2025-07-08T14:22:08.497Z",
+  "assets": [
+    {
+      "name": "xterm.js",
+      "path": "public/vendor/xterm/xterm.js",
+      "source": "@xterm/xterm/lib/xterm.js",
+      "required": true
+    },
+    {
+      "name": "xterm.css",
+      "path": "public/vendor/xterm/xterm.css",
+      "source": "@xterm/xterm/css/xterm.css",
+      "required": true
+    },
+    {
+      "name": "addon-fit.js",
+      "path": "public/vendor/xterm/addon-fit.js",
+      "source": "@xterm/addon-fit/lib/addon-fit.js",
+      "required": false
+    },
+    {
+      "name": "addon-web-links.js",
+      "path": "public/vendor/xterm/addon-web-links.js",
+      "source": "@xterm/addon-web-links/lib/addon-web-links.js",
+      "required": false
+    },
+    {
+      "name": "all.min.css",
+      "path": "public/vendor/fontawesome/css/all.min.css",
+      "source": "@fortawesome/fontawesome-free/css/all.min.css",
+      "required": false
+    },
+    {
+      "name": "prism.js",
+      "path": "public/vendor/prism/prism.js",
+      "source": "prismjs/prism.js",
+      "required": false
+    },
+    {
+      "name": "prism.css",
+      "path": "public/vendor/prism/themes/prism.css",
+      "source": "prismjs/themes/prism.css",
+      "required": false
+    },
+    {
+      "name": "prism-dark.css",
+      "path": "public/vendor/prism/themes/prism-dark.css",
+      "source": "prismjs/themes/prism-dark.css",
+      "required": false
+    }
+  ]
+}

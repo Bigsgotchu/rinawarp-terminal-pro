@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
+    <title>🧜‍♀️ RinaWarp Terminal - Mermaid Edition</title>
+    <style>
+        /* Mermaid Theme Variables */
+        :root {
+            --mermaid-teal: #008B8B;
+            --mermaid-hotpink: #FF1493;
+            --mermaid-blue: #00AAFF;
+            --mermaid-pearl: #F8F8FF;
+            --mermaid-seafoam: #00FF88;
+            --mermaid-purple: #8A2BE2;
+            --mermaid-deepblue: #0a0b1e;
+            --mermaid-coral: #FF7F50;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--mermaid-deepblue) 0%, #1a0b3d 50%, #2d1b69 100%);
+            color: var(--mermaid-pearl);
+            font-family: 'Consolas', 'Courier New', monospace;
+            min-height: 100vh;
+            background-attachment: fixed;
+            animation: subtleWave 6s ease-in-out infinite;
+        }
+        
+        @keyframes subtleWave {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--mermaid-teal), var(--mermaid-purple));
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(255, 20, 147, 0.3), inset 0 0 20px rgba(0, 229, 255, 0.1);
+            border: 2px solid var(--mermaid-hotpink);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--mermaid-hotpink), var(--mermaid-blue), var(--mermaid-teal), var(--mermaid-coral));
+            border-radius: 17px;
+            z-index: -1;
+            animation: shimmer 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes shimmer {
+            0% { opacity: 0.5; filter: blur(3px); }
+            100% { opacity: 0.8; filter: blur(1px); }
+        }
+        
+        .header h1 {
+            color: var(--mermaid-pearl);
+            text-shadow: 0 0 20px var(--mermaid-hotpink), 0 0 30px var(--mermaid-blue);
+            font-size: 2.2em;
+            margin: 0;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 10px var(--mermaid-hotpink); }
+            100% { text-shadow: 0 0 20px var(--mermaid-hotpink), 0 0 30px var(--mermaid-blue); }
+        }
+        
+        .status {
+            margin: 15px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.2), rgba(0, 229, 255, 0.2));
+            border-radius: 10px;
+            border: 1px solid var(--mermaid-hotpink);
+            color: var(--mermaid-seafoam);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .terminal-container {
+            background: radial-gradient(ellipse at center, var(--mermaid-deepblue) 0%, #1a0b3d 70%, #2d1b69 100%);
+            border: 2px solid var(--mermaid-hotpink);
+            border-radius: 15px;
+            height: 500px;
+            padding: 15px;
+            box-shadow: inset 0 0 20px rgba(255, 20, 147, 0.1), 0 0 20px rgba(0, 229, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal-container::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--mermaid-hotpink), var(--mermaid-blue), var(--mermaid-teal), var(--mermaid-coral));
+            border-radius: 17px;
+            z-index: -1;
+            animation: terminalGlow 4s ease-in-out infinite alternate;
+        }
+        
+        @keyframes terminalGlow {
+            0% { opacity: 0.3; filter: blur(2px); }
+            100% { opacity: 0.6; filter: blur(1px); }
+        }
+        
+        #terminal {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+        
+        .controls {
+            margin: 25px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--mermaid-hotpink), var(--mermaid-coral));
+            color: var(--mermaid-pearl);
+            border: 2px solid var(--mermaid-blue);
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.3);
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, var(--mermaid-blue), var(--mermaid-teal));
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 229, 255, 0.4);
+            border-color: var(--mermaid-hotpink);
+        }
+        
+        .ai-section {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.3), rgba(255, 20, 147, 0.2));
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 15px;
+            border: 2px solid var(--mermaid-purple);
+            box-shadow: 0 8px 32px rgba(138, 43, 226, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ai-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.1), transparent);
+            animation: aiShimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes aiShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .ai-section h3 {
+            color: var(--mermaid-blue);
+            text-shadow: 0 0 15px rgba(0, 170, 255, 0.7);
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        input[type="text"] {
+            background: linear-gradient(135deg, rgba(10, 11, 30, 0.8), rgba(45, 27, 105, 0.6));
+            color: var(--mermaid-seafoam);
+            border: 2px solid var(--mermaid-hotpink);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 500px;
+            font-size: 16px;
+            box-shadow: inset 0 2px 10px rgba(255, 20, 147, 0.2), 0 0 15px rgba(0, 229, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--mermaid-blue);
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.6);
+            transform: scale(1.02);
+        }
+        
+        #aiResponse {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--mermaid-seafoam);
+            border-radius: 10px;
+            color: var(--mermaid-seafoam);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            min-height: 20px;
+        }
+        
+        .suggestions {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .suggestion-btn {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(255, 20, 147, 0.3));
+            color: var(--mermaid-pearl);
+            border: 1px solid var(--mermaid-blue);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .suggestion-btn:hover {
+            background: linear-gradient(135deg, var(--mermaid-blue), var(--mermaid-hotpink));
+            transform: translateY(-2px);
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: linear-gradient(135deg, var(--mermaid-deepblue), #2d1b69);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--mermaid-hotpink), var(--mermaid-blue));
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 229, 255, 0.3);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--mermaid-blue), var(--mermaid-teal));
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧜‍♀️ RinaWarp Terminal - Mermaid Edition ✨</h1>
+        <div class="status" id="status">🌊 Diving into the digital ocean...</div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="startVoiceControl()">🎤 Start Voice Control</button>
+        <button onclick="showAIHelp()">🤖 AI Help</button>
+        <button onclick="runCommand()">⚡ Run Command</button>
+        <button onclick="clearTerminal()">🗑️ Clear</button>
+    </div>
+    
+    <div class="ai-section">
+        <h3>🧜‍♀️ Rina - Your Sassy AI Mermaid Assistant</h3>
+        <p>🌊 Dive deep with natural language commands - I speak fluent human AND code! 💅</p>
+        <input type="text" id="aiInput" placeholder="✨ Try: 'show me the goods', 'what's cooking?', 'git me outta here'" />
+        <div class="suggestions">
+            <button class="suggestion-btn" onclick="quickCommand('list files')">📁 Show Files</button>
+            <button class="suggestion-btn" onclick="quickCommand('git status')">📊 Git Status</button>
+            <button class="suggestion-btn" onclick="quickCommand('system info')">💻 System Info</button>
+            <button class="suggestion-btn" onclick="quickCommand('network info')">🌐 Network</button>
+            <button class="suggestion-btn" onclick="quickCommand('running processes')">⚡ Processes</button>
+            <button class="suggestion-btn" onclick="quickCommand('disk space')">💾 Disk Space</button>
+        </div>
+        <button onclick="processAICommand()">🚀 Execute</button>
+        <div id="aiResponse"></div>
+    </div>
+    
+    <div class="terminal-container">
+        <div id="terminal"></div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const { Terminal } = require('@xterm/xterm');
+        const { FitAddon } = require('@xterm/addon-fit');
+        const { spawn } = require('child_process');
+        
+        let terminal;
+        let shellProcess;
+        let isVoiceActive = false;
+        
+        // Enhanced Natural Language Processor with Personality
+        const nlp = {
+            // File Operations
+            'list files': 'Get-ChildItem',
+            'show files': 'Get-ChildItem', 
+            'show me the goods': 'Get-ChildItem -Force',
+            'what\'s in here': 'Get-ChildItem',
+            'peek inside': 'Get-ChildItem',
+            'list all files': 'Get-ChildItem -Force -Recurse',
+            'show everything': 'Get-ChildItem -Force -Recurse',
+            'deep dive': 'Get-ChildItem -Force -Recurse',
+            'show hidden files': 'Get-ChildItem -Force',
+            'reveal secrets': 'Get-ChildItem -Force -Hidden',
+
+            // Navigation
+            'current directory': 'Get-Location',
+            'where am i': 'Get-Location',
+            'location check': 'Get-Location',
+            'show directory': 'pwd',
+            'what\'s cooking': 'Get-Location',
+            'my coordinates': 'Get-Location',
+            'where in the world': 'Get-Location',
+
+            // File Management
+            'create folder': 'New-Item -ItemType Directory -Name',
+            'make directory': 'New-Item -ItemType Directory -Name',
+            'new folder': 'New-Item -ItemType Directory -Name',
+            'build nest': 'New-Item -ItemType Directory -Name',
+            'create file': 'New-Item -ItemType File -Name',
+            'touch file': 'New-Item -ItemType File -Name',
+            'delete file': 'Remove-Item',
+            'remove file': 'Remove-Item',
+            'trash it': 'Remove-Item',
+            'bye bye file': 'Remove-Item -Confirm',
+            'copy file': 'Copy-Item',
+            'duplicate': 'Copy-Item',
+            'clone it': 'Copy-Item',
+            'move file': 'Move-Item',
+            'relocate': 'Move-Item',
+            'shuffle files': 'Move-Item',
+
+            // System Information
+            'system info': 'Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, TotalPhysicalMemory',
+            'computer details': 'Get-ComputerInfo',
+            'machine specs': 'Get-WmiObject -Class Win32_ComputerSystem',
+            'hardware info': 'Get-WmiObject -Class Win32_ComputerSystem',
+            'tell me about this machine': 'systeminfo',
+            'system status': 'Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, TotalPhysicalMemory',
+
+            // Process Management
+            'show processes': 'Get-Process',
+            'running processes': 'Get-Process | Sort-Object CPU -Descending | Select-Object -First 10',
+            'what\'s running': 'Get-Process',
+            'busy processes': 'Get-Process | Sort-Object CPU -Descending | Select-Object -First 10',
+            'cpu hogs': 'Get-Process | Sort-Object CPU -Descending | Select-Object -First 5',
+            'memory usage': 'Get-Process | Sort-Object WorkingSet -Descending | Select-Object -First 10',
+            'top processes': 'Get-Process | Sort-Object CPU -Descending | Select-Object -First 10',
+
+            // Network Operations
+            'network info': 'Get-NetAdapter | Where-Object Status -eq "Up"',
+            'ip address': 'Get-NetIPAddress -AddressFamily IPv4 | Where-Object IPAddress -ne "127.0.0.1"',
+            'my ip': 'Get-NetIPAddress -AddressFamily IPv4 | Where-Object IPAddress -ne "127.0.0.1"',
+            'network status': 'Get-NetAdapter',
+            'wifi info': 'netsh wlan show profiles',
+            'connection status': 'Test-NetConnection -ComputerName google.com',
+            'ping google': 'Test-NetConnection -ComputerName google.com',
+            'internet check': 'Test-NetConnection -ComputerName 8.8.8.8',
+
+            // Git Operations
+            'git status': 'git status',
+            'git me outta here': 'git status',
+            'repo status': 'git status --porcelain',
+            'what changed': 'git status',
+            'git add all': 'git add .',
+            'stage everything': 'git add .',
+            'add all files': 'git add .',
+            'git commit': 'git commit -m',
+            'save changes': 'git commit -m',
+            'commit changes': 'git commit -m',
+            'git push': 'git push',
+            'push it': 'git push',
+            'send it up': 'git push',
+            'git pull': 'git pull',
+            'pull changes': 'git pull',
+            'sync up': 'git pull',
+            'git log': 'git log --oneline -10',
+            'show history': 'git log --oneline -10',
+            'recent commits': 'git log --oneline -10',
+            'git branch': 'git branch',
+            'show branches': 'git branch -a',
+            'all branches': 'git branch -a',
+
+            // Package Management
+            'install package': 'npm install',
+            'npm install': 'npm install',
+            'add dependency': 'npm install',
+            'run tests': 'npm test',
+            'test it': 'npm test',
+            'check tests': 'npm test',
+            'start server': 'npm start',
+            'boot it up': 'npm start',
+            'fire it up': 'npm start',
+            'npm run dev': 'npm run dev',
+            'dev mode': 'npm run dev',
+            'development': 'npm run dev',
+            'build project': 'npm run build',
+            'compile it': 'npm run build',
+            'package info': 'npm list --depth=0',
+            'dependencies': 'npm list --depth=0',
+
+            // Disk Operations
+            'disk space': 'Get-WmiObject -Class Win32_LogicalDisk | Select-Object DeviceID, @{Name="Size(GB)";Expression={[math]::Round($_.Size/1GB,2)}}, @{Name="FreeSpace(GB)";Expression={[math]::Round($_.FreeSpace/1GB,2)}}',
+            'free space': 'Get-WmiObject -Class Win32_LogicalDisk | Select-Object DeviceID, @{Name="FreeSpace(GB)";Expression={[math]::Round($_.FreeSpace/1GB,2)}}',
+            'storage info': 'Get-WmiObject -Class Win32_LogicalDisk',
+            'drive info': 'Get-WmiObject -Class Win32_LogicalDisk',
+            'how much space': 'Get-WmiObject -Class Win32_LogicalDisk | Select-Object DeviceID, @{Name="FreeSpace(GB)";Expression={[math]::Round($_.FreeSpace/1GB,2)}}',
+
+            // PowerShell Specific
+            'powershell version': '$PSVersionTable',
+            'ps version': '$PSVersionTable.PSVersion',
+            'execution policy': 'Get-ExecutionPolicy',
+            'modules': 'Get-Module -ListAvailable',
+            'installed modules': 'Get-Module',
+            'command history': 'Get-History',
+            'my history': 'Get-History | Select-Object -Last 10',
+            'recent commands': 'Get-History | Select-Object -Last 10',
+
+            // Fun Commands
+            'make me coffee': 'Write-Host "☕ I\'d love to, but I\'m just code... Try a coffee shop! 😘" -ForegroundColor Magenta',
+            'tell me a joke': 'Write-Host "Why do programmers prefer dark mode? Because light attracts bugs! 🐛✨" -ForegroundColor Cyan',
+            'compliment me': 'Write-Host "You\'re absolutely coding gorgeous today! 💅✨" -ForegroundColor Magenta',
+            'how are you': 'Write-Host "Fabulous as always, darling! Ready to dive deep into some code? 🧜‍♀️💻" -ForegroundColor Cyan',
+            'good morning': 'Write-Host "Good morning, beautiful! Ready to make some digital magic? ✨🌊" -ForegroundColor Magenta',
+            'good night': 'Write-Host "Sweet dreams, code warrior! Don\'t let the bugs bite! 🌙💫" -ForegroundColor Cyan'
+        };
+
+        // Sassy response generator
+        const sassyResponses = {
+            unknown: [
+                "🤔 Hmm, that\'s not in my repertoire, sugar. Try something else!",
+                "💅 Sorry babe, I don\'t speak that dialect. Want to try again?",
+                "🧜‍♀️ That\'s deeper than the Mariana Trench... can you rephrase?",
+                "✨ I\'m smart, but not THAT smart. Give me something I can work with!",
+                "🌊 That went right over my digital head. Try a different wave?"
+            ],
+            success: [
+                "💫 There you go, gorgeous! Command executed with style!",
+                "✨ Boom! Done and dusted, just how you like it!",
+                "🚀 Executed flawlessly, as expected from yours truly!",
+                "🧜‍♀️ That\'s how we do it in the digital ocean!",
+                "💅 Perfection achieved, darling!"
+            ],
+            error: [
+                "🙈 Oops! Something went a bit sideways there...",
+                "😅 Well, that didn\'t go as planned. My bad!",
+                "🤷‍♀️ Houston, we have a problem... but we\'ll figure it out!",
+                "💔 That broke my digital heart a little. Let\'s try again?",
+                "🌊 That wave crashed harder than expected!"
+            ]
+        };
+
+        function getRandomResponse(type) {
+            const responses = sassyResponses[type];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        async function initTerminal() {
+            updateStatus('Creating terminal...');
+            
+            terminal = new Terminal({
+                fontFamily: 'Consolas, "Courier New", monospace',
+                fontSize: 14,
+                cursorBlink: true,
+                theme: {
+                    background: '#000000',
+                    foreground: '#ffffff',
+                    cursor: '#ffffff'
+                }
+            });
+            
+            const fitAddon = new FitAddon();
+            terminal.loadAddon(fitAddon);
+            
+            terminal.open(document.getElementById('terminal'));
+            fitAddon.fit();
+            
+            updateStatus('Starting PowerShell...');
+            
+            // Start PowerShell
+            try {
+                shellProcess = spawn('pwsh.exe', ['-NoLogo'], {
+                    stdio: ['pipe', 'pipe', 'pipe'],
+                    cwd: process.cwd()
+                });
+                
+                shellProcess.stdout.on('data', (data) => {
+                    terminal.write(data.toString());
+                });
+                
+                shellProcess.stderr.on('data', (data) => {
+                    terminal.write(data.toString());
+                });
+                
+                terminal.onData((data) => {
+                    if (shellProcess && shellProcess.stdin) {
+                        shellProcess.stdin.write(data);
+                    }
+                });
+                
+                shellProcess.on('spawn', () => {
+                    updateStatus('✅ Terminal ready! You can type commands or use AI assistance.');
+                    terminal.write('\\r\\n🚀 RinaWarp Terminal Ready!\\r\\n');
+                    terminal.write('💡 Try the AI features above or type PowerShell commands\\r\\n\\r\\n');
+                });
+                
+                shellProcess.on('error', (error) => {
+                    updateStatus(`❌ Shell error: ${error.message}`);
+                });
+                
+            } catch (error) {
+                updateStatus(`❌ Failed to start shell: ${error.message}`);
+                terminal.write('\\r\\n❌ Failed to start PowerShell. You can still use the AI features above.\\r\\n');
+            }
+            
+            // Focus terminal
+            terminal.focus();
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            console.log('[Status]', message);
+        }
+        
+        function processAICommand() {
+            const input = document.getElementById('aiInput').value.toLowerCase().trim();
+            const responseDiv = document.getElementById('aiResponse');
+            
+            if (!input) {
+                responseDiv.innerHTML = '😘 Come on gorgeous, give me something to work with!';
+                return;
+            }
+            
+            // Enhanced matching with fuzzy search
+            let command = null;
+            let matchedPhrase = null;
+            let bestMatch = 0;
+            
+            // First try exact matches
+            for (const [phrase, cmd] of Object.entries(nlp)) {
+                if (input === phrase) {
+                    command = cmd;
+                    matchedPhrase = phrase;
+                    break;
+                }
+            }
+            
+            // If no exact match, try partial matches
+            if (!command) {
+                for (const [phrase, cmd] of Object.entries(nlp)) {
+                    const words = phrase.split(' ');
+                    const inputWords = input.split(' ');
+                    let matches = 0;
+                    
+                    // Check how many words match
+                    for (const word of words) {
+                        if (inputWords.some(inputWord => inputWord.includes(word) || word.includes(inputWord))) {
+                            matches++;
+                        }
+                    }
+                    
+                    // Calculate match percentage
+                    const matchPercentage = matches / words.length;
+                    if (matchPercentage > bestMatch && matchPercentage >= 0.6) {
+                        bestMatch = matchPercentage;
+                        command = cmd;
+                        matchedPhrase = phrase;
+                    }
+                }
+            }
+            
+            if (command) {
+                const successMsg = getRandomResponse('success');
+                responseDiv.innerHTML = `${successMsg}<br><strong>💫 Command:</strong> <code>${command}</code>`;
+                
+                // Execute if terminal is available
+                if (shellProcess && shellProcess.stdin) {
+                    shellProcess.stdin.write(command + '\r\n');
+                    terminal.write(`\r\n🧜‍♀️ Rina: ${command}\r\n`);
+                } else {
+                    responseDiv.innerHTML += '<br>😔 Terminal not ready, but I found your command!';
+                }
+            } else {
+                const unknownMsg = getRandomResponse('unknown');
+                responseDiv.innerHTML = `${unknownMsg}<br><small>Try: "show files", "git status", "system info", "network info", or "make me coffee" 😉</small>`;
+            }
+            
+            // Clear input
+            document.getElementById('aiInput').value = '';
+        }
+        
+        function quickCommand(phrase) {
+            document.getElementById('aiInput').value = phrase;
+            processAICommand();
+        }
+        
+        function startVoiceControl() {
+            if (!isVoiceActive) {
+                try {
+                    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                    recognition.continuous = true;
+                    recognition.interimResults = false;
+                    
+                    recognition.onstart = () => {
+                        isVoiceActive = true;
+                        updateStatus('🎤 Voice control active - say "Hey Rina" followed by your command, gorgeous!');
+                    };
+                    
+                    recognition.onresult = (event) => {
+                        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                        
+                        if (transcript.includes('hey rina')) {
+                            const command = transcript.replace('hey rina', '').trim();
+                            document.getElementById('aiInput').value = command;
+                            updateStatus('🧜‍♀️ I heard you loud and clear, darling!');
+                            processAICommand();
+                        } else if (transcript.includes('rina')) {
+                            const command = transcript.replace('rina', '').trim();
+                            document.getElementById('aiInput').value = command;
+                            updateStatus('💅 Close enough! Processing your request...');
+                            processAICommand();
+                        }
+                    };
+                    
+                    recognition.onerror = (event) => {
+                        updateStatus(`🙈 Voice recognition hiccup: ${event.error} - Try again, sugar!`);
+                        isVoiceActive = false;
+                    };
+                    
+                    recognition.start();
+                } catch (error) {
+                    updateStatus('😔 Voice recognition not supported in this browser, but you can still type to me!');
+                }
+            } else {
+                updateStatus('🎤 Voice control is already listening, beautiful!');
+            }
+        }
+        
+        function showAIHelp() {
+            const helpText = `
+🧜‍♀️ Rina's Command Arsenal ✨
+
+📁 FILE OPERATIONS:
+• "show me the goods" / "list files" - Browse directory
+• "peek inside" / "show hidden files" - Reveal secrets
+• "deep dive" - Recursive file listing
+• "create folder [name]" / "build nest" - Make directories
+
+🗺️ NAVIGATION:
+• "where am i" / "what's cooking" - Current location
+• "my coordinates" - Show current directory
+
+💻 SYSTEM INFO:
+• "system info" / "machine specs" - Hardware details
+• "running processes" / "cpu hogs" - Process management
+• "disk space" / "storage info" - Drive information
+
+🌐 NETWORK:
+• "network info" / "my ip" - Connection details
+• "ping google" / "internet check" - Test connectivity
+
+📊 GIT OPERATIONS:
+• "git status" / "git me outta here" - Repository status
+• "stage everything" / "push it" - Git workflow
+• "show branches" / "recent commits" - Repository info
+
+📦 PACKAGE MANAGEMENT:
+• "npm install" / "run tests" - Node.js commands
+• "fire it up" / "dev mode" - Start development
+
+🎉 FUN COMMANDS:
+• "make me coffee" / "tell me a joke" - Entertainment
+• "compliment me" / "how are you" - Chat with Rina
+
+🎤 VOICE: Say "Hey Rina" + any command
+
+💋 Remember: I understand natural language, so be creative!
+            `;
+            alert(helpText);
+        }
+        
+        function runCommand() {
+            const cmd = prompt('Enter PowerShell command:');
+            if (cmd && shellProcess && shellProcess.stdin) {
+                shellProcess.stdin.write(cmd + '\\r\\n');
+            }
+        }
+        
+        function clearTerminal() {
+            if (terminal) {
+                terminal.clear();
+            }
+        }
+        
+        // Handle enter key in AI input
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('aiInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    processAICommand();
+                }
+            });
+        });
+        
+        // Initialize terminal when page loads
+        window.addEventListener('DOMContentLoaded', initTerminal);
+    </script>
+</body>
+</html>

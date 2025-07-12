@@ -1,0 +1,476 @@
+/**
+ * RinaWarp Terminal - Comprehensive Theme Collection
+ * Copyright (c) 2025 RinaWarp Technologies
+ * 
+ * A diverse collection of themes to please every user preference
+ * Inspired by popular color schemes, nature, space, and modern design trends
+ */
+
+/* ===== THEME VARIABLES ===== */
+:root {
+  /* Default Dark Theme */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #3d3d3d;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --accent-primary: #00ff88;
+  --accent-secondary: #00bcd4;
+  --border-color: #4d4d4d;
+  --terminal-bg: #0a0a0a;
+}
+
+/* ===== STANDARD THEMES ===== */
+
+/* Dark Theme */
+.theme-dark {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #3d3d3d;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --accent-primary: #00ff88;
+  --accent-secondary: #00bcd4;
+  --border-color: #4d4d4d;
+  --terminal-bg: #0a0a0a;
+}
+
+/* Light Theme */
+.theme-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e0e0e0;
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --accent-primary: #007acc;
+  --accent-secondary: #0099ff;
+  --border-color: #cccccc;
+  --terminal-bg: #fafafa;
+}
+
+/* Solarized Theme */
+.theme-solarized {
+  --bg-primary: #002b36;
+  --bg-secondary: #073642;
+  --bg-tertiary: #586e75;
+  --text-primary: #839496;
+  --text-secondary: #93a1a1;
+  --accent-primary: #268bd2;
+  --accent-secondary: #2aa198;
+  --border-color: #657b83;
+  --terminal-bg: #001e27;
+}
+
+/* Monokai Theme */
+.theme-monokai {
+  --bg-primary: #272822;
+  --bg-secondary: #383830;
+  --bg-tertiary: #49483e;
+  --text-primary: #f8f8f2;
+  --text-secondary: #f8f8f0;
+  --accent-primary: #a6e22e;
+  --accent-secondary: #66d9ef;
+  --border-color: #75715e;
+  --terminal-bg: #1e1f1c;
+}
+
+/* ===== OCEAN BREEZE THEME ===== */
+.theme-ocean-breeze {
+  --bg-primary: #1e3a5f;
+  --bg-secondary: #2e4a6f;
+  --bg-tertiary: #3e5a7f;
+  --text-primary: #e1f5fe;
+  --text-secondary: #b3e5fc;
+  --accent-primary: #00bcd4;
+  --accent-secondary: #26c6da;
+  --border-color: #4e6a8f;
+  --terminal-bg: #0e2a4f;
+}
+
+/* ===== SUNSET GLOW THEME ===== */
+.theme-sunset-glow {
+  --bg-primary: #2d1b69;
+  --bg-secondary: #3d2b79;
+  --bg-tertiary: #4d3b89;
+  --text-primary: #ffeaa7;
+  --text-secondary: #fdcb6e;
+  --accent-primary: #ff7675;
+  --accent-secondary: #fd79a8;
+  --border-color: #5d4b99;
+  --terminal-bg: #1d0b59;
+}
+
+/* ===== FOREST DAWN THEME ===== */
+.theme-forest-dawn {
+  --bg-primary: #1a2e1a;
+  --bg-secondary: #2a3e2a;
+  --bg-tertiary: #3a4e3a;
+  --text-primary: #e8f5e8;
+  --text-secondary: #c8e6c9;
+  --accent-primary: #4caf50;
+  --accent-secondary: #81c784;
+  --border-color: #4a5e4a;
+  --terminal-bg: #0a1e0a;
+}
+
+/* ===== ARCTIC AURORA THEME ===== */
+.theme-arctic-aurora {
+  --bg-primary: #0f1419;
+  --bg-secondary: #1f2429;
+  --bg-tertiary: #2f3439;
+  --text-primary: #e6fffa;
+  --text-secondary: #a7f3d0;
+  --accent-primary: #34d399;
+  --accent-secondary: #6ee7b7;
+  --border-color: #3f4449;
+  --terminal-bg: #050914;
+}
+
+/* ===== CYBERPUNK NEON THEME ===== */
+.theme-cyberpunk-neon {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a0a1a;
+  --bg-tertiary: #2a1a2a;
+  --text-primary: #ff00ff;
+  --text-secondary: #00ffff;
+  --accent-primary: #ff0080;
+  --accent-secondary: #8000ff;
+  --border-color: #3a2a3a;
+  --terminal-bg: #000000;
+}
+
+/* ===== WARM COFFEE THEME ===== */
+.theme-warm-coffee {
+  --bg-primary: #3e2723;
+  --bg-secondary: #4e3733;
+  --bg-tertiary: #5e4743;
+  --text-primary: #efebe9;
+  --text-secondary: #d7ccc8;
+  --accent-primary: #ff8a65;
+  --accent-secondary: #ffab91;
+  --border-color: #6e5753;
+  --terminal-bg: #2e1713;
+}
+
+/* ===== PASTEL DREAMS THEME ===== */
+.theme-pastel-dreams {
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #e9ecef;
+  --bg-tertiary: #dee2e6;
+  --text-primary: #495057;
+  --text-secondary: #6c757d;
+  --accent-primary: #ff6b9d;
+  --accent-secondary: #a8e6cf;
+  --border-color: #ced4da;
+  --terminal-bg: #ffffff;
+}
+
+/* ===== MIDNIGHT BLUE THEME ===== */
+.theme-midnight-blue {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --accent-primary: #58a6ff;
+  --accent-secondary: #79c0ff;
+  --border-color: #30363d;
+  --terminal-bg: #010409;
+}
+
+/* ===== RETRO TERMINAL THEME ===== */
+.theme-retro-terminal {
+  --bg-primary: #001100;
+  --bg-secondary: #002200;
+  --bg-tertiary: #003300;
+  --text-primary: #00ff00;
+  --text-secondary: #00cc00;
+  --accent-primary: #00ff00;
+  --accent-secondary: #00aa00;
+  --border-color: #004400;
+  --terminal-bg: #000000;
+}
+
+/* ===== SAKURA BLOSSOM THEME ===== */
+.theme-sakura-blossom {
+  --bg-primary: #fce4ec;
+  --bg-secondary: #f8bbd9;
+  --bg-tertiary: #f48fb1;
+  --text-primary: #4a148c;
+  --text-secondary: #6a1b9a;
+  --accent-primary: #e91e63;
+  --accent-secondary: #ad1457;
+  --border-color: #f06292;
+  --terminal-bg: #ffeaf2;
+}
+
+/* ===== SPACE ODYSSEY THEME ===== */
+.theme-space-odyssey {
+  --bg-primary: #0a0a2a;
+  --bg-secondary: #1a1a3a;
+  --bg-tertiary: #2a2a4a;
+  --text-primary: #e6e6ff;
+  --text-secondary: #b3b3ff;
+  --accent-primary: #6c5ce7;
+  --accent-secondary: #a29bfe;
+  --border-color: #3a3a5a;
+  --terminal-bg: #00001a;
+}
+
+/* ===== DESERT SAND THEME ===== */
+.theme-desert-sand {
+  --bg-primary: #5d4037;
+  --bg-secondary: #6d4c41;
+  --bg-tertiary: #795548;
+  --text-primary: #fff8e1;
+  --text-secondary: #ffecb3;
+  --accent-primary: #ff9800;
+  --accent-secondary: #ffa726;
+  --border-color: #8d6e63;
+  --terminal-bg: #4d3027;
+}
+
+/* ===== MATRIX GREEN THEME ===== */
+.theme-matrix-green {
+  --bg-primary: #000000;
+  --bg-secondary: #001100;
+  --bg-tertiary: #002200;
+  --text-primary: #00ff41;
+  --text-secondary: #00cc33;
+  --accent-primary: #00ff41;
+  --accent-secondary: #39ff14;
+  --border-color: #003300;
+  --terminal-bg: #000000;
+}
+
+/* ===== ICE CRYSTAL THEME ===== */
+.theme-ice-crystal {
+  --bg-primary: #e3f2fd;
+  --bg-secondary: #bbdefb;
+  --bg-tertiary: #90caf9;
+  --text-primary: #0d47a1;
+  --text-secondary: #1565c0;
+  --accent-primary: #2196f3;
+  --accent-secondary: #42a5f5;
+  --border-color: #64b5f6;
+  --terminal-bg: #f3f9ff;
+}
+
+/* ===== AUTUMN LEAVES THEME ===== */
+.theme-autumn-leaves {
+  --bg-primary: #3e2723;
+  --bg-secondary: #5d4037;
+  --bg-tertiary: #6d4c41;
+  --text-primary: #fff3e0;
+  --text-secondary: #ffe0b2;
+  --accent-primary: #ff5722;
+  --accent-secondary: #ff7043;
+  --border-color: #795548;
+  --terminal-bg: #2e1713;
+}
+
+/* ===== NEON CITY THEME ===== */
+.theme-neon-city {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a2e;
+  --bg-tertiary: #16213e;
+  --text-primary: #eee;
+  --text-secondary: #0f3460;
+  --accent-primary: #e94560;
+  --accent-secondary: #f39c12;
+  --border-color: #533483;
+  --terminal-bg: #000000;
+}
+
+/* ===== HIGH CONTRAST THEME ===== */
+.theme-high-contrast {
+  --bg-primary: #000000;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #808080;
+  --text-primary: #ffffff;
+  --text-secondary: #000000;
+  --accent-primary: #ffff00;
+  --accent-secondary: #ff0000;
+  --border-color: #ffffff;
+  --terminal-bg: #000000;
+}
+
+/* ===== LAVENDER FIELDS THEME ===== */
+.theme-lavender-fields {
+  --bg-primary: #e8eaf6;
+  --bg-secondary: #c5cae9;
+  --bg-tertiary: #9fa8da;
+  --text-primary: #3f51b5;
+  --text-secondary: #5c6bc0;
+  --accent-primary: #673ab7;
+  --accent-secondary: #9c27b0;
+  --border-color: #7986cb;
+  --terminal-bg: #f3f4f6;
+}
+
+/* ===== VOLCANIC ASH THEME ===== */
+.theme-volcanic-ash {
+  --bg-primary: #212121;
+  --bg-secondary: #424242;
+  --bg-tertiary: #616161;
+  --text-primary: #fafafa;
+  --text-secondary: #e0e0e0;
+  --accent-primary: #ff5252;
+  --accent-secondary: #ff6659;
+  --border-color: #757575;
+  --terminal-bg: #121212;
+}
+
+/* ===== RAINBOW PRIDE THEME ===== */
+.theme-rainbow-pride {
+  --bg-primary: #2c2c54;
+  --bg-secondary: #40407a;
+  --bg-tertiary: #706fd3;
+  --text-primary: #f1f2f6;
+  --text-secondary: #ddd;
+  --accent-primary: #ff6b9d;
+  --accent-secondary: #ffa726;
+  --border-color: #5352ed;
+  --terminal-bg: #1e1e3f;
+}
+
+/* ===== APPLY THEME STYLES ===== */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.title-bar {
+  background-color: var(--bg-secondary);
+  border-bottom-color: var(--border-color);
+}
+
+.title-bar-title {
+  color: var(--accent-primary);
+}
+
+.tab-bar {
+  background-color: var(--bg-secondary);
+  border-bottom-color: var(--border-color);
+}
+
+.tab {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.tab.active {
+  background-color: var(--bg-primary);
+  border-bottom-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.terminal-header {
+  background-color: var(--bg-secondary);
+  border-bottom-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.terminal-container {
+  background-color: var(--terminal-bg);
+}
+
+.status-bar {
+  background-color: var(--bg-secondary);
+  border-top-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* Modal styles */
+.modal-content {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Button styles */
+.btn {
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+}
+
+.btn:hover {
+  background-color: var(--accent-secondary);
+  border-color: var(--accent-secondary);
+}
+
+.btn-secondary {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+/* Accent colors */
+.accent-primary {
+  color: var(--accent-primary);
+}
+.accent-secondary {
+  color: var(--accent-secondary);
+}
+.text-primary {
+  color: var(--text-primary);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+/* Special animations for theme transitions */
+body,
+.title-bar,
+.tab-bar,
+.tab,
+.terminal-header,
+.status-bar,
+.modal-content {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Theme-specific customizations */
+.theme-cyberpunk-neon {
+  text-shadow: 0 0 5px currentColor;
+}
+
+.theme-matrix-green .terminal,
+.theme-retro-terminal .terminal {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+.theme-pastel-dreams *,
+.theme-sakura-blossom *,
+.theme-ice-crystal *,
+.theme-lavender-fields * {
+  text-shadow: none;
+}
+
+.theme-high-contrast * {
+  font-weight: bold;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .title-bar,
+  .tab-bar,
+  .tab,
+  .terminal-header,
+  .status-bar,
+  .modal-content {
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #ffffff;
+  }
+}

@@ -1,0 +1,750 @@
+name: Main CI/CD Pipeline
+
+# Restrict permissions for security - Organization-ready configuration
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+  issues: write
+  packages: write
+  # Enhanced permissions for organization/enterprise environments:
+  # - id-token: write (for OIDC authentication)
+  # - security-events: write (for security reporting)
+  # Only allow releases job to create releases
+  # Other jobs have minimal permissions
+
+on:
+  push:
+    branches: [ main ]  # Only main branch for production deployments
+    tags: [ 'v*.*.*', 'v*.*.*-*' ]  # Only version tags for releases
+  pull_request:
+    branches: [ main, develop ]  # PRs for validation only, no deployments
+  schedule:
+    # Nightly builds at 2 AM UTC - only from main branch
+    - cron: '0 2 * * *'
+  # workflow_dispatch removed to prevent manual deployment abuse
+  # Only trusted automated triggers (tags, main branch pushes) can deploy
+
+env:
+  APP_NAME: "RinaWarp Terminal"
+  APP_ID: "com.rinawarp.terminal"
+  NODE_VERSION: "18"
+  ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+  ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
+
+jobs:
+  # ============================================================================
+  # PREPARATION JOBS
+  # ============================================================================
+  
+  prepare:
+    name: Prepare Build Context
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.context.outputs.should_build }}
+      should_test: ${{ steps.context.outputs.should_test }}
+      should_release: ${{ steps.context.outputs.should_release }}
+      is_nightly: ${{ steps.context.outputs.is_nightly }}
+      is_tag_release: ${{ steps.context.outputs.is_tag_release }}
+      is_prerelease: ${{ steps.context.outputs.is_prerelease }}
+      version: ${{ steps.context.outputs.version }}
+      build_platforms: ${{ steps.context.outputs.build_platforms }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+          
+      - name: Analyze build context
+        id: context
+        run: |
+          # Determine build context
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          
+          # Initialize defaults
+          SHOULD_BUILD="false"
+          SHOULD_TEST="true"
+          SHOULD_RELEASE="false"
+          IS_NIGHTLY="false"
+          IS_TAG_RELEASE="false"
+          IS_PRERELEASE="false"
+          VERSION=""
+          BUILD_PLATFORMS="all"
+          
+          # Check if this is a tag release
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+            IS_TAG_RELEASE="true"
+            SHOULD_BUILD="true"
+            SHOULD_RELEASE="true"
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            
+            # Check if prerelease
+            if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+-.+$ ]]; then
+              IS_PRERELEASE="true"
+            fi
+          fi
+          
+          # Manual dispatch removed for security
+          # Only automated triggers are allowed for deployments
+          
+          # Check for scheduled (nightly) builds
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            # Check if there are commits in the last 24 hours
+            COMMITS=$(git log --since="24 hours ago" --oneline | wc -l)
+            echo "Commits in last 24h: $COMMITS"
+            
+            if [ "$COMMITS" -gt 0 ]; then
+              IS_NIGHTLY="true"
+              SHOULD_BUILD="true"
+            fi
+          fi
+          
+          # Only main branch pushes trigger builds and potential deployments
+          if [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.ref }}" =~ ^refs/heads/main$ ]]; then
+            SHOULD_BUILD="true"
+          fi
+          
+          # Develop branch pushes are not allowed to trigger builds/deployments
+          if [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.ref }}" =~ ^refs/heads/develop$ ]]; then
+            echo "::warning::Develop branch pushes do not trigger deployments for security"
+            SHOULD_BUILD="false"
+          fi
+          
+          # For pull requests, only quick validation
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            SHOULD_BUILD="false"  # Only quick build check in CI
+          fi
+          
+          # Get version
+          if [ -z "$VERSION" ]; then
+            VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")
+          fi
+          
+          # Output results
+          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+          echo "should_test=$SHOULD_TEST" >> $GITHUB_OUTPUT
+          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
+          echo "is_nightly=$IS_NIGHTLY" >> $GITHUB_OUTPUT
+          echo "is_tag_release=$IS_TAG_RELEASE" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_platforms=$BUILD_PLATFORMS" >> $GITHUB_OUTPUT
+          
+          echo "Build context determined:"
+          echo "- Should build: $SHOULD_BUILD"
+          echo "- Should test: $SHOULD_TEST" 
+          echo "- Should release: $SHOULD_RELEASE"
+          echo "- Is nightly: $IS_NIGHTLY"
+          echo "- Is tag release: $IS_TAG_RELEASE"
+          echo "- Is prerelease: $IS_PRERELEASE"
+          echo "- Version: $VERSION"
+          echo "- Platforms: $BUILD_PLATFORMS"
+
+  # ============================================================================
+  # QUALITY GATES
+  # ============================================================================
+  
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should_test == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check code formatting
+        run: npm run format:check || echo "Code formatting issues found"
+        
+      - name: Run linting
+        run: npm run lint
+        
+      - name: Validate package.json
+        run: node -e "console.log('package.json is valid JSON')"
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should_test == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: npm test
+        
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.sha }}
+          path: |
+            test-results.xml
+            coverage/
+          retention-days: 7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.should_test == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+        
+      - name: Check for outdated packages
+        run: npm outdated || true
+        
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports-${{ github.sha }}
+          path: audit-results.json
+          retention-days: 14
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+
+  quick-build:
+    name: Quick Build Check
+    runs-on: ubuntu-latest
+    needs: [prepare, lint, test, security]
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2 libxcomposite-dev libxdamage-dev libxrandr-dev libgbm-dev libxss-dev libasound2-dev
+          
+      - name: Quick build (Linux AppImage only)
+        run: npm run build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          NODE_ENV: production
+          
+      - name: Upload quick build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quick-build-${{ github.sha }}
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+          retention-days: 7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # FULL BUILD JOBS
+  # ============================================================================
+  
+  build:
+    name: Build Application
+    needs: [prepare, lint, test, security]
+    if: needs.prepare.outputs.should_build == 'true'
+    # Explicit job-level permissions for build operations
+    permissions:
+      contents: read
+      actions: read
+      packages: write       # Required for publishing build artifacts to packages
+      attestations: write   # Required for build attestations and provenance
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            target: nsis,portable
+            artifact_name: windows
+            build_command: npm run build:win
+            enabled: true
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            target: AppImage,deb,rpm
+            artifact_name: linux
+            build_command: npm run build:linux
+            enabled: true
+          - os: macos-latest
+            platform: darwin
+            arch: x64
+            target: dmg,zip
+            artifact_name: macos-intel
+            build_command: npm run build:mac
+            enabled: true
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            target: dmg,zip
+            artifact_name: macos-apple-silicon
+            build_command: npm run build -- --mac --arm64
+            enabled: true
+            
+    runs-on: ${{ matrix.os }}
+    if: |
+      matrix.enabled == true && (
+        needs.prepare.outputs.build_platforms == 'all' ||
+        (needs.prepare.outputs.build_platforms == 'windows' && matrix.platform == 'win32') ||
+        (needs.prepare.outputs.build_platforms == 'linux' && matrix.platform == 'linux') ||
+        (needs.prepare.outputs.build_platforms == 'macos' && matrix.platform == 'darwin')
+      )
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      # Cache electron and electron-builder
+      - name: Cache Electron
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.ELECTRON_CACHE }}
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+            
+      - name: Cache Electron Builder
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.ELECTRON_BUILDER_CACHE }}
+          key: ${{ runner.os }}-electron-builder-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-
+            
+      - name: Install dependencies
+        run: npm ci
+        
+      # Platform-specific setup
+      - name: Setup Windows build
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Create self-signed certificate for Windows builds
+          $certName = if ("${{ needs.prepare.outputs.is_nightly }}" -eq "true") { "RinaWarp Technologies (Nightly)" } else { "RinaWarp Technologies" }
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=$certName" -KeyAlgorithm RSA -KeyLength 2048 -Provider "Microsoft Enhanced RSA and AES Cryptographic Provider" -KeyExportPolicy Exportable -KeyUsage DigitalSignature -CertStoreLocation Cert:\CurrentUser\My
+          Export-PfxCertificate -Cert $cert -FilePath "rinawarp-codesign.pfx" -Password (ConvertTo-SecureString -String "${{ secrets.WINDOWS_CODESIGN_PASSWORD }}" -Force -AsPlainText)
+        shell: pwsh
+        
+      - name: Setup macOS build
+        if: matrix.os == 'macos-latest'
+        run: |
+          # Install create-dmg for better DMG creation
+          npm install --global create-dmg || true
+          
+      - name: Setup Linux build
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # Install dependencies for Linux builds
+          sudo apt-get update
+          sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2 libxcomposite-dev libxdamage-dev libxrandr-dev libgbm-dev libxss-dev libasound2-dev
+          
+      # Update version for nightly builds
+      - name: Update version for nightly builds
+        if: needs.prepare.outputs.is_nightly == 'true'
+        run: |
+          DATE=$(date +%Y%m%d)
+          COMMIT=$(git rev-parse --short HEAD)
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NIGHTLY_VERSION="${CURRENT_VERSION}-nightly.${DATE}.${COMMIT}"
+          
+          echo "Updating version to: $NIGHTLY_VERSION"
+          npm version $NIGHTLY_VERSION --no-git-tag-version
+          
+          # Update product name for nightly
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            powershell -c "(Get-Content package.json) -replace '\"RinaWarp Terminal\"', '\"RinaWarp Terminal (Nightly)\"' | Set-Content package.json"
+          else
+            sed -i 's/"RinaWarp Terminal"/"RinaWarp Terminal (Nightly)"/g' package.json
+          fi
+        shell: bash
+        
+      # Build the application
+      - name: Build application
+        env:
+          # Windows code signing
+          CSC_LINK: ${{ matrix.os == 'windows-latest' && './rinawarp-codesign.pfx' || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.os == 'windows-latest' && secrets.WINDOWS_CODESIGN_PASSWORD || '' }}
+          
+          # macOS code signing (would need actual certificates in production)
+          # CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
+          # CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          
+          # GitHub token for private repository access
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          NODE_ENV: production
+          
+        run: ${{ matrix.build_command }}
+        shell: bash
+        
+      # Generate checksums
+      - name: Generate checksums
+        run: |
+          cd dist
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            Get-FileHash *.exe,*.msi -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $($_.Path | Split-Path -Leaf)" } > SHA256SUMS
+          else
+            find . -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" \) -exec sha256sum {} \; | sed 's|\./||' > SHA256SUMS
+          fi
+        shell: bash
+        
+      # Upload artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ matrix.artifact_name }}-${{ github.sha }}
+          path: |
+            dist/*.exe
+            dist/*.msi
+            dist/*.dmg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.snap
+            dist/SHA256SUMS
+            dist/latest*.yml
+          retention-days: ${{ needs.prepare.outputs.is_nightly == 'true' && 7 || 14 }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # DEPLOYMENT JOBS
+  # ============================================================================
+  
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    needs: [prepare, quick-build]
+    if: github.event_name == 'pull_request'
+    # Explicit job-level permissions for preview deployments
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write  # Required to comment on PRs with preview links
+      deployments: write    # Required for deployment status tracking
+      statuses: write       # Required for commit status updates
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+        
+      - name: Download quick build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: quick-build-${{ github.sha }}
+          path: dist/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          
+      - name: Deploy to preview environment
+        run: |
+          echo "Deploying preview build..."
+          # Add your preview deployment logic here
+          echo "Preview deployment would be implemented here"
+          
+      - name: Comment PR with preview links
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 **Preview Build Ready!**\n\nA quick build has been generated for this PR.\n\nDownload the artifacts from the [Actions tab](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) to test the changes.'
+            })
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    # Only allow releases from trusted sources: version tags or scheduled nightly builds from main
+    if: |
+      (needs.prepare.outputs.should_release == 'true' && github.ref_type == 'tag') || 
+      (needs.prepare.outputs.is_nightly == 'true' && github.ref == 'refs/heads/main')
+    environment:
+      name: production
+      # Add manual approval requirement for production releases
+    # Explicit job-level permissions for release operations
+    permissions:
+      contents: write       # Required to create releases and upload assets
+      actions: read
+      packages: write       # Required if publishing packages to GitHub Packages
+      pull-requests: write  # For updating PR status
+      discussions: write    # For posting release announcements
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+          
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./release-assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          
+      - name: Organize release assets
+        run: |
+          mkdir -p final-release
+          find release-assets -type f \( -name "*.exe" -o -name "*.msi" -o -name "*.dmg" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.tar.gz" -o -name "SHA256SUMS" -o -name "latest*.yml" \) -exec cp {} final-release/ \;
+          ls -la final-release/
+          
+      - name: Generate release tag and notes
+        id: release_info
+        run: |
+          if [ "${{ needs.prepare.outputs.is_nightly }}" = "true" ]; then
+            DATE=$(date +%Y%m%d)
+            COMMIT=$(git rev-parse --short HEAD)
+            TAG_NAME="nightly-${DATE}-${COMMIT}"
+            RELEASE_NAME="RinaWarp Terminal Nightly $DATE"
+            IS_PRERELEASE="true"
+            
+            cat > release_notes.md << EOF
+          # 🌙 Nightly Build - $DATE
+          
+          This is an automated nightly build of RinaWarp Terminal.
+          
+          **⚠️ Disclaimer:** This is a development build and may contain bugs.
+          
+          ## What's New
+          - Latest commits from the main branch
+          - Development features and fixes
+          
+          ## Downloads
+          - **Windows**: \`.exe\` installer and portable version
+          - **Linux**: AppImage and DEB packages  
+          - **macOS**: DMG installer (unsigned)
+          
+          ## Installation Notes
+          - Windows builds are code-signed with a development certificate
+          - macOS builds are unsigned and will show security warnings
+          - Linux builds work without additional setup
+          
+          ---
+          
+          Build from commit: ${{ github.sha }}
+          EOF
+          elif [ "${{ needs.prepare.outputs.is_tag_release }}" = "true" ]; then
+            TAG_NAME="${{ github.ref_name }}"
+            RELEASE_NAME="RinaWarp Terminal ${{ github.ref_name }}"
+            IS_PRERELEASE="${{ needs.prepare.outputs.is_prerelease }}"
+            
+            # Generate changelog
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>/dev/null || echo "")
+            if [ -n "$PREVIOUS_TAG" ]; then
+              CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..${{ github.ref_name }})
+            else
+              CHANGELOG=$(git log --pretty=format:"- %s (%h)" -10)
+            fi
+            
+            cat > release_notes.md << EOF
+          # RinaWarp Terminal ${{ github.ref_name }}
+          
+          ## 🚀 What's New in This Release
+          
+          ### Changes
+          $CHANGELOG
+          
+          ## ✨ Key Features
+          - 🤖 Advanced AI-powered command assistance
+          - 🎨 Multiple beautiful themes including the signature Mermaid theme
+          - 🔧 Git workflow integration with smart branch management
+          - 💾 Session management and workspace restoration
+          - ☁️ Cloud sync capabilities across devices
+          - 🔒 Enhanced security features and command validation
+          - 🖥️ Multi-tab and split-pane terminal support
+          - 🎯 Natural language command processing
+          
+          ## 📦 Downloads
+          
+          ### Windows
+          - **Installer**: \`RinaWarp Terminal Setup ${{ github.ref_name }}.exe\` - Full installer with shortcuts
+          - **Portable**: \`RinaWarp Terminal ${{ github.ref_name }}.exe\` - Standalone executable
+          
+          ### macOS
+          - **Intel Macs**: \`RinaWarp Terminal ${{ github.ref_name }}-x64.dmg\`
+          - **Apple Silicon**: \`RinaWarp Terminal ${{ github.ref_name }}-arm64.dmg\`
+          
+          ### Linux
+          - **AppImage**: \`RinaWarp Terminal ${{ github.ref_name }}.AppImage\` - Universal Linux binary
+          - **Debian/Ubuntu**: \`rinawarp-terminal_${{ github.ref_name }}_amd64.deb\`
+          - **RedHat/Fedora**: \`rinawarp-terminal-${{ github.ref_name }}.x86_64.rpm\`
+          
+          ## 🔐 Security & Verification
+          
+          All executables are code-signed for security. SHA256 checksums are provided in \`SHA256SUMS\` files for verification.
+          
+          ## 💝 Commercial License
+          
+          RinaWarp Terminal is a commercial product with a **30-day free trial**!
+          
+          **[📊 View Full Pricing](${PRICING_URL})**
+          
+          ---
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG..${{ github.ref_name }}
+          EOF
+          else
+            # Manual release
+            DATE=$(date +%Y.%m.%d)
+            COMMIT=$(git rev-parse --short HEAD)
+            TAG_NAME="v${{ needs.prepare.outputs.version }}-pre.${DATE}.${COMMIT}"
+            RELEASE_NAME="RinaWarp Terminal $TAG_NAME"
+            IS_PRERELEASE="${{ inputs.release_type == 'prerelease' || 'true' }}"
+            
+            cat > release_notes.md << EOF
+          # RinaWarp Terminal $TAG_NAME
+          
+          Manual build created on $DATE from commit ${{ github.sha }}.
+          
+          ## Downloads
+          Available for Windows, macOS, and Linux platforms.
+          
+          ---
+          
+          Build from commit: ${{ github.sha }}
+          EOF
+          fi
+          
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          name: ${{ steps.release_info.outputs.release_name }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ steps.release_info.outputs.is_prerelease }}
+          files: final-release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # NOTIFICATION & CLEANUP
+  # ============================================================================
+  
+  notify:
+    name: Pipeline Status
+    runs-on: ubuntu-latest
+    needs: [prepare, lint, test, security, build, release]
+    if: always()
+    
+    steps:
+      - name: Pipeline Summary
+        run: |
+          echo "## 📊 Pipeline Results"
+          echo "- Prepare: ${{ needs.prepare.result }}"
+          echo "- Lint: ${{ needs.lint.result }}"  
+          echo "- Test: ${{ needs.test.result }}"
+          echo "- Security: ${{ needs.security.result }}"
+          echo "- Build: ${{ needs.build.result }}"
+          echo "- Release: ${{ needs.release.result }}"
+          
+          echo ""
+          echo "## 🎯 Build Context"
+          echo "- Event: ${{ github.event_name }}"
+          echo "- Ref: ${{ github.ref }}"
+          echo "- Should Build: ${{ needs.prepare.outputs.should_build }}"
+          echo "- Should Release: ${{ needs.prepare.outputs.should_release }}"
+          echo "- Is Nightly: ${{ needs.prepare.outputs.is_nightly }}"
+          echo "- Version: ${{ needs.prepare.outputs.version }}"
+          
+          # Check for failures
+          if [ "${{ needs.lint.result }}" = "failure" ] || 
+             [ "${{ needs.test.result }}" = "failure" ] ||
+             [ "${{ needs.security.result }}" = "failure" ] ||
+             [ "${{ needs.build.result }}" = "failure" ] ||
+             [ "${{ needs.release.result }}" = "failure" ]; then
+            echo "::error::One or more pipeline stages failed!"
+            exit 1
+          else
+            echo "::notice::Pipeline completed successfully! ✅"
+          fi

@@ -1,0 +1,40 @@
+name: CodeQL
+
+# Restrict permissions for security
+permissions:
+  contents: read
+  actions: read
+  security-events: write  # Required for CodeQL uploads
+
+on:
+  push:
+    branches: [ main ]  # Only main branch for security analysis
+  pull_request:
+    branches: [ main, develop ]  # PRs for validation only
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight - main branch only
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        language: [ 'javascript' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+        submodules: recursive
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+

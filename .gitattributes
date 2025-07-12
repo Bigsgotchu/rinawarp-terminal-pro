@@ -1,0 +1,2 @@
+rinawarp-terminal-pro/release/** filter=lfs diff=lfs merge=lfs -text
+rinawarp-terminal-pro/istio-1.29.0/bin/istioctl filter=lfs diff=lfs merge=lfs -text
