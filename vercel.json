@@ -5,7 +5,6 @@
     "silent": true
   },
   "buildCommand": "npm run build:web",
-  "outputDirectory": "public",
   "rewrites": [
     {
       "source": "/api/(stripe-config|validate-license|create-checkout-session|test.*)",

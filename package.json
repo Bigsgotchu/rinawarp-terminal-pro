@@ -2,6 +2,7 @@
   "name": "rinawarp-terminal",
   "version": "1.0.7",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
+  "type": "module",
   "main": "src/main.cjs",
   "build": {
     "productName": "RinaWarp Terminal",
@@ -56,6 +57,7 @@
   },
   "scripts": {
     "start": "electron src/main.cjs",
+    "discord-bot": "node discord-bot.js",
     "server": "node server.js",
     "server-dev": "nodemon server.js",
     "test": "jest",
@@ -72,7 +74,7 @@
     "qa:fix": "npm run lint && npm run format && npm run test",
     "prebuild": "npm run copy-assets && npm run test:core",
     "build": "npm run prebuild && electron-builder",
-    "build:web": "npm run copy-assets",
+    "build:web": "npm run copy-assets && echo 'Web build complete'",
     "build:win": "npm run prebuild && electron-builder --win",
     "build:mac": "npm run prebuild && electron-builder --mac",
     "build:linux": "npm run prebuild && electron-builder --linux",
