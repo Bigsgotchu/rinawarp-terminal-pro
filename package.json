@@ -48,7 +48,7 @@
   "homepage": "https://rinawarp-terminal.vercel.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Bigsgotchu/rinawarp-terminal"
+    "url": "https://rinawarp-terminal.vercel.app"
   },
   "license": "PROPRIETARY",
   "engines": {

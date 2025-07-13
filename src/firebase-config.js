@@ -16,7 +16,7 @@ const firebaseConfig = {
   storageBucket: 'rinawarp-terminal.firebasestorage.app',
   messagingSenderId: '71926516580',
   appId: '1:71926516580:web:b5a069e97cf5a736ad4871',
-  measurementId: 'G-WDRFJKW6DG',
+  measurementId: 'G-G424CV5GGT',
 };
 
 // Initialize Firebase
@@ -30,3 +30,4 @@ const storage = getStorage(app);
 
 // Export the initialized services for use in other parts of your app
 export { app, analytics, auth, db, storage };
+
