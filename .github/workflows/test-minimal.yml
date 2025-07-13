@@ -1,0 +1,40 @@
+name: 🧪 Minimal Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: 🔍 Validate Environment
+    uses: ./.github/workflows/validate-setup.yml
+  
+  test:
+    name: 🧪 Basic Tests
+    needs: validate
+    runs-on: ubuntu-latest
+    if: needs.validate.outputs.validation-passed == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Run basic tests
+        run: npm test
+      
+      - name: Build project
+        run: npm run build:web
+      
+      - name: Success notification
+        run: echo "✅ Minimal test workflow passed successfully!"

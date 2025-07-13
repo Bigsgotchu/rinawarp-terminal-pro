@@ -1,0 +1,92 @@
+name: 🔧 Validate Setup
+
+on:
+  workflow_call:
+    outputs:
+      validation-passed:
+        description: "Whether validation passed"
+        value: ${{ jobs.validate.outputs.validation-passed }}
+
+jobs:
+  validate:
+    name: 🔍 Validate Environment
+    runs-on: ubuntu-latest
+    outputs:
+      validation-passed: ${{ steps.validate.outputs.validation-passed }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'
+      
+      - name: Validate Node version
+        run: |
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          if [[ "$(node --version)" != v20* ]]; then
+            echo "❌ Node version mismatch. Expected v20.x, got $(node --version)"
+            exit 1
+          fi
+          echo "✅ Node version is correct"
+      
+      - name: Install dependencies
+        run: |
+          echo "🔧 Installing dependencies with legacy peer deps..."
+          npm ci --legacy-peer-deps
+          echo "✅ Dependencies installed successfully"
+      
+      - name: Validate package.json
+        run: |
+          echo "📦 Validating package.json..."
+          node -e "
+            const pkg = require('./package.json');
+            console.log('✅ Package name:', pkg.name);
+            console.log('✅ Version:', pkg.version);
+            console.log('✅ Node requirement:', pkg.engines.node);
+            if (pkg.engines.node !== '>=20.0.0') {
+              console.log('❌ Node version requirement mismatch');
+              process.exit(1);
+            }
+          "
+      
+      - name: Check for critical files
+        run: |
+          echo "📁 Checking for critical files..."
+          files=("package.json" "src/main.cjs" "eslint.config.js")
+          for file in "${files[@]}"; do
+            if [[ -f "$file" ]]; then
+              echo "✅ $file exists"
+            else
+              echo "❌ $file is missing"
+              exit 1
+            fi
+          done
+      
+      - name: Validate secrets (non-blocking)
+        run: |
+          echo "🔐 Checking available secrets..."
+          secrets=("GITHUB_TOKEN" "FIREBASE_TOKEN" "VERCEL_TOKEN" "RAILWAY_TOKEN")
+          for secret in "${secrets[@]}"; do
+            if [[ -n "${!secret:-}" ]]; then
+              echo "✅ $secret is available"
+            else
+              echo "⚠️ $secret is missing (may cause deployment failures)"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      
+      - name: Final validation
+        id: validate
+        run: |
+          echo "🎯 Environment validation complete"
+          echo "validation-passed=true" >> $GITHUB_OUTPUT
+          echo "✅ Ready to proceed with workflows"
