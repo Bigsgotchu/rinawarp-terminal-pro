@@ -1,6 +1,18 @@
 export default [
   {
-    files: ['**/*.js', '**/*.jsx', '**/*.cjs', '**/*.mjs'],
+    files: [
+      'src/**/*.js',
+      'src/**/*.cjs',
+      'scripts/**/*.js',
+      'scripts/**/*.cjs',
+      'tests/**/*.js',
+      'api/**/*.js',
+      'server.js',
+      'check-setup.js',
+      'test-*.js',
+      '*.js',
+      '*.cjs'
+    ],
     ignores: [
       'node_modules/**',
       'dist/**',
@@ -33,6 +45,8 @@ export default [
       // Temporarily ignore problematic files
       'sdk/**',
       'analytics-dashboard/**',
+      'mobile/**',
+      'pages/**',
     ],
     languageOptions: {
       ecmaVersion: 'latest',

@@ -1,0 +1,53 @@
+
+🌊 RinaWarp Terminal - Workflow Performance Report
+Generated: 2025-07-13T04:34:56.777Z
+
+📊 OVERALL PERFORMANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Total Runs: 50
+• Success Rate: 0.0%
+• Failure Rate: 100.0%
+• Average Run Time: 3s
+• Status: 0 ✅ | 50 ❌ | 0 ⏹️ | 0 🔄
+
+🔍 WORKFLOW BREAKDOWN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 🌊 Rinawarp Terminal Pipeline       | 100.0% failure | 2 runs
+🔴 🔬 RinaWarp Core Checks             | 100.0% failure | 3 runs
+🔴 Enterprise Security Compliance      | 100.0% failure | 4 runs
+🔴 Build and Release                   | 100.0% failure | 2 runs
+🔴 Lint                                | 100.0% failure | 3 runs
+🔴 Test                                | 100.0% failure | 2 runs
+🔴 Build & Deploy                      | 100.0% failure | 2 runs
+🔴 🌊 Modern RinaWarp Build & Test     | 100.0% failure | 3 runs
+🔴 Secrets Security Scan               | 100.0% failure | 3 runs
+🔴 Security                            | 100.0% failure | 3 runs
+🔴 🔬 RinaWarp Simplified Test Matrix  | 100.0% failure | 3 runs
+🔴 CodeQL Security Analysis            | 100.0% failure | 3 runs
+🔴 Deploy to Vercel with Railway Sync  | 100.0% failure | 2 runs
+🔴 CodeQL                              | 100.0% failure | 3 runs
+🔴 .github/workflows/rinawarp.yml      | 100.0% failure | 2 runs
+🔴 .github/workflows/cleanup-artifacts.yml | 100.0% failure | 2 runs
+🔴 .github/workflows/discussion-bot.yml | 100.0% failure | 2 runs
+🔴 .github/workflows/pages.yml         | 100.0% failure | 2 runs
+🔴 .github/workflows/ci-cd.yml         | 100.0% failure | 2 runs
+🔴 .github/workflows/main-pipeline.yml | 100.0% failure | 2 runs
+
+🎯 RECOMMENDATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 CRITICAL: High failure rate detected!
+⚠️  WARNING: Moderate failure rate
+
+
+• Monitor workflows with >50% failure rate
+• Check for missing secrets in deployment workflows
+• Review dependency conflicts in build workflows
+• Consider workflow optimization for long-running jobs
+
+📈 TREND ANALYSIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Recent improvements should show:
+• Reduced CodeQL failures (updated to v3 actions)
+• Better dependency handling (--legacy-peer-deps)
+• Improved linting resilience (non-blocking)
+• Enhanced build performance
