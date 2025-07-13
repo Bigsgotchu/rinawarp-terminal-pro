@@ -194,7 +194,7 @@ export class AdvancedAIContextEngine {
     };
   }
 
-  async generateSuggestions(command, context = {}) {
+  async generateSuggestions(command, _context = {}) {
     const suggestions = [];
 
     // Intent-based suggestions
@@ -425,9 +425,9 @@ export class AdvancedAIContextEngine {
     return 'evening';
   }
 
-  async detectProjectType(directory) {
+  async detectProjectType(_directory) {
     // Simple project type detection based on files
-    const projectIndicators = {
+    const _projectIndicators = {
       'package.json': 'node.js',
       'Cargo.toml': 'rust',
       'go.mod': 'go',

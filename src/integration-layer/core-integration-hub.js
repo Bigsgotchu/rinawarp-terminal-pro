@@ -557,7 +557,7 @@ class ZeroTrustSecurityManager {
     // Initialize security manager
   }
 
-  canAccess(context, _securityLevel) {
+  canAccess(_context, _securityLevel) {
     // Simple access control - in real implementation would be more sophisticated
     return true;
   }
