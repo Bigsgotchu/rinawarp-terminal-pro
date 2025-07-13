@@ -29,23 +29,23 @@ class SMTPService {
     } else if (process.env.NODE_ENV === 'development') {
       // Mock transporter for development
       this.transporter = {
-        sendMail: async (mailOptions) => {
+        sendMail: async mailOptions => {
           console.log('📧 [MOCK EMAIL] Simulating email send:');
           console.log('   To:', mailOptions.to);
           console.log('   Subject:', mailOptions.subject);
           console.log('   From:', mailOptions.from);
           console.log('   Text Preview:', mailOptions.text?.substring(0, 200) + '...');
-          
+
           // Simulate email processing delay
           await new Promise(resolve => setTimeout(resolve, 100));
-          
+
           return {
             messageId: 'mock-' + Date.now(),
             accepted: [mailOptions.to],
             rejected: [],
-            response: '250 Mock email sent successfully'
+            response: '250 Mock email sent successfully',
           };
-        }
+        },
       };
       console.log('✅ Mock SMTP transporter configured for development');
       this.initialized = true;
@@ -61,12 +61,14 @@ class SMTPService {
     }
 
     const mailOptions = {
-      from: options.from || `"RinaWarp Terminal" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@rinawarp.com'}>`,
+      from:
+        options.from ||
+        `"RinaWarp Terminal" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@rinawarp.com'}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
       html: options.html,
-      ...options
+      ...options,
     };
 
     try {
@@ -74,7 +76,7 @@ class SMTPService {
       console.log('📧 Email sent successfully:', {
         to: options.to,
         subject: options.subject,
-        messageId: info.messageId
+        messageId: info.messageId,
       });
       return info;
     } catch (error) {
@@ -85,7 +87,7 @@ class SMTPService {
 
   async sendLicenseEmail(customerEmail, licenseKey, licenseType) {
     const licenseTypeFormatted = licenseType.charAt(0).toUpperCase() + licenseType.slice(1);
-    
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
         <div style="background-color: #1a1a1a; padding: 30px; border-radius: 10px; color: white; text-align: center;">
@@ -140,7 +142,7 @@ class SMTPService {
       to: customerEmail,
       subject: `🎉 Your RinaWarp Terminal ${licenseTypeFormatted} License Key`,
       text: textContent,
-      html: htmlContent
+      html: htmlContent,
     });
   }
 
@@ -152,7 +154,7 @@ class SMTPService {
     return {
       initialized: this.initialized,
       mode: process.env.NODE_ENV === 'development' && !process.env.SMTP_HOST ? 'mock' : 'real',
-      configured: !!process.env.SMTP_HOST
+      configured: !!process.env.SMTP_HOST,
     };
   }
 

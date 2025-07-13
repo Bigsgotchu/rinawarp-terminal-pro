@@ -1,8 +1,8 @@
 /**
  * RinaWarp Terminal - DevTools Overlay
  * Copyright (c) 2025 RinaWarp Technologies
- * 
- * Interactive diagnostic overlay with live DOM tests, theme controls, 
+ *
+ * Interactive diagnostic overlay with live DOM tests, theme controls,
  * and visual feedback for development and testing.
  */
 
@@ -71,7 +71,7 @@ class RinaWarpDevTools {
 
     // Add styles
     this.injectStyles();
-        
+
     // Add to document
     document.body.appendChild(this.overlay);
   }
@@ -322,24 +322,24 @@ class RinaWarpDevTools {
 
     header.style.cursor = 'move';
 
-    header.addEventListener('mousedown', (e) => {
+    header.addEventListener('mousedown', e => {
       initialX = e.clientX - xOffset;
       initialY = e.clientY - yOffset;
-            
+
       if (e.target === header) {
         isDragging = true;
       }
     });
 
-    document.addEventListener('mousemove', (e) => {
+    document.addEventListener('mousemove', e => {
       if (isDragging) {
         e.preventDefault();
         currentX = e.clientX - initialX;
         currentY = e.clientY - initialY;
-                
+
         xOffset = currentX;
         yOffset = currentY;
-                
+
         this.overlay.style.transform = `translate(${currentX}px, ${currentY}px)`;
       }
     });
@@ -357,7 +357,7 @@ class RinaWarpDevTools {
       { name: 'Terminal Manager', prop: 'window.terminalManager', type: 'object' },
       { name: 'AI Integration', prop: 'window.aiIntegration', type: 'object' },
       { name: 'Theme Manager', prop: 'window.themeManager', type: 'object' },
-      { name: 'Voice Engine', prop: 'window.voiceEngine', type: 'object' }
+      { name: 'Voice Engine', prop: 'window.voiceEngine', type: 'object' },
     ];
 
     const results = checks.map(check => {
@@ -386,7 +386,7 @@ class RinaWarpDevTools {
         name: check.name,
         exists,
         status,
-        type: exists ? 'success' : 'error'
+        type: exists ? 'success' : 'error',
       };
     });
 
@@ -395,30 +395,34 @@ class RinaWarpDevTools {
 
   toggleTheme() {
     const themeManager = window.terminalManager?.themeManager;
-        
+
     if (themeManager) {
       const currentTheme = themeManager.currentTheme;
       const newTheme = currentTheme === 'mermaid' ? 'dark' : 'mermaid';
-            
+
       themeManager.setTheme(newTheme);
-            
-      this.displayResults('Theme Toggle', [{
-        name: `Theme switched from ${currentTheme} to ${newTheme}`,
-        exists: true,
-        status: 'Success',
-        type: 'success'
-      }]);
+
+      this.displayResults('Theme Toggle', [
+        {
+          name: `Theme switched from ${currentTheme} to ${newTheme}`,
+          exists: true,
+          status: 'Success',
+          type: 'success',
+        },
+      ]);
     } else {
       // Fallback theme toggle
       document.body.classList.toggle('theme-mermaid');
       const isMermaid = document.body.classList.contains('theme-mermaid');
-            
-      this.displayResults('Theme Toggle', [{
-        name: `Fallback theme applied: ${isMermaid ? 'Mermaid' : 'Default'}`,
-        exists: true,
-        status: 'Fallback',
-        type: 'warning'
-      }]);
+
+      this.displayResults('Theme Toggle', [
+        {
+          name: `Fallback theme applied: ${isMermaid ? 'Mermaid' : 'Default'}`,
+          exists: true,
+          status: 'Fallback',
+          type: 'warning',
+        },
+      ]);
     }
   }
 
@@ -426,7 +430,7 @@ class RinaWarpDevTools {
     const endpoints = [
       'https://api.github.com/repos/rinawarp/terminal',
       'https://jsonplaceholder.typicode.com/posts/1', // Test endpoint
-      window.location.origin + '/api/status'
+      window.location.origin + '/api/status',
     ];
 
     const results = [];
@@ -438,14 +442,14 @@ class RinaWarpDevTools {
           name: `API: ${url}`,
           exists: response.ok,
           status: `${response.status} ${response.statusText}`,
-          type: response.ok ? 'success' : 'error'
+          type: response.ok ? 'success' : 'error',
         });
       } catch (error) {
         results.push({
           name: `API: ${url}`,
           exists: false,
           status: error.message,
-          type: 'error'
+          type: 'error',
         });
       }
     }
@@ -456,7 +460,7 @@ class RinaWarpDevTools {
   activateModal() {
     const modal = document.getElementById('settings-modal');
     const settingsBtn = document.getElementById('settings-btn');
-        
+
     const results = [];
 
     if (modal) {
@@ -465,43 +469,43 @@ class RinaWarpDevTools {
       modal.style.opacity = '1';
       modal.style.transform = 'scale(1)';
       modal.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
-            
+
       results.push({
         name: 'Settings Modal',
         exists: true,
         status: 'Activated and highlighted',
-        type: 'success'
+        type: 'success',
       });
     } else {
       results.push({
         name: 'Settings Modal',
         exists: false,
         status: 'Not found in DOM',
-        type: 'error'
+        type: 'error',
       });
     }
 
     if (settingsBtn) {
       settingsBtn.style.boxShadow = '0 0 15px rgba(255, 20, 147, 0.8)';
       settingsBtn.style.transform = 'scale(1.1)';
-            
+
       setTimeout(() => {
         settingsBtn.style.boxShadow = '';
         settingsBtn.style.transform = '';
       }, 2000);
-            
+
       results.push({
         name: 'Settings Button',
         exists: true,
         status: 'Highlighted',
-        type: 'success'
+        type: 'success',
       });
     } else {
       results.push({
         name: 'Settings Button',
         exists: false,
         status: 'Not found',
-        type: 'error'
+        type: 'error',
       });
     }
 
@@ -510,15 +514,17 @@ class RinaWarpDevTools {
 
   injectFallbackCSS() {
     const fallbackId = 'rinawarp-fallback-styles';
-        
+
     if (document.getElementById(fallbackId)) {
       document.getElementById(fallbackId).remove();
-      this.displayResults('CSS Injection', [{
-        name: 'Fallback CSS',
-        exists: false,
-        status: 'Removed',
-        type: 'warning'
-      }]);
+      this.displayResults('CSS Injection', [
+        {
+          name: 'Fallback CSS',
+          exists: false,
+          status: 'Removed',
+          type: 'warning',
+        },
+      ]);
       return;
     }
 
@@ -547,34 +553,40 @@ class RinaWarpDevTools {
                 border: 1px solid #ff69b4 !important;
             }
         `;
-        
+
     document.head.appendChild(fallbackStyles);
     document.body.classList.add('theme-mermaid');
-        
-    this.displayResults('CSS Injection', [{
-      name: 'Fallback Mermaid CSS',
-      exists: true,
-      status: 'Injected and applied',
-      type: 'success'
-    }]);
+
+    this.displayResults('CSS Injection', [
+      {
+        name: 'Fallback Mermaid CSS',
+        exists: true,
+        status: 'Injected and applied',
+        type: 'success',
+      },
+    ]);
   }
 
   displayResults(title, results) {
     const content = document.getElementById('results-content');
     const timestamp = new Date().toLocaleTimeString();
-        
+
     const resultHTML = `
             <div class="result-group">
                 <strong>${title}</strong> <small>(${timestamp})</small>
-                ${results.map(result => `
+                ${results
+                  .map(
+                    result => `
                     <div class="result-item result-${result.type}">
                         ${result.exists ? '✅' : '❌'} ${result.name}
                         <br><small>${result.status}</small>
                     </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
             </div>
         `;
-        
+
     content.innerHTML = resultHTML + content.innerHTML;
   }
 

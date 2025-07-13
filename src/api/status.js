@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
     server: {
       cpuLoad: process.cpuUsage().user / 1000000, // Convert to milliseconds
       memoryUsage: process.memoryUsage(), // Detailed memory info
-    }
+    },
   };
 
   res.status(200).json(status);

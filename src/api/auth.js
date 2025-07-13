@@ -31,7 +31,8 @@ const licenseValidationSchema = Joi.object({
     .max(200)
     .pattern(/^[A-Z0-9\-]+$/)
     .messages({
-      'string.pattern.base': 'License key must contain only uppercase letters, numbers, and hyphens',
+      'string.pattern.base':
+        'License key must contain only uppercase letters, numbers, and hyphens',
     }),
 });
 
@@ -43,7 +44,7 @@ const emailValidationSchema = Joi.object({
 });
 
 // Joi validation middleware
-const validate = (schema) => {
+const validate = schema => {
   return (req, res, next) => {
     const { error } = schema.validate(req.body);
     if (error) {
@@ -80,7 +81,14 @@ const VALID_LICENSES = {
     expires: null,
     status: 'active',
     maxDevices: 5,
-    features: ['full_terminal', 'themes', 'ai_assistant', 'cloud_sync', 'priority_support', 'advanced_features'],
+    features: [
+      'full_terminal',
+      'themes',
+      'ai_assistant',
+      'cloud_sync',
+      'priority_support',
+      'advanced_features',
+    ],
   },
 };
 
@@ -88,133 +96,150 @@ const VALID_LICENSES = {
  * POST /api/auth/validate-license
  * Validate a license key
  */
-router.post('/validate-license', authLimiter, validate(licenseValidationSchema), asyncHandler(async (req, res) => {
-  const { licenseKey } = req.body;
-  
-  console.log(`[LICENSE] Validation request for key: ${licenseKey.substring(0, 10)}...`);
-  
-  const license = VALID_LICENSES[licenseKey];
-  
-  if (!license) {
-    return res.status(400).json({
-      valid: false,
-      error: 'Invalid license key',
-    });
-  }
-  
-  // Check if license is expired
-  if (license.expires && Date.now() > license.expires) {
-    return res.status(400).json({
-      valid: false,
-      error: 'License has expired',
+router.post(
+  '/validate-license',
+  authLimiter,
+  validate(licenseValidationSchema),
+  asyncHandler(async (req, res) => {
+    const { licenseKey } = req.body;
+
+    console.log(`[LICENSE] Validation request for key: ${licenseKey.substring(0, 10)}...`);
+
+    const license = VALID_LICENSES[licenseKey];
+
+    if (!license) {
+      return res.status(400).json({
+        valid: false,
+        error: 'Invalid license key',
+      });
+    }
+
+    // Check if license is expired
+    if (license.expires && Date.now() > license.expires) {
+      return res.status(400).json({
+        valid: false,
+        error: 'License has expired',
+        licenseType: license.type,
+        expires: license.expires,
+      });
+    }
+
+    const licenseData = {
+      valid: true,
+      licenseKey,
       licenseType: license.type,
+      status: license.status,
       expires: license.expires,
-    });
-  }
-  
-  const licenseData = {
-    valid: true,
-    licenseKey,
-    licenseType: license.type,
-    status: license.status,
-    expires: license.expires,
-    maxDevices: license.maxDevices,
-    features: license.features,
-    validatedAt: Date.now(),
-  };
-  
-  console.log(`[LICENSE] Valid license found: ${license.type}`);
-  res.json(licenseData);
-}));
+      maxDevices: license.maxDevices,
+      features: license.features,
+      validatedAt: Date.now(),
+    };
+
+    console.log(`[LICENSE] Valid license found: ${license.type}`);
+    res.json(licenseData);
+  })
+);
 
 /**
  * GET /api/auth/license-status/:licenseKey
  * Get status of a specific license
  */
-router.get('/license-status/:licenseKey', asyncHandler(async (req, res) => {
-  const { licenseKey } = req.params;
-  
-  const license = VALID_LICENSES[licenseKey];
-  
-  if (!license) {
-    return res.status(404).json({
-      error: 'License not found',
+router.get(
+  '/license-status/:licenseKey',
+  asyncHandler(async (req, res) => {
+    const { licenseKey } = req.params;
+
+    const license = VALID_LICENSES[licenseKey];
+
+    if (!license) {
+      return res.status(404).json({
+        error: 'License not found',
+      });
+    }
+
+    res.json({
+      licenseKey,
+      type: license.type,
+      status: license.status,
+      expires: license.expires,
+      maxDevices: license.maxDevices,
+      features: license.features,
     });
-  }
-  
-  res.json({
-    licenseKey,
-    type: license.type,
-    status: license.status,
-    expires: license.expires,
-    maxDevices: license.maxDevices,
-    features: license.features,
-  });
-}));
+  })
+);
 
 /**
  * POST /api/auth/test-license-email
  * Send a test license email
  */
-router.post('/test-license-email', validate(emailValidationSchema), asyncHandler(async (req, res) => {
-  const { email, licenseType = 'personal' } = req.body;
-  
-  if (!smtpService.isInitialized()) {
-    return res.status(503).json({
-      error: 'Email service not available',
-      details: 'SMTP service is not configured',
-    });
-  }
-  
-  const testLicenseKey = generateLicenseKey('test-customer', licenseType);
-  
-  try {
-    await smtpService.sendLicenseEmail(email, testLicenseKey, licenseType);
-    
-    res.json({
-      success: true,
-      message: 'Test license email sent successfully',
-      licenseKey: testLicenseKey,
-      email: email,
-      licenseType: licenseType,
-    });
-  } catch (error) {
-    console.error('Error sending test license email:', error);
-    res.status(500).json({
-      error: 'Failed to send test email',
-      details: error.message,
-    });
-  }
-}));
+router.post(
+  '/test-license-email',
+  validate(emailValidationSchema),
+  asyncHandler(async (req, res) => {
+    const { email, licenseType = 'personal' } = req.body;
+
+    if (!smtpService.isInitialized()) {
+      return res.status(503).json({
+        error: 'Email service not available',
+        details: 'SMTP service is not configured',
+      });
+    }
+
+    const testLicenseKey = generateLicenseKey('test-customer', licenseType);
+
+    try {
+      await smtpService.sendLicenseEmail(email, testLicenseKey, licenseType);
+
+      res.json({
+        success: true,
+        message: 'Test license email sent successfully',
+        licenseKey: testLicenseKey,
+        email: email,
+        licenseType: licenseType,
+      });
+    } catch (error) {
+      console.error('Error sending test license email:', error);
+      res.status(500).json({
+        error: 'Failed to send test email',
+        details: error.message,
+      });
+    }
+  })
+);
 
 /**
  * POST /api/auth/welcome
  * Send a welcome email to new users
  */
-router.post('/welcome', validate(Joi.object({
-  email: Joi.string().email().required(),
-  name: Joi.string().optional().default('RinaWarp User')
-})), asyncHandler(async (req, res) => {
-  const { email, name } = req.body;
-  
-  // Reinitialize SMTP service if not initialized
-  if (!smtpService.isInitialized()) {
-    smtpService.reinitialize();
-  }
-  
-  if (!smtpService.isInitialized()) {
-    return res.status(503).json({
-      error: 'Email service not available',
-      details: 'SMTP service is not configured',
-    });
-  }
-  
-  try {
-    await smtpService.sendEmail({
-      to: email,
-      subject: '🌊 Welcome to RinaWarp Terminal - Your Journey Begins! ✨',
-      text: `Welcome to RinaWarp Terminal, ${name}!\n\nYour terminal journey begins here. Dive into the depths of productivity and let the waves guide you through your coding adventures.\n\nGet started:\n1. Download RinaWarp Terminal from https://rinawarp-terminal.vercel.app/\n2. Install and launch the application\n3. Explore the features and customize your experience\n\nNeed help? Visit our documentation or contact support@rinawarp.com\n\nHappy coding!\nThe RinaWarp Team 🧜‍♀️`,
-      html: `
+router.post(
+  '/welcome',
+  validate(
+    Joi.object({
+      email: Joi.string().email().required(),
+      name: Joi.string().optional().default('RinaWarp User'),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const { email, name } = req.body;
+
+    // Reinitialize SMTP service if not initialized
+    if (!smtpService.isInitialized()) {
+      smtpService.reinitialize();
+    }
+
+    if (!smtpService.isInitialized()) {
+      return res.status(503).json({
+        error: 'Email service not available',
+        details: 'SMTP service is not configured',
+      });
+    }
+
+    try {
+      await smtpService.sendEmail({
+        to: email,
+        subject: '🌊 Welcome to RinaWarp Terminal - Your Journey Begins! ✨',
+        text: `Welcome to RinaWarp Terminal, ${name}!\n\nYour terminal journey begins here. Dive into the depths of productivity and let the waves guide you through your coding adventures.\n\nGet started:\n1. Download RinaWarp Terminal from https://rinawarp-terminal.vercel.app/\n2. Install and launch the application\n3. Explore the features and customize your experience\n\nNeed help? Visit our documentation or contact support@rinawarp.com\n\nHappy coding!\nThe RinaWarp Team 🧜‍♀️`,
+        html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e, #16213e);">
           <div style="background: linear-gradient(135deg, #0f3460, #16537e); padding: 40px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,255,136,0.1);">
             <h1 style="color: #00ff88; margin-bottom: 20px; font-size: 28px; text-shadow: 0 0 10px rgba(0,255,136,0.3);">🌊 Welcome aboard, ${name}! 🧜‍♀️</h1>
@@ -236,22 +261,23 @@ router.post('/welcome', validate(Joi.object({
             </div>
           </div>
         </div>
-      `
-    });
-    
-    res.json({
-      success: true,
-      message: 'Welcome email sent successfully',
-      recipient: email
-    });
-  } catch (error) {
-    console.error('Error sending welcome email:', error);
-    res.status(500).json({
-      error: 'Failed to send welcome email',
-      details: error.message,
-    });
-  }
-}));
+      `,
+      });
+
+      res.json({
+        success: true,
+        message: 'Welcome email sent successfully',
+        recipient: email,
+      });
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      res.status(500).json({
+        error: 'Failed to send welcome email',
+        details: error.message,
+      });
+    }
+  })
+);
 
 /**
  * GET /api/auth/smtp-status
@@ -269,13 +295,14 @@ router.get('/smtp-status', (req, res) => {
 function generateLicenseKey(customerId, licenseType) {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 15);
-  const prefix = {
-    personal: 'RINAWARP-PERSONAL',
-    professional: 'RINAWARP-PRO',
-    team: 'RINAWARP-TEAM',
-    enterprise: 'RINAWARP-ENT',
-  }[licenseType] || 'RINAWARP';
-  
+  const prefix =
+    {
+      personal: 'RINAWARP-PERSONAL',
+      professional: 'RINAWARP-PRO',
+      team: 'RINAWARP-TEAM',
+      enterprise: 'RINAWARP-ENT',
+    }[licenseType] || 'RINAWARP';
+
   return `${prefix}-${timestamp}-${random.toUpperCase()}`;
 }
 

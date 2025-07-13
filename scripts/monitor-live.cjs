@@ -13,23 +13,23 @@ class LiveMonitor {
     this.baseUrl = `https://api.github.com/repos/${this.repo}`;
     this.targetWorkflows = [
       '🧪 Minimal Test',
-      '🔍 Validate Environment', 
+      '🔍 Validate Environment',
       'Lint',
       '🔬 RinaWarp Core Checks',
-      'CodeQL Security Analysis'
+      'CodeQL Security Analysis',
     ];
   }
 
   async fetchLatestRuns() {
     try {
       const headers = {
-        'Authorization': `token ${process.env.GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json'
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
       };
-      
+
       const response = await fetch(`${this.baseUrl}/actions/runs?per_page=20`, { headers });
       const data = await response.json();
-      
+
       return data.workflow_runs || [];
     } catch (error) {
       console.error('❌ Error fetching runs:', error.message);
@@ -40,10 +40,10 @@ class LiveMonitor {
   async fetchWorkflowDetails(runId) {
     try {
       const headers = {
-        'Authorization': `token ${process.env.GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json'
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
       };
-      
+
       const response = await fetch(`${this.baseUrl}/actions/runs/${runId}`, { headers });
       return await response.json();
     } catch (error) {
@@ -55,7 +55,7 @@ class LiveMonitor {
   formatRunStatus(run) {
     const status = run.status;
     const conclusion = run.conclusion;
-    
+
     if (status === 'in_progress') return '🔄 In Progress';
     if (status === 'queued') return '⏳ Queued';
     if (conclusion === 'success') return '✅ Success';
@@ -67,9 +67,9 @@ class LiveMonitor {
   async monitorRecentRuns() {
     console.log('🔍 Fetching latest workflow runs...');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
+
     const runs = await this.fetchLatestRuns();
-    
+
     if (runs.length === 0) {
       console.log('❌ No workflow runs found');
       return;
@@ -96,17 +96,20 @@ class LiveMonitor {
     for (const [workflowName, workflowRuns] of Object.entries(workflowGroups)) {
       const latestRun = workflowRuns[0]; // Most recent
       const status = this.formatRunStatus(latestRun);
-      const duration = latestRun.run_started_at ? 
-        Math.round((new Date(latestRun.updated_at) - new Date(latestRun.run_started_at)) / 1000) + 's' : 
-        'N/A';
-      
+      const duration = latestRun.run_started_at
+        ? Math.round((new Date(latestRun.updated_at) - new Date(latestRun.run_started_at)) / 1000) +
+          's'
+        : 'N/A';
+
       console.log(`${status} ${workflowName}`);
       console.log(`   📅 Started: ${new Date(latestRun.created_at).toLocaleString()}`);
       console.log(`   ⏱️ Duration: ${duration}`);
       console.log(`   🔗 URL: https://github.com/${this.repo}/actions/runs/${latestRun.id}`);
-      
+
       // Show commit info
-      console.log(`   📝 Commit: ${latestRun.head_commit?.message?.split('\\n')[0] || 'No message'}`);
+      console.log(
+        `   📝 Commit: ${latestRun.head_commit?.message?.split('\\n')[0] || 'No message'}`
+      );
       console.log();
     }
 
@@ -120,7 +123,7 @@ class LiveMonitor {
     console.log(`✅ Successful runs: ${successfulRuns.length}`);
     console.log(`❌ Failed runs: ${failedRuns.length}`);
     console.log(`🔄 In progress: ${inProgressRuns.length}`);
-    
+
     if (successfulRuns.length > 0) {
       console.log();
       console.log('🎉 SUCCESS STORIES:');
@@ -133,7 +136,9 @@ class LiveMonitor {
       console.log();
       console.log('🔧 NEEDS ATTENTION:');
       failedRuns.slice(0, 5).forEach(run => {
-        console.log(`   ❌ ${run.name} - Check logs: https://github.com/${this.repo}/actions/runs/${run.id}`);
+        console.log(
+          `   ❌ ${run.name} - Check logs: https://github.com/${this.repo}/actions/runs/${run.id}`
+        );
       });
     }
 
@@ -150,8 +155,10 @@ class LiveMonitor {
     if (completedRuns > 0) {
       const successRate = ((successfulRuns.length / completedRuns) * 100).toFixed(1);
       console.log();
-      console.log(`📊 Recent Success Rate: ${successRate}% (${successfulRuns.length}/${completedRuns})`);
-      
+      console.log(
+        `📊 Recent Success Rate: ${successRate}% (${successfulRuns.length}/${completedRuns})`
+      );
+
       if (successRate > 0) {
         console.log('🎯 IMPROVEMENT DETECTED! 🎉');
       }
@@ -162,9 +169,9 @@ class LiveMonitor {
     console.log('🌊 RinaWarp Live Workflow Monitor');
     console.log('⏰ Monitoring recent workflow runs...');
     console.log();
-    
+
     await this.monitorRecentRuns();
-    
+
     console.log();
     console.log('🔄 Run this script again to see updates:');
     console.log('   npm run monitor:live');

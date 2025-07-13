@@ -201,37 +201,37 @@ class PlatformCompatibilityManager extends EventEmitter {
 
     violations.forEach(violation => {
       switch (violation.type) {
-      case 'api_rate_limit_exceeded':
-        actions.push({
-          action: 'reduce_api_calls',
-          description: 'Implement exponential backoff and request throttling',
-          priority: 'immediate',
-        });
-        break;
+        case 'api_rate_limit_exceeded':
+          actions.push({
+            action: 'reduce_api_calls',
+            description: 'Implement exponential backoff and request throttling',
+            priority: 'immediate',
+          });
+          break;
 
-      case 'privacy_policy_violation':
-        actions.push({
-          action: 'update_privacy_policy',
-          description: 'Review and update privacy policy to meet platform requirements',
-          priority: 'urgent',
-        });
-        break;
+        case 'privacy_policy_violation':
+          actions.push({
+            action: 'update_privacy_policy',
+            description: 'Review and update privacy policy to meet platform requirements',
+            priority: 'urgent',
+          });
+          break;
 
-      case 'data_handling_non_compliance':
-        actions.push({
-          action: 'audit_data_flows',
-          description: 'Audit all data collection and processing activities',
-          priority: 'critical',
-        });
-        break;
+        case 'data_handling_non_compliance':
+          actions.push({
+            action: 'audit_data_flows',
+            description: 'Audit all data collection and processing activities',
+            priority: 'critical',
+          });
+          break;
 
-      case 'security_vulnerability':
-        actions.push({
-          action: 'security_patch',
-          description: 'Apply security patches and update dependencies',
-          priority: 'critical',
-        });
-        break;
+        case 'security_vulnerability':
+          actions.push({
+            action: 'security_patch',
+            description: 'Apply security patches and update dependencies',
+            priority: 'critical',
+          });
+          break;
       }
     });
 

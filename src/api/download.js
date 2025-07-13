@@ -14,14 +14,15 @@ const __dirname = path.dirname(__filename);
 const router = Router();
 
 // GitHub release configuration
-const GITHUB_RELEASE_BASE_URL = 'https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download';
+const GITHUB_RELEASE_BASE_URL =
+  'https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download';
 
 const ALLOWED_FILES = {
   'rinawarp.zip': `${GITHUB_RELEASE_BASE_URL}/rinawarp.zip`,
-  'portable': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`,
-  'linux': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`,
-  'macos': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`,
-  'setup': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`
+  portable: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`,
+  linux: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`,
+  macos: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`,
+  setup: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`,
 };
 
 const PUBLIC_DIR = path.join(__dirname, '../../public');
@@ -32,14 +33,14 @@ const PUBLIC_DIR = path.join(__dirname, '../../public');
  */
 router.get('/', (req, res) => {
   const { file } = req.query;
-  
+
   console.log(`[DOWNLOAD] Request for file: ${file || 'default'} from IP: ${req.ip}`);
-  
+
   // Default to main installer if no file specified
   const downloadUrl = file ? ALLOWED_FILES[file] : ALLOWED_FILES['setup'];
-  
+
   if (!downloadUrl) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       error: 'Invalid file requested',
       available: Object.keys(ALLOWED_FILES),
       message: 'Please specify one of the available file types',
@@ -47,21 +48,21 @@ router.get('/', (req, res) => {
         '/api/download - Default Windows installer',
         '/api/download?file=portable - Portable Windows version',
         '/api/download?file=linux - Linux package',
-        '/api/download?file=macos - macOS installer'
-      ]
+        '/api/download?file=macos - macOS installer',
+      ],
     });
   }
-  
+
   console.log(`[DOWNLOAD] Redirecting to: ${downloadUrl}`);
-  
+
   // Check for local files in development
   if (process.env.NODE_ENV === 'development') {
     const fileName = downloadUrl.split('/').pop();
     const localPaths = [
       path.join(PUBLIC_DIR, 'releases', fileName),
-      path.join(PUBLIC_DIR, fileName)
+      path.join(PUBLIC_DIR, fileName),
     ];
-    
+
     for (const localPath of localPaths) {
       if (fs.existsSync(localPath)) {
         console.log(`[DOWNLOAD] Serving local file: ${localPath}`);
@@ -72,7 +73,7 @@ router.get('/', (req, res) => {
       }
     }
   }
-  
+
   // Redirect to GitHub releases for production
   res.redirect(302, downloadUrl);
 });
@@ -89,34 +90,34 @@ router.get('/info', (req, res) => {
         name: 'Windows Installer',
         description: 'Full installer with all features',
         platform: 'Windows',
-        size: '~45MB'
+        size: '~45MB',
       },
       portable: {
         name: 'Windows Portable',
         description: 'No installation required',
         platform: 'Windows',
-        size: '~35MB'
+        size: '~35MB',
       },
       linux: {
         name: 'Linux Package',
         description: 'Universal tarball for all distros',
         platform: 'Linux',
-        size: '~40MB'
+        size: '~40MB',
       },
       macos: {
         name: 'macOS Installer',
         description: 'Notarized disk image',
         platform: 'macOS',
-        size: '~50MB'
-      }
+        size: '~50MB',
+      },
     },
     usage: {
       default: '/api/download',
       specific: '/api/download?file=portable',
-      info: '/api/download/info'
-    }
+      info: '/api/download/info',
+    },
   };
-  
+
   res.json(downloadInfo);
 });
 

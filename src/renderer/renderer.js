@@ -2792,21 +2792,21 @@ class TerminalManager extends SimpleEventEmitter {
   async processNaturalLanguageCommand(input) {
     try {
       console.log(`🧜‍♀️ Processing natural language: "${input}"`);
-      
+
       // Check if AI integration is available
       if (window.aiIntegration && window.aiIntegration.isInitialized) {
         const aiResponse = await window.aiIntegration.processUserCommand(input, {
           currentDirectory: process.cwd(),
           platform: this.platform,
-          activeTerminalId: this.activeTerminalId
+          activeTerminalId: this.activeTerminalId,
         });
-        
+
         console.log('🌊 AI Response:', aiResponse);
-        
+
         if (aiResponse && aiResponse.response) {
           // Show the mermaid AI response with personality
           this.pluginAPI.showNotification(aiResponse.response, 'info', 4000);
-          
+
           // If there are suggestions, show them
           if (aiResponse.suggestions && aiResponse.suggestions.length > 0) {
             setTimeout(() => {
@@ -2819,13 +2819,17 @@ class TerminalManager extends SimpleEventEmitter {
         // Use basic natural language processing as fallback
         const nlProcessor = new NaturalLanguageProcessor();
         const command = nlProcessor.processNaturalLanguage(input);
-        
+
         if (command) {
           this.pluginAPI.showNotification(`🧜‍♀️ Interpreted as: ${command}`, 'info', 3000);
           // Optionally auto-execute the command
           // this.executeCommand(command);
         } else {
-          this.pluginAPI.showNotification('🤔 I don\'t understand that command. Try being more specific!', 'info', 3000);
+          this.pluginAPI.showNotification(
+            "🤔 I don't understand that command. Try being more specific!",
+            'info',
+            3000
+          );
         }
       }
     } catch (error) {
@@ -3110,19 +3114,19 @@ class TerminalManager extends SimpleEventEmitter {
       this.saveSettings();
       // Add visual feedback
       this.pluginAPI.showNotification(
-        aiAssistanceCheck.checked ? 
-          '🧜‍♀️ AI assistance enabled! Ask me anything!' : 
-          '🧜‍♀️ AI assistance disabled', 
-        'info', 
+        aiAssistanceCheck.checked
+          ? '🧜‍♀️ AI assistance enabled! Ask me anything!'
+          : '🧜‍♀️ AI assistance disabled',
+        'info',
         3000
       );
     });
-    
+
     // Add debugging for checkbox state
     console.log('AI assistance checkbox element:', aiAssistanceCheck);
     console.log('AI assistance checkbox checked:', aiAssistanceCheck.checked);
     console.log('AI assistance setting:', this.settings.aiAssistance);
-    
+
     // Handle Real AI toggle
     const realAICheck = document.getElementById('real-ai');
     if (realAICheck) {
@@ -3132,15 +3136,15 @@ class TerminalManager extends SimpleEventEmitter {
         this.settings.realAI = realAICheck.checked;
         this.saveSettings();
         this.pluginAPI.showNotification(
-          realAICheck.checked ? 
-            '🤖 Real AI enabled! Configure your API key below.' : 
-            '🤖 Real AI disabled - using mock responses', 
-          'info', 
+          realAICheck.checked
+            ? '🤖 Real AI enabled! Configure your API key below.'
+            : '🤖 Real AI disabled - using mock responses',
+          'info',
           3000
         );
       });
     }
-    
+
     // Handle AI Provider selection
     const aiProviderSelect = document.getElementById('ai-provider');
     if (aiProviderSelect) {
@@ -3150,13 +3154,13 @@ class TerminalManager extends SimpleEventEmitter {
         this.settings.aiProvider = aiProviderSelect.value;
         this.saveSettings();
         this.pluginAPI.showNotification(
-          `AI Provider set to: ${aiProviderSelect.value}`, 
-          'info', 
+          `AI Provider set to: ${aiProviderSelect.value}`,
+          'info',
           2000
         );
       });
     }
-    
+
     // Handle AI API Key
     const aiApiKeyInput = document.getElementById('ai-api-key');
     if (aiApiKeyInput) {
@@ -3165,11 +3169,7 @@ class TerminalManager extends SimpleEventEmitter {
         console.log('🔑 AI API Key updated');
         this.settings.aiApiKey = aiApiKeyInput.value;
         this.saveSettings();
-        this.pluginAPI.showNotification(
-          'AI API Key updated!', 
-          'success', 
-          2000
-        );
+        this.pluginAPI.showNotification('AI API Key updated!', 'success', 2000);
       });
     }
 
@@ -4027,33 +4027,33 @@ class TerminalManager extends SimpleEventEmitter {
       let statusColor = '';
 
       switch (status.tier) {
-      case 'trial':
-        statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
-        statusColor = '#ffd93d';
-        break;
-      case 'personal':
-        statusText = '👤 Personal';
-        statusColor = '#51cf66';
-        break;
-      case 'professional':
-        statusText = '💼 Professional';
-        statusColor = '#74c0fc';
-        break;
-      case 'team':
-        statusText = '👥 Team';
-        statusColor = '#9775fa';
-        break;
-      case 'enterprise':
-        statusText = '🏢 Enterprise';
-        statusColor = '#ff8c42';
-        break;
-      case 'expired':
-        statusText = '❌ Expired';
-        statusColor = '#f92672';
-        break;
-      default:
-        statusText = '❓ Unknown';
-        statusColor = '#666';
+        case 'trial':
+          statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+          statusColor = '#ffd93d';
+          break;
+        case 'personal':
+          statusText = '👤 Personal';
+          statusColor = '#51cf66';
+          break;
+        case 'professional':
+          statusText = '💼 Professional';
+          statusColor = '#74c0fc';
+          break;
+        case 'team':
+          statusText = '👥 Team';
+          statusColor = '#9775fa';
+          break;
+        case 'enterprise':
+          statusText = '🏢 Enterprise';
+          statusColor = '#ff8c42';
+          break;
+        case 'expired':
+          statusText = '❌ Expired';
+          statusColor = '#f92672';
+          break;
+        default:
+          statusText = '❓ Unknown';
+          statusColor = '#666';
       }
 
       licenseElement.textContent = statusText;
@@ -4078,15 +4078,15 @@ class TerminalManager extends SimpleEventEmitter {
                         <div class="license-tier">${status.tier.toUpperCase()}</div>
                         <div class="license-details">
                             ${
-  status.tier === 'trial'
-    ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
-    : '<p>License is active</p>'
-}
+                              status.tier === 'trial'
+                                ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
+                                : '<p>License is active</p>'
+                            }
                             ${
-  status.aiQueriesRemaining !== 'unlimited'
-    ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
-    : '<p>Unlimited AI queries</p>'
-}
+                              status.aiQueriesRemaining !== 'unlimited'
+                                ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
+                                : '<p>Unlimited AI queries</p>'
+                            }
                         </div>
                     </div>
                 </div>

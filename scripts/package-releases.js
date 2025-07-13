@@ -47,48 +47,74 @@ function createArchive(output, files) {
 
 async function packageReleases() {
   console.log('🚀 Starting RinaWarp Terminal release packaging...');
-  
+
   const baseDir = path.join(__dirname, '..');
   const publicDir = path.join(baseDir, 'public');
-  
+
   // Define release files
   const releaseFiles = [
-    { path: path.join(publicDir, 'RinaWarp-Terminal-Setup-Windows.exe'), name: 'RinaWarp-Terminal-Setup-Windows.exe' },
-    { path: path.join(publicDir, 'RinaWarp-Terminal-Linux.tar.gz'), name: 'RinaWarp-Terminal-Linux.tar.gz' },
-    { path: path.join(publicDir, 'RinaWarp-Terminal-macOS.dmg'), name: 'RinaWarp-Terminal-macOS.dmg' },
-    { path: path.join(publicDir, 'RinaWarp-Terminal-Portable-Windows.exe'), name: 'RinaWarp-Terminal-Portable-Windows.exe' }
+    {
+      path: path.join(publicDir, 'RinaWarp-Terminal-Setup-Windows.exe'),
+      name: 'RinaWarp-Terminal-Setup-Windows.exe',
+    },
+    {
+      path: path.join(publicDir, 'RinaWarp-Terminal-Linux.tar.gz'),
+      name: 'RinaWarp-Terminal-Linux.tar.gz',
+    },
+    {
+      path: path.join(publicDir, 'RinaWarp-Terminal-macOS.dmg'),
+      name: 'RinaWarp-Terminal-macOS.dmg',
+    },
+    {
+      path: path.join(publicDir, 'RinaWarp-Terminal-Portable-Windows.exe'),
+      name: 'RinaWarp-Terminal-Portable-Windows.exe',
+    },
   ];
-  
+
   try {
     // Create main release archive
-    await createArchive(path.join(distDir, 'rinawarp-terminal-v1.0.7-all-platforms.zip'), releaseFiles);
-    
+    await createArchive(
+      path.join(distDir, 'rinawarp-terminal-v1.0.7-all-platforms.zip'),
+      releaseFiles
+    );
+
     // Create platform-specific archives
     console.log('\n📦 Creating platform-specific archives...');
-    
+
     // Windows package
     await createArchive(path.join(distDir, 'rinawarp-terminal-v1.0.7-windows.zip'), [
-      { path: path.join(publicDir, 'RinaWarp-Terminal-Setup-Windows.exe'), name: 'RinaWarp-Terminal-Setup-Windows.exe' },
-      { path: path.join(publicDir, 'RinaWarp-Terminal-Portable-Windows.exe'), name: 'RinaWarp-Terminal-Portable-Windows.exe' }
+      {
+        path: path.join(publicDir, 'RinaWarp-Terminal-Setup-Windows.exe'),
+        name: 'RinaWarp-Terminal-Setup-Windows.exe',
+      },
+      {
+        path: path.join(publicDir, 'RinaWarp-Terminal-Portable-Windows.exe'),
+        name: 'RinaWarp-Terminal-Portable-Windows.exe',
+      },
     ]);
-    
+
     // Linux package
     await createArchive(path.join(distDir, 'rinawarp-terminal-v1.0.7-linux.zip'), [
-      { path: path.join(publicDir, 'RinaWarp-Terminal-Linux.tar.gz'), name: 'RinaWarp-Terminal-Linux.tar.gz' }
+      {
+        path: path.join(publicDir, 'RinaWarp-Terminal-Linux.tar.gz'),
+        name: 'RinaWarp-Terminal-Linux.tar.gz',
+      },
     ]);
-    
+
     // macOS package
     await createArchive(path.join(distDir, 'rinawarp-terminal-v1.0.7-macos.zip'), [
-      { path: path.join(publicDir, 'RinaWarp-Terminal-macOS.dmg'), name: 'RinaWarp-Terminal-macOS.dmg' }
+      {
+        path: path.join(publicDir, 'RinaWarp-Terminal-macOS.dmg'),
+        name: 'RinaWarp-Terminal-macOS.dmg',
+      },
     ]);
-    
+
     // Create checksums
     console.log('\n🔐 Generating checksums...');
     await generateChecksums(distDir);
-    
+
     console.log('\n✅ Packaging complete!');
     console.log('📁 Release files available in:', distDir);
-    
   } catch (error) {
     console.error('❌ Error during packaging:', error);
     process.exit(1);
@@ -98,11 +124,11 @@ async function packageReleases() {
 async function generateChecksums(distDir) {
   const crypto = require('crypto');
   const checksumFile = path.join(distDir, 'checksums.txt');
-  
+
   const files = fs.readdirSync(distDir).filter(file => file.endsWith('.zip'));
   let checksums = 'RinaWarp Terminal v1.0.7 - Release Checksums\n';
   checksums += `Generated: ${new Date().toISOString()}\n\n`;
-  
+
   for (const file of files) {
     const filePath = path.join(distDir, file);
     const fileBuffer = fs.readFileSync(filePath);
@@ -112,7 +138,7 @@ async function generateChecksums(distDir) {
     checksums += `${hex}  ${file}\n`;
     console.log(`🔐 ${file}: ${hex.substring(0, 8)}...`);
   }
-  
+
   fs.writeFileSync(checksumFile, checksums);
   console.log(`✅ Checksums saved to ${checksumFile}`);
 }

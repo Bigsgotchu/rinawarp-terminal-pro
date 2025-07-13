@@ -15,7 +15,7 @@ if (checkbox) {
   console.log('Opacity:', styles.opacity);
   console.log('Position:', styles.position);
   console.log('Z-index:', styles.zIndex);
-    
+
   // 3. Check parent elements
   let parent = checkbox.parentElement;
   while (parent && parent !== document.body) {
@@ -23,24 +23,24 @@ if (checkbox) {
     console.log(`Parent ${parent.tagName} (${parent.className}):`, {
       display: parentStyles.display,
       visibility: parentStyles.visibility,
-      opacity: parentStyles.opacity
+      opacity: parentStyles.opacity,
     });
     parent = parent.parentElement;
   }
-    
+
   // 4. Check checkbox state
   console.log('Checked state:', checkbox.checked);
   console.log('Disabled state:', checkbox.disabled);
-    
+
   // 5. Check bounding box
   const rect = checkbox.getBoundingClientRect();
   console.log('Bounding box:', rect);
-    
+
   // 6. Try to focus and highlight the element
   checkbox.style.border = '3px solid red';
   checkbox.style.background = 'yellow';
   checkbox.focus();
-    
+
   console.log('Highlighted checkbox - check if you can see it now!');
 } else {
   console.log('ERROR: Checkbox element not found!');
