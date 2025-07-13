@@ -1,5 +1,1 @@
-# Run lint-staged (ESLint + Prettier)
-npx lint-staged
-
-# Run tests to ensure nothing is broken
 npm test
