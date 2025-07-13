@@ -347,7 +347,7 @@ class PluginManager {
     }, duration);
   }
 
-  addMenuItem(label, callback, icon = '') {
+  addMenuItem(label, callback, _icon = '') {
     // Add to context menu or main menu
     console.log(`Adding menu item: ${label}`);
   }

@@ -473,7 +473,7 @@ class AdvancedIntellectualAI {
     return 'neutral';
   }
 
-  async generateIntelligentSuggestions(input, context) {
+  async generateIntelligentSuggestions(input, _context) {
     const suggestions = [];
     if (input.includes('git') && !input.includes('status')) {
       suggestions.push('Consider running "git status" first to see current state');

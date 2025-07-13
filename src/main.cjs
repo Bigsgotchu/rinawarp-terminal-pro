@@ -110,7 +110,7 @@ app.whenReady().then(() => {
 
   // Grant microphone permission by default
   session.defaultSession.setPermissionCheckHandler(
-    (webContents, permission, requestingOrigin, details) => {
+    (webContents, permission, _requestingOrigin, _details) => {
       if (permission === 'microphone' || permission === 'media') {
         return true;
       }

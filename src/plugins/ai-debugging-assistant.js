@@ -185,7 +185,7 @@ export class AIDebuggingAssistantPlugin extends Plugin {
       // Port already in use
       [
         /port.*already in use|address already in use/i,
-        async (error, command) => ({
+        async (error, _command) => ({
           suggestions: [
             {
               type: 'port-conflict',
@@ -212,7 +212,7 @@ export class AIDebuggingAssistantPlugin extends Plugin {
       // Git conflicts
       [
         /merge conflict|conflict.*resolve/i,
-        async (error, command) => ({
+        async (error, _command) => ({
           suggestions: [
             {
               type: 'git-conflict',
@@ -240,7 +240,7 @@ export class AIDebuggingAssistantPlugin extends Plugin {
       // Node.js/npm errors
       [
         /npm ERR!|node.*error/i,
-        async (error, command) => ({
+        async (error, _command) => ({
           suggestions: [
             {
               type: 'npm-cache',

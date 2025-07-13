@@ -110,7 +110,7 @@ export class PluginLoader {
 
     const startTime = performance.now();
 
-    for (const [name, plugin] of this.plugins) {
+    for (const [name, _plugin] of this.plugins) {
       try {
         await this.load(name, context);
         results.loaded.push(name);
@@ -210,11 +210,11 @@ export class Plugin {
     this.enabled = config.enabled !== false;
   }
 
-  async initialize(context) {
+  async initialize(_context) {
     // Override in subclasses
   }
 
-  async execute(context) {
+  async execute(_context) {
     // Override in subclasses
   }
 
