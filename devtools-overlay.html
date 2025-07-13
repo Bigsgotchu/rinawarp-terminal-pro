@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp DevTools Overlay</title>
+    <style>
+        .floating-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #008B8B, #FF1493);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: Arial, sans-serif;
+            z-index: 10000;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+    </style>
+</head>
+<body>
+    <div id="rinawarp-devtools" class="floating-panel">
+        <h3>🧜‍♀️ RinaWarp Diagnostics</h3>
+        <button id="check-elements">🧪 Run Element Checks</button>
+        <button id="toggle-theme">🎨 Toggle Theme</button>
+        <button id="check-api">💾 Test Download API</button>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        document.getElementById('check-elements').addEventListener('click', () => {
+            const report = [];
+            report.push(`Settings button: ${!!document.getElementById('settings-btn') ? '✅ Exists' : '❌ Missing'}`);
+            report.push(`AI checkbox: ${!!document.getElementById('ai-assistance') ? '✅ Exists' : '❌ Missing'}`);
+            report.push(`Terminal manager: ${!!window.terminalManager ? '✅ Active' : '❌ Inactive'}`);
+            document.getElementById('test-results').innerHTML = report.join('<br>');
+        });
+
+        document.getElementById('toggle-theme').addEventListener('click', () => {
+            const themeName = document.body.classList.toggle('mermaid-theme') ? 'Mermaid' : 'Default';
+            alert(`Theme switched to ${themeName}`);
+        });
+
+        document.getElementById('check-api').addEventListener('click', () => {
+            fetch('https://your-api-endpoint.com').then(response => {
+                alert(`API Status: ${response.status}`);
+            }).catch(error => {
+                alert(`API Error: ${error.message}`);
+            });
+        });
+    </script>
+</body>
+</html>

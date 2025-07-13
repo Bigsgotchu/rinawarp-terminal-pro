@@ -104,14 +104,14 @@ export class VoiceControlUI {
                         </label>
                         <select id="system-voice-select" ${status.settings.useCustomVoice ? 'disabled' : ''}>
                             ${availableVoices
-                              .filter(v => v.type === 'system')
-                              .map(
-                                voice =>
-                                  `<option value="${voice.name}" ${voice.name === status.currentVoice ? 'selected' : ''}>
+    .filter(v => v.type === 'system')
+    .map(
+      voice =>
+        `<option value="${voice.name}" ${voice.name === status.currentVoice ? 'selected' : ''}>
                                     ${voice.name} (${voice.lang})
                                 </option>`
-                              )
-                              .join('')}
+    )
+    .join('')}
                         </select>
                     </div>
                     
@@ -122,19 +122,19 @@ export class VoiceControlUI {
                         </label>
                         <select id="custom-voice-select" ${!status.settings.useCustomVoice ? 'disabled' : ''}>
                             ${availableVoices
-                              .filter(v => v.type === 'custom')
-                              .map(
-                                voice =>
-                                  `<option value="${voice.name}" ${voice.name === status.settings.customVoiceName ? 'selected' : ''}>
+    .filter(v => v.type === 'custom')
+    .map(
+      voice =>
+        `<option value="${voice.name}" ${voice.name === status.settings.customVoiceName ? 'selected' : ''}>
                                     ${voice.name}
                                 </option>`
-                              )
-                              .join('')}
+    )
+    .join('')}
                             ${
-                              availableVoices.filter(v => v.type === 'custom').length === 0
-                                ? '<option value="">No custom voices recorded</option>'
-                                : ''
-                            }
+  availableVoices.filter(v => v.type === 'custom').length === 0
+    ? '<option value="">No custom voices recorded</option>'
+    : ''
+}
                         </select>
                         <button id="record-voice-btn" class="btn btn-primary btn-small">Record New Voice</button>
                     </div>
@@ -469,7 +469,7 @@ export class VoiceControlUI {
               useCustomVoice: true,
               customVoiceName: voiceName,
             });
-            this.voiceEngine.speak("Hello! I'm now using your custom voice. How do I sound?", {
+            this.voiceEngine.speak('Hello! I\'m now using your custom voice. How do I sound?', {
               type: 'notification',
               interrupt: true,
             });

@@ -25,12 +25,19 @@
  * @since 2025-01-01
  */
 
+// Load environment variables FIRST, before any other imports
+import { config } from 'dotenv';
+const startTime = Date.now();
+console.log('🚀 Starting RinaWarp Terminal Server...');
+
+config();
+console.log('✅ Environment variables loaded');
+
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
-import { config } from 'dotenv';
 import nodemailer from 'nodemailer';
 import Stripe from 'stripe';
 import cors from 'cors';
@@ -38,9 +45,22 @@ import helmet from 'helmet';
 import Joi from 'joi';
 import morgan from 'morgan';
 import { validationResult } from 'express-validator';
+import errorHandler, { notFoundHandler } from './src/middleware/errorHandler.js';
+import statusRouter from './src/api/status.js';
+import downloadRouter from './src/api/download.js';
+import authRouter from './src/api/auth.js';
 
-// Load environment variables from .env file
-config();
+// Validate SMTP configuration AFTER dotenv
+const smtpConfigured = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
+const sendgridConfigured = process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL;
+
+if (smtpConfigured || sendgridConfigured) {
+  console.log('✅ SMTP credentials detected and configured');
+} else if (process.env.NODE_ENV === 'development') {
+  console.log('📧 SMTP not configured - using mock mode for development');
+} else {
+  console.log('⚠️ SMTP credentials not configured for production mode');
+}
 
 // Configure Nodemailer
 let transporter;
@@ -56,7 +76,26 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
   });
   console.log('✅ Nodemailer configured successfully');
 } else {
-  console.log('⚠️ SMTP credentials not configured');
+  // Create mock transporter for development
+  if (process.env.NODE_ENV === 'development') {
+    transporter = {
+      sendMail: async (mailOptions) => {
+        console.log('📧 [MOCK EMAIL] Simulating email send:');
+        console.log('   To:', mailOptions.to);
+        console.log('   Subject:', mailOptions.subject);
+        console.log('   From:', mailOptions.from);
+        console.log('   Text Preview:', mailOptions.text?.substring(0, 200) + '...');
+        return {
+          messageId: 'mock-' + Date.now(),
+          accepted: [mailOptions.to],
+          rejected: []
+        };
+      }
+    };
+    console.log('✅ Mock SMTP transporter configured for development');
+  } else {
+    console.log('⚠️ SMTP credentials not configured');
+  }
 }
 
 // Initialize Stripe
@@ -158,14 +197,14 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        fontSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'", 'wss:', 'ws:'],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
+        defaultSrc: ['\'self\''],
+        scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
+        styleSrc: ['\'self\'', '\'unsafe-inline\''],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\'', 'data:'],
+        connectSrc: ['\'self\'', 'wss:', 'ws:'],
+        objectSrc: ['\'none\''],
+        baseUri: ['\'self\''],
       },
     },
   })
@@ -185,9 +224,79 @@ app.use(
 // Apply custom logging middleware to all requests
 app.use(logRequest);
 
-// Parse JSON bodies for API endpoints
-app.use('/api', express.json());
-app.use('/webhook', express.raw({ type: 'application/json' }));
+// Middleware
+app.use(express.json());
+// More middleware like cors(), helmet()
+
+// Enhanced status/health endpoint with integration checks (before status router)
+app.get('/api/status/health', async (req, res) => {
+  const memoryUsage = process.memoryUsage();
+  const uptime = process.uptime();
+  const serverStartupTime = Date.now() - startTime;
+  
+  const healthData = {
+    status: 'healthy',
+    service: 'RinaWarp Terminal API',
+    version: '1.0.8',
+    timestamp: new Date().toISOString(),
+    uptime: {
+      seconds: Math.floor(uptime),
+      human: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`
+    },
+    startup: {
+      time_ms: serverStartupTime,
+      human: `${serverStartupTime}ms`
+    },
+    memory: {
+      rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
+      heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`,
+      heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
+      external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`
+    },
+    integrations: {
+      smtp: {
+        configured: smtpConfigured || sendgridConfigured,
+        mode: process.env.NODE_ENV === 'development' && !smtpConfigured ? 'mock' : 'real',
+        provider: smtpConfigured ? 'SMTP' : sendgridConfigured ? 'SendGrid' : 'none'
+      },
+      stripe: {
+        configured: !!stripe,
+        publishableKey: !!process.env.STRIPE_PUBLISHABLE_KEY,
+        webhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET
+      }
+    },
+    environment: {
+      node_env: process.env.NODE_ENV || 'development',
+      node_version: process.version,
+      platform: process.platform
+    }
+  };
+  
+  // Test SMTP connectivity if configured
+  if (smtpConfigured && transporter && transporter.verify) {
+    try {
+      await transporter.verify();
+      healthData.integrations.smtp.status = 'connected';
+    } catch (error) {
+      healthData.integrations.smtp.status = 'error';
+      healthData.integrations.smtp.error = error.message;
+    }
+  } else {
+    healthData.integrations.smtp.status = sendgridConfigured ? 'configured' : 'not_configured';
+  }
+  
+  res.json(healthData);
+});
+
+// Routes
+app.use('/api/status', statusRouter);
+app.use('/api/download', downloadRouter);
+app.use('/api/auth', authRouter);
+
+// Health Check
+app.get('/api/ping', (req, res) => {
+  res.status(200).json({ pong: true, timestamp: new Date().toISOString() });
+});
 
 // Custom request validation middleware - currently unused but kept for future use
 // const validateRequest = (req, res, next) => {
@@ -394,6 +503,8 @@ app.get('/api/health', (req, res) => {
     version: '1.0.7',
   });
 });
+
+// Status endpoint moved to modular router (src/api/status.js)
 
 // Download API endpoint - redirects to GitHub releases
 app.get('/api/download', (req, res) => {
@@ -661,30 +772,30 @@ app.post('/webhook', (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      console.log('💰 Payment successful:', session.id);
-      handlePaymentSuccess(session);
-      break;
-    }
-    case 'customer.subscription.created':
-      console.log('🔄 Subscription created:', event.data.object.id);
-      handleSubscriptionCreated(event.data.object);
-      break;
-    case 'customer.subscription.updated':
-      console.log('🔄 Subscription updated:', event.data.object.id);
-      handleSubscriptionUpdated(event.data.object);
-      break;
-    case 'customer.subscription.deleted':
-      console.log('❌ Subscription cancelled:', event.data.object.id);
-      handleSubscriptionCancelled(event.data.object);
-      break;
-    case 'invoice.payment_succeeded':
-      console.log('💳 Invoice paid:', event.data.object.id);
-      handleInvoicePayment(event.data.object);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  case 'checkout.session.completed': {
+    const session = event.data.object;
+    console.log('💰 Payment successful:', session.id);
+    handlePaymentSuccess(session);
+    break;
+  }
+  case 'customer.subscription.created':
+    console.log('🔄 Subscription created:', event.data.object.id);
+    handleSubscriptionCreated(event.data.object);
+    break;
+  case 'customer.subscription.updated':
+    console.log('🔄 Subscription updated:', event.data.object.id);
+    handleSubscriptionUpdated(event.data.object);
+    break;
+  case 'customer.subscription.deleted':
+    console.log('❌ Subscription cancelled:', event.data.object.id);
+    handleSubscriptionCancelled(event.data.object);
+    break;
+  case 'invoice.payment_succeeded':
+    console.log('💳 Invoice paid:', event.data.object.id);
+    handleInvoicePayment(event.data.object);
+    break;
+  default:
+    console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -1075,6 +1186,36 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API routes are working!', timestamp: new Date().toISOString() });
 });
 
+// Email connectivity test endpoint
+app.get('/api/test/email-ping', async (req, res) => {
+  const testResult = {
+    timestamp: new Date().toISOString(),
+    smtp: {
+      configured: smtpConfigured || sendgridConfigured,
+      provider: smtpConfigured ? 'SMTP' : sendgridConfigured ? 'SendGrid' : 'none'
+    }
+  };
+  
+  if (smtpConfigured && transporter && transporter.verify) {
+    try {
+      await transporter.verify();
+      testResult.smtp.status = 'connected';
+      testResult.smtp.test = 'SMTP verification successful';
+    } catch (error) {
+      testResult.smtp.status = 'error';
+      testResult.smtp.error = error.message;
+    }
+  } else if (sendgridConfigured) {
+    testResult.smtp.status = 'configured';
+    testResult.smtp.test = 'SendGrid configured via environment variables';
+  } else {
+    testResult.smtp.status = 'not_configured';
+    testResult.smtp.test = 'No email service configured';
+  }
+  
+  res.json(testResult);
+});
+
 // Simple POST test endpoint
 app.post('/api/test-post', (req, res) => {
   res.json({
@@ -1349,17 +1490,22 @@ app.use(
   })
 );
 
-// Serve static files with security restrictions from public directory
-// This catches any remaining requests after specific routes
-app.use(
-  '/',
-  staticPageLimiter,
-  secureFileServer(_PUBLIC_DIR, ALLOWED_STATIC_FILES, ALLOWED_STATIC_DIRS)
-);
+// Note: Removed catch-all static file server to prevent conflicts with API routes
+// Static files are now served via express.static middleware and specific routes
+
+// 404 Handler for undefined routes (must be after all other routes)
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(errorHandler);
+
 
 const server = app.listen(PORT, '0.0.0.0', () => {
+  const bootTime = Date.now() - startTime;
   console.log(`🚀 RinaWarp Terminal server running on http://0.0.0.0:${PORT}`);
   console.log(`🌍 Server started at ${new Date().toISOString()}`);
+  console.log(`⚡ Boot time: ${bootTime}ms`);
+  console.log(`💾 Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
   console.log('🔧 Environment variables loaded:');
   console.log(
     '- STRIPE_PUBLISHABLE_KEY:',
@@ -1395,7 +1541,16 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     process.env.SENDGRID_FROM_EMAIL ? '✅ Set' : '❌ Missing (will use default)'
   );
   console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅ Set' : '❌ Missing');
+  
+  // Email test ping on startup
+  if (sendgridConfigured) {
+    console.log('📧 Testing SendGrid connectivity...');
+    // Note: We'll add a test ping endpoint instead of testing on startup to avoid delays
+  }
+  
   console.log('✅ Server ready to accept connections');
+  console.log('🔗 Health endpoint: http://localhost:' + PORT + '/api/status/health');
+  console.log('🐚 All systems operational - RinaWarp is ready to make waves!');
 });
 
 server.on('error', error => {

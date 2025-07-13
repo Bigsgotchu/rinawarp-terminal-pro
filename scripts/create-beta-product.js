@@ -171,8 +171,8 @@ async function createBetaProduct() {
 
     console.log('📊 Stripe Dashboard Links:');
     console.log(`   Product: https://dashboard.stripe.com/products/${product.id}`);
-    console.log(`   Prices: https://dashboard.stripe.com/prices`);
-    console.log(`   Payments: https://dashboard.stripe.com/payments\n`);
+    console.log('   Prices: https://dashboard.stripe.com/prices');
+    console.log('   Payments: https://dashboard.stripe.com/payments\n');
 
     return {
       product,

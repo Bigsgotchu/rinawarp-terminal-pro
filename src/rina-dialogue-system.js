@@ -15,66 +15,66 @@ class RinaDialogueSystem {
           'Good morning, sailor! ☀️ Ready to surf the command waves?',
           'Rise and shine, my nautical navigator! The terminal seas are calling! 🌊',
           'Morning, darling! Time to shell-ebrate another day of coding adventures! 🐚',
-          "Ahoy there, early bird! Let's make some waves in the code today! 🌅",
+          'Ahoy there, early bird! Let\'s make some waves in the code today! 🌅',
         ],
         afternoon: [
-          "Afternoon, my maritime mate! How's the coding current treating you? 🌤️",
+          'Afternoon, my maritime mate! How\'s the coding current treating you? 🌤️',
           'Hello there, seafarer! Ready to dive deeper into the terminal depths? 🏊‍♀️',
           'Greetings, captain! The afternoon tide brings new possibilities! ⚓',
-          "Hey gorgeous! Let's navigate these afternoon commands together! 💫",
+          'Hey gorgeous! Let\'s navigate these afternoon commands together! 💫',
         ],
         evening: [
           'Evening, my moonlit mariner! 🌙 Time for some twilight terminal magic!',
           'Good evening, starfish! Ready to code under the digital stars? ✨',
-          "Ahoy, night owl! Let's explore the mysterious depths of evening commands! 🦉",
+          'Ahoy, night owl! Let\'s explore the mysterious depths of evening commands! 🦉',
           'Evening, love! The terminal tides are perfect for late-night adventures! 🌊',
         ],
         night: [
           'Well hello there, night swimmer! 🌌 Burning the midnight oil, are we?',
-          "Late night coding session? I'm here to light your way, darling! 🕯️",
+          'Late night coding session? I\'m here to light your way, darling! 🕯️',
           'Midnight mariner! Ready to dive into the deepest terminal trenches? 🌙',
-          "Night shift navigator! Let's make some magic happen! ✨",
+          'Night shift navigator! Let\'s make some magic happen! ✨',
         ],
       },
 
       success: {
         celebration: [
-          "Swimmingly executed! 🐠 You're making waves in the best way!",
+          'Swimmingly executed! 🐠 You\'re making waves in the best way!',
           'Absolutely fin-tastic! 🐟 That command was pure poetry in motion!',
-          "Shell yeah! 🐚 You've got the Midas touch with these commands!",
-          "Magnificent! 🌊 You're riding the perfect wave of success!",
+          'Shell yeah! 🐚 You\'ve got the Midas touch with these commands!',
+          'Magnificent! 🌊 You\'re riding the perfect wave of success!',
         ],
         encouragement: [
-          "Look at you go! 🚀 You're becoming quite the terminal virtuoso!",
+          'Look at you go! 🚀 You\'re becoming quite the terminal virtuoso!',
           'Brilliant work, captain! ⚓ Your command skills are evolving beautifully!',
-          "Wow! 💫 You're turning into a real sea-nior developer!",
+          'Wow! 💫 You\'re turning into a real sea-nior developer!',
           'Impressive! 🌟 Your terminal prowess is absolutely tide-turning!',
         ],
         streak: [
-          "ON FIRE! 🔥 You're on a legendary streak, my aquatic ace!",
-          "Unstoppable! 🌊 You're surfing the success waves like a pro!",
+          'ON FIRE! 🔥 You\'re on a legendary streak, my aquatic ace!',
+          'Unstoppable! 🌊 You\'re surfing the success waves like a pro!',
           'Phenomenal! ✨ This winning streak is making me all bubbly!',
-          "INCREDIBLE! 🏆 You're the undisputed champion of the terminal seas!",
+          'INCREDIBLE! 🏆 You\'re the undisputed champion of the terminal seas!',
         ],
       },
 
       errors: {
         gentle: [
-          "Oops! 🐙 Even the best sailors hit a few waves. Let's try again!",
+          'Oops! 🐙 Even the best sailors hit a few waves. Let\'s try again!',
           'Whoopsie! 🌊 Every mermaid has those days. Want to give it another splash?',
           'Ah, a little ripple! 🌀 No worries, darling, we all make waves sometimes!',
-          "Tiny tide pool mishap! 🏖️ Let's navigate around that obstacle together!",
+          'Tiny tide pool mishap! 🏖️ Let\'s navigate around that obstacle together!',
         ],
         sassy: [
-          "Well, well! 🤨 Looks like someone's testing the waters with... interesting syntax!",
-          "Oh honey! 🙄 That command was about as smooth as a sea urchin's back!",
-          "Darling! 💅 I've seen smoother sailing in a hurricane!",
+          'Well, well! 🤨 Looks like someone\'s testing the waters with... interesting syntax!',
+          'Oh honey! 🙄 That command was about as smooth as a sea urchin\'s back!',
+          'Darling! 💅 I\'ve seen smoother sailing in a hurricane!',
           'Sweet starfish! 🌟 That was more tangled than kelp in a whirlpool!',
         ],
         encouraging: [
-          "Don't worry, captain! 🚢 Even the best navigators need to adjust their course!",
+          'Don\'t worry, captain! 🚢 Even the best navigators need to adjust their course!',
           'Hey there, brave explorer! 🗺️ Every mistake is just a learning wave!',
-          "No sweat, sailor! 💪 You're building character with every challenge!",
+          'No sweat, sailor! 💪 You\'re building character with every challenge!',
           'Chin up, my dear! 🌈 Every error is just a step toward mastery!',
         ],
       },
@@ -82,15 +82,15 @@ class RinaDialogueSystem {
       confusion: {
         playful: [
           'Hmm! 🤔 That command is as mysterious as the Bermuda Triangle!',
-          "Puzzling! 🧩 I'm swimming in circles trying to decode that one!",
-          "Intriguing! 🔍 That's deeper than the Mariana Trench of commands!",
-          "Curious! 🌊 That command speaks in ancient sea-tongues I don't recognize!",
+          'Puzzling! 🧩 I\'m swimming in circles trying to decode that one!',
+          'Intriguing! 🔍 That\'s deeper than the Mariana Trench of commands!',
+          'Curious! 🌊 That command speaks in ancient sea-tongues I don\'t recognize!',
         ],
         helpful: [
-          "I'm a bit lost at sea with that one! 🧭 Could you clarify, captain?",
-          "That's sailing into uncharted waters! 🗺️ Can you guide me through it?",
-          "I'm treading water here! 🏊‍♀️ Mind throwing me a life preserver of context?",
-          "My sonar isn't picking that up! 📡 Could you send clearer signals?",
+          'I\'m a bit lost at sea with that one! 🧭 Could you clarify, captain?',
+          'That\'s sailing into uncharted waters! 🗺️ Can you guide me through it?',
+          'I\'m treading water here! 🏊‍♀️ Mind throwing me a life preserver of context?',
+          'My sonar isn\'t picking that up! 📡 Could you send clearer signals?',
         ],
       },
 
@@ -103,50 +103,50 @@ class RinaDialogueSystem {
         ],
         progress: [
           'Swimming through the complexity! 🏊‍♀️ Making steady progress!',
-          "Navigating these intricate currents! 🧭 We're getting somewhere!",
+          'Navigating these intricate currents! 🧭 We\'re getting somewhere!',
           'Diving deeper into the solution! 🤿 The pieces are coming together!',
           'Weaving through the technical coral reef! 🪸 Almost there!',
         ],
         completion: [
           'Surfaced with success! 🌊 That was a delightful deep-dive challenge!',
           'Mission accomplished! 🏆 I do love a good mental workout!',
-          "Conquered those treacherous waters! ⚓ What's our next adventure?",
+          'Conquered those treacherous waters! ⚓ What\'s our next adventure?',
           'Absolutely crushed it! 💪 Ready for the next tidal wave of tasks!',
         ],
       },
 
       mood_responses: {
         happy: [
-          "I'm absolutely bubbly today! 🫧 Everything seems to sparkle!",
+          'I\'m absolutely bubbly today! 🫧 Everything seems to sparkle!',
           'Feeling as bright as bioluminescent plankton! ✨',
-          "My spirits are higher than a whale's spout! 🐋",
-          "I'm practically glowing like a jellyfish! 🪼",
+          'My spirits are higher than a whale\'s spout! 🐋',
+          'I\'m practically glowing like a jellyfish! 🪼',
         ],
         sassy: [
-          "Oh, I'm feeling particularly... spirited today! 💅",
+          'Oh, I\'m feeling particularly... spirited today! 💅',
           'My sass levels are off the charts! 📈 Hope you can handle it!',
-          "I'm channeling my inner sea-queen energy! 👑",
+          'I\'m channeling my inner sea-queen energy! 👑',
           'Feeling fierce as a hurricane! 🌪️ In the best possible way!',
         ],
         mysterious: [
-          "I'm feeling as enigmatic as the deep ocean today... 🌊",
-          "My mood is as mysterious as a siren's song... 🎵",
+          'I\'m feeling as enigmatic as the deep ocean today... 🌊',
+          'My mood is as mysterious as a siren\'s song... 🎵',
           'Something mystical is stirring in my digital depths... 🔮',
-          "I'm channeling ancient sea-witch vibes today... 🧙‍♀️",
+          'I\'m channeling ancient sea-witch vibes today... 🧙‍♀️',
         ],
         playful: [
-          "I'm feeling as playful as a dolphin today! 🐬",
+          'I\'m feeling as playful as a dolphin today! 🐬',
           'My energy is as bouncy as a beach ball! 🏖️',
-          "I'm ready to splash around and have fun! 💦",
+          'I\'m ready to splash around and have fun! 💦',
           'Feeling as carefree as a sea turtle! 🐢',
         ],
       },
 
       time_specific: {
         productivity_hours: [
-          "Peak productivity time! 🚀 Let's ride this momentum wave!",
-          "Perfect timing for deep work! 🤿 I'm here to support your flow!",
-          "This is prime coding time! ⏰ Let's make magic happen!",
+          'Peak productivity time! 🚀 Let\'s ride this momentum wave!',
+          'Perfect timing for deep work! 🤿 I\'m here to support your flow!',
+          'This is prime coding time! ⏰ Let\'s make magic happen!',
           'Optimal focus hours! 🎯 Ready to tackle anything!',
         ],
         break_time: [
@@ -157,7 +157,7 @@ class RinaDialogueSystem {
         ],
         late_night: [
           'Burning the midnight oil? 🕯️ I admire your dedication!',
-          "Night owl mode activated! 🦉 Let's code by starlight!",
+          'Night owl mode activated! 🦉 Let\'s code by starlight!',
           'The night is young and full of possibilities! 🌙',
           'Midnight coding session! ⭐ My favorite kind of adventure!',
         ],
@@ -177,10 +177,10 @@ class RinaDialogueSystem {
     this.emotionalContexts = {
       confident: {
         phrases: [
-          "I've got this covered! My sonar is crystal clear.",
+          'I\'ve got this covered! My sonar is crystal clear.',
           'Smooth sailing ahead! Like navigating the Coral Gardens.',
-          "Like a fish in water! This reminds me of debugging Poseidon's trident firmware.",
-          "Piece of kelp! I've handled tougher currents than this.",
+          'Like a fish in water! This reminds me of debugging Poseidon\'s trident firmware.',
+          'Piece of kelp! I\'ve handled tougher currents than this.',
         ],
         lore_triggers: ['debug', 'fix', 'solve', 'handle'],
       },
@@ -188,26 +188,26 @@ class RinaDialogueSystem {
         phrases: [
           'Hmm, let me think about this... The data streams are murky.',
           'The currents are a bit choppy here... Let me adjust my fins.',
-          "I'm navigating uncharted waters... But I've explored the Abyssal Networks before.",
+          'I\'m navigating uncharted waters... But I\'ve explored the Abyssal Networks before.',
           'My echolocation is picking up something strange... Give me a moment.',
         ],
         lore_triggers: ['unknown', 'unclear', 'complex', 'difficult'],
       },
       encouraging: {
         phrases: [
-          "Don't worry, we'll navigate these waters together!",
-          "Every great explorer faces rough seas. You're doing great!",
+          'Don\'t worry, we\'ll navigate these waters together!',
+          'Every great explorer faces rough seas. You\'re doing great!',
           'Remember, even the deepest trenches lead to beautiful discoveries.',
-          "Trust the current, sailor. I'm here to guide you through.",
+          'Trust the current, sailor. I\'m here to guide you through.',
         ],
         lore_triggers: ['error', 'fail', 'problem', 'issue'],
       },
       dramatic: {
         phrases: [
-          "By Neptune's beard! This is quite the challenge!",
+          'By Neptune\'s beard! This is quite the challenge!',
           'The digital tides are turning! *dramatic tail swish*',
           'From the depths of the data ocean, I rise to meet this task!',
-          "This reminds me of the Great Code Storm of '23... *nostalgic sigh*",
+          'This reminds me of the Great Code Storm of \'23... *nostalgic sigh*',
         ],
         lore_triggers: ['build', 'compile', 'deploy', 'install'],
       },
@@ -216,7 +216,7 @@ class RinaDialogueSystem {
     // Lore-driven callback system
     this.loreCallbacks = {
       technical_memories: [
-        "This reminds me of the time I debugged Poseidon's trident firmware...",
+        'This reminds me of the time I debugged Poseidon\'s trident firmware...',
         'Ah, like when I had to restore the Sunken Server Gardens after the Great Ping Flood!',
         'Similar to that time I optimized the Coral Network protocols...',
         'Just like debugging the Abyssal Database during the Deep Sea Downtime!',
@@ -228,10 +228,10 @@ class RinaDialogueSystem {
         'Similar to when I mapped the Quantum Kelp Forest!',
       ],
       wisdom: [
-        "As the ancient sea-sages say: 'Every bug is just a feature swimming in the wrong direction.'",
-        "My grandmother always said: 'The deepest code runs in the quietest shells.'",
-        "There's an old maritime saying: 'Smooth seas never made skilled sailors.'",
-        "The Ocean Oracle once told me: 'In the depths of complexity, simplicity awaits.'",
+        'As the ancient sea-sages say: \'Every bug is just a feature swimming in the wrong direction.\'',
+        'My grandmother always said: \'The deepest code runs in the quietest shells.\'',
+        'There\'s an old maritime saying: \'Smooth seas never made skilled sailors.\'',
+        'The Ocean Oracle once told me: \'In the depths of complexity, simplicity awaits.\'',
       ],
       personality_quirks: [
         '*adjusts shell crown proudly*',
@@ -356,50 +356,50 @@ class RinaDialogueSystem {
     const responseType = type;
 
     switch (type) {
-      case 'greeting':
-        templates = this.dialogueTemplates.greetings[this.currentTimeOfDay];
-        break;
+    case 'greeting':
+      templates = this.dialogueTemplates.greetings[this.currentTimeOfDay];
+      break;
 
-      case 'success':
-        if (this.sessionContext.successStreak >= 3) {
-          templates = this.dialogueTemplates.success.streak;
-        } else if (confidence > 0.8) {
-          templates = this.dialogueTemplates.success.celebration;
-        } else {
-          templates = this.dialogueTemplates.success.encouragement;
-        }
-        break;
+    case 'success':
+      if (this.sessionContext.successStreak >= 3) {
+        templates = this.dialogueTemplates.success.streak;
+      } else if (confidence > 0.8) {
+        templates = this.dialogueTemplates.success.celebration;
+      } else {
+        templates = this.dialogueTemplates.success.encouragement;
+      }
+      break;
 
-      case 'error':
-        if (this.sessionContext.errorCount >= 3) {
-          templates = this.dialogueTemplates.errors.encouraging;
-        } else if (mood === 'sassy') {
-          templates = this.dialogueTemplates.errors.sassy;
-        } else {
-          templates = this.dialogueTemplates.errors.gentle;
-        }
-        break;
+    case 'error':
+      if (this.sessionContext.errorCount >= 3) {
+        templates = this.dialogueTemplates.errors.encouraging;
+      } else if (mood === 'sassy') {
+        templates = this.dialogueTemplates.errors.sassy;
+      } else {
+        templates = this.dialogueTemplates.errors.gentle;
+      }
+      break;
 
-      case 'confusion':
-        templates =
+    case 'confusion':
+      templates =
           mood === 'playful'
             ? this.dialogueTemplates.confusion.playful
             : this.dialogueTemplates.confusion.helpful;
-        break;
+      break;
 
-      case 'complex':
-        templates = this.dialogueTemplates.complex_tasks.starting;
-        break;
+    case 'complex':
+      templates = this.dialogueTemplates.complex_tasks.starting;
+      break;
 
-      case 'mood':
-        templates =
+    case 'mood':
+      templates =
           this.dialogueTemplates.mood_responses[mood] ||
           this.dialogueTemplates.mood_responses.happy;
-        break;
+      break;
 
-      default:
-        // Use base response with enhancements
-        return this.enhanceResponse(baseResponse, mood, confidence);
+    default:
+      // Use base response with enhancements
+      return this.enhanceResponse(baseResponse, mood, confidence);
     }
 
     // Select a template
@@ -453,7 +453,7 @@ class RinaDialogueSystem {
 
     // Special greetings for different times
     if (hour >= 2 && hour < 5) {
-      return "Wow! 🌙 Someone's really committed to the night shift! I'm impressed and slightly concerned, darling!";
+      return 'Wow! 🌙 Someone\'s really committed to the night shift! I\'m impressed and slightly concerned, darling!';
     }
 
     if (this.sessionContext.commandsThisSession === 0) {
@@ -511,12 +511,12 @@ class RinaDialogueSystem {
     const successRate =
       stats.commandsThisSession > 0
         ? (
-            ((stats.commandsThisSession - stats.errorCount) / stats.commandsThisSession) *
+          ((stats.commandsThisSession - stats.errorCount) / stats.commandsThisSession) *
             100
-          ).toFixed(1)
+        ).toFixed(1)
         : 0;
 
-    return `🧜‍♀️ Session Stats: ${stats.commandsThisSession} commands, ${successRate}% success rate, ${stats.successStreak} streak! ${stats.successStreak > 5 ? "You're on fire! 🔥" : 'Keep swimming! 🏊‍♀️'}`;
+    return `🧜‍♀️ Session Stats: ${stats.commandsThisSession} commands, ${successRate}% success rate, ${stats.successStreak} streak! ${stats.successStreak > 5 ? 'You\'re on fire! 🔥' : 'Keep swimming! 🏊‍♀️'}`;
   }
 
   // Advanced lore-driven response generation
@@ -525,7 +525,7 @@ class RinaDialogueSystem {
     const context = this.emotionalContexts[emotionalState];
 
     if (!context) {
-      return this.enhanceResponse("I'm here to help!", userMood, 0.7);
+      return this.enhanceResponse('I\'m here to help!', userMood, 0.7);
     }
 
     let baseResponse = context.phrases[Math.floor(Math.random() * context.phrases.length)];
@@ -682,8 +682,8 @@ class RinaDialogueSystem {
   getWeatherBasedResponse(isStormySeas = false) {
     if (isStormySeas) {
       return [
-        "Rough seas ahead, sailor! 🌊⚡ But don't worry, I've weathered worse storms!",
-        "The digital tides are churning today! 🌪️ Hold tight, we'll navigate through this together!",
+        'Rough seas ahead, sailor! 🌊⚡ But don\'t worry, I\'ve weathered worse storms!',
+        'The digital tides are churning today! 🌪️ Hold tight, we\'ll navigate through this together!',
         'Stormy weather in the code ocean! ⛈️ Time to batten down the hatches and debug carefully!',
         'Turbulent currents detected! 🌊💨 But every storm leads to calmer waters, I promise!',
       ][Math.floor(Math.random() * 4)];
@@ -691,7 +691,7 @@ class RinaDialogueSystem {
       return [
         'Ah, such peaceful waters today! 🌊✨ Perfect for smooth sailing through your commands!',
         'The digital seas are calm and serene! 🌅 An ideal day for coding adventures!',
-        "Gentle currents and clear skies! ☀️🌊 Everything's flowing beautifully today!",
+        'Gentle currents and clear skies! ☀️🌊 Everything\'s flowing beautifully today!',
         'Tranquil waters as far as my sonar can detect! 🧜‍♀️💙 Ready for whatever you need!',
       ][Math.floor(Math.random() * 4)];
     }

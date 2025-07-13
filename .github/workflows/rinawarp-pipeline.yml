@@ -27,10 +27,12 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: 🔍 Lint Check
-        run: echo "Lint check temporarily disabled for pipeline stabilization"
+        run: |
+          npm run lint:check || echo "⚠️ Linting issues detected but continuing..."
+          echo "✅ Lint check completed (warnings allowed)"
         continue-on-error: true
 
       - name: 🧪 Run Tests
@@ -98,7 +100,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: 🏗️ Build for Production
         run: npm run build:web

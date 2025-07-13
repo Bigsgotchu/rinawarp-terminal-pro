@@ -7,26 +7,26 @@
  */
 
 (function() {
-    console.log('🧜‍♀️ Activating Mermaid Theme...');
+  console.log('🧜‍♀️ Activating Mermaid Theme...');
     
-    // Remove any existing theme classes
-    const bodyClasses = document.body.className;
-    document.body.className = bodyClasses.replace(/\btheme-[\w-]+\b/g, '');
+  // Remove any existing theme classes
+  const bodyClasses = document.body.className;
+  document.body.className = bodyClasses.replace(/\btheme-[\w-]+\b/g, '');
     
-    // Apply the mermaid theme
-    document.body.classList.add('theme-mermaid');
+  // Apply the mermaid theme
+  document.body.classList.add('theme-mermaid');
     
-    // Save theme preference
-    try {
-        localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
-        localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
-    } catch (e) {
-        console.log('Could not save theme preference:', e);
-    }
+  // Save theme preference
+  try {
+    localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
+    localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
+  } catch (e) {
+    console.log('Could not save theme preference:', e);
+  }
     
-    // Create and inject mermaid CSS if not present
-    if (!document.getElementById('mermaid-theme-styles')) {
-        const mermaidCSS = `
+  // Create and inject mermaid CSS if not present
+  if (!document.getElementById('mermaid-theme-styles')) {
+    const mermaidCSS = `
         <style id="mermaid-theme-styles">
         /* Mermaid Theme Styles */
         body.theme-mermaid {
@@ -99,12 +99,12 @@
         </style>
         `;
         
-        document.head.insertAdjacentHTML('beforeend', mermaidCSS);
-    }
+    document.head.insertAdjacentHTML('beforeend', mermaidCSS);
+  }
     
-    // Show beautiful activation notification
-    const notification = document.createElement('div');
-    notification.style.cssText = `
+  // Show beautiful activation notification
+  const notification = document.createElement('div');
+  notification.style.cssText = `
         position: fixed;
         top: 50%;
         left: 50%;
@@ -128,7 +128,7 @@
         -webkit-backdrop-filter: blur(20px);
     `;
     
-    notification.innerHTML = `
+  notification.innerHTML = `
         <div style="font-size: 48px; margin-bottom: 15px;">🧜‍♀️</div>
         <div style="margin-bottom: 10px;">Mermaid Theme Activated!</div>
         <div style="font-size: 14px; color: #00e5ff; font-weight: 400;">
@@ -144,9 +144,9 @@
         </div>
     `;
     
-    // Add animation
-    const style = document.createElement('style');
-    style.textContent = `
+  // Add animation
+  const style = document.createElement('style');
+  style.textContent = `
         @keyframes mermaidFadeIn {
             0% {
                 opacity: 0;
@@ -158,26 +158,26 @@
             }
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
     
-    document.body.appendChild(notification);
+  document.body.appendChild(notification);
     
-    // Auto-remove after 5 seconds if not manually closed
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.transition = 'all 0.4s ease-out';
-            notification.style.opacity = '0';
-            notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
+  // Auto-remove after 5 seconds if not manually closed
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.style.transition = 'all 0.4s ease-out';
+      notification.style.opacity = '0';
+      notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
             
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 400);
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
         }
-    }, 5000);
+      }, 400);
+    }
+  }, 5000);
     
-    console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
+  console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
     
-    return 'Mermaid theme activated successfully! 🧜‍♀️';
+  return 'Mermaid theme activated successfully! 🧜‍♀️';
 })();

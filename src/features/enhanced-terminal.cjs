@@ -282,9 +282,9 @@ class EnhancedTerminal {
         <p>You're about to paste ${lines.length} lines. This will execute ${lines.length} commands.</p>
         <div class="preview">
           ${lines
-            .slice(0, 5)
-            .map(line => `<div class="command-line">${this.escapeHtml(line)}</div>`)
-            .join('')}
+    .slice(0, 5)
+    .map(line => `<div class="command-line">${this.escapeHtml(line)}</div>`)
+    .join('')}
           ${lines.length > 5 ? `<div class="more">... and ${lines.length - 5} more lines</div>` : ''}
         </div>
         <div class="dialog-buttons">

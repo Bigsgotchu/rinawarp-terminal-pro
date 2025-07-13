@@ -510,8 +510,8 @@ class PluginManager {
         <div class="plugin-list">
           <h4>Installed Plugins (${plugins.length})</h4>
           ${plugins
-            .map(
-              plugin => `
+    .map(
+      plugin => `
             <div class="plugin-item" data-plugin-id="${plugin.id}">
               <div class="plugin-info">
                 <strong>${plugin.name}</strong> v${plugin.version}
@@ -526,8 +526,8 @@ class PluginManager {
               </div>
             </div>
           `
-            )
-            .join('')}
+    )
+    .join('')}
         </div>
         <div class="plugin-actions-section">
           <button onclick="pluginManager.refreshPlugins()">🔄 Refresh</button>
