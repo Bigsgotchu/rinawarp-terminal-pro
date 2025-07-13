@@ -4,72 +4,72 @@
  */
 
 function activateMermaidTheme() {
-    console.log('🧜‍♀️ Activating Mermaid Color Scheme...');
+  console.log('🧜‍♀️ Activating Mermaid Color Scheme...');
     
-    // Remove any existing theme classes
-    const themeClasses = [
-        'theme-default-dark',
-        'theme-ocean-breeze', 
-        'theme-sunset-glow',
-        'theme-forest-dawn',
-        'theme-arctic-aurora',
-        'theme-cyberpunk-neon',
-        'theme-warm-coffee',
-        'theme-pastel-dreams',
-        'theme-midnight-blue',
-        'theme-retro-terminal',
-        'theme-sakura-blossom',
-        'theme-space-odyssey',
-        'theme-desert-sand',
-        'theme-matrix-green',
-        'theme-ice-crystal',
-        'theme-autumn-leaves',
-        'theme-neon-city',
-        'theme-high-contrast',
-        'theme-lavender-fields',
-        'theme-volcanic-ash',
-        'theme-rainbow-pride',
-        'theme-mermaid-depths',
-        'theme-website'
-    ];
+  // Remove any existing theme classes
+  const themeClasses = [
+    'theme-default-dark',
+    'theme-ocean-breeze', 
+    'theme-sunset-glow',
+    'theme-forest-dawn',
+    'theme-arctic-aurora',
+    'theme-cyberpunk-neon',
+    'theme-warm-coffee',
+    'theme-pastel-dreams',
+    'theme-midnight-blue',
+    'theme-retro-terminal',
+    'theme-sakura-blossom',
+    'theme-space-odyssey',
+    'theme-desert-sand',
+    'theme-matrix-green',
+    'theme-ice-crystal',
+    'theme-autumn-leaves',
+    'theme-neon-city',
+    'theme-high-contrast',
+    'theme-lavender-fields',
+    'theme-volcanic-ash',
+    'theme-rainbow-pride',
+    'theme-mermaid-depths',
+    'theme-website'
+  ];
     
-    themeClasses.forEach(className => {
-        document.body.classList.remove(className);
-    });
+  themeClasses.forEach(className => {
+    document.body.classList.remove(className);
+  });
     
-    // Apply the mermaid theme
-    document.body.classList.add('theme-mermaid');
+  // Apply the mermaid theme
+  document.body.classList.add('theme-mermaid');
     
-    // If theme manager exists, update it
-    if (window.ThemeManager) {
-        const themeManager = new window.ThemeManager();
-        themeManager.currentTheme = 'mermaid-depths';
-        themeManager.saveTheme('mermaid-depths');
-        console.log('✅ Theme manager updated');
-    }
+  // If theme manager exists, update it
+  if (window.ThemeManager) {
+    const themeManager = new window.ThemeManager();
+    themeManager.currentTheme = 'mermaid-depths';
+    themeManager.saveTheme('mermaid-depths');
+    console.log('✅ Theme manager updated');
+  }
     
-    // Save theme preference to localStorage  
-    try {
-        localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
-        localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
-        console.log('✅ Theme preference saved');
-    } catch (error) {
-        console.warn('Failed to save theme preference:', error);
-    }
+  // Save theme preference to localStorage  
+  try {
+    localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
+    localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
+    console.log('✅ Theme preference saved');
+  } catch (error) {
+    console.warn('Failed to save theme preference:', error);
+  }
     
-    // Add some visual flair
-    showMermaidActivationMessage();
+  // Add some visual flair
+  showMermaidActivationMessage();
     
-    console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
+  console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
     
-    return true;
+  return true;
 }
 
 function showMermaidActivationMessage() {
-    // Create a beautiful notification
-    const notification = document.createElement('div');
-    notification.id = 'mermaid-activation-notification';
-    notification.style.cssText = `
+  // Create a beautiful notification
+  const notification = document.createElement('div');
+  notification.id = 'mermaid-activation-notification';
+  notification.style.cssText = `
         position: fixed;
         top: 50%;
         left: 50%;
@@ -93,7 +93,7 @@ function showMermaidActivationMessage() {
         -webkit-backdrop-filter: blur(20px);
     `;
     
-    notification.innerHTML = `
+  notification.innerHTML = `
         <div style="font-size: 48px; margin-bottom: 15px;">🧜‍♀️</div>
         <div style="margin-bottom: 10px;">Mermaid Theme Activated!</div>
         <div style="font-size: 14px; color: #00e5ff; font-weight: 400;">
@@ -101,9 +101,9 @@ function showMermaidActivationMessage() {
         </div>
     `;
     
-    // Add animation keyframes
-    const style = document.createElement('style');
-    style.textContent = `
+  // Add animation keyframes
+  const style = document.createElement('style');
+  style.textContent = `
         @keyframes mermaidFadeIn {
             0% {
                 opacity: 0;
@@ -126,41 +126,41 @@ function showMermaidActivationMessage() {
             }
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
     
-    document.body.appendChild(notification);
+  document.body.appendChild(notification);
     
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-        notification.style.transition = 'all 0.4s ease-out';
-        notification.style.opacity = '0';
-        notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    notification.style.transition = 'all 0.4s ease-out';
+    notification.style.opacity = '0';
+    notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
         
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-            if (style.parentNode) {
-                style.parentNode.removeChild(style);
-            }
-        }, 400);
-    }, 3000);
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+      if (style.parentNode) {
+        style.parentNode.removeChild(style);
+      }
+    }, 400);
+  }, 3000);
 }
 
 // Auto-activate if this script is run directly
 if (typeof window !== 'undefined') {
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', activateMermaidTheme);
-    } else {
-        activateMermaidTheme();
-    }
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', activateMermaidTheme);
+  } else {
+    activateMermaidTheme();
+  }
     
-    // Also make function available globally
-    window.activateMermaidTheme = activateMermaidTheme;
+  // Also make function available globally
+  window.activateMermaidTheme = activateMermaidTheme;
 }
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { activateMermaidTheme };
+  module.exports = { activateMermaidTheme };
 }
