@@ -22,7 +22,7 @@
   "scripts": {
     "prebump": "npm run test && npm run lint",
     "precommit": "npm run build",
-    "prerelease": "npm run build && npm run test:coverage"
+    "prerelease": "npm run build && npm run test"
   },
   "skip": {
     "changelog": false,
