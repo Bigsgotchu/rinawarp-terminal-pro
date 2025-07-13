@@ -5,7 +5,7 @@
  * Real-time tracking of workflow improvements
  */
 
-const { execSync } = require('child_process');
+const { execSync: _execSync } = require('child_process');
 
 class LiveMonitor {
   constructor() {

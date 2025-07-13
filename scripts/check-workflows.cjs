@@ -5,7 +5,7 @@
  * Basic workflow status without GitHub API
  */
 
-const { execSync } = require('child_process');
+const { execSync: _execSync } = require('child_process');
 
 function checkWorkflows() {
   console.log('🌊 RinaWarp Terminal - Workflow Status Check');

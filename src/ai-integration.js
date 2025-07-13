@@ -157,7 +157,7 @@ class AIIntegrationManager {
         return '🌊 Ready to dive into this command!';
       },
 
-      provideIntellectualResponse: async (query, context) => {
+      provideIntellectualResponse: async (query, _context) => {
         return {
           personality_flavor: fallbackAI.addPersonalityFlavor(query),
           explanation: `Let me help you with "${query}"! 🧜‍♀️`,
