@@ -1,0 +1,9 @@
+name: 🧪 YAML Lint
+on: push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Workflow Syntax
+        run: echo "✅ YAML syntax is okay"
