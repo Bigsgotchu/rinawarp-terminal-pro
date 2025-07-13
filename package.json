@@ -109,7 +109,8 @@
     "security:check": "npm audit --audit-level=moderate && npm run scan:deprecated",
     "monitor:workflows": "node scripts/monitor-workflows.cjs",
     "monitor:watch": "watch -n 300 'npm run monitor:workflows' -t",
-    "check:workflows": "node scripts/check-workflows.cjs"
+    "check:workflows": "node scripts/check-workflows.cjs",
+    "monitor:live": "node scripts/monitor-live.cjs"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",

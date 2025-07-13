@@ -1,6 +1,6 @@
 
 🌊 RinaWarp Terminal - Workflow Performance Report
-Generated: 2025-07-13T04:34:56.777Z
+Generated: 2025-07-13T04:41:20.465Z
 
 📊 OVERALL PERFORMANCE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -12,26 +12,27 @@ Generated: 2025-07-13T04:34:56.777Z
 
 🔍 WORKFLOW BREAKDOWN
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔴 🌊 Rinawarp Terminal Pipeline       | 100.0% failure | 2 runs
-🔴 🔬 RinaWarp Core Checks             | 100.0% failure | 3 runs
-🔴 Enterprise Security Compliance      | 100.0% failure | 4 runs
-🔴 Build and Release                   | 100.0% failure | 2 runs
-🔴 Lint                                | 100.0% failure | 3 runs
-🔴 Test                                | 100.0% failure | 2 runs
-🔴 Build & Deploy                      | 100.0% failure | 2 runs
-🔴 🌊 Modern RinaWarp Build & Test     | 100.0% failure | 3 runs
-🔴 Secrets Security Scan               | 100.0% failure | 3 runs
 🔴 Security                            | 100.0% failure | 3 runs
-🔴 🔬 RinaWarp Simplified Test Matrix  | 100.0% failure | 3 runs
-🔴 CodeQL Security Analysis            | 100.0% failure | 3 runs
+🔴 🌊 Rinawarp Terminal Pipeline       | 100.0% failure | 3 runs
 🔴 Deploy to Vercel with Railway Sync  | 100.0% failure | 2 runs
+🔴 🌊 Modern RinaWarp Build & Test     | 100.0% failure | 2 runs
 🔴 CodeQL                              | 100.0% failure | 3 runs
+🔴 🧪 Minimal Test                     | 100.0% failure | 1 runs
+🔴 Lint                                | 100.0% failure | 2 runs
+🔴 🔬 RinaWarp Simplified Test Matrix  | 100.0% failure | 2 runs
+🔴 Secrets Security Scan               | 100.0% failure | 2 runs
+🔴 CodeQL Security Analysis            | 100.0% failure | 3 runs
+🔴 Build & Deploy                      | 100.0% failure | 3 runs
+🔴 Build and Release                   | 100.0% failure | 3 runs
+🔴 Test                                | 100.0% failure | 3 runs
+🔴 Enterprise Security Compliance      | 100.0% failure | 3 runs
+🔴 🔬 RinaWarp Core Checks             | 100.0% failure | 3 runs
+🔴 .github/workflows/main-pipeline.yml | 100.0% failure | 2 runs
 🔴 .github/workflows/rinawarp.yml      | 100.0% failure | 2 runs
 🔴 .github/workflows/cleanup-artifacts.yml | 100.0% failure | 2 runs
-🔴 .github/workflows/discussion-bot.yml | 100.0% failure | 2 runs
 🔴 .github/workflows/pages.yml         | 100.0% failure | 2 runs
+🔴 .github/workflows/discussion-bot.yml | 100.0% failure | 2 runs
 🔴 .github/workflows/ci-cd.yml         | 100.0% failure | 2 runs
-🔴 .github/workflows/main-pipeline.yml | 100.0% failure | 2 runs
 
 🎯 RECOMMENDATIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
