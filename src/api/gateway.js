@@ -495,7 +495,7 @@ export class RinaWarpAPIGateway {
   /**
    * Process webhook events
    */
-  async processWebhook(service, event, payload, user) {
+  async processWebhook(service, event, payload, _user) {
     // Implement webhook processing logic
     console.log(`Processing webhook: ${service}/${event}`, payload);
   }
@@ -503,7 +503,7 @@ export class RinaWarpAPIGateway {
   /**
    * Verify webhook signature
    */
-  verifyWebhookSignature(payload, signature) {
+  verifyWebhookSignature(_payload, _signature) {
     // Implement webhook signature verification
     return true; // Simplified for now
   }

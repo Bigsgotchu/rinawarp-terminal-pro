@@ -383,10 +383,10 @@ class EnhancedTerminal {
     input.focus();
 
     // Handle find functionality
-    const currentSearchIndex = 0;
-    const searchResults = [];
+    const _currentSearchIndex = 0;
+    const _searchResults = [];
 
-    const performSearch = (direction = 1) => {
+    const performSearch = (_direction = 1) => {
       const searchTerm = input.value;
       if (!searchTerm) return;
 
