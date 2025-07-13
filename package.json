@@ -61,6 +61,7 @@
     "server": "node server.js",
     "server-dev": "nodemon server.js",
     "test": "jest",
+    "test:quick": "jest --maxWorkers=2 --passWithNoTests",
     "test:integration": "jest --config jest.integration.config.cjs",
     "test:core": "node test-core-functionality.cjs",
     "copy-xterm": "node scripts/copy-xterm-assets.cjs",
