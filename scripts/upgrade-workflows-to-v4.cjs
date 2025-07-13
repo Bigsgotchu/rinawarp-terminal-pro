@@ -2,12 +2,12 @@
 
 /**
  * 🧜‍♀️ RinaWarp Terminal - Workflow v4 Upgrade Script
- * 
+ *
  * This script upgrades all GitHub Actions to v4 and implements the three key improvements:
  * 1. Action versions → @v4
- * 2. Node.js → 20 LTS  
+ * 2. Node.js → 20 LTS
  * 3. Enhanced dependency caching
- * 
+ *
  * Usage: node scripts/upgrade-workflows-to-v4.cjs
  */
 
@@ -21,18 +21,18 @@ console.log('=================================================');
 // Action version upgrades
 const ACTION_UPGRADES = {
   'actions/checkout@v3': 'actions/checkout@v4',
-  'actions/setup-node@v3': 'actions/setup-node@v4', 
+  'actions/setup-node@v3': 'actions/setup-node@v4',
   'actions/cache@v3': 'actions/cache@v4',
   'actions/upload-artifact@v3': 'actions/upload-artifact@v4',
   'actions/download-artifact@v3': 'actions/download-artifact@v4',
-  'actions/github-script@v6': 'actions/github-script@v7'
+  'actions/github-script@v6': 'actions/github-script@v7',
 };
 
 // Node.js version upgrades
 const NODE_UPGRADES = {
   'NODE_VERSION: "18"': 'NODE_VERSION: "20"  # Latest LTS with enhanced performance',
   'node-version: "18"': 'node-version: "20"',
-  'node-version: 18': 'node-version: 20'
+  'node-version: 18': 'node-version: 20',
 };
 
 const stats = {
@@ -40,13 +40,13 @@ const stats = {
   filesModified: 0,
   actionsUpgraded: 0,
   nodeUpgraded: 0,
-  cachingEnhanced: 0
+  cachingEnhanced: 0,
 };
 
 function upgradeWorkflowFile(filePath) {
   try {
     console.log(`\n🔍 Processing: ${path.relative('.', filePath)}`);
-    
+
     let content = fs.readFileSync(filePath, 'utf8');
     const originalContent = content;
     const changes = [];
@@ -64,7 +64,10 @@ function upgradeWorkflowFile(filePath) {
     // 2. Upgrade Node.js versions
     for (const [oldNode, newNode] of Object.entries(NODE_UPGRADES)) {
       if (content.includes(oldNode)) {
-        content = content.replace(new RegExp(oldNode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), newNode);
+        content = content.replace(
+          new RegExp(oldNode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+          newNode
+        );
         changes.push(`✅ Node.js: ${oldNode} → ${newNode.split('#')[0].trim()}`);
         stats.nodeUpgraded++;
       }
@@ -79,7 +82,7 @@ function upgradeWorkflowFile(filePath) {
         with:
           path: |
             \${{ env.ELECTRON_CACHE }}
-            ~/.npm`
+            ~/.npm`,
       },
       {
         find: /- name: Cache Electron Builder\s*\n\s*uses: actions\/cache@v[34]\s*\n\s*with:\s*\n\s*path: \$\{\{ env\.ELECTRON_BUILDER_CACHE \}\}/g,
@@ -89,8 +92,8 @@ function upgradeWorkflowFile(filePath) {
           path: |
             \${{ env.ELECTRON_BUILDER_CACHE }}
             ~/.cache/electron-builder
-            ~/.npm`
-      }
+            ~/.npm`,
+      },
     ];
 
     for (const enhancement of cacheEnhancements) {
@@ -102,7 +105,11 @@ function upgradeWorkflowFile(filePath) {
     }
 
     // 4. Add Node.js native caching where missing
-    if (content.includes('actions/setup-node@v4') && !content.includes('cache: \'npm\'') && content.includes('npm ci')) {
+    if (
+      content.includes('actions/setup-node@v4') &&
+      !content.includes("cache: 'npm'") &&
+      content.includes('npm ci')
+    ) {
       content = content.replace(
         /(uses: actions\/setup-node@v4\s*\n\s*with:\s*\n\s*node-version: [^\n]+)/g,
         `$1
@@ -125,7 +132,7 @@ function upgradeWorkflowFile(filePath) {
 
       fs.writeFileSync(filePath, content, 'utf8');
       stats.filesModified++;
-      
+
       console.log('   Changes applied:');
       changes.forEach(change => console.log(`   ${change}`));
     } else {
@@ -226,8 +233,10 @@ function main() {
   console.log('Starting GitHub Actions v4 upgrade...\n');
 
   // Find all workflow files
-  const workflowFiles = glob.sync('.github/workflows/*.yml').concat(glob.sync('.github/workflows/*.yaml'));
-  
+  const workflowFiles = glob
+    .sync('.github/workflows/*.yml')
+    .concat(glob.sync('.github/workflows/*.yaml'));
+
   if (workflowFiles.length === 0) {
     console.log('❌ No workflow files found in .github/workflows/');
     return;

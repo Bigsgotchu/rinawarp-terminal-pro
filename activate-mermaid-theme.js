@@ -5,11 +5,11 @@
 
 function activateMermaidTheme() {
   console.log('🧜‍♀️ Activating Mermaid Color Scheme...');
-    
+
   // Remove any existing theme classes
   const themeClasses = [
     'theme-default-dark',
-    'theme-ocean-breeze', 
+    'theme-ocean-breeze',
     'theme-sunset-glow',
     'theme-forest-dawn',
     'theme-arctic-aurora',
@@ -30,16 +30,16 @@ function activateMermaidTheme() {
     'theme-volcanic-ash',
     'theme-rainbow-pride',
     'theme-mermaid-depths',
-    'theme-website'
+    'theme-website',
   ];
-    
+
   themeClasses.forEach(className => {
     document.body.classList.remove(className);
   });
-    
+
   // Apply the mermaid theme
   document.body.classList.add('theme-mermaid');
-    
+
   // If theme manager exists, update it
   if (window.ThemeManager) {
     const themeManager = new window.ThemeManager();
@@ -47,8 +47,8 @@ function activateMermaidTheme() {
     themeManager.saveTheme('mermaid-depths');
     console.log('✅ Theme manager updated');
   }
-    
-  // Save theme preference to localStorage  
+
+  // Save theme preference to localStorage
   try {
     localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
     localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
@@ -56,12 +56,12 @@ function activateMermaidTheme() {
   } catch (error) {
     console.warn('Failed to save theme preference:', error);
   }
-    
+
   // Add some visual flair
   showMermaidActivationMessage();
-    
+
   console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
-    
+
   return true;
 }
 
@@ -92,7 +92,7 @@ function showMermaidActivationMessage() {
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
     `;
-    
+
   notification.innerHTML = `
         <div style="font-size: 48px; margin-bottom: 15px;">🧜‍♀️</div>
         <div style="margin-bottom: 10px;">Mermaid Theme Activated!</div>
@@ -100,7 +100,7 @@ function showMermaidActivationMessage() {
             Mystical underwater colors with hot pinks and teal blues
         </div>
     `;
-    
+
   // Add animation keyframes
   const style = document.createElement('style');
   style.textContent = `
@@ -127,15 +127,15 @@ function showMermaidActivationMessage() {
         }
     `;
   document.head.appendChild(style);
-    
+
   document.body.appendChild(notification);
-    
+
   // Auto-remove after 3 seconds
   setTimeout(() => {
     notification.style.transition = 'all 0.4s ease-out';
     notification.style.opacity = '0';
     notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
-        
+
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
@@ -155,7 +155,7 @@ if (typeof window !== 'undefined') {
   } else {
     activateMermaidTheme();
   }
-    
+
   // Also make function available globally
   window.activateMermaidTheme = activateMermaidTheme;
 }

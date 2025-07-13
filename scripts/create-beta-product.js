@@ -26,9 +26,10 @@ async function createBetaProduct() {
     // Create the product
     const product = await stripe.products.create({
       name: 'RinaWarp Terminal v1.0.9 Beta Access',
-      description: 'Early access to RinaWarp Terminal v1.0.9 with enhanced AI, cloud sync, collaboration features, and plugin ecosystem. Includes full license upon official release.',
+      description:
+        'Early access to RinaWarp Terminal v1.0.9 with enhanced AI, cloud sync, collaboration features, and plugin ecosystem. Includes full license upon official release.',
       images: [
-        'https://rinawarp-terminal-fresh-2024.web.app/assets/marketing/beta-access-banner.jpg'
+        'https://rinawarp-terminal-fresh-2024.web.app/assets/marketing/beta-access-banner.jpg',
       ],
       metadata: {
         type: 'beta-access',
@@ -43,11 +44,11 @@ async function createBetaProduct() {
           '30% performance improvements',
           'Beta testing participation',
           'Full license upon release',
-          'Direct developer access'
-        ])
+          'Direct developer access',
+        ]),
       },
       tax_code: 'txcd_10103001', // Software as a Service
-      url: 'https://rinawarp-terminal-fresh-2024.web.app/beta'
+      url: 'https://rinawarp-terminal-fresh-2024.web.app/beta',
     });
 
     console.log('✅ Product created successfully:');
@@ -66,8 +67,8 @@ async function createBetaProduct() {
         metadata: {
           type: 'beta-access-onetime',
           includes: 'Beta access + Full license on release',
-          popular: 'true'
-        }
+          popular: 'true',
+        },
       },
       {
         name: 'Beta Access + Priority Support',
@@ -78,8 +79,8 @@ async function createBetaProduct() {
         metadata: {
           type: 'beta-access-premium',
           includes: 'Beta access + Full license + Priority support + Direct developer access',
-          popular: 'false'
-        }
+          popular: 'false',
+        },
       },
       {
         name: 'Early Bird Special',
@@ -91,9 +92,9 @@ async function createBetaProduct() {
           type: 'beta-access-earlybird',
           includes: 'Limited time offer - Beta access + Full license',
           popular: 'false',
-          limited_time: 'true'
-        }
-      }
+          limited_time: 'true',
+        },
+      },
     ];
 
     const createdPrices = [];
@@ -104,7 +105,7 @@ async function createBetaProduct() {
         unit_amount: priceOption.amount,
         currency: priceOption.currency,
         nickname: priceOption.nickname,
-        metadata: priceOption.metadata
+        metadata: priceOption.metadata,
       });
 
       createdPrices.push(price);
@@ -177,19 +178,18 @@ async function createBetaProduct() {
     return {
       product,
       prices: createdPrices,
-      success: true
+      success: true,
     };
-
   } catch (error) {
     console.error('❌ Error creating beta product:', error.message);
-    
+
     if (error.type === 'StripeInvalidRequestError') {
       console.error('💡 Make sure your Stripe secret key is set correctly in .env');
     }
-    
+
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -197,7 +197,7 @@ async function createBetaProduct() {
 // Run the script
 if (import.meta.url === `file://${process.argv[1]}`) {
   createBetaProduct()
-    .then((result) => {
+    .then(result => {
       if (result.success) {
         console.log('✅ Script completed successfully!');
         process.exit(0);
@@ -206,7 +206,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1);
       }
     })
-    .catch((error) => {
+    .catch(error => {
       console.error('❌ Unexpected error:', error);
       process.exit(1);
     });

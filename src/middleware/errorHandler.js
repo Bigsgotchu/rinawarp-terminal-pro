@@ -6,7 +6,7 @@
 export default function errorHandler(err, req, res, next) {
   const timestamp = new Date().toISOString();
   const requestId = req.headers['x-request-id'] || Math.random().toString(36).substring(7);
-  
+
   // Log the error with context
   console.error(`🔥 [${timestamp}] Server Error [${requestId}]:`, {
     error: err.message,
@@ -14,7 +14,7 @@ export default function errorHandler(err, req, res, next) {
     url: req.originalUrl,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent')
+    userAgent: req.get('User-Agent'),
   });
 
   // Default error response
@@ -22,7 +22,7 @@ export default function errorHandler(err, req, res, next) {
   const errorResponse = {
     error: 'Internal Server Error',
     requestId,
-    timestamp
+    timestamp,
   };
 
   // Handle specific error types
@@ -63,7 +63,7 @@ export function asyncHandler(fn) {
 export function notFoundHandler(req, res) {
   const timestamp = new Date().toISOString();
   console.log(`🔍 [${timestamp}] 404 Not Found: ${req.method} ${req.originalUrl} - IP: ${req.ip}`);
-  
+
   res.status(404).json({
     error: 'Not Found',
     path: req.originalUrl,
@@ -73,7 +73,7 @@ export function notFoundHandler(req, res) {
       '/api/status - System status',
       '/api/health - Health check',
       '/api/download - File downloads',
-      '/api/stripe-config - Payment configuration'
-    ]
+      '/api/stripe-config - Payment configuration',
+    ],
   });
 }

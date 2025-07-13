@@ -9,21 +9,26 @@ console.log('');
 try {
   const envFile = readFileSync('.env', 'utf8');
   console.log('✅ .env file found');
-    
+
   // Check for required environment variables
   const requiredVars = ['DISCORD_BOT_TOKEN', 'DISCORD_CLIENT_ID', 'DISCORD_GUILD_ID'];
   let allSet = true;
-    
+
   requiredVars.forEach(varName => {
     const value = process.env[varName];
-    if (!value || value === 'your_bot_token_here' || value === 'your_client_id_here' || value === 'your_guild_id_here') {
+    if (
+      !value ||
+      value === 'your_bot_token_here' ||
+      value === 'your_client_id_here' ||
+      value === 'your_guild_id_here'
+    ) {
       console.log(`❌ ${varName} not set or using placeholder value`);
       allSet = false;
     } else {
       console.log(`✅ ${varName} is set (${value.substring(0, 10)}...)`);
     }
   });
-    
+
   if (allSet) {
     console.log('');
     console.log('🎉 All environment variables are set! Your bot is ready to run.');
@@ -37,7 +42,6 @@ try {
     console.log('4. Update the .env file with your actual values');
     console.log('5. Invite the bot to your server');
   }
-    
 } catch (error) {
   console.log('❌ .env file not found or not readable');
   console.log('Please make sure the .env file exists in the current directory');

@@ -2,10 +2,10 @@
 
 /**
  * 🧜‍♀️ RinaWarp Terminal - GitHub Workflows Modernization Script
- * 
+ *
  * This script automatically updates GitHub Actions workflows to latest versions
  * and implements modern best practices while preserving your excellent security setup.
- * 
+ *
  * Usage: node scripts/modernize-github-workflows.js
  */
 
@@ -26,7 +26,7 @@ const ACTION_UPDATES = {
   'actions/upload-artifact@v3': 'actions/upload-artifact@v4',
   'actions/setup-node@v3': 'actions/setup-node@v4',
   'actions/checkout@v3': 'actions/checkout@v4',
-  
+
   // Keep latest versions
   'actions/checkout@v4': 'actions/checkout@v4',
   'actions/setup-node@v4': 'actions/setup-node@v4',
@@ -46,7 +46,7 @@ const NODE_UPDATES = {
 const CACHE_IMPROVEMENTS = {
   // Electron cache enhancement
   'path: ${{': 'path: |\n      ${{',
-  
+
   // Simple string replacements for caching
   'env.ELECTRON_CACHE }}': 'env.ELECTRON_CACHE }}\n      ~/.npm',
   'env.ELECTRON_BUILDER_CACHE }}': 'env.ELECTRON_BUILDER_CACHE }}\n      ~/.cache/electron-builder',
@@ -58,7 +58,7 @@ const stats = {
   actionsUpdated: 0,
   nodeVersionsUpdated: 0,
   cachingImproved: 0,
-  totalChanges: 0
+  totalChanges: 0,
 };
 
 async function modernizeWorkflow(filePath) {
@@ -87,7 +87,10 @@ async function modernizeWorkflow(filePath) {
     // 2. Update Node.js versions
     for (const [oldNode, newNode] of Object.entries(NODE_UPDATES)) {
       if (modifiedContent.includes(oldNode) && oldNode !== newNode) {
-        modifiedContent = modifiedContent.replace(new RegExp(oldNode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), newNode);
+        modifiedContent = modifiedContent.replace(
+          new RegExp(oldNode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+          newNode
+        );
         stats.nodeVersionsUpdated++;
         fileChanges++;
         console.log(`  ✅ Updated Node.js: ${oldNode} → ${newNode}`);
@@ -107,10 +110,15 @@ async function modernizeWorkflow(filePath) {
     }
 
     // 4. Add modern environment variables (only if not present)
-    if (filePath.includes('main-pipeline.yml') && !modifiedContent.includes('ARTIFACT_RETENTION_DAYS')) {
+    if (
+      filePath.includes('main-pipeline.yml') &&
+      !modifiedContent.includes('ARTIFACT_RETENTION_DAYS')
+    ) {
       const envSection = modifiedContent.match(/env:\s*\n(.*?\n)*?(?=\n\w|\n$)/s);
       if (envSection) {
-        const enhancedEnv = envSection[0] + `  # Modern configuration
+        const enhancedEnv =
+          envSection[0] +
+          `  # Modern configuration
   ARTIFACT_RETENTION_DAYS: "14"
   CACHE_VERSION: "v2"
   
@@ -129,11 +137,11 @@ async function modernizeWorkflow(filePath) {
       // Update retention policies to be more contextual
       modifiedContent = modifiedContent.replace(
         /retention-days:\s*30/g,
-        'retention-days: ${{ github.event_name == \'schedule\' && 7 || 14 }}'
+        "retention-days: ${{ github.event_name == 'schedule' && 7 || 14 }}"
       );
       modifiedContent = modifiedContent.replace(
         /retention-days:\s*7/g,
-        'retention-days: ${{ github.ref == \'refs/heads/main\' && 14 || 7 }}'
+        "retention-days: ${{ github.ref == 'refs/heads/main' && 14 || 7 }}"
       );
       if (modifiedContent !== content) {
         console.log('  ✅ Enhanced artifact retention policies');
@@ -169,13 +177,13 @@ async function modernizeWorkflow(filePath) {
 
 async function scanWorkflows() {
   const workflowsDir = '.github/workflows';
-  
+
   try {
     const files = await fs.readdir(workflowsDir);
     const yamlFiles = files.filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
-    
+
     console.log(`Found ${yamlFiles.length} workflow files to check...\n`);
-    
+
     for (const file of yamlFiles) {
       const filePath = path.join(workflowsDir, file);
       await modernizeWorkflow(filePath);
@@ -196,7 +204,7 @@ function generateReport() {
   console.log(`  Actions updated: ${stats.actionsUpdated}`);
   console.log(`  Node.js versions updated: ${stats.nodeVersionsUpdated}`);
   console.log(`  Caching strategies improved: ${stats.cachingImproved}`);
-  
+
   if (stats.totalChanges > 0) {
     console.log('\n🧜‍♀️ Modernization Benefits:');
     console.log('✅ Latest GitHub Actions versions');
@@ -204,7 +212,7 @@ function generateReport() {
     console.log('✅ Improved artifact retention policies');
     console.log('✅ Modern Node.js LTS versions');
     console.log('✅ Better resource utilization');
-    
+
     console.log('\n📋 Next Steps:');
     console.log('1. Review the changes in each workflow file');
     console.log('2. Test the workflows with a small PR');
@@ -218,43 +226,42 @@ function generateReport() {
 
 async function validateModernizations() {
   console.log('\n🔍 Validating modernized workflows...');
-  
+
   try {
     const workflowsDir = '.github/workflows';
     const files = await fs.readdir(workflowsDir);
     const yamlFiles = files.filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
-    
+
     let validationIssues = 0;
-    
+
     for (const file of yamlFiles) {
       const filePath = path.join(workflowsDir, file);
       const content = await fs.readFile(filePath, 'utf8');
-      
+
       // Check for remaining v3 actions
       if (content.includes('@v3') && !content.includes('# legacy')) {
         console.log(`⚠️ ${file}: Still contains @v3 actions`);
         validationIssues++;
       }
-      
+
       // Check for proper permissions
       if (!content.includes('permissions:')) {
         console.log(`⚠️ ${file}: Missing permissions block`);
         validationIssues++;
       }
-      
+
       // Check for Node.js version
       if (content.includes('NODE_VERSION: "18"') && !content.includes('# compatibility')) {
         console.log(`⚠️ ${file}: Could upgrade to Node.js 20`);
         validationIssues++;
       }
     }
-    
+
     if (validationIssues === 0) {
       console.log('✅ All workflows passed validation!');
     } else {
       console.log(`⚠️ Found ${validationIssues} potential improvements`);
     }
-    
   } catch (error) {
     console.error('❌ Validation failed:', error.message);
   }
@@ -262,7 +269,7 @@ async function validateModernizations() {
 
 async function main() {
   console.log('Starting workflow modernization...\n');
-  
+
   // Check if workflows directory exists
   try {
     await fs.access('.github/workflows');
@@ -271,11 +278,11 @@ async function main() {
     console.error('Are you running this from the project root?');
     process.exit(1);
   }
-  
+
   await scanWorkflows();
   generateReport();
   await validateModernizations();
-  
+
   console.log('\n🌊 Workflow modernization complete!');
   console.log('Your CI/CD pipeline is now swimming in the latest waters! 🧜‍♀️✨');
 }

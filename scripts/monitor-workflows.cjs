@@ -18,16 +18,16 @@ class WorkflowMonitor {
   async fetchWorkflowRuns() {
     try {
       const headers = {};
-      
+
       // Add GitHub token if available
       if (process.env.GITHUB_TOKEN) {
         headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
       }
-      
+
       const response = await fetch(`${this.baseUrl}/actions/runs?per_page=50`, {
-        headers
+        headers,
       });
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           console.log('⚠️  GitHub API authentication required for detailed workflow data');
@@ -38,7 +38,7 @@ class WorkflowMonitor {
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       return data.workflow_runs || [];
     } catch (error) {
@@ -58,7 +58,7 @@ class WorkflowMonitor {
       in_progress: 0,
       workflows: {},
       averageRunTime: 0,
-      failureRate: 0
+      failureRate: 0,
     };
 
     let totalRunTime = 0;
@@ -78,7 +78,7 @@ class WorkflowMonitor {
           total: 0,
           successful: 0,
           failed: 0,
-          failureRate: 0
+          failureRate: 0,
         };
       }
       analysis.workflows[workflowName].total++;
@@ -97,18 +97,16 @@ class WorkflowMonitor {
 
     // Calculate failure rates
     const completedTotal = analysis.successful + analysis.failed + analysis.cancelled;
-    analysis.failureRate = completedTotal > 0 ? 
-      ((analysis.failed / completedTotal) * 100).toFixed(1) : 0;
+    analysis.failureRate =
+      completedTotal > 0 ? ((analysis.failed / completedTotal) * 100).toFixed(1) : 0;
 
-    analysis.averageRunTime = completedRuns > 0 ? 
-      Math.round(totalRunTime / completedRuns) : 0;
+    analysis.averageRunTime = completedRuns > 0 ? Math.round(totalRunTime / completedRuns) : 0;
 
     // Calculate per-workflow failure rates
     Object.keys(analysis.workflows).forEach(workflow => {
       const w = analysis.workflows[workflow];
       const wCompleted = w.successful + w.failed;
-      w.failureRate = wCompleted > 0 ? 
-        ((w.failed / wCompleted) * 100).toFixed(1) : 0;
+      w.failureRate = wCompleted > 0 ? ((w.failed / wCompleted) * 100).toFixed(1) : 0;
     });
 
     return analysis;
@@ -130,12 +128,13 @@ Generated: ${new Date().toISOString()}
 🔍 WORKFLOW BREAKDOWN
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${Object.keys(analysis.workflows)
-    .sort((a, b) => analysis.workflows[b].failureRate - analysis.workflows[a].failureRate)
-    .map(name => {
-      const w = analysis.workflows[name];
-      const statusIcon = w.failureRate > 50 ? '🔴' : w.failureRate > 20 ? '🟡' : '🟢';
-      return `${statusIcon} ${name.padEnd(35)} | ${w.failureRate}% failure | ${w.total} runs`;
-    }).join('\n')}
+  .sort((a, b) => analysis.workflows[b].failureRate - analysis.workflows[a].failureRate)
+  .map(name => {
+    const w = analysis.workflows[name];
+    const statusIcon = w.failureRate > 50 ? '🔴' : w.failureRate > 20 ? '🟡' : '🟢';
+    return `${statusIcon} ${name.padEnd(35)} | ${w.failureRate}% failure | ${w.total} runs`;
+  })
+  .join('\n')}
 
 🎯 RECOMMENDATIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -163,7 +162,7 @@ Recent improvements should show:
   async run() {
     console.log('🔍 Fetching workflow data...');
     const runs = await this.fetchWorkflowRuns();
-    
+
     if (runs.length === 0) {
       console.log('❌ No workflow runs found');
       return;
@@ -171,12 +170,12 @@ Recent improvements should show:
 
     console.log('📊 Analyzing performance...');
     const analysis = this.analyzePerformance(runs);
-    
+
     console.log('📋 Generating report...');
     const report = this.generateReport(analysis);
-    
+
     console.log(report);
-    
+
     // Save report to file
     const reportPath = path.join(__dirname, '..', 'workflow-report.txt');
     fs.writeFileSync(reportPath, report);

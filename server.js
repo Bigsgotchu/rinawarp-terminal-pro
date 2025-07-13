@@ -79,7 +79,7 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
   // Create mock transporter for development
   if (process.env.NODE_ENV === 'development') {
     transporter = {
-      sendMail: async (mailOptions) => {
+      sendMail: async mailOptions => {
         console.log('📧 [MOCK EMAIL] Simulating email send:');
         console.log('   To:', mailOptions.to);
         console.log('   Subject:', mailOptions.subject);
@@ -88,9 +88,9 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
         return {
           messageId: 'mock-' + Date.now(),
           accepted: [mailOptions.to],
-          rejected: []
+          rejected: [],
         };
-      }
+      },
     };
     console.log('✅ Mock SMTP transporter configured for development');
   } else {
@@ -197,14 +197,14 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ['\'self\''],
-        scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
-        styleSrc: ['\'self\'', '\'unsafe-inline\''],
-        imgSrc: ['\'self\'', 'data:', 'https:'],
-        fontSrc: ['\'self\'', 'data:'],
-        connectSrc: ['\'self\'', 'wss:', 'ws:'],
-        objectSrc: ['\'none\''],
-        baseUri: ['\'self\''],
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        fontSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'", 'wss:', 'ws:'],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
       },
     },
   })
@@ -233,7 +233,7 @@ app.get('/api/status/health', async (req, res) => {
   const memoryUsage = process.memoryUsage();
   const uptime = process.uptime();
   const serverStartupTime = Date.now() - startTime;
-  
+
   const healthData = {
     status: 'healthy',
     service: 'RinaWarp Terminal API',
@@ -241,37 +241,37 @@ app.get('/api/status/health', async (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: {
       seconds: Math.floor(uptime),
-      human: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`
+      human: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`,
     },
     startup: {
       time_ms: serverStartupTime,
-      human: `${serverStartupTime}ms`
+      human: `${serverStartupTime}ms`,
     },
     memory: {
       rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
       heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`,
       heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
-      external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`
+      external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`,
     },
     integrations: {
       smtp: {
         configured: smtpConfigured || sendgridConfigured,
         mode: process.env.NODE_ENV === 'development' && !smtpConfigured ? 'mock' : 'real',
-        provider: smtpConfigured ? 'SMTP' : sendgridConfigured ? 'SendGrid' : 'none'
+        provider: smtpConfigured ? 'SMTP' : sendgridConfigured ? 'SendGrid' : 'none',
       },
       stripe: {
         configured: !!stripe,
         publishableKey: !!process.env.STRIPE_PUBLISHABLE_KEY,
-        webhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET
-      }
+        webhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+      },
     },
     environment: {
       node_env: process.env.NODE_ENV || 'development',
       node_version: process.version,
-      platform: process.platform
-    }
+      platform: process.platform,
+    },
   };
-  
+
   // Test SMTP connectivity if configured
   if (smtpConfigured && transporter && transporter.verify) {
     try {
@@ -284,7 +284,7 @@ app.get('/api/status/health', async (req, res) => {
   } else {
     healthData.integrations.smtp.status = sendgridConfigured ? 'configured' : 'not_configured';
   }
-  
+
   res.json(healthData);
 });
 
@@ -509,36 +509,37 @@ app.get('/api/health', (req, res) => {
 // Download API endpoint - redirects to GitHub releases
 app.get('/api/download', (req, res) => {
   const { file } = req.query;
-  
+
   // Map of request types to GitHub release URLs
-  const githubReleaseBaseUrl = 'https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download';
+  const githubReleaseBaseUrl =
+    'https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download';
   const allowedFiles = {
     'rinawarp.zip': `${githubReleaseBaseUrl}/rinawarp.zip`,
-    'portable': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Portable-Windows.exe`,
-    'linux': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Linux.tar.gz`,
-    'macos': `${githubReleaseBaseUrl}/RinaWarp-Terminal-macOS.dmg`,
-    'setup': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Setup-Windows.exe`
+    portable: `${githubReleaseBaseUrl}/RinaWarp-Terminal-Portable-Windows.exe`,
+    linux: `${githubReleaseBaseUrl}/RinaWarp-Terminal-Linux.tar.gz`,
+    macos: `${githubReleaseBaseUrl}/RinaWarp-Terminal-macOS.dmg`,
+    setup: `${githubReleaseBaseUrl}/RinaWarp-Terminal-Setup-Windows.exe`,
   };
-  
+
   // Default to main installer if no file specified
   const downloadUrl = file ? allowedFiles[file] : allowedFiles['setup'];
-  
+
   if (!downloadUrl) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       error: 'Invalid file requested',
       available: Object.keys(allowedFiles),
-      message: 'Please specify one of the available file types'
+      message: 'Please specify one of the available file types',
     });
   }
-  
+
   console.log(`[DOWNLOAD] Redirecting to: ${downloadUrl}`);
-  
+
   // Check if files exist locally first (for development)
   if (process.env.NODE_ENV === 'development') {
     const fileName = downloadUrl.split('/').pop();
     const releasesPath = path.join(_PUBLIC_DIR, 'releases', fileName);
     const publicPath = path.join(_PUBLIC_DIR, fileName);
-    
+
     if (fs.existsSync(releasesPath)) {
       console.log(`[DOWNLOAD] Serving local file: ${releasesPath}`);
       res.setHeader('Content-Type', 'application/octet-stream');
@@ -553,7 +554,7 @@ app.get('/api/download', (req, res) => {
       return res.sendFile(publicPath);
     }
   }
-  
+
   // Redirect to GitHub releases for production
   res.redirect(302, downloadUrl);
 });
@@ -772,30 +773,30 @@ app.post('/webhook', (req, res) => {
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed': {
-    const session = event.data.object;
-    console.log('💰 Payment successful:', session.id);
-    handlePaymentSuccess(session);
-    break;
-  }
-  case 'customer.subscription.created':
-    console.log('🔄 Subscription created:', event.data.object.id);
-    handleSubscriptionCreated(event.data.object);
-    break;
-  case 'customer.subscription.updated':
-    console.log('🔄 Subscription updated:', event.data.object.id);
-    handleSubscriptionUpdated(event.data.object);
-    break;
-  case 'customer.subscription.deleted':
-    console.log('❌ Subscription cancelled:', event.data.object.id);
-    handleSubscriptionCancelled(event.data.object);
-    break;
-  case 'invoice.payment_succeeded':
-    console.log('💳 Invoice paid:', event.data.object.id);
-    handleInvoicePayment(event.data.object);
-    break;
-  default:
-    console.log(`Unhandled event type ${event.type}`);
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      console.log('💰 Payment successful:', session.id);
+      handlePaymentSuccess(session);
+      break;
+    }
+    case 'customer.subscription.created':
+      console.log('🔄 Subscription created:', event.data.object.id);
+      handleSubscriptionCreated(event.data.object);
+      break;
+    case 'customer.subscription.updated':
+      console.log('🔄 Subscription updated:', event.data.object.id);
+      handleSubscriptionUpdated(event.data.object);
+      break;
+    case 'customer.subscription.deleted':
+      console.log('❌ Subscription cancelled:', event.data.object.id);
+      handleSubscriptionCancelled(event.data.object);
+      break;
+    case 'invoice.payment_succeeded':
+      console.log('💳 Invoice paid:', event.data.object.id);
+      handleInvoicePayment(event.data.object);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -1180,7 +1181,6 @@ app.get('/api/license-status/:licenseKey', (req, res) => {
   res.json(licenseData);
 });
 
-
 // Test endpoint for debugging
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API routes are working!', timestamp: new Date().toISOString() });
@@ -1192,10 +1192,10 @@ app.get('/api/test/email-ping', async (req, res) => {
     timestamp: new Date().toISOString(),
     smtp: {
       configured: smtpConfigured || sendgridConfigured,
-      provider: smtpConfigured ? 'SMTP' : sendgridConfigured ? 'SendGrid' : 'none'
-    }
+      provider: smtpConfigured ? 'SMTP' : sendgridConfigured ? 'SendGrid' : 'none',
+    },
   };
-  
+
   if (smtpConfigured && transporter && transporter.verify) {
     try {
       await transporter.verify();
@@ -1212,7 +1212,7 @@ app.get('/api/test/email-ping', async (req, res) => {
     testResult.smtp.status = 'not_configured';
     testResult.smtp.test = 'No email service configured';
   }
-  
+
   res.json(testResult);
 });
 
@@ -1499,7 +1499,6 @@ app.use(notFoundHandler);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-
 const server = app.listen(PORT, '0.0.0.0', () => {
   const bootTime = Date.now() - startTime;
   console.log(`🚀 RinaWarp Terminal server running on http://0.0.0.0:${PORT}`);
@@ -1541,13 +1540,13 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     process.env.SENDGRID_FROM_EMAIL ? '✅ Set' : '❌ Missing (will use default)'
   );
   console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅ Set' : '❌ Missing');
-  
+
   // Email test ping on startup
   if (sendgridConfigured) {
     console.log('📧 Testing SendGrid connectivity...');
     // Note: We'll add a test ping endpoint instead of testing on startup to avoid delays
   }
-  
+
   console.log('✅ Server ready to accept connections');
   console.log('🔗 Health endpoint: http://localhost:' + PORT + '/api/status/health');
   console.log('🐚 All systems operational - RinaWarp is ready to make waves!');

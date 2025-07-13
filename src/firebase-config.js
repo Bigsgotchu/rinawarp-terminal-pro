@@ -30,4 +30,3 @@ const storage = getStorage(app);
 
 // Export the initialized services for use in other parts of your app
 export { app, analytics, auth, db, storage };
-

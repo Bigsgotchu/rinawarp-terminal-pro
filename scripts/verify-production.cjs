@@ -12,12 +12,7 @@ const path = require('path');
 
 // Configuration
 const PRODUCTION_URL = process.env.PRODUCTION_URL || 'https://rinawarp-terminal-fresh-2024.web.app';
-const HEALTH_CHECK_ENDPOINTS = [
-  '/health',
-  '/api/health',
-  '/status',
-  '/'
-];
+const HEALTH_CHECK_ENDPOINTS = ['/health', '/api/health', '/status', '/'];
 
 // Colors for console output
 const colors = {
@@ -27,7 +22,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 function log(message, color = 'reset') {
@@ -38,18 +33,18 @@ function log(message, color = 'reset') {
 function makeRequest(url) {
   return new Promise((resolve, reject) => {
     const client = url.startsWith('https') ? https : http;
-    const request = client.get(url, (response) => {
+    const request = client.get(url, response => {
       let data = '';
-      response.on('data', (chunk) => data += chunk);
+      response.on('data', chunk => (data += chunk));
       response.on('end', () => {
         resolve({
           statusCode: response.statusCode,
           headers: response.headers,
-          data: data
+          data: data,
         });
       });
     });
-        
+
     request.on('error', reject);
     request.setTimeout(10000, () => {
       request.destroy();
@@ -61,7 +56,7 @@ function makeRequest(url) {
 // Test functions
 async function testEndpointHealth() {
   log('\n🔍 Testing Endpoint Health...', 'cyan');
-    
+
   for (const endpoint of HEALTH_CHECK_ENDPOINTS) {
     const url = `${PRODUCTION_URL}${endpoint}`;
     try {
@@ -79,15 +74,15 @@ async function testEndpointHealth() {
 
 async function testApplicationFeatures() {
   log('\n🔍 Testing Application Features...', 'cyan');
-    
+
   const features = [
     { name: 'Main Application', endpoint: '/' },
     { name: 'Terminal Interface', endpoint: '/terminal' },
     { name: 'API Gateway', endpoint: '/api' },
     { name: 'Authentication', endpoint: '/auth' },
-    { name: 'WebSocket Connection', endpoint: '/ws' }
+    { name: 'WebSocket Connection', endpoint: '/ws' },
   ];
-    
+
   for (const feature of features) {
     const url = `${PRODUCTION_URL}${feature.endpoint}`;
     try {
@@ -105,13 +100,13 @@ async function testApplicationFeatures() {
 
 async function testPerformance() {
   log('\n🔍 Testing Performance...', 'cyan');
-    
+
   const startTime = Date.now();
   try {
     const response = await makeRequest(PRODUCTION_URL);
     const endTime = Date.now();
     const responseTime = endTime - startTime;
-        
+
     if (responseTime < 2000) {
       log(`✅ Response Time: ${responseTime}ms (Good)`, 'green');
     } else if (responseTime < 5000) {
@@ -119,13 +114,12 @@ async function testPerformance() {
     } else {
       log(`❌ Response Time: ${responseTime}ms (Too Slow)`, 'red');
     }
-        
+
     // Check content size
     const contentLength = response.headers['content-length'];
     if (contentLength) {
       log(`📊 Content Size: ${Math.round(contentLength / 1024)}KB`, 'blue');
     }
-        
   } catch (error) {
     log(`❌ Performance Test Failed: ${error.message}`, 'red');
   }
@@ -133,19 +127,19 @@ async function testPerformance() {
 
 async function testSecurity() {
   log('\n🔍 Testing Security Headers...', 'cyan');
-    
+
   try {
     const response = await makeRequest(PRODUCTION_URL);
     const headers = response.headers;
-        
+
     const securityHeaders = [
       'x-content-type-options',
       'x-frame-options',
       'x-xss-protection',
       'strict-transport-security',
-      'content-security-policy'
+      'content-security-policy',
     ];
-        
+
     securityHeaders.forEach(header => {
       if (headers[header]) {
         log(`✅ ${header}: ${headers[header]}`, 'green');
@@ -153,7 +147,6 @@ async function testSecurity() {
         log(`⚠️  ${header}: Missing`, 'yellow');
       }
     });
-        
   } catch (error) {
     log(`❌ Security Test Failed: ${error.message}`, 'red');
   }
@@ -161,14 +154,14 @@ async function testSecurity() {
 
 async function testDownloadLinks() {
   log('\n🔍 Testing Download Links...', 'cyan');
-    
+
   const downloadUrls = [
     '/download/windows',
     '/download/linux',
     '/download/macos',
-    '/releases/latest'
+    '/releases/latest',
   ];
-    
+
   for (const url of downloadUrls) {
     try {
       const response = await makeRequest(`${PRODUCTION_URL}${url}`);
@@ -186,20 +179,19 @@ async function testDownloadLinks() {
 // Main verification function
 async function runProductionVerification() {
   log('🚀 Starting Production Deployment Verification', 'magenta');
-  log('=' .repeat(60), 'blue');
+  log('='.repeat(60), 'blue');
   log(`🌐 Production URL: ${PRODUCTION_URL}`, 'blue');
-    
+
   try {
     await testEndpointHealth();
     await testApplicationFeatures();
     await testPerformance();
     await testSecurity();
     await testDownloadLinks();
-        
-    log('\n' + '=' .repeat(60), 'blue');
+
+    log('\n' + '='.repeat(60), 'blue');
     log('✅ Production Deployment Verification Complete!', 'green');
     log('🎉 Your application is live and ready for users!', 'green');
-        
   } catch (error) {
     log(`\n❌ Verification failed: ${error.message}`, 'red');
     process.exit(1);

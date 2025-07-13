@@ -228,96 +228,96 @@ export async function initializeGlobalRegistry() {
  */
 async function getInitializer(name) {
   switch (name) {
-  case 'rinaWarpIntegration':
-    return async () => {
-      const { rinaWarpIntegration } = await import('../integration-layer/main-integration.js');
-      return rinaWarpIntegration;
-    };
+    case 'rinaWarpIntegration':
+      return async () => {
+        const { rinaWarpIntegration } = await import('../integration-layer/main-integration.js');
+        return rinaWarpIntegration;
+      };
 
-  case 'performanceMonitor':
-    return async () => {
-      const { PerformanceMonitor } = await import('../renderer/performance-monitor.js');
-      return new PerformanceMonitor();
-    };
+    case 'performanceMonitor':
+      return async () => {
+        const { PerformanceMonitor } = await import('../renderer/performance-monitor.js');
+        return new PerformanceMonitor();
+      };
 
-  case 'securityManager':
-    return async () => {
-      const { EnhancedSecurity } = await import('../renderer/enhanced-security.js');
-      return new EnhancedSecurity();
-    };
+    case 'securityManager':
+      return async () => {
+        const { EnhancedSecurity } = await import('../renderer/enhanced-security.js');
+        return new EnhancedSecurity();
+      };
 
-  case 'enhancedSecurity':
-    return async () => {
-      const { ZeroTrustSecurity } = await import('../renderer/zero-trust-security.js');
-      return new ZeroTrustSecurity();
-    };
+    case 'enhancedSecurity':
+      return async () => {
+        const { ZeroTrustSecurity } = await import('../renderer/zero-trust-security.js');
+        return new ZeroTrustSecurity();
+      };
 
-  case 'aiContextEngine':
-    return async () => {
-      const { AIContextEngine } = await import('../renderer/ai-context-engine.js');
-      return new AIContextEngine();
-    };
+    case 'aiContextEngine':
+      return async () => {
+        const { AIContextEngine } = await import('../renderer/ai-context-engine.js');
+        return new AIContextEngine();
+      };
 
-  case 'agentManager':
-    return async () => {
-      const { MultimodalAgentManager } = await import('../renderer/multimodal-agent-manager.js');
-      return new MultimodalAgentManager();
-    };
+    case 'agentManager':
+      return async () => {
+        const { MultimodalAgentManager } = await import('../renderer/multimodal-agent-manager.js');
+        return new MultimodalAgentManager();
+      };
 
-  case 'beginnerUI':
-    return async () => {
-      const { BeginnerFriendlyUI } = await import('../renderer/beginner-friendly-ui.js');
-      return new BeginnerFriendlyUI(window.terminalManager);
-    };
+    case 'beginnerUI':
+      return async () => {
+        const { BeginnerFriendlyUI } = await import('../renderer/beginner-friendly-ui.js');
+        return new BeginnerFriendlyUI(window.terminalManager);
+      };
 
-  case 'nextGenUI':
-    return async () => {
-      const { NextGenUI } = await import('../renderer/next-gen-ui.js');
-      return new NextGenUI();
-    };
+    case 'nextGenUI':
+      return async () => {
+        const { NextGenUI } = await import('../renderer/next-gen-ui.js');
+        return new NextGenUI();
+      };
 
-  case 'themeManager':
-    return async () => {
-      const { ThemeManager } = await import('../renderer/theme-manager.js');
-      return new ThemeManager();
-    };
+    case 'themeManager':
+      return async () => {
+        const { ThemeManager } = await import('../renderer/theme-manager.js');
+        return new ThemeManager();
+      };
 
-  case 'terminalSharing':
-    return async () => {
-      const { TerminalSharing } = await import('../renderer/terminal-sharing.js');
-      return new TerminalSharing();
-    };
+    case 'terminalSharing':
+      return async () => {
+        const { TerminalSharing } = await import('../renderer/terminal-sharing.js');
+        return new TerminalSharing();
+      };
 
-  case 'workflowAutomation':
-    return async () => {
-      const { WorkflowAutomation } = await import('../renderer/workflow-automation.js');
-      return new WorkflowAutomation();
-    };
+    case 'workflowAutomation':
+      return async () => {
+        const { WorkflowAutomation } = await import('../renderer/workflow-automation.js');
+        return new WorkflowAutomation();
+      };
 
-  case 'voiceEngine':
-    return async () => {
-      const { VoiceEngine } = await import('../renderer/voice-engine.js');
-      return new VoiceEngine();
-    };
+    case 'voiceEngine':
+      return async () => {
+        const { VoiceEngine } = await import('../renderer/voice-engine.js');
+        return new VoiceEngine();
+      };
 
-  case 'dataRecoveryEngine':
-    return async () => {
-      const { DataRecoveryEngine } = await import('../data-recovery/recovery-engine.js');
-      return new DataRecoveryEngine();
-    };
+    case 'dataRecoveryEngine':
+      return async () => {
+        const { DataRecoveryEngine } = await import('../data-recovery/recovery-engine.js');
+        return new DataRecoveryEngine();
+      };
 
-  case 'nodeProcess':
-    return async () => {
-      // Only available in Node.js environment
-      if (typeof process !== 'undefined') {
-        return process;
-      }
+    case 'nodeProcess':
+      return async () => {
+        // Only available in Node.js environment
+        if (typeof process !== 'undefined') {
+          return process;
+        }
+        return null;
+      };
+
+    default:
+      console.warn(`No initializer defined for global object: ${name}`);
       return null;
-    };
-
-  default:
-    console.warn(`No initializer defined for global object: ${name}`);
-    return null;
   }
 }
 

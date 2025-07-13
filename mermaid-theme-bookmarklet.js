@@ -1,21 +1,21 @@
 /**
  * RinaWarp Terminal - Mermaid Theme Bookmarklet
- * 
+ *
  * Copy this code and paste it into your browser console while on
- * https://rinawarp-terminal.vercel.app/ to instantly activate the 
+ * https://rinawarp-terminal.vercel.app/ to instantly activate the
  * beautiful mermaid color scheme!
  */
 
-(function() {
+(function () {
   console.log('🧜‍♀️ Activating Mermaid Theme...');
-    
+
   // Remove any existing theme classes
   const bodyClasses = document.body.className;
   document.body.className = bodyClasses.replace(/\btheme-[\w-]+\b/g, '');
-    
+
   // Apply the mermaid theme
   document.body.classList.add('theme-mermaid');
-    
+
   // Save theme preference
   try {
     localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
@@ -23,7 +23,7 @@
   } catch (e) {
     console.log('Could not save theme preference:', e);
   }
-    
+
   // Create and inject mermaid CSS if not present
   if (!document.getElementById('mermaid-theme-styles')) {
     const mermaidCSS = `
@@ -98,10 +98,10 @@
         }
         </style>
         `;
-        
+
     document.head.insertAdjacentHTML('beforeend', mermaidCSS);
   }
-    
+
   // Show beautiful activation notification
   const notification = document.createElement('div');
   notification.style.cssText = `
@@ -127,7 +127,7 @@
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
     `;
-    
+
   notification.innerHTML = `
         <div style="font-size: 48px; margin-bottom: 15px;">🧜‍♀️</div>
         <div style="margin-bottom: 10px;">Mermaid Theme Activated!</div>
@@ -143,7 +143,7 @@
             </button>
         </div>
     `;
-    
+
   // Add animation
   const style = document.createElement('style');
   style.textContent = `
@@ -159,16 +159,16 @@
         }
     `;
   document.head.appendChild(style);
-    
+
   document.body.appendChild(notification);
-    
+
   // Auto-remove after 5 seconds if not manually closed
   setTimeout(() => {
     if (notification.parentNode) {
       notification.style.transition = 'all 0.4s ease-out';
       notification.style.opacity = '0';
       notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
-            
+
       setTimeout(() => {
         if (notification.parentNode) {
           notification.parentNode.removeChild(notification);
@@ -176,8 +176,8 @@
       }, 400);
     }
   }, 5000);
-    
+
   console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
-    
+
   return 'Mermaid theme activated successfully! 🧜‍♀️';
 })();

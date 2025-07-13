@@ -7,7 +7,7 @@ export default function handler(req, res) {
     environment: process.env.NODE_ENV || 'development',
     headers: {
       'user-agent': req.headers['user-agent'],
-      'x-vercel-trace': req.headers['x-vercel-trace']
-    }
+      'x-vercel-trace': req.headers['x-vercel-trace'],
+    },
   });
 }

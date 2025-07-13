@@ -1,18 +1,6 @@
 export default [
+  // Global ignores that apply to all configurations
   {
-    files: [
-      'src/**/*.js',
-      'src/**/*.cjs',
-      'scripts/**/*.js',
-      'scripts/**/*.cjs',
-      'tests/**/*.js',
-      'api/**/*.js',
-      'server.js',
-      'check-setup.js',
-      'test-*.js',
-      '*.js',
-      '*.cjs'
-    ],
     ignores: [
       'node_modules/**',
       'dist/**',
@@ -42,11 +30,29 @@ export default [
       'scripts/auto-replace-deprecated.js',
       'scripts/modernize-github-workflows.js',
       'scripts/upgrade-workflows-to-v4.cjs',
-      // Temporarily ignore problematic files
+      // Completely ignore React/JSX files and directories
       'sdk/**',
       'analytics-dashboard/**',
       'mobile/**',
       'pages/**',
+      'components/**',
+      '**/*.jsx',
+    ],
+  },
+  // Configuration for JavaScript files
+  {
+    files: [
+      'src/**/*.js',
+      'src/**/*.cjs',
+      'scripts/**/*.js',
+      'scripts/**/*.cjs',
+      'tests/**/*.js',
+      'api/**/*.js',
+      'server.js',
+      'check-setup.js',
+      'test-*.js',
+      '*.js',
+      '*.cjs',
     ],
     languageOptions: {
       ecmaVersion: 'latest',
