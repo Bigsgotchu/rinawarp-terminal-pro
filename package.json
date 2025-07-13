@@ -26,7 +26,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
@@ -34,7 +36,10 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
@@ -42,7 +47,9 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     }
@@ -163,7 +170,6 @@
     "axios": "^1.10.0",
     "concurrently": "^9.2.0",
     "discord.js": "^14.21.0",
-    "dmg-license": "1.0.11",
     "electron": "^37.2.1",
     "electron-builder": "^26.0.12",
     "eslint": "^9.31.0",
