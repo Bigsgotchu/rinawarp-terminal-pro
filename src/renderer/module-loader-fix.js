@@ -238,14 +238,14 @@
 
           // Provide fallback responses
           switch (channel) {
-            case 'get-platform':
-              return navigator.platform.includes('Win') ? 'win32' : 'linux';
-            case 'get-shell':
-              return navigator.platform.includes('Win') ? 'powershell.exe' : '/bin/bash';
-            case 'check-for-updates':
-              return { updateInfo: null };
-            default:
-              return null;
+          case 'get-platform':
+            return navigator.platform.includes('Win') ? 'win32' : 'linux';
+          case 'get-shell':
+            return navigator.platform.includes('Win') ? 'powershell.exe' : '/bin/bash';
+          case 'check-for-updates':
+            return { updateInfo: null };
+          default:
+            return null;
           }
         },
         send: (channel, ...args) => {

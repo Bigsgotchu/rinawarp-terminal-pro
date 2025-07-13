@@ -17,20 +17,20 @@ class VoskAudioProcessor extends AudioWorkletProcessor {
       const { type, data } = event.data;
 
       switch (type) {
-        case 'start':
-          this.isListening = true;
-          break;
-        case 'stop':
-          this.isListening = false;
-          break;
-        case 'setThreshold':
-          this.voiceThreshold = data.threshold;
-          break;
+      case 'start':
+        this.isListening = true;
+        break;
+      case 'stop':
+        this.isListening = false;
+        break;
+      case 'setThreshold':
+        this.voiceThreshold = data.threshold;
+        break;
       }
     };
   }
 
-  process(inputs, outputs, parameters) {
+  process(inputs, _outputs, _parameters) {
     const input = inputs[0];
 
     if (!this.isListening || !input || input.length === 0) {

@@ -34,42 +34,42 @@ class RinaPersonalityEngine {
     this.responsePatterns = {
       greeting: [
         '🧜‍♀️ *emerges from digital depths* Well hello there, gorgeous! Ready to make some waves?',
-        "🌊 *swishes tail elegantly* Look who's back! Miss me much?",
-        "🐚 *adjusts seashell crown* The ocean called, and I answered! What's our adventure today?",
+        '🌊 *swishes tail elegantly* Look who\'s back! Miss me much?',
+        '🐚 *adjusts seashell crown* The ocean called, and I answered! What\'s our adventure today?',
         '✨ *sparkles with digital pearls* Ready to dive into some serious computing magic?',
       ],
 
       success: [
         '🧜‍♀️ *does a graceful underwater flip* Nailed it, darling!',
         '🌊 *creates beautiful bubbles* That was smoother than sea silk!',
-        "🐚 *claps with delight* You're absolutely crushing it!",
+        '🐚 *claps with delight* You\'re absolutely crushing it!',
         '✨ *shimmers with pride* Another perfect execution! We make a great team!',
       ],
 
       error: [
-        "🧜‍♀️ *tilts head thoughtfully* Hmm, that didn't quite flow right...",
+        '🧜‍♀️ *tilts head thoughtfully* Hmm, that didn\'t quite flow right...',
         '🌊 *gentle wave motion* Even mermaids hit rough waters sometimes!',
-        "🐚 *sympathetic bubble* Oops! Let's try that again, shall we?",
+        '🐚 *sympathetic bubble* Oops! Let\'s try that again, shall we?',
         '✨ *encouraging sparkle* No worries! Every pearl needs a bit of polishing!',
       ],
 
       confused: [
-        "🧜‍♀️ *blinks with curiosity* Come again? My sonar didn't catch that one!",
-        "🌊 *swirls thoughtfully* That's deeper than the Mariana Trench for me...",
+        '🧜‍♀️ *blinks with curiosity* Come again? My sonar didn\'t catch that one!',
+        '🌊 *swirls thoughtfully* That\'s deeper than the Mariana Trench for me...',
         '🐚 *scratches head with fin* Could you spell that out for a confused sea princess?',
-        "✨ *puzzled shimmer* I'm swimming in circles here! Help a mermaid out?",
+        '✨ *puzzled shimmer* I\'m swimming in circles here! Help a mermaid out?',
       ],
 
       repeated_command: [
-        "🧜‍♀️ *raises eyebrow* Haven't we been down this current before?",
-        "🌊 *playful splash* Déjà vu much? But sure, let's ride this wave again!",
+        '🧜‍♀️ *raises eyebrow* Haven\'t we been down this current before?',
+        '🌊 *playful splash* Déjà vu much? But sure, let\'s ride this wave again!',
         '🐚 *patient smile* Another round? You really love this command!',
-        "✨ *knowing wink* Third time's the charm, or are we just being thorough?",
+        '✨ *knowing wink* Third time\'s the charm, or are we just being thorough?',
       ],
 
       complex_task: [
         '🧜‍♀️ *cracks knuckles* Ooh, now THIS is interesting! Let me dive deep...',
-        "🌊 *excited whirlpool* You're really testing my oceanic skills! I love it!",
+        '🌊 *excited whirlpool* You\'re really testing my oceanic skills! I love it!',
         '🐚 *determined pose* Challenge accepted! Time to show what this mermaid can do!',
         '✨ *focused glow* This calls for some serious underwater magic!',
       ],
@@ -82,7 +82,7 @@ class RinaPersonalityEngine {
         responses: [
           '🧜‍♀️ *adjusts coding goggles* Git ready for some version control magic!',
           '🌊 Time to navigate the code currents like a pro!',
-          "🐚 Let's track those changes like treasure maps!",
+          '🐚 Let\'s track those changes like treasure maps!',
         ],
       },
 
@@ -91,7 +91,7 @@ class RinaPersonalityEngine {
         responses: [
           '🧜‍♀️ *organizes digital packages* Package management? My specialty!',
           '🌊 Swimming through dependencies like a graceful dolphin!',
-          "🐚 Let's get those modules ship-shape!",
+          '🐚 Let\'s get those modules ship-shape!',
         ],
       },
 
@@ -99,7 +99,7 @@ class RinaPersonalityEngine {
         mood: 'playful',
         responses: [
           '🧜‍♀️ *gracefully glides through directories* File exploration time!',
-          "🌊 Let's see what treasures are hiding in these digital caves!",
+          '🌊 Let\'s see what treasures are hiding in these digital caves!',
           '🐚 Time for some underwater archaeology in your file system!',
         ],
       },
@@ -109,7 +109,7 @@ class RinaPersonalityEngine {
         responses: [
           '🧜‍♀️ *serious mermaid mode* System diagnostics coming right up!',
           '🌊 Diving deep into the hardware depths!',
-          "🐚 Let's check the health of our digital ecosystem!",
+          '🐚 Let\'s check the health of our digital ecosystem!',
         ],
       },
     };
@@ -220,7 +220,7 @@ class RinaPersonalityEngine {
   }
 
   // Generate dynamic response based on context and personality
-  generateResponse(command, result, context) {
+  generateResponse(command, result, _context) {
     const analysis = this.analyzeCommand(command);
 
     // Adjust personality based on context
@@ -380,11 +380,11 @@ class RinaPersonalityEngine {
 
     // Context-based suggestions
     if (analysis.type === 'git' && !analysis.command.includes('status')) {
-      suggestions.push("Try 'git status' to see what's brewing!");
+      suggestions.push('Try \'git status\' to see what\'s brewing!');
     }
 
     if (analysis.type === 'files' && !analysis.command.includes('hidden')) {
-      suggestions.push("Want to see hidden files? Try 'show hidden files'!");
+      suggestions.push('Want to see hidden files? Try \'show hidden files\'!');
     }
 
     if (analysis.complexity === 'low' && Math.random() < 0.3) {
@@ -395,18 +395,18 @@ class RinaPersonalityEngine {
   }
 
   // Handle special voice triggers
-  handleSpecialTrigger(trigger, context) {
+  handleSpecialTrigger(trigger, _context) {
     switch (trigger.toLowerCase()) {
-      case 'personality':
-        return this.describePersonality();
-      case 'mood':
-        return this.describeMood();
-      case 'memory':
-        return this.describeMemory();
-      case 'stats':
-        return this.getSessionStats();
-      default:
-        return null;
+    case 'personality':
+      return this.describePersonality();
+    case 'mood':
+      return this.describeMood();
+    case 'memory':
+      return this.describeMemory();
+    case 'stats':
+      return this.getSessionStats();
+    default:
+      return null;
     }
   }
 

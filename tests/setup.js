@@ -83,7 +83,7 @@ global.FileReader = class FileReader {
     this.error = null;
   }
 
-  readAsText(file) {
+  readAsText(_file) {
     setTimeout(() => {
       this.readyState = 2;
       this.result = 'mock file content';
@@ -115,11 +115,11 @@ global.URL = class URL {
     this.hash = '';
   }
 
-  static createObjectURL(blob) {
+  static createObjectURL(_blob) {
     return 'blob:http://localhost:3000/mock-url';
   }
 
-  static revokeObjectURL(url) {
+  static revokeObjectURL(_url) {
     // Mock implementation
   }
 };

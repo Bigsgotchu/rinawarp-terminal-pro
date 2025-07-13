@@ -1238,12 +1238,12 @@ class SlackIntegration {
 
   async execute(action, data) {
     switch (action) {
-      case 'send_message':
-        return await this.sendMessage(data.channel, data.message);
-      case 'send_file':
-        return await this.sendFile(data.channel, data.file);
-      default:
-        throw new Error(`Unknown Slack action: ${action}`);
+    case 'send_message':
+      return await this.sendMessage(data.channel, data.message);
+    case 'send_file':
+      return await this.sendFile(data.channel, data.file);
+    default:
+      throw new Error(`Unknown Slack action: ${action}`);
     }
   }
 
@@ -1261,14 +1261,14 @@ class GitHubIntegration {
 
   async execute(action, data) {
     switch (action) {
-      case 'create_pr':
-        return await this.createPullRequest(data);
-      case 'create_issue':
-        return await this.createIssue(data);
-      case 'trigger_action':
-        return await this.triggerAction(data);
-      default:
-        throw new Error(`Unknown GitHub action: ${action}`);
+    case 'create_pr':
+      return await this.createPullRequest(data);
+    case 'create_issue':
+      return await this.createIssue(data);
+    case 'trigger_action':
+      return await this.triggerAction(data);
+    default:
+      throw new Error(`Unknown GitHub action: ${action}`);
     }
   }
 
@@ -1286,12 +1286,12 @@ class JiraIntegration {
 
   async execute(action, data) {
     switch (action) {
-      case 'create_ticket':
-        return await this.createTicket(data);
-      case 'update_ticket':
-        return await this.updateTicket(data);
-      default:
-        throw new Error(`Unknown Jira action: ${action}`);
+    case 'create_ticket':
+      return await this.createTicket(data);
+    case 'update_ticket':
+      return await this.updateTicket(data);
+    default:
+      throw new Error(`Unknown Jira action: ${action}`);
     }
   }
 
@@ -1309,10 +1309,10 @@ class _JenkinsIntegration {
 
   async execute(action, data) {
     switch (action) {
-      case 'trigger_build':
-        return await this.triggerBuild(data.jobName, data.parameters);
-      default:
-        throw new Error(`Unknown Jenkins action: ${action}`);
+    case 'trigger_build':
+      return await this.triggerBuild(data.jobName, data.parameters);
+    default:
+      throw new Error(`Unknown Jenkins action: ${action}`);
     }
   }
 
@@ -1330,12 +1330,12 @@ class DockerIntegration {
 
   async execute(action, data) {
     switch (action) {
-      case 'build_image':
-        return await this.buildImage(data);
-      case 'run_container':
-        return await this.runContainer(data);
-      default:
-        throw new Error(`Unknown Docker action: ${action}`);
+    case 'build_image':
+      return await this.buildImage(data);
+    case 'run_container':
+      return await this.runContainer(data);
+    default:
+      throw new Error(`Unknown Docker action: ${action}`);
     }
   }
 
@@ -1351,12 +1351,12 @@ class _KubernetesIntegration {
 
   async execute(action, data) {
     switch (action) {
-      case 'deploy':
-        return await this.deploy(data);
-      case 'scale':
-        return await this.scale(data);
-      default:
-        throw new Error(`Unknown Kubernetes action: ${action}`);
+    case 'deploy':
+      return await this.deploy(data);
+    case 'scale':
+      return await this.scale(data);
+    default:
+      throw new Error(`Unknown Kubernetes action: ${action}`);
     }
   }
 
