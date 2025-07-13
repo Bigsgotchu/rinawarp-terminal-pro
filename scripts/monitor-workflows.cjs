@@ -5,7 +5,7 @@
  * Monitors GitHub Actions performance and provides insights
  */
 
-const { execSync } = require('child_process');
+const { execSync: _execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 

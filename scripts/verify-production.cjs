@@ -7,8 +7,8 @@
 
 const https = require('https');
 const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const _fs = require('fs');
+const _path = require('path');
 
 // Configuration
 const PRODUCTION_URL = process.env.PRODUCTION_URL || 'https://rinawarp-terminal-fresh-2024.web.app';

@@ -7,7 +7,7 @@ console.log('');
 
 // Check if .env file exists and has correct format
 try {
-  const envFile = readFileSync('.env', 'utf8');
+  const _envFile = readFileSync('.env', 'utf8');
   console.log('✅ .env file found');
 
   // Check for required environment variables

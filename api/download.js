@@ -25,7 +25,7 @@ export default function handler(req, res) {
 
   try {
     // Try multiple locations for the file
-    let filePath;
+    let _filePath;
     let fileBuffer;
 
     // First try public/releases directory
@@ -34,11 +34,11 @@ export default function handler(req, res) {
 
     try {
       fileBuffer = readFileSync(releasesPath);
-      filePath = releasesPath;
+      _filePath = releasesPath;
     } catch (err) {
       // If not found in releases, try public directory
       fileBuffer = readFileSync(publicPath);
-      filePath = publicPath;
+      _filePath = publicPath;
     }
 
     // Set appropriate headers

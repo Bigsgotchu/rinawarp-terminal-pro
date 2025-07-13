@@ -377,7 +377,7 @@ function validateAndNormalizePath(requestedPath, allowedBaseDir) {
 }
 
 // Secure file serving middleware
-function secureFileServer(baseDir, allowedFiles = [], allowedDirs = []) {
+function _secureFileServer(baseDir, allowedFiles = [], allowedDirs = []) {
   return (req, res, _next) => {
     const requestedPath = req.path.startsWith('/') ? req.path.slice(1) : req.path;
     console.log(`[DEBUG] Attempting to serve: ${requestedPath} from baseDir: ${baseDir}`);

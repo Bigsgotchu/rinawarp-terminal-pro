@@ -153,7 +153,7 @@ export class AdvancedAIContextEngine {
       },
     ];
 
-    for (const { pattern, risk, score, message } of dangerousPatterns) {
+    for (const { pattern, risk: _risk, score, message } of dangerousPatterns) {
       if (pattern.test(command)) {
         riskFactors.push({ type: 'dangerous_command', message, score });
         riskScore = Math.max(riskScore, score);
