@@ -127,7 +127,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { context, github } = require('@actions/github-script');
+            const { github } = require('@actions/github-script');
             
             // Collect pipeline results
             const coreResult = '${{ needs.core-pipeline.result }}';
