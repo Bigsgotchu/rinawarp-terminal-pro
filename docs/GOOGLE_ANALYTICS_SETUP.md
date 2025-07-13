@@ -8,14 +8,14 @@
 
 ### Option 1: Replace Tracking ID Directly
 1. Open `public/index.html`
-2. Find line 12: `const trackingId = window.GA_TRACKING_ID || 'G-XXXXXXXXXX';`
-3. Replace `'G-XXXXXXXXXX'` with your actual Google Analytics tracking ID
-4. Example: `const trackingId = window.GA_TRACKING_ID || 'G-ABC123XYZ';`
+2. Find line 12: `const trackingId = window.GA_TRACKING_ID || 'G-G424CV5GGT';`
+3. Replace `'G-G424CV5GGT'` with your actual Google Analytics tracking ID
+4. Example: `const trackingId = window.GA_TRACKING_ID || 'G-G424CV5GGT';`
 
 ### Option 2: Use Environment Variables (Recommended)
 1. Add to your `.env` file:
    ```
-   GA_TRACKING_ID=G-ABC123XYZ
+   GA_TRACKING_ID=G-G424CV5GGT
    ```
 2. Set the environment variable in your deployment platform:
    - **Vercel**: Project Settings → Environment Variables
@@ -26,7 +26,7 @@
 Add this script before the Google Analytics code:
 ```html
 <script>
-    window.GA_TRACKING_ID = 'G-ABC123XYZ';
+    window.GA_TRACKING_ID = 'G-G424CV5GGT';
 </script>
 ```
 
@@ -35,7 +35,7 @@ Add this script before the Google Analytics code:
 1. Go to [Google Analytics](https://analytics.google.com/)
 2. Create a new property (if you don't have one)
 3. Set up a data stream for your website
-4. Copy your **Measurement ID** (format: G-XXXXXXXXXX)
+4. Copy your **Measurement ID** (format: G-G424CV5GGT)
 
 ## 🔍 Verification
 
@@ -57,7 +57,7 @@ const trackingId = window.GA_TRACKING_ID ||
 ```javascript
 // Only load in production
 if (window.location.hostname !== 'localhost') {
-    window.GA_TRACKING_ID = 'G-ABC123XYZ';
+    window.GA_TRACKING_ID = 'G-G424CV5GGT';
 }
 ```
 
@@ -67,7 +67,7 @@ Add to your `vercel.json`:
 ```json
 {
   "env": {
-    "GA_TRACKING_ID": "G-ABC123XYZ"
+    "GA_TRACKING_ID": "G-G424CV5GGT"
   }
 }
 ```
@@ -77,7 +77,7 @@ Add to your `vercel.json`:
 **Q: Google Analytics isn't loading**
 - Check console for "GA disabled" message
 - Ensure tracking ID format is correct (starts with G-)
-- Verify tracking ID is not the placeholder 'G-XXXXXXXXXX'
+- Verify tracking ID is not the placeholder 'G-G424CV5GGT'
 
 **Q: Tracking ID not being set**
 - Check environment variables are properly configured
@@ -100,3 +100,4 @@ Add to your `vercel.json`:
 ---
 
 Ready to track your mermaid magic! 🧜‍♀️📈
+
