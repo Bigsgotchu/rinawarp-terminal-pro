@@ -69,11 +69,13 @@ jspm_packages/
 .env.test
 .env.test.local
 
-# Allow committed template files (these use {{PLACEHOLDER}} syntax)
+# IMPORTANT: Block any .env files with actual secrets
+# Only allow template files that use {{PLACEHOLDER}} syntax
 !.env.example
 !.env.template
-!.env.development
-!.env.staging
+# WARNING: .env.development and .env.staging contain real secrets - blocking them
+# !.env.development
+# !.env.staging
 
 # Additional secret patterns
 *.key
@@ -81,6 +83,10 @@ jspm_packages/
 *-secrets.*
 secrets.*
 api-keys.*
+
+# Secrets backup directory (contains actual secrets)
+secrets-backup/
+*.backup
 
 # parcel-bundler cache
 .cache
