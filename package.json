@@ -106,7 +106,9 @@
     "modernize:packages": "node scripts/auto-replace-deprecated.js",
     "modernize:all": "npm run modernize:deps && npm run modernize:workflows && npm run modernize:packages",
     "scan:deprecated": "node scan-deprecated.cjs",
-    "security:check": "npm audit --audit-level=moderate && npm run scan:deprecated"
+    "security:check": "npm audit --audit-level=moderate && npm run scan:deprecated",
+    "monitor:workflows": "node scripts/monitor-workflows.cjs",
+    "monitor:watch": "watch -n 300 'npm run monitor:workflows' -t"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
