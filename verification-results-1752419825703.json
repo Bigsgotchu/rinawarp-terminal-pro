@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-07-13T15:17:05.634Z",
+  "serverUrl": "http://localhost:8080",
+  "tests": {
+    "environment": {
+      "score": 91,
+      "required": {
+        "STRIPE_SECRET_KEY": true,
+        "STRIPE_PUBLISHABLE_KEY": true,
+        "STRIPE_WEBHOOK_SECRET": true,
+        "STRIPE_PRICE_PERSONAL_MONTHLY": true,
+        "STRIPE_PRICE_PERSONAL_YEARLY": true,
+        "STRIPE_PRICE_PROFESSIONAL_MONTHLY": true,
+        "STRIPE_PRICE_PROFESSIONAL_YEARLY": true,
+        "STRIPE_PRICE_TEAM_MONTHLY": true,
+        "STRIPE_PRICE_TEAM_YEARLY": true
+      },
+      "optional": {
+        "SMTP_HOST": true,
+        "SMTP_USER": true,
+        "SMTP_PASS": true,
+        "SENDGRID_API_KEY": false,
+        "RAILWAY_URL": false
+      },
+      "issues": []
+    },
+    "stripe": {
+      "success": false,
+      "error": "request to http://localhost:8080/api/stripe-config failed, reason: "
+    },
+    "webhook": {
+      "tests": [
+        {
+          "name": "Missing Signature Header",
+          "error": "request to http://localhost:8080/webhook failed, reason: ",
+          "success": false
+        },
+        {
+          "name": "Invalid Signature",
+          "error": "request to http://localhost:8080/webhook failed, reason: ",
+          "success": false
+        }
+      ],
+      "overallSuccess": false
+    },
+    "email": {
+      "nodemailer": {
+        "configured": "{{SMTP_PASS}}",
+        "details": {
+          "host": true,
+          "user": true,
+          "pass": true,
+          "port": "587"
+        }
+      },
+      "sendgrid": {
+        "details": {
+          "apiKey": false,
+          "fromEmail": false
+        }
+      },
+      "success": true
+    },
+    "security": {
+      "issues": [],
+      "recommendations": [],
+      "securityScore": 100
+    }
+  }
+}
