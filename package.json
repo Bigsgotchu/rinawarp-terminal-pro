@@ -67,7 +67,9 @@
     "copy-xterm": "node scripts/copy-xterm-assets.cjs",
     "copy-assets": "node scripts/copy-assets.cjs",
     "dev": "electron src/main.cjs --dev",
-    "lint": "eslint . --fix",
+    "lint:fix": "eslint . --ext .js,.ts,.cjs --fix",
+    "lint:rename-github": "pwsh ./scripts/dev-tools.ps1 rename-github",
+    "lint:full-clean": "pwsh ./scripts/dev-tools.ps1 full-clean",
     "lint:check": "eslint .",
     "format": "prettier --write . --ignore-unknown",
     "format:check": "prettier --check . --ignore-unknown",
@@ -111,7 +113,8 @@
     "monitor:workflows": "node scripts/monitor-workflows.cjs",
     "monitor:watch": "watch -n 300 'npm run monitor:workflows' -t",
     "check:workflows": "node scripts/check-workflows.cjs",
-    "monitor:live": "node scripts/monitor-live.cjs"
+    "monitor:live": "node scripts/monitor-live.cjs",
+    "prepare": "husky"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
@@ -157,10 +160,12 @@
     "express-validator": "^7.2.1",
     "firebase": "^11.10.0",
     "helmet": "^8.1.0",
+    "husky": "9.1.7",
     "jest": "^30.0.4",
     "jest-environment-jsdom": "^30.0.4",
     "joi": "^17.13.3",
     "lightningcss": "1.30.1",
+    "lint-staged": "16.1.2",
     "morgan": "^1.10.0",
     "next": "^15.1.0",
     "nodemon": "^3.1.10",
