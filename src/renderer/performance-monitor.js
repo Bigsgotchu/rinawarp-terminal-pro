@@ -156,7 +156,7 @@ class PerformanceMonitor {
     }
   }
 
-  async predictResourceUsage(command, context) {
+  async predictResourceUsage(command, _context) {
     const prediction = {
       estimatedTime: 0,
       estimatedCpu: 0,
@@ -1232,7 +1232,7 @@ class PredictivePerformanceAnalyzer {
     };
   }
 
-  analyzePerformanceFactors(_historicalData, context) {
+  analyzePerformanceFactors(_historicalData, _context) {
     // Analyze what factors affect performance
     return {
       timeOfDay: 'No significant impact',

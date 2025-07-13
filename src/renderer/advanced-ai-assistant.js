@@ -774,7 +774,7 @@ class AdvancedIntellectualAI {
     return 'neutral';
   }
 
-  async generateIntelligentSuggestions(input, context) {
+  async generateIntelligentSuggestions(input, _context) {
     // Generate intelligent suggestions based on input and context
     const suggestions = [];
 

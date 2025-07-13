@@ -1079,7 +1079,7 @@ class ComplianceChecker {
     };
   }
 
-  checkAccessControl(_command, context) {
+  checkAccessControl(_command, _context) {
     // Check access control compliance
     return {
       compliant: true,

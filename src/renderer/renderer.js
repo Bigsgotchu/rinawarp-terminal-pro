@@ -1704,7 +1704,7 @@ class _SecurityAnalysisAI {
     this.engine = engine;
   }
 
-  async analyzeSafety(command, context) {
+  async analyzeSafety(command, _context) {
     // Check against security rules
     for (const [_name, rule] of this.engine.securityRules.entries()) {
       if (rule.pattern.test(command)) {
