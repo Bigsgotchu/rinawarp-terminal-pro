@@ -201,33 +201,33 @@ export class AdvancedAIContextEngine {
     const intent = await this.detectCommandIntent(command);
 
     switch (intent.intent) {
-      case 'deployment':
+    case 'deployment':
+      suggestions.push({
+        type: 'workflow',
+        message: 'Consider running tests before deployment',
+        command: 'npm test && ' + command,
+      });
+      break;
+
+    case 'version_control':
+      if (command.includes('git push')) {
         suggestions.push({
-          type: 'workflow',
-          message: 'Consider running tests before deployment',
-          command: 'npm test && ' + command,
+          type: 'safety',
+          message: 'Push to feature branch first?',
+          command: command.replace('origin main', 'origin feature-branch'),
         });
-        break;
+      }
+      break;
 
-      case 'version_control':
-        if (command.includes('git push')) {
-          suggestions.push({
-            type: 'safety',
-            message: 'Push to feature branch first?',
-            command: command.replace('origin main', 'origin feature-branch'),
-          });
-        }
-        break;
-
-      case 'file_operations':
-        if (command.includes('rm')) {
-          suggestions.push({
-            type: 'safety',
-            message: 'Move to trash instead?',
-            command: command.replace('rm', 'trash'),
-          });
-        }
-        break;
+    case 'file_operations':
+      if (command.includes('rm')) {
+        suggestions.push({
+          type: 'safety',
+          message: 'Move to trash instead?',
+          command: command.replace('rm', 'trash'),
+        });
+      }
+      break;
     }
 
     // Performance suggestions

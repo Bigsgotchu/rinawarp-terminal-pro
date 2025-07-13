@@ -1,6 +1,6 @@
 const { test, expect } = require('@jest/globals');
-const path = require('path');
-const fs = require('fs').promises;
+const _path = require('path');
+const _fs = require('fs').promises;
 
 // Mock AI Assistant functionality for testing
 class MockAIAssistant {
@@ -79,8 +79,8 @@ class MockAIAssistant {
     return `Workflow for: ${task}`;
   }
 
-  async analyzeCommandOutput(command, output) {
-    return `Analysis: Command '${command}' executed successfully with output length: ${output?.length || 0}`;
+  async analyzeCommandOutput(command, _output) {
+    return `Analysis: Command '${command}' executed successfully with output length: ${_output?.length || 0}`;
   }
 
   async getContextualHelp(context) {
@@ -113,7 +113,7 @@ class MockPredictiveCompletion {
     this.initialized = true;
   }
 
-  async getSuggestions(input, context = {}, config = {}) {
+  async getSuggestions(input, _context = {}, config = {}) {
     if (!input) return [];
 
     const suggestions = [];

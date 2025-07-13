@@ -1,5 +1,5 @@
 // Integration test setup
-const path = require('path');
+const _path = require('path');
 
 // Set up test environment
 process.env.NODE_ENV = 'test';

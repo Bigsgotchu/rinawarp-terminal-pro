@@ -36,8 +36,8 @@ class AIPersonality {
 
   getSassyComment() {
     const comments = [
-      "🙄 Oh honey, that's not how we do things in the deep blue sea!",
-      "💅 *flips tail dramatically* As if I haven't seen this command a thousand times before!",
+      '🙄 Oh honey, that\'s not how we do things in the deep blue sea!',
+      '💅 *flips tail dramatically* As if I haven\'t seen this command a thousand times before!',
       '🐚 Listen pearl, let me drop some wisdom on you...',
       '🌊 Sweet summer child, let this sea goddess enlighten you!',
       '✨ *adjusts crown of seaweed* Allow me to demonstrate proper technique!',
@@ -47,8 +47,8 @@ class AIPersonality {
 
   crackJoke() {
     const jokes = [
-      "Why don't mermaids ever pay for wifi? Because they have unlimited data streams! 📡",
-      "What's a mermaid's favorite programming language? Sea-Sharp! 🎵",
+      'Why don\'t mermaids ever pay for wifi? Because they have unlimited data streams! 📡',
+      'What\'s a mermaid\'s favorite programming language? Sea-Sharp! 🎵',
       'Why did the mermaid break up with Git? Too many merge conflicts! 💔',
       'How do mermaids backup their data? They use cloud storage... water clouds! ☁️',
       'What do you call a mermaid who codes? A pro-gram-mer! 🧜‍♀️',
@@ -241,7 +241,7 @@ class AIIntegrationManager {
       '🧜‍♀️ Welcome to your enhanced terminal experience!',
       '🌊 Your sassy mermaid AI is ready to assist!',
       '✨ Dive into commands with oceanic wisdom!',
-      "🐚 Let's make some waves in your development workflow!",
+      '🐚 Let\'s make some waves in your development workflow!',
     ];
 
     welcomeMessages.forEach((msg, index) => {
