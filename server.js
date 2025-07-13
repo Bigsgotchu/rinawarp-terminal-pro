@@ -44,7 +44,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import Joi from 'joi';
 import morgan from 'morgan';
-import { validationResult } from 'express-validator';
+// import { validationResult } from 'express-validator'; // Currently unused
 import errorHandler, { notFoundHandler } from './src/middleware/errorHandler.js';
 import statusRouter from './src/api/status.js';
 import downloadRouter from './src/api/download.js';
@@ -146,7 +146,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Security configuration for file serving
-const ALLOWED_STATIC_FILES = [
+const _ALLOWED_STATIC_FILES = [
   'index.html',
   'pricing.html',
   'download.html',
@@ -161,7 +161,7 @@ const ALLOWED_STATIC_FILES = [
   'RinaWarp-Terminal-Linux.tar.gz',
 ];
 
-const ALLOWED_STATIC_DIRS = ['styles', 'js', 'images', 'assets', 'themes', 'releases'];
+const _ALLOWED_STATIC_DIRS = ['styles', 'js', 'images', 'assets', 'themes', 'releases'];
 
 const _PUBLIC_DIR = path.join(__dirname, 'public');
 const _RELEASES_DIR = path.join(__dirname, 'releases');
