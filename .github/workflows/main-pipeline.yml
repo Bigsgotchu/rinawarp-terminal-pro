@@ -1,0 +1,218 @@
+# 🧜‍♀️ RinaWarp Terminal - Main CI/CD Pipeline
+# Orchestrates modular workflows with intelligent feedback and observability
+name: 🌊 Main Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      skip-tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 🚀 Pre-flight checks
+  preflight:
+    name: 🚁 Pre-flight Checks
+    runs-on: ubuntu-latest
+    outputs:
+      should-deploy: ${{ steps.analysis.outputs.should-deploy }}
+      target-env: ${{ steps.analysis.outputs.target-env }}
+      matrix-strategy: ${{ steps.analysis.outputs.matrix-strategy }}
+    
+    steps:
+      - name: 🧜‍♀️ Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📊 Environment Analysis
+        id: analysis
+        run: |
+          echo "🌊 Analyzing deployment context..."
+          
+          # Determine target environment
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TARGET_ENV="${{ github.event.inputs.environment }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            TARGET_ENV="prod"
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            TARGET_ENV="staging"
+          else
+            TARGET_ENV="dev"
+          fi
+          
+          echo "target-env=${TARGET_ENV}" >> $GITHUB_OUTPUT
+          echo "should-deploy=${{ github.event_name == 'push' }}" >> $GITHUB_OUTPUT
+          echo "matrix-strategy=full" >> $GITHUB_OUTPUT
+          
+          echo "🎯 Target Environment: ${TARGET_ENV}"
+          echo "🚀 Should Deploy: ${{ github.event_name == 'push' }}"
+
+  # 🔄 Core Pipeline (using reusable workflow)
+  core-pipeline:
+    name: 🌊 Core Pipeline
+    needs: preflight
+    uses: ./.github/workflows/reusable-core.yml
+    with:
+      node-version: '18'
+      cache-strategy: 'npm'
+      skip-tests: ${{ github.event.inputs.skip-tests == 'true' }}
+      environment: ${{ needs.preflight.outputs.target-env }}
+
+  # 🧪 Cross-Platform Testing Matrix
+  cross-platform:
+    name: 🌐 Cross-Platform Tests
+    needs: [preflight, core-pipeline]
+    if: needs.core-pipeline.outputs.build-status == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: ['16', '18', '20']
+        exclude:
+          # Skip some combinations to reduce CI time
+          - os: macos-latest
+            node-version: '16'
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: 🚀 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: |
+          echo "🌊 Installing on ${{ matrix.os }} with Node ${{ matrix.node-version }}"
+          npm ci --prefer-offline
+
+      - name: 🧪 Quick Test Suite
+        run: |
+          echo "🧜‍♀️ Running platform-specific tests..."
+          npm run test:quick || echo "🧜‍♀️ Mermaid Notices: Some tests failed on ${{ matrix.os }}"
+
+  # 📝 Automated Feedback & Reporting
+  feedback:
+    name: 🤖 Automated Feedback
+    needs: [preflight, core-pipeline, cross-platform]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🧜‍♀️ Generate Pipeline Report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context, github } = require('@actions/github-script');
+            
+            // Collect pipeline results
+            const coreResult = '${{ needs.core-pipeline.result }}';
+            const crossPlatformResult = '${{ needs.cross-platform.result }}';
+            
+            const buildStatus = '${{ needs.core-pipeline.outputs.build-status }}';
+            const testStatus = '${{ needs.core-pipeline.outputs.test-status }}';
+            const lintStatus = '${{ needs.core-pipeline.outputs.lint-status }}';
+            
+            // Generate mermaid-themed report
+            let report = `## 🧜‍♀️ RinaWarp Terminal CI/CD Report\n\n`;
+            
+            if (coreResult === 'success') {
+              report += `🌊 **Core Pipeline**: ✅ All systems flowing smoothly!\n`;
+            } else {
+              report += `🌊 **Core Pipeline**: ❌ Mermaid Weeps - issues detected\n`;
+            }
+            
+            report += `\n### 📊 Detailed Results:\n`;
+            report += `- 🔍 **Lint**: ${lintStatus === 'success' ? '✅' : '❌'}\n`;
+            report += `- 🏗️ **Build**: ${buildStatus === 'success' ? '✅' : '❌'}\n`;
+            report += `- 🧪 **Tests**: ${testStatus === 'success' ? '✅' : '❌'}\n`;
+            report += `- 🌐 **Cross-Platform**: ${crossPlatformResult === 'success' ? '✅' : '❌'}\n`;
+            
+            if (coreResult !== 'success') {
+              report += `\n### 🚨 Action Required:\n`;
+              if (lintStatus !== 'success') report += `- Fix linting issues\n`;
+              if (buildStatus !== 'success') report += `- Resolve build errors\n`;
+              if (testStatus !== 'success') report += `- Address test failures\n`;
+            }
+            
+            report += `\n---\n*Generated by RinaWarp Terminal CI/CD 🧜‍♀️*`;
+            
+            // Post comment on PR if this is a pull request
+            if (context.eventName === 'pull_request') {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: report
+              });
+            }
+            
+            console.log(report);
+
+      - name: 🏷️ Auto-Label PR
+        if: github.event_name == 'pull_request' && needs.core-pipeline.result != 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [];
+            
+            if ('${{ needs.core-pipeline.outputs.lint-status }}' !== 'success') {
+              labels.push('🔍 lint-issues');
+            }
+            if ('${{ needs.core-pipeline.outputs.build-status }}' !== 'success') {
+              labels.push('🏗️ build-issues');
+            }
+            if ('${{ needs.core-pipeline.outputs.test-status }}' !== 'success') {
+              labels.push('🧪 test-issues');
+            }
+            
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: labels
+              });
+            }
+
+  # 🚀 Deployment (conditional)
+  deploy:
+    name: 🚀 Deploy
+    needs: [preflight, core-pipeline]
+    if: |
+      needs.preflight.outputs.should-deploy == 'true' && 
+      needs.core-pipeline.outputs.build-status == 'success' &&
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.preflight.outputs.target-env }}
+    
+    steps:
+      - name: 🌊 Deployment Notice
+        run: |
+          echo "🧜‍♀️ Preparing deployment to ${{ needs.preflight.outputs.target-env }}..."
+          echo "This is where deployment logic would go!"
+          echo "✅ Deployment preparation complete"

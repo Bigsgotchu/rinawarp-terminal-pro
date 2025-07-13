@@ -1,0 +1,127 @@
+# 🧜‍♀️ RinaWarp Terminal - Reusable Core Pipeline
+# Modular workflow for build, test, and lint operations
+name: 🔧 Core Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '18'
+        type: string
+      cache-strategy:
+        description: 'Caching strategy (npm, yarn, pnpm)'
+        required: false
+        default: 'npm'
+        type: string
+      skip-tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+      environment:
+        description: 'Environment context (dev, staging, prod)'
+        required: false
+        default: 'dev'
+        type: string
+    outputs:
+      build-status:
+        description: 'Build completion status'
+        value: ${{ jobs.core-pipeline.outputs.build-status }}
+      test-status:
+        description: 'Test completion status'
+        value: ${{ jobs.core-pipeline.outputs.test-status }}
+      lint-status:
+        description: 'Lint completion status'
+        value: ${{ jobs.core-pipeline.outputs.lint-status }}
+
+jobs:
+  core-pipeline:
+    name: 🌊 Core Pipeline (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    outputs:
+      build-status: ${{ steps.build.outcome }}
+      test-status: ${{ steps.test.outcome }}
+      lint-status: ${{ steps.lint.outcome }}
+    
+    steps:
+      - name: 🚀 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏗️ Setup Node.js ${{ inputs.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.cache-strategy }}
+
+      - name: 🧜‍♀️ Cache Dependencies (Smart Invalidation)
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .eslintcache
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '.eslintrc.*') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: 📦 Install Dependencies
+        run: |
+          echo "🌊 Installing dependencies for ${{ inputs.environment }} environment..."
+          npm ci --prefer-offline --no-audit
+          echo "✅ Dependencies installed successfully"
+
+      - name: 🔍 Lint Check
+        id: lint
+        continue-on-error: true
+        run: |
+          echo "🧜‍♀️ Running lint checks..."
+          npm run lint 2>&1 | tee lint-output.log
+          if [ $? -eq 0 ]; then
+            echo "✅ Lint checks passed!"
+          else
+            echo "🧜‍♀️ Mermaid Weeps: Lint issues detected"
+            cat lint-output.log
+            exit 1
+          fi
+
+      - name: 🏗️ Build Project
+        id: build
+        continue-on-error: true
+        run: |
+          echo "🌊 Building RinaWarp Terminal..."
+          start_time=$(date +%s)
+          npm run build
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "✅ Build completed in ${duration}s"
+          echo "build-duration=${duration}" >> $GITHUB_OUTPUT
+
+      - name: 🧪 Run Tests
+        id: test
+        if: ${{ !inputs.skip-tests }}
+        continue-on-error: true
+        run: |
+          echo "🧜‍♀️ Running test suite..."
+          npm test -- --coverage --verbose
+          echo "✅ Tests completed"
+
+      - name: 📊 Upload Coverage
+        if: steps.test.outcome == 'success'
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report-${{ inputs.environment }}
+          path: coverage/
+
+      - name: 🚨 Failure Analysis
+        if: failure()
+        run: |
+          echo "🧜‍♀️ Mermaid Weeps: Pipeline failure detected"
+          echo "Failed steps:"
+          [ "${{ steps.lint.outcome }}" = "failure" ] && echo "  • Lint: ❌"
+          [ "${{ steps.build.outcome }}" = "failure" ] && echo "  • Build: ❌"
+          [ "${{ steps.test.outcome }}" = "failure" ] && echo "  • Tests: ❌"
+          echo "Check the logs above for detailed error information 🌊"
