@@ -353,7 +353,7 @@ class RinaDialogueSystem {
 
     // Get appropriate template category
     let templates = [];
-    const responseType = type;
+    const _responseType = type;
 
     switch (type) {
       case 'greeting':

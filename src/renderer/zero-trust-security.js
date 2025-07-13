@@ -242,7 +242,7 @@ class ZeroTrustSecurity {
     return complianceCheck;
   }
 
-  async preventSecretLeakage(command, context) {
+  async preventSecretLeakage(command, _context) {
     const secretScan = {
       secretsFound: [],
       riskLevel: 'low',

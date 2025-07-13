@@ -246,7 +246,7 @@ class AIContextEngine {
     return this.commandHistory.filter(cmd => cmd.startsWith(command.split(' ')[0]));
   }
 
-  async predictImmediateNext(command, context) {
+  async predictImmediateNext(command, _context) {
     // Predict the most likely next command
     const patterns = {
       'git add': ['git commit -m ""', 'git status'],

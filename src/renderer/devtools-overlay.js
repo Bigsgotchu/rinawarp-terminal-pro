@@ -376,7 +376,7 @@ class RinaWarpDevTools {
         try {
           exists = !!eval(check.prop);
           status = exists ? 'Active' : 'Inactive';
-        } catch (e) {
+        } catch (_e) {
           exists = false;
           status = 'Error';
         }

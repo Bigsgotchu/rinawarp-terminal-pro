@@ -1022,7 +1022,7 @@ class WorkflowAutomationEngine {
     };
   }
 
-  async analyzeCommandIntelligence(command, context) {
+  async analyzeCommandIntelligence(command, _context) {
     return {
       isFileOperation: /\b(cp|mv|rm|mkdir|touch)\b/.test(command),
       isGitOperation: /\bgit\b/.test(command),
