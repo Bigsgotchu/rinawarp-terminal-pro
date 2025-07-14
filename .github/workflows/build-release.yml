@@ -50,10 +50,13 @@ jobs:
           CI: true
 
       - name: List build outputs
+        shell: bash
         run: |
           echo "Contents of dist directory:"
           find dist -type f -name "*" 2>/dev/null || echo "No dist directory found"
-          echo "All files in current directory:"
+          echo "Contents of public directory:"
+          find public -type f -name "*" 2>/dev/null || echo "No public directory found"
+          echo "All installer files in current directory:"
           find . -maxdepth 3 -type f -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.zip" -o -name "*.tar.gz" 2>/dev/null || echo "No installer files found"
 
       - name: Upload artifacts
@@ -70,6 +73,13 @@ jobs:
             dist/**/*.tar.gz
             dist/**/*.blockmap
             dist/**/*.yml
+            public/**/*.exe
+            public/**/*.dmg
+            public/**/*.AppImage
+            public/**/*.deb
+            public/**/*.snap
+            public/**/*.zip
+            public/**/*.tar.gz
           retention-days: 30
           if-no-files-found: warn
 
