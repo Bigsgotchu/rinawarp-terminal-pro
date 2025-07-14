@@ -45,22 +45,21 @@ function buildMac() {
     
     console.log('✅ Electron-builder completed successfully');
     
-    // Check output directory
-    const outputDir = path.resolve('dist', 'mac');
-    console.log(`📁 Checking output directory: ${outputDir}`);
+    // Check output directory - electron-builder creates arch-specific directories
+    const distDir = path.resolve('dist');
+    const macDirs = fs.readdirSync(distDir).filter(name => name.startsWith('mac'));
     
-    if (!fs.existsSync(outputDir)) {
-      console.error('❌ Build output directory not found!');
-      console.log('📦 Available directories in dist:');
-      if (fs.existsSync('dist')) {
-        const distFiles = fs.readdirSync('dist');
-        console.log(distFiles);
-      }
+    if (macDirs.length === 0) {
+      console.error('❌ No macOS build output directory found!');
+      console.log('📁 dist contents:', fs.readdirSync(distDir));
       process.exit(1);
     }
     
-    const files = fs.readdirSync(outputDir);
-    console.log('📦 Files found in dist/mac:', files);
+    const buildOutput = path.join(distDir, macDirs[0]); // e.g., dist/mac-arm64
+    console.log(`📁 Found macOS build output: ${buildOutput}`);
+    
+    const files = fs.readdirSync(buildOutput);
+    console.log('📦 Files found in build output:', files);
     
     // Look for .app file
     const appFile = files.find(f => f.endsWith('.app'));
@@ -71,7 +70,7 @@ function buildMac() {
     }
     
     console.log(`✅ Found app: ${appFile}`);
-    const appPath = path.join(outputDir, appFile);
+    const appPath = path.join(buildOutput, appFile);
     
     // Manually create ZIP
     console.log('🗁️  Creating ZIP archive...');
