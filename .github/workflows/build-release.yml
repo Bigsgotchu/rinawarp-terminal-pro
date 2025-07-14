@@ -6,10 +6,17 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# Allow workflows to run concurrently but cancel in-progress runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
+      fail-fast: false  # Don't cancel other jobs if one fails
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
         include:
@@ -68,6 +75,11 @@ jobs:
           APPLE_ID: ""
           APPLE_ID_PASSWORD: ""
           APPLE_TEAM_ID: ""
+          # Additional macOS-specific variables
+          CSC_IDENTITY: ""
+          CSC_NAME: ""
+          NOTARIZE: "false"
+          SIGN: "false"
 
       - name: List build outputs
         shell: bash
