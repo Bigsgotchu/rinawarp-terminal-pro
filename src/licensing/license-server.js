@@ -6,7 +6,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 
@@ -220,7 +220,7 @@ class LicenseServer {
       }
 
       // Hash password
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcryptjs.hash(password, 10);
 
       // Generate user ID
       const userId = crypto.randomUUID();
@@ -301,7 +301,7 @@ class LicenseServer {
       }
 
       // Verify password
-      const validPassword = await bcrypt.compare(password, user.passwordHash);
+      const validPassword = await bcryptjs.compare(password, user.passwordHash);
       if (!validPassword) {
         return res.status(401).json({
           success: false,
@@ -478,7 +478,7 @@ class LicenseServer {
       id: 'admin-id',
       email: 'admin@rinawarp.com',
       name: 'Admin User',
-      passwordHash: bcrypt.hashSync('admin123', 10),
+      passwordHash: bcryptjs.hashSync('admin123', 10),
       createdAt: new Date().toISOString(),
       tier: 'admin',
       licenses: [],
