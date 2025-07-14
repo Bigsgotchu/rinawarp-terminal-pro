@@ -38,6 +38,7 @@
     "npmRebuild": false,
     "buildDependenciesFromSource": false,
     "nodeGypRebuild": false,
+    "forceCodeSigning": false,
     "win": {
       "target": [
         {
@@ -52,12 +53,17 @@
     "mac": {
       "target": [
         {
-          "target": "dmg",
+          "target": "zip",
           "arch": "x64"
         }
       ],
       "icon": "assets/icon.icns",
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "identity": null,
+      "gatekeeperAssess": false,
+      "hardenedRuntime": false,
+      "entitlements": null,
+      "entitlementsInherit": null
     },
     "linux": {
       "target": [
@@ -111,8 +117,8 @@
     "build": "npm run prebuild && electron-builder",
     "build:web": "npm run copy-assets && echo 'Web build complete'",
     "build:win": "npm run prebuild && electron-builder --win",
-    "build:mac": "npm run prebuild && electron-builder --mac",
-    "build:linux": "npm run prebuild && electron-builder --linux",
+    "build:mac": "node scripts/build-mac.cjs",
+    "build:linux": "node scripts/build-linux.cjs",
     "build:all": "npm run prebuild && electron-builder --win --mac --linux",
     "build:quick": "electron-builder --publish=never",
     "build:production": "npm run prebuild && electron-builder --publish=onTagOrDraft",
