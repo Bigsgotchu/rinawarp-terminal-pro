@@ -63,7 +63,9 @@
       "gatekeeperAssess": false,
       "hardenedRuntime": false,
       "entitlements": null,
-      "entitlementsInherit": null
+      "entitlementsInherit": null,
+      "notarize": false,
+      "signIgnore": "(.*)"
     },
     "linux": {
       "target": [

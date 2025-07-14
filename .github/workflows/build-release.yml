@@ -64,6 +64,10 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           CSC_LINK: ""
           CSC_KEY_PASSWORD: ""
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
+          APPLE_ID: ""
+          APPLE_ID_PASSWORD: ""
+          APPLE_TEAM_ID: ""
 
       - name: List build outputs
         shell: bash
