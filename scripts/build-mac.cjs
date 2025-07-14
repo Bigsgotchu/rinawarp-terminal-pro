@@ -1,91 +1,130 @@
 #!/usr/bin/env node
 
-const { spawn } = require('child_process');
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-async function runCommand(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      stdio: 'inherit',
-      shell: true,
-      ...options
-    });
-    
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Command failed with code ${code}`));
-      }
-    });
-  });
-}
-
-async function buildMac() {
+function buildMac() {
   try {
-    console.log('🔄 Starting macOS build process...');
+    console.log('🛠️  Starting macOS build...');
     
     // Clean dist directory
     if (fs.existsSync('dist')) {
+      console.log('🧹 Cleaning dist directory...');
       fs.rmSync('dist', { recursive: true });
     }
     
+    // Set up environment variables for electron-builder
+    process.env.DEBUG = 'electron-builder';
+    process.env.CSC_IDENTITY_AUTO_DISCOVERY = 'false';
+    process.env.CSC_LINK = '';
+    process.env.CSC_KEY_PASSWORD = '';
+    process.env.APPLE_ID = '';
+    process.env.APPLE_ID_PASSWORD = '';
+    process.env.APPLE_TEAM_ID = '';
+    process.env.ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES = 'true';
+    process.env.CI = 'true';
+    process.env.NOTARIZE = 'false';
+    process.env.SIGN = 'false';
+    
     // Run prebuild steps
     console.log('📦 Running prebuild steps...');
-    await runCommand('npm', ['run', 'prebuild']);
-    
-    // Run electron-builder with dir only (no zip/dmg creation)
-    console.log('📱 Packaging Electron app...');
-    await runCommand('npx', ['electron-builder', '--mac', '--dir'], {
-      env: {
-        ...process.env,
-        CSC_IDENTITY_AUTO_DISCOVERY: 'false',
-        CSC_LINK: '',
-        CSC_KEY_PASSWORD: '',
-        APPLE_ID: '',
-        APPLE_ID_PASSWORD: '',
-        APPLE_TEAM_ID: '',
-        DEBUG: 'electron-builder'
-      }
+    execSync('npm run prebuild', {
+      stdio: 'inherit',
+      env: process.env,
     });
     
-    // Check if app was created
-    const possibleAppNames = ['RinaWarp Terminal.app', 'Electron.app'];
-    let appPath = null;
+    console.log('✅ Prebuild completed successfully');
     
-    for (const appName of possibleAppNames) {
-      const testPath = path.join('dist', 'mac', appName);
-      if (fs.existsSync(testPath)) {
-        appPath = testPath;
-        break;
+    // Run electron-builder with --dir flag to avoid packaging
+    console.log('📱 Building macOS app with electron-builder...');
+    execSync('npx electron-builder --mac --dir', {
+      stdio: 'inherit',
+      env: process.env,
+    });
+    
+    console.log('✅ Electron-builder completed successfully');
+    
+    // Check output directory
+    const outputDir = path.resolve('dist', 'mac');
+    console.log(`📁 Checking output directory: ${outputDir}`);
+    
+    if (!fs.existsSync(outputDir)) {
+      console.error('❌ Build output directory not found!');
+      console.log('📦 Available directories in dist:');
+      if (fs.existsSync('dist')) {
+        const distFiles = fs.readdirSync('dist');
+        console.log(distFiles);
       }
+      process.exit(1);
     }
     
-    if (!appPath) {
-      console.log('📁 Available files in dist/mac:');
-      if (fs.existsSync(path.join('dist', 'mac'))) {
-        const files = fs.readdirSync(path.join('dist', 'mac'));
-        console.log(files);
-      }
-      throw new Error('Electron app was not created');
+    const files = fs.readdirSync(outputDir);
+    console.log('📦 Files found in dist/mac:', files);
+    
+    // Look for .app file
+    const appFile = files.find(f => f.endsWith('.app'));
+    if (!appFile) {
+      console.error('❌ Electron app was not created in dist/mac');
+      console.log('📦 All files found:', files);
+      process.exit(1);
     }
     
-    console.log(`✅ Found app at: ${appPath}`);
-    const appName = path.basename(appPath);
+    console.log(`✅ Found app: ${appFile}`);
+    const appPath = path.join(outputDir, appFile);
     
     // Manually create ZIP
     console.log('🗁️  Creating ZIP archive...');
     const zipName = 'RinaWarp-Terminal-1.0.8-mac.zip';
-    await runCommand('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', appName, `../${zipName}`], {
-      cwd: path.join('dist', 'mac')
+    const zipPath = path.resolve('dist', zipName);
+    
+    // Use ditto with absolute paths for better CI compatibility
+    const absoluteAppPath = path.resolve(appPath);
+    
+    execSync(`ditto -c -k --sequesterRsrc --keepParent "${absoluteAppPath}" "${zipPath}"`, {
+      stdio: 'inherit',
+      env: process.env,
     });
     
-    console.log(`✅ macOS build completed: dist/${zipName}`);
-    console.log(`📏 ZIP size: ${(fs.statSync(path.join('dist', zipName)).size / 1024 / 1024).toFixed(2)} MB`);
+    // Verify the ZIP was created
+    if (!fs.existsSync(zipPath)) {
+      throw new Error(`ZIP file was not created at ${zipPath}`);
+    }
+    
+    console.log(`✅ macOS build completed: ${zipPath}`);
+    console.log(`📏 ZIP size: ${(fs.statSync(zipPath).size / 1024 / 1024).toFixed(2)} MB`);
+    
+    // List final contents for debugging
+    console.log('📁 Final dist directory contents:');
+    if (fs.existsSync('dist')) {
+      const distFiles = fs.readdirSync('dist');
+      distFiles.forEach(file => {
+        const fullPath = path.join('dist', file);
+        const stats = fs.statSync(fullPath);
+        console.log(`  ${file} (${stats.isDirectory() ? 'directory' : 'file'})`);
+      });
+    }
     
   } catch (error) {
-    console.error('❌ Build failed:', error.message);
+    console.error('❌ macOS build failed with error:');
+    if (error.stdout) console.error('STDOUT:', error.stdout.toString());
+    if (error.stderr) console.error('STDERR:', error.stderr.toString());
+    else console.error('ERROR:', error.message);
+    
+    // Additional debugging info
+    console.log('🔍 Debug info:');
+    console.log('  - Working directory:', process.cwd());
+    console.log('  - Node version:', process.version);
+    console.log('  - Platform:', process.platform);
+    
+    if (fs.existsSync('dist')) {
+      console.log('  - Dist directory exists');
+      const distFiles = fs.readdirSync('dist');
+      console.log('  - Dist contents:', distFiles);
+    } else {
+      console.log('  - Dist directory does not exist');
+    }
+    
     process.exit(1);
   }
 }
