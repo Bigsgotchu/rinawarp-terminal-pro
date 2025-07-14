@@ -77,12 +77,37 @@ async function buildMac() {
     // Manually create ZIP
     console.log('🗁️  Creating ZIP archive...');
     const zipName = 'RinaWarp-Terminal-1.0.8-mac.zip';
-    await runCommand('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', appName, `../${zipName}`], {
-      cwd: path.join('dist', 'mac')
-    });
+    const zipPath = path.join('dist', zipName);
     
-    console.log(`✅ macOS build completed: dist/${zipName}`);
-    console.log(`📏 ZIP size: ${(fs.statSync(path.join('dist', zipName)).size / 1024 / 1024).toFixed(2)} MB`);
+    // Ensure the dist directory exists
+    if (!fs.existsSync('dist')) {
+      fs.mkdirSync('dist', { recursive: true });
+    }
+    
+    // Use ditto with absolute paths for better CI compatibility
+    const absoluteAppPath = path.resolve(appPath);
+    const absoluteZipPath = path.resolve(zipPath);
+    
+    await runCommand('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', absoluteAppPath, absoluteZipPath]);
+    
+    // Verify the ZIP was created
+    if (!fs.existsSync(zipPath)) {
+      throw new Error(`ZIP file was not created at ${zipPath}`);
+    }
+    
+    console.log(`✅ macOS build completed: ${zipPath}`);
+    console.log(`📏 ZIP size: ${(fs.statSync(zipPath).size / 1024 / 1024).toFixed(2)} MB`);
+    
+    // List final contents for debugging
+    console.log('📁 Final dist directory contents:');
+    if (fs.existsSync('dist')) {
+      const files = fs.readdirSync('dist');
+      files.forEach(file => {
+        const fullPath = path.join('dist', file);
+        const stats = fs.statSync(fullPath);
+        console.log(`  ${file} (${stats.isDirectory() ? 'directory' : 'file'})`);
+      });
+    }
     
   } catch (error) {
     console.error('❌ Build failed:', error.message);
