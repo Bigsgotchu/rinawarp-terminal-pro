@@ -7,51 +7,63 @@
   "build": {
     "productName": "RinaWarp Terminal",
     "appId": "com.rinawarp.terminal",
+    "copyright": "Copyright © 2025 RinaWarp Technologies",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
       "src/**/*",
       "public/**/*",
       "styles/**/*",
-      "!src/tests",
+      "!src/tests/**/*",
+      "!tests/**/*",
+      "!**/*.test.js",
       "!dist",
       "!build",
       "!*.md",
-      "!.git*"
+      "!.git*",
+      "!.env*",
+      "!test-*.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "public",
+        "to": "public",
+        "filter": ["**/*"]
+      }
     ],
     "npmRebuild": false,
     "buildDependenciesFromSource": false,
+    "nodeGypRebuild": false,
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
-      ]
+      ],
+      "icon": "assets/icon.ico"
     },
     "mac": {
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
+          "arch": ["x64", "arm64"]
         }
-      ]
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.developer-tools"
     },
     "linux": {
       "target": [
         {
           "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
-      ]
+      ],
+      "icon": "assets/icon.png",
+      "category": "Development"
     }
   },
   "author": {
