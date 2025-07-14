@@ -2,14 +2,14 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 function runCommand(command, options = {}) {
   try {
-    return execSync(command, { 
-      encoding: 'utf8', 
+    return execSync(command, {
+      encoding: 'utf8',
       stdio: options.silent ? 'pipe' : 'inherit',
-      ...options 
+      ...options,
     });
   } catch (error) {
     console.error(`❌ Command failed: ${command}`);
@@ -25,15 +25,21 @@ function getCurrentVersion() {
 
 function generateChangelog() {
   try {
-    const lastTag = runCommand('git describe --tags --abbrev=0 2>/dev/null || echo ""', { silent: true }).trim();
+    const lastTag = runCommand('git describe --tags --abbrev=0 2>/dev/null || echo ""', {
+      silent: true,
+    }).trim();
     let changelog;
-    
+
     if (!lastTag) {
-      changelog = runCommand('git log --oneline --pretty=format:"- %s" | head -20', { silent: true });
+      changelog = runCommand('git log --oneline --pretty=format:"- %s" | head -20', {
+        silent: true,
+      });
     } else {
-      changelog = runCommand(`git log ${lastTag}..HEAD --oneline --pretty=format:"- %s"`, { silent: true });
+      changelog = runCommand(`git log ${lastTag}..HEAD --oneline --pretty=format:"- %s"`, {
+        silent: true,
+      });
     }
-    
+
     return changelog.trim();
   } catch (error) {
     return 'No changelog available';
@@ -42,7 +48,7 @@ function generateChangelog() {
 
 function createRelease(versionType = 'patch', dryRun = false) {
   console.log(`🚀 Starting release process (${versionType})...`);
-  
+
   // Check if git is clean
   try {
     const status = runCommand('git status --porcelain', { silent: true });
@@ -56,50 +62,56 @@ function createRelease(versionType = 'patch', dryRun = false) {
     console.log('⚠️  Cannot check git status. Make sure you are in a git repository.');
     return;
   }
-  
+
   const currentVersion = getCurrentVersion();
   console.log(`📦 Current version: ${currentVersion}`);
-  
+
   if (dryRun) {
     console.log('🧪 DRY RUN MODE - No changes will be made');
-    
+
     // Show what would happen
-    const newVersion = runCommand(`npm version ${versionType} --no-git-tag-version`, { silent: true }).trim();
+    const newVersion = runCommand(`npm version ${versionType} --no-git-tag-version`, {
+      silent: true,
+    }).trim();
     runCommand('git checkout -- package.json package-lock.json');
-    
+
     console.log(`📈 Would bump version to: ${newVersion}`);
     console.log(`🏷️  Would create tag: ${newVersion}`);
-    
+
     const changelog = generateChangelog();
     console.log('📝 Changelog:');
     console.log(changelog);
-    
+
     return;
   }
-  
+
   // Generate changelog before version bump
-  const changelog = generateChangelog();
-  
+  const _changelog = generateChangelog();
+
   // Bump version
-  const newVersion = runCommand(`npm version ${versionType} --no-git-tag-version`, { silent: true }).trim();
+  const newVersion = runCommand(`npm version ${versionType} --no-git-tag-version`, {
+    silent: true,
+  }).trim();
   console.log(`📈 Bumped version to: ${newVersion}`);
-  
+
   // Commit and tag
-  runCommand(`git add package.json package-lock.json`);
+  runCommand('git add package.json package-lock.json');
   runCommand(`git commit -m "chore: bump version to ${newVersion}"`);
   runCommand(`git tag ${newVersion}`);
-  
+
   console.log(`🏷️  Created tag: ${newVersion}`);
-  
+
   // Push to remote
   console.log('📤 Pushing to remote...');
   runCommand('git push origin main');
   runCommand(`git push origin ${newVersion}`);
-  
+
   console.log('✅ Release process completed!');
   console.log(`📦 Version ${newVersion} has been tagged and pushed.`);
   console.log('🔄 GitHub Actions will automatically build and create the release.');
-  console.log(`🌐 Release will be available at: https://github.com/${getRepoUrl()}/releases/tag/${newVersion}`);
+  console.log(
+    `🌐 Release will be available at: https://github.com/${getRepoUrl()}/releases/tag/${newVersion}`
+  );
 }
 
 function getRepoUrl() {
@@ -142,7 +154,7 @@ function showStatus() {
   console.log('📊 Release Status');
   console.log('================');
   console.log(`📦 Current version: ${getCurrentVersion()}`);
-  
+
   try {
     const status = runCommand('git status --porcelain', { silent: true });
     if (status.trim()) {
@@ -155,16 +167,19 @@ function showStatus() {
   } catch (error) {
     console.log('⚠️  Cannot check git status');
   }
-  
+
   try {
     const branch = runCommand('git branch --show-current', { silent: true }).trim();
     console.log(`🌿 Current branch: ${branch}`);
   } catch (error) {
     console.log('⚠️  Cannot determine current branch');
   }
-  
+
   try {
-    const lastTag = runCommand('git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"', { silent: true }).trim();
+    const lastTag = runCommand(
+      'git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"',
+      { silent: true }
+    ).trim();
     console.log(`🏷️  Last tag: ${lastTag}`);
   } catch (error) {
     console.log('🏷️  Last tag: No tags found');

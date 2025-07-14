@@ -10,7 +10,7 @@ const { _execSync } = require('child_process');
 const config = require('./config/unified-config.cjs');
 
 // Add error handlers
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   console.error('Uncaught Exception:', error);
   process.exit(1);
 });
