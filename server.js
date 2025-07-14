@@ -745,7 +745,7 @@ app.use('/releases', staticPageLimiter, (req, res, _next) => {
 });
 
 // Stripe webhook endpoint
-app.post('/webhook', (req, res) => {
+app.post('/webhook', express.raw({type: 'application/json'}), (req, res) => {
   const sig = req.get('stripe-signature');
   let event;
 
@@ -800,6 +800,42 @@ app.post('/webhook', (req, res) => {
   }
 
   res.json({ received: true });
+});
+
+// Alternative webhook endpoint for /api/webhook path
+app.post('/api/webhook', express.raw({type: 'application/json'}), (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.log(`Webhook signature verification failed.`, err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      console.log('Payment was successful!', session);
+      handlePaymentSuccess(session);
+      break;
+    case 'invoice.payment_succeeded':
+      const invoice = event.data.object;
+      console.log('Subscription payment succeeded:', invoice);
+      handleInvoicePayment(invoice);
+      break;
+    case 'customer.subscription.deleted':
+      const subscription = event.data.object;
+      console.log('Subscription cancelled:', subscription);
+      handleSubscriptionCancelled(subscription);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  res.json({received: true});
 });
 
 // License generation and delivery functions
