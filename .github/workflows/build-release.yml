@@ -38,7 +38,9 @@ jobs:
         run: npm install dmg-license --no-save
 
       - name: Run tests
-        run: echo "Tests temporarily disabled for CI debugging"
+        run: npm run test:quick
+        env:
+          CI: true
 
       - name: Copy assets
         run: npm run copy-assets
@@ -49,19 +51,29 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: true
 
+      - name: List build outputs
+        run: |
+          echo "Contents of dist directory:"
+          find dist -type f -name "*" 2>/dev/null || echo "No dist directory found"
+          echo "All files in current directory:"
+          find . -maxdepth 3 -type f -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.zip" -o -name "*.tar.gz" 2>/dev/null || echo "No installer files found"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.platform }}
           path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.snap
-            dist/*.zip
-            dist/*.tar.gz
+            dist/**/*.exe
+            dist/**/*.dmg
+            dist/**/*.AppImage
+            dist/**/*.deb
+            dist/**/*.snap
+            dist/**/*.zip
+            dist/**/*.tar.gz
+            dist/**/*.blockmap
+            dist/**/*.yml
           retention-days: 30
+          if-no-files-found: warn
 
   release:
     needs: build
