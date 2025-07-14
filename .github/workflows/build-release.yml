@@ -33,9 +33,18 @@ jobs:
       - name: Install dependencies
         run: npm ci --omit=optional
         
-      - name: Install macOS-specific dependencies
+      - name: Install platform-specific dependencies
         if: matrix.os == 'macos-latest'
-        run: npm install dmg-license --no-save
+        run: |
+          npm install dmg-license --no-save
+          # Ensure we have the necessary tools for DMG creation
+          brew install create-dmg || echo "create-dmg already installed"
+          
+      - name: Install Linux-specific dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2 libxss1 libgtk-3-dev libxrandr2 libasound2-dev
 
       - name: Run tests
         run: echo "Tests temporarily disabled - focusing on build artifacts"
@@ -44,10 +53,14 @@ jobs:
         run: npm run copy-assets
 
       - name: Build Electron app
-        run: npm run build:${{ matrix.platform }}
+        run: |
+          echo "Building for platform: ${{ matrix.platform }}"
+          npm run build:${{ matrix.platform }}
+          echo "Build completed for ${{ matrix.platform }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: true
+          DEBUG: electron-builder
 
       - name: List build outputs
         shell: bash

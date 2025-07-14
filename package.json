@@ -53,10 +53,7 @@
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
+          "arch": "x64"
         }
       ],
       "icon": "assets/icon.icns",
@@ -220,9 +217,5 @@
     "rimraf": "^4.4.1",
     "glob": "^11.0.0",
     "@npmcli/move-file": "@npmcli/fs"
-  },
-  "resolutions": {
-    "rimraf": "^4.4.1",
-    "glob": "^11.0.0"
   }
 }
