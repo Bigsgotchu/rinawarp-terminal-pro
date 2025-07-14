@@ -19,7 +19,7 @@ RUN node -v && npm -v && which npm || echo "npm not found"
 # Remove husky prepare script to avoid "husky: not found" error in production
 RUN npm pkg delete scripts.prepare
 
-# Install build tools for native modules (bcrypt)
+# Install build tools for other native modules
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 RUN npm install --omit=dev --no-audit --no-fund
