@@ -72,10 +72,17 @@ function buildMac() {
     console.log(`✅ Found app: ${appFile}`);
     const appPath = path.join(buildOutput, appFile);
     
+    // Generate dynamic ZIP filename with architecture and timestamp
+    const packageInfo = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const version = packageInfo.version;
+    const arch = macDirs[0].includes('arm64') ? 'arm64' : 'x64';
+    const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const zipName = `RinaWarp-Terminal-${version}-mac-${arch}-${timestamp}.zip`;
+    const zipPath = path.resolve('dist', zipName);
+    
     // Manually create ZIP
     console.log('🗁️  Creating ZIP archive...');
-    const zipName = 'RinaWarp-Terminal-1.0.8-mac.zip';
-    const zipPath = path.resolve('dist', zipName);
+    console.log(`📝 ZIP filename: ${zipName}`);
     
     // Use ditto with absolute paths for better CI compatibility
     const absoluteAppPath = path.resolve(appPath);
