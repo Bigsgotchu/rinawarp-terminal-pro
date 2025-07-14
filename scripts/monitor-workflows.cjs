@@ -128,13 +128,13 @@ Generated: ${new Date().toISOString()}
 🔍 WORKFLOW BREAKDOWN
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${Object.keys(analysis.workflows)
-    .sort((a, b) => analysis.workflows[b].failureRate - analysis.workflows[a].failureRate)
-    .map(name => {
-      const w = analysis.workflows[name];
-      const statusIcon = w.failureRate > 50 ? '🔴' : w.failureRate > 20 ? '🟡' : '🟢';
-      return `${statusIcon} ${name.padEnd(35)} | ${w.failureRate}% failure | ${w.total} runs`;
-    })
-    .join('\n')}
+  .sort((a, b) => analysis.workflows[b].failureRate - analysis.workflows[a].failureRate)
+  .map(name => {
+    const w = analysis.workflows[name];
+    const statusIcon = w.failureRate > 50 ? '🔴' : w.failureRate > 20 ? '🟡' : '🟢';
+    return `${statusIcon} ${name.padEnd(35)} | ${w.failureRate}% failure | ${w.total} runs`;
+  })
+  .join('\n')}
 
 🎯 RECOMMENDATIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

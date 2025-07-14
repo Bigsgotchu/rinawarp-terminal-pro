@@ -197,14 +197,14 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ['\'self\''],
-        scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
-        styleSrc: ['\'self\'', '\'unsafe-inline\''],
-        imgSrc: ['\'self\'', 'data:', 'https:'],
-        fontSrc: ['\'self\'', 'data:'],
-        connectSrc: ['\'self\'', 'wss:', 'ws:'],
-        objectSrc: ['\'none\''],
-        baseUri: ['\'self\''],
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        fontSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'", 'wss:', 'ws:'],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
       },
     },
   })
@@ -745,7 +745,7 @@ app.use('/releases', staticPageLimiter, (req, res, _next) => {
 });
 
 // Stripe webhook endpoint
-app.post('/webhook', express.raw({type: 'application/json'}), (req, res) => {
+app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   const sig = req.get('stripe-signature');
   let event;
 
@@ -773,44 +773,44 @@ app.post('/webhook', express.raw({type: 'application/json'}), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed': {
-    const session = event.data.object;
-    console.log('💰 Payment successful:', session.id);
-    handlePaymentSuccess(session);
-    break;
-  }
-  case 'customer.subscription.created':
-    console.log('🔄 Subscription created:', event.data.object.id);
-    handleSubscriptionCreated(event.data.object);
-    break;
-  case 'customer.subscription.updated':
-    console.log('🔄 Subscription updated:', event.data.object.id);
-    handleSubscriptionUpdated(event.data.object);
-    break;
-  case 'customer.subscription.deleted':
-    console.log('❌ Subscription cancelled:', event.data.object.id);
-    handleSubscriptionCancelled(event.data.object);
-    break;
-  case 'invoice.payment_succeeded':
-    console.log('💳 Invoice paid:', event.data.object.id);
-    handleInvoicePayment(event.data.object);
-    break;
-  default:
-    console.log(`Unhandled event type ${event.type}`);
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      console.log('💰 Payment successful:', session.id);
+      handlePaymentSuccess(session);
+      break;
+    }
+    case 'customer.subscription.created':
+      console.log('🔄 Subscription created:', event.data.object.id);
+      handleSubscriptionCreated(event.data.object);
+      break;
+    case 'customer.subscription.updated':
+      console.log('🔄 Subscription updated:', event.data.object.id);
+      handleSubscriptionUpdated(event.data.object);
+      break;
+    case 'customer.subscription.deleted':
+      console.log('❌ Subscription cancelled:', event.data.object.id);
+      handleSubscriptionCancelled(event.data.object);
+      break;
+    case 'invoice.payment_succeeded':
+      console.log('💳 Invoice paid:', event.data.object.id);
+      handleInvoicePayment(event.data.object);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
 });
 
 // Alternative webhook endpoint for /api/webhook path
-app.post('/api/webhook', express.raw({type: 'application/json'}), (req, res) => {
+app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.log(`Webhook signature verification failed.`, err.message);
+    console.log('Webhook signature verification failed.', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -835,7 +835,7 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), (req, res) => 
       console.log(`Unhandled event type ${event.type}`);
   }
 
-  res.json({received: true});
+  res.json({ received: true });
 });
 
 // License generation and delivery functions

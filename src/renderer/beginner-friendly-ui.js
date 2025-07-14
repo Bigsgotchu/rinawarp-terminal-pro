@@ -774,7 +774,7 @@ class BeginnerFriendlyUI {
 
     const closeButton = document.createElement('button');
     closeButton.className = 'tooltip-close';
-    closeButton.setAttribute('onclick', 'this.closest(\'.explanation-tooltip\').remove()');
+    closeButton.setAttribute('onclick', "this.closest('.explanation-tooltip').remove()");
     closeButton.textContent = '×';
 
     tooltipContent.appendChild(tooltipIcon);
@@ -808,35 +808,35 @@ class BeginnerFriendlyUI {
         {
           title: 'Welcome to the Terminal!',
           content:
-            'A terminal is a text-based interface where you type commands to interact with your computer. It might seem scary at first, but it\'s actually very powerful!',
-          action: 'Click \'Next\' to continue',
+            "A terminal is a text-based interface where you type commands to interact with your computer. It might seem scary at first, but it's actually very powerful!",
+          action: "Click 'Next' to continue",
         },
         {
           title: 'The Prompt',
           content:
-            'The line where you type commands is called the \'prompt\'. It usually shows your current directory and ends with a symbol like $ or >',
+            "The line where you type commands is called the 'prompt'. It usually shows your current directory and ends with a symbol like $ or >",
           highlight: '.terminal',
           action: 'Look at your terminal prompt',
         },
         {
           title: 'Your First Command',
           content:
-            'Let\'s try your first command! Type \'pwd\' (which stands for \'print working directory\') to see where you are.',
+            "Let's try your first command! Type 'pwd' (which stands for 'print working directory') to see where you are.",
           command: 'pwd',
-          action: 'Type \'pwd\' and press Enter',
+          action: "Type 'pwd' and press Enter",
         },
         {
           title: 'Listing Files',
           content:
-            'Now let\'s see what files are in your current directory. Type \'ls\' to list them.',
+            "Now let's see what files are in your current directory. Type 'ls' to list them.",
           command: 'ls',
-          action: 'Type \'ls\' and press Enter',
+          action: "Type 'ls' and press Enter",
         },
         {
           title: 'Great Job!',
           content:
-            'You\'ve learned the basics! The terminal shows you information through text output. You can always ask for help by typing \'help\' or clicking the help button.',
-          action: 'You\'re ready to explore more!',
+            "You've learned the basics! The terminal shows you information through text output. You can always ask for help by typing 'help' or clicking the help button.",
+          action: "You're ready to explore more!",
         },
       ],
     };
@@ -849,31 +849,31 @@ class BeginnerFriendlyUI {
       steps: [
         {
           title: 'File Operations',
-          content: 'Let\'s learn how to work with files and directories.',
+          content: "Let's learn how to work with files and directories.",
           action: 'Ready to learn file commands?',
         },
         {
           title: 'Creating Directories',
-          content: 'Use \'mkdir\' to create new directories. Let\'s create a test directory.',
+          content: "Use 'mkdir' to create new directories. Let's create a test directory.",
           command: 'mkdir test-directory',
           action: 'Type the command to create a directory',
         },
         {
           title: 'Changing Directories',
           content:
-            'Use \'cd\' to move into directories. Let\'s go into the directory we just created.',
+            "Use 'cd' to move into directories. Let's go into the directory we just created.",
           command: 'cd test-directory',
           action: 'Navigate into the new directory',
         },
         {
           title: 'Creating Files',
-          content: 'Use \'touch\' to create empty files, or use a text editor like \'nano\'.',
+          content: "Use 'touch' to create empty files, or use a text editor like 'nano'.",
           command: 'touch hello.txt',
           action: 'Create a new file',
         },
         {
           title: 'Viewing Files',
-          content: 'Use \'cat\' to display file contents, or \'ls\' to see files in a directory.',
+          content: "Use 'cat' to display file contents, or 'ls' to see files in a directory.",
           command: 'ls',
           action: 'List files in the current directory',
         },
@@ -890,30 +890,30 @@ class BeginnerFriendlyUI {
           title: 'What is Git?',
           content:
             'Git is a version control system that helps you track changes in your code and collaborate with others.',
-          action: 'Let\'s learn Git basics!',
+          action: "Let's learn Git basics!",
         },
         {
           title: 'Check Git Status',
           content:
-            'The most important Git command is \'git status\'. It tells you what\'s happening in your repository.',
+            "The most important Git command is 'git status'. It tells you what's happening in your repository.",
           command: 'git status',
           action: 'Check your repository status',
         },
         {
           title: 'Adding Files',
-          content: 'Use \'git add\' to stage files for commit. \'git add .\' adds all changed files.',
+          content: "Use 'git add' to stage files for commit. 'git add .' adds all changed files.",
           command: 'git add .',
           action: 'Stage your changes',
         },
         {
           title: 'Committing Changes',
-          content: 'Use \'git commit\' to save your changes with a descriptive message.',
+          content: "Use 'git commit' to save your changes with a descriptive message.",
           command: 'git commit -m "Your message here"',
           action: 'Commit your changes',
         },
         {
           title: 'Pushing Changes',
-          content: 'Use \'git push\' to upload your changes to a remote repository like GitHub.',
+          content: "Use 'git push' to upload your changes to a remote repository like GitHub.",
           command: 'git push',
           action: 'Push your changes',
         },
@@ -1270,7 +1270,7 @@ class SmartHintSystem {
     messageText.textContent = message;
 
     const closeButton = document.createElement('button');
-    closeButton.setAttribute('onclick', 'this.closest(\'.smart-hint\').remove();');
+    closeButton.setAttribute('onclick', "this.closest('.smart-hint').remove();");
     closeButton.textContent = '×';
 
     hintContent.appendChild(messageText);
@@ -1409,19 +1409,19 @@ class SmartHintSystem {
       'create-folder': {
         title: 'Create a New Folder',
         steps: [
-          { description: 'First, let\'s see what\'s currently in this folder.', command: 'ls' },
+          { description: "First, let's see what's currently in this folder.", command: 'ls' },
           {
             description: 'Now we\'ll create a new folder called "my-new-folder".',
             command: 'mkdir my-new-folder',
           },
-          { description: 'Let\'s confirm the folder was created.', command: 'ls' },
+          { description: "Let's confirm the folder was created.", command: 'ls' },
         ],
       },
       'git-status': {
         title: 'Check Git Status',
         steps: [
           {
-            description: 'Let\'s check the current status of your Git repository.',
+            description: "Let's check the current status of your Git repository.",
             command: 'git status',
           },
           { description: 'This shows you which files have been modified, added, or deleted.' },
@@ -1430,10 +1430,10 @@ class SmartHintSystem {
       'git-commit': {
         title: 'Save Changes with Git',
         steps: [
-          { description: 'First, let\'s see what changes we have.', command: 'git status' },
-          { description: 'Now we\'ll stage all changes for commit.', command: 'git add .' },
+          { description: "First, let's see what changes we have.", command: 'git status' },
+          { description: "Now we'll stage all changes for commit.", command: 'git add .' },
           {
-            description: 'Finally, we\'ll commit with a descriptive message.',
+            description: "Finally, we'll commit with a descriptive message.",
             command: 'git commit -m "Save my changes"',
           },
         ],
@@ -1442,11 +1442,11 @@ class SmartHintSystem {
         title: 'Install Project Dependencies',
         steps: [
           {
-            description: 'We\'ll check if there\'s a package.json file first.',
+            description: "We'll check if there's a package.json file first.",
             command: 'ls package.json',
           },
           {
-            description: 'Now we\'ll install all the dependencies listed in package.json.',
+            description: "Now we'll install all the dependencies listed in package.json.",
             command: 'npm install',
           },
         ],
@@ -1455,10 +1455,10 @@ class SmartHintSystem {
         title: 'Start Your Project',
         steps: [
           {
-            description: 'Let\'s check what scripts are available in your project.',
+            description: "Let's check what scripts are available in your project.",
             command: 'npm run',
           },
-          { description: 'Now we\'ll start the development server.', command: 'npm start' },
+          { description: "Now we'll start the development server.", command: 'npm start' },
         ],
       },
     };
