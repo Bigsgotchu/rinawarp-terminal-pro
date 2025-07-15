@@ -15,7 +15,7 @@ const router = Router();
 
 // GitHub release configuration
 const GITHUB_RELEASE_BASE_URL =
-  'https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download';
+  'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download';
 
 const ALLOWED_FILES = {
   'rinawarp.zip': `${GITHUB_RELEASE_BASE_URL}/rinawarp.zip`,
