@@ -13,19 +13,7 @@
       "use": "@vercel/static"
     }
   ],
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://rinawarptech.com/$1",
-      "permanent": true,
-      "has": [
-        {
-          "type": "host",
-          "value": "www.rinawarptech.com"
-        }
-      ]
-    }
-  ],
+  "redirects": [],
   "rewrites": [
     {
       "source": "/api/(stripe-config|validate-license|create-checkout-session|download|test.*)",
