@@ -308,6 +308,16 @@ app.get('/api/ping', (req, res) => {
   res.status(200).json({ pong: true, timestamp: new Date().toISOString() });
 });
 
+// Version route for deployment verification
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: '1.0.8',
+    commit: process.env.VERCEL_GIT_COMMIT_SHA || 'local-dev',
+    timestamp: new Date().toISOString(),
+    downloadMapSupported: true,
+  });
+});
+
 // Custom request validation middleware - currently unused but kept for future use
 // const validateRequest = (req, res, next) => {
 //   const errors = validationResult(req);
