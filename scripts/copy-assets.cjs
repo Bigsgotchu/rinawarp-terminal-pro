@@ -61,4 +61,20 @@ if (fs.existsSync(faWebfontsPath)) {
   console.log('FontAwesome webfonts not found, skipping...');
 }
 
+// Ensure sitemap.xml and robots.txt are preserved
+const sitemapPath = path.join(__dirname, '..', 'sitemap.xml');
+const publicSitemapPath = path.join(publicDir, 'sitemap.xml');
+const robotsPath = path.join(__dirname, '..', 'robots.txt');
+const publicRobotsPath = path.join(publicDir, 'robots.txt');
+
+if (fs.existsSync(sitemapPath)) {
+  fs.copyFileSync(sitemapPath, publicSitemapPath);
+  console.log('Copied sitemap.xml to public directory');
+}
+
+if (fs.existsSync(robotsPath)) {
+  fs.copyFileSync(robotsPath, publicRobotsPath);
+  console.log('Copied robots.txt to public directory');
+}
+
 console.log('Assets copied successfully!');
