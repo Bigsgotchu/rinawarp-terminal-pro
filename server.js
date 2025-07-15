@@ -521,7 +521,7 @@ app.get('/api/download', (req, res) => {
 
   // Map of request types to GitHub release URLs
   const githubReleaseBaseUrl =
-    'https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download';
+    'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download';
   const allowedFiles = {
     'rinawarp.zip': `${githubReleaseBaseUrl}/rinawarp.zip`,
     portable: `${githubReleaseBaseUrl}/RinaWarp-Terminal-Portable-Windows.exe`,
