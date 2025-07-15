@@ -7,6 +7,7 @@ import { Router } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -83,8 +84,59 @@ router.get('/', (req, res) => {
     }
   }
 
-  // Redirect to GitHub releases for production
-  res.redirect(302, downloadUrl);
+  // Attempt GitHub API fallback to find exact asset
+  const GITHUB_API =
+    'https://api.github.com/repos/Rinawarp-Terminal/rinawarp-terminal/releases/latest';
+
+  // Map aliases to actual filenames
+  const fileNameMap = {
+    portable: 'RinaWarp-Terminal-Portable-Windows.exe',
+    linux: 'RinaWarp-Terminal-Linux.tar.gz',
+    macos: 'RinaWarp-Terminal-macOS.dmg',
+    setup: 'RinaWarp-Terminal-Setup-Windows.exe',
+    'rinawarp.zip': 'rinawarp.zip',
+  };
+
+  const fileName = fileNameMap[file] || file || 'RinaWarp-Terminal-Setup-Windows.exe';
+
+  const githubFallback = async () => {
+    console.log(`[GITHUB FALLBACK] Attempting to find asset: ${fileName}`);
+
+    const headers = {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'RinaWarp-Terminal-Download-API',
+    };
+
+    // Add GitHub token if available
+    if (process.env.GITHUB_TOKEN) {
+      headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
+
+    const response = await fetch(GITHUB_API, { headers });
+    if (!response.ok) {
+      throw new Error(`GitHub API responded with status: ${response.status}`);
+    }
+
+    const release = await response.json();
+    const asset = release.assets.find(a => a.name === fileName);
+
+    if (!asset) {
+      console.error(`Asset ${fileName} not found in latest GitHub release`);
+      // Fall back to direct URL redirect
+      console.log(`[GITHUB FALLBACK] Falling back to direct URL: ${downloadUrl}`);
+      return res.redirect(302, downloadUrl);
+    }
+
+    console.log(`[GITHUB FALLBACK] Redirecting to GitHub asset URL: ${asset.browser_download_url}`);
+    res.redirect(302, asset.browser_download_url);
+  };
+
+  githubFallback().catch(err => {
+    console.error(`[GITHUB FALLBACK ERROR]: ${err.message}`);
+    // Final fallback to direct URL
+    console.log(`[FALLBACK] Final fallback to direct URL: ${downloadUrl}`);
+    res.redirect(302, downloadUrl);
+  });
 });
 
 /**
