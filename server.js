@@ -522,12 +522,23 @@ app.get('/api/download', (req, res) => {
   // Map of request types to GitHub release URLs
   const githubReleaseBaseUrl =
     'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download';
+
+  // Support both aliases and exact filenames
   const allowedFiles = {
+    // Aliases for easy website integration
     'rinawarp.zip': `${githubReleaseBaseUrl}/rinawarp.zip`,
     portable: `${githubReleaseBaseUrl}/RinaWarp-Terminal-Portable-Windows.exe`,
     linux: `${githubReleaseBaseUrl}/RinaWarp-Terminal-Linux.tar.gz`,
     macos: `${githubReleaseBaseUrl}/RinaWarp-Terminal-macOS.dmg`,
     setup: `${githubReleaseBaseUrl}/RinaWarp-Terminal-Setup-Windows.exe`,
+
+    // Exact filenames for direct API access
+    'RinaWarp-Terminal-Setup-Windows.exe': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Setup-Windows.exe`,
+    'RinaWarp-Terminal-Portable-Windows.exe': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Portable-Windows.exe`,
+    'RinaWarp-Terminal-Linux.tar.gz': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Linux.tar.gz`,
+    'RinaWarp-Terminal-macOS.dmg': `${githubReleaseBaseUrl}/RinaWarp-Terminal-macOS.dmg`,
+    'RinaWarp-Terminal-Linux.deb': `${githubReleaseBaseUrl}/RinaWarp-Terminal-Linux.deb`,
+    'RinaWarp-Terminal.AppImage': `${githubReleaseBaseUrl}/RinaWarp-Terminal.AppImage`,
   };
 
   // Default to main installer if no file specified
@@ -537,7 +548,14 @@ app.get('/api/download', (req, res) => {
     return res.status(400).json({
       error: 'Invalid file requested',
       available: Object.keys(allowedFiles),
+      availableFiles: Object.keys(allowedFiles),
       message: 'Please specify one of the available file types',
+      examples: [
+        '/api/download - Default Windows installer',
+        '/api/download?file=portable - Portable Windows version',
+        '/api/download?file=linux - Linux package',
+        '/api/download?file=macos - macOS installer',
+      ],
     });
   }
 
