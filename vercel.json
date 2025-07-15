@@ -15,9 +15,15 @@
   ],
   "redirects": [
     {
-      "source": "https://www.rinawarptech.com/:path*",
-      "destination": "https://rinawarptech.com/:path*",
-      "permanent": true
+      "source": "/(.*)",
+      "destination": "https://rinawarptech.com/$1",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "www.rinawarptech.com"
+        }
+      ]
     }
   ],
   "rewrites": [
