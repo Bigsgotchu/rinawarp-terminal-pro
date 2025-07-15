@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RinaWarp Terminal Documentation - Learn how to use the advanced terminal emulator with AI features, themes, and voice control.">
+    <meta name="keywords" content="RinaWarp Terminal, documentation, guide, terminal emulator, AI assistant, help, tutorial">
+    <meta name="author" content="RinaWarp Technologies">
+    <meta name="robots" content="index, follow">
+    <title>RinaWarp Terminal - Documentation & User Guide</title>
+    <link rel="canonical" href="https://www.rinawarptech.com/docs.html">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+        }
+        
+        .doc-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .doc-section h2 {
+            color: #00ff88;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .doc-section h3 {
+            color: #00d4aa;
+            margin-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            font-size: 1.3rem;
+        }
+        
+        .doc-section p {
+            margin-bottom: 1rem;
+            color: #e0e0e0;
+        }
+        
+        .doc-section ul {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        
+        .doc-section li {
+            margin-bottom: 0.5rem;
+            color: #e0e0e0;
+        }
+        
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border-left: 4px solid #00ff88;
+        }
+        
+        .code-block code {
+            color: #00ff88;
+        }
+        
+        .highlight {
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .nav-links a {
+            color: #00ff88;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background-color: rgba(0, 255, 136, 0.1);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+            margin-top: 3rem;
+        }
+        
+        .footer-links a {
+            color: #00ff88;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 RinaWarp Terminal Documentation</h1>
+            <p class="subtitle">Complete guide to using the advanced terminal emulator</p>
+        </header>
+        
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/pricing.html">Pricing</a>
+            <a href="/beta.html">Beta Program</a>
+            <a href="https://github.com/Bigsgotchu/rinawarp-terminal">GitHub</a>
+        </div>
+        
+        <section class="doc-section">
+            <h2>🚀 Getting Started</h2>
+            <p>Welcome to <span class="highlight">RinaWarp Terminal</span>, the next-generation terminal emulator that combines powerful features with an intuitive interface. This documentation will help you get started and make the most of all available features.</p>
+            
+            <h3>Installation</h3>
+            <p>RinaWarp Terminal is available for Windows, macOS, and Linux. Download the appropriate installer for your operating system from the <a href="/" style="color: #00ff88;">main page</a>.</p>
+            
+            <h3>System Requirements</h3>
+            <ul>
+                <li><strong>Windows:</strong> Windows 10 or later</li>
+                <li><strong>macOS:</strong> macOS 11 (Big Sur) or later</li>
+                <li><strong>Linux:</strong> Ubuntu 18.04+, Debian 10+, or equivalent</li>
+            </ul>
+        </section>
+        
+        <section class="doc-section">
+            <h2>🤖 AI Assistant Features</h2>
+            <p>RinaWarp Terminal includes a powerful AI assistant that can help you with command suggestions, error explanations, and automation tasks.</p>
+            
+            <h3>Activating the AI Assistant</h3>
+            <p>To activate the AI assistant, simply type:</p>
+            <div class="code-block">
+                <code>rina --ai "your question here"</code>
+            </div>
+            
+            <h3>AI Commands</h3>
+            <ul>
+                <li><code>rina --explain</code> - Explains the last command output</li>
+                <li><code>rina --suggest</code> - Suggests commands based on your current directory</li>
+                <li><code>rina --fix</code> - Helps fix common terminal errors</li>
+                <li><code>rina --automate</code> - Creates automation scripts</li>
+            </ul>
+        </section>
+        
+        <section class="doc-section">
+            <h2>🎨 Themes and Customization</h2>
+            <p>RinaWarp Terminal comes with multiple beautiful themes and extensive customization options.</p>
+            
+            <h3>Available Themes</h3>
+            <ul>
+                <li><strong>Ocean Breeze</strong> - Blue and teal ocean-inspired theme</li>
+                <li><strong>Dark Pro</strong> - Professional dark theme</li>
+                <li><strong>Neon Glow</strong> - Bright neon colors</li>
+                <li><strong>Classic</strong> - Traditional terminal appearance</li>
+            </ul>
+            
+            <h3>Changing Themes</h3>
+            <p>Use the settings menu or the keyboard shortcut <code>Ctrl+Shift+T</code> to cycle through themes.</p>
+        </section>
+        
+        <section class="doc-section">
+            <h2>🔊 Voice Control</h2>
+            <p>Control your terminal with voice commands for hands-free operation.</p>
+            
+            <h3>Voice Commands</h3>
+            <ul>
+                <li><strong>"Navigate to [directory]"</strong> - Change directory</li>
+                <li><strong>"List files"</strong> - Execute ls command</li>
+                <li><strong>"Open file [filename]"</strong> - Open file in editor</li>
+                <li><strong>"Run [command]"</strong> - Execute any command</li>
+                <li><strong>"Clear screen"</strong> - Clear terminal output</li>
+            </ul>
+            
+            <h3>Enabling Voice Control</h3>
+            <p>Press <code>Ctrl+Shift+V</code> to toggle voice control on/off.</p>
+        </section>
+        
+        <section class="doc-section">
+            <h2>🔐 Security Features</h2>
+            <p>RinaWarp Terminal includes enterprise-grade security features to protect your data and workflows.</p>
+            
+            <h3>Security Features</h3>
+            <ul>
+                <li><strong>Encrypted Sessions</strong> - All terminal sessions are encrypted</li>
+                <li><strong>Secure Cloud Sync</strong> - End-to-end encrypted configuration sync</li>
+                <li><strong>Access Control</strong> - Fine-grained permission management</li>
+                <li><strong>Audit Logging</strong> - Complete command history tracking</li>
+            </ul>
+        </section>
+        
+        <section class="doc-section">
+            <h2>☁️ Cloud Sync</h2>
+            <p>Sync your settings, themes, and configurations across all your devices.</p>
+            
+            <h3>Setting Up Cloud Sync</h3>
+            <p>1. Create a RinaWarp account from the settings menu</p>
+            <p>2. Enable cloud sync in preferences</p>
+            <p>3. Your settings will automatically sync across devices</p>
+        </section>
+        
+        <section class="doc-section">
+            <h2>🚀 Performance Tips</h2>
+            <p>Get the most out of RinaWarp Terminal with these performance optimization tips:</p>
+            
+            <ul>
+                <li>Use built-in tab completion for faster command entry</li>
+                <li>Leverage AI suggestions for complex commands</li>
+                <li>Customize keyboard shortcuts for frequently used commands</li>
+                <li>Use voice control for hands-free operation</li>
+                <li>Enable hardware acceleration in settings</li>
+            </ul>
+        </section>
+        
+        <section class="doc-section">
+            <h2>❓ FAQ</h2>
+            
+            <h3>How do I report bugs or request features?</h3>
+            <p>Please visit our <a href="https://github.com/Bigsgotchu/rinawarp-terminal" style="color: #00ff88;">GitHub repository</a> to report issues or request new features.</p>
+            
+            <h3>Is RinaWarp Terminal free?</h3>
+            <p>Yes, RinaWarp Terminal is free to use with all features included.</p>
+            
+            <h3>What platforms are supported?</h3>
+            <p>RinaWarp Terminal supports Windows, macOS, and Linux.</p>
+        </section>
+        
+        <footer>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="/pricing.html">Pricing</a>
+                <a href="/beta.html">Beta Program</a>
+                <a href="mailto:support@rinawarp.com">Support</a>
+                <a href="https://github.com/Bigsgotchu/rinawarp-terminal">GitHub</a>
+            </div>
+            <p>&copy; 2025 RinaWarp Technologies. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
