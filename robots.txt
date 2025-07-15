@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://rinawarptech.com/sitemap.xml
+
+# Disallow crawling of API endpoints
+Disallow: /api/
+
+# Disallow crawling of private files
+Disallow: /private/
+Disallow: /*.json$
+Disallow: /*.config$
