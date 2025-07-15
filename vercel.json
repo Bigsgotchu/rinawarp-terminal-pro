@@ -5,6 +5,15 @@
     "silent": true
   },
   "buildCommand": "npm run build:web",
+  "outputDirectory": "public",
+  "framework": null,
+  "redirects": [
+    {
+      "source": "https://www.rinawarptech.com/:path*",
+      "destination": "https://rinawarptech.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(stripe-config|validate-license|create-checkout-session|download|test.*)",
