@@ -18,11 +18,20 @@ const GITHUB_RELEASE_BASE_URL =
   'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download';
 
 const ALLOWED_FILES = {
+  // Aliases for easy website integration
   'rinawarp.zip': `${GITHUB_RELEASE_BASE_URL}/rinawarp.zip`,
   portable: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`,
   linux: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`,
   macos: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`,
   setup: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`,
+
+  // Exact filenames for direct API access
+  'RinaWarp-Terminal-Setup-Windows.exe': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`,
+  'RinaWarp-Terminal-Portable-Windows.exe': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`,
+  'RinaWarp-Terminal-Linux.tar.gz': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`,
+  'RinaWarp-Terminal-macOS.dmg': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`,
+  'RinaWarp-Terminal-Linux.deb': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.deb`,
+  'RinaWarp-Terminal.AppImage': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal.AppImage`,
 };
 
 const PUBLIC_DIR = path.join(__dirname, '../../public');
