@@ -4,30 +4,23 @@
   "github": {
     "silent": true
   },
-  "outputDirectory": "public",
-  "redirects": [],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.rinawarptech.com"
+        }
+      ],
+      "destination": "https://rinawarptech.com/$1",
+      "statusCode": 301
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(stripe-config|validate-license|create-checkout-session|download|test.*)",
       "destination": "https://rinawarp-terminal-production.up.railway.app/api/$1"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/sitemap.xml",
-      "dest": "/sitemap.xml",
-      "headers": {
-        "Content-Type": "text/xml; charset=utf-8",
-        "Cache-Control": "public, max-age=3600"
-      }
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/robots.txt",
-      "headers": {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "public, max-age=3600"
-      }
     }
   ],
   "headers": [
@@ -49,11 +42,24 @@
       ]
     },
     {
-      "source": "/(sitemap\.xml|robots\.txt)",
+      "source": "/sitemap.xml",
       "headers": [
         {
           "key": "Content-Type",
           "value": "text/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
         },
         {
           "key": "Cache-Control",
@@ -88,6 +94,5 @@
       ]
     }
   ],
-  "trailingSlash": false,
-  "cleanUrls": true
+  "trailingSlash": false
 }
