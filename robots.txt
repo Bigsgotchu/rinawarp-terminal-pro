@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://rinawarptech.com/sitemap.xml
+Sitemap: https://www.rinawarptech.com/sitemap.xml
 
 # Disallow crawling of API endpoints
 Disallow: /api/

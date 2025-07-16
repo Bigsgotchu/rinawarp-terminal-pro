@@ -507,3 +507,6 @@ social_media_manager.py
 
 # Vercel deployment
 .vercel
+
+# Large binary files - use GitHub Releases instead
+website/downloads/
