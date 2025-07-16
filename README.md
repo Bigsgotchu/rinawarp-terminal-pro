@@ -32,7 +32,7 @@
 **An advanced commercial terminal emulator with enterprise-grade features, built with Electron.**  
 RinaWarp Terminal provides all the power of modern terminals with AI assistance, cloud sync, session management, and extensive customization for professional developers and enterprise teams.
 
-[🎬 Watch Demo](#-demo) • [📥 Download](#-installation) • [📖 Documentation](#-documentation) • [🌟 Features](#-key-features) • [🤝 Contributing](#-contributing)
+[🎬 Watch Demo](#-demo) • [📥 Download](#-installation) • [📖 Documentation](#-documentation) • [🌟 Success Stories](case-studies.html) • [🌟 Features](#-key-features) • [🤝 Contributing](#-contributing)
 
 ![Terminal Screenshot](./assets/marketing/github-banner.svg)
 

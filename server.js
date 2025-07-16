@@ -641,39 +641,8 @@ app.get('/download.html', staticPageLimiter, (req, res) => {
   res.sendFile(safePath);
 });
 
-// Specific routes for common release files
-app.get('/releases/RinaWarp-Terminal-Setup-Windows.exe', staticPageLimiter, (req, res) => {
-  const filePath = path.join(_PUBLIC_DIR, 'releases', 'RinaWarp-Terminal-Setup-Windows.exe');
-  console.log(`[DOWNLOAD] Requested Windows installer: ${filePath}`);
-  console.log(`[DOWNLOAD] File exists: ${fs.existsSync(filePath)}`);
-
-  if (!fs.existsSync(filePath)) {
-    console.log(`[ERROR] Windows installer not found at: ${filePath}`);
-    return res.status(404).json({ error: 'Windows installer not found' });
-  }
-
-  res.setHeader(
-    'Content-Disposition',
-    'attachment; filename="RinaWarp-Terminal-Setup-Windows.exe"'
-  );
-  res.setHeader('Content-Type', 'application/octet-stream');
-  res.sendFile(filePath);
-});
-
-app.get('/releases/RinaWarp-Terminal-Linux.tar.gz', staticPageLimiter, (req, res) => {
-  const filePath = path.join(_PUBLIC_DIR, 'releases', 'RinaWarp-Terminal-Linux.tar.gz');
-  console.log(`[DOWNLOAD] Requested Linux package: ${filePath}`);
-  console.log(`[DOWNLOAD] File exists: ${fs.existsSync(filePath)}`);
-
-  if (!fs.existsSync(filePath)) {
-    console.log(`[ERROR] Linux package not found at: ${filePath}`);
-    return res.status(404).json({ error: 'Linux package not found' });
-  }
-
-  res.setHeader('Content-Disposition', 'attachment; filename="RinaWarp-Terminal-Linux.tar.gz"');
-  res.setHeader('Content-Type', 'application/gzip');
-  res.sendFile(filePath);
-});
+// Release files are now served directly by Vercel static routing
+// No filesystem operations needed in serverless function
 
 // General release files handler
 app.use('/releases', staticPageLimiter, (req, res, _next) => {

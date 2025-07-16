@@ -2,9 +2,7 @@
   "version": 2,
   "framework": null,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/server.js" },
-    { "source": "/releases/(.*)", "destination": "/releases/$1" },
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/api/log-download", "destination": "/api/log-download.js" }
   ],
   "cleanUrls": true,
   "trailingSlash": false
