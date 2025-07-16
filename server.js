@@ -912,6 +912,11 @@ function generateLicenseKey(customerId, licenseType) {
 
 function getLicenseTypeFromPrice(priceId) {
   const priceMap = {
+    // New updated prices
+    price_1RlLBwG2ToGP7ChnhstisPz0: 'personal', // Reef Explorer $15/month
+    price_1RlLC4G2ToGP7ChndbHLotM7: 'professional', // Mermaid Pro $25/month
+    price_1RlLCEG2ToGP7ChnZa5Px0ow: 'team', // Ocean Fleet $35/month
+    // Legacy prices (keep for backward compatibility)
     price_1RayttG2ToGP7Chn6ectv20s: 'personal',
     price_1RayskG2ToGP7ChnotKOPBUs: 'personal',
     price_1RayrzG2ToGP7ChnAM4BXGoH: 'professional',

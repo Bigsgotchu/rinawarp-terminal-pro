@@ -4,17 +4,29 @@
   "github": {
     "silent": true
   },
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "public",
+  "framework": null,
   "redirects": [
     {
-      "source": "/((?!robots\.txt|sitemap\.xml|favicon\.ico|.*\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)).*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.rinawarptech.com"
-        }
-      ],
-      "destination": "https://rinawarptech.com/$1",
-      "statusCode": 301
+      "source": "/releases/RinaWarp-Terminal-Setup-Windows.exe",
+      "destination": "/downloads.html?file=windows-installer"
+    },
+    {
+      "source": "/releases/RinaWarp-Terminal-Portable-Windows.exe",
+      "destination": "/downloads.html?file=windows-portable"
+    },
+    {
+      "source": "/releases/RinaWarp-Terminal-Setup-macOS.dmg",
+      "destination": "/downloads.html?file=macos-installer"
+    },
+    {
+      "source": "/releases/RinaWarp-Terminal-Linux.deb",
+      "destination": "/downloads.html?file=linux-deb"
+    },
+    {
+      "source": "/releases/RinaWarp-Terminal-Linux.rpm",
+      "destination": "/downloads.html?file=linux-rpm"
     }
   ],
   "rewrites": [

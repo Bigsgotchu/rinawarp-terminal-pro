@@ -20,7 +20,7 @@ Hope you're doing well! As a valued RinaWarp Terminal beta tester, we need your 
 📋 **Your Mission (5 minutes):**
 Help us prioritize these features by sharing your experience and needs.
 
-👉 **Take the Survey**: https://forms.gle/rinawarp-beta-survey-v109
+ **Take the Survey**: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 🎁 **Beta Tester Benefits:**
 ✅ Early access to v1.0.9 features
@@ -33,7 +33,7 @@ Help us prioritize these features by sharing your experience and needs.
 
 Your feedback directly shapes RinaWarp Terminal's future. Every response matters!
 
-Questions? Reply to this email or reach out at beta@rinawarp-terminal-fresh-2024.web.app
+Questions? Reply to this email or reach out at rinawarptechnologies25@gmail.com
 
 Thanks for being an amazing beta tester!
 
@@ -41,7 +41,7 @@ Best regards,
 The RinaWarp Terminal Team
 
 ---
-P.S. Don't forget to enable GitHub Discussions for ongoing feedback: https://github.com/Bigsgotchu/rinawarp-terminal/discussions
+P.S. Visit our beta download page: https://rinawarptech.com/beta-download.html
 ```
 
 ## Template 2: New Community Members
@@ -67,7 +67,7 @@ The next-generation AI-powered terminal emulator with enterprise-grade features.
 📋 **Help Us Build v1.0.9:**
 Your feedback will directly influence our next major release.
 
-👉 **Take the Survey**: https://forms.gle/rinawarp-beta-survey-v109
+ **Take the Survey**: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 🎁 **Join Our Beta Program:**
 • Early access to cutting-edge features
@@ -85,9 +85,9 @@ The RinaWarp Terminal Team
 
 ---
 🔗 **Useful Links:**
-• GitHub: https://github.com/Bigsgotchu/rinawarp-terminal
-• Website: https://rinawarp-terminal-fresh-2024.web.app
-• Discussions: https://github.com/Bigsgotchu/rinawarp-terminal/discussions
+• Website: https://rinawarptech.com
+• Beta Download: https://rinawarptech.com/beta-download.html
+• Feedback Form: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 ```
 
 ## Template 3: Enterprise/Professional Users
@@ -114,7 +114,7 @@ As a professional terminal user, we'd like to invite you to participate in our e
 • Performance expectations
 • Collaboration feature priorities
 
-👉 **Enterprise Survey**: https://forms.gle/rinawarp-beta-survey-v109
+ **Enterprise Survey**: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 🎯 **Enterprise Beta Benefits:**
 • Priority feature consideration
@@ -128,7 +128,7 @@ As a professional terminal user, we'd like to invite you to participate in our e
 
 Your enterprise perspective is crucial for making RinaWarp Terminal the best professional terminal solution.
 
-For enterprise inquiries: enterprise@rinawarp-terminal-fresh-2024.web.app
+For enterprise inquiries: rinawarptechnologies25@gmail.com
 
 Best regards,
 RinaWarp Terminal Enterprise Team
