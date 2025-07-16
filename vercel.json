@@ -9,6 +9,11 @@
   "framework": null,
   "redirects": [
     {
+      "source": "https://www.rinawarptech.com/(.*)",
+      "destination": "https://rinawarptech.com/$1",
+      "statusCode": 301
+    },
+    {
       "source": "/releases/RinaWarp-Terminal-Setup-Windows.exe",
       "destination": "/downloads.html?file=windows-installer"
     },
