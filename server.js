@@ -193,14 +193,14 @@ const corsOptions = {
 // Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Redirect www.rinawarptech.com to rinawarptech.com
-app.use((req, res, next) => {
-  if (req.headers.host && req.headers.host.startsWith('www.')) {
-    const newHost = req.headers.host.replace(/^www\./, '');
-    return res.redirect(301, `https://${newHost}${req.originalUrl}`);
-  }
-  next();
-});
+// Domain redirect removed - handled by Vercel configuration
+// app.use((req, res, next) => {
+//   if (req.headers.host && req.headers.host.startsWith('www.')) {
+//     const newHost = req.headers.host.replace(/^www\./, '');
+//     return res.redirect(301, `https://${newHost}${req.originalUrl}`);
+//   }
+//   next();
+// });
 
 // Apply helmet security headers
 app.use(
@@ -526,95 +526,8 @@ app.get('/api/health', (req, res) => {
 
 // Status endpoint moved to modular router (src/api/status.js)
 
-// Download API endpoint with robust GitHub fallback
-app.get('/api/download', async (req, res) => {
-  const fileKey = req.query.file?.toLowerCase();
-
-  // Map aliases to actual filenames
-  const downloadMap = {
-    portable: 'RinaWarp-Terminal-Portable-Windows.exe',
-    linux: 'RinaWarp-Terminal-Linux.tar.gz',
-    macos: 'RinaWarp-Terminal-macOS.dmg',
-    setup: 'RinaWarp-Terminal-Setup-Windows.exe',
-    'rinawarp.zip': 'rinawarp.zip',
-    // Also support exact filenames
-    'rinawarp-terminal-setup-windows.exe': 'RinaWarp-Terminal-Setup-Windows.exe',
-    'rinawarp-terminal-portable-windows.exe': 'RinaWarp-Terminal-Portable-Windows.exe',
-    'rinawarp-terminal-linux.tar.gz': 'RinaWarp-Terminal-Linux.tar.gz',
-    'rinawarp-terminal-macos.dmg': 'RinaWarp-Terminal-macOS.dmg',
-    'rinawarp-terminal-linux.deb': 'RinaWarp-Terminal-Linux.deb',
-    'rinawarp-terminal.appimage': 'RinaWarp-Terminal.AppImage',
-  };
-
-  const fileName = downloadMap[fileKey] || (fileKey ? null : 'RinaWarp-Terminal-Setup-Windows.exe');
-
-  if (!fileName) {
-    return res.status(400).json({
-      error: 'Invalid file requested',
-      message: `The file "${fileKey}" is not available for download.`,
-      available: Object.keys(downloadMap),
-      examples: [
-        '/api/download - Default Windows installer',
-        '/api/download?file=portable - Portable Windows version',
-        '/api/download?file=linux - Linux package',
-        '/api/download?file=macos - macOS installer',
-      ],
-    });
-  }
-
-  console.log(`[DOWNLOAD] Request for file: ${fileKey || 'default'} -> ${fileName}`);
-
-  const filePath = path.join(_PUBLIC_DIR, 'releases', fileName);
-
-  try {
-    // Try to serve local file first
-    if (fs.existsSync(filePath)) {
-      console.log(`[DOWNLOAD] Serving local file: ${filePath}`);
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      return res.sendFile(filePath);
-    }
-
-    // Fallback to GitHub releases
-    console.warn(`📦 Local file not found: ${fileName}, trying GitHub releases...`);
-    const githubApiUrl =
-      'https://api.github.com/repos/Rinawarp-Terminal/rinawarp-terminal/releases/latest';
-
-    const headers = {
-      Accept: 'application/vnd.github+json',
-      'User-Agent': 'RinaWarp-Terminal-Download-API',
-    };
-
-    // Add GitHub token if available
-    if (process.env.GITHUB_TOKEN) {
-      headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
-    }
-
-    const response = await fetch(githubApiUrl, { headers });
-    if (!response.ok) {
-      throw new Error(`GitHub API responded with status: ${response.status}`);
-    }
-
-    const release = await response.json();
-    const asset = release.assets?.find(a => a.name === fileName);
-
-    if (!asset) {
-      throw new Error(`Asset '${fileName}' not found in latest GitHub release`);
-    }
-
-    console.log(`[GITHUB FALLBACK] Redirecting to: ${asset.browser_download_url}`);
-    // Redirect to GitHub-hosted file
-    return res.redirect(302, asset.browser_download_url);
-  } catch (githubErr) {
-    console.error('❌ GitHub API error:', githubErr.message);
-    return res.status(404).json({
-      error: 'File not available locally or on GitHub',
-      details: githubErr.message,
-      fileName: fileName,
-    });
-  }
-});
+// Download API endpoint handled by modular router (src/api/download.js)
+// This route is now handled by the downloadRouter imported above
 
 // API endpoint to get Stripe configuration
 app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
