@@ -1,121 +1,26 @@
 {
   "version": 2,
-  "public": true,
-  "github": {
-    "silent": true
-  },
-  "buildCommand": "npm run build:web",
-  "outputDirectory": "public",
-  "framework": null,
-  "redirects": [
+  "builds": [
     {
-      "source": "/((?!sitemap\\.xml|robots\\.txt|favicon\\.ico).*)",
-      "destination": "https://rinawarptech.com/$1",
-      "statusCode": 301,
-      "has": [
-        {
-          "type": "host",
-          "value": "www.rinawarptech.com"
-        }
-      ]
+      "src": "server.js",
+      "use": "@vercel/node"
     },
     {
-      "source": "/releases/RinaWarp-Terminal-Setup-Windows.exe",
-      "destination": "/downloads.html?file=windows-installer"
-    },
-    {
-      "source": "/releases/RinaWarp-Terminal-Portable-Windows.exe",
-      "destination": "/downloads.html?file=windows-portable"
-    },
-    {
-      "source": "/releases/RinaWarp-Terminal-Setup-macOS.dmg",
-      "destination": "/downloads.html?file=macos-installer"
-    },
-    {
-      "source": "/releases/RinaWarp-Terminal-Linux.deb",
-      "destination": "/downloads.html?file=linux-deb"
-    },
-    {
-      "source": "/releases/RinaWarp-Terminal-Linux.rpm",
-      "destination": "/downloads.html?file=linux-rpm"
+      "src": "public/**/*",
+      "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(stripe-config|validate-license|create-checkout-session|download|test.*)",
-      "destination": "https://rinawarp-terminal-production.up.railway.app/api/$1"
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
-    },
-    {
-      "source": "/sitemap.xml",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/xml; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
-      ]
-    },
-    {
-      "source": "/robots.txt",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=60, stale-while-revalidate=120, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
-    }
-  ],
-  "trailingSlash": false
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

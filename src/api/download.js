@@ -42,16 +42,34 @@ const PUBLIC_DIR = path.join(__dirname, '../../public');
  * Download RinaWarp Terminal files
  */
 router.get('/', (req, res) => {
-  const { file } = req.query;
+  const { file, os } = req.query;
 
-  console.log(`[DOWNLOAD] Request for file: ${file || 'default'} from IP: ${req.ip}`);
+  console.log(
+    `[DOWNLOAD] Request for file: ${file || 'default'}, os: ${os || 'none'} from IP: ${req.ip}`
+  );
 
-  // Default to main installer if no file specified
-  const downloadUrl = file ? ALLOWED_FILES[file] : ALLOWED_FILES['setup'];
+  // Map OS to file aliases
+  const osToFileAlias = {
+    linux: 'linux',
+    mac: 'macos',
+    windows: 'setup',
+  };
+
+  // Determine which file to download
+  let fileKey;
+  if (file) {
+    fileKey = file;
+  } else if (os && osToFileAlias[os]) {
+    fileKey = osToFileAlias[os];
+  } else {
+    fileKey = 'setup'; // Default to Windows installer
+  }
+
+  const downloadUrl = ALLOWED_FILES[fileKey];
 
   if (!downloadUrl) {
     return res.status(400).json({
-      error: 'Invalid file requested',
+      error: 'Invalid file or os parameter',
       available: Object.keys(ALLOWED_FILES),
       message: 'Please specify one of the available file types',
       examples: [
@@ -59,6 +77,9 @@ router.get('/', (req, res) => {
         '/api/download?file=portable - Portable Windows version',
         '/api/download?file=linux - Linux package',
         '/api/download?file=macos - macOS installer',
+        '/api/download?os=linux - Linux package via OS',
+        '/api/download?os=windows - Windows installer via OS',
+        '/api/download?os=mac - macOS installer via OS',
       ],
     });
   }
@@ -97,7 +118,7 @@ router.get('/', (req, res) => {
     'rinawarp.zip': 'rinawarp.zip',
   };
 
-  const fileName = fileNameMap[file] || file || 'RinaWarp-Terminal-Setup-Windows.exe';
+  const fileName = fileNameMap[fileKey] || fileKey || 'RinaWarp-Terminal-Setup-Windows.exe';
 
   const githubFallback = async () => {
     console.log(`[GITHUB FALLBACK] Attempting to find asset: ${fileName}`);
