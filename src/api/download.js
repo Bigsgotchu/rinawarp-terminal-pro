@@ -203,4 +203,24 @@ router.get('/info', (req, res) => {
   res.json(downloadInfo);
 });
 
+/**
+ * GET /api/download/log
+ * Log download and redirect to static file
+ */
+router.get('/log', (req, res) => {
+  const { file, os } = req.query;
+
+  const osMap = {
+    linux: 'RinaWarp-Terminal-Linux.tar.gz',
+    windows: 'RinaWarp-Terminal-Setup-Windows.zip',
+    mac: 'RinaWarp-Terminal-macOS.zip',
+  };
+
+  const filename = file || osMap[os] || 'RinaWarp-Terminal-Setup-Windows.zip';
+
+  console.log(`[📦 DOWNLOAD LOG] ${new Date().toISOString()} - ${req.ip} requested ${filename}`);
+
+  return res.redirect(`/releases/${filename}`);
+});
+
 export default router;

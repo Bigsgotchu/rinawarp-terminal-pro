@@ -519,6 +519,90 @@
                     💯 14-day free trial<br>
                     💰 30-day money back guarantee
                 </div>
+            
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">🆓 Free Hobbyist</div>
+                <div class="plan-description">Perfect for casual users and those trying out RinaWarp</div>
+                <div class="plan-price">
+                    <span class="currency">$</span>0<span class="period">/month</span>
+                </div>
+                
+                <ul class="plan-features">
+                    <li>Basic terminal emulator</li>
+                    <li>3 themes</li>
+                    <li>Single tab only</li>
+                    <li class="unavailable">AI assistance</li>
+                    <li class="unavailable">Cloud sync</li>
+                    <li class="unavailable">Priority support</li>
+                    <li class="unavailable">Team collaboration</li>
+                    <li class="unavailable">Advanced features</li>
+                </ul>
+                
+                <button class="plan-button secondary" onclick="purchasePlan('free')">
+                    Get Started Free
+                </button>
+                
+                <div class="guarantee">
+                    💯 Always free<br>
+                    🚀 Upgrade anytime
+                </div>
+            </div>
+            
+            <!-- Enterprise Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">🏢 Enterprise Navigator</div>
+                <div class="plan-description">For large organizations needing comprehensive terminal solutions</div>
+                <div class="plan-price">
+                    <span class="currency">$</span>99<span class="period">/month</span>
+                    <br>
+                    <span style="font-size: 1.2rem; color: #27ae60;">Custom pricing available</span>
+                </div>
+                
+                <ul class="plan-features">
+                    <li>Everything in Team</li>
+                    <li>Dedicated account manager</li>
+                    <li>Custom integrations</li>
+                    <li>SSO/SAML support</li>
+                    <li>Advanced security controls</li>
+                    <li>24/7 priority support</li>
+                    <li>Custom SLAs</li>
+                    <li>Volume discounts</li>
+                </ul>
+                
+                <button class="plan-button primary" onclick="window.open('mailto:enterprise@rinawarp.com?subject=Enterprise%20Inquiry', '_blank')">
+                    Contact Sales
+                </button>
+                
+                <div class="guarantee">
+                    📞 Custom demos available<br>
+                    💼 Enterprise support
+                </div>
+            </div>
+        </div>
+        
+        <!-- Special Discounts Section -->
+        <div class="faq-section" style="margin-top: 60px;">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #003d5c; background: linear-gradient(45deg, #006994, #4fb3d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🎓 Special Discounts & Offers</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">🎓 Student Discount</div>
+                <div class="faq-answer">Get 50% off any paid plan with a valid .edu email address. Perfect for students learning development. <a href="mailto:support@rinawarp.com?subject=Student%20Discount" style="color: #ff1493;">Contact us</a> to verify eligibility.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">🔓 Open Source Maintainer</div>
+                <div class="faq-answer">Free Professional tier for active open source maintainers. Must maintain a project with 100+ GitHub stars. <a href="mailto:support@rinawarp.com?subject=OSS%20Maintainer%20Request" style="color: #ff1493;">Apply here</a>.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">💰 Annual Savings</div>
+                <div class="faq-answer">Save 20% on all plans when you pay annually. That's 2.4 months free every year! Annual billing is available for Personal, Professional, and Team plans.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">🏢 Volume Discounts</div>
+                <div class="faq-answer">Enterprise customers get custom pricing based on team size. Contact our sales team for volume discounts starting at 10+ users.</div>
             </div>
         </div>
         
@@ -583,13 +667,26 @@
         
         // Purchase plan function
         async function purchasePlan(planType) {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // Handle free plan
+            if (planType === 'free') {
+                // Redirect to download page or app
+                window.location.href = '/download.html';
+                return;
+            }
+            
+            // Handle enterprise plan
+            if (planType === 'enterprise') {
+                window.open('mailto:enterprise@rinawarp.com?subject=Enterprise%20Inquiry', '_blank');
+                return;
+            }
+            
             if (!stripe) {
                 showError('Payment system not ready. Please refresh and try again.');
                 return;
             }
-            
-            const button = event.target;
-            const originalText = button.textContent;
             
             // Show loading state
             button.disabled = true;
@@ -717,9 +814,11 @@
         // Get price ID based on plan type
         function getPriceId(planType) {
             const priceMap = {
+                'free': null, // Free plan doesn't need Stripe
                 'personal': stripeConfig.prices?.personal,
                 'professional': stripeConfig.prices?.professional,
-                'team': stripeConfig.prices?.team
+                'team': stripeConfig.prices?.team,
+                'enterprise': null // Enterprise is handled via email
             };
             
             return priceMap[planType];
