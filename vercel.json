@@ -9,9 +9,15 @@
   "framework": null,
   "redirects": [
     {
-      "source": "https://www.rinawarptech.com/(.*)",
+      "source": "/(.*)",
       "destination": "https://rinawarptech.com/$1",
-      "statusCode": 301
+      "statusCode": 301,
+      "has": [
+        {
+          "type": "host",
+          "value": "www.rinawarptech.com"
+        }
+      ]
     },
     {
       "source": "/releases/RinaWarp-Terminal-Setup-Windows.exe",
