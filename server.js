@@ -28,7 +28,7 @@
 // Load environment variables FIRST, before any other imports
 import { config } from 'dotenv';
 const startTime = Date.now();
-console.log('🚀 Starting RinaWarp Terminal Server...');
+console.log('🚀 Starting RinaWarp Terminal Server v1.0.8...');
 
 config();
 console.log('✅ Environment variables loaded');
