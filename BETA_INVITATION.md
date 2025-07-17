@@ -34,9 +34,9 @@ RinaWarp Terminal is an advanced commercial terminal emulator with AI assistance
 - Potential discounts on the final product
 
 ## 📅 Timeline
-- **Beta Period**: Starting now
-- **Feedback Deadline**: [To be determined]
-- **Expected Production**: [To be determined]
+- **Beta Period**: July 7, 2025 - July 25, 2025
+- **Feedback Deadline**: July 25, 2025
+- **Expected Production**: August 5, 2025
 
 ## 📞 Support
 For questions or urgent issues:
