@@ -33,7 +33,7 @@ If you encounter any issues during testing:
 Thank you for being part of the RinaWarp Terminal beta testing program!
 Your feedback helps us create the best terminal experience possible.
 
-🌊 Built with love and oceanic magic • Version 1.0.8 Beta • © 2025 RinaWarp Technologies
+🌊 Built with love and oceanic magic • Version 1.0.8 Beta • © 2025 Rinawarp Technologies, LLC
 
 ---
 

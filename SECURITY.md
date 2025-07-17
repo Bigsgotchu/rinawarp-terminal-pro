@@ -141,7 +141,7 @@ While we don't currently offer a formal bug bounty program, we recognize and app
 - **Response Time**: Within 48 hours during business days
 
 ### Business Information
-- **Company**: RinaWarp Technologies LLC (Utah)
+- **Company**: Rinawarp Technologies, LLC LLC (Utah)
 - **Business Registration**: Verified and documented
 - **Compliance**: Committed to industry security standards
 

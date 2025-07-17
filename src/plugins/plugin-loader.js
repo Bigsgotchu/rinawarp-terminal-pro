@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal Plugin Loader System
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Modular plugin architecture for scalable feature development
  */

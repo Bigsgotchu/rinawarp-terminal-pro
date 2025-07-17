@@ -1,6 +1,6 @@
 /**
  * Safe AI Wrapper - Fault-tolerant AI Integration
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Provides a safe wrapper around AI providers with graceful degradation
  * when AI services are unavailable or fail.

@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Integration Init
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
  * AI assistance, live collaboration, and enterprise-grade security features.
@@ -52,7 +52,9 @@ class RinaWarpInitializer {
         component: 'integration-init',
       });
       logger.system('Version: 1.0.0', { component: 'integration-init' });
-      logger.system('Copyright (c) 2025 RinaWarp Technologies', { component: 'integration-init' });
+      logger.system('Copyright (c) 2025 Rinawarp Technologies, LLC', {
+        component: 'integration-init',
+      });
 
       // Step 1: Initialize global registry
       await initializeGlobalRegistry();

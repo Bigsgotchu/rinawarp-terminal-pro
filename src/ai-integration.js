@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - AI Integration Orchestrator
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * This module integrates the Sassy Mermaid AI with the terminal
  * and ensures all AI features are properly loaded and functional.

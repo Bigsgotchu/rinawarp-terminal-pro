@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - DevTools Overlay
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Interactive diagnostic overlay with live DOM tests, theme controls,
  * and visual feedback for development and testing.

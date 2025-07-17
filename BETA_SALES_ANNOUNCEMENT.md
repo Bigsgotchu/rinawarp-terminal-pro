@@ -182,5 +182,5 @@ Help us spread the word about RinaWarp Terminal v1.0.9 Beta!
 
 ---
 
-*Built with ❤️ by RinaWarp Technologies*  
-*© 2025 RinaWarp Technologies. All rights reserved.*
+*Built with ❤️ by Rinawarp Technologies, LLC*  
+*© 2025 Rinawarp Technologies, LLC. All rights reserved.*

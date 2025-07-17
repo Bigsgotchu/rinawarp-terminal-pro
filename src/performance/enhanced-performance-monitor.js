@@ -1,6 +1,6 @@
 /**
  * Enhanced Performance Monitor with Vercel Speed Insights Integration
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Combines local performance monitoring with Vercel Speed Insights
  * for comprehensive performance analytics.

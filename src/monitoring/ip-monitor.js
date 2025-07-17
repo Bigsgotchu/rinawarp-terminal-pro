@@ -24,7 +24,7 @@ class IPMonitoringSystem {
       'RinaWarp Terminal',
       'RinaWarp',
       'rinawarp-terminal',
-      'RinaWarp Technologies',
+      'Rinawarp Technologies, LLC',
     ];
 
     this.monitoredDomains = [

@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Voice Control UI
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * User interface for voice recording, custom voice management, and TTS settings
  */

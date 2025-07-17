@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Centralized Logging System
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Centralized logging abstraction that replaces console.log statements
  * with environment-aware logging and telemetry capabilities.

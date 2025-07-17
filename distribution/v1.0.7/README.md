@@ -119,5 +119,5 @@ macos/
 
 ---
 
-**© 2025 RinaWarp Technologies. All rights reserved.**
+**© 2025 Rinawarp Technologies, LLC. All rights reserved.**
 **Proprietary and Confidential - Enterprise Distribution Package**

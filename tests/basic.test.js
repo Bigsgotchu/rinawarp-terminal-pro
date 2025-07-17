@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Basic Tests
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
 describe('RinaWarp Terminal - Basic Tests', () => {

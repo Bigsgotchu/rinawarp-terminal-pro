@@ -114,7 +114,7 @@ Thanks for all you do for the developer community!
 Best regards,
 [Your name]
 
-**RinaWarp Technologies**
+**Rinawarp Technologies, LLC**
 Email: [your email]
 Website: https://rinawarp-terminal.vercel.app
 
@@ -198,7 +198,7 @@ Thanks for your time!
 Best,
 [Your name]
 
-**RinaWarp Technologies**
+**Rinawarp Technologies, LLC**
 Enterprise Sales: [email]
 Website: https://rinawarp-terminal.vercel.app
 

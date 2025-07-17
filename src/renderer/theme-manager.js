@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Theme Manager
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Comprehensive theme management system with 16+ diverse themes
  */

@@ -2,7 +2,7 @@
 
 /**
  * RinaWarp Terminal - Core Functionality Test
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  * 
  * Basic core functionality test to verify essential components work
  */

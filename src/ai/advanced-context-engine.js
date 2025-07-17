@@ -1,6 +1,6 @@
 /**
  * Advanced AI Context Engine - Revolutionary AI Features
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * This engine provides advanced context-aware AI capabilities that go beyond
  * basic command completion to understand user intent, project context, and

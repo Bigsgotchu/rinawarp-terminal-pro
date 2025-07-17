@@ -1,6 +1,6 @@
 /**
  * Minimal RinaWarp Terminal - Simplified Working Version
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
 const { app, BrowserWindow, ipcMain } = require('electron');

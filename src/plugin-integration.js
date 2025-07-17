@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal Plugin Integration
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Integrates the plugin system with the main terminal application
  */

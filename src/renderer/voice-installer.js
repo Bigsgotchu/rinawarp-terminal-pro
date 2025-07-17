@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Voice Installer
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * System to permanently install creator's voice as the default RinaWarp voice
  */
@@ -57,7 +57,7 @@ export class VoiceInstaller {
   async createEmbeddedVoiceModule(base64Audio, voicePackage) {
     const moduleContent = `/**
  * RinaWarp Terminal - Embedded Creator Voice
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  * 
  * This module contains the embedded creator voice for RinaWarp Terminal
  * Generated on: ${new Date().toISOString()}

@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Embedded Creator Voice
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * This module contains the embedded creator voice for RinaWarp Terminal
  * Generated on: 2025-06-30T11:19:55.399Z

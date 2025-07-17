@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Voice Engine
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Advanced Text-to-Speech engine with custom voice recording and cloning capabilities
  */

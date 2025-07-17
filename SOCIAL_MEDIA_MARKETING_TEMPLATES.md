@@ -245,7 +245,7 @@ The wait is over! RinaWarp Terminal v1.0.8 is now live with early bird pricing f
 Early bird pricing ends soon!
 
 Best regards,
-RinaWarp Technologies Team
+Rinawarp Technologies, LLC Team
 ```
 
 ### 🏷️ Hashtag Strategy

@@ -1,12 +1,12 @@
 /**
  * RinaWarp Terminal - Advanced Terminal Emulator
- * Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+ * Copyright (c) 2025 Rinawarp Technologies, LLC. All rights reserved.
  *
  * This file is part of RinaWarp Terminal, an advanced terminal emulator with
  * AI assistance, enterprise security, cloud sync, and revolutionary features.
  *
  * CONFIDENTIAL AND PROPRIETARY
- * This source code is proprietary and confidential information of RinaWarp Technologies.
+ * This source code is proprietary and confidential information of Rinawarp Technologies, LLC.
  * Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
  *
  * Patent Pending - Advanced Terminal Integration Architecture
@@ -18,8 +18,8 @@
  *
  * For licensing inquiries, contact: licensing@rinawarp.com
  *
- * @author RinaWarp Technologies
- * @copyright 2025 RinaWarp Technologies. All rights reserved.
+ * @author Rinawarp Technologies, LLC
+ * @copyright 2025 Rinawarp Technologies, LLC. All rights reserved.
  * @license RinaWarp Commercial License
  * @version 1.0.0
  * @since 2025-01-01
@@ -247,7 +247,7 @@ app.get('/api/status/health', async (req, res) => {
   const healthData = {
     status: 'healthy',
     service: 'RinaWarp Terminal API',
-    version: '1.0.8',
+    version: '1.0.9',
     timestamp: new Date().toISOString(),
     uptime: {
       seconds: Math.floor(uptime),
@@ -311,7 +311,7 @@ app.get('/api/ping', (req, res) => {
 // Version route for deployment verification
 app.get('/api/version', (req, res) => {
   res.json({
-    version: '1.0.8',
+    version: '1.0.9',
     commit: process.env.VERCEL_GIT_COMMIT_SHA || 'local-dev',
     timestamp: new Date().toISOString(),
     downloadMapSupported: true,
