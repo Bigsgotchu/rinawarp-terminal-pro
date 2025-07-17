@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Production Telemetry Service
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Centralized telemetry service supporting multiple providers:
  * - Azure Application Insights

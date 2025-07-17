@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Global Registry Configuration
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Centralized registry for all global objects, their dependencies, and initialization order.
  * This file documents all global side effects and ensures proper dependency management.

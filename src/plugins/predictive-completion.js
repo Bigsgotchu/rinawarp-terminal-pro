@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal AI Predictive Completion Plugin
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Provides predictive command completion using AI context-aware insights.
  * Now enhanced with OpenAI integration for better predictions.

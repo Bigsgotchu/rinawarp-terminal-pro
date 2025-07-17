@@ -107,7 +107,7 @@ Who's ready to dive into the future of terminal development? 🌊💻
 ---
 Best regards,
 
-**RinaWarp Technologies**
+**Rinawarp Technologies, LLC**
 🌊 Advanced Terminal Emulator with AI Assistance
 
 📧 rinawarptechnologies25@gmail.com

@@ -16,17 +16,17 @@ This document outlines development guidelines for RinaWarp Terminal's internal d
 
 ## 🔐 Access Requirements
 
-**IMPORTANT: This is proprietary software owned by RinaWarp Technologies.**
+**IMPORTANT: This is proprietary software owned by Rinawarp Technologies, LLC.**
 
 Development access is restricted to:
-- RinaWarp Technologies employees
+- Rinawarp Technologies, LLC employees
 - Authorized contractors under NDA
 - Licensed development partners
 
 ### Legal Requirements
 
 - **NDA**: All developers must sign a Non-Disclosure Agreement
-- **IP Assignment**: Code contributions become property of RinaWarp Technologies
+- **IP Assignment**: Code contributions become property of Rinawarp Technologies, LLC
 - **Licensing**: Development requires valid license agreement
 - **Confidentiality**: Source code and business logic must remain confidential
 
@@ -58,7 +58,7 @@ We recommend these tools for the best development experience:
 
 ```bash
 # Authorized developers only - clone the private repository
-# Repository access must be granted by RinaWarp Technologies
+# Repository access must be granted by Rinawarp Technologies, LLC
 git clone [PRIVATE_REPOSITORY_URL]
 cd rinawarp-terminal
 

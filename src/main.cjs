@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Simplified Version (Inspired by Warp's Clean Architecture)
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
 const { app, BrowserWindow, BrowserView, ipcMain, _dialog } = require('electron');

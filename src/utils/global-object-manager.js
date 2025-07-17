@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Global Object Manager
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Centralized manager for all global objects, state, and dependencies.
  * Prevents race conditions, conflicts, and unintentional reinitialization.

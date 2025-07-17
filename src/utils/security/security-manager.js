@@ -1,7 +1,7 @@
 /**
  * RinaWarp Terminal - Security Manager
  * Consolidated security utilities adapted for Electron environment
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
 const os = require('os');

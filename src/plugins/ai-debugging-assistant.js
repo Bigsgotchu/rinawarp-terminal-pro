@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal AI Debugging Assistant Plugin
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Analyzes command errors and provides intelligent debugging suggestions.
  */

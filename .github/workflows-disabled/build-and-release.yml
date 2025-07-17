@@ -148,7 +148,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           # Create self-signed certificate for Windows builds
-          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=RinaWarp Technologies" -KeyAlgorithm RSA -KeyLength 2048 -Provider "Microsoft Enhanced RSA and AES Cryptographic Provider" -KeyExportPolicy Exportable -KeyUsage DigitalSignature -CertStoreLocation Cert:\CurrentUser\My
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Rinawarp Technologies, LLC" -KeyAlgorithm RSA -KeyLength 2048 -Provider "Microsoft Enhanced RSA and AES Cryptographic Provider" -KeyExportPolicy Exportable -KeyUsage DigitalSignature -CertStoreLocation Cert:\CurrentUser\My
           Export-PfxCertificate -Cert $cert -FilePath "rinawarp-codesign.pfx" -Password (ConvertTo-SecureString -String "RinaWarp2025!" -Force -AsPlainText)
         shell: pwsh
 

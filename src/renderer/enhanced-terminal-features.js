@@ -1,6 +1,6 @@
 /**
  * Enhanced Terminal Features
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Advanced terminal features extracted from warp-terminal-oss and warp-clone
  * Including multi-tab support, advanced PTY management, and modern UI features

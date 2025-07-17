@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Phase 2 Main Integration
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * This file handles the main integration between the traditional terminal
  * interface and the Phase 2 Next-Generation UI system.

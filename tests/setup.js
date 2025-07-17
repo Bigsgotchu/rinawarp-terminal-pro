@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Test Setup
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
 // Global test setup

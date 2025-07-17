@@ -271,7 +271,7 @@ chmod +x RinaWarp-Terminal.AppImage
 
 ### Development Build (Authorized Access Only)
 
-**Note**: Source code access is restricted to licensed developers and RinaWarp Technologies team members.
+**Note**: Source code access is restricted to licensed developers and Rinawarp Technologies, LLC team members.
 
 1. **Prerequisites**: Node.js 18+, npm 9+, Git, Valid Development License
 
@@ -281,7 +281,7 @@ chmod +x RinaWarp-Terminal.AppImage
    git clone https://github.com/Bigsgotchu/rinawarp-terminal.git
    cd rinawarp-terminal
 =======
-   # Contact RinaWarp Technologies for repository access
+   # Contact Rinawarp Technologies, LLC for repository access
 >>>>>>> d490cf6e7537bcb01537a8172f3bf897c709963f
    npm install
    npm run build
@@ -337,7 +337,7 @@ rinawarp-terminal/
 
 ## License
 
-Proprietary Software - Copyright (c) 2025 RinaWarp Technologies. All rights reserved.
+Proprietary Software - Copyright (c) 2025 Rinawarp Technologies, LLC. All rights reserved.
 
 📄 **[View Complete Licensing Information](PROPRIETARY_NOTICE.md)** - Detailed licensing terms and commercial options
 
@@ -462,7 +462,7 @@ If you encounter any issues, please create an issue on GitHub.
 
 ### Access Requirements
 
-- **RinaWarp Technologies employees**
+- **Rinawarp Technologies, LLC employees**
 - **Licensed development partners**
 - **Authorized contractors under NDA**
 
@@ -953,7 +953,7 @@ Contact: rinawarptechnologies25@gmail.com
 
 ---
 
-**Built with ❤️ by [RinaWarp Technologies](https://rinawarp-terminal.vercel.app)**
+**Built with ❤️ by [Rinawarp Technologies, LLC](https://rinawarp-terminal.vercel.app)**
 *Empowering developers with next-generation terminal experiences*
 
 \\

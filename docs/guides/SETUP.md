@@ -9,7 +9,7 @@ This guide covers the complete setup process for developing RinaWarp Terminal.
 - **Node.js 18+** - Download from [nodejs.org](https://nodejs.org/)
 - **npm 9+** - Comes with Node.js
 - **Git** - For version control
-- **Valid Development License** - Contact RinaWarp Technologies
+- **Valid Development License** - Contact Rinawarp Technologies, LLC
 
 ### System Requirements
 

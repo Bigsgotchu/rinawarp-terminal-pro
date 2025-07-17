@@ -104,7 +104,7 @@
                 Your feedback helps us create the best terminal experience possible.
             </p>
             <p style="color: #00ffff; font-size: 0.9rem;">
-                🌊 Built with love and oceanic magic • Version 1.0.8 Beta • © 2025 RinaWarp Technologies
+                🌊 Built with love and oceanic magic • Version 1.0.8 Beta • © 2025 Rinawarp Technologies, LLC
             </p>
         </div>
     </div>
@@ -353,7 +353,7 @@ Website: https://rinawarptech.com
 
 Thank you for being part of the RinaWarp Terminal beta program!
 
-🌊 Built with love and oceanic magic • Version 1.0.8 Beta • © 2025 RinaWarp Technologies
+🌊 Built with love and oceanic magic • Version 1.0.8 Beta • © 2025 Rinawarp Technologies, LLC
 ```
 
 ---

@@ -7,7 +7,7 @@
   "build": {
     "productName": "RinaWarp Terminal",
     "appId": "com.rinawarp.terminal",
-    "copyright": "Copyright © 2025 RinaWarp Technologies",
+    "copyright": "Copyright © 2025 Rinawarp Technologies, LLC",
     "directories": {
       "output": "dist",
       "buildResources": "assets"
@@ -81,7 +81,7 @@
     }
   },
   "author": {
-    "name": "RinaWarp Technologies",
+    "name": "Rinawarp Technologies, LLC",
     "email": "rinawarptechnologies25@gmail.com",
     "url": "https://rinawarptech.com"
   },

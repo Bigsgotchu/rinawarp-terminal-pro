@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Advanced Intellectual AI Assistant
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Top-of-the-line AI capabilities with intellectual reasoning and personality!
  * Warning: May contain traces of sass and dad jokes 🤖✨

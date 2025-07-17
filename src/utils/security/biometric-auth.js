@@ -1,7 +1,7 @@
 /**
  * RinaWarp Terminal - Biometric Authentication
  * Electron-compatible biometric authentication using system prompts
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
 const os = require('os');

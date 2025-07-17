@@ -1,6 +1,6 @@
 /**
  * RinaWarp Terminal - Speech Recognition & Voice Commands
- * Copyright (c) 2025 RinaWarp Technologies
+ * Copyright (c) 2025 Rinawarp Technologies, LLC
  *
  * Advanced speech-to-text with intelligent command processing
  */
