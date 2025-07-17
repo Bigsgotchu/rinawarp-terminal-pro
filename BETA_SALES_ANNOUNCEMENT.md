@@ -92,11 +92,11 @@ We're excited to announce that **RinaWarp Terminal v1.0.9 Beta Access** is now a
 
 | Phase | Date | Description |
 |-------|------|-------------|
-| **Beta Sales Launch** | **TODAY** | Beta access now available for purchase |
-| **Closed Beta Start** | **February 16, 2025** | Initial beta release to purchasers |
-| **Open Beta Expansion** | **February 23, 2025** | Expanded beta access |
-| **Release Candidate** | **March 5, 2025** | Final testing phase |
-| **Public Release** | **March 10, 2025** | v1.0.9 available to everyone |
+| **Beta Sales Launch** | **June 30, 2025** | Beta access now available for purchase |
+| **Closed Beta Start** | **July 7, 2025** | Initial beta release to purchasers |
+| **Open Beta Expansion** | **July 14, 2025** | Expanded beta access |
+| **Release Candidate** | **July 28, 2025** | Final testing phase |
+| **Public Release** | **August 5, 2025** | v1.0.9 available to everyone |
 
 ---
 

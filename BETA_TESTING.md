@@ -88,8 +88,8 @@ For urgent issues or questions:
 
 ## 📅 Beta Timeline
 
-- **Beta Start**: Current
-- **Feedback Deadline**: [To be determined]
-- **Production Release**: [To be determined]
+- **Beta Start**: July 7, 2025
+- **Feedback Deadline**: July 25, 2025
+- **Production Release**: August 5, 2025
 
 Thank you for helping make RinaWarp Terminal better! 🚀
