@@ -190,6 +190,9 @@
     "deploy:force": "node scripts/deploy-trigger.js --force-all",
     "deploy:firebase": "./deploy.sh",
     "deploy:smart": "node smartDeploy.js",
+    "firebase:monitor": "node scripts/firebase-deployment-monitor.js",
+    "firebase:diagnostic": "node scripts/firebase-diagnostic.js",
+    "firebase:watch": "node scripts/firebase-diagnostic.js && node scripts/firebase-deployment-monitor.js",
     "deploy:github-pages": "node scripts/deploy-github-pages.js",
     "debug:endpoints": "node scripts/debug-endpoints.cjs",
     "monitor:uptime": "node scripts/uptime-monitor.js",
@@ -206,7 +209,12 @@
     "analytics:enhanced:status": "tail -f logs/enhanced-analytics.json",
     "fix:downloads": "node scripts/fix-download-hosting.js",
     "fix:downloads:analyze": "node -e \"const fix = require('./scripts/fix-download-hosting.js'); fix.analyzeDownloadFiles();\"",
-    "fix:downloads:test": "node -e \"const fix = require('./scripts/fix-download-hosting.js'); fix.testDownloadLinks();\""
+    "fix:downloads:test": "node -e \"const fix = require('./scripts/fix-download-hosting.js'); fix.testDownloadLinks();\"",
+    "dns:monitor": "node scripts/dns-migration-monitor.js",
+    "dns:check": "node scripts/dns-migration-monitor.js",
+    "cleanup": "node scripts/cleanup-old-files.js",
+    "cleanup:dry-run": "node scripts/cleanup-old-files.js --dry-run",
+    "cleanup:verbose": "node scripts/cleanup-old-files.js --verbose"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
