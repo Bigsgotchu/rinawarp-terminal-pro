@@ -80,8 +80,7 @@ export default function handler(req, res) {
         name: 'RPM Package',
         description: 'For Red Hat/CentOS/Fedora systems',
         size: '~108MB',
-        platform: 'Linux',
-        format: 'rpm'
+                                    ormat: 'rpm'
       }
     },
     metadata: {
@@ -89,9 +88,11 @@ export default function handler(req, res) {
       releaseDate: '2025-07-18',
       features: [
         'AI-powered terminal assistance',
-        'Advanced p        'Advanced p        'Advanced p        'Advanced     'Enhanced security features',
+        'Advanced plugin system',
+        'Voice recognition support',
+        'Enhanced security features',
         'Cloud synchronization',
-        'Mu       tform support'
+        'Multi-platform support'
       ]
     }
   });
