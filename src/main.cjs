@@ -31,6 +31,7 @@ function createWindow() {
   const windowConfig = {
     width: config.get('ui.windowWidth') || 1200,
     height: config.get('ui.windowHeight') || 800,
+    title: 'RinaWarp Terminal',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -84,6 +85,9 @@ function _createBrowserPane(url = 'https://google.com') {
 
 // Set unique application ID to prevent conflicts
 app.setAppUserModelId('com.rinawarp.terminal');
+
+// Set proper app name for macOS
+app.setName('RinaWarp Terminal');
 
 app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 app.commandLine.appendSwitch('disable-site-isolation-trials');

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RinaWarp Terminal Download</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    .fallback { margin-top: 30px; }
+    a.button {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px 20px;
+      background: #0070f3;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a.button:hover {
+      background: #0059c1;
+    }
+  </style>
+  <script>
+    function detectPlatform() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const forcedOS = urlParams.get('os');
+      const platform = (forcedOS || navigator.platform || 'unknown').toLowerCase();
+      let url = '/releases/RinaWarp-Terminal-Setup-Windows.exe';
+
+      if (platform.includes('mac')) {
+        url = '/releases/RinaWarp-Terminal-macOS.dmg';
+      } else if (platform.includes('linux')) {
+        url = '/releases/RinaWarp-Terminal-Linux.tar.gz';
+      }
+
+      fetch(`/api/log-download?os=${encodeURIComponent(platform)}`);
+      window.location.href = url;
+    }
+
+    window.onload = detectPlatform;
+  </script>
+</head>
+<body>
+  <h1>Redirecting to your download...</h1>
+  <p>If it doesn't start, use one of the links below:</p>
+  <div class="fallback">
+    <a class="button" href="/releases/RinaWarp-Terminal-Setup-Windows.exe">Download for Windows (.exe, 122MB)</a>
+    <a class="button" href="/releases/RinaWarp-Terminal-macOS.dmg">Download for macOS (.dmg, 338MB)</a>
+    <a class="button" href="/releases/RinaWarp-Terminal-Linux.tar.gz">Download for Linux (.tar.gz, ~50MB)</a>
+  </div>
+</body>
+</html>

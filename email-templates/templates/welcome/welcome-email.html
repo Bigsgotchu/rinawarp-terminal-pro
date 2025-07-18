@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to RinaWarp Terminal Beta!</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100% !important;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        @media screen and (max-width: 600px) {
+            .container {
+                padding: 15px !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #007acc;
+            padding-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007acc;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-banner {
+            background: linear-gradient(135deg, #007acc, #00a8ff);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .welcome-banner h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-banner p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #007acc, #00a8ff);
+            color: white !important;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: transform 0.2s;
+            min-width: 200px;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        @media screen and (max-width: 480px) {
+            .cta-button {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 18px 20px !important;
+                font-size: 16px !important;
+                margin: 20px 0 !important;
+                display: block !important;
+            }
+        }
+        
+        .getting-started {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .getting-started h2 {
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+        
+        .steps {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .steps li {
+            counter-increment: step-counter;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            position: relative;
+            padding-left: 50px;
+        }
+        
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            background: #007acc;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tips-section {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .tips-section h3 {
+            color: #007acc;
+            margin-bottom: 15px;
+        }
+        
+        .tip-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #007acc;
+        }
+        
+        .support-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .support-section h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #007acc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .personalization {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .personalization strong {
+            color: #28a745;
+        }
+        
+        h2 {
+            color: #333;
+            margin: 25px 0 15px 0;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        a {
+            color: #007acc;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚀 RinaWarp Terminal</div>
+            <div class="subtitle">AI-Powered Development Environment</div>
+        </div>
+
+        <div class="welcome-banner">
+            <h1>Welcome to the Beta, {{recipient_name}}!</h1>
+            <p>You're now part of an exclusive group of developers testing the future of terminal technology.</p>
+        </div>
+
+        <div class="personalization">
+            <strong>Personalized for {{audience_type}} developers</strong>
+            <p>Based on your profile, we've customized your experience to focus on {{focus_area}} features and workflows.</p>
+        </div>
+
+        <div class="getting-started">
+            <h2>🎯 Getting Started</h2>
+            <p>Follow these steps to make the most of your beta experience:</p>
+            
+            <ol class="steps">
+                <li>
+                    <strong>Download RinaWarp Terminal</strong><br>
+                    <a href="{{download_url}}" class="cta-button">Download Now</a>
+                </li>
+                <li>
+                    <strong>Complete Setup</strong><br>
+                    Run the installer and follow the setup wizard. Enable AI features for the best experience.
+                </li>
+                <li>
+                    <strong>Join Our Community</strong><br>
+                    Connect with other beta testers in our <a href="{{discord_url}}">Discord server</a>.
+                </li>
+                <li>
+                    <strong>Explore Key Features</strong><br>
+                    Try AI command suggestions, plugin system, and performance monitoring.
+                </li>
+            </ol>
+        </div>
+
+        <div class="tips-section">
+            <h3>💡 Pro Tips for Beta Testing</h3>
+            <div class="tip-item">
+                <strong>Enable Verbose Logging:</strong> Use <code>rinawarp config set debug.verbose true</code> to help us identify issues.
+            </div>
+            <div class="tip-item">
+                <strong>Test Daily Workflows:</strong> Use RinaWarp for your regular development tasks to find real-world issues.
+            </div>
+            <div class="tip-item">
+                <strong>Report Everything:</strong> Even minor UI glitches help us improve the experience.
+            </div>
+        </div>
+
+        <h2>🔥 Features to Explore</h2>
+        <ul>
+            <li><strong>AI Command Suggestions:</strong> Get intelligent command completions based on your context</li>
+            <li><strong>Plugin Ecosystem:</strong> Install and create custom plugins for your workflow</li>
+            <li><strong>Performance Analytics:</strong> Monitor your command execution and optimize workflows</li>
+            <li><strong>Advanced Git Integration:</strong> Streamlined version control with AI assistance</li>
+            <li><strong>Customizable Themes:</strong> Make the terminal truly yours with advanced theming</li>
+        </ul>
+
+        <div class="support-section">
+            <h3>🤝 Need Help?</h3>
+            <p>We're here to support you throughout the beta:</p>
+            <ul>
+                <li><strong>Bug Reports:</strong> <a href="{{bug_report_url}}">Submit via GitHub Issues</a></li>
+                <li><strong>Feature Requests:</strong> <a href="{{feature_request_url}}">Share your ideas</a></li>
+                <li><strong>Community Support:</strong> <a href="{{discord_url}}">Join our Discord</a></li>
+                <li><strong>Direct Contact:</strong> <a href="mailto:{{support_email}}">Email our team</a></li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{download_url}}" class="cta-button">
+                🚀 Start Your Beta Journey
+            </a>
+        </div>
+
+        <p>Thanks for being part of the RinaWarp Terminal beta! Your feedback will directly shape the future of developer tools.</p>
+
+        <p>Happy coding!</p>
+        
+        <p><strong>The RinaWarp Development Team</strong><br>
+        <a href="{{website_url}}">rinawarptech.com</a></p>
+
+        <div class="social-links">
+            <a href="{{github_url}}">GitHub</a>
+            <a href="{{twitter_url}}">Twitter</a>
+            <a href="{{discord_url}}">Discord</a>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 Rinawarp Technologies, LLC. All rights reserved.</p>
+            <p>This email was sent to {{recipient_email}} because you signed up for the RinaWarp Terminal beta.</p>
+            <p><a href="{{unsubscribe_url}}">Unsubscribe</a> | <a href="{{privacy_url}}">Privacy Policy</a></p>
+        </div>
+    </div>
+</body>
+</html>

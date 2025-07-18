@@ -192,26 +192,26 @@ const command = args[0] || 'help';
 const isDryRun = args.includes('--dry-run');
 
 switch (command) {
-  case 'patch':
-  case 'minor':
-  case 'major':
-  case 'prerelease':
-    createRelease(command, isDryRun);
-    break;
-  case 'status':
-    showStatus();
-    break;
-  case 'changelog':
-    console.log('📝 Changelog:');
-    console.log(generateChangelog());
-    break;
-  case 'help':
-  case '--help':
-  case '-h':
-    showHelp();
-    break;
-  default:
-    console.log(`❌ Unknown command: ${command}`);
-    showHelp();
-    process.exit(1);
+case 'patch':
+case 'minor':
+case 'major':
+case 'prerelease':
+  createRelease(command, isDryRun);
+  break;
+case 'status':
+  showStatus();
+  break;
+case 'changelog':
+  console.log('📝 Changelog:');
+  console.log(generateChangelog());
+  break;
+case 'help':
+case '--help':
+case '-h':
+  showHelp();
+  break;
+default:
+  console.log(`❌ Unknown command: ${command}`);
+  showHelp();
+  process.exit(1);
 }

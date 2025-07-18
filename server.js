@@ -44,7 +44,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import Joi from 'joi';
 import morgan from 'morgan';
-import fetch from 'node-fetch';
 // import { validationResult } from 'express-validator'; // Currently unused
 import errorHandler, { notFoundHandler } from './src/middleware/errorHandler.js';
 import statusRouter from './src/api/status.js';
@@ -202,21 +201,40 @@ app.use(cors(corsOptions));
 //   next();
 // });
 
-// Apply helmet security headers
+// Apply helmet security headers with comprehensive protection
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        fontSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'", 'wss:', 'ws:'],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
+        defaultSrc: ['\'self\''],
+        scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\'', 'https://js.stripe.com'],
+        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
+        connectSrc: ['\'self\'', 'wss:', 'ws:', 'https://api.stripe.com'],
+        objectSrc: ['\'none\''],
+        baseUri: ['\'self\''],
+        frameSrc: ['\'none\''],
+        formAction: ['\'self\''],
       },
     },
+    crossOriginEmbedderPolicy: false, // Allow embedding for terminal functionality
+    crossOriginOpenerPolicy: { policy: 'same-origin' },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    dnsPrefetchControl: { allow: false },
+    frameguard: { action: 'deny' },
+    hidePoweredBy: true,
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    ieNoOpen: true,
+    noSniff: true,
+    originAgentCluster: true,
+    permittedCrossDomainPolicies: false,
+    referrerPolicy: { policy: 'no-referrer' },
+    xssFilter: true,
   })
 );
 
@@ -235,8 +253,43 @@ app.use(
 app.use(logRequest);
 
 // Middleware
-app.use(express.json());
-// More middleware like cors(), helmet()
+app.use(express.json({ limit: '10mb' })); // Increase limit and add security
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// JWT Authentication Middleware
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
+};
+
+// Optional JWT middleware for routes that can work with or without auth
+const optionalJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+      req.user = decoded;
+    } catch (error) {
+      // Token invalid but continue without auth
+      req.user = null;
+    }
+  }
+  next();
+};
 
 // Enhanced status/health endpoint with integration checks (before status router)
 app.get('/api/status/health', async (req, res) => {
@@ -712,30 +765,30 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      console.log('💰 Payment successful:', session.id);
-      handlePaymentSuccess(session);
-      break;
-    }
-    case 'customer.subscription.created':
-      console.log('🔄 Subscription created:', event.data.object.id);
-      handleSubscriptionCreated(event.data.object);
-      break;
-    case 'customer.subscription.updated':
-      console.log('🔄 Subscription updated:', event.data.object.id);
-      handleSubscriptionUpdated(event.data.object);
-      break;
-    case 'customer.subscription.deleted':
-      console.log('❌ Subscription cancelled:', event.data.object.id);
-      handleSubscriptionCancelled(event.data.object);
-      break;
-    case 'invoice.payment_succeeded':
-      console.log('💳 Invoice paid:', event.data.object.id);
-      handleInvoicePayment(event.data.object);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  case 'checkout.session.completed': {
+    const session = event.data.object;
+    console.log('💰 Payment successful:', session.id);
+    handlePaymentSuccess(session);
+    break;
+  }
+  case 'customer.subscription.created':
+    console.log('🔄 Subscription created:', event.data.object.id);
+    handleSubscriptionCreated(event.data.object);
+    break;
+  case 'customer.subscription.updated':
+    console.log('🔄 Subscription updated:', event.data.object.id);
+    handleSubscriptionUpdated(event.data.object);
+    break;
+  case 'customer.subscription.deleted':
+    console.log('❌ Subscription cancelled:', event.data.object.id);
+    handleSubscriptionCancelled(event.data.object);
+    break;
+  case 'invoice.payment_succeeded':
+    console.log('💳 Invoice paid:', event.data.object.id);
+    handleInvoicePayment(event.data.object);
+    break;
+  default:
+    console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -755,23 +808,23 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      console.log('Payment was successful!', session);
-      handlePaymentSuccess(session);
-      break;
-    case 'invoice.payment_succeeded':
-      const invoice = event.data.object;
-      console.log('Subscription payment succeeded:', invoice);
-      handleInvoicePayment(invoice);
-      break;
-    case 'customer.subscription.deleted':
-      const subscription = event.data.object;
-      console.log('Subscription cancelled:', subscription);
-      handleSubscriptionCancelled(subscription);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  case 'checkout.session.completed':
+    const session = event.data.object;
+    console.log('Payment was successful!', session);
+    handlePaymentSuccess(session);
+    break;
+  case 'invoice.payment_succeeded':
+    const invoice = event.data.object;
+    console.log('Subscription payment succeeded:', invoice);
+    handleInvoicePayment(invoice);
+    break;
+  case 'customer.subscription.deleted':
+    const subscription = event.data.object;
+    console.log('Subscription cancelled:', subscription);
+    handleSubscriptionCancelled(subscription);
+    break;
+  default:
+    console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });

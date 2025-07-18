@@ -10,7 +10,7 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
-class PerformanceMonitor {
+export class PerformanceMonitor {
   constructor() {
     this.metrics = new Map();
     this.thresholds = {
@@ -18,10 +18,28 @@ class PerformanceMonitor {
       memory: 85, // Memory usage percentage
       execution: 5000, // Command execution time in ms
       io: 1000, // I/O operations per second
+      disk: 90, // Disk usage percentage
+      network: 1000, // Network latency in ms
     };
     this.historicalData = [];
     this.activeCommands = new Map();
     this.optimizationCache = new Map();
+    this.systemHealthHistory = [];
+    this.alertSystem = new Map();
+    this.fallbackValues = {
+      cpu: { usage: 0, cores: 4, loadAverage: [0, 0, 0] },
+      memory: { usage: 0, total: 8192, available: 8192 },
+      disk: { usage: 0, readSpeed: 0, writeSpeed: 0 },
+      network: { uploadSpeed: 0, downloadSpeed: 0, latency: 0 },
+      terminalActivity: { activeSessions: 0, totalCommands: 0, averageResponseTime: 0 }
+    };
+    this.config = {
+      maxHistorySize: 1000,
+      healthCheckInterval: 5000,
+      cleanupInterval: 3600000,
+      dataValidationEnabled: true,
+      fallbackEnabled: true
+    };
     this.init();
   }
 
@@ -76,36 +94,56 @@ class PerformanceMonitor {
   }
 
   async getSystemHealth() {
-    const health = {
-      timestamp: Date.now(),
-      cpu: {
-        usage: await this.getCpuUsage(),
-        cores: navigator.hardwareConcurrency || 4,
-        loadAverage: await this.getLoadAverage(),
-      },
-      memory: {
-        usage: await this.getMemoryUsage(),
-        total: await this.getTotalMemory(),
-        available: await this.getAvailableMemory(),
-      },
-      disk: {
-        usage: await this.getDiskUsage(),
-        readSpeed: await this.getDiskReadSpeed(),
-        writeSpeed: await this.getDiskWriteSpeed(),
-      },
-      network: {
-        upload: await this.getNetworkUpload(),
-        download: await this.getNetworkDownload(),
-        latency: await this.getNetworkLatency(),
-      },
-      terminal: {
-        activeSessions: this.activeCommands.size,
-        totalCommands: this.metrics.size,
-        averageResponseTime: this.getAverageResponseTime(),
-      },
-    };
+    let healthData = {};
 
-    return health;
+    try {
+      // Timestamp
+      healthData.timestamp = new Date().toISOString();
+
+      // CPU Information
+      healthData.cpu = await this.getCpuInfo();
+
+      // Memory Information
+      healthData.memory = await this.getMemoryInfo();
+
+      // Disk Information
+      healthData.disk = await this.getDiskInfo();
+
+      // Network Statistics
+      healthData.network = await this.getNetworkStats();
+
+      // Terminal Activity
+      healthData.terminalActivity = await this.getTerminalActivity();
+
+      // Data validation
+      if (this.config.dataValidationEnabled) {
+        healthData = this.validateHealthData(healthData);
+      }
+
+      // Store in history
+      this.systemHealthHistory.push(healthData);
+      if (this.systemHealthHistory.length > this.config.maxHistorySize) {
+        this.systemHealthHistory.shift();
+      }
+
+    } catch (error) {
+      // Handle any errors gracefully
+      console.error("Error gathering system health data:", error);
+      
+      // Return fallback data if enabled
+      if (this.config.fallbackEnabled) {
+        return this.getFallbackHealthData();
+      }
+      
+      // Otherwise return minimal data
+      return {
+        timestamp: new Date().toISOString(),
+        error: error.message,
+        status: 'error'
+      };
+    }
+
+    return healthData;
   }
 
   async analyzePerformance(performance) {
@@ -512,23 +550,23 @@ class PerformanceMonitor {
                 <span>Memory: ${insights.metrics.memoryDelta}MB</span>
             </div>
             ${insights.optimizations
-              .map(
-                opt => `
+    .map(
+      opt => `
                 <div class="optimization ${opt.severity}">
                     💡 ${opt.message}
                 </div>
             `
-              )
-              .join('')}
+    )
+    .join('')}
             ${insights.warnings
-              .map(
-                warn => `
+    .map(
+      warn => `
                 <div class="warning ${warn.severity}">
                     ⚠️ ${warn.message}
                 </div>
             `
-              )
-              .join('')}
+    )
+    .join('')}
         `;
 
     // Add to terminal interface
@@ -546,8 +584,8 @@ class PerformanceMonitor {
   }
 
   updateResourceGraphs(health) {
-    // Update real-time resource graphs
-    if (window.performanceCharts) {
+    // Update real-time resource graphs (browser only)
+    if (typeof window !== 'undefined' && window.performanceCharts) {
       window.performanceCharts.updateCpuChart(health.cpu.usage);
       window.performanceCharts.updateMemoryChart(health.memory.usage);
       window.performanceCharts.updateNetworkChart(health.network.download, health.network.upload);
@@ -710,6 +748,204 @@ class PerformanceMonitor {
       regularAverage: regularAvg,
       sampleSize: { optimized: optimized.length, regular: regular.length },
     };
+  }
+
+  // Enhanced system health helper methods
+  async getCpuInfo() {
+    try {
+      const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+      
+      if (isNode) {
+        // Node.js environment - use OS module
+        const os = await import('os');
+        return {
+          usage: await this.getCpuUsage(),
+          cores: os.cpus().length,
+          loadAverage: os.loadavg(),
+        };
+      } else {
+        // Browser environment
+        return {
+          usage: await this.getCpuUsage(),
+          cores: navigator.hardwareConcurrency || 4,
+          loadAverage: await this.getLoadAverage(),
+        };
+      }
+    } catch (error) {
+      console.error("Error gathering CPU information:", error);
+      return this.config.fallbackEnabled ? this.fallbackValues.cpu : null;
+    }
+  }
+
+  async getMemoryInfo() {
+    try {
+      const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+      
+      if (isNode) {
+        // Node.js environment - use process.memoryUsage()
+        const memUsage = process.memoryUsage();
+        const totalMemory = await this.getTotalMemory();
+        const usedMemory = memUsage.heapUsed / (1024 * 1024); // Convert to MB
+        
+        return {
+          usage: (usedMemory / totalMemory) * 100,
+          total: totalMemory,
+          available: totalMemory - usedMemory,
+        };
+      } else {
+        // Browser environment
+        return {
+          usage: await this.getMemoryUsage(),
+          total: await this.getTotalMemory(),
+          available: await this.getAvailableMemory(),
+        };
+      }
+    } catch (error) {
+      console.error("Error gathering memory information:", error);
+      return this.config.fallbackEnabled ? this.fallbackValues.memory : null;
+    }
+  }
+
+  async getDiskInfo() {
+    try {
+      return {
+        usage: await this.getDiskUsage(),
+        readSpeed: await this.getDiskReadSpeed(),
+        writeSpeed: await this.getDiskWriteSpeed(),
+      };
+    } catch (error) {
+      console.error("Error gathering disk information:", error);
+      return this.config.fallbackEnabled ? this.fallbackValues.disk : null;
+    }
+  }
+
+  async getNetworkStats() {
+    try {
+      return {
+        uploadSpeed: await this.getNetworkUpload(),
+        downloadSpeed: await this.getNetworkDownload(),
+        latency: await this.getNetworkLatency(),
+      };
+    } catch (error) {
+      console.error("Error gathering network statistics:", error);
+      return this.config.fallbackEnabled ? this.fallbackValues.network : null;
+    }
+  }
+
+  async getTerminalActivity() {
+    try {
+      return {
+        activeSessions: this.activeCommands.size,
+        totalCommands: this.metrics.size,
+        averageResponseTime: this.getAverageResponseTime(),
+      };
+    } catch (error) {
+      console.error("Error gathering terminal activity information:", error);
+      return this.config.fallbackEnabled ? this.fallbackValues.terminalActivity : null;
+    }
+  }
+
+  validateHealthData(healthData) {
+    // Data validation logic
+    const validated = { ...healthData };
+    
+    // Validate CPU data
+    if (validated.cpu) {
+      validated.cpu.usage = Math.max(0, Math.min(100, validated.cpu.usage || 0));
+      validated.cpu.cores = Math.max(1, validated.cpu.cores || 4);
+    }
+    
+    // Validate memory data
+    if (validated.memory) {
+      validated.memory.usage = Math.max(0, Math.min(100, validated.memory.usage || 0));
+      validated.memory.total = Math.max(0, validated.memory.total || 0);
+      validated.memory.available = Math.max(0, validated.memory.available || 0);
+    }
+    
+    // Validate disk data
+    if (validated.disk) {
+      validated.disk.usage = Math.max(0, Math.min(100, validated.disk.usage || 0));
+      validated.disk.readSpeed = Math.max(0, validated.disk.readSpeed || 0);
+      validated.disk.writeSpeed = Math.max(0, validated.disk.writeSpeed || 0);
+    }
+    
+    // Validate network data
+    if (validated.network) {
+      validated.network.uploadSpeed = Math.max(0, validated.network.uploadSpeed || 0);
+      validated.network.downloadSpeed = Math.max(0, validated.network.downloadSpeed || 0);
+      validated.network.latency = Math.max(0, validated.network.latency || 0);
+    }
+    
+    return validated;
+  }
+
+  getFallbackHealthData() {
+    return {
+      timestamp: new Date().toISOString(),
+      cpu: { ...this.fallbackValues.cpu },
+      memory: { ...this.fallbackValues.memory },
+      disk: { ...this.fallbackValues.disk },
+      network: { ...this.fallbackValues.network },
+      terminalActivity: { ...this.fallbackValues.terminalActivity },
+      status: 'fallback',
+      message: 'Using fallback data due to system access limitations'
+    };
+  }
+
+  // Update thresholds dynamically
+  updateThresholds(newThresholds) {
+    this.thresholds = { ...this.thresholds, ...newThresholds };
+    console.log('📊 Performance thresholds updated:', this.thresholds);
+  }
+
+  // Get historical trend analysis
+  getHistoricalTrends(timeRange = '24h') {
+    const now = Date.now();
+    const timeMs = this.parseTimeRange(timeRange);
+    const startTime = now - timeMs;
+    
+    const relevantData = this.systemHealthHistory.filter(health => 
+      new Date(health.timestamp).getTime() >= startTime
+    );
+    
+    if (relevantData.length < 2) {
+      return { trend: 'insufficient_data', message: 'Not enough data for trend analysis' };
+    }
+    
+    const trends = {
+      cpu: this.calculateMetricTrend(relevantData, 'cpu.usage'),
+      memory: this.calculateMetricTrend(relevantData, 'memory.usage'),
+      disk: this.calculateMetricTrend(relevantData, 'disk.usage'),
+      network: this.calculateMetricTrend(relevantData, 'network.latency'),
+    };
+    
+    return trends;
+  }
+
+  calculateMetricTrend(data, metricPath) {
+    const values = data.map(item => this.getNestedValue(item, metricPath)).filter(v => v !== null);
+    
+    if (values.length < 2) return { trend: 'insufficient_data' };
+    
+    const recent = values.slice(-Math.ceil(values.length / 3));
+    const older = values.slice(0, Math.ceil(values.length / 3));
+    
+    const recentAvg = recent.reduce((sum, val) => sum + val, 0) / recent.length;
+    const olderAvg = older.reduce((sum, val) => sum + val, 0) / older.length;
+    
+    const changePercent = ((recentAvg - olderAvg) / olderAvg) * 100;
+    
+    return {
+      trend: changePercent > 5 ? 'increasing' : changePercent < -5 ? 'decreasing' : 'stable',
+      changePercent: changePercent,
+      recentAverage: recentAvg,
+      historicalAverage: olderAvg,
+      confidence: Math.min(values.length / 20, 1)
+    };
+  }
+
+  getNestedValue(obj, path) {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 }
 

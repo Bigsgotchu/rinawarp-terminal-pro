@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⏱️ RinaWarp Terminal - Friendly Reminder</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100% !important;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        @media screen and (max-width: 600px) {
+            .container {
+                padding: 15px !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #007acc;
+            padding-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007acc;
+            margin-bottom: 10px;
+        }
+
+        .reminder-banner {
+            background: linear-gradient(135deg, #ffc107, #ff8800);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .reminder-banner h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .reminder-banner p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #007acc, #00a8ff);
+            color: white !important;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: transform 0.2s;
+            min-width: 200px;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        @media screen and (max-width: 480px) {
+            .cta-button {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 18px 20px !important;
+                font-size: 16px !important;
+                margin: 20px 0 !important;
+                display: block !important;
+            }
+        }
+        
+        .steps-section {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .steps-section h2 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .steps {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .steps li {
+            counter-increment: step-counter;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            position: relative;
+            padding-left: 50px;
+        }
+        
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            background: #007acc;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .support-section {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .support-section h3 {
+            color: #007acc;
+            margin-bottom: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #007acc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        h2 {
+            color: #333;
+            margin: 25px 0 15px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        a {
+            color: #007acc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">⏱️ RinaWarp Terminal</div>
+            <div class="subtitle">AI-Powered Development Environment</div>
+        </div>
+
+        <div class="reminder-banner">
+            <h1>Friendly Reminder, {{recipient_name}}!</h1>
+            <p>Don't miss the opportunity to explore the latest in AI-powered terminal technology.</p>
+        </div>
+
+        <p>We know you haven't had the chance to start using RinaWarp Terminal yet, but here's why you should:</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{download_url}}" class="cta-button">
+                🚀 Get Started Today
+            </a>
+        </div>
+
+        <div class="steps-section">
+            <h2>🚀 Quick Start</h2>
+            <p>Here’s how to get up and running in no time:</p>
+
+            <ol class="steps">
+                <li>
+                    <strong>Download RinaWarp Terminal</strong><br>
+                    <a href="{{download_url}}" class="cta-button">Download Now</a>
+                </li>
+                <li>
+                    <strong>Complete the Setup</strong><br>
+                    Follow the installation wizard and complete your custom setup.
+                </li>
+                <li>
+                    <strong>Explore Unique Features</strong><br>
+                    Leverage powerful AI suggestions and themes tailored for you.
+                </li>
+                <li>
+                    <strong>Join the Community</strong><br>
+                    Become part of the vibrant RinaWarp community through <a href="{{discord_url}}">Discord</a>.
+                </li>
+            </ol>
+        </div>
+
+        <div class="support-section">
+            <h3>🔧 Need Assistance?</h3>
+            <p>If you have any questions or run into any difficulties, we're here to help:</p>
+            <ul>
+                <li><strong>Contact Support:</strong> <a href="mailto:{{support_email}}">Email us anytime</a></li>
+                <li><strong>Community Support:</strong> <a href="{{discord_url}}">Join our Discord</a></li>
+                <li><strong>FAQ:</strong> <a href="{{faq_url}}">Visit our FAQ section</a></li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{download_url}}" class="cta-button">
+                🔄 Start Now
+            </a>
+        </div>
+
+        <p>We appreciate your interest in RinaWarp Terminal and can’t wait to see what you build!</p>
+
+        <p>Happy coding!</p>
+        
+        <p><strong>The RinaWarp Development Team</strong><br>
+        <a href="{{website_url}}">rinawarptech.com</a></p>
+
+        <div class="social-links">
+            <a href="{{github_url}}">GitHub</a>
+            <a href="{{twitter_url}}">Twitter</a>
+            <a href="{{discord_url}}">Discord</a>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 Rinawarp Technologies, LLC. All rights reserved.</p>
+            <p>This email was sent to {{recipient_email}} because you signed up for reminders.</p>
+            <p><a href="{{unsubscribe_url}}">Unsubscribe</a> | <a href="{{privacy_url}}">Privacy Policy</a></p>
+        </div>
+    </div>
+</body>
+</html>
+

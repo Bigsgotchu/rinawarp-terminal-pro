@@ -1,0 +1,6 @@
+name,email,audience_type,personalization_notes,user_id,signup_date,engagement_score,preferred_contact_time,timezone,beta_interest_level,technical_background,company_size,use_case,referral_source,last_interaction,status
+John Doe,john.doe@example.com,early_adopter,"Mentioned interest in AI automation tools during webinar",user_001,2024-01-15,85,morning,EST,high,developer,startup,"CI/CD automation",webinar,2024-01-20,active
+Jane Smith,jane.smith@company.com,enterprise_lead,"CTO at mid-size tech company, needs terminal efficiency",user_002,2024-01-18,92,afternoon,PST,very_high,engineering_leader,medium,"Team productivity",referral,2024-01-22,active
+Alex Johnson,alex.johnson@startup.io,developer,"Open source contributor, interested in AI-powered tools",user_003,2024-01-12,78,evening,CST,high,senior_developer,small,"Personal workflow",github,2024-01-19,active
+Sam Wilson,sam.wilson@enterprise.com,decision_maker,"IT Director evaluating developer tools",user_004,2024-01-20,65,morning,EST,medium,it_management,large,"Team onboarding",linkedin,2024-01-21,active
+Taylor Brown,taylor.brown@freelance.com,individual_user,"Freelance developer, power terminal user",user_005,2024-01-16,88,flexible,PST,high,fullstack_developer,individual,"Client project efficiency",twitter,2024-01-23,active

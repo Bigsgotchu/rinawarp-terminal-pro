@@ -1,0 +1,221 @@
+{
+  "timestamp": "2025-07-17T15:47:46.527Z",
+  "template": "../developer-focused-beta.html",
+  "summary": {
+    "totalTests": 13,
+    "passed": 11,
+    "failed": 0,
+    "issues": 2
+  },
+  "results": {
+    "clientTests": [
+      {
+        "client": "Gmail",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/gmail-test.png"
+      },
+      {
+        "client": "Outlook",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/outlook-test.png"
+      },
+      {
+        "client": "Apple Mail",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/apple mail-test.png"
+      },
+      {
+        "client": "Yahoo Mail",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/yahoo mail-test.png"
+      },
+      {
+        "client": "Thunderbird",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/thunderbird-test.png"
+      }
+    ],
+    "linkValidation": [
+      {
+        "url": "https://rinawarptech.com/download",
+        "text": "🎯 Download Beta Now",
+        "status": "FAIL",
+        "statusCode": 404,
+        "redirected": true
+      },
+      {
+        "url": "https://docs.rinawarptech.com/api/plugins",
+        "text": "https://docs.rinawarptech.com/api/plugins",
+        "status": "ERROR",
+        "error": "getaddrinfo ENOTFOUND docs.rinawarptech.com"
+      },
+      {
+        "url": "https://docs.rinawarptech.com/api/themes",
+        "text": "https://docs.rinawarptech.com/api/themes",
+        "status": "ERROR",
+        "error": "getaddrinfo ENOTFOUND docs.rinawarptech.com"
+      },
+      {
+        "url": "https://docs.rinawarptech.com/api/ai",
+        "text": "https://docs.rinawarptech.com/api/ai",
+        "status": "ERROR",
+        "error": "getaddrinfo ENOTFOUND docs.rinawarptech.com"
+      },
+      {
+        "url": "https://docs.rinawarptech.com/api/commands",
+        "text": "https://docs.rinawarptech.com/api/commands",
+        "status": "ERROR",
+        "error": "getaddrinfo ENOTFOUND docs.rinawarptech.com"
+      },
+      {
+        "url": "https://rinawarptech.com/download",
+        "text": "rinawarptech.com/download",
+        "status": "FAIL",
+        "statusCode": 404,
+        "redirected": true
+      },
+      {
+        "url": "https://discord.gg/rinawarp-dev",
+        "text": "Discord Developer Channel",
+        "status": "PASS",
+        "statusCode": 200,
+        "redirected": true
+      },
+      {
+        "url": "https://docs.rinawarptech.com/beta",
+        "text": "Beta Testing Documentation",
+        "status": "ERROR",
+        "error": "getaddrinfo ENOTFOUND docs.rinawarptech.com"
+      },
+      {
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues",
+        "text": "GitHub Issues",
+        "status": "FAIL",
+        "statusCode": 404,
+        "redirected": false
+      },
+      {
+        "url": "https://rinawarptech.com/download",
+        "text": "🎯 Start Beta Testing",
+        "status": "FAIL",
+        "statusCode": 404,
+        "redirected": true
+      },
+      {
+        "url": "https://discord.gg/rinawarp-dev",
+        "text": "💬 Join Developer Community",
+        "status": "PASS",
+        "statusCode": 200,
+        "redirected": true
+      },
+      {
+        "url": "https://rinawarptech.com",
+        "text": "rinawarptech.com",
+        "status": "PASS",
+        "statusCode": 200,
+        "redirected": true
+      },
+      {
+        "url": "https://rinawarptech.com/unsubscribe",
+        "text": "Unsubscribe",
+        "status": "FAIL",
+        "statusCode": 404,
+        "redirected": true
+      },
+      {
+        "url": "https://rinawarptech.com/privacy",
+        "text": "Privacy Policy",
+        "status": "FAIL",
+        "statusCode": 404,
+        "redirected": true
+      }
+    ],
+    "htmlValidation": {
+      "status": "PASS",
+      "errors": [],
+      "warnings": [],
+      "totalIssues": 0
+    },
+    "deviceTests": [
+      {
+        "device": "Mobile Portrait",
+        "dimensions": "320x568",
+        "status": "ISSUES",
+        "issues": [
+          "Text too small on Mobile Portrait: 12px",
+          "Text too small on Mobile Portrait: 12px",
+          "Text too small on Mobile Portrait: 12px",
+          "Horizontal scroll on Mobile Portrait: 442px > 320px"
+        ],
+        "screenshot": "./screenshots/mobile-portrait-responsive.png"
+      },
+      {
+        "device": "Mobile Landscape",
+        "dimensions": "568x320",
+        "status": "ISSUES",
+        "issues": [
+          "Text too small on Mobile Landscape: 12px",
+          "Text too small on Mobile Landscape: 12px",
+          "Text too small on Mobile Landscape: 12px"
+        ],
+        "screenshot": "./screenshots/mobile-landscape-responsive.png"
+      },
+      {
+        "device": "Tablet Portrait",
+        "dimensions": "768x1024",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/tablet-portrait-responsive.png"
+      },
+      {
+        "device": "Tablet Landscape",
+        "dimensions": "1024x768",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/tablet-landscape-responsive.png"
+      },
+      {
+        "device": "Desktop",
+        "dimensions": "1200x800",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/desktop-responsive.png"
+      },
+      {
+        "device": "Wide Desktop",
+        "dimensions": "1920x1080",
+        "status": "PASS",
+        "issues": [],
+        "screenshot": "./screenshots/wide-desktop-responsive.png"
+      }
+    ],
+    "performanceMetrics": {
+      "fileSize": {
+        "bytes": 11450,
+        "kb": 11,
+        "status": "GOOD"
+      },
+      "elements": {
+        "images": 0,
+        "links": 14,
+        "tables": 0,
+        "inlineStyles": 7,
+        "cssRules": 18
+      },
+      "images": [],
+      "estimatedLoadTime": "1ms",
+      "recommendations": []
+    },
+    "spamScore": {
+      "score": 0,
+      "riskLevel": "LOW",
+      "issues": [],
+      "recommendations": []
+    }
+  }
+}

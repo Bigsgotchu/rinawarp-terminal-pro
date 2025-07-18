@@ -1,0 +1,138 @@
+{
+  "campaign_schedule": {
+    "campaign_name": "RinaWarp Beta Invitation 2024",
+    "start_date": "2024-02-01",
+    "end_date": "2024-03-15",
+    "timezone": "UTC",
+    "total_recipients": 500,
+    "batch_size": 50,
+    "send_frequency": "daily",
+    "optimal_send_times": {
+      "tuesday": "10:00 AM",
+      "wednesday": "10:00 AM", 
+      "thursday": "10:00 AM",
+      "friday": "2:00 PM"
+    },
+    "avoid_send_days": ["monday", "saturday", "sunday"]
+  },
+  "email_sequence": {
+    "initial_invitation": {
+      "day": 0,
+      "template": "beta-invitation-main.html",
+      "subject": "You're invited to RinaWarp Beta - AI-Powered Terminal Intelligence",
+      "audience_segments": ["early_adopter", "developer", "enterprise_lead", "decision_maker", "individual_user"],
+      "personalization_level": "high",
+      "send_conditions": {
+        "engagement_score": ">60",
+        "status": "active",
+        "beta_interest_level": ["high", "very_high", "medium"]
+      }
+    },
+    "reminder_email": {
+      "day": 7,
+      "template": "beta-reminder.html",
+      "subject": "Don't miss out - RinaWarp Beta access still available",
+      "audience_segments": ["all"],
+      "personalization_level": "medium",
+      "send_conditions": {
+        "opened_initial": false,
+        "clicked_signup": false,
+        "status": "active"
+      }
+    },
+    "social_proof_email": {
+      "day": 14,
+      "template": "beta-social-proof.html",
+      "subject": "Join 200+ developers already using RinaWarp Beta",
+      "audience_segments": ["developer", "early_adopter", "individual_user"],
+      "personalization_level": "medium",
+      "send_conditions": {
+        "opened_initial": true,
+        "clicked_signup": false,
+        "engagement_score": ">70"
+      }
+    },
+    "final_call_email": {
+      "day": 21,
+      "template": "beta-final-call.html",
+      "subject": "Final 48 hours - RinaWarp Beta access closing soon",
+      "audience_segments": ["all"],
+      "personalization_level": "high",
+      "send_conditions": {
+        "opened_any": true,
+        "clicked_signup": false,
+        "status": "active"
+      }
+    },
+    "welcome_email": {
+      "trigger": "signup_completed",
+      "template": "beta-welcome.html",
+      "subject": "Welcome to RinaWarp Beta! Let's get you started",
+      "audience_segments": ["all"],
+      "personalization_level": "high",
+      "send_delay": "immediate"
+    }
+  },
+  "segmentation_rules": {
+    "early_adopter": {
+      "criteria": ["engagement_score > 80", "beta_interest_level = high"],
+      "personalization": "Focus on cutting-edge features and early access benefits"
+    },
+    "enterprise_lead": {
+      "criteria": ["company_size in [medium, large]", "technical_background = engineering_leader"],
+      "personalization": "Emphasize team productivity and enterprise features"
+    },
+    "developer": {
+      "criteria": ["technical_background in [developer, senior_developer, fullstack_developer]"],
+      "personalization": "Highlight technical capabilities and developer workflow improvements"
+    },
+    "decision_maker": {
+      "criteria": ["technical_background in [it_management, engineering_leader]"],
+      "personalization": "Focus on ROI, team efficiency, and business impact"
+    },
+    "individual_user": {
+      "criteria": ["company_size = individual"],
+      "personalization": "Emphasize personal productivity and workflow optimization"
+    }
+  },
+  "fallback_schedule": {
+    "if_low_engagement": {
+      "condition": "open_rate < 20% after 3 days",
+      "action": "resend_with_different_subject",
+      "new_subject": "Quick question about your terminal workflow"
+    },
+    "if_server_issues": {
+      "condition": "delivery_failure_rate > 5%",
+      "action": "pause_sending_24h",
+      "notification": "alert_admin"
+    }
+  },
+  "a_b_testing": {
+    "subject_line_test": {
+      "variant_a": "You're invited to RinaWarp Beta",
+      "variant_b": "Transform your terminal experience with AI",
+      "split_percentage": 50,
+      "test_audience": "first_100_recipients"
+    },
+    "send_time_test": {
+      "variant_a": "10:00 AM",
+      "variant_b": "2:00 PM", 
+      "split_percentage": 50,
+      "test_audience": "early_adopter"
+    }
+  },
+  "performance_monitoring": {
+    "kpis": {
+      "delivery_rate": "target: >95%",
+      "open_rate": "target: >35%",
+      "click_rate": "target: >8%",
+      "conversion_rate": "target: >15%",
+      "unsubscribe_rate": "target: <2%"
+    },
+    "alerts": {
+      "low_delivery": "delivery_rate < 90%",
+      "high_unsubscribe": "unsubscribe_rate > 5%",
+      "low_engagement": "open_rate < 20%"
+    }
+  }
+}
