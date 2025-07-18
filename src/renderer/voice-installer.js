@@ -106,7 +106,7 @@ window.EmbeddedVoiceLoader = EmbeddedVoiceLoader;
     const fs = await import('fs');
     const path = await import('path');
 
-    const currentDir = await nodeAPI.getCurrentDir();
+    const currentDir = await window.nodeAPI?.getCurrentDir();
     const voiceModulePath = path.join(currentDir, 'src/renderer/embedded-creator-voice.js');
     fs.writeFileSync(voiceModulePath, moduleContent, 'utf8');
 
@@ -117,7 +117,7 @@ window.EmbeddedVoiceLoader = EmbeddedVoiceLoader;
     const fs = await import('fs');
     const path = await import('path');
 
-    const currentDir = await nodeAPI.getCurrentDir();
+    const currentDir = await window.nodeAPI?.getCurrentDir();
     const manifestPath = path.join(currentDir, 'src/renderer/voice-manifest.json');
 
     let manifest = {
@@ -208,7 +208,7 @@ pause
     const fs = await import('fs');
     const path = await import('path');
 
-    const currentDir = await nodeAPI.getCurrentDir();
+    const currentDir = await window.nodeAPI?.getCurrentDir();
     const scriptPath = path.join(currentDir, 'install-creator-voice.bat');
     fs.writeFileSync(scriptPath, scriptContent, 'utf8');
 
