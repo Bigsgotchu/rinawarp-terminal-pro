@@ -163,7 +163,10 @@
     "setup:monitoring:manual": "node scripts/setup-monitoring.js manual",
     "test:monitoring": "node scripts/setup-monitoring.js test",
     "audit:urls": "node scripts/url-audit.js",
-    "fix:urls": "node scripts/fix-urls.js"
+    "fix:urls": "node scripts/fix-urls.js",
+    "deploy": "node scripts/deploy-trigger.js",
+    "deploy:dry-run": "node scripts/deploy-trigger.js --dry-run",
+    "deploy:force": "node scripts/deploy-trigger.js --force-all"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
