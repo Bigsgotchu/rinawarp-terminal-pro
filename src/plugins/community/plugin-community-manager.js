@@ -16,9 +16,9 @@ export class PluginCommunityManager {
       reviews: true,
       suggestions: true,
       sharing: true,
-      analytics: true
+      analytics: true,
     };
-    
+
     this.init();
   }
 
@@ -40,14 +40,14 @@ export class PluginCommunityManager {
           preferences: {
             shareUsageData: false,
             receiveRecommendations: true,
-            participateInBeta: false
+            participateInBeta: false,
           },
           stats: {
             pluginsInstalled: 0,
             pluginsRated: 0,
             reviewsWritten: 0,
-            contributionsShared: 0
-          }
+            contributionsShared: 0,
+          },
         };
         this.saveUserProfile();
       }
@@ -96,16 +96,16 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
         body: JSON.stringify({
-          lastSync: localStorage.getItem('last-community-sync') || 0
-        })
+          lastSync: localStorage.getItem('last-community-sync') || 0,
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Update local data with remote changes
         if (data.ratings) {
           for (const [pluginName, rating] of Object.entries(data.ratings)) {
@@ -144,15 +144,15 @@ export class PluginCommunityManager {
   }
 
   setupEventListeners() {
-    this.pluginManager.on('plugin-loaded', (pluginName) => {
+    this.pluginManager.on('plugin-loaded', pluginName => {
       this.trackPluginInstall(pluginName);
     });
 
-    this.pluginManager.on('plugin-unloaded', (pluginName) => {
+    this.pluginManager.on('plugin-unloaded', pluginName => {
       this.trackPluginUninstall(pluginName);
     });
 
-    this.pluginManager.on('plugin-error', (data) => {
+    this.pluginManager.on('plugin-error', data => {
       this.trackPluginError(data.plugin, data.error);
     });
   }
@@ -163,7 +163,7 @@ export class PluginCommunityManager {
         event: 'plugin_install',
         plugin: pluginName,
         timestamp: Date.now(),
-        user: this.userProfile.id
+        user: this.userProfile.id,
       });
     }
 
@@ -177,7 +177,7 @@ export class PluginCommunityManager {
         event: 'plugin_uninstall',
         plugin: pluginName,
         timestamp: Date.now(),
-        user: this.userProfile.id
+        user: this.userProfile.id,
       });
     }
   }
@@ -189,14 +189,14 @@ export class PluginCommunityManager {
         plugin: pluginName,
         error: error.message,
         timestamp: Date.now(),
-        user: this.userProfile.id
+        user: this.userProfile.id,
       });
     }
   }
 
   queueAnalytics(data) {
     this.feedbackQueue.push(data);
-    
+
     // Send analytics if queue gets too large
     if (this.feedbackQueue.length >= 10) {
       this.sendAnalytics();
@@ -211,11 +211,11 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
         body: JSON.stringify({
-          events: this.feedbackQueue
-        })
+          events: this.feedbackQueue,
+        }),
       });
 
       if (response.ok) {
@@ -236,7 +236,7 @@ export class PluginCommunityManager {
       rating,
       review,
       user: this.userProfile.id,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     try {
@@ -244,14 +244,18 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
-        body: JSON.stringify(ratingData)
+        body: JSON.stringify(ratingData),
       });
 
       if (response.ok) {
         // Update local rating
-        let pluginRating = this.ratings.get(pluginName) || { average: 0, count: 0, userRating: null };
+        const pluginRating = this.ratings.get(pluginName) || {
+          average: 0,
+          count: 0,
+          userRating: null,
+        };
         pluginRating.userRating = rating;
         this.ratings.set(pluginName, pluginRating);
 
@@ -261,7 +265,7 @@ export class PluginCommunityManager {
             user: this.userProfile.username,
             rating,
             review,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         }
 
@@ -281,12 +285,12 @@ export class PluginCommunityManager {
   addReview(pluginName, reviewData) {
     let reviews = this.reviews.get(pluginName) || [];
     reviews.push(reviewData);
-    
+
     // Keep only the most recent 100 reviews
     if (reviews.length > 100) {
       reviews = reviews.slice(-100);
     }
-    
+
     this.reviews.set(pluginName, reviews);
   }
 
@@ -308,13 +312,13 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
         body: JSON.stringify({
           installedPlugins: Array.from(this.pluginManager.plugins.keys()),
           preferences: this.userProfile.preferences,
-          stats: this.userProfile.stats
-        })
+          stats: this.userProfile.stats,
+        }),
       });
 
       if (response.ok) {
@@ -334,7 +338,7 @@ export class PluginCommunityManager {
       user: this.userProfile.id,
       username: this.userProfile.username,
       timestamp: Date.now(),
-      ...shareData
+      ...shareData,
     };
 
     try {
@@ -342,9 +346,9 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
-        body: JSON.stringify(sharing)
+        body: JSON.stringify(sharing),
       });
 
       if (response.ok) {
@@ -365,7 +369,7 @@ export class PluginCommunityManager {
       reason,
       description,
       user: this.userProfile.id,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     try {
@@ -373,9 +377,9 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
-        body: JSON.stringify(report)
+        body: JSON.stringify(report),
       });
 
       return response.ok;
@@ -390,7 +394,7 @@ export class PluginCommunityManager {
       user: this.userProfile.id,
       username: this.userProfile.username,
       timestamp: Date.now(),
-      ...feedback
+      ...feedback,
     };
 
     try {
@@ -398,9 +402,9 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
-        body: JSON.stringify(feedbackData)
+        body: JSON.stringify(feedbackData),
       });
 
       return response.ok;
@@ -414,8 +418,8 @@ export class PluginCommunityManager {
     try {
       const response = await fetch(`${this.apiEndpoint}/stats`, {
         headers: {
-          'Authorization': `Bearer ${this.userProfile.id}`
-        }
+          Authorization: `Bearer ${this.userProfile.id}`,
+        },
       });
 
       if (response.ok) {
@@ -432,8 +436,8 @@ export class PluginCommunityManager {
     try {
       const response = await fetch(`${this.apiEndpoint}/plugins/popular?limit=${limit}`, {
         headers: {
-          'Authorization': `Bearer ${this.userProfile.id}`
-        }
+          Authorization: `Bearer ${this.userProfile.id}`,
+        },
       });
 
       if (response.ok) {
@@ -451,8 +455,8 @@ export class PluginCommunityManager {
     try {
       const response = await fetch(`${this.apiEndpoint}/plugins/trending?limit=${limit}`, {
         headers: {
-          'Authorization': `Bearer ${this.userProfile.id}`
-        }
+          Authorization: `Bearer ${this.userProfile.id}`,
+        },
       });
 
       if (response.ok) {
@@ -481,12 +485,12 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
         body: JSON.stringify({
           user: this.userProfile.id,
-          username: this.userProfile.username
-        })
+          username: this.userProfile.username,
+        }),
       });
 
       if (response.ok) {
@@ -507,11 +511,11 @@ export class PluginCommunityManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.userProfile.id}`
+          Authorization: `Bearer ${this.userProfile.id}`,
         },
         body: JSON.stringify({
-          user: this.userProfile.id
-        })
+          user: this.userProfile.id,
+        }),
       });
 
       if (response.ok) {
@@ -534,8 +538,8 @@ export class PluginCommunityManager {
     try {
       const response = await fetch(`${this.apiEndpoint}/beta/plugins`, {
         headers: {
-          'Authorization': `Bearer ${this.userProfile.id}`
-        }
+          Authorization: `Bearer ${this.userProfile.id}`,
+        },
       });
 
       if (response.ok) {
@@ -551,10 +555,13 @@ export class PluginCommunityManager {
 
   // Periodic sync with community data
   startPeriodicSync() {
-    this.syncInterval = setInterval(() => {
-      this.syncCommunityData();
-      this.sendAnalytics();
-    }, 5 * 60 * 1000); // Sync every 5 minutes
+    this.syncInterval = setInterval(
+      () => {
+        this.syncCommunityData();
+        this.sendAnalytics();
+      },
+      5 * 60 * 1000
+    ); // Sync every 5 minutes
   }
 
   stopPeriodicSync() {
@@ -569,7 +576,7 @@ export class PluginCommunityManager {
       profile: this.userProfile,
       ratings: Object.fromEntries(this.ratings),
       reviews: Object.fromEntries(this.reviews),
-      exportDate: Date.now()
+      exportDate: Date.now(),
     };
   }
 

@@ -31,14 +31,14 @@ export class PerformanceMonitor {
       memory: { usage: 0, total: 8192, available: 8192 },
       disk: { usage: 0, readSpeed: 0, writeSpeed: 0 },
       network: { uploadSpeed: 0, downloadSpeed: 0, latency: 0 },
-      terminalActivity: { activeSessions: 0, totalCommands: 0, averageResponseTime: 0 }
+      terminalActivity: { activeSessions: 0, totalCommands: 0, averageResponseTime: 0 },
     };
     this.config = {
       maxHistorySize: 1000,
       healthCheckInterval: 5000,
       cleanupInterval: 3600000,
       dataValidationEnabled: true,
-      fallbackEnabled: true
+      fallbackEnabled: true,
     };
     this.init();
   }
@@ -125,21 +125,20 @@ export class PerformanceMonitor {
       if (this.systemHealthHistory.length > this.config.maxHistorySize) {
         this.systemHealthHistory.shift();
       }
-
     } catch (error) {
       // Handle any errors gracefully
-      console.error("Error gathering system health data:", error);
-      
+      console.error('Error gathering system health data:', error);
+
       // Return fallback data if enabled
       if (this.config.fallbackEnabled) {
         return this.getFallbackHealthData();
       }
-      
+
       // Otherwise return minimal data
       return {
         timestamp: new Date().toISOString(),
         error: error.message,
-        status: 'error'
+        status: 'error',
       };
     }
 
@@ -550,23 +549,23 @@ export class PerformanceMonitor {
                 <span>Memory: ${insights.metrics.memoryDelta}MB</span>
             </div>
             ${insights.optimizations
-    .map(
-      opt => `
+              .map(
+                opt => `
                 <div class="optimization ${opt.severity}">
                     💡 ${opt.message}
                 </div>
             `
-    )
-    .join('')}
+              )
+              .join('')}
             ${insights.warnings
-    .map(
-      warn => `
+              .map(
+                warn => `
                 <div class="warning ${warn.severity}">
                     ⚠️ ${warn.message}
                 </div>
             `
-    )
-    .join('')}
+              )
+              .join('')}
         `;
 
     // Add to terminal interface
@@ -754,7 +753,7 @@ export class PerformanceMonitor {
   async getCpuInfo() {
     try {
       const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
-      
+
       if (isNode) {
         // Node.js environment - use OS module
         const os = await import('os');
@@ -772,7 +771,7 @@ export class PerformanceMonitor {
         };
       }
     } catch (error) {
-      console.error("Error gathering CPU information:", error);
+      console.error('Error gathering CPU information:', error);
       return this.config.fallbackEnabled ? this.fallbackValues.cpu : null;
     }
   }
@@ -780,13 +779,13 @@ export class PerformanceMonitor {
   async getMemoryInfo() {
     try {
       const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
-      
+
       if (isNode) {
         // Node.js environment - use process.memoryUsage()
         const memUsage = process.memoryUsage();
         const totalMemory = await this.getTotalMemory();
         const usedMemory = memUsage.heapUsed / (1024 * 1024); // Convert to MB
-        
+
         return {
           usage: (usedMemory / totalMemory) * 100,
           total: totalMemory,
@@ -801,7 +800,7 @@ export class PerformanceMonitor {
         };
       }
     } catch (error) {
-      console.error("Error gathering memory information:", error);
+      console.error('Error gathering memory information:', error);
       return this.config.fallbackEnabled ? this.fallbackValues.memory : null;
     }
   }
@@ -814,7 +813,7 @@ export class PerformanceMonitor {
         writeSpeed: await this.getDiskWriteSpeed(),
       };
     } catch (error) {
-      console.error("Error gathering disk information:", error);
+      console.error('Error gathering disk information:', error);
       return this.config.fallbackEnabled ? this.fallbackValues.disk : null;
     }
   }
@@ -827,7 +826,7 @@ export class PerformanceMonitor {
         latency: await this.getNetworkLatency(),
       };
     } catch (error) {
-      console.error("Error gathering network statistics:", error);
+      console.error('Error gathering network statistics:', error);
       return this.config.fallbackEnabled ? this.fallbackValues.network : null;
     }
   }
@@ -840,7 +839,7 @@ export class PerformanceMonitor {
         averageResponseTime: this.getAverageResponseTime(),
       };
     } catch (error) {
-      console.error("Error gathering terminal activity information:", error);
+      console.error('Error gathering terminal activity information:', error);
       return this.config.fallbackEnabled ? this.fallbackValues.terminalActivity : null;
     }
   }
@@ -848,34 +847,34 @@ export class PerformanceMonitor {
   validateHealthData(healthData) {
     // Data validation logic
     const validated = { ...healthData };
-    
+
     // Validate CPU data
     if (validated.cpu) {
       validated.cpu.usage = Math.max(0, Math.min(100, validated.cpu.usage || 0));
       validated.cpu.cores = Math.max(1, validated.cpu.cores || 4);
     }
-    
+
     // Validate memory data
     if (validated.memory) {
       validated.memory.usage = Math.max(0, Math.min(100, validated.memory.usage || 0));
       validated.memory.total = Math.max(0, validated.memory.total || 0);
       validated.memory.available = Math.max(0, validated.memory.available || 0);
     }
-    
+
     // Validate disk data
     if (validated.disk) {
       validated.disk.usage = Math.max(0, Math.min(100, validated.disk.usage || 0));
       validated.disk.readSpeed = Math.max(0, validated.disk.readSpeed || 0);
       validated.disk.writeSpeed = Math.max(0, validated.disk.writeSpeed || 0);
     }
-    
+
     // Validate network data
     if (validated.network) {
       validated.network.uploadSpeed = Math.max(0, validated.network.uploadSpeed || 0);
       validated.network.downloadSpeed = Math.max(0, validated.network.downloadSpeed || 0);
       validated.network.latency = Math.max(0, validated.network.latency || 0);
     }
-    
+
     return validated;
   }
 
@@ -888,7 +887,7 @@ export class PerformanceMonitor {
       network: { ...this.fallbackValues.network },
       terminalActivity: { ...this.fallbackValues.terminalActivity },
       status: 'fallback',
-      message: 'Using fallback data due to system access limitations'
+      message: 'Using fallback data due to system access limitations',
     };
   }
 
@@ -903,44 +902,44 @@ export class PerformanceMonitor {
     const now = Date.now();
     const timeMs = this.parseTimeRange(timeRange);
     const startTime = now - timeMs;
-    
-    const relevantData = this.systemHealthHistory.filter(health => 
-      new Date(health.timestamp).getTime() >= startTime
+
+    const relevantData = this.systemHealthHistory.filter(
+      health => new Date(health.timestamp).getTime() >= startTime
     );
-    
+
     if (relevantData.length < 2) {
       return { trend: 'insufficient_data', message: 'Not enough data for trend analysis' };
     }
-    
+
     const trends = {
       cpu: this.calculateMetricTrend(relevantData, 'cpu.usage'),
       memory: this.calculateMetricTrend(relevantData, 'memory.usage'),
       disk: this.calculateMetricTrend(relevantData, 'disk.usage'),
       network: this.calculateMetricTrend(relevantData, 'network.latency'),
     };
-    
+
     return trends;
   }
 
   calculateMetricTrend(data, metricPath) {
     const values = data.map(item => this.getNestedValue(item, metricPath)).filter(v => v !== null);
-    
+
     if (values.length < 2) return { trend: 'insufficient_data' };
-    
+
     const recent = values.slice(-Math.ceil(values.length / 3));
     const older = values.slice(0, Math.ceil(values.length / 3));
-    
+
     const recentAvg = recent.reduce((sum, val) => sum + val, 0) / recent.length;
     const olderAvg = older.reduce((sum, val) => sum + val, 0) / older.length;
-    
+
     const changePercent = ((recentAvg - olderAvg) / olderAvg) * 100;
-    
+
     return {
       trend: changePercent > 5 ? 'increasing' : changePercent < -5 ? 'decreasing' : 'stable',
       changePercent: changePercent,
       recentAverage: recentAvg,
       historicalAverage: olderAvg,
-      confidence: Math.min(values.length / 20, 1)
+      confidence: Math.min(values.length / 20, 1),
     };
   }
 

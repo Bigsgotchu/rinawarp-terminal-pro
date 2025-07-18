@@ -26,7 +26,10 @@ import { inject } from '@vercel/speed-insights';
 const path = window.electronAPI?.path || { join: (...args) => args.join('/') };
 const os = window.electronAPI?.os || { homedir: () => process.env.HOME || '/home/user' };
 const fs = window.electronAPI?.fs || { existsSync: () => false };
-const ipcRenderer = window.electronAPI?.ipcRenderer || { on: () => {}, invoke: () => Promise.resolve() };
+const ipcRenderer = window.electronAPI?.ipcRenderer || {
+  on: () => {},
+  invoke: () => Promise.resolve(),
+};
 
 // Import Revolutionary Phase 1-3 Features
 // These will be loaded dynamically to prevent bundling issues
@@ -35,6 +38,17 @@ let AdvancedAIContextEngine,
   WorkflowAutomationEngine,
   EnhancedSecurityEngine,
   NextGenUIEngine;
+
+// Import Plugin System Integration
+let PluginSystemIntegration;
+try {
+  const pluginModule = await import('../plugins/integration/main-plugin-integration.js');
+  PluginSystemIntegration = pluginModule.initializePluginSystem;
+  console.log('✅ Plugin System Integration loaded');
+} catch (error) {
+  console.warn('⚠️ Plugin System Integration not available:', error.message);
+  PluginSystemIntegration = null;
+}
 
 // Multimodal Agent Manager
 let MultimodalAgentManager;
@@ -60,12 +74,15 @@ try {
 
 // Initialize Performance Monitor
 let performanceMonitor;
-ipcRenderer.invoke('init-performance-monitor').then((monitor) => {
-  performanceMonitor = monitor;
-  console.log('✅ Performance Monitor initialized');
-}).catch(err => {
-  console.warn('⚠️ Performance Monitor initialization failed:', err);
-});
+ipcRenderer
+  .invoke('init-performance-monitor')
+  .then(monitor => {
+    performanceMonitor = monitor;
+    console.log('✅ Performance Monitor initialized');
+  })
+  .catch(err => {
+    console.warn('⚠️ Performance Monitor initialization failed:', err);
+  });
 
 // Initialize License Manager
 let licenseManager;
@@ -2182,6 +2199,17 @@ class TerminalManager extends SimpleEventEmitter {
     // Initialize the terminal manager
     this.init();
 
+    // Initialize plugin system if available
+    if (PluginSystemIntegration) {
+      try {
+        const pluginSystem = PluginSystemIntegration(this, electronAPI);
+        this.pluginSystem = pluginSystem;
+        console.log('✅ Plugin system initialized successfully');
+      } catch (error) {
+        console.warn('⚠️ Plugin system initialization failed:', error.message);
+      }
+    }
+
     // Debounced window resize
     const debouncedResize = this.debounce(() => {
       this.resizeActiveTerminal();
@@ -2842,7 +2870,7 @@ class TerminalManager extends SimpleEventEmitter {
           // this.executeCommand(command);
         } else {
           this.pluginAPI.showNotification(
-            '🤔 I don\'t understand that command. Try being more specific!',
+            "🤔 I don't understand that command. Try being more specific!",
             'info',
             3000
           );
@@ -4043,33 +4071,33 @@ class TerminalManager extends SimpleEventEmitter {
       let statusColor = '';
 
       switch (status.tier) {
-      case 'trial':
-        statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
-        statusColor = '#ffd93d';
-        break;
-      case 'personal':
-        statusText = '👤 Personal';
-        statusColor = '#51cf66';
-        break;
-      case 'professional':
-        statusText = '💼 Professional';
-        statusColor = '#74c0fc';
-        break;
-      case 'team':
-        statusText = '👥 Team';
-        statusColor = '#9775fa';
-        break;
-      case 'enterprise':
-        statusText = '🏢 Enterprise';
-        statusColor = '#ff8c42';
-        break;
-      case 'expired':
-        statusText = '❌ Expired';
-        statusColor = '#f92672';
-        break;
-      default:
-        statusText = '❓ Unknown';
-        statusColor = '#666';
+        case 'trial':
+          statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+          statusColor = '#ffd93d';
+          break;
+        case 'personal':
+          statusText = '👤 Personal';
+          statusColor = '#51cf66';
+          break;
+        case 'professional':
+          statusText = '💼 Professional';
+          statusColor = '#74c0fc';
+          break;
+        case 'team':
+          statusText = '👥 Team';
+          statusColor = '#9775fa';
+          break;
+        case 'enterprise':
+          statusText = '🏢 Enterprise';
+          statusColor = '#ff8c42';
+          break;
+        case 'expired':
+          statusText = '❌ Expired';
+          statusColor = '#f92672';
+          break;
+        default:
+          statusText = '❓ Unknown';
+          statusColor = '#666';
       }
 
       licenseElement.textContent = statusText;
@@ -4094,15 +4122,15 @@ class TerminalManager extends SimpleEventEmitter {
                         <div class="license-tier">${status.tier.toUpperCase()}</div>
                         <div class="license-details">
                             ${
-  status.tier === 'trial'
-    ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
-    : '<p>License is active</p>'
-}
+                              status.tier === 'trial'
+                                ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
+                                : '<p>License is active</p>'
+                            }
                             ${
-  status.aiQueriesRemaining !== 'unlimited'
-    ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
-    : '<p>Unlimited AI queries</p>'
-}
+                              status.aiQueriesRemaining !== 'unlimited'
+                                ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
+                                : '<p>Unlimited AI queries</p>'
+                            }
                         </div>
                     </div>
                 </div>

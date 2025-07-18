@@ -13,7 +13,7 @@ export class PluginManagerUI {
     this.searchQuery = '';
     this.sortBy = 'name';
     this.sortOrder = 'asc';
-    
+
     this.init();
   }
 
@@ -28,7 +28,7 @@ export class PluginManagerUI {
     ui.id = 'plugin-manager-ui';
     ui.className = 'plugin-manager-ui';
     ui.innerHTML = this.getUITemplate();
-    
+
     document.body.appendChild(ui);
     this.uiElement = ui;
   }
@@ -191,64 +191,64 @@ export class PluginManagerUI {
     document.getElementById('close-plugin-manager').addEventListener('click', () => {
       this.hide();
     });
-    
+
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', e => {
         this.switchTab(e.target.dataset.tab);
       });
     });
-    
+
     // Search functionality
-    document.getElementById('installed-search').addEventListener('input', (e) => {
+    document.getElementById('installed-search').addEventListener('input', e => {
       this.searchPlugins('installed', e.target.value);
     });
-    
-    document.getElementById('marketplace-search').addEventListener('input', (e) => {
+
+    document.getElementById('marketplace-search').addEventListener('input', e => {
       this.searchPlugins('marketplace', e.target.value);
     });
-    
+
     // Sorting
-    document.getElementById('installed-sort').addEventListener('change', (e) => {
+    document.getElementById('installed-sort').addEventListener('change', e => {
       this.sortPlugins('installed', e.target.value);
     });
-    
+
     // Action buttons
     document.getElementById('refresh-installed').addEventListener('click', () => {
       this.refreshInstalledPlugins();
     });
-    
+
     document.getElementById('refresh-marketplace').addEventListener('click', () => {
       this.refreshMarketplacePlugins();
     });
-    
+
     document.getElementById('install-local').addEventListener('click', () => {
       this.installLocalPlugin();
     });
-    
+
     // Settings
     document.getElementById('save-settings').addEventListener('click', () => {
       this.saveSettings();
     });
-    
+
     document.getElementById('reset-settings').addEventListener('click', () => {
       this.resetSettings();
     });
-    
+
     // Plugin details modal
     document.getElementById('close-plugin-details').addEventListener('click', () => {
       this.hidePluginDetails();
     });
-    
+
     // Close on overlay click
-    document.getElementById('plugin-overlay').addEventListener('click', (e) => {
+    document.getElementById('plugin-overlay').addEventListener('click', e => {
       if (e.target === e.currentTarget) {
         this.hide();
       }
     });
-    
+
     // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
       if (this.isVisible) {
         if (e.key === 'Escape') {
           this.hide();
@@ -270,19 +270,19 @@ export class PluginManagerUI {
 
   switchTab(tabName) {
     this.currentTab = tabName;
-    
+
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.remove('active');
     });
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    
+
     // Update tab content
     document.querySelectorAll('.tab-content').forEach(content => {
       content.classList.remove('active');
     });
     document.getElementById(`${tabName}-tab`).classList.add('active');
-    
+
     this.refreshCurrentTab();
   }
 
@@ -303,7 +303,7 @@ export class PluginManagerUI {
   async refreshInstalledPlugins() {
     const listElement = document.getElementById('installed-plugins-list');
     listElement.innerHTML = '<div class="loading-spinner">Loading plugins...</div>';
-    
+
     try {
       const plugins = this.pluginManager.getPluginStatus();
       this.renderInstalledPlugins(plugins);
@@ -314,7 +314,7 @@ export class PluginManagerUI {
 
   renderInstalledPlugins(plugins) {
     const listElement = document.getElementById('installed-plugins-list');
-    
+
     if (Object.keys(plugins).length === 0) {
       listElement.innerHTML = `
         <div class="empty-state">
@@ -328,13 +328,13 @@ export class PluginManagerUI {
       `;
       return;
     }
-    
+
     const pluginCards = Object.entries(plugins).map(([name, plugin]) => {
       return this.createPluginCard(name, plugin, 'installed');
     });
-    
+
     listElement.innerHTML = pluginCards.join('');
-    
+
     // Bind plugin action buttons
     this.bindPluginActions();
   }
@@ -342,7 +342,7 @@ export class PluginManagerUI {
   async refreshMarketplacePlugins() {
     const listElement = document.getElementById('marketplace-plugins-list');
     listElement.innerHTML = '<div class="loading-spinner">Loading marketplace...</div>';
-    
+
     try {
       const plugins = await this.pluginManager.marketplace.searchPlugins('');
       this.renderMarketplacePlugins(plugins);
@@ -364,7 +364,7 @@ export class PluginManagerUI {
   renderMarketplacePlugins(pluginsData) {
     const listElement = document.getElementById('marketplace-plugins-list');
     const plugins = pluginsData.plugins || [];
-    
+
     if (plugins.length === 0) {
       listElement.innerHTML = `
         <div class="empty-state">
@@ -375,21 +375,23 @@ export class PluginManagerUI {
       `;
       return;
     }
-    
+
     const pluginCards = plugins.map(plugin => {
       return this.createPluginCard(plugin.name, plugin, 'marketplace');
     });
-    
+
     listElement.innerHTML = pluginCards.join('');
     this.bindPluginActions();
   }
 
   createPluginCard(name, plugin, type) {
     const isInstalled = type === 'installed';
-    const statusClass = isInstalled ? 
-      (plugin.active ? 'status-active' : 'status-inactive') : 
-      'status-available';
-    
+    const statusClass = isInstalled
+      ? plugin.active
+        ? 'status-active'
+        : 'status-inactive'
+      : 'status-available';
+
     return `
       <div class="plugin-card" data-plugin="${name}">
         <div class="plugin-header">
@@ -418,25 +420,33 @@ export class PluginManagerUI {
             ${plugin.trusted ? '<span class="plugin-trusted">✅ Trusted</span>' : ''}
           </div>
           
-          ${plugin.permissions ? `
+          ${
+            plugin.permissions
+              ? `
             <div class="plugin-permissions">
               <strong>Permissions:</strong>
               <div class="permission-tags">
                 ${plugin.permissions.map(perm => `<span class="permission-tag">${perm}</span>`).join('')}
               </div>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
         
         <div class="plugin-footer">
           <button class="btn btn-link" onclick="pluginManagerUI.showPluginDetails('${name}')">
             View Details
           </button>
-          ${plugin.homepage ? `
+          ${
+            plugin.homepage
+              ? `
             <a href="${plugin.homepage}" target="_blank" class="btn btn-link">
               Homepage
             </a>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       </div>
     `;
@@ -450,9 +460,9 @@ export class PluginManagerUI {
       theme: '🎨',
       security: '🔒',
       network: '🌐',
-      default: '🔌'
+      default: '🔌',
     };
-    
+
     return icons[category] || icons.default;
   }
 
@@ -491,7 +501,7 @@ export class PluginManagerUI {
     if (!confirm(`Are you sure you want to uninstall ${pluginName}?`)) {
       return;
     }
-    
+
     try {
       await this.pluginManager.unloadPlugin(pluginName);
       this.showSuccess(`Plugin ${pluginName} uninstalled successfully!`);
@@ -533,9 +543,9 @@ export class PluginManagerUI {
     const modal = document.getElementById('plugin-details-modal');
     const title = document.getElementById('plugin-details-title');
     const content = document.getElementById('plugin-details-content');
-    
+
     title.textContent = pluginName;
-    
+
     // Get plugin info
     const plugin = this.pluginManager.plugins.get(pluginName);
     if (plugin) {
@@ -543,7 +553,7 @@ export class PluginManagerUI {
     } else {
       content.innerHTML = '<p>Plugin not found</p>';
     }
-    
+
     modal.style.display = 'block';
   }
 
@@ -573,19 +583,20 @@ export class PluginManagerUI {
         <div class="detail-section">
           <h4>Permissions</h4>
           <div class="permission-tags">
-            ${(plugin.manifest.permissions || []).map(perm => 
-              `<span class="permission-tag">${perm}</span>`
-            ).join('')}
+            ${(plugin.manifest.permissions || [])
+              .map(perm => `<span class="permission-tag">${perm}</span>`)
+              .join('')}
           </div>
         </div>
         
         <div class="detail-section">
           <h4>Dependencies</h4>
-          ${plugin.manifest.dependencies ? 
-            Object.entries(plugin.manifest.dependencies).map(([dep, version]) => 
-              `<div class="dependency-item">${dep}: ${version}</div>`
-            ).join('') : 
-            '<p>No dependencies</p>'
+          ${
+            plugin.manifest.dependencies
+              ? Object.entries(plugin.manifest.dependencies)
+                  .map(([dep, version]) => `<div class="dependency-item">${dep}: ${version}</div>`)
+                  .join('')
+              : '<p>No dependencies</p>'
           }
         </div>
       </div>
@@ -594,7 +605,7 @@ export class PluginManagerUI {
 
   loadSettings() {
     const settings = this.getSettings();
-    
+
     document.getElementById('allow-untrusted-plugins').checked = settings.allowUntrusted;
     document.getElementById('auto-update-plugins').checked = settings.autoUpdate;
     document.getElementById('plugin-timeout').value = settings.timeout;
@@ -610,9 +621,9 @@ export class PluginManagerUI {
       timeout: parseInt(document.getElementById('plugin-timeout').value),
       maxPlugins: parseInt(document.getElementById('max-plugins').value),
       debugMode: document.getElementById('debug-mode').checked,
-      devDirectory: document.getElementById('dev-directory').value
+      devDirectory: document.getElementById('dev-directory').value,
     };
-    
+
     localStorage.setItem('plugin-manager-settings', JSON.stringify(settings));
     this.showSuccess('Settings saved successfully!');
   }
@@ -632,9 +643,9 @@ export class PluginManagerUI {
       timeout: 10,
       maxPlugins: 10,
       debugMode: false,
-      devDirectory: '~/.rinawarp/plugins/dev'
+      devDirectory: '~/.rinawarp/plugins/dev',
     };
-    
+
     const saved = localStorage.getItem('plugin-manager-settings');
     return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   }
@@ -642,16 +653,16 @@ export class PluginManagerUI {
   searchPlugins(type, query) {
     const listElement = document.getElementById(`${type}-plugins-list`);
     const cards = listElement.querySelectorAll('.plugin-card');
-    
+
     cards.forEach(card => {
       const name = card.querySelector('.plugin-name').textContent;
       const description = card.querySelector('.plugin-description').textContent;
       const author = card.querySelector('.plugin-author').textContent;
-      
-      const matches = [name, description, author].some(text => 
+
+      const matches = [name, description, author].some(text =>
         text.toLowerCase().includes(query.toLowerCase())
       );
-      
+
       card.style.display = matches ? 'block' : 'none';
     });
   }
@@ -659,10 +670,10 @@ export class PluginManagerUI {
   sortPlugins(type, sortBy) {
     const listElement = document.getElementById(`${type}-plugins-list`);
     const cards = Array.from(listElement.querySelectorAll('.plugin-card'));
-    
+
     cards.sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case 'name':
           aValue = a.querySelector('.plugin-name').textContent;
@@ -679,10 +690,10 @@ export class PluginManagerUI {
         default:
           return 0;
       }
-      
+
       return aValue.localeCompare(bValue);
     });
-    
+
     cards.forEach(card => {
       listElement.appendChild(card);
     });
@@ -697,7 +708,7 @@ export class PluginManagerUI {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.js,.zip';
-    input.onchange = async (e) => {
+    input.onchange = async e => {
       const file = e.target.files[0];
       if (file) {
         try {
@@ -730,9 +741,9 @@ export class PluginManagerUI {
         <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
       </div>
     `;
-    
+
     container.appendChild(notification);
-    
+
     // Auto-remove after 5 seconds
     setTimeout(() => {
       if (notification.parentNode) {
