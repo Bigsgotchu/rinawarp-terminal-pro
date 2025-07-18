@@ -8,6 +8,9 @@ const path = require('path');
 const os = require('os');
 const { _execSync } = require('child_process');
 const config = require('./config/unified-config.cjs');
+const { PerformanceMonitor } = require('./renderer/performance-monitor.js');
+
+const monitor = new PerformanceMonitor();
 
 // Add error handlers
 process.on('uncaughtException', error => {
@@ -187,6 +190,62 @@ ipcMain.handle('get-platform-info', () => {
     shell: config.get('terminal.shell'),
     configDir: config.configDir,
   };
+});
+
+// Performance Monitor IPC handlers
+ipcMain.handle('performance-monitor-get-system-health', async () => {
+  try {
+    return await monitor.getSystemHealth();
+  } catch (error) {
+    console.error('Error getting system health:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('performance-monitor-get-trends', () => {
+  try {
+    return monitor.getHistoricalTrends();
+  } catch (error) {
+    console.error('Error getting performance trends:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('performance-monitor-optimize-command', async (event, command, options) => {
+  try {
+    return await monitor.optimizeCommand(command, options);
+  } catch (error) {
+    console.error('Error optimizing command:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('performance-monitor-predict-resource-usage', async (event, command) => {
+  try {
+    return await monitor.predictResourceUsage(command);
+  } catch (error) {
+    console.error('Error predicting resource usage:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('performance-monitor-get-analytics', () => {
+  try {
+    return monitor.getPerformanceAnalytics();
+  } catch (error) {
+    console.error('Error getting performance analytics:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('performance-monitor-update-thresholds', (event, thresholds) => {
+  try {
+    monitor.updateThresholds(thresholds);
+    return true;
+  } catch (error) {
+    console.error('Error updating thresholds:', error);
+    return false;
+  }
 });
 
 // Handle window controls

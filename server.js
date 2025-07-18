@@ -44,6 +44,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import Joi from 'joi';
 import morgan from 'morgan';
+import jwt from 'jsonwebtoken';
 // import { validationResult } from 'express-validator'; // Currently unused
 import errorHandler, { notFoundHandler } from './src/middleware/errorHandler.js';
 import statusRouter from './src/api/status.js';
@@ -256,8 +257,8 @@ app.use(logRequest);
 app.use(express.json({ limit: '10mb' })); // Increase limit and add security
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// JWT Authentication Middleware
-const authenticateJWT = (req, res, next) => {
+// JWT Authentication Middleware (unused - kept for future use)
+const _authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -274,8 +275,8 @@ const authenticateJWT = (req, res, next) => {
   }
 };
 
-// Optional JWT middleware for routes that can work with or without auth
-const optionalJWT = (req, res, next) => {
+// Optional JWT middleware for routes that can work with or without auth (unused - kept for future use)
+const _optionalJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
 

@@ -113,7 +113,7 @@ class RealTimeSecretScanner {
 }
 
 class ComplianceChecker {
-  async verify(command, context) {
+  async verify(_command, _context) {
     return {
       compliant: true,
       violations: [],
@@ -121,7 +121,7 @@ class ComplianceChecker {
     };
   }
   
-  async getFlags(command) {
+  async getFlags(_command) {
     return [];
   }
 }
@@ -1226,7 +1226,7 @@ class EnhancedSecurityEngine {
     return maskedCommand;
   }
 
-  calculateSecretConfidence(type, match) {
+  calculateSecretConfidence(type, _match) {
     const confidenceMap = {
       'apiKey': 0.8,
       'password': 0.9,
@@ -1288,23 +1288,23 @@ class EnhancedSecurityEngine {
     return recommendations;
   }
 
-  async checkSOXCompliance(command, context) {
+  async checkSOXCompliance(_command, _context) {
     return { compliant: true, violations: [], warnings: [] };
   }
 
-  async checkHIPAACompliance(command, context) {
+  async checkHIPAACompliance(_command, _context) {
     return { compliant: true, violations: [], warnings: [] };
   }
 
-  async checkPCIDSSCompliance(command, context) {
+  async checkPCIDSSCompliance(_command, _context) {
     return { compliant: true, violations: [], warnings: [] };
   }
 
-  async checkGDPRCompliance(command, context) {
+  async checkGDPRCompliance(_command, _context) {
     return { compliant: true, violations: [], warnings: [] };
   }
 
-  async checkCustomCompliance(command, context) {
+  async checkCustomCompliance(_command, _context) {
     return { compliant: true, violations: [], warnings: [] };
   }
 

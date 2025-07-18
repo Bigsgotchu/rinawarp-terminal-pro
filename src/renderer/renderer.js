@@ -22,6 +22,12 @@ import { inject } from '@vercel/speed-insights';
 // const path = require('path'); // Only available in main process
 // const fs = require('fs'); // Only available in main process
 
+// Access node modules through electronAPI
+const path = window.electronAPI?.path || { join: (...args) => args.join('/') };
+const os = window.electronAPI?.os || { homedir: () => process.env.HOME || '/home/user' };
+const fs = window.electronAPI?.fs || { existsSync: () => false };
+const ipcRenderer = window.electronAPI?.ipcRenderer || { on: () => {}, invoke: () => Promise.resolve() };
+
 // Import Revolutionary Phase 1-3 Features
 // These will be loaded dynamically to prevent bundling issues
 let AdvancedAIContextEngine,
@@ -51,6 +57,15 @@ try {
 } catch (error) {
   console.warn('Enhanced terminal features not available:', error.message);
 }
+
+// Initialize Performance Monitor
+let performanceMonitor;
+ipcRenderer.invoke('init-performance-monitor').then((monitor) => {
+  performanceMonitor = monitor;
+  console.log('✅ Performance Monitor initialized');
+}).catch(err => {
+  console.warn('⚠️ Performance Monitor initialization failed:', err);
+});
 
 // Initialize License Manager
 let licenseManager;

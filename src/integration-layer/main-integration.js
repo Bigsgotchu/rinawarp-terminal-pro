@@ -108,18 +108,24 @@ class RinaWarpIntegration {
         });
       }
 
-      // Register Performance Monitor through global manager
-      try {
-        this.features.performanceMonitor = await globalObjectManager.get('performanceMonitor');
-        if (this.features.performanceMonitor) {
-          this.hub.registerFeature('performance-monitor', this.features.performanceMonitor, {
-            version: '1.0.0',
-            capabilities: ['system-monitoring', 'performance-analytics', 'resource-optimization'],
-            securityLevel: 'standard',
-            dependencies: [],
-          });
-        }
-      } catch (error) {
+// Register Performance Monitor through global manager
+try {
+  this.features.performanceMonitor = await globalObjectManager.get('performanceMonitor');
+  if (this.features.performanceMonitor) {
+    this.hub.registerFeature('performance-monitor', this.features.performanceMonitor, {
+      version: '1.1.0',
+      capabilities: ['system-monitoring', 'performance-analytics', 'resource-optimization'],
+      securityLevel: 'standard',
+      dependencies: [],
+    });
+  }
+
+  // Initialize the performance monitoring routine here
+  ipcMain.handle('init-performance-monitor', async () => {
+    return this.features.performanceMonitor;
+  });
+
+} catch (error) {
         logger.warn('Failed to register Performance Monitor', {
           component: 'main-integration',
           error: error.message,
