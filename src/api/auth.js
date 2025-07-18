@@ -238,7 +238,7 @@ router.post(
       await smtpService.sendEmail({
         to: email,
         subject: '🌊 Welcome to RinaWarp Terminal - Your Journey Begins! ✨',
-        text: `Welcome to RinaWarp Terminal, ${name}!\n\nYour terminal journey begins here. Dive into the depths of productivity and let the waves guide you through your coding adventures.\n\nGet started:\n1. Download RinaWarp Terminal from https://rinawarp-terminal.vercel.app/\n2. Install and launch the application\n3. Explore the features and customize your experience\n\nNeed help? Visit our documentation or contact support@rinawarp.com\n\nHappy coding!\nThe RinaWarp Team 🧜‍♀️`,
+        text: `Welcome to RinaWarp Terminal, ${name}!\n\nYour terminal journey begins here. Dive into the depths of productivity and let the waves guide you through your coding adventures.\n\nGet started:\n1. Download RinaWarp Terminal from https://rinawarptech.com/\n2. Install and launch the application\n3. Explore the features and customize your experience\n\nNeed help? Visit our documentation or contact support@rinawarp.com\n\nHappy coding!\nThe RinaWarp Team 🧜‍♀️`,
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e, #16213e);">
           <div style="background: linear-gradient(135deg, #0f3460, #16537e); padding: 40px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,255,136,0.1);">
@@ -248,7 +248,7 @@ router.post(
             <div style="background: rgba(0,255,136,0.1); padding: 25px; border-radius: 10px; margin: 30px 0; border: 1px solid rgba(0,255,136,0.3);">
               <h3 style="color: #00ff88; margin-bottom: 20px; font-size: 20px;">🚀 Get Started</h3>
               <ol style="color: #cccccc; line-height: 1.8; text-align: left; padding-left: 20px;">
-                <li>Download RinaWarp Terminal from <a href="https://rinawarp-terminal.vercel.app/" style="color: #00ff88; text-decoration: none; font-weight: bold;">our website</a></li>
+                <li>Download RinaWarp Terminal from <a href="https://rinawarptech.com/" style="color: #00ff88; text-decoration: none; font-weight: bold;">our website</a></li>
                 <li>Install and launch the application</li>
                 <li>Explore the features and customize your experience</li>
                 <li>Join our community and share your journey</li>
@@ -256,7 +256,7 @@ router.post(
             </div>
             
             <div style="margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 10px;">
-              <p style="color: #888; font-size: 14px; margin: 0;">Need help? Visit our <a href="https://rinawarp-terminal.vercel.app/docs" style="color: #00ff88;">documentation</a> or contact <a href="mailto:support@rinawarp.com" style="color: #00ff88;">support@rinawarp.com</a></p>
+              <p style="color: #888; font-size: 14px; margin: 0;">Need help? Visit our <a href="https://rinawarptech.com/docs" style="color: #00ff88;">documentation</a> or contact <a href="mailto:support@rinawarp.com" style="color: #00ff88;">support@rinawarp.com</a></p>
               <p style="color: #00ff88; font-size: 16px; margin: 15px 0 0 0; font-weight: bold;">Happy coding! 🐚</p>
             </div>
           </div>

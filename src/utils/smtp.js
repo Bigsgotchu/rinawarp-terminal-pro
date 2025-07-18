@@ -143,7 +143,7 @@ class SMTPService {
           <div style="text-align: left; margin-top: 30px;">
             <h3 style="color: #00ff88;">Getting Started:</h3>
             <ol style="color: #cccccc; line-height: 1.6;">
-              <li>Download RinaWarp Terminal from <a href="https://rinawarp-terminal.vercel.app/" style="color: #00ff88;">our website</a></li>
+              <li>Download RinaWarp Terminal from <a href="https://rinawarptech.com/" style="color: #00ff88;">our website</a></li>
               <li>Install and launch the application</li>
               <li>Go to Settings → License</li>
               <li>Enter your license key above</li>
@@ -167,7 +167,7 @@ class SMTPService {
       Your License Key: ${licenseKey}
       
       Getting Started:
-      1. Download RinaWarp Terminal from https://rinawarp-terminal.vercel.app/
+      1. Download RinaWarp Terminal from https://rinawarptech.com/
       2. Install and launch the application
       3. Go to Settings → License
       4. Enter your license key above

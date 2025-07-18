@@ -528,7 +528,7 @@ Contributors who make significant impact may be invited to join as:
 
 - **GitHub Discussions**: Ask questions and share ideas
 - **GitHub Issues**: Report bugs and request features
-- **Email**: contribute@rinawarp-terminal-fresh-2024.web.app
+- **Email**: contribute@rinawarptech.com
 
 ### Mentorship
 

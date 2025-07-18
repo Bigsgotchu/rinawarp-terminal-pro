@@ -138,7 +138,7 @@ jobs:
     needs: build-and-test
     environment:
       name: production
-      url: https://rinawarp-terminal.vercel.app
+      url: https://rinawarptech.com
     
     steps:
       - name: 📦 Checkout Code
@@ -173,7 +173,7 @@ jobs:
           vercel --prod --token=$VERCEL_TOKEN --confirm --name "rinawarp-terminal" --meta version="$VERSION" --meta commit="${{ github.sha }}"
           
           echo "Production deployment completed for version: $VERSION"
-          echo "Live at: https://rinawarp-terminal.vercel.app"
+          echo "Live at: https://rinawarptech.com"
 
   # 🔐 Secret Sync Job (Optional)
   sync-secrets:
@@ -222,7 +222,7 @@ jobs:
           echo "| 🔐 Secret Sync | ${{ needs.sync-secrets.result }} | - |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🌐 Environment URLs" >> $GITHUB_STEP_SUMMARY
-          echo "- 🚀 **Production**: https://rinawarp-terminal.vercel.app" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚀 **Production**: https://rinawarptech.com" >> $GITHUB_STEP_SUMMARY
           echo "- ⚡ **Preview**: Auto-generated per branch" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🔗 Useful Links" >> $GITHUB_STEP_SUMMARY

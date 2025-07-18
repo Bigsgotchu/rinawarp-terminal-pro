@@ -19,9 +19,6 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
-  },
   transformIgnorePatterns: ['node_modules/(?!(@testing-library|@xterm)/)'],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',

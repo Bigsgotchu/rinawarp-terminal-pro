@@ -83,179 +83,179 @@ client.on('interactionCreate', async interaction => {
 
   try {
     switch (commandName) {
-    case 'beta':
-      const betaEmbed = new EmbedBuilder()
-        .setColor('#667eea')
-        .setTitle('🧜‍♀️ RinaWarp Terminal Beta')
-        .setDescription('Join the underwater coding revolution!')
-        .addFields(
-          {
-            name: '🌊 What is RinaWarp Terminal?',
-            value:
-                'The world\'s first mermaid-themed AI terminal with intelligent coding assistance!',
-          },
-          { name: '🆓 Beta Access', value: 'Free access to all premium features during beta' },
-          {
-            name: '⚡ Features',
-            value:
+      case 'beta':
+        const betaEmbed = new EmbedBuilder()
+          .setColor('#667eea')
+          .setTitle('🧜‍♀️ RinaWarp Terminal Beta')
+          .setDescription('Join the underwater coding revolution!')
+          .addFields(
+            {
+              name: '🌊 What is RinaWarp Terminal?',
+              value:
+                "The world's first mermaid-themed AI terminal with intelligent coding assistance!",
+            },
+            { name: '🆓 Beta Access', value: 'Free access to all premium features during beta' },
+            {
+              name: '⚡ Features',
+              value:
                 '• AI Mermaid Assistant\n• Oceanic Themes\n• Wave-Speed Performance\n• Cross-platform Support',
-          }
-        )
-        .setURL('https://rinawarp-terminal.vercel.app/beta')
-        .setFooter({ text: 'Click the link above to join!' })
-        .setTimestamp();
+            }
+          )
+          .setURL('https://rinawarptech.com/beta')
+          .setFooter({ text: 'Click the link above to join!' })
+          .setTimestamp();
 
-      await interaction.reply({ embeds: [betaEmbed] });
-      break;
-
-    case 'announce':
-      // Check if user has admin permissions
-      if (!interaction.member.permissions.has('ADMINISTRATOR')) {
-        await interaction.reply({
-          content: '❌ You need admin permissions to use this command!',
-          ephemeral: true,
-        });
-        return;
-      }
-
-      const message = interaction.options.getString('message');
-      const announceEmbed = new EmbedBuilder()
-        .setColor('#ff6b6b')
-        .setTitle('📢 RinaWarp Terminal Announcement')
-        .setDescription(message)
-        .setFooter({ text: 'RinaWarp Terminal Team' })
-        .setTimestamp();
-
-      await interaction.reply({ embeds: [announceEmbed] });
-      break;
-
-    case 'stats':
-      const guild = interaction.guild;
-      const statsEmbed = new EmbedBuilder()
-        .setColor('#4ecdc4')
-        .setTitle('📊 Server Statistics')
-        .addFields(
-          { name: '👥 Members', value: guild.memberCount.toString(), inline: true },
-          { name: '📁 Channels', value: guild.channels.cache.size.toString(), inline: true },
-          { name: '🎭 Roles', value: guild.roles.cache.size.toString(), inline: true },
-          { name: '🧜‍♀️ Server Created', value: guild.createdAt.toDateString(), inline: false }
-        )
-        .setThumbnail(guild.iconURL())
-        .setTimestamp();
-
-      await interaction.reply({ embeds: [statsEmbed] });
-      break;
-
-    case 'feedback':
-      const feedback = interaction.options.getString('feedback');
-      const feedbackEmbed = new EmbedBuilder()
-        .setColor('#95e1d3')
-        .setTitle('💬 Feedback Received')
-        .setDescription(
-          'Thank you for your feedback! We\'ll review it and use it to improve RinaWarp Terminal.'
-        )
-        .addFields(
-          { name: '👤 From', value: interaction.user.tag, inline: true },
-          { name: '📝 Feedback', value: feedback, inline: false }
-        )
-        .setTimestamp();
-
-      // Send to feedback channel (you can set this up)
-      const feedbackChannel = interaction.guild.channels.cache.find(
-        channel => channel.name === 'feedback'
-      );
-      if (feedbackChannel) {
-        await feedbackChannel.send({ embeds: [feedbackEmbed] });
-      }
-
-      await interaction.reply({ content: '✅ Thank you for your feedback!', ephemeral: true });
-      break;
-
-    case 'invite':
-      // Create an invite link for the server
-      const channel = interaction.guild.channels.cache.find(ch => ch.type === 0); // Find first text channel
-
-      if (!channel) {
-        await interaction.reply({
-          content: '❌ Unable to find a text channel to create invite from.',
-          ephemeral: true,
-        });
+        await interaction.reply({ embeds: [betaEmbed] });
         break;
-      }
 
-      const invite = await channel.createInvite({
-        maxAge: 0, // Never expires
-        maxUses: 0, // Unlimited uses
-        unique: false,
-      });
+      case 'announce':
+        // Check if user has admin permissions
+        if (!interaction.member.permissions.has('ADMINISTRATOR')) {
+          await interaction.reply({
+            content: '❌ You need admin permissions to use this command!',
+            ephemeral: true,
+          });
+          return;
+        }
 
-      const inviteEmbed = new EmbedBuilder()
-        .setColor('#667eea')
-        .setTitle('🧜‍♀️ Invite Friends to RinaWarp Terminal!')
-        .setDescription('Share this link to invite friends to our underwater coding community!')
-        .addFields(
-          { name: '🔗 Server Invite', value: `https://discord.gg/${invite.code}`, inline: false },
-          {
-            name: '🌊 What They\'ll Get',
-            value:
-                '• Access to RinaWarp Terminal beta\n• AI coding assistance community\n• Beautiful oceanic themes\n• Developer support',
-          },
-          {
-            name: '📱 How to Share',
-            value:
-                'Copy the invite link above and share it with friends, on social media, or in other communities!',
-          }
-        )
-        .setFooter({ text: 'Help us grow our underwater coding community!' })
-        .setTimestamp();
+        const message = interaction.options.getString('message');
+        const announceEmbed = new EmbedBuilder()
+          .setColor('#ff6b6b')
+          .setTitle('📢 RinaWarp Terminal Announcement')
+          .setDescription(message)
+          .setFooter({ text: 'RinaWarp Terminal Team' })
+          .setTimestamp();
 
-      await interaction.reply({ embeds: [inviteEmbed] });
-      break;
+        await interaction.reply({ embeds: [announceEmbed] });
+        break;
 
-    case 'promote':
-      // Check if user has admin permissions
-      if (!interaction.member.permissions.has('ADMINISTRATOR')) {
-        await interaction.reply({
-          content: '❌ You need admin permissions to use this command!',
-          ephemeral: true,
+      case 'stats':
+        const guild = interaction.guild;
+        const statsEmbed = new EmbedBuilder()
+          .setColor('#4ecdc4')
+          .setTitle('📊 Server Statistics')
+          .addFields(
+            { name: '👥 Members', value: guild.memberCount.toString(), inline: true },
+            { name: '📁 Channels', value: guild.channels.cache.size.toString(), inline: true },
+            { name: '🎭 Roles', value: guild.roles.cache.size.toString(), inline: true },
+            { name: '🧜‍♀️ Server Created', value: guild.createdAt.toDateString(), inline: false }
+          )
+          .setThumbnail(guild.iconURL())
+          .setTimestamp();
+
+        await interaction.reply({ embeds: [statsEmbed] });
+        break;
+
+      case 'feedback':
+        const feedback = interaction.options.getString('feedback');
+        const feedbackEmbed = new EmbedBuilder()
+          .setColor('#95e1d3')
+          .setTitle('💬 Feedback Received')
+          .setDescription(
+            "Thank you for your feedback! We'll review it and use it to improve RinaWarp Terminal."
+          )
+          .addFields(
+            { name: '👤 From', value: interaction.user.tag, inline: true },
+            { name: '📝 Feedback', value: feedback, inline: false }
+          )
+          .setTimestamp();
+
+        // Send to feedback channel (you can set this up)
+        const feedbackChannel = interaction.guild.channels.cache.find(
+          channel => channel.name === 'feedback'
+        );
+        if (feedbackChannel) {
+          await feedbackChannel.send({ embeds: [feedbackEmbed] });
+        }
+
+        await interaction.reply({ content: '✅ Thank you for your feedback!', ephemeral: true });
+        break;
+
+      case 'invite':
+        // Create an invite link for the server
+        const channel = interaction.guild.channels.cache.find(ch => ch.type === 0); // Find first text channel
+
+        if (!channel) {
+          await interaction.reply({
+            content: '❌ Unable to find a text channel to create invite from.',
+            ephemeral: true,
+          });
+          break;
+        }
+
+        const invite = await channel.createInvite({
+          maxAge: 0, // Never expires
+          maxUses: 0, // Unlimited uses
+          unique: false,
         });
-        return;
-      }
 
-      const promoteEmbed = new EmbedBuilder()
-        .setColor('#4ecdc4')
-        .setTitle('🚀 RinaWarp Terminal Promotion Kit')
-        .setDescription('Ready-to-use promotion materials for RinaWarp Terminal!')
-        .addFields(
-          {
-            name: '📱 Social Media Copy',
-            value:
+        const inviteEmbed = new EmbedBuilder()
+          .setColor('#667eea')
+          .setTitle('🧜‍♀️ Invite Friends to RinaWarp Terminal!')
+          .setDescription('Share this link to invite friends to our underwater coding community!')
+          .addFields(
+            { name: '🔗 Server Invite', value: `https://discord.gg/${invite.code}`, inline: false },
+            {
+              name: "🌊 What They'll Get",
+              value:
+                '• Access to RinaWarp Terminal beta\n• AI coding assistance community\n• Beautiful oceanic themes\n• Developer support',
+            },
+            {
+              name: '📱 How to Share',
+              value:
+                'Copy the invite link above and share it with friends, on social media, or in other communities!',
+            }
+          )
+          .setFooter({ text: 'Help us grow our underwater coding community!' })
+          .setTimestamp();
+
+        await interaction.reply({ embeds: [inviteEmbed] });
+        break;
+
+      case 'promote':
+        // Check if user has admin permissions
+        if (!interaction.member.permissions.has('ADMINISTRATOR')) {
+          await interaction.reply({
+            content: '❌ You need admin permissions to use this command!',
+            ephemeral: true,
+          });
+          return;
+        }
+
+        const promoteEmbed = new EmbedBuilder()
+          .setColor('#4ecdc4')
+          .setTitle('🚀 RinaWarp Terminal Promotion Kit')
+          .setDescription('Ready-to-use promotion materials for RinaWarp Terminal!')
+          .addFields(
+            {
+              name: '📱 Social Media Copy',
+              value:
                 '"🧜‍♀️ Join the underwater coding revolution! RinaWarp Terminal - the world\'s first mermaid-themed AI terminal with intelligent coding assistance. Beta now available! #RinaWarp #AI #Terminal"',
-          },
-          {
-            name: '🌊 Discord Message',
-            value:
+            },
+            {
+              name: '🌊 Discord Message',
+              value:
                 'Hey everyone! 🧜‍♀️ Check out RinaWarp Terminal - a magical AI terminal with oceanic themes and intelligent coding assistance. Free beta access available now!',
-          },
-          {
-            name: '🔗 Links to Share',
-            value:
-                '• Beta Page: https://rinawarp-terminal.vercel.app/beta\n• Discord Server: Use `/invite` command\n• GitHub: https://github.com/Bigsgotchu/rinawarp-terminal',
-          },
-          {
-            name: '🎯 Target Audience',
-            value:
+            },
+            {
+              name: '🔗 Links to Share',
+              value:
+                '• Beta Page: https://rinawarptech.com/beta\n• Discord Server: Use `/invite` command\n• GitHub: https://github.com/Bigsgotchu/rinawarp-terminal',
+            },
+            {
+              name: '🎯 Target Audience',
+              value:
                 '• Developers & Programmers\n• Terminal enthusiasts\n• AI/ML community\n• Open source contributors\n• Tech students & educators',
-          }
-        )
-        .setFooter({ text: 'RinaWarp Terminal - Dive into the future of coding!' })
-        .setTimestamp();
+            }
+          )
+          .setFooter({ text: 'RinaWarp Terminal - Dive into the future of coding!' })
+          .setTimestamp();
 
-      await interaction.reply({ embeds: [promoteEmbed], ephemeral: true });
-      break;
+        await interaction.reply({ embeds: [promoteEmbed], ephemeral: true });
+        break;
 
-    default:
-      await interaction.reply({ content: '❓ Unknown command!', ephemeral: true });
+      default:
+        await interaction.reply({ content: '❓ Unknown command!', ephemeral: true });
     }
   } catch (error) {
     console.error('Error handling command:', error);

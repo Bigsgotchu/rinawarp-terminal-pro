@@ -53,7 +53,7 @@ Once secrets are configured:
 
 ### Production Deploy Test
 1. The `v1.0.8` tag will automatically trigger production deploy
-2. Check for production URL: `rinawarp-terminal.vercel.app`
+2. Check for production URL: `rinawarptech.com`
 
 ## 📊 Expected Workflow Behavior
 
@@ -92,7 +92,7 @@ Once secrets are configured:
 The CI/CD pipeline is fully configured and ready to surf those deployment waves! 🌊
 
 - **Preview Deployments**: `rinawarp-{branch-name}.vercel.app`
-- **Production Deployment**: `rinawarp-terminal.vercel.app`
+- **Production Deployment**: `rinawarptech.com`
 - **Comprehensive Monitoring**: GitHub Actions + Vercel Dashboard
 - **Secret Management**: Secure environment variable handling
 - **Deployment Summaries**: Detailed reports for each deploy

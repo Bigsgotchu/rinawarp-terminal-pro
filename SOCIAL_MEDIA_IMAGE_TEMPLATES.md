@@ -28,7 +28,7 @@
 │   💰 Early Bird: $29 • Beta: $39       │
 │   ✨ Enhanced AI • Cloud Sync • Teams  │
 │                                         │
-│   rinawarp-terminal.vercel.app/pricing  │
+│   rinawarptech.com/pricing  │
 └─────────────────────────────────────────┘
 ```
 
@@ -46,7 +46,7 @@ Subheading: "BETA ACCESS LIVE!"
 Features: "Enhanced AI • Cloud Sync • Team Collaboration"
 Pricing: "Early Bird: $29 • Beta: $39 • Premium: $59"
 CTA: "Get Beta Access Now!"
-URL: "rinawarp-terminal.vercel.app/pricing"
+URL: "rinawarptech.com/pricing"
 ```
 
 ---

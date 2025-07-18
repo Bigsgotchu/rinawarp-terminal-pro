@@ -16,7 +16,7 @@ We're thrilled to announce that **RinaWarp Terminal v1.0.9 Beta Access** is now 
 | ✅ Beta recognition | ✅ Community access | ✅ Developer access |
 | **LIMITED TIME** | **MOST POPULAR** | **PREMIUM** |
 
-🛒 **[Purchase Beta Access Here](https://rinawarp-terminal.vercel.app/pricing)**
+🛒 **[Purchase Beta Access Here](https://rinawarptech.com/pricing)**
 
 ## 🌟 **What's New in v1.0.9**
 
@@ -80,7 +80,7 @@ We're thrilled to announce that **RinaWarp Terminal v1.0.9 Beta Access** is now 
 
 ## 🚀 **How to Join**
 
-1. **Visit** our [pricing page](https://rinawarp-terminal.vercel.app/pricing)
+1. **Visit** our [pricing page](https://rinawarptech.com/pricing)
 2. **Choose** your beta access level
 3. **Complete** secure Stripe checkout
 4. **Receive** beta key via email
@@ -128,7 +128,7 @@ If you're excited about v1.0.9, please share:
 
 **Ready to shape the future of terminal computing?**
 
-**[🛒 Get Your Beta Access Now!](https://rinawarp-terminal.vercel.app/pricing)**
+**[🛒 Get Your Beta Access Now!](https://rinawarptech.com/pricing)**
 
 ---
 
@@ -139,7 +139,7 @@ If you're excited about v1.0.9, please share:
 ---
 
 **Links:**
-- 🛒 **Purchase**: https://rinawarp-terminal.vercel.app/pricing
+- 🛒 **Purchase**: https://rinawarptech.com/pricing
 - 📧 **Support**: rinawarptechnologies25@gmail.com
 - 🐛 **Issues**: https://github.com/Bigsgotchu/rinawarp-terminal/issues
-- 📖 **Docs**: https://rinawarp-terminal.vercel.app/docs
+- 📖 **Docs**: https://rinawarptech.com/docs

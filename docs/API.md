@@ -4,7 +4,7 @@
 
 The RinaWarp Terminal API provides programmatic access to terminal features, user management, and enterprise functionality. This REST API is designed for integration with third-party applications and enterprise systems.
 
-**Base URL**: `https://api.rinawarp.com/v1`  
+**Base URL**: `https://api.rinawarp-terminal.com/v1`
 **Current Version**: v1.0  
 **Authentication**: JWT Bearer tokens  
 
@@ -241,7 +241,7 @@ const RinaWarp = require('@rinawarp/terminal-sdk');
 
 const client = new RinaWarp.Client({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.rinawarp.com/v1'
+  baseUrl: 'https://api.rinawarp-terminal.com/v1'
 });
 
 // Get user profile
@@ -263,12 +263,12 @@ user = client.users.get('user123')
 ### cURL Examples
 ```bash
 # Login
-curl -X POST https://api.rinawarp.com/v1/auth/login \
+curl -X POST https://api.rinawarp-terminal.com/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"password"}'
 
 # Get user profile
-curl -X GET https://api.rinawarp.com/v1/users/user123 \
+curl -X GET https://api.rinawarp-terminal.com/v1/users/user123 \
   -H "Authorization: Bearer your-token"
 ```
 
@@ -294,10 +294,10 @@ curl -X GET https://api.rinawarp.com/v1/users/user123 \
 ## Support
 
 For API support:
-- **Documentation**: [https://docs.rinawarp.com/api](https://docs.rinawarp.com/api)
-- **Status Page**: [https://status.rinawarp.com](https://status.rinawarp.com)
-- **Email Support**: api-support@rinawarp.com
-- **GitHub Issues**: [https://github.com/Bigsgotchu/rinawarp-terminal/issues](https://github.com/Bigsgotchu/rinawarp-terminal/issues)
+- **Documentation**: [https://docs.rinawarp-terminal.com/api](https://docs.rinawarp-terminal.com/api)
+- **Status Page**: [https://status.rinawarp-terminal.com](https://status.rinawarp-terminal.com)
+- **Email Support**: api-support@rinawarp-terminal.com
+- **GitHub Issues**: [https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues](https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues)
 
 ## Terms of Service
 

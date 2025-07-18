@@ -27,7 +27,7 @@ After months of development, we're ready to share our most ambitious release wit
 
 This is perfect for developers, DevOps teams, and tech leaders looking to optimize their terminal workflows with AI-powered assistance.
 
-🔗 Join the beta: https://rinawarp-terminal.vercel.app/pricing
+🔗 Join the beta: https://rinawarptech.com/pricing
 
 #DeveloperTools #Terminal #AI #Beta #TechLaunch #Productivity #DevOps
 
@@ -58,7 +58,7 @@ We're offering exclusive early access to forward-thinking organizations. This is
 
 Early feedback from beta testers: "Game-changing for our DevOps workflow" and "The AI features save hours every week."
 
-🔗 Evaluate for your team: https://rinawarp-terminal.vercel.app/pricing
+🔗 Evaluate for your team: https://rinawarptech.com/pricing
 
 #Leadership #DeveloperProductivity #TechInnovation #DevOps #TeamEfficiency #AI
 
@@ -96,7 +96,7 @@ Unlike basic autocomplete, our AI learns YOUR workflow:
 
 Built with modern tech stack: Electron, Express, Node.js, with enterprise-grade security throughout.
 
-🔗 Technical details & beta access: https://rinawarp-terminal.vercel.app/pricing
+🔗 Technical details & beta access: https://rinawarptech.com/pricing
 
 #SoftwareDevelopment #Terminal #AI #TechStack #BetaTesting #DeveloperExperience
 
@@ -130,7 +130,7 @@ This beta launch is about YOU - the developer community. Your feedback will shap
 • 4-week beta program
 • March 2025 public release
 
-🔗 Join the journey: https://rinawarp-terminal.vercel.app/pricing
+🔗 Join the journey: https://rinawarptech.com/pricing
 
 #Entrepreneur #DeveloperTools #ProductLaunch #StartupLife #Beta #Community
 
@@ -170,7 +170,7 @@ The terminal emulator market is ripe for disruption. With 50M+ developers worldw
 📊 **Early Traction:**
 Beta signups opened just hours ago and we're already seeing strong interest from development teams across multiple industries.
 
-🔗 Join the beta program: https://rinawarp-terminal.vercel.app/pricing
+🔗 Join the beta program: https://rinawarptech.com/pricing
 
 #ProductLaunch #Metrics #BetaTesting #DeveloperTools #MarketOpportunity #AI
 
@@ -213,7 +213,7 @@ What metrics matter most when evaluating developer tools? Share your thoughts! �
 2. Choose your beta tier
 3. Start using advanced terminal features today
 
-🔗 Get started: https://rinawarp-terminal.vercel.app/pricing
+🔗 Get started: https://rinawarptech.com/pricing
 
 #BetaAccess #DeveloperProductivity #LimitedOffer #CallToAction #Terminal
 

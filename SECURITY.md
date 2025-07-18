@@ -31,7 +31,7 @@ We take security seriously and appreciate responsible disclosure of security vul
    - Provides secure, private communication channel
 
 2. **Email Reporting**
-   - **Primary**: security@rinawarp-terminal-fresh-2024.web.app
+   - **Primary**: security@rinawarptech.com
    - **Secondary**: rinawarptechnologies25@gmail.com
    - Use PGP encryption if possible (key available on request)
 
@@ -136,7 +136,7 @@ While we don't currently offer a formal bug bounty program, we recognize and app
 ## 📞 Contact Information
 
 ### Security Team
-- **Primary Email**: security@rinawarp-terminal-fresh-2024.web.app
+- **Primary Email**: security@rinawarptech.com
 - **Business Email**: rinawarptechnologies25@gmail.com
 - **Response Time**: Within 48 hours during business days
 
@@ -146,8 +146,8 @@ While we don't currently offer a formal bug bounty program, we recognize and app
 - **Compliance**: Committed to industry security standards
 
 ### Legal
-- **Legal Inquiries**: legal@rinawarp-terminal-fresh-2024.web.app
-- **DMCA/Copyright**: dmca@rinawarp-terminal-fresh-2024.web.app
+- **Legal Inquiries**: legal@rinawarptech.com
+- **DMCA/Copyright**: dmca@rinawarptech.com
 - **Privacy Policy**: Available on project website
 
 ## 📚 Additional Resources

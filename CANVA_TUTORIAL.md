@@ -77,7 +77,7 @@
 
 #### **3.7 Add Website URL:**
 1. **Add text box**
-2. **Type**: "rinawarp-terminal.vercel.app/pricing"
+2. **Type**: "rinawarptech.com/pricing"
 3. **Format**:
    - **Font**: Regular
    - **Size**: 16-18px
@@ -192,7 +192,7 @@ Subheading: "BETA ACCESS LIVE!"
 Features: "Enhanced AI • Cloud Sync • Teams"
 Pricing: "Early Bird: $29 • Beta: $39"
 CTA: "Get Beta Access Now!"
-URL: "rinawarp-terminal.vercel.app/pricing"
+URL: "rinawarptech.com/pricing"
 Colors: Dark navy background, cyan text, pink accents
 ```
 

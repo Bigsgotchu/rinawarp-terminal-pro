@@ -6,9 +6,9 @@
 ## 📊 Overall Test Results
 
 ### 🌐 Website & Download Tests: **100% PASSED** (61/61)
-- ✅ **Homepage:** https://rinawarp-terminal.vercel.app
-- ✅ **Pricing Page:** https://rinawarp-terminal.vercel.app/pricing  
-- ✅ **Download API:** https://rinawarp-terminal.vercel.app/api/download
+- ✅ **Homepage:** https://rinawarptech.com
+- ✅ **Pricing Page:** https://rinawarptech.com/pricing  
+- ✅ **Download API:** https://rinawarptech.com/api/download
 - ✅ **Backend API:** https://rinawarp-terminal-production.up.railway.app/health
 - ✅ **Stripe Integration:** Live payment processing ready
 
@@ -65,7 +65,7 @@
 ## 🛠️ Technology Stack
 
 ### **Frontend (Website)**
-- **Hosting:** Vercel (https://rinawarp-terminal.vercel.app)
+- **Hosting:** Vercel (https://rinawarptech.com)
 - **Framework:** Static HTML/CSS/JavaScript
 - **Payment:** Stripe integration
 - **Security:** CORS, CSP headers, rate limiting
@@ -86,10 +86,10 @@
 ## 📱 Installation & Usage
 
 ### **For End Users**
-1. **Download:** Visit https://rinawarp-terminal.vercel.app/api/download
+1. **Download:** Visit https://rinawarptech.com/api/download
 2. **Install:** Run the 90MB Windows installer
 3. **Launch:** Desktop application with full AI features
-4. **Purchase:** Choose plan at https://rinawarp-terminal.vercel.app/pricing
+4. **Purchase:** Choose plan at https://rinawarptech.com/pricing
 
 ### **For Developers**
 ```bash
@@ -108,7 +108,7 @@ npm run build:linux     # Linux packages
 
 ### **Complete End-to-End User Journey:**
 
-1. **Discovery** → User visits https://rinawarp-terminal.vercel.app
+1. **Discovery** → User visits https://rinawarptech.com
 2. **Information** → Reviews features and pricing
 3. **Download** → Gets 90MB installer via download API
 4. **Installation** → Installs RinaWarp Terminal on their system
@@ -140,7 +140,7 @@ npm run build:linux     # Linux packages
 
 ## 📞 Support & Contact
 
-- **Homepage:** https://rinawarp-terminal.vercel.app
+- **Homepage:** https://rinawarptech.com
 - **Email:** rinawarptechnologies25@gmail.com  
 - **GitHub:** https://github.com/Bigsgotchu/rinawarp-terminal
 - **API Status:** https://rinawarp-terminal-production.up.railway.app/health

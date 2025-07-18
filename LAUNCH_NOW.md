@@ -13,7 +13,7 @@ The AI-powered terminal that makes developers 10x more productive.
 ⚡ Lightning-fast performance
 🔒 Enterprise security
 
-Try FREE: https://rinawarp-terminal.vercel.app
+Try FREE: https://rinawarptech.com
 
 #AI #DevTools #Terminal #Productivity
 
@@ -36,7 +36,7 @@ Perfect for developers who value productivity.
 
 Plans: Personal ($29/mo), Professional ($79/mo), Team ($199/mo)
 
-FREE trial: https://rinawarp-terminal.vercel.app
+FREE trial: https://rinawarptech.com
 
 #SoftwareDevelopment #AI #DevTools #Terminal
 ```
@@ -64,7 +64,7 @@ Built an AI terminal that doesn't suck:
 - Ugly terminal themes
 - Slow autocomplete
 
-FREE trial: https://rinawarp-terminal.vercel.app
+FREE trial: https://rinawarptech.com
 
 Feedback welcome! What terminal features do you want most?
 ```

@@ -23,11 +23,11 @@
 ### 🚀 The Next-Generation AI-Powered Terminal Emulator
 
 [![License](https://img.shields.io/badge/license-Commercial-blue.svg)](#license)
-[![Version](https://img.shields.io/badge/version-1.0.8-green.svg)](https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.0.19-green.svg)](https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#-installation)
-[![Downloads](https://img.shields.io/github/downloads/Bigsgotchu/rinawarp-terminal/total.svg)](https://github.com/Bigsgotchu/rinawarp-terminal/releases)
-[![CI/CD](https://github.com/Bigsgotchu/rinawarp-terminal/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Bigsgotchu/rinawarp-terminal/actions)
-[![Security](https://github.com/Bigsgotchu/rinawarp-terminal/actions/workflows/security.yml/badge.svg)](https://github.com/Bigsgotchu/rinawarp-terminal/actions)
+[![Downloads](https://img.shields.io/github/downloads/Rinawarp-Terminal/rinawarp-terminal/total.svg)](https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases)
+[![CI/CD](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions/workflows/main-pipeline.yml/badge.svg)](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions)
+[![Security](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions/workflows/consolidated-ci.yml/badge.svg)](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions)
 
 **An advanced commercial terminal emulator with enterprise-grade features, built with Electron.**  
 RinaWarp Terminal provides all the power of modern terminals with AI assistance, cloud sync, session management, and extensive customization for professional developers and enterprise teams.
@@ -170,7 +170,7 @@ Our CI/CD process is automated via GitHub Actions, with workflows for:
 Adopt these best practices to maintain security:
 - Use `.env` files to manage sensitive information.
 - Regularly update dependencies using npm audit and fix known vulnerabilities.
-- Follow [Security Guidelines](https://github.com/Bigsgotchu/rinawarp-terminal/security).
+- Follow [Security Guidelines](https://github.com/Rinawarp-Terminal/rinawarp-terminal/security).
 
 ## 🎬 Demo
 
@@ -230,7 +230,7 @@ Settings → Themes → Choose from 4 beautiful themes
 **Windows:**
 ```powershell
 # Download and run the installer
-Invoke-WebRequest -Uri "https://github.com/Bigsgotchu/rinawarp-terminal/releases/download/v1.0.8/RinaWarp.Terminal.Setup.1.0.8.exe" -OutFile "RinaWarp-Terminal-Setup.exe"
+Invoke-WebRequest -Uri "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe" -OutFile "RinaWarp-Terminal-Setup.exe"
 .\RinaWarp-Terminal-Setup.exe
 ```
 
@@ -240,19 +240,19 @@ Invoke-WebRequest -Uri "https://github.com/Bigsgotchu/rinawarp-terminal/releases
 brew install --cask rinawarp-terminal
 
 # Or download DMG manually
-open https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal.dmg
+open https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg
 ```
 
 **Linux:**
 ```bash
 # Ubuntu/Debian
-wget https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download/rinawarp-terminal.deb
-sudo dpkg -i rinawarp-terminal.deb
+wget https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz
+tar -xzf RinaWarp-Terminal-Linux.tar.gz
 
 # Or AppImage (universal)
-wget https://github.com/Bigsgotchu/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal.AppImage
-chmod +x RinaWarp-Terminal.AppImage
-./RinaWarp-Terminal.AppImage
+wget https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.AppImage
+chmod +x RinaWarp-Terminal-Linux.AppImage
+./RinaWarp-Terminal-Linux.AppImage
 ```
 
 ### Package Managers
@@ -278,11 +278,8 @@ chmod +x RinaWarp-Terminal.AppImage
 2. **Build Process** (for authorized developers):
    ```bash
 <<<<<<< HEAD
-   git clone https://github.com/Bigsgotchu/rinawarp-terminal.git
+   git clone https://github.com/Rinawarp-Terminal/rinawarp-terminal.git
    cd rinawarp-terminal
-=======
-   # Contact Rinawarp Technologies, LLC for repository access
->>>>>>> d490cf6e7537bcb01537a8172f3bf897c709963f
    npm install
    npm run build
    ```
@@ -341,7 +338,7 @@ Proprietary Software - Copyright (c) 2025 Rinawarp Technologies, LLC. All rights
 
 📄 **[View Complete Licensing Information](PROPRIETARY_NOTICE.md)** - Detailed licensing terms and commercial options
 
-For licensing information and pricing, visit: https://rinawarp-terminal.vercel.app/pricing  
+For licensing information and pricing, visit: https://rinawarptech.com/pricing  
 For enterprise inquiries, contact: rinawarptechnologies25@gmail.com
 
 ## Advanced Usage
@@ -725,7 +722,7 @@ APPLE_ID=your_apple_id
 
 #### Official Channels
 - **GitHub Releases**: Primary distribution
-- **Website**: https://rinawarp-terminal.vercel.app
+- **Website**: https://rinawarptech.com
 - **NPM**: Package management integration
 
 #### Package Managers (Planned)
@@ -937,8 +934,8 @@ Security updates are prioritized and released immediately:
 ### Getting Help
 
 - **Documentation**: [Complete Guides](docs/)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/Bigsgotchu/rinawarp-terminal/issues)
-- **Discussions**: [Community discussions](https://github.com/Bigsgotchu/rinawarp-terminal/discussions)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues)
+- **Discussions**: [Community discussions](https://github.com/Rinawarp-Terminal/rinawarp-terminal/discussions)
 - **Email Support**: rinawarptechnologies25@gmail.com
 
 ### Commercial Support
@@ -953,7 +950,7 @@ Contact: rinawarptechnologies25@gmail.com
 
 ---
 
-**Built with ❤️ by [Rinawarp Technologies, LLC](https://rinawarp-terminal.vercel.app)**
+**Built with ❤️ by [Rinawarp Technologies, LLC](https://rinawarptech.com)**
 *Empowering developers with next-generation terminal experiences*
 
 \\

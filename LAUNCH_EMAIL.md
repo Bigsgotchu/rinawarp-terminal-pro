@@ -22,7 +22,7 @@ After months of development, I just launched **RinaWarp Terminal** - an AI-power
 **Why I built it:**
 I was tired of typing the same git commands over and over, switching between terminal tabs, and dealing with ugly interfaces. So I built the terminal I always wanted.
 
-**Try it free:** https://rinawarp-terminal.vercel.app
+**Try it free:** https://rinawarptech.com
 
 **Would love your feedback!** Even if you're not a developer, I'd appreciate you checking it out and letting me know what you think.
 
@@ -59,7 +59,7 @@ I just launched **RinaWarp Terminal** - an AI-powered terminal that actually sol
 - Professional: $79/month (includes premium support)
 - Team: $199/month (for teams up to 10 users)
 
-**FREE 14-day trial:** https://rinawarp-terminal.vercel.app
+**FREE 14-day trial:** https://rinawarptech.com
 
 **Would you mind trying it out?** Your feedback would be invaluable since you actually use terminals daily.
 
@@ -100,7 +100,7 @@ I just launched **RinaWarp Terminal** - an AI-powered terminal emulator that's g
 - Stripe integration for seamless billing
 - Three pricing tiers targeting different market segments
 
-**Try it:** https://rinawarp-terminal.vercel.app
+**Try it:** https://rinawarptech.com
 
 **Would you be interested in:**
 - Trying it out and sharing feedback?
@@ -116,7 +116,7 @@ Best regards,
 
 **Rinawarp Technologies, LLC**
 Email: [your email]
-Website: https://rinawarp-terminal.vercel.app
+Website: https://rinawarptech.com
 
 ---
 
@@ -146,7 +146,7 @@ I built **RinaWarp Terminal** because I was tired of the inefficiencies in tradi
 - Intelligent session management
 - Split-pane for multitasking
 
-**Free trial:** https://rinawarp-terminal.vercel.app
+**Free trial:** https://rinawarptech.com
 
 **5-minute demo:** Would you be interested in a quick screen share to see how it could improve your workflow?
 
@@ -200,7 +200,7 @@ Best,
 
 **Rinawarp Technologies, LLC**
 Enterprise Sales: [email]
-Website: https://rinawarp-terminal.vercel.app
+Website: https://rinawarptech.com
 
 ---
 
@@ -222,7 +222,7 @@ If you haven't yet, here's a **2-minute summary:**
 - Split-pane functionality for multitasking
 - Works on Windows, macOS, and Linux
 
-**Quick start:** https://rinawarp-terminal.vercel.app
+**Quick start:** https://rinawarptech.com
 
 **Any feedback** (positive or negative) would be super helpful as I continue improving it.
 

@@ -3,7 +3,7 @@
 ## Facebook Post
 🌊 Join our underwater coding adventure with RinaWarp Terminal! ✨ Experience the future of development with AI-powered assistance, stunning oceanic themes, and lightning-fast performance. 
 
-🚀 Try it now: https://rinawarp-terminal.vercel.app/
+🚀 Try it now: https://rinawarptech.com/
 📝 Share your feedback: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 #RinaWarpTerminal #AITerminal #DeveloperTools #OceanicThemes
@@ -16,7 +16,7 @@
 ⚡ Lightning-fast performance
 🔧 Advanced developer tools
 
-🚀 Dive in: https://rinawarp-terminal.vercel.app/
+🚀 Dive in: https://rinawarptech.com/
 📝 Beta feedback: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 #RinaWarp #AITerminal #DevTools
@@ -34,7 +34,7 @@ As developers, we're constantly seeking tools that enhance productivity while pr
 
 Whether you're a solo developer, part of a team, or managing enterprise-level projects, RinaWarp Terminal adapts to your needs.
 
-🚀 Experience it yourself: https://rinawarp-terminal.vercel.app/
+🚀 Experience it yourself: https://rinawarptech.com/
 📊 Help us improve - Share your feedback: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 #DeveloperProductivity #AITerminal #SoftwareDevelopment #RinaWarpTerminal #TechInnovation
@@ -50,7 +50,7 @@ Whether you're a solo developer, part of a team, or managing enterprise-level pr
 
 Ready to make waves in your coding journey? 🌊
 
-🔗 Get started: https://rinawarp-terminal.vercel.app/
+🔗 Get started: https://rinawarptech.com/
 📝 Share feedback: Link in bio!
 
 #RinaWarpTerminal #AICoding #DeveloperLife #OceanicThemes #TechInnovation #TerminalEmulator #DevTools #UnderwaterCoding #MermaidTech
@@ -81,7 +81,7 @@ After months of development, I'm excited to share RinaWarp Terminal - an AI-enha
 
 **Why oceanic themes?** Because coding should be as fluid and inspiring as the ocean! The aquatic visuals help reduce eye strain during long coding sessions while creating an immersive development environment.
 
-**Try it out:** https://rinawarp-terminal.vercel.app/
+**Try it out:** https://rinawarptech.com/
 **Feedback welcome:** https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 Currently supporting Windows and Linux, with macOS coming soon. Would love to hear your thoughts and suggestions!
@@ -98,7 +98,7 @@ Just launched our AI-powered terminal with stunning oceanic themes! Perfect for 
 • Enterprise security
 
 **Links:**
-🚀 Try it: https://rinawarp-terminal.vercel.app/
+🚀 Try it: https://rinawarptech.com/
 📝 Feedback: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 
 Who's ready to dive into the future of terminal development? 🌊💻
@@ -111,7 +111,7 @@ Best regards,
 🌊 Advanced Terminal Emulator with AI Assistance
 
 📧 rinawarptechnologies25@gmail.com
-🌐 https://rinawarp-terminal.vercel.app/
+🌐 https://rinawarptech.com/
 📝 Feedback: https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform
 ---
 

@@ -129,8 +129,8 @@ class IPMonitoringSystem {
           },
           headers: this.config.githubToken
             ? {
-              Authorization: `token ${this.config.githubToken}`,
-            }
+                Authorization: `token ${this.config.githubToken}`,
+              }
             : {},
         });
 
@@ -174,7 +174,7 @@ class IPMonitoringSystem {
           const response = await axios.get(`https://registry.npmjs.org/${packageName}`);
 
           // Check if it's not our package
-          if (response.data.author?.email !== 'support@rinawarp-terminal.web.app') {
+          if (response.data.author?.email !== 'support@rinawarptech.com') {
             results.push({
               type: 'npm_package',
               packageName,
@@ -259,7 +259,7 @@ class IPMonitoringSystem {
             params: {
               key: this.config.googleApiKey,
               cx: 'YOUR_SEARCH_ENGINE_ID', // Replace with actual CSE ID
-              q: `"${term}" -site:github.com/Bigsgotchu -site:rinawarp-terminal.web.app`,
+              q: `"${term}" -site:github.com/Bigsgotchu -site:rinawarptech.com`,
             },
           });
 
