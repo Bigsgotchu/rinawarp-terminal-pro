@@ -1,89 +1,351 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.0.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.0.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
-
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RinaWarp Terminal - Advanced terminal emulator with AI assistant, beautiful themes, voice control, and enterprise security. Download for Windows, macOS, and Linux.">
+    <meta name="keywords" content="terminal emulator, AI assistant, RinaWarp, command line, terminal, CLI, developer tools, macOS, Windows, Linux, download">
+    <meta name="author" content="RinaWarp Technologies">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="RinaWarp Terminal - Advanced Terminal Emulator">
+    <meta property="og:description" content="Terminal emulator with AI magic, beautiful themes, voice control, and enterprise security. Download for Windows, macOS, and Linux.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.rinawarptech.com">
+    <meta property="og:site_name" content="RinaWarp Technologies">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RinaWarp Terminal - Advanced Terminal Emulator">
+    <meta name="twitter:description" content="Terminal emulator with AI magic, beautiful themes, voice control, and enterprise security.">
+    <title>RinaWarp Terminal - Advanced Terminal Emulator with AI | Download</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="canonical" href="https://www.rinawarptech.com/">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-G424CV5GGT');
     </script>
-  </body>
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "RinaWarp Terminal",
+      "description": "Advanced terminal emulator with AI assistant, beautiful themes, voice control, and enterprise security for Windows, macOS, and Linux.",
+      "url": "https://www.rinawarptech.com",
+      "author": {
+        "@type": "Organization",
+        "name": "RinaWarp Technologies"
+      },
+      "operatingSystem": ["Windows", "macOS", "Linux"],
+      "applicationCategory": "DeveloperApplication",
+      "downloadUrl": "https://www.rinawarptech.com/api/download",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+            margin-bottom: 2rem;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: #00ff88;
+            color: #1a1a2e;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+        
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .download-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .download-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .platform-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #00ff88;
+        }
+        
+        .platform-desc {
+            color: #b0b0b0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            color: #1a1a2e;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .file-size {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+        
+        .features {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .features h2 {
+            color: #00ff88;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .feature-icon {
+            color: #00ff88;
+        }
+        
+        .api-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .api-section h2 {
+            color: #00ff88;
+            margin-bottom: 1rem;
+        }
+        
+        .api-example {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .api-example code {
+            color: #00ff88;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888;
+        }
+        
+        .footer-links {
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links a {
+            color: #00ff88;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .download-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧜‍♀️ RinaWarp Terminal</h1>
+            <p class="subtitle">The Advanced Terminal Emulator with AI Magic</p>
+            <div class="version-badge">v1.0.7 Beta</div>
+        </header>
+        
+        <div class="download-grid">
+            <div class="download-card">
+                <div class="platform-icon">🪟</div>
+                <h3 class="platform-title">Windows</h3>
+                <p class="platform-desc">Full installer with all features</p>
+                <a href="/api/download" class="download-btn">Download Installer</a>
+                <div class="file-size">~45MB | Windows 10/11</div>
+            </div>
+            
+            <div class="download-card">
+                <div class="platform-icon">💼</div>
+                <h3 class="platform-title">Windows Portable</h3>
+                <p class="platform-desc">No installation required</p>
+                <a href="/api/download?file=portable" class="download-btn">Download Portable</a>
+                <div class="file-size">~35MB | Run from USB</div>
+            </div>
+            
+            <div class="download-card">
+                <div class="platform-icon">🐧</div>
+                <h3 class="platform-title">Linux</h3>
+                <p class="platform-desc">Universal tarball for all distros</p>
+                <a href="/api/download?file=linux" class="download-btn">Download Archive</a>
+                <div class="file-size">~40MB | Ubuntu/Debian/Arch</div>
+            </div>
+            
+            <div class="download-card">
+                <div class="platform-icon">🍎</div>
+                <h3 class="platform-title">macOS</h3>
+                <p class="platform-desc">Notarized disk image</p>
+                <a href="/api/download?file=macos" class="download-btn">Download DMG</a>
+                <div class="file-size">~50MB | macOS 11+</div>
+            </div>
+        </div>
+        
+        <section class="features">
+            <h2>✨ What's Included</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <span class="feature-icon">🤖</span>
+                    <span>AI Assistant Integration</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎨</span>
+                    <span>Beautiful Themes</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔊</span>
+                    <span>Voice Control</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔐</span>
+                    <span>Enterprise Security</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">☁️</span>
+                    <span>Cloud Sync</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🚀</span>
+                    <span>Lightning Fast</span>
+                </div>
+            </div>
+        </section>
+        
+        <section class="api-section">
+            <h2>🔧 API Download Endpoint</h2>
+            <p>You can also download files programmatically using our API:</p>
+            <div class="api-example">
+                <code>curl -L "https://rinawarptech.com/api/download?file=rinawarp.zip" -o rinawarp.zip</code>
+            </div>
+            <p>Available files: <code>rinawarp.zip</code>, <code>RinaWarp-Terminal-Setup-Windows.exe</code>, 
+               <code>RinaWarp-Terminal-Linux.tar.gz</code>, <code>RinaWarp-Terminal-macOS.dmg</code></p>
+        </section>
+        
+        <footer>
+            <div class="footer-links">
+                <a href="/docs.html">Documentation</a>
+                <a href="/blog.html">Blog</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/beta">Beta Program</a>
+                <a href="mailto:support@rinawarp.com">Support</a>
+                <a href="https://github.com/Bigsgotchu/rinawarp-terminal">GitHub</a>
+            </div>
+            <p>&copy; 2025 RinaWarp Technologies. All rights reserved.</p>
+            <p>Made with 💙 by developers, for developers</p>
+        </footer>
+    </div>
+</body>
 </html>
+
