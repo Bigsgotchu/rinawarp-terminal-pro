@@ -3,6 +3,26 @@
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
+// Mock fetch and localStorage for testing
+const mockFetch = jest.fn();
+const mockLocalStorage = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+
+// Set up globals if they don't exist
+if (typeof global.fetch === 'undefined') {
+  global.fetch = mockFetch;
+}
+if (typeof global.localStorage === 'undefined') {
+  global.localStorage = mockLocalStorage;
+}
+if (typeof global.window === 'undefined') {
+  global.window = { localStorage: mockLocalStorage };
+}
+
 describe('RinaWarp Terminal - Basic Tests', () => {
   it('should pass basic sanity check', () => {
     expect(true).toBe(true);

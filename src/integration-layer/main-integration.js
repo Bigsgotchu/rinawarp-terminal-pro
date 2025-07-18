@@ -13,6 +13,9 @@
 // Import the core integration hub
 import { CoreIntegrationHub } from './core-integration-hub.js';
 
+// Import Electron IPC for main process communication
+import { ipcMain } from 'electron';
+
 // Import centralized logger
 let logger = {
   debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
@@ -38,8 +41,8 @@ class RinaWarpIntegration {
     this.isInitialized = false;
     this.features = {};
 
-    // Patent-worthy: Feature capability matrix
-    this.capabilityMatrix = new FeatureCapabilityMatrix();
+    // Patent-worthy: Feature capability matrix will be initialized later
+    this.capabilityMatrix = null;
   }
 
   async initialize() {
@@ -67,6 +70,9 @@ class RinaWarpIntegration {
 
       this.isInitialized = true;
       logger.system('Integration completed successfully', { component: 'main-integration' });
+
+      // Initialize the feature capability matrix after features are loaded
+      this.capabilityMatrix = new FeatureCapabilityMatrix();
 
       return this;
     } catch (error) {
@@ -108,24 +114,23 @@ class RinaWarpIntegration {
         });
       }
 
-// Register Performance Monitor through global manager
-try {
-  this.features.performanceMonitor = await globalObjectManager.get('performanceMonitor');
-  if (this.features.performanceMonitor) {
-    this.hub.registerFeature('performance-monitor', this.features.performanceMonitor, {
-      version: '1.1.0',
-      capabilities: ['system-monitoring', 'performance-analytics', 'resource-optimization'],
-      securityLevel: 'standard',
-      dependencies: [],
-    });
-  }
+      // Register Performance Monitor through global manager
+      try {
+        this.features.performanceMonitor = await globalObjectManager.get('performanceMonitor');
+        if (this.features.performanceMonitor) {
+          this.hub.registerFeature('performance-monitor', this.features.performanceMonitor, {
+            version: '1.1.0',
+            capabilities: ['system-monitoring', 'performance-analytics', 'resource-optimization'],
+            securityLevel: 'standard',
+            dependencies: [],
+          });
+        }
 
-  // Initialize the performance monitoring routine here
-  ipcMain.handle('init-performance-monitor', async () => {
-    return this.features.performanceMonitor;
-  });
-
-} catch (error) {
+        // Initialize the performance monitoring routine here
+        ipcMain.handle('init-performance-monitor', async () => {
+          return this.features.performanceMonitor;
+        });
+      } catch (error) {
         logger.warn('Failed to register Performance Monitor', {
           component: 'main-integration',
           error: error.message,
@@ -311,10 +316,10 @@ try {
     return saved
       ? JSON.parse(saved)
       : {
-        preferredFeatures: [],
-        workflowPatterns: [],
-        securityLevel: 'standard',
-      };
+          preferredFeatures: [],
+          workflowPatterns: [],
+          securityLevel: 'standard',
+        };
   }
 
   preloadFeature(featureName) {
@@ -340,19 +345,19 @@ try {
 
   adjustFeaturesForSecurity(threatLevel) {
     switch (threatLevel) {
-    case 'critical':
-      // Disable non-essential features
-      this.features.liveSharing?.enterSecureMode?.();
-      this.features.workflowAutomation?.restrictAutomation?.();
-      break;
-    case 'high':
-      // Increase monitoring
-      this.features.performanceMonitor?.increaseMonitoring?.();
-      break;
-    case 'normal':
-      // Resume normal operations
-      this.resumeNormalOperations();
-      break;
+      case 'critical':
+        // Disable non-essential features
+        this.features.liveSharing?.enterSecureMode?.();
+        this.features.workflowAutomation?.restrictAutomation?.();
+        break;
+      case 'high':
+        // Increase monitoring
+        this.features.performanceMonitor?.increaseMonitoring?.();
+        break;
+      case 'normal':
+        // Resume normal operations
+        this.resumeNormalOperations();
+        break;
     }
   }
 
@@ -418,15 +423,15 @@ try {
 
   executeOptimization(optimization) {
     switch (optimization.type) {
-    case 'memory-cleanup':
-      this.performMemoryCleanup();
-      break;
-    case 'cache-optimization':
-      this.optimizeCache();
-      break;
-    case 'feature-preload':
-      this.preloadFeature(optimization.feature);
-      break;
+      case 'memory-cleanup':
+        this.performMemoryCleanup();
+        break;
+      case 'cache-optimization':
+        this.optimizeCache();
+        break;
+      case 'feature-preload':
+        this.preloadFeature(optimization.feature);
+        break;
     }
   }
 

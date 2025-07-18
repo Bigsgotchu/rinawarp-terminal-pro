@@ -17,9 +17,9 @@ export class CloudService extends EventEmitter {
       syncInterval: options.syncInterval || 300000, // 5 minutes
       maxRetries: options.maxRetries || 3,
       timeout: options.timeout || 10000,
-      ...options
+      ...options,
     };
-    
+
     this.isConnected = false;
     this.isAuthenticated = false;
     this.syncInProgress = false;
@@ -27,7 +27,7 @@ export class CloudService extends EventEmitter {
     this.syncQueue = [];
     this.offlineQueue = [];
     this.encryptionKey = null;
-    
+
     this.init();
   }
 
@@ -57,7 +57,7 @@ export class CloudService extends EventEmitter {
     try {
       const response = await this.makeRequest('/auth/login', {
         method: 'POST',
-        body: JSON.stringify(credentials)
+        body: JSON.stringify(credentials),
       });
 
       if (response.success) {
@@ -83,7 +83,7 @@ export class CloudService extends EventEmitter {
       const encryptedSettings = this.encrypt(JSON.stringify(settings));
       const response = await this.makeRequest('/sync/settings', {
         method: 'PUT',
-        body: JSON.stringify({ data: encryptedSettings })
+        body: JSON.stringify({ data: encryptedSettings }),
       });
 
       if (response.success) {
@@ -126,7 +126,7 @@ export class CloudService extends EventEmitter {
       const encryptedHistory = this.encrypt(JSON.stringify(history));
       const response = await this.makeRequest('/sync/history', {
         method: 'PUT',
-        body: JSON.stringify({ data: encryptedHistory })
+        body: JSON.stringify({ data: encryptedHistory }),
       });
 
       if (response.success) {
@@ -168,10 +168,10 @@ export class CloudService extends EventEmitter {
       const encryptedSession = this.encrypt(JSON.stringify(sessionData));
       const response = await this.makeRequest('/backup/session', {
         method: 'POST',
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           sessionId: sessionData.id,
-          data: encryptedSession 
-        })
+          data: encryptedSession,
+        }),
       });
 
       if (response.success) {
@@ -235,46 +235,46 @@ export class CloudService extends EventEmitter {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipher(this.config.encryption, this.encryptionKey);
     cipher.setAutoPadding(true);
-    
+
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     return {
       iv: iv.toString('hex'),
-      data: encrypted
+      data: encrypted,
     };
   }
 
   decrypt(encryptedData) {
     const decipher = crypto.createDecipher(this.config.encryption, this.encryptionKey);
     decipher.setAutoPadding(true);
-    
+
     let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
   async makeRequest(endpoint, options = {}) {
     const url = `${this.config.endpoint}${endpoint}`;
     const token = this.getStoredToken();
-    
+
     const defaultOptions = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
+        Authorization: token ? `Bearer ${token}` : '',
       },
-      timeout: this.config.timeout
+      timeout: this.config.timeout,
     };
 
     const finalOptions = { ...defaultOptions, ...options };
-    
+
     let retries = 0;
     while (retries < this.config.maxRetries) {
       try {
         const response = await fetch(url, finalOptions);
-        
+
         if (!response.ok) {
           if (response.status === 401) {
             this.isAuthenticated = false;
@@ -282,7 +282,7 @@ export class CloudService extends EventEmitter {
           }
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         return await response.json();
       } catch (error) {
         retries++;
@@ -325,7 +325,7 @@ export class CloudService extends EventEmitter {
         try {
           const response = await this.makeRequest('/ping');
           this.isConnected = response.success;
-          
+
           if (this.isConnected) {
             await this.processOfflineQueue();
           }
@@ -347,7 +347,7 @@ export class CloudService extends EventEmitter {
       syncInProgress: this.syncInProgress,
       lastSync: this.lastSync,
       queueLength: this.offlineQueue.length,
-      provider: this.config.provider
+      provider: this.config.provider,
     };
   }
 }

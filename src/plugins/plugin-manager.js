@@ -15,7 +15,7 @@ export class PluginManager extends EventEmitter {
     this.pluginAPI = this.createPluginAPI();
     this.marketplace = new PluginMarketplace(this);
     this.security = new PluginSecurity(this);
-    
+
     this.init();
   }
 
@@ -30,56 +30,56 @@ export class PluginManager extends EventEmitter {
     return {
       // Core terminal access
       terminal: {
-        write: (text) => this.terminalManager.writeToTerminal(text),
-        execute: (command) => this.terminalManager.executeCommand(command),
-        onOutput: (callback) => this.terminalManager.onOutput(callback),
+        write: text => this.terminalManager.writeToTerminal(text),
+        execute: command => this.terminalManager.executeCommand(command),
+        onOutput: callback => this.terminalManager.onOutput(callback),
         getCurrentDirectory: () => this.terminalManager.getCurrentDirectory(),
-        getHistory: () => this.terminalManager.getHistory()
-  },
+        getHistory: () => this.terminalManager.getHistory(),
+      },
 
-  async validateNetworkCalls(code) {
-    const disallowedUrls = [/evil\.com/];
-    const forbiddenMethods = [/fetch\(["']http/];
+      async validateNetworkCalls(code) {
+        const disallowedUrls = [/evil\.com/];
+        const forbiddenMethods = [/fetch\(["']http/];
 
-    const errors = [];
-    for (const urlPattern of disallowedUrls) {
-      if (urlPattern.test(code)) {
-        errors.push(`Disallowed URL pattern: ${urlPattern}`);
-      }
-    }
+        const errors = [];
+        for (const urlPattern of disallowedUrls) {
+          if (urlPattern.test(code)) {
+            errors.push(`Disallowed URL pattern: ${urlPattern}`);
+          }
+        }
 
-    for (const methodPattern of forbiddenMethods) {
-      if (methodPattern.test(code)) {
-         errors.push(`Forbidden network method: ${methodPattern}`);
-      }
-    }
+        for (const methodPattern of forbiddenMethods) {
+          if (methodPattern.test(code)) {
+            errors.push(`Forbidden network method: ${methodPattern}`);
+          }
+        }
 
-    if (errors.length) {
-      throw new Error(`Network validation failed: ${errors.join(", ")}`);
-    }
-  },
+        if (errors.length) {
+          throw new Error(`Network validation failed: ${errors.join(', ')}`);
+        }
+      },
 
       // UI extensions
       ui: {
         addMenuItem: (label, callback) => this.addMenuItem(label, callback),
-        addStatusBarItem: (content) => this.addStatusBarItem(content),
+        addStatusBarItem: content => this.addStatusBarItem(content),
         showNotification: (message, type) => this.showNotification(message, type),
         createPanel: (id, content) => this.createPanel(id, content),
-        addTheme: (name, theme) => this.addTheme(name, theme)
+        addTheme: (name, theme) => this.addTheme(name, theme),
       },
 
       // Settings and storage
       storage: {
-        get: (key) => this.getPluginStorage(key),
+        get: key => this.getPluginStorage(key),
         set: (key, value) => this.setPluginStorage(key, value),
-        remove: (key) => this.removePluginStorage(key)
+        remove: key => this.removePluginStorage(key),
       },
 
       // Events
       events: {
         on: (event, callback) => this.on(event, callback),
         emit: (event, data) => this.emit(event, data),
-        off: (event, callback) => this.off(event, callback)
+        off: (event, callback) => this.off(event, callback),
       },
 
       // Network requests (sandboxed)
@@ -87,15 +87,15 @@ export class PluginManager extends EventEmitter {
         get: (url, options) => this.secureRequest('GET', url, options),
         post: (url, data, options) => this.secureRequest('POST', url, data, options),
         put: (url, data, options) => this.secureRequest('PUT', url, data, options),
-        delete: (url, options) => this.secureRequest('DELETE', url, options)
+        delete: (url, options) => this.secureRequest('DELETE', url, options),
       },
 
       // File system (restricted)
       fs: {
-        readFile: (path) => this.secureFileRead(path),
+        readFile: path => this.secureFileRead(path),
         writeFile: (path, content) => this.secureFileWrite(path, content),
-        exists: (path) => this.secureFileExists(path),
-        mkdir: (path) => this.secureFileCreate(path)
+        exists: path => this.secureFileExists(path),
+        mkdir: path => this.secureFileCreate(path),
       },
 
       // Utility functions
@@ -103,8 +103,8 @@ export class PluginManager extends EventEmitter {
         debounce: (func, wait) => this.debounce(func, wait),
         throttle: (func, limit) => this.throttle(func, limit),
         uuid: () => this.generateUUID(),
-        formatDate: (date) => this.formatDate(date)
-      }
+        formatDate: date => this.formatDate(date),
+      },
     };
   }
 
@@ -112,25 +112,25 @@ export class PluginManager extends EventEmitter {
     try {
       const pluginCode = await this.loadPluginCode(pluginPath);
       const pluginManifest = await this.loadPluginManifest(pluginPath);
-      
+
       // Security validation
       await this.security.validatePlugin(pluginManifest, pluginCode);
-      
+
       // Create secure sandbox
       const sandbox = this.createSandbox(pluginManifest.name, trusted);
-      
+
       // Execute plugin in sandbox
       const plugin = await this.executePlugin(pluginCode, sandbox);
-      
+
       // Register plugin
       this.plugins.set(pluginManifest.name, {
         manifest: pluginManifest,
         instance: plugin,
         sandbox: sandbox,
         trusted: trusted,
-        active: true
+        active: true,
       });
-      
+
       this.emit('plugin-loaded', pluginManifest.name);
       return true;
     } catch (error) {
@@ -144,25 +144,27 @@ export class PluginManager extends EventEmitter {
       console: {
         log: (...args) => console.log(`[${pluginName}]`, ...args),
         warn: (...args) => console.warn(`[${pluginName}]`, ...args),
-        error: (...args) => console.error(`[${pluginName}]`, ...args)
+        error: (...args) => console.error(`[${pluginName}]`, ...args),
       },
-      
+
       // Restricted global access
       setTimeout: (callback, delay) => setTimeout(callback, Math.min(delay, 5000)),
       setInterval: (callback, delay) => setInterval(callback, Math.max(delay, 100)),
-      
+
       // Plugin API access
       RinaWarp: this.pluginAPI,
-      
+
       // Limited Node.js modules for trusted plugins
-      ...(trusted ? {
-        Buffer: Buffer,
-        process: {
-          env: process.env,
-          platform: process.platform,
-          version: process.version
-        }
-      } : {})
+      ...(trusted
+        ? {
+            Buffer: Buffer,
+            process: {
+              env: process.env,
+              platform: process.platform,
+              version: process.version,
+            },
+          }
+        : {}),
     };
 
     const vm = new VM({
@@ -170,8 +172,8 @@ export class PluginManager extends EventEmitter {
       sandbox: sandbox,
       require: {
         external: trusted ? ['fs', 'path', 'crypto'] : false,
-        builtin: trusted ? ['fs', 'path', 'crypto'] : []
-      }
+        builtin: trusted ? ['fs', 'path', 'crypto'] : [],
+      },
     });
 
     this.sandboxes.set(pluginName, vm);
@@ -181,12 +183,12 @@ export class PluginManager extends EventEmitter {
   async executePlugin(pluginCode, sandbox) {
     try {
       const result = sandbox.run(pluginCode);
-      
+
       // Ensure plugin exports the required interface
       if (typeof result.init === 'function') {
         await result.init();
       }
-      
+
       return result;
     } catch (error) {
       throw new Error(`Plugin execution failed: ${error.message}`);
@@ -207,10 +209,10 @@ export class PluginManager extends EventEmitter {
 
       // Remove from sandbox
       this.sandboxes.delete(pluginName);
-      
+
       // Remove from plugins
       this.plugins.delete(pluginName);
-      
+
       this.emit('plugin-unloaded', pluginName);
       return true;
     } catch (error) {
@@ -232,14 +234,14 @@ export class PluginManager extends EventEmitter {
       version: '1.0.0',
       description: 'Example plugin',
       author: 'Plugin Author',
-      permissions: ['terminal:read', 'ui:modify']
+      permissions: ['terminal:read', 'ui:modify'],
     };
   }
 
   async loadInstalledPlugins() {
     try {
       const installedPlugins = await this.getInstalledPlugins();
-      
+
       for (const pluginPath of installedPlugins) {
         await this.loadPlugin(pluginPath);
       }
@@ -258,7 +260,7 @@ export class PluginManager extends EventEmitter {
     // Implement secure HTTP requests with domain whitelist
     const allowedDomains = ['api.rinawarp.com', 'plugins.rinawarp.com'];
     const urlObj = new URL(url);
-    
+
     if (!allowedDomains.includes(urlObj.hostname)) {
       throw new Error('Domain not whitelisted for plugin requests');
     }
@@ -269,10 +271,9 @@ export class PluginManager extends EventEmitter {
       body: method !== 'GET' ? JSON.stringify(dataOrOptions) : undefined,
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers
+        ...options.headers,
       },
       timeout: 10000,
-      signal: AbortSignal.timeout(10000)
     });
   }
 
@@ -349,21 +350,21 @@ export class PluginManager extends EventEmitter {
 
   throttle(func, limit) {
     let inThrottle;
-    return function() {
+    return function () {
       const args = arguments;
       const context = this;
       if (!inThrottle) {
         func.apply(context, args);
         inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
+        setTimeout(() => (inThrottle = false), limit);
       }
     };
   }
 
   generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -374,27 +375,27 @@ export class PluginManager extends EventEmitter {
 
   setupEventHandlers() {
     // Setup event handlers for terminal events
-    this.terminalManager.on('command-executed', (command) => {
+    this.terminalManager.on('command-executed', command => {
       this.emit('terminal-command', command);
     });
 
-    this.terminalManager.on('directory-changed', (directory) => {
+    this.terminalManager.on('directory-changed', directory => {
       this.emit('terminal-directory-changed', directory);
     });
   }
 
   getPluginStatus() {
     const status = {};
-    
+
     for (const [name, plugin] of this.plugins) {
       status[name] = {
         active: plugin.active,
         version: plugin.manifest.version,
         trusted: plugin.trusted,
-        permissions: plugin.manifest.permissions
+        permissions: plugin.manifest.permissions,
       };
     }
-    
+
     return status;
   }
 }
@@ -403,10 +404,7 @@ export class PluginManager extends EventEmitter {
 export class PluginSecurity {
   constructor(pluginManager) {
     this.pluginManager = pluginManager;
-    this.allowedPaths = [
-      '/tmp/rinawarp-plugins',
-      '~/.rinawarp/plugins'
-    ];
+    this.allowedPaths = ['/tmp/rinawarp-plugins', '~/.rinawarp/plugins'];
   }
 
   async validatePlugin(manifest, code) {
@@ -418,7 +416,7 @@ export class PluginSecurity {
     // Check permissions
     const requiredPermissions = this.extractRequiredPermissions(code);
     const declaredPermissions = manifest.permissions || [];
-    
+
     for (const permission of requiredPermissions) {
       if (!declaredPermissions.includes(permission)) {
         throw new Error(`Missing permission: ${permission}`);
@@ -431,20 +429,20 @@ export class PluginSecurity {
 
   extractRequiredPermissions(code) {
     const permissions = [];
-    
+
     // Simple pattern matching for required permissions
     if (code.includes('RinaWarp.terminal')) {
       permissions.push('terminal:access');
     }
-    
+
     if (code.includes('RinaWarp.fs')) {
       permissions.push('filesystem:access');
     }
-    
+
     if (code.includes('RinaWarp.http')) {
       permissions.push('network:access');
     }
-    
+
     return permissions;
   }
 
@@ -463,7 +461,7 @@ export class PluginSecurity {
       /fs\/(unlink|write|append)/,
       /readFileSync/,
       /write\s*:\s*=\s*function\(/,
-      /innerHTML\s*:[^=]/
+      /innerHTML\s*:[^=]/,
     ];
 
     for (const pattern of dangerousPatterns) {
@@ -476,10 +474,8 @@ export class PluginSecurity {
   validatePath(path) {
     // Validate file system paths
     const normalizedPath = path.replace(/\\/g, '/');
-    
-    return this.allowedPaths.some(allowedPath => 
-      normalizedPath.startsWith(allowedPath)
-    );
+
+    return this.allowedPaths.some(allowedPath => normalizedPath.startsWith(allowedPath));
   }
 }
 
@@ -511,16 +507,16 @@ export class PluginMarketplace {
   async installPlugin(pluginId) {
     try {
       const plugin = await this.getPlugin(pluginId);
-      
+
       // Download plugin
       const pluginCode = await this.downloadPlugin(plugin.downloadUrl);
-      
+
       // Install plugin
       await this.pluginManager.loadPlugin(pluginCode, plugin.trusted);
-      
+
       // Save to installed plugins
       await this.saveInstalledPlugin(pluginId);
-      
+
       return true;
     } catch (error) {
       throw new Error(`Failed to install plugin: ${error.message}`);
