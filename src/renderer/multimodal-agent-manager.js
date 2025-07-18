@@ -10,6 +10,8 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
+
+/* global nodeAPI */
 class MultimodalAgentManager {
   constructor(terminal) {
     this.terminal = terminal;
@@ -710,7 +712,7 @@ class MultimodalAgentManager {
 
     try {
       // Get current directory from terminal
-      const _currentDir = this.terminal?.currentDirectory || process.cwd();
+      const _currentDir = this.terminal?.currentDirectory || (await nodeAPI.getCurrentDir());
 
       // Simulate code analysis
       await new Promise(resolve => setTimeout(resolve, 2000));

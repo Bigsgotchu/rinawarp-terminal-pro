@@ -220,4 +220,8 @@ if (typeof window !== 'undefined') {
   window.LicenseManager = LicenseManager;
 }
 
+// ES6 module export
 export default LicenseManager;
+
+// Named export for compatibility
+export { LicenseManager };

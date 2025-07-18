@@ -5,18 +5,102 @@
  * Integrates the plugin system with the main terminal application
  */
 
-import { PluginLoader } from './plugins/plugin-loader.js';
-import { PredictiveCompletionPlugin } from './plugins/predictive-completion.js';
-import { AIDebuggingAssistantPlugin } from './plugins/ai-debugging-assistant.js';
-import { _SafeAIWrapper } from './ai/safe-ai-wrapper.js';
+// Import plugin components with error handling
+import { safeImport, createFallback } from './utils/module-loader.js';
+
+// Initialize plugin components
+let PluginLoader = null;
+let PredictiveCompletionPlugin = null;
+let AIDebuggingAssistantPlugin = null;
+
+// Load plugin components with fallbacks
+(async () => {
+  try {
+    const pluginLoaderModule = await safeImport('./plugins/plugin-loader.js', {
+      name: 'PluginLoader',
+      fallback: createFallback('PluginLoader', {
+        loadAll: async () => ({ success: true, loaded: [], failed: [] }),
+        load: async () => ({ success: true }),
+        unload: async () => ({ success: true }),
+        reload: async () => ({ success: true }),
+        getStatus: () => ({ total: 0, loaded: 0, failed: 0, plugins: {} }),
+        executeHook: async () => [],
+        register: () => {},
+      }),
+    });
+    PluginLoader = pluginLoaderModule.PluginLoader || pluginLoaderModule.default;
+
+    const predictiveModule = await safeImport('./plugins/predictive-completion.js', {
+      name: 'PredictiveCompletionPlugin',
+      fallback: createFallback('PredictiveCompletionPlugin'),
+    });
+    PredictiveCompletionPlugin =
+      predictiveModule.PredictiveCompletionPlugin || predictiveModule.default;
+
+    const debuggingModule = await safeImport('./plugins/ai-debugging-assistant.js', {
+      name: 'AIDebuggingAssistantPlugin',
+      fallback: createFallback('AIDebuggingAssistantPlugin'),
+    });
+    AIDebuggingAssistantPlugin =
+      debuggingModule.AIDebuggingAssistantPlugin || debuggingModule.default;
+  } catch (error) {
+    console.warn('Some plugin components failed to load:', error.message);
+  }
+})();
 
 export class TerminalPluginManager {
   constructor() {
-    this.pluginLoader = new PluginLoader();
+    this.pluginLoader = null;
     this.plugins = new Map();
     this.isInitialized = false;
+    this.initializationPromise = null;
 
+    // Initialize with error handling
+    this.initializeLoader();
     console.log('🔌 Terminal Plugin Manager initialized');
+  }
+
+  async initializeLoader() {
+    try {
+      // Wait for components to load
+      await new Promise(resolve => {
+        const checkInterval = setInterval(() => {
+          if (PluginLoader) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 100);
+
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          resolve();
+        }, 5000);
+      });
+
+      if (PluginLoader) {
+        this.pluginLoader = new PluginLoader();
+        console.log('✅ PluginLoader initialized');
+      } else {
+        console.warn('⚠️ PluginLoader not available, using fallback');
+        this.pluginLoader = this.createFallbackLoader();
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize PluginLoader:', error);
+      this.pluginLoader = this.createFallbackLoader();
+    }
+  }
+
+  createFallbackLoader() {
+    return {
+      loadAll: async () => ({ success: true, loaded: [], failed: [] }),
+      load: async () => ({ success: true }),
+      unload: async () => ({ success: true }),
+      reload: async () => ({ success: true }),
+      getStatus: () => ({ total: 0, loaded: 0, failed: 0, plugins: {} }),
+      executeHook: async () => [],
+      register: () => {},
+    };
   }
 
   async initialize(context) {
@@ -42,17 +126,44 @@ export class TerminalPluginManager {
   async registerCorePlugins() {
     console.log('📦 Registering core plugins...');
 
+    const registerPlugin = (PluginClass, name) => {
+      try {
+        if (PluginClass && typeof PluginClass === 'function') {
+          const plugin = new PluginClass();
+          this.pluginLoader.register(plugin);
+          this.plugins.set(name, plugin);
+          console.log(`✅ Registered ${name} plugin`);
+        } else {
+          console.warn(`⚠️ ${name} plugin class not available`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to register ${name} plugin:`, error.message);
+      }
+    };
+
+    // Wait for plugin classes to be available
+    await new Promise(resolve => {
+      const checkInterval = setInterval(() => {
+        if (PredictiveCompletionPlugin && AIDebuggingAssistantPlugin) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 100);
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        resolve();
+      }, 5000);
+    });
+
     // Register Predictive Completion Plugin
-    const predictivePlugin = new PredictiveCompletionPlugin();
-    this.pluginLoader.register(predictivePlugin);
-    this.plugins.set('PredictiveCompletion', predictivePlugin);
+    registerPlugin(PredictiveCompletionPlugin, 'PredictiveCompletion');
 
     // Register AI Debugging Assistant Plugin
-    const debuggingPlugin = new AIDebuggingAssistantPlugin();
-    this.pluginLoader.register(debuggingPlugin);
-    this.plugins.set('AIDebuggingAssistant', debuggingPlugin);
+    registerPlugin(AIDebuggingAssistantPlugin, 'AIDebuggingAssistant');
 
-    console.log('✅ Core plugins registered');
+    console.log('✅ Core plugins registration complete');
   }
 
   async loadPlugin(pluginName, context) {

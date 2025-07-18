@@ -11,11 +11,13 @@
  * Project repository: https://github.com/rinawarp/terminal
  */
 const electronAPI = window.electronAPI; // accessed via contextBridge from preload.js
-import { Terminal } from '@xterm/xterm';
-import { FitAddon } from '@xterm/addon-fit';
-import { WebLinksAddon } from '@xterm/addon-web-links';
+
+// Import XTerm modules with compatibility layer
+import { initializeXTerm } from './xterm-compatibility.js';
 import { SafeAIWrapper } from '../ai/safe-ai-wrapper';
-import { inject } from '@vercel/speed-insights';
+
+// XTerm modules will be initialized dynamically
+let Terminal, FitAddon, WebLinksAddon;
 // Node.js modules are accessed through electronAPI context bridge
 // const { spawn } = require('child_process'); // Only available in main process
 // const os = require('os'); // Only available in main process
@@ -24,12 +26,33 @@ import { inject } from '@vercel/speed-insights';
 
 // Access node modules through electronAPI
 const path = window.electronAPI?.path || { join: (...args) => args.join('/') };
-const os = window.electronAPI?.os || { homedir: () => process.env.HOME || '/home/user' };
-const fs = window.electronAPI?.fs || { existsSync: () => false };
+const nodeAPI = window.nodeAPI;
 const ipcRenderer = window.electronAPI?.ipcRenderer || {
   on: () => {},
   invoke: () => Promise.resolve(),
 };
+
+// Access child_process spawn through electronAPI
+const spawn =
+  window.electronAPI?.spawn ||
+  (() => {
+    console.error('spawn not available in renderer process');
+    return null;
+  });
+
+// Initialize platform info from IPC
+let platformInfo = null;
+if (nodeAPI) {
+  nodeAPI
+    .getPlatformInfo()
+    .then(info => {
+      platformInfo = info;
+      console.log('✅ Platform info loaded:', info);
+    })
+    .catch(err => {
+      console.warn('⚠️ Failed to load platform info:', err);
+    });
+}
 
 // Import Revolutionary Phase 1-3 Features
 // These will be loaded dynamically to prevent bundling issues
@@ -84,6 +107,16 @@ ipcRenderer
     console.warn('⚠️ Performance Monitor initialization failed:', err);
   });
 
+// Update: Use IPC to get current directory
+(async () => {
+  try {
+    const currentDir = await nodeAPI.getCurrentDir();
+    console.log('Current Directory:', currentDir);
+  } catch (error) {
+    console.error('Failed to get current directory:', error);
+  }
+})();
+
 // Initialize License Manager
 let licenseManager;
 try {
@@ -101,14 +134,6 @@ try {
   };
 }
 
-// Initialize Vercel Speed Insights
-try {
-  inject();
-  console.log('✅ Vercel Speed Insights initialized');
-} catch (error) {
-  console.warn('⚠️ Speed Insights initialization failed:', error.message);
-}
-
 // Initialize AI Wrapper
 let aiWrapper;
 try {
@@ -117,6 +142,10 @@ try {
     timeout: 10000,
   });
   console.log('AI Wrapper initialized:', aiWrapper.getStatus());
+
+  // Get current directory through IPC
+  const currentDir = await nodeAPI.getCurrentDir();
+  console.log('Current Working Directory:', currentDir);
 } catch (error) {
   console.warn('AI features disabled. Falling back to non-AI mode.');
   aiWrapper = new SafeAIWrapper(null, { fallbackMode: true });
@@ -803,17 +832,20 @@ class AdvancedGitPlugin {
     }
   }
 
-  async updateGitInfo(terminalData, directory = process.cwd()) {
+  async updateGitInfo(terminalData, directory = null) {
     try {
       const { exec } = await import('child_process');
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
 
+      // Get current directory via IPC if not provided
+      const currentDirectory = directory || (await nodeAPI.getCurrentDir());
+
       // Get comprehensive git status
       const [branchInfo, statusInfo, remoteInfo] = await Promise.allSettled([
-        this.getBranchInfo(execAsync, directory),
-        this.getStatusInfo(execAsync, directory),
-        this.getRemoteInfo(execAsync, directory),
+        this.getBranchInfo(execAsync, currentDirectory),
+        this.getStatusInfo(execAsync, currentDirectory),
+        this.getRemoteInfo(execAsync, currentDirectory),
       ]);
 
       // Update UI with git information
@@ -918,15 +950,20 @@ class GitIntegrationPlugin {
     this.updateGitInfo(terminalData, directory);
   }
 
-  async updateGitInfo(terminalData, directory = process.cwd()) {
+  async updateGitInfo(terminalData, directory = null) {
     try {
       const { exec } = await import('child_process');
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
 
+      // Get current directory via IPC if not provided
+      const currentDirectory = directory || (await nodeAPI.getCurrentDir());
+
       // Get git branch
       try {
-        const { stdout: branch } = await execAsync('git branch --show-current', { cwd: directory });
+        const { stdout: branch } = await execAsync('git branch --show-current', {
+          cwd: currentDirectory,
+        });
         const branchName = branch.trim();
         if (branchName) {
           document.getElementById('branch-info').textContent = `⎇ ${branchName}`;
@@ -939,7 +976,9 @@ class GitIntegrationPlugin {
 
       // Get git status (check for changes)
       try {
-        const { stdout: status } = await execAsync('git status --porcelain', { cwd: directory });
+        const { stdout: status } = await execAsync('git status --porcelain', {
+          cwd: currentDirectory,
+        });
         const hasChanges = status.trim().length > 0;
         const branchElement = document.getElementById('branch-info');
         if (hasChanges && branchElement.textContent) {
@@ -1034,9 +1073,10 @@ class AIAssistantPlugin {
     const apiProvider = manager.settings.aiProvider || 'openai';
 
     // Get current directory and git context for better suggestions
+    const currentDir = await nodeAPI.getCurrentDir();
     const context = {
       input: input,
-      currentDir: process.cwd(),
+      currentDir: currentDir,
       gitBranch: document.getElementById('branch-info').textContent,
       recentCommands: manager.historyManager.history.slice(-5),
       platform: manager.platform,
@@ -1207,9 +1247,10 @@ class SessionManager {
     session.workingDirectories = new Map();
 
     // Capture current working directories
-    manager.terminals.forEach((terminalData, terminalId) => {
+    manager.terminals.forEach(async (terminalData, terminalId) => {
       try {
-        session.workingDirectories.set(terminalId, process.cwd());
+        const currentDir = await nodeAPI.getCurrentDir();
+        session.workingDirectories.set(terminalId, currentDir);
       } catch (error) {
         console.log('Could not get working directory for terminal', terminalId);
       }
@@ -2839,8 +2880,9 @@ class TerminalManager extends SimpleEventEmitter {
 
       // Check if AI integration is available
       if (window.aiIntegration && window.aiIntegration.isInitialized) {
+        const currentDirectory = await nodeAPI.getCurrentDir();
         const aiResponse = await window.aiIntegration.processUserCommand(input, {
-          currentDirectory: process.cwd(),
+          currentDirectory,
           platform: this.platform,
           activeTerminalId: this.activeTerminalId,
         });
@@ -2870,7 +2912,7 @@ class TerminalManager extends SimpleEventEmitter {
           // this.executeCommand(command);
         } else {
           this.pluginAPI.showNotification(
-            "🤔 I don't understand that command. Try being more specific!",
+            '🤔 I don\'t understand that command. Try being more specific!',
             'info',
             3000
           );
@@ -3540,200 +3582,214 @@ class TerminalManager extends SimpleEventEmitter {
     });
   }
 
-  createTerminal(terminalId) {
+  async createTerminal(terminalId) {
     const terminalElement = document.getElementById(`terminal-${terminalId}`);
     if (!terminalElement) {
       console.error(`Terminal element with id terminal-${terminalId} not found`);
       return;
     }
 
-    // Create xterm terminal
-    const terminal = new Terminal({
-      fontFamily: 'Consolas, "Courier New", monospace',
-      fontSize: this.settings.fontSize,
-      lineHeight: 1.2,
-      cursorBlink: true,
-      cursorStyle: 'block',
-      theme: this.themeManager.getCurrentTheme(),
-    });
-
-    // Add addons
-    const fitAddon = new FitAddon();
-    const webLinksAddon = new WebLinksAddon();
-
-    terminal.loadAddon(fitAddon);
-    terminal.loadAddon(webLinksAddon);
-
-    // Open terminal in DOM
-    terminal.open(terminalElement);
-    fitAddon.fit();
-
-    // Create shell process (simplified version without node-pty)
-    let shell, shellArgs;
-    if (this.platform === 'win32') {
-      // Use PowerShell 7 (pwsh) if available, fallback to Windows PowerShell
-      shell = 'pwsh.exe';
-      shellArgs = ['-NoLogo', '-NoExit'];
-    } else {
-      shell = process.env.SHELL || '/bin/bash';
-      shellArgs = [];
-    }
-
-    let shellProcess;
+    // Initialize XTerm with compatibility layer
     try {
-      shellProcess = spawn(shell, shellArgs, {
-        cwd: process.cwd(), // Use current working directory instead of home
-        env: {
-          ...process.env,
-          TERM: 'xterm-256color',
-          FORCE_COLOR: '1',
-        },
-        stdio: ['pipe', 'pipe', 'pipe'],
-        windowsHide: true, // Hide the console window on Windows
+      const xtermModules = await initializeXTerm();
+      const { Terminal, FitAddon, WebLinksAddon } = xtermModules;
+
+      // Create xterm terminal
+      const terminal = new Terminal({
+        fontFamily: 'Consolas, "Courier New", monospace',
+        fontSize: this.settings.fontSize,
+        lineHeight: 1.2,
+        cursorBlink: true,
+        cursorStyle: 'block',
+        theme: this.themeManager.getCurrentTheme(),
       });
 
-      console.log(`Shell process started: ${shell} with PID ${shellProcess.pid}`);
-      terminal.write('\r\nWelcome to RinaWarp Terminal\r\n');
-    } catch (error) {
-      console.error('Shell creation error:', error);
-      // Fallback to Windows PowerShell if pwsh fails
-      if (shell === 'pwsh.exe') {
-        try {
-          shell = 'powershell.exe';
-          shellArgs = ['-NoLogo', '-NoExit'];
-          shellProcess = spawn(shell, shellArgs, {
-            cwd: process.cwd(),
-            env: {
-              ...process.env,
-              TERM: 'xterm-256color',
-              FORCE_COLOR: '1',
-            },
-            stdio: ['pipe', 'pipe', 'pipe'],
-            windowsHide: true,
-          });
-          console.log(`Fallback shell started: ${shell} with PID ${shellProcess.pid}`);
-          terminal.write('\r\nWelcome to RinaWarp Terminal (PowerShell)\r\n');
-        } catch (fallbackError) {
-          terminal.write(`\r\n[Failed to start shell process: ${fallbackError.message}]\r\n`);
+      // Add addons
+      const fitAddon = new FitAddon();
+      const webLinksAddon = new WebLinksAddon();
+
+      terminal.loadAddon(fitAddon);
+      terminal.loadAddon(webLinksAddon);
+
+      // Open terminal in DOM
+      terminal.open(terminalElement);
+      fitAddon.fit();
+
+      // Create shell process (simplified version without node-pty)
+      let shell, shellArgs;
+      if (this.platform === 'win32') {
+        // Use PowerShell 7 (pwsh) if available, fallback to Windows PowerShell
+        shell = 'pwsh.exe';
+        shellArgs = ['-NoLogo', '-NoExit'];
+      } else {
+        shell = process.env.SHELL || '/bin/bash';
+        shellArgs = [];
+      }
+
+      let shellProcess;
+      try {
+        // Use IPC to create shell process in main process
+        const shellConfig = {
+          shell,
+          shellArgs,
+          terminalId,
+          platform: this.platform,
+        };
+
+        // Create shell process via IPC
+        shellProcess = await electronAPI.createShellProcess(shellConfig);
+
+        if (!shellProcess) {
+          throw new Error('Failed to create shell process via IPC');
+        }
+
+        console.log(`Shell process started via IPC: ${shell} with ID ${shellProcess.id}`);
+        terminal.write('\r\nWelcome to RinaWarp Terminal\r\n');
+      } catch (error) {
+        console.error('Shell creation error:', error);
+        // Fallback to Windows PowerShell if pwsh fails
+        if (shell === 'pwsh.exe') {
+          try {
+            shell = 'powershell.exe';
+            shellArgs = ['-NoLogo', '-NoExit'];
+            const fallbackShellConfig = {
+              shell,
+              shellArgs,
+              terminalId,
+              platform: this.platform,
+            };
+
+            shellProcess = await electronAPI.createShellProcess(fallbackShellConfig);
+
+            if (!shellProcess) {
+              throw new Error('Failed to create fallback shell process via IPC');
+            }
+
+            console.log(`Fallback shell started via IPC: ${shell} with ID ${shellProcess.id}`);
+            terminal.write('\r\nWelcome to RinaWarp Terminal (PowerShell)\r\n');
+          } catch (fallbackError) {
+            terminal.write(`\r\n[Failed to start shell process: ${fallbackError.message}]\r\n`);
+            return;
+          }
+        } else {
+          terminal.write(`\r\n[Failed to start shell process: ${error.message}]\r\n`);
           return;
         }
-      } else {
-        terminal.write(`\r\n[Failed to start shell process: ${error.message}]\r\n`);
-        return;
       }
-    }
 
-    // Handle shell output with improved error handling
-    shellProcess.stdout.on('data', data => {
-      try {
-        const output = data.toString();
-        console.log('Shell stdout:', output.slice(0, 100) + (output.length > 100 ? '...' : ''));
-        terminal.write(output);
-      } catch (error) {
-        console.error('Error processing stdout:', error);
-        terminal.write('[Error processing shell output]\r\n');
-      }
-    });
+      // Setup IPC communication for shell process instead of direct event handling
+      const shellProcessId = shellProcess.id;
 
-    shellProcess.stderr.on('data', data => {
-      try {
-        const output = data.toString();
-        console.log('Shell stderr:', output.slice(0, 100) + (output.length > 100 ? '...' : ''));
-        terminal.write(output);
-      } catch (error) {
-        console.error('Error processing stderr:', error);
-        terminal.write('[Error processing shell error output]\r\n');
-      }
-    });
-
-    // Handle terminal input with improved error handling
-    terminal.onData(data => {
-      try {
-        console.log(`Input received: ${JSON.stringify(data)}`);
-        if (shellProcess && shellProcess.stdin && !shellProcess.stdin.destroyed) {
-          shellProcess.stdin.write(data);
-          console.log('Data written to shell process successfully');
-        } else {
-          console.error('Shell process stdin is not available or destroyed');
-          terminal.write('\r\n[Shell process not available - please restart terminal]\r\n');
+      // Set up IPC listeners for shell process events
+      electronAPI.onShellData(shellProcessId, data => {
+        try {
+          const output = data.toString();
+          console.log(
+            'Shell stdout via IPC:',
+            output.slice(0, 100) + (output.length > 100 ? '...' : '')
+          );
+          terminal.write(output);
+        } catch (error) {
+          console.error('Error processing stdout via IPC:', error);
+          terminal.write('[Error processing shell output]\r\n');
         }
-      } catch (error) {
-        console.error('Failed to write to shell process:', error);
-        terminal.write(`\r\n[Input error: ${error.message}]\r\n`);
-      }
-    });
+      });
 
-    // Handle process exit
-    shellProcess.on('exit', (code, signal) => {
-      console.log(`Shell process exited with code ${code}, signal ${signal}`);
-      terminal.write(`\r\n[Process exited with code ${code}]\r\n`);
-    });
+      electronAPI.onShellError(shellProcessId, data => {
+        try {
+          const output = data.toString();
+          console.log(
+            'Shell stderr via IPC:',
+            output.slice(0, 100) + (output.length > 100 ? '...' : '')
+          );
+          terminal.write(output);
+        } catch (error) {
+          console.error('Error processing stderr via IPC:', error);
+          terminal.write('[Error processing shell error output]\r\n');
+        }
+      });
 
-    // Handle process errors
-    shellProcess.on('error', error => {
-      console.error('Shell process error:', error);
-      terminal.write(`\r\n[Shell process error: ${error.message}]\r\n`);
-    });
+      electronAPI.onShellExit(shellProcessId, (code, signal) => {
+        console.log(`Shell process exited with code ${code}, signal ${signal}`);
+        terminal.write(`\r\n[Process exited with code ${code}]\r\n`);
+      });
 
-    // Handle shell process ready
-    shellProcess.on('spawn', () => {
-      console.log('Shell process spawned successfully');
-      // Give the shell a moment to initialize before sending initial commands
+      electronAPI.onShellError(shellProcessId, error => {
+        console.error('Shell process error via IPC:', error);
+        terminal.write(`\r\n[Shell process error: ${error.message}]\r\n`);
+      });
+
+      // Handle terminal input with IPC communication
+      terminal.onData(data => {
+        try {
+          console.log(`Input received: ${JSON.stringify(data)}`);
+          electronAPI.writeToShell(shellProcessId, data);
+          console.log('Data written to shell process via IPC successfully');
+        } catch (error) {
+          console.error('Failed to write to shell process via IPC:', error);
+          terminal.write(`\r\n[Input error: ${error.message}]\r\n`);
+        }
+      });
+
+      // Send initial setup command via IPC
       setTimeout(() => {
-        console.log('Sending initial setup to shell');
+        console.log('Sending initial setup to shell via IPC');
 
         if (this.platform === 'win32') {
           // For PowerShell, send a simple command to get the prompt started
           try {
-            shellProcess.stdin.write('\r\n'); // Send enter to trigger prompt
-            console.log('Sent initial enter to PowerShell');
+            electronAPI.writeToShell(shellProcessId, '\r\n'); // Send enter to trigger prompt
+            console.log('Sent initial enter to PowerShell via IPC');
           } catch (error) {
-            console.error('Failed to send initial command to shell:', error);
+            console.error('Failed to send initial command to shell via IPC:', error);
           }
         } else {
           // For Unix shells, send enter to get prompt
           try {
-            shellProcess.stdin.write('\n');
-            console.log('Sent initial command to Unix shell');
+            electronAPI.writeToShell(shellProcessId, '\n');
+            console.log('Sent initial command to Unix shell via IPC');
           } catch (error) {
-            console.error('Failed to send initial command to shell:', error);
+            console.error('Failed to send initial command to shell via IPC:', error);
           }
         }
       }, 1000);
-    });
 
-    // Store terminal data
-    const terminalData = {
-      terminal,
-      shellProcess,
-      fitAddon,
-      element: terminalElement,
-      terminalId,
-    };
-    this.terminals.set(terminalId, terminalData);
+      // Store terminal data
+      const terminalData = {
+        terminal,
+        shellProcess,
+        fitAddon,
+        element: terminalElement,
+        terminalId,
+      };
+      this.terminals.set(terminalId, terminalData);
 
-    // Initialize command buffer for this terminal
-    this.commandBuffers.set(terminalId, '');
+      // Initialize command buffer for this terminal
+      this.commandBuffers.set(terminalId, '');
 
-    // Execute plugin hooks
-    this.pluginManager.executeHook('terminal-created', { terminalId, terminal, shellProcess });
+      // Execute plugin hooks
+      this.pluginManager.executeHook('terminal-created', { terminalId, terminal, shellProcess });
 
-    // Emit terminal-created event for Phase 2 integration
-    this.emit('terminal-created', terminalData);
+      // Emit terminal-created event for Phase 2 integration
+      this.emit('terminal-created', terminalData);
 
-    // Auto-save session if enabled
-    if (this.settings.autoSaveSession) {
-      setTimeout(() => this.sessionManager.updateCurrentSession(), 1000);
+      // Auto-save session if enabled
+      if (this.settings.autoSaveSession) {
+        setTimeout(() => this.sessionManager.updateCurrentSession(), 1000);
+      }
+
+      // Focus the terminal and ensure it can receive input
+      setTimeout(() => {
+        terminal.focus();
+        // Ensure the terminal element is focusable and focused
+        terminalElement.setAttribute('tabindex', '0');
+        terminalElement.focus();
+        console.log(`Terminal ${terminalId} focused and ready for input`);
+      }, 100);
+    } catch (error) {
+      console.error('Terminal creation error:', error);
+      throw error;
     }
-
-    // Focus the terminal and ensure it can receive input
-    setTimeout(() => {
-      terminal.focus();
-      // Ensure the terminal element is focusable and focused
-      terminalElement.setAttribute('tabindex', '0');
-      terminalElement.focus();
-      console.log(`Terminal ${terminalId} focused and ready for input`);
-    }, 100);
   }
 
   setupTabManagement() {
@@ -3997,23 +4053,31 @@ class TerminalManager extends SimpleEventEmitter {
     }, 100);
   }
 
-  updateStatusBar() {
+  async updateStatusBar() {
     document.getElementById('platform-info').textContent = this.platform;
     document.getElementById('shell-info').textContent = path.basename(this.shell);
-    document.getElementById('current-dir').textContent = process.cwd();
+
+    // Get current directory via IPC
+    try {
+      const currentDir = await nodeAPI.getCurrentDir();
+      document.getElementById('current-dir').textContent = currentDir;
+
+      // Update git info through plugin
+      this.pluginManager.executeHook(
+        'directory-changed',
+        { terminalId: this.activeTerminalId },
+        currentDir
+      );
+    } catch (error) {
+      console.error('Failed to get current directory:', error);
+      document.getElementById('current-dir').textContent = 'Unknown';
+    }
 
     // Update time display with local time
     this.updateTimeDisplay();
 
     // Update license status
     this.updateLicenseStatus();
-
-    // Update git info through plugin
-    this.pluginManager.executeHook(
-      'directory-changed',
-      { terminalId: this.activeTerminalId },
-      process.cwd()
-    );
   }
 
   updateTimeDisplay() {
@@ -4071,33 +4135,33 @@ class TerminalManager extends SimpleEventEmitter {
       let statusColor = '';
 
       switch (status.tier) {
-        case 'trial':
-          statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
-          statusColor = '#ffd93d';
-          break;
-        case 'personal':
-          statusText = '👤 Personal';
-          statusColor = '#51cf66';
-          break;
-        case 'professional':
-          statusText = '💼 Professional';
-          statusColor = '#74c0fc';
-          break;
-        case 'team':
-          statusText = '👥 Team';
-          statusColor = '#9775fa';
-          break;
-        case 'enterprise':
-          statusText = '🏢 Enterprise';
-          statusColor = '#ff8c42';
-          break;
-        case 'expired':
-          statusText = '❌ Expired';
-          statusColor = '#f92672';
-          break;
-        default:
-          statusText = '❓ Unknown';
-          statusColor = '#666';
+      case 'trial':
+        statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+        statusColor = '#ffd93d';
+        break;
+      case 'personal':
+        statusText = '👤 Personal';
+        statusColor = '#51cf66';
+        break;
+      case 'professional':
+        statusText = '💼 Professional';
+        statusColor = '#74c0fc';
+        break;
+      case 'team':
+        statusText = '👥 Team';
+        statusColor = '#9775fa';
+        break;
+      case 'enterprise':
+        statusText = '🏢 Enterprise';
+        statusColor = '#ff8c42';
+        break;
+      case 'expired':
+        statusText = '❌ Expired';
+        statusColor = '#f92672';
+        break;
+      default:
+        statusText = '❓ Unknown';
+        statusColor = '#666';
       }
 
       licenseElement.textContent = statusText;
@@ -4122,15 +4186,15 @@ class TerminalManager extends SimpleEventEmitter {
                         <div class="license-tier">${status.tier.toUpperCase()}</div>
                         <div class="license-details">
                             ${
-                              status.tier === 'trial'
-                                ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
-                                : '<p>License is active</p>'
-                            }
+  status.tier === 'trial'
+    ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
+    : '<p>License is active</p>'
+}
                             ${
-                              status.aiQueriesRemaining !== 'unlimited'
-                                ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
-                                : '<p>Unlimited AI queries</p>'
-                            }
+  status.aiQueriesRemaining !== 'unlimited'
+    ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
+    : '<p>Unlimited AI queries</p>'
+}
                         </div>
                     </div>
                 </div>

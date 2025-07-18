@@ -10,170 +10,180 @@ const url = require('url');
 const ConversionTracker = require('./conversion-tracking.js');
 
 class AnalyticsDashboard {
-    constructor() {
-        this.tracker = new ConversionTracker();
-        this.server = null;
-        this.port = process.env.DASHBOARD_PORT || 3000;
-        this.refreshInterval = 30000; // 30 seconds
-        this.metrics = {
-            campaigns: new Map(),
-            dailyStats: new Map(),
-            realTimeEvents: []
-        };
-        
-        this.initializeMetrics();
+  constructor() {
+    this.tracker = new ConversionTracker();
+    this.server = null;
+    this.port = process.env.DASHBOARD_PORT || 3000;
+    this.refreshInterval = 30000; // 30 seconds
+    this.metrics = {
+      campaigns: new Map(),
+      dailyStats: new Map(),
+      realTimeEvents: [],
+    };
+
+    this.initializeMetrics();
+  }
+
+  /**
+   * Initialize metrics from stored data
+   */
+  initializeMetrics() {
+    const eventLogPath = path.join(__dirname, 'tracking-events.json');
+    if (fs.existsSync(eventLogPath)) {
+      const events = JSON.parse(fs.readFileSync(eventLogPath, 'utf8'));
+      this.processEvents(events);
+    }
+  }
+
+  /**
+   * Process events for dashboard metrics
+   */
+  processEvents(events) {
+    events.forEach(event => {
+      this.updateMetrics(event);
+    });
+  }
+
+  /**
+   * Update metrics with new event
+   */
+  updateMetrics(event) {
+    const campaignId = event.campaignId || 'unknown';
+    const date = event.timestamp.split('T')[0];
+
+    // Update campaign metrics
+    if (!this.metrics.campaigns.has(campaignId)) {
+      this.metrics.campaigns.set(campaignId, {
+        emailsSent: 0,
+        emailOpens: 0,
+        linkClicks: 0,
+        conversions: 0,
+        uniqueOpens: new Set(),
+        uniqueClicks: new Set(),
+        uniqueConversions: new Set(),
+      });
     }
 
-    /**
-     * Initialize metrics from stored data
-     */
-    initializeMetrics() {
-        const eventLogPath = path.join(__dirname, 'tracking-events.json');
-        if (fs.existsSync(eventLogPath)) {
-            const events = JSON.parse(fs.readFileSync(eventLogPath, 'utf8'));
-            this.processEvents(events);
-        }
+    const campaign = this.metrics.campaigns.get(campaignId);
+
+    switch (event.type) {
+      case 'email_open':
+        campaign.emailOpens++;
+        campaign.uniqueOpens.add(event.userId || event.pixelId);
+        break;
+      case 'link_click':
+        campaign.linkClicks++;
+        campaign.uniqueClicks.add(event.userId || event.sessionId);
+        break;
+      case 'beta_signup':
+        campaign.conversions++;
+        campaign.uniqueConversions.add(event.formData?.email || event.id);
+        break;
     }
 
-    /**
-     * Process events for dashboard metrics
-     */
-    processEvents(events) {
-        events.forEach(event => {
-            this.updateMetrics(event);
-        });
+    // Update daily stats
+    if (!this.metrics.dailyStats.has(date)) {
+      this.metrics.dailyStats.set(date, {
+        opens: 0,
+        clicks: 0,
+        conversions: 0,
+        campaigns: new Set(),
+      });
     }
 
-    /**
-     * Update metrics with new event
-     */
-    updateMetrics(event) {
-        const campaignId = event.campaignId || 'unknown';
-        const date = event.timestamp.split('T')[0];
+    const dailyStat = this.metrics.dailyStats.get(date);
+    dailyStat.campaigns.add(campaignId);
 
-        // Update campaign metrics
-        if (!this.metrics.campaigns.has(campaignId)) {
-            this.metrics.campaigns.set(campaignId, {
-                emailsSent: 0,
-                emailOpens: 0,
-                linkClicks: 0,
-                conversions: 0,
-                uniqueOpens: new Set(),
-                uniqueClicks: new Set(),
-                uniqueConversions: new Set()
-            });
-        }
-
-        const campaign = this.metrics.campaigns.get(campaignId);
-
-        switch (event.type) {
-            case 'email_open':
-                campaign.emailOpens++;
-                campaign.uniqueOpens.add(event.userId || event.pixelId);
-                break;
-            case 'link_click':
-                campaign.linkClicks++;
-                campaign.uniqueClicks.add(event.userId || event.sessionId);
-                break;
-            case 'beta_signup':
-                campaign.conversions++;
-                campaign.uniqueConversions.add(event.formData?.email || event.id);
-                break;
-        }
-
-        // Update daily stats
-        if (!this.metrics.dailyStats.has(date)) {
-            this.metrics.dailyStats.set(date, {
-                opens: 0,
-                clicks: 0,
-                conversions: 0,
-                campaigns: new Set()
-            });
-        }
-
-        const dailyStat = this.metrics.dailyStats.get(date);
-        dailyStat.campaigns.add(campaignId);
-
-        switch (event.type) {
-            case 'email_open':
-                dailyStat.opens++;
-                break;
-            case 'link_click':
-                dailyStat.clicks++;
-                break;
-            case 'beta_signup':
-                dailyStat.conversions++;
-                break;
-        }
-
-        // Add to real-time events (keep last 100)
-        this.metrics.realTimeEvents.unshift(event);
-        if (this.metrics.realTimeEvents.length > 100) {
-            this.metrics.realTimeEvents.pop();
-        }
+    switch (event.type) {
+      case 'email_open':
+        dailyStat.opens++;
+        break;
+      case 'link_click':
+        dailyStat.clicks++;
+        break;
+      case 'beta_signup':
+        dailyStat.conversions++;
+        break;
     }
 
-    /**
-     * Get dashboard data
-     */
-    getDashboardData() {
-        const campaigns = Array.from(this.metrics.campaigns.entries()).map(([id, data]) => ({
-            id,
-            emailsSent: data.emailsSent,
-            emailOpens: data.emailOpens,
-            linkClicks: data.linkClicks,
-            conversions: data.conversions,
-            uniqueOpens: data.uniqueOpens.size,
-            uniqueClicks: data.uniqueClicks.size,
-            uniqueConversions: data.uniqueConversions.size,
-            openRate: data.emailsSent > 0 ? ((data.uniqueOpens.size / data.emailsSent) * 100).toFixed(2) : 0,
-            clickRate: data.uniqueOpens.size > 0 ? ((data.uniqueClicks.size / data.uniqueOpens.size) * 100).toFixed(2) : 0,
-            conversionRate: data.uniqueClicks.size > 0 ? ((data.uniqueConversions.size / data.uniqueClicks.size) * 100).toFixed(2) : 0
-        }));
-
-        const dailyStats = Array.from(this.metrics.dailyStats.entries())
-            .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-            .slice(0, 30)
-            .map(([date, data]) => ({
-                date,
-                opens: data.opens,
-                clicks: data.clicks,
-                conversions: data.conversions,
-                campaigns: data.campaigns.size
-            }));
-
-        const totalMetrics = campaigns.reduce((acc, campaign) => ({
-            totalOpens: acc.totalOpens + campaign.emailOpens,
-            totalClicks: acc.totalClicks + campaign.linkClicks,
-            totalConversions: acc.totalConversions + campaign.conversions,
-            totalUniqueOpens: acc.totalUniqueOpens + campaign.uniqueOpens,
-            totalUniqueClicks: acc.totalUniqueClicks + campaign.uniqueClicks,
-            totalUniqueConversions: acc.totalUniqueConversions + campaign.uniqueConversions
-        }), {
-            totalOpens: 0,
-            totalClicks: 0,
-            totalConversions: 0,
-            totalUniqueOpens: 0,
-            totalUniqueClicks: 0,
-            totalUniqueConversions: 0
-        });
-
-        return {
-            campaigns,
-            dailyStats,
-            totalMetrics,
-            realTimeEvents: this.metrics.realTimeEvents.slice(0, 20),
-            lastUpdated: new Date().toISOString()
-        };
+    // Add to real-time events (keep last 100)
+    this.metrics.realTimeEvents.unshift(event);
+    if (this.metrics.realTimeEvents.length > 100) {
+      this.metrics.realTimeEvents.pop();
     }
+  }
 
-    /**
-     * Generate HTML dashboard
-     */
-    generateDashboardHTML() {
-        const data = this.getDashboardData();
-        
-        return `
+  /**
+   * Get dashboard data
+   */
+  getDashboardData() {
+    const campaigns = Array.from(this.metrics.campaigns.entries()).map(([id, data]) => ({
+      id,
+      emailsSent: data.emailsSent,
+      emailOpens: data.emailOpens,
+      linkClicks: data.linkClicks,
+      conversions: data.conversions,
+      uniqueOpens: data.uniqueOpens.size,
+      uniqueClicks: data.uniqueClicks.size,
+      uniqueConversions: data.uniqueConversions.size,
+      openRate:
+        data.emailsSent > 0 ? ((data.uniqueOpens.size / data.emailsSent) * 100).toFixed(2) : 0,
+      clickRate:
+        data.uniqueOpens.size > 0
+          ? ((data.uniqueClicks.size / data.uniqueOpens.size) * 100).toFixed(2)
+          : 0,
+      conversionRate:
+        data.uniqueClicks.size > 0
+          ? ((data.uniqueConversions.size / data.uniqueClicks.size) * 100).toFixed(2)
+          : 0,
+    }));
+
+    const dailyStats = Array.from(this.metrics.dailyStats.entries())
+      .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+      .slice(0, 30)
+      .map(([date, data]) => ({
+        date,
+        opens: data.opens,
+        clicks: data.clicks,
+        conversions: data.conversions,
+        campaigns: data.campaigns.size,
+      }));
+
+    const totalMetrics = campaigns.reduce(
+      (acc, campaign) => ({
+        totalOpens: acc.totalOpens + campaign.emailOpens,
+        totalClicks: acc.totalClicks + campaign.linkClicks,
+        totalConversions: acc.totalConversions + campaign.conversions,
+        totalUniqueOpens: acc.totalUniqueOpens + campaign.uniqueOpens,
+        totalUniqueClicks: acc.totalUniqueClicks + campaign.uniqueClicks,
+        totalUniqueConversions: acc.totalUniqueConversions + campaign.uniqueConversions,
+      }),
+      {
+        totalOpens: 0,
+        totalClicks: 0,
+        totalConversions: 0,
+        totalUniqueOpens: 0,
+        totalUniqueClicks: 0,
+        totalUniqueConversions: 0,
+      }
+    );
+
+    return {
+      campaigns,
+      dailyStats,
+      totalMetrics,
+      realTimeEvents: this.metrics.realTimeEvents.slice(0, 20),
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Generate HTML dashboard
+   */
+  generateDashboardHTML() {
+    const data = this.getDashboardData();
+
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -403,7 +413,9 @@ class AnalyticsDashboard {
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.campaigns.map(campaign => `
+                    ${data.campaigns
+                      .map(
+                        campaign => `
                         <tr>
                             <td><strong>${campaign.id}</strong></td>
                             <td>${campaign.emailOpens} (${campaign.uniqueOpens} unique)</td>
@@ -413,7 +425,9 @@ class AnalyticsDashboard {
                             <td class="${this.getRateClass(campaign.clickRate)}">${campaign.clickRate}%</td>
                             <td class="${this.getRateClass(campaign.conversionRate)}">${campaign.conversionRate}%</td>
                         </tr>
-                    `).join('')}
+                    `
+                      )
+                      .join('')}
                 </tbody>
             </table>
         </div>
@@ -426,7 +440,9 @@ class AnalyticsDashboard {
         <div class="real-time">
             <h2>🔴 Real-Time Events</h2>
             <div id="realTimeEvents">
-                ${data.realTimeEvents.map(event => `
+                ${data.realTimeEvents
+                  .map(
+                    event => `
                     <div class="event-item">
                         <div class="event-icon event-${event.type.replace('_', '-')}"></div>
                         <div>
@@ -436,7 +452,9 @@ class AnalyticsDashboard {
                         </div>
                         <div class="event-time">${new Date(event.timestamp).toLocaleTimeString()}</div>
                     </div>
-                `).join('')}
+                `
+                  )
+                  .join('')}
             </div>
         </div>
         
@@ -504,85 +522,88 @@ class AnalyticsDashboard {
     </script>
 </body>
 </html>`;
-    }
+  }
 
-    /**
-     * Get CSS class for rate coloring
-     */
-    getRateClass(rate) {
-        const numRate = parseFloat(rate);
-        if (numRate >= 20) return 'rate-good';
-        if (numRate >= 10) return 'rate-medium';
-        return 'rate-poor';
-    }
+  /**
+   * Get CSS class for rate coloring
+   */
+  getRateClass(rate) {
+    const numRate = parseFloat(rate);
+    if (numRate >= 20) return 'rate-good';
+    if (numRate >= 10) return 'rate-medium';
+    return 'rate-poor';
+  }
 
-    /**
-     * Start dashboard server
-     */
-    startServer() {
-        this.server = http.createServer((req, res) => {
-            const parsedUrl = url.parse(req.url, true);
-            
-            if (parsedUrl.pathname === '/') {
-                res.writeHead(200, { 'Content-Type': 'text/html' });
-                res.end(this.generateDashboardHTML());
-            } else if (parsedUrl.pathname === '/api/data') {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify(this.getDashboardData()));
-            } else if (parsedUrl.pathname === '/api/track/conversion' && req.method === 'POST') {
-                let body = '';
-                req.on('data', chunk => body += chunk);
-                req.on('end', async () => {
-                    try {
-                        const conversionData = JSON.parse(body);
-                        await this.tracker.trackConversion(conversionData);
-                        this.updateMetrics({ ...conversionData, type: 'beta_signup' });
-                        res.writeHead(200, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ success: true }));
-                    } catch (error) {
-                        res.writeHead(400, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ error: error.message }));
-                    }
-                });
-            } else if (parsedUrl.pathname.startsWith('/track/pixel/')) {
-                const pixelId = parsedUrl.pathname.split('/')[3];
-                this.tracker.trackEmailOpen(pixelId, req);
-                this.updateMetrics({ 
-                    type: 'email_open', 
-                    pixelId, 
-                    timestamp: new Date().toISOString() 
-                });
-                
-                // Return 1x1 transparent pixel
-                const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
-                res.writeHead(200, { 'Content-Type': 'image/png' });
-                res.end(pixel);
-            } else {
-                res.writeHead(404, { 'Content-Type': 'text/plain' });
-                res.end('Not Found');
-            }
+  /**
+   * Start dashboard server
+   */
+  startServer() {
+    this.server = http.createServer((req, res) => {
+      const parsedUrl = url.parse(req.url, true);
+
+      if (parsedUrl.pathname === '/') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(this.generateDashboardHTML());
+      } else if (parsedUrl.pathname === '/api/data') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(this.getDashboardData()));
+      } else if (parsedUrl.pathname === '/api/track/conversion' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => (body += chunk));
+        req.on('end', async () => {
+          try {
+            const conversionData = JSON.parse(body);
+            await this.tracker.trackConversion(conversionData);
+            this.updateMetrics({ ...conversionData, type: 'beta_signup' });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true }));
+          } catch (error) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+          }
+        });
+      } else if (parsedUrl.pathname.startsWith('/track/pixel/')) {
+        const pixelId = parsedUrl.pathname.split('/')[3];
+        this.tracker.trackEmailOpen(pixelId, req);
+        this.updateMetrics({
+          type: 'email_open',
+          pixelId,
+          timestamp: new Date().toISOString(),
         });
 
-        this.server.listen(this.port, () => {
-            console.log(`📊 Analytics Dashboard running at http://localhost:${this.port}`);
-        });
-    }
+        // Return 1x1 transparent pixel
+        const pixel = Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+          'base64'
+        );
+        res.writeHead(200, { 'Content-Type': 'image/png' });
+        res.end(pixel);
+      } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not Found');
+      }
+    });
 
-    /**
-     * Stop dashboard server
-     */
-    stopServer() {
-        if (this.server) {
-            this.server.close();
-            console.log('📊 Analytics Dashboard stopped');
-        }
+    this.server.listen(this.port, () => {
+      console.log(`📊 Analytics Dashboard running at http://localhost:${this.port}`);
+    });
+  }
+
+  /**
+   * Stop dashboard server
+   */
+  stopServer() {
+    if (this.server) {
+      this.server.close();
+      console.log('📊 Analytics Dashboard stopped');
     }
+  }
 }
 
 module.exports = AnalyticsDashboard;
 
 // Run dashboard if this file is executed directly
 if (require.main === module) {
-    const dashboard = new AnalyticsDashboard();
-    dashboard.startServer();
+  const dashboard = new AnalyticsDashboard();
+  dashboard.startServer();
 }

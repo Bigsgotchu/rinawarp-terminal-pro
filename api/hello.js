@@ -3,6 +3,6 @@ export default function handler(req, res) {
     message: 'Hello from RinaWarp Terminal API!',
     timestamp: new Date().toISOString(),
     method: req.method,
-    path: req.url
+    path: req.url,
   });
 }

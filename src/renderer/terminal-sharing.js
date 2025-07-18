@@ -588,8 +588,9 @@ class LiveTerminalSharing {
 
   async getTerminalSnapshot() {
     // Capture current terminal state
+    const currentDir = await nodeAPI.getCurrentDir();
     return {
-      workingDirectory: process.cwd(),
+      workingDirectory: currentDir,
       commandHistory: [],
       environment: process.env,
       timestamp: Date.now(),

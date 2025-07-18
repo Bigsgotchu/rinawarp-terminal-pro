@@ -10,6 +10,8 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
+
+/* global nodeAPI */
 class _WorkflowAutomation {
   constructor() {
     this.isRecording = false;
@@ -41,7 +43,7 @@ class _WorkflowAutomation {
         startTime: Date.now(),
         steps: [],
         context: {
-          workingDirectory: process.cwd(),
+          workingDirectory: await nodeAPI.getCurrentDir(),
           environment: { ...process.env },
           system: this.getSystemInfo(),
         },
@@ -724,7 +726,7 @@ class WorkflowAutomationEngine {
       context: {
         environment: await this.captureEnvironmentContext(),
         startTime: Date.now(),
-        workingDirectory: process.cwd(),
+        workingDirectory: await nodeAPI.getCurrentDir(),
       },
       options: {
         intelligentReplay: options.intelligent || true,
@@ -1016,7 +1018,7 @@ class WorkflowAutomationEngine {
     return {
       platform: process.platform,
       nodeVersion: process.version,
-      workingDirectory: process.cwd(),
+      workingDirectory: await nodeAPI.getCurrentDir(),
       environmentVariables: { ...process.env },
       timestamp: Date.now(),
     };

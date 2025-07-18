@@ -115,18 +115,47 @@ class AIIntegrationManager {
   }
 
   async loadAIComponents() {
+    const loadComponent = async (componentName, importPath, ComponentClass) => {
+      try {
+        const module = await import(importPath);
+        const Component = module[ComponentClass] || module.default;
+
+        if (Component) {
+          const instance = new Component();
+          console.log(`✅ ${componentName} loaded successfully`);
+          return instance;
+        } else {
+          console.warn(`⚠️ ${componentName} class not found in module`);
+          return null;
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to load ${componentName}:`, error.message);
+        return null;
+      }
+    };
+
     try {
       // Load AI Assistant with enhanced personality
-      const { AdvancedIntellectualAI } = await import('./renderer/advanced-ai-assistant.js');
-      this.aiAssistant = new AdvancedIntellectualAI();
-      console.log('✅ Advanced AI Assistant loaded');
+      this.aiAssistant = await loadComponent(
+        'Advanced AI Assistant',
+        './renderer/advanced-ai-assistant.js',
+        'AdvancedIntellectualAI'
+      );
 
       // Load AI Copilot Service
-      const { AICopilotService } = await import('./renderer/ai-copilot-service.js');
-      this.copilotService = new AICopilotService();
-      console.log('✅ AI Copilot Service loaded');
+      this.copilotService = await loadComponent(
+        'AI Copilot Service',
+        './renderer/ai-copilot-service.js',
+        'AICopilotService'
+      );
+
+      // If no components loaded, setup fallback
+      if (!this.aiAssistant && !this.copilotService) {
+        console.warn('⚠️ No AI components available, using fallback mode');
+        this.setupFallbackAI();
+      }
     } catch (error) {
-      console.warn('⚠️ Some AI components not available, using fallback mode');
+      console.error('❌ Critical error loading AI components:', error);
       this.setupFallbackAI();
     }
   }
@@ -330,14 +359,12 @@ if (typeof window !== 'undefined') {
   aiManager = null;
 }
 
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { AIIntegrationManager, aiManager };
-} else if (typeof window !== 'undefined') {
+// Make available globally for browser environment
+if (typeof window !== 'undefined') {
   window.AIIntegrationManager = AIIntegrationManager;
   window.aiManager = aiManager;
 }
 
-// ES6 export for modern module usage
+// ES6 module exports
 export { AIIntegrationManager, aiManager };
 export default AIIntegrationManager;

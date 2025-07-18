@@ -1,0 +1,95 @@
+{
+  "displayName": "RinaWarp Terminal - Basic Monitoring Dashboard",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "CPU Utilization",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" resource.type=\"gce_instance\"",
+                "aggregation": {
+                  "alignmentPeriod": "60s",
+                  "perSeriesAligner": "ALIGN_MEAN",
+                  "crossSeriesReducer": "REDUCE_MEAN"
+                }
+              }
+            },
+            "sparkChartView": {
+              "sparkChartType": "SPARK_LINE"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Memory Usage",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "metric.type=\"agent.googleapis.com/memory/percent_used\" resource.type=\"gce_instance\"",
+                "aggregation": {
+                  "alignmentPeriod": "60s",
+                  "perSeriesAligner": "ALIGN_MEAN",
+                  "crossSeriesReducer": "REDUCE_MEAN"
+                }
+              }
+            },
+            "sparkChartView": {
+              "sparkChartType": "SPARK_LINE"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 4,
+        "width": 12,
+        "height": 4,
+        "widget": {
+          "title": "Network Traffic",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"compute.googleapis.com/instance/network/received_bytes_count\" resource.type=\"gce_instance\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1"
+              }
+            ],
+            "timeshiftDuration": "0s",
+            "yAxis": {
+              "label": "Bytes/sec",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 8,
+        "width": 12,
+        "height": 4,
+        "widget": {
+          "title": "RinaWarp Terminal Monitoring Overview",
+          "text": {
+            "content": "## RinaWarp Terminal Monitoring Dashboard\n\nThis dashboard provides basic monitoring for your RinaWarp Terminal application.\n\n### Current Metrics:\n- **CPU Utilization**: System processor usage\n- **Memory Usage**: RAM consumption (requires Ops Agent)\n- **Network Traffic**: Data transfer rates\n\n### Your Custom Metrics:\nBased on your application code, you can add custom metrics for:\n- Terminal Sessions (Active Connections)\n- API Request Rates\n- Error Rates\n- Response Times\n- AI Assistant Usage\n- Plugin Activity\n\n### Next Steps:\n1. Install the Ops Agent on your instances\n2. Set up custom metrics using the Google Cloud Monitoring API\n3. Configure alerting policies\n4. Create logs-based metrics\n\n[Learn more about Google Cloud Monitoring](https://cloud.google.com/monitoring)"
+          }
+        }
+      }
+    ]
+  }
+}

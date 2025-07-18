@@ -82,11 +82,11 @@ class SMTPService {
         messageId: info.messageId,
         abTestVariant: personalizedContent.abTestVariant,
         audienceSegment: personalizedContent.audienceSegment,
-        discountCode: personalizedContent.discountCode
+        discountCode: personalizedContent.discountCode,
       });
       return {
         ...info,
-        personalizedContent: personalizedContent
+        personalizedContent: personalizedContent,
       };
     } catch (error) {
       console.error('❌ Error sending personalized email:', error);

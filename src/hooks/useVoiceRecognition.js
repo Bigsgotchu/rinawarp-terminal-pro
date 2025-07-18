@@ -6,14 +6,14 @@ const useVoiceRecognition = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
-  
+
   const recognitionRef = useRef(null);
   const silenceTimeoutRef = useRef(null);
 
   useEffect(() => {
     // Check browser support
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       setIsSupported(false);
       setError('Speech recognition not supported in this browser');
@@ -21,7 +21,7 @@ const useVoiceRecognition = () => {
     }
 
     setIsSupported(true);
-    
+
     // Initialize recognition
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
@@ -41,14 +41,14 @@ const useVoiceRecognition = () => {
       console.log('🎙️ Voice recognition started');
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = event => {
       let finalTranscript = '';
       let interimTranscript = '';
 
       // Process results
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
-        
+
         if (event.results[i].isFinal) {
           finalTranscript += transcript;
         } else {
@@ -57,7 +57,7 @@ const useVoiceRecognition = () => {
       }
 
       setInterimTranscript(interimTranscript);
-      
+
       if (finalTranscript) {
         setTranscript(finalTranscript.trim());
         console.log('🎙️ Voice recognition result:', finalTranscript);
@@ -67,7 +67,7 @@ const useVoiceRecognition = () => {
       if (silenceTimeoutRef.current) {
         clearTimeout(silenceTimeoutRef.current);
       }
-      
+
       // Auto-stop after 3 seconds of silence
       silenceTimeoutRef.current = setTimeout(() => {
         if (recognitionRef.current && listening) {
@@ -76,11 +76,11 @@ const useVoiceRecognition = () => {
       }, 3000);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = event => {
       console.error('🎙️ Voice recognition error:', event.error);
       setError(`Voice recognition error: ${event.error}`);
       setListening(false);
-      
+
       // Handle specific errors
       switch (event.error) {
       case 'no-speech':
@@ -103,7 +103,7 @@ const useVoiceRecognition = () => {
     recognition.onend = () => {
       setListening(false);
       console.log('🎙️ Voice recognition ended');
-      
+
       // Clear silence timeout
       if (silenceTimeoutRef.current) {
         clearTimeout(silenceTimeoutRef.current);
@@ -149,9 +149,9 @@ const useVoiceRecognition = () => {
   };
 
   // Voice command processing
-  const processVoiceCommand = (command) => {
+  const processVoiceCommand = command => {
     const lowerCommand = command.toLowerCase();
-    
+
     // Common voice command patterns
     const patterns = {
       help: /^(help|show help|what can you do|hey rina)/i,
@@ -162,7 +162,7 @@ const useVoiceRecognition = () => {
       home: /^(go home|home directory|cd home)/i,
       back: /^(go back|back|previous|cd back)/i,
       theme: /^(change theme|switch theme|dark mode|light mode)/i,
-      voice: /^(stop listening|stop voice|turn off voice)/i
+      voice: /^(stop listening|stop voice|turn off voice)/i,
     };
 
     // Match patterns and return structured command
@@ -171,7 +171,7 @@ const useVoiceRecognition = () => {
         return {
           type,
           command: lowerCommand,
-          action: getActionForType(type, lowerCommand)
+          action: getActionForType(type, lowerCommand),
         };
       }
     }
@@ -180,7 +180,7 @@ const useVoiceRecognition = () => {
     return {
       type: 'direct',
       command: lowerCommand,
-      action: lowerCommand
+      action: lowerCommand,
     };
   };
 
@@ -218,7 +218,7 @@ const useVoiceRecognition = () => {
     startListening,
     stopListening,
     resetTranscript,
-    processVoiceCommand
+    processVoiceCommand,
   };
 };
 

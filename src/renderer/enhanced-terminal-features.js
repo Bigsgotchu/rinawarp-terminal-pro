@@ -1,10 +1,12 @@
 /**
  * Enhanced Terminal Features
  * Copyright (c) 2025 Rinawarp Technologies, LLC
- *
+ * 
  * Advanced terminal features extracted from warp-terminal-oss and warp-clone
  * Including multi-tab support, advanced PTY management, and modern UI features
  */
+
+/* global nodeAPI */
 
 // Multi-tab Terminal Manager
 class MultiTabTerminalManager {
@@ -201,8 +203,9 @@ class MultiTabTerminalManager {
     const shell = await this.getOptimalShell();
 
     // Start PTY process with enhanced environment setup
+    const currentDir = await nodeAPI.getCurrentDir();
     const ptyProcess = spawn(shell, [], {
-      cwd: process.cwd(),
+      cwd: currentDir,
       env: {
         ...process.env,
         TERM: 'xterm-256color',

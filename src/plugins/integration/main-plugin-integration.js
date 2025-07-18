@@ -16,10 +16,10 @@ export class RinaWarpPluginIntegration {
     this.pluginUI = null;
     this.performanceMonitor = null;
     this.communityManager = null;
-    
+
     // Terminal manager interface for plugins
     this.terminalManager = this.createTerminalManager();
-    
+
     this.initialized = false;
     this.initializationPromise = null;
   }
@@ -41,37 +41,37 @@ export class RinaWarpPluginIntegration {
 
       // Initialize core plugin manager
       this.pluginManager = new PluginManager(this.terminalManager);
-      
+
       // Initialize UI
       this.pluginUI = new PluginManagerUI(this.pluginManager);
-      
+
       // Initialize performance monitoring
       this.performanceMonitor = new PluginPerformanceMonitor(this.pluginManager);
-      
+
       // Initialize community features
       this.communityManager = new PluginCommunityManager(this.pluginManager);
-      
+
       // Setup integration hooks
       this.setupIntegrationHooks();
-      
+
       // Setup menu integration
       this.setupMenuIntegration();
-      
+
       // Setup keyboard shortcuts
       this.setupKeyboardShortcuts();
-      
+
       // Load CSS styles
       await this.loadPluginStyles();
-      
+
       // Auto-load enabled plugins
       await this.autoLoadPlugins();
-      
+
       this.initialized = true;
       console.log('✅ Plugin System initialized successfully');
-      
+
       // Emit initialization event
       this.terminalManager.emit('plugin-system-initialized');
-      
+
       return true;
     } catch (error) {
       console.error('❌ Plugin System initialization failed:', error);
@@ -84,7 +84,7 @@ export class RinaWarpPluginIntegration {
    */
   createTerminalManager() {
     const self = this;
-    
+
     return {
       // Terminal output methods
       writeToTerminal(text) {
@@ -147,7 +147,7 @@ export class RinaWarpPluginIntegration {
 
       addTheme(name, theme) {
         self.addTheme(name, theme);
-      }
+      },
     };
   }
 
@@ -157,14 +157,14 @@ export class RinaWarpPluginIntegration {
   setupIntegrationHooks() {
     // Hook into terminal command execution
     if (this.terminal && this.terminal.onData) {
-      this.terminal.onData((data) => {
+      this.terminal.onData(data => {
         this.terminalManager.emit('terminal-input', data);
       });
     }
 
     // Hook into terminal resize
     if (this.terminal && this.terminal.onResize) {
-      this.terminal.onResize((size) => {
+      this.terminal.onResize(size => {
         this.terminalManager.emit('terminal-resize', size);
       });
     }
@@ -187,7 +187,7 @@ export class RinaWarpPluginIntegration {
     });
 
     // Add plugin-specific menu items
-    this.pluginManager.on('plugin-loaded', (pluginName) => {
+    this.pluginManager.on('plugin-loaded', pluginName => {
       const plugin = this.pluginManager.plugins.get(pluginName);
       if (plugin && plugin.manifest.menuItems) {
         plugin.manifest.menuItems.forEach(item => {
@@ -201,7 +201,7 @@ export class RinaWarpPluginIntegration {
    * Setup keyboard shortcuts
    */
   setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', event => {
       // Ctrl+Shift+P or Cmd+Shift+P to open plugin manager
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'P') {
         event.preventDefault();
@@ -221,7 +221,7 @@ export class RinaWarpPluginIntegration {
    */
   async loadPluginStyles() {
     const cssPath = new URL('../ui/plugin-manager-ui.css', import.meta.url).href;
-    
+
     // Check if styles are already loaded
     if (document.querySelector('link[href*="plugin-manager-ui.css"]')) {
       return;
@@ -236,7 +236,7 @@ export class RinaWarpPluginIntegration {
     link.onerror = () => {
       console.warn('⚠️ Failed to load plugin styles');
     };
-    
+
     document.head.appendChild(link);
   }
 
@@ -246,7 +246,7 @@ export class RinaWarpPluginIntegration {
   async autoLoadPlugins() {
     try {
       const enabledPlugins = JSON.parse(localStorage.getItem('enabled-plugins') || '[]');
-      
+
       for (const pluginId of enabledPlugins) {
         try {
           await this.pluginManager.marketplace.installPlugin(pluginId);
@@ -427,20 +427,20 @@ export class RinaWarpPluginIntegration {
   async reloadAllPlugins() {
     try {
       console.log('🔄 Reloading all plugins...');
-      
+
       // Get list of active plugins
       const activePlugins = Array.from(this.pluginManager.plugins.keys());
-      
+
       // Unload all plugins
       for (const pluginName of activePlugins) {
         await this.pluginManager.unloadPlugin(pluginName);
       }
-      
+
       // Reload all plugins
       for (const pluginName of activePlugins) {
         await this.pluginManager.loadPlugin(pluginName);
       }
-      
+
       this.showNotification('All plugins reloaded successfully', 'success');
     } catch (error) {
       console.error('Failed to reload plugins:', error);
@@ -457,7 +457,7 @@ export class RinaWarpPluginIntegration {
       pluginCount: this.pluginManager?.plugins.size || 0,
       activePlugins: this.pluginManager ? Array.from(this.pluginManager.plugins.keys()) : [],
       performanceMonitoring: !!this.performanceMonitor,
-      communityFeatures: !!this.communityManager
+      communityFeatures: !!this.communityManager,
     };
   }
 
@@ -489,7 +489,7 @@ export class RinaWarpPluginIntegration {
       pluginUI: this.pluginUI,
       performanceMonitor: this.performanceMonitor,
       communityManager: this.communityManager,
-      terminalManager: this.terminalManager
+      terminalManager: this.terminalManager,
     };
   }
 
@@ -530,10 +530,10 @@ export async function initializePluginSystem(terminal, electronAPI) {
 
   globalPluginIntegration = new RinaWarpPluginIntegration(terminal, electronAPI);
   await globalPluginIntegration.init();
-  
+
   // Make available globally for debugging
   window.rinaWarpPluginSystem = globalPluginIntegration.exportForDebugging();
-  
+
   return globalPluginIntegration;
 }
 

@@ -3,13 +3,13 @@ import { TerminalContext } from '../context/TerminalContext';
 import './HelpModal.css';
 
 const HelpModal = ({ isOpen, onClose }) => {
-  const { 
-    currentCommand, 
-    aiSuggestions, 
-    getContextualHelp, 
+  const {
+    currentCommand,
+    aiSuggestions,
+    getContextualHelp,
     currentTheme,
     sessionStats,
-    isVoiceEnabled 
+    isVoiceEnabled,
   } = useContext(TerminalContext);
 
   const [activeTab, setActiveTab] = useState('contextual');
@@ -28,25 +28,25 @@ const HelpModal = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = e => {
     if (e.key === 'Escape') {
       onClose();
     }
   };
 
-  const filterSuggestions = (suggestions) => {
+  const filterSuggestions = suggestions => {
     if (!searchTerm) return suggestions;
     return suggestions.filter(suggestion =>
       suggestion.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = tab => {
     setActiveTab(tab);
     setSearchTerm('');
   };
 
-  const formatSessionTime = (seconds) => {
+  const formatSessionTime = seconds => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
@@ -56,38 +56,38 @@ const HelpModal = ({ isOpen, onClose }) => {
 
   return (
     <div className={`help-modal-overlay ${currentTheme}`} onClick={onClose}>
-      <div className="help-modal-content" onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown}>
+      <div
+        className="help-modal-content"
+        onClick={e => e.stopPropagation()}
+        onKeyDown={handleKeyDown}
+      >
         <div className="help-modal-header">
           <h2>🧜‍♀️ Rina's Help System</h2>
-          <button 
-            onClick={onClose} 
-            className="help-modal-close"
-            aria-label="Close help modal"
-          >
+          <button onClick={onClose} className="help-modal-close" aria-label="Close help modal">
             ✖
           </button>
         </div>
 
         <div className="help-modal-tabs">
-          <button 
+          <button
             className={activeTab === 'contextual' ? 'active' : ''}
             onClick={() => handleTabChange('contextual')}
           >
             🎯 Contextual Help
           </button>
-          <button 
+          <button
             className={activeTab === 'voice' ? 'active' : ''}
             onClick={() => handleTabChange('voice')}
           >
             🎙️ Voice Commands
           </button>
-          <button 
+          <button
             className={activeTab === 'stats' ? 'active' : ''}
             onClick={() => handleTabChange('stats')}
           >
             📊 Session Stats
           </button>
-          <button 
+          <button
             className={activeTab === 'ai' ? 'active' : ''}
             onClick={() => handleTabChange('ai')}
           >
@@ -101,7 +101,7 @@ const HelpModal = ({ isOpen, onClose }) => {
             type="text"
             placeholder="Search help topics..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="help-search-input"
           />
           <span className="help-search-icon">🔍</span>
@@ -225,7 +225,7 @@ const HelpModal = ({ isOpen, onClose }) => {
           {activeTab === 'ai' && (
             <div className="help-ai">
               <h3>🤖 AI Assistant</h3>
-              
+
               {aiSuggestions ? (
                 <div className="ai-suggestions">
                   <h4>🎯 AI Suggestions:</h4>
@@ -256,8 +256,12 @@ const HelpModal = ({ isOpen, onClose }) => {
                 <h4>💭 Example Questions:</h4>
                 <div className="example-questions">
                   <button className="example-btn">"How do I undo my last commit?"</button>
-                  <button className="example-btn">"What's the difference between rm and rmdir?"</button>
-                  <button className="example-btn">"How do I search for files containing text?"</button>
+                  <button className="example-btn">
+                    "What's the difference between rm and rmdir?"
+                  </button>
+                  <button className="example-btn">
+                    "How do I search for files containing text?"
+                  </button>
                   <button className="example-btn">"Show me npm scripts in package.json"</button>
                 </div>
               </div>

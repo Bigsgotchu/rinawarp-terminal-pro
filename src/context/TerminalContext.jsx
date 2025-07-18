@@ -14,7 +14,7 @@ export const TerminalProvider = ({ children }) => {
   const [sessionStats, setSessionStats] = useState({
     commandsExecuted: 0,
     timeSpent: 0,
-    errorsEncountered: 0
+    errorsEncountered: 0,
   });
 
   // AI-powered contextual help
@@ -25,7 +25,7 @@ export const TerminalProvider = ({ children }) => {
       theme: currentTheme,
       recentCommands: commandHistory.slice(-5),
       gitStatus,
-      plugins: activePlugins
+      plugins: activePlugins,
     };
 
     // Context-aware help suggestions
@@ -41,14 +41,14 @@ export const TerminalProvider = ({ children }) => {
           '`git add .` - Stage all changes for commit',
           '`git commit -m "message"` - Commit staged changes',
           '`git push` - Push commits to remote repository',
-          '`git pull` - Pull latest changes from remote'
+          '`git pull` - Pull latest changes from remote',
         ],
         voiceCommands: [
           'Hey Rina, check git status',
           'Show me git log',
           'List all branches',
-          'Switch to main branch'
-        ]
+          'Switch to main branch',
+        ],
       };
     } else if (currentCommand.includes('npm') || currentCommand.includes('yarn')) {
       return {
@@ -61,14 +61,14 @@ export const TerminalProvider = ({ children }) => {
           '`npm run build` - Build project for production',
           '`npm list` - Show installed packages',
           '`npm outdated` - Check for outdated packages',
-          '`npm update` - Update packages to latest versions'
+          '`npm update` - Update packages to latest versions',
         ],
         voiceCommands: [
           'Install packages',
           'Start development server',
           'Run tests',
-          'Build for production'
-        ]
+          'Build for production',
+        ],
       };
     } else if (currentCommand.includes('docker')) {
       return {
@@ -81,16 +81,20 @@ export const TerminalProvider = ({ children }) => {
           '`docker run <image>` - Run container from image',
           '`docker stop <container>` - Stop running container',
           '`docker rm <container>` - Remove container',
-          '`docker logs <container>` - View container logs'
+          '`docker logs <container>` - View container logs',
         ],
         voiceCommands: [
           'List running containers',
           'Show docker images',
           'Build docker image',
-          'Stop all containers'
-        ]
+          'Stop all containers',
+        ],
       };
-    } else if (currentCommand.includes('cd') || currentCommand.includes('ls') || currentCommand.includes('mkdir')) {
+    } else if (
+      currentCommand.includes('cd') ||
+      currentCommand.includes('ls') ||
+      currentCommand.includes('mkdir')
+    ) {
       return {
         type: 'filesystem',
         title: 'File System Navigation',
@@ -102,14 +106,14 @@ export const TerminalProvider = ({ children }) => {
           '`mkdir <name>` - Create new directory',
           '`touch <file>` - Create new file',
           '`rm <file>` - Remove file',
-          '`cp <source> <dest>` - Copy file or directory'
+          '`cp <source> <dest>` - Copy file or directory',
         ],
         voiceCommands: [
           'List files in current directory',
           'Change to home directory',
           'Create new folder',
-          'Show file details'
-        ]
+          'Show file details',
+        ],
       };
     }
 
@@ -125,19 +129,19 @@ export const TerminalProvider = ({ children }) => {
         '`date` - Show current date and time',
         '`man <command>` - Show manual for command',
         'Use Tab for auto-completion',
-        'Use ↑/↓ arrows for command history'
+        'Use ↑/↓ arrows for command history',
       ],
       voiceCommands: [
         'Hey Rina, what can you do?',
         'Show me the help menu',
         'Clear the screen',
-        'What directory am I in?'
-      ]
+        'What directory am I in?',
+      ],
     };
   };
 
   // Plugin-based help extensions
-  const getPluginHelp = (pluginName) => {
+  const getPluginHelp = pluginName => {
     const plugin = activePlugins.find(p => p.name === pluginName);
     if (!plugin) return null;
 
@@ -145,25 +149,25 @@ export const TerminalProvider = ({ children }) => {
       type: 'plugin',
       title: `${plugin.name} Plugin Help`,
       suggestions: plugin.helpTopics || [],
-      voiceCommands: plugin.voiceCommands || []
+      voiceCommands: plugin.voiceCommands || [],
     };
   };
 
   // AI suggestion processing
-  const processAICommand = async (command) => {
+  const processAICommand = async command => {
     try {
       const response = await fetch('/api/ai/suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          command, 
+        body: JSON.stringify({
+          command,
           context: {
             currentPath,
             recentCommands: commandHistory.slice(-3),
             theme: currentTheme,
-            gitStatus
-          }
-        })
+            gitStatus,
+          },
+        }),
       });
 
       if (response.ok) {
@@ -174,12 +178,12 @@ export const TerminalProvider = ({ children }) => {
     } catch (error) {
       console.error('AI suggestion error:', error);
     }
-    
+
     return 'AI assistant is currently unavailable. Please try again later.';
   };
 
   // Command execution with analytics
-  const executeCommand = (command) => {
+  const executeCommand = command => {
     const newCommand = command.trim();
     if (!newCommand) return;
 
@@ -187,12 +191,12 @@ export const TerminalProvider = ({ children }) => {
     setCommandHistory(prev => [...prev, newCommand]);
     setSessionStats(prev => ({
       ...prev,
-      commandsExecuted: prev.commandsExecuted + 1
+      commandsExecuted: prev.commandsExecuted + 1,
     }));
 
     // Log for analytics
     console.log('🔍 Command executed:', newCommand);
-    
+
     // Auto-show help for help requests
     if (newCommand.includes('help') || newCommand.includes('--help') || newCommand === '?') {
       return true; // Signal to show help modal
@@ -225,7 +229,7 @@ export const TerminalProvider = ({ children }) => {
     const interval = setInterval(() => {
       setSessionStats(prev => ({
         ...prev,
-        timeSpent: Math.floor((Date.now() - startTime) / 1000)
+        timeSpent: Math.floor((Date.now() - startTime) / 1000),
       }));
     }, 1000);
 
@@ -243,7 +247,7 @@ export const TerminalProvider = ({ children }) => {
     gitStatus,
     activePlugins,
     sessionStats,
-    
+
     // Actions
     setCurrentCommand,
     setCommandHistory,
@@ -255,15 +259,11 @@ export const TerminalProvider = ({ children }) => {
     setActivePlugins,
     executeCommand,
     processAICommand,
-    
+
     // Computed values
     getContextualHelp,
-    getPluginHelp
+    getPluginHelp,
   };
 
-  return (
-    <TerminalContext.Provider value={value}>
-      {children}
-    </TerminalContext.Provider>
-  );
+  return <TerminalContext.Provider value={value}>{children}</TerminalContext.Provider>;
 };

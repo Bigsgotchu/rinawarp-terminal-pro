@@ -20,8 +20,8 @@ class PluginSystem {
   createPluginAPI() {
     return {
       register: (name, plugin) => this.registerPlugin(name, plugin),
-      unregister: (name) => this.unregisterPlugin(name),
-      get: (name) => this.plugins.get(name)
+      unregister: name => this.unregisterPlugin(name),
+      get: name => this.plugins.get(name),
     };
   }
 
@@ -73,8 +73,7 @@ function loadPlugin() {
   if (pluginName) {
     window.RinaWarpPluginSystem.registerPlugin(pluginName, {
       onRegister: () => alert(`${pluginName} loaded successfully!`),
-      onUnregister: () => alert(`${pluginName} unloaded successfully!`)
+      onUnregister: () => alert(`${pluginName} unloaded successfully!`),
     });
   }
 }
-

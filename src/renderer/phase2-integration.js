@@ -11,6 +11,7 @@
  * Project repository: https://github.com/rinawarp/terminal
  */
 import Phase2UIManager from './phase2-ui-manager.js';
+import errorTriageSystem, { triageError, monitorSystemHealth } from '../utils/error-triage-system.js';
 
 class Phase2Integration {
   constructor() {
@@ -32,12 +33,23 @@ class Phase2Integration {
     this.moduleStates = new Map();
 
     console.log('🌟 Phase 2 Integration Controller initialized');
+    
+    // Initialize error triage system integration
+    this.errorTriage = errorTriageSystem;
+    this.setupErrorTriageIntegration();
   }
 
   async initialize(config = {}, terminalManager = null) {
     console.log('🚀 Starting Phase 2 integration initialization...');
 
     try {
+      // Report initialization start to triage system
+      await triageError(new Error('Phase 2 initialization started ✅'), {
+        subsystem: 'phase2',
+        component: 'integration-controller',
+        operation: 'initialization'
+      });
+      
       // Merge configuration
       this.integrationConfig = { ...this.integrationConfig, ...config };
       this.terminalManager = terminalManager;
@@ -63,9 +75,25 @@ class Phase2Integration {
       if (this.integrationConfig.autoActivate) {
         await this.activate();
       }
+      
+      // Start real-time health monitoring
+      this.healthMonitoringInterval = monitorSystemHealth({
+        interval: 30000, // every 30s
+        modules: ['aiCopilot', 'pluginLoader', 'uiManager', 'ipcBridge']
+      });
+      
+      console.log('🩺 Phase 2 health monitoring started');
+      console.log('✅ Phase 2 integration complete.');
 
       this.isInitialized = true;
       console.log('✅ Phase 2 integration successfully initialized');
+
+      // Report successful initialization
+      await triageError(new Error('Phase 2 initialization completed successfully ✅'), {
+        subsystem: 'phase2',
+        component: 'integration-controller',
+        operation: 'initialization-complete'
+      });
 
       // Emit ready event
       this.emit('phase2-integration-ready');
@@ -73,6 +101,15 @@ class Phase2Integration {
       return true;
     } catch (error) {
       console.error('❌ Phase 2 integration initialization failed:', error);
+      
+      // Report error to triage system
+      await triageError(error, {
+        subsystem: 'phase2',
+        component: 'integration-controller',
+        operation: 'initialization',
+        severity: 'critical'
+      });
+      
       this.emit('phase2-integration-error', error);
       return false;
     }
@@ -105,15 +142,50 @@ class Phase2Integration {
       return false;
     }
 
-    // Check CSS features
-    const cssFeatures = ['backdrop-filter', 'css-grid', 'flexbox', 'css-variables'];
+    // Check CSS features with proper fallback detection
+    const cssFeatures = [
+      { name: 'backdrop-filter', test: 'backdrop-filter: blur(10px)' },
+      { name: 'css-grid', test: 'display: grid' },
+      { name: 'flexbox', test: 'display: flex' },
+      { name: 'css-variables', test: '--test-var: blue' },
+      { name: 'has-selector', test: 'selector(:has(*))' },
+      { name: 'container-queries', test: '@container (min-width: 100px) {}' }
+    ];
 
-    const missingCSSFeatures = cssFeatures.filter(feature => {
-      return !CSS.supports(`(${feature.replace('css-', '')}: initial)`);
+    const missingCSSFeatures = [];
+    const supportedCSSFeatures = [];
+    
+    cssFeatures.forEach(feature => {
+      let supported = false;
+      
+      try {
+        if (feature.name === 'has-selector') {
+          supported = CSS.supports('selector(:has(*))');
+        } else if (feature.name === 'container-queries') {
+          supported = CSS.supports('@container (min-width: 100px)');
+        } else {
+          supported = CSS.supports(feature.test);
+        }
+      } catch (e) {
+        // CSS.supports might throw for some features
+        supported = false;
+      }
+      
+      if (supported) {
+        supportedCSSFeatures.push(feature.name);
+      } else {
+        missingCSSFeatures.push(feature.name);
+      }
     });
 
+    if (supportedCSSFeatures.length > 0) {
+      console.log('✅ Supported CSS features:', supportedCSSFeatures);
+    }
+    
     if (missingCSSFeatures.length > 0) {
-      console.warn('⚠️ Missing CSS features:', missingCSSFeatures);
+      console.warn('⚠️ Missing CSS features (fallbacks will be used):', missingCSSFeatures);
+      // Store missing features for fallback handling
+      this.missingCSSFeatures = missingCSSFeatures;
     }
 
     return true;
@@ -534,11 +606,26 @@ class Phase2Integration {
 
   handleGlobalError(event) {
     console.error('🚨 Global error in Phase 2:', event.error);
-    // Implement error recovery if needed
+    
+    // Report to triage system
+    triageError(event.error, {
+      subsystem: 'phase2',
+      component: 'global-error-handler',
+      operation: 'global-error',
+      severity: 'high'
+    });
   }
 
   handleUnhandledRejection(event) {
     console.error('🚨 Unhandled promise rejection in Phase 2:', event.reason);
+    
+    // Report to triage system
+    triageError(event.reason, {
+      subsystem: 'phase2',
+      component: 'global-error-handler',
+      operation: 'unhandled-rejection',
+      severity: 'high'
+    });
   }
 
   pauseNonCriticalOperations() {
@@ -690,7 +777,65 @@ class Phase2Integration {
     }
   }
 
+  setupErrorTriageIntegration() {
+    // Setup error triage system integration
+    console.log('🩺 Setting up error triage integration...');
+    
+    // Monitor CSS feature warnings
+    if (this.missingCSSFeatures && this.missingCSSFeatures.length > 0) {
+      this.missingCSSFeatures.forEach(feature => {
+        this.errorTriage.reportError(new Error(`Missing CSS feature: ${feature}`), {
+          subsystem: 'css',
+          component: 'feature-detection',
+          operation: 'compatibility-check',
+          severity: 'warning'
+        });
+      });
+    }
+    
+    // Setup periodic health monitoring
+    this.healthMonitorInterval = setInterval(() => {
+      this.performTriageHealthCheck();
+    }, 60000); // Every minute
+  }
+  
+  async performTriageHealthCheck() {
+    try {
+      const healthStatus = this.errorTriage.getHealthStatus();
+      
+      if (!healthStatus.electronAPI || !healthStatus.nodeAPI) {
+        await this.errorTriage.reportError(new Error('Critical API unavailable'), {
+          subsystem: 'phase2',
+          component: 'health-monitor',
+          operation: 'api-check',
+          severity: 'critical'
+        });
+      }
+      
+      if (healthStatus.errorCount > 5) {
+        await this.errorTriage.reportError(new Error(`High error count: ${healthStatus.errorCount}`), {
+          subsystem: 'phase2',
+          component: 'health-monitor', 
+          operation: 'error-count-check',
+          severity: 'warning'
+        });
+      }
+    } catch (error) {
+      console.warn('Health check failed:', error);
+    }
+  }
+
   cleanup() {
+    // Clear health monitor interval
+    if (this.healthMonitorInterval) {
+      clearInterval(this.healthMonitorInterval);
+    }
+    
+    // Clear Phase 2 health monitoring
+    if (this.healthMonitoringInterval) {
+      clearInterval(this.healthMonitoringInterval);
+    }
+    
     // Remove event listeners
     this.eventListeners.forEach((listener, event) => {
       if (event === 'resize') {
