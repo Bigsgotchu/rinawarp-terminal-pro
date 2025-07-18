@@ -49,28 +49,28 @@ class CommandAuditLogger {
     this.storageKey = 'rinawarp_audit_log';
     this.auditEntries = new Map();
   }
-  
+
   async storeAuditEntry(entry) {
     this.auditEntries.set(entry.id, entry);
   }
-  
+
   async logCommandVerification(verification) {
     console.log('Audit: Command verification', verification);
   }
-  
+
   async logSecurityError(error, command, context) {
     console.error('Security Error:', error, command, context);
   }
-  
+
   async logComplianceCheck(result, command, context) {
     console.log('Compliance Check:', result, command, context);
   }
-  
+
   getRecentActivity(timeWindow) {
     const cutoff = Date.now() - timeWindow;
     return Array.from(this.auditEntries.values()).filter(entry => entry.timestamp > cutoff);
   }
-  
+
   rotateLog() {
     const oldEntries = Array.from(this.auditEntries.values());
     this.auditEntries.clear();
@@ -84,7 +84,7 @@ class PrivilegeEscalationMonitor {
     return {
       passed: !requiresElevation || context.hasElevation,
       requiresElevation: requiresElevation,
-      message: requiresElevation ? 'Command requires elevated privileges' : 'No elevation required'
+      message: requiresElevation ? 'Command requires elevated privileges' : 'No elevation required',
     };
   }
 }
@@ -94,9 +94,9 @@ class RealTimeSecretScanner {
     const secretPatterns = [
       /\bpassword\s*[:=]\s*["']?([^\s"']+)/gi,
       /\bapi[_-]?key\s*[:=]\s*["']?([^\s"']+)/gi,
-      /\btoken\s*[:=]\s*["']?([^\s"']+)/gi
+      /\btoken\s*[:=]\s*["']?([^\s"']+)/gi,
     ];
-    
+
     let hasSecrets = false;
     for (const pattern of secretPatterns) {
       if (pattern.test(command)) {
@@ -104,10 +104,10 @@ class RealTimeSecretScanner {
         break;
       }
     }
-    
+
     return {
       hasSecrets: hasSecrets,
-      maskedCommand: hasSecrets ? command.replace(/(["']?[^\s"']+["']?)/, '***') : command
+      maskedCommand: hasSecrets ? command.replace(/(["']?[^\s"']+["']?)/, '***') : command,
     };
   }
 }
@@ -117,10 +117,10 @@ class ComplianceChecker {
     return {
       compliant: true,
       violations: [],
-      standard: 'basic'
+      standard: 'basic',
     };
   }
-  
+
   async getFlags(_command) {
     return [];
   }
@@ -130,7 +130,7 @@ class ZeroTrustEngine {
   setupVerificationRequirements() {
     console.log('Zero Trust: Setting up verification requirements');
   }
-  
+
   initializeTrustBaselines() {
     console.log('Zero Trust: Initializing trust baselines');
   }
@@ -142,39 +142,39 @@ class ThreatDetector {
     this.riskPatterns = new Map();
     this.initializeThreatDetection();
   }
-  
+
   initializeThreatDetection() {
     // Initialize threat detection patterns
     this.loadThreatPatterns();
     this.loadRiskPatterns();
   }
-  
+
   loadThreatPatterns() {
     const patterns = {
       destructive: /rm\s+-rf\s+\/|format\s+c:|del\s+\/s/,
       malware: /nc\s+-l|ncat\s+-l|wget.*\|.*sh|curl.*\|.*sh/,
       privilege: /sudo\s+su|sudo\s+passwd|sudo\s+chmod\s+777/,
       network: /nmap|netcat|telnet.*23|ssh.*-R/,
-      persistence: /crontab|systemctl.*enable|chkconfig.*on/
+      persistence: /crontab|systemctl.*enable|chkconfig.*on/,
     };
-    
+
     for (const [name, pattern] of Object.entries(patterns)) {
       this.threatIndicators.set(name, pattern);
     }
   }
-  
+
   loadRiskPatterns() {
     const risks = {
       high: /rm\s+-rf|format|del\s+\/s/,
       medium: /chmod\s+777|chown\s+root|sudo\s+su/,
-      low: /ps\s+aux|netstat|ss\s+-/
+      low: /ps\s+aux|netstat|ss\s+-/,
     };
-    
+
     for (const [level, pattern] of Object.entries(risks)) {
       this.riskPatterns.set(level, pattern);
     }
   }
-  
+
   async analyzeCommand(command, context) {
     const analysis = {
       command: command,
@@ -183,61 +183,61 @@ class ThreatDetector {
       threats: [],
       riskLevel: 'NONE',
       threatLevel: 'NONE',
-      recommendations: []
+      recommendations: [],
     };
-    
+
     // Check against threat indicators
     for (const [threatType, pattern] of this.threatIndicators) {
       if (pattern.test(command)) {
         analysis.threats.push({
           type: threatType,
           severity: this.getThreatSeverity(threatType),
-          confidence: this.calculateThreatConfidence(threatType, command)
+          confidence: this.calculateThreatConfidence(threatType, command),
         });
       }
     }
-    
+
     // Determine overall threat level
     analysis.threatLevel = this.calculateOverallThreatLevel(analysis.threats);
-    
+
     // Determine risk level
     analysis.riskLevel = this.calculateRiskLevel(command);
-    
+
     // Generate recommendations
     analysis.recommendations = this.generateThreatRecommendations(analysis);
-    
+
     return analysis;
   }
-  
+
   getThreatSeverity(threatType) {
     const severityMap = {
       destructive: 'CRITICAL',
       malware: 'HIGH',
       privilege: 'HIGH',
       network: 'MEDIUM',
-      persistence: 'MEDIUM'
+      persistence: 'MEDIUM',
     };
     return severityMap[threatType] || 'LOW';
   }
-  
+
   calculateThreatConfidence(threatType, command) {
     // Simple confidence calculation based on pattern matches
     const pattern = this.threatIndicators.get(threatType);
     const matches = command.match(pattern);
-    return matches ? Math.min(0.9, 0.3 + (matches.length * 0.2)) : 0;
+    return matches ? Math.min(0.9, 0.3 + matches.length * 0.2) : 0;
   }
-  
+
   calculateOverallThreatLevel(threats) {
     if (threats.length === 0) return 'NONE';
-    
+
     const maxSeverity = threats.reduce((max, threat) => {
       const severityScore = this.getSeverityScore(threat.severity);
       return Math.max(max, severityScore);
     }, 0);
-    
+
     return this.scoreToThreatLevel(maxSeverity);
   }
-  
+
   calculateRiskLevel(command) {
     for (const [level, pattern] of this.riskPatterns) {
       if (pattern.test(command)) {
@@ -246,18 +246,18 @@ class ThreatDetector {
     }
     return 'NONE';
   }
-  
+
   getSeverityScore(severity) {
     const scores = {
       NONE: 0,
       LOW: 1,
       MEDIUM: 2,
       HIGH: 3,
-      CRITICAL: 4
+      CRITICAL: 4,
     };
     return scores[severity] || 0;
   }
-  
+
   scoreToThreatLevel(score) {
     if (score >= 4) return 'CRITICAL';
     if (score >= 3) return 'HIGH';
@@ -265,10 +265,10 @@ class ThreatDetector {
     if (score >= 1) return 'LOW';
     return 'NONE';
   }
-  
+
   generateThreatRecommendations(analysis) {
     const recommendations = [];
-    
+
     if (analysis.threatLevel === 'CRITICAL') {
       recommendations.push('Block command immediately and investigate');
     } else if (analysis.threatLevel === 'HIGH') {
@@ -278,7 +278,7 @@ class ThreatDetector {
     } else if (analysis.threatLevel === 'LOW') {
       recommendations.push('Monitor for suspicious follow-up activity');
     }
-    
+
     return recommendations;
   }
 }
@@ -1154,7 +1154,10 @@ class EnhancedSecurityEngine {
   async checkAuditTriggers(auditEntry) {
     // Check if this audit entry triggers any alerts
     if (auditEntry.result.exitCode !== 0) {
-      logger.warn('Command failed', { command: auditEntry.command, exitCode: auditEntry.result.exitCode });
+      logger.warn('Command failed', {
+        command: auditEntry.command,
+        exitCode: auditEntry.result.exitCode,
+      });
     }
   }
 
@@ -1173,7 +1176,7 @@ class EnhancedSecurityEngine {
       { pattern: /rm\s+-rf/, level: 'high' },
       { pattern: /sudo/, level: 'medium' },
       { pattern: /chmod/, level: 'medium' },
-      { pattern: /curl|wget/, level: 'low' }
+      { pattern: /curl|wget/, level: 'low' },
     ];
 
     for (const { pattern, level } of riskPatterns) {
@@ -1186,7 +1189,7 @@ class EnhancedSecurityEngine {
 
   generateSecurityRecommendations(verificationResult) {
     const recommendations = [];
-    
+
     for (const check of verificationResult.checks) {
       if (check.hasSecrets) {
         recommendations.push('Consider using environment variables for sensitive data');
@@ -1198,71 +1201,71 @@ class EnhancedSecurityEngine {
         recommendations.push('Review command for potential security risks');
       }
     }
-    
+
     return recommendations;
   }
 
   async handleSecretDetection(command, detectedSecrets) {
     logger.security('Secrets detected in command', {
       command: this.maskCommand(command),
-      secretTypes: detectedSecrets.map(s => s.type)
+      secretTypes: detectedSecrets.map(s => s.type),
     });
-    
+
     this.raiseSecurityAlert('SECRETS_DETECTED', {
       secretTypes: detectedSecrets.map(s => s.type),
-      count: detectedSecrets.length
+      count: detectedSecrets.length,
     });
   }
 
   maskSecretsInCommand(command, detectedSecrets) {
     let maskedCommand = command;
-    
+
     for (const secret of detectedSecrets) {
       for (const match of secret.matches) {
         maskedCommand = maskedCommand.replace(match.value, '***');
       }
     }
-    
+
     return maskedCommand;
   }
 
   calculateSecretConfidence(type, _match) {
     const confidenceMap = {
-      'apiKey': 0.8,
-      'password': 0.9,
-      'token': 0.8,
-      'privateKey': 0.95,
-      'connectionString': 0.9
+      apiKey: 0.8,
+      password: 0.9,
+      token: 0.8,
+      privateKey: 0.95,
+      connectionString: 0.9,
     };
-    
+
     return confidenceMap[type] || 0.7;
   }
 
   async handlePrivilegeEscalation(command, escalations, context) {
     logger.security('Privilege escalation detected', {
       command: this.maskCommand(command),
-      escalations: escalations.map(e => e.type)
+      escalations: escalations.map(e => e.type),
     });
-    
+
     this.raiseSecurityAlert('PRIVILEGE_ESCALATION', {
       escalationTypes: escalations.map(e => e.type),
       count: escalations.length,
-      context: context
+      context: context,
     });
   }
 
   getEscalationRiskLevel(type) {
     const riskLevels = {
-      'sudo': 'high',
-      'su': 'critical',
-      'runas': 'high',
-      'setuid': 'critical',
-      'setgid': 'high',
-      'passwordChange': 'critical',
-      'userManagement': 'high',
-      'systemModification': 'high'
+      sudo: 'high',
+      su: 'critical',
+      runas: 'high',
+      setuid: 'critical',
+      setgid: 'high',
+      passwordChange: 'critical',
+      userManagement: 'high',
+      systemModification: 'high',
     };
-    
+
     return riskLevels[type] || 'medium';
   }
 
@@ -1278,13 +1281,13 @@ class EnhancedSecurityEngine {
 
   generateComplianceRecommendations(complianceResults) {
     const recommendations = [];
-    
+
     for (const [standard, result] of Object.entries(complianceResults)) {
       if (result.violations && result.violations.length > 0) {
         recommendations.push(`Address ${standard.toUpperCase()} compliance violations`);
       }
     }
-    
+
     return recommendations;
   }
 

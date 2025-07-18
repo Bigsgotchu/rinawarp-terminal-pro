@@ -168,16 +168,16 @@ const command = process.argv[2];
 const buildSystem = new BuildSystem();
 
 switch (command) {
-  case 'build':
-    buildSystem.build();
-    break;
-  case 'watch':
-    buildSystem.watch();
-    break;
-  case 'serve':
-    buildSystem.serve();
-    break;
-  default:
-    console.log('Usage: node build-system.js [build|watch|serve]');
-    process.exit(1);
+case 'build':
+  buildSystem.build();
+  break;
+case 'watch':
+  buildSystem.watch();
+  break;
+case 'serve':
+  buildSystem.serve();
+  break;
+default:
+  console.log('Usage: node build-system.js [build|watch|serve]');
+  process.exit(1);
 }

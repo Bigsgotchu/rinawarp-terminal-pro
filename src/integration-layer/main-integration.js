@@ -16,7 +16,10 @@ import { CoreIntegrationHub } from './core-integration-hub.js';
 // Import Electron IPC for main process communication
 import { ipcMain } from 'electron';
 
-// Import centralized logger
+// Import module loading utilities
+import { safeImport, createFallback, ModuleLoadError } from '../utils/module-loader.js';
+
+// Centralized logger with fallback
 let logger = {
   debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
   info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
@@ -25,11 +28,16 @@ let logger = {
   system: (msg, ctx) => console.info(`[SYSTEM] ${msg}`, ctx),
 };
 
-// Try to load the actual logger module
+// Initialize logger with proper error handling
 (async () => {
   try {
-    const loggerModule = await import('../utils/logger.js');
-    logger = loggerModule.default;
+    const loggerModule = await safeImport('../utils/logger.js', {
+      name: 'logger',
+      fallback: createFallback('logger'),
+      timeout: 5000,
+      retries: 1,
+    });
+    logger = loggerModule.default || logger;
   } catch (error) {
     console.warn('Failed to load logger module, using fallback console logging');
   }
@@ -316,10 +324,10 @@ class RinaWarpIntegration {
     return saved
       ? JSON.parse(saved)
       : {
-          preferredFeatures: [],
-          workflowPatterns: [],
-          securityLevel: 'standard',
-        };
+        preferredFeatures: [],
+        workflowPatterns: [],
+        securityLevel: 'standard',
+      };
   }
 
   preloadFeature(featureName) {
@@ -345,19 +353,19 @@ class RinaWarpIntegration {
 
   adjustFeaturesForSecurity(threatLevel) {
     switch (threatLevel) {
-      case 'critical':
-        // Disable non-essential features
-        this.features.liveSharing?.enterSecureMode?.();
-        this.features.workflowAutomation?.restrictAutomation?.();
-        break;
-      case 'high':
-        // Increase monitoring
-        this.features.performanceMonitor?.increaseMonitoring?.();
-        break;
-      case 'normal':
-        // Resume normal operations
-        this.resumeNormalOperations();
-        break;
+    case 'critical':
+      // Disable non-essential features
+      this.features.liveSharing?.enterSecureMode?.();
+      this.features.workflowAutomation?.restrictAutomation?.();
+      break;
+    case 'high':
+      // Increase monitoring
+      this.features.performanceMonitor?.increaseMonitoring?.();
+      break;
+    case 'normal':
+      // Resume normal operations
+      this.resumeNormalOperations();
+      break;
     }
   }
 
@@ -423,15 +431,15 @@ class RinaWarpIntegration {
 
   executeOptimization(optimization) {
     switch (optimization.type) {
-      case 'memory-cleanup':
-        this.performMemoryCleanup();
-        break;
-      case 'cache-optimization':
-        this.optimizeCache();
-        break;
-      case 'feature-preload':
-        this.preloadFeature(optimization.feature);
-        break;
+    case 'memory-cleanup':
+      this.performMemoryCleanup();
+      break;
+    case 'cache-optimization':
+      this.optimizeCache();
+      break;
+    case 'feature-preload':
+      this.preloadFeature(optimization.feature);
+      break;
     }
   }
 

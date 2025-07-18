@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  target: 'electron-renderer',
   entry: {
     renderer: './src/renderer/renderer.js',
     'ai-integration': './src/ai-integration.js',
@@ -52,6 +53,10 @@ module.exports = {
       '@renderer': path.resolve(__dirname, 'src/renderer'),
       '@ai': path.resolve(__dirname, 'src/ai'),
       '@utils': path.resolve(__dirname, 'src/utils'),
+      // XTerm aliases for better resolution
+      '@xterm/xterm': path.resolve(__dirname, 'node_modules/@xterm/xterm'),
+      '@xterm/addon-fit': path.resolve(__dirname, 'node_modules/@xterm/addon-fit'),
+      '@xterm/addon-web-links': path.resolve(__dirname, 'node_modules/@xterm/addon-web-links'),
     },
     fallback: {
       fs: false,

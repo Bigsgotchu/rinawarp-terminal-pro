@@ -38,6 +38,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeSession: sessionId => ipcRenderer.invoke('close-session', sessionId),
   listSessions: () => ipcRenderer.invoke('list-sessions'),
 
+  // Shell process management
+  createShellProcess: config => ipcRenderer.invoke('create-shell-process', config),
+  writeToShell: (processId, data) => ipcRenderer.invoke('write-to-shell', processId, data),
+  killShellProcess: processId => ipcRenderer.invoke('kill-shell-process', processId),
+
+  // Shell process event listeners
+  onShellData: (processId, callback) => ipcRenderer.on(`shell-data-${processId}`, callback),
+  onShellError: (processId, callback) => ipcRenderer.on(`shell-error-${processId}`, callback),
+  onShellExit: (processId, callback) => ipcRenderer.on(`shell-exit-${processId}`, callback),
+  onShellClose: (processId, callback) => ipcRenderer.on(`shell-close-${processId}`, callback),
+
+  // Remove shell process listeners
+  removeShellListeners: processId => {
+    ipcRenderer.removeAllListeners(`shell-data-${processId}`);
+    ipcRenderer.removeAllListeners(`shell-error-${processId}`);
+    ipcRenderer.removeAllListeners(`shell-exit-${processId}`);
+    ipcRenderer.removeAllListeners(`shell-close-${processId}`);
+  },
+
   // Listeners for main process events
   onMenuAction: callback => ipcRenderer.on('menu-action', callback),
   onThemeChanged: callback => ipcRenderer.on('theme-changed', callback),
@@ -57,6 +76,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   onUpdateAvailable: callback => ipcRenderer.on('update-available', callback),
   onUpdateDownloaded: callback => ipcRenderer.on('update-downloaded', callback),
+
+  // Analytics
+  trackAnalyticsEvent: (category, action, label, value) =>
+    ipcRenderer.invoke('track-analytics-event', category, action, label, value),
+
+  // Test mode functions
+  ping: () => ipcRenderer.invoke('ping'),
+  testPreloadAPIs: () => ipcRenderer.invoke('test-preload-apis'),
 });
 
 // Expose Node.js process information safely
@@ -64,6 +91,31 @@ contextBridge.exposeInMainWorld('processAPI', {
   platform: process.platform,
   arch: process.arch,
   versions: process.versions,
+});
+
+// Expose OS module functions via IPC
+contextBridge.exposeInMainWorld('nodeAPI', {
+  // OS module functions
+  getHomeDir: () => ipcRenderer.invoke('get-home-dir'),
+  getCurrentDir: () => ipcRenderer.invoke('get-current-dir'),
+  getPlatformInfo: () => ipcRenderer.invoke('get-platform-info'),
+  getOSInfo: () => ipcRenderer.invoke('get-os-info'),
+  getCPUInfo: () => ipcRenderer.invoke('get-cpu-info'),
+  getMemoryInfo: () => ipcRenderer.invoke('get-memory-info'),
+  getNetworkInfo: () => ipcRenderer.invoke('get-network-info'),
+
+  // Performance Monitor functions
+  performanceMonitor: {
+    getSystemHealth: () => ipcRenderer.invoke('performance-monitor-get-system-health'),
+    getTrends: () => ipcRenderer.invoke('performance-monitor-get-trends'),
+    optimizeCommand: (command, options) =>
+      ipcRenderer.invoke('performance-monitor-optimize-command', command, options),
+    predictResourceUsage: command =>
+      ipcRenderer.invoke('performance-monitor-predict-resource-usage', command),
+    getAnalytics: () => ipcRenderer.invoke('performance-monitor-get-analytics'),
+    updateThresholds: thresholds =>
+      ipcRenderer.invoke('performance-monitor-update-thresholds', thresholds),
+  },
 });
 
 // Security: Remove access to Node.js APIs

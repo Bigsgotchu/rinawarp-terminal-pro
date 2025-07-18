@@ -11,10 +11,10 @@ export class PluginPerformanceMonitor {
       initTime: 5000, // 5 seconds
       memoryUsage: 50 * 1024 * 1024, // 50MB
       cpuUsage: 80, // 80%
-      apiCallsPerSecond: 100
+      apiCallsPerSecond: 100,
     };
     this.monitoring = false;
-    
+
     this.init();
   }
 
@@ -24,11 +24,11 @@ export class PluginPerformanceMonitor {
   }
 
   setupEventListeners() {
-    this.pluginManager.on('plugin-loaded', (pluginName) => {
+    this.pluginManager.on('plugin-loaded', pluginName => {
       this.initializeMetrics(pluginName);
     });
 
-    this.pluginManager.on('plugin-unloaded', (pluginName) => {
+    this.pluginManager.on('plugin-unloaded', pluginName => {
       this.cleanupMetrics(pluginName);
     });
   }
@@ -46,8 +46,8 @@ export class PluginPerformanceMonitor {
         slow: false,
         memoryHeavy: false,
         cpuIntensive: false,
-        apiIntensive: false
-      }
+        apiIntensive: false,
+      },
     });
   }
 
@@ -57,7 +57,7 @@ export class PluginPerformanceMonitor {
 
   startMonitoring() {
     if (this.monitoring) return;
-    
+
     this.monitoring = true;
     this.monitoringInterval = setInterval(() => {
       this.collectMetrics();
@@ -67,7 +67,7 @@ export class PluginPerformanceMonitor {
 
   stopMonitoring() {
     if (!this.monitoring) return;
-    
+
     this.monitoring = false;
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
@@ -81,10 +81,10 @@ export class PluginPerformanceMonitor {
 
       // Update memory usage (simulated)
       metrics.memoryUsage = this.getPluginMemoryUsage(pluginName);
-      
+
       // Update CPU usage (simulated)
       metrics.cpuUsage = this.getPluginCPUUsage(pluginName);
-      
+
       // API calls are tracked separately
       // Error count is tracked separately
     }
@@ -131,7 +131,7 @@ export class PluginPerformanceMonitor {
     const warning = {
       message,
       timestamp: Date.now(),
-      count: 1
+      count: 1,
     };
 
     // Check if warning already exists
@@ -205,9 +205,9 @@ export class PluginPerformanceMonitor {
         slow: 0,
         memoryHeavy: 0,
         cpuIntensive: 0,
-        apiIntensive: 0
+        apiIntensive: 0,
       },
-      plugins: {}
+      plugins: {},
     };
 
     for (const [pluginName, metrics] of this.metrics) {
@@ -218,8 +218,8 @@ export class PluginPerformanceMonitor {
           memoryUsage: metrics.memoryUsage,
           cpuUsage: metrics.cpuUsage,
           errors: metrics.errors,
-          warningCount: metrics.warnings.length
-        }
+          warningCount: metrics.warnings.length,
+        },
       };
 
       // Count issues
@@ -292,7 +292,7 @@ export class PluginPerformanceMonitor {
       timestamp: Date.now(),
       thresholds: this.thresholds,
       metrics: this.getAllMetrics(),
-      report: this.getPerformanceReport()
+      report: this.getPerformanceReport(),
     };
 
     return JSON.stringify(export_data, null, 2);
@@ -301,11 +301,11 @@ export class PluginPerformanceMonitor {
   importMetrics(data) {
     try {
       const imported = JSON.parse(data);
-      
+
       if (imported.thresholds) {
         this.thresholds = imported.thresholds;
       }
-      
+
       if (imported.metrics) {
         this.metrics.clear();
         for (const [pluginName, metrics] of Object.entries(imported.metrics)) {
@@ -324,20 +324,20 @@ export class PluginPerformanceMonitor {
 // Performance utilities
 export class PluginPerformanceUtils {
   static measureExecutionTime(fn, context = null) {
-    return async function(...args) {
+    return async function (...args) {
       const start = performance.now();
       try {
         const result = await fn.apply(context, args);
         const end = performance.now();
         return {
           result,
-          executionTime: end - start
+          executionTime: end - start,
         };
       } catch (error) {
         const end = performance.now();
         throw {
           error,
-          executionTime: end - start
+          executionTime: end - start,
         };
       }
     };
@@ -350,45 +350,45 @@ export class PluginPerformanceUtils {
         timeout = null;
         if (!immediate) func(...args);
       };
-      
+
       const callNow = immediate && !timeout;
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
-      
+
       if (callNow) func(...args);
     };
   }
 
   static throttle(func, limit) {
     let inThrottle;
-    return function(...args) {
+    return function (...args) {
       if (!inThrottle) {
         func.apply(this, args);
         inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
+        setTimeout(() => (inThrottle = false), limit);
       }
     };
   }
 
   static memoize(fn, keyGenerator) {
     const cache = new Map();
-    
-    return function(...args) {
+
+    return function (...args) {
       const key = keyGenerator ? keyGenerator(args) : JSON.stringify(args);
-      
+
       if (cache.has(key)) {
         return cache.get(key);
       }
-      
+
       const result = fn.apply(this, args);
       cache.set(key, result);
-      
+
       // Limit cache size
       if (cache.size > 100) {
         const firstKey = cache.keys().next().value;
         cache.delete(firstKey);
       }
-      
+
       return result;
     };
   }
@@ -396,36 +396,36 @@ export class PluginPerformanceUtils {
   static createPool(factory, maxSize = 10) {
     const pool = [];
     let activeCount = 0;
-    
+
     return {
       acquire() {
         if (pool.length > 0) {
           activeCount++;
           return pool.pop();
         }
-        
+
         if (activeCount < maxSize) {
           activeCount++;
           return factory();
         }
-        
+
         throw new Error('Pool exhausted');
       },
-      
+
       release(obj) {
         if (activeCount > 0) {
           activeCount--;
           pool.push(obj);
         }
       },
-      
+
       size() {
         return pool.length;
       },
-      
+
       active() {
         return activeCount;
-      }
+      },
     };
   }
 }

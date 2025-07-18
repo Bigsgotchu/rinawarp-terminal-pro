@@ -242,6 +242,21 @@ service-account*.json
 gcloud-service-key.json
 aws-credentials*.json
 
+# Google Cloud Monitoring secrets
+secrets/
+*.json
+!**/.gitkeep
+!package*.json
+!tsconfig.json
+!.eslintrc.json
+!.versionrc.json
+!.prettierrc.json
+!monitoring/*.json
+
+# Monitoring environment files
+.env.monitoring
+.env.gcp
+
 # SSH keys
 id_rsa*
 id_dsa*

@@ -3,8 +3,8 @@ import './HelpButton.css';
 
 const HelpButton = ({ onClick, isActive = false, showBadge = false }) => {
   return (
-    <button 
-      onClick={onClick} 
+    <button
+      onClick={onClick}
       className={`help-button ${isActive ? 'active' : ''}`}
       title="Get help and AI assistance"
       aria-label="Open help system"

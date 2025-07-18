@@ -549,23 +549,23 @@ export class PerformanceMonitor {
                 <span>Memory: ${insights.metrics.memoryDelta}MB</span>
             </div>
             ${insights.optimizations
-              .map(
-                opt => `
+    .map(
+      opt => `
                 <div class="optimization ${opt.severity}">
                     💡 ${opt.message}
                 </div>
             `
-              )
-              .join('')}
+    )
+    .join('')}
             ${insights.warnings
-              .map(
-                warn => `
+    .map(
+      warn => `
                 <div class="warning ${warn.severity}">
                     ⚠️ ${warn.message}
                 </div>
             `
-              )
-              .join('')}
+    )
+    .join('')}
         `;
 
     // Add to terminal interface
@@ -752,18 +752,16 @@ export class PerformanceMonitor {
   // Enhanced system health helper methods
   async getCpuInfo() {
     try {
-      const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
-
-      if (isNode) {
-        // Node.js environment - use OS module
-        const os = await import('os');
+      // Use IPC to get CPU information from main process
+      if (typeof window !== 'undefined' && window.nodeAPI) {
+        const cpuInfo = await window.nodeAPI.getCPUInfo();
         return {
           usage: await this.getCpuUsage(),
-          cores: os.cpus().length,
-          loadAverage: os.loadavg(),
+          cores: cpuInfo.cores || navigator.hardwareConcurrency || 4,
+          loadAverage: cpuInfo.loadavg || [0, 0, 0],
         };
       } else {
-        // Browser environment
+        // Browser environment fallback
         return {
           usage: await this.getCpuUsage(),
           cores: navigator.hardwareConcurrency || 4,
@@ -778,21 +776,16 @@ export class PerformanceMonitor {
 
   async getMemoryInfo() {
     try {
-      const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
-
-      if (isNode) {
-        // Node.js environment - use process.memoryUsage()
-        const memUsage = process.memoryUsage();
-        const totalMemory = await this.getTotalMemory();
-        const usedMemory = memUsage.heapUsed / (1024 * 1024); // Convert to MB
-
+      // Use IPC to get memory information from main process
+      if (typeof window !== 'undefined' && window.nodeAPI) {
+        const memInfo = await window.nodeAPI.getMemoryInfo();
         return {
-          usage: (usedMemory / totalMemory) * 100,
-          total: totalMemory,
-          available: totalMemory - usedMemory,
+          usage: memInfo.usage,
+          total: memInfo.totalmem / (1024 * 1024), // Convert to MB
+          available: memInfo.freemem / (1024 * 1024), // Convert to MB
         };
       } else {
-        // Browser environment
+        // Browser environment fallback
         return {
           usage: await this.getMemoryUsage(),
           total: await this.getTotalMemory(),
@@ -820,11 +813,23 @@ export class PerformanceMonitor {
 
   async getNetworkStats() {
     try {
-      return {
-        uploadSpeed: await this.getNetworkUpload(),
-        downloadSpeed: await this.getNetworkDownload(),
-        latency: await this.getNetworkLatency(),
-      };
+      // Use IPC to get network information from main process
+      if (typeof window !== 'undefined' && window.nodeAPI) {
+        const networkInfo = await window.nodeAPI.getNetworkInfo();
+        return {
+          uploadSpeed: await this.getNetworkUpload(),
+          downloadSpeed: await this.getNetworkDownload(),
+          latency: await this.getNetworkLatency(),
+          hostname: networkInfo.hostname,
+          interfaces: Object.keys(networkInfo.interfaces || {}),
+        };
+      } else {
+        return {
+          uploadSpeed: await this.getNetworkUpload(),
+          downloadSpeed: await this.getNetworkDownload(),
+          latency: await this.getNetworkLatency(),
+        };
+      }
     } catch (error) {
       console.error('Error gathering network statistics:', error);
       return this.config.fallbackEnabled ? this.fallbackValues.network : null;

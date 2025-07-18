@@ -131,7 +131,7 @@
   flex: 1;
 }
 
-.search-container input[type="text"] {
+.search-container input[type='text'] {
   flex: 1;
   padding: 12px 16px;
   background: #2d2d2d;
@@ -141,7 +141,7 @@
   font-size: 14px;
 }
 
-.search-container input[type="text"]:focus {
+.search-container input[type='text']:focus {
   outline: none;
   border-color: #4a9eff;
   box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
@@ -448,8 +448,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Settings */
@@ -477,14 +481,14 @@
   cursor: pointer;
 }
 
-.setting-item input[type="checkbox"] {
+.setting-item input[type='checkbox'] {
   width: 18px;
   height: 18px;
   accent-color: #4a9eff;
 }
 
-.setting-item input[type="number"],
-.setting-item input[type="text"] {
+.setting-item input[type='number'],
+.setting-item input[type='text'] {
   background: #2d2d2d;
   border: 1px solid #444;
   border-radius: 6px;
@@ -494,8 +498,8 @@
   width: 200px;
 }
 
-.setting-item input[type="number"]:focus,
-.setting-item input[type="text"]:focus {
+.setting-item input[type='number']:focus,
+.setting-item input[type='text']:focus {
   outline: none;
   border-color: #4a9eff;
   box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
@@ -689,34 +693,34 @@
     height: 90%;
     max-height: none;
   }
-  
+
   .plugins-list {
     grid-template-columns: 1fr;
   }
-  
+
   .plugins-controls {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .search-container {
     flex-direction: column;
   }
-  
+
   .plugin-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .plugin-actions {
     width: 100%;
     justify-content: stretch;
   }
-  
+
   .plugin-actions .btn {
     flex: 1;
   }
-  
+
   .notification-container {
     left: 20px;
     right: 20px;
@@ -756,11 +760,11 @@ select:focus {
   .plugin-manager-modal {
     border: 2px solid #fff;
   }
-  
+
   .plugin-card {
     border: 2px solid #fff;
   }
-  
+
   .btn {
     border: 1px solid currentColor;
   }

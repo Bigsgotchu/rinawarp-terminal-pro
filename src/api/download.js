@@ -19,12 +19,14 @@ const GITHUB_RELEASE_BASE_URL =
   'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download';
 
 const ALLOWED_FILES = {
-  // Aliases for easy website integration
+  // Main application archive
   'rinawarp.zip': `${GITHUB_RELEASE_BASE_URL}/rinawarp.zip`,
-  portable: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`,
-  linux: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`,
-  macos: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`,
-  setup: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`,
+
+  // Platform-specific downloads
+  portable: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`, // Windows portable executable
+  linux: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`, // Linux tar.gz archive
+  macos: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`, // macOS DMG installer
+  setup: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`, // Windows setup executable (default)
 
   // Exact filenames for direct API access
   'RinaWarp-Terminal-Setup-Windows.exe': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`,
@@ -62,7 +64,20 @@ router.get('/', (req, res) => {
   } else if (os && osToFileAlias[os]) {
     fileKey = osToFileAlias[os];
   } else {
-    fileKey = 'setup'; // Default to Windows installer
+    // Return error when no file parameter is provided
+    return res.status(400).json({
+      error: 'File parameter is required',
+      available: Object.keys(ALLOWED_FILES),
+      usage: 'Use ?file=<key> or ?os=<linux|mac|windows>',
+      examples: [
+        '/api/download?file=portable - Portable Windows version',
+        '/api/download?file=linux - Linux package',
+        '/api/download?file=macos - macOS installer',
+        '/api/download?os=linux - Linux package via OS',
+        '/api/download?os=windows - Windows installer via OS',
+        '/api/download?os=mac - macOS installer via OS',
+      ],
+    });
   }
 
   const downloadUrl = ALLOWED_FILES[fileKey];
@@ -73,7 +88,6 @@ router.get('/', (req, res) => {
       available: Object.keys(ALLOWED_FILES),
       message: 'Please specify one of the available file types',
       examples: [
-        '/api/download - Default Windows installer',
         '/api/download?file=portable - Portable Windows version',
         '/api/download?file=linux - Linux package',
         '/api/download?file=macos - macOS installer',

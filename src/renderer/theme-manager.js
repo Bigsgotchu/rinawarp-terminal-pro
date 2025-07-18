@@ -504,4 +504,8 @@ if (typeof window !== 'undefined') {
   window.ThemeManager = ThemeManager;
 }
 
+// ES6 module export
 export default ThemeManager;
+
+// Named export for compatibility
+export { ThemeManager };

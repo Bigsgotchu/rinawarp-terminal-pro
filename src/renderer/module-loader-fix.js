@@ -262,30 +262,143 @@
   const loadXTermDependencies = async () => {
     try {
       // Check if XTerm is already loaded
-      if (typeof Terminal === 'undefined') {
+      if (typeof Terminal === 'undefined' && typeof window.Terminal === 'undefined') {
         console.log('📦 Loading XTerm dependencies...');
 
-        // Try to load from node_modules
-        const xtermScript = document.createElement('script');
-        xtermScript.src = '../../node_modules/@xterm/xterm/lib/xterm.js';
-        xtermScript.onload = () => {
-          console.log('✅ XTerm loaded successfully');
-        };
-        xtermScript.onerror = () => {
-          console.warn('⚠️ XTerm failed to load from node_modules');
-        };
-        document.head.appendChild(xtermScript);
+        // Try multiple loading strategies
+        const loadStrategies = [
+          // Strategy 1: Load from node_modules
+          async () => {
+            const xtermScript = document.createElement('script');
+            xtermScript.src = '../../node_modules/@xterm/xterm/lib/xterm.js';
+            xtermScript.type = 'module';
+
+            return new Promise((resolve, reject) => {
+              xtermScript.onload = () => {
+                console.log('✅ XTerm loaded from node_modules');
+                resolve();
+              };
+              xtermScript.onerror = () => {
+                console.warn('⚠️ XTerm failed to load from node_modules');
+                reject();
+              };
+              document.head.appendChild(xtermScript);
+            });
+          },
+
+          // Strategy 2: Load from vendor directory
+          async () => {
+            const xtermScript = document.createElement('script');
+            xtermScript.src = '../public/vendor/xterm/xterm.js';
+
+            return new Promise((resolve, reject) => {
+              xtermScript.onload = () => {
+                console.log('✅ XTerm loaded from vendor directory');
+                resolve();
+              };
+              xtermScript.onerror = () => {
+                console.warn('⚠️ XTerm failed to load from vendor directory');
+                reject();
+              };
+              document.head.appendChild(xtermScript);
+            });
+          },
+
+          // Strategy 3: Load from assets directory
+          async () => {
+            const xtermScript = document.createElement('script');
+            xtermScript.src = '../public/assets/xterm/xterm.js';
+
+            return new Promise((resolve, reject) => {
+              xtermScript.onload = () => {
+                console.log('✅ XTerm loaded from assets directory');
+                resolve();
+              };
+              xtermScript.onerror = () => {
+                console.warn('⚠️ XTerm failed to load from assets directory');
+                reject();
+              };
+              document.head.appendChild(xtermScript);
+            });
+          },
+        ];
+
+        // Try each strategy until one succeeds
+        let loaded = false;
+        for (const strategy of loadStrategies) {
+          try {
+            await strategy();
+            loaded = true;
+            break;
+          } catch (error) {
+            // Continue to next strategy
+          }
+        }
+
+        if (!loaded) {
+          console.warn('⚠️ All XTerm loading strategies failed');
+        }
 
         // Load CSS
         const xtermCSS = document.createElement('link');
         xtermCSS.rel = 'stylesheet';
         xtermCSS.href = '../../node_modules/@xterm/xterm/css/xterm.css';
+        xtermCSS.onerror = () => {
+          // Try fallback CSS locations
+          const fallbackCSS = document.createElement('link');
+          fallbackCSS.rel = 'stylesheet';
+          fallbackCSS.href = '../public/xterm.css';
+          document.head.appendChild(fallbackCSS);
+        };
         document.head.appendChild(xtermCSS);
       } else {
         console.log('✅ XTerm already available');
       }
     } catch (error) {
       console.warn('⚠️ XTerm loading failed:', error);
+    }
+  };
+
+  // 4. Provide XTerm polyfills and fallbacks
+  const setupXTermPolyfills = () => {
+    // Polyfill for ResizeObserver if not available
+    if (typeof ResizeObserver === 'undefined') {
+      window.ResizeObserver = class ResizeObserver {
+        constructor(callback) {
+          this.callback = callback;
+        }
+        observe(element) {
+          // Fallback: use window resize event
+          const resizeHandler = () => {
+            this.callback([{ target: element }]);
+          };
+          window.addEventListener('resize', resizeHandler);
+          element._resizeHandler = resizeHandler;
+        }
+        unobserve(element) {
+          if (element._resizeHandler) {
+            window.removeEventListener('resize', element._resizeHandler);
+            delete element._resizeHandler;
+          }
+        }
+        disconnect() {
+          // No-op for polyfill
+        }
+      };
+    }
+
+    // Polyfill for requestAnimationFrame if not available
+    if (typeof requestAnimationFrame === 'undefined') {
+      window.requestAnimationFrame = callback => {
+        return setTimeout(callback, 1000 / 60);
+      };
+    }
+
+    // Polyfill for cancelAnimationFrame if not available
+    if (typeof cancelAnimationFrame === 'undefined') {
+      window.cancelAnimationFrame = id => {
+        clearTimeout(id);
+      };
     }
   };
 

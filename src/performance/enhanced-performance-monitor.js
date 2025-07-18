@@ -6,14 +6,8 @@
  * for comprehensive performance analytics.
  */
 
-// Try to import Speed Insights, fallback gracefully if not available
-let speedInsights;
-try {
-  speedInsights = await import('@vercel/speed-insights');
-} catch (error) {
-  console.warn('Speed Insights not available:', error.message);
-  speedInsights = null;
-}
+// Speed Insights removed - not compatible with Electron applications
+const speedInsights = null;
 
 export class EnhancedPerformanceMonitor {
   constructor(terminal) {
@@ -56,10 +50,7 @@ export class EnhancedPerformanceMonitor {
       timestamp: Date.now(),
     };
 
-    // Send to Vercel Speed Insights if available
-    if (speedInsights && speedInsights.track) {
-      speedInsights.track(entry.name, entry.duration || entry.startTime);
-    }
+    // Analytics tracking removed - not compatible with Electron
 
     console.log(`📊 Web Vital: ${entry.name} = ${vital.value}ms`);
   }
@@ -95,13 +86,7 @@ export class EnhancedPerformanceMonitor {
       this.recordMetrics(metrics);
       this.displayMetrics(metrics);
 
-      // Track with Vercel Speed Insights
-      if (speedInsights && speedInsights.track) {
-        speedInsights.track('terminal-command', executionTime, {
-          command: command.split(' ')[0], // First word only for privacy
-          success: true,
-        });
-      }
+      // Analytics tracking removed - not compatible with Electron
 
       return result;
     } catch (error) {
@@ -119,13 +104,7 @@ export class EnhancedPerformanceMonitor {
       this.recordMetrics(metrics);
       this.metrics.errorCount++;
 
-      // Track errors with Speed Insights
-      if (speedInsights && speedInsights.track) {
-        speedInsights.track('terminal-error', executionTime, {
-          command: command.split(' ')[0],
-          success: false,
-        });
-      }
+      // Analytics tracking removed - not compatible with Electron
 
       throw error;
     }
@@ -142,13 +121,7 @@ export class EnhancedPerformanceMonitor {
       this.metrics.aiRequestCount++;
       this.metrics.aiResponseTime.push(responseTime);
 
-      // Track AI performance
-      if (speedInsights && speedInsights.track) {
-        speedInsights.track('ai-request', responseTime, {
-          operation,
-          success: true,
-        });
-      }
+      // Analytics tracking removed - not compatible with Electron
 
       console.log(`🤖 AI ${operation} took ${Math.round(responseTime)}ms`);
       return result;
@@ -156,12 +129,7 @@ export class EnhancedPerformanceMonitor {
       const endTime = performance.now();
       const responseTime = endTime - startTime;
 
-      if (speedInsights && speedInsights.track) {
-        speedInsights.track('ai-request', responseTime, {
-          operation,
-          success: false,
-        });
-      }
+      // Analytics tracking removed - not compatible with Electron
 
       throw error;
     }
