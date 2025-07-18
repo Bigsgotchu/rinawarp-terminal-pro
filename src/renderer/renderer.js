@@ -10,16 +10,17 @@
  *
  * Project repository: https://github.com/rinawarp/terminal
  */
-import { ipcRenderer } from 'electron';
+const electronAPI = window.electronAPI; // accessed via contextBridge from preload.js
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { SafeAIWrapper } from '../ai/safe-ai-wrapper';
 import { inject } from '@vercel/speed-insights';
-import { spawn } from 'child_process';
-import os from 'os';
-import path from 'path';
-import fs from 'fs';
+// Node.js modules are accessed through electronAPI context bridge
+// const { spawn } = require('child_process'); // Only available in main process
+// const os = require('os'); // Only available in main process
+// const path = require('path'); // Only available in main process
+// const fs = require('fs'); // Only available in main process
 
 // Import Revolutionary Phase 1-3 Features
 // These will be loaded dynamically to prevent bundling issues
@@ -2826,7 +2827,7 @@ class TerminalManager extends SimpleEventEmitter {
           // this.executeCommand(command);
         } else {
           this.pluginAPI.showNotification(
-            "🤔 I don't understand that command. Try being more specific!",
+            '🤔 I don\'t understand that command. Try being more specific!',
             'info',
             3000
           );
@@ -2848,9 +2849,9 @@ class TerminalManager extends SimpleEventEmitter {
     // Setup window controls
     this.setupWindowControls();
 
-    // Get platform and shell info
-    this.platform = await ipcRenderer.invoke('get-platform');
-    this.shell = await ipcRenderer.invoke('get-shell');
+    // Get platform and shell info via electronAPI
+    this.platform = await electronAPI.getSystemInfo().then(info => info.platform);
+    this.shell = await electronAPI.getSystemInfo().then(info => info.shell);
 
     // Check if this is first run and show welcome screen
     const isFirstRun = !localStorage.getItem('rinawarp-onboarding-completed');
@@ -4027,33 +4028,33 @@ class TerminalManager extends SimpleEventEmitter {
       let statusColor = '';
 
       switch (status.tier) {
-        case 'trial':
-          statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
-          statusColor = '#ffd93d';
-          break;
-        case 'personal':
-          statusText = '👤 Personal';
-          statusColor = '#51cf66';
-          break;
-        case 'professional':
-          statusText = '💼 Professional';
-          statusColor = '#74c0fc';
-          break;
-        case 'team':
-          statusText = '👥 Team';
-          statusColor = '#9775fa';
-          break;
-        case 'enterprise':
-          statusText = '🏢 Enterprise';
-          statusColor = '#ff8c42';
-          break;
-        case 'expired':
-          statusText = '❌ Expired';
-          statusColor = '#f92672';
-          break;
-        default:
-          statusText = '❓ Unknown';
-          statusColor = '#666';
+      case 'trial':
+        statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+        statusColor = '#ffd93d';
+        break;
+      case 'personal':
+        statusText = '👤 Personal';
+        statusColor = '#51cf66';
+        break;
+      case 'professional':
+        statusText = '💼 Professional';
+        statusColor = '#74c0fc';
+        break;
+      case 'team':
+        statusText = '👥 Team';
+        statusColor = '#9775fa';
+        break;
+      case 'enterprise':
+        statusText = '🏢 Enterprise';
+        statusColor = '#ff8c42';
+        break;
+      case 'expired':
+        statusText = '❌ Expired';
+        statusColor = '#f92672';
+        break;
+      default:
+        statusText = '❓ Unknown';
+        statusColor = '#666';
       }
 
       licenseElement.textContent = statusText;
@@ -4078,15 +4079,15 @@ class TerminalManager extends SimpleEventEmitter {
                         <div class="license-tier">${status.tier.toUpperCase()}</div>
                         <div class="license-details">
                             ${
-                              status.tier === 'trial'
-                                ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
-                                : '<p>License is active</p>'
-                            }
+  status.tier === 'trial'
+    ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
+    : '<p>License is active</p>'
+}
                             ${
-                              status.aiQueriesRemaining !== 'unlimited'
-                                ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
-                                : '<p>Unlimited AI queries</p>'
-                            }
+  status.aiQueriesRemaining !== 'unlimited'
+    ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
+    : '<p>Unlimited AI queries</p>'
+}
                         </div>
                     </div>
                 </div>

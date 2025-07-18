@@ -1,0 +1,85 @@
+{
+  "provider": "sendgrid",
+  "apiKey": "SG.your-sendgrid-api-key-here",
+  "fromEmail": "noreply@rinawarptech.com",
+  "fromName": "RinaWarp Team",
+  "replyTo": "support@rinawarptech.com",
+  
+  "trackingSettings": {
+    "clickTracking": true,
+    "openTracking": true,
+    "subscriptionTracking": true,
+    "ganalytics": true
+  },
+  
+  "templates": {
+    "welcome": "d-1234567890abcdef1234567890abcdef",
+    "update": "d-abcdef1234567890abcdef1234567890",
+    "reminder": "d-567890abcdef1234567890abcdef1234",
+    "onboarding_tips": "d-onboarding123456789012345678901234",
+    "welcome_follow_up": "d-followup123456789012345678901234",
+    "onboarding_day1": "d-day1onboard123456789012345678901",
+    "onboarding_day3": "d-day3onboard123456789012345678901",
+    "onboarding_week1": "d-week1onboard12345678901234567890",
+    "engagement_tips": "d-engage123456789012345678901234567",
+    "feature_highlight": "d-feature123456789012345678901234567",
+    "success_stories": "d-success123456789012345678901234567",
+    "we_miss_you": "d-miss123456789012345678901234567890",
+    "whats_new": "d-new123456789012345678901234567890",
+    "final_chance": "d-final123456789012345678901234567890"
+  },
+  
+  "social": {
+    "discord": "https://discord.gg/rinawarp-dev",
+    "github": "https://github.com/rinawarp-terminal",
+    "twitter": "https://twitter.com/rinawarp"
+  },
+  
+  "support": {
+    "email": "support@rinawarptech.com",
+    "bugs": "https://github.com/rinawarp-terminal/rinawarp-terminal/issues",
+    "features": "https://github.com/rinawarp-terminal/rinawarp-terminal/discussions"
+  },
+  
+  "urls": {
+    "website": "https://rinawarptech.com",
+    "download": "https://github.com/rinawarp-terminal/releases/latest",
+    "privacy": "https://rinawarptech.com/privacy",
+    "unsubscribe": "https://rinawarptech.com/unsubscribe",
+    "preferences": "https://rinawarptech.com/email-preferences"
+  },
+  
+  "segments": {
+    "developers": {
+      "name": "Developers",
+      "description": "Professional developers and engineers"
+    },
+    "early_adopters": {
+      "name": "Early Adopters",
+      "description": "Users who love trying new technology"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "description": "Enterprise customers and team leads"
+    },
+    "students": {
+      "name": "Students",
+      "description": "Students and educational users"
+    }
+  },
+  
+  "alternativeProviders": {
+    "mailchimp": {
+      "provider": "mailchimp",
+      "apiKey": "your-mailchimp-api-key-here",
+      "server": "us1",
+      "listId": "your-list-id"
+    },
+    "ses": {
+      "provider": "ses",
+      "region": "us-east-1",
+      "accessKeyId": "your-aws-access-key",
+      "secretAccessKey": "your-aws-secret-key"
+    }
+  }
+}

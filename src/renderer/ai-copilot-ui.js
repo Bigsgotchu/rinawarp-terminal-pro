@@ -67,7 +67,7 @@ class AICopilotUI {
     this.copilotService.on('copilot-ready', () => {
       // Copilot service is ready
       this.updateStatus('ready', 'AI Copilot ready to assist');
-      this.addSystemMessage("👋 Hello! I'm your AI Copilot. How can I help you today?");
+      this.addSystemMessage('👋 Hello! I\'m your AI Copilot. How can I help you today?');
     });
 
     this.copilotService.on('copilot-error', _error => {
@@ -443,7 +443,7 @@ class AICopilotUI {
       content += '</ul></div>';
     }
 
-    return content || "I'm here to help, but I don't have a specific response for that.";
+    return content || 'I\'m here to help, but I don\'t have a specific response for that.';
   }
 
   getMessageIcon(type) {
@@ -468,25 +468,25 @@ class AICopilotUI {
 
   async handleQuickAction(action) {
     switch (action) {
-      case 'explain-last-error':
-        this.inputField.value = 'Can you explain the last error I encountered?';
-        this.sendMessage();
-        break;
+    case 'explain-last-error':
+      this.inputField.value = 'Can you explain the last error I encountered?';
+      this.sendMessage();
+      break;
 
-      case 'suggest-commands':
-        this.inputField.value = 'What commands would be useful in my current context?';
-        this.sendMessage();
-        break;
+    case 'suggest-commands':
+      this.inputField.value = 'What commands would be useful in my current context?';
+      this.sendMessage();
+      break;
 
-      case 'optimize-workflow':
-        this.inputField.value = 'How can I optimize my current workflow?';
-        this.sendMessage();
-        break;
+    case 'optimize-workflow':
+      this.inputField.value = 'How can I optimize my current workflow?';
+      this.sendMessage();
+      break;
 
-      case 'security-check':
-        this.inputField.value = 'Can you check the security implications of my recent commands?';
-        this.sendMessage();
-        break;
+    case 'security-check':
+      this.inputField.value = 'Can you check the security implications of my recent commands?';
+      this.sendMessage();
+      break;
     }
   }
 

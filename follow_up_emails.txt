@@ -1,0 +1,59 @@
+# Follow-Up Email Sequences for RinaWarp Beta 
+
+## Day 3 
+### Subject: Quick reminder about your RinaWarp Beta invitation
+
+**For Opened Emails:**
+- Hi [Name],
+  - We noticed you're interested in the RinaWarp Beta! We’d love for you to join our community of beta testers and explore the cutting-edge features we’re offering.
+  - **Feature Highlight:** Get early access to [Feature A].
+  - **Testimonial:** Here's what [Customer] says about us: "[Testimonial]."
+  - Don’t forget to secure your spot!
+
+**For Unopened Emails:**
+- Hi [Name],
+  - Just a quick reminder about our invitation for you to join the RinaWarp Beta. Don’t miss out on the early access benefits!
+  - We’re excited to have you explore our features like [Feature A].
+  - Secure your access today!
+
+## Day 7 
+### Subject: Last chance for early bird pricing - RinaWarp Beta
+
+**For Opened Emails:**
+- Hi [Name],
+  - Time is running out to secure the early bird pricing for the RinaWarp Beta. Don’t miss this opportunity!
+  - **Feature Highlight:** Experience [Feature B] that our users are raving about.
+  - **Demo:** Check out this quick demo showing you how [Feature B] works.
+  - Lock in your early bird pricing now!
+
+**For Unopened Emails:**
+- Hi [Name],
+  - Don’t miss your last chance to get the early bird pricing for RinaWarp Beta!
+  - Experience cutting-edge features like [Feature B].
+  - Take advantage of this offer before it's too late!
+
+## Day 14 
+### Subject: Beta spots filling up - secure your access
+
+**For Opened Emails:**
+- Hi [Name],
+  - We wanted to remind you that our beta spots are filling up fast. There’s still time to join!
+  - **Feature Highlight:** Discover [Feature C] that enhances your workflow.
+  - **Testimonial:** Hear what [Customer] has to say.
+  - Act quickly to secure your place.
+
+**For Unopened Emails:**
+- Hi [Name],
+  - Hurry! Our beta spots are filling up, and we would hate for you to miss out!
+  - Discover new ways to boost your productivity with [Feature C].
+  - Secure your access while spots are still available!
+
+## Re-Engagement Campaign for Non-Responders
+
+### Subject: We Miss You at RinaWarp
+
+- Hi [Name],
+  - We noticed you haven’t responded to our previous emails and we’d love to know what we can do better.
+  - **Feature Highlight:** Discover how [Feature D] can benefit you.
+  - **Testimonial:** Don’t just take our word for it. Hear from [Customer] about their experience.
+  - We’d love for you to join our community. Let us know how we can help!

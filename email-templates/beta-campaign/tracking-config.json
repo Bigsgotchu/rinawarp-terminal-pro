@@ -1,0 +1,37 @@
+{
+  "campaign_name": "beta-invitation-2024",
+  "tracking_parameters": {
+    "utm_source": "email",
+    "utm_medium": "beta_campaign",
+    "utm_campaign": "beta_invitation_2024",
+    "utm_term": "beta_access",
+    "utm_content": "{email_template_variant}"
+  },
+  "tracking_endpoints": {
+    "pixel_tracking": "https://analytics.rinawarp.com/track/pixel/{user_id}/{campaign_id}",
+    "click_tracking": "https://analytics.rinawarp.com/track/click/{user_id}/{campaign_id}/{link_id}",
+    "open_tracking": "https://analytics.rinawarp.com/track/open/{user_id}/{campaign_id}",
+    "unsubscribe_tracking": "https://analytics.rinawarp.com/track/unsubscribe/{user_id}/{campaign_id}"
+  },
+  "tracking_variables": {
+    "user_id": "{user_id}",
+    "campaign_id": "beta_inv_2024",
+    "send_date": "{send_timestamp}",
+    "audience_type": "{audience_type}",
+    "template_variant": "{template_variant}",
+    "personalization_level": "{personalization_level}"
+  },
+  "analytics_goals": {
+    "email_open_rate": "target: 35%",
+    "click_through_rate": "target: 8%",
+    "beta_signup_rate": "target: 15%",
+    "unsubscribe_rate": "target: <2%"
+  },
+  "tracking_placeholders": {
+    "privacy_policy_url": "https://rinawarp.com/privacy?{utm_params}",
+    "terms_of_service_url": "https://rinawarp.com/terms?{utm_params}",
+    "unsubscribe_url": "https://rinawarp.com/unsubscribe?{user_id}&{campaign_id}",
+    "beta_signup_url": "https://rinawarp.com/beta-signup?{utm_params}&ref={user_id}",
+    "tracking_pixel_url": "{pixel_tracking}"
+  }
+}

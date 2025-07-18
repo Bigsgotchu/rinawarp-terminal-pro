@@ -85,15 +85,15 @@ class LicenseManager {
     const tier = this.getLicenseTier();
 
     switch (tier) {
-      case 'personal':
-        return 5; // 5 per day
-      case 'professional':
-      case 'team':
-      case 'enterprise':
-      case 'trial':
-        return -1; // unlimited
-      default:
-        return 0;
+    case 'personal':
+      return 5; // 5 per day
+    case 'professional':
+    case 'team':
+    case 'enterprise':
+    case 'trial':
+      return -1; // unlimited
+    default:
+      return 0;
     }
   }
 

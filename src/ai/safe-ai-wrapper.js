@@ -85,9 +85,9 @@ export class SafeAIWrapper {
       () => this.engine.processUserCommand(command, context),
       this.fallbackMode
         ? {
-            response: `🌊 Processing "${command}" in fallback mode`,
-            suggestions: [],
-          }
+          response: `🌊 Processing "${command}" in fallback mode`,
+          suggestions: [],
+        }
         : null
     );
   }

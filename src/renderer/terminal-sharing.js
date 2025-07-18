@@ -468,24 +468,24 @@ class LiveTerminalSharing {
 
   handleCollaborationMessage(message) {
     switch (message.type) {
-      case 'command-update':
-        this.handleCommandUpdate(message);
-        break;
-      case 'cursor-position':
-        this.updateCollaborativeCursors(message.userId, message.position);
-        break;
-      case 'chat-message':
-        this.displayChatMessage(message);
-        break;
-      case 'user-joined':
-        this.handleUserJoined(message);
-        break;
-      case 'user-left':
-        this.handleUserLeft(message);
-        break;
-      case 'session-sync':
-        this.handleSessionSync(message);
-        break;
+    case 'command-update':
+      this.handleCommandUpdate(message);
+      break;
+    case 'cursor-position':
+      this.updateCollaborativeCursors(message.userId, message.position);
+      break;
+    case 'chat-message':
+      this.displayChatMessage(message);
+      break;
+    case 'user-joined':
+      this.handleUserJoined(message);
+      break;
+    case 'user-left':
+      this.handleUserLeft(message);
+      break;
+    case 'session-sync':
+      this.handleSessionSync(message);
+      break;
     }
   }
 

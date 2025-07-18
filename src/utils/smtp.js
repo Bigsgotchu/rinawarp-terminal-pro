@@ -4,11 +4,13 @@
  */
 
 import nodemailer from 'nodemailer';
+import EmailPersonalizationEngine from '../../email-templates/beta-campaign/personalization-engine.js';
 
 class SMTPService {
   constructor() {
     this.transporter = null;
     this.initialized = false;
+    this.personalizationEngine = new EmailPersonalizationEngine();
     this.init();
   }
 
@@ -52,6 +54,43 @@ class SMTPService {
     } else {
       console.log('⚠️ SMTP credentials not configured and not in development mode');
       this.initialized = false;
+    }
+  }
+
+  async sendPersonalizedEmail(recipient, template) {
+    if (!this.initialized) {
+      throw new Error('SMTP service not initialized');
+    }
+
+    // Personalize the email
+    const personalizedContent = this.personalizationEngine.personalizeEmail(recipient, template);
+
+    const mailOptions = {
+      from: `RinaWarp Terminal <${process.env.SMTP_FROM_EMAIL || 'noreply@rinawarp.com'}>`,
+      to: recipient.email,
+      subject: personalizedContent.subject,
+      html: personalizedContent.content,
+      // Optionally include a text version
+      text: personalizedContent.content.replace(/(<([^>]+)>)/gi, ''), // Strip HTML for text version
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('📧 Personalized email sent successfully:', {
+        to: recipient.email,
+        subject: personalizedContent.subject,
+        messageId: info.messageId,
+        abTestVariant: personalizedContent.abTestVariant,
+        audienceSegment: personalizedContent.audienceSegment,
+        discountCode: personalizedContent.discountCode
+      });
+      return {
+        ...info,
+        personalizedContent: personalizedContent
+      };
+    } catch (error) {
+      console.error('❌ Error sending personalized email:', error);
+      throw error;
     }
   }
 
