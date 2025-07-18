@@ -272,14 +272,15 @@ class CommandHistoryManager {
       'terraform',
       'ansible',
     ];
-    this.loadHistory();
+    this.loadHistory().catch(err => console.warn('Failed to load history:', err));
   }
 
-  loadHistory() {
+  async loadHistory() {
     try {
-      const historyPath = path.join(os.homedir(), '.rinawarp-terminal-history');
-      if (fs.existsSync(historyPath)) {
-        const data = fs.readFileSync(historyPath, 'utf8');
+      const homeDir = await window.nodeAPI?.getHomeDir();
+      const historyPath = path.join(homeDir, '.rinawarp-terminal-history');
+      if (await window.electronAPI?.fs?.exists(historyPath)) {
+        const data = await window.electronAPI?.fs?.readFile(historyPath, 'utf8');
         this.history = data.split('\n').filter(cmd => cmd.trim());
       }
     } catch (error) {
@@ -287,11 +288,12 @@ class CommandHistoryManager {
     }
   }
 
-  saveHistory() {
+  async saveHistory() {
     try {
-      const historyPath = path.join(os.homedir(), '.rinawarp-terminal-history');
+      const homeDir = await window.nodeAPI?.getHomeDir();
+      const historyPath = path.join(homeDir, '.rinawarp-terminal-history');
       const historyData = this.history.slice(-1000).join('\n'); // Keep last 1000 commands
-      fs.writeFileSync(historyPath, historyData);
+      await window.electronAPI?.fs?.writeFile(historyPath, historyData);
     } catch (error) {
       console.log('Could not save command history:', error.message);
     }
@@ -306,7 +308,7 @@ class CommandHistoryManager {
         this.history.splice(index, 1);
       }
       this.history.push(trimmedCommand);
-      this.saveHistory();
+      this.saveHistory().catch(err => console.warn('Failed to save history:', err));
     }
     this.resetHistoryNavigation();
   }
@@ -2912,7 +2914,7 @@ class TerminalManager extends SimpleEventEmitter {
           // this.executeCommand(command);
         } else {
           this.pluginAPI.showNotification(
-            '🤔 I don\'t understand that command. Try being more specific!',
+            "🤔 I don't understand that command. Try being more specific!",
             'info',
             3000
           );
@@ -4135,33 +4137,33 @@ class TerminalManager extends SimpleEventEmitter {
       let statusColor = '';
 
       switch (status.tier) {
-      case 'trial':
-        statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
-        statusColor = '#ffd93d';
-        break;
-      case 'personal':
-        statusText = '👤 Personal';
-        statusColor = '#51cf66';
-        break;
-      case 'professional':
-        statusText = '💼 Professional';
-        statusColor = '#74c0fc';
-        break;
-      case 'team':
-        statusText = '👥 Team';
-        statusColor = '#9775fa';
-        break;
-      case 'enterprise':
-        statusText = '🏢 Enterprise';
-        statusColor = '#ff8c42';
-        break;
-      case 'expired':
-        statusText = '❌ Expired';
-        statusColor = '#f92672';
-        break;
-      default:
-        statusText = '❓ Unknown';
-        statusColor = '#666';
+        case 'trial':
+          statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+          statusColor = '#ffd93d';
+          break;
+        case 'personal':
+          statusText = '👤 Personal';
+          statusColor = '#51cf66';
+          break;
+        case 'professional':
+          statusText = '💼 Professional';
+          statusColor = '#74c0fc';
+          break;
+        case 'team':
+          statusText = '👥 Team';
+          statusColor = '#9775fa';
+          break;
+        case 'enterprise':
+          statusText = '🏢 Enterprise';
+          statusColor = '#ff8c42';
+          break;
+        case 'expired':
+          statusText = '❌ Expired';
+          statusColor = '#f92672';
+          break;
+        default:
+          statusText = '❓ Unknown';
+          statusColor = '#666';
       }
 
       licenseElement.textContent = statusText;
@@ -4186,15 +4188,15 @@ class TerminalManager extends SimpleEventEmitter {
                         <div class="license-tier">${status.tier.toUpperCase()}</div>
                         <div class="license-details">
                             ${
-  status.tier === 'trial'
-    ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
-    : '<p>License is active</p>'
-}
+                              status.tier === 'trial'
+                                ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
+                                : '<p>License is active</p>'
+                            }
                             ${
-  status.aiQueriesRemaining !== 'unlimited'
-    ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
-    : '<p>Unlimited AI queries</p>'
-}
+                              status.aiQueriesRemaining !== 'unlimited'
+                                ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
+                                : '<p>Unlimited AI queries</p>'
+                            }
                         </div>
                     </div>
                 </div>

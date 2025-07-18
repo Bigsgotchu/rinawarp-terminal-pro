@@ -1,7 +1,7 @@
 /**
  * RinaWarp Terminal - Error Triage Dashboard
  * "Real-time Error Monitoring & System Health Visualization"
- * 
+ *
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
@@ -13,27 +13,27 @@ class ErrorTriageDashboard {
     this.updateInterval = null;
     this.errorHistory = [];
     this.maxHistorySize = 100;
-    
+
     console.log('🩺 Error Triage Dashboard initialized');
   }
 
   show() {
     if (this.isVisible) return;
-    
+
     this.createDashboard();
     this.startRealTimeUpdates();
     this.isVisible = true;
-    
+
     console.log('📊 Error Triage Dashboard shown');
   }
 
   hide() {
     if (!this.isVisible) return;
-    
+
     this.stopRealTimeUpdates();
     this.removeDashboard();
     this.isVisible = false;
-    
+
     console.log('📊 Error Triage Dashboard hidden');
   }
 
@@ -50,7 +50,7 @@ class ErrorTriageDashboard {
     const dashboard = document.createElement('div');
     dashboard.id = 'error-triage-dashboard';
     dashboard.className = 'error-triage-dashboard';
-    
+
     dashboard.innerHTML = `
       <div class="dashboard-header">
         <h3>🩺 Error Triage System</h3>
@@ -195,10 +195,10 @@ class ErrorTriageDashboard {
 
     // Add styles
     this.addDashboardStyles();
-    
+
     // Add to DOM
     document.body.appendChild(dashboard);
-    
+
     // Initialize data
     this.updateDashboard();
   }
@@ -495,7 +495,7 @@ class ErrorTriageDashboard {
         color: #ccc;
       }
     `;
-    
+
     document.head.appendChild(style);
   }
 
@@ -504,7 +504,7 @@ class ErrorTriageDashboard {
     if (dashboard) {
       dashboard.remove();
     }
-    
+
     const styles = document.getElementById('error-triage-dashboard-styles');
     if (styles) {
       styles.remove();
@@ -533,7 +533,7 @@ class ErrorTriageDashboard {
 
   updateHealthStatus() {
     const healthStatus = errorTriageSystem.getHealthStatus();
-    
+
     // Update health indicators
     this.updateHealthIndicator('health-electron-api', healthStatus.electronAPI);
     this.updateHealthIndicator('health-node-api', healthStatus.nodeAPI);
@@ -544,7 +544,7 @@ class ErrorTriageDashboard {
   updateHealthIndicator(id, status) {
     const indicator = document.getElementById(id);
     if (!indicator) return;
-    
+
     const statusElement = indicator.querySelector('.indicator-status');
     if (status === true) {
       statusElement.textContent = '✅';
@@ -560,25 +560,31 @@ class ErrorTriageDashboard {
 
   updateErrorSummary() {
     const summary = errorTriageSystem.getErrorSummary();
-    
+
     // Update category counts
-    document.querySelector('#category-c100 .category-count').textContent = summary.categories.C100 || 0;
-    document.querySelector('#category-w200 .category-count').textContent = summary.categories.W200 || 0;
-    document.querySelector('#category-e300 .category-count').textContent = summary.categories.E300 || 0;
-    document.querySelector('#category-f500 .category-count').textContent = summary.categories.F500 || 0;
+    document.querySelector('#category-c100 .category-count').textContent =
+      summary.categories.C100 || 0;
+    document.querySelector('#category-w200 .category-count').textContent =
+      summary.categories.W200 || 0;
+    document.querySelector('#category-e300 .category-count').textContent =
+      summary.categories.E300 || 0;
+    document.querySelector('#category-f500 .category-count').textContent =
+      summary.categories.F500 || 0;
   }
 
   updateRecentErrors() {
     const timeline = document.getElementById('error-timeline');
     if (!timeline) return;
-    
+
     if (this.errorHistory.length === 0) {
       timeline.innerHTML = '<div class="no-errors">No recent errors</div>';
       return;
     }
-    
+
     const recentErrors = this.errorHistory.slice(-10).reverse();
-    timeline.innerHTML = recentErrors.map(error => `
+    timeline.innerHTML = recentErrors
+      .map(
+        error => `
       <div class="error-entry">
         <div>
           <span class="error-icon">${this.getCategoryIcon(error.category)}</span>
@@ -586,25 +592,27 @@ class ErrorTriageDashboard {
         </div>
         <div class="error-time">${this.formatTime(error.timestamp)}</div>
       </div>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   updateMetrics() {
     const healthStatus = errorTriageSystem.getHealthStatus();
     const summary = errorTriageSystem.getErrorSummary();
-    
+
     // Update response time (mock calculation)
     const responseTime = Math.floor(Math.random() * 50) + 10;
     document.getElementById('metric-response-time').textContent = `${responseTime}ms`;
-    
+
     // Update recovery rate (mock calculation)
     const recoveryRate = Math.floor(Math.random() * 30) + 85;
     document.getElementById('metric-recovery-rate').textContent = `${recoveryRate}%`;
-    
+
     // Update error rate (mock calculation)
     const errorRate = Math.floor(Math.random() * 5);
     document.getElementById('metric-error-rate').textContent = `${errorRate}/min`;
-    
+
     // Update memory usage
     if (healthStatus.memoryUsage) {
       const memoryMB = Math.floor(healthStatus.memoryUsage.used / 1024 / 1024);
@@ -614,21 +622,21 @@ class ErrorTriageDashboard {
 
   getCategoryIcon(category) {
     const icons = {
-      'C100': '✅',
-      'W200': '⚠️',
-      'E300': '❌',
-      'F500': '🛑'
+      C100: '✅',
+      W200: '⚠️',
+      E300: '❌',
+      F500: '🛑',
     };
     return icons[category] || '❓';
   }
 
   formatTime(timestamp) {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
+      second: '2-digit',
     });
   }
 
@@ -637,9 +645,9 @@ class ErrorTriageDashboard {
       timestamp: Date.now(),
       message: error.message || 'Unknown error',
       category: error.category || 'W200',
-      subsystem: error.subsystem || 'unknown'
+      subsystem: error.subsystem || 'unknown',
     });
-    
+
     // Keep history size manageable
     if (this.errorHistory.length > this.maxHistorySize) {
       this.errorHistory.shift();
@@ -655,7 +663,7 @@ class ErrorTriageDashboard {
     }
   }
 
-  showTab(tabName) {
+  showTab(tabName, event) {
     // Hide all tabs
     document.querySelectorAll('.tab-pane').forEach(pane => {
       pane.classList.remove('active');
@@ -663,10 +671,12 @@ class ErrorTriageDashboard {
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.remove('active');
     });
-    
+
     // Show selected tab
     document.getElementById(`tab-${tabName}`).classList.add('active');
-    event.target.classList.add('active');
+    if (event && event.target) {
+      event.target.classList.add('active');
+    }
   }
 
   clearHistory() {
@@ -680,9 +690,9 @@ class ErrorTriageDashboard {
       timestamp: new Date().toISOString(),
       healthStatus: errorTriageSystem.getHealthStatus(),
       errorSummary: errorTriageSystem.getErrorSummary(),
-      errorHistory: this.errorHistory
+      errorHistory: this.errorHistory,
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -690,7 +700,7 @@ class ErrorTriageDashboard {
     a.download = `error-triage-data-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     console.log('📥 Error triage data exported');
   }
 
@@ -707,7 +717,7 @@ class ErrorTriageDashboard {
       isVisible: this.isVisible,
       errorCount: this.errorHistory.length,
       healthStatus: errorTriageSystem.getHealthStatus(),
-      errorSummary: errorTriageSystem.getErrorSummary()
+      errorSummary: errorTriageSystem.getErrorSummary(),
     };
   }
 }
@@ -716,7 +726,7 @@ class ErrorTriageDashboard {
 const errorTriageDashboard = new ErrorTriageDashboard();
 
 // Add keyboard shortcut to toggle dashboard
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', event => {
   if (event.ctrlKey && event.shiftKey && event.key === 'E') {
     errorTriageDashboard.toggle();
   }
