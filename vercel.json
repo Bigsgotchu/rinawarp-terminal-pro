@@ -1,22 +1,3 @@
 {
-  "version": 2,
-  "framework": null,
-  "buildCommand": "npm run build:web",
-  "outputDirectory": "public",
-  "installCommand": "npm install",
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
-      ]
-    }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  "version": 2
 }

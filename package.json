@@ -47,7 +47,7 @@
           ]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/ico/rinawarp-mermaid-icon.ico"
     },
     "mac": {
       "target": [
@@ -56,7 +56,7 @@
           "arch": "x64"
         }
       ],
-      "icon": "assets/icon.icns",
+      "icon": "assets/icns/rinawarp-mermaid-icon.icns",
       "category": "public.app-category.developer-tools",
       "identity": null,
       "gatekeeperAssess": false,
@@ -73,9 +73,15 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
         }
       ],
-      "icon": "assets/icon.png",
+      "icon": "assets/png/icon-512.png",
       "category": "Development"
     }
   },
@@ -246,7 +252,7 @@
     "jsonwebtoken": "9.0.2",
     "lightningcss": "1.30.1",
     "lint-staged": "16.1.2",
-    "morgan": "1.5.3",
+    "morgan": "1.10.0",
     "next": "15.4.1",
     "node-cron": "4.2.1",
     "node-fetch": "3.3.2",
@@ -271,7 +277,6 @@
     "style-loader": "4.0.0",
     "tailwindcss": "3.4.17",
     "util": "0.12.5",
-    "vm2": "3.9.19",
     "webpack": "5.100.2",
     "webpack-cli": "6.0.1",
     "ws": "8.18.3"
