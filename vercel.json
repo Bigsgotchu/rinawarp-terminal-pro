@@ -4,17 +4,6 @@
   "buildCommand": "npm run build:web",
   "outputDirectory": "public",
   "installCommand": "npm install --production=false",
-  "functions": {
-    "api/download.js": {
-      "externalDependencies": ["fs", "path", "url"]
-    },
-    "api/download-info.js": {
-      "externalDependencies": []
-    },
-    "api/download-log.js": {
-      "externalDependencies": []
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
