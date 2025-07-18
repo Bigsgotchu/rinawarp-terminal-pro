@@ -22,6 +22,11 @@ class LicenseManager {
   // Check if current license is valid
   isValidLicense() {
     const now = Date.now();
+
+    // Developer license always valid
+    if (this.licenseType === 'developer') {
+      return true;
+    }
     const trialDays = 30;
     const validationInterval = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -75,6 +80,23 @@ class LicenseManager {
         'on_premise',
         'custom_integrations',
       ],
+      developer: [
+        'basic_ai',
+        'themes',
+        'history',
+        'cloud_sync',
+        'advanced_ai',
+        'custom_themes',
+        'team_features',
+        'sso_advanced',
+        'on_premise',
+        'custom_integrations',
+        'admin_panel',
+        'debug_mode',
+        'unlimited_ai',
+        'all_features',
+        'bypass_restrictions',
+      ],
     };
 
     return features[tier]?.includes(feature) || false;
@@ -85,15 +107,17 @@ class LicenseManager {
     const tier = this.getLicenseTier();
 
     switch (tier) {
-    case 'personal':
-      return 5; // 5 per day
-    case 'professional':
-    case 'team':
-    case 'enterprise':
-    case 'trial':
-      return -1; // unlimited
-    default:
-      return 0;
+      case 'personal':
+        return 5; // 5 per day
+      case 'professional':
+      case 'team':
+      case 'developer':
+        return -1; // unlimited (developer)
+      case 'enterprise':
+      case 'trial':
+        return -1; // unlimited
+      default:
+        return 0;
     }
   }
 
