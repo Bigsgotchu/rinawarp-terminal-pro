@@ -1,4 +1,22 @@
+// Simple download info API without authentication
 export default function handler(req, res) {
+  // Set CORS headers for cross-origin requests
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle OPTIONS request for CORS
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  // Only allow GET requests
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
   res.status(200).json({
     available: [
       'setup',
@@ -45,8 +63,8 @@ export default function handler(req, res) {
         format: 'dmg'
       },
       appimage: {
-      appimage: inux AppImage',
-              pt              pt     application',
+        name: 'Linux AppImage',
+        description: 'Portable Linux application',
         size: '~192MB',
         platform: 'Linux',
         format: 'AppImage'
@@ -71,8 +89,9 @@ export default function handler(req, res) {
       releaseDate: '2025-07-18',
       features: [
         'AI-powered terminal assistance',
-        'Advanced p        'Advanced p        'Advanced p        'Advanced           'Advanced p   eatures',
-        'Cloud sync        'Cloud sync    Multi-platform support'
+        'Advanced p        'Advanced p        'Advanced p        'Advanced     'Enhanced security features',
+        'Cloud synchronization',
+        'Mu       tform support'
       ]
     }
   });
