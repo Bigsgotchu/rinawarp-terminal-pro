@@ -206,16 +206,18 @@ app.on('web-contents-created', (event, contents) => {
   });
 });
 
+// Basic IPC handlers
+ipcMain.handle('ping', () => 'pong');
+
 // Test mode IPC handlers
 if (process.env.TEST_MODE === 'true') {
-  ipcMain.handle('ping', () => 'pong');
   ipcMain.handle('test-preload-apis', () => {
     return {
       electronAPI: true,
       nodeAPI: true,
       systemInfo: true,
       performanceMonitor: true,
-      shellProcess: true
+      shellProcess: true,
     };
   });
   console.log('🧪 Test mode enabled - Added test IPC handlers');
@@ -229,23 +231,23 @@ ipcMain.handle('error-triage-report', async (event, error, context) => {
       message: error.message,
       subsystem: context.subsystem,
       component: context.component,
-      severity: context.severity
+      severity: context.severity,
     });
-    
+
     // You could integrate with external logging services here
     // e.g., Sentry, LogRocket, or custom analytics
-    
+
     return {
       triageId: `main_${Date.now()}`,
       processed: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   } catch (error) {
     console.error('Failed to process error triage report:', error);
     return {
       triageId: `error_${Date.now()}`,
       processed: false,
-      error: error.message
+      error: error.message,
     };
   }
 });
@@ -258,7 +260,7 @@ ipcMain.handle('error-triage-health-check', async () => {
       uptime: process.uptime(),
       memory: process.memoryUsage(),
       platform: process.platform,
-      nodeVersion: process.version
+      nodeVersion: process.version,
     };
   } catch (error) {
     console.error('Health check failed:', error);
@@ -273,15 +275,15 @@ ipcMain.handle('error-triage-system-metrics', async () => {
         main: {
           memory: process.memoryUsage(),
           cpu: process.cpuUsage(),
-          uptime: process.uptime()
-        }
+          uptime: process.uptime(),
+        },
       },
       system: {
         platform: process.platform,
         arch: process.arch,
         nodeVersion: process.version,
-        electronVersion: process.versions.electron
-      }
+        electronVersion: process.versions.electron,
+      },
     };
   } catch (error) {
     console.error('Failed to get system metrics:', error);

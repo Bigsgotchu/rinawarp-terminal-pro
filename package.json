@@ -3,6 +3,7 @@
   "version": "1.0.19",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
   "main": "src/main.cjs",
+  "type": "module",
   "build": {
     "productName": "RinaWarp Terminal",
     "appId": "com.rinawarp.terminal",
@@ -214,7 +215,15 @@
     "dns:check": "node scripts/dns-migration-monitor.js",
     "cleanup": "node scripts/cleanup-old-files.js",
     "cleanup:dry-run": "node scripts/cleanup-old-files.js --dry-run",
-    "cleanup:verbose": "node scripts/cleanup-old-files.js --verbose"
+    "cleanup:verbose": "node scripts/cleanup-old-files.js --verbose",
+    "optimize:performance": "node src/performance-optimizer.js",
+    "optimize:performance:benchmark": "node src/performance-optimizer.js --benchmark",
+    "optimize:performance:report": "node src/performance-optimizer.js --report",
+    "enhance:ai": "node src/ai-enhancements/enhanced-context-engine.js",
+    "enhance:voice": "node src/voice-enhancements/enhanced-voice-engine.js",
+    "enhance:ui": "node src/ui-enhancements/modern-theme-system.js",
+    "dev:enhanced": "npm run optimize:performance && npm run start",
+    "dev:full": "npm run enhance:ai && npm run enhance:voice && npm run enhance:ui && npm run start"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
