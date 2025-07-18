@@ -227,7 +227,7 @@ _________________________________________________________________
 
 ---
 
-**Survey Contact**: beta@rinawarp-terminal-fresh-2024.web.app  
+**Survey Contact**: beta@rinawarptech.com
 **Survey Link**: https://forms.gle/rinawarp-beta-survey-v109  
 **Deadline**: July 26, 2025  
 **Results Publication**: July 30, 2025

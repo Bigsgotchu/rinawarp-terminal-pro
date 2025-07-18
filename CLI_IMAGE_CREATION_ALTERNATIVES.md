@@ -99,7 +99,7 @@ async function createBetaGraphic() {
   // URL
   ctx.font = '18px Arial';
   ctx.fillStyle = '#87CEEB';
-  ctx.fillText('rinawarp-terminal.vercel.app/pricing', 600, 420);
+  ctx.fillText('rinawarptech.com/pricing', 600, 420);
 
   // Save the image
   const buffer = canvas.toBuffer('image/png');
@@ -172,7 +172,7 @@ def create_beta_graphic():
               font=body_font, fill='white', anchor='mm')
     
     # URL
-    draw.text((600, 420), "rinawarp-terminal.vercel.app/pricing", 
+    draw.text((600, 420), "rinawarptech.com/pricing", 
               font=body_font, fill='#87CEEB', anchor='mt')
     
     # Save
@@ -261,7 +261,7 @@ npm install puppeteer
     <div class="features">Enhanced AI • Cloud Sync • Team Collaboration</div>
     <div class="pricing">Early Bird: $29 • Beta: $39 • Premium: $59</div>
     <div class="cta">Get Beta Access Now!</div>
-    <div class="url">rinawarp-terminal.vercel.app/pricing</div>
+    <div class="url">rinawarptech.com/pricing</div>
 </body>
 </html>
 ```

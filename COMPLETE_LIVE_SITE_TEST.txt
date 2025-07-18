@@ -1,6 +1,6 @@
 🧜‍♀️ COMPLETE LIVE SITE TEST SCRIPT 🧜‍♀️
 
-📍 WEBSITE: https://rinawarp-terminal.vercel.app/
+📍 WEBSITE: https://rinawarptech.com/
 
 🚀 COPY AND PASTE THIS ENTIRE SCRIPT INTO YOUR BROWSER CONSOLE:
 
@@ -272,7 +272,7 @@
 
 🚀 HOW TO USE:
 
-1. Go to https://rinawarp-terminal.vercel.app/
+1. Go to https://rinawarptech.com/
 2. Press F12 to open Developer Tools
 3. Click the "Console" tab
 4. Copy and paste the ENTIRE script above

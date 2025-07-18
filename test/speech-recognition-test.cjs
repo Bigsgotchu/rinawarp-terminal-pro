@@ -1,4 +1,4 @@
-const { SpeechRecognitionEngine } = require('./src/renderer/speech-recognition.js');
+const { SpeechRecognitionEngine } = require('../src/renderer/speech-recognition.js');
 
 // Mock dependencies
 const mockTerminal = {

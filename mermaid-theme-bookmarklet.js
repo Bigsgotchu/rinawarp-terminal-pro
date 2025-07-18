@@ -2,7 +2,7 @@
  * RinaWarp Terminal - Mermaid Theme Bookmarklet
  *
  * Copy this code and paste it into your browser console while on
- * https://rinawarp-terminal.vercel.app/ to instantly activate the
+ * https://rinawarptech.com/ to instantly activate the
  * beautiful mermaid color scheme!
  */
 

@@ -113,4 +113,4 @@ jobs:
           vercel --prod --token=$VERCEL_TOKEN --confirm --name "rinawarp-terminal"
           
           echo "🚀 Production deployment completed for version: $VERSION"
-          echo "📍 Live at: https://rinawarp-terminal.vercel.app"
+          echo "📍 Live at: https://rinawarptech.com"

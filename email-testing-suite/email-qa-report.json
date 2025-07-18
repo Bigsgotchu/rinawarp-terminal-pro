@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-07-17T14:07:31.679Z",
+  "timestamp": "2025-07-18T09:08:59.604Z",
   "summary": {
     "linkVerification": 22,
     "personalization": 12,
@@ -11,7 +11,7 @@
     "linkVerification": [
       {
         "template": "POWER_USER_EMAIL_TEMPLATE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🪟 Windows Installer",
         "status": 404,
         "statusText": "Not Found",
@@ -19,12 +19,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe",
-        "timestamp": "2025-07-17T14:07:26.776Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:53.492Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🎒 Windows Portable",
         "status": 404,
         "statusText": "Not Found",
@@ -32,12 +32,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe",
-        "timestamp": "2025-07-17T14:07:27.035Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:53.709Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🍎 macOS",
         "status": 404,
         "statusText": "Not Found",
@@ -45,12 +45,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg",
-        "timestamp": "2025-07-17T14:07:27.255Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:53.915Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🐧 Linux",
         "status": 404,
         "statusText": "Not Found",
@@ -58,12 +58,12 @@
         "contentType": "text/plain; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz",
-        "timestamp": "2025-07-17T14:07:27.432Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:54.026Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE.html",
-        "url": "https://rinawarptech.com/beta-download.html",
+        "url": "https://rinawarptech.com/beta-download.html?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🌊 Access All Beta Downloads",
         "status": 200,
         "statusText": "OK",
@@ -71,12 +71,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://www.rinawarptech.com/beta-download.html",
-        "timestamp": "2025-07-17T14:07:27.739Z"
+        "finalUrl": "https://www.rinawarptech.com/beta-download?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:54.580Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE.html",
-        "url": "https://rinawarptech.com",
+        "url": "https://rinawarptech.com?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "https://rinawarptech.com",
         "status": 200,
         "statusText": "OK",
@@ -84,12 +84,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://www.rinawarptech.com/",
-        "timestamp": "2025-07-17T14:07:27.877Z"
+        "finalUrl": "https://www.rinawarptech.com/?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:54.746Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE.html",
-        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform",
+        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "Quick Feedback",
         "status": 200,
         "statusText": "OK",
@@ -97,25 +97,25 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform",
-        "timestamp": "2025-07-17T14:07:28.703Z"
+        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:55.888Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE.html",
-        "url": "https://www.rinawarptech.com/beta-download.html",
+        "url": "https://www.rinawarptech.com/beta-download.html?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🌊 Access Beta Downloads",
         "status": 200,
         "statusText": "OK",
         "responseTime": "N/A",
         "contentType": "text/html; charset=utf-8",
         "success": true,
-        "redirect": false,
-        "finalUrl": "https://www.rinawarptech.com/beta-download.html",
-        "timestamp": "2025-07-17T14:07:28.746Z"
+        "redirect": true,
+        "finalUrl": "https://www.rinawarptech.com/beta-download?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:56.044Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE.html",
-        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform",
+        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "📝 Submit Beta Feedback",
         "status": 200,
         "statusText": "OK",
@@ -123,12 +123,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform",
-        "timestamp": "2025-07-17T14:07:29.439Z"
+        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:56.727Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE.html",
-        "url": "https://rinawarptech.com",
+        "url": "https://rinawarptech.com?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "https://rinawarptech.com",
         "status": 200,
         "statusText": "OK",
@@ -136,12 +136,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://www.rinawarptech.com/",
-        "timestamp": "2025-07-17T14:07:29.595Z"
+        "finalUrl": "https://www.rinawarptech.com/?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:56.861Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE.html",
-        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform",
+        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "Quick Feedback",
         "status": 200,
         "statusText": "OK",
@@ -149,12 +149,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform",
-        "timestamp": "2025-07-17T14:07:30.059Z"
+        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:57.282Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🪟 Windows Installer",
         "status": 404,
         "statusText": "Not Found",
@@ -162,12 +162,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe",
-        "timestamp": "2025-07-17T14:07:30.124Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:57.412Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🎒 Windows Portable",
         "status": 404,
         "statusText": "Not Found",
@@ -175,12 +175,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe",
-        "timestamp": "2025-07-17T14:07:30.173Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Portable-Windows.exe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:57.504Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🍎 macOS",
         "status": 404,
         "statusText": "Not Found",
@@ -188,12 +188,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg",
-        "timestamp": "2025-07-17T14:07:30.228Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.dmg?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:57.577Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz",
+        "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🐧 Linux",
         "status": 404,
         "statusText": "Not Found",
@@ -201,12 +201,12 @@
         "contentType": "text/plain; charset=utf-8",
         "success": false,
         "redirect": false,
-        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz",
-        "timestamp": "2025-07-17T14:07:30.261Z"
+        "finalUrl": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:57.632Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://rinawarptech.com/beta-download.html",
+        "url": "https://rinawarptech.com/beta-download.html?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🌊 Access All Beta Downloads",
         "status": 200,
         "statusText": "OK",
@@ -214,25 +214,25 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://www.rinawarptech.com/beta-download.html",
-        "timestamp": "2025-07-17T14:07:30.395Z"
+        "finalUrl": "https://www.rinawarptech.com/beta-download?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:57.884Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://rinawarptech.com/unsubscribe",
+        "url": "https://rinawarptech.com/unsubscribe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "Unsubscribe from Beta Updates",
         "status": 404,
         "statusText": "Not Found",
         "responseTime": "N/A",
-        "contentType": "application/json",
+        "contentType": "text/html; charset=utf-8",
         "success": false,
         "redirect": true,
-        "finalUrl": "https://www.rinawarptech.com/unsubscribe",
-        "timestamp": "2025-07-17T14:07:30.526Z"
+        "finalUrl": "https://www.rinawarptech.com/unsubscribe?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:58.251Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://rinawarptech.com",
+        "url": "https://rinawarptech.com?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "https://rinawarptech.com",
         "status": 200,
         "statusText": "OK",
@@ -240,12 +240,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://www.rinawarptech.com/",
-        "timestamp": "2025-07-17T14:07:30.649Z"
+        "finalUrl": "https://www.rinawarptech.com/?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:58.400Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
-        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform",
+        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "Quick Feedback",
         "status": 200,
         "statusText": "OK",
@@ -253,25 +253,25 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform",
-        "timestamp": "2025-07-17T14:07:31.031Z"
+        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:58.786Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE_RESPONSIVE.html",
-        "url": "https://www.rinawarptech.com/beta-download.html",
+        "url": "https://www.rinawarptech.com/beta-download.html?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "🌊 Access All Beta Downloads",
         "status": 200,
         "statusText": "OK",
         "responseTime": "N/A",
         "contentType": "text/html; charset=utf-8",
         "success": true,
-        "redirect": false,
-        "finalUrl": "https://www.rinawarptech.com/beta-download.html",
-        "timestamp": "2025-07-17T14:07:31.076Z"
+        "redirect": true,
+        "finalUrl": "https://www.rinawarptech.com/beta-download?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:58.966Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE_RESPONSIVE.html",
-        "url": "https://rinawarptech.com",
+        "url": "https://rinawarptech.com?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "https://rinawarptech.com",
         "status": 200,
         "statusText": "OK",
@@ -279,12 +279,12 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://www.rinawarptech.com/",
-        "timestamp": "2025-07-17T14:07:31.222Z"
+        "finalUrl": "https://www.rinawarptech.com/?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:59.101Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE_RESPONSIVE.html",
-        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform",
+        "url": "https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
         "linkText": "Quick Feedback",
         "status": 200,
         "statusText": "OK",
@@ -292,8 +292,8 @@
         "contentType": "text/html; charset=utf-8",
         "success": true,
         "redirect": true,
-        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform",
-        "timestamp": "2025-07-17T14:07:31.610Z"
+        "finalUrl": "https://docs.google.com/forms/d/e/1FAIpQLScw6BSWrMsxIsy9eaoe2Od3-o0By8mThxfq2fDNybaOnMs6mA/viewform?utm_source=newsletter&utm_medium=email&utm_campaign=email_campaign",
+        "timestamp": "2025-07-18T09:08:59.519Z"
       }
     ],
     "personalization": [
@@ -302,7 +302,7 @@
         "originalTemplate": "Hi {{firstName}}, welcome to {{companyName}}!",
         "personalizedContent": "Hi Alice, welcome to TechCorp!",
         "subject": "Transform your terminal with AI, Alice",
-        "discountCode": "BETA-DEV-10839C2B",
+        "discountCode": "BETA-DEV-8B5683F6",
         "audienceSegment": "developer",
         "abTestVariant": {
           "subject": "B",
@@ -313,14 +313,14 @@
           "companyName"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.626Z"
+        "timestamp": "2025-07-18T09:08:59.532Z"
       },
       {
         "recipientId": "test-001",
         "originalTemplate": "Dear {{firstName}}, your {{audience_type}} account is ready.",
         "personalizedContent": "Dear Alice, your {{audience_type}} account is ready.",
         "subject": "Transform your terminal with AI, Alice",
-        "discountCode": "BETA-DEV-FF855C52",
+        "discountCode": "BETA-DEV-035C0DF0",
         "audienceSegment": "developer",
         "abTestVariant": {
           "subject": "B",
@@ -331,14 +331,14 @@
           "audience_type"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.626Z"
+        "timestamp": "2025-07-18T09:08:59.532Z"
       },
       {
         "recipientId": "test-001",
         "originalTemplate": "Hello {{firstName}}, join {{companyName}} team with code {{uniqueCode}}.",
-        "personalizedContent": "Hello Alice, join TechCorp team with code FF855C52.",
+        "personalizedContent": "Hello Alice, join TechCorp team with code 87197E2F.",
         "subject": "Transform your terminal with AI, Alice",
-        "discountCode": "BETA-DEV-FF855C52",
+        "discountCode": "BETA-DEV-87197E2F",
         "audienceSegment": "developer",
         "abTestVariant": {
           "subject": "B",
@@ -350,14 +350,14 @@
           "uniqueCode"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.626Z"
+        "timestamp": "2025-07-18T09:08:59.533Z"
       },
       {
         "recipientId": "test-001",
         "originalTemplate": "{{firstName}} - {{companyName}} needs your {{audienceType}} expertise!",
         "personalizedContent": "Alice - TechCorp needs your developer expertise!",
         "subject": "Transform your terminal with AI, Alice",
-        "discountCode": "BETA-DEV-3ED1E7A1",
+        "discountCode": "BETA-DEV-87197E2F",
         "audienceSegment": "developer",
         "abTestVariant": {
           "subject": "B",
@@ -369,14 +369,14 @@
           "audienceType"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.627Z"
+        "timestamp": "2025-07-18T09:08:59.533Z"
       },
       {
         "recipientId": "test-002",
         "originalTemplate": "Hi {{firstName}}, welcome to {{companyName}}!",
         "personalizedContent": "Hi Bob, welcome to StartupInc!",
         "subject": "Transform your terminal with AI, Bob",
-        "discountCode": "BETA-ENT-451038F5",
+        "discountCode": "BETA-ENT-984DB32A",
         "audienceSegment": "enterprise_lead",
         "abTestVariant": {
           "subject": "B",
@@ -387,14 +387,14 @@
           "companyName"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.627Z"
+        "timestamp": "2025-07-18T09:08:59.533Z"
       },
       {
         "recipientId": "test-002",
         "originalTemplate": "Dear {{firstName}}, your {{audience_type}} account is ready.",
         "personalizedContent": "Dear Bob, your {{audience_type}} account is ready.",
         "subject": "Transform your terminal with AI, Bob",
-        "discountCode": "BETA-ENT-451038F5",
+        "discountCode": "BETA-ENT-984DB32A",
         "audienceSegment": "enterprise_lead",
         "abTestVariant": {
           "subject": "B",
@@ -405,14 +405,14 @@
           "audience_type"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.627Z"
+        "timestamp": "2025-07-18T09:08:59.533Z"
       },
       {
         "recipientId": "test-002",
         "originalTemplate": "Hello {{firstName}}, join {{companyName}} team with code {{uniqueCode}}.",
-        "personalizedContent": "Hello Bob, join StartupInc team with code 451038F5.",
+        "personalizedContent": "Hello Bob, join StartupInc team with code 984DB32A.",
         "subject": "Transform your terminal with AI, Bob",
-        "discountCode": "BETA-ENT-451038F5",
+        "discountCode": "BETA-ENT-984DB32A",
         "audienceSegment": "enterprise_lead",
         "abTestVariant": {
           "subject": "B",
@@ -424,14 +424,14 @@
           "uniqueCode"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.627Z"
+        "timestamp": "2025-07-18T09:08:59.534Z"
       },
       {
         "recipientId": "test-002",
         "originalTemplate": "{{firstName}} - {{companyName}} needs your {{audienceType}} expertise!",
         "personalizedContent": "Bob - StartupInc needs your enterprise_lead expertise!",
         "subject": "Transform your terminal with AI, Bob",
-        "discountCode": "BETA-ENT-451038F5",
+        "discountCode": "BETA-ENT-ADE8DFB1",
         "audienceSegment": "enterprise_lead",
         "abTestVariant": {
           "subject": "B",
@@ -443,14 +443,14 @@
           "audienceType"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.628Z"
+        "timestamp": "2025-07-18T09:08:59.534Z"
       },
       {
         "recipientId": "test-003",
         "originalTemplate": "Hi {{firstName}}, welcome to {{companyName}}!",
         "personalizedContent": "Hi Valued User, welcome to Your Organization!",
         "subject": "Your Organization - Your RinaWarp Beta access is ready",
-        "discountCode": "BETA-DEV-8E24F73D",
+        "discountCode": "BETA-DEV-F1B77F9E",
         "audienceSegment": "individual_user",
         "abTestVariant": {
           "subject": "C",
@@ -461,14 +461,14 @@
           "companyName"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.628Z"
+        "timestamp": "2025-07-18T09:08:59.534Z"
       },
       {
         "recipientId": "test-003",
         "originalTemplate": "Dear {{firstName}}, your {{audience_type}} account is ready.",
         "personalizedContent": "Dear Valued User, your {{audience_type}} account is ready.",
         "subject": "Your Organization - Your RinaWarp Beta access is ready",
-        "discountCode": "BETA-DEV-8E24F73D",
+        "discountCode": "BETA-DEV-F7C3676F",
         "audienceSegment": "individual_user",
         "abTestVariant": {
           "subject": "C",
@@ -479,14 +479,14 @@
           "audience_type"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.628Z"
+        "timestamp": "2025-07-18T09:08:59.535Z"
       },
       {
         "recipientId": "test-003",
         "originalTemplate": "Hello {{firstName}}, join {{companyName}} team with code {{uniqueCode}}.",
-        "personalizedContent": "Hello Valued User, join Your Organization team with code 8E24F73D.",
+        "personalizedContent": "Hello Valued User, join Your Organization team with code F7C3676F.",
         "subject": "Your Organization - Your RinaWarp Beta access is ready",
-        "discountCode": "BETA-DEV-8E24F73D",
+        "discountCode": "BETA-DEV-F7C3676F",
         "audienceSegment": "individual_user",
         "abTestVariant": {
           "subject": "C",
@@ -498,14 +498,14 @@
           "uniqueCode"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.628Z"
+        "timestamp": "2025-07-18T09:08:59.539Z"
       },
       {
         "recipientId": "test-003",
         "originalTemplate": "{{firstName}} - {{companyName}} needs your {{audienceType}} expertise!",
         "personalizedContent": "Valued User - Your Organization needs your individual_user expertise!",
         "subject": "Your Organization - Your RinaWarp Beta access is ready",
-        "discountCode": "BETA-DEV-8E24F73D",
+        "discountCode": "BETA-DEV-F1D67FCC",
         "audienceSegment": "individual_user",
         "abTestVariant": {
           "subject": "C",
@@ -517,7 +517,7 @@
           "audienceType"
         ],
         "success": true,
-        "timestamp": "2025-07-17T14:07:31.628Z"
+        "timestamp": "2025-07-18T09:08:59.540Z"
       }
     ],
     "spamScore": {
@@ -526,7 +526,7 @@
         "score": 0,
         "issues": [],
         "recommendations": [],
-        "timestamp": "2025-07-17T14:07:31.632Z",
+        "timestamp": "2025-07-18T09:08:59.544Z",
         "assessment": "GOOD - Low spam risk"
       },
       "BETA_EMAIL_SIMPLE.html": {
@@ -534,7 +534,7 @@
         "score": 0,
         "issues": [],
         "recommendations": [],
-        "timestamp": "2025-07-17T14:07:31.638Z",
+        "timestamp": "2025-07-18T09:08:59.547Z",
         "assessment": "GOOD - Low spam risk"
       },
       "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html": {
@@ -542,7 +542,7 @@
         "score": 0,
         "issues": [],
         "recommendations": [],
-        "timestamp": "2025-07-17T14:07:31.643Z",
+        "timestamp": "2025-07-18T09:08:59.558Z",
         "assessment": "GOOD - Low spam risk"
       },
       "BETA_EMAIL_SIMPLE_RESPONSIVE.html": {
@@ -550,7 +550,7 @@
         "score": 0,
         "issues": [],
         "recommendations": [],
-        "timestamp": "2025-07-17T14:07:31.647Z",
+        "timestamp": "2025-07-18T09:08:59.561Z",
         "assessment": "GOOD - Low spam risk"
       }
     },
@@ -627,7 +627,7 @@
             ]
           }
         ],
-        "timestamp": "2025-07-17T14:07:31.651Z"
+        "timestamp": "2025-07-18T09:08:59.576Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE.html",
@@ -701,7 +701,7 @@
             ]
           }
         ],
-        "timestamp": "2025-07-17T14:07:31.656Z"
+        "timestamp": "2025-07-18T09:08:59.584Z"
       },
       {
         "template": "POWER_USER_EMAIL_TEMPLATE_RESPONSIVE.html",
@@ -749,7 +749,7 @@
             "recommendations": []
           }
         ],
-        "timestamp": "2025-07-17T14:07:31.666Z"
+        "timestamp": "2025-07-18T09:08:59.588Z"
       },
       {
         "template": "BETA_EMAIL_SIMPLE_RESPONSIVE.html",
@@ -797,7 +797,7 @@
             "recommendations": []
           }
         ],
-        "timestamp": "2025-07-17T14:07:31.672Z"
+        "timestamp": "2025-07-18T09:08:59.598Z"
       }
     ],
     "attachmentSizes": [
@@ -808,7 +808,7 @@
         "sizeMB": 0.0028285980224609375,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.676Z"
+        "timestamp": "2025-07-18T09:08:59.601Z"
       },
       {
         "filename": "favicon.svg",
@@ -817,7 +817,7 @@
         "sizeMB": 0.0012426376342773438,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.676Z"
+        "timestamp": "2025-07-18T09:08:59.601Z"
       },
       {
         "filename": "icon-1024.png",
@@ -826,7 +826,7 @@
         "sizeMB": 2.16097354888916,
         "withinLimit": true,
         "mimeType": "image/png",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.601Z"
       },
       {
         "filename": "icon.ico",
@@ -835,7 +835,7 @@
         "sizeMB": 0.08669757843017578,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.601Z"
       },
       {
         "filename": "rinawarp-icon-mermaid.ico",
@@ -844,7 +844,7 @@
         "sizeMB": 0.14794349670410156,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.601Z"
       },
       {
         "filename": "rinawarp-logo-animated.svg",
@@ -853,7 +853,7 @@
         "sizeMB": 0.015439033508300781,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.602Z"
       },
       {
         "filename": "rinawarp-logo-hot-pink.svg",
@@ -862,7 +862,7 @@
         "sizeMB": 0.0036525726318359375,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.602Z"
       },
       {
         "filename": "rinawarp-logo-mermaid-hotpink.svg",
@@ -871,7 +871,7 @@
         "sizeMB": 0.007977485656738281,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.602Z"
       },
       {
         "filename": "rinawarp-logo-primary.svg",
@@ -880,7 +880,7 @@
         "sizeMB": 0.001934051513671875,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.602Z"
       },
       {
         "filename": "rinawarp-monogram-mermaid-hotpink.svg",
@@ -889,7 +889,7 @@
         "sizeMB": 0.006450653076171875,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.602Z"
       },
       {
         "filename": "rinawarp-monogram.svg",
@@ -898,7 +898,7 @@
         "sizeMB": 0.002166748046875,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.677Z"
+        "timestamp": "2025-07-18T09:08:59.602Z"
       },
       {
         "filename": "BETA_TESTING_formatted.html",
@@ -907,7 +907,7 @@
         "sizeMB": 0.008481025695800781,
         "withinLimit": true,
         "mimeType": "application/octet-stream",
-        "timestamp": "2025-07-17T14:07:31.678Z"
+        "timestamp": "2025-07-18T09:08:59.603Z"
       }
     ],
     "summary": {}

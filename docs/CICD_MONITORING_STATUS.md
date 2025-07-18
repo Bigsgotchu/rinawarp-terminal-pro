@@ -76,7 +76,7 @@ gh secret list
 2. **🚀 Production Deploy** job runs if build succeeds
 3. **🔐 Secret Sync** job runs after deployment
 4. **📊 Deployment Summary** job runs at the end
-5. **🌐 Production URL**: `rinawarp-terminal.vercel.app`
+5. **🌐 Production URL**: `rinawarptech.com`
 
 ## 🔍 **Next Steps**
 

@@ -46,4 +46,4 @@ jobs:
       - name: ✨ Deployment Status
         run: |
           echo "🌊 ${{ inputs.deploy_message }} complete!"
-          echo "🔗 Live at: https://rinawarp-terminal.web.app"
+          echo "🔗 Live at: https://rinawarptech.com"

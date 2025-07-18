@@ -18,7 +18,7 @@ We're excited to announce that **RinaWarp Terminal v1.0.9 Beta Access** is now a
 
 ### 🛒 **How to Purchase**
 
-1. **Visit**: [RinaWarp Terminal Pricing](https://rinawarp-terminal.vercel.app/pricing)
+1. **Visit**: [RinaWarp Terminal Pricing](https://rinawarptech.com/pricing)
 2. **Choose** your beta access plan
 3. **Complete** secure payment via Stripe
 4. **Receive** your beta access key via email

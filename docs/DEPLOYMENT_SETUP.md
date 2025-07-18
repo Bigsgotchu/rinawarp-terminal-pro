@@ -86,7 +86,8 @@ git push origin v1.0.0
 ### On Version Tag Push
 - ✅ Builds and tests your code
 - ✅ Deploys to production environment
-- ✅ Available at: `rinawarp-terminal.vercel.app`
+- ✅ Available at: `rinawarptech.com`
+- ✅ API endpoints: `api.rinawarp-terminal.com`
 
 ## 🔍 Troubleshooting
 

@@ -15,7 +15,7 @@ The world's first AI-powered terminal that actually makes developers more produc
 ⚡ Lightning-fast performance
 🔒 Enterprise-grade security
 
-Try it free: https://rinawarp-terminal.vercel.app
+Try it free: https://rinawarptech.com
 
 #Developer #AI #Terminal #Productivity #Coding
 ```
@@ -28,7 +28,7 @@ RinaWarp Terminal's AI learns your workflow and suggests commands before you fin
 
 Built for developers who value their time ⏰
 
-Get started: https://rinawarp-terminal.vercel.app
+Get started: https://rinawarptech.com
 
 #AI #DevTools #Productivity
 ```
@@ -66,7 +66,7 @@ Perfect for:
 
 Available in Personal ($29/month), Professional ($79/month), and Team ($199/month) tiers.
 
-Try it free at https://rinawarp-terminal.vercel.app
+Try it free at https://rinawarptech.com
 
 #SoftwareDevelopment #AI #DevTools #Productivity #Terminal
 ```
@@ -98,7 +98,7 @@ I've been working on an AI-powered terminal emulator that actually makes sense. 
 - Professional: $79/month (commercial use + support)
 - Team: $199/month (up to 10 users)
 
-Try it free: https://rinawarp-terminal.vercel.app
+Try it free: https://rinawarptech.com
 
 Would love feedback from the community!
 ```
@@ -126,7 +126,7 @@ I built RinaWarp Terminal specifically for web developers:
 - Stripe integration for billing
 - Railway + Vercel deployment
 
-**Live Demo:** https://rinawarp-terminal.vercel.app
+**Live Demo:** https://rinawarptech.com
 
 Built this because I was tired of switching between terminal, docs, and Stack Overflow just to remember basic commands.
 
