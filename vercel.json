@@ -4,15 +4,9 @@
   "buildCommand": "npm run build:web",
   "outputDirectory": "public",
   "installCommand": "npm install --production=false",
-  "ignoreCommand": "git diff --quiet $VERCEL_GIT_PREVIOUS_SHA $VERCEL_GIT_COMMIT_SHA ./",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "functions": {
-    "server.js": {
-      "runtime": "nodejs20.x"
-    }
-  }
+  "trailingSlash": false
 }
