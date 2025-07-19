@@ -3,7 +3,7 @@
  * Rich interface for managing plugins with visual feedback
  */
 
-import { PluginManager } from '../plugin-manager.js';
+import { _PluginManager } from '../plugin-manager.js';
 
 export class PluginManagerUI {
   constructor(pluginManager) {
@@ -288,15 +288,15 @@ export class PluginManagerUI {
 
   refreshCurrentTab() {
     switch (this.currentTab) {
-    case 'installed':
-      this.refreshInstalledPlugins();
-      break;
-    case 'marketplace':
-      this.refreshMarketplacePlugins();
-      break;
-    case 'settings':
-      this.loadSettings();
-      break;
+      case 'installed':
+        this.refreshInstalledPlugins();
+        break;
+      case 'marketplace':
+        this.refreshMarketplacePlugins();
+        break;
+      case 'settings':
+        this.loadSettings();
+        break;
     }
   }
 
@@ -421,8 +421,8 @@ export class PluginManagerUI {
           </div>
           
           ${
-  plugin.permissions
-    ? `
+            plugin.permissions
+              ? `
             <div class="plugin-permissions">
               <strong>Permissions:</strong>
               <div class="permission-tags">
@@ -430,8 +430,8 @@ export class PluginManagerUI {
               </div>
             </div>
           `
-    : ''
-}
+              : ''
+          }
         </div>
         
         <div class="plugin-footer">
@@ -439,14 +439,14 @@ export class PluginManagerUI {
             View Details
           </button>
           ${
-  plugin.homepage
-    ? `
+            plugin.homepage
+              ? `
             <a href="${plugin.homepage}" target="_blank" class="btn btn-link">
               Homepage
             </a>
           `
-    : ''
-}
+              : ''
+          }
         </div>
       </div>
     `;
@@ -584,20 +584,20 @@ export class PluginManagerUI {
           <h4>Permissions</h4>
           <div class="permission-tags">
             ${(plugin.manifest.permissions || [])
-    .map(perm => `<span class="permission-tag">${perm}</span>`)
-    .join('')}
+              .map(perm => `<span class="permission-tag">${perm}</span>`)
+              .join('')}
           </div>
         </div>
         
         <div class="detail-section">
           <h4>Dependencies</h4>
           ${
-  plugin.manifest.dependencies
-    ? Object.entries(plugin.manifest.dependencies)
-      .map(([dep, version]) => `<div class="dependency-item">${dep}: ${version}</div>`)
-      .join('')
-    : '<p>No dependencies</p>'
-}
+            plugin.manifest.dependencies
+              ? Object.entries(plugin.manifest.dependencies)
+                  .map(([dep, version]) => `<div class="dependency-item">${dep}: ${version}</div>`)
+                  .join('')
+              : '<p>No dependencies</p>'
+          }
         </div>
       </div>
     `;
@@ -675,20 +675,20 @@ export class PluginManagerUI {
       let aValue, bValue;
 
       switch (sortBy) {
-      case 'name':
-        aValue = a.querySelector('.plugin-name').textContent;
-        bValue = b.querySelector('.plugin-name').textContent;
-        break;
-      case 'version':
-        aValue = a.querySelector('.plugin-version').textContent;
-        bValue = b.querySelector('.plugin-version').textContent;
-        break;
-      case 'status':
-        aValue = a.querySelector('.plugin-status').textContent;
-        bValue = b.querySelector('.plugin-status').textContent;
-        break;
-      default:
-        return 0;
+        case 'name':
+          aValue = a.querySelector('.plugin-name').textContent;
+          bValue = b.querySelector('.plugin-name').textContent;
+          break;
+        case 'version':
+          aValue = a.querySelector('.plugin-version').textContent;
+          bValue = b.querySelector('.plugin-version').textContent;
+          break;
+        case 'status':
+          aValue = a.querySelector('.plugin-status').textContent;
+          bValue = b.querySelector('.plugin-status').textContent;
+          break;
+        default:
+          return 0;
       }
 
       return aValue.localeCompare(bValue);

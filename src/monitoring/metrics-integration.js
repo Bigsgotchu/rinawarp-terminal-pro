@@ -87,19 +87,19 @@ export class MetricsIntegration {
     }
 
     // Hook into terminal events
-    terminalManager.on('terminal-created', (terminalId) => {
+    terminalManager.on('terminal-created', terminalId => {
       this.onTerminalCreated(terminalId);
     });
 
-    terminalManager.on('terminal-destroyed', (terminalId) => {
+    terminalManager.on('terminal-destroyed', terminalId => {
       this.onTerminalDestroyed(terminalId);
     });
 
-    terminalManager.on('command-executed', (data) => {
+    terminalManager.on('command-executed', data => {
       this.onCommandExecuted(data);
     });
 
-    terminalManager.on('command-error', (data) => {
+    terminalManager.on('command-error', data => {
       this.onCommandError(data);
     });
 
@@ -120,7 +120,7 @@ export class MetricsIntegration {
 
     // Override session deletion
     const originalDeleteSession = sessionManager.deleteSession.bind(sessionManager);
-    sessionManager.deleteSession = (sessionId) => {
+    sessionManager.deleteSession = sessionId => {
       terminalSessionInstrumentation.onSessionEnd(sessionId);
       return originalDeleteSession(sessionId);
     };
@@ -164,16 +164,81 @@ export class MetricsIntegration {
    */
   async onCommandExecuted(data) {
     const { command, success = true, sessionId = 'default', terminalId = null } = data;
-    
-    await terminalSessionInstrumentation.onCommandExecuted(
-      sessionId,
-      command,
-      success,
-      terminalId
-    );
+
+    await terminalSessionInstrumentation.onCommandExecuted(sessionId, command, success, terminalId);
   }
 
   /**
    * Handle command error event
    */
-  async onCommandError(data) {\n    const { command, errorType, errorMessage, sessionId = 'default', terminalId = null } = data;\n    \n    await terminalSessionInstrumentation.onCommandError(\n      sessionId,\n      command,\n      errorType,\n      errorMessage,\n      terminalId\n    );\n  }\n\n  /**\n   * Get comprehensive metrics status\n   */\n  getMetricsStatus() {\n    return {\n      isInitialized: this.isInitialized,\n      integrationStatus: this.integrationStatus,\n      metricsService: metricsService.getStatus(),\n      terminalSession: terminalSessionInstrumentation.getStatus(),\n      pluginSystem: pluginInstrumentation.getStatus(),\n    };\n  }\n\n  /**\n   * Get current metrics snapshot\n   */\n  async getMetricsSnapshot() {\n    return {\n      timestamp: new Date().toISOString(),\n      terminalSessions: {\n        active: terminalSessionInstrumentation.sessionStartTimes.size,\n        metrics: terminalSessionInstrumentation.getAllSessionMetrics(),\n      },\n      plugins: {\n        loaded: pluginInstrumentation.loadedPlugins.size,\n        metrics: pluginInstrumentation.getAllPluginMetrics(),\n        executionStats: pluginInstrumentation.getExecutionStats(),\n      },\n    };\n  }\n\n  /**\n   * Force metrics collection\n   */\n  async forceMetricsCollection() {\n    try {\n      await terminalSessionInstrumentation.collectAndReportMetrics();\n      await pluginInstrumentation.collectAndReportMetrics();\n      console.log('📊 Forced metrics collection completed');\n    } catch (error) {\n      console.error('📊 Error during forced metrics collection:', error);\n    }\n  }\n\n  /**\n   * Shutdown metrics integration\n   */\n  shutdown() {\n    terminalSessionInstrumentation.stopMetricsCollection();\n    pluginInstrumentation.stopMetricsCollection();\n    this.isInitialized = false;\n    console.log('📊 Metrics integration shutdown completed');\n  }\n}\n\n// Create singleton instance\nconst metricsIntegration = new MetricsIntegration();\n\nexport default metricsIntegration;
+  async onCommandError(data) {
+    const { command, errorType, errorMessage, sessionId = 'default', terminalId = null } = data;
+
+    await terminalSessionInstrumentation.onCommandError(
+      sessionId,
+      command,
+      errorType,
+      errorMessage,
+      terminalId
+    );
+  }
+
+  /**
+   * Get comprehensive metrics status
+   */
+  getMetricsStatus() {
+    return {
+      isInitialized: this.isInitialized,
+      integrationStatus: this.integrationStatus,
+      metricsService: metricsService.getStatus(),
+      terminalSession: terminalSessionInstrumentation.getStatus(),
+      pluginSystem: pluginInstrumentation.getStatus(),
+    };
+  }
+
+  /**
+   * Get current metrics snapshot
+   */
+  async getMetricsSnapshot() {
+    return {
+      timestamp: new Date().toISOString(),
+      terminalSessions: {
+        active: terminalSessionInstrumentation.sessionStartTimes.size,
+        metrics: terminalSessionInstrumentation.getAllSessionMetrics(),
+      },
+      plugins: {
+        loaded: pluginInstrumentation.loadedPlugins.size,
+        metrics: pluginInstrumentation.getAllPluginMetrics(),
+        executionStats: pluginInstrumentation.getExecutionStats(),
+      },
+    };
+  }
+
+  /**
+   * Force metrics collection
+   */
+  async forceMetricsCollection() {
+    try {
+      await terminalSessionInstrumentation.collectAndReportMetrics();
+      await pluginInstrumentation.collectAndReportMetrics();
+      console.log('📊 Forced metrics collection completed');
+    } catch (error) {
+      console.error('📊 Error during forced metrics collection:', error);
+    }
+  }
+
+  /**
+   * Shutdown metrics integration
+   */
+  shutdown() {
+    terminalSessionInstrumentation.stopMetricsCollection();
+    pluginInstrumentation.stopMetricsCollection();
+    this.isInitialized = false;
+    console.log('📊 Metrics integration shutdown completed');
+  }
+}
+
+// Create singleton instance
+const metricsIntegration = new MetricsIntegration();
+
+export default metricsIntegration;

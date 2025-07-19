@@ -2,11 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  
+
   // Output settings for static export if needed
   // trailingSlash: true,
   // output: 'export',
-  
+
   // Environment variables
   env: {
     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
@@ -14,7 +14,7 @@ const nextConfig = {
     FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
     FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
   },
-  
+
   // Rewrites for API routes
   async rewrites() {
     return [
@@ -24,7 +24,7 @@ const nextConfig = {
       },
     ];
   },
-  
+
   // Headers for security
   async headers() {
     return [
@@ -47,7 +47,7 @@ const nextConfig = {
       },
     ];
   },
-  
+
   // Webpack config for compatibility
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -60,12 +60,12 @@ const nextConfig = {
     }
     return config;
   },
-  
+
   // Image optimization
   images: {
     domains: ['rinawarptech.com', 'firebasestorage.googleapis.com'],
   },
-  
+
   // Experimental features
   experimental: {
     serverComponentsExternalPackages: ['stripe'],

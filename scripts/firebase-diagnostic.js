@@ -16,7 +16,7 @@ class FirebaseDiagnostic {
     console.log(`   Command: ${command}`);
 
     try {
-      const { stdout, stderr } = await execAsync(command);
+      const { stdout, _stderr } = await execAsync(command);
       console.log('✅ Success');
       if (stdout.trim()) {
         console.log(`   Output: ${stdout.trim()}`);

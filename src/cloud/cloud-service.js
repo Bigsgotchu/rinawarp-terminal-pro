@@ -214,15 +214,15 @@ export class CloudService extends EventEmitter {
     for (const item of queue) {
       try {
         switch (item.type) {
-        case 'settings':
-          await this.syncSettings(item.data);
-          break;
-        case 'history':
-          await this.syncCommandHistory(item.data);
-          break;
-        case 'session':
-          await this.backupSession(item.data);
-          break;
+          case 'settings':
+            await this.syncSettings(item.data);
+            break;
+          case 'history':
+            await this.syncCommandHistory(item.data);
+            break;
+          case 'session':
+            await this.backupSession(item.data);
+            break;
         }
       } catch (error) {
         // Re-queue failed items
@@ -365,17 +365,17 @@ export class AWSCloudProvider {
     // Implementation depends on AWS SDK version
   }
 
-  async authenticate(credentials) {
+  async authenticate(_credentials) {
     // AWS Cognito authentication
     // Implementation here
   }
 
-  async uploadData(key, data) {
+  async uploadData(_key, data) {
     // S3 upload implementation
     // Implementation here
   }
 
-  async downloadData(key) {
+  async downloadData(_key) {
     // S3 download implementation
     // Implementation here
   }
@@ -392,17 +392,17 @@ export class AzureCloudProvider {
     // Implementation here
   }
 
-  async authenticate(credentials) {
+  async authenticate(_credentials) {
     // Azure AD authentication
     // Implementation here
   }
 
-  async uploadData(key, data) {
+  async uploadData(_key, data) {
     // Azure Blob Storage upload
     // Implementation here
   }
 
-  async downloadData(key) {
+  async downloadData(_key) {
     // Azure Blob Storage download
     // Implementation here
   }
@@ -419,17 +419,17 @@ export class GCPCloudProvider {
     // Implementation here
   }
 
-  async authenticate(credentials) {
+  async authenticate(_credentials) {
     // Google Identity Platform authentication
     // Implementation here
   }
 
-  async uploadData(key, data) {
+  async uploadData(_key, data) {
     // Google Cloud Storage upload
     // Implementation here
   }
 
-  async downloadData(key) {
+  async downloadData(_key) {
     // Google Cloud Storage download
     // Implementation here
   }

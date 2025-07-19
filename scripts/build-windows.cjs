@@ -70,7 +70,7 @@ async function buildWindows() {
 
         console.log('📦 Creating zip from unpacked directory...');
         await runCommand('zip', ['-r', zipName, 'win-unpacked'], { cwd: 'dist' });
-        
+
         if (fs.existsSync(zipPath)) {
           console.log(`✅ Windows build completed: dist/${zipName}`);
           const size = (fs.statSync(zipPath).size / 1024 / 1024).toFixed(2);

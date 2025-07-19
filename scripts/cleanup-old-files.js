@@ -71,7 +71,7 @@ class ProjectCleanup {
     let totalSize = 0;
     let fileCount = 0;
 
-    const logPatterns = [
+    const _logPatterns = [
       'deployment-monitor-*.log',
       'dns-migration-*.log',
       'firebase-diagnostic-*.log',

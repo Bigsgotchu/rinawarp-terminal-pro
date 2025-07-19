@@ -157,13 +157,13 @@ export class PluginManager extends EventEmitter {
       // Limited Node.js modules for trusted plugins
       ...(trusted
         ? {
-          Buffer: Buffer,
-          process: {
-            env: process.env,
-            platform: process.platform,
-            version: process.version,
-          },
-        }
+            Buffer: Buffer,
+            process: {
+              env: process.env,
+              platform: process.platform,
+              version: process.version,
+            },
+          }
         : {}),
     };
 
@@ -221,13 +221,13 @@ export class PluginManager extends EventEmitter {
     }
   }
 
-  async loadPluginCode(pluginPath) {
+  async loadPluginCode(_pluginPath) {
     // Load plugin code from file system or remote source
     // Implementation depends on plugin source
     return '';
   }
 
-  async loadPluginManifest(pluginPath) {
+  async loadPluginManifest(_pluginPath) {
     // Load plugin manifest (package.json equivalent)
     return {
       name: 'example-plugin',
@@ -285,7 +285,7 @@ export class PluginManager extends EventEmitter {
     // Implementation here
   }
 
-  async secureFileWrite(path, content) {
+  async secureFileWrite(path, _content) {
     // Implement secure file writing with path validation
     if (!this.security.validatePath(path)) {
       throw new Error('File path not allowed');

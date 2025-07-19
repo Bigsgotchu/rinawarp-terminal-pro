@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Status Animation</title>
+    <link rel="stylesheet" href="status-animation.css">
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <span class="close"></span>
+                <span class="minimize"></span>
+                <span class="maximize"></span>
+            </div>
+            <div class="terminal-title">RinaWarp Terminal - Secret Sync</div>
+        </div>
+        <div class="terminal-body">
+            <div class="command-line">
+                <span class="prompt">$ </span>
+                <span class="command">npm run sync:platform:full</span>
+            </div>
+            <div class="status-container">
+                
+                <div class="status-line" data-frame="0">
+                    <span class="status-symbol">❌</span>
+                    <span class="status-message">STRIPE_SECRET_KEY - Missing</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%; background-color: #ff4444;"></div>
+                    </div>
+                </div>
+                
+                <div class="status-line" data-frame="1">
+                    <span class="status-symbol">🔄</span>
+                    <span class="status-message">STRIPE_SECRET_KEY - Validating...</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 33%; background-color: #ff8800;"></div>
+                    </div>
+                </div>
+                
+                <div class="status-line" data-frame="2">
+                    <span class="status-symbol">⚡</span>
+                    <span class="status-message">STRIPE_SECRET_KEY - Syncing...</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 66%; background-color: #ffaa00;"></div>
+                    </div>
+                </div>
+                
+                <div class="status-line" data-frame="3">
+                    <span class="status-symbol">✅</span>
+                    <span class="status-message">STRIPE_SECRET_KEY - Fully Synced</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%; background-color: #00ff44;"></div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="final-message">
+                <div class="success-banner">
+                    🎉 All secrets synchronized across platforms!
+                </div>
+                <div class="time-saved">
+                    ⏱️ Time saved this deployment: <span class="highlight">2.3 hours</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentFrame = 0;
+        const frames = document.querySelectorAll('.status-line');
+        const totalFrames = frames.length;
+        
+        function animateStatus() {
+            frames.forEach((frame, index) => {
+                frame.style.display = index <= currentFrame ? 'flex' : 'none';
+            });
+            
+            currentFrame++;
+            if (currentFrame < totalFrames) {
+                setTimeout(animateStatus, 1500);
+            } else {
+                setTimeout(() => {
+                    document.querySelector('.final-message').style.display = 'block';
+                }, 500);
+            }
+        }
+        
+        // Start animation after page load
+        setTimeout(animateStatus, 1000);
+        
+        // Restart animation every 10 seconds
+        setInterval(() => {
+            currentFrame = 0;
+            document.querySelector('.final-message').style.display = 'none';
+            setTimeout(animateStatus, 1000);
+        }, 10000);
+    </script>
+</body>
+</html>

@@ -42,7 +42,7 @@ export class TerminalSessionInstrumentation {
   /**
    * Instrument session start
    */
-  async onSessionStart(sessionId, sessionType = 'default') {
+  async onSessionStart(sessionId, _sessionType = 'default') {
     this.sessionStartTimes.set(sessionId, Date.now());
     this.commandCounters.set(sessionId, 0);
     this.commandRateTrackers.set(sessionId, {
@@ -66,11 +66,7 @@ export class TerminalSessionInstrumentation {
       const durationSeconds = Math.floor(durationMs / 1000);
 
       // Record session duration
-      await metricsService.recordTerminalSessionDuration(
-        sessionId,
-        durationSeconds,
-        sessionType
-      );
+      await metricsService.recordTerminalSessionDuration(sessionId, durationSeconds, sessionType);
 
       // Record session end event
       await metricsService.recordSessionEnd(sessionId);
@@ -80,7 +76,9 @@ export class TerminalSessionInstrumentation {
       this.commandCounters.delete(sessionId);
       this.commandRateTrackers.delete(sessionId);
 
-      console.log(`📊 Session instrumentation ended for session: ${sessionId}, duration: ${durationSeconds}s`);
+      console.log(
+        `📊 Session instrumentation ended for session: ${sessionId}, duration: ${durationSeconds}s`
+      );
     }
   }
 
@@ -118,12 +116,7 @@ export class TerminalSessionInstrumentation {
    * Instrument command error
    */
   async onCommandError(sessionId, command, errorType, errorMessage, terminalId = null) {
-    await metricsService.recordCommandExecutionError(
-      command,
-      errorType,
-      errorMessage,
-      terminalId
-    );
+    await metricsService.recordCommandExecutionError(command, errorType, errorMessage, terminalId);
 
     console.log(`📊 Command error in session ${sessionId}: ${command} - ${errorType}`);
   }
@@ -144,7 +137,7 @@ export class TerminalSessionInstrumentation {
       for (const [sessionId, rateTracker] of this.commandRateTrackers) {
         const elapsedMs = Date.now() - rateTracker.startTime;
         const elapsedMinutes = elapsedMs / (1000 * 60);
-        
+
         if (elapsedMinutes > 0) {
           const commandsPerMinute = rateTracker.commandCount / elapsedMinutes;
           await metricsService.recordCommandsPerMinute(commandsPerMinute, sessionId);
@@ -188,7 +181,7 @@ export class TerminalSessionInstrumentation {
    */
   getAllSessionMetrics() {
     const metrics = [];
-    
+
     for (const sessionId of this.sessionStartTimes.keys()) {
       const sessionMetrics = this.getSessionMetrics(sessionId);
       if (sessionMetrics) {

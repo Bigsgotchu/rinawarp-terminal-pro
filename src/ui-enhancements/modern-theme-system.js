@@ -385,7 +385,7 @@ export class ModernThemeSystem {
     resizeObserver.observe(document.body);
 
     // Set up media queries for different screen sizes
-    Object.entries(this.responsiveBreakpoints).forEach(([size, width]) => {
+    Object.entries(this.responsiveBreakpoints).forEach(([_size, width]) => {
       const query = window.matchMedia(`(max-width: ${width}px)`);
       query.addEventListener('change', () => {
         this.updateResponsiveDesign();
@@ -770,7 +770,7 @@ export class ModernThemeSystem {
     }, this.transitionDuration);
   }
 
-  handleResize(rect) {
+  handleResize(_rect) {
     // Handle resize events
     this.updateResponsiveDesign();
   }

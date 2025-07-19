@@ -25,7 +25,7 @@ class FirebaseDeploymentMonitor {
   async checkUrl(url) {
     return new Promise(resolve => {
       const startTime = Date.now();
-      exec(`curl -I -s -m 10 "${url}"`, (error, stdout, stderr) => {
+      exec(`curl -I -s -m 10 "${url}"`, (error, stdout, _stderr) => {
         const responseTime = Date.now() - startTime;
 
         if (error) {
@@ -58,7 +58,7 @@ class FirebaseDeploymentMonitor {
 
   async checkFirebaseStatus() {
     return new Promise(resolve => {
-      exec('firebase hosting:channel:list --json', (error, stdout, stderr) => {
+      exec('firebase hosting:channel:list --json', (error, stdout, _stderr) => {
         if (error) {
           resolve({ error: error.message });
           return;
@@ -71,7 +71,7 @@ class FirebaseDeploymentMonitor {
             lastRelease: liveChannel ? liveChannel.releaseTime : null,
             liveChannel: liveChannel || null,
           });
-        } catch (e) {
+        } catch (_e) {
           resolve({ error: 'Failed to parse Firebase status' });
         }
       });

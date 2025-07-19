@@ -1,7 +1,7 @@
 /**
  * RinaWarp Terminal - Phase2 System Health Panel
  * "Real-time UI visualization with emoji severity indicators"
- * 
+ *
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
@@ -15,15 +15,15 @@ class Phase2HealthPanel {
       low: '🟢',
       medium: '🟡',
       high: '🔴',
-      critical: '🔥'
+      critical: '🔥',
     };
-    
+
     console.log('🩺 Phase 2 Health Panel initialized');
   }
 
   renderHealthPanel() {
     const status = getSystemStatusSnapshot();
-    
+
     const panelHTML = `
       <div class="system-health-panel">
         <div class="health-header">
@@ -45,39 +45,51 @@ class Phase2HealthPanel {
         </div>
         
         <div class="health-card-grid">
-          ${Object.entries(status.modules).map(([mod, moduleStatus]) => `
+          ${Object.entries(status.modules)
+            .map(
+              ([mod, moduleStatus]) => `
             <div class="health-card ${this.getHealthCardClass(moduleStatus)}">
               <h4>${this.formatModuleName(mod)}</h4>
               <p>Status: ${moduleStatus.ok ? '✅ Operational' : this.getStatusEmoji(moduleStatus.severity) + ' ' + this.getStatusMessage(moduleStatus)}</p>
               <span class="pulse"></span>
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
         
         <div class="modules-status">
           <h4>🔧 Detailed Module Status</h4>
           <ul class="module-list">
-            ${Object.entries(status.modules).map(([mod, moduleStatus]) => `
+            ${Object.entries(status.modules)
+              .map(
+                ([mod, moduleStatus]) => `
               <li class="module-item ${moduleStatus.ok ? 'ok' : 'fault'}">
                 <span class="module-icon">${moduleStatus.ok ? '✅' : '❌'}</span>
                 <span class="module-name">${this.formatModuleName(mod)}</span>
                 <span class="module-severity">${this.severityMap[moduleStatus.severity]}</span>
                 <span class="module-status">${moduleStatus.status}</span>
               </li>
-            `).join('')}
+            `
+              )
+              .join('')}
           </ul>
         </div>
         
         <div class="error-categories">
           <h4>📊 Error Categories</h4>
           <div class="category-grid">
-            ${Object.entries(status.errorCategories).map(([category, count]) => `
+            ${Object.entries(status.errorCategories)
+              .map(
+                ([category, count]) => `
               <div class="category-card ${category.toLowerCase()}">
                 <div class="category-icon">${this.getCategoryIcon(category)}</div>
                 <div class="category-name">${this.getCategoryName(category)}</div>
                 <div class="category-count">${count}</div>
               </div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
         </div>
         
@@ -94,7 +106,7 @@ class Phase2HealthPanel {
         </div>
       </div>
     `;
-    
+
     // Find or create dashboard panel
     let dashboardPanel = document.getElementById('dashboard-panel');
     if (!dashboardPanel) {
@@ -103,10 +115,10 @@ class Phase2HealthPanel {
       dashboardPanel.className = 'dashboard-panel';
       document.body.appendChild(dashboardPanel);
     }
-    
+
     dashboardPanel.innerHTML = panelHTML;
     this.isRendered = true;
-    
+
     // Add styles if not already added
     if (!document.getElementById('health-panel-styles')) {
       this.addHealthPanelStyles();
@@ -554,9 +566,9 @@ class Phase2HealthPanel {
         font-weight: 500;
       }
     `;
-    
+
     document.head.appendChild(style);
-    
+
     // Add live status overlay
     this.createLiveStatusOverlay();
   }
@@ -565,7 +577,7 @@ class Phase2HealthPanel {
     const seconds = Math.floor(uptimeMs / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes % 60}m`;
     } else if (minutes > 0) {
@@ -577,34 +589,34 @@ class Phase2HealthPanel {
 
   formatModuleName(moduleName) {
     const nameMap = {
-      'electronAPI': 'Electron API',
-      'nodeAPI': 'Node API',
-      'ipcConnection': 'IPC Connection',
-      'memory': 'Memory Usage',
-      'aiCopilot': 'AI Copilot',
-      'pluginLoader': 'Plugin Loader',
-      'uiManager': 'UI Manager',
-      'ipcBridge': 'IPC Bridge'
+      electronAPI: 'Electron API',
+      nodeAPI: 'Node API',
+      ipcConnection: 'IPC Connection',
+      memory: 'Memory Usage',
+      aiCopilot: 'AI Copilot',
+      pluginLoader: 'Plugin Loader',
+      uiManager: 'UI Manager',
+      ipcBridge: 'IPC Bridge',
     };
     return nameMap[moduleName] || moduleName;
   }
 
   getCategoryIcon(category) {
     const icons = {
-      'C100': '✅',
-      'W200': '⚠️',
-      'E300': '❌',
-      'F500': '🛑'
+      C100: '✅',
+      W200: '⚠️',
+      E300: '❌',
+      F500: '🛑',
     };
     return icons[category] || '❓';
   }
 
   getCategoryName(category) {
     const names = {
-      'C100': 'Critical Pass',
-      'W200': 'Warning Only',
-      'E300': 'Recoverable',
-      'F500': 'Hard Failure'
+      C100: 'Critical Pass',
+      W200: 'Warning Only',
+      E300: 'Recoverable',
+      F500: 'Hard Failure',
     };
     return names[category] || category;
   }
@@ -622,10 +634,10 @@ class Phase2HealthPanel {
 
   getStatusEmoji(severity) {
     const emojiMap = {
-      'low': '⚠️',
-      'medium': '⚠️',
-      'high': '❌',
-      'critical': '🛑'
+      low: '⚠️',
+      medium: '⚠️',
+      high: '❌',
+      critical: '🛑',
     };
     return emojiMap[severity] || '❓';
   }
@@ -634,12 +646,12 @@ class Phase2HealthPanel {
     if (moduleStatus.ok) {
       return 'Operational';
     }
-    
+
     const messages = {
-      'low': 'Minor issues detected',
-      'medium': 'Limited functionality',
-      'high': 'Service degraded',
-      'critical': 'Critical failure'
+      low: 'Minor issues detected',
+      medium: 'Limited functionality',
+      high: 'Service degraded',
+      critical: 'Critical failure',
     };
     return messages[moduleStatus.severity] || 'Unknown status';
   }
@@ -654,12 +666,12 @@ class Phase2HealthPanel {
     const overlay = document.createElement('div');
     overlay.id = 'dev-status-overlay';
     overlay.className = 'status-overlay';
-    
+
     // Update overlay content with real-time data
     this.updateLiveStatusOverlay(overlay);
-    
+
     document.body.appendChild(overlay);
-    
+
     // Update overlay every 3 seconds
     setInterval(() => {
       this.updateLiveStatusOverlay(overlay);
@@ -671,7 +683,7 @@ class Phase2HealthPanel {
     const aiStatus = status.modules.electronAPI?.ok ? 'OK' : '⚠️';
     const pluginStatus = status.modules.nodeAPI?.ok ? 'OK' : '⚠️';
     const uiStatus = status.modules.memory?.ok ? 'OK' : 'Partial';
-    
+
     overlay.textContent = `🧠 AI: ${aiStatus} | 🔌 Plugin: ${pluginStatus} | 🎨 UI: ${uiStatus} Support`;
   }
 
@@ -680,11 +692,11 @@ class Phase2HealthPanel {
     if (this.pulseInterval) {
       clearInterval(this.pulseInterval);
     }
-    
+
     this.pulseInterval = setInterval(() => {
       this.updatePulseUI();
     }, 3000); // Update pulse animations every 3 seconds
-    
+
     console.log('🎵 Pulse animation system started');
   }
 
@@ -693,32 +705,32 @@ class Phase2HealthPanel {
       clearInterval(this.pulseInterval);
       this.pulseInterval = null;
     }
-    
+
     console.log('🎵 Pulse animation system stopped');
   }
 
   updatePulseUI() {
     const status = getSystemStatusSnapshot();
     const cards = document.querySelectorAll('.health-card');
-    
+
     cards.forEach(card => {
       const modNameElement = card.querySelector('h4');
       if (!modNameElement) return;
-      
+
       const displayName = modNameElement.textContent.trim();
       const pulse = card.querySelector('.pulse');
-      
+
       if (!pulse) return;
-      
+
       // Map display name back to module key
       const moduleKey = this.getModuleKeyFromDisplayName(displayName);
       const modStatus = status.modules?.[moduleKey];
-      
+
       if (!modStatus) return;
-      
+
       // Remove existing severity classes
       card.classList.remove('ok', 'warning', 'fault', 'critical');
-      
+
       if (modStatus.ok) {
         card.classList.add('ok');
         pulse.style.animationDuration = '1.8s';
@@ -743,7 +755,7 @@ class Phase2HealthPanel {
         pulse.style.animation = 'criticalFlicker 0.5s infinite alternate';
       }
     });
-    
+
     // Check for critical issues and trigger AI commentary
     this.checkForCriticalIssues(status);
   }
@@ -757,7 +769,7 @@ class Phase2HealthPanel {
       'AI Copilot': 'aiCopilot',
       'Plugin Loader': 'pluginLoader',
       'UI Manager': 'uiManager',
-      'IPC Bridge': 'ipcBridge'
+      'IPC Bridge': 'ipcBridge',
     };
     return nameMap[displayName] || displayName.toLowerCase().replace(/\s+/g, '');
   }
@@ -765,9 +777,9 @@ class Phase2HealthPanel {
   // AI Personality Response System
   checkForCriticalIssues(status) {
     const criticalModules = Object.entries(status.modules)
-      .filter(([key, module]) => module.severity === 'critical' || module.severity === 'high')
+      .filter(([_key, module]) => module.severity === 'critical' || module.severity === 'high')
       .map(([key, module]) => ({ key, ...module }));
-    
+
     if (criticalModules.length > 0 && this.shouldTriggerAIResponse()) {
       this.triggerAICommentary(criticalModules, status);
     }
@@ -777,31 +789,31 @@ class Phase2HealthPanel {
     const now = Date.now();
     const lastResponse = this.lastAIResponse || 0;
     const cooldown = 30000; // 30 seconds cooldown
-    
-    return (now - lastResponse) > cooldown;
+
+    return now - lastResponse > cooldown;
   }
 
   triggerAICommentary(criticalModules, status) {
     this.lastAIResponse = Date.now();
-    
+
     const responses = this.generateAIResponses(criticalModules, status);
     const selectedResponse = responses[Math.floor(Math.random() * responses.length)];
-    
+
     // Visual notification
     this.showAINotification(selectedResponse);
-    
+
     // Voice synthesis (if available)
     if (window.speechSynthesis) {
       this.speakAIResponse(selectedResponse);
     }
-    
+
     console.log('🧠 Rina AI Commentary:', selectedResponse);
   }
 
   generateAIResponses(criticalModules, status) {
     const moduleNames = criticalModules.map(m => this.formatModuleName(m.key));
     const responses = [];
-    
+
     if (criticalModules.length === 1) {
       const module = moduleNames[0];
       responses.push(
@@ -818,16 +830,16 @@ class Phase2HealthPanel {
         `Red alert! ${moduleNames.join(', ')} are all struggling. Initiating cascade recovery.`
       );
     }
-    
+
     // Add personality-based responses
     if (status.overall.errorCount > 10) {
       responses.push(
         "That's a lot of errors! I'm like a digital paramedic right now.",
-        "Error count is climbing fast. Time to put on my superhero cape!",
-        "This is getting interesting. Challenge accepted!"
+        'Error count is climbing fast. Time to put on my superhero cape!',
+        'This is getting interesting. Challenge accepted!'
       );
     }
-    
+
     return responses;
   }
 
@@ -838,7 +850,7 @@ class Phase2HealthPanel {
       <div class="ai-avatar">🧠</div>
       <div class="ai-message">${message}</div>
     `;
-    
+
     notification.style.cssText = `
       position: fixed;
       top: 80px;
@@ -856,9 +868,9 @@ class Phase2HealthPanel {
       align-items: flex-start;
       gap: 12px;
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
       notification.style.animation = 'aiSlideOut 0.5s ease-in';
       setTimeout(() => {
@@ -872,19 +884,20 @@ class Phase2HealthPanel {
     utterance.rate = 0.9;
     utterance.pitch = 1.1;
     utterance.volume = 0.7;
-    
+
     // Try to use a more natural voice
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice => 
-      voice.name.includes('Samantha') || 
-      voice.name.includes('Alex') || 
-      voice.name.includes('Karen')
+    const preferredVoice = voices.find(
+      voice =>
+        voice.name.includes('Samantha') ||
+        voice.name.includes('Alex') ||
+        voice.name.includes('Karen')
     );
-    
+
     if (preferredVoice) {
       utterance.voice = preferredVoice;
     }
-    
+
     window.speechSynthesis.speak(utterance);
   }
 
@@ -892,17 +905,17 @@ class Phase2HealthPanel {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
-    
+
     this.updateInterval = setInterval(() => {
       if (this.isRendered) {
         this.renderHealthPanel();
         this.updatePulseUI();
       }
     }, 5000); // Update every 5 seconds
-    
+
     // Start pulse animation updates at higher frequency
     this.startPulseUpdates();
-    
+
     console.log('🔄 Health panel real-time updates started');
   }
 
@@ -911,9 +924,9 @@ class Phase2HealthPanel {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
     }
-    
+
     this.stopPulseUpdates();
-    
+
     console.log('⏹️ Health panel real-time updates stopped');
   }
 
@@ -944,12 +957,12 @@ class Phase2HealthPanel {
   // Action handlers
   async runDiagnostics() {
     console.log('🧪 Running health panel diagnostics...');
-    
+
     // Import and run diagnostics
     try {
       const { runPhase2Diagnostics } = await import('./phase2-debug-tools.js');
       runPhase2Diagnostics();
-      
+
       // Show notification
       this.showNotification('Diagnostics completed', 'success');
     } catch (error) {
@@ -960,32 +973,32 @@ class Phase2HealthPanel {
 
   clearErrors() {
     console.log('🗑️ Clearing error history...');
-    
+
     // Clear error triage system errors
     if (window.ErrorTriageSystem) {
       window.ErrorTriageSystem.errors.clear();
     }
-    
+
     // Clear dashboard errors
     if (window.errorTriageDashboard) {
       window.errorTriageDashboard.clearHistory();
     }
-    
+
     this.showNotification('Error history cleared', 'success');
     this.renderHealthPanel(); // Refresh display
   }
 
   exportReport() {
     console.log('📥 Exporting health report...');
-    
+
     const status = getSystemStatusSnapshot();
     const report = {
       timestamp: new Date().toISOString(),
       systemHealth: status,
       generatedBy: 'RinaWarp Terminal Health Panel',
-      version: '2.0.0'
+      version: '2.0.0',
     };
-    
+
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -993,7 +1006,7 @@ class Phase2HealthPanel {
     a.download = `health-report-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     this.showNotification('Health report exported', 'success');
   }
 
@@ -1013,9 +1026,9 @@ class Phase2HealthPanel {
       z-index: 10001;
       animation: slideIn 0.3s ease-out;
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
       notification.style.animation = 'slideOut 0.3s ease-in';
       setTimeout(() => {
@@ -1029,7 +1042,7 @@ class Phase2HealthPanel {
 const phase2HealthPanel = new Phase2HealthPanel();
 
 // Add keyboard shortcut
-document.addEventListener('keydown', (event) => {
+document.addEventListener('keydown', event => {
   if (event.ctrlKey && event.shiftKey && event.key === 'H') {
     phase2HealthPanel.toggle();
   }

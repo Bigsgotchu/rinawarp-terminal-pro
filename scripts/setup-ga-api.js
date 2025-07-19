@@ -5,9 +5,13 @@
  * Helps configure authentication and test the connection
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class GoogleAnalyticsSetup {
   constructor() {
@@ -18,11 +22,11 @@ class GoogleAnalyticsSetup {
   /**
    * Check if required dependencies are installed
    */
-  checkDependencies() {
+  async checkDependencies() {
     console.log('📦 Checking required dependencies...');
 
     try {
-      require('googleapis');
+      await import('googleapis');
       console.log('✅ googleapis package is installed');
     } catch (error) {
       console.log('❌ googleapis package not found');
@@ -132,7 +136,8 @@ class GoogleAnalyticsSetup {
     console.log('\n🧪 Testing Google Analytics API connection...');
 
     try {
-      const GoogleAnalyticsAudienceCreator = require('./create-ga-audience.js');
+      const module = await import('./create-ga-audience.js');
+      const GoogleAnalyticsAudienceCreator = module.default;
       const creator = new GoogleAnalyticsAudienceCreator();
 
       if (!creator.accountId || !creator.propertyId) {
@@ -167,7 +172,7 @@ class GoogleAnalyticsSetup {
     console.log('🚀 Google Analytics API Setup');
     console.log('================================');
 
-    this.checkDependencies();
+    await this.checkDependencies();
     this.createConfigDir();
     this.setupServiceAccount();
     await this.getGAPropertyInfo();
@@ -198,8 +203,8 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 
-module.exports = GoogleAnalyticsSetup;
+export default GoogleAnalyticsSetup;

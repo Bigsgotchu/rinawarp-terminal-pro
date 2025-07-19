@@ -17,7 +17,7 @@ import { initializeXTerm } from './xterm-compatibility.js';
 import { SafeAIWrapper } from '../ai/safe-ai-wrapper';
 
 // XTerm modules will be initialized dynamically
-let Terminal, FitAddon, WebLinksAddon;
+let _Terminal, _FitAddon, _WebLinksAddon;
 // Node.js modules are accessed through electronAPI context bridge
 // const { spawn } = require('child_process'); // Only available in main process
 // const os = require('os'); // Only available in main process
@@ -33,7 +33,7 @@ const ipcRenderer = window.electronAPI?.ipcRenderer || {
 };
 
 // Access child_process spawn through electronAPI
-const spawn =
+const _spawn =
   window.electronAPI?.spawn ||
   (() => {
     console.error('spawn not available in renderer process');
@@ -41,12 +41,12 @@ const spawn =
   });
 
 // Initialize platform info from IPC
-let platformInfo = null;
+let _platformInfo = null;
 if (nodeAPI) {
   nodeAPI
     .getPlatformInfo()
     .then(info => {
-      platformInfo = info;
+      _platformInfo = info;
       console.log('✅ Platform info loaded:', info);
     })
     .catch(err => {
@@ -96,11 +96,11 @@ try {
 }
 
 // Initialize Performance Monitor
-let performanceMonitor;
+let _performanceMonitor = null;
 ipcRenderer
   .invoke('init-performance-monitor')
   .then(monitor => {
-    performanceMonitor = monitor;
+    _performanceMonitor = monitor;
     console.log('✅ Performance Monitor initialized');
   })
   .catch(err => {

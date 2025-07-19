@@ -86,7 +86,7 @@ async function buildLinux() {
 
         console.log('📦 Creating tar.gz from unpacked directory...');
         await runCommand('tar', ['-czf', tarPath, '-C', 'dist', 'linux-unpacked']);
-        
+
         if (fs.existsSync(tarPath)) {
           console.log(`✅ Linux build completed: dist/${tarGzName}`);
           const size = (fs.statSync(tarPath).size / 1024 / 1024).toFixed(2);

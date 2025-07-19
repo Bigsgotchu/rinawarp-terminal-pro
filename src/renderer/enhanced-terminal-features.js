@@ -1,7 +1,7 @@
 /**
  * Enhanced Terminal Features
  * Copyright (c) 2025 Rinawarp Technologies, LLC
- * 
+ *
  * Advanced terminal features extracted from warp-terminal-oss and warp-clone
  * Including multi-tab support, advanced PTY management, and modern UI features
  */
@@ -373,18 +373,18 @@ class TerminalSignalHandler {
 
       if (domEvent.ctrlKey) {
         switch (domEvent.key.toLowerCase()) {
-        case 'c':
-          this.sendSignal('SIGINT'); // Interrupt
-          break;
-        case 'd':
-          this.sendEOF(); // End of file
-          break;
-        case 'z':
-          this.sendSignal('SIGTSTP'); // Suspend
-          break;
-        case '\\':
-          this.sendSignal('SIGQUIT'); // Quit with core dump
-          break;
+          case 'c':
+            this.sendSignal('SIGINT'); // Interrupt
+            break;
+          case 'd':
+            this.sendEOF(); // End of file
+            break;
+          case 'z':
+            this.sendSignal('SIGTSTP'); // Suspend
+            break;
+          case '\\':
+            this.sendSignal('SIGQUIT'); // Quit with core dump
+            break;
         }
       }
     });
