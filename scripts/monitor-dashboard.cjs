@@ -7,7 +7,7 @@
  */
 
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 const { spawn } = require('child_process');
 
 class MonitoringDashboard {
@@ -18,7 +18,7 @@ class MonitoringDashboard {
     this.lastReport = null;
     this.issueHistory = [];
     this.alertThreshold = 3; // Number of consecutive issues before alert
-    
+
     // Ensure monitoring directory exists
     if (!fs.existsSync('monitoring')) {
       fs.mkdirSync('monitoring', { recursive: true });
@@ -29,7 +29,7 @@ class MonitoringDashboard {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] ${level}: ${message}`;
     console.log(logEntry);
-    
+
     // Write to dashboard log
     fs.appendFileSync('monitoring/dashboard.log', logEntry + '\n');
   }
@@ -38,6 +38,7 @@ class MonitoringDashboard {
    * Clear the terminal and show header
    */
   clearAndShowHeader() {
+    /* eslint-disable-next-line no-console */
     console.clear();
     console.log('🌊 RinaWarp Terminal - Continuous Monitoring Dashboard');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -54,33 +55,33 @@ class MonitoringDashboard {
     return new Promise((resolve, reject) => {
       const monitor = spawn('node', ['scripts/monitor-url-issues.cjs'], {
         stdio: 'pipe',
-        cwd: process.cwd()
+        cwd: process.cwd(),
       });
 
       let output = '';
       let error = '';
 
-      monitor.stdout.on('data', (data) => {
+      monitor.stdout.on('data', data => {
         output += data.toString();
       });
 
-      monitor.stderr.on('data', (data) => {
+      monitor.stderr.on('data', data => {
         error += data.toString();
       });
 
-      monitor.on('close', (code) => {
+      monitor.on('close', code => {
         const result = {
           exitCode: code,
           output: output,
           error: error,
           timestamp: new Date(),
-          healthy: code === 0
+          healthy: code === 0,
         };
-        
+
         resolve(result);
       });
 
-      monitor.on('error', (err) => {
+      monitor.on('error', err => {
         reject(err);
       });
     });
@@ -91,16 +92,16 @@ class MonitoringDashboard {
    */
   analyzeResults(result) {
     const issues = [];
-    
+
     if (!result.healthy) {
       issues.push({
         type: 'MONITORING_FAILURE',
         message: 'URL monitoring check failed',
         details: result.error || 'Unknown error',
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       });
     }
-    
+
     // Parse output for specific issues
     if (result.output.includes('❌')) {
       const errorLines = result.output.split('\n').filter(line => line.includes('❌'));
@@ -108,29 +109,29 @@ class MonitoringDashboard {
         issues.push({
           type: 'URL_ISSUE',
           message: line.trim(),
-          timestamp: result.timestamp
+          timestamp: result.timestamp,
         });
       });
     }
-    
+
     // Check for network issues
     if (result.output.includes('Network connectivity issue')) {
       issues.push({
         type: 'NETWORK_ISSUE',
         message: 'Network connectivity problems detected',
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       });
     }
-    
+
     // Check for SSL issues
     if (result.output.includes('SSL certificate issue')) {
       issues.push({
         type: 'SSL_ISSUE',
         message: 'SSL certificate problems detected',
-        timestamp: result.timestamp
+        timestamp: result.timestamp,
       });
     }
-    
+
     return issues;
   }
 
@@ -140,18 +141,18 @@ class MonitoringDashboard {
   updateDashboard(result) {
     const issues = this.analyzeResults(result);
     this.issueHistory.push({ timestamp: result.timestamp, issues, healthy: result.healthy });
-    
+
     // Keep only last 50 checks
     if (this.issueHistory.length > 50) {
       this.issueHistory.shift();
     }
-    
+
     this.clearAndShowHeader();
-    
+
     // Current status
     console.log('\n📊 CURRENT STATUS');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
+
     if (result.healthy && issues.length === 0) {
       console.log('✅ System is healthy - no issues detected');
     } else {
@@ -160,45 +161,45 @@ class MonitoringDashboard {
         console.log(`   • ${issue.type}: ${issue.message}`);
       });
     }
-    
+
     console.log(`🕐 Last check: ${result.timestamp.toLocaleString()}`);
     console.log(`🔄 Next check: ${new Date(Date.now() + this.checkInterval).toLocaleString()}`);
-    
+
     // Health history
     console.log('\n📈 HEALTH HISTORY (Last 10 checks)');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
+
     const recentHistory = this.issueHistory.slice(-10);
-    recentHistory.forEach((check, index) => {
+    recentHistory.forEach((check, _index) => {
       const status = check.healthy ? '✅' : '❌';
       const time = check.timestamp.toLocaleTimeString();
       const issueCount = check.issues.length;
       console.log(`${status} ${time} - ${issueCount} issue(s)`);
     });
-    
+
     // Alert status
     const recentIssues = this.issueHistory.slice(-this.alertThreshold);
     const consecutiveIssues = recentIssues.every(check => !check.healthy);
-    
+
     if (consecutiveIssues && recentIssues.length === this.alertThreshold) {
       console.log('\n🚨 ALERT: Consecutive issues detected!');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log(`⚠️  ${this.alertThreshold} consecutive failed checks detected`);
       console.log('🔧 Immediate attention required!');
     }
-    
+
     // Success rate
     const totalChecks = this.issueHistory.length;
     const successfulChecks = this.issueHistory.filter(check => check.healthy).length;
     const successRate = totalChecks > 0 ? ((successfulChecks / totalChecks) * 100).toFixed(1) : 0;
-    
+
     console.log('\n📊 STATISTICS');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`🎯 Success rate: ${successRate}% (${successfulChecks}/${totalChecks})`);
     console.log(`📊 Total checks: ${totalChecks}`);
     console.log(`✅ Successful: ${successfulChecks}`);
     console.log(`❌ Failed: ${totalChecks - successfulChecks}`);
-    
+
     // Controls
     console.log('\n🎛️  CONTROLS');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -216,45 +217,47 @@ class MonitoringDashboard {
       console.log('⚠️  Monitoring is already running');
       return;
     }
-    
+
     this.isRunning = true;
     this.log('🚀 Starting continuous monitoring dashboard...');
-    
+
     const runCheck = async () => {
       if (!this.isRunning) return;
-      
+
       try {
         const result = await this.runMonitoringCheck();
         this.updateDashboard(result);
-        
+
         // Save dashboard state
         const dashboardState = {
           timestamp: new Date().toISOString(),
           isRunning: this.isRunning,
           checkInterval: this.checkInterval,
           issueHistory: this.issueHistory.slice(-20), // Keep last 20 for state
-          lastResult: result
+          lastResult: result,
         };
-        
-        fs.writeFileSync('monitoring/dashboard-state.json', JSON.stringify(dashboardState, null, 2));
-        
+
+        fs.writeFileSync(
+          'monitoring/dashboard-state.json',
+          JSON.stringify(dashboardState, null, 2)
+        );
       } catch (error) {
         this.log(`❌ Error running monitoring check: ${error.message}`, 'ERROR');
       }
     };
-    
+
     // Run initial check
     await runCheck();
-    
+
     // Set up interval for continuous monitoring
     this.monitoringInterval = setInterval(runCheck, this.checkInterval);
-    
+
     // Handle graceful shutdown
     process.on('SIGINT', () => {
       this.stopMonitoring();
       process.exit(0);
     });
-    
+
     process.on('SIGTERM', () => {
       this.stopMonitoring();
       process.exit(0);
@@ -266,30 +269,30 @@ class MonitoringDashboard {
    */
   stopMonitoring() {
     if (!this.isRunning) return;
-    
+
     this.isRunning = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    
+
     this.log('🛑 Stopped continuous monitoring dashboard');
     console.log('\n🌊 RinaWarp Terminal Monitoring Dashboard Stopped');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📊 Final statistics:');
-    
+
     if (this.issueHistory.length > 0) {
       const totalChecks = this.issueHistory.length;
       const successfulChecks = this.issueHistory.filter(check => check.healthy).length;
       const successRate = ((successfulChecks / totalChecks) * 100).toFixed(1);
-      
+
       console.log(`   🎯 Success rate: ${successRate}%`);
       console.log(`   📊 Total checks: ${totalChecks}`);
       console.log(`   ✅ Successful: ${successfulChecks}`);
       console.log(`   ❌ Failed: ${totalChecks - successfulChecks}`);
     }
-    
+
     console.log('💡 Logs saved to monitoring/dashboard.log');
     console.log('📄 Dashboard state saved to monitoring/dashboard-state.json');
   }
@@ -298,9 +301,9 @@ class MonitoringDashboard {
 // Command line interface
 if (require.main === module) {
   const dashboard = new MonitoringDashboard();
-  
+
   const command = process.argv[2];
-  
+
   switch (command) {
     case 'start':
       dashboard.startMonitoring().catch(error => {
@@ -308,11 +311,11 @@ if (require.main === module) {
         process.exit(1);
       });
       break;
-    
+
     case 'stop':
       dashboard.stopMonitoring();
       break;
-    
+
     case 'status':
       // Show current status from saved state
       try {
@@ -326,7 +329,7 @@ if (require.main === module) {
         console.log('❌ No dashboard state found. Dashboard is not running.');
       }
       break;
-    
+
     default:
       console.log('🌊 RinaWarp Terminal - Monitoring Dashboard');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

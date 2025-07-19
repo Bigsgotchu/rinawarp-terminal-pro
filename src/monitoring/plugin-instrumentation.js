@@ -45,7 +45,7 @@ export class PluginInstrumentation {
    */
   async onPluginLoaded(pluginName, version, trusted = false) {
     const loadStartTime = Date.now();
-    
+
     // Record plugin as loaded
     this.loadedPlugins.set(pluginName, {
       version,
@@ -91,7 +91,7 @@ export class PluginInstrumentation {
    */
   startPluginExecution(pluginName, operationType = 'unknown') {
     const executionId = `${pluginName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.executionTimeTrackers.set(executionId, {
       pluginName,
       operationType,
@@ -110,14 +110,14 @@ export class PluginInstrumentation {
   /**
    * Instrument plugin execution end
    */
-  async endPluginExecution(executionId, success = true) {
+  async endPluginExecution(executionId, _success = true) {
     const tracker = this.executionTimeTrackers.get(executionId);
     if (!tracker) {
       return;
     }
 
     const executionTime = Date.now() - tracker.startTime;
-    
+
     // Record execution time
     await metricsService.recordPluginExecutionTime(
       tracker.pluginName,
@@ -128,7 +128,9 @@ export class PluginInstrumentation {
     // Clean up tracker
     this.executionTimeTrackers.delete(executionId);
 
-    console.log(`📊 Plugin execution tracked: ${tracker.pluginName} (${tracker.operationType}) - ${executionTime}ms`);
+    console.log(
+      `📊 Plugin execution tracked: ${tracker.pluginName} (${tracker.operationType}) - ${executionTime}ms`
+    );
   }
 
   /**
@@ -210,7 +212,7 @@ export class PluginInstrumentation {
    */
   getAllPluginMetrics() {
     const metrics = [];
-    
+
     for (const pluginName of this.loadedPlugins.keys()) {
       const pluginMetrics = this.getPluginMetrics(pluginName);
       if (pluginMetrics) {
@@ -237,7 +239,8 @@ export class PluginInstrumentation {
       stats.pluginBreakdown[pluginName] = {
         executions: pluginData.executionCount,
         errors: pluginData.errorCount,
-        errorRate: pluginData.executionCount > 0 ? pluginData.errorCount / pluginData.executionCount : 0,
+        errorRate:
+          pluginData.executionCount > 0 ? pluginData.errorCount / pluginData.executionCount : 0,
       };
     }
 
@@ -262,22 +265,18 @@ export class PluginInstrumentation {
    */
   integrateWithPluginManager(pluginManager) {
     // Listen for plugin events
-    pluginManager.on('plugin-loaded', (pluginName) => {
+    pluginManager.on('plugin-loaded', pluginName => {
       const plugin = pluginManager.plugins.get(pluginName);
       if (plugin) {
-        this.onPluginLoaded(
-          pluginName,
-          plugin.manifest.version,
-          plugin.trusted
-        );
+        this.onPluginLoaded(pluginName, plugin.manifest.version, plugin.trusted);
       }
     });
 
-    pluginManager.on('plugin-unloaded', (pluginName) => {
+    pluginManager.on('plugin-unloaded', pluginName => {
       this.onPluginUnloaded(pluginName);
     });
 
-    pluginManager.on('plugin-error', (data) => {
+    pluginManager.on('plugin-error', data => {
       this.onPluginError(
         data.plugin,
         data.error.name || 'unknown',
@@ -291,14 +290,14 @@ export class PluginInstrumentation {
     pluginManager.loadPlugin = async (pluginPath, trusted = false) => {
       const startTime = Date.now();
       const result = await originalLoadPlugin(pluginPath, trusted);
-      const loadTime = Date.now() - startTime;
-      
+      const _loadTime = Date.now() - startTime;
+
       // Extract plugin name from path or result
       const pluginName = pluginPath.split('/').pop() || 'unknown';
       if (result && !this.loadedPlugins.has(pluginName)) {
         await this.onPluginLoaded(pluginName, '1.0.0', trusted);
       }
-      
+
       return result;
     };
 

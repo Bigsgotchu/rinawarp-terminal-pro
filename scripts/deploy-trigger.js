@@ -5,9 +5,13 @@
  * Multi-platform deployment orchestration with intelligent routing
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Colors for terminal output
 const colors = {
@@ -124,6 +128,15 @@ async function deployToFirebase() {
   const checkResult = execCommand('which firebase', { silent: true });
   if (!checkResult.success) {
     log('⚠️  Firebase CLI not found, skipping Firebase deployment', 'yellow');
+    return false;
+  }
+
+  // Run pre-deploy scanner for executable files
+  log('🔍 Running Firebase pre-deploy scanner...', 'cyan');
+  const scanResult = execCommand('node scripts/firebase-pre-deploy.js', { silent: true });
+  if (!scanResult.success) {
+    log('❌ Firebase pre-deploy scan failed - blocked files detected', 'red');
+    log('💡 Run "node scripts/firebase-pre-deploy.js" for details', 'yellow');
     return false;
   }
 
@@ -267,11 +280,11 @@ async function main() {
 }
 
 // Run the deployment
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
     log(`💥 Deployment failed: ${error.message}`, 'red');
     process.exit(1);
   });
 }
 
-module.exports = { main };
+export { main };

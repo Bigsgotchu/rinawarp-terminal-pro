@@ -10,13 +10,33 @@ class EnhancedMonitoringSystem {
     this.urlsToMonitor = [
       { name: 'Firebase', url: 'https://rinawarp-terminal.web.app/', critical: true },
       { name: 'Vercel', url: 'https://rinawarp-terminal.vercel.app/', critical: true },
-      { name: 'GitHub Pages', url: 'https://rinawarp-terminal.github.io/rinawarp-terminal/', critical: false },
+      {
+        name: 'GitHub Pages',
+        url: 'https://rinawarp-terminal.github.io/rinawarp-terminal/',
+        critical: false,
+      },
       { name: 'API Health', url: 'https://rinawarp-terminal.web.app/api/health', critical: true },
-      { name: 'Download API', url: 'https://rinawarp-terminal.web.app/api/download', critical: true },
-      { name: 'Pricing Page', url: 'https://rinawarp-terminal.web.app/pricing.html', critical: true },
-      { name: 'Downloads Page', url: 'https://rinawarp-terminal.web.app/downloads.html', critical: true },
+      {
+        name: 'Download API',
+        url: 'https://rinawarp-terminal.web.app/api/download',
+        critical: true,
+      },
+      {
+        name: 'Pricing Page',
+        url: 'https://rinawarp-terminal.web.app/pricing.html',
+        critical: true,
+      },
+      {
+        name: 'Downloads Page',
+        url: 'https://rinawarp-terminal.web.app/downloads.html',
+        critical: true,
+      },
       { name: 'Docs', url: 'https://rinawarp-terminal.web.app/docs.html', critical: false },
-      { name: 'Beta Download', url: 'https://rinawarp-terminal.web.app/beta-download.html', critical: true },
+      {
+        name: 'Beta Download',
+        url: 'https://rinawarp-terminal.web.app/beta-download.html',
+        critical: true,
+      },
     ];
 
     this.alertThresholds = {
@@ -42,9 +62,9 @@ class EnhancedMonitoringSystem {
 
   async checkServices() {
     console.log(`\n🔍 [${new Date().toISOString()}] Starting service health check...`);
-    
+
     const results = [];
-    
+
     for (const service of this.urlsToMonitor) {
       try {
         const startTime = Date.now();
@@ -53,7 +73,7 @@ class EnhancedMonitoringSystem {
           validateStatus: () => true, // Accept any status code
         });
         const responseTime = Date.now() - startTime;
-        
+
         const result = {
           name: service.name,
           url: service.url,
@@ -67,18 +87,25 @@ class EnhancedMonitoringSystem {
         };
 
         if (result.healthy) {
-          console.log(`✅ [${service.name}] Status: ${response.status} | Response: ${responseTime}ms`);
+          console.log(
+            `✅ [${service.name}] Status: ${response.status} | Response: ${responseTime}ms`
+          );
         } else {
-          console.error(`❌ [${service.name}] ERROR: Status ${response.status} | Response: ${responseTime}ms`);
-          
+          console.error(
+            `❌ [${service.name}] ERROR: Status ${response.status} | Response: ${responseTime}ms`
+          );
+
           if (service.critical) {
-            this.triggerAlert('SERVICE_DOWN', `Critical service ${service.name} is down (Status: ${response.status})`, service);
+            this.triggerAlert(
+              'SERVICE_DOWN',
+              `Critical service ${service.name} is down (Status: ${response.status})`,
+              service
+            );
           }
         }
 
         results.push(result);
         this.updateStats(result);
-        
       } catch (error) {
         const result = {
           name: service.name,
@@ -92,9 +119,13 @@ class EnhancedMonitoringSystem {
         };
 
         console.error(`💥 [${service.name}] FAILED: ${error.message}`);
-        
+
         if (service.critical) {
-          this.triggerAlert('SERVICE_ERROR', `Critical service ${service.name} failed: ${error.message}`, service);
+          this.triggerAlert(
+            'SERVICE_ERROR',
+            `Critical service ${service.name} failed: ${error.message}`,
+            service
+          );
         }
 
         results.push(result);
@@ -119,24 +150,35 @@ class EnhancedMonitoringSystem {
 
   async checkSSLCertificates() {
     console.log(`\n🔒 [${new Date().toISOString()}] Checking SSL certificates...`);
-    
+
     for (const service of this.urlsToMonitor) {
       try {
         const hostname = new URL(service.url).hostname;
-        
+
         // Use openssl to check certificate
-        const result = execSync(`echo | openssl s_client -servername ${hostname} -connect ${hostname}:443 2>/dev/null | openssl x509 -noout -dates`, { encoding: 'utf-8' });
-        
+        const result = execSync(
+          `echo | openssl s_client -servername ${hostname} -connect ${hostname}:443 2>/dev/null | openssl x509 -noout -dates`,
+          { encoding: 'utf-8' }
+        );
+
         const notAfter = result.match(/notAfter=(.+)/);
         if (notAfter) {
           const expiryDate = new Date(notAfter[1]);
           const daysUntilExpiry = (expiryDate - new Date()) / (1000 * 60 * 60 * 24);
-          
+
           if (daysUntilExpiry < 30) {
-            console.log(`⚠️  [${service.name}] SSL certificate expires in ${Math.floor(daysUntilExpiry)} days`);
-            this.triggerAlert('SSL_EXPIRY', `SSL certificate for ${service.name} expires in ${Math.floor(daysUntilExpiry)} days`, service);
+            console.log(
+              `⚠️  [${service.name}] SSL certificate expires in ${Math.floor(daysUntilExpiry)} days`
+            );
+            this.triggerAlert(
+              'SSL_EXPIRY',
+              `SSL certificate for ${service.name} expires in ${Math.floor(daysUntilExpiry)} days`,
+              service
+            );
           } else {
-            console.log(`✅ [${service.name}] SSL certificate valid for ${Math.floor(daysUntilExpiry)} days`);
+            console.log(
+              `✅ [${service.name}] SSL certificate valid for ${Math.floor(daysUntilExpiry)} days`
+            );
           }
         }
       } catch (error) {
@@ -147,7 +189,7 @@ class EnhancedMonitoringSystem {
 
   async checkLogErrors() {
     console.log(`\n📋 [${new Date().toISOString()}] Checking application logs...`);
-    
+
     const logFiles = [
       'logs/app.log',
       'logs/error.log',
@@ -160,19 +202,24 @@ class EnhancedMonitoringSystem {
         if (fs.existsSync(logFile)) {
           const content = fs.readFileSync(logFile, 'utf-8');
           const lines = content.split('\n');
-          
+
           // Check for errors in the last 100 lines
           const recentLines = lines.slice(-100);
-          const errors = recentLines.filter(line => 
-            line.toLowerCase().includes('error') || 
-            line.toLowerCase().includes('failed') || 
-            line.toLowerCase().includes('exception')
+          const errors = recentLines.filter(
+            line =>
+              line.toLowerCase().includes('error') ||
+              line.toLowerCase().includes('failed') ||
+              line.toLowerCase().includes('exception')
           );
 
           if (errors.length > 0) {
             console.log(`⚠️  Found ${errors.length} error(s) in ${logFile}`);
             if (errors.length > 10) {
-              this.triggerAlert('HIGH_ERROR_RATE', `High error rate detected in ${logFile}: ${errors.length} errors`, { logFile });
+              this.triggerAlert(
+                'HIGH_ERROR_RATE',
+                `High error rate detected in ${logFile}: ${errors.length} errors`,
+                { logFile }
+              );
             }
           } else {
             console.log(`✅ No errors found in ${logFile}`);
@@ -186,7 +233,7 @@ class EnhancedMonitoringSystem {
 
   async checkNetworkConnectivity() {
     console.log(`\n🌐 [${new Date().toISOString()}] Checking network connectivity...`);
-    
+
     const testUrls = [
       'https://google.com',
       'https://github.com',
@@ -220,7 +267,7 @@ class EnhancedMonitoringSystem {
 
     this.monitoringState.alerts.push(alert);
     console.log(`🚨 ALERT [${type}]: ${message}`);
-    
+
     // Send email/SMS alert (implement based on your preferred service)
     this.sendAlert(alert);
   }
@@ -231,14 +278,14 @@ class EnhancedMonitoringSystem {
     const alertFile = path.join(process.cwd(), 'alerts.log');
     const alertLine = `[${alert.timestamp}] ${alert.type}: ${alert.message}\n`;
     fs.appendFileSync(alertFile, alertLine);
-    
+
     // You can integrate with services like:
     // - SendGrid for email
     // - Twilio for SMS
     // - Slack webhooks
     // - Discord webhooks
     // - PagerDuty
-    
+
     console.log(`📧 Alert logged to ${alertFile}`);
   }
 
@@ -260,7 +307,7 @@ class EnhancedMonitoringSystem {
 
   updateStats(result) {
     this.monitoringState.stats.totalRequests++;
-    
+
     if (result.healthy) {
       this.monitoringState.stats.successfulRequests++;
     } else {
@@ -270,11 +317,13 @@ class EnhancedMonitoringSystem {
     // Update average response time
     const total = this.monitoringState.stats.totalRequests;
     const current = this.monitoringState.stats.averageResponseTime;
-    this.monitoringState.stats.averageResponseTime = 
-      Math.round((current * (total - 1) + result.responseTime) / total);
+    this.monitoringState.stats.averageResponseTime = Math.round(
+      (current * (total - 1) + result.responseTime) / total
+    );
   }
 
   showDashboard() {
+    /* eslint-disable-next-line no-console */
     console.clear();
     console.log(`
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
@@ -291,22 +340,30 @@ class EnhancedMonitoringSystem {
 
     if (this.monitoringState.history.length > 0) {
       const latest = this.monitoringState.history[this.monitoringState.history.length - 1];
-      console.log(`\n📊 Latest Health Check Results:`);
-      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-      
+      console.log('\n📊 Latest Health Check Results:');
+      console.log(
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      );
+
       latest.results.forEach(result => {
         const statusIcon = result.healthy ? '✅' : '❌';
         const criticalIcon = result.critical ? '🔴' : '🟡';
-        console.log(`${statusIcon} ${criticalIcon} ${result.name.padEnd(20)} | ${result.status.toString().padEnd(3)} | ${result.responseTime}ms`);
+        console.log(
+          `${statusIcon} ${criticalIcon} ${result.name.padEnd(20)} | ${result.status.toString().padEnd(3)} | ${result.responseTime}ms`
+        );
       });
 
-      console.log(`\n📈 Summary: ${latest.summary.healthy}/${latest.summary.total} services healthy (${latest.summary.healthScore}%)`);
+      console.log(
+        `\n📈 Summary: ${latest.summary.healthy}/${latest.summary.total} services healthy (${latest.summary.healthScore}%)`
+      );
     }
 
     if (this.monitoringState.alerts.length > 0) {
-      console.log(`\n🚨 Recent Alerts:`);
-      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-      
+      console.log('\n🚨 Recent Alerts:');
+      console.log(
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      );
+
       this.monitoringState.alerts.slice(-5).forEach(alert => {
         const ackIcon = alert.acknowledged ? '✅' : '❌';
         console.log(`${ackIcon} [${alert.type}] ${alert.message}`);
@@ -315,9 +372,11 @@ class EnhancedMonitoringSystem {
   }
 
   async startMonitoring(interval = 60000) {
-    console.log(`🚀 Starting enhanced monitoring system...`);
-    console.log(`📊 Monitoring ${this.urlsToMonitor.length} services every ${interval / 1000} seconds`);
-    
+    console.log('🚀 Starting enhanced monitoring system...');
+    console.log(
+      `📊 Monitoring ${this.urlsToMonitor.length} services every ${interval / 1000} seconds`
+    );
+
     this.monitoringState.isRunning = true;
     this.saveState();
 
@@ -336,14 +395,14 @@ class EnhancedMonitoringSystem {
 
     // Handle graceful shutdown
     process.on('SIGINT', () => {
-      console.log(`\n⏹️  Stopping monitoring system...`);
+      console.log('\n⏹️  Stopping monitoring system...');
       clearInterval(monitoringInterval);
       this.monitoringState.isRunning = false;
       this.saveState();
       process.exit(0);
     });
 
-    console.log(`✅ Enhanced monitoring system started. Press Ctrl+C to stop.`);
+    console.log('✅ Enhanced monitoring system started. Press Ctrl+C to stop.');
   }
 
   async runFullCheck() {

@@ -5,9 +5,13 @@
  * Creates custom audiences in Google Analytics using the Management API
  */
 
-const { google } = require('googleapis');
-const fs = require('fs');
-const path = require('path');
+import { google } from 'googleapis';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class GoogleAnalyticsAudienceCreator {
   constructor() {
@@ -435,8 +439,8 @@ Examples:
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 
-module.exports = GoogleAnalyticsAudienceCreator;
+export default GoogleAnalyticsAudienceCreator;

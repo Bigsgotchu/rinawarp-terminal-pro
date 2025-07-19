@@ -9,62 +9,62 @@ class EndpointDebugger {
         name: 'Main Landing Page',
         url: 'https://rinawarp-terminal.web.app/',
         expected: 200,
-        critical: true
+        critical: true,
       },
       {
         name: 'Pricing Page',
         url: 'https://rinawarp-terminal.web.app/pricing.html',
         expected: 200,
-        critical: true
+        critical: true,
       },
       {
         name: 'Pricing Page (Clean URL)',
         url: 'https://rinawarp-terminal.web.app/pricing',
         expected: [200, 301, 302],
-        critical: true
+        critical: true,
       },
       {
         name: 'Downloads Page',
         url: 'https://rinawarp-terminal.web.app/downloads.html',
         expected: 200,
-        critical: true
+        critical: true,
       },
       {
         name: 'Downloads Page (Clean URL)',
         url: 'https://rinawarp-terminal.web.app/downloads',
         expected: [200, 301, 302],
-        critical: true
+        critical: true,
       },
       {
         name: 'API Health',
         url: 'https://rinawarp-terminal.web.app/api/health',
         expected: 200,
-        critical: true
+        critical: true,
       },
       {
         name: 'API Download',
         url: 'https://rinawarp-terminal.web.app/api/download',
         expected: [200, 301, 302],
-        critical: true
+        critical: true,
       },
       {
         name: 'Case Studies',
         url: 'https://rinawarp-terminal.web.app/case-studies.html',
         expected: 200,
-        critical: false
+        critical: false,
       },
       {
         name: 'Beta Download',
         url: 'https://rinawarp-terminal.web.app/beta-download.html',
         expected: 200,
-        critical: true
+        critical: true,
       },
       {
         name: 'Docs',
         url: 'https://rinawarp-terminal.web.app/docs.html',
         expected: 200,
-        critical: false
-      }
+        critical: false,
+      },
     ];
   }
 
@@ -74,11 +74,13 @@ class EndpointDebugger {
       const response = await axios.get(endpoint.url, {
         timeout: 10000,
         maxRedirects: 5,
-        validateStatus: () => true // Accept all status codes
+        validateStatus: () => true, // Accept all status codes
       });
       const responseTime = Date.now() - startTime;
 
-      const expectedStatuses = Array.isArray(endpoint.expected) ? endpoint.expected : [endpoint.expected];
+      const expectedStatuses = Array.isArray(endpoint.expected)
+        ? endpoint.expected
+        : [endpoint.expected];
       const isHealthy = expectedStatuses.includes(response.status);
 
       return {
@@ -92,7 +94,7 @@ class EndpointDebugger {
         contentType: response.headers['content-type'],
         contentLength: response.headers['content-length'],
         server: response.headers['server'],
-        redirected: response.request.res.responseUrl !== endpoint.url
+        redirected: response.request.res.responseUrl !== endpoint.url,
       };
     } catch (error) {
       return {
@@ -102,7 +104,7 @@ class EndpointDebugger {
         responseTime: 0,
         healthy: false,
         critical: endpoint.critical,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -115,28 +117,35 @@ class EndpointDebugger {
 `);
 
     const results = [];
-    
+
     for (const endpoint of this.endpoints) {
       console.log(`Testing ${endpoint.name}...`);
       const result = await this.testEndpoint(endpoint);
       results.push(result);
-      
+
       if (result.healthy) {
-        const perfIcon = result.responseTime < 500 ? '🚀' : result.responseTime < 1000 ? '⚡' : '🐌';
+        const perfIcon =
+          result.responseTime < 500 ? '🚀' : result.responseTime < 1000 ? '⚡' : '🐌';
         const criticalIcon = result.critical ? '🔴' : '🟡';
-        console.log(`✅ ${perfIcon} ${criticalIcon} ${result.name} - ${result.status} (${result.responseTime}ms)`);
-        
+        console.log(
+          `✅ ${perfIcon} ${criticalIcon} ${result.name} - ${result.status} (${result.responseTime}ms)`
+        );
+
         if (result.redirected) {
           console.log(`   🔄 Redirected to: ${result.url}`);
         }
       } else {
-        console.log(`❌ ${result.name} - ${result.status} ${result.error ? `(${result.error})` : ''}`);
+        console.log(
+          `❌ ${result.name} - ${result.status} ${result.error ? `(${result.error})` : ''}`
+        );
       }
     }
 
-    console.log(`\n📊 SUMMARY`);
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    
+    console.log('\n📊 SUMMARY');
+    console.log(
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    );
+
     const total = results.length;
     const healthy = results.filter(r => r.healthy).length;
     const criticalFailed = results.filter(r => r.critical && !r.healthy).length;
@@ -149,24 +158,32 @@ class EndpointDebugger {
     console.log(`Average Response Time: ${Math.round(avgResponseTime)}ms`);
 
     if (criticalFailed > 0) {
-      console.log(`\n🚨 CRITICAL ISSUES DETECTED`);
-      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-      
-      results.filter(r => r.critical && !r.healthy).forEach(result => {
-        console.log(`💥 ${result.name}: ${result.status} ${result.error ? `- ${result.error}` : ''}`);
-      });
+      console.log('\n🚨 CRITICAL ISSUES DETECTED');
+      console.log(
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      );
+
+      results
+        .filter(r => r.critical && !r.healthy)
+        .forEach(result => {
+          console.log(
+            `💥 ${result.name}: ${result.status} ${result.error ? `- ${result.error}` : ''}`
+          );
+        });
     }
 
-    console.log(`\n🔧 RECOMMENDATIONS`);
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    
+    console.log('\n🔧 RECOMMENDATIONS');
+    console.log(
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    );
+
     if (criticalFailed > 0) {
       console.log(`🔴 ${criticalFailed} critical endpoints are failing - revenue impact detected!`);
-      console.log(`   Run: firebase deploy --only hosting`);
-      console.log(`   Then: npm run monitor:revenue:start`);
+      console.log('   Run: firebase deploy --only hosting');
+      console.log('   Then: npm run monitor:revenue:start');
     } else {
-      console.log(`✅ All critical endpoints are healthy!`);
-      console.log(`   Revenue pipeline is operational 💸`);
+      console.log('✅ All critical endpoints are healthy!');
+      console.log('   Revenue pipeline is operational 💸');
     }
 
     return results;

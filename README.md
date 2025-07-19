@@ -222,6 +222,82 @@ Settings → Themes → Choose from 4 beautiful themes
 - **🗂️ Git Integration**: Real-time branch and status information
 - **⚡ Performance Optimized**: Debounced resizing and efficient rendering
 - **⌨️ Keyboard Shortcuts**: Comprehensive hotkey support
+- **🎯 Visual Overlays**: Rich notification and status overlay system
+
+### Visual Overlays System
+
+RinaWarp Terminal includes a powerful visual overlay system for notifications, status updates, and user feedback:
+
+#### Basic Overlay Types
+- **Success**: Confirmation messages with green styling
+- **Warning**: Alert messages with amber styling
+- **Error**: Error notifications with red styling
+- **Loading**: Progress indicators with spinner animation
+
+#### Advanced Features
+- **Custom Positioning**: Top, bottom, left, right, or center placement
+- **Styling Options**: Custom colors, fonts, and animations
+- **Stack Management**: Queue or stack multiple notifications
+- **Error Recovery**: Built-in retry functionality for failed operations
+
+#### Usage Example
+```javascript
+const { showSuccess, showError, createOverlay } = require('@yourorg/visual-overlays');
+
+// Basic usage
+showSuccess('Operation completed!');
+showError('Connection failed');
+
+// Custom overlay
+createOverlay({
+  message: 'Custom notification',
+  position: 'top-right',
+  backgroundColor: '#2a2a2a',
+  textColor: '#ffffff',
+  duration: 3000
+});
+```
+
+#### Error Handling
+```javascript
+try {
+  await someOperation();
+  showSuccess('Operation successful!');
+} catch (error) {
+  createOverlay({
+    message: 'Operation failed',
+    type: 'error',
+    showRetryButton: true,
+    onRetry: () => retryOperation()
+  });
+}
+```
+
+#### Troubleshooting Guide
+
+**Common Issues:**
+1. **Overlays not visible**
+   - Check z-index conflicts
+   - Verify container element exists
+   - Ensure styles are properly loaded
+
+2. **Animation issues**
+   - Check browser compatibility
+   - Verify CSS animation classes
+   - Clear any animation conflicts
+
+3. **Multiple overlays conflict**
+   - Use stack behavior configuration
+   - Adjust timing and duration
+   - Check overlay queue settings
+
+4. **Custom styling not applying**
+   - Verify style property names
+   - Check CSS specificity
+   - Ensure theme compatibility
+
+#### Demo Script
+A comprehensive demo script is available at `scripts/demo-visual-overlays.js` showcasing all features and handling scenarios.
 
 ## 🚀 Installation
 
@@ -268,6 +344,15 @@ chmod +x RinaWarp-Terminal-Linux.AppImage
 **Linux:**
 - Snap: `sudo snap install rinawarp-terminal`
 - Flatpak: `flatpak install flathub com.rinawarp.Terminal`
+
+### Demo Tools
+
+To explore and test RinaWarp Terminal features:
+
+```bash
+# Run the visual overlays demo
+node scripts/demo-visual-overlays.js
+```
 
 ### Development Build (Authorized Access Only)
 

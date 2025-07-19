@@ -56,7 +56,7 @@ class PluginSystem {
     return `<div>
              <h3>Plugin Manager</h3>
              <div id="plugin-list"></div>
-             <button onclick="loadPlugin()">Load Plugin</button>
+             <button onclick="_loadPlugin()">Load Plugin</button>
            </div>`;
   }
 }
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.insertAdjacentHTML('beforeend', window.RinaWarpPluginSystem.getPluginUI());
 });
 
-function loadPlugin() {
+function _loadPlugin() {
   const pluginName = prompt('Enter plugin name:');
   // Simulate plugin loading
   if (pluginName) {

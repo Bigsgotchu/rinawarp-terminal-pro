@@ -1,0 +1,179 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.terminal-container {
+  width: 700px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.terminal-header {
+  background: #333;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #444;
+}
+
+.terminal-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.terminal-buttons span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.close {
+  background: #ff5f57;
+}
+.minimize {
+  background: #ffbd2e;
+}
+.maximize {
+  background: #28ca42;
+}
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.terminal-body {
+  padding: 20px;
+  background: #1e1e1e;
+  min-height: 300px;
+}
+
+.command-line {
+  color: #00ff41;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.prompt {
+  color: #667eea;
+  font-weight: bold;
+}
+
+.command {
+  color: #00ff41;
+}
+
+.status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.status-line {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.status-symbol {
+  font-size: 18px;
+  min-width: 24px;
+}
+
+.status-message {
+  color: #fff;
+  font-size: 14px;
+  flex: 1;
+}
+
+.progress-bar {
+  width: 200px;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.8s ease-out;
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px currentColor;
+  }
+  to {
+    box-shadow:
+      0 0 15px currentColor,
+      0 0 25px currentColor;
+  }
+}
+
+.final-message {
+  display: none;
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-banner {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.time-saved {
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.highlight {
+  color: #00ff41;
+  font-weight: bold;
+}

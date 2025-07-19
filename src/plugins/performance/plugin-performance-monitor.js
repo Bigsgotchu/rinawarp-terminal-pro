@@ -75,7 +75,7 @@ export class PluginPerformanceMonitor {
   }
 
   collectMetrics() {
-    for (const [pluginName, plugin] of this.pluginManager.plugins) {
+    for (const [pluginName, _plugin] of this.pluginManager.plugins) {
       const metrics = this.metrics.get(pluginName);
       if (!metrics) continue;
 
@@ -151,13 +151,13 @@ export class PluginPerformanceMonitor {
     console.warn(`[Performance Monitor] ${pluginName}: ${message}`);
   }
 
-  getPluginMemoryUsage(pluginName) {
+  getPluginMemoryUsage(_pluginName) {
     // Simulate memory usage tracking
     // In a real implementation, this would use actual memory profiling
     return Math.random() * 30 * 1024 * 1024; // Random value up to 30MB
   }
 
-  getPluginCPUUsage(pluginName) {
+  getPluginCPUUsage(_pluginName) {
     // Simulate CPU usage tracking
     // In a real implementation, this would use actual CPU profiling
     return Math.random() * 60; // Random value up to 60%

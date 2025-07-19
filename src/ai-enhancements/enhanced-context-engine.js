@@ -536,22 +536,22 @@ export class EnhancedContextEngine {
     return true;
   }
 
-  async getDirectoryCompletions(partial) {
+  async getDirectoryCompletions(_partial) {
     // Get directory completions
     return [];
   }
 
-  async getFlagCompletions(command, partial) {
+  async getFlagCompletions(_command, _partial) {
     // Get flag completions for command
     return [];
   }
 
-  async getCommandSuggestions(partial) {
+  async getCommandSuggestions(_partial) {
     // Get command suggestions
     return [];
   }
 
-  async getProjectSuggestions(input) {
+  async getProjectSuggestions(_input) {
     // Get project-specific suggestions
     return [];
   }
@@ -561,17 +561,17 @@ export class EnhancedContextEngine {
     return [];
   }
 
-  async getGitWorkflowSuggestions(input) {
+  async getGitWorkflowSuggestions(_input) {
     // Get git workflow suggestions
     return [];
   }
 
-  async getNodeWorkflowSuggestions(input) {
+  async getNodeWorkflowSuggestions(_input) {
     // Get Node.js workflow suggestions
     return [];
   }
 
-  async getDockerWorkflowSuggestions(input) {
+  async getDockerWorkflowSuggestions(_input) {
     // Get Docker workflow suggestions
     return [];
   }
@@ -584,23 +584,23 @@ export class EnhancedContextEngine {
     };
   }
 
-  async suggestOptimizations(input) {
+  async suggestOptimizations(_input) {
     return [];
   }
 
-  async getIntentSuggestions(intent, input) {
+  async getIntentSuggestions(_intent, _input) {
     return [];
   }
 
-  findSimilarCommands(command) {
+  findSimilarCommands(_command) {
     return [];
   }
 
-  getCommonMistakes(command) {
+  getCommonMistakes(_command) {
     return [];
   }
 
-  suggestCommandOptimizations(input) {
+  suggestCommandOptimizations(_input) {
     return [];
   }
 }

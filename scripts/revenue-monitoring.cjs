@@ -138,7 +138,7 @@ class RevenueCriticalMonitoring {
 
   async checkRevenueCriticalEndpoints() {
     console.log(`\\n💰 [${new Date().toISOString()}] Checking revenue-critical endpoints...`);
-    
+
     const results = [];
     let totalRevenueImpact = 0;
     let failedRevenueImpact = 0;
@@ -153,10 +153,10 @@ class RevenueCriticalMonitoring {
           validateStatus: () => true,
         });
         const responseTime = Date.now() - startTime;
-        
+
         const isHealthy = endpoint.expectedStatus.includes(response.status);
         const impactValue = this.getRevenueImpactValue(endpoint.revenueImpact);
-        
+
         totalRevenueImpact += impactValue;
         if (!isHealthy) {
           failedRevenueImpact += impactValue;
@@ -176,16 +176,19 @@ class RevenueCriticalMonitoring {
 
         if (isHealthy) {
           const performanceIcon = responseTime < 1000 ? '🚀' : responseTime < 3000 ? '⚡' : '🐌';
-          console.log(`✅ ${performanceIcon} [${endpoint.name}] ${response.status} | ${responseTime}ms | ${endpoint.revenueImpact} impact`);
+          console.log(
+            `✅ ${performanceIcon} [${endpoint.name}] ${response.status} | ${responseTime}ms | ${endpoint.revenueImpact} impact`
+          );
         } else {
-          console.error(`❌ 💸 [${endpoint.name}] FAILED ${response.status} | ${responseTime}ms | ${endpoint.revenueImpact} REVENUE IMPACT`);
-          
+          console.error(
+            `❌ 💸 [${endpoint.name}] FAILED ${response.status} | ${responseTime}ms | ${endpoint.revenueImpact} REVENUE IMPACT`
+          );
+
           await this.triggerRevenueAlert(endpoint, result);
         }
 
         results.push(result);
         this.updateMetrics(result);
-        
       } catch (error) {
         const impactValue = this.getRevenueImpactValue(endpoint.revenueImpact);
         totalRevenueImpact += impactValue;
@@ -204,8 +207,10 @@ class RevenueCriticalMonitoring {
           timestamp: new Date().toISOString(),
         };
 
-        console.error(`💥 💸 [${endpoint.name}] CRITICAL FAILURE: ${error.message} | ${endpoint.revenueImpact} REVENUE IMPACT`);
-        
+        console.error(
+          `💥 💸 [${endpoint.name}] CRITICAL FAILURE: ${error.message} | ${endpoint.revenueImpact} REVENUE IMPACT`
+        );
+
         await this.triggerRevenueAlert(endpoint, result);
         results.push(result);
         this.updateMetrics(result);
@@ -213,14 +218,16 @@ class RevenueCriticalMonitoring {
     }
 
     // Calculate revenue impact score
-    const revenueImpactScore = totalRevenueImpact > 0 ? 
-      Math.round(((totalRevenueImpact - failedRevenueImpact) / totalRevenueImpact) * 100) : 100;
-    
+    const revenueImpactScore =
+      totalRevenueImpact > 0
+        ? Math.round(((totalRevenueImpact - failedRevenueImpact) / totalRevenueImpact) * 100)
+        : 100;
+
     this.monitoringState.metrics.revenueImpactScore = revenueImpactScore;
 
     console.log(`\\n📊 Revenue Impact Score: ${revenueImpactScore}%`);
     if (revenueImpactScore < 80) {
-      console.log(`🚨 WARNING: Revenue impact score below 80%!`);
+      console.log('🚨 WARNING: Revenue impact score below 80%!');
     }
 
     this.monitoringState.history.push({
@@ -246,7 +253,7 @@ class RevenueCriticalMonitoring {
 
   async triggerRevenueAlert(endpoint, result) {
     const escalationRule = this.escalationRules[endpoint.revenueImpact];
-    
+
     const alert = {
       id: Date.now().toString(),
       type: 'REVENUE_CRITICAL',
@@ -297,7 +304,7 @@ Time: ${alert.timestamp}
 
   async escalateAlert(alert) {
     alert.escalated = true;
-    
+
     const message = `
 🔥 ESCALATED REVENUE ALERT 🔥
 Service: ${alert.endpoint}
@@ -333,23 +340,28 @@ This alert has been escalated due to no acknowledgment.
       await this.sendEmailAlert(message, priority);
     }
 
-    console.log(`📧 Alert sent via configured channels`);
+    console.log('📧 Alert sent via configured channels');
   }
 
   async sendSlackAlert(message, priority) {
     try {
-      const color = priority === 'escalated' ? '#ff0000' : priority === 'immediate' ? '#ff9900' : '#ffff00';
-      
+      const color =
+        priority === 'escalated' ? '#ff0000' : priority === 'immediate' ? '#ff9900' : '#ffff00';
+
       await axios.post(this.alertChannels.slack.webhook, {
         text: message,
-        attachments: [{
-          color,
-          fields: [{
-            title: 'Priority',
-            value: priority,
-            short: true
-          }]
-        }]
+        attachments: [
+          {
+            color,
+            fields: [
+              {
+                title: 'Priority',
+                value: priority,
+                short: true,
+              },
+            ],
+          },
+        ],
       });
     } catch (error) {
       console.error(`Failed to send Slack alert: ${error.message}`);
@@ -358,22 +370,25 @@ This alert has been escalated due to no acknowledgment.
 
   async sendDiscordAlert(message, priority) {
     try {
-      const color = priority === 'escalated' ? 16711680 : priority === 'immediate' ? 16753920 : 16777215;
-      
+      const color =
+        priority === 'escalated' ? 16711680 : priority === 'immediate' ? 16753920 : 16777215;
+
       await axios.post(this.alertChannels.discord.webhook, {
-        embeds: [{
-          title: '🚨 Revenue Critical Alert',
-          description: message,
-          color,
-          timestamp: new Date().toISOString(),
-        }]
+        embeds: [
+          {
+            title: '🚨 Revenue Critical Alert',
+            description: message,
+            color,
+            timestamp: new Date().toISOString(),
+          },
+        ],
       });
     } catch (error) {
       console.error(`Failed to send Discord alert: ${error.message}`);
     }
   }
 
-  async sendEmailAlert(message, priority) {
+  async sendEmailAlert(message, _priority) {
     // Implement email sending logic here
     // You can use services like SendGrid, Nodemailer, etc.
     console.log(`📧 Email alert would be sent: ${message}`);
@@ -399,25 +414,28 @@ This alert has been escalated due to no acknowledgment.
 
   updateMetrics(result) {
     this.monitoringState.metrics.totalChecks++;
-    
+
     if (!result.healthy) {
       this.monitoringState.metrics.failedChecks++;
       this.monitoringState.metrics.lastDowntime = new Date().toISOString();
     }
 
     // Update uptime
-    this.monitoringState.metrics.uptime = 
-      ((this.monitoringState.metrics.totalChecks - this.monitoringState.metrics.failedChecks) / 
-       this.monitoringState.metrics.totalChecks) * 100;
+    this.monitoringState.metrics.uptime =
+      ((this.monitoringState.metrics.totalChecks - this.monitoringState.metrics.failedChecks) /
+        this.monitoringState.metrics.totalChecks) *
+      100;
 
     // Update average response time
     const total = this.monitoringState.metrics.totalChecks;
     const current = this.monitoringState.metrics.avgResponseTime;
-    this.monitoringState.metrics.avgResponseTime = 
-      Math.round((current * (total - 1) + result.responseTime) / total);
+    this.monitoringState.metrics.avgResponseTime = Math.round(
+      (current * (total - 1) + result.responseTime) / total
+    );
   }
 
   showRevenueDashboard() {
+    /* eslint-disable-next-line no-console */
     console.clear();
     console.log(`
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
@@ -434,21 +452,29 @@ This alert has been escalated due to no acknowledgment.
 
     if (this.monitoringState.history.length > 0) {
       const latest = this.monitoringState.history[this.monitoringState.history.length - 1];
-      console.log(`\\n💼 Revenue-Critical Endpoints Status:`);
-      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-      
+      console.log('\\n💼 Revenue-Critical Endpoints Status:');
+      console.log(
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      );
+
       latest.results.forEach(result => {
         const statusIcon = result.healthy ? '✅' : '❌';
-        const impactIcon = result.revenueImpact === 'HIGH' ? '🔴' : result.revenueImpact === 'MEDIUM' ? '🟡' : '🟢';
-        const perfIcon = result.responseTime < 1000 ? '🚀' : result.responseTime < 3000 ? '⚡' : '🐌';
-        console.log(`${statusIcon} ${impactIcon} ${perfIcon} ${result.name.padEnd(20)} | ${result.status.toString().padEnd(3)} | ${result.responseTime}ms`);
+        const impactIcon =
+          result.revenueImpact === 'HIGH' ? '🔴' : result.revenueImpact === 'MEDIUM' ? '🟡' : '🟢';
+        const perfIcon =
+          result.responseTime < 1000 ? '🚀' : result.responseTime < 3000 ? '⚡' : '🐌';
+        console.log(
+          `${statusIcon} ${impactIcon} ${perfIcon} ${result.name.padEnd(20)} | ${result.status.toString().padEnd(3)} | ${result.responseTime}ms`
+        );
       });
     }
 
     if (this.monitoringState.alerts.length > 0) {
-      console.log(`\\n🚨 Revenue-Critical Alerts:`);
-      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-      
+      console.log('\\n🚨 Revenue-Critical Alerts:');
+      console.log(
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      );
+
       this.monitoringState.alerts.slice(-3).forEach(alert => {
         const ackIcon = alert.acknowledged ? '✅' : '❌';
         const escIcon = alert.escalated ? '🔥' : '🚨';
@@ -458,9 +484,11 @@ This alert has been escalated due to no acknowledgment.
   }
 
   async startRevenueMonitoring(interval = 30000) {
-    console.log(`💰 Starting revenue-critical monitoring system...`);
-    console.log(`📊 Monitoring ${this.revenueCriticalEndpoints.length} revenue-critical endpoints every ${interval / 1000} seconds`);
-    
+    console.log('💰 Starting revenue-critical monitoring system...');
+    console.log(
+      `📊 Monitoring ${this.revenueCriticalEndpoints.length} revenue-critical endpoints every ${interval / 1000} seconds`
+    );
+
     this.monitoringState.isRunning = true;
     this.saveState();
 
@@ -475,24 +503,27 @@ This alert has been escalated due to no acknowledgment.
         this.showRevenueDashboard();
       } catch (error) {
         console.error(`❌ Revenue monitoring error: ${error.message}`);
-        await this.triggerRevenueAlert({ 
-          name: 'Monitoring System', 
-          revenueImpact: 'HIGH',
-          description: 'Revenue monitoring system failure'
-        }, { error: error.message });
+        await this.triggerRevenueAlert(
+          {
+            name: 'Monitoring System',
+            revenueImpact: 'HIGH',
+            description: 'Revenue monitoring system failure',
+          },
+          { error: error.message }
+        );
       }
     }, interval);
 
     // Handle graceful shutdown
     process.on('SIGINT', () => {
-      console.log(`\\n⏹️  Stopping revenue monitoring system...`);
+      console.log('\\n⏹️  Stopping revenue monitoring system...');
       clearInterval(monitoringInterval);
       this.monitoringState.isRunning = false;
       this.saveState();
       process.exit(0);
     });
 
-    console.log(`✅ Revenue monitoring system started. Press Ctrl+C to stop.`);
+    console.log('✅ Revenue monitoring system started. Press Ctrl+C to stop.');
   }
 
   loadState() {

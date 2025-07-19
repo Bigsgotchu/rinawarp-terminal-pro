@@ -4,7 +4,7 @@ const https = require('https');
 const dns = require('dns');
 const { promisify } = require('util');
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 const resolveTxt = promisify(dns.resolveTxt);
 const resolveA = promisify(dns.resolve4);

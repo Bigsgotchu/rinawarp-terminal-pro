@@ -6,7 +6,7 @@
  */
 
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 const fixes = [
   { from: /bigsgotchu\/rinawarp-terminal/gi, to: 'Rinawarp-Terminal/rinawarp-terminal' },
@@ -15,7 +15,7 @@ const fixes = [
   { from: /https?:\/\/status\.rinawarp\.com/gi, to: 'https://status.rinawarp-terminal.com' },
   { from: /api-support@rinawarp\.com/gi, to: 'api-support@rinawarp-terminal.com' },
   { from: /github\.com\/Bigsgotchu/gi, to: 'github.com/Rinawarp-Terminal' },
-  { from: /v1\.0\.8/gi, to: 'v1.0.19' }
+  { from: /v1\.0\.8/gi, to: 'v1.0.19' },
 ];
 
 const filesToFix = [
@@ -73,7 +73,7 @@ const filesToFix = [
   'BETA_EMAIL_PLAIN_TEXT.txt',
   'scripts/monitor-workflows.cjs',
   'scripts/monitor-live.cjs',
-  'scripts/check-workflows.cjs'
+  'scripts/check-workflows.cjs',
 ];
 
 console.log('🔧 Applying automated URL fixes...');
@@ -85,7 +85,7 @@ for (const file of filesToFix) {
   try {
     let content = fs.readFileSync(file, 'utf8');
     let fileFixed = false;
-    
+
     for (const fix of fixes) {
       const matches = content.match(fix.from);
       if (matches) {
@@ -94,13 +94,12 @@ for (const file of filesToFix) {
         fileFixed = true;
       }
     }
-    
+
     if (fileFixed) {
       fs.writeFileSync(file, content, 'utf8');
       fixedFiles++;
       console.log(`✅ Fixed: ${file}`);
     }
-    
   } catch (error) {
     console.warn(`⚠️ Could not fix file: ${file} - ${error.message}`);
   }

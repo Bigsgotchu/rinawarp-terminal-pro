@@ -6,6 +6,25 @@
  */
 
 import errorTriageSystem from '../utils/error-triage-system.js';
+import { HeartbeatMonitor } from '../overlays/HeartbeatMonitor.js';
+import { SystemVitals } from '../overlays/SystemVitals.js';
+import { VoiceNarrator } from '../overlays/VoiceNarrator.js';
+
+// Performance monitoring
+const PERFORMANCE_THRESHOLD = 50; // ms
+const ANIMATION_DURATION = 300; // ms
+
+// Configuration defaults
+const DEFAULT_CONFIG = {
+  overlays: {
+    heartbeat: true,
+    systemVitals: true,
+    voiceNarrator: false,
+  },
+  updateInterval: 2000,
+  animations: true,
+  performanceMode: 'auto',
+};
 
 class ErrorTriageDashboard {
   constructor() {
@@ -13,6 +32,23 @@ class ErrorTriageDashboard {
     this.updateInterval = null;
     this.errorHistory = [];
     this.maxHistorySize = 100;
+    this.config = { ...DEFAULT_CONFIG };
+
+    // Initialize overlay modules
+    this.overlays = {
+      heartbeat: new HeartbeatMonitor(),
+      systemVitals: new SystemVitals(),
+      voiceNarrator: new VoiceNarrator(),
+    };
+
+    // Performance tracking
+    this.lastUpdateTime = 0;
+    this.updateTimes = [];
+    this.maxUpdateTimes = 10;
+
+    // Animation states
+    this.animationFrameId = null;
+    this.transitionState = null;
 
     console.log('🩺 Error Triage Dashboard initialized');
   }
@@ -21,8 +57,13 @@ class ErrorTriageDashboard {
     if (this.isVisible) return;
 
     this.createDashboard();
+    this.startOverlays();
     this.startRealTimeUpdates();
     this.isVisible = true;
+
+    if (this.config.animations) {
+      this.animateDashboard('show');
+    }
 
     console.log('📊 Error Triage Dashboard shown');
   }
@@ -31,7 +72,14 @@ class ErrorTriageDashboard {
     if (!this.isVisible) return;
 
     this.stopRealTimeUpdates();
-    this.removeDashboard();
+    this.stopOverlays();
+
+    if (this.config.animations) {
+      this.animateDashboard('hide');
+    } else {
+      this.removeDashboard();
+    }
+
     this.isVisible = false;
 
     console.log('📊 Error Triage Dashboard hidden');
@@ -513,8 +561,17 @@ class ErrorTriageDashboard {
 
   startRealTimeUpdates() {
     this.updateInterval = setInterval(() => {
+      const startTime = performance.now();
+
       this.updateDashboard();
-    }, 2000); // Update every 2 seconds
+
+      // Track performance
+      const updateTime = performance.now() - startTime;
+      this.trackUpdatePerformance(updateTime);
+
+      // Adjust update frequency based on performance
+      this.adjustUpdateFrequency();
+    }, this.config.updateInterval);
   }
 
   stopRealTimeUpdates() {
@@ -525,10 +582,26 @@ class ErrorTriageDashboard {
   }
 
   updateDashboard() {
-    this.updateHealthStatus();
-    this.updateErrorSummary();
-    this.updateRecentErrors();
-    this.updateMetrics();
+    try {
+      this.updateHealthStatus();
+      this.updateErrorSummary();
+      this.updateRecentErrors();
+      this.updateMetrics();
+
+      // Update overlay modules
+      if (this.config.overlays.heartbeat) {
+        this.overlays.heartbeat.update();
+      }
+      if (this.config.overlays.systemVitals) {
+        this.overlays.systemVitals.update();
+      }
+      if (this.config.overlays.voiceNarrator) {
+        this.overlays.voiceNarrator.update();
+      }
+    } catch (error) {
+      console.error('Error updating dashboard:', error);
+      this.handleUpdateError(error);
+    }
   }
 
   updateHealthStatus() {
@@ -599,7 +672,7 @@ class ErrorTriageDashboard {
 
   updateMetrics() {
     const healthStatus = errorTriageSystem.getHealthStatus();
-    const summary = errorTriageSystem.getErrorSummary();
+    const _summary = errorTriageSystem.getErrorSummary();
 
     // Update response time (mock calculation)
     const responseTime = Math.floor(Math.random() * 50) + 10;
@@ -719,6 +792,161 @@ class ErrorTriageDashboard {
       healthStatus: errorTriageSystem.getHealthStatus(),
       errorSummary: errorTriageSystem.getErrorSummary(),
     };
+  }
+
+  // Overlay management
+  startOverlays() {
+    Object.entries(this.overlays).forEach(([key, overlay]) => {
+      if (this.config.overlays[key]) {
+        overlay.start();
+      }
+    });
+  }
+
+  stopOverlays() {
+    Object.values(this.overlays).forEach(overlay => {
+      overlay.stop();
+    });
+  }
+
+  pauseOverlays() {
+    Object.values(this.overlays).forEach(overlay => {
+      if (typeof overlay.pause === 'function') {
+        overlay.pause();
+      }
+    });
+  }
+
+  resumeOverlays() {
+    Object.values(this.overlays).forEach(overlay => {
+      if (typeof overlay.resume === 'function') {
+        overlay.resume();
+      }
+    });
+  }
+
+  // Performance monitoring
+  trackUpdatePerformance(updateTime) {
+    this.updateTimes.push(updateTime);
+    if (this.updateTimes.length > this.maxUpdateTimes) {
+      this.updateTimes.shift();
+    }
+  }
+
+  adjustUpdateFrequency() {
+    if (this.config.performanceMode !== 'auto') return;
+
+    const avgUpdateTime = this.updateTimes.reduce((a, b) => a + b, 0) / this.updateTimes.length;
+
+    if (avgUpdateTime > PERFORMANCE_THRESHOLD) {
+      this.config.updateInterval = Math.min(5000, this.config.updateInterval + 500);
+      this.restartUpdates();
+    } else if (avgUpdateTime < PERFORMANCE_THRESHOLD / 2 && this.config.updateInterval > 2000) {
+      this.config.updateInterval = Math.max(2000, this.config.updateInterval - 500);
+      this.restartUpdates();
+    }
+  }
+
+  restartUpdates() {
+    this.stopRealTimeUpdates();
+    this.startRealTimeUpdates();
+  }
+
+  // Animation management
+  animateDashboard(action) {
+    const dashboard = document.getElementById('error-triage-dashboard');
+    if (!dashboard) return;
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    const startTime = performance.now();
+    const initialOpacity = action === 'show' ? 0 : 1;
+    const targetOpacity = action === 'show' ? 1 : 0;
+
+    dashboard.style.opacity = initialOpacity;
+
+    const animate = currentTime => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
+
+      dashboard.style.opacity = initialOpacity + (targetOpacity - initialOpacity) * progress;
+
+      if (progress < 1) {
+        this.animationFrameId = requestAnimationFrame(animate);
+      } else if (action === 'hide') {
+        this.removeDashboard();
+      }
+    };
+
+    this.animationFrameId = requestAnimationFrame(animate);
+  }
+
+  // Configuration interface
+  updateConfig(newConfig) {
+    const oldConfig = { ...this.config };
+    this.config = {
+      ...this.config,
+      ...newConfig,
+      overlays: { ...this.config.overlays, ...newConfig.overlays },
+    };
+
+    // Handle overlay changes
+    if (newConfig.overlays) {
+      Object.entries(newConfig.overlays).forEach(([key, enabled]) => {
+        if (enabled !== oldConfig.overlays[key]) {
+          if (enabled) {
+            this.overlays[key].start();
+          } else {
+            this.overlays[key].stop();
+          }
+        }
+      });
+    }
+
+    // Handle update interval changes
+    if (newConfig.updateInterval && newConfig.updateInterval !== oldConfig.updateInterval) {
+      this.restartUpdates();
+    }
+
+    return this.config;
+  }
+
+  getConfig() {
+    return { ...this.config };
+  }
+
+  // Error handling
+  handleUpdateError(error) {
+    this.reportError({
+      message: `Dashboard update failed: ${error.message}`,
+      category: 'E300',
+      subsystem: 'dashboard',
+    });
+
+    // Attempt recovery
+    this.pauseOverlays();
+    setTimeout(() => {
+      this.resumeOverlays();
+    }, 5000);
+  }
+
+  // Cleanup
+  cleanup() {
+    this.stopRealTimeUpdates();
+    this.stopOverlays();
+    this.removeDashboard();
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    // Reset state
+    this.isVisible = false;
+    this.errorHistory = [];
+    this.updateTimes = [];
+    this.config = { ...DEFAULT_CONFIG };
   }
 }
 

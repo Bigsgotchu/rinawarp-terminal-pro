@@ -1,7 +1,7 @@
 import { MonitoringClient } from '@google-cloud/monitoring';
 import { Logging } from '@google-cloud/logging';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { _join } from 'path';
 
 /**
  * Google Cloud Monitoring Configuration

@@ -7,7 +7,7 @@
  */
 
 // Speed Insights removed - not compatible with Electron applications
-const speedInsights = null;
+const _speedInsights = null;
 
 export class EnhancedPerformanceMonitor {
   constructor(terminal) {
@@ -127,7 +127,7 @@ export class EnhancedPerformanceMonitor {
       return result;
     } catch (error) {
       const endTime = performance.now();
-      const responseTime = endTime - startTime;
+      const _responseTime = endTime - startTime;
 
       // Analytics tracking removed - not compatible with Electron
 

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Feature Highlights</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-container {
+            width: 400px;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .carousel-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s ease-in-out;
+        }
+        
+        .carousel-slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .feature-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .feature-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .feature-description {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #e0e0e0;
+            margin-bottom: 40px;
+        }
+        
+        .feature-workflow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #ccc;
+        }
+        
+        .workflow-step {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .carousel-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .indicator.active {
+            background: white;
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="carousel-container">
+        
+            <div class="carousel-slide active" 
+                 style="background: linear-gradient(135deg, #667eea 0%, rgb(71, 88, 163) 100%);">
+                <div class="feature-icon">🔐</div>
+                <h2 class="feature-title">Secret Sync Checker</h2>
+                <p class="feature-description">Validates and syncs secrets across all platforms</p>
+                <div class="feature-workflow">
+                    <span class="workflow-step">Setup</span>
+                    <span>→</span>
+                    <span class="workflow-step">Run</span>
+                    <span>→</span>
+                    <span class="workflow-step">Success</span>
+                </div>
+            </div>
+        
+            <div class="carousel-slide " 
+                 style="background: linear-gradient(135deg, #ff6b35 0%, rgb(178, 74, 37) 100%);">
+                <div class="feature-icon">🔥</div>
+                <h2 class="feature-title">Firebase Health Auditor</h2>
+                <p class="feature-description">Real-time Firebase configuration monitoring</p>
+                <div class="feature-workflow">
+                    <span class="workflow-step">Setup</span>
+                    <span>→</span>
+                    <span class="workflow-step">Run</span>
+                    <span>→</span>
+                    <span class="workflow-step">Success</span>
+                </div>
+            </div>
+        
+            <div class="carousel-slide " 
+                 style="background: linear-gradient(135deg, #4ecdc4 0%, rgb(54, 143, 137) 100%);">
+                <div class="feature-icon">📊</div>
+                <h2 class="feature-title">Dashboard Glowing Status</h2>
+                <p class="feature-description">Beautiful visual indicators for system health</p>
+                <div class="feature-workflow">
+                    <span class="workflow-step">Setup</span>
+                    <span>→</span>
+                    <span class="workflow-step">Run</span>
+                    <span>→</span>
+                    <span class="workflow-step">Success</span>
+                </div>
+            </div>
+        
+            <div class="carousel-slide " 
+                 style="background: linear-gradient(135deg, #45b7d1 0%, rgb(48, 128, 146) 100%);">
+                <div class="feature-icon">🎤</div>
+                <h2 class="feature-title">Voice-Triggered Deploys</h2>
+                <p class="feature-description">Deploy with simple voice commands</p>
+                <div class="feature-workflow">
+                    <span class="workflow-step">Setup</span>
+                    <span>→</span>
+                    <span class="workflow-step">Run</span>
+                    <span>→</span>
+                    <span class="workflow-step">Success</span>
+                </div>
+            </div>
+        
+        
+        <div class="carousel-indicators">
+            
+                <div class="indicator active" data-slide="0"></div>
+            
+                <div class="indicator " data-slide="1"></div>
+            
+                <div class="indicator " data-slide="2"></div>
+            
+                <div class="indicator " data-slide="3"></div>
+            
+        </div>
+    </div>
+    
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        const totalSlides = slides.length;
+        
+        function showSlide(index) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            slides[index].classList.add('active');
+            indicators[index].classList.add('active');
+        }
+        
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+        
+        // Auto advance slides
+        setInterval(nextSlide, 3000);
+        
+        // Click indicators to navigate
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                currentSlide = index;
+                showSlide(currentSlide);
+            });
+        });
+    </script>
+</body>
+</html>

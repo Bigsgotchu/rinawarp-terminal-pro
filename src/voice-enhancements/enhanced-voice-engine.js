@@ -364,7 +364,7 @@ export class EnhancedVoiceEngine {
     return null;
   }
 
-  async processWithContext(transcript, confidence) {
+  async processWithContext(transcript, _confidence) {
     // Use context to improve recognition
     const context = this.contextEngine;
 

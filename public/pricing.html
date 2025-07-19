@@ -646,7 +646,7 @@
         async function initializeStripe() {
             try {
                 // Fetch Stripe configuration from server
-                const response = await fetch('/api/stripe-config');
+                const response = await fetch('/api/stripe-config.json');
                 if (!response.ok) {
                     throw new Error('Failed to load Stripe configuration');
                 }
@@ -655,6 +655,13 @@
                 
                 if (!stripeConfig.publishableKey) {
                     throw new Error('Stripe publishable key not configured');
+                }
+                
+                // For demo/test purposes, check if it's a placeholder key
+                if (stripeConfig.publishableKey.includes('51234567890abcdef')) {
+                    console.log('🔧 Demo mode: Using placeholder Stripe configuration');
+                    showInfo('Demo mode: Payment buttons will show checkout simulation.');
+                    return;
                 }
                 
                 stripe = Stripe(stripeConfig.publishableKey);
@@ -666,10 +673,11 @@
             }
         }
         
-        // Purchase plan function
+        // Purchase plan function with multiple routing strategies
         async function purchasePlan(planType) {
-            if (!stripe) {
-                showError('Payment system not ready. Please refresh and try again.');
+            if (planType === 'free') {
+                // Redirect to download page for free plan
+                window.location.href = '/api/download';
                 return;
             }
             
@@ -681,50 +689,120 @@
             button.classList.add('loading');
             
             try {
-                // Get the appropriate price ID based on plan type
-                const priceId = getPriceId(planType);
+                // Try multiple routing strategies
+                const success = await tryMultipleRoutes(planType, button, originalText);
                 
-                if (!priceId) {
-                    throw new Error(`Price not configured for ${planType} plan`);
-                }
-                
-                // Create checkout session
-                const response = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        priceId: priceId,
-                        successUrl: window.location.origin + '/success.html?plan=' + planType,
-                        cancelUrl: window.location.href
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to create checkout session');
-                }
-                
-                const session = await response.json();
-                
-                // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.sessionId
-                });
-                
-                if (result.error) {
-                    throw new Error(result.error.message);
+                if (!success) {
+                    // Fallback to direct payment link
+                    await handlePaymentLinkFallback(planType);
                 }
                 
             } catch (error) {
-                console.error('❌ Error creating checkout session:', error);
-                showError('Failed to start checkout. Please try again.');
+                console.error('❌ Error in purchase flow:', error);
+                showError('Unable to start checkout. Please contact support.');
                 
                 // Reset button state
                 button.disabled = false;
                 button.classList.remove('loading');
+                button.textContent = originalText;
             }
+        }
+        
+        // Try multiple routing strategies for Stripe
+        async function tryMultipleRoutes(planType, button, originalText) {
+            const routes = [
+                '/api/create-checkout-session',           // Vercel/Firebase Functions
+                '/.netlify/functions/create-checkout-session', // Netlify Functions
+                '/api/stripe-checkout'                     // Express server fallback
+            ];
+            
+            const priceId = getPriceId(planType);
+            if (!priceId) {
+                throw new Error(`Price not configured for ${planType} plan`);
+            }
+            
+            const requestBody = {
+                priceId: priceId,
+                successUrl: window.location.origin + '/success.html?plan=' + planType,
+                cancelUrl: window.location.href
+            };
+            
+            for (let i = 0; i < routes.length; i++) {
+                try {
+                    console.log(`🔄 Trying route ${i + 1}/${routes.length}: ${routes[i]}`);
+                    
+                    const response = await fetch(routes[i], {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const session = await response.json();
+                    
+                    if (!session.sessionId && !session.url) {
+                        throw new Error('Invalid response format');
+                    }
+                    
+                    console.log(`✅ Route ${i + 1} successful!`);
+                    
+                    // Check if we have Stripe initialized for redirectToCheckout
+                    if (stripe && session.sessionId) {
+                        const result = await stripe.redirectToCheckout({
+                            sessionId: session.sessionId
+                        });
+                        
+                        if (result.error) {
+                            throw new Error(result.error.message);
+                        }
+                    } else if (session.url) {
+                        // Direct URL redirect
+                        window.location.href = session.url;
+                    }
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.log(`❌ Route ${i + 1} failed: ${error.message}`);
+                    if (i === routes.length - 1) {
+                        // All routes failed
+                        throw error;
+                    }
+                    // Try next route
+                    continue;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Fallback to payment links
+        async function handlePaymentLinkFallback(planType) {
+            try {
+                console.log('🔄 Using payment link fallback...');
+                
+                const response = await fetch('/api/stripe-payment-links.json');
+                if (response.ok) {
+                    const paymentLinks = await response.json();
+                    const link = paymentLinks.paymentLinks[planType]?.monthly;
+                    
+                    if (link && !link.includes('test_')) {
+                        // Real payment link available
+                        window.location.href = link;
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('❌ Payment link fallback failed:', error.message);
+            }
+            
+            // Final fallback - show contact message
+            showError('Payment system temporarily unavailable. Please contact support@rinawarp.com to complete your purchase.');
         }
         
         // Purchase beta function
@@ -814,13 +892,22 @@
         
         // Show error message
         function showError(message) {
-            // Create error notification
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = `
+            showNotification(message, '#ff4757');
+        }
+        
+        // Show info message
+        function showInfo(message) {
+            showNotification(message, '#3498db');
+        }
+        
+        // Generic notification function
+        function showNotification(message, color) {
+            const notificationDiv = document.createElement('div');
+            notificationDiv.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: #ff4757;
+                background: ${color};
                 color: white;
                 padding: 15px 20px;
                 border-radius: 10px;
@@ -828,14 +915,29 @@
                 z-index: 9999;
                 font-weight: bold;
                 max-width: 300px;
+                animation: slideIn 0.3s ease-out;
             `;
-            errorDiv.textContent = message;
+            notificationDiv.textContent = message;
             
-            document.body.appendChild(errorDiv);
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            if (!document.head.querySelector('style[data-notification]')) {
+                style.setAttribute('data-notification', 'true');
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notificationDiv);
             
             // Remove after 5 seconds
             setTimeout(() => {
-                errorDiv.remove();
+                notificationDiv.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notificationDiv.remove(), 300);
             }, 5000);
         }
         
