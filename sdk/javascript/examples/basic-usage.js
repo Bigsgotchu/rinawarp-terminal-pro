@@ -1,7 +1,7 @@
-const { RinaWarpSDK } = require('@rinawarp/terminal-sdk');
+import { RinaWarpSDK } from '@rinawarp/terminal-sdk';
 
 // Basic usage example
-async function basicExample() {
+const basicExample = async () => {
   const sdk = new RinaWarpSDK({
     apiKey: 'your-api-key-here',
     apiUrl: 'https://api.rinawarp.com',
@@ -38,10 +38,10 @@ async function basicExample() {
   } finally {
     await sdk.disconnect();
   }
-}
+};
 
 // Performance monitoring example
-async function performanceExample() {
+const performanceExample = async () => {
   const sdk = new RinaWarpSDK({
     apiKey: 'your-api-key-here',
   });
@@ -67,10 +67,10 @@ async function performanceExample() {
   } finally {
     await sdk.disconnect();
   }
-}
+};
 
 // Event handling example
-async function eventsExample() {
+const eventsExample = async () => {
   const sdk = new RinaWarpSDK({
     apiKey: 'your-api-key-here',
   });
@@ -95,10 +95,10 @@ async function eventsExample() {
   } catch (error) {
     console.error('Connection error:', error);
   }
-}
+};
 
 // Batch operations example
-async function batchExample() {
+const batchExample = async () => {
   const sdk = new RinaWarpSDK({
     apiKey: 'your-api-key-here',
   });
@@ -114,10 +114,10 @@ async function batchExample() {
   } catch (error) {
     console.error('Batch error:', error.message);
   }
-}
+};
 
 // GraphQL example
-async function graphqlExample() {
+const graphqlExample = async () => {
   const sdk = new RinaWarpSDK({
     apiKey: 'your-api-key-here',
   });
@@ -139,10 +139,10 @@ async function graphqlExample() {
   } catch (error) {
     console.error('GraphQL error:', error.message);
   }
-}
+};
 
 // Run examples
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('Running basic example...');
   basicExample();
 

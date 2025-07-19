@@ -3,9 +3,9 @@
  * Coordinates security audits, platform compatibility, community engagement, and continuous improvement
  */
 
-const PlatformCompatibilityManager = require('./compliance/platform-compatibility-manager');
-const CommunityEngagementManager = require('./community/community-engagement-manager');
-const ContinuousImprovementManager = require('./monitoring/continuous-improvement-manager');
+import PlatformCompatibilityManager from './compliance/platform-compatibility-manager.js';
+import CommunityEngagementManager from './community/community-engagement-manager.js';
+import ContinuousImprovementManager from './monitoring/continuous-improvement-manager.js';
 
 class Phase3IntegrationManager {
   constructor(config = {}) {
@@ -492,10 +492,10 @@ class Phase3IntegrationManager {
 }
 
 // Export the integration manager
-module.exports = Phase3IntegrationManager;
+export default Phase3IntegrationManager;
 
 // Initialize Phase 3 if running directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const manager = new Phase3IntegrationManager();
 
   // Handle process termination gracefully

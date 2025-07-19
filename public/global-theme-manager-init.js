@@ -3,7 +3,7 @@
  * Ensures ThemeManager is available across all environments
  */
 
-(function() {
+(() => {
   'use strict';
     
   console.log('🧜‍♀️ Initializing Global ThemeManager...');
@@ -15,7 +15,7 @@
   }
     
   // Try to load ThemeManager from different sources
-  function loadThemeManager() {
+  const loadThemeManager = () => {
     // Method 1: Check if it's available as ES6 module import
     if (typeof window.ThemeManagerModule !== 'undefined') {
       window.ThemeManager = window.ThemeManagerModule.default || window.ThemeManagerModule;
@@ -52,7 +52,7 @@
   }
     
   // Fallback ThemeManager for basic functionality
-  function createFallbackThemeManager() {
+  const createFallbackThemeManager = () => {
     console.log('🌊 Creating fallback ThemeManager...');
         
     class FallbackThemeManager {
@@ -139,7 +139,7 @@
   }
     
   // Initialize ThemeManager instance if class is available
-  function initializeIfReady() {
+  const initializeIfReady = () => {
     if (window.ThemeManager && !window.themeManagerInstance) {
       try {
         window.themeManagerInstance = new window.ThemeManager();
@@ -174,7 +174,7 @@
   }
     
   // Make sure mermaid theme gets applied on load
-  function ensureMermaidTheme() {
+  const ensureMermaidTheme = () => {
     if (document.body.classList.contains('theme-mermaid')) return;
         
     console.log('🧜‍♀️ Ensuring mermaid theme is applied...');

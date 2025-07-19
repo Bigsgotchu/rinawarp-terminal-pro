@@ -153,6 +153,7 @@
     "release:changelog": "node scripts/release.cjs changelog",
     "fix:unused-vars": "node scripts/fix-unused-vars.cjs",
     "fix:all": "npm run fix:unused-vars && npm run lint && npm run format",
+    "quality:maintain": "./scripts/maintain-quality.sh",
     "validate:structure": "node scripts/validate-structure.js",
     "validate:all": "npm run validate:structure && npm run lint:check && npm run test",
     "modernize:deps": "node cleanup-deps.js",

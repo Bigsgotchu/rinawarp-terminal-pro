@@ -95,11 +95,11 @@ async function loadXTermScripts() {
       global: 'Terminal',
     },
     {
-      src: '/node_modules/@xterm/addon-fit/lib/fit.js',
+      src: '/node_modules/@xterm/addon-fit/lib/addon-fit.js',
       global: 'FitAddon',
     },
     {
-      src: '/node_modules/@xterm/addon-web-links/lib/web-links.js',
+      src: '/node_modules/@xterm/addon-web-links/lib/addon-web-links.js',
       global: 'WebLinksAddon',
     },
   ];
@@ -115,7 +115,7 @@ async function loadXTermScripts() {
     let loaded = false;
 
     // Try each path until one works
-    for (const basePath of ['/node_modules/@xterm/xterm/lib/', ...fallbackPaths]) {
+    for (const basePath of ['/node_modules/@xterm/', ...fallbackPaths]) {
       try {
         const scriptPath = basePath + script.src.split('/').pop();
         await loadScript(scriptPath);

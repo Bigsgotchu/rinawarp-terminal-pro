@@ -44,10 +44,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   killShellProcess: processId => ipcRenderer.invoke('kill-shell-process', processId),
 
   // Shell process event listeners
-  onShellData: (processId, callback) => ipcRenderer.on(`shell-data-${processId}`, callback),
-  onShellError: (processId, callback) => ipcRenderer.on(`shell-error-${processId}`, callback),
-  onShellExit: (processId, callback) => ipcRenderer.on(`shell-exit-${processId}`, callback),
-  onShellClose: (processId, callback) => ipcRenderer.on(`shell-close-${processId}`, callback),
+  onShellData: (processId, callback) =>
+    ipcRenderer.on(`shell-data-${processId}`, (_event, data) => callback(data)),
+  onShellError: (processId, callback) =>
+    ipcRenderer.on(`shell-error-${processId}`, (_event, data) => callback(data)),
+  onShellExit: (processId, callback) =>
+    ipcRenderer.on(`shell-exit-${processId}`, (_event, code, signal) => callback(code, signal)),
+  onShellClose: (processId, callback) =>
+    ipcRenderer.on(`shell-close-${processId}`, (_event, code, signal) => callback(code, signal)),
 
   // Remove shell process listeners
   removeShellListeners: processId => {
@@ -84,6 +88,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Test mode functions
   ping: () => ipcRenderer.invoke('ping'),
   testPreloadAPIs: () => ipcRenderer.invoke('test-preload-apis'),
+
+  // Error triage system
+  'error-triage-report': (error, context) =>
+    ipcRenderer.invoke('error-triage-report', error, context),
+  'error-triage-health-check': () => ipcRenderer.invoke('error-triage-health-check'),
+  'error-triage-system-metrics': () => ipcRenderer.invoke('error-triage-system-metrics'),
 });
 
 // Expose Node.js process information safely

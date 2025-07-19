@@ -12,6 +12,7 @@
  */
 module.exports = {
   testEnvironment: 'jsdom',
+  testRunner: 'jest-circus/runner',
   testMatch: ['<rootDir>/tests/**/*.test.js', '<rootDir>/tests/**/*.spec.js'],
   collectCoverageFrom: ['src/**/*.js', '!src/**/*.test.js', '!src/**/*.spec.js'],
   coverageDirectory: 'coverage',

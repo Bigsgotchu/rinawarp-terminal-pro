@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Preload API Test</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        
+        .success {
+            background: #1b5e20;
+            border-left-color: #4caf50;
+        }
+        
+        .error {
+            background: #b71c1c;
+            border-left-color: #f44336;
+        }
+        
+        .warning {
+            background: #e65100;
+            border-left-color: #ff9800;
+        }
+        
+        .info {
+            background: #0d47a1;
+            border-left-color: #2196f3;
+        }
+        
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        button:hover {
+            background: #1976d2;
+        }
+        
+        pre {
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔒 RinaWarp Terminal - Preload API Test</h1>
+    
+    <div id="test-results"></div>
+    
+    <div>
+        <button onclick="testBasicAPI()">Test Basic API</button>
+        <button onclick="testPingPong()">Test Ping-Pong</button>
+        <button onclick="testSystemInfo()">Test System Info</button>
+        <button onclick="testShellProcess()">Test Shell Process</button>
+        <button onclick="testAllAPIs()">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            
+            if (typeof message === 'object') {
+                div.innerHTML = `<pre>${JSON.stringify(message, null, 2)}</pre>`;
+            } else {
+                div.textContent = message;
+            }
+            
+            results.appendChild(div);
+            console.log(message);
+            
+            // Auto-scroll to bottom
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+        }
+
+        function testBasicAPI() {
+            log('=== Testing Basic API Availability ===', 'info');
+            
+            if (typeof window.electronAPI === 'undefined') {
+                log('❌ FAILED: window.electronAPI is undefined', 'error');
+                return false;
+            }
+            
+            log('✅ PASS: window.electronAPI is available', 'success');
+            
+            const methods = Object.keys(window.electronAPI);
+            log(`📋 Available methods (${methods.length}):`, 'info');
+            methods.forEach(method => {
+                log(`  - ${method}`, 'info');
+            });
+            
+            return true;
+        }
+
+        async function testPingPong() {
+            log('=== Testing Ping-Pong Communication ===', 'info');
+            
+            if (!window.electronAPI || !window.electronAPI.ping) {
+                log('❌ FAILED: ping method not available', 'error');
+                return false;
+            }
+            
+            try {
+                const start = Date.now();
+                const response = await window.electronAPI.ping();
+                const duration = Date.now() - start;
+                
+                if (response === 'pong') {
+                    log(`✅ PASS: Ping-pong successful (${duration}ms)`, 'success');
+                    return true;
+                } else {
+                    log(`❌ FAILED: Unexpected response: ${response}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                log(`❌ FAILED: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testSystemInfo() {
+            log('=== Testing System Info Retrieval ===', 'info');
+            
+            if (!window.electronAPI || !window.electronAPI.getSystemInfo) {
+                log('❌ FAILED: getSystemInfo method not available', 'error');
+                return false;
+            }
+            
+            try {
+                const systemInfo = await window.electronAPI.getSystemInfo();
+                log('✅ PASS: System info retrieved successfully', 'success');
+                log(systemInfo, 'info');
+                return true;
+            } catch (error) {
+                log(`❌ FAILED: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testShellProcess() {
+            log('=== Testing Shell Process Creation ===', 'info');
+            
+            if (!window.electronAPI || !window.electronAPI.createShellProcess) {
+                log('❌ FAILED: createShellProcess method not available', 'error');
+                return false;
+            }
+            
+            try {
+                // First get system info for shell config
+                const systemInfo = await window.electronAPI.getSystemInfo();
+                
+                const shellConfig = {
+                    shell: systemInfo.shell,
+                    shellArgs: systemInfo.platform === 'win32' ? ['-NoLogo', '-NoExit'] : [],
+                    terminalId: 'test-terminal',
+                    platform: systemInfo.platform
+                };
+                
+                const shellProcess = await window.electronAPI.createShellProcess(shellConfig);
+                
+                if (shellProcess && shellProcess.id) {
+                    log('✅ PASS: Shell process created successfully', 'success');
+                    log(shellProcess, 'info');
+                    
+                    // Clean up by killing the test shell process
+                    setTimeout(async () => {
+                        try {
+                            await window.electronAPI.killShellProcess(shellProcess.id);
+                            log('🧹 Test shell process cleaned up', 'info');
+                        } catch (e) {
+                            log(`⚠️ Warning: Could not clean up shell process: ${e.message}`, 'warning');
+                        }
+                    }, 1000);
+                    
+                    return true;
+                } else {
+                    log('❌ FAILED: Shell process creation returned invalid response', 'error');
+                    return false;
+                }
+            } catch (error) {
+                log(`❌ FAILED: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testAllAPIs() {
+            log('🧪 Starting Comprehensive API Test Suite', 'info');
+            log('='.repeat(50), 'info');
+            
+            const tests = [
+                { name: 'Basic API', fn: testBasicAPI },
+                { name: 'Ping-Pong', fn: testPingPong },
+                { name: 'System Info', fn: testSystemInfo },
+                { name: 'Shell Process', fn: testShellProcess }
+            ];
+            
+            let passed = 0;
+            let total = tests.length;
+            
+            for (const test of tests) {
+                log(`\n🔍 Running: ${test.name}`, 'info');
+                try {
+                    const result = await test.fn();
+                    if (result) passed++;
+                } catch (error) {
+                    log(`❌ Test "${test.name}" threw an exception: ${error.message}`, 'error');
+                }
+            }
+            
+            log('='.repeat(50), 'info');
+            
+            if (passed === total) {
+                log(`🎉 ALL TESTS PASSED! (${passed}/${total})`, 'success');
+                log('✅ Electron preload script and API exposure working correctly!', 'success');
+            } else {
+                log(`⚠️ SOME TESTS FAILED (${passed}/${total})`, 'warning');
+                if (passed > 0) {
+                    log('✅ Basic preload functionality appears to be working', 'success');
+                }
+            }
+        }
+
+        // Auto-run basic test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('🌊 Page loaded - Starting automatic basic API test...', 'info');
+                testBasicAPI();
+            }, 500);
+        });
+
+        // Check if we're in electron context
+        if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
+            log('🔧 Running in Electron environment', 'info');
+        } else {
+            log('⚠️ Not running in Electron environment - tests may fail', 'warning');
+        }
+    </script>
+</body>
+</html>

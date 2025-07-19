@@ -3,12 +3,12 @@
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
 
 let mainWindow;
 
-function createWindow() {
+const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -31,7 +31,7 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-}
+};
 
 app.whenReady().then(createWindow);
 

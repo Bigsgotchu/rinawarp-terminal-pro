@@ -11,9 +11,21 @@ const vendorDir = path.join(publicDir, 'vendor');
 const xtermVendorDir = path.join(vendorDir, 'xterm');
 const assetsDir = path.join(publicDir, 'assets');
 const xtermAssetsDir = path.join(assetsDir, 'xterm');
+const distDir = path.join(__dirname, '..', 'dist');
+const distAssetsDir = path.join(distDir, 'assets');
+const distXtermAssetsDir = path.join(distAssetsDir, 'xterm');
 
 // Create directories
-[publicDir, vendorDir, xtermVendorDir, assetsDir, xtermAssetsDir].forEach(dir => {
+[
+  publicDir,
+  vendorDir,
+  xtermVendorDir,
+  assetsDir,
+  xtermAssetsDir,
+  distDir,
+  distAssetsDir,
+  distXtermAssetsDir,
+].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -36,6 +48,10 @@ const copyTargets = [
   // Assets directory
   { from: xtermLibPath, to: path.join(xtermAssetsDir, 'xterm.js') },
   { from: xtermCssPath, to: path.join(xtermAssetsDir, 'xterm.css') },
+
+  // Dist directory (for builds)
+  { from: xtermLibPath, to: path.join(distXtermAssetsDir, 'xterm.js') },
+  { from: xtermCssPath, to: path.join(distXtermAssetsDir, 'xterm.css') },
 ];
 
 let copiedCount = 0;
@@ -73,6 +89,7 @@ addonPaths.forEach(({ name, package: packageName }) => {
     if (fs.existsSync(addonJsPath)) {
       fs.copyFileSync(addonJsPath, path.join(xtermVendorDir, `${name}.js`));
       fs.copyFileSync(addonJsPath, path.join(xtermAssetsDir, `${name}.js`));
+      fs.copyFileSync(addonJsPath, path.join(distXtermAssetsDir, `${name}.js`));
       console.log(`✅ Copied ${name} addon from ${filename}`);
       copiedCount++;
       found = true;

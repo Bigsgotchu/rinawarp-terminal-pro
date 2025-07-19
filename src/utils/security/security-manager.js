@@ -4,12 +4,12 @@
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
-const os = require('os');
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
-const { app } = require('electron');
-const logger = require('../logger');
+import os from 'os';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { app } from 'electron';
+import logger from '../logger.js';
 
 class SecurityManager {
   constructor() {
@@ -375,5 +375,5 @@ class SecurityManager {
 }
 
 // Export singleton instance
-module.exports = SecurityManager.getInstance();
-module.exports.SecurityManager = SecurityManager;
+export default SecurityManager.getInstance();
+export { SecurityManager };

@@ -3,8 +3,8 @@
  * This file contains middleware functions and route handlers that can be integrated into server.js
  */
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 // Security headers middleware
 const securityHeaders = (req, res, next) => {
@@ -205,7 +205,7 @@ const notFoundHandler = (req, res) => {
   });
 };
 
-module.exports = {
+export {
   securityHeaders,
   statusEndpoint,
   terminalEndpoint,
