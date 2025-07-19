@@ -1,5 +1,5 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
+import { execSync } from 'child_process';
+import fs from 'fs';
 
 const CONFIG_MAP = {
   'next.config.js': { build: 'npm run build && next export', public: 'out' },

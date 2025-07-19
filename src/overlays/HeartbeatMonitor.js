@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 class HeartbeatMonitor {
   constructor() {
@@ -57,4 +57,4 @@ class HeartbeatMonitor {
   }
 }
 
-module.exports = HeartbeatMonitor;
+export default HeartbeatMonitor;

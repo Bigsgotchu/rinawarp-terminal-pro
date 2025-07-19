@@ -23,6 +23,12 @@ if (!fs.existsSync(srcDir)) {
   fs.mkdirSync(srcDir, { recursive: true });
 }
 
+// Create dist directory if it doesn't exist
+const distDir = path.join(__dirname, '..', 'dist');
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir, { recursive: true });
+}
+
 // Copy xterm.js assets from node_modules if they exist
 const xtermPath = path.join(__dirname, '..', 'node_modules', '@xterm', 'xterm');
 const xtermCssPath = path.join(xtermPath, 'css', 'xterm.css');

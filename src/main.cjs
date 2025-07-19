@@ -93,8 +93,8 @@ function createWindow() {
 
   mainWindow = new BrowserWindow(windowConfig);
 
-  // Load the AI-powered terminal with voice control
-  mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
+  // Load preload test for verification
+  mainWindow.loadFile(path.join(__dirname, '../test-preload-simple.html'));
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();

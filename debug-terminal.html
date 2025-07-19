@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Debug Mode</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+        }
+        .debug-info {
+            background: #2a2a2a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .terminal-container {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 10px;
+            background: #333;
+            margin: 10px 0;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .warning { color: #ffd93d; }
+        .info { color: #74c0fc; }
+    </style>
+</head>
+<body>
+    <h1>🔍 RinaWarp Terminal Debug Mode</h1>
+    
+    <div class="debug-info">
+        <h3>System Information:</h3>
+        <div id="system-info">Loading...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>API Status:</h3>
+        <div id="api-status">Checking...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>XTerm Status:</h3>
+        <div id="xterm-status">Loading XTerm...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>Shell Process Status:</h3>
+        <div id="shell-status">Not started</div>
+    </div>
+    
+    <div class="terminal-container" id="terminal"></div>
+    
+    <div class="status">
+        <button onclick="testBasicFunctionality()" style="margin: 5px; padding: 10px;">Test Basic Functionality</button>
+        <button onclick="testXTermLoad()" style="margin: 5px; padding: 10px;">Test XTerm Load</button>
+        <button onclick="testShellCreation()" style="margin: 5px; padding: 10px;">Test Shell Creation</button>
+        <button onclick="clearTerminal()" style="margin: 5px; padding: 10px;">Clear Terminal</button>
+    </div>
+    
+    <script>
+        let terminal = null;
+        let shellProcess = null;
+        
+        // Debug logging function
+        function log(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('debug-log');
+            if (logElement) {
+                logElement.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+        
+        // Test basic functionality
+        async function testBasicFunctionality() {
+            log('🔍 Testing basic functionality...', 'info');
+            
+            // Test electron APIs
+            if (typeof window.electronAPI !== 'undefined') {
+                log('✅ electronAPI is available', 'success');
+                
+                try {
+                    const pong = await window.electronAPI.ping();
+                    log(`✅ IPC communication working: ${pong}`, 'success');
+                } catch (error) {
+                    log(`❌ IPC communication failed: ${error.message}`, 'error');
+                }
+                
+                try {
+                    const systemInfo = await window.electronAPI.getSystemInfo();
+                    document.getElementById('system-info').innerHTML = `
+                        <div>Platform: ${systemInfo.platform}</div>
+                        <div>Architecture: ${systemInfo.arch}</div>
+                        <div>Shell: ${systemInfo.shell}</div>
+                        <div>Home Directory: ${systemInfo.homeDir}</div>
+                    `;
+                    log('✅ System info loaded successfully', 'success');
+                } catch (error) {
+                    log(`❌ Failed to load system info: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ electronAPI is not available - preload.cjs not loaded correctly', 'error');
+                document.getElementById('api-status').innerHTML = '<span class="error">❌ electronAPI missing</span>';
+                return;
+            }
+            
+            document.getElementById('api-status').innerHTML = '<span class="success">✅ All APIs available</span>';
+        }
+        
+        // Test XTerm loading
+        async function testXTermLoad() {
+            log('🔍 Testing XTerm loading...', 'info');
+            
+            try {
+                // Try to load XTerm using different methods
+                let xtermModules = null;
+                
+                // Method 1: Direct module import
+                try {
+                    const Terminal = (await import('@xterm/xterm')).Terminal;
+                    const FitAddon = (await import('@xterm/addon-fit')).FitAddon;
+                    const WebLinksAddon = (await import('@xterm/addon-web-links')).WebLinksAddon;
+                    
+                    xtermModules = { Terminal, FitAddon, WebLinksAddon };
+                    log('✅ XTerm loaded via ES module imports', 'success');
+                } catch (importError) {
+                    log(`⚠️ ES module import failed: ${importError.message}`, 'warning');
+                    
+                    // Method 2: Check if loaded globally
+                    if (window.Terminal) {
+                        xtermModules = {
+                            Terminal: window.Terminal,
+                            FitAddon: window.FitAddon,
+                            WebLinksAddon: window.WebLinksAddon
+                        };
+                        log('✅ XTerm found in global scope', 'success');
+                    }
+                }
+                
+                if (xtermModules) {
+                    // Try to create a terminal
+                    terminal = new xtermModules.Terminal({
+                        fontFamily: 'Consolas, "Courier New", monospace',
+                        fontSize: 14,
+                        theme: {
+                            background: '#000000',
+                            foreground: '#ffffff'
+                        }
+                    });
+                    
+                    const fitAddon = new xtermModules.FitAddon();
+                    terminal.loadAddon(fitAddon);
+                    
+                    terminal.open(document.getElementById('terminal'));
+                    fitAddon.fit();
+                    
+                    terminal.write('\\r\\n🎉 XTerm terminal initialized successfully!\\r\\n');
+                    terminal.write('Type something to test input handling...\\r\\n$ ');
+                    
+                    // Handle input for testing
+                    terminal.onData(data => {
+                        terminal.write(data);
+                        if (data === '\\r') {
+                            terminal.write('\\n$ ');
+                        }
+                    });
+                    
+                    document.getElementById('xterm-status').innerHTML = '<span class="success">✅ XTerm loaded and working</span>';
+                    log('✅ XTerm terminal created successfully', 'success');
+                } else {
+                    throw new Error('Could not load XTerm modules');
+                }
+                
+            } catch (error) {
+                log(`❌ XTerm loading failed: ${error.message}`, 'error');
+                document.getElementById('xterm-status').innerHTML = `<span class="error">❌ XTerm failed: ${error.message}</span>`;
+                
+                // Create fallback terminal
+                createFallbackTerminal();
+            }
+        }
+        
+        // Create fallback terminal
+        function createFallbackTerminal() {
+            const terminalEl = document.getElementById('terminal');
+            terminalEl.innerHTML = `
+                <div style="padding: 10px; color: #ffd93d;">
+                    ⚠️ XTerm not available - using fallback mode
+                </div>
+                <div style="padding: 10px; color: #fff;">
+                    $ <span id="cursor" style="background: #fff;">|</span>
+                </div>
+            `;
+            
+            // Blinking cursor
+            setInterval(() => {
+                const cursor = document.getElementById('cursor');
+                if (cursor) {
+                    cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
+                }
+            }, 500);
+            
+            log('📺 Fallback terminal created', 'warning');
+        }
+        
+        // Test shell creation
+        async function testShellCreation() {
+            log('🔍 Testing shell process creation...', 'info');
+            
+            if (!window.electronAPI) {
+                log('❌ Cannot test shell creation - electronAPI not available', 'error');
+                return;
+            }
+            
+            try {
+                const systemInfo = await window.electronAPI.getSystemInfo();
+                
+                const shellConfig = {
+                    shell: systemInfo.shell,
+                    shellArgs: systemInfo.platform === 'win32' ? ['-NoLogo', '-NoExit'] : [],
+                    terminalId: 'debug-terminal',
+                    platform: systemInfo.platform
+                };
+                
+                log(`🐚 Creating shell process: ${shellConfig.shell}`, 'info');
+                
+                shellProcess = await window.electronAPI.createShellProcess(shellConfig);
+                
+                if (shellProcess) {
+                    log(`✅ Shell process created: PID ${shellProcess.pid}, ID: ${shellProcess.id}`, 'success');
+                    document.getElementById('shell-status').innerHTML = `<span class="success">✅ Shell running (PID: ${shellProcess.pid})</span>`;
+                    
+                    // Set up shell data listeners
+                    window.electronAPI.onShellData(shellProcess.id, (data) => {
+                        const output = data.toString();
+                        log(`📤 Shell output: ${output.slice(0, 50)}...`, 'info');
+                        if (terminal) {
+                            terminal.write(output);
+                        }
+                    });
+                    
+                    window.electronAPI.onShellError(shellProcess.id, (data) => {
+                        const error = data.toString();
+                        log(`❌ Shell error: ${error}`, 'error');
+                        if (terminal) {
+                            terminal.write(`\\r\\n[ERROR] ${error}\\r\\n`);
+                        }
+                    });
+                    
+                    window.electronAPI.onShellExit(shellProcess.id, (code, signal) => {
+                        log(`🔚 Shell exited with code ${code}, signal ${signal}`, 'warning');
+                        document.getElementById('shell-status').innerHTML = `<span class="warning">⚠️ Shell exited (code: ${code})</span>`;
+                    });
+                    
+                    // Test sending a command
+                    setTimeout(() => {
+                        if (shellProcess) {
+                            log('📝 Sending test command to shell...', 'info');
+                            window.electronAPI.writeToShell(shellProcess.id, 'echo "Hello from RinaWarp Terminal!"\\n');
+                        }
+                    }, 1000);
+                    
+                } else {
+                    throw new Error('Shell process creation returned null');
+                }
+                
+            } catch (error) {
+                log(`❌ Shell creation failed: ${error.message}`, 'error');
+                document.getElementById('shell-status').innerHTML = `<span class="error">❌ Shell creation failed</span>`;
+            }
+        }
+        
+        // Clear terminal
+        function clearTerminal() {
+            if (terminal) {
+                terminal.clear();
+                terminal.write('\\r\\n🧹 Terminal cleared\\r\\n$ ');
+            }
+        }
+        
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            log('🚀 Debug terminal initializing...', 'info');
+            
+            // Add debug log area
+            const debugLogDiv = document.createElement('div');
+            debugLogDiv.id = 'debug-log';
+            debugLogDiv.className = 'debug-info';
+            debugLogDiv.innerHTML = '<h3>Debug Log:</h3><div id="debug-log-content" style="height: 200px; overflow-y: auto; background: #1a1a1a; padding: 10px; font-family: monospace; font-size: 12px;"></div>';
+            document.body.appendChild(debugLogDiv);
+            
+            // Start tests
+            await testBasicFunctionality();
+            await testXTermLoad();
+        });
+    </script>
+</body>
+</html>
