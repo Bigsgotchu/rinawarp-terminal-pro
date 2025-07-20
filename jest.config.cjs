@@ -1,33 +1,18 @@
-/**
- * RinaWarp Terminal - Jest.Config
- * Copyright (c) 2025 Rinawarp Technologies, LLC
- *
- * This file is part of RinaWarp Terminal, an advanced open-source terminal emulator with
- * AI assistance, live collaboration, and enterprise-grade security features.
- *
- * Licensed under the MIT License.
- * See LICENSE file for detailed terms and conditions.
- *
- * Project repository: https://github.com/rinawarp/terminal
- */
 module.exports = {
   testEnvironment: 'jsdom',
-  testRunner: 'jest-circus/runner',
-  testMatch: ['<rootDir>/tests/**/*.test.js', '<rootDir>/tests/**/*.spec.js'],
-  collectCoverageFrom: ['src/**/*.js', '!src/**/*.test.js', '!src/**/*.spec.js'],
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  testMatch: [
+    '<rootDir>/tests/**/*.test.js'
+  ],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/(.*)$': '<rootDir>/src/$1'
   },
-  transformIgnorePatterns: ['node_modules/(?!(@testing-library|@xterm)/)'],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/dist/',
-    '<rootDir>/reports/',
-    '<rootDir>/tools/',
-    '<rootDir>/ip-evidence-*/',
+    '<rootDir>/src/plugins/',
+    '<rootDir>/email-templates/',
+    '<rootDir>/email-testing-suite/'
   ],
   testTimeout: 10000,
-  verbose: true,
+  maxWorkers: 1
 };

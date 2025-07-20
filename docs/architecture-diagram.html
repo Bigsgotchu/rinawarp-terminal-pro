@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 RinaWarp Runtime Architecture - Interactive Diagram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .diagram-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #00ff88, #66d9ef, #ff0080);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .title p {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .architecture-flow {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .layer {
+            position: relative;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .layer:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .layer-title {
+            font-size: 1.4rem;
+            color: #00ff88;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .layer-description {
+            color: #ccc;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .components {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .component {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 217, 239, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .component:hover {
+            background: rgba(102, 217, 239, 0.15);
+            transform: scale(1.02);
+        }
+
+        .component-title {
+            color: #66d9ef;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .component-desc {
+            color: #aaa;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .flow-arrows {
+            position: absolute;
+            top: 50%;
+            right: -30px;
+            transform: translateY(-50%);
+            color: #00ff88;
+            font-size: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .module-matrix {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .module-category {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid;
+        }
+
+        .core-modules { border-color: #ff6b6b; }
+        .enhanced-modules { border-color: #ffd93d; }
+        .optional-modules { border-color: #51cf66; }
+
+        .category-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .core-modules .category-title { color: #ff6b6b; }
+        .enhanced-modules .category-title { color: #ffd93d; }
+        .optional-modules .category-title { color: #51cf66; }
+
+        .module-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .module-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .boot-sequence {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            border: 2px solid #e599f7;
+        }
+
+        .boot-title {
+            color: #e599f7;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .boot-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .boot-step {
+            background: rgba(229, 153, 247, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(229, 153, 247, 0.3);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .boot-step:hover {
+            background: rgba(229, 153, 247, 0.2);
+            transform: scale(1.05);
+        }
+
+        .step-number {
+            background: #e599f7;
+            color: #000;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+
+        .step-title {
+            color: #e599f7;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .step-desc {
+            color: #ccc;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ccc;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .interactive-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #66d9ef;
+        }
+
+        .control-button {
+            background: #66d9ef;
+            color: #000;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .control-button:hover {
+            background: #00ff88;
+            transform: scale(1.05);
+        }
+
+        .environment-badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .env-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .electron { background: #74c0fc; color: #000; }
+        .browser { background: #ffd93d; color: #000; }
+        .mobile { background: #51cf66; color: #000; }
+
+        .env-badge:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .module-matrix {
+                grid-template-columns: 1fr;
+            }
+            
+            .boot-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .interactive-controls {
+                position: relative;
+                margin: 20px auto;
+                width: fit-content;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <div class="title">
+            <h1>🌟 RinaWarp Runtime Architecture</h1>
+            <p>Feature-Orchestrated Boot System with Adaptive Module Loading</p>
+        </div>
+
+        <div class="interactive-controls">
+            <h4 style="color: #66d9ef; margin-bottom: 10px;">🎮 Interactive Mode</h4>
+            <button class="control-button" onclick="animateBootSequence()">▶️ Boot Animation</button>
+            <button class="control-button" onclick="highlightModules()">🔍 Highlight Modules</button>
+            <button class="control-button" onclick="resetView()">🔄 Reset View</button>
+        </div>
+
+        <div class="environment-badges">
+            <div class="env-badge electron" onclick="showEnvironment('electron')">🔷 Electron Mode</div>
+            <div class="env-badge browser" onclick="showEnvironment('browser')">🌐 Browser Mode</div>
+            <div class="env-badge mobile" onclick="showEnvironment('mobile')">📱 Mobile Mode</div>
+        </div>
+
+        <div class="architecture-flow">
+            <!-- Layer 1: Environment Detection -->
+            <div class="layer" id="layer-1">
+                <div class="layer-title">
+                    <span>🎮</span> Environment Detection & Configuration
+                </div>
+                <div class="layer-description">
+                    Intelligent platform detection and optimal configuration selection based on capabilities and performance.
+                </div>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-title">Platform Detection</div>
+                        <div class="component-desc">Electron, Browser, or Mobile runtime identification</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Capability Assessment</div>
+                        <div class="component-desc">Shell access, voice input, clipboard, media devices</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Performance Analysis</div>
+                        <div class="component-desc">Memory, CPU cores, network connection type</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Config Optimization</div>
+                        <div class="component-desc">Adaptive module selection and performance tuning</div>
+                    </div>
+                </div>
+                <div class="flow-arrows">⬇️</div>
+            </div>
+
+            <!-- Layer 2: Core Engine -->
+            <div class="layer" id="layer-2">
+                <div class="layer-title">
+                    <span>🏗️</span> Core Engine (Minimal Foundation)
+                </div>
+                <div class="layer-description">
+                    Lightweight foundation inspired by v1.0.7 - boots instantly even on low-spec setups.
+                </div>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-title">ModuleOrchestrator</div>
+                        <div class="component-desc">Smart module loading with fallback strategies</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Module Registry</div>
+                        <div class="component-desc">Centralized module management with dependencies</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Terminal Constructor</div>
+                        <div class="component-desc">Lightweight XTerm.js integration</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Diagnostics Overlay</div>
+                        <div class="component-desc">Real-time boot status and health monitoring</div>
+                    </div>
+                </div>
+                <div class="flow-arrows">⬇️</div>
+            </div>
+
+            <!-- Layer 3: Adaptive Features -->
+            <div class="layer" id="layer-3">
+                <div class="layer-title">
+                    <span>🧩</span> Adaptive Feature Modules
+                </div>
+                <div class="layer-description">
+                    Lazy-loaded modules based on environment conditions, user preferences, and platform capabilities.
+                </div>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-title">Shell Manager</div>
+                        <div class="component-desc">Full shell access (Electron only)</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Voice Engine</div>
+                        <div class="component-desc">Speech recognition and commands</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Mood Detector</div>
+                        <div class="component-desc">AI-powered emotional state analysis</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Error Detection</div>
+                        <div class="component-desc">Predictive command analysis and warnings</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Mobile Companion</div>
+                        <div class="component-desc">Touch-optimized interface (Mobile only)</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Theme Manager</div>
+                        <div class="component-desc">Glass, neon, ocean visual themes</div>
+                    </div>
+                </div>
+                <div class="flow-arrows">⬇️</div>
+            </div>
+
+            <!-- Layer 4: Runtime Integration -->
+            <div class="layer" id="layer-4">
+                <div class="layer-title">
+                    <span>⚡</span> Runtime Integration & Activation
+                </div>
+                <div class="layer-description">
+                    Feature activation, terminal setup, and real-time status reporting with glowing diagnostics.
+                </div>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-title">Terminal Creation</div>
+                        <div class="component-desc">Environment-optimized terminal setup</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Feature Activation</div>
+                        <div class="component-desc">Conditional feature enablement</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Event System</div>
+                        <div class="component-desc">Real-time status and diagnostics reporting</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-title">Welcome Display</div>
+                        <div class="component-desc">Boot summary and capability showcase</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Categories -->
+        <div class="module-matrix">
+            <div class="module-category core-modules">
+                <div class="category-title">🔴 Core Modules</div>
+                <div class="module-item">Terminal - XTerm.js integration</div>
+                <div class="module-item">FitAddon - Responsive sizing</div>
+                <div class="module-item">WebLinksAddon - URL detection</div>
+                <div class="module-item">ModuleOrchestrator - Smart loading</div>
+            </div>
+            
+            <div class="module-category enhanced-modules">
+                <div class="category-title">🟡 Enhanced Modules</div>
+                <div class="module-item">ShellManager - Full shell access</div>
+                <div class="module-item">VoiceEngine - Speech recognition</div>
+                <div class="module-item">ErrorDetection - Predictive analysis</div>
+                <div class="module-item">MobileCompanion - Touch interface</div>
+            </div>
+            
+            <div class="module-category optional-modules">
+                <div class="category-title">🟢 Optional Modules</div>
+                <div class="module-item">MoodDetector - AI emotion analysis</div>
+                <div class="module-item">AnalyticsEngine - Usage monitoring</div>
+                <div class="module-item">DiscordBot - Discord integration</div>
+                <div class="module-item">ThemeManager - Visual customization</div>
+            </div>
+        </div>
+
+        <!-- Boot Sequence -->
+        <div class="boot-sequence">
+            <div class="boot-title">🚀 Smart Boot Sequence</div>
+            <div class="boot-steps">
+                <div class="boot-step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Environment Scan</div>
+                    <div class="step-desc">Detect platform, capabilities, performance</div>
+                </div>
+                <div class="boot-step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Core Init</div>
+                    <div class="step-desc">ModuleOrchestrator and Registry setup</div>
+                </div>
+                <div class="boot-step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Module Loading</div>
+                    <div class="step-desc">Core, enhanced, optional modules</div>
+                </div>
+                <div class="boot-step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Terminal Setup</div>
+                    <div class="step-desc">Environment-optimized configuration</div>
+                </div>
+                <div class="boot-step">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Feature Activation</div>
+                    <div class="step-desc">Conditional feature enablement</div>
+                </div>
+                <div class="boot-step">
+                    <div class="step-number">6</div>
+                    <div class="step-title">Ready State</div>
+                    <div class="step-desc">Full functionality available</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff6b6b;"></div>
+                <span>Required Modules</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffd93d;"></div>
+                <span>Environment-Dependent</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #51cf66;"></div>
+                <span>Optional Features</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e599f7;"></div>
+                <span>Boot Process</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Interactive functionality
+        function animateBootSequence() {
+            const steps = document.querySelectorAll('.boot-step');
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    step.style.transform = 'scale(1.1)';
+                    step.style.background = 'rgba(229, 153, 247, 0.3)';
+                    setTimeout(() => {
+                        step.style.transform = 'scale(1)';
+                        step.style.background = 'rgba(229, 153, 247, 0.1)';
+                    }, 500);
+                }, index * 200);
+            });
+        }
+
+        function highlightModules() {
+            const modules = document.querySelectorAll('.component');
+            modules.forEach((module, index) => {
+                setTimeout(() => {
+                    module.style.background = 'rgba(102, 217, 239, 0.25)';
+                    module.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        module.style.background = 'rgba(255, 255, 255, 0.08)';
+                        module.style.transform = 'scale(1)';
+                    }, 800);
+                }, index * 100);
+            });
+        }
+
+        function resetView() {
+            const elements = document.querySelectorAll('.component, .boot-step, .layer');
+            elements.forEach(el => {
+                el.style.transform = '';
+                el.style.background = '';
+            });
+        }
+
+        function showEnvironment(env) {
+            const layers = document.querySelectorAll('.layer');
+            const colors = {
+                'electron': '#74c0fc',
+                'browser': '#ffd93d',
+                'mobile': '#51cf66'
+            };
+
+            layers.forEach(layer => {
+                layer.style.borderColor = colors[env];
+                layer.style.boxShadow = `0 10px 30px ${colors[env]}40`;
+            });
+
+            setTimeout(() => {
+                layers.forEach(layer => {
+                    layer.style.borderColor = 'transparent';
+                    layer.style.boxShadow = '';
+                });
+            }, 2000);
+        }
+
+        // Auto-animate on load
+        window.addEventListener('load', () => {
+            setTimeout(animateBootSequence, 1000);
+        });
+    </script>
+</body>
+</html>

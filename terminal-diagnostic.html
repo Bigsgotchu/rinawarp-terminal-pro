@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 RinaWarp Terminal - Boot Diagnostic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #00ff88;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .diagnostic-section {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        
+        .diagnostic-section h2 {
+            color: #55ffff;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .check-status {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+        }
+        
+        .success { color: #51cf66; }
+        .warning { color: #ffd93d; }
+        .error { color: #ff6b6b; }
+        .info { color: #74c0fc; }
+        
+        .details {
+            background: #0a0a0a;
+            padding: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #333;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .terminal-container {
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            height: 400px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        #terminal {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+        }
+        
+        .action-buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+        }
+        
+        button:hover {
+            background: #555;
+        }
+        
+        button.success {
+            background: #2d5a2d;
+        }
+        
+        button.success:hover {
+            background: #3d6a3d;
+        }
+        
+        .log {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+        
+        .xterm-theme-css {
+            --xterm-theme: 'loaded';
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 RinaWarp Terminal - Boot Diagnostic</h1>
+    
+    <!-- Boot Trace Banner -->
+    <div class="diagnostic-section">
+        <h2>🎬 Terminal Boot Trace</h2>
+        <div id="boot-trace"></div>
+    </div>
+    
+    <!-- Browser Environment Setup -->
+    <div class="diagnostic-section">
+        <h2>🌐 Browser Environment Setup</h2>
+        <div id="browser-checks"></div>
+    </div>
+    
+    <!-- Electron Renderer Process -->
+    <div class="diagnostic-section">
+        <h2>🔐 Electron Renderer Process</h2>
+        <div id="electron-checks"></div>
+    </div>
+    
+    <!-- Asset Load Timing -->
+    <div class="diagnostic-section">
+        <h2>🕒 Asset Load Timing</h2>
+        <div id="asset-checks"></div>
+    </div>
+    
+    <!-- XTerm Module Status -->
+    <div class="diagnostic-section">
+        <h2>📦 XTerm Module Status</h2>
+        <div id="xterm-checks"></div>
+    </div>
+    
+    <!-- Terminal Test Container -->
+    <div class="diagnostic-section">
+        <h2>🚀 Terminal Test</h2>
+        <div id="terminal-status"></div>
+        <div class="terminal-container">
+            <div id="terminal-tab-main"></div>
+        </div>
+        <div class="action-buttons">
+            <button onclick="runFullDiagnostic()">Run Full Diagnostic</button>
+            <button onclick="testTerminalInit()" id="terminal-test-btn">Test Terminal Init</button>
+            <button onclick="testElectronAPI()">Test Electron API</button>
+            <button onclick="clearLogs()">Clear Logs</button>
+        </div>
+        <div class="log" id="diagnostic-log"></div>
+    </div>
+
+    <script type="module">
+        // Global diagnostic state
+        window.diagnosticLog = [];
+        window.terminalInstance = null;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            window.diagnosticLog.push({ message: logEntry, type });
+            
+            const logElement = document.getElementById('diagnostic-log');
+            if (logElement) {
+                const div = document.createElement('div');
+                div.className = type;
+                div.textContent = logEntry;
+                logElement.appendChild(div);
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+            
+            // Also log to console with appropriate level
+            console[type === 'error' ? 'error' : type === 'warning' ? 'warn' : 'log'](message);
+        }
+        
+        function createCheckItem(status, message, details = null) {
+            const item = document.createElement('div');
+            item.className = 'check-item';
+            
+            const statusIcon = status === 'success' ? '✅' : 
+                              status === 'warning' ? '⚠️' : 
+                              status === 'error' ? '❌' : '📋';
+            
+            item.innerHTML = `
+                <span class="check-status">${statusIcon}</span>
+                <span class="${status}">${message}</span>
+            `;
+            
+            if (details) {
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'details';
+                detailsDiv.innerHTML = details;
+                item.appendChild(detailsDiv);
+            }
+            
+            return item;
+        }
+        
+        // Boot Trace Banner
+        function runBootTrace() {
+            log('🎬 Starting Terminal Boot Trace', 'info');
+            
+            const bootTrace = document.getElementById('boot-trace');
+            
+            const checks = [
+                ['DOM Ready', document.readyState],
+                ['CSS Loaded', document.styleSheets.length],
+                ['Electron API', !!window.electronAPI],
+                ['Terminal Container', !!document.getElementById('terminal-tab-main')],
+                ['Module Type', document.querySelector('script[type="module"]') ? 'ES Module' : 'Script'],
+                ['Context Isolation', window.electronAPI ? 'Active' : 'Unknown'],
+            ];
+            
+            checks.forEach(([label, value]) => {
+                const status = value ? 'success' : 'error';
+                const message = `${label}: ${value}`;
+                bootTrace.appendChild(createCheckItem(status, message));
+                log(`Boot Trace - ${message}`, status === 'success' ? 'info' : 'warning');
+            });
+        }
+        
+        // Browser Environment Setup Checks
+        function checkBrowserEnvironment() {
+            log('🌐 Checking Browser Environment Setup', 'info');
+            
+            const browserChecks = document.getElementById('browser-checks');
+            
+            // CSS Visibility Check
+            const cssLoaded = getComputedStyle(document.body).getPropertyValue('--xterm-theme') || 'CSS not loaded';
+            const cssStatus = cssLoaded !== 'CSS not loaded' ? 'success' : 'warning';
+            browserChecks.appendChild(createCheckItem(cssStatus, `CSS Status: ${cssLoaded}`));
+            
+            // XTerm CSS Specific Check
+            const xtermCssExists = Array.from(document.styleSheets).some(sheet => {
+                try {
+                    return sheet.href && sheet.href.includes('xterm.css');
+                } catch (e) {
+                    return false;
+                }
+            });
+            browserChecks.appendChild(createCheckItem(
+                xtermCssExists ? 'success' : 'warning', 
+                `XTerm CSS Loaded: ${xtermCssExists}`
+            ));
+            
+            // DOM Container Check
+            const terminalContainer = document.getElementById('terminal-tab-main');
+            browserChecks.appendChild(createCheckItem(
+                terminalContainer ? 'success' : 'error',
+                `Terminal Container Exists: ${!!terminalContainer}`,
+                terminalContainer ? `Element: ${terminalContainer.tagName}, ID: ${terminalContainer.id}` : 'Container not found'
+            ));
+            
+            // Viewport and styling checks
+            const bodyStyles = getComputedStyle(document.body);
+            browserChecks.appendChild(createCheckItem('info', 'Body Styles', 
+                `Font Family: ${bodyStyles.fontFamily}<br/>Background: ${bodyStyles.backgroundColor}<br/>Color: ${bodyStyles.color}`));
+        }
+        
+        // Electron Renderer Process Checks
+        function checkElectronProcess() {
+            log('🔐 Checking Electron Renderer Process', 'info');
+            
+            const electronChecks = document.getElementById('electron-checks');
+            
+            // Preload API Check
+            const hasElectronAPI = !!window.electronAPI;
+            electronChecks.appendChild(createCheckItem(
+                hasElectronAPI ? 'success' : 'error',
+                `Electron API Available: ${hasElectronAPI}`
+            ));
+            
+            if (hasElectronAPI) {
+                // Check individual API methods
+                const apiMethods = [
+                    'createShellProcess',
+                    'onShellData', 
+                    'sendToShell',
+                    'getSystemInfo',
+                    'closeShellProcess'
+                ];
+                
+                apiMethods.forEach(method => {
+                    const exists = typeof window.electronAPI[method] === 'function';
+                    electronChecks.appendChild(createCheckItem(
+                        exists ? 'success' : 'warning',
+                        `API Method ${method}: ${exists ? 'Available' : 'Missing'}`
+                    ));
+                });
+                
+                // Context Bridge Check
+                electronChecks.appendChild(createCheckItem('success', 'Context Bridge: Active',
+                    'electronAPI exposed via contextBridge.exposeInMainWorld'));
+            }
+            
+            // Security Policy Checks
+            const nodeIntegration = !!window.require;
+            electronChecks.appendChild(createCheckItem(
+                !nodeIntegration ? 'success' : 'warning',
+                `Node Integration Disabled: ${!nodeIntegration}`,
+                nodeIntegration ? 'Node integration should be disabled for security' : 'Secure configuration'
+            ));
+        }
+        
+        // Asset Load Timing Checks  
+        function checkAssetTiming() {
+            log('🕒 Checking Asset Load Timing', 'info');
+            
+            const assetChecks = document.getElementById('asset-checks');
+            
+            // DOM Ready State
+            assetChecks.appendChild(createCheckItem('info', `DOM Ready State: ${document.readyState}`));
+            
+            // Script Loading Check
+            const moduleScripts = document.querySelectorAll('script[type="module"]').length;
+            const regularScripts = document.querySelectorAll('script:not([type="module"])').length;
+            assetChecks.appendChild(createCheckItem('info', 'Script Analysis',
+                `Module Scripts: ${moduleScripts}<br/>Regular Scripts: ${regularScripts}`));
+            
+            // DOMContentLoaded Check
+            const domLoadedPromise = new Promise(resolve => {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => resolve('DOMContentLoaded fired'));
+                } else {
+                    resolve('DOM already loaded');
+                }
+            });
+            
+            domLoadedPromise.then(result => {
+                assetChecks.appendChild(createCheckItem('success', `DOM Load: ${result}`));
+                log(`Asset Timing - ${result}`, 'info');
+            });
+            
+            // Performance timing if available
+            if (window.performance && window.performance.timing) {
+                const timing = window.performance.timing;
+                const domTime = timing.domContentLoadedEventEnd - timing.navigationStart;
+                assetChecks.appendChild(createCheckItem('info', `DOM Load Time: ${domTime}ms`));
+            }
+        }
+        
+        // XTerm Module Checks
+        async function checkXTermModules() {
+            log('📦 Checking XTerm Modules', 'info');
+            
+            const xtermChecks = document.getElementById('xterm-checks');
+            
+            try {
+                // Test core xterm module
+                log('Testing @xterm/xterm import...', 'info');
+                const { Terminal } = await import('@xterm/xterm');
+                xtermChecks.appendChild(createCheckItem('success', 'Terminal Module: Loaded'));
+                
+                // Test fit addon
+                log('Testing @xterm/addon-fit import...', 'info');
+                const { FitAddon } = await import('@xterm/addon-fit');
+                xtermChecks.appendChild(createCheckItem('success', 'FitAddon Module: Loaded'));
+                
+                // Test web-links addon
+                log('Testing @xterm/addon-web-links import...', 'info');
+                const { WebLinksAddon } = await import('@xterm/addon-web-links');
+                xtermChecks.appendChild(createCheckItem('success', 'WebLinksAddon Module: Loaded'));
+                
+                // Test instantiation
+                log('Testing module instantiation...', 'info');
+                const testTerminal = new Terminal({ rows: 24, cols: 80 });
+                const testFit = new FitAddon();
+                const testWebLinks = new WebLinksAddon();
+                
+                xtermChecks.appendChild(createCheckItem('success', 'Module Instantiation: Success'));
+                
+                // Clean up test instances
+                testTerminal.dispose();
+                
+                return { Terminal, FitAddon, WebLinksAddon };
+                
+            } catch (error) {
+                log(`XTerm module check failed: ${error.message}`, 'error');
+                xtermChecks.appendChild(createCheckItem('error', `Module Load Failed: ${error.message}`));
+                return null;
+            }
+        }
+        
+        // Terminal Initialization Test
+        async function testTerminalInit() {
+            log('🚀 Testing Terminal Initialization', 'info');
+            
+            const statusElement = document.getElementById('terminal-status');
+            statusElement.innerHTML = '<div class="check-item"><span class="check-status">⏳</span><span class="info">Initializing terminal...</span></div>';
+            
+            try {
+                // Check prerequisites
+                const container = document.getElementById('terminal-tab-main');
+                if (!container) {
+                    throw new Error('Terminal container not found');
+                }
+                
+                // Load XTerm modules
+                const modules = await checkXTermModules();
+                if (!modules) {
+                    throw new Error('XTerm modules failed to load');
+                }
+                
+                const { Terminal, FitAddon, WebLinksAddon } = modules;
+                
+                // Create terminal
+                log('Creating terminal instance...', 'info');
+                const terminal = new Terminal({
+                    fontFamily: 'Consolas, "Courier New", monospace',
+                    fontSize: 14,
+                    cursorBlink: true,
+                    theme: {
+                        background: '#000000',
+                        foreground: '#ffffff',
+                        cursor: '#00ff88',
+                        cursorAccent: '#000000',
+                        selection: '#ffffff33'
+                    },
+                    cols: 80,
+                    rows: 24
+                });
+                
+                // Load addons
+                const fitAddon = new FitAddon();
+                const webLinksAddon = new WebLinksAddon();
+                
+                terminal.loadAddon(fitAddon);
+                terminal.loadAddon(webLinksAddon);
+                
+                // Clear container and open terminal
+                container.innerHTML = '';
+                terminal.open(container);
+                
+                // Fit terminal to container
+                setTimeout(() => {
+                    fitAddon.fit();
+                }, 100);
+                
+                // Test terminal functionality
+                terminal.writeln('🎉 Terminal Diagnostic Test Successful!');
+                terminal.writeln('✅ XTerm.js loaded and initialized');
+                terminal.writeln('✅ Addons (fit, web-links) loaded');
+                terminal.writeln('✅ Terminal rendered in DOM container');
+                
+                if (window.electronAPI) {
+                    terminal.writeln('✅ Electron API available');
+                    terminal.writeln('');
+                    terminal.writeln('Testing Electron shell integration...');
+                    
+                    try {
+                        await window.electronAPI.createShellProcess({
+                            shell: '/bin/bash',
+                            terminalId: 'diagnostic-test'
+                        });
+                        
+                        terminal.writeln('✅ Shell process created successfully');
+                        
+                        // Set up data handlers
+                        window.electronAPI.onShellData('diagnostic-test', (data) => {
+                            terminal.write(data);
+                        });
+                        
+                        terminal.onData((data) => {
+                            window.electronAPI.sendToShell('diagnostic-test', data);
+                        });
+                        
+                        terminal.writeln('✅ Shell I/O connected');
+                        terminal.writeln('');
+                        terminal.writeln('🚀 Full terminal ready! You can type commands below:');
+                        
+                    } catch (shellError) {
+                        terminal.writeln(`⚠️ Shell connection failed: ${shellError.message}`);
+                        terminal.writeln('Terminal will run in echo mode for testing.');
+                        
+                        terminal.onData((data) => {
+                            if (data === '\r') {
+                                terminal.write('\r\n$ ');
+                            } else {
+                                terminal.write(data);
+                            }
+                        });
+                        terminal.write('\r\n$ ');
+                    }
+                } else {
+                    terminal.writeln('⚠️ No Electron API - running in web mode');
+                    terminal.onData((data) => {
+                        if (data === '\r') {
+                            terminal.write('\r\n> ');
+                        } else {
+                            terminal.write(data);
+                        }
+                    });
+                    terminal.write('\r\n> ');
+                }
+                
+                // Focus terminal
+                terminal.focus();
+                
+                // Store reference
+                window.terminalInstance = terminal;
+                
+                statusElement.innerHTML = '<div class="check-item"><span class="check-status">✅</span><span class="success">Terminal initialized successfully!</span></div>';
+                
+                const testBtn = document.getElementById('terminal-test-btn');
+                testBtn.textContent = 'Terminal Running ✅';
+                testBtn.className = 'success';
+                
+                log('Terminal initialization completed successfully', 'info');
+                
+            } catch (error) {
+                log(`Terminal initialization failed: ${error.message}`, 'error');
+                statusElement.innerHTML = `<div class="check-item"><span class="check-status">❌</span><span class="error">Terminal failed: ${error.message}</span></div>`;
+                
+                // Show error details in container
+                const container = document.getElementById('terminal-tab-main');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="padding: 20px; color: #ff6b6b;">
+                            <h3>Terminal Initialization Failed</h3>
+                            <p><strong>Error:</strong> ${error.message}</p>
+                            <p><strong>Stack:</strong></p>
+                            <pre style="color: #ffd93d; font-size: 12px;">${error.stack}</pre>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Test Electron API
+        async function testElectronAPI() {
+            log('🔐 Testing Electron API', 'info');
+            
+            if (!window.electronAPI) {
+                log('Electron API not available', 'error');
+                return;
+            }
+            
+            try {
+                // Test system info
+                const systemInfo = await window.electronAPI.getSystemInfo();
+                log(`System Info: ${JSON.stringify(systemInfo)}`, 'info');
+                
+                // Test shell process creation
+                await window.electronAPI.createShellProcess({
+                    shell: systemInfo.shell || '/bin/bash',
+                    terminalId: 'api-test'
+                });
+                log('Shell process created for API test', 'info');
+                
+                // Clean up
+                await window.electronAPI.closeShellProcess('api-test');
+                log('API test completed successfully', 'info');
+                
+            } catch (error) {
+                log(`Electron API test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Clear logs
+        function clearLogs() {
+            window.diagnosticLog = [];
+            document.getElementById('diagnostic-log').innerHTML = '';
+            log('Logs cleared', 'info');
+        }
+        
+        // Run full diagnostic
+        async function runFullDiagnostic() {
+            log('🎯 Running Full Terminal Diagnostic', 'info');
+            clearLogs();
+            
+            // Clear previous results
+            ['boot-trace', 'browser-checks', 'electron-checks', 'asset-checks', 'xterm-checks'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            
+            // Run all checks in sequence
+            runBootTrace();
+            checkBrowserEnvironment();
+            checkElectronProcess();
+            checkAssetTiming();
+            await checkXTermModules();
+            
+            log('Full diagnostic completed', 'info');
+        }
+        
+        // Make functions globally available
+        window.runFullDiagnostic = runFullDiagnostic;
+        window.testTerminalInit = testTerminalInit;
+        window.testElectronAPI = testElectronAPI;
+        window.clearLogs = clearLogs;
+        
+        // Auto-run diagnostics on load
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Terminal Diagnostic Page Loaded', 'info');
+            runFullDiagnostic();
+        });
+        
+        // If DOM is already loaded, run immediately
+        if (document.readyState === 'loading') {
+            // Will run on DOMContentLoaded
+        } else {
+            log('🚀 Terminal Diagnostic Page Loaded (DOM ready)', 'info');
+            runFullDiagnostic();
+        }
+    </script>
+</body>
+</html>
