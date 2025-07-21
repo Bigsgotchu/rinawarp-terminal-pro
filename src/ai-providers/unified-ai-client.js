@@ -5,6 +5,14 @@
 
 import { aiProviderConfig } from './ai-provider-config.js';
 
+// Use TextDecoder from util if available (Node.js), otherwise use global (browser)
+const TextDecoder =
+  typeof global !== 'undefined' && global.TextDecoder
+    ? global.TextDecoder
+    : typeof window !== 'undefined' && window.TextDecoder
+      ? window.TextDecoder
+      : require('util').TextDecoder;
+
 export class UnifiedAIClient {
   constructor() {
     this.config = aiProviderConfig;
@@ -52,7 +60,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     try {
       let response;
-      
+
       switch (provider.name) {
         case 'openai':
           response = await this.chatWithOpenAI(message, apiKey, options);
@@ -69,7 +77,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
       // Add response to history
       this.conversationHistory.push({ role: 'assistant', content: response });
-      
+
       // Trim history if it gets too long
       this.trimConversationHistory();
 
@@ -92,17 +100,17 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
       messages: [
         { role: 'system', content: this.systemPrompt },
         ...this.getRecentHistory(),
-        { role: 'user', content: message }
+        { role: 'user', content: message },
       ],
       temperature: options.temperature || 0.7,
       max_tokens: options.maxTokens || 2048,
-      stream: options.stream || false
+      stream: options.stream || false,
     };
 
     const response = await fetch(`${provider.endpoint}/chat/completions`, {
       method: 'POST',
       headers: provider.headers(apiKey),
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -123,20 +131,17 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     const requestBody = {
       model: model,
-      messages: [
-        ...this.getRecentHistory(),
-        { role: 'user', content: message }
-      ],
+      messages: [...this.getRecentHistory(), { role: 'user', content: message }],
       system: this.systemPrompt,
       max_tokens: options.maxTokens || 2048,
       temperature: options.temperature || 0.7,
-      stream: options.stream || false
+      stream: options.stream || false,
     };
 
     const response = await fetch(`${provider.endpoint}/messages`, {
       method: 'POST',
       headers: provider.headers(apiKey),
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -161,14 +166,14 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
           parts: [
             { text: this.systemPrompt },
             ...this.getRecentHistory().map(msg => ({ text: `${msg.role}: ${msg.content}` })),
-            { text: `user: ${message}` }
-          ]
-        }
+            { text: `user: ${message}` },
+          ],
+        },
       ],
       generationConfig: {
         temperature: options.temperature || 0.7,
         maxOutputTokens: options.maxTokens || 2048,
-      }
+      },
     };
 
     const response = await fetch(
@@ -176,7 +181,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
       {
         method: 'POST',
         headers: provider.headers(apiKey),
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       }
     );
 
@@ -229,17 +234,17 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
       messages: [
         { role: 'system', content: this.systemPrompt },
         ...this.getRecentHistory(),
-        { role: 'user', content: message }
+        { role: 'user', content: message },
       ],
       temperature: options.temperature || 0.7,
       max_tokens: options.maxTokens || 2048,
-      stream: true
+      stream: true,
     };
 
     const response = await fetch(`${provider.endpoint}/chat/completions`, {
       method: 'POST',
       headers: provider.headers(apiKey),
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -263,7 +268,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
           if (data === '[DONE]') break;
-          
+
           try {
             const parsed = JSON.parse(data);
             const content = parsed.choices[0]?.delta?.content;
@@ -353,7 +358,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
     return {
       function: functionName,
       parameters: parameters,
-      result: 'Function calling to be implemented'
+      result: 'Function calling to be implemented',
     };
   }
 
@@ -388,14 +393,14 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
    */
   async generateOpenAIEmbeddings(text, apiKey) {
     const provider = this.config.providers.openai;
-    
+
     const response = await fetch(`${provider.endpoint}/embeddings`, {
       method: 'POST',
       headers: provider.headers(apiKey),
       body: JSON.stringify({
         model: 'text-embedding-ada-002',
-        input: text
-      })
+        input: text,
+      }),
     });
 
     if (!response.ok) {

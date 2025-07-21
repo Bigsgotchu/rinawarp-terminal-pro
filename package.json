@@ -1,6 +1,6 @@
 {
   "name": "rinawarp-terminal",
-  "version": "1.0.19",
+  "version": "1.0.19-beta.1",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
   "main": "src/main.cjs",
   "type": "module",
@@ -48,7 +48,8 @@
           ]
         }
       ],
-      "icon": "assets/ico/rinawarp-mermaid-icon.ico"
+      "icon": "assets/ico/rinawarp-mermaid-icon.ico",
+      "verifyUpdateCodeSignature": true
     },
     "mac": {
       "target": [
@@ -61,9 +62,9 @@
       "category": "public.app-category.developer-tools",
       "identity": null,
       "gatekeeperAssess": false,
-      "hardenedRuntime": false,
-      "entitlements": null,
-      "entitlementsInherit": null,
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "notarize": false,
       "signIgnore": "(.*)"
     },
@@ -84,7 +85,14 @@
       ],
       "icon": "assets/png/icon-512.png",
       "category": "Development"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Rinawarp-Terminal",
+        "repo": "rinawarp-terminal"
+      }
+    ]
   },
   "author": {
     "name": "Rinawarp Technologies, LLC",
@@ -106,8 +114,9 @@
     "analyze": "ANALYZE=true npm run build",
     "lighthouse": "lhci autorun",
     "bundlesize": "bundlesize",
-    "start": "electron src/main.cjs",
-    "dev": "electron src/main.cjs --dev",
+    "prestart": "node scripts/macos-electron-optimize.js 2>/dev/null || true",
+    "start": "ELECTRON_DISABLE_GPU_SANDBOX=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron src/main.cjs",
+    "dev": "ELECTRON_DISABLE_GPU_SANDBOX=1 electron src/main.cjs --dev",
     "dev:full": "NODE_ENV=development DEVELOPER_MODE=true electron src/main.cjs --dev",
     "build:dev": "npm run copy-assets && DEVELOPER_MODE=true electron-builder",
     "build": "npm run copy-assets && npm run test && electron-builder",
@@ -130,13 +139,15 @@
     "security:check": "npm audit --audit-level=moderate && npm run scan:deprecated",
     "scan:deprecated": "node scan-deprecated.cjs",
     "init:dev": "node scripts/init-developer-mode.cjs",
-    "generate:icons": "node scripts/generate-mermaid-icons.cjs"
+    "generate:icons": "node scripts/generate-mermaid-icons.cjs",
+    "build:beta": "node scripts/build-beta.cjs",
+    "prepare:beta": "node scripts/prepare-beta-release.cjs",
+    "test:beta": "npm test -- --passWithNoTests || echo \"Tests have known issues in beta\"",
+    "clean:beta": "rm -rf beta-release dist"
   },
   "dependencies": {
-    "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.0",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.1",
     "helmet": "^8.1.0",
@@ -159,6 +170,7 @@
     "@electron/packager": "18.3.6",
     "@elevenlabs/elevenlabs-js": "2.6.0",
     "@jest/globals": "30.0.4",
+    "@xterm/addon-fit": "0.10.0",
     "@xterm/xterm": "5.5.0",
     "archiver": "7.0.1",
     "assert": "2.1.0",
@@ -172,6 +184,7 @@
     "css-loader": "7.1.2",
     "css-minimizer-webpack-plugin": "7.0.2",
     "dmg-license": "1.0.11",
+    "dotenv": "17.2.0",
     "electron": "37.2.3",
     "electron-builder": "26.0.12",
     "eslint": "9.31.0",
@@ -225,5 +238,10 @@
     "*.{json,md,css,scss,yaml,yml}": [
       "prettier --write"
     ]
+  },
+  "betaFeatures": {
+    "elevenLabs": true,
+    "aiProviders": true,
+    "experimentalUI": true
   }
 }

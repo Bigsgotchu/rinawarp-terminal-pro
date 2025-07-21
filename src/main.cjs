@@ -9,6 +9,9 @@ const os = require('os');
 const { _execSync } = require('child_process');
 const { config } = require('./config/unified-config.cjs');
 
+// Load environment variables from .env file
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 // Import performance monitor using dynamic import since it's an ES module
 let PerformanceMonitor;
 let monitor;
@@ -50,14 +53,75 @@ async function loadESModules() {
 
 // monitor will be initialized in loadESModules()
 
+// Enhanced error handlers with warning suppression
+const knownHarmlessErrors = [
+  'eglQueryDeviceAttribEXT: Bad attribute',
+  'Failed to enable receiving autoplay permission data',
+  'ContextResult::kFatalFailure: SharedImageStub',
+  'Unable to create a GL context',
+  'task_policy_set invalid argument',
+  'Autofill.enable',
+  'Autofill.setAddresses',
+  'DOM.enable',
+  'CSS.enable',
+  'Overlay.enable',
+  'Log.enable',
+  'Runtime.enable',
+  'Network.enable',
+  'Target.setAutoAttach',
+  'Target.setDiscoverTargets',
+  'Performance.enable',
+];
+
+// Suppress known harmless warnings
+const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
+console.error = function (...args) {
+  const errorString = args.join(' ');
+  const isHarmless = knownHarmlessErrors.some(known => errorString.includes(known));
+
+  if (!isHarmless) {
+    originalConsoleError.apply(console, args);
+  } else if (process.env.VERBOSE_LOGGING === 'true') {
+    originalConsoleError.apply(console, ['[SUPPRESSED]', ...args]);
+  }
+};
+
+console.warn = function (...args) {
+  const warnString = args.join(' ');
+  const isHarmless = knownHarmlessErrors.some(known => warnString.includes(known));
+
+  if (!isHarmless) {
+    originalConsoleWarn.apply(console, args);
+  } else if (process.env.VERBOSE_LOGGING === 'true') {
+    originalConsoleWarn.apply(console, ['[SUPPRESSED]', ...args]);
+  }
+};
+
 // Add error handlers
 process.on('uncaughtException', error => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
+  const errorString = error.toString();
+  const isHarmless = knownHarmlessErrors.some(known => errorString.includes(known));
+
+  if (!isHarmless) {
+    console.error('Uncaught Exception:', error);
+    // Only exit for non-harmless errors
+    process.exit(1);
+  } else if (process.env.VERBOSE_LOGGING === 'true') {
+    console.log('[SUPPRESSED] Uncaught Exception:', error.message);
+  }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  const reasonString = reason ? reason.toString() : '';
+  const isHarmless = knownHarmlessErrors.some(known => reasonString.includes(known));
+
+  if (!isHarmless) {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  } else if (process.env.VERBOSE_LOGGING === 'true') {
+    console.log('[SUPPRESSED] Unhandled Rejection:', reasonString);
+  }
 });
 
 // Simple logger
@@ -71,32 +135,34 @@ let mainWindow;
 // Create application menu
 function createApplicationMenu() {
   const isMac = process.platform === 'darwin';
-  
+
   const template = [
     // App Menu (macOS only)
-    ...(isMac ? [{
-      label: app.getName(),
-      submenu: [
-        { role: 'about' },
-        { type: 'separator' },
-        { role: 'services', submenu: [] },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideOthers' },
-        { role: 'unhide' },
-        { type: 'separator' },
-        { role: 'quit' }
-      ]
-    }] : []),
-    
+    ...(isMac
+      ? [
+          {
+            label: app.getName(),
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              { role: 'services', submenu: [] },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' },
+            ],
+          },
+        ]
+      : []),
+
     // File Menu
     {
       label: 'File',
-      submenu: [
-        isMac ? { role: 'close' } : { role: 'quit' }
-      ]
+      submenu: [isMac ? { role: 'close' } : { role: 'quit' }],
     },
-    
+
     // Edit Menu
     {
       label: 'Edit',
@@ -107,65 +173,57 @@ function createApplicationMenu() {
         { role: 'cut' },
         { role: 'copy' },
         { role: 'paste' },
-        ...(isMac ? [
-          { role: 'pasteAndMatchStyle' },
-          { role: 'delete' },
-          { role: 'selectAll' },
-          { type: 'separator' },
-          {
-            label: 'Speech',
-            submenu: [
-              { role: 'startSpeaking' },
-              { role: 'stopSpeaking' }
+        ...(isMac
+          ? [
+              { role: 'pasteAndMatchStyle' },
+              { role: 'delete' },
+              { role: 'selectAll' },
+              { type: 'separator' },
+              {
+                label: 'Speech',
+                submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }],
+              },
             ]
-          }
-        ] : [
-          { role: 'delete' },
-          { type: 'separator' },
-          { role: 'selectAll' }
-        ])
-      ]
+          : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }]),
+      ],
     },
-    
+
     // View Menu
     {
       label: 'View',
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
-        { 
+        {
           label: 'Toggle Developer Tools',
           accelerator: isMac ? 'Cmd+Option+I' : 'Ctrl+Shift+I',
           click: () => {
             if (mainWindow && mainWindow.webContents) {
               mainWindow.webContents.toggleDevTools();
             }
-          }
+          },
         },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
         { role: 'zoomOut' },
         { type: 'separator' },
-        { role: 'togglefullscreen' }
-      ]
+        { role: 'togglefullscreen' },
+      ],
     },
-    
+
     // Window Menu
     {
       label: 'Window',
       submenu: [
         { role: 'minimize' },
         { role: 'close' },
-        ...(isMac ? [
-          { type: 'separator' },
-          { role: 'front' },
-          { type: 'separator' },
-          { role: 'window' }
-        ] : [])
-      ]
+        ...(isMac
+          ? [{ type: 'separator' }, { role: 'front' }, { type: 'separator' }, { role: 'window' }]
+          : []),
+      ],
     },
-    
+
     // Help Menu
     {
       role: 'help',
@@ -175,19 +233,21 @@ function createApplicationMenu() {
           click: async () => {
             const { shell } = require('electron');
             await shell.openExternal('https://github.com/Rinawarp-Terminal/rinawarp-terminal');
-          }
+          },
         },
         {
           label: 'Report Issue',
           click: async () => {
             const { shell } = require('electron');
-            await shell.openExternal('https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues');
-          }
-        }
-      ]
-    }
+            await shell.openExternal(
+              'https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues'
+            );
+          },
+        },
+      ],
+    },
   ];
-  
+
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
@@ -204,7 +264,7 @@ function createWindow() {
       allowRunningInsecureContent: false,
       enableRemoteModule: false,
       experimentalFeatures: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegrationInWorker: false,
       nodeIntegrationInSubFrames: false,
       safeDialogs: true,
@@ -256,6 +316,7 @@ app.setAppUserModelId('com.rinawarp.terminal');
 // Set proper app name for macOS
 app.setName('RinaWarp Terminal');
 
+// Electron command line switches with error suppression
 app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 app.commandLine.appendSwitch('disable-site-isolation-trials');
 app.commandLine.appendSwitch('ignore-certificate-errors');
@@ -264,7 +325,21 @@ app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder');
 app.commandLine.appendSwitch('use-fake-ui-for-media-stream');
 app.commandLine.appendSwitch('enable-usermedia-screen-capturing');
 app.commandLine.appendSwitch('auto-select-desktop-capture-source', 'Entire screen');
+// Suppress GPU and graphics warnings
+app.commandLine.appendSwitch('disable-gpu-sandbox');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+app.commandLine.appendSwitch('disable-gpu-driver-bug-workarounds');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('disable-gl-error-limit');
+app.commandLine.appendSwitch('disable-2d-canvas-clip-aa');
+app.commandLine.appendSwitch('disable-dev-shm-usage');
+// Suppress devtools protocol warnings
+app.commandLine.appendSwitch('silent-debugger-extension-api');
+app.commandLine.appendSwitch('disable-extensions-except');
+app.commandLine.appendSwitch('disable-blink-features', 'AutomationControlled');
+// Disable Electron security warnings
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
+process.env['ELECTRON_NO_ATTACH_CONSOLE'] = 'true';
 
 // Prevent conflicts with original Warp and AppData issues
 app.setPath('userData', path.join(os.homedir(), '.rinawarp-terminal', 'electron-data'));
@@ -627,18 +702,20 @@ ipcMain.handle('load-elevenlabs-config', async () => {
   try {
     const elevenLabsConfig = config.getElevenLabsConfig();
     console.log('Loading ElevenLabs config:', elevenLabsConfig);
-    
+
     // Ensure we always return a valid config object
-    return elevenLabsConfig || {
-      apiKey: '',
-      voiceId: '',
-      modelId: 'eleven_monolingual_v1',
-      enabled: false,
-      voiceSettings: {
-        stability: 0.5,
-        similarityBoost: 0.5
+    return (
+      elevenLabsConfig || {
+        apiKey: '',
+        voiceId: '',
+        modelId: 'eleven_monolingual_v1',
+        enabled: false,
+        voiceSettings: {
+          stability: 0.5,
+          similarityBoost: 0.5,
+        },
       }
-    };
+    );
   } catch (error) {
     console.error('Failed to load ElevenLabs config:', error);
     // Return default config on error
@@ -649,8 +726,8 @@ ipcMain.handle('load-elevenlabs-config', async () => {
       enabled: false,
       voiceSettings: {
         stability: 0.5,
-        similarityBoost: 0.5
-      }
+        similarityBoost: 0.5,
+      },
     };
   }
 });
@@ -659,38 +736,38 @@ ipcMain.handle('save-elevenlabs-config', async (event, elevenLabsConfig) => {
   try {
     // Save individual ElevenLabs settings
     let success = true;
-    
+
     if (elevenLabsConfig.apiKey !== undefined) {
       success = success && config.setElevenLabsApiKey(elevenLabsConfig.apiKey);
     }
-    
+
     if (elevenLabsConfig.voiceId !== undefined) {
       success = success && config.set('elevenlabs.voiceId', elevenLabsConfig.voiceId);
     }
-    
+
     if (elevenLabsConfig.modelId !== undefined) {
       success = success && config.set('elevenlabs.modelId', elevenLabsConfig.modelId);
     }
-    
+
     if (elevenLabsConfig.enabled !== undefined) {
       success = success && config.set('elevenlabs.enabled', elevenLabsConfig.enabled);
     }
-    
+
     if (elevenLabsConfig.voiceSettings !== undefined) {
       success = success && config.set('elevenlabs.voiceSettings', elevenLabsConfig.voiceSettings);
     }
-    
+
     console.log('ElevenLabs config saved:', success);
-    
+
     return {
       success: success,
-      message: success ? 'Configuration saved successfully' : 'Failed to save configuration'
+      message: success ? 'Configuration saved successfully' : 'Failed to save configuration',
     };
   } catch (error) {
     console.error('Failed to save ElevenLabs config:', error);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 });

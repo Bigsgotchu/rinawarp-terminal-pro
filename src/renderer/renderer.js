@@ -2152,6 +2152,28 @@ class PluginAPI {
   }
 }
 
+// Theme Manager Singleton
+let themeManagerInstance = null;
+
+function getThemeManager() {
+  if (!themeManagerInstance) {
+    // Try to get from unified theme manager
+    try {
+      const { UnifiedThemeManager } = require('../themes/unified-theme-manager.js');
+      themeManagerInstance = new UnifiedThemeManager();
+    } catch (error) {
+      // Fallback to basic theme manager
+      console.warn('Using basic theme manager fallback:', error.message);
+      themeManagerInstance = {
+        applyTheme: theme => console.log(`Applied theme: ${theme}`),
+        getCurrentTheme: () => 'default-dark',
+        getAvailableThemes: () => ['default-dark', 'mermaid-depths'],
+      };
+    }
+  }
+  return themeManagerInstance;
+}
+
 // Simple EventEmitter for TerminalManager
 class SimpleEventEmitter {
   constructor() {
@@ -2204,7 +2226,7 @@ class TerminalManager extends SimpleEventEmitter {
 
     // Initialize managers
     this.historyManager = new CommandHistoryManager();
-    this.themeManager = new ThemeManager();
+    this.themeManager = getThemeManager();
     this.pluginManager = new PluginManager();
     this.sessionManager = new SessionManager();
     this.cloudSyncManager = new CloudSyncManager();
@@ -2914,7 +2936,7 @@ class TerminalManager extends SimpleEventEmitter {
           // this.executeCommand(command);
         } else {
           this.pluginAPI.showNotification(
-            '🤔 I don\'t understand that command. Try being more specific!',
+            "🤔 I don't understand that command. Try being more specific!",
             'info',
             3000
           );
@@ -4137,33 +4159,33 @@ class TerminalManager extends SimpleEventEmitter {
       let statusColor = '';
 
       switch (status.tier) {
-      case 'trial':
-        statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
-        statusColor = '#ffd93d';
-        break;
-      case 'personal':
-        statusText = '👤 Personal';
-        statusColor = '#51cf66';
-        break;
-      case 'professional':
-        statusText = '💼 Professional';
-        statusColor = '#74c0fc';
-        break;
-      case 'team':
-        statusText = '👥 Team';
-        statusColor = '#9775fa';
-        break;
-      case 'enterprise':
-        statusText = '🏢 Enterprise';
-        statusColor = '#ff8c42';
-        break;
-      case 'expired':
-        statusText = '❌ Expired';
-        statusColor = '#f92672';
-        break;
-      default:
-        statusText = '❓ Unknown';
-        statusColor = '#666';
+        case 'trial':
+          statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+          statusColor = '#ffd93d';
+          break;
+        case 'personal':
+          statusText = '👤 Personal';
+          statusColor = '#51cf66';
+          break;
+        case 'professional':
+          statusText = '💼 Professional';
+          statusColor = '#74c0fc';
+          break;
+        case 'team':
+          statusText = '👥 Team';
+          statusColor = '#9775fa';
+          break;
+        case 'enterprise':
+          statusText = '🏢 Enterprise';
+          statusColor = '#ff8c42';
+          break;
+        case 'expired':
+          statusText = '❌ Expired';
+          statusColor = '#f92672';
+          break;
+        default:
+          statusText = '❓ Unknown';
+          statusColor = '#666';
       }
 
       licenseElement.textContent = statusText;
@@ -4188,15 +4210,15 @@ class TerminalManager extends SimpleEventEmitter {
                         <div class="license-tier">${status.tier.toUpperCase()}</div>
                         <div class="license-details">
                             ${
-  status.tier === 'trial'
-    ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
-    : '<p>License is active</p>'
-}
+                              status.tier === 'trial'
+                                ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
+                                : '<p>License is active</p>'
+                            }
                             ${
-  status.aiQueriesRemaining !== 'unlimited'
-    ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
-    : '<p>Unlimited AI queries</p>'
-}
+                              status.aiQueriesRemaining !== 'unlimited'
+                                ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
+                                : '<p>Unlimited AI queries</p>'
+                            }
                         </div>
                     </div>
                 </div>
@@ -5216,9 +5238,11 @@ if (document.readyState === 'loading') {
     setupWindowControls();
 
     // Initialize Theme Manager
-    if (typeof ThemeManager !== 'undefined') {
-      window.themeManager = new ThemeManager();
+    try {
+      window.themeManager = getThemeManager();
       console.log('🎨 Theme Manager initialized successfully');
+    } catch (error) {
+      console.warn('Theme Manager initialization failed:', error.message);
     }
 
     window.terminalManager = new TerminalManager();
@@ -5422,7 +5446,8 @@ document.addEventListener('keydown', e => {
     const themes = ['dark', 'light', 'solarized', 'monokai', 'mermaid'];
     const themeIndex = parseInt(e.key) - 1;
     if (themes[themeIndex]) {
-      manager.switchTheme(themes[themeIndex]);
+      const themeManager = getThemeManager();
+      themeManager.switchTheme(themes[themeIndex]);
     }
   }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- CSP Updated 2025-07-12 for enhanced security -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; media-src 'self' blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws: wss: https://api.elevenlabs.io wss://api.elevenlabs.io; media-src 'self' blob:">
     <title>RinaWarp Terminal - AI-Powered Terminal</title>
     <style>
         * {
@@ -271,6 +271,8 @@
         <button onclick="showFeatures()">✨ Features</button>
         <button onclick="configureElevenLabs()">🎤 Configure ElevenLabs</button>
         <button onclick="toggleVoiceOutput()" id="voiceOutputBtn">🔊 Voice Output: OFF</button>
+        <button onclick="showAIConfig()">🤖 Configure AI</button>
+        <button onclick="startConversationalAI()" id="conversationalAIBtn">🗣️ AI Conversation: OFF</button>
     </div>
     
     <div class="ai-section">
@@ -289,13 +291,19 @@
         RinaWarp Terminal v1.0.7 - AI Edition
     </div>
 
-    <!-- Load xterm.js and addons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/css/xterm.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/lib/xterm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.8.0/lib/addon-fit.js"></script>
+    <!-- Load xterm.js and addons locally -->
+    <link rel="stylesheet" href="../node_modules/@xterm/xterm/css/xterm.css" />
+    <script src="../node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script src="../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+    
+    <!-- Error suppression for known harmless warnings -->
+    <script src="error-suppression.js"></script>
     
     <!-- Terminal wrapper that works without nodeIntegration -->
     <script src="renderer/terminal-wrapper.js"></script>
+    
+    <!-- Shell harness for graceful command fallback -->
+    <script type="module" src="renderer/shell-harness.js"></script>
     
     <!-- Terminal Initialization System -->
     <script type="module" src="renderer/terminal-initialization-system.js"></script>
@@ -303,15 +311,18 @@
     <script src="voice-recognition-advanced.js"></script>
     <script src="rina-personality-engine.js"></script>
     <script src="rina-dialogue-system.js"></script>
+    <script src="voice-enhancements/elevenlabs-agent-integration.js"></script>
     <script type="module" src="ai-services/llm-api-client.js"></script>
     <script type="module" src="ai-services/advanced-learning-engine.js"></script>
     <script type="module" src="ai-services/unified-ai-system.js"></script>
+    <script src="terminal-functions-fix.js"></script>
     <script>
         // Terminal modules will be loaded via the preload script
         // Removing direct require() calls as they won't work without nodeIntegration
         
         let terminal;
-        let shellProcess;
+        let terminalWrapper; // Use TerminalWrapper instead of direct shellProcess
+        let shellHarness; // Shell harness for graceful command fallback
         let isVoiceActive = false;
         let recognition;
         let speechEngine;
@@ -320,6 +331,8 @@
         let advancedVoiceRecognition;
         let rinaPersonality;
         let rinaDialogue;
+        let elevenLabsAgent = null;
+        let isConversationalAIActive = false;
         
         // Enhanced Natural Language Processor - Much Smarter AI! (Moved to top for hoisting)
         const nlp = {
@@ -740,106 +753,53 @@
             updateStatus('🚀 Creating AI-powered terminal...');
             
             try {
-                // Initialize terminal with proper error handling
-                terminal = new Terminal({
-                    fontFamily: 'Consolas, "Courier New", monospace',
-                    fontSize: 14,
-                    cursorBlink: true,
-                    theme: {
-                        background: '#000000',
-                        foreground: '#ffffff',
-                        cursor: '#00ff88',
-                        selection: 'rgba(0,255,136,0.3)',
-                        black: '#000000',
-                        red: '#ff6b6b',
-                        green: '#00ff88',
-                        yellow: '#ffd93d',
-                        blue: '#74c0fc',
-                        magenta: '#ff79c6',
-                        cyan: '#8be9fd',
-                        white: '#f8f8f2'
-                    }
-                });
+                // Initialize terminal wrapper
+                terminalWrapper = new TerminalWrapper();
+                await terminalWrapper.initialize('terminal');
                 
-                // Create and load fit addon
-                const fitAddon = new FitAddon();
-                terminal.loadAddon(fitAddon);
+                // Get the actual terminal instance for backward compatibility
+                terminal = terminalWrapper.terminal;
                 
-                // Open terminal in DOM
-                const terminalElement = document.getElementById('terminal');
-                if (!terminalElement) {
-                    throw new Error('Terminal element not found');
-                }
-                terminal.open(terminalElement);
+                // Store references in terminalState for the fix script
+                window.terminalState.terminal = terminal;
+                window.terminalState.terminalWrapper = terminalWrapper;
                 
-                // Fit terminal to container
-                fitAddon.fit();
-                
-                // Store fitAddon for later use
-                terminal._fitAddon = fitAddon;
-            
-            updateStatus('🔧 Starting PowerShell with AI integration...');
-            
-            // Start PowerShell
-            try {
-                const shell = await ipcRenderer.invoke('get-shell');
-                
-                shellProcess = spawn(shell, ['-NoLogo'], {
-                    stdio: ['pipe', 'pipe', 'pipe'],
-                    cwd: process.cwd()
-                });
-                
-                shellProcess.stdout.on('data', (data) => {
-                    terminal.write(data.toString());
-                });
-                
-                shellProcess.stderr.on('data', (data) => {
-                    terminal.write(data.toString());
-                });
-                
-                // Set up data handler with error checking
-                if (typeof terminal.onData === 'function') {
-                    terminal.onData((data) => {
-                        if (shellProcess && shellProcess.stdin) {
-                            shellProcess.stdin.write(data);
-                        }
+                // Initialize shell harness with terminal wrapper
+                try {
+                    // Import shell harness module
+                    const { ShellHarness } = await import('./renderer/shell-harness.js');
+                    shellHarness = new ShellHarness({ 
+                        fallback: false, 
+                        terminalWrapper: terminalWrapper 
                     });
-                } else {
-                    console.warn('terminal.onData not available, using fallback');
-                    // Fallback for older xterm versions
-                    if (typeof terminal.on === 'function') {
-                        terminal.on('data', (data) => {
-                            if (shellProcess && shellProcess.stdin) {
-                                shellProcess.stdin.write(data);
-                            }
-                        });
-                    } else {
-                        console.error('No data handler method available on terminal');
-                    }
+                    console.log('✅ Shell harness initialized with terminal wrapper');
+                    
+                    // Store shellHarness after successful initialization
+                    window.terminalState.shellHarness = shellHarness;
+                } catch (harnessError) {
+                    console.warn('Shell harness initialization failed, using fallback mode:', harnessError);
+                    // Create fallback shell harness
+                    const { ShellHarness } = await import('./renderer/shell-harness.js');
+                    shellHarness = new ShellHarness({ fallback: true });
+                    
+                    // Store fallback shellHarness
+                    window.terminalState.shellHarness = shellHarness;
                 }
                 
-                shellProcess.on('spawn', () => {
-                    updateStatus('✅ RinaWarp Terminal ready! Use AI commands above or type directly.');
-                    terminal.write('\r\n🎉 Welcome to RinaWarp Terminal!\r\n');
-                    terminal.write('💡 Try the AI assistant above or type PowerShell commands\r\n');
-                    terminal.write('🎤 Click "Voice Control" to talk to your terminal\r\n\r\n');
-                });
+                updateStatus('✅ RinaWarp Terminal ready! Use AI commands above or type directly.');
                 
-                shellProcess.on('error', (error) => {
-                    updateStatus(`❌ Shell error: ${error.message}`);
-                });
-                
-            } catch (error) {
-                updateStatus(`❌ Failed to start shell: ${error.message}`);
-                terminal.write('\r\n❌ Failed to start PowerShell. You can still use the AI features above.\r\n');
-            }
-            
-            // Focus terminal
-            terminal.focus();
-            
             } catch (terminalError) {
                 console.error('Failed to initialize terminal:', terminalError);
                 updateStatus(`❌ Terminal initialization failed: ${terminalError.message}`);
+                
+                // Initialize shell harness in fallback mode
+                try {
+                    const { ShellHarness } = await import('./renderer/shell-harness.js');
+                    shellHarness = new ShellHarness({ fallback: true });
+                    updateStatus('⚠️ Terminal unavailable - using AI simulation mode');
+                } catch (harnessError) {
+                    console.error('Failed to initialize shell harness:', harnessError);
+                }
                 
                 // Create fallback terminal display
                 const terminalElement = document.getElementById('terminal');
@@ -848,23 +808,13 @@
                         '<div style="color: #ff6b6b; padding: 20px; text-align: center; font-family: monospace;">' +
                         '❌ Terminal failed to initialize<br><br>' +
                         'Error: ' + terminalError.message + '<br><br>' +
-                        'The AI assistant above is still available for commands.<br>' +
+                        '🧜‍♀️ The AI assistant above is still available for commands.<br>' +
+                        '✨ Using simulation mode for command responses.<br>' +
                         'Please refresh the page to try again.' +
                         '</div>';
                 }
                 return;
             }
-            
-            // Resize handler with error checking
-            window.addEventListener('resize', () => {
-                try {
-                    if (terminal && terminal._fitAddon) {
-                        terminal._fitAddon.fit();
-                    }
-                } catch (resizeError) {
-                    console.warn('Terminal resize failed:', resizeError);
-                }
-            });
         }
         
         function updateStatus(message) {
@@ -921,14 +871,18 @@
                         </div>
                     `;
                     
-                    // Execute command if it was successfully interpreted and terminal is available
-                    if (result.response.includes('→') && shellProcess && shellProcess.stdin) {
+                    // Execute command if it was successfully interpreted and shell harness is available
+                    if (result.response.includes('→') && shellHarness) {
                         // Extract command from response (simple parsing)
                         const commandMatch = result.response.match(/`([^`]+)`/);
                         if (commandMatch) {
                             const command = commandMatch[1];
-                            shellProcess.stdin.write(command + '\r\n');
-                            terminal.write(`\r\n🤖 AI Command: ${command}\r\n`);
+                            try {
+                                await shellHarness.execute(command);
+                                terminal.write(`\r\n🤖 AI Command: ${command}\r\n`);
+                            } catch (execError) {
+                                console.error('AI command execution failed:', execError);
+                            }
                         }
                     }
                 } else {
@@ -962,10 +916,14 @@
                                 <div style="margin-top: 5px; color: #74c0fc;">✨ Making waves with this command...</div>
                             `;
                             
-                            // Execute if terminal is available
-                            if (shellProcess && shellProcess.stdin) {
-                                shellProcess.stdin.write(match.command + '\r\n');
+                            // Execute command using shell harness
+                            try {
+                                const executionResult = await shellHarness.execute(match.command);
                                 terminal.write(`\r\n🧜‍♀️ Mermaid AI Command: ${match.command}\r\n`);
+                            } catch (executionError) {
+                                responseDiv.innerHTML += `
+                                    <div style="margin-top: 5px; color: #FF6B6B;">❌ Command execution failed: ${executionError.message}</div>
+                                `;
                             }
                         } else {
                             responseDiv.innerHTML = `
@@ -1107,9 +1065,14 @@
                     resolve(null);
                 };
             });
-            if (cmd && shellProcess && shellProcess.stdin) {
-                shellProcess.stdin.write(cmd + '\r\n');
-                terminal.write(`\r\n⚡ Quick Command: ${cmd}\r\n`);
+            if (cmd && shellHarness) {
+                try {
+                    await shellHarness.execute(cmd);
+                    terminal.write(`\r\n⚡ Quick Command: ${cmd}\r\n`);
+                } catch (execError) {
+                    console.error('Quick command execution failed:', execError);
+                    terminal.write(`\r\n❌ Command execution failed: ${execError.message}\r\n`);
+                }
             }
         }
         
@@ -1712,6 +1675,7 @@
 
                 let response;
                 let shouldSpeak = true;
+                let match = null; // Initialize match variable
 
                 try {
                     // Check if advanced AI is available
@@ -1725,13 +1689,17 @@
                         response = aiResult.response;
                     } else {
                         // Use enhanced pattern matching
-                        const match = findBestMatch(command);
+                        match = findBestMatch(command);
                         if (match) {
                             response = `Executing: ${match.command}`;
-                            // Execute the command if terminal is available
-                            if (shellProcess && shellProcess.stdin) {
-                                shellProcess.stdin.write(match.command + '\r\n');
-                                terminal.write(`\r\n🧜‍♀️ Voice Command: ${match.command}\r\n`);
+                            // Execute the command if shell harness is available
+                            if (shellHarness) {
+                                try {
+                                    await shellHarness.execute(match.command);
+                                    terminal.write(`\r\n🧜‍♀️ Voice Command: ${match.command}\r\n`);
+                                } catch (execError) {
+                                    console.error('Voice command execution failed:', execError);
+                                }
                             }
                         } else {
                             response = `Sorry, I didn't understand "${command}". Try commands like "list files" or "git status".`;
@@ -1818,6 +1786,10 @@
                 // Initialize voice synthesis for responses
                 voiceEngine = new VoiceSynthesisEngine();
                 await voiceEngine.init();
+                
+                // Store voice engine in terminalState
+                window.terminalState.voiceEngine = voiceEngine;
+                window.terminalState.advancedVoiceRecognition = advancedVoiceRecognition;
                 
                 // Initialize AI assistant with voice
                 aiAssistant = new VoiceEnabledAI(advancedVoiceRecognition, voiceEngine);
@@ -2038,6 +2010,11 @@
         }
         
         // Initialize AI Configuration Interface
+        // Alias function for the button
+        function showAIConfig() {
+            showAIConfiguration();
+        }
+        
         async function showAIConfiguration() {
             const modal = document.createElement('div');
             modal.style.cssText = `
@@ -2180,6 +2157,92 @@
                 controls.appendChild(aiConfigButton);
             }
         });
+        
+        // ElevenLabs Conversational AI Integration
+        async function startConversationalAI() {
+            try {
+                if (!elevenLabsAgent) {
+                    // Load ElevenLabs configuration
+                    const config = await window.electronAPI.loadElevenLabsConfig();
+                    
+                    if (!config.apiKey) {
+                        alert('Please configure ElevenLabs API key first!');
+                        configureElevenLabs();
+                        return;
+                    }
+                    
+                    // Initialize the agent
+                    elevenLabsAgent = new ElevenLabsAgentIntegration({
+                        apiKey: config.apiKey,
+                        agentId: 'agent_01k0q6eesye0ht7q1yr03tv5a8',
+                        voiceId: config.voiceId || 'EXAVITQu4vr4xnSDxMaL'
+                    });
+                    
+                    // Set up event handlers
+                    elevenLabsAgent.onTranscript = (text, speaker) => {
+                        if (speaker === 'user') {
+                            document.getElementById('aiInput').value = text;
+                        }
+                        console.log(`💬 ${speaker}: ${text}`);
+                    };
+                    
+                    elevenLabsAgent.onResponse = async (text, data) => {
+                        const responseDiv = document.getElementById('aiResponse');
+                        responseDiv.innerHTML = `
+                            <div style="color: #FF1493; font-weight: bold;">🗣️ ${text}</div>
+                            <div style="color: #00AAFF; font-size: 12px; margin-top: 5px;">
+                                🎯 ElevenLabs Conversational AI Agent
+                            </div>
+                        `;
+                        
+                        // If the agent calls for terminal execution
+                        if (data.functionCall) {
+                            terminal.write(`\r\n🤖 AI Agent: Executing ${data.functionCall}\r\n`);
+                        }
+                    };
+                    
+                    elevenLabsAgent.onError = (error) => {
+                        console.error('ElevenLabs Agent error:', error);
+                        updateStatus(`❌ Conversational AI error: ${error.message}`);
+                    };
+                    
+                    elevenLabsAgent.onStatusChange = (status, data) => {
+                        switch (status) {
+                            case 'initialized':
+                                updateStatus('✅ ElevenLabs Agent initialized');
+                                break;
+                            case 'conversation-started':
+                                updateStatus('🗣️ Conversational AI active - speak naturally!');
+                                isConversationalAIActive = true;
+                                document.getElementById('conversationalAIBtn').textContent = '🗣️ AI Conversation: ON';
+                                break;
+                            case 'conversation-ended':
+                                updateStatus('🔚 Conversational AI ended');
+                                isConversationalAIActive = false;
+                                document.getElementById('conversationalAIBtn').textContent = '🗣️ AI Conversation: OFF';
+                                break;
+                        }
+                    };
+                    
+                    // Initialize the agent
+                    const initialized = await elevenLabsAgent.initialize();
+                    if (!initialized) {
+                        throw new Error('Failed to initialize ElevenLabs agent');
+                    }
+                }
+                
+                // Toggle conversation
+                if (!isConversationalAIActive) {
+                    await elevenLabsAgent.startConversation();
+                } else {
+                    await elevenLabsAgent.endConversation();
+                }
+                
+            } catch (error) {
+                console.error('Failed to start conversational AI:', error);
+                alert(`Failed to start conversational AI: ${error.message}`);
+            }
+        }
         
         // Load AI and Voice Systems on page ready
         document.addEventListener('DOMContentLoaded', async () => {
