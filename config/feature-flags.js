@@ -6,25 +6,25 @@
 const featureFlags = {
   experimental: {
     // AI Features
-    enhancedAIContext: false,
-    predictiveCompletion: false,
-    aiDebuggingAssistant: false,
+    enhancedAIContext: true,
+    predictiveCompletion: true,
+    aiDebuggingAssistant: true,
     
     // Voice Features
-    voiceCommands: false,
-    elevenLabsIntegration: false,
+    voiceCommands: true,
+    elevenLabsIntegration: true,
     
     // UI Enhancements
     modernThemeSystem: true,
-    devtoolsOverlay: false,
+    devtoolsOverlay: true,
     
     // System Features
     pluginSystem: true,
     performanceMonitoring: true,
     
     // Analytics
-    enhancedAnalytics: false,
-    revenueMonitoring: false
+    enhancedAnalytics: true,
+    revenueMonitoring: true
   },
   
   core: {

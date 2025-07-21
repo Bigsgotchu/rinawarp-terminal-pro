@@ -268,8 +268,9 @@
         <button onclick="showAIHelp()">🤖 AI Commands</button>
         <button onclick="runCommand()">⚡ Quick Command</button>
         <button onclick="clearTerminal()">🗑️ Clear Terminal</button>
-                <button onclick="showFeatures()">✨ Features</button>
-                <button onclick="configureElevenLabs()">🎤 Configure ElevenLabs</button>
+        <button onclick="showFeatures()">✨ Features</button>
+        <button onclick="configureElevenLabs()">🎤 Configure ElevenLabs</button>
+        <button onclick="toggleVoiceOutput()" id="voiceOutputBtn">🔊 Voice Output: OFF</button>
     </div>
     
     <div class="ai-section">
@@ -288,20 +289,26 @@
         RinaWarp Terminal v1.0.7 - AI Edition
     </div>
 
+    <!-- Load xterm.js and addons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.8.0/lib/addon-fit.js"></script>
+    
+    <!-- Terminal wrapper that works without nodeIntegration -->
+    <script src="renderer/terminal-wrapper.js"></script>
+    
     <!-- Terminal Initialization System -->
-    <script type="module" src="terminal-initialization-system.js"></script>
+    <script type="module" src="renderer/terminal-initialization-system.js"></script>
     
     <script src="voice-recognition-advanced.js"></script>
     <script src="rina-personality-engine.js"></script>
     <script src="rina-dialogue-system.js"></script>
-    <script src="ai-services/llm-api-client.js"></script>
-    <script src="ai-services/advanced-learning-engine.js"></script>
-    <script src="ai-services/unified-ai-system.js"></script>
+    <script type="module" src="ai-services/llm-api-client.js"></script>
+    <script type="module" src="ai-services/advanced-learning-engine.js"></script>
+    <script type="module" src="ai-services/unified-ai-system.js"></script>
     <script>
-        const { ipcRenderer } = require('electron');
-        const { Terminal } = require('@xterm/xterm');
-        const { FitAddon } = require('@xterm/addon-fit');
-        const { spawn } = require('child_process');
+        // Terminal modules will be loaded via the preload script
+        // Removing direct require() calls as they won't work without nodeIntegration
         
         let terminal;
         let shellProcess;
@@ -865,6 +872,13 @@
             console.log('[Status]', message);
         }
         
+        let isVoiceOutputEnabled = false;
+        function toggleVoiceOutput() {
+            isVoiceOutputEnabled = !isVoiceOutputEnabled;
+            const btn = document.getElementById('voiceOutputBtn');
+            btn.textContent = isVoiceOutputEnabled ? "🔊 Voice Output: ON" : "🔊 Voice Output: OFF";
+        }
+
         async function processAICommand() {
             const input = document.getElementById('aiInput').value.trim();
             const responseDiv = document.getElementById('aiResponse');
@@ -968,6 +982,25 @@
                     const mermiaidEmojis = ['🌊', '🧜‍♀️', '🐚', '🐙', '🐳', '🌺', '✨'];
                     const randomEmoji = mermiaidEmojis[Math.floor(Math.random() * mermiaidEmojis.length)];
                     responseDiv.innerHTML += `<div style="text-align: right; margin-top: 10px; opacity: 0.7;">${randomEmoji}</div>`;
+                }
+                
+                // Speak the response if voice output is enabled
+                if (isVoiceOutputEnabled && voiceEngine && voiceEngine.isInitialized) {
+                    // Extract clean text from the response for speech
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = responseDiv.innerHTML;
+                    let textToSpeak = tempDiv.textContent || tempDiv.innerText || '';
+                    
+                    // Clean up the text - remove emojis and extra formatting
+                    textToSpeak = textToSpeak
+                        .replace(/[🧜‍♀️🌊🐚🎤⚡✨🚀🔮📚📊💡🎯🧠]/g, '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    
+                    // Only speak meaningful content
+                    if (textToSpeak && textToSpeak.length > 5) {
+                        voiceEngine.speak(textToSpeak);
+                    }
                 }
                 
             } catch (error) {
@@ -1150,9 +1183,15 @@
         
         async function configureElevenLabs() {
             try {
-                // Load the ElevenLabs configuration module
-                const config = require('./config/unified-config.cjs');
-                const currentConfig = await config.loadElevenLabsConfig();
+                // Check if electronAPI is available
+                if (!window.electronAPI) {
+                    console.error('electronAPI not available');
+                    alert('ElevenLabs configuration is not available in this context');
+                    return;
+                }
+                
+                // Load the ElevenLabs configuration via IPC
+                const currentConfig = await window.electronAPI.loadElevenLabsConfig();
                 
                 const modal = document.createElement('div');
                 modal.style.cssText = `
@@ -1239,9 +1278,15 @@
                     return;
                 }
                 
-                // Save configuration
-                const config = require('./config/unified-config.cjs');
-                const result = await config.saveElevenLabsConfig({ apiKey, voiceId });
+                // Check if electronAPI is available
+                if (!window.electronAPI) {
+                    console.error('electronAPI not available');
+                    alert('Cannot save configuration - electronAPI not available');
+                    return;
+                }
+                
+                // Save configuration via IPC
+                const result = await window.electronAPI.saveElevenLabsConfig({ apiKey, voiceId });
                 
                 if (result.success) {
                     alert('✅ ElevenLabs configuration saved successfully!');
@@ -1272,8 +1317,10 @@
                 updateStatus('🎤 Testing ElevenLabs voice...');
                 
                 // Test the voice configuration
-                const config = require('./config/unified-config.cjs');
-                const result = await config.testElevenLabsVoice({ apiKey, voiceId });
+                // Note: Voice testing should be implemented through IPC
+                updateStatus('🎤 Voice test feature not yet implemented');
+                alert('Voice test feature coming soon!');
+                return;
                 
                 if (result.success) {
                     updateStatus('✅ Voice test successful!');

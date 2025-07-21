@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient definitions -->
+    <linearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF1493;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF69B4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF1493;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="tailGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00CED1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#20B2AA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00FFFF;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB6C1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFC0CB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB6C1;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="shellGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FF69B4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF1493;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DC143C;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Glow effects -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Shimmer effect -->
+    <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+      <stop offset="50%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+      <animateTransform attributeName="gradientTransform" type="translate" values="-200 0;512 0;-200 0" dur="3s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle with gradient -->
+  <circle cx="256" cy="256" r="240" fill="url(#tailGradient)" opacity="0.2"/>
+  
+  <!-- Mermaid tail -->
+  <path d="M256 350 C280 380, 320 420, 350 450 C380 480, 420 500, 450 480 C480 460, 470 420, 440 400 C410 380, 370 360, 350 340 L256 350 Z" 
+        fill="url(#tailGradient)" filter="url(#glow)"/>
+  
+  <!-- Tail fin details -->
+  <path d="M350 450 C370 465, 390 470, 410 465 C430 460, 445 450, 450 480" 
+        fill="none" stroke="#00FFFF" stroke-width="3" opacity="0.7"/>
+  
+  <!-- Mermaid body -->
+  <ellipse cx="256" cy="280" rx="45" ry="70" fill="url(#bodyGradient)" filter="url(#glow)"/>
+  
+  <!-- Seashell bra -->
+  <ellipse cx="240" cy="250" rx="18" ry="15" fill="url(#shellGradient)" filter="url(#glow)"/>
+  <ellipse cx="272" cy="250" rx="18" ry="15" fill="url(#shellGradient)" filter="url(#glow)"/>
+  
+  <!-- Shell details -->
+  <path d="M230 240 Q240 235, 250 240 Q240 245, 230 240" fill="#FFB6C1" opacity="0.6"/>
+  <path d="M262 240 Q272 235, 282 240 Q272 245, 262 240" fill="#FFB6C1" opacity="0.6"/>
+  
+  <!-- Mermaid head -->
+  <circle cx="256" cy="200" r="35" fill="url(#bodyGradient)" filter="url(#glow)"/>
+  
+  <!-- Hair -->
+  <path d="M225 180 C200 160, 180 140, 190 120 C200 100, 230 90, 256 95 C282 90, 312 100, 322 120 C332 140, 312 160, 287 180 C280 200, 270 220, 256 240 C242 220, 232 200, 225 180 Z" 
+        fill="url(#hairGradient)" filter="url(#glow)"/>
+  
+  <!-- Hair flowing details -->
+  <path d="M190 120 C170 110, 150 130, 160 150 C170 170, 200 180, 225 180" 
+        fill="url(#hairGradient)" opacity="0.8"/>
+  <path d="M322 120 C342 110, 362 130, 352 150 C342 170, 312 180, 287 180" 
+        fill="url(#hairGradient)" opacity="0.8"/>
+  
+  <!-- Hair strands -->
+  <path d="M240 95 C235 75, 230 55, 235 35" fill="none" stroke="#FF69B4" stroke-width="2" opacity="0.7"/>
+  <path d="M256 95 C256 75, 256 55, 256 35" fill="none" stroke="#FF1493" stroke-width="3" opacity="0.8"/>
+  <path d="M272 95 C277 75, 282 55, 277 35" fill="none" stroke="#FF69B4" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Eyes -->
+  <circle cx="245" cy="195" r="4" fill="#000"/>
+  <circle cx="267" cy="195" r="4" fill="#000"/>
+  <circle cx="246" cy="193" r="1.5" fill="#FFF"/>
+  <circle cx="268" cy="193" r="1.5" fill="#FFF"/>
+  
+  <!-- Nose -->
+  <circle cx="256" cy="205" r="1.5" fill="#FFB6C1"/>
+  
+  <!-- Smile -->
+  <path d="M248 210 Q256 218, 264 210" fill="none" stroke="#FF1493" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Arms -->
+  <ellipse cx="210" cy="270" rx="12" ry="25" fill="url(#bodyGradient)" transform="rotate(-20 210 270)"/>
+  <ellipse cx="302" cy="270" rx="12" ry="25" fill="url(#bodyGradient)" transform="rotate(20 302 270)"/>
+  
+  <!-- Hands -->
+  <circle cx="200" cy="290" r="8" fill="url(#bodyGradient)"/>
+  <circle cx="312" cy="290" r="8" fill="url(#bodyGradient)"/>
+  
+  <!-- Magical sparkles -->
+  <g fill="#00FFFF" opacity="0.8">
+    <circle cx="180" cy="150" r="2">
+      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="340" cy="180" r="1.5">
+      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="320" cy="120" r="1">
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="200" cy="120" r="1">
+      <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Pink sparkles -->
+  <g fill="#FF69B4" opacity="0.7">
+    <circle cx="160" cy="200" r="1.5">
+      <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="350" cy="220" r="1">
+      <animate attributeName="opacity" values="0.2;0.7;0.2" dur="2.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="380" cy="160" r="1">
+      <animate attributeName="opacity" values="0.7;0.3;0.7" dur="2.1s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Shimmer overlay -->
+  <rect x="0" y="0" width="512" height="512" fill="url(#shimmer)" opacity="0.3"/>
+  
+  <!-- Crown/Tiara -->
+  <path d="M230 170 L240 155 L250 165 L256 150 L262 165 L272 155 L282 170 C285 175, 280 180, 275 175 L256 175 L237 175 C232 180, 227 175, 230 170 Z" 
+        fill="url(#shellGradient)" filter="url(#glow)"/>
+  
+  <!-- Crown jewels -->
+  <circle cx="240" cy="162" r="2" fill="#00FFFF"/>
+  <circle cx="256" cy="157" r="2.5" fill="#FF1493"/>
+  <circle cx="272" cy="162" r="2" fill="#00FFFF"/>
+</svg>

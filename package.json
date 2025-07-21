@@ -6,7 +6,7 @@
   "type": "module",
   "build": {
     "productName": "RinaWarp Terminal",
-    "appId": "com.rinawarp.terminal",
+    "appId": "com.rinawarptech.terminal",
     "copyright": "Copyright © 2025 Rinawarp Technologies, LLC",
     "directories": {
       "output": "dist",
@@ -108,6 +108,8 @@
     "bundlesize": "bundlesize",
     "start": "electron src/main.cjs",
     "dev": "electron src/main.cjs --dev",
+    "dev:full": "NODE_ENV=development DEVELOPER_MODE=true electron src/main.cjs --dev",
+    "build:dev": "npm run copy-assets && DEVELOPER_MODE=true electron-builder",
     "build": "npm run copy-assets && npm run test && electron-builder",
     "test": "jest",
     "lint": "eslint . --ext .js,.ts,.cjs --fix && prettier --write . --ignore-unknown",
@@ -126,7 +128,9 @@
     "experimental:ui": "node src/ui-enhancements/modern-theme-system.js",
     "validate:config": "node scripts/validate-config.js",
     "security:check": "npm audit --audit-level=moderate && npm run scan:deprecated",
-    "scan:deprecated": "node scan-deprecated.cjs"
+    "scan:deprecated": "node scan-deprecated.cjs",
+    "init:dev": "node scripts/init-developer-mode.cjs",
+    "generate:icons": "node scripts/generate-mermaid-icons.cjs"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
@@ -167,6 +171,7 @@
     "core-js": "3.44.0",
     "css-loader": "7.1.2",
     "css-minimizer-webpack-plugin": "7.0.2",
+    "dmg-license": "1.0.11",
     "electron": "37.2.3",
     "electron-builder": "26.0.12",
     "eslint": "9.31.0",

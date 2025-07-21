@@ -588,12 +588,17 @@ app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
 
   // Only send publishable key and price IDs (never secret keys!)
   const config = {
-    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY?.trim(),
     prices: {
-      personal: process.env.STRIPE_PRICE_PERSONAL_YEARLY,
-      professional: process.env.STRIPE_PRICE_PROFESSIONAL_YEARLY,
-      team: process.env.STRIPE_PRICE_TEAM_YEARLY,
+      personal: process.env.STRIPE_PRICE_PERSONAL?.trim(),
+      professional: process.env.STRIPE_PRICE_PROFESSIONAL?.trim(),
+      team: process.env.STRIPE_PRICE_TEAM?.trim()
     },
+    betaPrices: {
+      earlybird: process.env.STRIPE_PRICE_EARLYBIRD?.trim(),
+      beta: process.env.STRIPE_PRICE_BETA?.trim(),
+      premium: process.env.STRIPE_PRICE_PREMIUM?.trim()
+    }
   };
 
   // Validate that required config is present

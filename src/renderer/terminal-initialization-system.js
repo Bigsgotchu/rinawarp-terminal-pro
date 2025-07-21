@@ -95,7 +95,7 @@ class TerminalInitializationSystem {
    */
   async setupCommandInput() {
     try {
-      const inputBox = document.getElementById("commandInput") || 
+      const inputBox = document.getElementById('commandInput') || 
                       document.querySelector('.terminal-input') ||
                       document.querySelector('input[type="text"]');
       
@@ -107,24 +107,24 @@ class TerminalInitializationSystem {
       }
 
       // Enhanced event handling
-      inputBox.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
+      inputBox.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
           e.preventDefault();
           const command = inputBox.value.trim();
           if (command) {
             this.processCommand(command);
-            inputBox.value = "";
+            inputBox.value = '';
           }
         }
         
         // Add support for command history
-        if (e.key === "ArrowUp" && this.commandHistory.length > 0) {
+        if (e.key === 'ArrowUp' && this.commandHistory.length > 0) {
           e.preventDefault();
           this.historyIndex = Math.max(0, this.historyIndex - 1);
           inputBox.value = this.commandHistory[this.historyIndex] || '';
         }
         
-        if (e.key === "ArrowDown") {
+        if (e.key === 'ArrowDown') {
           e.preventDefault();
           this.historyIndex = Math.min(this.commandHistory.length, this.historyIndex + 1);
           inputBox.value = this.commandHistory[this.historyIndex] || '';
@@ -132,7 +132,7 @@ class TerminalInitializationSystem {
       });
 
       // Add autocomplete support
-      inputBox.addEventListener("input", (e) => {
+      inputBox.addEventListener('input', (e) => {
         this.handleAutocomplete(e.target.value);
       });
 
@@ -287,8 +287,8 @@ class TerminalInitializationSystem {
         }
 
         // Check and configure ElevenLabs
-        if (typeof configureElevenLabs === "function") {
-          await configureElevenLabs();
+        if (typeof window.configureElevenLabs === 'function') {
+          await window.configureElevenLabs();
           this.updateComponentStatus('elevenLabs', 'configured');
           console.log('🎤 [TerminalInit] ElevenLabs configuration successful');
         } else if (attempts < maxAttempts) {

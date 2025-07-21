@@ -88,7 +88,7 @@ class ThemeManager {
 
   // Get current theme properties
   getThemeProperties() {
-    const styles = getComputedStyle(document.documentElement);
+    const styles = window.getComputedStyle(document.documentElement);
     return {
       background: styles.getPropertyValue('--color-background'),
       surface: styles.getPropertyValue('--color-surface'),

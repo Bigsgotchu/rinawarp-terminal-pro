@@ -25,16 +25,17 @@ class UnifiedConfig {
         windowHeight: 800,
       },
       features: {
-        aiAssistant: false,
-        voiceControl: false,
-        advancedFeatures: false,
+        aiAssistant: true,
+        voiceControl: true,
+        advancedFeatures: true,
+        developerMode: true,
       },
       performance: {
         enableGPUAcceleration: true,
         reducedMotion: false,
       },
       elevenlabs: {
-        enabled: false,
+        enabled: true,
         apiKey: process.env.ELEVENLABS_API_KEY || '',
         voiceId: 'uSI3HxQeb8HZOrDcaj83',
         modelId: 'eleven_monolingual_v1',

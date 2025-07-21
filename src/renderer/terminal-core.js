@@ -278,7 +278,7 @@ export class RinaWarpTerminal {
   }
 
   showWelcome() {
-    this.terminal.write('\\x1b[32m🦾 RinaWarp Terminal v' + (__VERSION__ || '1.0') + ' initialized\\x1b[0m\\r\\n');
+    this.terminal.write('\\x1b[32m🦾 RinaWarp Terminal v1.0.19 initialized\\x1b[0m\\r\\n');
     this.terminal.write('\\x1b[36mType "help" for available commands or "features" to see loaded features\\x1b[0m\\r\\n');
     this.terminal.write('\\r\\n');
     this.showPrompt();
@@ -326,7 +326,7 @@ Type a command to get started!
     this.writeLine(`
 🦾 RinaWarp Terminal
 ===================
-Version: ${__VERSION__ || '1.0.0'}
+Version: 1.0.19
 Build Date: ${buildDate}
 Node Environment: ${nodeEnv}
 Features: Modular loading, AI assistance, Voice control, Plugin system

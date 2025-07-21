@@ -5,29 +5,31 @@ const { UnifiedConfig } = require('../../src/config/unified-config.cjs');
 
 // Mock fs and os modules
 jest.mock('fs');
-jest.mock('os');
+jest.mock('os', () => ({
+  homedir: jest.fn(() => '/mock/home')
+}));
 
 describe('UnifiedConfig', () => {
   let config;
   const mockHomedir = '/mock/home';
   const mockConfigDir = path.join(mockHomedir, '.rinawarp-terminal');
   const mockConfigFile = path.join(mockConfigDir, 'config.json');
-beforeEach(() => {
-  // Reset all mocks
-  jest.clearAllMocks();
-  
-  // Mock os.homedir()
-  os.homedir.mockReturnValue(mockHomedir);
-  
-  // Mock fs functions
-  fs.existsSync.mockImplementation((path) => false);
-  fs.mkdirSync.mockImplementation(() => {});
-  fs.readFileSync.mockImplementation((path) => JSON.stringify({}));
-  fs.writeFileSync.mockImplementation(() => {});
-  
-  // Create fresh config instance
-  config = new UnifiedConfig();
-});
+
+  beforeEach(() => {
+    // Reset all mocks
+    jest.clearAllMocks();
+    
+    // Mock os.homedir()
+    os.homedir = jest.fn().mockReturnValue(mockHomedir);
+    
+    // Mock fs functions
+    fs.existsSync = jest.fn().mockImplementation((path) => false);
+    fs.mkdirSync = jest.fn().mockImplementation(() => {});
+    fs.readFileSync = jest.fn().mockImplementation((path) => JSON.stringify({}));
+    fs.writeFileSync = jest.fn().mockImplementation(() => {});
+    
+    // Create fresh config instance
+    config = new UnifiedConfig();
   });
 
   describe('Constructor and Initialization', () => {
@@ -127,7 +129,7 @@ beforeEach(() => {
       
       // Mock PowerShell detection
       execSync.mockImplementationOnce(() => { throw new Error(); })
-             .mockImplementationOnce(() => 'PowerShell 5.1');
+        .mockImplementationOnce(() => 'PowerShell 5.1');
       
       const shell = config.getDefaultShell();
       expect(shell).toBe('powershell.exe');

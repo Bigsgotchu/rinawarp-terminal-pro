@@ -57,7 +57,7 @@ export class EnhancedPerformanceMonitor {
         console.warn('PerformanceObserver not supported:', error.message);
       }
     }
-  },
+  }
 
   setupMutationObserver() {
     // Use a single MutationObserver for all DOM changes
@@ -92,7 +92,7 @@ export class EnhancedPerformanceMonitor {
       attributeFilter: ['class', 'style', 'data-*'], // Only observe relevant attributes
       characterData: false // Don't observe text changes
     });
-  },
+  }
 
   batchProcessEntries(entries) {
     let metrics = {
@@ -134,7 +134,7 @@ export class EnhancedPerformanceMonitor {
 
     // Process batched metrics
     this.processPerformanceMetrics(metrics);
-  },
+  }
 
   processPerformanceMetrics(metrics) {
     // Process paint metrics

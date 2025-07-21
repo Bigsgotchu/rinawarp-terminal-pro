@@ -10,7 +10,7 @@
  * - Integration with existing Rina voice system
  */
 
-import { ElevenLabsAPI } from '@elevenlabs/elevenlabs-js';
+import ElevenLabsAPI from '@elevenlabs/elevenlabs-js';
 import logger from '../utils/logger.js';
 import { triageError } from '../utils/error-triage-system.js';
 
