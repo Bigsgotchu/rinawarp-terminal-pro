@@ -1,20 +1,26 @@
 module.exports = {
   testEnvironment: 'jsdom',
   injectGlobals: true,
-  testMatch: [
-    '<rootDir>/tests/**/*.test.js'
-  ],
+  testMatch: ['<rootDir>/tests/**/*.test.js'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/dist/',
     '<rootDir>/src/plugins/',
     '<rootDir>/email-templates/',
-    '<rootDir>/email-testing-suite/'
+    '<rootDir>/email-testing-suite/',
   ],
   testTimeout: 10000,
   maxWorkers: 1,
-  setupFiles: ['<rootDir>/tests/setup.js']
+  setupFiles: ['<rootDir>/tests/setup.js'],
+  collectCoverageFrom: [
+    'src/**/*.js',
+    '!src/**/*.test.js',
+    '!src/plugins/**',
+    '!src/**/node_modules/**',
+  ],
+  coverageDirectory: 'coverage',
+  passWithNoTests: true,
 };
