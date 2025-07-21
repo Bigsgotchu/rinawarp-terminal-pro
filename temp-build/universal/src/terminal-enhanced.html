@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RinaWarp Terminal</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      padding: 1rem;
+    }
+    #terminal {
+      white-space: pre-wrap;
+    }
+    .warning {
+      color: yellow;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+
+  <script type="module">
+    const terminalEl = document.getElementById('terminal');
+    const logQueue = [];
+
+    function queueLog(msg, cls = '') {
+      logQueue.push({ msg, cls });
+    }
+
+    // Enhanced flushLogs to prevent forced reflows
+    function flushLogs() {
+      requestAnimationFrame(() => {
+        const fragment = document.createDocumentFragment();
+        for (const { msg, cls } of logQueue) {
+          const line = document.createElement('div');
+          if (cls) line.classList.add(cls);
+          line.textContent = msg;
+          fragment.appendChild(line);
+        }
+        terminalEl.appendChild(fragment);
+        logQueue.length = 0;
+      });
+    }
+
+    class RinaWarpTerminal {
+      constructor() {
+        this.commandHandlers = [];
+        this.inputHandlers = [];
+        this.beforeExecuteHandlers = [];
+        queueLog('[Status] ✅ RinaWarp Terminal ready! Use AI commands above or type directly.');
+      }
+
+      onExecute(handler) {
+        this.commandHandlers.push(handler);
+      }
+
+      onInput(handler) {
+        this.inputHandlers.push(handler);
+      }
+
+      onBeforeExecute(handler) {
+        this.beforeExecuteHandlers.push(handler);
+      }
+
+      async runCommand(cmd) {
+        for (const handler of this.beforeExecuteHandlers) {
+          const proceed = await handler(cmd);
+          if (!proceed) return;
+        }
+
+        for (const handler of this.commandHandlers) {
+          await handler(cmd);
+        }
+
+        queueLog(`> ${cmd}`);
+        flushLogs();
+      }
+
+      showSuggestion(suggestion) {
+        queueLog(`💡 Suggestion: ${suggestion}`);
+        flushLogs();
+      }
+
+      warn(msg) {
+        queueLog(`⚠️ ${msg}`, 'warning');
+        flushLogs();
+      }
+
+      log(msg) {
+        queueLog(msg);
+        flushLogs();
+      }
+    }
+
+    // Enhanced SafeAIWrapper with robust error handling
+    class SafeAIWrapper {
+      constructor(provider, options = {}) {
+        this.provider = provider;
+        this.available = false;
+        this.engine = null;
+        this.retryCount = 0;
+        this.maxRetries = options.maxRetries || 3;
+        this.timeout = options.timeout || 10000;
+        this.fallbackMode = options.fallbackMode !== false;
+        
+        this.initialize();
+      }
+
+      initialize() {
+        try {
+          if (typeof this.provider === 'function') {
+            this.engine = new this.provider();
+            this.available = true;
+            console.log('[AI] ✅ AIIntegrationManager loaded successfully.');
+          } else if (this.provider && typeof this.provider.processUserCommand === 'function') {
+            this.engine = this.provider;
+            this.available = true;
+            console.log('[AI] ✅ AIIntegrationManager loaded with provider instance.');
+          } else {
+            throw new TypeError('AIIntegrationManager is not a constructor');
+          }
+        } catch (err) {
+          console.warn('[AI] ❌ AI Integration not available:', err);
+          this.available = false;
+          this.setupFallbackMode();
+        }
+      }
+
+      setupFallbackMode() {
+        if (this.fallbackMode) {
+          this.engine = {
+            processUserCommand: async (cmd) => ({
+              response: `🌊 Processing "${cmd}" in fallback mode`,
+              suggestions: []
+            }),
+            predictCommand: (input) => this.getFallbackPrediction(input),
+            generateDocs: (command) => this.getFallbackDocs(command)
+          };
+        }
+      }
+
+      async withTimeout(promise, timeoutMs = this.timeout) {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('AI operation timed out')), timeoutMs)
+          )
+        ]);
+      }
+
+      async safeExecute(operation, fallback = null) {
+        if (!this.available && !this.fallbackMode) {
+          return fallback;
+        }
+
+        try {
+          const result = await this.withTimeout(operation());
+          this.retryCount = 0;
+          return result;
+        } catch (err) {
+          console.error('AI operation failed:', err);
+          
+          if (this.retryCount < this.maxRetries && this.available) {
+            this.retryCount++;
+            console.log(`Retrying AI operation (${this.retryCount}/${this.maxRetries})`);
+            return this.safeExecute(operation, fallback);
+          }
+          
+          this.retryCount = 0;
+          return fallback;
+        }
+      }
+
+      async predictCommand(input) {
+        return this.safeExecute(
+          () => this.engine.predictCommand(input),
+          this.fallbackMode ? this.getFallbackPrediction(input) : null
+        );
+      }
+
+      async generateDocs(command) {
+        return this.safeExecute(
+          () => this.engine.generateDocs(command),
+          this.fallbackMode ? this.getFallbackDocs(command) : null
+        );
+      }
+
+      async processUserCommand(command, context = {}) {
+        return this.safeExecute(
+          () => this.engine.processUserCommand(command, context),
+          this.fallbackMode ? {
+            response: `🌊 Processing "${command}" in fallback mode`,
+            suggestions: []
+          } : null
+        );
+      }
+
+      getFallbackPrediction(input) {
+        const commonCompletions = {
+          'gi': 'git',
+          'npm': 'npm install',
+          'cd': 'cd ..',
+          'ls': 'ls -la',
+          'dir': 'dir',
+          'pw': 'pwd',
+          'mk': 'mkdir',
+          'rm': 'rm -rf',
+          'cp': 'cp -r',
+          'mv': 'mv'
+        };
+
+        const partial = input.trim().toLowerCase();
+        for (const [key, value] of Object.entries(commonCompletions)) {
+          if (key.startsWith(partial)) {
+            return value;
+          }
+        }
+        return null;
+      }
+
+      getFallbackDocs(command) {
+        const basicDocs = {
+          'git': 'Git - Version control system. Common commands: git add, git commit, git push',
+          'npm': 'NPM - Node package manager. Common commands: npm install, npm run, npm start',
+          'cd': 'Change directory. Usage: cd [directory]',
+          'ls': 'List directory contents. Usage: ls [options] [directory]',
+          'mkdir': 'Create directory. Usage: mkdir [directory_name]',
+          'pwd': 'Print working directory - shows current location'
+        };
+
+        const cmd = command.split(' ')[0].toLowerCase();
+        return basicDocs[cmd] || `Command: ${command} - No documentation available offline`;
+      }
+
+      getStatus() {
+        return {
+          available: this.available,
+          retryCount: this.retryCount,
+          maxRetries: this.maxRetries,
+          fallbackMode: this.fallbackMode
+        };
+      }
+    }
+
+    class PerformanceMonitor {
+      constructor(terminal) {
+        this.terminal = terminal;
+        this.history = [];
+      }
+
+      track(command, execFn) {
+        const start = performance.now();
+        const usageBefore = window.performance.memory?.usedJSHeapSize || 0;
+
+        return execFn().then((result) => {
+          const end = performance.now();
+          const usageAfter = window.performance.memory?.usedJSHeapSize || 0;
+
+          this.history.push({
+            command,
+            time: end - start,
+            memoryUsed: usageAfter - usageBefore,
+          });
+
+          this.terminal.log(`⏱️ ${command} took ${Math.round(end - start)}ms`);
+          return result;
+        });
+      }
+
+      getAnalytics() {
+        return this.history.sort((a, b) => b.time - a.time);
+      }
+    }
+
+    function enablePredictiveCompletion(aiWrapper, terminal) {
+      terminal.onInput(async (input) => {
+        const suggestion = await aiWrapper.predictCommand(input);
+        if (suggestion) terminal.showSuggestion(suggestion);
+      });
+    }
+
+    function enableErrorPrevention(aiWrapper, terminal) {
+      terminal.onBeforeExecute(async (cmd) => {
+        if (cmd.includes('rm -rf /')) {
+          terminal.warn('Dangerous command detected!');
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function loadAIIntegration() {
+      let aiWrapper;
+
+      try {
+        if (typeof window.AIIntegrationManager === 'function') {
+          aiWrapper = new SafeAIWrapper(window.AIIntegrationManager, {
+            maxRetries: 3,
+            timeout: 10000,
+            fallbackMode: true
+          });
+          console.log('[AI] ✅ AIIntegrationManager loaded successfully.');
+        } else {
+          throw new TypeError('AIIntegrationManager is not a constructor');
+        }
+      } catch (err) {
+        console.warn('[AI] ❌ AI Integration not available:', err);
+        aiWrapper = new SafeAIWrapper(null, { fallbackMode: true });
+      }
+
+      window.aiWrapper = aiWrapper;
+      return aiWrapper;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      queueLog('[Status] 🚀 Creating AI-powered terminal...');
+      queueLog('[Status] 🔧 Starting PowerShell with AI integration...');
+      
+      const terminal = new RinaWarpTerminal();
+      const aiWrapper = loadAIIntegration();
+      const perfMonitor = new PerformanceMonitor(terminal);
+
+      enablePredictiveCompletion(aiWrapper, terminal);
+      enableErrorPrevention(aiWrapper, terminal);
+
+      terminal.onExecute((cmd) => {
+        return perfMonitor.track(cmd, () => {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              terminal.log(`Executed: ${cmd}`);
+              resolve();
+            }, 500);
+          });
+        });
+      });
+
+      // Log AI status
+      queueLog(`[AI] Status: ${JSON.stringify(aiWrapper.getStatus())}`);
+      queueLog('[Status] ✅ RinaWarp Terminal ready! Use AI commands above or type directly.');
+      flushLogs();
+
+      // Simulate commands
+      setTimeout(() => terminal.runCommand('rm -rf /'), 1000);
+      setTimeout(() => terminal.runCommand('npm install'), 2000);
+    });
+  </script>
+</body>
+</html>

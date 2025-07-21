@@ -225,7 +225,7 @@ async function demonstrateRinaFeatures(rinaVoice, rinaIntegration) {
         console.log(`  Cached clips: [${cacheStatus.cachedKeys.join(', ')}]`);
         
         // Clear cache demo
-        console.log(`\n  Clearing audio cache...`);
+        console.log('\n  Clearing audio cache...');
         rinaVoice.clearCache();
         
         const newStatus = rinaVoice.getCacheStatus();

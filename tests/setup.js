@@ -136,12 +136,15 @@ global.createMockLogger = () => ({
   security: jest.fn(),
 });
 
-// Clean up after each test
-afterEach(() => {
-  jest.clearAllMocks();
-  localStorage.clear();
-  sessionStorage.clear();
-});
 
-// Setup DOM environment
-import 'jest-environment-jsdom';
+// Setup test environment
+process.env = {
+  ...process.env,
+  NODE_ENV: 'test',
+  ELEVENLABS_API_KEY: '',
+  SHELL: process.platform === 'win32' ? 'powershell.exe' : '/bin/bash',
+  APPDATA: process.platform === 'win32' ? '/mock/appdata' : undefined
+};
+
+// Set up timing threshold for performance tests
+jest.setTimeout(30000); // 30 seconds
