@@ -111,6 +111,7 @@ dist
 # Temporary folders
 tmp/
 temp/
+temp-build/
 
 # Editor directories and files
 .vscode/
