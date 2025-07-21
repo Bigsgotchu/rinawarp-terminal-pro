@@ -191,65 +191,65 @@ class GoogleAnalyticsAudienceCreator {
     // Convert conditions to GA segment filters
     Object.entries(conditions).forEach(([key, condition]) => {
       switch (key) {
-        case 'sessions':
-          segmentFilters.push({
-            simpleSegment: {
-              orFiltersForSegment: [
-                {
-                  segmentFilterClauses: [
-                    {
-                      metricFilter: {
-                        metricName: 'ga:sessions',
-                        operator: condition.operator,
-                        comparisonValue: condition.value.toString(),
-                      },
+      case 'sessions':
+        segmentFilters.push({
+          simpleSegment: {
+            orFiltersForSegment: [
+              {
+                segmentFilterClauses: [
+                  {
+                    metricFilter: {
+                      metricName: 'ga:sessions',
+                      operator: condition.operator,
+                      comparisonValue: condition.value.toString(),
                     },
-                  ],
-                },
-              ],
-            },
-          });
-          break;
+                  },
+                ],
+              },
+            ],
+          },
+        });
+        break;
 
-        case 'events':
-          segmentFilters.push({
-            simpleSegment: {
-              orFiltersForSegment: [
-                {
-                  segmentFilterClauses: [
-                    {
-                      dimensionFilter: {
-                        dimensionName: 'ga:eventAction',
-                        operator: 'EXACT',
-                        expressions: [condition.eventName],
-                      },
+      case 'events':
+        segmentFilters.push({
+          simpleSegment: {
+            orFiltersForSegment: [
+              {
+                segmentFilterClauses: [
+                  {
+                    dimensionFilter: {
+                      dimensionName: 'ga:eventAction',
+                      operator: 'EXACT',
+                      expressions: [condition.eventName],
                     },
-                  ],
-                },
-              ],
-            },
-          });
-          break;
+                  },
+                ],
+              },
+            ],
+          },
+        });
+        break;
 
-        case 'daysSinceFirstSession':
-          segmentFilters.push({
-            simpleSegment: {
-              orFiltersForSegment: [
-                {
-                  segmentFilterClauses: [
-                    {
-                      metricFilter: {
-                        metricName: 'ga:daysSinceLastSession',
-                        operator: condition.operator,
-                        comparisonValue: condition.value.toString(),
-                      },
+      case 'daysSinceFirstSession':
+        segmentFilters.push({
+          simpleSegment: {
+            orFiltersForSegment: [
+              {
+                segmentFilterClauses: [
+                  {
+                    metricFilter: {
+                      metricName: 'ga:daysSinceLastSession',
+                      operator: condition.operator,
+                      comparisonValue: condition.value.toString(),
                     },
-                  ],
-                },
-              ],
-            },
-          });
-          break;
+                  },
+                ],
+              },
+            ],
+          },
+        });
+        break;
       }
     });
 
@@ -387,51 +387,51 @@ Examples:
 
   try {
     switch (command) {
-      case 'list':
-        await creator.listAudiences();
-        break;
+    case 'list':
+      await creator.listAudiences();
+      break;
 
-      case 'templates':
+    case 'templates':
+      creator.showTemplates();
+      break;
+
+    case 'create':
+      const template = args[1];
+      if (!template) {
+        console.error('❌ Please specify a template name');
         creator.showTemplates();
-        break;
+        return;
+      }
+      await creator.createAudience(template);
+      break;
 
-      case 'create':
-        const template = args[1];
-        if (!template) {
-          console.error('❌ Please specify a template name');
-          creator.showTemplates();
-          return;
-        }
-        await creator.createAudience(template);
-        break;
+    case 'create-custom':
+      const name = args[1];
+      const description = args[2];
+      if (!name || !description) {
+        console.error('❌ Please specify both name and description');
+        return;
+      }
+      // Example custom conditions - you can modify these
+      const customConditions = {
+        sessions: { operator: 'GREATER_THAN', value: 5 },
+        events: { eventName: 'feature_usage', operator: 'GREATER_THAN', value: 3 },
+      };
+      await creator.createCustomAudience(name, description, customConditions);
+      break;
 
-      case 'create-custom':
-        const name = args[1];
-        const description = args[2];
-        if (!name || !description) {
-          console.error('❌ Please specify both name and description');
-          return;
-        }
-        // Example custom conditions - you can modify these
-        const customConditions = {
-          sessions: { operator: 'GREATER_THAN', value: 5 },
-          events: { eventName: 'feature_usage', operator: 'GREATER_THAN', value: 3 },
-        };
-        await creator.createCustomAudience(name, description, customConditions);
-        break;
+    case 'delete':
+      const audienceId = args[1];
+      if (!audienceId) {
+        console.error('❌ Please specify an audience ID');
+        return;
+      }
+      await creator.deleteAudience(audienceId);
+      break;
 
-      case 'delete':
-        const audienceId = args[1];
-        if (!audienceId) {
-          console.error('❌ Please specify an audience ID');
-          return;
-        }
-        await creator.deleteAudience(audienceId);
-        break;
-
-      default:
-        console.error(`❌ Unknown command: ${command}`);
-        break;
+    default:
+      console.error(`❌ Unknown command: ${command}`);
+      break;
     }
   } catch (error) {
     console.error('❌ Command failed:', error.message);

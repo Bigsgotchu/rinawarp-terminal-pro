@@ -77,7 +77,7 @@ async function demoRiskBasedIntegration() {
     const memUsage = process.memoryUsage();
     const heapMB = Math.round(memUsage.heapUsed / (1024 * 1024));
     console.log(`   🧠 Current memory usage: ${heapMB}MB`);
-    console.log(`   ⚡ Memory limit: 200MB`);
+    console.log('   ⚡ Memory limit: 200MB');
     console.log(`   📊 Status: ${heapMB < 200 ? '✅ Within limits' : '⚠️ Approaching limit'}`);
     
     // Show all enabled features

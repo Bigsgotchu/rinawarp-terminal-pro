@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal Download</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ff1493 0%, #00ced1 15%, #1e90ff 30%, #ff69b4 45%, #20b2aa 60%, #ff1493 75%, #00ffff 90%, #ff69b4 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .download-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+        }
+        .download-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .download-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .download-message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #e0ffff;
+        }
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            color: #1a1a2e;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="download-container">
+        <div class="download-icon">🧜‍♀️</div>
+        <div class="download-title">RinaWarp Terminal Download</div>
+        <div class="download-message" id="downloadMessage">Preparing your download...</div>
+        <div id="downloadButtons"></div>
+        <div class="file-info" id="fileInfo"></div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileParam = urlParams.get('file');
+        
+        // File mappings
+        const fileMap = {
+            'windows': '/releases/RinaWarp-Terminal-Windows-Installer.zip',
+            'portable': '/releases/RinaWarp-Terminal-Windows-Portable.zip',
+            'linux': '/releases/RinaWarp-Terminal-Linux.tar.gz',
+            'macos': '/releases/RinaWarp-Terminal-macOS.zip',
+            'zip': '/releases/rinawarp.zip',
+            'rinawarp.zip': '/releases/rinawarp.zip',
+            'RinaWarp-Terminal-Windows-Installer.zip': '/releases/RinaWarp-Terminal-Windows-Installer.zip',
+            'RinaWarp-Terminal-Linux.tar.gz': '/releases/RinaWarp-Terminal-Linux.tar.gz',
+            'RinaWarp-Terminal-macOS.zip': '/releases/RinaWarp-Terminal-macOS.zip'
+        };
+        
+        // File info
+        const fileInfo = {
+            'windows': { name: 'Windows Installer', size: '~45MB', desc: 'Complete installation package' },
+            'portable': { name: 'Windows Portable', size: '~35MB', desc: 'No installation required' },
+            'linux': { name: 'Linux Archive', size: '~40MB', desc: 'Universal Linux package' },
+            'macos': { name: 'macOS Disk Image', size: '~50MB', desc: 'Notarized DMG for macOS' },
+            'zip': { name: 'Source Archive', size: '~25MB', desc: 'Complete source code' }
+        };
+        
+        function startDownload(filePath, fileName) {
+            const link = document.createElement('a');
+            link.href = filePath;
+            link.download = fileName;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Update UI
+            document.getElementById('downloadMessage').textContent = `Download started: ${fileName}`;
+            
+            // Google Analytics tracking
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'download', {
+                    'event_category': 'engagement',
+                    'event_label': fileName,
+                    'value': 1
+                });
+            }
+        }
+        
+        // Handle specific file download
+        if (fileParam && fileMap[fileParam]) {
+            const filePath = fileMap[fileParam];
+            const fileName = filePath.split('/').pop();
+            const info = fileInfo[fileParam] || { name: fileName, size: 'Unknown', desc: 'Download file' };
+            
+            document.getElementById('downloadMessage').textContent = `Starting download: ${info.name}`;
+            document.getElementById('fileInfo').innerHTML = `
+                <strong>${info.name}</strong><br>
+                Size: ${info.size}<br>
+                ${info.desc}
+            `;
+            
+            // Start download after 2 seconds
+            setTimeout(() => {
+                startDownload(filePath, fileName);
+            }, 2000);
+            
+            // Add manual download button
+            document.getElementById('downloadButtons').innerHTML = `
+                <a href="${filePath}" class="download-btn" download="${fileName}">Download Now</a>
+                <a href="/" class="download-btn">← Back to Home</a>
+            `;
+        } else {
+            // Show default download - Windows installer
+            const defaultFile = '/releases/RinaWarp-Terminal-Windows-Installer.zip';
+            const defaultName = 'RinaWarp-Terminal-Windows-Installer.zip';
+            
+            document.getElementById('downloadMessage').textContent = 'Default download: Windows Installer';
+            document.getElementById('fileInfo').innerHTML = `
+                <strong>Windows Installer</strong><br>
+                Size: ~45MB<br>
+                Complete installation package for Windows 10/11
+            `;
+            
+            // Start download after 2 seconds
+            setTimeout(() => {
+                startDownload(defaultFile, defaultName);
+            }, 2000);
+            
+            // Add manual download buttons
+            document.getElementById('downloadButtons').innerHTML = `
+                <a href="${defaultFile}" class="download-btn" download="${defaultName}">Download Windows</a>
+                <a href="/api/download?file=portable" class="download-btn">Portable Version</a>
+                <a href="/api/download?file=linux" class="download-btn">Linux Version</a>
+                <a href="/api/download?file=macos" class="download-btn">macOS Version</a>
+                <a href="/" class="download-btn">← Back to Home</a>
+            `;
+        }
+        
+        // Add some animation
+        setTimeout(() => {
+            document.querySelector('.download-container').style.animation = 'none';
+        }, 3000);
+    </script>
+</body>
+</html>

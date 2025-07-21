@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal Beta Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a192f 0%, #1e40af 100%);
+            min-height: 100vh;
+            color: #e6f7ff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            border: 2px solid #00ffff;
+        }
+
+        .logo {
+            font-size: 3rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ffff;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #ff6b9d;
+            margin-bottom: 15px;
+        }
+
+        .beta-badge {
+            background: linear-gradient(135deg, #ff6b9d, #00ffff);
+            color: #001122;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .download-card {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-card:hover {
+            border-color: #00ffff;
+            transform: translateY(-5px);
+        }
+
+        .download-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .download-card:hover::before {
+            opacity: 1;
+            top: -25%;
+            left: -25%;
+        }
+
+        .platform-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .platform-name {
+            font-size: 1.8rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .platform-description {
+            color: #b8e6ff;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #00ff88, #00d4aa);
+            color: #001122;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .platform-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .feedback-section {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid #ff6b9d;
+            margin-bottom: 40px;
+        }
+
+        .feedback-btn {
+            background: linear-gradient(135deg, #ff6b9d, #ff1493);
+            color: #ffffff;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .feedback-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.3);
+        }
+
+        .rina-message {
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 4px solid #00ffff;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .rina-message h3 {
+            color: #00ffff;
+            margin-bottom: 15px;
+        }
+
+        .rina-message p {
+            color: #b8e6ff;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .rina-signature {
+            color: #ff6b9d;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .instructions {
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 4px solid #00ff88;
+        }
+
+        .instructions h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+        }
+
+        .instructions ol {
+            color: #e6f7ff;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .contact-info {
+            background: rgba(255, 107, 157, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 4px solid #ff6b9d;
+        }
+
+        .contact-info h3 {
+            color: #ff6b9d;
+            margin-bottom: 15px;
+        }
+
+        .contact-info ul {
+            color: #e6f7ff;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+
+        .contact-info a {
+            color: #00ffff;
+            text-decoration: none;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(0, 255, 255, 0.3);
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .download-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🧜‍♀️ RinaWarp Terminal</div>
+            <div class="subtitle">AI-Powered Terminal with Mermaid Magic</div>
+            <div class="beta-badge">🎯 BETA TESTING</div>
+            <p>Experience the future of terminal computing with Rina, your AI mermaid assistant!</p>
+        </div>
+
+        <div class="rina-message">
+            <h3>🧜‍♀️ Welcome, Beta Tester!</h3>
+            <p>"I'm so excited to meet you! You're about to experience terminal computing like never before. Download me below and let's make some magic together!"</p>
+            <div class="rina-signature">- Rina, Your AI Mermaid Assistant</div>
+        </div>
+
+        <div class="download-notice">
+            <h2 style="color: #00ffff; margin-bottom: 20px;">🎯 Beta Downloads Available!</h2>
+            <p style="color: #b8e6ff; margin-bottom: 20px; font-size: 1.1rem;">RinaWarp Terminal v1.0.8 beta is ready for testing! To get your download link, please contact us directly:</p>
+            
+            <div style="background: rgba(0, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                <h3 style="color: #00ffff; margin-bottom: 15px;">📧 Get Your Beta Download</h3>
+                <p style="color: #e6f7ff; margin-bottom: 20px;">Email us with your platform preference and we'll send you the direct download link:</p>
+                <a href="mailto:rinawarptechnologies25@gmail.com?subject=RinaWarp Terminal Beta Download Request&body=Hi! I'd like to participate in the RinaWarp Terminal beta testing program.%0A%0AMy platform: [Windows/macOS/Linux]%0AName: %0AOrganization (if applicable): %0A%0AThanks!" style="background: linear-gradient(135deg, #00ff88, #00d4aa); color: #001122; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 1.1rem; display: inline-block; margin: 10px;">
+                    📧 Request Beta Access
+                </a>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+                <div style="background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #1e90ff;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🪟</div>
+                    <h4 style="color: #00ffff; margin-bottom: 10px;">Windows</h4>
+                    <p style="color: #b8e6ff; font-size: 0.9rem;">Windows 10+ • ~113 MB</p>
+                </div>
+                <div style="background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #00ff88;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🍎</div>
+                    <h4 style="color: #00ffff; margin-bottom: 10px;">macOS</h4>
+                    <p style="color: #b8e6ff; font-size: 0.9rem;">macOS 11+ • ~113 MB</p>
+                </div>
+                <div style="background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #ff6b9d;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🐧</div>
+                    <h4 style="color: #00ffff; margin-bottom: 10px;">Linux</h4>
+                    <p style="color: #b8e6ff; font-size: 0.9rem;">Ubuntu/Debian/Arch • ~113 MB</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📝 Beta Testing Instructions</h3>
+            <ol>
+                <li>Download RinaWarp Terminal for your platform</li>
+                <li>Install and launch the application</li>
+                <li>Test all features thoroughly:
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Voice commands and recognition</li>
+                        <li>AI assistant interactions with Rina</li>
+                        <li>Terminal themes and customization</li>
+                        <li>Performance and stability</li>
+                        <li>Cross-platform compatibility</li>
+                    </ul>
+                </li>
+                <li>Report any bugs or issues you encounter</li>
+                <li>Share your feedback using the form below</li>
+            </ol>
+        </div>
+
+        <div class="feedback-section">
+            <h3 style="color: #ff6b9d; margin-bottom: 20px;">🎯 Your Feedback Matters!</h3>
+            <p style="color: #b8e6ff; margin-bottom: 20px;">
+                Help us improve RinaWarp Terminal by sharing your experience. Your feedback directly impacts the final release!
+            </p>
+            <a href="https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform" class="feedback-btn" target="_blank">
+                📝 Submit Beta Feedback
+            </a>
+        </div>
+
+        <div class="contact-info">
+            <h3>🆘 Need Help?</h3>
+            <p>If you encounter any issues during testing:</p>
+            <ul>
+                <li>📧 Email: <a href="mailto:rinawarptechnologies25@gmail.com">rinawarptechnologies25@gmail.com</a></li>
+                <li>🌐 Website: <a href="https://rinawarptech.com">https://rinawarptech.com</a></li>
+                <li>📝 Quick Feedback: <a href="https://docs.google.com/forms/d/1wHNr7FrQ8z9l1f22Qs3paIrpimnufCR3l2skPXYz-dc/viewform" target="_blank">Feedback Form</a></li>
+            </ul>
+        </div>
+
+        <div class="rina-message">
+            <h3>🧜‍♀️ Ready to Dive In?</h3>
+            <p>"I can't wait to show you what I can do! From voice commands to AI-powered assistance, we're about to revolutionize your terminal experience together. Let's make some waves!"</p>
+            <div class="rina-signature">- Rina 🌊</div>
+        </div>
+
+        <div class="footer">
+            <p>🌊 Built with love and oceanic magic • Version 1.0.8 Beta • © 2025 Rinawarp Technologies, LLC</p>
+            <p>Thank you for being part of the RinaWarp Terminal beta testing program!</p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive effects
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Add a visual feedback when download starts
+                const originalText = this.textContent;
+                this.textContent = '🚀 Starting Download...';
+                this.style.background = 'linear-gradient(135deg, #00ffff, #1e90ff)';
+                
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.style.background = 'linear-gradient(135deg, #00ff88, #00d4aa)';
+                }, 2000);
+            });
+        });
+
+        // Add floating animation to the logo
+        const logo = document.querySelector('.logo');
+        setInterval(() => {
+            logo.style.transform = 'translateY(-5px)';
+            setTimeout(() => {
+                logo.style.transform = 'translateY(0)';
+            }, 1000);
+        }, 2000);
+    </script>
+</body>
+</html>

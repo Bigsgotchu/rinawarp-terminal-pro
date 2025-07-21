@@ -1,0 +1,446 @@
+/* Mermaid-Themed Animations for RinaWarp Terminal */
+
+/* Root variables for mermaid colors */
+:root {
+  --mermaid-teal: #008b8b;
+  --mermaid-hotpink: #ff1493;
+  --mermaid-blue: #00aaff;
+  --mermaid-pearl: #f8f8ff;
+  --mermaid-seafoam: #00ff88;
+  --mermaid-purple: #8a2be2;
+  --mermaid-deepblue: #003366;
+  --mermaid-coral: #ff7f50;
+}
+
+/* Floating wave animation keyframes */
+@keyframes waveMotion {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(10px) translateY(-5px);
+  }
+  50% {
+    transform: translateX(20px) translateY(0);
+  }
+  75% {
+    transform: translateX(10px) translateY(5px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+/* Gentle wave ripple animation */
+@keyframes waveRipple {
+  0% {
+    transform: scaleX(1) scaleY(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleX(1.1) scaleY(0.9);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scaleX(1) scaleY(1);
+    opacity: 0.7;
+  }
+}
+
+/* Bubble floating animation */
+@keyframes bubbleFloat {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-30px) scale(1.1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-60px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Pearl shimmer animation */
+@keyframes pearlShimmer {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1) saturate(1);
+  }
+  25% {
+    transform: scale(1.05) rotate(5deg);
+    filter: brightness(1.2) saturate(1.1);
+  }
+  50% {
+    transform: scale(1.1) rotate(0deg);
+    filter: brightness(1.3) saturate(1.2);
+  }
+  75% {
+    transform: scale(1.05) rotate(-5deg);
+    filter: brightness(1.2) saturate(1.1);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+/* Floating particle animation */
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-15px) translateX(5px) rotate(90deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-30px) translateX(10px) rotate(180deg);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(-45px) translateX(5px) rotate(270deg);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-60px) translateX(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Gentle logo wave animation */
+@keyframes logoWave {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-2px) rotate(0.5deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-2px) rotate(-0.5deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* Underwater current animation */
+@keyframes underwaterCurrent {
+  0% {
+    transform: translateX(0) scaleY(1);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translateX(15px) scaleY(1.1);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translateX(30px) scaleY(0.9);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(45px) scaleY(1);
+    opacity: 0.2;
+  }
+}
+
+/* Mermaid wave container */
+.mermaid-wave-container {
+  position: relative;
+  width: 100%;
+  height: 100px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--mermaid-teal), var(--mermaid-blue));
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 139, 139, 0.3);
+}
+
+/* Animated waves */
+.mermaid-wave {
+  position: absolute;
+  width: 120%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 20, 147, 0.3) 25%,
+    rgba(0, 170, 255, 0.4) 50%,
+    rgba(255, 20, 147, 0.3) 75%,
+    transparent 100%
+  );
+  animation: waveMotion 8s ease-in-out infinite;
+}
+
+.mermaid-wave:nth-child(2) {
+  animation-delay: -2s;
+  animation-duration: 10s;
+  opacity: 0.7;
+}
+
+.mermaid-wave:nth-child(3) {
+  animation-delay: -4s;
+  animation-duration: 12s;
+  opacity: 0.5;
+}
+
+/* Bubble effects */
+.mermaid-bubbles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(248, 248, 255, 0.8),
+    rgba(255, 20, 147, 0.3),
+    rgba(0, 139, 139, 0.4)
+  );
+  animation: bubbleFloat 6s ease-in-out infinite;
+}
+
+.bubble:nth-child(1) {
+  left: 20%;
+  width: 12px;
+  height: 12px;
+  animation-delay: 0s;
+}
+
+.bubble:nth-child(2) {
+  left: 40%;
+  width: 8px;
+  height: 8px;
+  animation-delay: -2s;
+}
+
+.bubble:nth-child(3) {
+  left: 60%;
+  width: 15px;
+  height: 15px;
+  animation-delay: -4s;
+}
+
+.bubble:nth-child(4) {
+  left: 80%;
+  width: 10px;
+  height: 10px;
+  animation-delay: -1s;
+}
+
+.bubble:nth-child(5) {
+  left: 30%;
+  width: 6px;
+  height: 6px;
+  animation-delay: -3s;
+}
+
+.bubble:nth-child(6) {
+  left: 70%;
+  width: 9px;
+  height: 9px;
+  animation-delay: -5s;
+}
+
+/* Pearl effects */
+.mermaid-pearls {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pearl {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 25% 25%,
+    var(--mermaid-pearl),
+    rgba(255, 20, 147, 0.6),
+    rgba(0, 139, 139, 0.4)
+  );
+  box-shadow: 0 0 20px rgba(255, 20, 147, 0.4);
+  animation: pearlShimmer 4s ease-in-out infinite;
+}
+
+.pearl:nth-child(1) {
+  left: 15%;
+  top: 20%;
+  width: 18px;
+  height: 18px;
+  animation-delay: 0s;
+}
+
+.pearl:nth-child(2) {
+  left: 85%;
+  top: 60%;
+  width: 12px;
+  height: 12px;
+  animation-delay: -2s;
+}
+
+.pearl:nth-child(3) {
+  left: 55%;
+  top: 35%;
+  width: 15px;
+  height: 15px;
+  animation-delay: -1s;
+}
+
+/* Floating particles */
+.mermaid-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--mermaid-hotpink);
+  animation: particleFloat 8s linear infinite;
+}
+
+.particle:nth-child(1) {
+  left: 25%;
+  width: 4px;
+  height: 4px;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  animation-delay: -2s;
+}
+
+.particle:nth-child(3) {
+  left: 75%;
+  width: 5px;
+  height: 5px;
+  animation-delay: -4s;
+}
+
+.particle:nth-child(4) {
+  left: 35%;
+  width: 2px;
+  height: 2px;
+  animation-delay: -1s;
+}
+
+.particle:nth-child(5) {
+  left: 65%;
+  width: 4px;
+  height: 4px;
+  animation-delay: -3s;
+}
+
+.particle:nth-child(6) {
+  left: 85%;
+  width: 3px;
+  height: 3px;
+  animation-delay: -5s;
+}
+
+/* RinaWarp logo with wave animation */
+.rinawarp-logo {
+  position: relative;
+  display: inline-block;
+  animation: logoWave 6s ease-in-out infinite;
+}
+
+.rinawarp-logo svg {
+  filter: drop-shadow(0 0 10px rgba(255, 20, 147, 0.3));
+}
+
+/* Underwater current lines */
+.underwater-current {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--mermaid-hotpink) 50%, transparent 100%);
+  animation: underwaterCurrent 12s linear infinite;
+}
+
+.underwater-current:nth-child(1) {
+  top: 25%;
+  animation-delay: 0s;
+}
+
+.underwater-current:nth-child(2) {
+  top: 50%;
+  animation-delay: -4s;
+}
+
+.underwater-current:nth-child(3) {
+  top: 75%;
+  animation-delay: -8s;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+  .mermaid-wave-container {
+    height: 80px;
+  }
+
+  .bubble {
+    width: 80% !important;
+    height: 80% !important;
+  }
+
+  .pearl {
+    width: 80% !important;
+    height: 80% !important;
+  }
+
+  .particle {
+    width: 80% !important;
+    height: 80% !important;
+  }
+}
+
+/* Custom mermaid scale background pattern */
+.mermaid-scale-bg {
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255, 20, 147, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 139, 139, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(0, 170, 255, 0.1) 0%, transparent 50%);
+  background-size:
+    50px 50px,
+    80px 80px,
+    60px 60px;
+  background-position:
+    0 0,
+    40px 40px,
+    20px 20px;
+  animation: waveRipple 10s ease-in-out infinite;
+}
+
+/* Hover effects for interactive elements */
+.mermaid-interactive:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+.mermaid-interactive:hover .bubble {
+  animation-duration: 4s;
+}
+
+.mermaid-interactive:hover .pearl {
+  animation-duration: 2s;
+}
+
+.mermaid-interactive:hover .particle {
+  animation-duration: 5s;
+}
