@@ -15,9 +15,6 @@ describe('Module Loading Integration Tests', () => {
     tempConfigDir = path.join(os.tmpdir(), `.rinawarp-terminal-test-${Date.now()}`);
     tempConfigFile = path.join(tempConfigDir, 'config.json');
     
-    // Mock home directory for testing
-    jest.spyOn(os, 'homedir').mockReturnValue(tempConfigDir);
-    
     // Ensure test directory exists
     if (!fs.existsSync(tempConfigDir)) {
       fs.mkdirSync(tempConfigDir, { recursive: true });
@@ -30,8 +27,11 @@ describe('Module Loading Integration Tests', () => {
       fs.unlinkSync(tempConfigFile);
     }
     
-    // Create fresh config instance
+    // Create fresh config instance with custom config directory
     config = new UnifiedConfig();
+    // Override config paths for testing
+    config.configDir = tempConfigDir;
+    config.configFile = tempConfigFile;
   });
 
   afterAll(() => {
@@ -55,6 +55,9 @@ describe('Module Loading Integration Tests', () => {
 
       // Create new config instance which should load from disk
       const newConfig = new UnifiedConfig();
+      newConfig.configDir = tempConfigDir;
+      newConfig.configFile = tempConfigFile;
+      newConfig.config = newConfig.loadConfig();
       
       expect(newConfig.get('terminal.fontSize')).toBe(16);
       expect(newConfig.get('terminal.theme')).toBe('dark');
@@ -67,6 +70,9 @@ describe('Module Loading Integration Tests', () => {
       }
 
       const newConfig = new UnifiedConfig();
+      newConfig.configDir = tempConfigDir;
+      newConfig.configFile = tempConfigFile;
+      newConfig.config = newConfig.loadConfig();
       expect(newConfig.get('terminal.fontSize')).toBe(14); // Default value
     });
   });
@@ -82,6 +88,9 @@ describe('Module Loading Integration Tests', () => {
 
       fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig));
       const newConfig = new UnifiedConfig();
+      newConfig.configDir = tempConfigDir;
+      newConfig.configFile = tempConfigFile;
+      newConfig.config = newConfig.loadConfig();
 
       expect(newConfig.get('features.aiAssistant')).toBe(true);
       expect(newConfig.get('features.voiceControl')).toBe(true);
@@ -109,6 +118,9 @@ describe('Module Loading Integration Tests', () => {
 
       fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig));
       const newConfig = new UnifiedConfig();
+      newConfig.configDir = tempConfigDir;
+      newConfig.configFile = tempConfigFile;
+      newConfig.config = newConfig.loadConfig();
       
       const result = await newConfig.initializeElevenLabsConfig();
       expect(result.initialized).toBe(true);
@@ -125,6 +137,9 @@ describe('Module Loading Integration Tests', () => {
 
       fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig));
       const newConfig = new UnifiedConfig();
+      newConfig.configDir = tempConfigDir;
+      newConfig.configFile = tempConfigFile;
+      newConfig.config = newConfig.loadConfig();
       
       const result = await newConfig.initializeElevenLabsConfig();
       expect(result.initialized).toBe(false);
@@ -164,6 +179,9 @@ describe('Module Loading Integration Tests', () => {
       
       const start = process.hrtime();
       const newConfig = new UnifiedConfig();
+      newConfig.configDir = tempConfigDir;
+      newConfig.configFile = tempConfigFile;
+      newConfig.config = newConfig.loadConfig();
       const [seconds, nanoseconds] = process.hrtime(start);
       const milliseconds = seconds * 1000 + nanoseconds / 1000000;
       

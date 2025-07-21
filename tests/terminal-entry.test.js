@@ -3,14 +3,22 @@ const { UnifiedConfig } = require('../src/config/unified-config.cjs');
 
 describe('Terminal Entry Points', () => {
   let config;
+  let originalConfig;
+  
   beforeEach(() => {
     // Reset config instance for each test
     config = new UnifiedConfig();
+    originalConfig = { ...config.config };
+    // Reset to defaults for testing
+    config.reset();
   });
 
   afterEach(() => {
     // Restore original config instance
-    require('../src/config/unified-config.cjs').config = originalConfig;
+    if (originalConfig) {
+      config.config = originalConfig;
+      config.saveConfig();
+    }
   });
 
   describe('Shell Detection and Configuration', () => {

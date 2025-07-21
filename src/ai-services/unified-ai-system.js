@@ -33,40 +33,7 @@ class AdvancedLearningEngine {
 }
 
 // Context management classes
-class ContextManager {
-  async initialize() {
-    console.log('📋 ContextManager initialized');
-  }
-  
-  async enhanceContext(context) {
-    return context || {};
-  }
-}
 
-class ResponseOptimizer {
-  async initialize() {
-    console.log('⚡ ResponseOptimizer initialized');
-  }
-  
-  async optimize(response, options) {
-    return {
-      text: response,
-      quality: 0.8,
-      contextRelevance: 0.7,
-      suggestions: []
-    };
-  }
-}
-
-class ConfidenceEngine {
-  async initialize() {
-    console.log('🎯 ConfidenceEngine initialized');
-  }
-  
-  calculate(options) {
-    return Math.max(0.1, Math.min(1.0, options.originalConfidence * 1.1));
-  }
-}
 
 class UnifiedAISystem {
   constructor(config = {}) {
