@@ -1,7 +1,7 @@
 /**
  * RinaWarp Terminal - Rina Voice Integration
  * Copyright (c) 2025 Rinawarp Technologies, LLC
- * 
+ *
  * This module integrates the custom Rina Voice System with the Enhanced Voice Engine,
  * providing seamless switching between system voice and custom Rina personality.
  */
@@ -16,32 +16,35 @@ export class RinaVoiceIntegration {
     this.isRinaEnabled = false;
     this.dashboardIntegration = null;
     this.currentMode = 'system'; // 'system', 'rina', 'hybrid', 'elevenlabs'
-    
+
     this.config = {
       enableDashboardToggle: true,
       enableGlowEffects: true,
       enableMoodSync: true,
       enablePersonalityMode: true,
-      fallbackToSystem: true
+      fallbackToSystem: true,
     };
 
-    this.init();
+    // Don't auto-init in constructor for testing
+    if (voiceEngine) {
+      this.init();
+    }
   }
 
   async init() {
     console.log('🎭 Initializing Rina Voice Integration...');
-    
+
     // Initialize Rina Voice System
     await this.initializeRinaVoice();
-    
+
     // Setup dashboard integration
     if (this.config.enableDashboardToggle) {
       await this.setupDashboardIntegration();
     }
-    
+
     // Setup event listeners
     this.setupEventListeners();
-    
+
     // Sync with voice engine mood
     if (this.config.enableMoodSync) {
       this.syncMoodWithVoiceEngine();
@@ -53,7 +56,7 @@ export class RinaVoiceIntegration {
   updateAPIConnectionStatus(isConnected) {
     const apiIndicator = document.getElementById('api-indicator');
     const apiText = document.getElementById('api-text');
-    
+
     if (apiIndicator && apiText) {
       if (isConnected) {
         apiIndicator.style.color = '#4CAF50';
@@ -72,7 +75,7 @@ export class RinaVoiceIntegration {
     if (document.getElementById('api-key-config')) {
       return;
     }
-    
+
     const configUI = document.createElement('div');
     configUI.id = 'api-key-config';
     configUI.style.cssText = `
@@ -90,7 +93,7 @@ export class RinaVoiceIntegration {
       backdrop-filter: blur(10px);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     `;
-    
+
     configUI.innerHTML = `
       <div style="margin-bottom: 15px; font-weight: bold; color: #FF6B6B;">
         🎙️ ElevenLabs Configuration Required
@@ -129,7 +132,7 @@ export class RinaVoiceIntegration {
         ">Save & Connect</button>
       </div>
     `;
-    
+
     document.body.appendChild(configUI);
 
     // Save button event
@@ -139,7 +142,7 @@ export class RinaVoiceIntegration {
       if (apiKey) {
         localStorage.setItem('elevenlabs_api_key', apiKey);
         configUI.remove();
-        
+
         // Try to initialize with the new API key
         const elevenLabsProvider = new ElevenLabsVoiceProvider();
         elevenLabsProvider.initialize(apiKey).then(connected => {
@@ -147,20 +150,22 @@ export class RinaVoiceIntegration {
           if (connected) {
             console.log('✅ ElevenLabs API key saved and connection established');
           } else {
-            alert('Failed to connect with the provided API key. Please check your key and try again.');
+            alert(
+              'Failed to connect with the provided API key. Please check your key and try again.'
+            );
           }
         });
       } else {
         alert('Please enter a valid API Key.');
       }
     });
-    
+
     // Cancel button event
     document.getElementById('cancel-api-key').addEventListener('click', () => {
       configUI.remove();
       this.updateAPIConnectionStatus(false);
     });
-    
+
     // Focus on input
     document.getElementById('api-key-input').focus();
   }
@@ -169,12 +174,12 @@ export class RinaVoiceIntegration {
     try {
       this.rinaVoice = new RinaVoiceSystem();
       await this.rinaVoice.init();
-      
+
       // Set initial mood to match voice engine
       if (this.voiceEngine.moodState) {
         this.rinaVoice.setMood(this.voiceEngine.moodState);
       }
-      
+
       console.log('🎙️ Rina Voice System ready');
       return true;
     } catch (error) {
@@ -186,9 +191,9 @@ export class RinaVoiceIntegration {
   async setupDashboardIntegration() {
     // Create dashboard toggle element
     this.createDashboardToggle();
-    
+
     // Listen for dashboard events
-    window.addEventListener('voice-mode-toggle', (event) => {
+    window.addEventListener('voice-mode-toggle', event => {
       const mode = event.detail.mode;
       this.switchVoiceMode(mode);
     });
@@ -227,10 +232,11 @@ export class RinaVoiceIntegration {
   injectToggleUI(html) {
     try {
       // Look for existing dashboard container
-      let container = document.getElementById('dashboard') || 
-                     document.getElementById('controls') ||
-                     document.querySelector('.dashboard') ||
-                     document.querySelector('.controls');
+      let container =
+        document.getElementById('dashboard') ||
+        document.getElementById('controls') ||
+        document.querySelector('.dashboard') ||
+        document.querySelector('.controls');
 
       if (!container) {
         // Create floating toggle if no dashboard found
@@ -253,7 +259,6 @@ export class RinaVoiceIntegration {
 
       container.insertAdjacentHTML('beforeend', html);
       this.setupToggleEvents();
-      
     } catch (error) {
       console.warn('⚠️ Failed to inject voice toggle UI:', error.message);
     }
@@ -262,7 +267,7 @@ export class RinaVoiceIntegration {
   setupToggleEvents() {
     const elevenLabsProvider = new ElevenLabsVoiceProvider();
     const apiKey = elevenLabsProvider.getApiKeyFromStorage();
-    
+
     if (!apiKey) {
       this.showApiKeyConfigurationUI();
     } else {
@@ -274,7 +279,7 @@ export class RinaVoiceIntegration {
     const status = document.getElementById('voice-status');
 
     if (select) {
-      select.addEventListener('change', (event) => {
+      select.addEventListener('change', event => {
         const mode = event.target.value;
         this.switchVoiceMode(mode);
         this.updateStatusDisplay(mode, status);
@@ -290,7 +295,7 @@ export class RinaVoiceIntegration {
       system: { text: 'System Voice Active', color: '#4CAF50' },
       rina: { text: 'Rina Voice Active', color: '#FF6B6B' },
       hybrid: { text: 'Hybrid Mode Active', color: '#FFD93D' },
-      elevenlabs: { text: 'ElevenLabs Voice Active', color: '#9C27B0' }
+      elevenlabs: { text: 'ElevenLabs Voice Active', color: '#9C27B0' },
     };
 
     const status = statusMap[mode] || statusMap.system;
@@ -319,12 +324,12 @@ export class RinaVoiceIntegration {
       const originalDetectMood = this.voiceEngine.detectMood.bind(this.voiceEngine);
       this.voiceEngine.detectMood = (transcript, confidence, retryCount) => {
         const mood = originalDetectMood(transcript, confidence, retryCount);
-        
+
         // Sync mood with Rina Voice System
         if (this.rinaVoice && this.config.enableMoodSync) {
           this.rinaVoice.setMood(mood);
         }
-        
+
         return mood;
       };
     }
@@ -336,13 +341,13 @@ export class RinaVoiceIntegration {
       }
     });
 
-    window.addEventListener('terminal-command-executing', (event) => {
+    window.addEventListener('terminal-command-executing', event => {
       if (this.isRinaEnabled) {
         this.rinaVoice?.onCommandExecuting(event.detail.command);
       }
     });
 
-    window.addEventListener('terminal-command-complete', (event) => {
+    window.addEventListener('terminal-command-complete', event => {
       if (this.isRinaEnabled) {
         this.rinaVoice?.onCommandComplete(event.detail.success);
       }
@@ -371,18 +376,18 @@ export class RinaVoiceIntegration {
 
     // Configure voice systems based on mode
     switch (mode) {
-    case 'system':
-      this.configureSystemMode();
-      break;
-    case 'rina':
-      this.configureRinaMode();
-      break;
-    case 'hybrid':
-      this.configureHybridMode();
-      break;
-    case 'elevenlabs':
-      this.configureElevenLabsMode();
-      break;
+      case 'system':
+        this.configureSystemMode();
+        break;
+      case 'rina':
+        this.configureRinaMode();
+        break;
+      case 'hybrid':
+        this.configureHybridMode();
+        break;
+      case 'elevenlabs':
+        this.configureElevenLabsMode();
+        break;
     }
 
     // Trigger glow effect for mode switch
@@ -402,7 +407,7 @@ export class RinaVoiceIntegration {
     if (this.rinaVoice) {
       this.rinaVoice.switchVoiceMode('synthesis');
     }
-    
+
     if (this.voiceEngine) {
       this.voiceEngine.options.enableFeedback = true;
     }
@@ -413,7 +418,7 @@ export class RinaVoiceIntegration {
     if (this.rinaVoice) {
       this.rinaVoice.switchVoiceMode('hybrid');
     }
-    
+
     // Reduce system voice feedback to avoid conflicts
     if (this.voiceEngine) {
       this.voiceEngine.options.enableFeedback = false;
@@ -425,7 +430,7 @@ export class RinaVoiceIntegration {
     if (this.rinaVoice) {
       this.rinaVoice.switchVoiceMode('hybrid');
     }
-    
+
     if (this.voiceEngine) {
       this.voiceEngine.options.enableFeedback = true;
     }
@@ -437,40 +442,39 @@ export class RinaVoiceIntegration {
     if (this.voiceEngine) {
       this.voiceEngine.options.enableFeedback = false;
     }
-    
+
     // Set Rina to use ElevenLabs synthesis if available
     if (this.rinaVoice) {
       this.rinaVoice.switchVoiceMode('elevenlabs');
     }
-    
+
     console.log('🎙️ ElevenLabs voice mode configured');
   }
 
   triggerModeSwitchGlow(mode) {
     const themeMap = {
       system: 'glass',
-      rina: 'neon', 
+      rina: 'neon',
       hybrid: 'rainbow',
-      elevenlabs: 'purple'
+      elevenlabs: 'purple',
     };
 
     const theme = themeMap[mode] || 'glass';
-    
+
     try {
       if (typeof window !== 'undefined' && window.triggerGlow) {
-        window.triggerGlow('voice-mode-switch', { 
-          theme, 
+        window.triggerGlow('voice-mode-switch', {
+          theme,
           intensity: 0.4,
-          duration: 2000
+          duration: 2000,
         });
       }
 
       // Also dispatch custom event
       const glowEvent = new CustomEvent('voice-mode-glow', {
-        detail: { mode, theme, intensity: 0.4 }
+        detail: { mode, theme, intensity: 0.4 },
       });
       window.dispatchEvent(glowEvent);
-      
     } catch (error) {
       console.warn('Failed to trigger mode switch glow:', error.message);
     }
@@ -481,7 +485,7 @@ export class RinaVoiceIntegration {
       system: 'System voice activated',
       rina: 'greeting', // Use Rina's greeting
       hybrid: 'Hybrid voice mode enabled',
-      elevenlabs: 'ElevenLabs voice activated'
+      elevenlabs: 'ElevenLabs voice activated',
     };
 
     try {
@@ -506,16 +510,16 @@ export class RinaVoiceIntegration {
 
     // Map common commands to Rina responses
     const commandMap = {
-      'clear': () => this.rinaVoice?.speak('commandExecuting', { mood: 'efficient' }),
-      'ls': () => this.rinaVoice?.speak('commandExecuting', { mood: 'quick' }),
-      'git': () => this.rinaVoice?.speak('thinking', { mood: 'analytical' }),
-      'npm': () => this.rinaVoice?.speak('commandExecuting', { mood: 'confident' }),
-      'help': () => this.rinaVoice?.speak('suggestion', { mood: 'helpful' })
+      clear: () => this.rinaVoice?.speak('commandExecuting', { mood: 'efficient' }),
+      ls: () => this.rinaVoice?.speak('commandExecuting', { mood: 'quick' }),
+      git: () => this.rinaVoice?.speak('thinking', { mood: 'analytical' }),
+      npm: () => this.rinaVoice?.speak('commandExecuting', { mood: 'confident' }),
+      help: () => this.rinaVoice?.speak('suggestion', { mood: 'helpful' }),
     };
 
     const commandType = command.split(' ')[0];
     const handler = commandMap[commandType];
-    
+
     if (handler) {
       await handler();
       return true;
@@ -529,15 +533,15 @@ export class RinaVoiceIntegration {
 
     // Mood-specific Rina responses
     switch (mood) {
-    case 'frustrated':
-      await this.rinaVoice?.onUserFrustrated();
-      break;
-    case 'uncertain':
-      await this.rinaVoice?.onUserUncertain();
-      break;
-    case 'confident':
-      await this.rinaVoice?.speak('performanceGood', { mood: 'pleased' });
-      break;
+      case 'frustrated':
+        await this.rinaVoice?.onUserFrustrated();
+        break;
+      case 'uncertain':
+        await this.rinaVoice?.onUserUncertain();
+        break;
+      case 'confident':
+        await this.rinaVoice?.speak('performanceGood', { mood: 'pleased' });
+        break;
     }
   }
 
@@ -548,7 +552,7 @@ export class RinaVoiceIntegration {
       isRinaEnabled: this.isRinaEnabled,
       rinaVoiceStatus: this.rinaVoice?.getStatus() || null,
       dashboardIntegration: !!this.dashboardIntegration,
-      config: this.config
+      config: this.config,
     };
   }
 

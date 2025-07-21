@@ -1,7 +1,7 @@
 /**
  * RinaWarp Terminal - Custom Rina Voice System
  * Copyright (c) 2025 Rinawarp Technologies, LLC
- * 
+ *
  * This module provides a custom voice personality system with:
  * - Audio asset management for pre-recorded voice clips
  * - ElevenLabs AI voice integration with mood-based modulation
@@ -23,13 +23,13 @@ export class RinaVoiceSystem {
     this.fallbackSynthesis = null;
     this.audioCache = new Map();
     this.isInitialized = false;
-    
+
     // ElevenLabs integration
     this.elevenLabsProvider = null;
     this.elevenLabsEnabled = false;
     this.phraseCache = new Map(); // Cache for frequently used phrases
     this.phraseCacheHits = new Map(); // Track usage frequency
-    
+
     // Configuration for voice behavior
     this.config = {
       enableClips: true,
@@ -49,7 +49,7 @@ export class RinaVoiceSystem {
         confused: 0.7,
         excited: 1.1,
         focused: 0.9,
-        curious: 0.85
+        curious: 0.85,
       },
       // ElevenLabs-specific configuration
       elevenLabs: {
@@ -60,8 +60,8 @@ export class RinaVoiceSystem {
         style: 0.0,
         useSpeakerBoost: true,
         optimizeStreamingLatency: 0,
-        outputFormat: 'mp3_44100_128'
-      }
+        outputFormat: 'mp3_44100_128',
+      },
     };
 
     this.init();
@@ -69,24 +69,24 @@ export class RinaVoiceSystem {
 
   async init() {
     console.log('🎙️ Initializing Rina Voice System...');
-    
+
     // Initialize audio context
     await this.initializeAudioContext();
-    
+
     // Load voice mappings
     await this.loadVoiceMappings();
-    
+
     // Initialize fallback synthesis
     await this.initializeFallbackSynthesis();
-    
+
     // Initialize ElevenLabs provider (optional)
     await this.initializeElevenLabs();
-    
+
     // Preload audio if enabled
     if (this.config.preloadAudio) {
       await this.preloadCriticalAudio();
     }
-    
+
     // Preload frequently used phrases
     if (this.config.enableElevenLabs) {
       await this.preloadFrequentPhrases();
@@ -109,137 +109,179 @@ export class RinaVoiceSystem {
     // Define voice clip mappings organized by category and mood
     this.voiceMap = new Map([
       // Command confirmations
-      ['bootSuccess', {
-        clips: {
-          neutral: 'sounds/rina/boot-complete.wav',
-          confident: 'sounds/rina/boot-complete-confident.wav',
-          excited: 'sounds/rina/boot-complete-excited.wav'
+      [
+        'bootSuccess',
+        {
+          clips: {
+            neutral: 'sounds/rina/boot-complete.wav',
+            confident: 'sounds/rina/boot-complete-confident.wav',
+            excited: 'sounds/rina/boot-complete-excited.wav',
+          },
+          fallback: 'Boot complete! RinaWarp Terminal is ready.',
         },
-        fallback: 'Boot complete! RinaWarp Terminal is ready.'
-      }],
-      
-      ['commandExecuting', {
-        clips: {
-          neutral: 'sounds/rina/executing.wav',
-          confident: 'sounds/rina/executing-confident.wav',
-          quick: 'sounds/rina/executing-quick.wav'
-        },
-        fallback: 'Running that now...'
-      }],
+      ],
 
-      ['commandComplete', {
-        clips: {
-          neutral: 'sounds/rina/complete.wav',
-          satisfied: 'sounds/rina/complete-satisfied.wav',
-          efficient: 'sounds/rina/complete-efficient.wav'
+      [
+        'commandExecuting',
+        {
+          clips: {
+            neutral: 'sounds/rina/executing.wav',
+            confident: 'sounds/rina/executing-confident.wav',
+            quick: 'sounds/rina/executing-quick.wav',
+          },
+          fallback: 'Running that now...',
         },
-        fallback: 'Command completed successfully.'
-      }],
+      ],
+
+      [
+        'commandComplete',
+        {
+          clips: {
+            neutral: 'sounds/rina/complete.wav',
+            satisfied: 'sounds/rina/complete-satisfied.wav',
+            efficient: 'sounds/rina/complete-efficient.wav',
+          },
+          fallback: 'Command completed successfully.',
+        },
+      ],
 
       // Emotional cues
-      ['thinking', {
-        clips: {
-          neutral: 'sounds/rina/thinking.wav',
-          curious: 'sounds/rina/thinking-curious.wav',
-          processing: 'sounds/rina/thinking-processing.wav'
+      [
+        'thinking',
+        {
+          clips: {
+            neutral: 'sounds/rina/thinking.wav',
+            curious: 'sounds/rina/thinking-curious.wav',
+            processing: 'sounds/rina/thinking-processing.wav',
+          },
+          fallback: 'Let me think...',
         },
-        fallback: 'Let me think...'
-      }],
+      ],
 
-      ['interesting', {
-        clips: {
-          neutral: 'sounds/rina/interesting.wav',
-          intrigued: 'sounds/rina/interesting-intrigued.wav',
-          analytical: 'sounds/rina/interesting-analytical.wav'
+      [
+        'interesting',
+        {
+          clips: {
+            neutral: 'sounds/rina/interesting.wav',
+            intrigued: 'sounds/rina/interesting-intrigued.wav',
+            analytical: 'sounds/rina/interesting-analytical.wav',
+          },
+          fallback: 'Hmm, interesting...',
         },
-        fallback: 'Hmm, interesting...'
-      }],
+      ],
 
-      ['suggestion', {
-        clips: {
-          neutral: 'sounds/rina/try-this.wav',
-          helpful: 'sounds/rina/try-this-helpful.wav',
-          encouraging: 'sounds/rina/try-this-encouraging.wav'
+      [
+        'suggestion',
+        {
+          clips: {
+            neutral: 'sounds/rina/try-this.wav',
+            helpful: 'sounds/rina/try-this-helpful.wav',
+            encouraging: 'sounds/rina/try-this-encouraging.wav',
+          },
+          fallback: 'Try this instead?',
         },
-        fallback: 'Try this instead?'
-      }],
+      ],
 
       // Diagnostic feedback
-      ['moduleError', {
-        clips: {
-          neutral: 'sounds/rina/module-loading-failed.wav',
-          concerned: 'sounds/rina/module-loading-failed-concerned.wav',
-          technical: 'sounds/rina/module-loading-failed-technical.wav'
+      [
+        'moduleError',
+        {
+          clips: {
+            neutral: 'sounds/rina/module-loading-failed.wav',
+            concerned: 'sounds/rina/module-loading-failed-concerned.wav',
+            technical: 'sounds/rina/module-loading-failed-technical.wav',
+          },
+          fallback: 'Module loading failed. Checking diagnostics...',
         },
-        fallback: 'Module loading failed. Checking diagnostics...'
-      }],
+      ],
 
-      ['electronMissing', {
-        clips: {
-          neutral: 'sounds/rina/electron-not-detected.wav',
-          alert: 'sounds/rina/electron-not-detected-alert.wav',
-          diagnostic: 'sounds/rina/electron-not-detected-diagnostic.wav'
+      [
+        'electronMissing',
+        {
+          clips: {
+            neutral: 'sounds/rina/electron-not-detected.wav',
+            alert: 'sounds/rina/electron-not-detected-alert.wav',
+            diagnostic: 'sounds/rina/electron-not-detected-diagnostic.wav',
+          },
+          fallback: 'Electron runtime not detected. Please check your installation.',
         },
-        fallback: 'Electron runtime not detected. Please check your installation.'
-      }],
+      ],
 
       // Greetings and personality
-      ['greeting', {
-        clips: {
-          neutral: 'sounds/rina/hello-rina.wav',
-          warm: 'sounds/rina/hello-rina-warm.wav',
-          professional: 'sounds/rina/hello-rina-professional.wav',
-          friendly: 'sounds/rina/hello-rina-friendly.wav'
+      [
+        'greeting',
+        {
+          clips: {
+            neutral: 'sounds/rina/hello-rina.wav',
+            warm: 'sounds/rina/hello-rina-warm.wav',
+            professional: 'sounds/rina/hello-rina-professional.wav',
+            friendly: 'sounds/rina/hello-rina-friendly.wav',
+          },
+          fallback: "Hello! I'm Rina, your terminal assistant.",
         },
-        fallback: 'Hello! I\'m Rina, your terminal assistant.'
-      }],
+      ],
 
-      ['farewell', {
-        clips: {
-          neutral: 'sounds/rina/goodbye.wav',
-          warm: 'sounds/rina/goodbye-warm.wav',
-          professional: 'sounds/rina/goodbye-professional.wav'
+      [
+        'farewell',
+        {
+          clips: {
+            neutral: 'sounds/rina/goodbye.wav',
+            warm: 'sounds/rina/goodbye-warm.wav',
+            professional: 'sounds/rina/goodbye-professional.wav',
+          },
+          fallback: 'Goodbye! Terminal session ending.',
         },
-        fallback: 'Goodbye! Terminal session ending.'
-      }],
+      ],
 
       // Mood-specific responses
-      ['frustrated_help', {
-        clips: {
-          empathetic: 'sounds/rina/frustrated-help-empathetic.wav',
-          calming: 'sounds/rina/frustrated-help-calming.wav',
-          supportive: 'sounds/rina/frustrated-help-supportive.wav'
+      [
+        'frustrated_help',
+        {
+          clips: {
+            empathetic: 'sounds/rina/frustrated-help-empathetic.wav',
+            calming: 'sounds/rina/frustrated-help-calming.wav',
+            supportive: 'sounds/rina/frustrated-help-supportive.wav',
+          },
+          fallback: 'I understand this can be frustrating. Let me help simplify things.',
         },
-        fallback: 'I understand this can be frustrating. Let me help simplify things.'
-      }],
+      ],
 
-      ['uncertain_guidance', {
-        clips: {
-          reassuring: 'sounds/rina/uncertain-guidance-reassuring.wav',
-          patient: 'sounds/rina/uncertain-guidance-patient.wav',
-          gentle: 'sounds/rina/uncertain-guidance-gentle.wav'
+      [
+        'uncertain_guidance',
+        {
+          clips: {
+            reassuring: 'sounds/rina/uncertain-guidance-reassuring.wav',
+            patient: 'sounds/rina/uncertain-guidance-patient.wav',
+            gentle: 'sounds/rina/uncertain-guidance-gentle.wav',
+          },
+          fallback: "No worries! Let's take this step by step.",
         },
-        fallback: 'No worries! Let\'s take this step by step.'
-      }],
+      ],
 
       // System status
-      ['systemHealthy', {
-        clips: {
-          neutral: 'sounds/rina/system-healthy.wav',
-          confident: 'sounds/rina/system-healthy-confident.wav',
-          satisfied: 'sounds/rina/system-healthy-satisfied.wav'
+      [
+        'systemHealthy',
+        {
+          clips: {
+            neutral: 'sounds/rina/system-healthy.wav',
+            confident: 'sounds/rina/system-healthy-confident.wav',
+            satisfied: 'sounds/rina/system-healthy-satisfied.wav',
+          },
+          fallback: 'All systems are running smoothly.',
         },
-        fallback: 'All systems are running smoothly.'
-      }],
+      ],
 
-      ['performanceGood', {
-        clips: {
-          neutral: 'sounds/rina/performance-good.wav',
-          pleased: 'sounds/rina/performance-good-pleased.wav',
-          efficient: 'sounds/rina/performance-good-efficient.wav'
+      [
+        'performanceGood',
+        {
+          clips: {
+            neutral: 'sounds/rina/performance-good.wav',
+            pleased: 'sounds/rina/performance-good-pleased.wav',
+            efficient: 'sounds/rina/performance-good-efficient.wav',
+          },
+          fallback: 'Performance metrics look excellent!',
         },
-        fallback: 'Performance metrics look excellent!'
-      }]
+      ],
     ]);
 
     console.log(`📝 Loaded ${this.voiceMap.size} voice mappings`);
@@ -248,28 +290,35 @@ export class RinaVoiceSystem {
   async initializeFallbackSynthesis() {
     if ('speechSynthesis' in window) {
       this.fallbackSynthesis = window.speechSynthesis;
-      
+
       // Set up preferred voice for synthesis
       const voices = this.fallbackSynthesis.getVoices();
-      const preferredVoice = voices.find(voice => 
-        voice.name.includes('Samantha') || 
-        voice.name.includes('Alex') || 
-        voice.lang.includes('en-US')
+      const preferredVoice = voices.find(
+        voice =>
+          voice.name.includes('Samantha') ||
+          voice.name.includes('Alex') ||
+          voice.lang.includes('en-US')
       );
-      
+
       this.preferredSynthesisVoice = preferredVoice;
-      console.log('🔊 Fallback synthesis initialized with voice:', preferredVoice?.name || 'default');
+      console.log(
+        '🔊 Fallback synthesis initialized with voice:',
+        preferredVoice?.name || 'default'
+      );
     }
   }
 
   async preloadCriticalAudio() {
     const criticalClips = [
-      'bootSuccess', 'commandExecuting', 'greeting', 
-      'moduleError', 'systemHealthy'
+      'bootSuccess',
+      'commandExecuting',
+      'greeting',
+      'moduleError',
+      'systemHealthy',
     ];
 
     console.log('⏳ Preloading critical audio clips...');
-    
+
     for (const clipKey of criticalClips) {
       await this.preloadClip(clipKey);
     }
@@ -290,13 +339,13 @@ export class RinaVoiceSystem {
 
       const audio = new Audio(clipPath);
       audio.preload = 'auto';
-      
-      return new Promise((resolve) => {
+
+      return new Promise(resolve => {
         audio.addEventListener('canplaythrough', () => {
           this.audioCache.set(cacheKey, audio);
           resolve(true);
         });
-        
+
         audio.addEventListener('error', () => {
           console.warn(`⚠️ Failed to preload audio: ${clipPath}`);
           resolve(false);
@@ -319,20 +368,23 @@ export class RinaVoiceSystem {
       volume = this.config.baseVolume,
       onComplete = null,
       onError = null,
-      useElevenLabs = null // Allow overriding ElevenLabs usage per call
+      useElevenLabs = null, // Allow overriding ElevenLabs usage per call
     } = options;
 
     console.log(`🎙️ Rina speaking: ${key} (mood: ${mood})`);
 
     // Route to ElevenLabs if enabled and in elevenlabs mode, or if explicitly requested
-    if ((this.voiceMode === 'elevenlabs' || useElevenLabs === true) && this.config.enableElevenLabs) {
+    if (
+      (this.voiceMode === 'elevenlabs' || useElevenLabs === true) &&
+      this.config.enableElevenLabs
+    ) {
       const voiceData = this.voiceMap.get(key);
       if (voiceData && voiceData.fallback) {
         const success = await this.speakWithElevenLabs(voiceData.fallback, {
           mood,
           volume,
           onComplete,
-          onError
+          onError,
         });
         if (success) return true;
       }
@@ -345,7 +397,11 @@ export class RinaVoiceSystem {
     }
 
     // Fallback to ElevenLabs if available and not already tried
-    if (this.voiceMode !== 'elevenlabs' && useElevenLabs !== false && this.config.enableElevenLabs) {
+    if (
+      this.voiceMode !== 'elevenlabs' &&
+      useElevenLabs !== false &&
+      this.config.enableElevenLabs
+    ) {
       const voiceData = this.voiceMap.get(key);
       if (voiceData && voiceData.fallback) {
         const success = await this.speakWithElevenLabs(voiceData.fallback, {
@@ -353,14 +409,18 @@ export class RinaVoiceSystem {
           volume,
           priority: 'normal',
           onComplete,
-          onError
+          onError,
         });
         if (success) return true;
       }
     }
 
     // Fallback to speech synthesis
-    if (this.voiceMode !== 'elevenlabs' && this.config.enableSynthesis && this.config.fallbackToSynthesis) {
+    if (
+      this.voiceMode !== 'elevenlabs' &&
+      this.config.enableSynthesis &&
+      this.config.fallbackToSynthesis
+    ) {
       return await this.speakWithSynthesis(key, mood, onComplete, onError);
     }
 
@@ -395,14 +455,13 @@ export class RinaVoiceSystem {
         if (onComplete) onComplete();
       });
 
-      audio.addEventListener('error', (error) => {
+      audio.addEventListener('error', error => {
         console.warn(`⚠️ Audio playback failed for ${key}:`, error);
         if (onError) onError(error);
       });
 
       await audio.play();
       return true;
-
     } catch (error) {
       console.warn(`⚠️ Failed to play voice clip ${key}:`, error.message);
       return false;
@@ -422,7 +481,7 @@ export class RinaVoiceSystem {
       utterance.rate = moodConfig.rate;
       utterance.pitch = moodConfig.pitch;
       utterance.volume = moodConfig.volume;
-      
+
       if (this.preferredSynthesisVoice) {
         utterance.voice = this.preferredSynthesisVoice;
       }
@@ -433,14 +492,13 @@ export class RinaVoiceSystem {
         if (onComplete) onComplete();
       };
 
-      utterance.onerror = (error) => {
+      utterance.onerror = error => {
         console.warn(`⚠️ Synthesis failed for ${key}:`, error);
         if (onError) onError(error);
       };
 
       this.fallbackSynthesis.speak(utterance);
       return true;
-
     } catch (error) {
       console.warn(`⚠️ Speech synthesis failed for ${key}:`, error.message);
       return false;
@@ -455,7 +513,7 @@ export class RinaVoiceSystem {
       frustrated: { rate: 0.8, pitch: 0.8, volume: 0.6 },
       confused: { rate: 0.85, pitch: 0.85, volume: 0.7 },
       excited: { rate: 1.3, pitch: 1.2, volume: 1.0 },
-      calm: { rate: 0.9, pitch: 0.9, volume: 0.8 }
+      calm: { rate: 0.9, pitch: 0.9, volume: 0.8 },
     };
 
     return configs[mood] || configs.neutral;
@@ -463,24 +521,24 @@ export class RinaVoiceSystem {
 
   triggerAudioFallbackGlow(key) {
     console.log(`✨ Triggering audio fallback glow for: ${key}`);
-    
+
     try {
       const glowEvent = new CustomEvent('voice-audio-fallback', {
-        detail: { 
-          key, 
+        detail: {
+          key,
           mood: this.currentMood,
-          intensity: 0.2, 
+          intensity: 0.2,
           theme: 'neon',
-          duration: 1500
-        }
+          duration: 1500,
+        },
       });
       window.dispatchEvent(glowEvent);
 
       // Also try direct glow trigger if available
       if (typeof window !== 'undefined' && window.triggerGlow) {
-        window.triggerGlow('audioFeedbackMissing', { 
-          intensity: 0.2, 
-          theme: 'neon' 
+        window.triggerGlow('audioFeedbackMissing', {
+          intensity: 0.2,
+          theme: 'neon',
         });
       }
     } catch (error) {
@@ -502,23 +560,23 @@ export class RinaVoiceSystem {
       }
 
       console.log('🎙️ Initializing ElevenLabs voice provider...');
-      
+
       this.elevenLabsProvider = new ElevenLabsVoiceProvider({
         audioContext: this.audioContext,
         voiceConfig: this.config.elevenLabs,
         maxCacheSize: this.config.maxPhraseCacheSize,
-        fallbackEnabled: true
+        fallbackEnabled: true,
       });
 
       const success = await this.elevenLabsProvider.initialize(apiKey);
-      
+
       if (success) {
         this.elevenLabsEnabled = true;
         this.config.enableElevenLabs = true;
-        
+
         // Sync mood with ElevenLabs provider
         this.elevenLabsProvider.setMood(this.currentMood);
-        
+
         console.log('✅ ElevenLabs voice provider initialized successfully');
         return true;
       } else {
@@ -536,7 +594,7 @@ export class RinaVoiceSystem {
     if (typeof process !== 'undefined' && process.env) {
       return process.env.ELEVENLABS_API_KEY;
     }
-    
+
     try {
       return localStorage.getItem('elevenlabs_api_key');
     } catch {
@@ -575,22 +633,22 @@ export class RinaVoiceSystem {
       'Running that now...',
       'Command completed successfully.',
       'Let me think...',
-      'Hello! I\'m Rina, your terminal assistant.',
+      "Hello! I'm Rina, your terminal assistant.",
       'All systems are running smoothly.',
       'I understand this can be frustrating. Let me help simplify things.',
-      'No worries! Let\'s take this step by step.'
+      "No worries! Let's take this step by step.",
     ];
 
     console.log('⏳ Preloading frequent phrases with ElevenLabs...');
-    
+
     for (const phrase of frequentPhrases) {
       try {
         await this.elevenLabsProvider.textToSpeech(phrase, {
           mood: 'neutral',
           priority: 'low',
-          useCache: true
+          useCache: true,
         });
-        
+
         // Track usage for cache management
         this.phraseCacheHits.set(phrase, 1);
       } catch (error) {
@@ -612,7 +670,7 @@ export class RinaVoiceSystem {
         volume = this.config.baseVolume,
         priority = 'normal',
         onComplete = null,
-        onError = null
+        onError = null,
       } = options;
 
       // Track phrase usage for caching
@@ -622,7 +680,7 @@ export class RinaVoiceSystem {
       const adjustedVolume = volume * (this.config.moodVolumeAdjust[mood] || 1.0);
 
       console.log(`🎙️ Speaking with ElevenLabs: "${text}" (mood: ${mood})`);
-      
+
       const audioSource = await this.elevenLabsProvider.speak(text, {
         mood,
         volume: adjustedVolume,
@@ -632,10 +690,10 @@ export class RinaVoiceSystem {
           console.log('✅ ElevenLabs playback completed');
           if (onComplete) onComplete();
         },
-        onError: (error) => {
+        onError: error => {
           console.warn('⚠️ ElevenLabs playback error:', error.message);
           if (onError) onError(error);
-        }
+        },
       });
 
       return true;
@@ -648,7 +706,7 @@ export class RinaVoiceSystem {
   trackPhraseUsage(phrase) {
     const currentHits = this.phraseCacheHits.get(phrase) || 0;
     this.phraseCacheHits.set(phrase, currentHits + 1);
-    
+
     // Clean up old entries if cache gets too large
     if (this.phraseCacheHits.size > this.config.maxPhraseCacheSize * 1.5) {
       this.cleanupPhraseCache();
@@ -660,12 +718,12 @@ export class RinaVoiceSystem {
     const sortedPhrases = Array.from(this.phraseCacheHits.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, this.config.maxPhraseCacheSize);
-    
+
     this.phraseCacheHits.clear();
     sortedPhrases.forEach(([phrase, hits]) => {
       this.phraseCacheHits.set(phrase, hits);
     });
-    
+
     console.log(`🧹 Cleaned up phrase cache, kept ${sortedPhrases.length} most frequent phrases`);
   }
 
@@ -673,15 +731,15 @@ export class RinaVoiceSystem {
   setMood(mood) {
     this.currentMood = mood;
     console.log(`🧠 Rina mood set to: ${mood}`);
-    
+
     // Sync mood with ElevenLabs provider if available
     if (this.elevenLabsProvider && this.elevenLabsEnabled) {
       this.elevenLabsProvider.setMood(mood);
     }
-    
+
     // Trigger mood change event
     const moodEvent = new CustomEvent('rina-mood-change', {
-      detail: { mood, timestamp: Date.now() }
+      detail: { mood, timestamp: Date.now() },
     });
     window.dispatchEvent(moodEvent);
   }
@@ -702,14 +760,14 @@ export class RinaVoiceSystem {
     this.voiceMode = mode;
     this.config.enableClips = mode === 'clips' || mode === 'hybrid';
     this.config.enableSynthesis = mode === 'synthesis' || mode === 'hybrid';
-    
+
     console.log(`🎛️ Voice mode switched to: ${mode}`);
-    
+
     // Log current capabilities
     if (mode === 'elevenlabs' && this.config.enableElevenLabs) {
       console.log('🎙️ ElevenLabs AI voice mode activated');
     }
-    
+
     return true;
   }
 
@@ -730,37 +788,37 @@ export class RinaVoiceSystem {
   }
 
   async onModuleError(moduleName) {
-    await this.speak('moduleError', { 
+    await this.speak('moduleError', {
       mood: 'technical',
       onComplete: () => {
         console.log(`📊 Module error reported for: ${moduleName}`);
-      }
+      },
     });
   }
 
   async onUserFrustrated() {
-    await this.speak('frustrated_help', { 
+    await this.speak('frustrated_help', {
       mood: 'empathetic',
-      volume: 0.7 
+      volume: 0.7,
     });
   }
 
   async onUserUncertain() {
-    await this.speak('uncertain_guidance', { 
-      mood: 'reassuring' 
+    await this.speak('uncertain_guidance', {
+      mood: 'reassuring',
     });
   }
 
   async onGreeting(timeOfDay = 'general') {
     const moodMap = {
       morning: 'energetic',
-      afternoon: 'professional', 
+      afternoon: 'professional',
       evening: 'warm',
-      general: 'friendly'
+      general: 'friendly',
     };
-    
-    await this.speak('greeting', { 
-      mood: moodMap[timeOfDay] || 'friendly' 
+
+    await this.speak('greeting', {
+      mood: moodMap[timeOfDay] || 'friendly',
     });
   }
 
@@ -773,6 +831,47 @@ export class RinaVoiceSystem {
     return clips;
   }
 
+  // Main speak method for Rina
+  async speak(key, options = {}) {
+    const {
+      mood = this.currentMood,
+      volume = this.config.baseVolume,
+      onComplete = null,
+      onError = null,
+    } = options;
+
+    console.log(`🗣️ Rina speaking: ${key} (mood: ${mood})`);
+
+    // Get corresponding clip or use fallback
+    const voiceData = this.voiceMap.get(key);
+    const clipPath = voiceData?.clips[mood];
+
+    if (clipPath && this.config.enableClips) {
+      // Play clip
+      await this.playClip(clipPath, volume, onComplete, onError);
+    } else {
+      // Fallback to direct speech
+      const fallbackText = voiceData?.fallback || key;
+      await this.speakText(fallbackText, { mood, volume, onComplete, onError });
+    }
+  }
+
+  async playClip(clipPath, volume, onComplete, onError) {
+    console.log(`🔊 Playing clip: ${clipPath}`);
+    // Simplified playback logic
+    try {
+      const audio = new Audio(clipPath);
+      audio.volume = volume;
+      audio.play();
+
+      audio.onended = onComplete;
+      audio.onerror = onError;
+    } catch (error) {
+      console.warn('Failed to play audio clip:', error);
+      if (onError) onError(error);
+    }
+  }
+
   getCacheStatus() {
     return {
       cacheSize: this.audioCache.size,
@@ -780,19 +879,19 @@ export class RinaVoiceSystem {
       cachedKeys: Array.from(this.audioCache.keys()),
       phraseCacheSize: this.phraseCacheHits.size,
       maxPhraseCacheSize: this.config.maxPhraseCacheSize,
-      elevenLabsStatus: this.elevenLabsProvider ? this.elevenLabsProvider.getStatus() : null
+      elevenLabsStatus: this.elevenLabsProvider ? this.elevenLabsProvider.getStatus() : null,
     };
   }
 
   clearCache() {
     this.audioCache.clear();
     this.phraseCacheHits.clear();
-    
+
     // Clear ElevenLabs cache if available
     if (this.elevenLabsProvider) {
       this.elevenLabsProvider.clearCache();
     }
-    
+
     console.log('🗑️ All caches cleared');
   }
 
@@ -809,10 +908,12 @@ export class RinaVoiceSystem {
       priority = 'normal',
       onComplete = null,
       onError = null,
-      preferElevenLabs = true // Prefer ElevenLabs for direct text speech
+      preferElevenLabs = true, // Prefer ElevenLabs for direct text speech
     } = options;
 
-    console.log(`🎙️ Speaking text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}" (mood: ${mood})`);
+    console.log(
+      `🎙️ Speaking text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}" (mood: ${mood})`
+    );
 
     // Try ElevenLabs first if available and preferred
     if (preferElevenLabs && this.config.enableElevenLabs) {
@@ -821,7 +922,7 @@ export class RinaVoiceSystem {
         volume,
         priority,
         onComplete,
-        onError
+        onError,
       });
       if (success) return true;
     }
@@ -830,13 +931,13 @@ export class RinaVoiceSystem {
     if (this.config.enableSynthesis && this.fallbackSynthesis) {
       try {
         const utterance = new SpeechSynthesisUtterance(text);
-        
+
         // Configure utterance based on mood
         const moodConfig = this.getSynthesisMoodConfig(mood);
         utterance.rate = moodConfig.rate;
         utterance.pitch = moodConfig.pitch;
         utterance.volume = moodConfig.volume;
-        
+
         if (this.preferredSynthesisVoice) {
           utterance.voice = this.preferredSynthesisVoice;
         }
@@ -847,14 +948,13 @@ export class RinaVoiceSystem {
           if (onComplete) onComplete();
         };
 
-        utterance.onerror = (error) => {
+        utterance.onerror = error => {
           console.warn('⚠️ Text synthesis failed:', error);
           if (onError) onError(error);
         };
 
         this.fallbackSynthesis.speak(utterance);
         return true;
-        
       } catch (error) {
         console.warn('⚠️ Speech synthesis failed:', error.message);
       }
@@ -879,8 +979,8 @@ export class RinaVoiceSystem {
       cacheStatus: this.getCacheStatus(),
       config: {
         ...this.config,
-        elevenLabsConfig: this.elevenLabsProvider ? this.elevenLabsProvider.getStatus() : null
-      }
+        elevenLabsConfig: this.elevenLabsProvider ? this.elevenLabsProvider.getStatus() : null,
+      },
     };
   }
 
@@ -889,13 +989,13 @@ export class RinaVoiceSystem {
     // Clear all caches
     this.audioCache.clear();
     this.phraseCacheHits.clear();
-    
+
     // Destroy ElevenLabs provider
     if (this.elevenLabsProvider) {
       this.elevenLabsProvider.destroy();
       this.elevenLabsProvider = null;
     }
-    
+
     // Close audio context
     if (this.audioContext) {
       this.audioContext.close();
