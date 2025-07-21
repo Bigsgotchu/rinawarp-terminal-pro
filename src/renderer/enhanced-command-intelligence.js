@@ -3,6 +3,25 @@
  * Provides real-time command analysis, suggestions, and learning capabilities
  */
 
+// Stub classes for dependencies
+class GitIntegration {
+  async getSuggestions(command, context) {
+    return [];
+  }
+}
+
+class ProjectAnalyzer {
+  async detectProjectType(cwd) {
+    return 'generic';
+  }
+}
+
+class DebuggerIntegration {
+  constructor() {
+    // Stub implementation
+  }
+}
+
 class EnhancedCommandIntelligence {
   constructor() {
     this.commandHistory = new Map();

@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
-const { app, BrowserWindow, BrowserView, ipcMain, _dialog } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, Menu, _dialog } = require('electron');
 const path = require('path');
 const os = require('os');
 const { _execSync } = require('child_process');
@@ -68,6 +68,130 @@ const _logger = {
 
 let mainWindow;
 
+// Create application menu
+function createApplicationMenu() {
+  const isMac = process.platform === 'darwin';
+  
+  const template = [
+    // App Menu (macOS only)
+    ...(isMac ? [{
+      label: app.getName(),
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services', submenu: [] },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    }] : []),
+    
+    // File Menu
+    {
+      label: 'File',
+      submenu: [
+        isMac ? { role: 'close' } : { role: 'quit' }
+      ]
+    },
+    
+    // Edit Menu
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        ...(isMac ? [
+          { role: 'pasteAndMatchStyle' },
+          { role: 'delete' },
+          { role: 'selectAll' },
+          { type: 'separator' },
+          {
+            label: 'Speech',
+            submenu: [
+              { role: 'startSpeaking' },
+              { role: 'stopSpeaking' }
+            ]
+          }
+        ] : [
+          { role: 'delete' },
+          { type: 'separator' },
+          { role: 'selectAll' }
+        ])
+      ]
+    },
+    
+    // View Menu
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { 
+          label: 'Toggle Developer Tools',
+          accelerator: isMac ? 'Cmd+Option+I' : 'Ctrl+Shift+I',
+          click: () => {
+            if (mainWindow && mainWindow.webContents) {
+              mainWindow.webContents.toggleDevTools();
+            }
+          }
+        },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
+    
+    // Window Menu
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'close' },
+        ...(isMac ? [
+          { type: 'separator' },
+          { role: 'front' },
+          { type: 'separator' },
+          { role: 'window' }
+        ] : [])
+      ]
+    },
+    
+    // Help Menu
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Learn More',
+          click: async () => {
+            const { shell } = require('electron');
+            await shell.openExternal('https://github.com/Rinawarp-Terminal/rinawarp-terminal');
+          }
+        },
+        {
+          label: 'Report Issue',
+          click: async () => {
+            const { shell } = require('electron');
+            await shell.openExternal('https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues');
+          }
+        }
+      ]
+    }
+  ];
+  
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
 function createWindow() {
   const windowConfig = {
     width: config.get('ui.windowWidth') || 1200,
@@ -80,7 +204,7 @@ function createWindow() {
       allowRunningInsecureContent: false,
       enableRemoteModule: false,
       experimentalFeatures: true,
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegrationInWorker: false,
       nodeIntegrationInSubFrames: false,
       safeDialogs: true,
@@ -98,11 +222,10 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-    // Enable dev tools to debug voice issues
-    mainWindow.webContents.openDevTools();
-    // if (config.get('ui.enableDevTools')) {
-    //   mainWindow.webContents.openDevTools();
-    // }
+    // Enable dev tools only if configured
+    if (config.get('ui.enableDevTools')) {
+      mainWindow.webContents.openDevTools();
+    }
   });
 
   mainWindow.on('closed', () => {
@@ -183,6 +306,7 @@ app.whenReady().then(async () => {
   );
 
   createWindow();
+  createApplicationMenu();
 
   app.on('activate', () => {
     // On macOS, re-create window when dock icon is clicked
@@ -495,6 +619,79 @@ ipcMain.handle('track-page-view', async (event, page, title) => {
   } catch (error) {
     console.error('Failed to track page view:', error);
     return false;
+  }
+});
+
+// ElevenLabs configuration handlers
+ipcMain.handle('load-elevenlabs-config', async () => {
+  try {
+    const elevenLabsConfig = config.getElevenLabsConfig();
+    console.log('Loading ElevenLabs config:', elevenLabsConfig);
+    
+    // Ensure we always return a valid config object
+    return elevenLabsConfig || {
+      apiKey: '',
+      voiceId: '',
+      modelId: 'eleven_monolingual_v1',
+      enabled: false,
+      voiceSettings: {
+        stability: 0.5,
+        similarityBoost: 0.5
+      }
+    };
+  } catch (error) {
+    console.error('Failed to load ElevenLabs config:', error);
+    // Return default config on error
+    return {
+      apiKey: '',
+      voiceId: '',
+      modelId: 'eleven_monolingual_v1',
+      enabled: false,
+      voiceSettings: {
+        stability: 0.5,
+        similarityBoost: 0.5
+      }
+    };
+  }
+});
+
+ipcMain.handle('save-elevenlabs-config', async (event, elevenLabsConfig) => {
+  try {
+    // Save individual ElevenLabs settings
+    let success = true;
+    
+    if (elevenLabsConfig.apiKey !== undefined) {
+      success = success && config.setElevenLabsApiKey(elevenLabsConfig.apiKey);
+    }
+    
+    if (elevenLabsConfig.voiceId !== undefined) {
+      success = success && config.set('elevenlabs.voiceId', elevenLabsConfig.voiceId);
+    }
+    
+    if (elevenLabsConfig.modelId !== undefined) {
+      success = success && config.set('elevenlabs.modelId', elevenLabsConfig.modelId);
+    }
+    
+    if (elevenLabsConfig.enabled !== undefined) {
+      success = success && config.set('elevenlabs.enabled', elevenLabsConfig.enabled);
+    }
+    
+    if (elevenLabsConfig.voiceSettings !== undefined) {
+      success = success && config.set('elevenlabs.voiceSettings', elevenLabsConfig.voiceSettings);
+    }
+    
+    console.log('ElevenLabs config saved:', success);
+    
+    return {
+      success: success,
+      message: success ? 'Configuration saved successfully' : 'Failed to save configuration'
+    };
+  } catch (error) {
+    console.error('Failed to save ElevenLabs config:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 });
 

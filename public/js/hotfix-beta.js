@@ -1,13 +1,24 @@
 /**
  * RinaWarp Terminal - Beta Hotfix Script
- * Copyright (c) 2025 Rinawarp Technologies, LLC. All rights reserved.
- *
- * This file contains temporary hotfixes for beta release issues.
- * Licensed under the MIT License.
+ * This script contains hotfixes for the beta version
  */
 
-// PLACEHOLDER: Beta hotfix script
-console.log('[PLACEHOLDER] Beta hotfix script loaded - public/js/hotfix-beta.js');
+console.log('🔧 RinaWarp Terminal Beta Hotfix loaded');
 
-// Temporary beta hotfixes will be added here as needed
-// This file is loaded early in the HTML head to apply critical fixes
+// Simple hotfix placeholder
+window.rinaWarpBetaHotfix = {
+  version: '1.0.0',
+  loaded: true,
+
+  // Initialize hotfixes
+  init: function() {
+    console.log('📦 Beta hotfixes initialized');
+  }
+};
+
+// Auto-initialize
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', window.rinaWarpBetaHotfix.init);
+} else {
+  window.rinaWarpBetaHotfix.init();
+}

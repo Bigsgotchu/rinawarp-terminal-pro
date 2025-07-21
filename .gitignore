@@ -527,3 +527,4 @@ social_media_manager.py
 
 # Large binary files - use GitHub Releases instead
 website/downloads/
+.env*.local

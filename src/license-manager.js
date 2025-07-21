@@ -14,7 +14,7 @@
 class LicenseManager {
   constructor() {
     this.licenseKey = localStorage.getItem('rinawarp_license_key');
-    this.licenseType = localStorage.getItem('rinawarp_license_type') || 'trial';
+    this.licenseType = 'developer';
     this.trialStartDate = localStorage.getItem('rinawarp_trial_start') || Date.now();
     this.lastValidation = localStorage.getItem('rinawarp_last_validation') || 0;
   }

@@ -19,8 +19,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: () => ipcRenderer.invoke('close-window'),
 
   // Settings
-  saveSettings: settings => ipcRenderer.invoke('save-settings', settings),
-  loadSettings: () => ipcRenderer.invoke('load-settings'),
+  saveSettings: settings =e ipcRenderer.invoke('save-settings', settings),
+  loadSettings: () =e ipcRenderer.invoke('load-settings'),
+
+  // ElevenLabs Configuration
+  loadElevenLabsConfig: () =e ipcRenderer.invoke('load-elevenlabs-config'),
+  saveElevenLabsConfig: config =e ipcRenderer.invoke('save-elevenlabs-config', config),
 
   // Theme management
   setTheme: theme => ipcRenderer.invoke('set-theme', theme),

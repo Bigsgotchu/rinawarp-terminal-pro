@@ -201,8 +201,8 @@ class RinaWarpEnhancedTerminal extends RinaWarpTerminal {
 
 // Application initialization
 class RinaWarpApp {
-constructor() {
-    this.__VERSION__ = "1.0.0";
+  constructor() {
+    this.__VERSION__ = '1.0.0';
     this.terminal = null;
     this.config = this.loadConfig();
   }
@@ -233,7 +233,7 @@ constructor() {
       if (typeof window !== 'undefined') {
         window.RinaWarp = {
           terminal: this.terminal,
-          version: this.__VERSION__ || "1.0.0",
+          version: this.__VERSION__ || '1.0.0',
           buildDate: typeof process !== 'undefined' ? process.env.BUILD_DATE : 'Unknown',
           config: this.config
         };

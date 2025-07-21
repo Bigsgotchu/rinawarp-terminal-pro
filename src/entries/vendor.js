@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
   
   // Version info
   window.RinaWarpVendor = {
-    version: __VERSION__,
+    version: '1.0.19',
     buildDate: typeof process !== 'undefined' ? process.env.BUILD_DATE : 'Unknown',
     components: {
       xterm: Terminal.prototype.constructor.name,

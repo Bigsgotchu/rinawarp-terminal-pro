@@ -646,7 +646,7 @@
         async function initializeStripe() {
             try {
                 // Fetch Stripe configuration from server
-                const response = await fetch('/api/stripe-config.json');
+                const response = await fetch('/api/stripe-config');
                 if (!response.ok) {
                     throw new Error('Failed to load Stripe configuration');
                 }
@@ -858,7 +858,13 @@
                 
             } catch (error) {
                 console.error('❌ Error creating beta checkout session:', error);
-                showError('Failed to start beta checkout. Please try again.');
+                
+                // Show specific error message based on the error
+                if (error.message.includes('Beta price not configured')) {
+                    showError('Beta pricing not available yet. Please contact support@rinawarp.com for early access.');
+                } else {
+                    showError('Failed to start beta checkout. Please try again.');
+                }
                 
                 // Reset button state
                 button.disabled = false;
@@ -868,10 +874,13 @@
         
         // Get beta price ID based on beta type
         function getBetaPriceId(betaType) {
+            // Try to get from server configuration first
+            const betaPrices = stripeConfig.betaPrices || {};
+            
             const betaPriceMap = {
-                'earlybird': 'price_1Rk9fCG2ToGP7ChnoyFdZTX0',
-                'beta': 'price_1Rk9fCG2ToGP7ChnkwgjPPdN',
-                'premium': 'price_1Rk9fCG2ToGP7ChnocLnwjie'
+                'earlybird': betaPrices.earlybird || null,
+                'beta': betaPrices.beta || null,
+                'premium': betaPrices.premium || null
             };
             
             return betaPriceMap[betaType];
