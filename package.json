@@ -116,6 +116,7 @@
     "build:all": "npm run copy-assets && npm run test && electron-builder --win --mac --linux",
     "build:releases": "node scripts/build-releases.js",
     "download:releases": "node scripts/download-releases.js",
+    "check:build-status": "node scripts/check-build-status.js",
     "release": "node scripts/release.cjs patch",
     "release:major": "node scripts/release.cjs major",
     "release:minor": "node scripts/release.cjs minor",
@@ -130,14 +131,20 @@
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.1",
     "helmet": "^8.1.0",
     "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^6.9.8",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "stream-browserify": "^3.0.0",
+    "stripe": "^14.12.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
@@ -160,7 +167,6 @@
     "core-js": "3.44.0",
     "css-loader": "7.1.2",
     "css-minimizer-webpack-plugin": "7.0.2",
-    "dmg-license": "1.0.11",
     "electron": "37.2.3",
     "electron-builder": "26.0.12",
     "eslint": "9.31.0",
@@ -197,6 +203,9 @@
     "webpack-dev-server": "5.2.2",
     "webpack-merge": "6.0.1",
     "worker-loader": "3.0.8"
+  },
+  "optionalDependencies": {
+    "dmg-license": "1.0.11"
   },
   "overrides": {
     "rimraf": "^4.4.1",
