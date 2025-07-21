@@ -95,8 +95,8 @@ class VisualContentGenerator {
             </div>
             <div class="status-container">
                 ${frames
-                  .map(
-                    (frame, index) => `
+    .map(
+      (frame, index) => `
                 <div class="status-line" data-frame="${index}">
                     <span class="status-symbol">${frame.symbol}</span>
                     <span class="status-message">${frame.message}</span>
@@ -105,8 +105,8 @@ class VisualContentGenerator {
                     </div>
                 </div>
                 `
-                  )
-                  .join('')}
+    )
+    .join('')}
             </div>
             <div class="final-message">
                 <div class="success-banner">
@@ -473,15 +473,15 @@ body {
             </div>
             <ul class="task-list">
                 ${data.before.tasks
-                  .map(
-                    task => `
+    .map(
+      task => `
                     <li class="task-item">
                         <span class="task-name">${task.name}</span>
                         <span class="task-time">${task.time}m</span>
                     </li>
                 `
-                  )
-                  .join('')}
+    )
+    .join('')}
             </ul>
         </div>
         
@@ -493,15 +493,15 @@ body {
             </div>
             <ul class="task-list">
                 ${data.after.tasks
-                  .map(
-                    task => `
+    .map(
+      task => `
                     <li class="task-item">
                         <span class="task-name">${task.name}</span>
                         <span class="task-time">${task.time}m</span>
                     </li>
                 `
-                  )
-                  .join('')}
+    )
+    .join('')}
             </ul>
         </div>
         
@@ -670,8 +670,8 @@ body {
 <body>
     <div class="carousel-container">
         ${features
-          .map(
-            (feature, index) => `
+    .map(
+      (feature, index) => `
             <div class="carousel-slide ${index === 0 ? 'active' : ''}" 
                  style="background: linear-gradient(135deg, ${feature.color} 0%, ${this.darkenColor(feature.color)} 100%);">
                 <div class="feature-icon">${feature.icon}</div>
@@ -686,17 +686,17 @@ body {
                 </div>
             </div>
         `
-          )
-          .join('')}
+    )
+    .join('')}
         
         <div class="carousel-indicators">
             ${features
-              .map(
-                (_, index) => `
+    .map(
+      (_, index) => `
                 <div class="indicator ${index === 0 ? 'active' : ''}" data-slide="${index}"></div>
             `
-              )
-              .join('')}
+    )
+    .join('')}
         </div>
     </div>
     
@@ -893,13 +893,13 @@ body {
 <body>
     <div class="metrics-container">
         ${metrics
-          .map((metric, index) => {
-            const degrees =
+    .map((metric, index) => {
+      const degrees =
               metric.name === 'Error Rate'
                 ? Math.min(metric.value * 36, 360) // Scale error rate differently
                 : (metric.value / 100) * 360;
 
-            return `
+      return `
                 <div class="metric-card" style="--color: ${metric.color}; --degrees: ${degrees}deg; animation-delay: ${index * 0.3}s;">
                     <div class="metric-name">${metric.name}</div>
                     <div class="metric-value">
@@ -917,8 +917,8 @@ body {
                     </div>
                 </div>
             `;
-          })
-          .join('')}
+    })
+    .join('')}
     </div>
     
     <script>
@@ -1278,22 +1278,22 @@ body {
         
         <div class="platforms-grid">
             ${Object.entries(schedule)
-              .map(([platform, data]) => {
-                const colors = {
-                  twitter: '#1da1f2',
-                  linkedin: '#0077b5',
-                  reddit: '#ff4500',
-                  email: '#34495e',
-                };
+    .map(([platform, data]) => {
+      const colors = {
+        twitter: '#1da1f2',
+        linkedin: '#0077b5',
+        reddit: '#ff4500',
+        email: '#34495e',
+      };
 
-                const icons = {
-                  twitter: '🐦',
-                  linkedin: '💼',
-                  reddit: '🤖',
-                  email: '📧',
-                };
+      const icons = {
+        twitter: '🐦',
+        linkedin: '💼',
+        reddit: '🤖',
+        email: '📧',
+      };
 
-                return `
+      return `
                     <div class="platform-card" style="--color: ${colors[platform]};">
                         <div class="platform-header">
                             <span class="platform-icon">${icons[platform]}</span>
@@ -1316,8 +1316,8 @@ body {
                         </div>
                     </div>
                 `;
-              })
-              .join('')}
+    })
+    .join('')}
         </div>
         
         <div class="content-mix">

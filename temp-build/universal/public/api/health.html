@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Health Check</title>
+</head>
+<body>
+    <script>
+        // API Health Check Response
+        const healthData = {
+            status: "healthy",
+            timestamp: new Date().toISOString(),
+            version: "1.0.19",
+            services: {
+                firebase: "online",
+                hosting: "online"
+            },
+            uptime: Math.floor(Date.now() / 1000)
+        };
+
+        // Set content type to JSON
+        document.contentType = 'application/json';
+        
+        // Display as JSON
+        document.body.innerHTML = '<pre>' + JSON.stringify(healthData, null, 2) + '</pre>';
+        
+        // Also expose as window object for programmatic access
+        window.healthData = healthData;
+    </script>
+</body>
+</html>

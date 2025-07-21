@@ -305,41 +305,41 @@ if (require.main === module) {
   const command = process.argv[2];
 
   switch (command) {
-    case 'start':
-      dashboard.startMonitoring().catch(error => {
-        console.error('❌ Failed to start monitoring:', error);
-        process.exit(1);
-      });
-      break;
+  case 'start':
+    dashboard.startMonitoring().catch(error => {
+      console.error('❌ Failed to start monitoring:', error);
+      process.exit(1);
+    });
+    break;
 
-    case 'stop':
-      dashboard.stopMonitoring();
-      break;
+  case 'stop':
+    dashboard.stopMonitoring();
+    break;
 
-    case 'status':
-      // Show current status from saved state
-      try {
-        const state = JSON.parse(fs.readFileSync('monitoring/dashboard-state.json', 'utf8'));
-        console.log('📊 Dashboard Status:');
-        console.log(`   🔄 Running: ${state.isRunning ? 'Yes' : 'No'}`);
-        console.log(`   🕐 Last check: ${state.timestamp}`);
-        console.log(`   📊 Check interval: ${state.checkInterval / 1000} seconds`);
-        console.log(`   📈 Recent checks: ${state.issueHistory.length}`);
-      } catch (error) {
-        console.log('❌ No dashboard state found. Dashboard is not running.');
-      }
-      break;
+  case 'status':
+    // Show current status from saved state
+    try {
+      const state = JSON.parse(fs.readFileSync('monitoring/dashboard-state.json', 'utf8'));
+      console.log('📊 Dashboard Status:');
+      console.log(`   🔄 Running: ${state.isRunning ? 'Yes' : 'No'}`);
+      console.log(`   🕐 Last check: ${state.timestamp}`);
+      console.log(`   📊 Check interval: ${state.checkInterval / 1000} seconds`);
+      console.log(`   📈 Recent checks: ${state.issueHistory.length}`);
+    } catch (error) {
+      console.log('❌ No dashboard state found. Dashboard is not running.');
+    }
+    break;
 
-    default:
-      console.log('🌊 RinaWarp Terminal - Monitoring Dashboard');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('Usage:');
-      console.log('  node scripts/monitor-dashboard.cjs start   - Start continuous monitoring');
-      console.log('  node scripts/monitor-dashboard.cjs stop    - Stop monitoring');
-      console.log('  node scripts/monitor-dashboard.cjs status  - Show current status');
-      console.log('');
-      console.log('The dashboard will continuously monitor for URL-related issues');
-      console.log('and provide real-time feedback on system health.');
+  default:
+    console.log('🌊 RinaWarp Terminal - Monitoring Dashboard');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('Usage:');
+    console.log('  node scripts/monitor-dashboard.cjs start   - Start continuous monitoring');
+    console.log('  node scripts/monitor-dashboard.cjs stop    - Stop monitoring');
+    console.log('  node scripts/monitor-dashboard.cjs status  - Show current status');
+    console.log('');
+    console.log('The dashboard will continuously monitor for URL-related issues');
+    console.log('and provide real-time feedback on system health.');
   }
 }
 

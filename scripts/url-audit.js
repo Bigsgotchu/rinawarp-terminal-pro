@@ -255,9 +255,9 @@ const fixes = [
 
 const filesToFix = [
 ${this.issues
-  .map(issue => `  '${issue.file}'`)
-  .filter((v, i, a) => a.indexOf(v) === i)
-  .join(',\n')}
+    .map(issue => `  '${issue.file}'`)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .join(',\n')}
 ];
 
 console.log('🔧 Applying automated URL fixes...');

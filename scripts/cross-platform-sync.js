@@ -111,7 +111,7 @@ class CrossPlatformSecretSync {
     } catch (error) {
       console.log(
         kleur.red(
-          "❌ Failed to load Vercel secrets. Make sure you're logged in with `vercel login`"
+          '❌ Failed to load Vercel secrets. Make sure you\'re logged in with `vercel login`'
         )
       );
       return false;

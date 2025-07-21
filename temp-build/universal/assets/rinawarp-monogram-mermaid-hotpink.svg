@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Hot pink mermaid gradient -->
+    <linearGradient id="mermaidMonogramGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF1493;stop-opacity:1" />
+      <stop offset="20%" style="stop-color:#00FF88;stop-opacity:1" />
+      <stop offset="40%" style="stop-color:#008B8B;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#00AAFF;stop-opacity:1" />
+      <stop offset="80%" style="stop-color:#FF1493;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8A2BE2;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Pearl gradient for background -->
+    <radialGradient id="pearlBackground" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" style="stop-color:#F8F8FF;stop-opacity:0.1" />
+      <stop offset="50%" style="stop-color:#FF1493;stop-opacity:0.05" />
+      <stop offset="100%" style="stop-color:#008B8B;stop-opacity:0.1" />
+    </radialGradient>
+    
+    <!-- Oceanic ring gradient -->
+    <linearGradient id="oceanRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF1493;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#008B8B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00AAFF;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#FF1493;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#003366;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Enhanced glow filter -->
+    <filter id="mermaidGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Scale shimmer pattern -->
+    <pattern id="shimmerPattern" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="2" fill="#FF1493" opacity="0.1"/>
+      <circle cx="3" cy="9" r="1.5" fill="#008B8B" opacity="0.08"/>
+      <circle cx="9" cy="3" r="1.5" fill="#00AAFF" opacity="0.08"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background circle with pearl effect -->
+  <circle cx="40" cy="40" r="38" fill="url(#pearlBackground)"/>
+  <circle cx="40" cy="40" r="36" fill="#1A1A1A" stroke="url(#oceanRing)" stroke-width="3">
+    <animate attributeName="stroke-width" values="3;4;3" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Flowing wave pattern inside circle -->
+  <path d="M 10 55 Q 20 50 30 52 Q 50 55 70 50" stroke="url(#mermaidMonogramGradient)" stroke-width="1" fill="none" opacity="0.3">
+    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="6s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 10 60 Q 25 58 40 60 Q 55 62 70 58" stroke="#FF1493" stroke-width="1" fill="none" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="5s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Terminal cursor element with hot pink -->
+  <rect x="18" y="25" width="2.5" height="30" fill="#FF1493" rx="1">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2.5s" repeatCount="indefinite"/>
+    <animate attributeName="fill" values="#FF1493;#008B8B;#FF1493" dur="6s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- R letter with mermaid styling -->
+  <path d="M 24 25 L 24 55 M 24 25 L 38 25 Q 44 25 44 33 Q 44 41 38 41 L 24 41 M 35 41 L 44 55" 
+        stroke="url(#mermaidMonogramGradient)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#mermaidGlow)">
+    <animate attributeName="stroke-width" values="4;5;4" dur="8s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- W letter with oceanic styling -->
+  <path d="M 48 25 L 52 55 L 56 35 L 60 55 L 64 25" 
+        stroke="url(#mermaidMonogramGradient)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#mermaidGlow)">
+    <animate attributeName="stroke-width" values="4;5;4" dur="8s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Mermaid scale elements -->
+  <g opacity="0.7">
+    <ellipse cx="30" cy="20" rx="3" ry="1.5" fill="url(#mermaidMonogramGradient)" transform="rotate(25 30 20)">
+      <animate attributeName="opacity" values="0.7;0.3;0.7" dur="7s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="35" cy="23" rx="2" ry="1" fill="#FF1493" opacity="0.6" transform="rotate(-10 35 23)">
+      <animate attributeName="fill" values="#FF1493;#008B8B;#00AAFF;#FF1493" dur="5s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="50" cy="20" rx="2.5" ry="1.2" fill="#008B8B" opacity="0.5" transform="rotate(15 50 20)"/>
+  </g>
+  
+  <!-- Floating particles with mermaid theme -->
+  <g opacity="0.6">
+    <!-- Hot pink bubble -->
+    <circle cx="28" cy="62" r="1.5" fill="#FF1493">
+      <animate attributeName="cy" values="62;68;62" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0.2;0.6" dur="4s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="1.5;2;1.5" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Teal pearl -->
+    <circle cx="35" cy="65" r="1" fill="#008B8B">
+      <animate attributeName="opacity" values="0.5;0.1;0.5" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Blue sparkle -->
+    <circle cx="52" cy="62" r="1" fill="#00AAFF">
+      <animate attributeName="cy" values="62;66;62" dur="3.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0.1;0.6" dur="3.5s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Small hot pink accent -->
+    <circle cx="58" cy="18" r="1" fill="#FF1493">
+      <animate attributeName="r" values="1;1.5;1" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.7;0.2;0.7" dur="6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Current flow lines -->
+  <g opacity="0.4">
+    <path d="M 25 30 Q 30 28 35 30" stroke="#FF1493" stroke-width="1" fill="none">
+      <animate attributeName="opacity" values="0.4;0.1;0.4" dur="4s" repeatCount="indefinite"/>
+    </path>
+    <path d="M 45 30 Q 52 28 58 30" stroke="#008B8B" stroke-width="1" fill="none">
+      <animate attributeName="opacity" values="0.4;0.1;0.4" dur="4.5s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  
+  <!-- Subtle scale texture overlay -->
+  <circle cx="40" cy="40" r="36" fill="url(#shimmerPattern)" opacity="0.15"/>
+  
+  <!-- Hot pink energy ring -->
+  <circle cx="40" cy="40" r="30" fill="none" stroke="#FF1493" stroke-width="1" opacity="0.3">
+    <animate attributeName="r" values="30;32;30" dur="8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="8s" repeatCount="indefinite"/>
+  </circle>
+</svg>
+

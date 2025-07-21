@@ -178,8 +178,8 @@ class RecordingSessionOrganizer {
       const completed = phrases.filter(p => this.completedRecordings.has(p.id)).length;
       const total = phrases.length;
       const status = completed === total ? kleur.green('✅ Complete') : 
-                   completed === 0 ? kleur.red('❌ Not started') : 
-                   kleur.yellow(`📝 ${completed}/${total} done`);
+        completed === 0 ? kleur.red('❌ Not started') : 
+          kleur.yellow(`📝 ${completed}/${total} done`);
       
       console.log(`  ${index + 1}. ${kleur.cyan(category.toUpperCase())} (${total} phrases) ${status}`);
     });
