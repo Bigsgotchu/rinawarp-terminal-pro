@@ -23,6 +23,10 @@ export class EnhancedVoiceEngine {
     this.noiseFilter = null;
     this.contextEngine = null;
     this.calibrationData = [];
+    this.elevenLabsProvider = null;
+    this.options = {
+      enableFeedback: true,
+    };
     this.accuracyMetrics = {
       totalCommands: 0,
       correctCommands: 0,
@@ -528,17 +532,17 @@ export class EnhancedVoiceEngine {
     console.error('Voice recognition error:', event.error);
 
     switch (event.error) {
-    case 'network':
-      this.provideFeedback('Network error. Please check your connection.');
-      break;
-    case 'not-allowed':
-      this.provideFeedback('Microphone access denied. Please enable microphone permissions.');
-      break;
-    case 'no-speech':
-      console.log('No speech detected');
-      break;
-    default:
-      this.provideFeedback('Voice recognition error occurred.');
+      case 'network':
+        this.provideFeedback('Network error. Please check your connection.');
+        break;
+      case 'not-allowed':
+        this.provideFeedback('Microphone access denied. Please enable microphone permissions.');
+        break;
+      case 'no-speech':
+        console.log('No speech detected');
+        break;
+      default:
+        this.provideFeedback('Voice recognition error occurred.');
     }
 
     this.updateUI('error', { error: event.error });
@@ -733,6 +737,62 @@ export class EnhancedVoiceEngine {
       accuracyMetrics: this.accuracyMetrics,
       customCommandsCount: this.customCommands.size,
     };
+  }
+
+  // Add speak method for compatibility with voice providers
+  async speak(text, options = {}) {
+    const {
+      mood = 'neutral',
+      volume = 0.8,
+      rate = 1.0,
+      pitch = 1.0,
+      voice = null,
+      onStart = null,
+      onEnd = null,
+      useElevenLabs = false,
+    } = options;
+
+    // If ElevenLabs is requested and available, delegate to provider
+    if (useElevenLabs && this.elevenLabsProvider?.isInitialized) {
+      return await this.elevenLabsProvider.speak(text, options);
+    }
+
+    // Otherwise use standard synthesis
+    if (!this.synthesis) {
+      console.warn('Speech synthesis not available');
+      return null;
+    }
+
+    return new Promise((resolve, reject) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.volume = volume;
+      utterance.rate = rate;
+      utterance.pitch = pitch;
+
+      if (voice) {
+        utterance.voice = voice;
+      }
+
+      utterance.onstart = () => {
+        if (onStart) onStart();
+      };
+
+      utterance.onend = () => {
+        if (onEnd) onEnd();
+        resolve(utterance);
+      };
+
+      utterance.onerror = error => {
+        reject(error);
+      };
+
+      this.synthesis.speak(utterance);
+    });
+  }
+
+  // Set ElevenLabs provider for integration
+  setElevenLabsProvider(provider) {
+    this.elevenLabsProvider = provider;
   }
 
   // Cleanup
