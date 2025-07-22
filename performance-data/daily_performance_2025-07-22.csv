@@ -1,0 +1,4 @@
+timestamp,endpoint,response_time_ms,status_code,response_size_bytes,availability
+2025-07-22_16:16:18,main,1259,200,160,up
+2025-07-22_16:16:18,health,173,200,20,up
+2025-07-22_16:16:18,api_data,162,200,106,up
