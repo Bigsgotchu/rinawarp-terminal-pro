@@ -350,8 +350,6 @@ app.setPath('logs', path.join(os.homedir(), '.rinawarp-terminal', 'logs'));
 app.whenReady().then(async () => {
   // Load ES modules first
   await loadESModules();
-  // Initialize ElevenLabs configuration
-  await config.initializeElevenLabsConfig();
   // Load analytics integration
   await loadAnalyticsIntegration();
   // Handle microphone permissions
@@ -694,81 +692,6 @@ ipcMain.handle('track-page-view', async (event, page, title) => {
   } catch (error) {
     console.error('Failed to track page view:', error);
     return false;
-  }
-});
-
-// ElevenLabs configuration handlers
-ipcMain.handle('load-elevenlabs-config', async () => {
-  try {
-    const elevenLabsConfig = config.getElevenLabsConfig();
-    console.log('Loading ElevenLabs config:', elevenLabsConfig);
-
-    // Ensure we always return a valid config object
-    return (
-      elevenLabsConfig || {
-        apiKey: '',
-        voiceId: '',
-        modelId: 'eleven_monolingual_v1',
-        enabled: false,
-        voiceSettings: {
-          stability: 0.5,
-          similarityBoost: 0.5,
-        },
-      }
-    );
-  } catch (error) {
-    console.error('Failed to load ElevenLabs config:', error);
-    // Return default config on error
-    return {
-      apiKey: '',
-      voiceId: '',
-      modelId: 'eleven_monolingual_v1',
-      enabled: false,
-      voiceSettings: {
-        stability: 0.5,
-        similarityBoost: 0.5,
-      },
-    };
-  }
-});
-
-ipcMain.handle('save-elevenlabs-config', async (event, elevenLabsConfig) => {
-  try {
-    // Save individual ElevenLabs settings
-    let success = true;
-
-    if (elevenLabsConfig.apiKey !== undefined) {
-      success = success && config.setElevenLabsApiKey(elevenLabsConfig.apiKey);
-    }
-
-    if (elevenLabsConfig.voiceId !== undefined) {
-      success = success && config.set('elevenlabs.voiceId', elevenLabsConfig.voiceId);
-    }
-
-    if (elevenLabsConfig.modelId !== undefined) {
-      success = success && config.set('elevenlabs.modelId', elevenLabsConfig.modelId);
-    }
-
-    if (elevenLabsConfig.enabled !== undefined) {
-      success = success && config.set('elevenlabs.enabled', elevenLabsConfig.enabled);
-    }
-
-    if (elevenLabsConfig.voiceSettings !== undefined) {
-      success = success && config.set('elevenlabs.voiceSettings', elevenLabsConfig.voiceSettings);
-    }
-
-    console.log('ElevenLabs config saved:', success);
-
-    return {
-      success: success,
-      message: success ? 'Configuration saved successfully' : 'Failed to save configuration',
-    };
-  } catch (error) {
-    console.error('Failed to save ElevenLabs config:', error);
-    return {
-      success: false,
-      error: error.message,
-    };
   }
 });
 
