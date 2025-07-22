@@ -7,7 +7,7 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 const { spawn } = require('child_process');
-const os = require('os');
+// const os = require('os'); // Removed - unused variable
 const path = require('path');
 const fs = require('fs');
 
@@ -31,10 +31,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Settings
   saveSettings: settings => ipcRenderer.invoke('save-settings', settings),
   loadSettings: () => ipcRenderer.invoke('load-settings'),
-
-  // ElevenLabs Configuration
-  loadElevenLabsConfig: () => ipcRenderer.invoke('load-elevenlabs-config'),
-  saveElevenLabsConfig: config => ipcRenderer.invoke('save-elevenlabs-config', config),
 
   // Theme management
   setTheme: theme => ipcRenderer.invoke('set-theme', theme),
@@ -178,13 +174,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Environment variables (filtered for security)
   getEnvironmentVariables: keys => {
-    const allowedKeys = [
-      'ANTHROPIC_API_KEY',
-      'OPENAI_API_KEY',
-      'ELEVENLABS_API_KEY',
-      'NODE_ENV',
-      'APP_VERSION',
-    ];
+    const allowedKeys = ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'NODE_ENV', 'APP_VERSION'];
 
     const result = {};
     keys.forEach(key => {

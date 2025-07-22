@@ -1,0 +1,27 @@
+# Use Node.js official image
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy the simple app.js file first
+COPY app.js ./
+
+# Create a minimal package.json for this deployment
+RUN echo '{"type":"commonjs","dependencies":{"express":"^4.18.2"}}' > package.json
+
+# Install express only
+RUN npm install express
+
+# Create public directory for static files
+RUN mkdir -p public
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Expose port
+EXPOSE 8080
+
+# Start the application
+CMD ["node", "app.js"]

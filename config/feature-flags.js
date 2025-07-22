@@ -6,33 +6,33 @@
 const featureFlags = {
   experimental: {
     // AI Features
-    enhancedAIContext: true,
-    predictiveCompletion: true,
-    aiDebuggingAssistant: true,
-    
+    enhancedAIContext: false,
+    predictiveCompletion: false,
+    aiDebuggingAssistant: false,
+
     // Voice Features
-    voiceCommands: true,
-    elevenLabsIntegration: true,
-    
+    voiceCommands: false,
+    elevenLabsIntegration: false,
+
     // UI Enhancements
     modernThemeSystem: true,
     devtoolsOverlay: true,
-    
+
     // System Features
     pluginSystem: true,
     performanceMonitoring: true,
-    
+
     // Analytics
     enhancedAnalytics: true,
-    revenueMonitoring: true
+    revenueMonitoring: true,
   },
-  
+
   core: {
     terminalEmulation: true,
     shellIntegration: true,
     themeSupport: true,
-    configManagement: true
-  }
+    configManagement: true,
+  },
 };
 
 module.exports = featureFlags;

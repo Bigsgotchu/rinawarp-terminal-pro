@@ -12,8 +12,6 @@
  * - Caching mechanism for frequently used phrases
  */
 
-import { ElevenLabsVoiceProvider } from './elevenlabs-voice-provider.js';
-
 export class RinaVoiceSystem {
   constructor() {
     this.audioContext = null;
@@ -364,7 +362,7 @@ export class RinaVoiceSystem {
 
     const {
       mood = this.currentMood,
-      force = false,
+      _force = false, // Renamed to indicate unused
       volume = this.config.baseVolume,
       onComplete = null,
       onError = null,
@@ -561,28 +559,17 @@ export class RinaVoiceSystem {
 
       console.log('🎙️ Initializing ElevenLabs voice provider...');
 
-      this.elevenLabsProvider = new ElevenLabsVoiceProvider({
-        audioContext: this.audioContext,
-        voiceConfig: this.config.elevenLabs,
-        maxCacheSize: this.config.maxPhraseCacheSize,
-        fallbackEnabled: true,
-      });
+      // ElevenLabsVoiceProvider removed in streamlined voice system
+      console.log('🎙️ Using simplified voice system (ElevenLabs provider removed)');
+      this.elevenLabsEnabled = false;
+      return false;
 
-      const success = await this.elevenLabsProvider.initialize(apiKey);
+      // const success = await this.elevenLabsProvider.initialize(apiKey); // Provider removed
 
-      if (success) {
-        this.elevenLabsEnabled = true;
-        this.config.enableElevenLabs = true;
-
-        // Sync mood with ElevenLabs provider
-        this.elevenLabsProvider.setMood(this.currentMood);
-
-        console.log('✅ ElevenLabs voice provider initialized successfully');
-        return true;
-      } else {
-        console.warn('⚠️ Failed to initialize ElevenLabs voice provider');
-        return false;
-      }
+      // ElevenLabs provider removed - returning false
+      console.log('ℹ️ ElevenLabs functionality removed in streamlined voice system');
+      this.elevenLabsEnabled = false;
+      return false;
     } catch (error) {
       console.warn('⚠️ ElevenLabs initialization error:', error.message);
       return false;
@@ -681,7 +668,8 @@ export class RinaVoiceSystem {
 
       console.log(`🎙️ Speaking with ElevenLabs: "${text}" (mood: ${mood})`);
 
-      const audioSource = await this.elevenLabsProvider.speak(text, {
+      const _audioSource = await this.elevenLabsProvider.speak(text, {
+        // Unused variable marked
         mood,
         volume: adjustedVolume,
         priority,
