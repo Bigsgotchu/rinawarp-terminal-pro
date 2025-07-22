@@ -48,6 +48,7 @@ if (nodeAPI) {
     .then(info => {
       _platformInfo = info;
       console.log('✅ Platform info loaded:', info);
+      checkDeviceStatus(); // Fetch device status initially
     })
     .catch(err => {
       console.warn('⚠️ Failed to load platform info:', err);
@@ -149,6 +150,75 @@ try {
 } catch (error) {
   console.warn('AI features disabled. Falling back to non-AI mode.');
   aiWrapper = new SafeAIWrapper(null, { fallbackMode: true });
+}
+
+// Device status checking function
+async function checkDeviceStatus() {
+  try {
+    console.log('🔍 Checking device status...');
+
+    // Check if we're in a browser environment or have access to the API
+    if (typeof window !== 'undefined' && window.location) {
+      const response = await fetch('/api/status/devices');
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.iPhone) {
+          console.log('📱 iPhone detected!');
+          const details = data.deviceDetails;
+
+          if (details) {
+            console.log('📋 Device Details:', {
+              serialNumber: details.serialNumber,
+              productId: details.productId,
+              connectionSpeed: details.connectionSpeed,
+              deviceType: details.deviceType,
+            });
+
+            // Show notification with device info
+            const notification = `📱 iPhone Connected: ${details.serialNumber?.substring(0, 8)}... (${details.connectionSpeed})`;
+            if (window.terminalManager?.pluginAPI) {
+              window.terminalManager.pluginAPI.showNotification(notification, 'success', 4000);
+            } else {
+              console.log('✅', notification);
+            }
+          } else {
+            console.log('✅ iPhone connected (no details available)');
+            if (window.terminalManager?.pluginAPI) {
+              window.terminalManager.pluginAPI.showNotification(
+                '📱 iPhone Connected',
+                'success',
+                3000
+              );
+            }
+          }
+        } else {
+          console.log('📱 No iPhone detected');
+        }
+
+        // Store device status globally for other components
+        window.deviceStatus = data;
+      } else {
+        console.warn('⚠️ Failed to check device status - API not available');
+      }
+    } else {
+      console.log('🌐 Browser environment not detected - skipping device check');
+    }
+  } catch (error) {
+    console.error('❌ Error checking device status:', error.message);
+  }
+}
+
+// Auto-check device status periodically
+function startDeviceStatusMonitoring() {
+  // Check immediately
+  checkDeviceStatus();
+
+  // Then check every 30 seconds
+  setInterval(checkDeviceStatus, 30000);
+
+  console.log('🔄 Device status monitoring started (30s interval)');
 }
 
 // Enable predictive completion using AI
@@ -2992,6 +3062,9 @@ class TerminalManager extends SimpleEventEmitter {
     if (this.settings.autoSaveSession) {
       this.sessionManager.startAutoSave();
     }
+
+    // Start device status monitoring
+    startDeviceStatusMonitoring();
   }
 
   setupContextMenu() {
