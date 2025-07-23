@@ -1,6 +1,9 @@
 {
   "version": 2,
   "installCommand": "npm install --production --ignore-optional",
+  "projectSettings": {
+    "framework": null
+  },
   "builds": [
     {
       "src": "server.js",
