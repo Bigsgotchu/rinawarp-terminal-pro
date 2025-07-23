@@ -21,14 +21,14 @@ function buildMac() {
     process.env.NOTARIZE = 'false';
     process.env.SIGN = 'false';
 
-    // Run prebuild steps
-    console.log('📦 Running prebuild steps...');
-    execSync('npm run prebuild', {
+    // Run copy-assets instead of prebuild
+    console.log('📦 Running copy-assets...');
+    execSync('npm run copy-assets', {
       stdio: 'inherit',
       env: process.env,
     });
 
-    console.log('✅ Prebuild completed successfully');
+    console.log('✅ Assets copied successfully');
 
     // Run electron-builder to create DMG installer directly
     console.log('📱 Building macOS DMG with electron-builder...');
