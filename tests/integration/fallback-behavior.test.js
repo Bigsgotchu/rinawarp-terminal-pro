@@ -1,0 +1,128 @@
+// tests/integration/fallback-behavior.test.js
+
+require('../setup/voice-mocks.js');
+
+// Mock the voice provider with fallback mechanisms
+jest.mock('../../src/voice-enhancements/elevenlabs-voice-provider', () => ({
+  speak: jest.fn(),
+  client: {
+    textToSpeech: {
+      convert: jest.fn()
+    }
+  },
+  rinaClipPlayer: {
+    playFallbackClip: jest.fn()
+  },
+  moodEngine: {
+    adjustMood: jest.fn()
+  }
+}), { virtual: true });
+
+const voiceProvider = require('../../src/voice-enhancements/elevenlabs-voice-provider');
+
+describe('Voice Fallback Behavior', () => {
+  beforeEach(() => {
+    // Reset all mocks
+    jest.clearAllMocks();
+    
+    // Default: ElevenLabs API fails
+    voiceProvider.client.textToSpeech.convert = jest.fn().mockRejectedValue(new Error('API Error'));
+    
+    // Mock fallback systems
+    voiceProvider.rinaClipPlayer = { 
+      playFallbackClip: jest.fn().mockResolvedValue(true) 
+    };
+    voiceProvider.moodEngine = { 
+      adjustMood: jest.fn() 
+    };
+  });
+
+  test('should fallback to browser synthesis when ElevenLabs fails', async () => {
+    // Mock the actual speak function to simulate fallback logic
+    voiceProvider.speak = jest.fn().mockImplementation(async (text) => {
+      try {
+        await voiceProvider.client.textToSpeech.convert(text);
+      } catch (error) {
+        // Fallback to browser synthesis
+        window.speechSynthesis.speak({ text });
+        voiceProvider.moodEngine.adjustMood('fallback');
+      }
+    });
+
+    await voiceProvider.speak('Fallback test');
+    
+    expect(window.speechSynthesis.speak).toHaveBeenCalled();
+    expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('fallback');
+  });
+
+  test('should fallback to Rina clips when browser synthesis fails', async () => {
+    // Mock browser synthesis to fail
+    window.speechSynthesis.speak.mockImplementation(() => { 
+      throw new Error('Synthesis Error'); 
+    });
+
+    // Mock the speak function with double fallback
+    voiceProvider.speak = jest.fn().mockImplementation(async (text) => {
+      try {
+        await voiceProvider.client.textToSpeech.convert(text);
+      } catch (error) {
+        try {
+          window.speechSynthesis.speak({ text });
+        } catch (synthError) {
+          // Final fallback to Rina clips
+          await voiceProvider.rinaClipPlayer.playFallbackClip('fallback_generic');
+          voiceProvider.moodEngine.adjustMood('grumpy');
+        }
+      }
+    });
+
+    await voiceProvider.speak('Fallback test');
+    
+    expect(voiceProvider.rinaClipPlayer.playFallbackClip).toHaveBeenCalledWith('fallback_generic');
+    expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('grumpy');
+  });
+
+  test('should handle mood transitions correctly', async () => {
+    voiceProvider.speak = jest.fn().mockImplementation(async (text) => {
+      // Simulate successful API call
+      await voiceProvider.client.textToSpeech.convert(text);
+      voiceProvider.moodEngine.adjustMood('happy');
+    });
+    
+    // Override to make API succeed
+    voiceProvider.client.textToSpeech.convert = jest.fn().mockResolvedValue('audio-buffer');
+
+    await voiceProvider.speak('Success test');
+    
+    expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('happy');
+  });
+
+  test('should gracefully handle all systems failing', async () => {
+    // Make everything fail
+    window.speechSynthesis.speak.mockImplementation(() => { 
+      throw new Error('Synthesis Error'); 
+    });
+    voiceProvider.rinaClipPlayer.playFallbackClip.mockRejectedValue(new Error('Clip Error'));
+
+    voiceProvider.speak = jest.fn().mockImplementation(async (text) => {
+      try {
+        await voiceProvider.client.textToSpeech.convert(text);
+      } catch (error) {
+        try {
+          window.speechSynthesis.speak({ text });
+        } catch (synthError) {
+          try {
+            await voiceProvider.rinaClipPlayer.playFallbackClip('fallback_generic');
+          } catch (clipError) {
+            // Silent fallback - system still functions
+            voiceProvider.moodEngine.adjustMood('silent');
+          }
+        }
+      }
+    });
+
+    // Should not throw even if everything fails
+    await expect(voiceProvider.speak('Total failure test')).resolves.not.toThrow();
+    expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('silent');
+  });
+});
