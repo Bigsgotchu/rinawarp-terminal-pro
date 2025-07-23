@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Marketing Image</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            --mermaid-hot-pink: #ff69b4;
+            --mermaid-coral: #ff7f7f;
+            --mermaid-teal: #40e0d0;
+            --mermaid-deep-blue: #0066cc;
+            --mermaid-ocean-blue: #1e90ff;
+            --mermaid-purple: #9932cc;
+            --mermaid-aqua: #00ffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0520 0%, #1a0f35 50%, #2a1556 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .marketing-card {
+            width: 1200px;
+            height: 630px;
+            background: linear-gradient(135deg, 
+                var(--mermaid-deep-blue) 0%, 
+                var(--mermaid-purple) 20%, 
+                var(--mermaid-hot-pink) 40%, 
+                var(--mermaid-coral) 60%, 
+                var(--mermaid-teal) 80%, 
+                var(--mermaid-ocean-blue) 100%);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px;
+            box-shadow: 0 25px 60px rgba(255, 105, 180, 0.3), 0 0 120px rgba(64, 224, 208, 0.2);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .marketing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+        
+        .header {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .terminal-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--mermaid-teal) 0%, var(--mermaid-aqua) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(64, 224, 208, 0.4);
+        }
+        
+        .terminal-icon::before {
+            content: '🧜‍♀️';
+            font-size: 32px;
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        .brand-name {
+            color: #fff;
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        
+        .tagline {
+            color: rgba(255,255,255,0.9);
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            max-width: 800px;
+            line-height: 1.3;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .feature::before {
+            content: '✨';
+            margin-right: 15px;
+            font-size: 24px;
+        }
+        
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .version-badge {
+            background: linear-gradient(135deg, var(--mermaid-hot-pink) 0%, var(--mermaid-coral) 100%);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .social-links span {
+            background: linear-gradient(135deg, var(--mermaid-ocean-blue) 0%, var(--mermaid-deep-blue) 100%);
+            padding: 12px 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
+        }
+        
+        .glow-orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, 
+                rgba(255, 105, 180, 0.15) 0%, 
+                rgba(64, 224, 208, 0.1) 30%, 
+                rgba(0, 255, 255, 0.08) 60%, 
+                transparent 100%);
+            border-radius: 50%;
+            top: -200px;
+            right: -200px;
+            pointer-events: none;
+            animation: pulse 4s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        .demo-terminal {
+            position: absolute;
+            bottom: 80px;
+            right: 60px;
+            width: 400px;
+            height: 250px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(26, 15, 53, 0.9) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(64, 224, 208, 0.3);
+            font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 14px;
+            color: var(--mermaid-teal);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 15px 35px rgba(64, 224, 208, 0.2);
+        }
+        
+        .demo-terminal .line {
+            opacity: 0;
+            animation: typewriter 0.5s forwards;
+        }
+        
+        .demo-terminal .line:nth-child(1) { animation-delay: 0s; }
+        .demo-terminal .line:nth-child(2) { animation-delay: 0.5s; }
+        .demo-terminal .line:nth-child(3) { animation-delay: 1s; }
+        .demo-terminal .line:nth-child(4) { animation-delay: 1.5s; }
+        .demo-terminal .line:nth-child(5) { animation-delay: 2s; }
+        
+        @keyframes typewriter {
+            to { opacity: 1; }
+        }
+        
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .sparkle {
+            position: absolute;
+            font-size: 20px;
+            color: var(--mermaid-aqua);
+            animation: sparkle 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 3;
+        }
+        
+        .sparkle:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 25%; right: 25%; animation-delay: 1s; }
+        .sparkle:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 2s; }
+        .sparkle:nth-child(4) { bottom: 20%; right: 30%; animation-delay: 1.5s; }
+        .sparkle:nth-child(5) { top: 40%; left: 50%; animation-delay: 0.5s; }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+        }
+        
+        .bubble {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(64, 224, 208, 0.3) 0%, rgba(0, 255, 255, 0.1) 100%);
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        .bubble:nth-child(1) { top: 60%; left: 10%; animation-delay: 0s; }
+        .bubble:nth-child(2) { top: 80%; right: 40%; animation-delay: 2s; }
+        .bubble:nth-child(3) { top: 70%; left: 30%; animation-delay: 1s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+            50% { transform: translateY(-20px) scale(1.1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="marketing-card">
+        <div class="glow-orb"></div>
+        
+        <!-- Mermaid Sparkles -->
+        <div class="sparkle">✨</div>
+        <div class="sparkle">🌟</div>
+        <div class="sparkle">⭐</div>
+        <div class="sparkle">💫</div>
+        <div class="sparkle">🔮</div>
+        
+        <!-- Mermaid Bubbles -->
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        
+        <div class="header">
+            <div class="logo-section">
+                <div class="terminal-icon"></div>
+                <div class="brand-name">RinaWarp Terminal</div>
+            </div>
+            <div class="tagline">
+                The AI-powered terminal that revolutionizes how developers work with cloud infrastructure and modern workflows.
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">Voice-Controlled AI Assistant</div>
+            <div class="feature">Cloud-Native Integration</div>
+            <div class="feature">Real-Time Performance Analytics</div>
+            <div class="feature">Serverless Architecture</div>
+        </div>
+        
+        <div class="demo-terminal">
+            <div class="line">$ rinawarp --demo</div>
+            <div class="line">🎤 Voice synthesis: READY</div>
+            <div class="line">☁️  Cloud deployment: ACTIVE</div>
+            <div class="line">📊 Analytics: TRACKING</div>
+            <div class="line">⚡ Status: <span style="color: #00ff41;">OPERATIONAL</span><span class="cursor">_</span></div>
+        </div>
+        
+        <div class="footer">
+            <div class="version-badge">v1.0.19 - Production Ready</div>
+            <div class="social-links">
+                <span>GitHub</span>
+                <span>Google Cloud</span>
+                <span>Enterprise</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
