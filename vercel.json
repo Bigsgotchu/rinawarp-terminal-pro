@@ -17,6 +17,30 @@
       "dest": "/server.js"
     },
     {
+      "src": "/",
+      "dest": "/public/html/index.html"
+    },
+    {
+      "src": "/index.html",
+      "dest": "/public/html/index.html"
+    },
+    {
+      "src": "/pricing.html",
+      "dest": "/public/html/pricing.html"
+    },
+    {
+      "src": "/docs.html",
+      "dest": "/public/html/docs.html"
+    },
+    {
+      "src": "/blog.html",
+      "dest": "/public/html/blog.html"
+    },
+    {
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
+      "dest": "/public/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
