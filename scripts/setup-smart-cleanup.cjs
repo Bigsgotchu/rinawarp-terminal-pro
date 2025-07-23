@@ -25,7 +25,7 @@ class SmartCleanupSetup {
     this.log('🔍 Checking existing setup...');
     
     const files = {
-      smartManager: path.join(this.projectRoot, 'scripts', 'smart-file-manager.js'),
+      smartManager: path.join(this.projectRoot, 'scripts', 'smart-file-manager.cjs'),
       config: path.join(this.projectRoot, '.smartcleanrc.js'),
       huskyHook: path.join(this.huskyDir, 'smart-cleanup'),
       packageJson: path.join(this.projectRoot, 'package.json')
@@ -117,7 +117,7 @@ case "$1" in
     ;;
   "status")
     echo "📊 Checking project status..."
-    node scripts/smart-file-manager.js --dry-run --verbose --no-watch
+    node scripts/smart-file-manager.cjs --dry-run --verbose --no-watch
     ;;
   "help"|"")
     echo "RinaWarp Smart File Manager"
@@ -192,7 +192,7 @@ esac
       
       try {
         const { spawn } = require('child_process');
-        const cleanup = spawn('node', ['scripts/smart-file-manager.js', '--verbose', '--no-watch'], {
+        const cleanup = spawn('node', ['scripts/smart-file-manager.cjs', '--verbose', '--no-watch'], {
           stdio: 'inherit',
           cwd: this.projectRoot
         });

@@ -1,6 +1,7 @@
 // tests/integration/fallback-behavior.test.js
 
 require('../setup/voice-mocks.js');
+const dashboard = require('../utils/voice-test-dashboard');
 
 // Mock the voice provider with fallback mechanisms
 jest.mock('../../src/voice-enhancements/elevenlabs-voice-provider', () => ({
@@ -51,6 +52,11 @@ describe('Voice Fallback Behavior', () => {
 
     await voiceProvider.speak('Fallback test');
     
+    // Log telemetry
+    dashboard.logFallback('browser', 'ElevenLabs API Error');
+    dashboard.logMoodChange('fallback');
+    dashboard.logAudioSource('speechSynthesis');
+    
     expect(window.speechSynthesis.speak).toHaveBeenCalled();
     expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('fallback');
   });
@@ -78,6 +84,11 @@ describe('Voice Fallback Behavior', () => {
 
     await voiceProvider.speak('Fallback test');
     
+    // Log telemetry
+    dashboard.logFallback('rinaClip', 'Browser synthesis failed');
+    dashboard.logMoodChange('grumpy');
+    dashboard.logAudioSource('rinaClip');
+    
     expect(voiceProvider.rinaClipPlayer.playFallbackClip).toHaveBeenCalledWith('fallback_generic');
     expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('grumpy');
   });
@@ -93,6 +104,10 @@ describe('Voice Fallback Behavior', () => {
     voiceProvider.client.textToSpeech.convert = jest.fn().mockResolvedValue('audio-buffer');
 
     await voiceProvider.speak('Success test');
+    
+    // Log telemetry
+    dashboard.logMoodChange('happy');
+    dashboard.logAudioSource('elevenLabs');
     
     expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('happy');
   });
@@ -123,6 +138,21 @@ describe('Voice Fallback Behavior', () => {
 
     // Should not throw even if everything fails
     await expect(voiceProvider.speak('Total failure test')).resolves.not.toThrow();
+    
+    // Log telemetry
+    dashboard.logFallback('silent', 'All voice systems failed');
+    dashboard.logMoodChange('silent');
+    dashboard.logAudioSource('none');
+    
     expect(voiceProvider.moodEngine.adjustMood).toHaveBeenCalledWith('silent');
   });
+});
+
+afterAll(() => {
+  dashboard.summary();
+  dashboard.exportMarkdown();
+  dashboard.exportJSON();
+  
+  console.log('\n🎯 Voice System Confidence Score:', dashboard.getConfidenceScore() + '%');
+  console.log('💬 Rina\'s Commentary:', dashboard.getRinaCommentary());
 });
