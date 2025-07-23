@@ -7,7 +7,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# Cancel previous runs when new commits are pushed
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -18,7 +17,6 @@ permissions:
   checks: write
 
 jobs:
-  # Basic validation and testing
   test:
     name: 🔍 Test & Validate
     runs-on: ubuntu-latest
@@ -73,7 +71,6 @@ jobs:
           echo "🧜‍♀️ RinaWarp Terminal validation complete!"
           echo "📊 All checks finished - check logs above for any issues"
 
-  # Multi-platform builds only on main branch
   build:
     name: 🏗️ Build Multi-Platform
     strategy:
@@ -173,7 +170,6 @@ jobs:
           retention-days: 30
         if: always()
 
-  # Deploy builds to Vercel
   deploy:
     name: 🚀 Deploy to Vercel
     runs-on: ubuntu-latest
@@ -194,7 +190,6 @@ jobs:
           echo "🧜‍♀️ Copying builds to public releases directory..."
           mkdir -p public/releases
           
-          # Copy built files to releases directory
           if [ -f mac-build/RinaWarp-Terminal-macOS.dmg ]; then
             cp mac-build/RinaWarp-Terminal-macOS.dmg public/releases/
             echo "🍎 ✅ Copied macOS DMG"
@@ -213,7 +208,7 @@ jobs:
       - name: 📊 Update release status
         run: |
           echo "📝 Creating build status file..."
-          cat > public/releases/build-status.json << EOF
+          cat > public/releases/build-status.json << 'JSONEOF'
           {
             "buildTime": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
             "commit": "${{ github.sha }}",
@@ -224,7 +219,7 @@ jobs:
               "linux": $([ -f public/releases/RinaWarp-Terminal-Linux.tar.gz ] && echo "true" || echo "false")
             }
           }
-          EOF
+JSONEOF
 
       - name: 🌊 Commit and push release files
         run: |
@@ -237,7 +232,7 @@ jobs:
             echo "📭 No changes to commit"
           else
             git commit -m "🚀 chore: update release builds from CI
-            
+
             🍎 macOS: $([ -f public/releases/RinaWarp-Terminal-macOS.dmg ] && echo "✅" || echo "❌")
             🪟 Windows: $([ -f public/releases/RinaWarp-Terminal-Setup-Windows.exe ] && echo "✅" || echo "❌")
             🐧 Linux: $([ -f public/releases/RinaWarp-Terminal-Linux.tar.gz ] && echo "✅" || echo "❌")
@@ -247,7 +242,6 @@ jobs:
             echo "🌊 ✅ Pushed release files - Vercel will auto-deploy!"
           fi
 
-  # Status report
   status:
     name: 📊 Status Report
     runs-on: ubuntu-latest
