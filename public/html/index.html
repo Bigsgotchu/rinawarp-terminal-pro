@@ -152,6 +152,91 @@
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         
+        /* Pricing Card Styles */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 105, 180, 0.1), rgba(0, 255, 255, 0.05));
+            border-radius: 25px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(255, 20, 147, 0.3), 0 0 30px rgba(0, 206, 209, 0.2);
+            position: relative;
+            transition: all 0.4s ease;
+            border: 2px solid rgba(255, 20, 147, 0.4);
+            backdrop-filter: blur(15px);
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff1493, #00ffff, #ff69b4, #20b2aa, #ff1493);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(255, 20, 147, 0.4), 0 0 50px rgba(0, 206, 209, 0.3);
+            border-color: rgba(0, 255, 255, 0.7);
+        }
+        
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0a1628;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .plan-description {
+            color: #2d1b69;
+            margin-bottom: 25px;
+            font-size: 1rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        
+        .plan-price {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff1493, #20b2aa, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 25px 0;
+            text-shadow: 0 0 25px rgba(255, 20, 147, 0.4);
+        }
+        
+        .plan-price .currency {
+            font-size: 2rem;
+            vertical-align: top;
+        }
+        
+        .plan-price .period {
+            font-size: 1.2rem;
+            color: #8b008b;
+            font-weight: normal;
+        }
+        
         .download-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -308,6 +393,26 @@
             <h1>🧜‍♀️ RinaWarp Terminal</h1>
             <p class="subtitle">The Advanced Terminal Emulator with AI Magic</p>
             <div class="version-badge">v1.0.7 Beta</div>
+            
+            <!-- Eye-Catching Pricing Section -->
+            <div style="background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(0, 255, 255, 0.1)); border-radius: 25px; padding: 30px; margin: 30px 0; border: 2px solid rgba(255, 105, 180, 0.3); backdrop-filter: blur(10px);">
+                <h2 style="text-align: center; color: #ffffff; margin-bottom: 20px; font-size: 2rem; text-shadow: 0 0 20px rgba(255, 20, 147, 0.6);">💎 Starting From Just $15/month</h2>
+                <section class="pricing-grid">
+                    <!-- Personal Plan -->
+                    <div class="pricing-card popular" style="transform: scale(1.02); border: 3px solid #ff1493;">
+                        <div class="plan-name">🐟 Reef Explorer</div>
+                        <div class="plan-description">Perfect for individual developers exploring the depths of productivity</div>
+                        <div class="plan-price">
+                            <span class="currency">$</span>15<span class="period">/month</span>
+                            <br>
+                            <span style="font-size: 1.2rem; color: #27ae60;">Annual: $144/year <span style="color: #27ae60; font-size: 0.9rem;">(20% off)</span></span>
+                        </div>
+                        <button onclick="window.location.href='/pricing.html'" style="width: 100%; padding: 15px 30px; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #ff1493, #20b2aa, #ff69b4); color: #ffffff; text-shadow: 0 0 10px rgba(0, 0, 0, 0.3); box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4); transition: all 0.3s ease; margin-top: 20px;" onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(255, 20, 147, 0.6)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.4)';">🚀 Start Free Trial</button>
+                        <div style="background: linear-gradient(135deg, #ff1493, #00ffff, #ff69b4); color: #ffffff; padding: 15px; border-radius: 15px; margin: 15px 0; text-align: center; border: 2px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4); text-shadow: 0 0 10px rgba(0, 0, 0, 0.3); font-weight: 600;">💯 14-day free trial<br>💳 No credit card required</div>
+                    </div>
+                </section>
+                <p style="text-align: center; color: #e0ffff; margin-top: 15px; font-size: 1.1rem; text-shadow: 0 0 15px rgba(0, 255, 255, 0.4);">✨ See all plans and features on our <a href="/pricing.html" style="color: #ff69b4; text-decoration: none; font-weight: bold;">pricing page</a> ✨</p>
+            </div>
         </header>
         
         <div class="download-grid">
@@ -345,31 +450,55 @@
         </div>
         
         <section class="features">
-            <h2>✨ What's Included</h2>
+            <h2>✨ What's New & Included</h2>
             <div class="features-grid">
                 <div class="feature-item">
+                    <span class="feature-icon">🧜‍♀️</span>
+                    <span>Rina Voice Assistant with ElevenLabs Integration</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🧪</span>
+                    <span>Advanced Voice Testing Infrastructure</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎭</span>
+                    <span>Mood-Aware AI with Fallback Systems</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔄</span>
+                    <span>Multi-Platform CI/CD with GitHub Actions</span>
+                </div>
+                <div class="feature-item">
                     <span class="feature-icon">🤖</span>
-                    <span>AI Assistant Integration</span>
+                    <span>AI Assistant Integration with Context Awareness</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">🎨</span>
-                    <span>Beautiful Themes</span>
+                    <span>Beautiful Themes with Ocean-Inspired Design</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">🔊</span>
-                    <span>Voice Control</span>
+                    <span>Advanced Voice Control with Graceful Degradation</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">🔐</span>
-                    <span>Enterprise Security</span>
+                    <span>Enterprise Security with Secret Management</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">☁️</span>
-                    <span>Cloud Sync</span>
+                    <span>Cloud Sync with Cache Validation</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">🚀</span>
-                    <span>Lightning Fast</span>
+                    <span>Lightning Fast with Comprehensive Testing</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📊</span>
+                    <span>Voice Telemetry & Analytics Dashboard</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🛡️</span>
+                    <span>Battle-Tested Voice System Architecture</span>
                 </div>
             </div>
         </section>
