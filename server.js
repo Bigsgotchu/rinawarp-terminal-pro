@@ -1263,6 +1263,20 @@ app.post('/api/test-post', (req, res) => {
   });
 });
 
+// Debug endpoint to check environment variables
+app.get('/api/debug/env-check', (req, res) => {
+  res.json({
+    timestamp: new Date().toISOString(),
+    stripeEnvVars: {
+      STRIPE_PRICE_PERSONAL: process.env.STRIPE_PRICE_PERSONAL?.trim(),
+      STRIPE_PRICE_PROFESSIONAL: process.env.STRIPE_PRICE_PROFESSIONAL?.trim(),
+      STRIPE_PRICE_TEAM: process.env.STRIPE_PRICE_TEAM?.trim(),
+      STRIPE_PRICE_BETA: process.env.STRIPE_PRICE_BETA?.trim(),
+      NODE_ENV: process.env.NODE_ENV
+    }
+  });
+});
+
 // Stripe checkout session creation endpoint
 app.post(
   '/api/create-checkout-session',
