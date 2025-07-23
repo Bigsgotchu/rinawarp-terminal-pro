@@ -172,7 +172,12 @@
     "build:beta": "node scripts/build-beta.cjs",
     "prepare:beta": "node scripts/prepare-beta-release.cjs",
     "test:beta": "npm test -- --passWithNoTests || echo \"Tests have known issues in beta\"",
-    "clean:beta": "rm -rf beta-release dist"
+    "clean:beta": "rm -rf beta-release dist",
+    "clean:smart": "node scripts/smart-file-manager.js",
+    "clean:smart:dry": "node scripts/smart-file-manager.js --dry-run --verbose",
+    "clean:smart:interactive": "node scripts/smart-file-manager.js --interactive --verbose",
+    "clean:smart:watch": "node scripts/smart-file-manager.js --verbose",
+    "clean:all": "npm run clean:smart && node scripts/cleanup-old-files.js"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
