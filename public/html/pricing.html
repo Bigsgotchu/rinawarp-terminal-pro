@@ -805,7 +805,7 @@
             showError('Payment system temporarily unavailable. Please contact support@rinawarp.com to complete your purchase.');
         }
         
-        // Purchase beta function
+        // Fixed Beta Checkout Function with Enhanced Error Handling
         async function purchaseBeta(betaType) {
             if (!stripe) {
                 showError('Payment system not ready. Please refresh and try again.');
@@ -815,19 +815,26 @@
             const button = event.target;
             const originalText = button.textContent;
             
+            // Validate beta type
+            const validBetaTypes = ['earlybird', 'beta', 'premium'];
+            if (!validBetaTypes.includes(betaType)) {
+                showError('Invalid beta type selected.');
+                return;
+            }
+            
             // Show loading state
             button.disabled = true;
             button.textContent = 'Processing...';
             
             try {
-                // Get the appropriate price ID based on beta type
+                // Get the appropriate price ID
                 const priceId = getBetaPriceId(betaType);
                 
                 if (!priceId) {
-                    throw new Error(`Beta price not configured for ${betaType}`);
+                    throw new Error(`Beta pricing not configured for ${betaType}. Please contact support.`);
                 }
                 
-                // Create checkout session
+                // Enhanced error handling for checkout session
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: {
@@ -836,16 +843,24 @@
                     body: JSON.stringify({
                         priceId: priceId,
                         successUrl: window.location.origin + '/success.html?plan=beta-' + betaType,
-                        cancelUrl: window.location.href
+                        cancelUrl: window.location.href,
+                        metadata: {
+                            betaType: betaType,
+                            product: 'RinaWarp Terminal Beta'
+                        }
                     })
                 });
                 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to create checkout session');
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
                 }
                 
                 const session = await response.json();
+                
+                if (!session.sessionId) {
+                    throw new Error('Invalid session response from server');
+                }
                 
                 // Redirect to Stripe Checkout
                 const result = await stripe.redirectToCheckout({
@@ -857,14 +872,22 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error creating beta checkout session:', error);
+                console.error('❌ Beta checkout error:', error);
                 
-                // Show specific error message based on the error
-                if (error.message.includes('Beta price not configured')) {
-                    showError('Beta pricing not available yet. Please contact support@rinawarp.com for early access.');
+                // Improved error messages
+                let errorMessage = 'Failed to start beta checkout. ';
+                
+                if (error.message.includes('not configured')) {
+                    errorMessage += 'Beta pricing is being set up. Please contact support@rinawarp.com for early access.';
+                } else if (error.message.includes('Server error: 500')) {
+                    errorMessage += 'Our servers are having issues. Please try again in a few minutes.';
+                } else if (error.message.includes('Network')) {
+                    errorMessage += 'Please check your internet connection and try again.';
                 } else {
-                    showError('Failed to start beta checkout. Please try again.');
+                    errorMessage += 'Please try again or contact support@rinawarp.com if the issue persists.';
                 }
+                
+                showError(errorMessage);
                 
                 // Reset button state
                 button.disabled = false;
@@ -872,10 +895,13 @@
             }
         }
         
-        // Get beta price ID based on beta type
+        // Enhanced getBetaPriceId function with debugging
         function getBetaPriceId(betaType) {
             // Try to get from server configuration first
             const betaPrices = stripeConfig.betaPrices || {};
+            
+            console.log('🔍 Beta Price Configuration:', betaPrices);
+            console.log(`📋 Looking for beta type: ${betaType}`);
             
             const betaPriceMap = {
                 'earlybird': betaPrices.earlybird || null,
@@ -883,7 +909,17 @@
                 'premium': betaPrices.premium || null
             };
             
-            return betaPriceMap[betaType];
+            const priceId = betaPriceMap[betaType];
+            
+            // Enhanced logging for debugging
+            console.log(`💰 Price ID for ${betaType}: ${priceId}`);
+            
+            if (!priceId) {
+                console.warn(`⚠️ No price ID found for beta type: ${betaType}`);
+                console.log('Available beta prices:', Object.keys(betaPrices));
+            }
+            
+            return priceId;
         }
         
         // Get price ID based on plan type
