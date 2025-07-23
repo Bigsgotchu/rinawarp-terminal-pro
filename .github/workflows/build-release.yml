@@ -122,8 +122,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Job to copy successful builds to website releases directory
-  deploy-to-website:
+  # Job to copy successful builds to website releases directory for Vercel
+  deploy-to-vercel:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
@@ -131,6 +131,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
@@ -172,11 +174,20 @@ jobs:
         }
         EOF
 
-    - name: Deploy to GitHub Pages (if configured)
-      if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./public
-        destination_dir: releases
-      continue-on-error: true
+    - name: Commit and push release files to trigger Vercel deployment
+      run: |
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add the release files
+        git add public/releases/
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "chore: update release builds from GitHub Actions"
+          git push
+          echo "✅ Pushed release files - Vercel will auto-deploy"
+        fi
