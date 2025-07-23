@@ -25,7 +25,62 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-G424CV5GGT');
+      
+      // Enhanced GA4 configuration with Vercel deployment data
+      gtag('config', 'G-G424CV5GGT', {
+        page_title: 'RinaWarp Terminal - Homepage',
+        page_location: window.location.href,
+        custom_map: {
+          'custom_parameter_1': 'vercel_deployment_id',
+          'custom_parameter_2': 'vercel_region', 
+          'custom_parameter_3': 'app_version',
+          'custom_parameter_4': 'deployment_env'
+        }
+      });
+      
+      // Track Vercel deployment analytics
+      function trackVercelDeployment() {
+        const deploymentId = window.location.hostname.includes('vercel.app') 
+          ? window.location.hostname.split('-')[1] || 'unknown'
+          : 'production';
+        
+        const region = typeof VERCEL_REGION !== 'undefined' ? VERCEL_REGION : 
+          (window.location.hostname.includes('vercel.app') ? 'vercel-edge' : 'unknown');
+        
+        const deploymentEnv = window.location.hostname.includes('vercel.app') ? 'staging' : 'production';
+        
+        // Track page view with deployment data
+        gtag('event', 'page_view', {
+          vercel_deployment_id: deploymentId,
+          vercel_region: region,
+          app_version: '1.1.0',
+          deployment_env: deploymentEnv,
+          build_timestamp: new Date().toISOString(),
+          user_agent: navigator.userAgent,
+          screen_resolution: screen.width + 'x' + screen.height
+        });
+        
+        // Track app performance metrics
+        if ('performance' in window) {
+          window.addEventListener('load', function() {
+            setTimeout(function() {
+              const perfData = performance.timing;
+              const loadTime = perfData.loadEventEnd - perfData.navigationStart;
+              
+              gtag('event', 'app_performance', {
+                event_category: 'Performance',
+                event_label: 'Page Load Time',
+                value: Math.round(loadTime),
+                vercel_deployment_id: deploymentId,
+                deployment_env: deploymentEnv
+              });
+            }, 0);
+          });
+        }
+      }
+      
+      // Initialize tracking
+      trackVercelDeployment();
     </script>
     
     <!-- Structured Data -->
@@ -526,6 +581,115 @@
             <p>Made with 💙 by developers, for developers</p>
         </footer>
     </div>
+    
+    <!-- Enhanced Event Tracking for User Interactions -->
+    <script>
+      // Track pricing card interactions
+      document.addEventListener('DOMContentLoaded', function() {
+        // Track pricing button clicks
+        const pricingButtons = document.querySelectorAll('[onclick*="pricing.html"]');
+        pricingButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            gtag('event', 'pricing_interaction', {
+              event_category: 'Engagement',
+              event_label: 'Pricing Button Click',
+              value: 1,
+              pricing_plan: 'reef_explorer',
+              price_point: '$15/month',
+              user_intent: 'free_trial'
+            });
+          });
+        });
+        
+        // Track download clicks
+        const downloadButtons = document.querySelectorAll('.download-btn');
+        downloadButtons.forEach(button => {
+          button.addEventListener('click', function(e) {
+            const platform = this.closest('.download-card').querySelector('.platform-title').textContent;
+            const downloadUrl = this.href;
+            
+            gtag('event', 'download_initiated', {
+              event_category: 'Conversion',
+              event_label: `Download ${platform}`,
+              platform: platform.toLowerCase(),
+              download_url: downloadUrl,
+              file_size: this.parentElement.querySelector('.file-size').textContent
+            });
+          });
+        });
+        
+        // Track feature section visibility
+        const featuresSection = document.querySelector('.features');
+        if (featuresSection) {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                gtag('event', 'features_viewed', {
+                  event_category: 'Engagement',
+                  event_label: 'Features Section Viewed',
+                  scroll_depth: Math.round((window.scrollY / document.body.scrollHeight) * 100)
+                });
+                observer.unobserve(entry.target);
+              }
+            });
+          });
+          observer.observe(featuresSection);
+        }
+        
+        // Track pricing card hover (interest indicator)
+        const pricingCards = document.querySelectorAll('.pricing-card');
+        pricingCards.forEach(card => {
+          let hoverTimer;
+          card.addEventListener('mouseenter', function() {
+            hoverTimer = setTimeout(() => {
+              gtag('event', 'pricing_card_interest', {
+                event_category: 'Engagement',
+                event_label: 'Pricing Card Hover >2s',
+                hover_duration: 2000
+              });
+            }, 2000);
+          });
+          
+          card.addEventListener('mouseleave', function() {
+            clearTimeout(hoverTimer);
+          });
+        });
+        
+        // Track API section engagement
+        const apiSection = document.querySelector('.api-section');
+        if (apiSection) {
+          const codeBlocks = apiSection.querySelectorAll('code');
+          codeBlocks.forEach(code => {
+            code.addEventListener('click', function() {
+              gtag('event', 'api_code_clicked', {
+                event_category: 'Developer',
+                event_label: 'API Code Example Clicked',
+                code_content: this.textContent.substring(0, 50)
+              });
+            });
+          });
+        }
+        
+        // Track scroll depth milestones
+        let scrollMilestones = [25, 50, 75, 90];
+        let trackedMilestones = [];
+        
+        window.addEventListener('scroll', function() {
+          const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+          
+          scrollMilestones.forEach(milestone => {
+            if (scrollPercent >= milestone && !trackedMilestones.includes(milestone)) {
+              trackedMilestones.push(milestone);
+              gtag('event', 'scroll_depth', {
+                event_category: 'Engagement',
+                event_label: `Scroll ${milestone}%`,
+                value: milestone
+              });
+            }
+          });
+        });
+      });
+    </script>
 </body>
 </html>
 
