@@ -4,7 +4,7 @@
 echo "🧠 Running Smart File Manager pre-commit cleanup..."
 
 # Run smart file manager in non-interactive mode for commit cleanup
-node scripts/smart-file-manager.js --no-watch --verbose
+node scripts/smart-file-manager.cjs --no-watch --verbose
 
 # Also run the existing cleanup
 node scripts/cleanup-old-files.js --verbose

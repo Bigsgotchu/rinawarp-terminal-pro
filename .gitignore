@@ -528,3 +528,15 @@ social_media_manager.py
 # Large binary files - use GitHub Releases instead
 website/downloads/
 .env*.local
+
+# Smart File Manager
+.smart-backup/
+smart-file-manager.log
+smart-file-manager-report-*.json
+cleanup-report-*.json
+
+# Testimonials and User Feedback (private data)
+testimonials/
+!testimonials/.gitkeep
+# Keep templates public
+!public/html/templates/
