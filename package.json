@@ -263,9 +263,6 @@
     "webpack-merge": "6.0.1",
     "worker-loader": "3.0.8"
   },
-  "optionalDependencies": {
-    "dmg-license": "1.0.11"
-  },
   "overrides": {
     "rimraf": "^4.4.1",
     "glob": "^11.0.3",
