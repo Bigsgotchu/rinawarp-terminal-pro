@@ -1,96 +1,47 @@
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  sendPasswordResetEmail,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from 'firebase/auth';
-import { auth } from './firebase-config.js';
+/**
+ * Authentication Service (Non-Firebase)
+ * Simple authentication service without Firebase dependencies
+ */
 
 class AuthService {
   constructor() {
     this.currentUser = null;
     this.authStateListeners = [];
-
-    // Listen for auth state changes
-    onAuthStateChanged(auth, user => {
-      this.currentUser = user;
-      this.authStateListeners.forEach(callback => callback(user));
-    });
+    this.isAuthenticatedState = false;
   }
 
-  // Email/Password Authentication
+  // Mock authentication methods
   async signUp(email, password, displayName = '') {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-      // Update user profile with display name
-      if (displayName) {
-        await updateProfile(userCredential.user, {
-          displayName: displayName,
-        });
-      }
-
-      console.log('User signed up successfully:', userCredential.user);
-      return { success: true, user: userCredential.user };
-    } catch (error) {
-      console.error('Sign up error:', error);
-      return { success: false, error: error.message };
-    }
+    console.log('Auth: Sign up called (Firebase removed)');
+    return { success: false, error: 'Authentication service disabled (Firebase removed)' };
   }
 
   async signIn(email, password) {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('User signed in successfully:', userCredential.user);
-      return { success: true, user: userCredential.user };
-    } catch (error) {
-      console.error('Sign in error:', error);
-      return { success: false, error: error.message };
-    }
+    console.log('Auth: Sign in called (Firebase removed)');
+    return { success: false, error: 'Authentication service disabled (Firebase removed)' };
   }
 
-  // Google Authentication
   async signInWithGoogle() {
-    try {
-      const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      console.log('User signed in with Google:', userCredential.user);
-      return { success: true, user: userCredential.user };
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      return { success: false, error: error.message };
-    }
+    console.log('Auth: Google sign in called (Firebase removed)');
+    return { success: false, error: 'Authentication service disabled (Firebase removed)' };
   }
 
   async signOut() {
-    try {
-      await signOut(auth);
-      console.log('User signed out successfully');
-      return { success: true };
-    } catch (error) {
-      console.error('Sign out error:', error);
-      return { success: false, error: error.message };
-    }
+    console.log('Auth: Sign out called (Firebase removed)');
+    this.currentUser = null;
+    this.isAuthenticatedState = false;
+    this.authStateListeners.forEach(callback => callback(null));
+    return { success: true };
   }
 
   async resetPassword(email) {
-    try {
-      await sendPasswordResetEmail(auth, email);
-      console.log('Password reset email sent');
-      return { success: true };
-    } catch (error) {
-      console.error('Password reset error:', error);
-      return { success: false, error: error.message };
-    }
+    console.log('Auth: Password reset called (Firebase removed)');
+    return { success: false, error: 'Authentication service disabled (Firebase removed)' };
   }
 
   // Utility methods
   isAuthenticated() {
-    return this.currentUser !== null;
+    return this.isAuthenticatedState;
   }
 
   getCurrentUser() {

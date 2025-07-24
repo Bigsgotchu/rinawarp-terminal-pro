@@ -5,8 +5,6 @@
 
 /* global gtag */
 
-import { logEvent, setUserProperties } from 'firebase/analytics';
-import { analytics } from '../firebase-config.js';
 import { authService } from '../auth-service.js';
 
 class EnhancedConversionTracker {
@@ -79,10 +77,7 @@ class EnhancedConversionTracker {
       // Store in localStorage for session persistence
       localStorage.setItem('attribution_data', JSON.stringify(attributionData));
 
-      // Set Firebase user properties
-      if (analytics && this.isEnabled) {
-        setUserProperties(analytics, attributionData);
-      }
+      // Firebase removed - user properties stored locally only
 
       console.log('Attribution data initialized:', attributionData);
     } catch (error) {
@@ -163,13 +158,8 @@ class EnhancedConversionTracker {
       session_id: this.getSessionId(),
     };
 
-    // Track in Firebase Analytics
-    if (analytics && this.isEnabled) {
-      logEvent(analytics, 'conversion', conversionEvent);
-
-      // Enhanced conversion event with specific naming
-      logEvent(analytics, conversionType, conversionEvent);
-    }
+    // Firebase removed - conversions logged to console only
+    console.log('Enhanced conversion tracker: Primary conversion', conversionEvent);
 
     // Add to conversion path
     this.conversionPaths.push(conversionEvent);
@@ -203,11 +193,8 @@ class EnhancedConversionTracker {
       session_id: this.getSessionId(),
     };
 
-    // Track in Firebase Analytics
-    if (analytics && this.isEnabled) {
-      logEvent(analytics, 'micro_conversion', conversionEvent);
-      logEvent(analytics, conversionType, conversionEvent);
-    }
+    // Firebase removed - micro conversions logged to console only
+    console.log('Enhanced conversion tracker: Micro conversion', conversionEvent);
 
     // Add to conversion path
     this.conversionPaths.push(conversionEvent);
@@ -607,8 +594,8 @@ class EnhancedConversionTracker {
   }
 
   trackEvent(eventName, data) {
-    if (analytics && this.isEnabled) {
-      logEvent(analytics, eventName, {
+    if (this.isEnabled) {
+      console.log(`Enhanced conversion tracker: Event - ${eventName}`, {
         ...data,
         timestamp: Date.now(),
         session_id: this.getSessionId(),

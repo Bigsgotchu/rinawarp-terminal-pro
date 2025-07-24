@@ -179,7 +179,7 @@ class MasterAnalyticsIntegration {
         conversion_id: enhancedResult.session_id,
       });
 
-      // Track in Firebase Analytics
+      // Track in non-Firebase Analytics (console-based)
       this.systems.firebase.trackEvent(`primary_${conversionType}`, enrichedData);
 
       // Update performance metrics
@@ -222,7 +222,7 @@ class MasterAnalyticsIntegration {
         conversion_id: enhancedResult.session_id,
       });
 
-      // Track in Firebase Analytics
+      // Track in non-Firebase Analytics (console-based)
       this.systems.firebase.trackEvent(`micro_${conversionType}`, enrichedData);
 
       // Update performance metrics
