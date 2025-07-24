@@ -15,10 +15,30 @@ jobs:
       - name: 📦 Checkout
         uses: actions/checkout@v4
       
-      - name: ⚡ Setup Node.js  
+      - name: ⚙️ Setup Node.js  
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          
+      - name: 🧠 Environment Info
+        run: |
+          echo "🖥️ OS: $(uname -a)"
+          echo "🔧 Architecture: $(arch)"
+          echo "📊 Runner: ${{ runner.os }}"
+          echo "📱 GitHub Event: ${{ github.event_name }}"
+          
+      - name: ✅ Validate package.json
+        run: |
+          echo "📝 Validating package.json schema..."
+          node -e "import fs from 'fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); if (!pkg.name || !pkg.version) throw new Error('Missing name or version'); console.log('✅ package.json is valid');"
+          
+      - name: 🔍 Workflow YAML Validation
+        run: |
+          echo "🔍 Checking all workflow files..."
+          for file in .github/workflows/*.yml; do
+            echo "Validating: $file"
+            node -e "import yaml from 'js-yaml'; import fs from 'fs'; yaml.load(fs.readFileSync('$file', 'utf8')); console.log('✅', '$file', 'is valid');"
+          done
           
       - name: 🎯 Test Basic Commands
         run: |
