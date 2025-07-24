@@ -10,9 +10,6 @@ const nextConfig = {
   // Environment variables
   env: {
     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
-    FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
-    FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
-    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
   },
 
   // Rewrites for API routes
@@ -63,7 +60,7 @@ const nextConfig = {
 
   // Image optimization
   images: {
-    domains: ['rinawarptech.com', 'firebasestorage.googleapis.com'],
+    domains: ['rinawarptech.com'],
   },
 
   // Experimental features

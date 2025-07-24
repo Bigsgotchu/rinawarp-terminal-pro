@@ -1,20 +1,8 @@
-import {
-  collection,
-  doc,
-  addDoc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  serverTimestamp,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from './firebase-config.js';
+/**
+ * Database Service (Non-Firebase)
+ * Local storage-based database service without Firebase dependencies
+ */
+
 import { authService } from './auth-service.js';
 
 class DatabaseService {
@@ -27,28 +15,57 @@ class DatabaseService {
     };
   }
 
+  // Helper method to get data from localStorage
+  _getLocalData(key, defaultValue = []) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : defaultValue;
+    } catch (error) {
+      console.error('Error reading from localStorage:', error);
+      return defaultValue;
+    }
+  }
+
+  // Helper method to save data to localStorage
+  _setLocalData(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+      return true;
+    } catch (error) {
+      console.error('Error writing to localStorage:', error);
+      return false;
+    }
+  }
+
   // Terminal Session Management
   async createSession(sessionData) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) {
+        console.log('Database: Session creation called (user not authenticated)');
+        return { success: false, error: 'User not authenticated' };
+      }
 
+      const sessionId = `session_${Date.now()}`;
       const sessionDoc = {
         userId,
-        sessionId: sessionData.sessionId || `session_${Date.now()}`,
+        sessionId: sessionData.sessionId || sessionId,
         title: sessionData.title || 'New Terminal Session',
         commands: sessionData.commands || [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         isActive: true,
         environment: sessionData.environment || {},
         workingDirectory: sessionData.workingDirectory || '/',
         theme: sessionData.theme || 'default',
       };
 
-      const docRef = await addDoc(collection(db, this.collections.sessions), sessionDoc);
-      console.log('Session created with ID:', docRef.id);
-      return { success: true, sessionId: docRef.id };
+      const sessions = this._getLocalData(`${this.collections.sessions}_${userId}`, []);
+      sessions.push({ id: sessionId, ...sessionDoc });
+      this._setLocalData(`${this.collections.sessions}_${userId}`, sessions);
+
+      console.log('Database: Session created (localStorage)', sessionId);
+      return { success: true, sessionId };
     } catch (error) {
       console.error('Error creating session:', error);
       return { success: false, error: error.message };
@@ -58,34 +75,25 @@ class DatabaseService {
   async saveSession(sessionId, sessionData) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      const sessionRef = doc(db, this.collections.sessions, sessionId);
-      await updateDoc(sessionRef, {
-        ...sessionData,
-        updatedAt: serverTimestamp(),
-      });
+      const sessions = this._getLocalData(`${this.collections.sessions}_${userId}`, []);
+      const sessionIndex = sessions.findIndex(s => s.id === sessionId);
 
-      console.log('Session saved successfully');
-      return { success: true };
+      if (sessionIndex >= 0) {
+        sessions[sessionIndex] = {
+          ...sessions[sessionIndex],
+          ...sessionData,
+          updatedAt: new Date().toISOString(),
+        };
+        this._setLocalData(`${this.collections.sessions}_${userId}`, sessions);
+        console.log('Database: Session saved (localStorage)');
+        return { success: true };
+      }
+
+      return { success: false, error: 'Session not found' };
     } catch (error) {
       console.error('Error saving session:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  async getSession(sessionId) {
-    try {
-      const sessionRef = doc(db, this.collections.sessions, sessionId);
-      const sessionSnap = await getDoc(sessionRef);
-
-      if (sessionSnap.exists()) {
-        return { success: true, session: { id: sessionSnap.id, ...sessionSnap.data() } };
-      } else {
-        return { success: false, error: 'Session not found' };
-      }
-    } catch (error) {
-      console.error('Error getting session:', error);
       return { success: false, error: error.message };
     }
   }
@@ -93,24 +101,35 @@ class DatabaseService {
   async getUserSessions(limitCount = 50) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      const q = query(
-        collection(db, this.collections.sessions),
-        where('userId', '==', userId),
-        orderBy('updatedAt', 'desc'),
-        limit(limitCount)
-      );
+      const sessions = this._getLocalData(`${this.collections.sessions}_${userId}`, []);
+      const sortedSessions = sessions
+        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+        .slice(0, limitCount);
 
-      const querySnapshot = await getDocs(q);
-      const sessions = [];
-      querySnapshot.forEach(doc => {
-        sessions.push({ id: doc.id, ...doc.data() });
-      });
-
-      return { success: true, sessions };
+      console.log('Database: Retrieved user sessions (localStorage)', sortedSessions.length);
+      return { success: true, sessions: sortedSessions };
     } catch (error) {
       console.error('Error getting user sessions:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async getSession(sessionId) {
+    try {
+      const userId = authService.getUserId();
+      if (!userId) return { success: false, error: 'User not authenticated' };
+
+      const sessions = this._getLocalData(`${this.collections.sessions}_${userId}`, []);
+      const session = sessions.find(s => s.id === sessionId);
+
+      if (session) {
+        return { success: true, session };
+      }
+      return { success: false, error: 'Session not found' };
+    } catch (error) {
+      console.error('Error getting session:', error);
       return { success: false, error: error.message };
     }
   }
@@ -118,21 +137,18 @@ class DatabaseService {
   async deleteSession(sessionId) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      // Verify ownership before deletion
-      const sessionResult = await this.getSession(sessionId);
-      if (!sessionResult.success) {
-        return { success: false, error: 'Session not found' };
+      const sessions = this._getLocalData(`${this.collections.sessions}_${userId}`, []);
+      const filteredSessions = sessions.filter(s => s.id !== sessionId);
+
+      if (filteredSessions.length < sessions.length) {
+        this._setLocalData(`${this.collections.sessions}_${userId}`, filteredSessions);
+        console.log('Database: Session deleted (localStorage)');
+        return { success: true };
       }
 
-      if (sessionResult.session.userId !== userId) {
-        return { success: false, error: 'Unauthorized' };
-      }
-
-      await deleteDoc(doc(db, this.collections.sessions, sessionId));
-      console.log('Session deleted successfully');
-      return { success: true };
+      return { success: false, error: 'Session not found' };
     } catch (error) {
       console.error('Error deleting session:', error);
       return { success: false, error: error.message };
@@ -143,21 +159,31 @@ class DatabaseService {
   async saveCommand(command, sessionId = null) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
+      const commandId = `cmd_${Date.now()}`;
       const commandDoc = {
+        id: commandId,
         userId,
         sessionId,
         command: command.command || '',
         output: command.output || '',
         exitCode: command.exitCode || 0,
         workingDirectory: command.workingDirectory || '/',
-        timestamp: serverTimestamp(),
+        timestamp: new Date().toISOString(),
         executionTime: command.executionTime || 0,
       };
 
-      const docRef = await addDoc(collection(db, this.collections.commands), commandDoc);
-      return { success: true, commandId: docRef.id };
+      const commands = this._getLocalData(`${this.collections.commands}_${userId}`, []);
+      commands.push(commandDoc);
+
+      // Keep only last 1000 commands
+      if (commands.length > 1000) {
+        commands.splice(0, commands.length - 1000);
+      }
+
+      this._setLocalData(`${this.collections.commands}_${userId}`, commands);
+      return { success: true, commandId };
     } catch (error) {
       console.error('Error saving command:', error);
       return { success: false, error: error.message };
@@ -167,33 +193,19 @@ class DatabaseService {
   async getCommandHistory(sessionId = null, limitCount = 100) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      let q;
+      let commands = this._getLocalData(`${this.collections.commands}_${userId}`, []);
+
       if (sessionId) {
-        q = query(
-          collection(db, this.collections.commands),
-          where('userId', '==', userId),
-          where('sessionId', '==', sessionId),
-          orderBy('timestamp', 'desc'),
-          limit(limitCount)
-        );
-      } else {
-        q = query(
-          collection(db, this.collections.commands),
-          where('userId', '==', userId),
-          orderBy('timestamp', 'desc'),
-          limit(limitCount)
-        );
+        commands = commands.filter(cmd => cmd.sessionId === sessionId);
       }
 
-      const querySnapshot = await getDocs(q);
-      const commands = [];
-      querySnapshot.forEach(doc => {
-        commands.push({ id: doc.id, ...doc.data() });
-      });
+      const sortedCommands = commands
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, limitCount);
 
-      return { success: true, commands };
+      return { success: true, commands: sortedCommands };
     } catch (error) {
       console.error('Error getting command history:', error);
       return { success: false, error: error.message };
@@ -204,18 +216,15 @@ class DatabaseService {
   async saveUserProfile(profileData) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      const profileRef = doc(db, this.collections.userProfiles, userId);
-      await setDoc(
-        profileRef,
-        {
-          ...profileData,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      const profile = {
+        ...profileData,
+        updatedAt: new Date().toISOString(),
+      };
 
+      this._setLocalData(`${this.collections.userProfiles}_${userId}`, profile);
+      console.log('Database: User profile saved (localStorage)');
       return { success: true };
     } catch (error) {
       console.error('Error saving user profile:', error);
@@ -226,16 +235,14 @@ class DatabaseService {
   async getUserProfile() {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      const profileRef = doc(db, this.collections.userProfiles, userId);
-      const profileSnap = await getDoc(profileRef);
+      const profile = this._getLocalData(`${this.collections.userProfiles}_${userId}`, null);
 
-      if (profileSnap.exists()) {
-        return { success: true, profile: profileSnap.data() };
-      } else {
-        return { success: false, error: 'Profile not found' };
+      if (profile) {
+        return { success: true, profile };
       }
+      return { success: false, error: 'Profile not found' };
     } catch (error) {
       console.error('Error getting user profile:', error);
       return { success: false, error: error.message };
@@ -246,18 +253,15 @@ class DatabaseService {
   async saveUserSettings(settings) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      const settingsRef = doc(db, this.collections.settings, userId);
-      await setDoc(
-        settingsRef,
-        {
-          ...settings,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      const settingsData = {
+        ...settings,
+        updatedAt: new Date().toISOString(),
+      };
 
+      this._setLocalData(`${this.collections.settings}_${userId}`, settingsData);
+      console.log('Database: User settings saved (localStorage)');
       return { success: true };
     } catch (error) {
       console.error('Error saving user settings:', error);
@@ -268,40 +272,36 @@ class DatabaseService {
   async getUserSettings() {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) return { success: false, error: 'User not authenticated' };
 
-      const settingsRef = doc(db, this.collections.settings, userId);
-      const settingsSnap = await getDoc(settingsRef);
+      const settings = this._getLocalData(`${this.collections.settings}_${userId}`, null);
 
-      if (settingsSnap.exists()) {
-        return { success: true, settings: settingsSnap.data() };
-      } else {
-        return { success: false, error: 'Settings not found' };
+      if (settings) {
+        return { success: true, settings };
       }
+      return { success: false, error: 'Settings not found' };
     } catch (error) {
       console.error('Error getting user settings:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // Real-time listeners
+  // Real-time listeners (mock implementation)
   listenToUserSessions(callback) {
     const userId = authService.getUserId();
     if (!userId) return null;
 
-    const q = query(
-      collection(db, this.collections.sessions),
-      where('userId', '==', userId),
-      orderBy('updatedAt', 'desc')
-    );
+    // Return a mock unsubscribe function
+    console.log('Database: Real-time session listener (mock)');
 
-    return onSnapshot(q, querySnapshot => {
-      const sessions = [];
-      querySnapshot.forEach(doc => {
-        sessions.push({ id: doc.id, ...doc.data() });
-      });
-      callback(sessions);
-    });
+    // Initial call with current data
+    const sessions = this._getLocalData(`${this.collections.sessions}_${userId}`, []);
+    callback(sessions);
+
+    // Return unsubscribe function
+    return () => {
+      console.log('Database: Session listener unsubscribed');
+    };
   }
 }
 
