@@ -1,5 +1,8 @@
-import { logEvent, setUserId, setUserProperties } from 'firebase/analytics';
-import { analytics } from './firebase-config.js';
+/**
+ * Analytics Service (Non-Firebase)
+ * Console-based analytics service without Firebase dependencies
+ */
+
 import { authService } from './auth-service.js';
 
 class AnalyticsService {
@@ -7,69 +10,49 @@ class AnalyticsService {
     this.isAnalyticsEnabled = true;
     this.sessionStartTime = Date.now();
 
-    // Listen for auth state changes to set user ID
+    // Listen for auth state changes
     authService.onAuthStateChange(user => {
       if (user && this.isAnalyticsEnabled) {
         this.setUser(user.uid);
         this.setUserProperties({
           user_type: 'authenticated',
-          sign_up_method: user.providerData[0]?.providerId || 'unknown',
+          sign_up_method: user.providerData?.[0]?.providerId || 'unknown',
         });
       }
     });
   }
 
-  // Core Analytics Methods
+  // Core Analytics Methods (console-based)
   setUser(userId) {
-    try {
-      if (this.isAnalyticsEnabled && analytics) {
-        setUserId(analytics, userId);
-        console.log('Analytics: User ID set');
-      }
-    } catch (error) {
-      console.error('Error setting user ID:', error);
+    if (this.isAnalyticsEnabled) {
+      console.log('Analytics: User ID set (console-only)', userId);
     }
   }
 
   setUserProperties(properties) {
-    try {
-      if (this.isAnalyticsEnabled && analytics) {
-        setUserProperties(analytics, properties);
-        console.log('Analytics: User properties set', properties);
-      }
-    } catch (error) {
-      console.error('Error setting user properties:', error);
+    if (this.isAnalyticsEnabled) {
+      console.log('Analytics: User properties set (console-only)', properties);
     }
   }
 
   trackEvent(eventName, parameters = {}) {
-    try {
-      if (this.isAnalyticsEnabled && analytics) {
-        const enrichedParams = {
-          ...parameters,
-          timestamp: Date.now(),
-          session_duration: Date.now() - this.sessionStartTime,
-        };
-
-        logEvent(analytics, eventName, enrichedParams);
-        console.log(`Analytics: Event tracked - ${eventName}`, enrichedParams);
-      }
-    } catch (error) {
-      console.error('Error tracking event:', error);
+    if (this.isAnalyticsEnabled) {
+      const enrichedParams = {
+        ...parameters,
+        timestamp: Date.now(),
+        session_duration: Date.now() - this.sessionStartTime,
+      };
+      console.log(`Analytics: Event tracked (console-only) - ${eventName}`, enrichedParams);
     }
   }
 
   // Authentication Events
   trackSignUp(method = 'email') {
-    this.trackEvent('sign_up', {
-      method: method,
-    });
+    this.trackEvent('sign_up', { method });
   }
 
   trackLogin(method = 'email') {
-    this.trackEvent('login', {
-      method: method,
-    });
+    this.trackEvent('login', { method });
   }
 
   trackLogout() {
@@ -81,7 +64,7 @@ class AnalyticsService {
   // Terminal Events
   trackTerminalSession(action, sessionData = {}) {
     this.trackEvent('terminal_session', {
-      action: action, // 'create', 'save', 'load', 'delete'
+      action,
       session_id: sessionData.sessionId,
       session_title: sessionData.title,
       command_count: sessionData.commands?.length || 0,
@@ -101,16 +84,13 @@ class AnalyticsService {
   }
 
   trackTerminalFeature(feature, action = 'use') {
-    this.trackEvent('terminal_feature', {
-      feature: feature, // 'copy', 'paste', 'clear', 'search', 'theme_change', etc.
-      action: action,
-    });
+    this.trackEvent('terminal_feature', { feature, action });
   }
 
   // File Operations Events
   trackFileOperation(operation, fileData = {}) {
     this.trackEvent('file_operation', {
-      operation: operation, // 'upload', 'download', 'delete', 'view'
+      operation,
       file_type: fileData.type,
       file_size: fileData.size,
       file_category: this.getFileCategory(fileData.type),
@@ -139,7 +119,7 @@ class AnalyticsService {
   // Settings and Configuration Events
   trackSettingsChange(setting, newValue, oldValue = null) {
     this.trackEvent('settings_changed', {
-      setting: setting,
+      setting,
       new_value: typeof newValue === 'object' ? JSON.stringify(newValue) : String(newValue),
       old_value: oldValue
         ? typeof oldValue === 'object'
@@ -150,26 +130,23 @@ class AnalyticsService {
   }
 
   trackThemeChange(newTheme, oldTheme = null) {
-    this.trackEvent('theme_changed', {
-      new_theme: newTheme,
-      old_theme: oldTheme,
-    });
+    this.trackEvent('theme_changed', { new_theme: newTheme, old_theme: oldTheme });
   }
 
   // User Engagement Events
   trackPageView(pageName, additionalParams = {}) {
     this.trackEvent('page_view', {
       page_title: pageName,
-      page_location: window.location.href,
+      page_location: typeof window !== 'undefined' ? window.location.href : 'unknown',
       ...additionalParams,
     });
   }
 
   trackUserEngagement(action, element = null) {
     this.trackEvent('user_engagement', {
-      engagement_type: action, // 'click', 'scroll', 'hover', 'focus'
-      element: element,
-      page_title: document.title,
+      engagement_type: action,
+      element,
+      page_title: typeof document !== 'undefined' ? document.title : 'unknown',
     });
   }
 
@@ -186,8 +163,8 @@ class AnalyticsService {
       error_message: error.message || String(error),
       error_context: context,
       error_stack: error.stack || '',
-      page_title: document.title,
-      user_agent: navigator.userAgent,
+      page_title: typeof document !== 'undefined' ? document.title : 'unknown',
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
     });
   }
 
@@ -195,15 +172,15 @@ class AnalyticsService {
     this.trackEvent('performance_metric', {
       metric_name: metric,
       metric_value: value,
-      context: context,
+      context,
     });
   }
 
   // Business Events
   trackSubscription(action, plan = null) {
     this.trackEvent('subscription', {
-      action: action, // 'start_trial', 'subscribe', 'upgrade', 'downgrade', 'cancel'
-      plan: plan,
+      action,
+      plan,
       value: this.getPlanValue(plan),
     });
   }
@@ -211,7 +188,7 @@ class AnalyticsService {
   trackFeatureUsage(feature, usage_type = 'accessed') {
     this.trackEvent('feature_usage', {
       feature_name: feature,
-      usage_type: usage_type,
+      usage_type,
       user_type: authService.isAuthenticated() ? 'authenticated' : 'anonymous',
     });
   }
@@ -221,17 +198,17 @@ class AnalyticsService {
     this.sessionStartTime = Date.now();
     this.trackEvent('session_start', {
       platform: this.getPlatform(),
-      user_agent: navigator.userAgent,
-      screen_resolution: `${screen.width}x${screen.height}`,
-      viewport_size: `${window.innerWidth}x${window.innerHeight}`,
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      screen_resolution:
+        typeof screen !== 'undefined' ? `${screen.width}x${screen.height}` : 'unknown',
+      viewport_size:
+        typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown',
     });
   }
 
   endSession() {
     const sessionDuration = Date.now() - this.sessionStartTime;
-    this.trackEvent('session_end', {
-      session_duration: sessionDuration,
-    });
+    this.trackEvent('session_end', { session_duration: sessionDuration });
   }
 
   // Utility Methods
@@ -275,6 +252,7 @@ class AnalyticsService {
   }
 
   getPlatform() {
+    if (typeof navigator === 'undefined') return 'unknown';
     const platform = navigator.platform.toLowerCase();
     if (platform.includes('win')) return 'windows';
     if (platform.includes('mac')) return 'macos';
@@ -283,19 +261,14 @@ class AnalyticsService {
   }
 
   getPlanValue(plan) {
-    const planValues = {
-      free: 0,
-      basic: 9.99,
-      pro: 19.99,
-      enterprise: 49.99,
-    };
+    const planValues = { free: 0, basic: 9.99, pro: 19.99, enterprise: 49.99 };
     return planValues[plan] || 0;
   }
 
   // Configuration Methods
   enableAnalytics() {
     this.isAnalyticsEnabled = true;
-    console.log('Analytics enabled');
+    console.log('Analytics enabled (console-only)');
   }
 
   disableAnalytics() {

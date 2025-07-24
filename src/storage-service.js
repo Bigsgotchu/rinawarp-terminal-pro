@@ -1,14 +1,8 @@
-import {
-  ref,
-  uploadBytes,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject,
-  listAll,
-  getMetadata,
-  _updateMetadata,
-} from 'firebase/storage';
-import { storage } from './firebase-config.js';
+/**
+ * Storage Service (Non-Firebase)
+ * Local storage-based file service without Firebase dependencies
+ */
+
 import { authService } from './auth-service.js';
 
 class StorageService {
@@ -29,11 +23,40 @@ class StorageService {
     this.maxFileSize = 50 * 1024 * 1024; // 50MB
   }
 
-  // File Upload Methods
+  // Helper methods for localStorage-based file storage
+  _getStorageKey(userId, path = '') {
+    return `${this.basePath}_${userId}_${path}`.replace(/[^a-zA-Z0-9_]/g, '_');
+  }
+
+  _getFileList(userId) {
+    try {
+      const key = `${this.basePath}_files_${userId}`;
+      const fileList = localStorage.getItem(key);
+      return fileList ? JSON.parse(fileList) : [];
+    } catch (error) {
+      console.error('Error getting file list:', error);
+      return [];
+    }
+  }
+
+  _saveFileList(userId, fileList) {
+    try {
+      const key = `${this.basePath}_files_${userId}`;
+      localStorage.setItem(key, JSON.stringify(fileList));
+      return true;
+    } catch (error) {
+      console.error('Error saving file list:', error);
+      return false;
+    }
+  }
+
+  // File Upload Methods (localStorage-based)
   async uploadFile(file, path = '', onProgress = null) {
     try {
       const userId = authService.getUserId();
       if (!userId) throw new Error('User not authenticated');
+
+      console.log('Storage: File upload called (localStorage-based, Firebase removed)');
 
       // Validate file
       const validation = this.validateFile(file);
@@ -41,78 +64,100 @@ class StorageService {
         throw new Error(validation.error);
       }
 
-      // Create file reference
-      const fileName = this.sanitizeFileName(file.name);
-      const filePath = path
-        ? `${this.basePath}/${userId}/${path}/${fileName}`
-        : `${this.basePath}/${userId}/${fileName}`;
-      const fileRef = ref(storage, filePath);
+      // Simulate progress if callback provided
+      if (onProgress) {
+        onProgress({
+          progress: 25,
+          bytesTransferred: file.size * 0.25,
+          totalBytes: file.size,
+          state: 'running',
+        });
+        await new Promise(resolve => setTimeout(resolve, 100));
+        onProgress({
+          progress: 50,
+          bytesTransferred: file.size * 0.5,
+          totalBytes: file.size,
+          state: 'running',
+        });
+        await new Promise(resolve => setTimeout(resolve, 100));
+        onProgress({
+          progress: 75,
+          bytesTransferred: file.size * 0.75,
+          totalBytes: file.size,
+          state: 'running',
+        });
+        await new Promise(resolve => setTimeout(resolve, 100));
+        onProgress({
+          progress: 100,
+          bytesTransferred: file.size,
+          totalBytes: file.size,
+          state: 'success',
+        });
+      }
 
-      // Add metadata
-      const metadata = {
+      const fileName = this.sanitizeFileName(file.name);
+      const filePath = path ? `${path}/${fileName}` : fileName;
+      const fileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Convert file to base64 for storage
+      const fileData = await this._fileToBase64(file);
+
+      const fileRecord = {
+        id: fileId,
+        name: fileName,
+        originalName: file.name,
+        fullPath: filePath,
+        size: file.size,
         contentType: file.type,
+        timeCreated: new Date().toISOString(),
+        updated: new Date().toISOString(),
         customMetadata: {
           originalName: file.name,
           uploadedAt: new Date().toISOString(),
           userId: userId,
         },
+        data: fileData, // Base64 encoded file data
       };
 
-      if (onProgress) {
-        // Upload with progress tracking
-        const uploadTask = uploadBytesResumable(fileRef, file, metadata);
+      // Save file data
+      const storageKey = this._getStorageKey(userId, fileId);
+      localStorage.setItem(storageKey, JSON.stringify(fileRecord));
 
-        return new Promise((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            snapshot => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              onProgress({
-                progress,
-                bytesTransferred: snapshot.bytesTransferred,
-                totalBytes: snapshot.totalBytes,
-                state: snapshot.state,
-              });
-            },
-            error => {
-              console.error('Upload error:', error);
-              reject(error);
-            },
-            async () => {
-              try {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                resolve({
-                  success: true,
-                  downloadURL,
-                  filePath,
-                  fileName,
-                  size: file.size,
-                  type: file.type,
-                });
-              } catch (error) {
-                reject(error);
-              }
-            }
-          );
-        });
-      } else {
-        // Simple upload without progress
-        const snapshot = await uploadBytes(fileRef, file, metadata);
-        const downloadURL = await getDownloadURL(snapshot.ref);
+      // Update file list
+      const fileList = this._getFileList(userId);
+      fileList.push({
+        id: fileId,
+        name: fileName,
+        fullPath: filePath,
+        size: file.size,
+        contentType: file.type,
+        timeCreated: fileRecord.timeCreated,
+        updated: fileRecord.updated,
+        customMetadata: fileRecord.customMetadata,
+      });
+      this._saveFileList(userId, fileList);
 
-        return {
-          success: true,
-          downloadURL,
-          filePath,
-          fileName,
-          size: file.size,
-          type: file.type,
-        };
-      }
+      return {
+        success: true,
+        downloadURL: `localStorage://${storageKey}`,
+        filePath,
+        fileName,
+        size: file.size,
+        type: file.type,
+      };
     } catch (error) {
       console.error('Error uploading file:', error);
       return { success: false, error: error.message };
     }
+  }
+
+  async _fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
   }
 
   async uploadTerminalSession(sessionData, sessionId) {
@@ -120,32 +165,54 @@ class StorageService {
       const userId = authService.getUserId();
       if (!userId) throw new Error('User not authenticated');
 
-      const sessionBlob = new Blob([JSON.stringify(sessionData, null, 2)], {
-        type: 'application/json',
-      });
-      const fileName = `session_${sessionId}_${Date.now()}.json`;
-      const filePath = `${this.basePath}/${userId}/sessions/${fileName}`;
-      const fileRef = ref(storage, filePath);
+      console.log('Storage: Session upload called (localStorage-based, Firebase removed)');
 
-      const metadata = {
+      const sessionBlob = JSON.stringify(sessionData, null, 2);
+      const fileName = `session_${sessionId}_${Date.now()}.json`;
+      const filePath = `sessions/${fileName}`;
+      const fileId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      const fileRecord = {
+        id: fileId,
+        name: fileName,
+        fullPath: filePath,
+        size: sessionBlob.length,
         contentType: 'application/json',
+        timeCreated: new Date().toISOString(),
+        updated: new Date().toISOString(),
         customMetadata: {
           sessionId: sessionId,
           type: 'terminal_session',
           uploadedAt: new Date().toISOString(),
           userId: userId,
         },
+        data: btoa(sessionBlob), // Base64 encoded
       };
 
-      const snapshot = await uploadBytes(fileRef, sessionBlob, metadata);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      // Save file data
+      const storageKey = this._getStorageKey(userId, fileId);
+      localStorage.setItem(storageKey, JSON.stringify(fileRecord));
+
+      // Update file list
+      const fileList = this._getFileList(userId);
+      fileList.push({
+        id: fileId,
+        name: fileName,
+        fullPath: filePath,
+        size: sessionBlob.length,
+        contentType: 'application/json',
+        timeCreated: fileRecord.timeCreated,
+        updated: fileRecord.updated,
+        customMetadata: fileRecord.customMetadata,
+      });
+      this._saveFileList(userId, fileList);
 
       return {
         success: true,
-        downloadURL,
+        downloadURL: `localStorage://${storageKey}`,
         filePath,
         fileName,
-        size: sessionBlob.size,
+        size: sessionBlob.length,
       };
     } catch (error) {
       console.error('Error uploading session:', error);
@@ -158,71 +225,57 @@ class StorageService {
       const userId = authService.getUserId();
       if (!userId) throw new Error('User not authenticated');
 
-      const configBlob = new Blob([JSON.stringify(configData, null, 2)], {
-        type: 'application/json',
-      });
-      const fileName = `${configName}.json`;
-      const filePath = `${this.basePath}/${userId}/configs/${fileName}`;
-      const fileRef = ref(storage, filePath);
+      console.log('Storage: Config upload called (localStorage-based, Firebase removed)');
 
-      const metadata = {
+      const configBlob = JSON.stringify(configData, null, 2);
+      const fileName = `${configName}.json`;
+      const filePath = `configs/${fileName}`;
+      const fileId = `config_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      const fileRecord = {
+        id: fileId,
+        name: fileName,
+        fullPath: filePath,
+        size: configBlob.length,
         contentType: 'application/json',
+        timeCreated: new Date().toISOString(),
+        updated: new Date().toISOString(),
         customMetadata: {
           configName: configName,
           type: 'config_file',
           uploadedAt: new Date().toISOString(),
           userId: userId,
         },
+        data: btoa(configBlob), // Base64 encoded
       };
 
-      const snapshot = await uploadBytes(fileRef, configBlob, metadata);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      // Save file data
+      const storageKey = this._getStorageKey(userId, fileId);
+      localStorage.setItem(storageKey, JSON.stringify(fileRecord));
+
+      // Update file list
+      const fileList = this._getFileList(userId);
+      fileList.push({
+        id: fileId,
+        name: fileName,
+        fullPath: filePath,
+        size: configBlob.length,
+        contentType: 'application/json',
+        timeCreated: fileRecord.timeCreated,
+        updated: fileRecord.updated,
+        customMetadata: fileRecord.customMetadata,
+      });
+      this._saveFileList(userId, fileList);
 
       return {
         success: true,
-        downloadURL,
+        downloadURL: `localStorage://${storageKey}`,
         filePath,
         fileName,
-        size: configBlob.size,
+        size: configBlob.length,
       };
     } catch (error) {
       console.error('Error uploading config:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // File Download Methods
-  async downloadFile(filePath) {
-    try {
-      const fileRef = ref(storage, filePath);
-      const downloadURL = await getDownloadURL(fileRef);
-
-      // Fetch the file
-      const response = await fetch(downloadURL);
-      if (!response.ok) throw new Error('Failed to download file');
-
-      const blob = await response.blob();
-      const metadata = await getMetadata(fileRef);
-
-      return {
-        success: true,
-        blob,
-        metadata,
-        downloadURL,
-      };
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  async getDownloadURL(filePath) {
-    try {
-      const fileRef = ref(storage, filePath);
-      const downloadURL = await getDownloadURL(fileRef);
-      return { success: true, downloadURL };
-    } catch (error) {
-      console.error('Error getting download URL:', error);
       return { success: false, error: error.message };
     }
   }
@@ -233,42 +286,25 @@ class StorageService {
       const userId = authService.getUserId();
       if (!userId) throw new Error('User not authenticated');
 
-      const folderPath = folder
-        ? `${this.basePath}/${userId}/${folder}`
-        : `${this.basePath}/${userId}`;
-      const folderRef = ref(storage, folderPath);
+      const fileList = this._getFileList(userId);
+      let filteredFiles = fileList;
 
-      const result = await listAll(folderRef);
-      const files = [];
-
-      // Get metadata for each file
-      for (const item of result.items) {
-        try {
-          const metadata = await getMetadata(item);
-          const downloadURL = await getDownloadURL(item);
-
-          files.push({
-            name: item.name,
-            fullPath: item.fullPath,
-            downloadURL,
-            size: metadata.size,
-            contentType: metadata.contentType,
-            timeCreated: metadata.timeCreated,
-            updated: metadata.updated,
-            customMetadata: metadata.customMetadata || {},
-          });
-        } catch (error) {
-          console.warn('Could not get metadata for file:', item.name, error);
-        }
+      if (folder) {
+        filteredFiles = fileList.filter(file => file.fullPath.startsWith(folder));
       }
 
-      // Get subfolders
-      const folders = result.prefixes.map(prefix => ({
-        name: prefix.name,
-        fullPath: prefix.fullPath,
+      // Create mock folders
+      const folders = [
+        ...new Set(
+          filteredFiles.map(file => file.fullPath.split('/')[0]).filter(folder => folder !== '')
+        ),
+      ].map(folderName => ({
+        name: folderName,
+        fullPath: folderName,
       }));
 
-      return { success: true, files, folders };
+      console.log('Storage: Listed user files (localStorage)', filteredFiles.length);
+      return { success: true, files: filteredFiles, folders };
     } catch (error) {
       console.error('Error listing files:', error);
       return { success: false, error: error.message };
@@ -280,31 +316,91 @@ class StorageService {
       const userId = authService.getUserId();
       if (!userId) throw new Error('User not authenticated');
 
-      // Verify the file belongs to the user
-      if (!filePath.includes(`${this.basePath}/${userId}`)) {
-        throw new Error('Unauthorized: File does not belong to user');
+      const fileList = this._getFileList(userId);
+      const fileIndex = fileList.findIndex(file => file.fullPath === filePath);
+
+      if (fileIndex >= 0) {
+        const file = fileList[fileIndex];
+        const storageKey = this._getStorageKey(userId, file.id);
+
+        // Remove file data
+        localStorage.removeItem(storageKey);
+
+        // Remove from file list
+        fileList.splice(fileIndex, 1);
+        this._saveFileList(userId, fileList);
+
+        console.log('Storage: File deleted (localStorage)');
+        return { success: true };
       }
 
-      const fileRef = ref(storage, filePath);
-      await deleteObject(fileRef);
-
-      return { success: true };
+      return { success: false, error: 'File not found' };
     } catch (error) {
       console.error('Error deleting file:', error);
       return { success: false, error: error.message };
     }
   }
 
-  async getFileMetadata(filePath) {
+  async downloadFile(filePath) {
     try {
-      const fileRef = ref(storage, filePath);
-      const metadata = await getMetadata(fileRef);
+      const userId = authService.getUserId();
+      if (!userId) throw new Error('User not authenticated');
 
-      return { success: true, metadata };
+      const fileList = this._getFileList(userId);
+      const file = fileList.find(f => f.fullPath === filePath);
+
+      if (!file) {
+        return { success: false, error: 'File not found' };
+      }
+
+      const storageKey = this._getStorageKey(userId, file.id);
+      const fileDataStr = localStorage.getItem(storageKey);
+
+      if (!fileDataStr) {
+        return { success: false, error: 'File data not found' };
+      }
+
+      const fileRecord = JSON.parse(fileDataStr);
+
+      // Convert base64 back to blob
+      const binaryString = atob(fileRecord.data.split(',')[1] || fileRecord.data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: fileRecord.contentType });
+
+      return {
+        success: true,
+        blob,
+        metadata: {
+          size: fileRecord.size,
+          contentType: fileRecord.contentType,
+          timeCreated: fileRecord.timeCreated,
+          updated: fileRecord.updated,
+          customMetadata: fileRecord.customMetadata,
+        },
+        downloadURL: `localStorage://${storageKey}`,
+      };
     } catch (error) {
-      console.error('Error getting file metadata:', error);
+      console.error('Error downloading file:', error);
       return { success: false, error: error.message };
     }
+  }
+
+  async getDownloadURL(filePath) {
+    const userId = authService.getUserId();
+    if (!userId) return { success: false, error: 'User not authenticated' };
+
+    const fileList = this._getFileList(userId);
+    const file = fileList.find(f => f.fullPath === filePath);
+
+    if (file) {
+      const storageKey = this._getStorageKey(userId, file.id);
+      return { success: true, downloadURL: `localStorage://${storageKey}` };
+    }
+
+    return { success: false, error: 'File not found' };
   }
 
   // Utility Methods
