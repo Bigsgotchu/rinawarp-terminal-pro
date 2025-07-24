@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/workflows/**'
 
+env:
+  ACTIONS_RUNNER_DEBUG: true
+
 jobs:
   verify:
     name: ✅ Verify GitHub Actions Work
