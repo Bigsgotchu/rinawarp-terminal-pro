@@ -11,13 +11,10 @@ env:
 
 jobs:
   debug:
-    name: Debug Job
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-
       - name: Print environment info
         run: |
           echo "Node version: $(node -v)"
@@ -25,6 +22,5 @@ jobs:
           echo "Working Directory: $(pwd)"
           echo "Repo Files:"
           ls -la
-
-      - name: Workflow running correctly
-        run: echo "This workflow ran successfully!"
+      - name: Test complete
+        run: echo "Debug workflow ran successfully!"
