@@ -278,18 +278,18 @@ jobs:
       - name: 📊 Update release status
         run: |
           echo "📝 Creating build status file..."
-          cat > public/releases/build-status.json << 'JSONEOF'
+          cat > public/releases/build-status.json << 'EOF'
           {
             "buildTime": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
             "commit": "${{ github.sha }}",
             "version": "1.1.0",
             "builds": {
-              "macos": $([ -f public/releases/RinaWarp-Terminal-macOS.dmg ] && echo "true" || echo "false"),
-              "windows": $([ -f public/releases/RinaWarp-Terminal-Setup-Windows.exe ] && echo "true" || echo "false"),
-              "linux": $([ -f public/releases/RinaWarp-Terminal-Linux.tar.gz ] && echo "true" || echo "false")
+              "macos": "$([ -f public/releases/RinaWarp-Terminal-macOS.dmg ] && echo true || echo false)",
+              "windows": "$([ -f public/releases/RinaWarp-Terminal-Setup-Windows.exe ] && echo true || echo false)",
+              "linux": "$([ -f public/releases/RinaWarp-Terminal-Linux.tar.gz ] && echo true || echo false)"
             }
           }
-JSONEOF
+          EOF
 
       - name: 🧜‍♀️ Generate Markdown Report
         run: |
@@ -312,9 +312,9 @@ JSONEOF
           else
             git commit -m "🚀 chore: update release builds from CI
             
-            🍎 macOS: $([ -f public/releases/RinaWarp-Terminal-macOS.dmg ] && echo "✅" || echo "❌")
-            🪟 Windows: $([ -f public/releases/RinaWarp-Terminal-Setup-Windows.exe ] && echo "✅" || echo "❌")
-            🐧 Linux: $([ -f public/releases/RinaWarp-Terminal-Linux.tar.gz ] && echo "✅" || echo "❌")
+            - 🍎 macOS: $([ -f public/releases/RinaWarp-Terminal-macOS.dmg ] && echo "✅" || echo "❌")
+            - 🪟 Windows: $([ -f public/releases/RinaWarp-Terminal-Setup-Windows.exe ] && echo "✅" || echo "❌")
+            - 🐧 Linux: $([ -f public/releases/RinaWarp-Terminal-Linux.tar.gz ] && echo "✅" || echo "❌")
             
             Vercel will auto-deploy these changes."
             git push
