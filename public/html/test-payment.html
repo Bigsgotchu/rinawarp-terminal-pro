@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment System Test - RinaWarp Terminal</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #ffffff;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #00ff88; margin-bottom: 30px; }
+        .test-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status { 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .success { background: #27ae60; }
+        .error { background: #e74c3c; }
+        .info { background: #3498db; }
+        .warning { background: #f39c12; }
+        button {
+            background: #00ff88;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #00d66f; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        pre { 
+            background: #000; 
+            padding: 10px; 
+            border-radius: 5px; 
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Payment System Diagnostic</h1>
+    
+    <div class="test-section">
+        <h2>1. API Connectivity Test</h2>
+        <button onclick="testAPI('/api/stripe-config', 'config-result')">Test Stripe Config API</button>
+        <button onclick="testAPI('/api/download?file=rinawarp.zip', 'download-result')">Test Download API</button>
+        <button onclick="testCheckoutAPI()">Test Checkout API</button>
+        <div id="config-result"></div>
+        <div id="download-result"></div>
+        <div id="checkout-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Stripe Initialization Test</h2>
+        <button onclick="initStripeTest()">Initialize Stripe</button>
+        <div id="stripe-init-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Payment Flow Test</h2>
+        <button onclick="testPaymentFlow('personal')">Test Personal Plan ($15)</button>
+        <button onclick="testPaymentFlow('professional')">Test Professional Plan ($25)</button>
+        <button onclick="testPaymentFlow('beta')">Test Beta Access ($39)</button>
+        <div id="payment-flow-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Download Test</h2>
+        <button onclick="testDownload('windows')">Test Windows Download</button>
+        <button onclick="testDownload('mac')">Test macOS Download</button>
+        <button onclick="testDownload('linux')">Test Linux Download</button>
+        <div id="download-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. System Status</h2>
+        <div id="system-status"></div>
+    </div>
+
+    <script>
+        let stripe = null;
+        let stripeConfig = null;
+
+        // Log function
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            element.appendChild(div);
+        }
+
+        // Test API endpoint
+        async function testAPI(endpoint, resultId) {
+            log(resultId, `Testing ${endpoint}...`, 'info');
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(resultId, `✅ API responded successfully: ${response.status}`, 'success');
+                    log(resultId, `<pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+                } else {
+                    log(resultId, `❌ API error: ${response.status} - ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                log(resultId, `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test checkout API
+        async function testCheckoutAPI() {
+            log('checkout-result', 'Testing checkout API...', 'info');
+            try {
+                const testBody = {
+                    priceId: 'price_1RaypMG2ToGP7ChnzbKQOAPF',
+                    successUrl: window.location.origin + '/success.html',
+                    cancelUrl: window.location.href
+                };
+                
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testBody)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('checkout-result', `✅ Checkout API working: ${data.sessionId ? 'Session created' : 'URL provided'}`, 'success');
+                } else {
+                    log('checkout-result', `❌ Checkout API error: ${data.error || 'Unknown error'}`, 'error');
+                    if (data.details) {
+                        log('checkout-result', `Details: ${data.details}`, 'warning');
+                    }
+                }
+            } catch (error) {
+                log('checkout-result', `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize Stripe
+        async function initStripeTest() {
+            log('stripe-init-result', 'Initializing Stripe...', 'info');
+            try {
+                const response = await fetch('/api/stripe-config');
+                stripeConfig = await response.json();
+                
+                if (!stripeConfig.publishableKey) {
+                    throw new Error('No publishable key in config');
+                }
+                
+                stripe = Stripe(stripeConfig.publishableKey);
+                log('stripe-init-result', `✅ Stripe initialized with key: ${stripeConfig.publishableKey.substring(0, 20)}...`, 'success');
+                log('stripe-init-result', `Mode: ${stripeConfig.mode || 'unknown'}`, 'info');
+            } catch (error) {
+                log('stripe-init-result', `❌ Failed to initialize Stripe: ${error.message}`, 'error');
+            }
+        }
+
+        // Test payment flow
+        async function testPaymentFlow(planType) {
+            log('payment-flow-result', `Testing payment flow for ${planType}...`, 'info');
+            
+            if (!stripe) {
+                log('payment-flow-result', '⚠️ Stripe not initialized. Running init first...', 'warning');
+                await initStripeTest();
+            }
+            
+            try {
+                const priceMap = {
+                    personal: stripeConfig?.prices?.personal,
+                    professional: stripeConfig?.prices?.professional,
+                    beta: stripeConfig?.betaPrices?.beta
+                };
+                
+                const priceId = priceMap[planType];
+                if (!priceId) {
+                    throw new Error(`No price ID configured for ${planType}`);
+                }
+                
+                log('payment-flow-result', `Using price ID: ${priceId}`, 'info');
+                
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        priceId: priceId,
+                        successUrl: window.location.origin + '/success.html?test=true',
+                        cancelUrl: window.location.href
+                    })
+                });
+                
+                const session = await response.json();
+                
+                if (response.ok && (session.sessionId || session.url)) {
+                    log('payment-flow-result', `✅ Checkout session created successfully`, 'success');
+                    log('payment-flow-result', `Session ID: ${session.sessionId || 'N/A'}`, 'info');
+                    log('payment-flow-result', `URL: ${session.url || 'N/A'}`, 'info');
+                    
+                    if (confirm('Open checkout page?')) {
+                        if (session.url) {
+                            window.open(session.url, '_blank');
+                        } else if (stripe && session.sessionId) {
+                            stripe.redirectToCheckout({ sessionId: session.sessionId });
+                        }
+                    }
+                } else {
+                    throw new Error(session.error || 'Failed to create session');
+                }
+            } catch (error) {
+                log('payment-flow-result', `❌ Payment flow error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test download
+        async function testDownload(os) {
+            log('download-test-result', `Testing ${os} download...`, 'info');
+            try {
+                const response = await fetch(`/api/download?os=${os}`, {
+                    method: 'HEAD'
+                });
+                
+                if (response.ok || response.status === 302) {
+                    log('download-test-result', `✅ Download endpoint working for ${os}`, 'success');
+                    log('download-test-result', `Redirect URL: ${response.headers.get('location') || 'Check network tab'}`, 'info');
+                } else {
+                    log('download-test-result', `❌ Download failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log('download-test-result', `❌ Download test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Check system status
+        async function checkSystemStatus() {
+            const status = document.getElementById('system-status');
+            
+            // Check current URL
+            status.innerHTML += `<div class="status info">Current URL: ${window.location.href}</div>`;
+            
+            // Check if on Vercel
+            if (window.location.hostname.includes('vercel.app')) {
+                status.innerHTML += `<div class="status warning">Running on Vercel preview deployment</div>`;
+            } else if (window.location.hostname === 'rinawarptech.com') {
+                status.innerHTML += `<div class="status success">Running on production domain</div>`;
+            } else {
+                status.innerHTML += `<div class="status info">Running on: ${window.location.hostname}</div>`;
+            }
+            
+            // Check HTTPS
+            if (window.location.protocol === 'https:') {
+                status.innerHTML += `<div class="status success">HTTPS enabled ✅</div>`;
+            } else {
+                status.innerHTML += `<div class="status warning">Not using HTTPS ⚠️</div>`;
+            }
+            
+            // Check Stripe.js
+            if (typeof Stripe !== 'undefined') {
+                status.innerHTML += `<div class="status success">Stripe.js loaded ✅</div>`;
+            } else {
+                status.innerHTML += `<div class="status error">Stripe.js not loaded ❌</div>`;
+            }
+        }
+
+        // Run system check on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSystemStatus();
+        });
+    </script>
+</body>
+</html>

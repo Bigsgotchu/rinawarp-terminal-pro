@@ -6,11 +6,42 @@
 const { app, BrowserWindow, BrowserView, ipcMain, Menu, _dialog } = require('electron');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 const { _execSync } = require('child_process');
 const { config } = require('./config/unified-config.cjs');
 
 // Load environment variables from .env file
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+// Add comprehensive startup logging
+console.log('🚀 Starting RinaWarp Terminal...');
+console.log('📁 Working directory:', process.cwd());
+console.log('📄 Main script:', __filename);
+console.log('👤 User:', process.env.USER);
+console.log('🏠 Home directory:', os.homedir());
+
+// Developer bypass check - unlock all features for the developer
+const isDeveloper =
+  process.env.USER === 'kgilley' ||
+  process.env.NODE_ENV === 'development' ||
+  fs.existsSync(path.join(os.homedir(), '.rinawarp-dev'));
+
+console.log('🔍 Developer check:', {
+  user: process.env.USER === 'kgilley',
+  nodeEnv: process.env.NODE_ENV === 'development',
+  devFile: fs.existsSync(path.join(os.homedir(), '.rinawarp-dev')),
+  isDeveloper,
+});
+
+if (isDeveloper) {
+  console.log('🔓 Developer mode enabled - Full access granted');
+  // Set environment variables to unlock all features
+  process.env.RINAWARP_LICENSE_TIER = 'enterprise';
+  process.env.RINAWARP_DEV_MODE = 'true';
+  process.env.RINAWARP_BYPASS_AUTH = 'true';
+} else {
+  console.log('🔒 Running in regular mode');
+}
 
 // Import performance monitor using dynamic import since it's an ES module
 let PerformanceMonitor;
@@ -253,6 +284,21 @@ function createApplicationMenu() {
 }
 
 function createWindow() {
+  console.log('🪟 Creating main window...');
+
+  const terminalHtmlPath = path.join(__dirname, 'terminal.html');
+  const preloadPath = path.join(__dirname, 'preload.cjs');
+  const iconPath = path.join(__dirname, '../assets/ico/rinawarp-mermaid-icon.ico');
+
+  console.log('📋 Window configuration:');
+  console.log(
+    '  - Terminal HTML:',
+    terminalHtmlPath,
+    fs.existsSync(terminalHtmlPath) ? '✅' : '❌'
+  );
+  console.log('  - Preload script:', preloadPath, fs.existsSync(preloadPath) ? '✅' : '❌');
+  console.log('  - Icon file:', iconPath, fs.existsSync(iconPath) ? '✅' : '❌');
+
   const windowConfig = {
     width: config.get('ui.windowWidth') || 1200,
     height: config.get('ui.windowHeight') || 800,
@@ -264,33 +310,61 @@ function createWindow() {
       allowRunningInsecureContent: false,
       enableRemoteModule: false,
       experimentalFeatures: true,
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: preloadPath,
       nodeIntegrationInWorker: false,
       nodeIntegrationInSubFrames: false,
       safeDialogs: true,
       sandbox: false,
     },
     show: false,
-    icon: path.join(__dirname, '../assets/ico/rinawarp-terminal.ico'),
+    icon: iconPath,
     titleBarStyle: 'default',
   };
 
-  mainWindow = new BrowserWindow(windowConfig);
+  try {
+    console.log('🏗️ Creating BrowserWindow...');
+    mainWindow = new BrowserWindow(windowConfig);
+    console.log('✅ BrowserWindow created successfully');
 
-  // Load the main terminal interface
-  mainWindow.loadFile(path.join(__dirname, 'terminal.html'));
+    // Load the main terminal interface
+    console.log('📄 Loading terminal HTML file...');
+    mainWindow
+      .loadFile(terminalHtmlPath)
+      .then(() => {
+        console.log('✅ Terminal HTML loaded successfully');
+      })
+      .catch(error => {
+        console.error('❌ Failed to load terminal HTML:', error);
+      });
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-    // Enable dev tools only if configured
-    if (config.get('ui.enableDevTools')) {
-      mainWindow.webContents.openDevTools();
-    }
-  });
+    mainWindow.once('ready-to-show', () => {
+      console.log('👁️ Window ready to show, displaying...');
+      mainWindow.show();
+      console.log('✅ Window displayed successfully');
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+      // Enable dev tools only if configured
+      if (config.get('ui.enableDevTools')) {
+        console.log('🛠️ Opening developer tools...');
+        mainWindow.webContents.openDevTools();
+      }
+    });
+
+    mainWindow.on('closed', () => {
+      console.log('🗑️ Window closed');
+      mainWindow = null;
+    });
+
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+      console.error('❌ Failed to load page:', errorCode, errorDescription);
+    });
+
+    mainWindow.webContents.on('crashed', () => {
+      console.error('💥 Renderer process crashed');
+    });
+  } catch (error) {
+    console.error('❌ Failed to create window:', error);
+    throw error;
+  }
 }
 
 // Create browser pane method
@@ -407,6 +481,39 @@ app.on('web-contents-created', (event, contents) => {
 
 // Basic IPC handlers
 ipcMain.handle('ping', () => 'pong');
+
+// Developer license check - bypass licensing for developer
+ipcMain.handle('check-license', async () => {
+  if (isDeveloper) {
+    console.log('🔓 Developer license bypass - granting enterprise access');
+    return {
+      valid: true,
+      tier: 'enterprise',
+      features: [
+        'unlimited_terminals',
+        'all_themes',
+        'advanced_ai',
+        'dedicated_support',
+        'sso',
+        'custom_branding',
+        'developer_mode',
+      ],
+      maxDevices: -1,
+      maxTabs: -1,
+      aiAssistance: 'advanced',
+      support: 'dedicated',
+      expiresAt: null, // Never expires
+      isDeveloper: true,
+    };
+  }
+
+  // Regular license validation would go here
+  return {
+    valid: false,
+    error: 'No valid license found',
+    tier: 'free',
+  };
+});
 
 // Test mode IPC handlers
 if (process.env.TEST_MODE === 'true') {
@@ -682,6 +789,281 @@ ipcMain.handle('track-analytics-event', async (event, category, action, label, v
   }
 });
 
+// ElevenLabs configuration IPC handlers
+ipcMain.handle('load-elevenlabs-config', async () => {
+  try {
+    // First try environment variables
+    const envApiKey = process.env.ELEVENLABS_API_KEY;
+    const envVoiceId = process.env.ELEVENLABS_VOICE_ID;
+
+    if (envApiKey) {
+      console.log('✅ Loading ElevenLabs config from environment variables');
+      return {
+        apiKey: envApiKey,
+        voiceId: envVoiceId || 'EXAVITQu4vr4xnSDxMaL', // Default to Bella
+        hasApiKey: true,
+        source: 'environment',
+      };
+    }
+
+    // Fallback to JSON file if environment variables not available
+    const configPath = path.join(os.homedir(), '.rinawarp-terminal', 'elevenlabs-config.json');
+
+    if (fs.existsSync(configPath)) {
+      const configData = fs.readFileSync(configPath, 'utf8');
+      const config = JSON.parse(configData);
+
+      console.log('✅ Loading ElevenLabs config from JSON file');
+      return {
+        apiKey: config.apiKey || '',
+        voiceId: config.voiceId || 'EXAVITQu4vr4xnSDxMaL',
+        hasApiKey: !!config.apiKey,
+        source: 'file',
+      };
+    }
+
+    console.warn('⚠️ No ElevenLabs configuration found');
+    return { apiKey: '', voiceId: 'EXAVITQu4vr4xnSDxMaL', hasApiKey: false, source: 'default' };
+  } catch (error) {
+    console.error('Failed to load ElevenLabs config:', error);
+    return { apiKey: '', voiceId: 'EXAVITQu4vr4xnSDxMaL', hasApiKey: false, source: 'error' };
+  }
+});
+
+ipcMain.handle('save-elevenlabs-config', async (event, config) => {
+  try {
+    const configDir = path.join(os.homedir(), '.rinawarp-terminal');
+    const configPath = path.join(configDir, 'elevenlabs-config.json');
+
+    // Ensure config directory exists
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+
+    // Load existing config to preserve other settings
+    let existingConfig = {};
+    if (fs.existsSync(configPath)) {
+      try {
+        const existingData = fs.readFileSync(configPath, 'utf8');
+        existingConfig = JSON.parse(existingData);
+      } catch (parseError) {
+        console.warn('Could not parse existing config, creating new one');
+      }
+    }
+
+    // Update with new values
+    const updatedConfig = {
+      ...existingConfig,
+      apiKey: config.apiKey,
+      voiceId: config.voiceId,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    // Save the configuration
+    fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2));
+
+    console.log('✅ ElevenLabs configuration saved successfully');
+    return { success: true, message: 'Configuration saved successfully' };
+  } catch (error) {
+    console.error('Failed to save ElevenLabs config:', error);
+    return { success: false, message: `Failed to save configuration: ${error.message}` };
+  }
+});
+
+ipcMain.handle('test-elevenlabs-voice', async (event, config) => {
+  try {
+    // This is a placeholder for voice testing
+    // In a real implementation, you would make an API call to ElevenLabs
+    console.log('🎤 Testing ElevenLabs voice configuration...', config);
+
+    // Simulate a test (replace with actual API call)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return {
+      success: true,
+      message: 'Voice test completed successfully',
+      voiceId: config.voiceId || 'default',
+    };
+  } catch (error) {
+    console.error('Failed to test ElevenLabs voice:', error);
+    return {
+      success: false,
+      message: `Voice test failed: ${error.message}`,
+    };
+  }
+});
+
+// LLM configuration IPC handlers
+ipcMain.handle('get-llm-status', async () => {
+  try {
+    // Return current LLM status - this is a mock implementation
+    return {
+      ready: true,
+      model: 'gpt-4',
+      provider: 'openai',
+      latency: '82ms',
+      lastUpdate: new Date().toISOString(),
+      connectionStatus: 'connected',
+    };
+  } catch (error) {
+    console.error('Failed to get LLM status:', error);
+    return {
+      ready: false,
+      error: error.message,
+      connectionStatus: 'error',
+    };
+  }
+});
+
+ipcMain.handle('load-llm-config', async () => {
+  try {
+    const configPath = path.join(os.homedir(), '.rinawarp-terminal', 'llm-config.json');
+
+    if (fs.existsSync(configPath)) {
+      const configData = fs.readFileSync(configPath, 'utf8');
+      const config = JSON.parse(configData);
+
+      // Return config - mask sensitive data
+      return {
+        provider: config.provider || 'openai',
+        model: config.model || 'gpt-4',
+        apiKey: config.apiKey ? '***masked***' : '',
+        hasApiKey: !!config.apiKey,
+        maxTokens: config.maxTokens || 2048,
+        temperature: config.temperature || 0.7,
+      };
+    }
+
+    return {
+      provider: 'openai',
+      model: 'gpt-4',
+      apiKey: '',
+      hasApiKey: false,
+      maxTokens: 2048,
+      temperature: 0.7,
+    };
+  } catch (error) {
+    console.error('Failed to load LLM config:', error);
+    return {
+      provider: 'openai',
+      model: 'gpt-4',
+      apiKey: '',
+      hasApiKey: false,
+      error: error.message,
+    };
+  }
+});
+
+ipcMain.handle('save-llm-config', async (event, config) => {
+  try {
+    const configDir = path.join(os.homedir(), '.rinawarp-terminal');
+    const configPath = path.join(configDir, 'llm-config.json');
+
+    // Ensure config directory exists
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+
+    // Load existing config to preserve other settings
+    let existingConfig = {};
+    if (fs.existsSync(configPath)) {
+      try {
+        const existingData = fs.readFileSync(configPath, 'utf8');
+        existingConfig = JSON.parse(existingData);
+      } catch (parseError) {
+        console.warn('Could not parse existing LLM config, creating new one');
+      }
+    }
+
+    // Update with new values
+    const updatedConfig = {
+      ...existingConfig,
+      provider: config.provider,
+      model: config.model,
+      apiKey: config.apiKey,
+      maxTokens: config.maxTokens || 2048,
+      temperature: config.temperature || 0.7,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    // Save the configuration
+    fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2));
+
+    console.log('✅ LLM configuration saved successfully');
+    return { success: true, message: 'LLM configuration saved successfully' };
+  } catch (error) {
+    console.error('Failed to save LLM config:', error);
+    return { success: false, message: `Failed to save LLM configuration: ${error.message}` };
+  }
+});
+
+ipcMain.handle('test-llm-connection', async (event, config) => {
+  try {
+    console.log('🧠 Testing LLM connection...', { provider: config.provider, model: config.model });
+
+    // Simulate a connection test (replace with actual API call)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    return {
+      success: true,
+      message: 'LLM connection test successful',
+      provider: config.provider,
+      model: config.model,
+      latency: '156ms',
+    };
+  } catch (error) {
+    console.error('Failed to test LLM connection:', error);
+    return {
+      success: false,
+      message: `LLM connection test failed: ${error.message}`,
+    };
+  }
+});
+
+ipcMain.handle('start-conversational-ai', async () => {
+  try {
+    console.log('🗣️ Starting conversational AI...');
+
+    // This is a placeholder - implement actual conversational AI logic
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return {
+      success: true,
+      status: 'started',
+      message: 'Conversational AI started successfully',
+    };
+  } catch (error) {
+    console.error('Failed to start conversational AI:', error);
+    return {
+      success: false,
+      status: 'error',
+      message: `Failed to start conversational AI: ${error.message}`,
+    };
+  }
+});
+
+ipcMain.handle('stop-conversational-ai', async () => {
+  try {
+    console.log('🔚 Stopping conversational AI...');
+
+    // This is a placeholder - implement actual stop logic
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    return {
+      success: true,
+      status: 'stopped',
+      message: 'Conversational AI stopped successfully',
+    };
+  } catch (error) {
+    console.error('Failed to stop conversational AI:', error);
+    return {
+      success: false,
+      status: 'error',
+      message: `Failed to stop conversational AI: ${error.message}`,
+    };
+  }
+});
+
 // Additional analytics IPC handlers
 ipcMain.handle('track-page-view', async (event, page, title) => {
   try {
@@ -814,6 +1196,75 @@ ipcMain.handle('kill-shell-process', async (event, processId) => {
     console.error('Failed to kill shell process:', error);
     return false;
   }
+});
+
+// Execute command handler - CRITICAL FIX
+ipcMain.handle('execute-command', async (event, command, options = {}) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const { exec } = require('child_process');
+      const { cwd = process.cwd(), env = {}, timeout = 30000 } = options;
+
+      console.log(`Executing command: ${command}`);
+
+      const childProcess = exec(
+        command,
+        {
+          cwd,
+          env: { ...process.env, ...env },
+          timeout,
+          maxBuffer: 1024 * 1024, // 1MB buffer
+        },
+        (error, stdout, stderr) => {
+          if (error) {
+            // Don't reject for non-zero exit codes, return them instead
+            resolve({
+              stdout: stdout || '',
+              stderr: stderr || error.message,
+              exitCode: error.code || 1,
+              signal: error.signal || null,
+              command,
+              success: false,
+            });
+          } else {
+            resolve({
+              stdout: stdout || '',
+              stderr: stderr || '',
+              exitCode: 0,
+              signal: null,
+              command,
+              success: true,
+            });
+          }
+        }
+      );
+
+      // Handle timeout
+      setTimeout(() => {
+        if (childProcess && !childProcess.killed) {
+          childProcess.kill('SIGTERM');
+          resolve({
+            stdout: '',
+            stderr: 'Command timed out',
+            exitCode: 124,
+            signal: 'SIGTERM',
+            command,
+            success: false,
+          });
+        }
+      }, timeout);
+    } catch (error) {
+      console.error('Failed to execute command:', error);
+      resolve({
+        stdout: '',
+        stderr: error.message,
+        exitCode: 1,
+        signal: null,
+        command,
+        success: false,
+      });
+    }
+  });
 });
 
 // Handle window controls

@@ -15,9 +15,19 @@ const rl = readline.createInterface({
 });
 
 // Simple encryption for the API key
-function encrypt(text, password = 'rinawarp-terminal-2025') {
+function encrypt(text) {
   const algorithm = 'aes-256-cbc';
-  const key = crypto.scryptSync(password, 'salt', 32);
+  // Use environment variable or generate a secure key
+  const password = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+
+  // If no encryption key is set, warn the user
+  if (!process.env.ENCRYPTION_KEY) {
+    console.warn('⚠️  Warning: ENCRYPTION_KEY not set in environment. Using a random key.');
+    console.warn('   Set ENCRYPTION_KEY in your .env file for persistent encryption.');
+  }
+
+  const salt = process.env.ENCRYPTION_SALT || 'rinawarp-salt-' + Date.now();
+  const key = crypto.scryptSync(password, salt, 32);
   const iv = crypto.randomBytes(16);
 
   const cipher = crypto.createCipheriv(algorithm, key, iv);

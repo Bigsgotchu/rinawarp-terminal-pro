@@ -1,6 +1,6 @@
 {
   "name": "rinawarp-terminal",
-  "version": "1.1.0",
+  "version": "1.1.0-beta.1",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
   "main": "src/main.cjs",
   "type": "module",
@@ -10,7 +10,7 @@
     "copyright": "Copyright © 2025 Rinawarp Technologies, LLC",
     "directories": {
       "output": "dist",
-      "buildResources": "assets"
+      "buildResources": "build"
     },
     "files": [
       "src/**/*",
@@ -66,32 +66,32 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "notarize": false,
-      "signIgnore": "(.*)",
-      "dmg": {
-        "title": "${productName} ${version}",
-        "icon": "assets/icns/rinawarp-mermaid-icon.icns",
-        "background": "public/dmg-assets/dmg-background.png",
-        "contents": [
-          {
-            "x": 150,
-            "y": 200,
-            "type": "file"
-          },
-          {
-            "x": 400,
-            "y": 200,
-            "type": "link",
-            "path": "/Applications"
-          }
-        ],
-        "window": {
-          "width": 600,
-          "height": 400
+      "signIgnore": "(.*)"
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "icon": "assets/icns/rinawarp-mermaid-icon.icns",
+      "background": "public/dmg-assets/dmg-background.png",
+      "contents": [
+        {
+          "x": 150,
+          "y": 200,
+          "type": "file"
         },
-        "iconSize": 100,
-        "iconTextSize": 12,
-        "artifactName": "RinaWarp-Terminal-macOS.dmg"
-      }
+        {
+          "x": 400,
+          "y": 200,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 600,
+        "height": 400
+      },
+      "iconSize": 100,
+      "iconTextSize": 12,
+      "artifactName": "RinaWarp-Terminal-macOS.dmg"
     },
     "linux": {
       "target": [
@@ -108,7 +108,7 @@
           ]
         }
       ],
-      "icon": "assets/png/icon-512.png",
+      "icon": "assets/mermaid-icons/app/rinawarp-mermaid-512.png",
       "category": "Development"
     },
     "publish": [
@@ -185,7 +185,11 @@
     "testimonials:pending": "node scripts/testimonial-manager.cjs list-pending",
     "testimonials:approve": "node scripts/testimonial-manager.cjs approve",
     "testimonials:generate": "node scripts/testimonial-manager.cjs generate",
-    "testimonials:stats": "node scripts/testimonial-manager.cjs stats"
+    "testimonials:stats": "node scripts/testimonial-manager.cjs stats",
+    "generate-keys": "node scripts/generate-encryption-keys.js",
+    "scan-secrets": "node scripts/scan-secrets.js",
+    "security:scan": "node scripts/scan-secrets.js",
+    "security:setup": "node scripts/generate-encryption-keys.js"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
@@ -225,6 +229,7 @@
     "core-js": "3.44.0",
     "css-loader": "7.1.2",
     "css-minimizer-webpack-plugin": "7.0.2",
+    "dmg-license": "1.0.11",
     "electron": "37.2.3",
     "electron-builder": "26.0.12",
     "eslint": "9.31.0",
@@ -277,6 +282,7 @@
     ]
   },
   "betaFeatures": {
+    "elevenLabs": true,
     "aiProviders": true,
     "experimentalUI": true
   }

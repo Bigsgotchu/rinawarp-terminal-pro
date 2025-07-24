@@ -488,8 +488,14 @@ Keep the response under 200 words and focus on actionable advice.`;
   getSystemStatus() {
     return {
       ...this.systemState,
-      llmStatus: this.llmClient ? this.llmClient.getStatus() : null,
-      learningStatus: this.learningEngine ? this.learningEngine.getStatus() : null,
+      llmStatus:
+        this.llmClient && typeof this.llmClient.getStatus === 'function'
+          ? this.llmClient.getStatus()
+          : null,
+      learningStatus:
+        this.learningEngine && typeof this.learningEngine.getStatus === 'function'
+          ? this.learningEngine.getStatus()
+          : null,
       queueLength: this.requestQueue.length,
     };
   }
