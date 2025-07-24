@@ -1,40 +1,30 @@
-name: 🐛 Debug Workflow Test
+name: 🧪 Debug Test Workflow
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
 
 env:
   ACTIONS_RUNNER_DEBUG: true
+  ACTIONS_STEP_DEBUG: true
 
 jobs:
   debug:
-    name: 🔍 Debug GitHub Actions
+    name: 🔍 Debug Job
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    
+
     steps:
-      - name: 📋 Basic Info
-        run: |
-          echo "🌊 RinaWarp Terminal - GitHub Actions Debug Test"
-          echo "📅 Date: $(date)"
-          echo "🔧 Runner OS: ${{ runner.os }}"
-          echo "📱 Event: ${{ github.event_name }}"
-          echo "🌿 Branch: ${{ github.ref }}"
-          echo "📦 Repository: ${{ github.repository }}"
-          
-      - name: 📦 Checkout Repository
+      - name: 📦 Checkout code
         uses: actions/checkout@v4
-        
-      - name: 🧪 Simple Test
+
+      - name: 🧾 Print environment info
         run: |
-          echo "✅ Checkout successful"
-          echo "📁 Current directory: $(pwd)"
-          echo "📄 Files in root:"
-          ls -la | head -10
-          
-      - name: 🎯 Success
-        run: |
-          echo "🎉 GitHub Actions is working!"
-          echo "✅ This workflow completed successfully"
+          echo "🔧 Node version: $(node -v)"
+          echo "📦 NPM version: $(npm -v)"
+          echo "🌍 Working Directory: $(pwd)"
+          echo "📁 Repo Files:"
+          ls -la
+
+      - name: ✅ Workflow running correctly
+        run: echo "🎉 This workflow ran successfully!"
