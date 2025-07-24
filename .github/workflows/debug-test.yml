@@ -1,9 +1,9 @@
-name: 🧪 Debug Test Workflow
+name: Debug Test Workflow
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches: [ main ]
+  workflow_dispatch:
 
 env:
   ACTIONS_RUNNER_DEBUG: true
@@ -11,20 +11,20 @@ env:
 
 jobs:
   debug:
-    name: 🔍 Debug Job
+    name: Debug Job
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📦 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🧾 Print environment info
+      - name: Print environment info
         run: |
-          echo "🔧 Node version: $(node -v)"
-          echo "📦 NPM version: $(npm -v)"
-          echo "🌍 Working Directory: $(pwd)"
-          echo "📁 Repo Files:"
+          echo "Node version: $(node -v)"
+          echo "NPM version: $(npm -v)"
+          echo "Working Directory: $(pwd)"
+          echo "Repo Files:"
           ls -la
 
-      - name: ✅ Workflow running correctly
-        run: echo "🎉 This workflow ran successfully!"
+      - name: Workflow running correctly
+        run: echo "This workflow ran successfully!"
