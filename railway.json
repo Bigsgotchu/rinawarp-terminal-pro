@@ -4,10 +4,14 @@
     "builder": "nixpacks"
   },
   "deploy": {
-    "startCommand": "node server.js",
+    "startCommand": "npm run server",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "on_failure",
     "restartPolicyMaxRetries": 10
+  },
+  "variables": {
+    "NODE_ENV": "production",
+    "PORT": "$PORT"
   }
 }

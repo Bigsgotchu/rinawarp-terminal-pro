@@ -19,11 +19,9 @@ try {
     path.join(__dirname, '../src/config/beta-config.json')
   );
 
-  // Build for all platforms (skip tests for beta)
+  // Build for all platforms
   console.log('🔨 Building for all platforms...');
-  console.log('⏭️  Skipping tests for beta build (known issues)...');
-  execSync('npm run copy-assets', { stdio: 'inherit' });
-  execSync('electron-builder --win --mac --linux', { stdio: 'inherit' });
+  execSync('npm run build:all', { stdio: 'inherit' });
 
   // Tag builds as beta
   console.log('🏷️  Tagging builds as beta...');
