@@ -33,12 +33,44 @@ console.log('🚀 Starting RinaWarp Terminal Server v1.0.8...');
 config();
 console.log('✅ Environment variables loaded');
 
+// RinaWarp Environment Validator
+const requiredKeys = ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_ID'];
+const recommendedKeys = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'SENDGRID_API_KEY'];
+const missing = requiredKeys.filter(k => !process.env[k] || process.env[k] === `{{${k}}}`);
+const missingRecommended = recommendedKeys.filter(
+  k => !process.env[k] || process.env[k] === `{{${k}}}`
+);
+
+if (missing.length && process.env.NODE_ENV === 'production') {
+  console.error(`❌ Missing critical environment variables: ${missing.join(', ')}`);
+  // Don't exit in production, but log the issue
+  console.log('⚠️ Server will continue but some features may not work');
+} else if (missing.length) {
+  console.log(`⚠️ Development mode: Missing environment keys: ${missing.join(', ')}`);
+}
+
+if (missingRecommended.length) {
+  console.log(
+    `💡 Optional features disabled due to missing keys: ${missingRecommended.join(', ')}`
+  );
+}
+
+console.log('🧠 RinaWarp Environment Status:');
+console.log(
+  `   Required keys: ${requiredKeys.length - missing.length}/${requiredKeys.length} configured`
+);
+console.log(
+  `   Optional keys: ${recommendedKeys.length - missingRecommended.length}/${recommendedKeys.length} configured`
+);
+
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import rateLimit from 'express-rate-limit';
 import nodemailer from 'nodemailer';
+
+// Dynamic import for CommonJS package
+const { default: rateLimit } = await import('express-rate-limit');
 import Stripe from 'stripe';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -114,6 +146,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Configure Express to trust Railway proxy for X-Forwarded-For headers
+// Railway uses reverse proxies, so we need to trust the first proxy
+app.set('trust proxy', 1);
+
 console.log('🔍 Startup Debug Info:');
 console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
 console.log('PORT environment variable:', process.env.PORT);
@@ -167,30 +203,53 @@ const _ALLOWED_STATIC_DIRS = ['styles', 'js', 'images', 'assets', 'themes', 'rel
 const _PUBLIC_DIR = path.join(__dirname, 'public');
 const _RELEASES_DIR = path.join(__dirname, 'releases');
 
-// Enhanced logging middleware
+// Enhanced logging middleware with proxy trust verification
 function logRequest(req, res, next) {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.url} - IP: ${req.ip}`);
+  const clientIp = req.ip;
+  const xForwardedFor = req.get('X-Forwarded-For');
+  const realIp = req.get('X-Real-IP');
+
+  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  console.log(`  - Client IP: ${clientIp}`);
+  if (xForwardedFor) console.log(`  - X-Forwarded-For: ${xForwardedFor}`);
+  if (realIp) console.log(`  - X-Real-IP: ${realIp}`);
+  console.log(`  - Trust Proxy: ${req.app.get('trust proxy')}`);
+
   next();
 }
 
-// Configure CORS to allow requests from Vercel frontend
+// Configure CORS to allow requests from frontend domains
 const corsOptions = {
-  origin: [
-    'https://rinawarptech.com',
-    'https://www.rinawarptech.com',
-    'http://localhost:3000',
-    'http://localhost:8080',
-    'http://127.0.0.1:8080',
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      'https://rinawarptech.com',
+      'https://www.rinawarptech.com',
+      'http://localhost:3000',
+      'http://localhost:8080',
+      'http://127.0.0.1:8080',
+    ];
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`❌ CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'stripe-signature'],
+  exposedHeaders: ['Content-Length', 'X-Requested-With'],
 };
 
-// Apply CORS middleware
+// Apply CORS middleware BEFORE helmet to ensure proper header handling
 app.use(cors(corsOptions));
+console.log('✅ CORS middleware configured');
 
 // Domain redirect removed - handled by Vercel configuration
 // app.use((req, res, next) => {
@@ -206,21 +265,21 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ['\'self\''],
-        scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\'', 'https://js.stripe.com'],
-        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
-        imgSrc: ['\'self\'', 'data:', 'https:'],
-        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
-        connectSrc: ['\'self\'', 'wss:', 'ws:', 'https://api.stripe.com'],
-        objectSrc: ['\'none\''],
-        baseUri: ['\'self\''],
-        frameSrc: ['\'none\''],
-        formAction: ['\'self\''],
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://js.stripe.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
+        connectSrc: ["'self'", 'wss:', 'ws:', 'https://api.stripe.com'],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameSrc: ["'none'"],
+        formAction: ["'self'"],
       },
     },
     crossOriginEmbedderPolicy: false, // Allow embedding for terminal functionality
     crossOriginOpenerPolicy: { policy: 'same-origin' },
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginResourcePolicy: false, // Disable to allow CORS to handle properly
     dnsPrefetchControl: { allow: false },
     frameguard: { action: 'deny' },
     hidePoweredBy: true,
@@ -592,13 +651,13 @@ app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
     prices: {
       personal: process.env.STRIPE_PRICE_PERSONAL?.trim(),
       professional: process.env.STRIPE_PRICE_PROFESSIONAL?.trim(),
-      team: process.env.STRIPE_PRICE_TEAM?.trim()
+      team: process.env.STRIPE_PRICE_TEAM?.trim(),
     },
     betaPrices: {
       earlybird: process.env.STRIPE_PRICE_EARLYBIRD?.trim(),
       beta: process.env.STRIPE_PRICE_BETA?.trim(),
-      premium: process.env.STRIPE_PRICE_PREMIUM?.trim()
-    }
+      premium: process.env.STRIPE_PRICE_PREMIUM?.trim(),
+    },
   };
 
   // Validate that required config is present
@@ -699,6 +758,28 @@ app.get('/download.html', staticPageLimiter, (req, res) => {
   res.sendFile(safePath);
 });
 
+// Serve sales optimization page
+app.get('/sales', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('sales-optimization.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+
+// Serve sales optimization page with .html extension
+app.get('/sales-optimization.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('sales-optimization.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+
 // Release files are now served directly by Vercel static routing
 // No filesystem operations needed in serverless function
 
@@ -770,30 +851,30 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed': {
-    const session = event.data.object;
-    console.log('💰 Payment successful:', session.id);
-    handlePaymentSuccess(session);
-    break;
-  }
-  case 'customer.subscription.created':
-    console.log('🔄 Subscription created:', event.data.object.id);
-    handleSubscriptionCreated(event.data.object);
-    break;
-  case 'customer.subscription.updated':
-    console.log('🔄 Subscription updated:', event.data.object.id);
-    handleSubscriptionUpdated(event.data.object);
-    break;
-  case 'customer.subscription.deleted':
-    console.log('❌ Subscription cancelled:', event.data.object.id);
-    handleSubscriptionCancelled(event.data.object);
-    break;
-  case 'invoice.payment_succeeded':
-    console.log('💳 Invoice paid:', event.data.object.id);
-    handleInvoicePayment(event.data.object);
-    break;
-  default:
-    console.log(`Unhandled event type ${event.type}`);
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      console.log('💰 Payment successful:', session.id);
+      handlePaymentSuccess(session);
+      break;
+    }
+    case 'customer.subscription.created':
+      console.log('🔄 Subscription created:', event.data.object.id);
+      handleSubscriptionCreated(event.data.object);
+      break;
+    case 'customer.subscription.updated':
+      console.log('🔄 Subscription updated:', event.data.object.id);
+      handleSubscriptionUpdated(event.data.object);
+      break;
+    case 'customer.subscription.deleted':
+      console.log('❌ Subscription cancelled:', event.data.object.id);
+      handleSubscriptionCancelled(event.data.object);
+      break;
+    case 'invoice.payment_succeeded':
+      console.log('💳 Invoice paid:', event.data.object.id);
+      handleInvoicePayment(event.data.object);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -813,23 +894,23 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed':
-    const session = event.data.object;
-    console.log('Payment was successful!', session);
-    handlePaymentSuccess(session);
-    break;
-  case 'invoice.payment_succeeded':
-    const invoice = event.data.object;
-    console.log('Subscription payment succeeded:', invoice);
-    handleInvoicePayment(invoice);
-    break;
-  case 'customer.subscription.deleted':
-    const subscription = event.data.object;
-    console.log('Subscription cancelled:', subscription);
-    handleSubscriptionCancelled(subscription);
-    break;
-  default:
-    console.log(`Unhandled event type ${event.type}`);
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      console.log('Payment was successful!', session);
+      handlePaymentSuccess(session);
+      break;
+    case 'invoice.payment_succeeded':
+      const invoice = event.data.object;
+      console.log('Subscription payment succeeded:', invoice);
+      handleInvoicePayment(invoice);
+      break;
+    case 'customer.subscription.deleted':
+      const subscription = event.data.object;
+      console.log('Subscription cancelled:', subscription);
+      handleSubscriptionCancelled(subscription);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -1272,9 +1353,109 @@ app.get('/api/debug/env-check', (req, res) => {
       STRIPE_PRICE_PROFESSIONAL: process.env.STRIPE_PRICE_PROFESSIONAL?.trim(),
       STRIPE_PRICE_TEAM: process.env.STRIPE_PRICE_TEAM?.trim(),
       STRIPE_PRICE_BETA: process.env.STRIPE_PRICE_BETA?.trim(),
-      NODE_ENV: process.env.NODE_ENV
-    }
+      NODE_ENV: process.env.NODE_ENV,
+    },
   });
+});
+
+// Analytics tracking endpoints
+const analyticsData = new Map(); // In-memory storage for demo (use database in production)
+
+app.post('/api/analytics/batch', (req, res) => {
+  try {
+    const { sessionId, events, metadata } = req.body;
+
+    if (!sessionId || !events || !Array.isArray(events)) {
+      return res.status(400).json({ error: 'Invalid analytics data' });
+    }
+
+    // Store analytics data
+    if (!analyticsData.has(sessionId)) {
+      analyticsData.set(sessionId, {
+        sessionId,
+        metadata,
+        events: [],
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    const sessionData = analyticsData.get(sessionId);
+    sessionData.events.push(...events);
+    sessionData.lastUpdated = new Date().toISOString();
+
+    console.log(`📊 Analytics batch received: ${events.length} events for session ${sessionId}`);
+
+    // Log key conversion events
+    events.forEach(event => {
+      if (
+        ['checkout_initiated', 'purchase_completed', 'pricing_plan_selected'].includes(
+          event.eventName
+        )
+      ) {
+        console.log(`💰 Conversion Event: ${event.eventName}`, event);
+      }
+    });
+
+    res.json({
+      success: true,
+      processed: events.length,
+      sessionId,
+    });
+  } catch (error) {
+    console.error('Analytics error:', error);
+    res.status(500).json({ error: 'Failed to process analytics data' });
+  }
+});
+
+// Get analytics dashboard data
+app.get('/api/analytics/dashboard', (req, res) => {
+  try {
+    const sessions = Array.from(analyticsData.values());
+    const allEvents = sessions.flatMap(s => s.events);
+
+    const stats = {
+      totalSessions: sessions.length,
+      totalEvents: allEvents.length,
+      pageViews: allEvents.filter(e => e.eventName === 'page_view').length,
+      checkoutInitiated: allEvents.filter(e => e.eventName === 'checkout_initiated').length,
+      purchasesCompleted: allEvents.filter(e => e.eventName === 'purchase_completed').length,
+      pricingPlanSelections: allEvents.filter(e => e.eventName === 'pricing_plan_selected').length,
+    };
+
+    stats.conversionRate =
+      stats.pageViews > 0 ? ((stats.purchasesCompleted / stats.pageViews) * 100).toFixed(2) : 0;
+
+    stats.checkoutConversionRate =
+      stats.checkoutInitiated > 0
+        ? ((stats.purchasesCompleted / stats.checkoutInitiated) * 100).toFixed(2)
+        : 0;
+
+    // Popular plans
+    const planSelections = allEvents
+      .filter(e => e.eventName === 'pricing_plan_selected')
+      .reduce((acc, e) => {
+        const plan = e.plan || 'unknown';
+        acc[plan] = (acc[plan] || 0) + 1;
+        return acc;
+      }, {});
+
+    // Recent events (last 24 hours)
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const recentEvents = allEvents
+      .filter(e => e.timestamp > oneDayAgo)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 50);
+
+    res.json({
+      stats,
+      planSelections,
+      recentEvents,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    res.status(500).json({ error: 'Failed to get analytics data' });
+  }
 });
 
 // Stripe checkout session creation endpoint
