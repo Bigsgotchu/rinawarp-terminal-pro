@@ -99,6 +99,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ping: () => ipcRenderer.invoke('ping'),
   testPreloadAPIs: () => ipcRenderer.invoke('test-preload-apis'),
 
+  // Shell configuration
+  getShell: () => ipcRenderer.invoke('get-shell'),
+
+  // ElevenLabs configuration
+  loadElevenLabsConfig: () => ipcRenderer.invoke('load-elevenlabs-config'),
+  saveElevenLabsConfig: config => ipcRenderer.invoke('save-elevenlabs-config', config),
+  testElevenLabsVoice: config => ipcRenderer.invoke('test-elevenlabs-voice', config),
+
+  // LLM and AI functions
+  getLLMStatus: () => ipcRenderer.invoke('get-llm-status'),
+  startConversationalAI: () => ipcRenderer.invoke('start-conversational-ai'),
+  stopConversationalAI: () => ipcRenderer.invoke('stop-conversational-ai'),
+  saveLLMConfig: config => ipcRenderer.invoke('save-llm-config', config),
+  loadLLMConfig: () => ipcRenderer.invoke('load-llm-config'),
+  testLLMConnection: config => ipcRenderer.invoke('test-llm-connection', config),
+
   // Error triage system
   'error-triage-report': (error, context) =>
     ipcRenderer.invoke('error-triage-report', error, context),
@@ -196,6 +212,16 @@ contextBridge.exposeInMainWorld('processAPI', {
   platform: process.platform,
   arch: process.arch,
   versions: process.versions,
+});
+
+// Expose environment variables safely
+contextBridge.exposeInMainWorld('env', {
+  shell: process.env.SHELL || (process.platform === 'win32' ? 'pwsh.exe' : '/bin/bash'),
+  home: process.env.HOME || process.env.USERPROFILE,
+  user: process.env.USER || process.env.USERNAME,
+  path: process.env.PATH,
+  platform: process.platform,
+  nodeEnv: process.env.NODE_ENV,
 });
 
 // Expose OS module functions via IPC

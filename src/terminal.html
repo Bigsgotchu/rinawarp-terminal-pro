@@ -296,6 +296,9 @@
     <script src="../node_modules/@xterm/xterm/lib/xterm.js"></script>
     <script src="../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
     
+    <!-- Script deduplication system -->
+    <script src="script-loader.js"></script>
+    
     <!-- Error suppression for known harmless warnings -->
     <script src="error-suppression.js"></script>
     
@@ -311,7 +314,7 @@
     <script src="voice-recognition-advanced.js"></script>
     <script src="rina-personality-engine.js"></script>
     <script src="rina-dialogue-system.js"></script>
-    <script src="voice-enhancements/elevenlabs-agent-integration.js"></script>
+    <script src="agents/elevenlabs-agent-integration.js"></script>
     <script type="module" src="ai-services/llm-api-client.js"></script>
     <script type="module" src="ai-services/advanced-learning-engine.js"></script>
     <script type="module" src="ai-services/unified-ai-system.js"></script>
@@ -1279,18 +1282,48 @@
                 
                 updateStatus('🎤 Testing ElevenLabs voice...');
                 
-                // Test the voice configuration
-                // Note: Voice testing should be implemented through IPC
-                updateStatus('🎤 Voice test feature not yet implemented');
-                alert('Voice test feature coming soon!');
-                return;
+                // Check if electronAPI is available
+                if (!window.electronAPI) {
+                    updateStatus('❌ electronAPI not available');
+                    alert('❌ electronAPI not available');
+                    return;
+                }
                 
-                if (result.success) {
-                    updateStatus('✅ Voice test successful!');
-                    alert('✅ Voice test successful! The configuration is working.');
-                } else {
-                    updateStatus('❌ Voice test failed');
-                    alert('❌ Voice test failed: ' + (result.error || 'Unknown error'));
+                try {
+                    // Test via the main process
+                    const testResult = await window.electronAPI.testElevenLabsVoice({
+                        apiKey: apiKey,
+                        voiceId: voiceId || 'EXAVITQu4vr4xnSDxMaL'
+                    });
+                    
+                    if (testResult && testResult.success) {
+                        updateStatus('✅ Voice test successful!');
+                        alert(`✅ ${testResult.message || 'Voice test completed successfully'}\n\nVoice ID: ${testResult.voiceId || voiceId}`);
+                    } else {
+                        updateStatus('❌ Voice test failed');
+                        alert(`❌ ${testResult?.message || 'Voice test failed - please check your API key and try again'}`);
+                    }
+                } catch (ipcError) {
+                    console.warn('IPC test failed, trying fallback method:', ipcError);
+                    
+                    // Fallback: Initialize local agent if available
+                    if (window.ElevenLabsAgentIntegration && window.elevenLabsAgent) {
+                        await window.elevenLabsAgent.updateConfig(apiKey, voiceId);
+                        
+                        // Test the voice
+                        const testResult = await window.elevenLabsAgent.testVoice();
+                        
+                        if (testResult && testResult.success) {
+                            updateStatus('✅ Voice test successful!');
+                            alert(`✅ ${testResult.message}\n\nVoice ID: ${testResult.voiceId}`);
+                        } else {
+                            updateStatus('❌ Voice test failed');
+                            alert(`❌ ${testResult?.message || 'Voice test failed'}`);
+                        }
+                    } else {
+                        updateStatus('❌ ElevenLabs integration not available');
+                        alert('❌ ElevenLabs integration not available - please check your configuration');
+                    }
                 }
                 
             } catch (error) {
@@ -2171,12 +2204,13 @@
                         return;
                     }
                     
-                    // Initialize the agent
-                    elevenLabsAgent = new ElevenLabsAgentIntegration({
-                        apiKey: config.apiKey,
-                        agentId: 'agent_01k0q6eesye0ht7q1yr03tv5a8',
-                        voiceId: config.voiceId || 'EXAVITQu4vr4xnSDxMaL'
-                    });
+                    // Initialize the agent - use the global ElevenLabsAgentIntegration object
+                    if (window.ElevenLabsAgentIntegration) {
+                        elevenLabsAgent = window.ElevenLabsAgentIntegration;
+                        await elevenLabsAgent.updateConfig(config.apiKey, config.voiceId || 'EXAVITQu4vr4xnSDxMaL');
+                    } else {
+                        throw new Error('ElevenLabs Agent Integration not loaded');
+                    }
                     
                     // Set up event handlers
                     elevenLabsAgent.onTranscript = (text, speaker) => {

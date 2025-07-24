@@ -187,11 +187,7 @@ logs
 yarn.lock
 
 
-# Local Netlify folder
-.netlify
-
 # Large deployment archives
-netlify-deploy-*.zip
 *.exe
 # But allow public/releases/*.exe for web deployment
 !public/releases/*.exe

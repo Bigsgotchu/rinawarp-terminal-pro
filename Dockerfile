@@ -1,35 +1,27 @@
-FROM node:20
+FROM node:20-alpine
 
-# Verify we have the correct Node.js image
-RUN echo "=== Node.js Image Verification ===" && cat /etc/os-release && node -v && npm -v
+# Install python/make/g++ for node-gyp native dependencies
+RUN apk add --no-cache python3 make g++
 
 # Set environment variables
 ENV NODE_ENV=production
-# PORT will be set by Railway dynamically
-
-# Debug environment variables
-RUN echo "Environment variables set:" && echo "NODE_ENV=$NODE_ENV"
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package*.json ./
 
-RUN node -v && npm -v && which npm || echo "npm not found"
+# Remove prepare script if it exists
+RUN npm pkg delete scripts.prepare 2>/dev/null || true
 
-# Remove husky prepare script to avoid "husky: not found" error in production
-RUN npm pkg delete scripts.prepare
+# Install dependencies with modern syntax
+RUN npm ci --omit=dev --no-audit --no-fund || npm install --omit=dev --no-audit --no-fund
 
-# Install build tools for other native modules
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
-
-RUN npm install --omit=dev --no-audit --no-fund
-
-# Copy application code
+# Copy the rest of the app
 COPY . .
 
-# Expose the port (Railway typically uses 8080)
+# Use a static port here (Railway maps it automatically)
 EXPOSE 8080
 
-# Start the main server with all features
+# Start the app
 CMD ["node", "server.js"]
-# Force complete rebuild 07/04/2025 20:39:12 - Breaking Railway cache

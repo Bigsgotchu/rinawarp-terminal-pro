@@ -251,14 +251,14 @@ const corsOptions = {
 app.use(cors(corsOptions));
 console.log('✅ CORS middleware configured');
 
-// Domain redirect removed - handled by Vercel configuration
-// app.use((req, res, next) => {
-//   if (req.headers.host && req.headers.host.startsWith('www.')) {
-//     const newHost = req.headers.host.replace(/^www\./, '');
-//     return res.redirect(301, `https://${newHost}${req.originalUrl}`);
-//   }
-//   next();
-// });
+// Domain redirect - handle www subdomain redirect on Railway
+app.use((req, res, next) => {
+  if (req.headers.host && req.headers.host.startsWith('www.')) {
+    const newHost = req.headers.host.replace(/^www\./, '');
+    return res.redirect(301, `https://${newHost}${req.originalUrl}`);
+  }
+  next();
+});
 
 // Apply helmet security headers with comprehensive protection
 app.use(
@@ -307,6 +307,30 @@ app.use(
     },
   })
 );
+
+// WordPress scanner blocking middleware
+app.use((req, res, next) => {
+  const suspiciousPatterns = [
+    '/wp-admin',
+    '/wordpress',
+    '/wp-content',
+    '/wp-includes',
+    '.php',
+    '/xmlrpc.php',
+    '/wp-login.php',
+  ];
+
+  const isSuspicious = suspiciousPatterns.some(pattern =>
+    req.url.toLowerCase().includes(pattern.toLowerCase())
+  );
+
+  if (isSuspicious) {
+    console.log(`🚫 Blocked WordPress scanner attempt: ${req.method} ${req.url} from ${req.ip}`);
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  next();
+});
 
 // Apply custom logging middleware to all requests
 app.use(logRequest);
@@ -780,8 +804,7 @@ app.get('/sales-optimization.html', staticPageLimiter, (req, res) => {
   res.sendFile(safePath);
 });
 
-// Release files are now served directly by Vercel static routing
-// No filesystem operations needed in serverless function
+// Release files are served directly from the public/releases directory
 
 // General release files handler
 app.use('/releases', staticPageLimiter, (req, res, _next) => {
