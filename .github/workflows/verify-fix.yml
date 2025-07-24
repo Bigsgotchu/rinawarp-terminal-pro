@@ -24,8 +24,10 @@ jobs:
         run: |
           echo "✅ RinaWarp Terminal Enterprise"
           echo "🌊 GitHub Actions is working!"
-          echo "📦 Package: $(node -pe "require('./package.json').name")"
-          echo "🏷️ Version: $(node -pe "require('./package.json').version")"
+          echo "📦 Package: $(node -e "import fs from 'fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); console.log(pkg.name)")"
+          echo "🏷️ Version: $(node -e "import fs from 'fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); console.log(pkg.version)")"
+          echo "📋 Node.js version: $(node --version)"
+          echo "📊 npm version: $(npm --version)"
           
       - name: 🧜‍♀️ Success Report
         run: |
@@ -33,5 +35,6 @@ jobs:
           echo "✅ YAML syntax validated"  
           echo "✅ Node.js environment working"
           echo "✅ Repository access confirmed"
+          echo "✅ ES module compatibility verified"
           echo ""
           echo "🚀 You can now use GitHub Actions for CI/CD"

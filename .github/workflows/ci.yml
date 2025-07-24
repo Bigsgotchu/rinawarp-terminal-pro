@@ -63,7 +63,7 @@ jobs:
       - name: 📋 Validate Package
         run: |
           echo "✅ Package validation..."
-          node -e "console.log('Package:', require('./package.json').name, require('./package.json').version)"
+          node -e "import fs from 'fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); console.log('Package:', pkg.name, pkg.version)"
           ls -la src/ || echo "No src directory found"
           ls -la public/ || echo "No public directory found"
 
