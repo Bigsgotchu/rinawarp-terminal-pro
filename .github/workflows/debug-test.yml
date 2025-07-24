@@ -1,13 +1,9 @@
-name: Debug Test Workflow
+name: Debug Test
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
-env:
-  ACTIONS_RUNNER_DEBUG: true
-  ACTIONS_STEP_DEBUG: true
 
 jobs:
   debug:
@@ -15,12 +11,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Print environment info
+      - name: Debug Info
         run: |
-          echo "Node version: $(node -v)"
-          echo "NPM version: $(npm -v)"
-          echo "Working Directory: $(pwd)"
-          echo "Repo Files:"
+          echo "🔧 Node version: $(node -v)"
+          echo "📦 NPM version: $(npm -v)"
+          echo "🌍 Working Directory: $(pwd)"
+          echo "📁 Repo Files:"
           ls -la
-      - name: Test complete
-        run: echo "Debug workflow ran successfully!"
+      - name: Success
+        run: echo "🎉 Debug workflow completed successfully!"
+        env:
+          ACTIONS_RUNNER_DEBUG: true
+          ACTIONS_STEP_DEBUG: true
