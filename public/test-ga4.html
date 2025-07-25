@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA4 Tracking Test - RinaWarp Terminal</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-G424CV5GGT');
+    </script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { color: #fff; text-align: center; }
+        .test-button {
+            background: #ff1493;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover { background: #ff69b4; }
+        #results {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧜‍♀️ GA4 Tracking Test</h1>
+        <p>This page tests Google Analytics 4 tracking for RinaWarp Terminal.</p>
+        
+        <h2>🧪 Test Events</h2>
+        <button class="test-button" onclick="testPageView()">📄 Test Page View</button>
+        <button class="test-button" onclick="testCustomEvent()">⚡ Test Custom Event</button>
+        <button class="test-button" onclick="testPricingView()">💰 Test Pricing View</button>
+        <button class="test-button" onclick="testPlanSelect()">🎯 Test Plan Selection</button>
+        <button class="test-button" onclick="testCheckoutStart()">🛒 Test Checkout Start</button>
+        
+        <div id="results">
+            <h3>📊 Event Log:</h3>
+            <div id="event-log">Page loaded - GA4 initialized</div>
+        </div>
+
+        <h2>📋 GA4 Setup Checklist</h2>
+        <div style="text-align: left;">
+            <p><strong>Next Steps for GA4 Configuration:</strong></p>
+            <ol>
+                <li>Go to <a href="https://analytics.google.com" target="_blank" style="color: #00ffff;">Google Analytics 4</a></li>
+                <li>Navigate to <strong>Configure → Events</strong></li>
+                <li>Mark these events as conversions:
+                    <ul>
+                        <li>✅ <code>purchase</code></li>
+                        <li>✅ <code>subscribe</code></li>
+                        <li>✅ <code>begin_checkout</code></li>
+                        <li>✅ <code>pricing_plan_selected</code></li>
+                    </ul>
+                </li>
+                <li>Navigate to <strong>Configure → Audiences</strong></li>
+                <li>Create custom audiences:
+                    <ul>
+                        <li>📊 <strong>High-Value Prospects:</strong> Users who viewed pricing with session duration > 3 minutes</li>
+                        <li>🛒 <strong>Checkout Abandoners:</strong> Users who started checkout but didn't complete</li>
+                        <li>⭐ <strong>Feature Enthusiasts:</strong> Users with multiple feature interactions</li>
+                    </ul>
+                </li>
+                <li>Test real-time tracking in GA4 DebugView</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function logEvent(message) {
+            const log = document.getElementById('event-log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `<br>[${timestamp}] ${message}`;
+        }
+
+        function testPageView() {
+            gtag('event', 'page_view', {
+                page_title: 'GA4 Test Page',
+                page_location: window.location.href,
+                content_group1: 'Testing'
+            });
+            logEvent('✅ Page view event sent');
+        }
+
+        function testCustomEvent() {
+            gtag('event', 'test_interaction', {
+                event_category: 'Testing',
+                event_label: 'Manual Test',
+                value: 1
+            });
+            logEvent('✅ Custom test_interaction event sent');
+        }
+
+        function testPricingView() {
+            gtag('event', 'pricing_page_view', {
+                event_category: 'Pricing',
+                event_label: 'Test View',
+                content_group1: 'Pricing'
+            });
+            logEvent('✅ Pricing page view event sent');
+        }
+
+        function testPlanSelect() {
+            gtag('event', 'pricing_plan_selected', {
+                event_category: 'Pricing',
+                plan_type: 'professional',
+                plan_price: 29,
+                currency: 'USD',
+                value: 29
+            });
+            logEvent('✅ Plan selection event sent (Professional $29)');
+        }
+
+        function testCheckoutStart() {
+            gtag('event', 'begin_checkout', {
+                event_category: 'Ecommerce',
+                currency: 'USD',
+                value: 29,
+                items: [{
+                    item_id: 'professional_plan',
+                    item_name: 'RinaWarp Professional Plan',
+                    category: 'Software',
+                    quantity: 1,
+                    price: 29
+                }]
+            });
+            logEvent('✅ Begin checkout event sent');
+        }
+
+        // Auto-send a test event on page load
+        setTimeout(() => {
+            gtag('event', 'ga4_test_page_loaded', {
+                event_category: 'Testing',
+                event_label: 'Auto Test',
+                debug_mode: true
+            });
+            logEvent('🔄 Auto test event sent on page load');
+        }, 2000);
+    </script>
+</body>
+</html>
