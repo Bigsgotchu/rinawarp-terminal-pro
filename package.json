@@ -224,6 +224,7 @@
     "babel-jest": "30.0.4",
     "babel-loader": "10.0.0",
     "buffer": "6.0.3",
+    "chalk": "5.4.1",
     "clean-webpack-plugin": "4.0.0",
     "copy-webpack-plugin": "12.0.2",
     "core-js": "3.44.0",

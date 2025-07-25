@@ -28,6 +28,19 @@ class SMTPService {
       });
       console.log('✅ Real SMTP transporter configured');
       this.initialized = true;
+    } else if (process.env.SENDGRID_API_KEY) {
+      // SendGrid SMTP configuration
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp.sendgrid.net',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'apikey',
+          pass: process.env.SENDGRID_API_KEY,
+        },
+      });
+      console.log('✅ SendGrid SMTP transporter configured');
+      this.initialized = true;
     } else if (process.env.NODE_ENV === 'development') {
       // Mock transporter for development
       this.transporter = {
@@ -52,7 +65,9 @@ class SMTPService {
       console.log('✅ Mock SMTP transporter configured for development');
       this.initialized = true;
     } else {
-      console.log('⚠️ SMTP credentials not configured and not in development mode');
+      console.log(
+        '⚠️ No email service configured (neither SMTP nor SendGrid) and not in development mode'
+      );
       this.initialized = false;
     }
   }
@@ -65,13 +80,15 @@ class SMTPService {
     // Personalize the email
     const personalizedContent = this.personalizationEngine.personalizeEmail(recipient, template);
 
+    const fromEmail =
+      process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_FROM_EMAIL || 'noreply@rinawarp.com';
     const mailOptions = {
-      from: `RinaWarp Terminal <${process.env.SMTP_FROM_EMAIL || 'noreply@rinawarp.com'}>`,
+      from: `RinaWarp Terminal <${fromEmail}>`,
       to: recipient.email,
       subject: personalizedContent.subject,
       html: personalizedContent.content,
       // Optionally include a text version
-      text: personalizedContent.content.replace(/(<([^>]+)>)/gi, ''), // Strip HTML for text version
+      text: personalizedContent.content.replace(/(\<([^\>]+)\>)/gi, ''), // Strip HTML for text version
     };
 
     try {
@@ -99,10 +116,13 @@ class SMTPService {
       throw new Error('SMTP service not initialized');
     }
 
+    const fromEmail =
+      process.env.SENDGRID_FROM_EMAIL ||
+      process.env.SMTP_FROM_EMAIL ||
+      process.env.SMTP_USER ||
+      'noreply@rinawarp.com';
     const mailOptions = {
-      from:
-        options.from ||
-        `"RinaWarp Terminal" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@rinawarp.com'}>`,
+      from: options.from || `"RinaWarp Terminal" <${fromEmail}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
