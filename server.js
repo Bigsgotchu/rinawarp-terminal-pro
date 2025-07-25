@@ -313,11 +313,23 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", 'https://js.stripe.com', (req, res) => `'nonce-${res.locals.nonce}'`],
+        scriptSrc: [
+          "'self'",
+          'https://js.stripe.com',
+          'https://www.googletagmanager.com',
+          (req, res) => `'nonce-${res.locals.nonce}'`,
+        ],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         imgSrc: ["'self'", 'data:', 'https:'],
         fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
-        connectSrc: ["'self'", 'wss:', 'ws:', 'https://api.stripe.com'],
+        connectSrc: [
+          "'self'",
+          'wss:',
+          'ws:',
+          'https://api.stripe.com',
+          'https://www.google-analytics.com',
+          'https://analytics.google.com',
+        ],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
