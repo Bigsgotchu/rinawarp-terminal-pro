@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA4 & CSP Test - RinaWarp Terminal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        
+        .container {
+            background: rgba(42, 42, 42, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #00ff88;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #00d4aa;
+            border-bottom: 2px solid #00d4aa;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        
+        .test-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #00ff88;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-pass { background-color: #00ff88; }
+        .status-fail { background-color: #ff4757; }
+        .status-pending { background-color: #ffa502; }
+        
+        button {
+            background: linear-gradient(135deg, #00ff88, #00d4aa);
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .log-container {
+            background: #000;
+            color: #00ff88;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #333;
+        }
+        
+        .error-log {
+            color: #ff4757;
+        }
+        
+        .success-log {
+            color: #00ff88;
+        }
+        
+        .info-log {
+            color: #74b9ff;
+        }
+        
+        .test-result {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .test-pass {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+        }
+        
+        .test-fail {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid #ff4757;
+        }
+        
+        .checklist {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .checklist li:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            color: #00d4aa;
+            font-size: 18px;
+        }
+        
+        .checklist li.completed:before {
+            content: "☑";
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧜‍♀️ GA4 & CSP Diagnostic Tool</h1>
+        
+        <div class="test-section">
+            <h2>📊 Google Analytics 4 Status</h2>
+            <div id="ga4-status">
+                <div class="test-result">
+                    <span class="status-indicator status-pending"></span>
+                    <strong>GA4 Initialization:</strong> <span id="ga4-init-status">Checking...</span>
+                </div>
+                <div class="test-result">
+                    <span class="status-indicator status-pending"></span>
+                    <strong>GTM Script Loading:</strong> <span id="gtm-script-status">Checking...</span>
+                </div>
+                <div class="test-result">
+                    <span class="status-indicator status-pending"></span>
+                    <strong>DataLayer:</strong> <span id="datalayer-status">Checking...</span>
+                </div>
+                <div class="test-result">
+                    <span class="status-indicator status-pending"></span>
+                    <strong>GA4 Config:</strong> <span id="ga4-config-status">Checking...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔒 Content Security Policy Status</h2>
+            <div id="csp-status">
+                <div class="test-result">
+                    <span class="status-indicator status-pending"></span>
+                    <strong>CSP Header:</strong> <span id="csp-header-status">Checking...</span>
+                </div>
+                <div class="test-result">
+                    <span class="status-indicator status-pending"></span>
+                    <strong>Google Tag Manager Allowed:</strong> <span id="csp-gtm-status">Checking...</span>
+                </div>
+                <div class="test-result">
+                    <span class="status-indicator status-pending"></span>
+                    <strong>Google Analytics Connect:</strong> <span id="csp-ga-connect-status">Checking...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Manual GA4 Event Testing</h2>
+            <p>Use these buttons to manually test GA4 event tracking:</p>
+            
+            <button onclick="testPageView()">📄 Test Page View</button>
+            <button onclick="testCustomEvent()">⚡ Test Custom Event</button>
+            <button onclick="testPricingView()">💰 Test Pricing View</button>
+            <button onclick="testPlanSelection()">🎯 Test Plan Selection</button>
+            <button onclick="testCheckoutStart()">🛒 Test Checkout Start</button>
+            <button onclick="testError()">❌ Test Error Event</button>
+            
+            <div class="log-container" id="event-log">
+                <div class="info-log">[INFO] Event testing ready. Click buttons above to test GA4 events.</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 GA4 Setup Checklist</h2>
+            <div class="checklist">
+                <ul>
+                    <li id="checklist-property">Create GA4 Property (G-G424CV5GGT)</li>
+                    <li id="checklist-enhanced">Enable Enhanced Ecommerce</li>
+                    <li id="checklist-conversions">Mark key events as conversions</li>
+                    <li id="checklist-audiences">Create custom audiences</li>
+                    <li id="checklist-goals">Set up conversion goals</li>
+                    <li id="checklist-realtime">Verify real-time tracking</li>
+                    <li id="checklist-debugview">Test with DebugView</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 Debugging Information</h2>
+            <div class="log-container" id="debug-log">
+                <div class="info-log">[INFO] Debug information will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Tag Manager -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
+    <script>
+        // Initialize Google Analytics
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-G424CV5GGT', {
+            debug_mode: true, // Enable debug mode for testing
+            send_page_view: true
+        });
+
+        // Global variables for testing
+        let eventCounter = 0;
+        
+        // Logging functions
+        function logToConsole(type, message, data = null) {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] [${type.toUpperCase()}] ${message}`, data || '');
+            
+            // Also log to UI
+            const logContainer = document.getElementById('event-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = `${type}-log`;
+            logEntry.textContent = `[${timestamp.split('T')[1].split('.')[0]}] [${type.toUpperCase()}] ${message}`;
+            if (data) {
+                logEntry.textContent += ` ${JSON.stringify(data)}`;
+            }
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function logToDebug(message) {
+            const debugContainer = document.getElementById('debug-log');
+            const debugEntry = document.createElement('div');
+            debugEntry.className = 'info-log';
+            debugEntry.textContent = `[${new Date().toISOString().split('T')[1].split('.')[0]}] ${message}`;
+            debugContainer.appendChild(debugEntry);
+            debugContainer.scrollTop = debugContainer.scrollHeight;
+        }
+
+        // Status update functions
+        function updateStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            const indicator = element.previousElementSibling.querySelector('.status-indicator');
+            
+            element.textContent = message;
+            indicator.className = `status-indicator status-${status}`;
+        }
+
+        // Test functions
+        function testPageView() {
+            eventCounter++;
+            const eventData = {
+                page_title: 'GA4 Test Page',
+                page_location: window.location.href,
+                page_referrer: document.referrer,
+                event_id: `test_page_view_${eventCounter}`
+            };
+            
+            gtag('event', 'page_view', eventData);
+            logToConsole('success', 'Page view event sent', eventData);
+        }
+
+        function testCustomEvent() {
+            eventCounter++;
+            const eventData = {
+                event_category: 'test',
+                event_label: 'manual_test',
+                value: Math.floor(Math.random() * 100),
+                event_id: `test_custom_${eventCounter}`
+            };
+            
+            gtag('event', 'custom_test_event', eventData);
+            logToConsole('success', 'Custom event sent', eventData);
+        }
+
+        function testPricingView() {
+            eventCounter++;
+            const eventData = {
+                currency: 'USD',
+                value: 15.00,
+                items: [{
+                    item_id: 'rinawarp_personal',
+                    item_name: 'Personal Plan',
+                    item_category: 'subscription',
+                    price: 15.00,
+                    quantity: 1
+                }],
+                event_id: `test_pricing_${eventCounter}`
+            };
+            
+            gtag('event', 'view_item_list', eventData);
+            logToConsole('success', 'Pricing view event sent', eventData);
+        }
+
+        function testPlanSelection() {
+            eventCounter++;
+            const eventData = {
+                currency: 'USD',
+                value: 15.00,
+                items: [{
+                    item_id: 'rinawarp_personal',
+                    item_name: 'Personal Plan',
+                    item_category: 'subscription',
+                    price: 15.00,
+                    quantity: 1
+                }],
+                event_id: `test_select_${eventCounter}`
+            };
+            
+            gtag('event', 'select_item', eventData);
+            logToConsole('success', 'Plan selection event sent', eventData);
+        }
+
+        function testCheckoutStart() {
+            eventCounter++;
+            const eventData = {
+                currency: 'USD',
+                value: 15.00,
+                items: [{
+                    item_id: 'rinawarp_personal',
+                    item_name: 'Personal Plan',
+                    item_category: 'subscription',
+                    price: 15.00,
+                    quantity: 1
+                }],
+                coupon: 'TEST_COUPON',
+                event_id: `test_checkout_${eventCounter}`
+            };
+            
+            gtag('event', 'begin_checkout', eventData);
+            logToConsole('success', 'Checkout start event sent', eventData);
+        }
+
+        function testError() {
+            eventCounter++;
+            const eventData = {
+                description: 'Test error for GA4 tracking',
+                fatal: false,
+                error_type: 'test_error',
+                event_id: `test_error_${eventCounter}`
+            };
+            
+            gtag('event', 'exception', eventData);
+            logToConsole('error', 'Error event sent', eventData);
+        }
+
+        // Diagnostic functions
+        function checkGA4Status() {
+            // Check if gtag is loaded
+            if (typeof gtag !== 'undefined') {
+                updateStatus('ga4-init-status', 'pass', 'GA4 initialized successfully');
+                logToDebug('GA4 gtag function is available');
+            } else {
+                updateStatus('ga4-init-status', 'fail', 'GA4 not initialized');
+                logToDebug('GA4 gtag function is not available');
+            }
+            
+            // Check if dataLayer exists
+            if (window.dataLayer && Array.isArray(window.dataLayer)) {
+                updateStatus('datalayer-status', 'pass', `DataLayer active (${window.dataLayer.length} items)`);
+                logToDebug(`DataLayer contains ${window.dataLayer.length} items`);
+            } else {
+                updateStatus('datalayer-status', 'fail', 'DataLayer not found');
+                logToDebug('DataLayer is not available');
+            }
+            
+            // Check GTM script loading
+            const gtmScript = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+            if (gtmScript) {
+                updateStatus('gtm-script-status', 'pass', 'GTM script loaded');
+                logToDebug('Google Tag Manager script found in DOM');
+            } else {
+                updateStatus('gtm-script-status', 'fail', 'GTM script not found');
+                logToDebug('Google Tag Manager script not found in DOM');
+            }
+            
+            // Check GA4 config
+            if (window.dataLayer) {
+                const configEvents = window.dataLayer.filter(item => 
+                    Array.isArray(item) && item[0] === 'config' && item[1] === 'G-G424CV5GGT'
+                );
+                if (configEvents.length > 0) {
+                    updateStatus('ga4-config-status', 'pass', 'GA4 config found');
+                    logToDebug('GA4 configuration events found in dataLayer');
+                } else {
+                    updateStatus('ga4-config-status', 'fail', 'GA4 config not found');
+                    logToDebug('GA4 configuration events not found in dataLayer');
+                }
+            }
+        }
+
+        function checkCSPStatus() {
+            // Get CSP header information via fetch to our own domain
+            fetch('/api/test/security-headers')
+                .then(response => response.json())
+                .then(data => {
+                    const cspHeader = data.headers['Content-Security-Policy'];
+                    
+                    if (cspHeader) {
+                        updateStatus('csp-header-status', 'pass', 'CSP header present');
+                        logToDebug('Content-Security-Policy header found');
+                        
+                        // Check if Google Tag Manager is allowed
+                        if (cspHeader.includes('googletagmanager.com')) {
+                            updateStatus('csp-gtm-status', 'pass', 'GTM allowed in CSP');
+                            logToDebug('Google Tag Manager allowed in CSP script-src');
+                        } else {
+                            updateStatus('csp-gtm-status', 'fail', 'GTM blocked by CSP');
+                            logToDebug('Google Tag Manager NOT allowed in CSP script-src');
+                        }
+                        
+                        // Check if Google Analytics connect is allowed
+                        if (cspHeader.includes('google-analytics.com') || cspHeader.includes('analytics.google.com')) {
+                            updateStatus('csp-ga-connect-status', 'pass', 'GA connect allowed');
+                            logToDebug('Google Analytics connections allowed in CSP connect-src');
+                        } else {
+                            updateStatus('csp-ga-connect-status', 'fail', 'GA connect blocked');
+                            logToDebug('Google Analytics connections NOT allowed in CSP connect-src');
+                        }
+                    } else {
+                        updateStatus('csp-header-status', 'fail', 'No CSP header found');
+                        logToDebug('Content-Security-Policy header not found');
+                    }
+                })
+                .catch(error => {
+                    updateStatus('csp-header-status', 'fail', 'Failed to check CSP');
+                    logToDebug(`Error checking CSP: ${error.message}`);
+                });
+        }
+
+        // Initialize diagnostics when page loads
+        window.addEventListener('load', function() {
+            logToConsole('info', 'GA4 Test Page loaded');
+            
+            // Run diagnostics after a short delay to ensure everything is loaded
+            setTimeout(() => {
+                checkGA4Status();
+                checkCSPStatus();
+            }, 1000);
+            
+            // Set up periodic checks
+            setInterval(() => {
+                checkGA4Status();
+            }, 5000);
+            
+            // Log page view for testing
+            setTimeout(() => {
+                testPageView();
+                logToConsole('info', 'Initial page view sent for testing');
+            }, 2000);
+        });
+
+        // Error handling
+        window.addEventListener('error', function(event) {
+            logToConsole('error', `JavaScript Error: ${event.message}`, {
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error?.toString()
+            });
+        });
+
+        // CSP violation reporting
+        document.addEventListener('securitypolicyviolation', function(event) {
+            logToConsole('error', 'CSP Violation', {
+                directive: event.violatedDirective,
+                blockedURI: event.blockedURI,
+                originalPolicy: event.originalPolicy
+            });
+        });
+    </script>
+</body>
+</html>
