@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 RinaWarp Car Dashboard Theme Demo</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .demo-container {
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .demo-terminal {
+            margin-top: 80px;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 400px;
+            font-family: 'Courier New', monospace;
+            border-radius: 8px;
+            margin: 80px 20px 20px 20px;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .terminal-line {
+            margin: 8px 0;
+            animation: typewriter 2s ease-in-out;
+        }
+        
+        .prompt {
+            color: #00ff55;
+        }
+        
+        .command {
+            color: #ff6b35;
+        }
+        
+        .output {
+            color: #e0e0e0;
+            margin-left: 20px;
+        }
+        
+        .error {
+            color: #ff3333;
+        }
+        
+        .success {
+            color: #00ff55;
+        }
+        
+        .warning {
+            color: #ffaa00;
+        }
+        
+        .info {
+            color: #3399ff;
+        }
+        
+        .cursor {
+            background: #ff6b35;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes typewriter {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .demo-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+        }
+        
+        .demo-controls button {
+            background: #ff6b35;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            margin: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-controls button:hover {
+            background: #ff8c5a;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+        }
+        
+        .theme-info {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+            max-width: 300px;
+        }
+        
+        .theme-info h3 {
+            color: #ff6b35;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .theme-info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .theme-info li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .theme-info li:before {
+            content: "🚗";
+            position: absolute;
+            left: 0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #00ff55;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #00ff55;
+            box-shadow: 0 0 15px rgba(0, 255, 85, 0.3);
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- This will be populated by JavaScript -->
+        <div id="car-dashboard-container"></div>
+        
+        <div class="demo-terminal" id="demo-terminal">
+            <div class="terminal-line">
+                <span class="prompt">rinawarp@dashboard:~$</span> 
+                <span class="command">node activate-car-theme.js</span>
+            </div>
+            <div class="terminal-line">
+                <span class="success">🚗 Starting Car Dashboard Theme activation...</span>
+            </div>
+            <div class="terminal-line">
+                <span class="success">✅ Car Dashboard Theme activated successfully!</span>
+            </div>
+            <div class="terminal-line">
+                <span class="info">🎛️  Dashboard Features:</span>
+            </div>
+            <div class="terminal-line">
+                <span class="output">   • Speedometer gauge (Network Speed)</span>
+            </div>
+            <div class="terminal-line">
+                <span class="output">   • RPM gauge (CPU Usage)</span>
+            </div>
+            <div class="terminal-line">
+                <span class="output">   • Fuel gauge (Disk Space)</span>
+            </div>
+            <div class="terminal-line">
+                <span class="output">   • Temperature gauge (System Temp)</span>
+            </div>
+            <div class="terminal-line">
+                <span class="output">   • Odometer (Command Counter)</span>
+            </div>
+            <div class="terminal-line">
+                <span class="output">   • Status lights (System indicators)</span>
+            </div>
+            <div class="terminal-line">
+                <span class="info">📊 Click on any gauge for detailed information</span>
+            </div>
+            <div class="terminal-line">
+                <span class="info">⏱️  Metrics update every 2 seconds</span>
+            </div>
+            <div class="terminal-line">
+                <span class="prompt">rinawarp@dashboard:~$</span> 
+                <span class="cursor">&nbsp;</span>
+            </div>
+        </div>
+        
+        <div class="theme-info">
+            <h3>🚗 Car Dashboard Theme</h3>
+            <ul>
+                <li>Real-time gauges</li>
+                <li>Command odometer</li>
+                <li>Status indicator lights</li>
+                <li>Automotive color scheme</li>
+                <li>Dashboard-style UI</li>
+                <li>Session tracking</li>
+                <li>Interactive elements</li>
+                <li>Persistent metrics</li>
+            </ul>
+            <p style="margin-top: 15px; font-size: 12px; color: #aaa;">
+                Click gauges for details<br>
+                Watch the metrics update live!
+            </p>
+        </div>
+        
+        <div class="demo-controls">
+            <button onclick="simulateCommand()">🎮 Simulate Command</button>
+            <button onclick="resetMetrics()">🔄 Reset Metrics</button>
+            <button onclick="toggleTheme()">🎨 Toggle Theme</button>
+            <button onclick="showGaugeInfo()">📊 Gauge Info</button>
+        </div>
+        
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script type="module">
+        // Import the car dashboard theme
+        import { CarDashboardTheme } from './src/themes/car-dashboard-theme.js';
+        
+        // Global variables
+        let carTheme = null;
+        let commandCount = 0;
+        let isActive = false;
+        
+        // Initialize the demo
+        async function initDemo() {
+            try {
+                // Create the car theme instance
+                carTheme = new CarDashboardTheme();
+                
+                // Apply the theme
+                carTheme.apply();
+                isActive = true;
+                
+                showNotification('🚗 Car Dashboard Theme Demo Loaded!', 'success');
+                
+                // Start simulating some activity
+                startDemoActivity();
+                
+            } catch (error) {
+                console.error('Failed to initialize demo:', error);
+                showNotification('❌ Failed to load theme demo', 'error');
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Simulate terminal commands for demo
+        function simulateCommand() {
+            if (!carTheme) return;
+            
+            commandCount++;
+            carTheme.commandCount = commandCount;
+            
+            const terminal = document.getElementById('demo-terminal');
+            const commands = [
+                'ls -la',
+                'npm install',
+                'git status',
+                'docker ps',
+                'htop',
+                'ping google.com',
+                'cat package.json',
+                'npm run build'
+            ];
+            
+            const randomCommand = commands[Math.floor(Math.random() * commands.length)];
+            
+            const newLine = document.createElement('div');
+            newLine.className = 'terminal-line';
+            newLine.innerHTML = `
+                <span class="prompt">rinawarp@dashboard:~$</span> 
+                <span class="command">${randomCommand}</span>
+            `;
+            
+            terminal.insertBefore(newLine, terminal.lastElementChild);
+            
+            // Scroll to bottom
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            showNotification(`Command executed: ${randomCommand}`, 'info');
+        }
+        
+        // Reset metrics
+        function resetMetrics() {
+            if (carTheme) {
+                carTheme.commandCount = 0;
+                carTheme.startTime = Date.now();
+                commandCount = 0;
+                showNotification('🔄 Metrics reset', 'info');
+            }
+        }
+        
+        // Toggle theme (demo function)
+        function toggleTheme() {
+            if (isActive) {
+                if (carTheme) {
+                    carTheme.cleanup();
+                }
+                document.body.style.background = '#1a1a1a';
+                showNotification('🌙 Switched to default theme', 'info');
+                isActive = false;
+            } else {
+                if (carTheme) {
+                    carTheme.apply();
+                }
+                showNotification('🚗 Car Dashboard Theme activated', 'success');
+                isActive = true;
+            }
+        }
+        
+        // Show gauge information
+        function showGaugeInfo() {
+            const info = `
+📊 Gauge Information:
+• Speedometer: Network activity simulation
+• RPM: CPU usage simulation  
+• Fuel: Disk space simulation
+• Temperature: System temp simulation
+
+Click any gauge for detailed stats!
+            `.trim();
+            
+            alert(info);
+        }
+        
+        // Start demo activity simulation
+        function startDemoActivity() {
+            // Simulate periodic commands
+            setInterval(() => {
+                if (Math.random() > 0.7) { // 30% chance every 5 seconds
+                    simulateCommand();
+                }
+            }, 5000);
+            
+            // Add some initial commands for demo
+            setTimeout(() => simulateCommand(), 2000);
+            setTimeout(() => simulateCommand(), 4000);
+            setTimeout(() => simulateCommand(), 6000);
+        }
+        
+        // Make functions global for button onclick
+        window.simulateCommand = simulateCommand;
+        window.resetMetrics = resetMetrics;
+        window.toggleTheme = toggleTheme;
+        window.showGaugeInfo = showGaugeInfo;
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add a small delay to ensure everything is loaded
+            setTimeout(initDemo, 500);
+        });
+        
+        // Add some CSS animations for the demo
+        const style = document.createElement('style');
+        style.textContent = `
+            .notification.success {
+                border-color: #00ff55;
+                color: #00ff55;
+                box-shadow: 0 0 15px rgba(0, 255, 85, 0.3);
+            }
+            
+            .notification.error {
+                border-color: #ff3333;
+                color: #ff3333;
+                box-shadow: 0 0 15px rgba(255, 51, 51, 0.3);
+            }
+            
+            .notification.info {
+                border-color: #3399ff;
+                color: #3399ff;
+                box-shadow: 0 0 15px rgba(51, 153, 255, 0.3);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

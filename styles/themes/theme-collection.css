@@ -334,6 +334,29 @@
   --terminal-bg: #1e1e3f;
 }
 
+/* ===== CAR DASHBOARD THEME ===== */
+.theme-car-dashboard {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #262626;
+  --text-primary: #e0e0e0;
+  --text-secondary: #cccccc;
+  --accent-primary: #ff6b35;
+  --accent-secondary: #ff8c5a;
+  --border-color: #ff6b35;
+  --terminal-bg: #000000;
+
+  /* Car-specific variables */
+  --gauge-color-speed: #00ff55;
+  --gauge-color-rpm: #ff3333;
+  --gauge-color-fuel: #ffaa00;
+  --gauge-color-temp: #3399ff;
+  --status-light-engine: #00ff55;
+  --status-light-oil: #ffaa00;
+  --status-light-battery: #ff3333;
+  --status-light-signal: #3399ff;
+}
+
 /* ===== APPLY THEME STYLES ===== */
 body {
   background-color: var(--bg-primary);

@@ -82,6 +82,8 @@ import errorHandler, { notFoundHandler } from './src/middleware/errorHandler.js'
 import statusRouter from './src/api/status.js';
 import downloadRouter from './src/api/download.js';
 import authRouter from './src/api/auth.js';
+import securityRouter from './src/api/security.js';
+import ThreatDetector from './src/security/ThreatDetector.js';
 
 // Validate SMTP configuration AFTER dotenv
 const smtpConfigured = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
@@ -95,9 +97,10 @@ if (smtpConfigured || sendgridConfigured) {
   console.log('⚠️ SMTP credentials not configured for production mode');
 }
 
-// Configure Nodemailer
+// Configure Email Transport (supports both SMTP and SendGrid)
 let transporter;
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  // Use traditional SMTP
   transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT) || 587,
@@ -107,7 +110,19 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       pass: process.env.SMTP_PASS,
     },
   });
-  console.log('✅ Nodemailer configured successfully');
+  console.log('✅ Nodemailer SMTP transporter configured successfully');
+} else if (process.env.SENDGRID_API_KEY) {
+  // Use SendGrid via SMTP
+  transporter = nodemailer.createTransport({
+    host: 'smtp.sendgrid.net',
+    port: 587,
+    secure: false,
+    auth: {
+      user: 'apikey',
+      pass: process.env.SENDGRID_API_KEY,
+    },
+  });
+  console.log('✅ Nodemailer SendGrid transporter configured successfully');
 } else {
   // Create mock transporter for development
   if (process.env.NODE_ENV === 'development') {
@@ -127,7 +142,7 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     };
     console.log('✅ Mock SMTP transporter configured for development');
   } else {
-    console.log('⚠️ SMTP credentials not configured');
+    console.log('⚠️ No email service configured (neither SMTP nor SendGrid)');
   }
 }
 
@@ -149,6 +164,18 @@ const PORT = process.env.PORT || 8080;
 // Configure Express to trust Railway proxy for X-Forwarded-For headers
 // Railway uses reverse proxies, so we need to trust the first proxy
 app.set('trust proxy', 1);
+
+// Initialize Advanced Threat Detection System
+const threatDetector = new ThreatDetector();
+app.set('threatDetector', threatDetector);
+
+// Add webhook for Discord/Slack alerts if configured
+if (process.env.DISCORD_WEBHOOK_URL) {
+  threatDetector.addWebhook(process.env.DISCORD_WEBHOOK_URL, 'discord');
+}
+if (process.env.SLACK_WEBHOOK_URL) {
+  threatDetector.addWebhook(process.env.SLACK_WEBHOOK_URL, 'slack');
+}
 
 console.log('🔍 Startup Debug Info:');
 console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
@@ -260,21 +287,34 @@ app.use((req, res, next) => {
   next();
 });
 
+// Generate nonce for inline scripts (security best practice)
+function generateNonce() {
+  return Buffer.from(Math.random().toString()).toString('base64');
+}
+
+// Middleware to add nonce to requests
+app.use((req, res, next) => {
+  res.locals.nonce = generateNonce();
+  next();
+});
+
 // Apply helmet security headers with comprehensive protection
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://js.stripe.com'],
+        scriptSrc: ["'self'", 'https://js.stripe.com', (req, res) => `'nonce-${res.locals.nonce}'`],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         imgSrc: ["'self'", 'data:', 'https:'],
         fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         connectSrc: ["'self'", 'wss:', 'ws:', 'https://api.stripe.com'],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
-        frameSrc: ["'none'"],
+        frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
         formAction: ["'self'"],
+        scriptSrcAttr: ["'none'"], // Block inline event handlers
+        upgradeInsecureRequests: [],
       },
     },
     crossOriginEmbedderPolicy: false, // Allow embedding for terminal functionality
@@ -284,7 +324,7 @@ app.use(
     frameguard: { action: 'deny' },
     hidePoweredBy: true,
     hsts: {
-      maxAge: 31536000, // 1 year
+      maxAge: 63072000, // 2 years (recommended)
       includeSubDomains: true,
       preload: true,
     },
@@ -292,7 +332,7 @@ app.use(
     noSniff: true,
     originAgentCluster: true,
     permittedCrossDomainPolicies: false,
-    referrerPolicy: { policy: 'no-referrer' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     xssFilter: true,
   })
 );
@@ -331,6 +371,9 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Apply Advanced Threat Detection middleware (before other middleware)
+app.use(threatDetector.createMiddleware());
 
 // Apply custom logging middleware to all requests
 app.use(logRequest);
@@ -438,6 +481,7 @@ app.get('/api/status/health', async (req, res) => {
 app.use('/api/status', statusRouter);
 app.use('/api/download', downloadRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/security', securityRouter);
 
 // Health Check
 app.get('/api/ping', (req, res) => {
@@ -696,6 +740,22 @@ app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
   res.json(config);
 });
 
+// Serve favicon.ico (fix 404 error)
+app.get('/favicon.ico', (req, res) => {
+  const faviconPath = validateAndNormalizePath('favicon.ico', _PUBLIC_DIR);
+  if (faviconPath && fs.existsSync(faviconPath)) {
+    res.setHeader('Content-Type', 'image/x-icon');
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.sendFile(faviconPath);
+  } else {
+    // Return empty favicon to prevent repeated requests
+    res.setHeader('Content-Type', 'image/x-icon');
+    res.setHeader('Content-Length', '0');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.status(204).end();
+  }
+});
+
 // Serve the main page (index.html)
 app.get('/', staticPageLimiter, (req, res) => {
   console.log('[ROUTE] Root route requested');
@@ -804,11 +864,33 @@ app.get('/sales-optimization.html', staticPageLimiter, (req, res) => {
   res.sendFile(safePath);
 });
 
+// Serve security dashboard
+app.get('/security', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('security-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Security dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+
+// Serve security dashboard with .html extension
+app.get('/security-dashboard.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('security-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Security dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+
 // Release files are served directly from the public/releases directory
 
 // General release files handler
 app.use('/releases', staticPageLimiter, (req, res, _next) => {
-  const requestedPath = req.path;
+  const requestedPath = req.path.startsWith('/') ? req.path.slice(1) : req.path;
   console.log(`[RELEASES] Attempting to serve: ${requestedPath}`);
   const releasesDir = path.join(_PUBLIC_DIR, 'releases');
   const safePath = validateAndNormalizePath(requestedPath, releasesDir);
@@ -985,7 +1067,10 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
     // Create email content
     const licenseTypeFormatted = licenseType.charAt(0).toUpperCase() + licenseType.slice(1);
     const fromEmail =
-      process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@rinawarp.com';
+      process.env.SENDGRID_FROM_EMAIL ||
+      process.env.SMTP_FROM_EMAIL ||
+      process.env.SMTP_USER ||
+      'noreply@rinawarp.com';
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
@@ -1367,6 +1452,24 @@ app.post('/api/test-post', (req, res) => {
   });
 });
 
+// Security headers test endpoint
+app.get('/api/test/security-headers', (req, res) => {
+  res.json({
+    message: 'Security headers test endpoint',
+    timestamp: new Date().toISOString(),
+    nonce: res.locals.nonce,
+    headers: {
+      'Strict-Transport-Security': res.get('Strict-Transport-Security'),
+      'X-Content-Type-Options': res.get('X-Content-Type-Options'),
+      'X-Frame-Options': res.get('X-Frame-Options'),
+      'Referrer-Policy': res.get('Referrer-Policy'),
+      'Content-Security-Policy': res.get('Content-Security-Policy'),
+      'X-XSS-Protection': res.get('X-XSS-Protection'),
+    },
+    test: 'If you can see this, security headers are working properly',
+  });
+});
+
 // Debug endpoint to check environment variables
 app.get('/api/debug/env-check', (req, res) => {
   res.json({
@@ -1745,6 +1848,18 @@ app.use(
     },
   })
 );
+
+// Serve stripe-csp-test.html specifically
+app.get('/stripe-csp-test.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('stripe-csp-test.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'CSP test page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cache-Control', 'no-cache'); // Don't cache test page
+  res.sendFile(safePath);
+});
 
 // Note: Removed catch-all static file server to prevent conflicts with API routes
 // Static files are now served via express.static middleware and specific routes
