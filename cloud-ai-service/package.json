@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
-    "@google-cloud/aiplatform": "^3.0.0",
     "@langchain/community": "^0.2.0",
     "@langchain/core": "^0.2.0",
     "@langchain/openai": "^0.1.0",
