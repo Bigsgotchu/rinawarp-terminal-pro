@@ -907,6 +907,30 @@ app.get('/security-dashboard.html', staticPageLimiter, (req, res) => {
   res.sendFile(safePath);
 });
 
+// Serve GA4 test page
+app.get('/ga4-test', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('ga4-test.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'GA4 test page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cache-Control', 'no-cache'); // Don't cache test page
+  res.sendFile(safePath);
+});
+
+// Serve GA4 test page with .html extension
+app.get('/ga4-test.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('ga4-test.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'GA4 test page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cache-Control', 'no-cache'); // Don't cache test page
+  res.sendFile(safePath);
+});
+
 // Release files are served directly from the public/releases directory
 
 // General release files handler
