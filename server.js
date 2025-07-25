@@ -260,7 +260,16 @@ const corsOptions = {
       'http://127.0.0.1:8080',
     ];
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Railway domain patterns
+    const railwayPatterns = [/https:\/\/.*\.railway\.app$/, /https:\/\/.*\.up\.railway\.app$/];
+
+    // Check exact matches first
+    const isAllowedOrigin = allowedOrigins.includes(origin);
+
+    // Check Railway patterns
+    const isRailwayDomain = railwayPatterns.some(pattern => pattern.test(origin));
+
+    if (isAllowedOrigin || isRailwayDomain) {
       callback(null, true);
     } else {
       console.log(`❌ CORS blocked origin: ${origin}`);

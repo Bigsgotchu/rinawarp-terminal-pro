@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pricing - RinaWarp Terminal</title>
     
-    <!-- Google Analytics - Temporarily disabled -->
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
     <script>
-        // Google Analytics will be configured later
-        console.log('Google Analytics: Ready for configuration');
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-G424CV5GGT');
     </script>
     
     <script src="https://js.stripe.com/v3/"></script>
@@ -451,12 +454,12 @@
                 </ul>
                 
                 <button class="plan-button secondary" onclick="purchasePlan('personal')">
-                    Start Free Trial
+                    Get Personal Plan
                 </button>
                 
                 <div class="guarantee">
-                    💯 14-day free trial<br>
-                    💳 No credit card required
+                    💰 30-day money back guarantee<br>
+                    ⚡ Instant activation
                 </div>
             </div>
             
@@ -482,12 +485,12 @@
                 </ul>
                 
                 <button class="plan-button primary" onclick="purchasePlan('professional')">
-                    Start Free Trial
+                    Get Pro Plan
                 </button>
                 
                 <div class="guarantee">
-                    💯 14-day free trial<br>
-                    💰 30-day money back guarantee
+                    💰 30-day money back guarantee<br>
+                    🚀 Most popular choice
                 </div>
             </div>
             
@@ -513,12 +516,12 @@
                 </ul>
                 
                 <button class="plan-button secondary" onclick="purchasePlan('team')">
-                    Start Free Trial
+                    Get Team Plan
                 </button>
                 
                 <div class="guarantee">
-                    💯 14-day free trial<br>
-                    💰 30-day money back guarantee
+                    💰 30-day money back guarantee<br>
+                    👥 Perfect for teams
                 </div>
             
             <!-- Free Plan -->
@@ -638,6 +641,14 @@
         </div>
     </div>
 
+    <!-- Enhanced GA4 Tracking -->
+    <script>
+        // Set GA4 measurement ID for auto-initialization
+        window.GA4_MEASUREMENT_ID = 'G-G424CV5GGT';
+    </script>
+    <script type="module" src="/js/analytics/ga4-enhanced-tracking.js"></script>
+    <script type="module" src="/js/analytics/stripe-ga4-integration.js"></script>
+    
     <script>
         let stripe;
         let stripeConfig = {};
@@ -711,9 +722,7 @@
         // Try multiple routing strategies for Stripe
         async function tryMultipleRoutes(planType, button, originalText) {
             const routes = [
-                '/api/create-checkout-session',           // Vercel/Firebase Functions
-                '/.netlify/functions/create-checkout-session', // Netlify Functions
-                '/api/stripe-checkout'                     // Express server fallback
+                '/api/create-checkout-session'              // Railway Express server
             ];
             
             const priceId = getPriceId(planType);

@@ -66,20 +66,43 @@ class ThreatDetector {
 
       suspiciousUserAgents: [
         /scanner/i,
-        /crawler/i,
-        /bot/i,
-        /spider/i,
         /scraper/i,
-        /curl/i,
-        /wget/i,
-        /python-requests/i,
-        /go-http-client/i,
         /masscan/i,
         /nmap/i,
         /nikto/i,
         /sqlmap/i,
         /burp/i,
         /nuclei/i,
+        /python-requests/i,
+        /go-http-client/i,
+      ],
+
+      // Whitelisted IP ranges and patterns
+      whitelistedIPs: [
+        // Cloudflare IP ranges (commonly used by Railway/CDNs)
+        /^162\.158\./,
+        /^172\.70\./,
+        /^104\.16\./,
+        /^104\.17\./,
+        /^172\.67\./,
+        /^108\.162\./,
+
+        // Railway internal health checks
+        /^100\.64\./,
+
+        // Common monitoring services
+        /^198\.51\.100\./,
+        /^203\.0\.113\./,
+      ],
+
+      // Legitimate user agents that might use curl
+      legitimateUserAgents: [
+        /RailwayHealthCheck/i,
+        /curl.*cloudflare/i,
+        /uptime/i,
+        /monitor/i,
+        /pingdom/i,
+        /newrelic/i,
       ],
 
       // Block durations (in milliseconds)
@@ -212,20 +235,46 @@ class ThreatDetector {
     let threatScore = 0;
     const reasons = [];
 
+    // Check if IP is whitelisted
+    if (this.isWhitelisted(ip) || this.config.whitelistedIPs.some(pattern => pattern.test(ip))) {
+      return 0; // Skip all threat analysis for whitelisted IPs
+    }
+
+    // Check if user agent is legitimate (monitoring, health checks, etc.)
+    if (this.config.legitimateUserAgents.some(pattern => pattern.test(userAgent))) {
+      return 0; // Skip threat analysis for legitimate monitoring tools
+    }
+
+    // Special handling for curl - only flag if hitting sensitive endpoints
+    if (/curl/i.test(userAgent)) {
+      // Only flag curl if it's hitting sensitive endpoints or has suspicious patterns
+      const sensitivePaths = ['/admin', '/config', '/api/admin', '/.env', '/database'];
+      const hitsSensitivePath = sensitivePaths.some(path => url.includes(path));
+
+      if (hitsSensitivePath) {
+        threatScore += 2;
+        reasons.push('Curl accessing sensitive endpoint');
+      } else if (url === '/' || url === '/health' || url.startsWith('/api/')) {
+        // Normal curl requests to public endpoints - very low threat
+        threatScore += 0.5;
+        reasons.push('Curl on public endpoint (low concern)');
+      }
+    } else {
+      // Check other suspicious user agents
+      for (const pattern of this.config.suspiciousUserAgents) {
+        if (pattern.test(userAgent)) {
+          threatScore += 1;
+          reasons.push(`Suspicious User-Agent: ${pattern.source}`);
+          break;
+        }
+      }
+    }
+
     // Check URL patterns
     for (const pattern of this.config.suspiciousPatterns) {
       if (pattern.test(url)) {
         threatScore += 2;
         reasons.push(`Suspicious URL pattern: ${pattern.source}`);
-        break;
-      }
-    }
-
-    // Check User-Agent patterns
-    for (const pattern of this.config.suspiciousUserAgents) {
-      if (pattern.test(userAgent)) {
-        threatScore += 1;
-        reasons.push(`Suspicious User-Agent: ${pattern.source}`);
         break;
       }
     }
