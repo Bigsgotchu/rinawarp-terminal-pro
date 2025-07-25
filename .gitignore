@@ -282,7 +282,11 @@ keystore.properties
 .env.prod
 
 # Cloud Services
-# (Firebase removed)
+# Railway
+.railway/
+.env.railway
+
+# Firebase (removed)
 
 # Social Media Automation (Keep private)
 social-media-bot.js
