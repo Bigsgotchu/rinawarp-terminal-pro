@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp App Icon Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .icon-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .icon-option {
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .icon {
+            width: 300px;
+            height: 300px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .icon:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Option 1: Gradient with Wave */
+        .icon1 {
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .icon1::before {
+            content: '🧜‍♀️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg) scale(2.5);
+            font-size: 60px;
+            opacity: 0.5;
+            z-index: 1;
+            filter: blur(0.5px);
+        }
+        
+        .icon1 .text {
+            position: relative;
+            z-index: 2;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+        
+        .icon2::before, .icon3::before, .icon4::before, .icon5::before {
+            content: '🧜‍♀️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg) scale(2.5);
+            font-size: 70px;
+            opacity: 0.6;
+            z-index: 1;
+            filter: blur(0.5px);
+        }
+        
+        /* Option 2: Terminal Style */
+        .icon2 {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #00ff00;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 28px;
+            font-weight: bold;
+            border: 3px solid #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        
+        /* Option 3: Modern Minimal */
+        .icon3 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 30px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        /* Option 4: Ocean Theme */
+        .icon4 {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .icon4::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,0 50,10 T100,10 V20 H0 Z" fill="rgba(255,255,255,0.2)"/></svg>');
+            background-size: 100px 20px;
+            background-repeat: repeat-x;
+        }
+        
+        /* Option 5: Professional Dark */
+        .icon5 {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .icon-label {
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+        
+        .download-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .download-btn:hover {
+            background: #0056b3;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .instructions {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px auto;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 RinaWarp Facebook App Icon Options</h1>
+    
+    <div class="instructions">
+        <p><strong>Instructions:</strong> Click on any icon design you like, then right-click and "Save Image As" to download it for your Facebook app profile. Each design is 300x300px and will scale perfectly for Facebook's requirements.</p>
+    </div>
+    
+    <div class="icon-container">
+        <div class="icon-option">
+            <div class="icon icon1" onclick="downloadIcon(this, 'rinawarp-facebook-icon-gradient.png')">
+                <span class="text">RinaWarp</span>
+            </div>
+            <div class="icon-label">Majestic Mermaid</div>
+            <button class="download-btn" onclick="downloadIcon(document.querySelector('.icon1'), 'rinawarp-facebook-icon-gradient.png')">Download</button>
+        </div>
+        
+        <div class="icon-option">
+            <div class="icon icon2" onclick="downloadIcon(this, 'rinawarp-facebook-icon-terminal.png')">
+                RinaWarp
+            </div>
+            <div class="icon-label">Terminal Style</div>
+            <button class="download-btn" onclick="downloadIcon(document.querySelector('.icon2'), 'rinawarp-facebook-icon-terminal.png')">Download</button>
+        </div>
+        
+        <div class="icon-option">
+            <div class="icon icon3" onclick="downloadIcon(this, 'rinawarp-facebook-icon-minimal.png')">
+                RinaWarp
+            </div>
+            <div class="icon-label">Modern Minimal</div>
+            <button class="download-btn" onclick="downloadIcon(document.querySelector('.icon3'), 'rinawarp-facebook-icon-minimal.png')">Download</button>
+        </div>
+        
+        <div class="icon-option">
+            <div class="icon icon4" onclick="downloadIcon(this, 'rinawarp-facebook-icon-ocean.png')">
+                RinaWarp
+            </div>
+            <div class="icon-label">Ocean Waves</div>
+            <button class="download-btn" onclick="downloadIcon(document.querySelector('.icon4'), 'rinawarp-facebook-icon-ocean.png')">Download</button>
+        </div>
+        
+        <div class="icon-option">
+            <div class="icon icon5" onclick="downloadIcon(this, 'rinawarp-facebook-icon-professional.png')">
+                RinaWarp
+            </div>
+            <div class="icon-label">Professional</div>
+            <button class="download-btn" onclick="downloadIcon(document.querySelector('.icon5'), 'rinawarp-facebook-icon-professional.png')">Download</button>
+        </div>
+    </div>
+    
+    <script>
+        function downloadIcon(element, filename) {
+            // Create a canvas element
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to 1024x1024 for Facebook requirements
+            canvas.width = 1024;
+            canvas.height = 1024;
+            
+            // Get the computed styles
+            const styles = window.getComputedStyle(element);
+            
+            // Draw the background
+            const gradient = ctx.createLinearGradient(0, 0, 1024, 1024);
+            
+            // Different gradients for different icons
+            if (element.classList.contains('icon1')) {
+                gradient.addColorStop(0, '#ff1493');
+                gradient.addColorStop(1, '#00ffff');
+            } else if (element.classList.contains('icon2')) {
+                gradient.addColorStop(0, '#1a1a2e');
+                gradient.addColorStop(1, '#16213e');
+            } else if (element.classList.contains('icon3')) {
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+            } else if (element.classList.contains('icon4')) {
+                gradient.addColorStop(0, '#4facfe');
+                gradient.addColorStop(1, '#00f2fe');
+            } else if (element.classList.contains('icon5')) {
+                gradient.addColorStop(0, '#2c3e50');
+                gradient.addColorStop(1, '#3498db');
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1024, 1024);
+            
+            // Add rounded corners
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, 1024, 1024, 68); // 68px radius for 1024px icon
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Add text
+            ctx.fillStyle = element.classList.contains('icon2') ? '#00ff00' : 'white';
+            ctx.font = element.classList.contains('icon2') ? 'bold 90px Monaco, monospace' : 'bold 100px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Add text shadow for some styles
+            if (!element.classList.contains('icon2')) {
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+            }
+            
+            ctx.fillText('RinaWarp', 512, 512);
+            
+            // Add majestic mermaid for icon1
+            if (element.classList.contains('icon1')) {
+                ctx.save();
+                ctx.translate(512, 512);
+                ctx.rotate(-15 * Math.PI / 180); // Rotate -15 degrees
+                ctx.scale(2.5, 2.5);
+                ctx.font = '120px Arial';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.shadowColor = 'transparent';
+                ctx.filter = 'blur(1px)';
+                ctx.fillText('🧜‍♀️', 0, 0);
+                ctx.restore();
+                
+                // Re-draw the text with stronger shadow to stand out
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 100px -apple-system, sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 4;
+                ctx.shadowOffsetY = 4;
+                ctx.fillText('RinaWarp', 512, 512);
+            }
+            
+            // Add majestic mermaid for other icons
+            if (!element.classList.contains('icon1')) {
+                ctx.save();
+                ctx.translate(512, 512);
+                ctx.rotate(-15 * Math.PI / 180); // Rotate -15 degrees
+                ctx.scale(2.5, 2.5);
+                ctx.font = '140px Arial';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.shadowColor = 'transparent';
+                ctx.filter = 'blur(0.5px)';
+                ctx.fillText('🧜‍♀️', 0, 0);
+                ctx.restore();
+            }
+
+            // Add terminal border for icon2
+            if (element.classList.contains('icon2')) {
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 10;
+                ctx.stroke();
+                ctx.shadowColor = '#00ff00';
+                ctx.shadowBlur = 20;
+                ctx.stroke();
+            }
+            
+            // Convert to blob and download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        // Polyfill for roundRect if not supported
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
