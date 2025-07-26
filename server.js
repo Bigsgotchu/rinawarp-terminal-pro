@@ -316,31 +316,31 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ['\'self\''],
+        defaultSrc: ["'self'"],
         scriptSrc: [
-          '\'self\'',
+          "'self'",
           'https://js.stripe.com',
           'https://www.googletagmanager.com',
           'https://www.google-analytics.com',
           'https://analytics.google.com',
           (req, res) => `'nonce-${res.locals.nonce}'`,
         ],
-        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
-        imgSrc: ['\'self\'', 'data:', 'https:'],
-        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         connectSrc: [
-          '\'self\'',
+          "'self'",
           'wss:',
           'ws:',
           'https://api.stripe.com',
           'https://www.google-analytics.com',
           'https://analytics.google.com',
         ],
-        objectSrc: ['\'none\''],
-        baseUri: ['\'self\''],
-        frameSrc: ['\'self\'', 'https://js.stripe.com', 'https://hooks.stripe.com'],
-        formAction: ['\'self\''],
-        scriptSrcAttr: ['\'unsafe-hashes\''], // Allow inline event handlers with CSP nonce
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        formAction: ["'self'"],
+        scriptSrcAttr: ["'unsafe-hashes'"], // Allow inline event handlers with CSP nonce
         upgradeInsecureRequests: [],
       },
     },
@@ -708,6 +708,19 @@ const apiConfigLimiter = rateLimit({
   statusCode: 429,
 });
 
+// General API rate limiter - moderate limits
+const apiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per windowMs
+  message: {
+    error: 'Too many API requests from this IP, please try again later.',
+    retryAfter: '15 minutes',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  statusCode: 429,
+});
+
 // License validation - strict limits (high risk - potential for abuse/brute force)
 const licenseValidationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -1049,30 +1062,30 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed': {
-    const session = event.data.object;
-    console.log('💰 Payment successful:', session.id);
-    handlePaymentSuccess(session);
-    break;
-  }
-  case 'customer.subscription.created':
-    console.log('🔄 Subscription created:', event.data.object.id);
-    handleSubscriptionCreated(event.data.object);
-    break;
-  case 'customer.subscription.updated':
-    console.log('🔄 Subscription updated:', event.data.object.id);
-    handleSubscriptionUpdated(event.data.object);
-    break;
-  case 'customer.subscription.deleted':
-    console.log('❌ Subscription cancelled:', event.data.object.id);
-    handleSubscriptionCancelled(event.data.object);
-    break;
-  case 'invoice.payment_succeeded':
-    console.log('💳 Invoice paid:', event.data.object.id);
-    handleInvoicePayment(event.data.object);
-    break;
-  default:
-    console.log(`Unhandled event type ${event.type}`);
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      console.log('💰 Payment successful:', session.id);
+      handlePaymentSuccess(session);
+      break;
+    }
+    case 'customer.subscription.created':
+      console.log('🔄 Subscription created:', event.data.object.id);
+      handleSubscriptionCreated(event.data.object);
+      break;
+    case 'customer.subscription.updated':
+      console.log('🔄 Subscription updated:', event.data.object.id);
+      handleSubscriptionUpdated(event.data.object);
+      break;
+    case 'customer.subscription.deleted':
+      console.log('❌ Subscription cancelled:', event.data.object.id);
+      handleSubscriptionCancelled(event.data.object);
+      break;
+    case 'invoice.payment_succeeded':
+      console.log('💳 Invoice paid:', event.data.object.id);
+      handleInvoicePayment(event.data.object);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -1092,27 +1105,170 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed':
-    const session = event.data.object;
-    console.log('Payment was successful!', session);
-    handlePaymentSuccess(session);
-    break;
-  case 'invoice.payment_succeeded':
-    const invoice = event.data.object;
-    console.log('Subscription payment succeeded:', invoice);
-    handleInvoicePayment(invoice);
-    break;
-  case 'customer.subscription.deleted':
-    const subscription = event.data.object;
-    console.log('Subscription cancelled:', subscription);
-    handleSubscriptionCancelled(subscription);
-    break;
-  default:
-    console.log(`Unhandled event type ${event.type}`);
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      console.log('Payment was successful!', session);
+      handlePaymentSuccess(session);
+      break;
+    case 'invoice.payment_succeeded':
+      const invoice = event.data.object;
+      console.log('Subscription payment succeeded:', invoice);
+      handleInvoicePayment(invoice);
+      break;
+    case 'customer.subscription.deleted':
+      const subscription = event.data.object;
+      console.log('Subscription cancelled:', subscription);
+      handleSubscriptionCancelled(subscription);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
 });
+
+// Lead capture endpoint for email marketing
+app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
+  const { email, source = 'website' } = req.body;
+
+  // Validate email
+  const emailSchema = Joi.object({
+    email: Joi.string().email().required(),
+    source: Joi.string().valid('lead_magnet', 'newsletter', 'beta_interest', 'website').optional(),
+  });
+
+  const { error } = emailSchema.validate({ email, source });
+  if (error) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+
+  try {
+    // Store lead in database (for now, we'll log it)
+    console.log('📧 New lead captured:', { email, source, timestamp: new Date().toISOString() });
+
+    // Send lead magnet email if source is lead_magnet
+    if (source === 'lead_magnet') {
+      await sendLeadMagnetEmail(email);
+    }
+
+    // Track in analytics
+    console.log(`✅ Lead captured successfully: ${email} from ${source}`);
+
+    res.json({
+      success: true,
+      message: 'Thank you! Check your email for your free guide.',
+      email,
+    });
+  } catch (error) {
+    console.error('Error capturing lead:', error);
+    res.status(500).json({ error: 'Failed to process request. Please try again.' });
+  }
+});
+
+// Function to send lead magnet email
+async function sendLeadMagnetEmail(email) {
+  if (!transporter) {
+    console.log('⚠️ SMTP not configured, would send lead magnet to:', email);
+    return;
+  }
+
+  const fromEmail =
+    process.env.SENDGRID_FROM_EMAIL ||
+    process.env.SMTP_FROM_EMAIL ||
+    process.env.SMTP_USER ||
+    'noreply@rinawarp.com';
+
+  const mailOptions = {
+    from: `RinaWarp Terminal <${fromEmail}>`,
+    to: email,
+    subject: '🎁 Your Free Guide: 10 Terminal Productivity Hacks',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #ff1493, #00ffff); padding: 30px; border-radius: 10px; text-align: center;">
+          <h1 style="color: white; margin: 0;">Your Free Terminal Guide is Here!</h1>
+        </div>
+        
+        <div style="padding: 30px 0;">
+          <p style="font-size: 16px; line-height: 1.6;">Hi there!</p>
+          
+          <p style="font-size: 16px; line-height: 1.6;">
+            Thank you for your interest in boosting your terminal productivity! 
+            We're excited to share our top 10 terminal hacks that will save you hours every week.
+          </p>
+          
+          <div style="background: #f0f0f0; padding: 25px; border-radius: 8px; margin: 25px 0;">
+            <h2 style="color: #ff1493; margin-top: 0;">📚 What's Inside:</h2>
+            <ul style="line-height: 1.8;">
+              <li>Speed up navigation with advanced shortcuts</li>
+              <li>Automate repetitive tasks with aliases</li>
+              <li>Master git workflows in the terminal</li>
+              <li>Use AI to generate complex commands</li>
+              <li>And 6 more productivity boosters!</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://rinawarptech.com/guides/terminal-productivity-hacks.pdf" 
+               style="display: inline-block; background: linear-gradient(135deg, #ff1493, #00ffff); 
+                      color: white; padding: 15px 40px; text-decoration: none; 
+                      border-radius: 25px; font-weight: bold; font-size: 18px;">
+              📥 Download Your Free Guide
+            </a>
+          </div>
+          
+          <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 4px solid #ff1493;">
+            <h3 style="color: #ff1493; margin-top: 0;">🚀 Ready for More?</h3>
+            <p style="margin-bottom: 15px;">
+              RinaWarp Terminal takes these productivity hacks to the next level with:
+            </p>
+            <ul style="margin-bottom: 15px;">
+              <li>AI-powered command suggestions</li>
+              <li>Visual workflow automation</li>
+              <li>Cloud sync across devices</li>
+              <li>Team collaboration features</li>
+            </ul>
+            <a href="https://rinawarptech.com/pricing" style="color: #ff1493; font-weight: bold;">
+              Try RinaWarp Terminal Free for 14 Days →
+            </a>
+          </div>
+          
+          <p style="font-size: 16px; line-height: 1.6; margin-top: 30px;">
+            Happy coding!<br>
+            The RinaWarp Team
+          </p>
+        </div>
+        
+        <div style="border-top: 1px solid #e0e0e0; padding-top: 20px; text-align: center; color: #666; font-size: 14px;">
+          <p>You received this email because you requested our terminal productivity guide.</p>
+          <p>© 2025 RinaWarp Technologies. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+    text: `Your Free Terminal Guide is Here!
+
+Thank you for your interest in boosting your terminal productivity!
+
+Download your guide here: https://rinawarptech.com/guides/terminal-productivity-hacks.pdf
+
+What's Inside:
+- Speed up navigation with advanced shortcuts
+- Automate repetitive tasks with aliases  
+- Master git workflows in the terminal
+- Use AI to generate complex commands
+- And 6 more productivity boosters!
+
+Happy coding!
+The RinaWarp Team`,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Lead magnet email sent:', info.messageId);
+  } catch (error) {
+    console.error('❌ Error sending lead magnet email:', error);
+    throw error;
+  }
+}
 
 // License generation and delivery functions
 function generateLicenseKey(customerId, licenseType) {

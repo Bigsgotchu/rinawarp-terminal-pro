@@ -473,6 +473,40 @@
     </style>
 </head>
 <body>
+    <!-- Launch Banner with Countdown -->
+    <div id="launch-banner" style="position: fixed; top: 0; width: 100%; background: linear-gradient(135deg, #ff1493, #00ffff); color: white; text-align: center; padding: 15px 20px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-size: 1.1rem;">
+        <strong>🚀 Limited Time Launch Offer!</strong> Get early access pricing - Ends in <span id="countdown" style="font-weight: bold; font-size: 1.2rem;"></span>
+        <button onclick="document.getElementById('launch-banner').style.display='none'" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    </div>
+    <script>
+        // Countdown timer - 7 days from page load
+        function startCountdown() {
+            const endTime = new Date();
+            endTime.setDate(endTime.getDate() + 7);
+            
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+                
+                if (distance < 0) {
+                    document.getElementById('countdown').innerHTML = "ENDED";
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                document.getElementById('countdown').innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }
+            
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+        startCountdown();
+    </script>
+    <div style="height: 60px;"></div> <!-- Spacer for fixed banner -->
     <div class="container">
         <div class="header">
             <h1>🌊 Dive Into Your Perfect Plan</h1>
