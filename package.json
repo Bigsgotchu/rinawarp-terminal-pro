@@ -198,6 +198,8 @@
     "railway:open": "railway open"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3",
+    "openai": "^4.67.1",
     "@xterm/addon-web-links": "^0.11.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",

@@ -84,6 +84,7 @@ import downloadRouter from './src/api/download.js';
 import authRouter from './src/api/auth.js';
 import securityRouter from './src/api/security.js';
 import ThreatDetector from './src/security/ThreatDetector.js';
+import AgentChatAPI from './src/api/agent-chat.js';
 
 // Validate SMTP configuration AFTER dotenv
 const smtpConfigured = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
@@ -317,6 +318,8 @@ app.use(
           "'self'",
           'https://js.stripe.com',
           'https://www.googletagmanager.com',
+          'https://www.google-analytics.com',
+          'https://analytics.google.com',
           (req, res) => `'nonce-${res.locals.nonce}'`,
         ],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
@@ -334,7 +337,7 @@ app.use(
         baseUri: ["'self'"],
         frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
         formAction: ["'self'"],
-        scriptSrcAttr: ["'none'"], // Block inline event handlers
+        scriptSrcAttr: ["'unsafe-hashes'"], // Allow inline event handlers with CSP nonce
         upgradeInsecureRequests: [],
       },
     },
@@ -498,11 +501,15 @@ app.get('/api/status/health', async (req, res) => {
   res.json(healthData);
 });
 
+// Initialize Agent Chat API
+const agentChatAPI = new AgentChatAPI();
+
 // Routes
 app.use('/api/status', statusRouter);
 app.use('/api/download', downloadRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/security', securityRouter);
+app.use('/api/ai', agentChatAPI.getRouter());
 
 // Health Check
 app.get('/api/ping', (req, res) => {
@@ -777,7 +784,7 @@ app.get('/favicon.ico', (req, res) => {
   }
 });
 
-// Serve the main page (index.html)
+// Serve the main page (index.html) with nonce injection for CSP compliance
 app.get('/', staticPageLimiter, (req, res) => {
   console.log('[ROUTE] Root route requested');
   const safePath = validateAndNormalizePath('index.html', _PUBLIC_DIR);
@@ -791,10 +798,23 @@ app.get('/', staticPageLimiter, (req, res) => {
       availableEndpoints: ['/health', '/api/stripe-config'],
     });
   }
-  console.log('[ROUTE] Serving index.html');
+
+  console.log('[ROUTE] Serving index.html with nonce injection');
+
+  // Read the HTML file and inject nonces
+  let htmlContent = fs.readFileSync(safePath, 'utf8');
+  const nonce = res.locals.nonce;
+
+  // Inject nonces into all inline scripts
+  htmlContent = htmlContent.replace(/<script>/g, `<script nonce="${nonce}">`);
+
+  // Convert inline event handlers to use data attributes (safer for CSP)
+  htmlContent = htmlContent.replace(/onclick="([^"]*)"/g, 'data-onclick="$1"');
+
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
-  res.sendFile(safePath);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(htmlContent);
 });
 
 // Serve the pricing page
