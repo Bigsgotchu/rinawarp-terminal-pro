@@ -24,44 +24,55 @@ class ThreatDetector {
       maxRequestsPerHour: 300,
       maxSuspiciousRequestsPerMinute: 5,
 
-      // Pattern detection
+      // Enhanced Pattern Detection with Smart Scoring
+      criticalPatterns: [
+        // WordPress setup/config files - immediate high threat
+        { pattern: /\/wp-admin\/setup-config\.php/i, score: 5, category: 'wordpress_setup' },
+        { pattern: /\/wp-config\.php/i, score: 5, category: 'wordpress_config' },
+        { pattern: /\/wp-config-sample\.php/i, score: 4, category: 'wordpress_config' },
+        { pattern: /\/xmlrpc\.php/i, score: 4, category: 'wordpress_attack' },
+
+        // Critical system files
+        { pattern: /\/\.env$/i, score: 5, category: 'environment_exposure' },
+        { pattern: /\/\.git/i, score: 4, category: 'source_exposure' },
+        { pattern: /\/database\.sql/i, score: 5, category: 'database_exposure' },
+        { pattern: /\/backup\.(zip|tar\.gz|sql)/i, score: 4, category: 'backup_exposure' },
+      ],
+
       suspiciousPatterns: [
         // WordPress scanners
-        /\/wp-admin/i,
-        /\/wp-content/i,
-        /\/wp-includes/i,
-        /\/wordpress/i,
-        /\/wp-login\.php/i,
-        /\/xmlrpc\.php/i,
+        { pattern: /\/wp-admin/i, score: 3, category: 'wordpress_scan' },
+        { pattern: /\/wp-content/i, score: 2, category: 'wordpress_scan' },
+        { pattern: /\/wp-includes/i, score: 2, category: 'wordpress_scan' },
+        { pattern: /\/wordpress/i, score: 2, category: 'wordpress_scan' },
+        { pattern: /\/wp-login\.php/i, score: 3, category: 'wordpress_login' },
 
         // Common attack patterns
-        /\/phpmyadmin/i,
-        /\/admin/i,
-        /\/administrator/i,
-        /\.php$/i,
-        /\.env$/i,
-        /\.git/i,
-        /\/config/i,
-        /\/backup/i,
-        /\/database/i,
-        /\/sql/i,
+        { pattern: /\/phpmyadmin/i, score: 4, category: 'admin_panel_scan' },
+        { pattern: /\/admin/i, score: 2, category: 'admin_scan' },
+        { pattern: /\/administrator/i, score: 3, category: 'admin_scan' },
+        { pattern: /\.php$/i, score: 1, category: 'php_scan' },
+        { pattern: /\/config/i, score: 3, category: 'config_scan' },
+        { pattern: /\/backup/i, score: 3, category: 'backup_scan' },
+        { pattern: /\/database/i, score: 3, category: 'database_scan' },
+        { pattern: /\/sql/i, score: 3, category: 'sql_scan' },
 
         // Directory traversal
-        /\.\.\//,
-        /\.\.%2f/i,
-        /%2e%2e/i,
+        { pattern: /\.\.\//i, score: 4, category: 'path_traversal' },
+        { pattern: /\.\.%2f/i, score: 4, category: 'path_traversal' },
+        { pattern: /%2e%2e/i, score: 4, category: 'path_traversal' },
 
         // SQL injection patterns
-        /union.*select/i,
-        /select.*from/i,
-        /drop.*table/i,
-        /insert.*into/i,
+        { pattern: /union.*select/i, score: 5, category: 'sql_injection' },
+        { pattern: /select.*from/i, score: 4, category: 'sql_injection' },
+        { pattern: /drop.*table/i, score: 5, category: 'sql_injection' },
+        { pattern: /insert.*into/i, score: 3, category: 'sql_injection' },
 
         // XSS patterns
-        /<script/i,
-        /javascript:/i,
-        /onerror=/i,
-        /onload=/i,
+        { pattern: /<script/i, score: 4, category: 'xss_attempt' },
+        { pattern: /javascript:/i, score: 3, category: 'xss_attempt' },
+        { pattern: /onerror=/i, score: 3, category: 'xss_attempt' },
+        { pattern: /onload=/i, score: 3, category: 'xss_attempt' },
       ],
 
       suspiciousUserAgents: [
@@ -229,11 +240,12 @@ class ThreatDetector {
   }
 
   /**
-   * Analyze request for threat patterns
+   * Enhanced Smart Threat Analysis with Adaptive Scoring
    */
   analyzeRequest(ip, url, userAgent, _method) {
     let threatScore = 0;
     const reasons = [];
+    const categories = new Set();
 
     // Check if IP is whitelisted
     if (this.isWhitelisted(ip) || this.config.whitelistedIPs.some(pattern => pattern.test(ip))) {
@@ -245,37 +257,68 @@ class ThreatDetector {
       return 0; // Skip threat analysis for legitimate monitoring tools
     }
 
-    // Special handling for curl - only flag if hitting sensitive endpoints
-    if (/curl/i.test(userAgent)) {
-      // Only flag curl if it's hitting sensitive endpoints or has suspicious patterns
-      const sensitivePaths = ['/admin', '/config', '/api/admin', '/.env', '/database'];
-      const hitsSensitivePath = sensitivePaths.some(path => url.includes(path));
+    // Priority 1: Check Critical Patterns (immediate high threat)
+    for (const { pattern, score, category } of this.config.criticalPatterns) {
+      if (pattern.test(url)) {
+        threatScore += score;
+        categories.add(category);
+        reasons.push(`🔥 CRITICAL: ${category} detected (${pattern.source})`);
 
-      if (hitsSensitivePath) {
-        threatScore += 2;
-        reasons.push('Curl accessing sensitive endpoint');
-      } else if (url === '/' || url === '/health' || url.startsWith('/api/')) {
-        // Normal curl requests to public endpoints - very low threat
-        threatScore += 0.5;
-        reasons.push('Curl on public endpoint (low concern)');
+        // Critical patterns trigger immediate escalation
+        this.logCriticalThreat(ip, url, userAgent, category);
+        break; // Stop at first critical match for immediate action
       }
-    } else {
-      // Check other suspicious user agents
-      for (const pattern of this.config.suspiciousUserAgents) {
-        if (pattern.test(userAgent)) {
-          threatScore += 1;
-          reasons.push(`Suspicious User-Agent: ${pattern.source}`);
+    }
+
+    // Priority 2: Check Suspicious Patterns (if no critical found)
+    if (threatScore < 5) {
+      // Only if not already critical
+      for (const { pattern, score, category } of this.config.suspiciousPatterns) {
+        if (pattern.test(url)) {
+          threatScore += score;
+          categories.add(category);
+          reasons.push(`⚠️ ${category}: ${pattern.source}`);
+
+          // WordPress-specific escalation rules
+          if (category === 'wordpress_setup' || category === 'wordpress_config') {
+            threatScore += 2; // Extra penalty for setup/config attempts
+            reasons.push('🚨 WordPress setup/config access attempt');
+          }
           break;
         }
       }
     }
 
-    // Check URL patterns
-    for (const pattern of this.config.suspiciousPatterns) {
-      if (pattern.test(url)) {
+    // Special handling for curl - context-aware scoring
+    if (/curl/i.test(userAgent)) {
+      const isCriticalPath = this.config.criticalPatterns.some(({ pattern }) => pattern.test(url));
+      const isSuspiciousPath = this.config.suspiciousPatterns.some(({ pattern }) =>
+        pattern.test(url)
+      );
+
+      if (isCriticalPath) {
+        threatScore += 3;
+        reasons.push('🚨 Curl accessing critical endpoint');
+      } else if (isSuspiciousPath) {
         threatScore += 2;
-        reasons.push(`Suspicious URL pattern: ${pattern.source}`);
-        break;
+        reasons.push('⚠️ Curl accessing suspicious endpoint');
+      } else if (url === '/' || url === '/health' || url.startsWith('/api/status')) {
+        // Normal curl requests to public endpoints - minimal threat
+        threatScore += 0.1;
+        reasons.push('ℹ️ Curl on public endpoint (minimal concern)');
+      } else {
+        // Unknown curl activity
+        threatScore += 1;
+        reasons.push('❓ Curl on unknown endpoint');
+      }
+    } else {
+      // Check other suspicious user agents
+      for (const pattern of this.config.suspiciousUserAgents) {
+        if (pattern.test(userAgent)) {
+          threatScore += 2;
+          reasons.push(`🤖 Suspicious User-Agent: ${pattern.source}`);
+          break;
+        }
       }
     }
 
@@ -326,13 +369,33 @@ class ThreatDetector {
   }
 
   /**
-   * Check if individual request is suspicious
+   * Log critical threat for immediate attention
+   */
+  logCriticalThreat(ip, url, userAgent, category) {
+    console.log(`🔥 CRITICAL THREAT DETECTED: ${ip} attempting ${category}`);
+    console.log(`   URL: ${url}`);
+    console.log(`   User-Agent: ${userAgent}`);
+    console.log(`   Category: ${category}`);
+    console.log(`   Timestamp: ${new Date().toISOString()}`);
+
+    // Could trigger immediate webhook alert here for critical threats
+    // this.sendImmediateCriticalAlert(ip, url, userAgent, category);
+  }
+
+  /**
+   * Enhanced pattern detection for suspicious requests
    */
   isSuspiciousRequest(url, userAgent) {
-    return (
-      this.config.suspiciousPatterns.some(pattern => pattern.test(url)) ||
-      this.config.suspiciousUserAgents.some(pattern => pattern.test(userAgent))
-    );
+    // Check critical patterns first
+    const isCritical = this.config.criticalPatterns.some(({ pattern }) => pattern.test(url));
+    if (isCritical) return true;
+
+    // Check suspicious patterns
+    const isSuspicious = this.config.suspiciousPatterns.some(({ pattern }) => pattern.test(url));
+    if (isSuspicious) return true;
+
+    // Check user agent patterns
+    return this.config.suspiciousUserAgents.some(pattern => pattern.test(userAgent));
   }
 
   /**

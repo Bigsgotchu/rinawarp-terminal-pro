@@ -1,7 +1,7 @@
 /**
  * RinaWarp Terminal - Stripe + GA4 Integration
  * Complete purchase tracking and conversion attribution
- * 
+ *
  * This module integrates Stripe payments with GA4 analytics to provide
  * comprehensive e-commerce tracking, conversion attribution, and revenue analytics.
  */
@@ -12,7 +12,7 @@ class StripeGA4Integration {
     this.stripe = stripe;
     this.purchaseFlow = {};
     this.checkoutStartTime = null;
-    
+
     this.init();
   }
 
@@ -33,14 +33,14 @@ class StripeGA4Integration {
     // Override the global purchasePlan function if it exists
     if (typeof window.purchasePlan === 'function') {
       const originalPurchasePlan = window.purchasePlan;
-      window.purchasePlan = (planType) => {
+      window.purchasePlan = planType => {
         this.trackCheckoutInitiated(planType);
         return originalPurchasePlan(planType);
       };
     }
 
     // Track checkout button clicks
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', event => {
       if (this.isCheckoutButton(event.target)) {
         const planType = this.extractPlanFromButton(event.target);
         this.trackCheckoutInitiated(planType);
@@ -49,7 +49,7 @@ class StripeGA4Integration {
 
     // Track successful checkouts from URL parameters
     this.trackCheckoutSuccessFromUrl();
-    
+
     // Track checkout abandonment
     this.setupAbandonmentTracking();
   }
@@ -60,37 +60,39 @@ class StripeGA4Integration {
   trackCheckoutInitiated(planType, planData = {}) {
     this.checkoutStartTime = Date.now();
     const planInfo = this.getPlanInfo(planType);
-    
+
     // GA4 e-commerce event: begin_checkout
     this.ga4.trackEvent('begin_checkout', {
       currency: 'USD',
       value: planInfo.price,
-      items: [{
-        item_id: planInfo.id,
-        item_name: planInfo.name,
-        item_category: 'subscription',
-        item_brand: 'RinaWarp',
-        price: planInfo.price,
-        quantity: 1
-      }],
+      items: [
+        {
+          item_id: planInfo.id,
+          item_name: planInfo.name,
+          item_category: 'subscription',
+          item_brand: 'RinaWarp',
+          price: planInfo.price,
+          quantity: 1,
+        },
+      ],
       coupon: planData.coupon || null,
       event_category: 'ecommerce',
       plan_type: planType,
       checkout_method: 'stripe',
-      ...planData
+      ...planData,
     });
 
     // Custom conversion tracking
     this.ga4.trackConversion('checkout_initiated', planInfo.price, 'USD', {
       plan_type: planType,
       plan_name: planInfo.name,
-      checkout_method: 'stripe'
+      checkout_method: 'stripe',
     });
 
     this.purchaseFlow[planType] = {
       initiated_at: Date.now(),
       plan_info: planInfo,
-      step: 'checkout_initiated'
+      step: 'checkout_initiated',
     };
 
     console.log('🛒 Checkout initiated:', { planType, planInfo });
@@ -112,27 +114,28 @@ class StripeGA4Integration {
     } = transactionData;
 
     const planInfo = this.getPlanInfo(planType);
-    const checkoutDuration = this.checkoutStartTime ? 
-      Date.now() - this.checkoutStartTime : null;
+    const checkoutDuration = this.checkoutStartTime ? Date.now() - this.checkoutStartTime : null;
 
     // GA4 e-commerce event: purchase
     this.ga4.trackPurchase({
       transaction_id: subscriptionId || sessionId,
       value: amount,
       currency: currency,
-      items: [{
-        item_id: planInfo.id,
-        item_name: planInfo.name,
-        item_category: 'subscription',
-        item_brand: 'RinaWarp',
-        price: amount,
-        quantity: 1
-      }],
+      items: [
+        {
+          item_id: planInfo.id,
+          item_name: planInfo.name,
+          item_category: 'subscription',
+          item_brand: 'RinaWarp',
+          price: amount,
+          quantity: 1,
+        },
+      ],
       customer_id: customerId,
       customer_email: customerEmail,
       payment_method: 'stripe',
       checkout_duration: checkoutDuration,
-      ...additionalData
+      ...additionalData,
     });
 
     // Track subscription specifically
@@ -142,7 +145,7 @@ class StripeGA4Integration {
       plan_price: amount,
       billing_cycle: planInfo.billing_cycle || 'monthly',
       customer_id: customerId,
-      customer_email: customerEmail
+      customer_email: customerEmail,
     });
 
     // Custom conversion tracking
@@ -151,7 +154,7 @@ class StripeGA4Integration {
       plan_name: planInfo.name,
       subscription_id: subscriptionId,
       customer_id: customerId,
-      checkout_duration: checkoutDuration
+      checkout_duration: checkoutDuration,
     });
 
     // Track conversion funnel completion
@@ -164,7 +167,7 @@ class StripeGA4Integration {
         plan: planType,
         totalPurchases: 1, // Could be incremented based on history
         lastPurchaseDate: new Date().toISOString(),
-        lastPurchaseAmount: amount
+        lastPurchaseAmount: amount,
       });
     }
 
@@ -176,11 +179,11 @@ class StripeGA4Integration {
    */
   trackCheckoutStep(step, planType, stepData = {}) {
     const stepMap = {
-      'plan_selected': 1,
-      'checkout_initiated': 2,
-      'payment_info_entered': 3,
-      'payment_submitted': 4,
-      'purchase_completed': 5
+      plan_selected: 1,
+      checkout_initiated: 2,
+      payment_info_entered: 3,
+      payment_submitted: 4,
+      purchase_completed: 5,
     };
 
     const stepNumber = stepMap[step] || 0;
@@ -191,16 +194,18 @@ class StripeGA4Integration {
       checkout_option: step,
       currency: 'USD',
       value: planInfo.price,
-      items: [{
-        item_id: planInfo.id,
-        item_name: planInfo.name,
-        item_category: 'subscription',
-        price: planInfo.price,
-        quantity: 1
-      }],
+      items: [
+        {
+          item_id: planInfo.id,
+          item_name: planInfo.name,
+          item_category: 'subscription',
+          price: planInfo.price,
+          quantity: 1,
+        },
+      ],
       event_category: 'ecommerce_funnel',
       plan_type: planType,
-      ...stepData
+      ...stepData,
     });
 
     // Update purchase flow tracking
@@ -222,21 +227,24 @@ class StripeGA4Integration {
     const originalTrackCheckoutInitiated = this.trackCheckoutInitiated.bind(this);
     this.trackCheckoutInitiated = (planType, planData) => {
       originalTrackCheckoutInitiated(planType, planData);
-      
+
       // Clear existing timer
       if (abandonmentTimer) {
         clearTimeout(abandonmentTimer);
       }
-      
+
       // Set 5-minute abandonment timer
-      abandonmentTimer = setTimeout(() => {
-        this.trackCheckoutAbandoned(planType);
-      }, 5 * 60 * 1000); // 5 minutes
+      abandonmentTimer = setTimeout(
+        () => {
+          this.trackCheckoutAbandoned(planType);
+        },
+        5 * 60 * 1000
+      ); // 5 minutes
     };
 
     // Clear timer on successful purchase
     const originalTrackPurchaseCompleted = this.trackPurchaseCompleted.bind(this);
-    this.trackPurchaseCompleted = (transactionData) => {
+    this.trackPurchaseCompleted = transactionData => {
       if (abandonmentTimer) {
         clearTimeout(abandonmentTimer);
       }
@@ -271,14 +279,14 @@ class StripeGA4Integration {
       plan_price: planInfo.price,
       abandonment_step: flow.step,
       time_spent: timeSpent,
-      checkout_method: 'stripe'
+      checkout_method: 'stripe',
     });
 
     // Track as negative conversion
     this.ga4.trackConversion('checkout_abandoned', planInfo.price, 'USD', {
       plan_type: planType,
       abandonment_step: flow.step,
-      time_spent: timeSpent
+      time_spent: timeSpent,
     });
 
     console.log('🚫 Checkout abandoned:', { planType, step: flow.step, timeSpent });
@@ -293,7 +301,7 @@ class StripeGA4Integration {
       'pricing_viewed',
       'plan_selected',
       'checkout_initiated',
-      'purchase_completed'
+      'purchase_completed',
     ];
 
     // Track each step completion
@@ -304,7 +312,7 @@ class StripeGA4Integration {
         funnel_step_name: step,
         plan_type: planType,
         value: step === 'purchase_completed' ? amount : null,
-        event_category: 'conversion_funnel'
+        event_category: 'conversion_funnel',
       });
     });
 
@@ -314,7 +322,7 @@ class StripeGA4Integration {
       plan_type: planType,
       value: amount,
       currency: 'USD',
-      event_category: 'conversion_funnel'
+      event_category: 'conversion_funnel',
     });
   }
 
@@ -322,13 +330,7 @@ class StripeGA4Integration {
    * Track refunds and cancellations
    */
   trackRefund(refundData) {
-    const {
-      transaction_id,
-      amount,
-      reason,
-      currency = 'USD',
-      ...additionalData
-    } = refundData;
+    const { transaction_id, amount, reason, currency = 'USD', ...additionalData } = refundData;
 
     this.ga4.trackEvent('refund', {
       transaction_id,
@@ -336,7 +338,7 @@ class StripeGA4Integration {
       currency,
       refund_reason: reason,
       event_category: 'ecommerce',
-      ...additionalData
+      ...additionalData,
     });
 
     console.log('💸 Refund tracked:', refundData);
@@ -346,13 +348,7 @@ class StripeGA4Integration {
    * Track subscription cancellations
    */
   trackCancellation(cancellationData) {
-    const {
-      subscription_id,
-      plan_type,
-      reason,
-      days_active,
-      ...additionalData
-    } = cancellationData;
+    const { subscription_id, plan_type, reason, days_active, ...additionalData } = cancellationData;
 
     this.ga4.trackEvent('subscription_cancelled', {
       subscription_id,
@@ -360,7 +356,7 @@ class StripeGA4Integration {
       cancellation_reason: reason,
       days_active,
       event_category: 'subscription',
-      ...additionalData
+      ...additionalData,
     });
 
     console.log('❌ Cancellation tracked:', cancellationData);
@@ -370,13 +366,8 @@ class StripeGA4Integration {
    * Track discount/coupon usage
    */
   trackCouponUsage(couponData) {
-    const {
-      coupon_code,
-      discount_amount,
-      discount_type,
-      plan_type,
-      ...additionalData
-    } = couponData;
+    const { coupon_code, discount_amount, discount_type, plan_type, ...additionalData } =
+      couponData;
 
     this.ga4.trackEvent('coupon_used', {
       coupon_code,
@@ -384,7 +375,7 @@ class StripeGA4Integration {
       discount_type,
       plan_type,
       event_category: 'promotion',
-      ...additionalData
+      ...additionalData,
     });
 
     console.log('🎫 Coupon usage tracked:', couponData);
@@ -393,12 +384,14 @@ class StripeGA4Integration {
   /**
    * Utility functions
    */
-  
+
   isCheckoutButton(element) {
-    return element.classList.contains('buy-button') || 
-           element.classList.contains('plan-button') ||
-           element.classList.contains('checkout-button') ||
-           (element.onclick && element.onclick.toString().includes('purchasePlan'));
+    return (
+      element.classList.contains('buy-button') ||
+      element.classList.contains('plan-button') ||
+      element.classList.contains('checkout-button') ||
+      (element.onclick && element.onclick.toString().includes('purchasePlan'))
+    );
   }
 
   extractPlanFromButton(button) {
@@ -427,63 +420,65 @@ class StripeGA4Integration {
 
   getPlanInfo(planType) {
     const plans = {
-      'personal': {
+      personal: {
         id: 'rinawarp_personal',
         name: 'Personal Plan',
         price: 15,
-        billing_cycle: 'monthly'
+        billing_cycle: 'monthly',
       },
-      'professional': {
+      professional: {
         id: 'rinawarp_professional',
         name: 'Professional Plan',
         price: 29,
-        billing_cycle: 'monthly'
+        billing_cycle: 'monthly',
       },
-      'team': {
+      team: {
         id: 'rinawarp_team',
         name: 'Team Plan',
         price: 49,
-        billing_cycle: 'monthly'
+        billing_cycle: 'monthly',
       },
-      'enterprise': {
+      enterprise: {
         id: 'rinawarp_enterprise',
         name: 'Enterprise Plan',
         price: 99,
-        billing_cycle: 'monthly'
+        billing_cycle: 'monthly',
       },
-      'beta': {
+      beta: {
         id: 'rinawarp_beta',
         name: 'Beta Access',
         price: 39,
-        billing_cycle: 'one_time'
+        billing_cycle: 'one_time',
       },
-      'earlybird': {
+      earlybird: {
         id: 'rinawarp_earlybird',
         name: 'Early Bird',
         price: 29,
-        billing_cycle: 'one_time'
+        billing_cycle: 'one_time',
       },
-      'premium': {
+      premium: {
         id: 'rinawarp_premium_beta',
         name: 'Premium Beta',
         price: 59,
-        billing_cycle: 'one_time'
-      }
+        billing_cycle: 'one_time',
+      },
     };
 
-    return plans[planType] || {
-      id: `rinawarp_${planType}`,
-      name: `${planType} Plan`,
-      price: 0,
-      billing_cycle: 'unknown'
-    };
+    return (
+      plans[planType] || {
+        id: `rinawarp_${planType}`,
+        name: `${planType} Plan`,
+        price: 0,
+        billing_cycle: 'unknown',
+      }
+    );
   }
 
   trackCheckoutSuccessFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
     const planType = urlParams.get('plan');
-    
+
     if (sessionId && planType) {
       // Track successful purchase from URL parameters
       setTimeout(() => {
@@ -491,7 +486,7 @@ class StripeGA4Integration {
           sessionId,
           planType,
           amount: this.getPlanInfo(planType).price,
-          source: 'url_success_redirect'
+          source: 'url_success_redirect',
         });
       }, 1000); // Delay to ensure GA4 is loaded
     }
@@ -500,7 +495,7 @@ class StripeGA4Integration {
   /**
    * Manual tracking methods for integration with existing code
    */
-  
+
   onCheckoutInitiated(planType, planData = {}) {
     this.trackCheckoutInitiated(planType, planData);
   }
@@ -534,10 +529,7 @@ if (typeof window !== 'undefined') {
   // Wait for both GA4 and Stripe to be available
   const initStripeGA4Integration = () => {
     if (window.rinaWarpGA4 && window.Stripe) {
-      window.stripeGA4Integration = new StripeGA4Integration(
-        window.rinaWarpGA4,
-        window.Stripe
-      );
+      window.stripeGA4Integration = new StripeGA4Integration(window.rinaWarpGA4, window.Stripe);
       console.log('🔗 Stripe GA4 Integration auto-initialized');
     }
   };
