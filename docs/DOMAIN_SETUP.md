@@ -2,64 +2,57 @@
 
 ## Current Status
 - **Project**: rinawarp-terminal
-- **Current URL**: https://rinawarp-terminal-rinawarptechnologies25-8115-rinawarp-tech.vercel.app
+- **Current URL**: https://rinawarptech.com
 - **Target Domain**: rinawarptech.com
-- **Status**: Domain needs to be configured
+- **Status**: ✅ Domain configured and live on Railway
 
-## Steps to Configure Custom Domain
+## Railway Custom Domain Configuration
 
-### 1. Add Domain to Vercel Project
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Navigate to the `rinawarp-terminal` project
-3. Go to Settings → Domains
-4. Add `rinawarptech.com` as a custom domain
+### 1. Domain Already Configured
+The domain `rinawarptech.com` is already:
+- Connected to Railway deployment
+- SSL certificate active
+- Serving production traffic
 
-### 2. DNS Configuration
-Once the domain is added, you'll need to configure DNS records:
-
-**Option A: Using Vercel DNS (Recommended)**
-1. Update your domain's nameservers to point to Vercel:
-   - `ns1.vercel-dns.com`
-   - `ns2.vercel-dns.com`
-
-**Option B: Using Custom DNS**
-Add the following DNS records to your domain registrar:
+### 2. DNS Configuration (Already Set)
+Current DNS records pointing to Railway:
 ```
-Type: A
-Name: @
-Value: 76.76.19.19
-
 Type: CNAME
+Name: @
+Value: rinawarp-terminal-production.up.railway.app
+
+Type: CNAME  
 Name: www
-Value: cname.vercel-dns.com
+Value: rinawarp-terminal-production.up.railway.app
 ```
 
 ### 3. SSL Certificate
-- Vercel automatically provisions SSL certificates for custom domains
-- This process typically takes 5-10 minutes after DNS propagation
+- Railway automatically provisions SSL certificates
+- Certificate is active and auto-renewing
 
 ### 4. Domain Verification
-1. Wait for DNS propagation (up to 24 hours)
-2. Verify the domain is working at https://rinawarptech.com
-3. Ensure www.rinawarptech.com redirects to rinawarptech.com
+✅ Domain is working at https://rinawarptech.com
+✅ www.rinawarptech.com redirects to rinawarptech.com
+✅ All API endpoints accessible
 
 ## Testing Checklist
-- [ ] Domain resolves to Vercel
-- [ ] SSL certificate is active
-- [ ] www redirect works
-- [ ] All pages load correctly
-- [ ] API endpoints work
-- [ ] Download links function properly
+- [x] Domain resolves to Railway
+- [x] SSL certificate is active
+- [x] www redirect works
+- [x] All pages load correctly
+- [x] API endpoints work
+- [x] Download links function properly
 
 ## Troubleshooting
-If the domain doesn't work:
+If you need to make changes:
 1. Check DNS propagation: https://dnschecker.org/
-2. Verify DNS records are correct
-3. Check Vercel deployment logs
-4. Contact Vercel support if needed
+2. Verify DNS records in your domain registrar
+3. Check Railway deployment logs
+4. Use Railway dashboard for domain management
 
-## Environment Variables for Custom Domain
-Update these in Vercel project settings:
-- `VERCEL_URL`: rinawarptech.com
-- `NEXT_PUBLIC_SITE_URL`: https://rinawarptech.com
-- Any hardcoded URLs in the application
+## Environment Variables
+Configured in Railway project settings:
+- `PORT`: Set by Railway
+- `RAILWAY_PUBLIC_DOMAIN`: rinawarptech.com
+- `NODE_ENV`: production
+- All other app-specific variables
