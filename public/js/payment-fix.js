@@ -59,9 +59,9 @@
         
         try {
             const betaPriceMap = {
-                'earlybird': { price: 29, priceId: 'price_1RayskG2ToGP7ChnotKOPBUs' },
-                'beta': { price: 39, priceId: 'price_1RayttG2ToGP7Chn6ectv20s' },
-                'premium': { price: 59, priceId: 'price_1RayttG2ToGP7Chn6ectv20s' }
+                'earlybird': { price: 29, priceId: 'price_1Rp8O5G2ToGP7ChnenRdFKyi' },
+                'beta': { price: 39, priceId: 'price_1Rp8OHG2ToGP7ChnZxNr7sqz' },
+                'premium': { price: 59, priceId: 'price_1Rp8OSG2ToGP7ChnXMUEevfi' }
             };
             
             const betaInfo = betaPriceMap[betaType];
@@ -147,9 +147,9 @@
         return {
             publishableKey: "pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj",
             prices: {
-                personal: "price_1RaypMG2ToGP7ChnzbKQOAPF",
-                professional: "price_1RayqKG2ToGP7ChnTMT6gwce",
-                team: "price_1RayrzG2ToGP7ChnAM4BXGoH"
+                personal: "price_1RlLBwG2ToGP7ChnhstisPz0",
+                professional: "price_1RlLC4G2ToGP7ChndbHLotM7",
+                team: "price_1RlLCEG2ToGP7ChnZa5Px0ow"
             }
         };
     }
