@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!-- Professional RinaWarp Logo -->
+  
+  <!-- Wave/Terminal Symbol -->
+  <g id="terminal-symbol">
+    <!-- Terminal bracket -->
+    <path d="M 10 15 L 20 25 L 10 35" stroke="#00CED1" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Underscore cursor -->
+    <rect x="24" y="32" width="12" height="3" fill="#FF1493" rx="1">
+      <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  
+  <!-- Text -->
+  <text x="45" y="32" font-family="'SF Pro Display', -apple-system, system-ui, sans-serif" font-size="24" font-weight="600" fill="#0A1628">
+    RinaWarp
+  </text>
+  
+  <!-- Subtle wave accent -->
+  <path d="M 45 38 Q 55 40 65 38 T 85 38 T 105 38 T 125 38 T 145 38" 
+        stroke="#00CED1" 
+        stroke-width="2" 
+        fill="none" 
+        opacity="0.6">
+    <animate attributeName="d" 
+             values="M 45 38 Q 55 40 65 38 T 85 38 T 105 38 T 125 38 T 145 38;
+                     M 45 38 Q 55 36 65 38 T 85 38 T 105 38 T 125 38 T 145 38;
+                     M 45 38 Q 55 40 65 38 T 85 38 T 105 38 T 125 38 T 145 38"
+             dur="3s" 
+             repeatCount="indefinite"/>
+  </path>
+</svg>
