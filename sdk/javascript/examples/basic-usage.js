@@ -1,10 +1,22 @@
 import { RinaWarpSDK } from '@rinawarp/terminal-sdk';
 
+/**
+ * RinaWarp SDK Usage Examples
+ * 
+ * Set environment variables before running:
+ * - RINAWARP_API_KEY: Your RinaWarp API key
+ * - RINAWARP_API_URL: API URL (optional, defaults to https://api.rinawarp.com)
+ * 
+ * Example:
+ * export RINAWARP_API_KEY="your-actual-api-key"
+ * node basic-usage.js
+ */
+
 // Basic usage example
 const basicExample = async () => {
   const sdk = new RinaWarpSDK({
-    apiKey: 'your-api-key-here',
-    apiUrl: 'https://api.rinawarp.com',
+    apiKey: process.env.RINAWARP_API_KEY || 'your-api-key-here',
+    apiUrl: process.env.RINAWARP_API_URL || 'https://api.rinawarp.com',
   });
 
   try {
@@ -43,7 +55,7 @@ const basicExample = async () => {
 // Performance monitoring example
 const performanceExample = async () => {
   const sdk = new RinaWarpSDK({
-    apiKey: 'your-api-key-here',
+    apiKey: process.env.RINAWARP_API_KEY || 'your-api-key-here',
   });
 
   try {
@@ -72,7 +84,7 @@ const performanceExample = async () => {
 // Event handling example
 const eventsExample = async () => {
   const sdk = new RinaWarpSDK({
-    apiKey: 'your-api-key-here',
+    apiKey: process.env.RINAWARP_API_KEY || 'your-api-key-here',
   });
 
   // Set up event listeners
@@ -100,7 +112,7 @@ const eventsExample = async () => {
 // Batch operations example
 const batchExample = async () => {
   const sdk = new RinaWarpSDK({
-    apiKey: 'your-api-key-here',
+    apiKey: process.env.RINAWARP_API_KEY || 'your-api-key-here',
   });
 
   try {
@@ -119,7 +131,7 @@ const batchExample = async () => {
 // GraphQL example
 const graphqlExample = async () => {
   const sdk = new RinaWarpSDK({
-    apiKey: 'your-api-key-here',
+    apiKey: process.env.RINAWARP_API_KEY || 'your-api-key-here',
   });
 
   try {

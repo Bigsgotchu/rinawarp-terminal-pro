@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
+const logger = require('../utils/logger.cjs');
 class UnifiedConfig {
   constructor() {
     this.configDir = path.join(os.homedir(), '.rinawarp-terminal');
@@ -33,6 +34,16 @@ class UnifiedConfig {
       performance: {
         enableGPUAcceleration: true,
         reducedMotion: false,
+      },
+      elevenlabs: {
+        enabled: false,
+        apiKey: '',
+        voiceId: '',
+        modelId: 'eleven_monolingual_v1',
+        voiceSettings: {
+          stability: 0.5,
+          similarityBoost: 0.75,
+        },
       },
     };
 
@@ -74,7 +85,7 @@ class UnifiedConfig {
         return { ...this.defaultConfig, ...JSON.parse(configData) };
       }
     } catch (error) {
-      console.warn('Config file corrupted, using defaults:', error.message);
+      logger.warn('Config file corrupted, using defaults:', error.message);
     }
     return this.defaultConfig;
   }
@@ -84,7 +95,7 @@ class UnifiedConfig {
       fs.writeFileSync(this.configFile, JSON.stringify(this.config, null, 2));
       return true;
     } catch (error) {
-      console.error('Failed to save config:', error);
+      logger.error('Failed to save config:', error);
       return false;
     }
   }
@@ -133,19 +144,69 @@ class UnifiedConfig {
     return this.saveConfig();
   }
 
+  // ElevenLabs specific methods
+  validateElevenLabsConfig() {
+    const config = this.get('elevenlabs');
+    const errors = [];
+    
+    if (config?.enabled) {
+      if (!config.apiKey && !process.env.ELEVENLABS_API_KEY) {
+        errors.push('API key is required when ElevenLabs is enabled');
+      }
+      
+      if (config.voiceSettings) {
+        if (typeof config.voiceSettings.stability !== 'number' || 
+            config.voiceSettings.stability < 0 || 
+            config.voiceSettings.stability > 1) {
+          errors.push('Voice stability must be a number between 0 and 1');
+        }
+        
+        if (typeof config.voiceSettings.similarityBoost !== 'number' || 
+            config.voiceSettings.similarityBoost < 0 || 
+            config.voiceSettings.similarityBoost > 1) {
+          errors.push('Voice similarity boost must be a number between 0 and 1');
+        }
+      }
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+  
+  getElevenLabsApiKey() {
+    return process.env.ELEVENLABS_API_KEY || this.get('elevenlabs.apiKey') || '';
+  }
+  
+  async initializeElevenLabsConfig() {
+    const config = this.get('elevenlabs');
+    
+    if (!config) {
+      this.set('elevenlabs', this.defaultConfig.elevenlabs);
+      return { initialized: true, requiresConfig: false };
+    }
+    
+    if (config.enabled && !this.getElevenLabsApiKey()) {
+      return { initialized: false, requiresConfig: true };
+    }
+    
+    return { initialized: true, requiresConfig: false };
+  }
+
   // Migration from old AppData structure
   migrateFromAppData() {
     const oldConfigPath = path.join(process.env.APPDATA || os.homedir(), 'rinawarp-terminal');
     if (fs.existsSync(oldConfigPath)) {
       try {
-        console.log('Migrating from old AppData configuration...');
+        logger.info('Migrating from old AppData configuration...');
         // Copy any important settings but don't merge complex structures
         const migrationCompleted = this.set('migration.fromAppData', true);
         if (migrationCompleted) {
-          console.log('Migration completed successfully');
+          logger.info('Migration completed successfully');
         }
       } catch (error) {
-        console.warn('Migration failed:', error.message);
+        logger.warn('Migration failed:', error.message);
       }
     }
   }

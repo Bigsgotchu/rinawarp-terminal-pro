@@ -5,6 +5,7 @@
 
 import { Terminal, FitAddon, WebLinksAddon } from '../entries/vendor.js';
 
+import logger from '../utils/logger.js';
 export class RinaWarpTerminal {
   constructor(options = {}) {
     this.options = {
@@ -82,7 +83,7 @@ export class RinaWarpTerminal {
 
       this.initialized = true;
     } catch (error) {
-      console.error('Failed to initialize terminal:', error);
+      logger.error('Failed to initialize terminal:', error);
       throw error;
     }
   }

@@ -36,13 +36,13 @@ class DebugDashboard {
 
   setupSocketHandlers() {
     this.io.on('connection', (socket) => {
-      console.log('Client connected');
+      if (process.env.NODE_ENV !== 'production') console.log('Client connected');
       
       // Start sending metrics
       this.startMetricsInterval(socket);
 
       socket.on('disconnect', () => {
-        console.log('Client disconnected');
+        if (process.env.NODE_ENV !== 'production') console.log('Client disconnected');
       });
     });
   }
@@ -110,7 +110,7 @@ class DebugDashboard {
   start() {
     const port = this.config.debugOverlay.port;
     this.server.listen(port, () => {
-      console.log(`Debug dashboard running on http://localhost:${port}`);
+      if (process.env.NODE_ENV !== 'production') console.log(`Debug dashboard running on http://localhost:${port}`);
     });
   }
 }

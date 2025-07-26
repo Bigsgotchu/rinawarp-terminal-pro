@@ -6,6 +6,7 @@
 const { spawn } = require('child_process');
 const config = require('../config/unified-config.cjs');
 
+const logger = require('../utils/logger.cjs');
 class SimpleTerminal {
   constructor(elementId = 'terminal-1') {
     this.elementId = elementId;
@@ -77,7 +78,7 @@ class SimpleTerminal {
         this.initializeFallbackTerminal();
       }
     } catch (error) {
-      console.warn('XTerm initialization failed, using fallback:', error);
+      logger.warn('XTerm initialization failed, using fallback:', error);
       this.initializeFallbackTerminal();
     }
   }
@@ -163,13 +164,13 @@ class SimpleTerminal {
       }
 
       this.ptyProcess.on('exit', code => {
-        console.log(`Terminal process exited with code ${code}`);
+        logger.info(`Terminal process exited with code ${code}`);
         if (this.terminal) {
           this.terminal.write('\r\nProcess exited. Press any key to restart...');
         }
       });
     } catch (error) {
-      console.error('Failed to start PTY process:', error);
+      logger.error('Failed to start PTY process:', error);
       this.writeOutput('Failed to start terminal process\n', 'error');
     }
   }
@@ -291,10 +292,10 @@ class SimpleTerminalManager {
       .initialize()
       .then(() => {
         this.activeTerminal = terminal;
-        console.log(`Terminal ${id} initialized successfully`);
+        logger.info(`Terminal ${id} initialized successfully`);
       })
       .catch(error => {
-        console.error(`Failed to initialize terminal ${id}:`, error);
+        logger.error(`Failed to initialize terminal ${id}:`, error);
       });
 
     return terminal;

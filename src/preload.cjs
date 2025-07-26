@@ -7,6 +7,7 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 const { spawn } = require('child_process');
+const logger = require('./utils/logger.cjs');
 // const os = require('os'); // Removed - unused variable
 const path = require('path');
 const fs = require('fs');
@@ -157,7 +158,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         kill: () => ptyProcess.kill(),
       };
     } catch (error) {
-      console.error('Failed to spawn PTY:', error);
+      logger.error('Failed to spawn PTY:', error);
       return null;
     }
   },
@@ -254,4 +255,4 @@ delete window.require;
 delete window.exports;
 delete window.module;
 
-console.log('🔒 Preload script loaded - Security context established');
+logger.info('🔒 Preload script loaded - Security context established');
