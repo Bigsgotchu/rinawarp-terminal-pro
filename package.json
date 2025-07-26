@@ -1,6 +1,6 @@
 {
   "name": "rinawarp-terminal",
-  "version": "1.1.0-beta.1",
+  "version": "1.0.0",
   "description": "RinaWarp Terminal - An advanced commercial terminal emulator with AI assistance, themes, and enterprise features",
   "main": "src/main.cjs",
   "type": "module",
@@ -56,17 +56,21 @@
         {
           "target": "dmg",
           "arch": "x64"
+        },
+        {
+          "target": "zip",
+          "arch": "x64"
         }
       ],
       "icon": "assets/icns/rinawarp-mermaid-icon.icns",
       "category": "public.app-category.developer-tools",
-      "identity": null,
-      "gatekeeperAssess": false,
       "hardenedRuntime": true,
+      "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
-      "notarize": false,
-      "signIgnore": "(.*)"
+      "notarize": {
+        "teamId": "${env.APPLE_TEAM_ID}"
+      }
     },
     "dmg": {
       "title": "${productName} ${version}",
@@ -221,6 +225,7 @@
     "@babel/plugin-transform-modules-commonjs": "7.27.1",
     "@babel/preset-env": "7.28.0",
     "@babel/preset-typescript": "7.27.1",
+    "@electron/notarize": "2.5.0",
     "@electron/packager": "18.3.6",
     "@jest/globals": "30.0.4",
     "@xterm/addon-fit": "0.10.0",
