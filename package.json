@@ -137,7 +137,7 @@
   "scripts": {
     "test:perf": "jest --config jest.perf.config.js",
     "analyze": "ANALYZE=true npm run build",
-    "server": "node server.js",
+    "server": "node final-server.js",
     "lighthouse": "lhci autorun",
     "bundlesize": "bundlesize",
     "prestart": "node scripts/macos-electron-optimize.js 2>/dev/null || true",
