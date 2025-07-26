@@ -26,7 +26,9 @@ RUN npm init -y && \
     node-fetch@^3.3.2 \
     nodemailer@^6.10.1 \
     stripe@^16.12.0 \
-    ws@^8.18.0
+    ws@^8.18.0 \
+    openai@^4.67.1 \
+    @anthropic-ai/sdk@^0.24.3
 
 # Set package.json type to module for ES6 imports
 RUN npm pkg set type=module
