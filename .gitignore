@@ -308,6 +308,7 @@ business-funding-prep/
 
 # Test and Debug Files
 *-test.html
+!public/simple-payment-test.html
 *-debug.*
 energy-report.html
 seo-audit.html
