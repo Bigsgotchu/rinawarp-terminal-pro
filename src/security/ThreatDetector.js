@@ -47,10 +47,10 @@ class ThreatDetector {
         { pattern: /\/wordpress/i, score: 2, category: 'wordpress_scan' },
         { pattern: /\/wp-login\.php/i, score: 3, category: 'wordpress_login' },
 
-        // Common attack patterns
-        { pattern: /\/phpmyadmin/i, score: 4, category: 'admin_panel_scan' },
-        { pattern: /\/admin/i, score: 2, category: 'admin_scan' },
-        { pattern: /\/administrator/i, score: 3, category: 'admin_scan' },
+      // Common attack patterns
+      { pattern: /\/phpmyadmin/i, score: 4, category: 'admin_panel_scan' },
+      { pattern: /\/admin(?!$|\-dashboard\.html)/i, score: 2, category: 'admin_scan' }, // Allow /admin and /admin-dashboard.html
+      { pattern: /\/administrator/i, score: 3, category: 'admin_scan' },
         { pattern: /\.php$/i, score: 1, category: 'php_scan' },
         { pattern: /\/config/i, score: 3, category: 'config_scan' },
         { pattern: /\/backup/i, score: 3, category: 'backup_scan' },

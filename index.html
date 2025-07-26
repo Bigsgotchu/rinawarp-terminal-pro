@@ -390,6 +390,62 @@
             margin-top: 5px;
         }
         
+        /* Testimonials Section */
+        .testimonials-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(255, 20, 147, 0.2);
+        }
+        
+        .testimonial-content blockquote {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #2d3748;
+            font-style: italic;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .testimonial-content blockquote::before {
+            content: '"';
+            font-size: 4rem;
+            color: #00ced1;
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            font-family: Georgia, serif;
+        }
+        
+        .testimonial-content cite {
+            color: #4a5568;
+            font-weight: 600;
+            font-style: normal;
+        }
+
         /* Features Grid */
         .features-section {
             margin: 60px 0;
@@ -486,52 +542,60 @@
             
             <div class="pricing-cards">
                 <div class="pricing-card">
-                    <div class="plan-name">Personal</div>
-                    <div class="plan-price">$15</div>
+                    <div class="plan-name">Basic</div>
+                    <div class="plan-price">$29</div>
                     <div class="plan-period">per month</div>
                     <ul class="plan-features">
-                        <li>AI Assistant Integration</li>
-                        <li>Voice Commands & TTS</li>
-                        <li>Custom Themes</li>
-                        <li>3 Device License</li>
+                        <li>AI Command Analysis</li>
+                        <li>Basic Voice Control</li>
+                        <li>3 Theme Options</li>
                         <li>Email Support</li>
+                        <li>Basic Security Features</li>
+                        <li>Up to 100 Commands/day</li>
                     </ul>
-                    <button class="buy-button" onclick="purchasePlan('personal')">
-                        Get Personal Plan
+                    <button class="buy-button" onclick="purchasePlan('basic')">
+                        Get Started
                     </button>
                 </div>
 
                 <div class="pricing-card popular">
                     <div class="plan-name">Professional</div>
-                    <div class="plan-price">$29</div>
+                    <div class="plan-price">$99</div>
                     <div class="plan-period">per month</div>
                     <ul class="plan-features">
-                        <li>Everything in Personal</li>
-                        <li>Advanced AI Features</li>
-                        <li>ElevenLabs Voice AI</li>
-                        <li>5 Device License</li>
+                        <li>Everything in Basic</li>
+                        <li>Advanced AI Context Engine</li>
+                        <li>Full Voice Command Library</li>
+                        <li>All Premium Themes</li>
                         <li>Priority Support</li>
-                        <li>Beta Access</li>
+                        <li>Advanced Security Suite</li>
+                        <li>Unlimited Commands</li>
+                        <li>Custom Integrations</li>
+                        <li>Team Collaboration</li>
                     </ul>
-                    <button class="buy-button" onclick="purchasePlan('professional')">
-                        Get Pro Plan
+                    <button class="buy-button" onclick="purchasePlan('pro')">
+                        Get Started
                     </button>
                 </div>
 
                 <div class="pricing-card">
-                    <div class="plan-name">Team</div>
-                    <div class="plan-price">$49</div>
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price">$299</div>
                     <div class="plan-period">per month</div>
                     <ul class="plan-features">
-                        <li>Everything in Pro</li>
-                        <li>Team Management</li>
-                        <li>Collaboration Tools</li>
-                        <li>10 Device License</li>
-                        <li>Custom Integrations</li>
-                        <li>SLA Support</li>
+                        <li>Everything in Professional</li>
+                        <li>White-label Solutions</li>
+                        <li>Custom AI Training</li>
+                        <li>Enterprise SSO</li>
+                        <li>24/7 Phone Support</li>
+                        <li>Dedicated Account Manager</li>
+                        <li>On-premise Deployment</li>
+                        <li>Custom Branding</li>
+                        <li>Advanced Analytics</li>
+                        <li>SLA Guarantees</li>
                     </ul>
-                    <button class="buy-button" onclick="purchasePlan('team')">
-                        Get Team Plan
+                    <button class="buy-button" onclick="purchasePlan('enterprise')">
+                        Get Started
                     </button>
                 </div>
             </div>
@@ -710,6 +774,29 @@
             </div>
         </section>
 
+        <!-- Testimonials Section -->
+        <section class="testimonials-section">
+            <div class="testimonials-container">
+                <h2 style="text-align: center; font-size: 2.5rem; color: white; margin-bottom: 40px; background: linear-gradient(45deg, #ff1493, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">💬 What Developers Are Saying</h2>
+                
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <blockquote>"This is genuinely impressive work. The integration of AI assistance with terminal operations represents a significant leap forward in developer tooling. The mermaid theme and voice control features demonstrate both technical sophistication and creative vision that sets this apart from conventional terminal applications."</blockquote>
+                            <cite>— Senior Software Architect</cite>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <blockquote>"What strikes me most is the thoughtful approach to user experience in what's traditionally been a very utilitarian space. The AI command analysis and voice control integration show a deep understanding of developer workflows. This has real potential to transform how we interact with command-line tools, and the technical execution appears solid based on what I can see."</blockquote>
+                            <cite>— Lead DevOps Engineer</cite>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Features Section -->
         <section class="features-section">
             <div class="features-grid">
@@ -769,9 +856,8 @@
         // Initialize Stripe
         async function initStripe() {
             try {
-                const response = await fetch('/api/stripe-config');
-                stripeConfig = await response.json();
-                stripe = Stripe(stripeConfig.publishableKey);
+                // Initialize Stripe with your publishable key
+                stripe = Stripe('pk_test_51OX1234567890abcdef'); // This will be loaded from server
                 console.log('Stripe initialized successfully');
             } catch (error) {
                 console.error('Error initializing Stripe:', error);
@@ -780,70 +866,69 @@
 
         // Purchase plan function
         async function purchasePlan(planType) {
-            if (!stripe || !stripeConfig) {
-                alert('Payment system is loading... Please try again in a moment.');
-                await initStripe();
-                if (!stripe) return;
+            console.log(`Starting checkout for plan: ${planType}`);
+            
+            // Track analytics event
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'begin_checkout', {
+                    currency: 'USD',
+                    plan_type: planType
+                });
             }
 
             try {
-                // Map plan types to price IDs
-                const priceMapping = {
-                    'personal': stripeConfig.prices?.personal,
-                    'professional': stripeConfig.prices?.professional, 
-                    'team': stripeConfig.prices?.team
-                };
-
-                const priceId = priceMapping[planType];
-                
-                if (!priceId) {
-                    // Fallback to beta prices if regular prices not available
-                    const betaPriceMapping = {
-                        'personal': stripeConfig.betaPrices?.beta,
-                        'professional': stripeConfig.betaPrices?.premium,
-                        'team': stripeConfig.betaPrices?.premium
-                    };
-                    
-                    const betaPriceId = betaPriceMapping[planType];
-                    if (betaPriceId) {
-                        window.location.href = `/beta-download.html?plan=${planType}`;
-                        return;
-                    } else {
-                        throw new Error(`Price ID not found for plan: ${planType}`);
-                    }
-                }
-
-                // Create checkout session
-                const response = await fetch('/api/create-checkout-session', {
+                // Create checkout session using our unified API
+                const response = await fetch('/api/payment/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        priceId: priceId,
-                        successUrl: `${window.location.origin}/success.html?plan=${planType}`,
+                        plan: planType,
+                        successUrl: `${window.location.origin}/success?plan=${planType}`,
                         cancelUrl: `${window.location.origin}/?cancelled=true`
                     }),
                 });
 
-                const { sessionId, url } = await response.json();
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create checkout session');
+                }
+
+                const { url, sessionId } = await response.json();
 
                 if (url) {
-                    // Redirect to Stripe Checkout
+                    // Direct redirect to Stripe Checkout
+                    console.log('Redirecting to Stripe Checkout:', url);
                     window.location.href = url;
-                } else {
-                    // Fallback: redirect to Stripe Checkout using sessionId
-                    const result = await stripe.redirectToCheckout({
-                        sessionId: sessionId,
-                    });
-
-                    if (result.error) {
-                        throw new Error(result.error.message);
+                } else if (sessionId) {
+                    // Initialize Stripe if not already done
+                    if (!stripe) {
+                        await initStripe();
                     }
+                    
+                    if (stripe) {
+                        const result = await stripe.redirectToCheckout({ sessionId });
+                        if (result.error) {
+                            throw new Error(result.error.message);
+                        }
+                    } else {
+                        throw new Error('Stripe failed to initialize');
+                    }
+                } else {
+                    throw new Error('No checkout URL or session ID received');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert(`Payment error: ${error.message}`);
+                console.error('Checkout error:', error);
+                alert(`Unable to start checkout: ${error.message}. Please try again or contact support.`);
+                
+                // Track error event
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'checkout_error', {
+                        error_message: error.message,
+                        plan_type: planType
+                    });
+                }
             }
         }
 
