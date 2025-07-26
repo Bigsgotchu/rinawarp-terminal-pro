@@ -3,7 +3,7 @@
 import fetch from 'node-fetch';
 import kleur from 'kleur';
 
-const DEPLOYMENT_URL = 'https://rinawarp-terminal-fs2boer6v-rinawarp-tech.vercel.app';
+const DEPLOYMENT_URL = 'https://rinawarptech.com';
 
 class DeploymentVerifier {
   constructor() {

@@ -29,13 +29,13 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       
-      // Enhanced GA4 configuration with Vercel deployment data
+      // Enhanced GA4 configuration
       gtag('config', 'G-G424CV5GGT', {
         page_title: 'RinaWarp Terminal - Homepage',
         page_location: window.location.href,
         custom_map: {
-          'custom_parameter_1': 'vercel_deployment_id',
-          'custom_parameter_2': 'vercel_region', 
+          'custom_parameter_1': 'deployment_id',
+          'custom_parameter_2': 'region', 
           'custom_parameter_3': 'app_version',
           'custom_parameter_4': 'deployment_env'
         }
@@ -49,8 +49,8 @@
         
         // Track page view with deployment data
         gtag('event', 'page_view', {
-          vercel_deployment_id: deploymentId,
-          vercel_region: region,
+          deployment_id: deploymentId,
+          region: region,
           app_version: '1.1.0',
           deployment_env: deploymentEnv,
           build_timestamp: new Date().toISOString(),
@@ -69,7 +69,7 @@
                 event_category: 'Performance',
                 event_label: 'Page Load Time',
                 value: Math.round(loadTime),
-                vercel_deployment_id: deploymentId,
+                deployment_id: deploymentId,
                 deployment_env: deploymentEnv
               });
             }, 0);
