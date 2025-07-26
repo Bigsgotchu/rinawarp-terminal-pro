@@ -387,25 +387,25 @@ class TestimonialManager {
     const command = args[0];
 
     switch (command) {
-      case 'list-pending':
-        return this.listPendingTestimonials();
+    case 'list-pending':
+      return this.listPendingTestimonials();
       
-      case 'approve':
-        const testimonialId = args[1];
-        const notes = args.slice(2).join(' ');
-        return this.approveTestimonialCLI(testimonialId, notes);
+    case 'approve':
+      const testimonialId = args[1];
+      const notes = args.slice(2).join(' ');
+      return this.approveTestimonialCLI(testimonialId, notes);
       
-      case 'generate':
-        return this.generateTestimonialPage();
+    case 'generate':
+      return this.generateTestimonialPage();
       
-      case 'stats':
-        return this.showStats();
+    case 'stats':
+      return this.showStats();
       
-      case 'init':
-        return this.initializeSystem();
+    case 'init':
+      return this.initializeSystem();
       
-      default:
-        return this.showHelp();
+    default:
+      return this.showHelp();
     }
   }
 

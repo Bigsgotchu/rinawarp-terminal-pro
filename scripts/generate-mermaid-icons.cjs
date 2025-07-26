@@ -143,15 +143,15 @@ async function generateSpecialFiles(outputDir, svgPath, converterCmd) {
   
   // Create a manifest.json for PWA
   const manifest = {
-    name: "RinaWarp Terminal",
-    short_name: "RinaWarp",
-    description: "Advanced Terminal with AI Integration",
+    name: 'RinaWarp Terminal',
+    short_name: 'RinaWarp',
+    description: 'Advanced Terminal with AI Integration',
     icons: [
-      { src: "web/rinawarp-mermaid-192.png", sizes: "192x192", type: "image/png" },
-      { src: "web/rinawarp-mermaid-512.png", sizes: "512x512", type: "image/png" }
+      { src: 'web/rinawarp-mermaid-192.png', sizes: '192x192', type: 'image/png' },
+      { src: 'web/rinawarp-mermaid-512.png', sizes: '512x512', type: 'image/png' }
     ],
-    theme_color: "#FF1493",
-    background_color: "#00CED1"
+    theme_color: '#FF1493',
+    background_color: '#00CED1'
   };
   
   fs.writeFileSync(

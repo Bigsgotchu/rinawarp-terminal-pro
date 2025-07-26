@@ -110,7 +110,7 @@ class VoiceTestDashboard {
     const fallbacks = this.statistics.fallbacks;
     
     if (score >= 90) {
-      return "🧜‍♀️ Voice system is swimming smoothly! All systems operational.";
+      return '🧜‍♀️ Voice system is swimming smoothly! All systems operational.';
     } else if (score >= 70) {
       return `🧜‍♀️ Voice system is stable with ${fallbacks} fallback${fallbacks !== 1 ? 's' : ''}. Still making waves!`;
     } else if (score >= 50) {

@@ -26,32 +26,32 @@ function updateJavaScriptFile(filePath) {
     let modified = false;
 
     // Replace old theme manager imports
-    if (content.includes("'./theme-manager'") || content.includes('"./theme-manager"')) {
+    if (content.includes('\'./theme-manager\'') || content.includes('"./theme-manager"')) {
       content = content.replace(
         /from\s+['"]\.\/theme-manager['"]/g,
-        "from '../themes/unified-theme-manager'"
+        'from \'../themes/unified-theme-manager\''
       );
       modified = true;
     }
 
     if (
-      content.includes("'../renderer/theme-manager'") ||
+      content.includes('\'../renderer/theme-manager\'') ||
       content.includes('"../renderer/theme-manager"')
     ) {
       content = content.replace(
         /from\s+['"]\.\.\/renderer\/theme-manager['"]/g,
-        "from '../themes/unified-theme-manager'"
+        'from \'../themes/unified-theme-manager\''
       );
       modified = true;
     }
 
     if (
-      content.includes("'../ui-enhancements/theme-manager'") ||
+      content.includes('\'../ui-enhancements/theme-manager\'') ||
       content.includes('"../ui-enhancements/theme-manager"')
     ) {
       content = content.replace(
         /from\s+['"]\.\.\/ui-enhancements\/theme-manager['"]/g,
-        "from '../themes/unified-theme-manager'"
+        'from \'../themes/unified-theme-manager\''
       );
       modified = true;
     }
@@ -61,7 +61,7 @@ function updateJavaScriptFile(filePath) {
       content = content.replace(/new\s+ThemeManager\(\)/g, 'getThemeManager()');
       // Add import if not present
       if (!content.includes('getThemeManager')) {
-        content = "import { getThemeManager } from '../themes/unified-theme-manager';\n" + content;
+        content = 'import { getThemeManager } from \'../themes/unified-theme-manager\';\n' + content;
       }
       modified = true;
     }

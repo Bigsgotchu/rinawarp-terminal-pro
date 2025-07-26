@@ -156,7 +156,7 @@ class LLMAPIClient {
    * Test connection to the selected provider
    */
   async testConnection() {
-    const testPrompt = "Reply with just 'OK' if you can understand this message.";
+    const testPrompt = 'Reply with just \'OK\' if you can understand this message.';
 
     try {
       const response = await this.generateResponse(testPrompt, {
@@ -205,20 +205,20 @@ class LLMAPIClient {
     while (retries >= 0) {
       try {
         switch (provider) {
-          case 'openai':
-            response = await this.callOpenAI(prompt, options);
-            break;
-          case 'anthropic':
-            response = await this.callAnthropic(prompt, options);
-            break;
-          case 'google':
-            response = await this.callGoogle(prompt, options);
-            break;
-          case 'ollama':
-            response = await this.callOllama(prompt, options);
-            break;
-          default:
-            throw new Error(`Unsupported provider: ${provider}`);
+        case 'openai':
+          response = await this.callOpenAI(prompt, options);
+          break;
+        case 'anthropic':
+          response = await this.callAnthropic(prompt, options);
+          break;
+        case 'google':
+          response = await this.callGoogle(prompt, options);
+          break;
+        case 'ollama':
+          response = await this.callOllama(prompt, options);
+          break;
+        default:
+          throw new Error(`Unsupported provider: ${provider}`);
         }
 
         // Cache successful response

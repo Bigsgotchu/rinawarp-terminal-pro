@@ -95,7 +95,7 @@ export class EnhancedPerformanceMonitor {
   }
 
   batchProcessEntries(entries) {
-    let metrics = {
+    const metrics = {
       paint: [],
       navigation: [],
       measure: [],
@@ -108,27 +108,27 @@ export class EnhancedPerformanceMonitor {
     // Group entries by type
     entries.forEach(entry => {
       switch(entry.entryType) {
-        case 'paint':
-          metrics.paint.push(entry);
-          break;
-        case 'navigation':
-          metrics.navigation.push(entry);
-          break;
-        case 'measure':
-          metrics.measure.push(entry);
-          break;
-        case 'largest-contentful-paint':
-          metrics.lcp = entry; // Keep only the latest LCP
-          break;
-        case 'layout-shift':
-          metrics.cls.push(entry);
-          break;
-        case 'first-input':
-          metrics.fid = entry; // Keep only the first FID
-          break;
-        case 'longtask':
-          metrics.longtask.push(entry);
-          break;
+      case 'paint':
+        metrics.paint.push(entry);
+        break;
+      case 'navigation':
+        metrics.navigation.push(entry);
+        break;
+      case 'measure':
+        metrics.measure.push(entry);
+        break;
+      case 'largest-contentful-paint':
+        metrics.lcp = entry; // Keep only the latest LCP
+        break;
+      case 'layout-shift':
+        metrics.cls.push(entry);
+        break;
+      case 'first-input':
+        metrics.fid = entry; // Keep only the first FID
+        break;
+      case 'longtask':
+        metrics.longtask.push(entry);
+        break;
       }
     });
 
