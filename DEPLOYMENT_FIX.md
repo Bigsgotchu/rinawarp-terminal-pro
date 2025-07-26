@@ -35,8 +35,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_PUBLISHABLE_KEY
 
 ```bash
 # Install Vercel CLI if not already installed
-npm i -g vercel
-
+# Deploy using Railway CLI
+railway up
 # Deploy
 vercel --prod
 ```
