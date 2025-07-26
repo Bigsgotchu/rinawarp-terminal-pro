@@ -254,10 +254,8 @@
             // Check current URL
             status.innerHTML += `<div class="status info">Current URL: ${window.location.href}</div>`;
             
-            // Check if on Vercel
-            if (window.location.hostname.includes('vercel.app')) {
-                status.innerHTML += `<div class="status warning">Running on Vercel preview deployment</div>`;
-            } else if (window.location.hostname === 'rinawarptech.com') {
+            // Check if on Production Domain
+            if (window.location.hostname === 'rinawarptech.com') {
                 status.innerHTML += `<div class="status success">Running on production domain</div>`;
             } else {
                 status.innerHTML += `<div class="status info">Running on: ${window.location.hostname}</div>`;

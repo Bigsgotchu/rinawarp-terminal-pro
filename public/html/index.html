@@ -41,16 +41,11 @@
         }
       });
       
-      // Track Vercel deployment analytics
-      function trackVercelDeployment() {
-        const deploymentId = window.location.hostname.includes('vercel.app') 
-          ? window.location.hostname.split('-')[1] || 'unknown'
-          : 'production';
-        
-        const region = typeof VERCEL_REGION !== 'undefined' ? VERCEL_REGION : 
-          (window.location.hostname.includes('vercel.app') ? 'vercel-edge' : 'unknown');
-        
-        const deploymentEnv = window.location.hostname.includes('vercel.app') ? 'staging' : 'production';
+      // Track deployment analytics
+      function trackDeployment() {
+        const deploymentId = 'production';
+        const region = 'railway';
+        const deploymentEnv = 'production';
         
         // Track page view with deployment data
         gtag('event', 'page_view', {
@@ -83,7 +78,7 @@
       }
       
       // Initialize tracking
-      trackVercelDeployment();
+      trackDeployment();
     </script>
     
     <!-- Structured Data -->
