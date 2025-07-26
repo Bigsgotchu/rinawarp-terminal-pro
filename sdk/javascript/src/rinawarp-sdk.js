@@ -3,6 +3,8 @@
  * Provides easy integration with RinaWarp Terminal API
  */
 
+import { ErrorHandler } from './error-handler.js';
+
 class RinaWarpSDK {
   constructor(config = {}) {
     this.config = {
@@ -20,6 +22,9 @@ class RinaWarpSDK {
     this.ws = null;
     this.subscriptions = new Map();
     this.eventListeners = new Map();
+    
+    // Initialize error handler
+    this.errorHandler = new ErrorHandler(this);
   }
 
   /**
@@ -395,12 +400,21 @@ class RinaWarpError extends Error {
   }
 }
 
+/**
+ * Create a safe SDK instance with error handling
+ */
+function createSafeSDK(config) {
+  const sdk = new RinaWarpSDK(config);
+  return sdk.errorHandler.createSafeSDK(sdk);
+}
+
 // Browser/Node.js compatibility
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { RinaWarpSDK, RinaWarpError };
+  module.exports = { RinaWarpSDK, RinaWarpError, createSafeSDK };
 } else if (typeof window !== 'undefined') {
   window.RinaWarpSDK = RinaWarpSDK;
   window.RinaWarpError = RinaWarpError;
+  window.createSafeSDK = createSafeSDK;
 }
 
-export { RinaWarpSDK, RinaWarpError };
+export { RinaWarpSDK, RinaWarpError, createSafeSDK };

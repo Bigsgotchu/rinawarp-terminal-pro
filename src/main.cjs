@@ -9,16 +9,17 @@ const os = require('os');
 const fs = require('fs');
 const { _execSync } = require('child_process');
 const { config } = require('./config/unified-config.cjs');
+const logger = require('./utils/logger.cjs');
 
 // Load environment variables from .env file
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Add comprehensive startup logging
-console.log('🚀 Starting RinaWarp Terminal...');
-console.log('📁 Working directory:', process.cwd());
-console.log('📄 Main script:', __filename);
-console.log('👤 User:', process.env.USER);
-console.log('🏠 Home directory:', os.homedir());
+logger.info('🚀 Starting RinaWarp Terminal...');
+logger.info('📁 Working directory:', { cwd: process.cwd() });
+logger.info('📄 Main script:', { filename: __filename });
+logger.info('👤 User:', { user: process.env.USER });
+logger.info('🏠 Home directory:', { home: os.homedir() });
 
 // Developer bypass check - unlock all features for the developer
 const isDeveloper =
@@ -26,7 +27,7 @@ const isDeveloper =
   process.env.NODE_ENV === 'development' ||
   fs.existsSync(path.join(os.homedir(), '.rinawarp-dev'));
 
-console.log('🔍 Developer check:', {
+logger.debug('🔍 Developer check:', {
   user: process.env.USER === 'kgilley',
   nodeEnv: process.env.NODE_ENV === 'development',
   devFile: fs.existsSync(path.join(os.homedir(), '.rinawarp-dev')),
@@ -34,13 +35,13 @@ console.log('🔍 Developer check:', {
 });
 
 if (isDeveloper) {
-  console.log('🔓 Developer mode enabled - Full access granted');
+logger.info('🔓 Developer mode enabled - Full access granted');
   // Set environment variables to unlock all features
   process.env.RINAWARP_LICENSE_TIER = 'enterprise';
   process.env.RINAWARP_DEV_MODE = 'true';
   process.env.RINAWARP_BYPASS_AUTH = 'true';
 } else {
-  console.log('🔒 Running in regular mode');
+logger.info('🔒 Running in regular mode');
 }
 
 // Import performance monitor using dynamic import since it's an ES module
@@ -53,9 +54,9 @@ async function loadESModules() {
     const perfModule = await import('./renderer/performance-monitor.js');
     PerformanceMonitor = perfModule.PerformanceMonitor;
     monitor = new PerformanceMonitor();
-    console.log('✅ Performance Monitor loaded successfully');
+    logger.info('✅ Performance Monitor loaded successfully');
   } catch (error) {
-    console.warn('⚠️ Performance Monitor not available:', error.message);
+logger.warn('⚠️ Performance Monitor not available:', { error: error.message });
     // Fallback implementation
     PerformanceMonitor = class {
       constructor() {}
@@ -136,11 +137,11 @@ process.on('uncaughtException', error => {
   const isHarmless = knownHarmlessErrors.some(known => errorString.includes(known));
 
   if (!isHarmless) {
-    console.error('Uncaught Exception:', error);
+logger.error('Uncaught Exception:', { error });
     // Only exit for non-harmless errors
     process.exit(1);
   } else if (process.env.VERBOSE_LOGGING === 'true') {
-    console.log('[SUPPRESSED] Uncaught Exception:', error.message);
+    logger.debug('[SUPPRESSED] Uncaught Exception:', { error: error.message });
   }
 });
 
@@ -149,17 +150,13 @@ process.on('unhandledRejection', (reason, promise) => {
   const isHarmless = knownHarmlessErrors.some(known => reasonString.includes(known));
 
   if (!isHarmless) {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled Rejection at:', { promise, reason });
   } else if (process.env.VERBOSE_LOGGING === 'true') {
-    console.log('[SUPPRESSED] Unhandled Rejection:', reasonString);
+    logger.debug('[SUPPRESSED] Unhandled Rejection:', { reason: reasonString });
   }
 });
 
-// Simple logger
-const _logger = {
-  info: (msg, ctx) => console.log(`[INFO] ${msg}`, ctx),
-  error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
-};
+// Remove simple logger as we now use the centralized logger
 
 let mainWindow;
 
@@ -284,20 +281,17 @@ function createApplicationMenu() {
 }
 
 function createWindow() {
-  console.log('🪟 Creating main window...');
+  logger.info('🪟 Creating main window...');
 
   const terminalHtmlPath = path.join(__dirname, 'terminal.html');
   const preloadPath = path.join(__dirname, 'preload.cjs');
   const iconPath = path.join(__dirname, '../assets/ico/rinawarp-mermaid-icon.ico');
 
-  console.log('📋 Window configuration:');
-  console.log(
-    '  - Terminal HTML:',
-    terminalHtmlPath,
-    fs.existsSync(terminalHtmlPath) ? '✅' : '❌'
-  );
-  console.log('  - Preload script:', preloadPath, fs.existsSync(preloadPath) ? '✅' : '❌');
-  console.log('  - Icon file:', iconPath, fs.existsSync(iconPath) ? '✅' : '❌');
+  logger.info('📋 Window configuration:', {
+    terminalHtml: { path: terminalHtmlPath, exists: fs.existsSync(terminalHtmlPath) },
+    preloadScript: { path: preloadPath, exists: fs.existsSync(preloadPath) },
+    iconFile: { path: iconPath, exists: fs.existsSync(iconPath) }
+  });
 
   const windowConfig = {
     width: config.get('ui.windowWidth') || 1200,
@@ -322,47 +316,47 @@ function createWindow() {
   };
 
   try {
-    console.log('🏗️ Creating BrowserWindow...');
+    logger.info('🏗️ Creating BrowserWindow...');
     mainWindow = new BrowserWindow(windowConfig);
-    console.log('✅ BrowserWindow created successfully');
+    logger.info('✅ BrowserWindow created successfully');
 
     // Load the main terminal interface
-    console.log('📄 Loading terminal HTML file...');
+    logger.info('📄 Loading terminal HTML file...');
     mainWindow
       .loadFile(terminalHtmlPath)
       .then(() => {
-        console.log('✅ Terminal HTML loaded successfully');
+        logger.info('✅ Terminal HTML loaded successfully');
       })
       .catch(error => {
-        console.error('❌ Failed to load terminal HTML:', error);
+        logger.error('❌ Failed to load terminal HTML:', { error });
       });
 
     mainWindow.once('ready-to-show', () => {
-      console.log('👁️ Window ready to show, displaying...');
+      logger.info('👁️ Window ready to show, displaying...');
       mainWindow.show();
-      console.log('✅ Window displayed successfully');
+      logger.info('✅ Window displayed successfully');
 
       // Enable dev tools only if configured
       if (config.get('ui.enableDevTools')) {
-        console.log('🛠️ Opening developer tools...');
+        logger.info('🛠️ Opening developer tools...');
         mainWindow.webContents.openDevTools();
       }
     });
 
     mainWindow.on('closed', () => {
-      console.log('🗑️ Window closed');
+      logger.info('🗑️ Window closed');
       mainWindow = null;
     });
 
     mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-      console.error('❌ Failed to load page:', errorCode, errorDescription);
+      logger.error('❌ Failed to load page:', { errorCode, errorDescription });
     });
 
     mainWindow.webContents.on('crashed', () => {
-      console.error('💥 Renderer process crashed');
+      logger.error('💥 Renderer process crashed');
     });
   } catch (error) {
-    console.error('❌ Failed to create window:', error);
+    logger.error('❌ Failed to create window:', { error });
     throw error;
   }
 }
@@ -434,10 +428,10 @@ app.whenReady().then(async () => {
     const allowedPermissions = ['microphone', 'camera', 'media', 'mediaKeySystem'];
 
     if (allowedPermissions.includes(permission)) {
-      console.log(`Granting permission: ${permission}`);
+      logger.info(`Granting permission: ${permission}`);
       callback(true);
     } else {
-      console.log(`Denying permission: ${permission}`);
+      logger.info(`Denying permission: ${permission}`);
       callback(false);
     }
   });
@@ -485,7 +479,7 @@ ipcMain.handle('ping', () => 'pong');
 // Developer license check - bypass licensing for developer
 ipcMain.handle('check-license', async () => {
   if (isDeveloper) {
-    console.log('🔓 Developer license bypass - granting enterprise access');
+    logger.info('🔓 Developer license bypass - granting enterprise access');
     return {
       valid: true,
       tier: 'enterprise',
@@ -526,14 +520,14 @@ if (process.env.TEST_MODE === 'true') {
       shellProcess: true,
     };
   });
-  console.log('🧪 Test mode enabled - Added test IPC handlers');
+  logger.info('🧪 Test mode enabled - Added test IPC handlers');
 }
 
 // Error Triage System IPC handlers
 ipcMain.handle('error-triage-report', async (event, error, context) => {
   try {
     // Log the error report in main process
-    console.log('🩺 Error triage report received:', {
+    logger.info('🩺 Error triage report received:', {
       message: error.message,
       subsystem: context.subsystem,
       component: context.component,
@@ -549,7 +543,7 @@ ipcMain.handle('error-triage-report', async (event, error, context) => {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('Failed to process error triage report:', error);
+    logger.error('Failed to process error triage report:', { error });
     return {
       triageId: `error_${Date.now()}`,
       processed: false,
@@ -569,7 +563,7 @@ ipcMain.handle('error-triage-health-check', async () => {
       nodeVersion: process.version,
     };
   } catch (error) {
-    console.error('Health check failed:', error);
+    logger.error('Health check failed:', { error });
     return null;
   }
 });
@@ -592,7 +586,7 @@ ipcMain.handle('error-triage-system-metrics', async () => {
       },
     };
   } catch (error) {
-    console.error('Failed to get system metrics:', error);
+    logger.error('Failed to get system metrics:', { error });
     return null;
   }
 });
@@ -649,7 +643,7 @@ ipcMain.handle('performance-monitor-get-system-health', async () => {
   try {
     return await monitor.getSystemHealth();
   } catch (error) {
-    console.error('Error getting system health:', error);
+    logger.error('Error getting system health:', { error });
     return null;
   }
 });
@@ -658,7 +652,7 @@ ipcMain.handle('performance-monitor-get-trends', () => {
   try {
     return monitor.getHistoricalTrends();
   } catch (error) {
-    console.error('Error getting performance trends:', error);
+    logger.error('Error getting performance trends:', { error });
     return null;
   }
 });
@@ -667,7 +661,7 @@ ipcMain.handle('performance-monitor-optimize-command', async (event, command, op
   try {
     return await monitor.optimizeCommand(command, options);
   } catch (error) {
-    console.error('Error optimizing command:', error);
+    logger.error('Error optimizing command:', { error });
     return null;
   }
 });
@@ -676,7 +670,7 @@ ipcMain.handle('performance-monitor-predict-resource-usage', async (event, comma
   try {
     return await monitor.predictResourceUsage(command);
   } catch (error) {
-    console.error('Error predicting resource usage:', error);
+    logger.error('Error predicting resource usage:', { error });
     return null;
   }
 });
@@ -685,7 +679,7 @@ ipcMain.handle('performance-monitor-get-analytics', () => {
   try {
     return monitor.getPerformanceAnalytics();
   } catch (error) {
-    console.error('Error getting performance analytics:', error);
+    logger.error('Error getting performance analytics:', { error });
     return null;
   }
 });
@@ -695,7 +689,7 @@ ipcMain.handle('performance-monitor-update-thresholds', (event, thresholds) => {
     monitor.updateThresholds(thresholds);
     return true;
   } catch (error) {
-    console.error('Error updating thresholds:', error);
+    logger.error('Error updating thresholds:', { error });
     return false;
   }
 });
@@ -762,9 +756,9 @@ async function loadAnalyticsIntegration() {
     const trackingId = process.env.GA_TRACKING_ID || 'UA-XXXXXXXX-X';
     gaIntegration = new GoogleAnalyticsIntegration(trackingId);
 
-    console.log('✅ Google Analytics integration loaded');
+    logger.info('✅ Google Analytics integration loaded');
   } catch (error) {
-    console.warn('⚠️ Google Analytics integration not available:', error.message);
+    logger.warn('⚠️ Google Analytics integration not available:', { error: error.message });
   }
 }
 
@@ -772,7 +766,7 @@ async function loadAnalyticsIntegration() {
 ipcMain.handle('track-analytics-event', async (event, category, action, label, value) => {
   try {
     // Log locally
-    console.log(`📊 Analytics event: ${category} - ${action} - ${label} - ${value}`);
+    logger.info(`📊 Analytics event: ${category} - ${action} - ${label} - ${value}`);
 
     // Send to Google Analytics if available
     if (gaIntegration) {
@@ -784,7 +778,7 @@ ipcMain.handle('track-analytics-event', async (event, category, action, label, v
 
     return true;
   } catch (error) {
-    console.error('Failed to track analytics event:', error);
+    logger.error('Failed to track analytics event:', { error });
     return false;
   }
 });
@@ -797,7 +791,7 @@ ipcMain.handle('load-elevenlabs-config', async () => {
     const envVoiceId = process.env.ELEVENLABS_VOICE_ID;
 
     if (envApiKey) {
-      console.log('✅ Loading ElevenLabs config from environment variables');
+      logger.info('✅ Loading ElevenLabs config from environment variables');
       return {
         apiKey: envApiKey,
         voiceId: envVoiceId || 'EXAVITQu4vr4xnSDxMaL', // Default to Bella
@@ -813,7 +807,7 @@ ipcMain.handle('load-elevenlabs-config', async () => {
       const configData = fs.readFileSync(configPath, 'utf8');
       const config = JSON.parse(configData);
 
-      console.log('✅ Loading ElevenLabs config from JSON file');
+    logger.info('✅ Loading ElevenLabs config from JSON file');
       return {
         apiKey: config.apiKey || '',
         voiceId: config.voiceId || 'EXAVITQu4vr4xnSDxMaL',
@@ -822,10 +816,10 @@ ipcMain.handle('load-elevenlabs-config', async () => {
       };
     }
 
-    console.warn('⚠️ No ElevenLabs configuration found');
+    logger.warn('⚠️ No ElevenLabs configuration found');
     return { apiKey: '', voiceId: 'EXAVITQu4vr4xnSDxMaL', hasApiKey: false, source: 'default' };
   } catch (error) {
-    console.error('Failed to load ElevenLabs config:', error);
+    logger.error('Failed to load ElevenLabs config:', { error });
     return { apiKey: '', voiceId: 'EXAVITQu4vr4xnSDxMaL', hasApiKey: false, source: 'error' };
   }
 });
@@ -847,7 +841,7 @@ ipcMain.handle('save-elevenlabs-config', async (event, config) => {
         const existingData = fs.readFileSync(configPath, 'utf8');
         existingConfig = JSON.parse(existingData);
       } catch (parseError) {
-        console.warn('Could not parse existing config, creating new one');
+    logger.warn('Could not parse existing config, creating new one');
       }
     }
 
@@ -862,10 +856,10 @@ ipcMain.handle('save-elevenlabs-config', async (event, config) => {
     // Save the configuration
     fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2));
 
-    console.log('✅ ElevenLabs configuration saved successfully');
+    logger.info('✅ ElevenLabs configuration saved successfully');
     return { success: true, message: 'Configuration saved successfully' };
   } catch (error) {
-    console.error('Failed to save ElevenLabs config:', error);
+    logger.error('Failed to save ElevenLabs config:', { error });
     return { success: false, message: `Failed to save configuration: ${error.message}` };
   }
 });
@@ -874,7 +868,7 @@ ipcMain.handle('test-elevenlabs-voice', async (event, config) => {
   try {
     // This is a placeholder for voice testing
     // In a real implementation, you would make an API call to ElevenLabs
-    console.log('🎤 Testing ElevenLabs voice configuration...', config);
+    logger.info('🎤 Testing ElevenLabs voice configuration...', { config });
 
     // Simulate a test (replace with actual API call)
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -885,7 +879,7 @@ ipcMain.handle('test-elevenlabs-voice', async (event, config) => {
       voiceId: config.voiceId || 'default',
     };
   } catch (error) {
-    console.error('Failed to test ElevenLabs voice:', error);
+    logger.error('Failed to test ElevenLabs voice:', { error });
     return {
       success: false,
       message: `Voice test failed: ${error.message}`,
@@ -906,7 +900,7 @@ ipcMain.handle('get-llm-status', async () => {
       connectionStatus: 'connected',
     };
   } catch (error) {
-    console.error('Failed to get LLM status:', error);
+    logger.error('Failed to get LLM status:', { error });
     return {
       ready: false,
       error: error.message,
@@ -943,7 +937,7 @@ ipcMain.handle('load-llm-config', async () => {
       temperature: 0.7,
     };
   } catch (error) {
-    console.error('Failed to load LLM config:', error);
+    logger.error('Failed to load LLM config:', { error });
     return {
       provider: 'openai',
       model: 'gpt-4',
@@ -971,7 +965,7 @@ ipcMain.handle('save-llm-config', async (event, config) => {
         const existingData = fs.readFileSync(configPath, 'utf8');
         existingConfig = JSON.parse(existingData);
       } catch (parseError) {
-        console.warn('Could not parse existing LLM config, creating new one');
+    logger.warn('Could not parse existing LLM config, creating new one');
       }
     }
 
@@ -989,17 +983,17 @@ ipcMain.handle('save-llm-config', async (event, config) => {
     // Save the configuration
     fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2));
 
-    console.log('✅ LLM configuration saved successfully');
+    logger.info('✅ LLM configuration saved successfully');
     return { success: true, message: 'LLM configuration saved successfully' };
   } catch (error) {
-    console.error('Failed to save LLM config:', error);
+    logger.error('Failed to save LLM config:', { error });
     return { success: false, message: `Failed to save LLM configuration: ${error.message}` };
   }
 });
 
 ipcMain.handle('test-llm-connection', async (event, config) => {
   try {
-    console.log('🧠 Testing LLM connection...', { provider: config.provider, model: config.model });
+    logger.info('🧠 Testing LLM connection...', { provider: config.provider, model: config.model });
 
     // Simulate a connection test (replace with actual API call)
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -1012,7 +1006,7 @@ ipcMain.handle('test-llm-connection', async (event, config) => {
       latency: '156ms',
     };
   } catch (error) {
-    console.error('Failed to test LLM connection:', error);
+    logger.error('Failed to test LLM connection:', { error });
     return {
       success: false,
       message: `LLM connection test failed: ${error.message}`,
@@ -1022,7 +1016,7 @@ ipcMain.handle('test-llm-connection', async (event, config) => {
 
 ipcMain.handle('start-conversational-ai', async () => {
   try {
-    console.log('🗣️ Starting conversational AI...');
+    logger.info('🗣️ Starting conversational AI...');
 
     // This is a placeholder - implement actual conversational AI logic
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -1033,7 +1027,7 @@ ipcMain.handle('start-conversational-ai', async () => {
       message: 'Conversational AI started successfully',
     };
   } catch (error) {
-    console.error('Failed to start conversational AI:', error);
+    logger.error('Failed to start conversational AI:', { error });
     return {
       success: false,
       status: 'error',
@@ -1044,7 +1038,7 @@ ipcMain.handle('start-conversational-ai', async () => {
 
 ipcMain.handle('stop-conversational-ai', async () => {
   try {
-    console.log('🔚 Stopping conversational AI...');
+    logger.info('🔚 Stopping conversational AI...');
 
     // This is a placeholder - implement actual stop logic
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -1055,7 +1049,7 @@ ipcMain.handle('stop-conversational-ai', async () => {
       message: 'Conversational AI stopped successfully',
     };
   } catch (error) {
-    console.error('Failed to stop conversational AI:', error);
+    logger.error('Failed to stop conversational AI:', { error });
     return {
       success: false,
       status: 'error',
@@ -1072,8 +1066,8 @@ ipcMain.handle('track-page-view', async (event, page, title) => {
     }
     return true;
   } catch (error) {
-    console.error('Failed to track page view:', error);
-    return false;
+      logger.error('Failed to track page view:', { error });
+      return false;
   }
 });
 
@@ -1084,7 +1078,7 @@ ipcMain.handle('track-timing', async (event, category, variable, time, label) =>
     }
     return true;
   } catch (error) {
-    console.error('Failed to track timing:', error);
+    logger.error('Failed to track timing:', { error });
     return false;
   }
 });
@@ -1096,7 +1090,7 @@ ipcMain.handle('track-exception', async (event, description, fatal) => {
     }
     return true;
   } catch (error) {
-    console.error('Failed to track exception:', error);
+    logger.error('Failed to track exception:', { error });
     return false;
   }
 });
@@ -1152,7 +1146,7 @@ ipcMain.handle('create-shell-process', async (event, config) => {
       shellProcesses.delete(processId);
     });
 
-    console.log(`Shell process created: ${processId}`);
+    logger.info(`Shell process created: ${processId}`);
 
     return {
       id: processId,
@@ -1162,7 +1156,7 @@ ipcMain.handle('create-shell-process', async (event, config) => {
       platform,
     };
   } catch (error) {
-    console.error('Failed to create shell process:', error);
+    logger.error('Failed to create shell process:', { error });
     throw error;
   }
 });
@@ -1177,7 +1171,7 @@ ipcMain.handle('write-to-shell', async (event, processId, data) => {
     }
     return false;
   } catch (error) {
-    console.error('Failed to write to shell process:', error);
+    logger.error('Failed to write to shell process:', { error });
     return false;
   }
 });
@@ -1193,7 +1187,7 @@ ipcMain.handle('kill-shell-process', async (event, processId) => {
     }
     return false;
   } catch (error) {
-    console.error('Failed to kill shell process:', error);
+    logger.error('Failed to kill shell process:', { error });
     return false;
   }
 });
@@ -1205,7 +1199,7 @@ ipcMain.handle('execute-command', async (event, command, options = {}) => {
       const { exec } = require('child_process');
       const { cwd = process.cwd(), env = {}, timeout = 30000 } = options;
 
-      console.log(`Executing command: ${command}`);
+    logger.info(`Executing command: ${command}`);
 
       const childProcess = exec(
         command,
@@ -1254,7 +1248,7 @@ ipcMain.handle('execute-command', async (event, command, options = {}) => {
         }
       }, timeout);
     } catch (error) {
-      console.error('Failed to execute command:', error);
+    logger.error('Failed to execute command:', { error });
       resolve({
         stdout: '',
         stderr: error.message,
@@ -1329,11 +1323,11 @@ app.on('web-contents-created', (event, contents) => {
 //   let log_message = 'Download speed: ' + progressObj.bytesPerSecond;
 //   log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
 //   log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')';
-//   console.info(log_message);
+//   logger.info(log_message);
 // });
 
 // autoUpdater.on('update-downloaded', _info => {
-//   console.info('Update downloaded');
+//   logger.info('Update downloaded');
 //   dialog
 //     .showMessageBox(mainWindow, {
 //       type: 'info',

@@ -255,6 +255,17 @@
             50% { transform: translateY(-20px) rotate(180deg); }
             100% { transform: translateY(0px) rotate(360deg); }
         }
+        
+        /* Performance mode - disable animations */
+        body.performance-mode * {
+            animation: none !important;
+            transition: none !important;
+        }
+        
+        body.performance-mode .header::before,
+        body.performance-mode .ai-section::before {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -264,23 +275,16 @@
     </div>
     
     <div class="controls">
-        <button onclick="startVoiceControl()">🎤 Voice Control <span class="voice-indicator" id="voiceIndicator"></span></button>
-        <button onclick="showAIHelp()">🤖 AI Commands</button>
         <button onclick="runCommand()">⚡ Quick Command</button>
-        <button onclick="clearTerminal()">🗑️ Clear Terminal</button>
-        <button onclick="showFeatures()">✨ Features</button>
-        <button onclick="configureElevenLabs()">🎤 Configure ElevenLabs</button>
-        <button onclick="toggleVoiceOutput()" id="voiceOutputBtn">🔊 Voice Output: OFF</button>
-        <button onclick="showAIConfig()">🤖 Configure AI</button>
-        <button onclick="startConversationalAI()" id="conversationalAIBtn">🗣️ AI Conversation: OFF</button>
+        <button onclick="clearTerminal()">🗑️ Clear</button>
+        <button onclick="showAIHelp()">💡 Help</button>
+        <button onclick="window.settingsPanel.toggle()" class="settings-btn">⚙️ Settings</button>
     </div>
     
-    <div class="ai-section">
-        <h3>💬 AI Assistant - Talk to Your Terminal</h3>
-        <p>Type natural language commands or use voice control:</p>
-        <input type="text" id="aiInput" placeholder="Try: 'list all files', 'current directory', 'git status', 'show processes'" />
-        <button onclick="processAICommand()">Process Command</button>
-        <div id="aiResponse" style="margin-top: 15px; color: #00ff88; font-weight: bold;"></div>
+    <div class="ai-section" style="display: none;">
+        <!-- AI Assistant is now enabled by default and works without this UI -->
+        <input type="text" id="aiInput" style="display: none;" />
+        <div id="aiResponse" style="display: none;"></div>
     </div>
     
     <div class="terminal-container">
@@ -310,6 +314,19 @@
     
     <!-- Terminal Initialization System -->
     <script type="module" src="renderer/terminal-initialization-system.js"></script>
+    
+    <!-- Settings Panel -->
+    <script type="module" src="renderer/settings-panel.js"></script>
+    
+    <!-- New Terminal Features -->
+    <script type="module" src="renderer/autocomplete-system.js"></script>
+    <script type="module" src="renderer/syntax-highlighter.js"></script>
+    <script type="module" src="renderer/cloud-sync.js"></script>
+    <script type="module" src="renderer/terminal-themes.js"></script>
+    <script type="module" src="renderer/command-history.js"></script>
+    <script type="module" src="renderer/plugin-system.js"></script>
+    <script type="module" src="renderer/split-pane.js"></script>
+    <script type="module" src="renderer/error-handler.js"></script>
     
     <script src="voice-recognition-advanced.js"></script>
     <script src="rina-personality-engine.js"></script>
@@ -2278,11 +2295,128 @@
             }
         }
         
+        // Initialize all new terminal features
+        async function initializeNewFeatures() {
+            try {
+                console.log('🚀 Initializing new terminal features...');
+                
+                // Initialize AutoComplete System
+                try {
+                    const { AutoCompleteSystem } = await import('./renderer/autocomplete-system.js');
+                    window.autoCompleteSystem = new AutoCompleteSystem(terminal);
+                    console.log('✅ AutoComplete System initialized');
+                } catch (error) {
+                    console.warn('AutoComplete System not available:', error);
+                }
+                
+                // Initialize Syntax Highlighter
+                try {
+                    const { SyntaxHighlighter } = await import('./renderer/syntax-highlighter.js');
+                    window.syntaxHighlighter = new SyntaxHighlighter();
+                    console.log('✅ Syntax Highlighter initialized');
+                } catch (error) {
+                    console.warn('Syntax Highlighter not available:', error);
+                }
+                
+                // Initialize Command History
+                try {
+                    const { CommandHistory } = await import('./renderer/command-history.js');
+                    window.commandHistory = new CommandHistory();
+                    console.log('✅ Command History initialized');
+                } catch (error) {
+                    console.warn('Command History not available:', error);
+                }
+                
+                // Initialize Terminal Themes
+                try {
+                    const { TerminalThemes } = await import('./renderer/terminal-themes.js');
+                    window.terminalThemes = new TerminalThemes(terminal);
+                    // Apply saved theme if available
+                    const savedTheme = localStorage.getItem('terminal-theme');
+                    if (savedTheme) {
+                        window.terminalThemes.applyTheme(savedTheme);
+                    }
+                    console.log('✅ Terminal Themes initialized');
+                } catch (error) {
+                    console.warn('Terminal Themes not available:', error);
+                }
+                
+                // Initialize Cloud Sync
+                try {
+                    const { CloudSync } = await import('./renderer/cloud-sync.js');
+                    window.cloudSync = new CloudSync();
+                    console.log('✅ Cloud Sync initialized');
+                } catch (error) {
+                    console.warn('Cloud Sync not available:', error);
+                }
+                
+                // Initialize Plugin System
+                try {
+                    const { PluginSystem } = await import('./renderer/plugin-system.js');
+                    window.pluginSystem = new PluginSystem();
+                    await window.pluginSystem.loadPlugins();
+                    console.log('✅ Plugin System initialized');
+                } catch (error) {
+                    console.warn('Plugin System not available:', error);
+                }
+                
+                // Initialize Split Pane
+                try {
+                    const { SplitPane } = await import('./renderer/split-pane.js');
+                    window.splitPane = new SplitPane(terminal);
+                    console.log('✅ Split Pane initialized');
+                } catch (error) {
+                    console.warn('Split Pane not available:', error);
+                }
+                
+                // Initialize Enhanced Error Handler
+                try {
+                    const { ErrorHandler } = await import('./renderer/error-handler.js');
+                    window.errorHandler = new ErrorHandler();
+                    window.errorHandler.initialize();
+                    console.log('✅ Enhanced Error Handler initialized');
+                } catch (error) {
+                    console.warn('Enhanced Error Handler not available:', error);
+                }
+                
+                // Initialize Settings Panel (if not already initialized)
+                if (!window.settingsPanel) {
+                    try {
+                        const { SettingsPanel } = await import('./renderer/settings-panel.js');
+                        window.settingsPanel = new SettingsPanel();
+                        console.log('✅ Settings Panel initialized');
+                    } catch (error) {
+                        console.warn('Settings Panel not available:', error);
+                    }
+                }
+                
+                updateStatus('✅ All terminal features initialized successfully');
+                
+            } catch (error) {
+                console.error('Error initializing terminal features:', error);
+                updateStatus('⚠️ Some features may not be available');
+            }
+        }
+        
         // Load AI and Voice Systems on page ready
         document.addEventListener('DOMContentLoaded', async () => {
             await loadAIIntegration();
             await initVoiceSystems();
             await loadEnhancedAI(); // Load the new unified AI system
+            
+            // Enable AI Assistant and Agent Mode by default
+            window.aiAssistantEnabled = true;
+            window.agentModeEnabled = true;
+            updateStatus('✅ AI Assistant and Agent Mode enabled by default');
+            
+            // Apply settings from settings panel if available
+            window.addEventListener('setting-changed', (event) => {
+                const { setting, value } = event.detail;
+                console.log(`Setting changed: ${setting} = ${value}`);
+            });
+            
+            // Initialize new terminal features
+            await initializeNewFeatures();
         });
     </script>
 </body>

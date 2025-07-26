@@ -1911,7 +1911,6 @@ function getLicenseFeatures(licenseType) {
 // Serve static files with express.static middleware for public directory
 // This provides efficient static file serving with proper caching headers
 app.use(
-  '/public',
   express.static(_PUBLIC_DIR, {
     maxAge: '1h', // Cache static assets for 1 hour
     etag: true,
