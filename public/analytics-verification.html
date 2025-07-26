@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Analytics Test Suite</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+        h1, h2 {
+            color: #3b82f6;
+        }
+        .test-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            color: #10b981;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .log-output {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status-indicator.active {
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        .status-indicator.inactive {
+            background: #ef4444;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 RinaWarp Analytics Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>📊 Analytics Status</h2>
+        <p>
+            <span class="status-indicator" id="ga4-status"></span>
+            GA4 Tracker: <span id="ga4-status-text">Checking...</span>
+        </p>
+        <p>
+            <span class="status-indicator" id="stripe-status"></span>
+            Stripe Integration: <span id="stripe-status-text">Checking...</span>
+        </p>
+        <p>
+            Measurement ID: <span id="measurement-id">Not configured</span>
+        </p>
+        <p>
+            Session ID: <span id="session-id">Not available</span>
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Basic Event Tests</h2>
+        <button onclick="testPageView()">Test Page View</button>
+        <button onclick="testCustomEvent()">Test Custom Event</button>
+        <button onclick="testUserEngagement()">Test User Engagement</button>
+        <button onclick="testSearch()">Test Search Event</button>
+        <div class="log-output" id="basic-log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>💳 E-commerce Event Tests</h2>
+        <button onclick="testViewPricing()">View Pricing</button>
+        <button onclick="testSelectPlan()">Select Plan</button>
+        <button onclick="testBeginCheckout()">Begin Checkout</button>
+        <button onclick="testPurchase()">Complete Purchase</button>
+        <button onclick="testAbandonCheckout()">Abandon Checkout</button>
+        <div class="log-output" id="ecommerce-log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔄 Subscription Event Tests</h2>
+        <button onclick="testSubscriptionCreated()">Subscription Created</button>
+        <button onclick="testSubscriptionUpdated()">Subscription Updated</button>
+        <button onclick="testSubscriptionCancelled()">Subscription Cancelled</button>
+        <button onclick="testRefund()">Process Refund</button>
+        <div class="log-output" id="subscription-log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Conversion Funnel Tests</h2>
+        <button onclick="testFullFunnel()">Run Full Funnel</button>
+        <button onclick="testFunnelWithAbandonment()">Funnel with Abandonment</button>
+        <button onclick="testDiscountUsage()">Test Discount Usage</button>
+        <div class="log-output" id="funnel-log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Event History</h2>
+        <button onclick="clearHistory()">Clear History</button>
+        <div class="log-output" id="event-history" style="max-height: 400px;"></div>
+    </div>
+
+    <!-- Load GA4 Scripts -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        // Replace with your actual GA4 Measurement ID
+        const GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+        gtag('config', GA4_MEASUREMENT_ID, {
+            'debug_mode': true,
+            'send_page_view': false
+        });
+    </script>
+    
+    <!-- Load RinaWarp Analytics Scripts -->
+    <script src="/js/analytics/ga4-enhanced-tracking.js"></script>
+    <script src="/js/analytics/stripe-ga4-integration.js"></script>
+    
+    <script>
+        // Initialize trackers
+        let ga4Tracker;
+        let stripeGA4;
+        let eventCounter = 0;
+        
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Initialize GA4 tracker
+                ga4Tracker = new RinaWarpGA4Tracker(GA4_MEASUREMENT_ID, {
+                    debug: true,
+                    enabled: true
+                });
+                
+                updateStatus('ga4-status', 'ga4-status-text', true, 'Initialized');
+                document.getElementById('measurement-id').textContent = GA4_MEASUREMENT_ID;
+                
+                // Initialize Stripe GA4 integration
+                stripeGA4 = new StripeGA4Integration(ga4Tracker);
+                updateStatus('stripe-status', 'stripe-status-text', true, 'Initialized');
+                
+                // Display session ID
+                if (ga4Tracker.sessionId) {
+                    document.getElementById('session-id').textContent = ga4Tracker.sessionId;
+                }
+                
+                logEvent('System initialized successfully', 'success');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                updateStatus('ga4-status', 'ga4-status-text', false, 'Error: ' + error.message);
+                logEvent('Initialization failed: ' + error.message, 'error');
+            }
+        });
+        
+        // Helper functions
+        function updateStatus(indicatorId, textId, isActive, text) {
+            const indicator = document.getElementById(indicatorId);
+            const textElement = document.getElementById(textId);
+            
+            indicator.className = 'status-indicator ' + (isActive ? 'active' : 'inactive');
+            textElement.textContent = text;
+            textElement.className = isActive ? 'success' : 'error';
+        }
+        
+        function logEvent(message, type = 'info', section = 'event-history') {
+            const logElement = document.getElementById(section);
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            // Also log to specific section if provided
+            if (section !== 'event-history') {
+                const historyLog = document.getElementById('event-history');
+                const historyEntry = logEntry.cloneNode(true);
+                historyLog.appendChild(historyEntry);
+                historyLog.scrollTop = historyLog.scrollHeight;
+            }
+        }
+        
+        function clearHistory() {
+            document.getElementById('event-history').innerHTML = '';
+            logEvent('History cleared', 'info');
+        }
+        
+        // Basic Event Tests
+        function testPageView() {
+            try {
+                ga4Tracker.trackPageView('/analytics-test', 'Analytics Test Page');
+                logEvent('✅ Page view tracked: /analytics-test', 'success', 'basic-log');
+            } catch (error) {
+                logEvent('❌ Page view failed: ' + error.message, 'error', 'basic-log');
+            }
+        }
+        
+        function testCustomEvent() {
+            try {
+                ga4Tracker.trackEvent('test_custom_event', {
+                    event_category: 'testing',
+                    event_label: 'manual_test',
+                    value: ++eventCounter
+                });
+                logEvent(`✅ Custom event tracked: test_custom_event (${eventCounter})`, 'success', 'basic-log');
+            } catch (error) {
+                logEvent('❌ Custom event failed: ' + error.message, 'error', 'basic-log');
+            }
+        }
+        
+        function testUserEngagement() {
+            try {
+                ga4Tracker.trackEngagement(30, 'test_page');
+                logEvent('✅ User engagement tracked: 30s on test_page', 'success', 'basic-log');
+            } catch (error) {
+                logEvent('❌ Engagement tracking failed: ' + error.message, 'error', 'basic-log');
+            }
+        }
+        
+        function testSearch() {
+            try {
+                ga4Tracker.trackSearch('test query', 5);
+                logEvent('✅ Search tracked: "test query" (5 results)', 'success', 'basic-log');
+            } catch (error) {
+                logEvent('❌ Search tracking failed: ' + error.message, 'error', 'basic-log');
+            }
+        }
+        
+        // E-commerce Event Tests
+        function testViewPricing() {
+            try {
+                stripeGA4.trackPricingViewed();
+                logEvent('✅ Pricing view tracked', 'success', 'ecommerce-log');
+            } catch (error) {
+                logEvent('❌ Pricing view failed: ' + error.message, 'error', 'ecommerce-log');
+            }
+        }
+        
+        function testSelectPlan() {
+            try {
+                stripeGA4.trackPlanSelected('professional', 29.99);
+                logEvent('✅ Plan selection tracked: Professional ($29.99)', 'success', 'ecommerce-log');
+            } catch (error) {
+                logEvent('❌ Plan selection failed: ' + error.message, 'error', 'ecommerce-log');
+            }
+        }
+        
+        function testBeginCheckout() {
+            try {
+                stripeGA4.trackCheckoutStarted('professional', 29.99);
+                logEvent('✅ Checkout started: Professional plan', 'success', 'ecommerce-log');
+            } catch (error) {
+                logEvent('❌ Checkout start failed: ' + error.message, 'error', 'ecommerce-log');
+            }
+        }
+        
+        function testPurchase() {
+            try {
+                const purchaseData = {
+                    transactionId: 'TEST_' + Date.now(),
+                    planType: 'professional',
+                    amount: 29.99,
+                    billingCycle: 'monthly',
+                    userId: 'test_user_123'
+                };
+                stripeGA4.trackPurchase(purchaseData);
+                logEvent(`✅ Purchase tracked: ${purchaseData.transactionId}`, 'success', 'ecommerce-log');
+            } catch (error) {
+                logEvent('❌ Purchase tracking failed: ' + error.message, 'error', 'ecommerce-log');
+            }
+        }
+        
+        function testAbandonCheckout() {
+            try {
+                stripeGA4.trackCheckoutAbandoned('professional', 'payment_info');
+                logEvent('✅ Checkout abandonment tracked at payment_info step', 'success', 'ecommerce-log');
+            } catch (error) {
+                logEvent('❌ Abandonment tracking failed: ' + error.message, 'error', 'ecommerce-log');
+            }
+        }
+        
+        // Subscription Event Tests
+        function testSubscriptionCreated() {
+            try {
+                const subData = {
+                    subscription_id: 'sub_' + Date.now(),
+                    plan_type: 'professional',
+                    billing_cycle: 'monthly',
+                    amount: 29.99
+                };
+                stripeGA4.trackSubscriptionCreated(subData);
+                logEvent(`✅ Subscription created: ${subData.subscription_id}`, 'success', 'subscription-log');
+            } catch (error) {
+                logEvent('❌ Subscription creation failed: ' + error.message, 'error', 'subscription-log');
+            }
+        }
+        
+        function testSubscriptionUpdated() {
+            try {
+                const updateData = {
+                    subscription_id: 'sub_update_' + Date.now(),
+                    old_plan: 'personal',
+                    new_plan: 'professional',
+                    upgrade_value: 10.00
+                };
+                stripeGA4.trackSubscriptionUpdated(updateData);
+                logEvent(`✅ Subscription updated: ${updateData.old_plan} → ${updateData.new_plan}`, 'success', 'subscription-log');
+            } catch (error) {
+                logEvent('❌ Subscription update failed: ' + error.message, 'error', 'subscription-log');
+            }
+        }
+        
+        function testSubscriptionCancelled() {
+            try {
+                const cancelData = {
+                    subscription_id: 'sub_cancel_' + Date.now(),
+                    plan_type: 'professional',
+                    reason: 'too_expensive',
+                    days_active: 45
+                };
+                stripeGA4.trackCancellation(cancelData);
+                logEvent(`✅ Subscription cancelled: ${cancelData.reason} after ${cancelData.days_active} days`, 'success', 'subscription-log');
+            } catch (error) {
+                logEvent('❌ Cancellation tracking failed: ' + error.message, 'error', 'subscription-log');
+            }
+        }
+        
+        function testRefund() {
+            try {
+                const refundData = {
+                    transaction_id: 'txn_refund_' + Date.now(),
+                    amount: 29.99,
+                    reason: 'customer_request'
+                };
+                stripeGA4.trackRefund(refundData);
+                logEvent(`✅ Refund tracked: $${refundData.amount} - ${refundData.reason}`, 'success', 'subscription-log');
+            } catch (error) {
+                logEvent('❌ Refund tracking failed: ' + error.message, 'error', 'subscription-log');
+            }
+        }
+        
+        // Conversion Funnel Tests
+        function testFullFunnel() {
+            try {
+                logEvent('🏁 Starting full funnel test...', 'info', 'funnel-log');
+                
+                // Simulate complete funnel
+                setTimeout(() => {
+                    stripeGA4.trackPricingViewed();
+                    logEvent('→ Step 1: Pricing viewed', 'success', 'funnel-log');
+                }, 100);
+                
+                setTimeout(() => {
+                    stripeGA4.trackPlanSelected('professional', 29.99);
+                    logEvent('→ Step 2: Plan selected', 'success', 'funnel-log');
+                }, 500);
+                
+                setTimeout(() => {
+                    stripeGA4.trackCheckoutStarted('professional', 29.99);
+                    logEvent('→ Step 3: Checkout started', 'success', 'funnel-log');
+                }, 1000);
+                
+                setTimeout(() => {
+                    const purchaseData = {
+                        transactionId: 'FUNNEL_' + Date.now(),
+                        planType: 'professional',
+                        amount: 29.99,
+                        billingCycle: 'monthly'
+                    };
+                    stripeGA4.trackPurchase(purchaseData);
+                    stripeGA4.trackConversionFunnelComplete('professional', 29.99);
+                    logEvent('→ Step 4: Purchase completed! 🎉', 'success', 'funnel-log');
+                }, 1500);
+                
+            } catch (error) {
+                logEvent('❌ Funnel test failed: ' + error.message, 'error', 'funnel-log');
+            }
+        }
+        
+        function testFunnelWithAbandonment() {
+            try {
+                logEvent('🏁 Starting abandonment funnel test...', 'info', 'funnel-log');
+                
+                setTimeout(() => {
+                    stripeGA4.trackPricingViewed();
+                    logEvent('→ Step 1: Pricing viewed', 'success', 'funnel-log');
+                }, 100);
+                
+                setTimeout(() => {
+                    stripeGA4.trackPlanSelected('team', 49.99);
+                    logEvent('→ Step 2: Team plan selected', 'success', 'funnel-log');
+                }, 500);
+                
+                setTimeout(() => {
+                    stripeGA4.trackCheckoutStarted('team', 49.99);
+                    logEvent('→ Step 3: Checkout started', 'success', 'funnel-log');
+                }, 1000);
+                
+                setTimeout(() => {
+                    stripeGA4.trackCheckoutAbandoned('team', 'payment_info');
+                    logEvent('→ Step 4: Checkout abandoned at payment! ❌', 'error', 'funnel-log');
+                }, 1500);
+                
+            } catch (error) {
+                logEvent('❌ Abandonment funnel failed: ' + error.message, 'error', 'funnel-log');
+            }
+        }
+        
+        function testDiscountUsage() {
+            try {
+                const discountData = {
+                    coupon_code: 'TEST20',
+                    discount_amount: 5.99,
+                    discount_percentage: 20,
+                    plan_type: 'professional'
+                };
+                stripeGA4.trackDiscountUsed(discountData);
+                logEvent(`✅ Discount tracked: ${discountData.coupon_code} (${discountData.discount_percentage}% off)`, 'success', 'funnel-log');
+            } catch (error) {
+                logEvent('❌ Discount tracking failed: ' + error.message, 'error', 'funnel-log');
+            }
+        }
+    </script>
+</body>
+</html>
