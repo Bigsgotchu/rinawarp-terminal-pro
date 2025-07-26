@@ -83,6 +83,9 @@ import statusRouter from './src/api/status.js';
 import downloadRouter from './src/api/download.js';
 import authRouter from './src/api/auth.js';
 import securityRouter from './src/api/security.js';
+import marketingRouter from './src/api/marketing.js';
+import analyticsRouter from './src/api/analytics.js';
+import supportRouter from './src/api/support.js';
 import ThreatDetector from './src/security/ThreatDetector.js';
 import AgentChatAPI from './src/api/agent-chat.js';
 
@@ -509,6 +512,9 @@ app.use('/api/status', statusRouter);
 app.use('/api/download', downloadRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/security', securityRouter);
+app.use('/api/marketing', marketingRouter);
+app.use('/api/analytics', analyticsRouter);
+app.use('/api/support', supportRouter);
 app.use('/api/ai', agentChatAPI.getRouter());
 
 // Health Check
@@ -921,6 +927,28 @@ app.get('/security-dashboard.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('security-dashboard.html', _PUBLIC_DIR);
   if (!safePath || !fs.existsSync(safePath)) {
     return res.status(404).json({ error: 'Security dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+
+// Serve admin dashboard
+app.get('/admin', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('admin-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Admin dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+
+// Serve admin dashboard with .html extension
+app.get('/admin-dashboard.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('admin-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Admin dashboard not found' });
   }
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -1983,7 +2011,10 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     // Note: We'll add a test ping endpoint instead of testing on startup to avoid delays
   }
 
-  console.log('✅ Server ready to accept connections');
+console.log('✅ Server ready to accept connections');
+  console.log('📊 Marketing System: Initialized for lead capture and email campaigns');
+  console.log('📈 Analytics System: Ready for event tracking and funnel analysis');
+  console.log('🎯 Support System: Help desk and knowledge base operational');
   console.log('🔗 Health endpoint: http://localhost:' + PORT + '/api/status/health');
   console.log('🐚 All systems operational - RinaWarp is ready to make waves!');
 });

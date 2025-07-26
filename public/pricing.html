@@ -344,6 +344,95 @@
             font-weight: 600;
         }
         
+        /* Testimonials Section */
+        .testimonials-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 20, 147, 0.05), rgba(0, 255, 255, 0.05));
+            border-radius: 25px;
+            padding: 50px;
+            margin: 50px 0;
+            border: 2px solid rgba(255, 20, 147, 0.3);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(255, 20, 147, 0.3);
+            text-align: center;
+        }
+        
+        .testimonials-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 20, 147, 0.4);
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .testimonial {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 105, 180, 0.1));
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(255, 20, 147, 0.2);
+            box-shadow: 0 15px 30px rgba(255, 20, 147, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .testimonial::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            font-size: 4rem;
+            color: rgba(255, 20, 147, 0.3);
+            font-family: serif;
+        }
+        
+        .testimonial:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(255, 20, 147, 0.3);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+        
+        .testimonial-content {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .testimonial-content p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #2d1b69;
+            font-style: italic;
+            margin: 0;
+        }
+        
+        .testimonial-author {
+            text-align: center;
+            border-top: 2px solid rgba(255, 20, 147, 0.2);
+            padding-top: 20px;
+        }
+        
+        .testimonial-author strong {
+            display: block;
+            font-size: 1.3rem;
+            color: #ff1493;
+            margin-bottom: 5px;
+        }
+        
+        .testimonial-author span {
+            color: #20b2aa;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        
         /* FAQ Section */
         .faq-section {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(167, 243, 208, 0.1));
@@ -429,7 +518,31 @@
             <p style="font-size: 1.1rem; opacity: 0.9; margin-top: 20px;">✅ Beta access + Full license on release ✅ Direct developer access ✅ Early feature preview</p>
         </div>
         
-        <h2 style="text-align: center; color: white; margin: 50px 0 30px 0; font-size: 2.2rem; text-shadow: 0 0 20px rgba(255,20,147,0.6);">📦 Regular Plans</h2>
+<div class="testimonials-section">
+    <h2>What Users Are Saying</h2>
+    <div class="testimonials-grid">
+        <div class="testimonial">
+            <div class="testimonial-content">
+                <p>"This shit is out of the world, compared to all the other AI apps out there, by far this one is so much more advanced!!! You want the real deal then look no further, you want to build yourself and grow as an individual then stop what your doing and take the 14 day free trial and explore everything you possibly can and I promise you, you won't be disappointed!!!!"</p>
+            </div>
+            <div class="testimonial-author">
+                <strong>Giles</strong>
+                <span>Early Adopter</span>
+            </div>
+        </div>
+        <div class="testimonial">
+            <div class="testimonial-content">
+                <p>"I've been reviewing a lot of different terminals to find the best ones and based off these strengths, I am excited to be able to use it when it comes out fully. Strong technical foundation with modern architecture, innovative AI-powered features, and clear commercial viability. Production ready with comprehensive feature set."</p>
+            </div>
+            <div class="testimonial-author">
+                <strong>RG</strong>
+                <span>Terminal Technology Reviewer</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 style="text-align: center; color: white; margin: 50px 0 30px 0; font-size: 2.2rem; text-shadow: 0 0 20px rgba(255,20,147,0.6);">📦 Regular Plans</h2>
         
         <div class="pricing-grid">
             <!-- Personal Plan -->
