@@ -376,18 +376,18 @@ export class RinaVoiceIntegration {
 
     // Configure voice systems based on mode
     switch (mode) {
-      case 'system':
-        this.configureSystemMode();
-        break;
-      case 'rina':
-        this.configureRinaMode();
-        break;
-      case 'hybrid':
-        this.configureHybridMode();
-        break;
-      case 'elevenlabs':
-        this.configureElevenLabsMode();
-        break;
+    case 'system':
+      this.configureSystemMode();
+      break;
+    case 'rina':
+      this.configureRinaMode();
+      break;
+    case 'hybrid':
+      this.configureHybridMode();
+      break;
+    case 'elevenlabs':
+      this.configureElevenLabsMode();
+      break;
     }
 
     // Trigger glow effect for mode switch
@@ -533,15 +533,15 @@ export class RinaVoiceIntegration {
 
     // Mood-specific Rina responses
     switch (mood) {
-      case 'frustrated':
-        await this.rinaVoice?.onUserFrustrated();
-        break;
-      case 'uncertain':
-        await this.rinaVoice?.onUserUncertain();
-        break;
-      case 'confident':
-        await this.rinaVoice?.speak('performanceGood', { mood: 'pleased' });
-        break;
+    case 'frustrated':
+      await this.rinaVoice?.onUserFrustrated();
+      break;
+    case 'uncertain':
+      await this.rinaVoice?.onUserUncertain();
+      break;
+    case 'confident':
+      await this.rinaVoice?.speak('performanceGood', { mood: 'pleased' });
+      break;
     }
   }
 

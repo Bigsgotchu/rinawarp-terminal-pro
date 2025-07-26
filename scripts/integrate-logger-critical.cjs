@@ -193,7 +193,7 @@ async function main() {
 
   let modifiedFiles = 0;
   let totalReplacements = 0;
-  let errors = [];
+  const errors = [];
 
   for (const file of CRITICAL_FILES) {
     process.stdout.write(`Processing ${file}... `);

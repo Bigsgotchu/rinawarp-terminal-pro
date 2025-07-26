@@ -145,19 +145,19 @@ export class CommandHistory {
       
       // Arrow keys for history navigation
       switch (event.key) {
-        case 'ArrowUp':
-          if (!event.shiftKey && !event.altKey) {
-            this.navigateHistory(-1);
-            return false;
-          }
-          break;
+      case 'ArrowUp':
+        if (!event.shiftKey && !event.altKey) {
+          this.navigateHistory(-1);
+          return false;
+        }
+        break;
           
-        case 'ArrowDown':
-          if (!event.shiftKey && !event.altKey) {
-            this.navigateHistory(1);
-            return false;
-          }
-          break;
+      case 'ArrowDown':
+        if (!event.shiftKey && !event.altKey) {
+          this.navigateHistory(1);
+          return false;
+        }
+        break;
       }
       
       return true;
@@ -356,8 +356,8 @@ export class CommandHistory {
         font-family: monospace;
         transition: all 0.2s;
         ${index === this.searchIndex ? 
-          'background: rgba(0, 170, 255, 0.3); color: #00AAFF;' : 
-          'background: rgba(255, 255, 255, 0.05); color: #fff;'}
+    'background: rgba(0, 170, 255, 0.3); color: #00AAFF;' : 
+    'background: rgba(255, 255, 255, 0.05); color: #fff;'}
       `;
       
       // Highlight matching text
@@ -393,25 +393,25 @@ export class CommandHistory {
   
   onSearchKeydown(event) {
     switch (event.key) {
-      case 'ArrowUp':
-        event.preventDefault();
-        this.navigateSearchResults(-1);
-        break;
+    case 'ArrowUp':
+      event.preventDefault();
+      this.navigateSearchResults(-1);
+      break;
         
-      case 'ArrowDown':
-        event.preventDefault();
-        this.navigateSearchResults(1);
-        break;
+    case 'ArrowDown':
+      event.preventDefault();
+      this.navigateSearchResults(1);
+      break;
         
-      case 'Enter':
-        event.preventDefault();
-        this.selectSearchResult(this.searchIndex);
-        break;
+    case 'Enter':
+      event.preventDefault();
+      this.selectSearchResult(this.searchIndex);
+      break;
         
-      case 'Escape':
-        event.preventDefault();
-        this.closeSearch();
-        break;
+    case 'Escape':
+      event.preventDefault();
+      this.closeSearch();
+      break;
     }
   }
   

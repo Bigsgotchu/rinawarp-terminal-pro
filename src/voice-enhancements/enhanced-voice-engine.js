@@ -532,17 +532,17 @@ export class EnhancedVoiceEngine {
     console.error('Voice recognition error:', event.error);
 
     switch (event.error) {
-      case 'network':
-        this.provideFeedback('Network error. Please check your connection.');
-        break;
-      case 'not-allowed':
-        this.provideFeedback('Microphone access denied. Please enable microphone permissions.');
-        break;
-      case 'no-speech':
-        console.log('No speech detected');
-        break;
-      default:
-        this.provideFeedback('Voice recognition error occurred.');
+    case 'network':
+      this.provideFeedback('Network error. Please check your connection.');
+      break;
+    case 'not-allowed':
+      this.provideFeedback('Microphone access denied. Please enable microphone permissions.');
+      break;
+    case 'no-speech':
+      console.log('No speech detected');
+      break;
+    default:
+      this.provideFeedback('Voice recognition error occurred.');
     }
 
     this.updateUI('error', { error: event.error });

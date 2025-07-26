@@ -143,7 +143,7 @@ async function main() {
     }
   }
   
-  console.log(`\n📊 Summary:`);
+  console.log('\n📊 Summary:');
   console.log(`- Files fixed: ${filesFixed}`);
   console.log(`- Auto-fixable issue types: ${autoFixableTypes.join(', ')}`);
   
@@ -156,7 +156,7 @@ async function main() {
   });
   
   if (manualFixTypes.size > 0) {
-    console.log(`\n⚠️  Manual fixes needed for:`);
+    console.log('\n⚠️  Manual fixes needed for:');
     manualFixTypes.forEach(type => {
       const count = report.issuesByType[type]?.length || 0;
       console.log(`- ${type}: ${count} occurrences`);

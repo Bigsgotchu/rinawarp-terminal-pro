@@ -33,20 +33,20 @@ const securityHeadersMiddleware = (req, res, next) => {
 
     // Enhanced CSP that allows Stripe to work properly
     'Content-Security-Policy': [
-      "default-src 'self'",
+      'default-src \'self\'',
       `script-src 'self' https://js.stripe.com https://checkout.stripe.com 'nonce-${nonce}'`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://checkout.stripe.com",
-      "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
-      "img-src 'self' data: https: blob:",
-      "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self' https://checkout.stripe.com",
-      "frame-ancestors 'self'",
-      "media-src 'self'",
-      "worker-src 'self' blob:",
-      "manifest-src 'self'",
+      'style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com https://checkout.stripe.com',
+      'frame-src \'self\' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com',
+      'img-src \'self\' data: https: blob:',
+      'font-src \'self\' data: https://fonts.gstatic.com',
+      'connect-src \'self\' wss: ws: https://api.stripe.com https://checkout.stripe.com',
+      'object-src \'none\'',
+      'base-uri \'self\'',
+      'form-action \'self\' https://checkout.stripe.com',
+      'frame-ancestors \'self\'',
+      'media-src \'self\'',
+      'worker-src \'self\' blob:',
+      'manifest-src \'self\'',
       'upgrade-insecure-requests',
     ].join('; '),
 
@@ -76,8 +76,8 @@ const securityHeadersMiddleware = (req, res, next) => {
     res.setHeader(
       'Content-Security-Policy',
       headers['Content-Security-Policy'].replace(
-        "form-action 'self'",
-        "form-action 'self' https://stripe.com"
+        'form-action \'self\'',
+        'form-action \'self\' https://stripe.com'
       )
     );
   }

@@ -212,7 +212,7 @@ export class SplitPaneManager {
       // Adjust other panes
       this.redistributePanes(this.resizingPane, percentage);
     }
-  }
+  };
   
   stopResize = () => {
     this.resizing = false;
@@ -228,7 +228,7 @@ export class SplitPaneManager {
     document.querySelectorAll('.resize-handle').forEach(handle => {
       handle.style.background = 'transparent';
     });
-  }
+  };
   
   redistributePanes(excludePane, usedPercentage) {
     const remainingPercentage = 100 - usedPercentage;
@@ -315,14 +315,14 @@ export class SplitPaneManager {
     let newIndex;
     
     switch (direction) {
-      case 'left':
-      case 'up':
-        newIndex = currentIndex - 1;
-        break;
-      case 'right':
-      case 'down':
-        newIndex = currentIndex + 1;
-        break;
+    case 'left':
+    case 'up':
+      newIndex = currentIndex - 1;
+      break;
+    case 'right':
+    case 'down':
+      newIndex = currentIndex + 1;
+      break;
     }
     
     if (newIndex >= 0 && newIndex < this.panes.length) {

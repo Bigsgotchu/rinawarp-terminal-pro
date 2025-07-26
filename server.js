@@ -316,31 +316,31 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'"],
+        defaultSrc: ['\'self\''],
         scriptSrc: [
-          "'self'",
+          '\'self\'',
           'https://js.stripe.com',
           'https://www.googletagmanager.com',
           'https://www.google-analytics.com',
           'https://analytics.google.com',
           (req, res) => `'nonce-${res.locals.nonce}'`,
         ],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
+        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
+        imgSrc: ['\'self\'', 'data:', 'https:'],
+        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
         connectSrc: [
-          "'self'",
+          '\'self\'',
           'wss:',
           'ws:',
           'https://api.stripe.com',
           'https://www.google-analytics.com',
           'https://analytics.google.com',
         ],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
-        frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
-        formAction: ["'self'"],
-        scriptSrcAttr: ["'unsafe-hashes'"], // Allow inline event handlers with CSP nonce
+        objectSrc: ['\'none\''],
+        baseUri: ['\'self\''],
+        frameSrc: ['\'self\'', 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        formAction: ['\'self\''],
+        scriptSrcAttr: ['\'unsafe-hashes\''], // Allow inline event handlers with CSP nonce
         upgradeInsecureRequests: [],
       },
     },
@@ -1049,30 +1049,30 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      console.log('💰 Payment successful:', session.id);
-      handlePaymentSuccess(session);
-      break;
-    }
-    case 'customer.subscription.created':
-      console.log('🔄 Subscription created:', event.data.object.id);
-      handleSubscriptionCreated(event.data.object);
-      break;
-    case 'customer.subscription.updated':
-      console.log('🔄 Subscription updated:', event.data.object.id);
-      handleSubscriptionUpdated(event.data.object);
-      break;
-    case 'customer.subscription.deleted':
-      console.log('❌ Subscription cancelled:', event.data.object.id);
-      handleSubscriptionCancelled(event.data.object);
-      break;
-    case 'invoice.payment_succeeded':
-      console.log('💳 Invoice paid:', event.data.object.id);
-      handleInvoicePayment(event.data.object);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  case 'checkout.session.completed': {
+    const session = event.data.object;
+    console.log('💰 Payment successful:', session.id);
+    handlePaymentSuccess(session);
+    break;
+  }
+  case 'customer.subscription.created':
+    console.log('🔄 Subscription created:', event.data.object.id);
+    handleSubscriptionCreated(event.data.object);
+    break;
+  case 'customer.subscription.updated':
+    console.log('🔄 Subscription updated:', event.data.object.id);
+    handleSubscriptionUpdated(event.data.object);
+    break;
+  case 'customer.subscription.deleted':
+    console.log('❌ Subscription cancelled:', event.data.object.id);
+    handleSubscriptionCancelled(event.data.object);
+    break;
+  case 'invoice.payment_succeeded':
+    console.log('💳 Invoice paid:', event.data.object.id);
+    handleInvoicePayment(event.data.object);
+    break;
+  default:
+    console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -1092,23 +1092,23 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      console.log('Payment was successful!', session);
-      handlePaymentSuccess(session);
-      break;
-    case 'invoice.payment_succeeded':
-      const invoice = event.data.object;
-      console.log('Subscription payment succeeded:', invoice);
-      handleInvoicePayment(invoice);
-      break;
-    case 'customer.subscription.deleted':
-      const subscription = event.data.object;
-      console.log('Subscription cancelled:', subscription);
-      handleSubscriptionCancelled(subscription);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  case 'checkout.session.completed':
+    const session = event.data.object;
+    console.log('Payment was successful!', session);
+    handlePaymentSuccess(session);
+    break;
+  case 'invoice.payment_succeeded':
+    const invoice = event.data.object;
+    console.log('Subscription payment succeeded:', invoice);
+    handleInvoicePayment(invoice);
+    break;
+  case 'customer.subscription.deleted':
+    const subscription = event.data.object;
+    console.log('Subscription cancelled:', subscription);
+    handleSubscriptionCancelled(subscription);
+    break;
+  default:
+    console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -2010,7 +2010,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     // Note: We'll add a test ping endpoint instead of testing on startup to avoid delays
   }
 
-console.log('✅ Server ready to accept connections');
+  console.log('✅ Server ready to accept connections');
   console.log('📊 Marketing System: Initialized for lead capture and email campaigns');
   console.log('📈 Analytics System: Ready for event tracking and funnel analysis');
   console.log('🎯 Support System: Help desk and knowledge base operational');

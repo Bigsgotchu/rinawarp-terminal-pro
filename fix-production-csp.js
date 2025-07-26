@@ -37,7 +37,7 @@ async function checkProductionHeaders() {
       const frameSrcValue = frameSrcMatch[1];
       console.log(chalk.red(`\n❌ PROBLEM FOUND: frame-src is set to: ${frameSrcValue}`));
 
-      if (frameSrcValue.includes("'none'")) {
+      if (frameSrcValue.includes('\'none\'')) {
         console.log(chalk.red('   This blocks ALL iframes including Stripe!'));
       }
     } else {
@@ -66,18 +66,18 @@ function generateCorrectCSP() {
   console.log(chalk.blue('\n\n📝 Correct CSP Configuration:\n'));
 
   const correctCSP = {
-    'default-src': ["'self'"],
-    'script-src': ["'self'", 'https://js.stripe.com', "'nonce-{NONCE}'"],
-    'script-src-attr': ["'none'"],
-    'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-    'img-src': ["'self'", 'data:', 'https:'],
-    'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
-    'connect-src': ["'self'", 'wss:', 'ws:', 'https://api.stripe.com'],
-    'frame-src': ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
-    'object-src': ["'none'"],
-    'base-uri': ["'self'"],
-    'form-action': ["'self'"],
-    'frame-ancestors': ["'self'"],
+    'default-src': ['\'self\''],
+    'script-src': ['\'self\'', 'https://js.stripe.com', '\'nonce-{NONCE}\''],
+    'script-src-attr': ['\'none\''],
+    'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
+    'img-src': ['\'self\'', 'data:', 'https:'],
+    'font-src': ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
+    'connect-src': ['\'self\'', 'wss:', 'ws:', 'https://api.stripe.com'],
+    'frame-src': ['\'self\'', 'https://js.stripe.com', 'https://hooks.stripe.com'],
+    'object-src': ['\'none\''],
+    'base-uri': ['\'self\''],
+    'form-action': ['\'self\''],
+    'frame-ancestors': ['\'self\''],
     'upgrade-insecure-requests': [],
   };
 
@@ -187,14 +187,14 @@ async function runDiagnostics() {
   await testStripeOnProduction();
 
   console.log(chalk.blue('\n\n✨ Summary:\n'));
-  console.log(chalk.yellow("The issue is that your production CSP has frame-src set to 'none',"));
+  console.log(chalk.yellow('The issue is that your production CSP has frame-src set to \'none\','));
   console.log(chalk.yellow('which blocks Stripe iframes. This is likely being set by:'));
   console.log('1. Cloudflare security settings');
   console.log('2. Railway deployment configuration');
   console.log('3. Or another proxy/CDN layer');
 
   console.log(chalk.green('\n✅ Your server.js has the correct configuration!'));
-  console.log(chalk.yellow("⚠️  But it's being overridden in production."));
+  console.log(chalk.yellow('⚠️  But it\'s being overridden in production.'));
 
   console.log(chalk.blue('\n📝 Next Steps:'));
   console.log('1. Check Cloudflare Transform Rules or Page Rules');

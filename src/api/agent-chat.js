@@ -77,33 +77,33 @@ class AgentChatAPI {
       let response;
 
       switch (provider.toLowerCase()) {
-        case 'openai':
-          response = await this.handleOpenAIRequest(messages, functions, {
-            model,
-            temperature,
-            max_tokens: maxTokens,
-          });
-          break;
+      case 'openai':
+        response = await this.handleOpenAIRequest(messages, functions, {
+          model,
+          temperature,
+          max_tokens: maxTokens,
+        });
+        break;
 
-        case 'anthropic':
-        case 'claude':
-          response = await this.handleAnthropicRequest(messages, functions, {
-            model: model.includes('claude') ? model : 'claude-3-sonnet-20240229',
-            temperature,
-            max_tokens: maxTokens,
-          });
-          break;
+      case 'anthropic':
+      case 'claude':
+        response = await this.handleAnthropicRequest(messages, functions, {
+          model: model.includes('claude') ? model : 'claude-3-sonnet-20240229',
+          temperature,
+          max_tokens: maxTokens,
+        });
+        break;
 
-        case 'ollama':
-          response = await this.handleOllamaRequest(messages, functions, {
-            model: model.includes('llama') ? model : 'llama2',
-            temperature,
-            max_tokens: maxTokens,
-          });
-          break;
+      case 'ollama':
+        response = await this.handleOllamaRequest(messages, functions, {
+          model: model.includes('llama') ? model : 'llama2',
+          temperature,
+          max_tokens: maxTokens,
+        });
+        break;
 
-        default:
-          throw new Error(`Unsupported provider: ${provider}`);
+      default:
+        throw new Error(`Unsupported provider: ${provider}`);
       }
 
       res.json({

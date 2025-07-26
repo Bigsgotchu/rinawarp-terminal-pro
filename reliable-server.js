@@ -203,7 +203,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`✅ RinaWarp Terminal Server running successfully!`);
+  console.log('✅ RinaWarp Terminal Server running successfully!');
   console.log(`🌐 Main site: http://localhost:${PORT}`);
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);
   console.log(`🧠 AI Demo: http://localhost:${PORT}/demo/ai`);

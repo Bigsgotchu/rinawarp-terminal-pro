@@ -44,7 +44,7 @@ exec(
 );
 
 // 4. Clear shared memory segments
-exec("ipcs -m | grep ^m | awk '{print $2}' | xargs -n 1 ipcrm -m 2>/dev/null", error => {
+exec('ipcs -m | grep ^m | awk \'{print $2}\' | xargs -n 1 ipcrm -m 2>/dev/null', error => {
   // Ignore errors as some segments may be in use
   console.log('✅ Cleared shared memory segments');
 });

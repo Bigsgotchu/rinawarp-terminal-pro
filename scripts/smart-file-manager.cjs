@@ -420,7 +420,7 @@ class SmartFileManager {
       const report = await this.generateReport();
       
       console.log('\n' + '='.repeat(60));
-      console.log(`✅ Smart cleanup complete!`);
+      console.log('✅ Smart cleanup complete!');
       console.log(`📊 Stats: ${report.summary.cleanFiles} clean files, ${report.summary.brokenFiles} variants found`);
       console.log(`🗑️  Cleaned up: ${report.summary.duplicates} duplicates, ${report.summary.orphans} orphans`);
       

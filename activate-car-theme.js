@@ -141,34 +141,34 @@ const command = args[0] || 'activate';
 
 async function main() {
   switch (command) {
-    case 'activate':
-      await carThemeActivator.activate();
-      break;
+  case 'activate':
+    await carThemeActivator.activate();
+    break;
 
-    case 'deactivate':
-      await carThemeActivator.deactivate();
-      break;
+  case 'deactivate':
+    await carThemeActivator.deactivate();
+    break;
 
-    case 'status':
-      const status = carThemeActivator.getStatus();
-      console.log('🚗 Car Dashboard Theme Status:');
-      console.log(`   Active: ${status.isActive ? '✅ Yes' : '❌ No'}`);
-      console.log(`   Gauges: ${status.hasGauges ? '✅ Running' : '❌ Not running'}`);
-      console.log(`   Odometer: ${status.hasOdometer ? '✅ Connected' : '❌ Disconnected'}`);
-      console.log(`   Commands: ${status.commandCount}`);
-      console.log(`   Uptime: ${Math.floor(status.uptime / 1000)}s`);
-      break;
+  case 'status':
+    const status = carThemeActivator.getStatus();
+    console.log('🚗 Car Dashboard Theme Status:');
+    console.log(`   Active: ${status.isActive ? '✅ Yes' : '❌ No'}`);
+    console.log(`   Gauges: ${status.hasGauges ? '✅ Running' : '❌ Not running'}`);
+    console.log(`   Odometer: ${status.hasOdometer ? '✅ Connected' : '❌ Disconnected'}`);
+    console.log(`   Commands: ${status.commandCount}`);
+    console.log(`   Uptime: ${Math.floor(status.uptime / 1000)}s`);
+    break;
 
-    case 'help':
-    case '--help':
-    case '-h':
-      carThemeActivator.showHelp();
-      break;
+  case 'help':
+  case '--help':
+  case '-h':
+    carThemeActivator.showHelp();
+    break;
 
-    default:
-      console.log(`❌ Unknown command: ${command}`);
-      console.log('Use "help" to see available commands');
-      process.exit(1);
+  default:
+    console.log(`❌ Unknown command: ${command}`);
+    console.log('Use "help" to see available commands');
+    process.exit(1);
   }
 }
 
