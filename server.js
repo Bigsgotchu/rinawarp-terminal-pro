@@ -1148,7 +1148,20 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
 
     // Send lead magnet email if source is lead_magnet
     if (source === 'lead_magnet') {
-      await sendLeadMagnetEmail(email);
+      console.log('🎯 Attempting to send lead magnet email to:', email);
+      try {
+        await sendLeadMagnetEmail(email);
+        console.log('✅ Lead magnet email sent successfully');
+      } catch (emailError) {
+        console.error('❌ Error sending lead magnet email:', emailError);
+        console.error('Error details:', {
+          message: emailError.message,
+          code: emailError.code,
+          response: emailError.response,
+          stack: emailError.stack,
+        });
+        throw emailError; // Re-throw to handle in outer catch
+      }
     }
 
     // Track in analytics
@@ -1160,7 +1173,10 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
       email,
     });
   } catch (error) {
-    console.error('Error capturing lead:', error);
+    console.error('❌ Error in lead capture endpoint:', error);
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to process request. Please try again.' });
   }
 });
