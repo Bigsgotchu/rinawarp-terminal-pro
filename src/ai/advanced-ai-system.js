@@ -389,36 +389,36 @@ class AIContextManager {
     };
 
     switch (contextType) {
-      case 'command_explanation':
-        return {
-          ...baseContext,
-          purpose: 'Explain shell commands and their effects',
-          recentCommands: this.getRecentCommands(5),
-        };
+    case 'command_explanation':
+      return {
+        ...baseContext,
+        purpose: 'Explain shell commands and their effects',
+        recentCommands: this.getRecentCommands(5),
+      };
 
-      case 'command_suggestion':
-        return {
-          ...baseContext,
-          purpose: 'Suggest commands based on user intent',
-          availableTools: await this.detectAvailableTools(),
-          recentCommands: this.getRecentCommands(10),
-        };
+    case 'command_suggestion':
+      return {
+        ...baseContext,
+        purpose: 'Suggest commands based on user intent',
+        availableTools: await this.detectAvailableTools(),
+        recentCommands: this.getRecentCommands(10),
+      };
 
-      case 'error_analysis':
-        return {
-          ...baseContext,
-          purpose: 'Analyze and provide solutions for errors',
-          systemInfo: await this.getSystemInfo(),
-        };
+    case 'error_analysis':
+      return {
+        ...baseContext,
+        purpose: 'Analyze and provide solutions for errors',
+        systemInfo: await this.getSystemInfo(),
+      };
 
-      case 'chat':
-        return {
-          ...baseContext,
-          purpose: 'General AI assistant conversation',
-        };
+    case 'chat':
+      return {
+        ...baseContext,
+        purpose: 'General AI assistant conversation',
+      };
 
-      default:
-        return baseContext;
+    default:
+      return baseContext;
     }
   }
 

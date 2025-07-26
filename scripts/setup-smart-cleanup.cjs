@@ -79,7 +79,7 @@ class SmartCleanupSetup {
       }
     } else {
       // Create new pre-commit hook
-      const preCommitContent = `#!/usr/bin/env sh\n. "$(dirname -- "$0")/_/husky.sh"\n\n# Smart File Manager cleanup\n.husky/smart-cleanup\n`;
+      const preCommitContent = '#!/usr/bin/env sh\n. "$(dirname -- "$0")/_/husky.sh"\n\n# Smart File Manager cleanup\n.husky/smart-cleanup\n';
       fs.writeFileSync(preCommitPath, preCommitContent);
       await this.makeExecutable(preCommitPath);
       this.log('  ✅ Created new pre-commit hook', 'success');

@@ -177,7 +177,7 @@ async function runDiagnostics() {
       console.log(`✅ Publishable key: ${productionConfig.publishableKey?.substring(0, 20)}...`);
       
       const keyType = productionConfig.publishableKey?.startsWith('pk_live_') ? 'LIVE' : 
-                     productionConfig.publishableKey?.startsWith('pk_test_') ? 'TEST' : 'UNKNOWN';
+        productionConfig.publishableKey?.startsWith('pk_test_') ? 'TEST' : 'UNKNOWN';
       console.log(`🔑 Key environment: ${keyType}`);
       
       console.log(`📦 Standard plans configured: ${Object.keys(productionConfig.prices || {}).length}`);
@@ -309,7 +309,7 @@ async function runDiagnostics() {
   console.log('===========');
   console.log(`Configuration Status: ${productionConfig ? '✅ Working' : '❌ Failed'}`);
   console.log(`Environment Type: ${isLiveKey ? 'LIVE' : 'TEST'}`);
-  console.log(`Checkout API Status: Testing above...`);
+  console.log('Checkout API Status: Testing above...');
 }
 
 // Voice integration helper (for future RinaWarp integration)

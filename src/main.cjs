@@ -35,13 +35,13 @@ logger.debug('🔍 Developer check:', {
 });
 
 if (isDeveloper) {
-logger.info('🔓 Developer mode enabled - Full access granted');
+  logger.info('🔓 Developer mode enabled - Full access granted');
   // Set environment variables to unlock all features
   process.env.RINAWARP_LICENSE_TIER = 'enterprise';
   process.env.RINAWARP_DEV_MODE = 'true';
   process.env.RINAWARP_BYPASS_AUTH = 'true';
 } else {
-logger.info('🔒 Running in regular mode');
+  logger.info('🔒 Running in regular mode');
 }
 
 // Import performance monitor using dynamic import since it's an ES module
@@ -56,7 +56,7 @@ async function loadESModules() {
     monitor = new PerformanceMonitor();
     logger.info('✅ Performance Monitor loaded successfully');
   } catch (error) {
-logger.warn('⚠️ Performance Monitor not available:', { error: error.message });
+    logger.warn('⚠️ Performance Monitor not available:', { error: error.message });
     // Fallback implementation
     PerformanceMonitor = class {
       constructor() {}
@@ -137,7 +137,7 @@ process.on('uncaughtException', error => {
   const isHarmless = knownHarmlessErrors.some(known => errorString.includes(known));
 
   if (!isHarmless) {
-logger.error('Uncaught Exception:', { error });
+    logger.error('Uncaught Exception:', { error });
     // Only exit for non-harmless errors
     process.exit(1);
   } else if (process.env.VERBOSE_LOGGING === 'true') {
@@ -168,21 +168,21 @@ function createApplicationMenu() {
     // App Menu (macOS only)
     ...(isMac
       ? [
-          {
-            label: app.getName(),
-            submenu: [
-              { role: 'about' },
-              { type: 'separator' },
-              { role: 'services', submenu: [] },
-              { type: 'separator' },
-              { role: 'hide' },
-              { role: 'hideOthers' },
-              { role: 'unhide' },
-              { type: 'separator' },
-              { role: 'quit' },
-            ],
-          },
-        ]
+        {
+          label: app.getName(),
+          submenu: [
+            { role: 'about' },
+            { type: 'separator' },
+            { role: 'services', submenu: [] },
+            { type: 'separator' },
+            { role: 'hide' },
+            { role: 'hideOthers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' },
+          ],
+        },
+      ]
       : []),
 
     // File Menu
@@ -203,15 +203,15 @@ function createApplicationMenu() {
         { role: 'paste' },
         ...(isMac
           ? [
-              { role: 'pasteAndMatchStyle' },
-              { role: 'delete' },
-              { role: 'selectAll' },
-              { type: 'separator' },
-              {
-                label: 'Speech',
-                submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }],
-              },
-            ]
+            { role: 'pasteAndMatchStyle' },
+            { role: 'delete' },
+            { role: 'selectAll' },
+            { type: 'separator' },
+            {
+              label: 'Speech',
+              submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }],
+            },
+          ]
           : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }]),
       ],
     },
@@ -807,7 +807,7 @@ ipcMain.handle('load-elevenlabs-config', async () => {
       const configData = fs.readFileSync(configPath, 'utf8');
       const config = JSON.parse(configData);
 
-    logger.info('✅ Loading ElevenLabs config from JSON file');
+      logger.info('✅ Loading ElevenLabs config from JSON file');
       return {
         apiKey: config.apiKey || '',
         voiceId: config.voiceId || 'EXAVITQu4vr4xnSDxMaL',
@@ -841,7 +841,7 @@ ipcMain.handle('save-elevenlabs-config', async (event, config) => {
         const existingData = fs.readFileSync(configPath, 'utf8');
         existingConfig = JSON.parse(existingData);
       } catch (parseError) {
-    logger.warn('Could not parse existing config, creating new one');
+        logger.warn('Could not parse existing config, creating new one');
       }
     }
 
@@ -965,7 +965,7 @@ ipcMain.handle('save-llm-config', async (event, config) => {
         const existingData = fs.readFileSync(configPath, 'utf8');
         existingConfig = JSON.parse(existingData);
       } catch (parseError) {
-    logger.warn('Could not parse existing LLM config, creating new one');
+        logger.warn('Could not parse existing LLM config, creating new one');
       }
     }
 
@@ -1066,8 +1066,8 @@ ipcMain.handle('track-page-view', async (event, page, title) => {
     }
     return true;
   } catch (error) {
-      logger.error('Failed to track page view:', { error });
-      return false;
+    logger.error('Failed to track page view:', { error });
+    return false;
   }
 });
 
@@ -1199,7 +1199,7 @@ ipcMain.handle('execute-command', async (event, command, options = {}) => {
       const { exec } = require('child_process');
       const { cwd = process.cwd(), env = {}, timeout = 30000 } = options;
 
-    logger.info(`Executing command: ${command}`);
+      logger.info(`Executing command: ${command}`);
 
       const childProcess = exec(
         command,
@@ -1248,7 +1248,7 @@ ipcMain.handle('execute-command', async (event, command, options = {}) => {
         }
       }, timeout);
     } catch (error) {
-    logger.error('Failed to execute command:', { error });
+      logger.error('Failed to execute command:', { error });
       resolve({
         stdout: '',
         stderr: error.message,

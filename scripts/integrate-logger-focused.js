@@ -9,8 +9,8 @@ import fs from 'fs';
 import path from 'path';
 import { glob } from 'glob';
 
-const LOGGER_IMPORT_ES = "import logger from '../utils/logger.js';";
-const LOGGER_IMPORT_CJS = "const logger = require('../utils/logger.js').default;";
+const LOGGER_IMPORT_ES = 'import logger from \'../utils/logger.js\';';
+const LOGGER_IMPORT_CJS = 'const logger = require(\'../utils/logger.js\').default;';
 
 // Specific critical files to target
 const CRITICAL_FILES = [
@@ -33,10 +33,10 @@ const METHOD_MAP = {
 
 // Check if logger is already imported
 function hasLoggerImport(content) {
-  return content.includes("from '../utils/logger") || 
-         content.includes("from './utils/logger") ||
-         content.includes("require('../utils/logger") ||
-         content.includes("require('./utils/logger") ||
+  return content.includes('from \'../utils/logger') || 
+         content.includes('from \'./utils/logger') ||
+         content.includes('require(\'../utils/logger') ||
+         content.includes('require(\'./utils/logger') ||
          content.includes('logger.js');
 }
 
@@ -136,7 +136,7 @@ async function main() {
   let totalFiles = 0;
   let modifiedFiles = 0;
   let totalReplacements = 0;
-  let errors = [];
+  const errors = [];
 
   for (const file of CRITICAL_FILES) {
     const filePath = path.join(process.cwd(), file);

@@ -170,7 +170,7 @@ async function checkFile(filePath) {
         const position = match.index;
         const afterCall = content.substring(position + match[0].length, position + match[0].length + 50);
         if (!afterCall.match(/\.catch|\.then.*catch|try\s*{|catch\s*\(/)) {
-          let lineNumber = content.substring(0, position).split('\n').length;
+          const lineNumber = content.substring(0, position).split('\n').length;
           issues.push({
             file: relativePath,
             line: lineNumber,
@@ -197,13 +197,13 @@ async function checkFile(filePath) {
 
 async function main() {
   // TODO: Review this async function - may need await or try-catch
-  process.env.NODE_ENV !== "production" && console.log('🔍 RinaWarp Code Quality Check\n');
-  process.env.NODE_ENV !== "production" && console.log('Scanning for RinaWarp-specific files...\n');
+  process.env.NODE_ENV !== 'production' && console.log('🔍 RinaWarp Code Quality Check\n');
+  process.env.NODE_ENV !== 'production' && console.log('Scanning for RinaWarp-specific files...\n');
   
   const rootDir = process.cwd();
   const files = await findRinaWarpFiles(rootDir);
   
-  process.env.NODE_ENV !== "production" && console.log(`Found ${files.length} RinaWarp-related files\n`);
+  process.env.NODE_ENV !== 'production' && console.log(`Found ${files.length} RinaWarp-related files\n`);
   
   let allIssues = [];
   
@@ -223,20 +223,20 @@ async function main() {
   });
   
   // Display results
-  process.env.NODE_ENV !== "production" && console.log('📊 Summary:');
-  process.env.NODE_ENV !== "production" && console.log(`Total issues found: ${allIssues.length}\n`);
+  process.env.NODE_ENV !== 'production' && console.log('📊 Summary:');
+  process.env.NODE_ENV !== 'production' && console.log(`Total issues found: ${allIssues.length}\n`);
   
   if (allIssues.length === 0) {
-    process.env.NODE_ENV !== "production" && console.log('✅ No issues found! Your RinaWarp code looks good.');
+    process.env.NODE_ENV !== 'production' && console.log('✅ No issues found! Your RinaWarp code looks good.');
     return;
   }
   
-  process.env.NODE_ENV !== "production" && console.log('Issues by type:');
+  process.env.NODE_ENV !== 'production' && console.log('Issues by type:');
   Object.entries(issuesByType).forEach(([type, issues]) => {
-    process.env.NODE_ENV !== "production" && console.log(`  ${type}: ${issues.length}`);
+    process.env.NODE_ENV !== 'production' && console.log(`  ${type}: ${issues.length}`);
   });
   
-  process.env.NODE_ENV !== "production" && console.log('\n🔥 Critical Issues to Fix:\n');
+  process.env.NODE_ENV !== 'production' && console.log('\n🔥 Critical Issues to Fix:\n');
   
   // Show critical issues first
   const criticalTypes = ['syntaxError', 'unclosedBrackets', 'evalUsage', 'hardcodedSecrets', 'unhandledSDKCall'];
@@ -244,19 +244,19 @@ async function main() {
   
   if (criticalIssues.length > 0) {
     criticalIssues.slice(0, 10).forEach((issue, index) => {
-      process.env.NODE_ENV !== "production" && console.log(`${index + 1}. [${issue.type}] ${issue.message}`);
-      process.env.NODE_ENV !== "production" && console.log(`   File: ${issue.file}:${issue.line}`);
-      process.env.NODE_ENV !== "production" && console.log(`   Code: ${issue.snippet}\n`);
+      process.env.NODE_ENV !== 'production' && console.log(`${index + 1}. [${issue.type}] ${issue.message}`);
+      process.env.NODE_ENV !== 'production' && console.log(`   File: ${issue.file}:${issue.line}`);
+      process.env.NODE_ENV !== 'production' && console.log(`   Code: ${issue.snippet}\n`);
     });
   }
   
   // Show other issues
-  process.env.NODE_ENV !== "production" && console.log('⚠️  Other Issues:\n');
+  process.env.NODE_ENV !== 'production' && console.log('⚠️  Other Issues:\n');
   const otherIssues = allIssues.filter(issue => !criticalTypes.includes(issue.type));
   otherIssues.slice(0, 10).forEach((issue, index) => {
-    process.env.NODE_ENV !== "production" && console.log(`${index + 1}. [${issue.type}] ${issue.message}`);
-    process.env.NODE_ENV !== "production" && console.log(`   File: ${issue.file}:${issue.line}`);
-    process.env.NODE_ENV !== "production" && console.log(`   Code: ${issue.snippet}\n`);
+    process.env.NODE_ENV !== 'production' && console.log(`${index + 1}. [${issue.type}] ${issue.message}`);
+    process.env.NODE_ENV !== 'production' && console.log(`   File: ${issue.file}:${issue.line}`);
+    process.env.NODE_ENV !== 'production' && console.log(`   Code: ${issue.snippet}\n`);
   });
   
   // Save detailed report
@@ -273,15 +273,15 @@ async function main() {
     JSON.stringify(report, null, 2)
   );
   
-  process.env.NODE_ENV !== "production" && console.log('\n📝 Full report saved to: rinawarp-code-report.json');
+  process.env.NODE_ENV !== 'production' && console.log('\n📝 Full report saved to: rinawarp-code-report.json');
   
   // Provide fixing tips
-  process.env.NODE_ENV !== "production" && console.log('\n💡 Quick Fixes:');
-  process.env.NODE_ENV !== "production" && console.log('1. Replace === with === for strict equality');
-  process.env.NODE_ENV !== "production" && console.log('2. Add .catch() to all promise chains');
-  process.env.NODE_ENV !== "production" && console.log('3. Remove or guard console.log statements');
-  process.env.NODE_ENV !== "production" && console.log('4. Move secrets to environment variables');
-  process.env.NODE_ENV !== "production" && console.log('5. Add try-catch blocks around SDK calls');
+  process.env.NODE_ENV !== 'production' && console.log('\n💡 Quick Fixes:');
+  process.env.NODE_ENV !== 'production' && console.log('1. Replace === with === for strict equality');
+  process.env.NODE_ENV !== 'production' && console.log('2. Add .catch() to all promise chains');
+  process.env.NODE_ENV !== 'production' && console.log('3. Remove or guard console.log statements');
+  process.env.NODE_ENV !== 'production' && console.log('4. Move secrets to environment variables');
+  process.env.NODE_ENV !== 'production' && console.log('5. Add try-catch blocks around SDK calls');
 }
 
 main().catch(console.error);

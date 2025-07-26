@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { createTransport } from 'nodemailer';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,185 +7,185 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 class LeadCaptureSystem {
-    constructor(config = {}) {
-        this.config = {
-            emailProvider: process.env.EMAIL_PROVIDER || 'sendgrid',
-            sendgridApiKey: process.env.SENDGRID_API_KEY,
-            sendgridFromEmail: process.env.SENDGRID_FROM_EMAIL,
-            webhookUrl: process.env.MARKETING_WEBHOOK_URL,
-            leadsFile: path.join(__dirname, '../../data/leads.json'),
-            campaignsFile: path.join(__dirname, '../../data/campaigns.json'),
-            ...config
-        };
+  constructor(config = {}) {
+    this.config = {
+      emailProvider: process.env.EMAIL_PROVIDER || 'sendgrid',
+      sendgridApiKey: process.env.SENDGRID_API_KEY,
+      sendgridFromEmail: process.env.SENDGRID_FROM_EMAIL,
+      webhookUrl: process.env.MARKETING_WEBHOOK_URL,
+      leadsFile: path.join(__dirname, '../../data/leads.json'),
+      campaignsFile: path.join(__dirname, '../../data/campaigns.json'),
+      ...config
+    };
         
-        this.setupEmailTransporter();
-        this.initializeDataFiles();
+    this.setupEmailTransporter();
+    this.initializeDataFiles();
+  }
+
+  async setupEmailTransporter() {
+    if (this.config.emailProvider === 'sendgrid' && this.config.sendgridApiKey) {
+      this.transporter = createTransport({
+        service: 'sendgrid',
+        auth: {
+          user: 'apikey',
+          pass: this.config.sendgridApiKey
+        }
+      });
+    } else {
+      console.warn('Marketing: Email transporter not configured - using mock mode');
+      this.transporter = null;
+    }
+  }
+
+  async initializeDataFiles() {
+    try {
+      await fs.mkdir(path.dirname(this.config.leadsFile), { recursive: true });
+            
+      // Initialize leads file
+      try {
+        await fs.access(this.config.leadsFile);
+      } catch {
+        await fs.writeFile(this.config.leadsFile, JSON.stringify([], null, 2));
+      }
+            
+      // Initialize campaigns file
+      try {
+        await fs.access(this.config.campaignsFile);
+      } catch {
+        await fs.writeFile(this.config.campaignsFile, JSON.stringify({
+          welcome_series: {
+            name: 'Welcome Series',
+            emails: [
+              {
+                delay: 0,
+                subject: 'Welcome to RinaWarp Terminal! 🚀',
+                template: 'welcome'
+              },
+              {
+                delay: 24 * 60 * 60 * 1000, // 24 hours
+                subject: 'Quick Start Guide - Get Up and Running in 5 Minutes',
+                template: 'quickstart'
+              },
+              {
+                delay: 3 * 24 * 60 * 60 * 1000, // 3 days
+                subject: 'Advanced Features You\'ll Love ⚡',
+                template: 'features'
+              },
+              {
+                delay: 7 * 24 * 60 * 60 * 1000, // 7 days
+                subject: 'Special Launch Offer - 30% Off Pro Plans',
+                template: 'discount'
+              }
+            ]
+          }
+        }, null, 2));
+      }
+    } catch (error) {
+      console.error('Marketing: Failed to initialize data files:', error);
+    }
+  }
+
+  async captureLead(leadData) {
+    const lead = {
+      id: this.generateId(),
+      email: leadData.email,
+      name: leadData.name || '',
+      source: leadData.source || 'website',
+      interests: leadData.interests || [],
+      metadata: leadData.metadata || {},
+      capturedAt: new Date().toISOString(),
+      status: 'active',
+      tags: leadData.tags || []
+    };
+
+    try {
+      // Save lead to file
+      const leads = await this.getLeads();
+            
+      // Check for duplicates
+      const existingLead = leads.find(l => l.email === lead.email);
+      if (existingLead) {
+        // Update existing lead
+        Object.assign(existingLead, {
+          ...lead,
+          id: existingLead.id,
+          capturedAt: existingLead.capturedAt,
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        leads.push(lead);
+      }
+            
+      await fs.writeFile(this.config.leadsFile, JSON.stringify(leads, null, 2));
+            
+      // Start welcome email series
+      await this.startCampaign(lead.email, 'welcome_series');
+            
+      // Send webhook notification
+      if (this.config.webhookUrl) {
+        await this.sendWebhookNotification('lead_captured', lead);
+      }
+            
+      console.log(`Marketing: Lead captured - ${lead.email} from ${lead.source}`);
+      return { success: true, leadId: lead.id };
+            
+    } catch (error) {
+      console.error('Marketing: Failed to capture lead:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async startCampaign(email, campaignId) {
+    try {
+      const campaigns = JSON.parse(await fs.readFile(this.config.campaignsFile, 'utf8'));
+      const campaign = campaigns[campaignId];
+            
+      if (!campaign) {
+        throw new Error(`Campaign ${campaignId} not found`);
+      }
+            
+      // Schedule emails
+      for (const emailConfig of campaign.emails) {
+        setTimeout(async () => {
+          await this.sendCampaignEmail(email, emailConfig);
+        }, emailConfig.delay);
+      }
+            
+      console.log(`Marketing: Started campaign ${campaignId} for ${email}`);
+            
+    } catch (error) {
+      console.error('Marketing: Failed to start campaign:', error);
+    }
+  }
+
+  async sendCampaignEmail(email, emailConfig) {
+    if (!this.transporter) {
+      console.log(`Marketing: Mock email sent to ${email} - ${emailConfig.subject}`);
+      return;
     }
 
-    async setupEmailTransporter() {
-        if (this.config.emailProvider === 'sendgrid' && this.config.sendgridApiKey) {
-            this.transporter = nodemailer.createTransporter({
-                service: 'sendgrid',
-                auth: {
-                    user: 'apikey',
-                    pass: this.config.sendgridApiKey
-                }
-            });
-        } else {
-            console.warn('Marketing: Email transporter not configured - using mock mode');
-            this.transporter = null;
-        }
+    try {
+      const template = await this.getEmailTemplate(emailConfig.template);
+            
+      const mailOptions = {
+        from: this.config.sendgridFromEmail,
+        to: email,
+        subject: emailConfig.subject,
+        html: template,
+        text: this.stripHtml(template)
+      };
+            
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Marketing: Campaign email sent to ${email} - ${emailConfig.subject}`);
+            
+    } catch (error) {
+      console.error('Marketing: Failed to send campaign email:', error);
     }
+  }
 
-    async initializeDataFiles() {
-        try {
-            await fs.mkdir(path.dirname(this.config.leadsFile), { recursive: true });
-            
-            // Initialize leads file
-            try {
-                await fs.access(this.config.leadsFile);
-            } catch {
-                await fs.writeFile(this.config.leadsFile, JSON.stringify([], null, 2));
-            }
-            
-            // Initialize campaigns file
-            try {
-                await fs.access(this.config.campaignsFile);
-            } catch {
-                await fs.writeFile(this.config.campaignsFile, JSON.stringify({
-                    welcome_series: {
-                        name: 'Welcome Series',
-                        emails: [
-                            {
-                                delay: 0,
-                                subject: 'Welcome to RinaWarp Terminal! 🚀',
-                                template: 'welcome'
-                            },
-                            {
-                                delay: 24 * 60 * 60 * 1000, // 24 hours
-                                subject: 'Quick Start Guide - Get Up and Running in 5 Minutes',
-                                template: 'quickstart'
-                            },
-                            {
-                                delay: 3 * 24 * 60 * 60 * 1000, // 3 days
-                                subject: 'Advanced Features You\'ll Love ⚡',
-                                template: 'features'
-                            },
-                            {
-                                delay: 7 * 24 * 60 * 60 * 1000, // 7 days
-                                subject: 'Special Launch Offer - 30% Off Pro Plans',
-                                template: 'discount'
-                            }
-                        ]
-                    }
-                }, null, 2));
-            }
-        } catch (error) {
-            console.error('Marketing: Failed to initialize data files:', error);
-        }
-    }
-
-    async captureLead(leadData) {
-        const lead = {
-            id: this.generateId(),
-            email: leadData.email,
-            name: leadData.name || '',
-            source: leadData.source || 'website',
-            interests: leadData.interests || [],
-            metadata: leadData.metadata || {},
-            capturedAt: new Date().toISOString(),
-            status: 'active',
-            tags: leadData.tags || []
-        };
-
-        try {
-            // Save lead to file
-            const leads = await this.getLeads();
-            
-            // Check for duplicates
-            const existingLead = leads.find(l => l.email === lead.email);
-            if (existingLead) {
-                // Update existing lead
-                Object.assign(existingLead, {
-                    ...lead,
-                    id: existingLead.id,
-                    capturedAt: existingLead.capturedAt,
-                    updatedAt: new Date().toISOString()
-                });
-            } else {
-                leads.push(lead);
-            }
-            
-            await fs.writeFile(this.config.leadsFile, JSON.stringify(leads, null, 2));
-            
-            // Start welcome email series
-            await this.startCampaign(lead.email, 'welcome_series');
-            
-            // Send webhook notification
-            if (this.config.webhookUrl) {
-                await this.sendWebhookNotification('lead_captured', lead);
-            }
-            
-            console.log(`Marketing: Lead captured - ${lead.email} from ${lead.source}`);
-            return { success: true, leadId: lead.id };
-            
-        } catch (error) {
-            console.error('Marketing: Failed to capture lead:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async startCampaign(email, campaignId) {
-        try {
-            const campaigns = JSON.parse(await fs.readFile(this.config.campaignsFile, 'utf8'));
-            const campaign = campaigns[campaignId];
-            
-            if (!campaign) {
-                throw new Error(`Campaign ${campaignId} not found`);
-            }
-            
-            // Schedule emails
-            for (const emailConfig of campaign.emails) {
-                setTimeout(async () => {
-                    await this.sendCampaignEmail(email, emailConfig);
-                }, emailConfig.delay);
-            }
-            
-            console.log(`Marketing: Started campaign ${campaignId} for ${email}`);
-            
-        } catch (error) {
-            console.error('Marketing: Failed to start campaign:', error);
-        }
-    }
-
-    async sendCampaignEmail(email, emailConfig) {
-        if (!this.transporter) {
-            console.log(`Marketing: Mock email sent to ${email} - ${emailConfig.subject}`);
-            return;
-        }
-
-        try {
-            const template = await this.getEmailTemplate(emailConfig.template);
-            
-            const mailOptions = {
-                from: this.config.sendgridFromEmail,
-                to: email,
-                subject: emailConfig.subject,
-                html: template,
-                text: this.stripHtml(template)
-            };
-            
-            await this.transporter.sendMail(mailOptions);
-            console.log(`Marketing: Campaign email sent to ${email} - ${emailConfig.subject}`);
-            
-        } catch (error) {
-            console.error('Marketing: Failed to send campaign email:', error);
-        }
-    }
-
-    async getEmailTemplate(templateName) {
-        const templates = {
-            welcome: `
+  async getEmailTemplate(templateName) {
+    const templates = {
+      welcome: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h1 style="color: #00D4FF;">Welcome to RinaWarp Terminal! 🚀</h1>
                     <p>Thank you for joining thousands of developers who've chosen RinaWarp Terminal as their AI-powered development environment.</p>
@@ -204,7 +204,7 @@ class LeadCaptureSystem {
                     <p>Best,<br>The RinaWarp Team</p>
                 </div>
             `,
-            quickstart: `
+      quickstart: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h1 style="color: #00D4FF;">Get Started in 5 Minutes ⚡</h1>
                     <p>Ready to supercharge your terminal experience? Here's how to get up and running quickly:</p>
@@ -233,7 +233,7 @@ class LeadCaptureSystem {
                     <p><a href="https://rinawarptech.com/docs/quickstart" style="background: #00D4FF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Full Quick Start Guide</a></p>
                 </div>
             `,
-            features: `
+      features: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h1 style="color: #00D4FF;">Advanced Features You'll Love ⚡</h1>
                     <p>Now that you've had a chance to try RinaWarp Terminal, let's explore some powerful features that will boost your productivity:</p>
@@ -256,7 +256,7 @@ class LeadCaptureSystem {
                     <p><a href="https://rinawarptech.com/features" style="background: #00D4FF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Explore All Features</a></p>
                 </div>
             `,
-            discount: `
+      discount: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h1 style="color: #FF6B6B;">Special Launch Offer - 30% Off! 🎉</h1>
                     <p>As one of our early adopters, we're excited to offer you an exclusive discount on our Pro plans:</p>
@@ -285,83 +285,83 @@ class LeadCaptureSystem {
                     <p style="font-size: 14px; color: #666;">Offer expires in 48 hours. Use code LAUNCH30 at checkout.</p>
                 </div>
             `
-        };
+    };
         
-        return templates[templateName] || templates.welcome;
-    }
+    return templates[templateName] || templates.welcome;
+  }
 
-    async getLeads() {
-        try {
-            const data = await fs.readFile(this.config.leadsFile, 'utf8');
-            return JSON.parse(data);
-        } catch {
-            return [];
-        }
+  async getLeads() {
+    try {
+      const data = await fs.readFile(this.config.leadsFile, 'utf8');
+      return JSON.parse(data);
+    } catch {
+      return [];
     }
+  }
 
-    async getLeadStats() {
-        const leads = await this.getLeads();
-        const now = new Date();
-        const last24h = new Date(now - 24 * 60 * 60 * 1000);
-        const last7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
-        const last30d = new Date(now - 30 * 24 * 60 * 60 * 1000);
+  async getLeadStats() {
+    const leads = await this.getLeads();
+    const now = new Date();
+    const last24h = new Date(now - 24 * 60 * 60 * 1000);
+    const last7d = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const last30d = new Date(now - 30 * 24 * 60 * 60 * 1000);
         
-        return {
-            total: leads.length,
-            last24h: leads.filter(l => new Date(l.capturedAt) > last24h).length,
-            last7d: leads.filter(l => new Date(l.capturedAt) > last7d).length,
-            last30d: leads.filter(l => new Date(l.capturedAt) > last30d).length,
-            sources: this.groupBy(leads, 'source'),
-            tags: this.groupBy(leads.flatMap(l => l.tags)),
-            conversionFunnel: await this.getConversionFunnel()
-        };
-    }
+    return {
+      total: leads.length,
+      last24h: leads.filter(l => new Date(l.capturedAt) > last24h).length,
+      last7d: leads.filter(l => new Date(l.capturedAt) > last7d).length,
+      last30d: leads.filter(l => new Date(l.capturedAt) > last30d).length,
+      sources: this.groupBy(leads, 'source'),
+      tags: this.groupBy(leads.flatMap(l => l.tags)),
+      conversionFunnel: await this.getConversionFunnel()
+    };
+  }
 
-    async getConversionFunnel() {
-        // This would integrate with your analytics system
-        return {
-            visitors: 1000,
-            signups: 250,
-            downloads: 180,
-            activations: 120,
-            conversions: 45
-        };
-    }
+  async getConversionFunnel() {
+    // This would integrate with your analytics system
+    return {
+      visitors: 1000,
+      signups: 250,
+      downloads: 180,
+      activations: 120,
+      conversions: 45
+    };
+  }
 
-    async sendWebhookNotification(event, data) {
-        if (!this.config.webhookUrl) return;
+  async sendWebhookNotification(event, data) {
+    if (!this.config.webhookUrl) return;
         
-        try {
-            const fetch = await import('node-fetch');
-            await fetch.default(this.config.webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    event,
-                    data,
-                    timestamp: new Date().toISOString()
-                })
-            });
-        } catch (error) {
-            console.error('Marketing: Webhook notification failed:', error);
-        }
+    try {
+      const fetch = await import('node-fetch');
+      await fetch.default(this.config.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event,
+          data,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch (error) {
+      console.error('Marketing: Webhook notification failed:', error);
     }
+  }
 
-    generateId() {
-        return Math.random().toString(36).substr(2, 9);
-    }
+  generateId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
 
-    groupBy(array, key) {
-        return array.reduce((groups, item) => {
-            const value = typeof key === 'function' ? key(item) : item[key];
-            groups[value] = (groups[value] || 0) + 1;
-            return groups;
-        }, {});
-    }
+  groupBy(array, key) {
+    return array.reduce((groups, item) => {
+      const value = typeof key === 'function' ? key(item) : item[key];
+      groups[value] = (groups[value] || 0) + 1;
+      return groups;
+    }, {});
+  }
 
-    stripHtml(html) {
-        return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    }
+  stripHtml(html) {
+    return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  }
 }
 
 export default LeadCaptureSystem;

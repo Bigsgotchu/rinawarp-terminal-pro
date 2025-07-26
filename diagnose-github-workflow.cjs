@@ -70,7 +70,7 @@ try {
   console.log(`  📋 Type: ${pkg.type || 'commonjs'}`);
 
   if (pkg.type === 'module') {
-    console.log("  ⚠️  WARNING: Package type is 'module' - this might affect some scripts");
+    console.log('  ⚠️  WARNING: Package type is \'module\' - this might affect some scripts');
   }
 
   // Check for potential CI-related scripts
@@ -108,11 +108,11 @@ checkFiles.forEach(file => {
 
 // Recommendations
 console.log('\n💡 Recommendations:');
-console.log("  1. Ensure default branch is set to 'main' in GitHub settings");
+console.log('  1. Ensure default branch is set to \'main\' in GitHub settings');
 console.log('  2. Remove any scheduled workflow triggers that might be problematic');
 console.log('  3. Check that all workflow dependencies (actions) are available');
 console.log('  4. Verify repository permissions allow workflow execution');
-console.log("  5. Consider using 'workflow_dispatch' for manual testing");
+console.log('  5. Consider using \'workflow_dispatch\' for manual testing');
 
 console.log('\n🌊 RinaWarp Terminal Diagnostic Complete!');
 console.log('📧 If issues persist, check GitHub Actions tab in your repository');

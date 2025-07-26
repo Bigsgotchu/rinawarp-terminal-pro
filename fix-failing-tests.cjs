@@ -12,16 +12,16 @@ let terminalContent = fs.readFileSync(terminalEntryTest, 'utf8');
 
 // Fix feature expectations (they default to true, not false)
 terminalContent = terminalContent.replace(
-  `expect(config.get('features.aiAssistant')).toBe(false);`,
-  `expect(config.get('features.aiAssistant')).toBe(true);`
+  'expect(config.get(\'features.aiAssistant\')).toBe(false);',
+  'expect(config.get(\'features.aiAssistant\')).toBe(true);'
 );
 terminalContent = terminalContent.replace(
-  `expect(config.get('features.voiceControl')).toBe(false);`,
-  `expect(config.get('features.voiceControl')).toBe(true);`
+  'expect(config.get(\'features.voiceControl\')).toBe(false);',
+  'expect(config.get(\'features.voiceControl\')).toBe(true);'
 );
 terminalContent = terminalContent.replace(
-  `expect(config.get('features.advancedFeatures')).toBe(false);`,
-  `expect(config.get('features.advancedFeatures')).toBe(true);`
+  'expect(config.get(\'features.advancedFeatures\')).toBe(false);',
+  'expect(config.get(\'features.advancedFeatures\')).toBe(true);'
 );
 
 fs.writeFileSync(terminalEntryTest, terminalContent);
@@ -33,14 +33,14 @@ let configContent = fs.readFileSync(unifiedConfigTest, 'utf8');
 
 // Fix default expectations
 configContent = configContent.replace(
-  `expect(config.get('features.aiAssistant')).toBe(false);`,
-  `expect(config.get('features.aiAssistant')).toBe(true);`
+  'expect(config.get(\'features.aiAssistant\')).toBe(false);',
+  'expect(config.get(\'features.aiAssistant\')).toBe(true);'
 );
 
 // Fix the font size expectation - merging config should keep the custom value
 configContent = configContent.replace(
-  `expect(config.config.terminal.fontSize).toBe(16);`,
-  `expect(config.config.terminal.fontSize).toBe(14);`
+  'expect(config.config.terminal.fontSize).toBe(16);',
+  'expect(config.config.terminal.fontSize).toBe(14);'
 );
 
 // Add the missing ElevenLabs methods as mocks
@@ -70,8 +70,8 @@ let basicContent = fs.readFileSync(basicTest, 'utf8');
 
 // Look for actual server files that exist
 basicContent = basicContent.replace(
-  `const serverPath = path.join(__dirname, '..', 'server.js');`,
-  `const serverPath = path.join(__dirname, '..', 'final-server.js');`
+  'const serverPath = path.join(__dirname, \'..\', \'server.js\');',
+  'const serverPath = path.join(__dirname, \'..\', \'final-server.js\');'
 );
 
 fs.writeFileSync(basicTest, basicContent);
@@ -115,7 +115,7 @@ if (fs.existsSync(cacheExpirationTest)) {
 
   // Insert at the beginning of the test
   cacheContent = cacheContent.replace(
-    "describe('Voice Cache Expiration', () => {",
+    'describe(\'Voice Cache Expiration\', () => {',
     `describe('Voice Cache Expiration', () => {${voiceProviderMock}`
   );
 

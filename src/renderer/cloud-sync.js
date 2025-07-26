@@ -6,7 +6,7 @@
 export class CloudSyncService {
   constructor() {
     this.userId = null;
-    this.apiEndpoint = "https://api.yourcloudservice.com/sync";
+    this.apiEndpoint = 'https://api.yourcloudservice.com/sync';
     
     // Load user ID
     this.loadUserId();
