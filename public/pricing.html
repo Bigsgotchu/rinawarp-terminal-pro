@@ -476,7 +476,7 @@
     <!-- Launch Banner with Countdown -->
     <div id="launch-banner" style="position: fixed; top: 0; width: 100%; background: linear-gradient(135deg, #ff1493, #00ffff); color: white; text-align: center; padding: 15px 20px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-size: 1.1rem;">
         <strong>🚀 Limited Time Launch Offer!</strong> Get early access pricing - Ends in <span id="countdown" style="font-weight: bold; font-size: 1.2rem;"></span>
-        <button onclick="document.getElementById('launch-banner').style.display='none'" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        <button data-handler-id="csp-safe-1753586469640-1"launch-banner').style.display='none'" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
     </div>
     <script>
         // Countdown timer - 7 days from page load
@@ -531,21 +531,21 @@
                     <h3 style="margin-bottom: 10px;">🐦 Early Bird</h3>
                     <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$29</div>
                     <p style="margin-bottom: 20px; opacity: 0.9;">Limited time offer</p>
-                    <button onclick="purchaseBeta('earlybird')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Early Access</button>
+                    <button data-handler-id="csp-safe-1753586469640-2"earlybird')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Early Access</button>
                 </div>
                 
                 <div class="beta-card" style="background: rgba(255,255,255,0.25); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.5); transform: scale(1.05);">
                     <h3 style="margin-bottom: 10px;">🚀 Beta Access</h3>
                     <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$39</div>
                     <p style="margin-bottom: 20px; opacity: 0.9;">Most popular choice</p>
-                    <button onclick="purchaseBeta('beta')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Beta Access</button>
+                    <button data-handler-id="csp-safe-1753586469640-3"beta')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Beta Access</button>
                 </div>
                 
                 <div class="beta-card" style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3);">
                     <h3 style="margin-bottom: 10px;">👑 Premium Beta</h3>
                     <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$59</div>
                     <p style="margin-bottom: 20px; opacity: 0.9;">Priority support included</p>
-                    <button onclick="purchaseBeta('premium')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Premium Beta</button>
+                    <button data-handler-id="csp-safe-1753586469640-4"premium')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Premium Beta</button>
                 </div>
             </div>
             
@@ -600,7 +600,7 @@
                     <li class="unavailable">Priority support</li>
                 </ul>
                 
-                <button class="plan-button secondary" onclick="purchasePlan('personal')">
+                <button class="plan-button secondary" data-handler-id="csp-safe-1753586469640-5"personal')">
                     Get Personal Plan
                 </button>
                 
@@ -631,7 +631,7 @@
                     <li class="unavailable">Team collaboration</li>
                 </ul>
                 
-                <button class="plan-button primary" onclick="purchasePlan('professional')">
+                <button class="plan-button primary" data-handler-id="csp-safe-1753586469640-6"professional')">
                     Get Pro Plan
                 </button>
                 
@@ -662,7 +662,7 @@
                     <li>Custom integrations</li>
                 </ul>
                 
-                <button class="plan-button secondary" onclick="purchasePlan('team')">
+                <button class="plan-button secondary" data-handler-id="csp-safe-1753586469640-7"team')">
                     Get Team Plan
                 </button>
                 
@@ -690,7 +690,7 @@
                     <li class="unavailable">Advanced features</li>
                 </ul>
                 
-                <button class="plan-button secondary" onclick="purchasePlan('free')">
+                <button class="plan-button secondary" data-handler-id="csp-safe-1753586469640-8"free')">
                     Get Started Free
                 </button>
                 
@@ -721,7 +721,7 @@
                     <li>Volume discounts</li>
                 </ul>
                 
-                <button class="plan-button primary" onclick="window.open('mailto:enterprise@rinawarp.com?subject=Enterprise%20Inquiry', '_blank')">
+                <button class="plan-button primary" data-handler-id="csp-safe-1753586469640-9"mailto:enterprise@rinawarp.com?subject=Enterprise%20Inquiry', '_blank')">
                     Contact Sales
                 </button>
                 
@@ -1149,5 +1149,102 @@
     <!-- Revenue Boost Script -->
     <script src="/js/revenue-boost.js"></script>
     <script src="/js/conversion-analysis.js"></script>
+
+<script>
+(function() {
+  'use strict';
+  
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-1"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        document.getElementById(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-2"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchaseBeta(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-3"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchaseBeta(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-4"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchaseBeta(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-5"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchasePlan(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-6"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchasePlan(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-7"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchasePlan(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-8"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchasePlan(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469640-9"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        window.open(
+      });
+    }
+  });
+
+})();
+</script>
 </body>
 </html>

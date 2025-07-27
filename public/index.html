@@ -510,7 +510,7 @@
                         <li>3 Device License</li>
                         <li>Email Support</li>
                     </ul>
-                    <button class="buy-button" onclick="purchasePlan('personal')">
+                    <button class="buy-button" data-handler-id="csp-safe-1753586469638-1"personal')">
                         Get Personal Plan
                     </button>
                 </div>
@@ -527,7 +527,7 @@
                         <li>Priority Support</li>
                         <li>Beta Access</li>
                     </ul>
-                    <button class="buy-button" onclick="purchasePlan('professional')">
+                    <button class="buy-button" data-handler-id="csp-safe-1753586469638-2"professional')">
                         Get Pro Plan
                     </button>
                 </div>
@@ -544,7 +544,7 @@
                         <li>Custom Integrations</li>
                         <li>SLA Support</li>
                     </ul>
-                    <button class="buy-button" onclick="purchasePlan('team')">
+                    <button class="buy-button" data-handler-id="csp-safe-1753586469638-3"team')">
                         Get Team Plan
                     </button>
                 </div>
@@ -569,7 +569,7 @@
                         <div class="terminal-line terminal-output">📁 public/js/terminal.js (12.4KB)</div>
                         <div class="terminal-line terminal-ai">💡 Would you like me to analyze any specific file?</div>
                     </div>
-                    <button class="demo-button" onclick="runAIDemo()">🔄 Run Demo</button>
+                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-4">🔄 Run Demo</button>
                 </div>
 
                 <div class="demo-card">
@@ -582,7 +582,7 @@
                         <div class="terminal-line terminal-output">/dev/disk1s1   500G  287G  210G  58%</div>
                         <div class="terminal-line terminal-ai">🗣️ "You're using 287GB out of 500GB. You have 210GB available."</div>
                     </div>
-                    <button class="demo-button" onclick="runVoiceDemo()">🎤 Try Voice Demo</button>
+                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-5">🎤 Try Voice Demo</button>
                 </div>
 
                 <div class="demo-card">
@@ -595,7 +595,7 @@
                         <div class="terminal-line terminal-output" style="color: #ff1493;">🧜‍♀️ Special cursor: Swimming mermaid</div>
                         <div class="terminal-line terminal-output" style="color: #20b2aa;">🎵 Sound effects: Ocean waves</div>
                     </div>
-                    <button class="demo-button" onclick="runThemeDemo()">🎨 Change Theme</button>
+                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-6">🎨 Change Theme</button>
                 </div>
 
                 <div class="demo-card">
@@ -609,7 +609,7 @@
                         <div class="terminal-line terminal-output">💾 Memory usage: 45MB</div>
                         <div class="terminal-line terminal-ai">🧜‍♀️ Performance: Excellent! All systems optimal.</div>
                     </div>
-                    <button class="demo-button" onclick="runPerfDemo()">⚡ Run Benchmark</button>
+                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-7">⚡ Run Benchmark</button>
                 </div>
             </div>
         </section>
@@ -969,5 +969,82 @@
     
     <!-- Revenue Boost Script -->
     <script src="/js/revenue-boost.js"></script>
+
+<script>
+(function() {
+  'use strict';
+  
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-1"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchasePlan(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-2"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchasePlan(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-3"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        purchasePlan(
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-4"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        runAIDemo()
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-5"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        runVoiceDemo()
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-6"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        runThemeDemo()
+      });
+    }
+  });
+
+  // Handler for click event
+  document.addEventListener('DOMContentLoaded', function() {
+    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-7"]');
+    if (element) {
+      element.addEventListener('click', function(event) {
+        runPerfDemo()
+      });
+    }
+  });
+
+})();
+</script>
 </body>
 </html>
