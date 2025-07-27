@@ -854,12 +854,23 @@
         let stripeConfig;
 
         // Initialize Stripe
+                // Initialize Stripe
         async function initStripe() {
             try {
-                // Initialize Stripe with your publishable key
-                stripe = Stripe('pk_test_51OX1234567890abcdef'); // This will be loaded from server
-                console.log('Stripe initialized successfully');
+                // Load Stripe configuration from server
+                const response = await fetch('/api/payment/config');
+                const config = await response.json();
+                
+                if (config.publishableKey) {
+                    stripe = Stripe(config.publishableKey);
+                    console.log('Stripe initialized successfully');
+                } else {
+                    console.error('No Stripe publishable key available');
+                }
             } catch (error) {
+                console.error('Error initializing Stripe:', error);
+            }
+        } catch (error) {
                 console.error('Error initializing Stripe:', error);
             }
         }

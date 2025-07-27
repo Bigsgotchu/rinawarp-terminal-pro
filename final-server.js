@@ -22,6 +22,7 @@ import stripeRoutes from './src/payment/stripe-checkout.js';
 import analyticsRoutes from './src/api/analytics.js';
 import marketingRoutes from './src/api/marketing.js';
 import facebookDeletionRoutes from './src/api/facebook-deletion.js';
+import downloadRoutes from './src/api/download-redirect.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,6 +49,7 @@ app.use('/api/payment', stripeRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/marketing', marketingRoutes);
 app.use('/api/facebook', facebookDeletionRoutes);
+app.use('/api/download', downloadRoutes);
 
 // Main route - serve the actual RinaWarp Terminal website
 app.get('/', (req, res) => {
@@ -103,7 +105,9 @@ app.get('/data-deletion', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'data-deletion.html'));
   } catch (error) {
     console.error('Error serving data-deletion.html:', error);
-    res.status(500).send('<h1>Data Deletion Instructions</h1><p>Page loading error. Please refresh.</p>');
+    res
+      .status(500)
+      .send('<h1>Data Deletion Instructions</h1><p>Page loading error. Please refresh.</p>');
   }
 });
 
@@ -118,8 +122,8 @@ app.get('/health', (req, res) => {
       ai: '🧠 Active',
       voice: '🎤 Active',
       themes: '🎨 Active',
-      security: '🛡️ Active'
-    }
+      security: '🛡️ Active',
+    },
   });
 });
 
@@ -312,37 +316,48 @@ app.get('/api/demo/features', (req, res) => {
       ai: {
         status: '🧠 Active',
         description: 'Advanced AI command analysis with risk assessment',
-        capabilities: ['Intent detection', 'Risk scoring', 'Smart suggestions', 'Safety warnings']
+        capabilities: ['Intent detection', 'Risk scoring', 'Smart suggestions', 'Safety warnings'],
       },
       voice: {
         status: '🎤 Active',
         description: 'Natural language voice control with personality',
         voiceFiles: 40,
         personalities: ['Bella', 'Antoni', 'Elli', 'Josh'],
-        commands: ['Hey Rina + natural language', 'Wake word activation', 'Context awareness']
+        commands: ['Hey Rina + natural language', 'Wake word activation', 'Context awareness'],
       },
       themes: {
         status: '🎨 Active',
         description: 'Beautiful visual themes and customization',
-        available: ['Mermaid ocean theme', 'Car dashboard', 'Dark mode', 'Light mode', 'Animated backgrounds']
+        available: [
+          'Mermaid ocean theme',
+          'Car dashboard',
+          'Dark mode',
+          'Light mode',
+          'Animated backgrounds',
+        ],
       },
       security: {
         status: '🛡️ Active',
         description: 'Enterprise-grade security and threat detection',
-        features: ['Command validation', 'Threat detection', 'Risk assessment', 'Safe execution']
+        features: ['Command validation', 'Threat detection', 'Risk assessment', 'Safe execution'],
       },
       commercial: {
         status: '💰 Active',
         description: 'Full commercial features with payment processing',
-        features: ['Stripe integration', 'Multiple pricing tiers', 'Email automation', 'Analytics tracking']
-      }
+        features: [
+          'Stripe integration',
+          'Multiple pricing tiers',
+          'Email automation',
+          'Analytics tracking',
+        ],
+      },
     },
     demonstration: {
       aiDemo: '/demo/ai',
       voiceDemo: '/demo/voice',
       mainSite: '/',
-      healthCheck: '/health'
-    }
+      healthCheck: '/health',
+    },
   });
 });
 
