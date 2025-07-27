@@ -460,7 +460,11 @@
                             <br>
                             <span style="font-size: 1.2rem; color: #27ae60;">Annual: $144/year <span style="color: #27ae60; font-size: 0.9rem;">(20% off)</span></span>
                         </div>
-                        <button onclick="window.location.href='/pricing.html'" style="width: 100%; padding: 15px 30px; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #ff1493, #20b2aa, #ff69b4); color: #ffffff; text-shadow: 0 0 10px rgba(0, 0, 0, 0.3); box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4); transition: all 0.3s ease; margin-top: 20px;" onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(255, 20, 147, 0.6)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.4)';">🚀 Start Free Trial</button>
+                        <button 
+                    data-action="navigate" 
+                    data-url="/pricing.html"
+                    class="pricing-cta-button"
+                    style="width: 100%; padding: 15px 30px; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #ff1493, #20b2aa, #ff69b4); color: #ffffff; text-shadow: 0 0 10px rgba(0, 0, 0, 0.3); box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4); transition: all 0.3s ease; margin-top: 20px;">🚀 Start Free Trial</button>
                         <div style="background: linear-gradient(135deg, #ff1493, #00ffff, #ff69b4); color: #ffffff; padding: 15px; border-radius: 15px; margin: 15px 0; text-align: center; border: 2px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4); text-shadow: 0 0 10px rgba(0, 0, 0, 0.3); font-weight: 600;">💯 14-day free trial<br>💳 No credit card required</div>
                     </div>
                 </section>
@@ -688,6 +692,40 @@
         });
       });
     </script>
+
+    <!-- Safe Event Handlers for Pricing Button -->
+    <script id="pricing-cta-button-handlers">
+        // Safe event handlers for CSP compliance
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle navigation buttons
+            document.querySelectorAll('[data-action="navigate"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    if (url) {
+                        window.location.href = url;
+                    }
+                });
+            });
+
+            // Handle hover effects for pricing CTA button
+            document.querySelectorAll('.pricing-cta-button').forEach(button => {
+                // Store original styles
+                const originalTransform = button.style.transform || 'none';
+                const originalBoxShadow = button.style.boxShadow || '0 8px 25px rgba(255, 20, 147, 0.4)';
+                
+                button.addEventListener('mouseover', function() {
+                    this.style.transform = 'translateY(-2px) scale(1.05)';
+                    this.style.boxShadow = '0 15px 40px rgba(255, 20, 147, 0.6)';
+                });
+                
+                button.addEventListener('mouseout', function() {
+                    this.style.transform = originalTransform;
+                    this.style.boxShadow = originalBoxShadow;
+                });
+            });
+        });
+    </script>
+
 </body>
 </html>
 
