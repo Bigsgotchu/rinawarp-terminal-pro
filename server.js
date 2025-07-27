@@ -88,6 +88,7 @@ import analyticsRouter from './src/api/analytics.js';
 import supportRouter from './src/api/support.js';
 import ThreatDetector from './src/security/ThreatDetector.js';
 import AgentChatAPI from './src/api/agent-chat.js';
+import cookieParser from 'cookie-parser';
 
 // Validate SMTP configuration AFTER dotenv
 const smtpConfigured = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
@@ -300,16 +301,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Generate nonce for inline scripts (security best practice)
-function generateNonce() {
-  return Buffer.from(Math.random().toString()).toString('base64');
-}
-
-// Middleware to add nonce to requests
-app.use((req, res, next) => {
-  res.locals.nonce = generateNonce();
-  next();
-});
+// Nonce generation removed - we're using external scripts only for CSP compliance
 
 // CSP Report-Only for testing strict policy
 app.use((req, res, next) => {
@@ -317,14 +309,16 @@ app.use((req, res, next) => {
   const strictCSP = [
     "default-src 'self'",
     "script-src 'self' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
-    "style-src 'self' https://fonts.googleapis.com", // Testing without unsafe-inline for styles
-    "img-src 'self' data: https: blob:",
+    "style-src 'self' 'unsafe-inline'", // Allow unsafe-inline for styles
+    "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com",
+    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app",
     "object-src 'none'",
     "base-uri 'self'",
     "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
     "form-action 'self' https://checkout.stripe.com",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
     'report-uri /api/csp-report',
   ].join('; ');
 
@@ -341,27 +335,39 @@ app.use(
         scriptSrc: [
           "'self'",
           'https://js.stripe.com',
+          'https://checkout.stripe.com',
           'https://www.googletagmanager.com',
           'https://www.google-analytics.com',
           'https://analytics.google.com',
-          (req, res) => `'nonce-${res.locals.nonce}'`,
+          // No nonce needed - all scripts are external now
         ],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        imgSrc: ["'self'", 'data:', 'https:'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'https:',
+          'blob:',
+          'https://www.google-analytics.com',
+          'https://www.googletagmanager.com',
+          'https://*.stripe.com',
+        ],
         fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         connectSrc: [
           "'self'",
           'wss:',
           'ws:',
           'https://api.stripe.com',
+          'https://checkout.stripe.com',
           'https://www.google-analytics.com',
           'https://analytics.google.com',
+          'https://www.googletagmanager.com',
+          'https://*.railway.app',
         ],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
-        frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
-        formAction: ["'self'"],
-        // Inline event handlers are now blocked for security
+        frameSrc: ["'self'", 'https://js.stripe.com', 'https://checkout.stripe.com', 'https://hooks.stripe.com'],
+        formAction: ["'self'", 'https://checkout.stripe.com'],
+        frameAncestors: ["'none'"],
         upgradeInsecureRequests: [],
       },
     },
@@ -429,6 +435,7 @@ app.use(logRequest);
 // Middleware
 app.use(express.json({ limit: '10mb' })); // Increase limit and add security
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser()); // Enable cookie parsing for A/B testing
 
 // JWT Authentication Middleware (unused - kept for future use)
 const _authenticateJWT = (req, res, next) => {
@@ -863,44 +870,57 @@ app.get('/', staticPageLimiter, (req, res) => {
     });
   }
 
-  console.log('[ROUTE] Serving index.html with nonce injection');
-
-  // Read the HTML file and inject nonces
-  let htmlContent = fs.readFileSync(safePath, 'utf8');
-  const nonce = res.locals.nonce;
-
-  // Inject nonces into all inline scripts
-  htmlContent = htmlContent.replace(/<script>/g, `<script nonce="${nonce}">`);
-
-  // Convert inline event handlers to use data attributes (safer for CSP)
-  htmlContent = htmlContent.replace(/onclick="([^"]*)"/g, 'data-onclick="$1"');
+  console.log('[ROUTE] Serving index.html');
 
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(htmlContent);
+  res.sendFile(safePath);
 });
 
-// Serve the pricing page
+// A/B Testing for Pricing Page
 app.get('/pricing', staticPageLimiter, (req, res) => {
-  const safePath = validateAndNormalizePath('pricing.html', _PUBLIC_DIR);
+  // Get or set user's test variant
+  let variant = req.cookies.pricingVariant;
+  
+  if (!variant) {
+    // Randomly assign variant (50/50 split)
+    variant = Math.random() < 0.5 ? 'simple' : 'complex';
+    res.cookie('pricingVariant', variant, { 
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true 
+    });
+  }
+  
+  // Log the view
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    event: 'view',
+    variant,
+    url: req.url,
+    referrer: req.get('referrer') || 'direct',
+    userAgent: req.get('user-agent')
+  };
+  
+  fs.appendFile('./logs/ab-test-pricing.log', JSON.stringify(logEntry) + '\n').catch(() => {});
+  
+  // Determine which file to serve
+  const filename = variant === 'simple' ? 'pricing.html' : 'pricing-old-basic.html';
+  const safePath = validateAndNormalizePath(filename, _PUBLIC_DIR);
+  
   if (!safePath || !fs.existsSync(safePath)) {
     return res.status(404).json({ error: 'Page not found' });
   }
+  
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
 
-// Serve the pricing page with .html extension
+// Serve the pricing page with .html extension (also with A/B testing)
 app.get('/pricing.html', staticPageLimiter, (req, res) => {
-  const safePath = validateAndNormalizePath('pricing.html', _PUBLIC_DIR);
-  if (!safePath || !fs.existsSync(safePath)) {
-    return res.status(404).json({ error: 'Page not found' });
-  }
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.sendFile(safePath);
+  // Redirect to /pricing to ensure consistent A/B testing
+  res.redirect('/pricing');
 });
 
 // Serve success page
@@ -1843,7 +1863,6 @@ app.get('/api/test/security-headers', (req, res) => {
   res.json({
     message: 'Security headers test endpoint',
     timestamp: new Date().toISOString(),
-    nonce: res.locals.nonce,
     headers: {
       'Strict-Transport-Security': res.get('Strict-Transport-Security'),
       'X-Content-Type-Options': res.get('X-Content-Type-Options'),
@@ -1872,6 +1891,271 @@ app.get('/api/debug/env-check', (req, res) => {
 
 // Analytics tracking endpoints
 const analyticsData = new Map(); // In-memory storage for demo (use database in production)
+
+// Track conversions for A/B testing
+app.post('/api/track-conversion', express.json(), (req, res) => {
+  const { event, plan, variant } = req.body;
+  
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    event: 'conversion',
+    plan,
+    variant: variant || req.cookies.pricingVariant,
+    value: plan === 'professional' ? 25 : plan === 'starter' ? 15 : 35
+  };
+  
+  fs.appendFile('./logs/ab-test-pricing.log', JSON.stringify(logEntry) + '\n').catch(() => {});
+  
+  res.json({ success: true });
+});
+
+// Get A/B test results
+app.get('/api/ab-test-results', async (req, res) => {
+  try {
+    // Read the log file
+    const logPath = './logs/ab-test-pricing.log';
+    let logs = [];
+    
+    if (fs.existsSync(logPath)) {
+      const content = await fs.promises.readFile(logPath, 'utf8');
+      logs = content.trim().split('\n').filter(line => line).map(line => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          return null;
+        }
+      }).filter(log => log);
+    }
+    
+    // Calculate metrics for each variant
+    const results = {
+      simple: {
+        views: 0,
+        conversions: 0,
+        conversionRate: 0,
+        revenue: 0,
+        avgRevenue: 0
+      },
+      complex: {
+        views: 0,
+        conversions: 0,
+        conversionRate: 0,
+        revenue: 0,
+        avgRevenue: 0
+      }
+    };
+    
+    // Process logs
+    logs.forEach(log => {
+      if (log.variant && results[log.variant]) {
+        if (log.event === 'view') {
+          results[log.variant].views++;
+        } else if (log.event === 'conversion') {
+          results[log.variant].conversions++;
+          results[log.variant].revenue += log.value || 0;
+        }
+      }
+    });
+    
+    // Calculate conversion rates and average revenue
+    Object.keys(results).forEach(variant => {
+      const data = results[variant];
+      if (data.views > 0) {
+        data.conversionRate = ((data.conversions / data.views) * 100).toFixed(2);
+        data.avgRevenue = data.views > 0 ? (data.revenue / data.views).toFixed(2) : 0;
+      }
+    });
+    
+    res.json(results);
+  } catch (error) {
+    console.error('Error reading A/B test results:', error);
+    res.status(500).json({ error: 'Failed to get A/B test results' });
+  }
+});
+
+// A/B Test Dashboard
+app.get('/ab-test-dashboard', (req, res) => {
+  const dashboardHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pricing A/B Test Results</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
+        .metric { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .metric h3 { margin: 0 0 10px 0; color: #666; font-size: 0.9rem; text-transform: uppercase; }
+        .metric .value { font-size: 2rem; font-weight: bold; color: #333; }
+        .metric .change { font-size: 0.9rem; margin-top: 5px; }
+        .positive { color: #10b981; }
+        .negative { color: #ef4444; }
+        .chart { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; font-weight: 600; }
+        .winner { background: #d1fae5; }
+        .refresh-info { text-align: right; color: #666; font-size: 0.9rem; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Pricing Page A/B Test Results</h1>
+        <div class="refresh-info">Auto-refreshes every 30 seconds</div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <h3>Simple Version</h3>
+                <div class="value" id="simple-views">0</div>
+                <div>Views</div>
+            </div>
+            <div class="metric">
+                <h3>Simple Conversion Rate</h3>
+                <div class="value" id="simple-rate">0%</div>
+                <div class="change positive" id="simple-change"></div>
+            </div>
+            <div class="metric">
+                <h3>Complex Version</h3>
+                <div class="value" id="complex-views">0</div>
+                <div>Views</div>
+            </div>
+            <div class="metric">
+                <h3>Complex Conversion Rate</h3>
+                <div class="value" id="complex-rate">0%</div>
+                <div class="change negative" id="complex-change"></div>
+            </div>
+        </div>
+        
+        <div class="chart">
+            <h2>Conversion Details</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Simple Version</th>
+                        <th>Complex Version</th>
+                        <th>Winner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Views</td>
+                        <td id="table-simple-views">0</td>
+                        <td id="table-complex-views">0</td>
+                        <td id="views-winner">-</td>
+                    </tr>
+                    <tr>
+                        <td>Conversions</td>
+                        <td id="table-simple-conversions">0</td>
+                        <td id="table-complex-conversions">0</td>
+                        <td id="conversions-winner">-</td>
+                    </tr>
+                    <tr>
+                        <td>Conversion Rate</td>
+                        <td id="table-simple-rate">0%</td>
+                        <td id="table-complex-rate">0%</td>
+                        <td id="rate-winner">-</td>
+                    </tr>
+                    <tr>
+                        <td>Avg. Revenue/User</td>
+                        <td id="table-simple-revenue">$0</td>
+                        <td id="table-complex-revenue">$0</td>
+                        <td id="revenue-winner">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="chart">
+            <h2>Recommendations</h2>
+            <div id="recommendations">
+                <p>Collecting data... Check back after at least 100 views per variant.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/ab-test-results');
+                const data = await response.json();
+                
+                // Update metrics
+                document.getElementById('simple-views').textContent = data.simple.views;
+                document.getElementById('simple-rate').textContent = data.simple.conversionRate + '%';
+                document.getElementById('complex-views').textContent = data.complex.views;
+                document.getElementById('complex-rate').textContent = data.complex.conversionRate + '%';
+                
+                // Update table
+                document.getElementById('table-simple-views').textContent = data.simple.views;
+                document.getElementById('table-complex-views').textContent = data.complex.views;
+                document.getElementById('table-simple-conversions').textContent = data.simple.conversions;
+                document.getElementById('table-complex-conversions').textContent = data.complex.conversions;
+                document.getElementById('table-simple-rate').textContent = data.simple.conversionRate + '%';
+                document.getElementById('table-complex-rate').textContent = data.complex.conversionRate + '%';
+                document.getElementById('table-simple-revenue').textContent = '$' + data.simple.avgRevenue;
+                document.getElementById('table-complex-revenue').textContent = '$' + data.complex.avgRevenue;
+                
+                // Determine winners
+                if (data.simple.views > 10 && data.complex.views > 10) {
+                    if (parseFloat(data.simple.conversionRate) > parseFloat(data.complex.conversionRate)) {
+                        document.getElementById('rate-winner').textContent = '✅ Simple';
+                        document.getElementById('rate-winner').className = 'winner';
+                        const improvement = (parseFloat(data.simple.conversionRate) - parseFloat(data.complex.conversionRate)).toFixed(1);
+                        document.getElementById('simple-change').textContent = '+' + improvement + '% better';
+                        document.getElementById('complex-change').textContent = '';
+                    } else if (parseFloat(data.complex.conversionRate) > parseFloat(data.simple.conversionRate)) {
+                        document.getElementById('rate-winner').textContent = '✅ Complex';
+                        document.getElementById('rate-winner').className = 'winner';
+                        const improvement = (parseFloat(data.complex.conversionRate) - parseFloat(data.simple.conversionRate)).toFixed(1);
+                        document.getElementById('complex-change').textContent = '+' + improvement + '% better';
+                        document.getElementById('simple-change').textContent = '';
+                    }
+                    
+                    if (parseFloat(data.simple.avgRevenue) > parseFloat(data.complex.avgRevenue)) {
+                        document.getElementById('revenue-winner').textContent = '✅ Simple';
+                        document.getElementById('revenue-winner').className = 'winner';
+                    } else if (parseFloat(data.complex.avgRevenue) > parseFloat(data.simple.avgRevenue)) {
+                        document.getElementById('revenue-winner').textContent = '✅ Complex';
+                        document.getElementById('revenue-winner').className = 'winner';
+                    }
+                }
+                
+                // Update recommendations
+                const totalViews = data.simple.views + data.complex.views;
+                const recommendations = document.getElementById('recommendations');
+                
+                if (totalViews < 100) {
+                    recommendations.innerHTML = '<p>⏳ Still collecting data. Need at least 100 total views for meaningful results.</p>';
+                } else if (totalViews < 500) {
+                    recommendations.innerHTML = '<p>📊 Early results are showing. Continue running the test for more confidence.</p>';
+                } else {
+                    const winner = parseFloat(data.simple.conversionRate) > parseFloat(data.complex.conversionRate) ? 'simple' : 'complex';
+                    const confidence = totalViews > 1000 ? 'high' : 'moderate';
+                    recommendations.innerHTML = `
+                        <p>\u2705 <strong>Recommendation:</strong> The ${winner} pricing page is performing better.</p>
+                        <p>\uD83D\uDCC8 Confidence level: ${confidence}</p>
+                        <p>\uD83D\uDCA1 Consider making the ${winner} version your default pricing page.</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+            }
+        }
+        
+        // Load results on page load
+        loadResults();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadResults, 30000);
+    </script>
+</body>
+</html>
+  `;
+  
+  res.send(dashboardHTML);
+});
 
 app.post('/api/analytics/batch', (req, res) => {
   try {
