@@ -311,27 +311,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// CSP Report-Only for testing strict policy
-app.use((req, res, next) => {
-  // Test strict CSP without breaking functionality
-  const strictCSP = [
-    "default-src 'self'",
-    "script-src 'self' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
-    "style-src 'self' https://fonts.googleapis.com", // Testing without unsafe-inline for styles
-    "img-src 'self' data: https: blob:",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
-    "form-action 'self' https://checkout.stripe.com",
-    'report-uri /api/csp-report',
-  ].join('; ');
-
-  res.setHeader('Content-Security-Policy-Report-Only', strictCSP);
-  next();
-});
-
 // Apply helmet security headers with comprehensive protection
 app.use(
   helmet({
@@ -769,30 +748,6 @@ app.get('/api/health', (req, res) => {
     service: 'RinaWarp Terminal API',
     timestamp: new Date().toISOString(),
     version: '1.0.7',
-  });
-
-  // CSP Violation Report Endpoint
-  app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (req, res) => {
-    const report = req.body['csp-report'];
-    if (report) {
-      console.log('🚨 CSP Violation Report:');
-      console.log('  - Document:', report['document-uri']);
-      console.log('  - Blocked:', report['blocked-uri']);
-      console.log('  - Directive:', report['violated-directive']);
-      console.log('  - Line:', report['line-number']);
-      console.log('  - Column:', report['column-number']);
-
-      // Log to file for analysis
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        report: report,
-        userAgent: req.headers['user-agent'],
-      };
-
-      fs.appendFile('./logs/csp-violations.log', JSON.stringify(logEntry) + '\n').catch(() => {});
-    }
-
-    res.status(204).end();
   });
 });
 
