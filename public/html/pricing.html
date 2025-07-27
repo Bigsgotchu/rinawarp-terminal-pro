@@ -406,21 +406,21 @@
                     <h3 style="margin-bottom: 10px;">🐦 Early Bird</h3>
                     <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$29</div>
                     <p style="margin-bottom: 20px; opacity: 0.9;">Limited time offer</p>
-                    <button onclick="purchaseBeta('earlybird')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Early Access</button>
+                    <button data-action="purchase-beta" data-plan="earlybird" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Early Access</button>
                 </div>
                 
                 <div class="beta-card" style="background: rgba(255,255,255,0.25); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.5); transform: scale(1.05);">
                     <h3 style="margin-bottom: 10px;">🚀 Beta Access</h3>
                     <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$39</div>
                     <p style="margin-bottom: 20px; opacity: 0.9;">Most popular choice</p>
-                    <button onclick="purchaseBeta('beta')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Beta Access</button>
+                    <button data-action="purchase-beta" data-plan="beta" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Beta Access</button>
                 </div>
                 
                 <div class="beta-card" style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3);">
                     <h3 style="margin-bottom: 10px;">👑 Premium Beta</h3>
                     <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$59</div>
                     <p style="margin-bottom: 20px; opacity: 0.9;">Priority support included</p>
-                    <button onclick="purchaseBeta('premium')" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Premium Beta</button>
+                    <button data-action="purchase-beta" data-plan="premium" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Premium Beta</button>
                 </div>
             </div>
             
@@ -451,7 +451,7 @@
                     <li class="unavailable">Priority support</li>
                 </ul>
                 
-                <button class="plan-button secondary" onclick="purchasePlan('personal')">
+                <button class="plan-button secondary" data-action="purchase" data-plan="personal">
                     Start Free Trial
                 </button>
                 
@@ -482,7 +482,7 @@
                     <li class="unavailable">Team collaboration</li>
                 </ul>
                 
-                <button class="plan-button primary" onclick="purchasePlan('professional')">
+                <button class="plan-button primary" data-action="purchase" data-plan="professional">
                     Start Free Trial
                 </button>
                 
@@ -513,7 +513,7 @@
                     <li>Custom integrations</li>
                 </ul>
                 
-                <button class="plan-button secondary" onclick="purchasePlan('team')">
+                <button class="plan-button secondary" data-action="purchase" data-plan="team">
                     Start Free Trial
                 </button>
                 
@@ -541,7 +541,7 @@
                     <li class="unavailable">Advanced features</li>
                 </ul>
                 
-                <button class="plan-button secondary" onclick="purchasePlan('free')">
+                <button class="plan-button secondary" data-action="purchase" data-plan="free">
                     Get Started Free
                 </button>
                 
@@ -572,7 +572,7 @@
                     <li>Volume discounts</li>
                 </ul>
                 
-                <button class="plan-button primary" onclick="window.open('mailto:enterprise@rinawarp.com?subject=Enterprise%20Inquiry', '_blank')">
+                <button class="plan-button primary" data-action="open-link" data-url="mailto:enterprise@rinawarp.com?subject=Enterprise%20Inquiry">
                     Contact Sales
                 </button>
                 
@@ -990,5 +990,45 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializeStripe);
     </script>
+
+    <!-- Safe Event Handlers for CSP Compliance -->
+    <script>
+        // Safe event handlers for CSP compliance
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle purchase buttons
+            document.querySelectorAll('[data-action="purchase"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const plan = this.getAttribute('data-plan');
+                    if (typeof purchasePlan === 'function') {
+                        purchasePlan(plan);
+                    } else {
+                        console.error('purchasePlan function not found');
+                    }
+                });
+            });
+
+            // Handle beta purchase buttons
+            document.querySelectorAll('[data-action="purchase-beta"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const plan = this.getAttribute('data-plan');
+                    if (typeof purchaseBeta === 'function') {
+                        purchaseBeta(plan);
+                    } else {
+                        console.error('purchaseBeta function not found');
+                    }
+                });
+            });
+
+            // Handle external link buttons
+            document.querySelectorAll('[data-action="open-link"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    const target = this.getAttribute('data-target') || '_blank';
+                    window.open(url, target);
+                });
+            });
+        });
+    </script>
+
 </body>
 </html>
