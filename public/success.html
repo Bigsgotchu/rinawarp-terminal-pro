@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thank You! - RinaWarp Terminal</title>
     
-    <!-- Google Analytics -->
+    <!-- Google Analytics - CSP Compliant -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-G424CV5GGT');
-    </script>
+    <script src="/js/ga4-init.js" defer></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -158,40 +153,7 @@
         </div>
     </div>
     
-    <script>
-        // Parse URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionId = urlParams.get('session_id');
-        const plan = urlParams.get('plan');
-        
-        // Update order details
-        if (plan) {
-            const planNames = {
-                'basic': 'Basic Plan ($29/month)',
-                'pro': 'Professional Plan ($99/month)',
-                'enterprise': 'Enterprise Plan ($299/month)'
-            };
-            document.getElementById('planName').textContent = planNames[plan] || plan;
-        }
-        
-        if (sessionId) {
-            document.getElementById('orderId').textContent = sessionId.substring(0, 16) + '...';
-        }
-        
-        // Track conversion
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'purchase', {
-                transaction_id: sessionId,
-                value: plan === 'basic' ? 29 : plan === 'pro' ? 99 : 299,
-                currency: 'USD',
-                items: [{
-                    item_name: 'RinaWarp Terminal',
-                    item_category: 'Software',
-                    item_variant: plan,
-                    quantity: 1
-                }]
-            });
-        }
-    </script>
+    <!-- External JavaScript for CSP compliance -->
+    <script src="/js/success-page.js" defer></script>
 </body>
 </html>
