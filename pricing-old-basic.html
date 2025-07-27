@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Pricing Plans</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #00ced1 0%, #20b2aa 25%, #48d1cc 50%, #40e0d0 75%, #00ffff 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+        }
+
+        .pricing-card.recommended {
+            border: 3px solid #00ced1;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.recommended::before {
+            content: "Most Popular";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #00ced1, #20b2aa);
+            color: white;
+            padding: 0.5rem 2rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #00ced1;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .plan-description {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .features-list li {
+            padding: 0.7rem 0;
+            display: flex;
+            align-items: center;
+            color: #4a5568;
+        }
+
+        .features-list li::before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            margin-right: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .cta-button {
+            width: 100%;
+            background: linear-gradient(45deg, #00ced1, #20b2aa);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 206, 209, 0.3);
+        }
+
+        .guarantee {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .guarantee h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .trust-signals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .trust-signal {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .trust-signal .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonials {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .testimonial {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .testimonial blockquote {
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial cite {
+            font-weight: 600;
+        }
+
+        .faq {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .faq h3 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2d3748;
+            font-size: 1.8rem;
+        }
+
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1.5rem;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .faq-answer {
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .pricing-card.recommended {
+                transform: none;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Choose Your Plan</h1>
+            <p>Transform your terminal experience with RinaWarp's powerful AI-driven features</p>
+        </div>
+
+        <div class="pricing-grid">
+            <!-- Basic Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Basic</div>
+                <div class="plan-price">$29<span>/month</span></div>
+                <div class="plan-description">Perfect for individual developers getting started</div>
+                
+                <ul class="features-list">
+                    <li>AI Command Analysis</li>
+                    <li>Basic Voice Control</li>
+                    <li>3 Theme Options</li>
+                    <li>Email Support</li>
+                    <li>Basic Security Features</li>
+                    <li>Up to 100 Commands/day</li>
+                </ul>
+                
+                <button class="cta-button" data-plan="basic">Get Started</button>
+            </div>
+
+            <!-- Professional Plan -->
+            <div class="pricing-card recommended">
+                <div class="plan-name">Professional</div>
+                <div class="plan-price">$99<span>/month</span></div>
+                <div class="plan-description">Advanced features for professional developers</div>
+                
+                <ul class="features-list">
+                    <li>Everything in Basic</li>
+                    <li>Advanced AI Context Engine</li>
+                    <li>Full Voice Command Library</li>
+                    <li>All Premium Themes</li>
+                    <li>Priority Support</li>
+                    <li>Advanced Security Suite</li>
+                    <li>Unlimited Commands</li>
+                    <li>Custom Integrations</li>
+                    <li>Team Collaboration</li>
+                </ul>
+                
+                <button class="cta-button" data-plan="pro">Get Started</button>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Enterprise</div>
+                <div class="plan-price">$299<span>/month</span></div>
+                <div class="plan-description">Complete solution for large teams and enterprises</div>
+                
+                <ul class="features-list">
+                    <li>Everything in Professional</li>
+                    <li>White-label Solutions</li>
+                    <li>Custom AI Training</li>
+                    <li>Enterprise SSO</li>
+                    <li>24/7 Phone Support</li>
+                    <li>Dedicated Account Manager</li>
+                    <li>On-premise Deployment</li>
+                    <li>Custom Branding</li>
+                    <li>Advanced Analytics</li>
+                    <li>SLA Guarantees</li>
+                </ul>
+                
+                <button class="cta-button" data-plan="enterprise">Get Started</button>
+            </div>
+        </div>
+
+        <!-- Money-back Guarantee -->
+        <div class="guarantee">
+            <h3>💰 30-Day Money-Back Guarantee</h3>
+            <p>Try RinaWarp Terminal risk-free. If you're not completely satisfied, we'll refund your money within 30 days.</p>
+        </div>
+
+        <!-- Trust Signals -->
+        <div class="trust-signals">
+            <div class="trust-signal">
+                <div class="icon">🔒</div>
+                <h4>Enterprise Security</h4>
+                <p>SOC 2 Type II certified with end-to-end encryption</p>
+            </div>
+            
+            <div class="trust-signal">
+                <div class="icon">⚡</div>
+                <h4>99.9% Uptime</h4>
+                <p>Reliable service with guaranteed uptime SLA</p>
+            </div>
+            
+            <div class="trust-signal">
+                <div class="icon">🎯</div>
+                <h4>10,000+ Users</h4>
+                <p>Trusted by developers worldwide</p>
+            </div>
+        </div>
+
+        <!-- Testimonials -->
+        <div class="testimonials">
+            <div class="testimonial">
+                <blockquote>"RinaWarp Terminal has revolutionized how I work. The AI suggestions are incredibly accurate and have saved me hours every week."</blockquote>
+                <cite>— Sarah Chen, Senior Developer at TechCorp</cite>
+            </div>
+            
+            <div class="testimonial">
+                <blockquote>"The voice control feature is a game-changer. I can execute complex commands without touching the keyboard."</blockquote>
+                <cite>— Marcus Rodriguez, DevOps Engineer</cite>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq">
+            <h3>Frequently Asked Questions</h3>
+            
+            <div class="faq-item">
+                <div class="faq-question">Can I cancel anytime?</div>
+                <div class="faq-answer">Yes, you can cancel your subscription at any time. Your access will continue until the end of your current billing period.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Is my data secure?</div>
+                <div class="faq-answer">Absolutely. We use enterprise-grade encryption and never store your command history or sensitive data on our servers.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Do you offer team discounts?</div>
+                <div class="faq-answer">Yes! Contact our sales team for volume discounts on 5+ seats. Enterprise customers get custom pricing.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">What payment methods do you accept?</div>
+                <div class="faq-answer">We accept all major credit cards, PayPal, and wire transfers for enterprise customers.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the checkout script -->
+    <script src="/src/frontend/unified-checkout.js"></script>
+</body>
+</html>

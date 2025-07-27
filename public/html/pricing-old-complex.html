@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - RinaWarp Terminal</title>
+    
+    <!-- Google Analytics - Temporarily disabled -->
+    <script>
+        // Google Analytics will be configured later
+        console.log('Google Analytics: Ready for configuration');
+    </script>
+    
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="/js/payment-fix.js" defer></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #0a1628; 
+            background: linear-gradient(135deg, #ff1493 0%, #00ced1 15%, #1e90ff 30%, #ff69b4 45%, #20b2aa 60%, #ff1493 75%, #00ffff 90%, #ff69b4 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Animated water bubbles background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 20, 147, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 206, 209, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 105, 180, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(32, 178, 170, 0.3) 0%, transparent 50%);
+            animation: float 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; position: relative; z-index: 1; }
+        .header { text-align: center; color: white; margin-bottom: 40px; position: relative; }
+        .header h1 { 
+            font-size: 3.8rem; 
+            margin-bottom: 20px; 
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4, #20b2aa);
+            background-size: 200% 200%;
+            animation: textShimmer 3s ease-in-out infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 20, 147, 0.6);
+            font-weight: 900;
+        }
+        
+        @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .header p { 
+            font-size: 1.4rem; 
+            opacity: 0.95; 
+            max-width: 700px; 
+            margin: 0 auto;
+            color: #e0ffff;
+            text-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+            font-weight: 500;
+        }
+        .nav { display: flex; justify-content: center; gap: 20px; margin: 40px 0; flex-wrap: wrap; }
+        .nav a { 
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.4), rgba(0, 206, 209, 0.5)); 
+            color: #ffffff; 
+            padding: 15px 30px; 
+            border-radius: 25px; 
+            text-decoration: none; 
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 105, 180, 0.6);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+        }
+        .nav a:hover { 
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.8), rgba(0, 255, 255, 0.8)); 
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 20, 147, 0.6);
+            color: #ffffff;
+            border-color: rgba(0, 255, 255, 0.8);
+        }
+        
+        /* Pricing Cards */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 105, 180, 0.1), rgba(0, 255, 255, 0.05));
+            border-radius: 25px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(255, 20, 147, 0.3), 0 0 30px rgba(0, 206, 209, 0.2);
+            position: relative;
+            transition: all 0.4s ease;
+            border: 2px solid rgba(255, 20, 147, 0.4);
+            backdrop-filter: blur(15px);
+            overflow: hidden;
+        }
+        
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff1493, #00ffff, #ff69b4, #20b2aa, #ff1493);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(255, 20, 147, 0.4), 0 0 50px rgba(0, 206, 209, 0.3);
+            border-color: rgba(0, 255, 255, 0.7);
+        }
+        
+        .pricing-card.popular {
+            border: 3px solid #ff1493;
+            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 20, 147, 0.1), rgba(0, 255, 255, 0.05));
+        }
+        
+        .pricing-card.popular::after {
+            content: "🧜‍♀️ MOST POPULAR";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: #ffffff;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0a1628;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .plan-description {
+            color: #2d1b69;
+            margin-bottom: 25px;
+            font-size: 1rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        
+        .plan-price {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff1493, #20b2aa, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 25px 0;
+            text-shadow: 0 0 25px rgba(255, 20, 147, 0.4);
+        }
+        
+        .plan-price .currency {
+            font-size: 2rem;
+            vertical-align: top;
+        }
+        
+        .plan-price .period {
+            font-size: 1.2rem;
+            color: #8b008b;
+            font-weight: normal;
+        }
+        
+        .plan-features {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .plan-features li {
+            padding: 12px 0;
+            color: #003d5c;
+            position: relative;
+            padding-left: 28px;
+            line-height: 1.6;
+        }
+        
+        .plan-features li::before {
+            content: "🟦";
+            position: absolute;
+            left: 0;
+            color: #4fb3d9;
+            font-size: 1.2rem;
+        }
+        
+        .plan-features li.unavailable {
+            color: #99aab5;
+        }
+        
+        .plan-features li.unavailable::before {
+            content: "❌";
+        }
+        
+        .plan-button {
+            width: 100%;
+            padding: 18px 35px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+        }
+        
+        .plan-button.primary {
+            background: linear-gradient(135deg, #ff1493, #20b2aa, #ff69b4);
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .plan-button.secondary {
+            background: linear-gradient(135deg, #8b008b, #00ced1, #ff1493);
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .plan-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 20, 147, 0.6);
+            background: linear-gradient(135deg, #ff69b4, #00ffff, #ff1493);
+        }
+        
+        .plan-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Loading states */
+        .loading {
+            position: relative;
+            color: transparent;
+        }
+        
+        .loading::after {
+            content: "Processing...";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: inherit;
+            border-radius: inherit;
+        }
+        
+        /* FAQ Section */
+        .faq-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+        
+        .faq-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .faq-question {
+            font-weight: bold;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+        
+        .faq-answer {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* Money back guarantee */
+        .guarantee {
+            background: linear-gradient(135deg, #ff1493, #00ffff, #ff69b4);
+            color: #ffffff;
+            padding: 25px;
+            border-radius: 20px;
+            margin: 30px 0;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+        }
+        
+        /* FAQ Section */
+        .faq-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(167, 243, 208, 0.1));
+            border-radius: 25px;
+            padding: 50px;
+            margin: 50px 0;
+            border: 2px solid rgba(79, 179, 217, 0.3);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(0, 105, 148, 0.2);
+        }
+        
+        .faq-item {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid rgba(79, 179, 217, 0.2);
+        }
+        
+        .faq-question {
+            font-weight: bold;
+            color: #003d5c;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .faq-answer {
+            color: #2c5f78;
+            line-height: 1.7;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5rem; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .pricing-card.popular { transform: none; }
+            .container { padding: 30px 15px; }
+            .faq-section { padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Dive Into Your Perfect Plan</h1>
+            <p>Professional terminal tools for developers, teams, and enterprises. Dive deep into productivity with our ocean of features!</p>
+        </div>
+        
+        <div class="nav">
+            <a href="/">🏠 Home</a>
+            <a href="/download.html">📥 Download</a>
+            <a href="/case-studies-authentic.html">🌟 Share Your Story</a>
+            <a href="/beta.html">🚀 Beta</a>
+            <a href="/success.html">✅ Success</a>
+        </div>
+        
+        <!-- Beta Access Section -->
+        <div class="beta-access-section" style="background: linear-gradient(135deg, #ff1493, #00ffff, #ff69b4); border-radius: 25px; padding: 40px; margin: 40px 0; text-align: center; color: white; border: 3px solid rgba(255,255,255,0.3); box-shadow: 0 20px 40px rgba(255,20,147,0.4);">
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,0,0,0.3);">🚀 v1.0.9 Beta Access Available NOW!</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 30px; opacity: 0.95;">Get early access to enhanced AI, cloud sync, team collaboration & more!</p>
+            
+            <div class="beta-pricing-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 30px 0;">
+                <div class="beta-card" style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3);">
+                    <h3 style="margin-bottom: 10px;">🐦 Early Bird</h3>
+                    <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$29</div>
+                    <p style="margin-bottom: 20px; opacity: 0.9;">Limited time offer</p>
+                    <button data-action="purchase-beta" data-plan="earlybird" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Early Access</button>
+                </div>
+                
+                <div class="beta-card" style="background: rgba(255,255,255,0.25); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.5); transform: scale(1.05);">
+                    <h3 style="margin-bottom: 10px;">🚀 Beta Access</h3>
+                    <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$39</div>
+                    <p style="margin-bottom: 20px; opacity: 0.9;">Most popular choice</p>
+                    <button data-action="purchase-beta" data-plan="beta" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Beta Access</button>
+                </div>
+                
+                <div class="beta-card" style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3);">
+                    <h3 style="margin-bottom: 10px;">👑 Premium Beta</h3>
+                    <div style="font-size: 2.5rem; font-weight: bold; margin: 15px 0;">$59</div>
+                    <p style="margin-bottom: 20px; opacity: 0.9;">Priority support included</p>
+                    <button data-action="purchase-beta" data-plan="premium" style="background: rgba(255,255,255,0.9); color: #ff1493; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Get Premium Beta</button>
+                </div>
+            </div>
+            
+            <p style="font-size: 1.1rem; opacity: 0.9; margin-top: 20px;">✅ Beta access + Full license on release ✅ Direct developer access ✅ Early feature preview</p>
+        </div>
+        
+        <h2 style="text-align: center; color: white; margin: 50px 0 30px 0; font-size: 2.2rem; text-shadow: 0 0 20px rgba(255,20,147,0.6);">📦 Regular Plans</h2>
+        
+        <div class="pricing-grid">
+            <!-- Personal Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">🐟 Reef Explorer</div>
+                <div class="plan-description">Perfect for individual developers exploring the depths of productivity</div>
+                <div class="plan-price">
+                    <span class="currency">$</span>15<span class="period">/month</span>
+                    <br>
+                    <span style="font-size: 1.2rem; color: #27ae60;">Annual: $144/year <span style="color: #27ae60; font-size: 0.9rem;">(20% off)</span></span>
+                </div>
+                
+                <ul class="plan-features">
+                    <li>Full terminal emulator</li>
+                    <li>20+ beautiful themes</li>
+                    <li>Split panes & tabs</li>
+                    <li>Basic AI assistance</li>
+                    <li>Cloud sync (3 devices)</li>
+                    <li>Email support</li>
+                    <li class="unavailable">Team collaboration</li>
+                    <li class="unavailable">Priority support</li>
+                </ul>
+                
+                <button class="plan-button secondary" data-action="purchase" data-plan="personal">
+                    Start Free Trial
+                </button>
+                
+                <div class="guarantee">
+                    💯 14-day free trial<br>
+                    💳 No credit card required
+                </div>
+            </div>
+            
+            <!-- Professional Plan -->
+            <div class="pricing-card popular">
+                <div class="plan-name">🧜‍♀️ Mermaid Pro</div>
+                <div class="plan-description">For skilled developers who command the digital seas</div>
+                <div class="plan-price">
+                    <span class="currency">$</span>25<span class="period">/month</span>
+                    <br>
+                    <span style="font-size: 1.2rem; color: #27ae60;">Annual: $240/year <span style="color: #27ae60; font-size: 0.9rem;">(20% off)</span></span>
+                </div>
+                
+                <ul class="plan-features">
+                    <li>Everything in Personal</li>
+                    <li>Advanced AI assistance</li>
+                    <li>Custom themes & plugins</li>
+                    <li>Cloud sync (5 devices)</li>
+                    <li>Advanced scripting</li>
+                    <li>Priority email support</li>
+                    <li>SSH key management</li>
+                    <li class="unavailable">Team collaboration</li>
+                </ul>
+                
+                <button class="plan-button primary" data-action="purchase" data-plan="professional">
+                    Start Free Trial
+                </button>
+                
+                <div class="guarantee">
+                    💯 14-day free trial<br>
+                    💰 30-day money back guarantee
+                </div>
+            </div>
+            
+            <!-- Team Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">🌊 Ocean Fleet</div>
+                <div class="plan-description">For teams navigating the vast digital ocean together</div>
+                <div class="plan-price">
+                    <span class="currency">$</span>35<span class="period">/month</span>
+                    <br>
+                    <span style="font-size: 1.2rem; color: #27ae60;">Annual: $336/year <span style="color: #27ae60; font-size: 0.9rem;">(20% off)</span></span>
+                </div>
+                
+                <ul class="plan-features">
+                    <li>Everything in Professional</li>
+                    <li>Team collaboration tools</li>
+                    <li>Shared configurations</li>
+                    <li>Cloud sync (10 devices)</li>
+                    <li>Team analytics</li>
+                    <li>Live chat support</li>
+                    <li>Admin dashboard</li>
+                    <li>Custom integrations</li>
+                </ul>
+                
+                <button class="plan-button secondary" data-action="purchase" data-plan="team">
+                    Start Free Trial
+                </button>
+                
+                <div class="guarantee">
+                    💯 14-day free trial<br>
+                    💰 30-day money back guarantee
+                </div>
+            
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">🆓 Free Hobbyist</div>
+                <div class="plan-description">Perfect for casual users and those trying out RinaWarp</div>
+                <div class="plan-price">
+                    <span class="currency">$</span>0<span class="period">/month</span>
+                </div>
+                
+                <ul class="plan-features">
+                    <li>Basic terminal emulator</li>
+                    <li>3 themes</li>
+                    <li>Single tab only</li>
+                    <li class="unavailable">AI assistance</li>
+                    <li class="unavailable">Cloud sync</li>
+                    <li class="unavailable">Priority support</li>
+                    <li class="unavailable">Team collaboration</li>
+                    <li class="unavailable">Advanced features</li>
+                </ul>
+                
+                <button class="plan-button secondary" data-action="purchase" data-plan="free">
+                    Get Started Free
+                </button>
+                
+                <div class="guarantee">
+                    💯 Always free<br>
+                    🚀 Upgrade anytime
+                </div>
+            </div>
+            
+            <!-- Enterprise Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">🏢 Enterprise Navigator</div>
+                <div class="plan-description">For large organizations needing comprehensive terminal solutions</div>
+                <div class="plan-price">
+                    <span class="currency">$</span>99<span class="period">/month</span>
+                    <br>
+                    <span style="font-size: 1.2rem; color: #27ae60;">Custom pricing available</span>
+                </div>
+                
+                <ul class="plan-features">
+                    <li>Everything in Team</li>
+                    <li>Dedicated account manager</li>
+                    <li>Custom integrations</li>
+                    <li>SSO/SAML support</li>
+                    <li>Advanced security controls</li>
+                    <li>24/7 priority support</li>
+                    <li>Custom SLAs</li>
+                    <li>Volume discounts</li>
+                </ul>
+                
+                <button class="plan-button primary" data-action="open-link" data-url="mailto:enterprise@rinawarp.com?subject=Enterprise%20Inquiry">
+                    Contact Sales
+                </button>
+                
+                <div class="guarantee">
+                    📞 Custom demos available<br>
+                    💼 Enterprise support
+                </div>
+            </div>
+        </div>
+        
+        <!-- Special Discounts Section -->
+        <div class="faq-section" style="margin-top: 60px;">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #003d5c; background: linear-gradient(45deg, #006994, #4fb3d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🎓 Special Discounts & Offers</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">🎓 Student Discount</div>
+                <div class="faq-answer">Get 50% off any paid plan with a valid .edu email address. Perfect for students learning development. <a href="mailto:support@rinawarp.com?subject=Student%20Discount" style="color: #ff1493;">Contact us</a> to verify eligibility.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">🔓 Open Source Maintainer</div>
+                <div class="faq-answer">Free Professional tier for active open source maintainers. Must maintain a project with 100+ GitHub stars. <a href="mailto:support@rinawarp.com?subject=OSS%20Maintainer%20Request" style="color: #ff1493;">Apply here</a>.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">💰 Annual Savings</div>
+                <div class="faq-answer">Save 20% on all plans when you pay annually. That's 2.4 months free every year! Annual billing is available for Personal, Professional, and Team plans.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">🏢 Volume Discounts</div>
+                <div class="faq-answer">Enterprise customers get custom pricing based on team size. Contact our sales team for volume discounts starting at 10+ users.</div>
+            </div>
+        </div>
+        
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #003d5c; background: linear-gradient(45deg, #006994, #4fb3d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🐊 Deep Sea Q&A</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Can I cancel anytime?</div>
+                <div class="faq-answer">Yes! You can cancel your subscription at any time. No long-term contracts or commitments.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Do you offer refunds?</div>
+                <div class="faq-answer">Yes, we offer a 30-day money-back guarantee on all paid plans. If you're not satisfied, contact us for a full refund.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Can I upgrade or downgrade my plan?</div>
+                <div class="faq-answer">Absolutely! You can change your plan at any time. Changes take effect immediately, and billing is prorated.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Is my data secure?</div>
+                <div class="faq-answer">Yes, we use enterprise-grade encryption and security measures. Your data is encrypted in transit and at rest.</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Do you offer enterprise plans?</div>
+                <div class="faq-answer">Yes! Contact us at enterprise@rinawarp.com for custom enterprise solutions with volume discounts and additional features.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stripe;
+        let stripeConfig = {};
+        
+        // Initialize Stripe
+        async function initializeStripe() {
+            try {
+                // Fetch Stripe configuration from server
+                const response = await fetch('/api/stripe-config');
+                if (!response.ok) {
+                    throw new Error('Failed to load Stripe configuration');
+                }
+                
+                stripeConfig = await response.json();
+                
+                if (!stripeConfig.publishableKey) {
+                    throw new Error('Stripe publishable key not configured');
+                }
+                
+                // For demo/test purposes, check if it's a placeholder key
+                if (stripeConfig.publishableKey.includes('51234567890abcdef')) {
+                    console.log('🔧 Demo mode: Using placeholder Stripe configuration');
+                    showInfo('Demo mode: Payment buttons will show checkout simulation.');
+                    return;
+                }
+                
+                stripe = Stripe(stripeConfig.publishableKey);
+                console.log('✅ Stripe initialized successfully');
+            } catch (error) {
+                console.error('❌ Error initializing Stripe:', error);
+                // Show user-friendly error message
+                showError('Payment system temporarily unavailable. Please try again later.');
+            }
+        }
+        
+        // Purchase plan function with multiple routing strategies
+        async function purchasePlan(planType) {
+            if (planType === 'free') {
+                // Redirect to download page for free plan
+                window.location.href = '/api/download';
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.disabled = true;
+            button.classList.add('loading');
+            
+            try {
+                // Try multiple routing strategies
+                const success = await tryMultipleRoutes(planType, button, originalText);
+                
+                if (!success) {
+                    // Fallback to direct payment link
+                    await handlePaymentLinkFallback(planType);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error in purchase flow:', error);
+                showError('Unable to start checkout. Please contact support.');
+                
+                // Reset button state
+                button.disabled = false;
+                button.classList.remove('loading');
+                button.textContent = originalText;
+            }
+        }
+        
+        // Try multiple routing strategies for Stripe
+        async function tryMultipleRoutes(planType, button, originalText) {
+            const routes = [
+                '/api/create-checkout-session',           // Vercel/Firebase Functions
+                '/.netlify/functions/create-checkout-session', // Netlify Functions
+                '/api/stripe-checkout'                     // Express server fallback
+            ];
+            
+            const priceId = getPriceId(planType);
+            if (!priceId) {
+                throw new Error(`Price not configured for ${planType} plan`);
+            }
+            
+            const requestBody = {
+                priceId: priceId,
+                successUrl: window.location.origin + '/success.html?plan=' + planType,
+                cancelUrl: window.location.href
+            };
+            
+            for (let i = 0; i < routes.length; i++) {
+                try {
+                    console.log(`🔄 Trying route ${i + 1}/${routes.length}: ${routes[i]}`);
+                    
+                    const response = await fetch(routes[i], {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const session = await response.json();
+                    
+                    if (!session.sessionId && !session.url) {
+                        throw new Error('Invalid response format');
+                    }
+                    
+                    console.log(`✅ Route ${i + 1} successful!`);
+                    
+                    // Check if we have Stripe initialized for redirectToCheckout
+                    if (stripe && session.sessionId) {
+                        const result = await stripe.redirectToCheckout({
+                            sessionId: session.sessionId
+                        });
+                        
+                        if (result.error) {
+                            throw new Error(result.error.message);
+                        }
+                    } else if (session.url) {
+                        // Direct URL redirect
+                        window.location.href = session.url;
+                    }
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.log(`❌ Route ${i + 1} failed: ${error.message}`);
+                    if (i === routes.length - 1) {
+                        // All routes failed
+                        throw error;
+                    }
+                    // Try next route
+                    continue;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Fallback to payment links
+        async function handlePaymentLinkFallback(planType) {
+            try {
+                console.log('🔄 Using payment link fallback...');
+                
+                const response = await fetch('/api/stripe-payment-links.json');
+                if (response.ok) {
+                    const paymentLinks = await response.json();
+                    const link = paymentLinks.paymentLinks[planType]?.monthly;
+                    
+                    if (link && !link.includes('test_')) {
+                        // Real payment link available
+                        window.location.href = link;
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('❌ Payment link fallback failed:', error.message);
+            }
+            
+            // Final fallback - show contact message
+            showError('Payment system temporarily unavailable. Please contact support@rinawarp.com to complete your purchase.');
+        }
+        
+        // Fixed Beta Checkout Function with Enhanced Error Handling
+        async function purchaseBeta(betaType) {
+            if (!stripe) {
+                showError('Payment system not ready. Please refresh and try again.');
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // Validate beta type
+            const validBetaTypes = ['earlybird', 'beta', 'premium'];
+            if (!validBetaTypes.includes(betaType)) {
+                showError('Invalid beta type selected.');
+                return;
+            }
+            
+            // Show loading state
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            
+            try {
+                // Get the appropriate price ID
+                const priceId = getBetaPriceId(betaType);
+                
+                if (!priceId) {
+                    throw new Error(`Beta pricing not configured for ${betaType}. Please contact support.`);
+                }
+                
+                // Enhanced error handling for checkout session
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        priceId: priceId,
+                        successUrl: window.location.origin + '/success.html?plan=beta-' + betaType,
+                        cancelUrl: window.location.href,
+                        metadata: {
+                            betaType: betaType,
+                            product: 'RinaWarp Terminal Beta'
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                }
+                
+                const session = await response.json();
+                
+                if (!session.sessionId) {
+                    throw new Error('Invalid session response from server');
+                }
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.sessionId
+                });
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Beta checkout error:', error);
+                
+                // Improved error messages
+                let errorMessage = 'Failed to start beta checkout. ';
+                
+                if (error.message.includes('not configured')) {
+                    errorMessage += 'Beta pricing is being set up. Please contact support@rinawarp.com for early access.';
+                } else if (error.message.includes('Server error: 500')) {
+                    errorMessage += 'Our servers are having issues. Please try again in a few minutes.';
+                } else if (error.message.includes('Network')) {
+                    errorMessage += 'Please check your internet connection and try again.';
+                } else {
+                    errorMessage += 'Please try again or contact support@rinawarp.com if the issue persists.';
+                }
+                
+                showError(errorMessage);
+                
+                // Reset button state
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+        
+        // Enhanced getBetaPriceId function with debugging
+        function getBetaPriceId(betaType) {
+            // Try to get from server configuration first
+            const betaPrices = stripeConfig.betaPrices || {};
+            
+            console.log('🔍 Beta Price Configuration:', betaPrices);
+            console.log(`📋 Looking for beta type: ${betaType}`);
+            
+            const betaPriceMap = {
+                'earlybird': betaPrices.earlybird || null,
+                'beta': betaPrices.beta || null,
+                'premium': betaPrices.premium || null
+            };
+            
+            const priceId = betaPriceMap[betaType];
+            
+            // Enhanced logging for debugging
+            console.log(`💰 Price ID for ${betaType}: ${priceId}`);
+            
+            if (!priceId) {
+                console.warn(`⚠️ No price ID found for beta type: ${betaType}`);
+                console.log('Available beta prices:', Object.keys(betaPrices));
+            }
+            
+            return priceId;
+        }
+        
+        // Get price ID based on plan type
+        function getPriceId(planType) {
+            const priceMap = {
+                'free': null, // Free plan doesn't need Stripe
+                'personal': stripeConfig.prices?.personal,
+                'professional': stripeConfig.prices?.professional,
+                'team': stripeConfig.prices?.team,
+                'enterprise': null // Enterprise is handled via email
+            };
+            
+            return priceMap[planType];
+        }
+        
+        // Show error message
+        function showError(message) {
+            showNotification(message, '#ff4757');
+        }
+        
+        // Show info message
+        function showInfo(message) {
+            showNotification(message, '#3498db');
+        }
+        
+        // Generic notification function
+        function showNotification(message, color) {
+            const notificationDiv = document.createElement('div');
+            notificationDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${color};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 9999;
+                font-weight: bold;
+                max-width: 300px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notificationDiv.textContent = message;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            if (!document.head.querySelector('style[data-notification]')) {
+                style.setAttribute('data-notification', 'true');
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notificationDiv);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notificationDiv.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notificationDiv.remove(), 300);
+            }, 5000);
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeStripe);
+    </script>
+
+    <!-- Safe Event Handlers for CSP Compliance -->
+    <script>
+        // Safe event handlers for CSP compliance
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle purchase buttons
+            document.querySelectorAll('[data-action="purchase"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const plan = this.getAttribute('data-plan');
+                    if (typeof purchasePlan === 'function') {
+                        purchasePlan(plan);
+                    } else {
+                        console.error('purchasePlan function not found');
+                    }
+                });
+            });
+
+            // Handle beta purchase buttons
+            document.querySelectorAll('[data-action="purchase-beta"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const plan = this.getAttribute('data-plan');
+                    if (typeof purchaseBeta === 'function') {
+                        purchaseBeta(plan);
+                    } else {
+                        console.error('purchaseBeta function not found');
+                    }
+                });
+            });
+
+            // Handle external link buttons
+            document.querySelectorAll('[data-action="open-link"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    const target = this.getAttribute('data-target') || '_blank';
+                    window.open(url, target);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
