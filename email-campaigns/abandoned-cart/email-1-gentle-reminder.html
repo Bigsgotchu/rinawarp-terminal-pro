@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You left something behind at Rinawarp!</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 30px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .logo { font-size: 32px; font-weight: bold; }
+        .content { padding: 40px 20px; background: #f8f9fa; }
+        .product-box { background: white; padding: 20px; border-radius: 10px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .cta-button { display: inline-block; padding: 15px 40px; background: #667eea; color: white; text-decoration: none; border-radius: 30px; font-weight: bold; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🧜‍♀️ Rinawarp Technologies</div>
+            <p>AI-Powered Terminal Assistant</p>
+        </div>
+        
+        <div class="content">
+            <h2>Hi {{first_name}}! 👋</h2>
+            
+            <p>Looks like you got distracted (happens to the best of us!)</p>
+            
+            <p>Your AI terminal assistant Rina is still waiting for you:</p>
+            
+            <div class="product-box">
+                <h3>🤖 Rinawarp Terminal Assistant</h3>
+                <ul>
+                    <li>✨ AI-powered command suggestions</li>
+                    <li>🎤 Voice control functionality</li>
+                    <li>🎨 Beautiful mermaid theme</li>
+                </ul>
+                <p><strong>Price: ${{price}}/month</strong></p>
+            </div>
+            
+            <center>
+                <a href="https://rinawarptech.com/checkout?cart={{cart_id}}" class="cta-button">
+                    Complete My Purchase
+                </a>
+            </center>
+            
+            <p>Need help? Just hit reply and we'll assist you right away!</p>
+            
+            <p>Happy Coding,<br>
+            The Rinawarp Team</p>
+            
+            <p><em>P.S. Your cart is saved for 24 hours, but Rina is eager to help you code! 🏃‍♀️</em></p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Rinawarp Technologies, LLC | <a href="https://rinawarptech.com/privacy">Privacy Policy</a></p>
+            <p><a href="{{unsubscribe_link}}">Unsubscribe</a> from these emails</p>
+        </div>
+    </div>
+</body>
+</html>
