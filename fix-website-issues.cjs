@@ -1,4 +1,62 @@
-<!DOCTYPE html>
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+
+console.log('🔧 Fixing RinaWarp Website Issues...\n');
+
+// 1. Fix pricing inconsistency
+console.log('💰 Fixing pricing inconsistency...');
+// The index.html shows $29, $99, $299 but the payment handler has $9.99, $19.99, $49.99
+// Let's update the payment handler to match the landing page prices
+
+if (fs.existsSync('src/payment/stripe-checkout.js')) {
+  let paymentContent = fs.readFileSync('src/payment/stripe-checkout.js', 'utf8');
+
+  // Update prices to match landing page
+  paymentContent = paymentContent
+    .replace('price: 9.99,', 'price: 29.00,')
+    .replace('price: 19.99,', 'price: 99.00,')
+    .replace('price: 49.99,', 'price: 299.00,');
+
+  fs.writeFileSync('src/payment/stripe-checkout.js', paymentContent);
+  console.log('   ✅ Updated payment handler prices to match landing page');
+}
+
+// 2. Create release files directory
+console.log('\n📁 Creating release files directory...');
+if (!fs.existsSync('releases')) {
+  fs.mkdirSync('releases', { recursive: true });
+  console.log('   ✅ Created releases directory');
+}
+
+// Create placeholder download files
+const downloadFiles = [
+  {
+    name: 'RinaWarp-Terminal-macOS.zip',
+    content: 'Download the actual release from GitHub Releases',
+  },
+  {
+    name: 'RinaWarp-Terminal-Setup-Windows.exe',
+    content: 'Download the actual release from GitHub Releases',
+  },
+  {
+    name: 'RinaWarp-Terminal-Linux.tar.gz',
+    content: 'Download the actual release from GitHub Releases',
+  },
+];
+
+downloadFiles.forEach(file => {
+  const filePath = path.join('releases', file.name + '.txt');
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, file.content);
+    console.log(`   ✅ Created placeholder for ${file.name}`);
+  }
+});
+
+// 3. Fix success page
+console.log('\n📄 Fixing success page...');
+const successPageContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -194,4 +252,104 @@
         }
     </script>
 </body>
-</html>
+</html>`;
+
+fs.writeFileSync('public/success.html', successPageContent);
+console.log('   ✅ Updated success page with proper content');
+
+// 4. Fix Stripe key loading in index.html
+console.log('\n🔑 Fixing Stripe key loading...');
+if (fs.existsSync('index.html')) {
+  let indexContent = fs.readFileSync('index.html', 'utf8');
+
+  // Update the Stripe initialization to load key from server
+  const stripeInitCode = `        // Initialize Stripe
+        async function initStripe() {
+            try {
+                // Load Stripe configuration from server
+                const response = await fetch('/api/payment/config');
+                const config = await response.json();
+                
+                if (config.publishableKey) {
+                    stripe = Stripe(config.publishableKey);
+                    console.log('Stripe initialized successfully');
+                } else {
+                    console.error('No Stripe publishable key available');
+                }
+            } catch (error) {
+                console.error('Error initializing Stripe:', error);
+            }
+        }`;
+
+  // Replace the existing initStripe function
+  indexContent = indexContent.replace(/async function initStripe\(\) {[\s\S]*?}/, stripeInitCode);
+
+  fs.writeFileSync('index.html', indexContent);
+  console.log('   ✅ Updated Stripe initialization to load from server');
+}
+
+// 5. Add Stripe config endpoint to payment handler
+console.log('\n🔧 Adding Stripe config endpoint...');
+if (fs.existsSync('src/payment/stripe-checkout.js')) {
+  let paymentContent = fs.readFileSync('src/payment/stripe-checkout.js', 'utf8');
+
+  // Add config endpoint if it doesn't exist
+  if (!paymentContent.includes('/config')) {
+    const configEndpoint = `
+// Get Stripe configuration endpoint
+router.get('/config', (req, res) => {
+  res.json({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    success: true
+  });
+});
+`;
+
+    // Insert before the webhook endpoint
+    paymentContent = paymentContent.replace(
+      '// Webhook endpoint for Stripe events',
+      configEndpoint + '\n// Webhook endpoint for Stripe events'
+    );
+
+    fs.writeFileSync('src/payment/stripe-checkout.js', paymentContent);
+    console.log('   ✅ Added Stripe config endpoint');
+  }
+}
+
+// 6. Create a proper download page redirect
+console.log('\n📥 Creating download redirect handler...');
+const downloadRedirectContent = `import express from 'express';
+const router = express.Router();
+
+// GitHub release URLs (update these with actual release URLs)
+const DOWNLOAD_URLS = {
+  'macos': 'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.zip',
+  'windows': 'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe',
+  'linux': 'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Linux.tar.gz'
+};
+
+router.get('/:platform', (req, res) => {
+  const platform = req.params.platform.toLowerCase();
+  const downloadUrl = DOWNLOAD_URLS[platform];
+  
+  if (downloadUrl) {
+    // Track download
+    console.log(\`📥 Download initiated for \${platform}\`);
+    res.redirect(downloadUrl);
+  } else {
+    res.status(404).json({ error: 'Invalid platform' });
+  }
+});
+
+export default router;`;
+
+if (!fs.existsSync('src/api/download-redirect.js')) {
+  fs.writeFileSync('src/api/download-redirect.js', downloadRedirectContent);
+  console.log('   ✅ Created download redirect handler');
+}
+
+console.log('\n✅ All issues fixed! Next steps:');
+console.log('   1. Update the GitHub release URLs in src/api/download-redirect.js');
+console.log('   2. Add download redirect route to final-server.js');
+console.log('   3. Test the payment flow with real Stripe test keys');
+console.log('   4. Deploy the updates to production');
