@@ -340,7 +340,7 @@ app.use(
         baseUri: ["'self'"],
         frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
         formAction: ["'self'"],
-        // Inline event handlers are now blocked for security
+        scriptSrcAttr: ["'unsafe-hashes'"], // Allow inline event handlers with CSP nonce
         upgradeInsecureRequests: [],
       },
     },
