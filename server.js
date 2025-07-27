@@ -880,6 +880,17 @@ app.get('/beta', staticPageLimiter, (req, res) => {
   res.sendFile(safePath);
 });
 
+// Serve checkout page for abandoned cart recovery
+app.get('/checkout', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('checkout.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+
 // Serve download page
 app.get('/download', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('download.html', _PUBLIC_DIR);
@@ -1193,6 +1204,13 @@ async function sendLeadMagnetEmail(email) {
     process.env.SMTP_FROM_EMAIL ||
     process.env.SMTP_USER ||
     'noreply@rinawarp.com';
+
+  console.log('📧 Email configuration:', {
+    fromEmail,
+    toEmail: email,
+    transporterType: transporter.constructor.name,
+    sendgridConfigured,
+  });
 
   const mailOptions = {
     from: `RinaWarp Terminal <${fromEmail}>`,
@@ -1676,6 +1694,64 @@ app.get('/api/license-status/:licenseKey', (req, res) => {
 // Test endpoint for debugging
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API routes are working!', timestamp: new Date().toISOString() });
+});
+
+// Debug endpoint for SendGrid configuration
+app.get('/api/debug/sendgrid', (req, res) => {
+  res.json({
+    timestamp: new Date().toISOString(),
+    sendgrid: {
+      configured: sendgridConfigured,
+      hasApiKey: !!process.env.SENDGRID_API_KEY,
+      fromEmail: process.env.SENDGRID_FROM_EMAIL || 'noreply@rinawarp.com',
+      transporterExists: !!transporter,
+      transporterType: transporter ? transporter.constructor.name : 'none',
+    },
+  });
+});
+
+// Test lead magnet email with simplified content
+app.post('/api/test/lead-magnet-simple', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    // First test with very simple email
+    const simpleMailOptions = {
+      from: `RinaWarp <${process.env.SENDGRID_FROM_EMAIL || 'noreply@rinawarp.com'}>`,
+      to: email,
+      subject: 'Your Terminal Guide',
+      text: 'Thank you for your interest! Here is your guide: https://rinawarptech.com/guides/terminal-productivity-hacks.pdf',
+      html: '<p>Thank you for your interest! <a href="https://rinawarptech.com/guides/terminal-productivity-hacks.pdf">Download your guide here</a></p>',
+    };
+
+    console.log('🧪 Testing simplified email to:', email);
+    console.log('📧 Mail options:', JSON.stringify(simpleMailOptions, null, 2));
+
+    const info = await transporter.sendMail(simpleMailOptions);
+    console.log('✅ Simple email sent successfully:', info.messageId);
+
+    res.json({
+      success: true,
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
+      response: info.response,
+    });
+  } catch (error) {
+    console.error('❌ Error sending simple email:', error);
+    res.status(500).json({
+      error: error.message,
+      code: error.code,
+      response: error.response,
+      responseCode: error.responseCode,
+      command: error.command,
+      stack: error.stack,
+    });
+  }
 });
 
 // Email connectivity test endpoint

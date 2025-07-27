@@ -1,0 +1,5 @@
+email,first_name,cart_value,product,cart_id,abandoned_date
+john.doe@example.com,John,29.99,Rinawarp Pro Monthly,cart_001,2025-01-26T10:00:00Z
+sarah.smith@example.com,Sarah,299.99,Rinawarp Pro Annual,cart_002,2025-01-26T11:30:00Z
+mike.johnson@example.com,Mike,49.99,Rinawarp Team Monthly,cart_003,2025-01-26T09:15:00Z
+lisa.wang@example.com,Lisa,499.99,Rinawarp Team Annual,cart_004,2025-01-26T14:00:00Z
