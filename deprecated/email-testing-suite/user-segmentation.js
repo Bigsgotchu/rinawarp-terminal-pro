@@ -1,10 +1,16 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Engaged User Segmentation
  * Create user segments based on engagement levels for future targeting
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 class UserSegmentation {
   constructor() {
@@ -93,7 +99,7 @@ class UserSegmentation {
    */
   async processTrackingData(eventLogPath) {
     if (!fs.existsSync(eventLogPath)) {
-      throw new Error('Tracking data file not found at ' + eventLogPath);
+      throw new Error(new Error('Tracking data file not found at ' + eventLogPath));
     }
 
     const events = JSON.parse(fs.readFileSync(eventLogPath, 'utf8'));

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -155,7 +161,7 @@ const modernUtils = {
         body: await response.text(),
       };
     } catch (error) {
-      throw new Error(`HTTP request failed: ${error.message}`);
+      throw new Error(new Error(`HTTP request failed: ${error.message}`));
     }
   },
 };

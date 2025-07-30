@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Enhanced Command Intelligence System
  * Provides real-time command analysis, suggestions, and learning capabilities
@@ -645,7 +651,7 @@ class EnhancedCommandIntelligence {
     if (window.electronAPI && window.electronAPI.readFile) {
       return await window.electronAPI.readFile(filePath);
     }
-    throw new Error('File reading not available');
+    throw new Error(new Error('File reading not available'));
   }
 
   rankSuggestions(suggestions) {
@@ -1038,7 +1044,7 @@ class EnhancedExecution {
               console.warn('executeCommand is read-only, using alternative execution method');
               return this.fallbackExecution();
             }
-            throw error;
+            throw new Error(error);
           }
         };
 
@@ -1052,7 +1058,7 @@ class EnhancedExecution {
       return await this.fallbackExecution();
     } catch (error) {
       console.error('Command execution error:', error);
-      throw new Error(`Command execution failed: ${error.message}`);
+      throw new Error(new Error(`Command execution failed: ${error.message}`));
     }
   }
 

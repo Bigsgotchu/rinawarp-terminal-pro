@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * ElevenLabs Agent Integration
  * Real implementation for voice synthesis using ElevenLabs API
@@ -151,7 +157,7 @@ if (!window.ElevenLabsAgentIntegration) {
           );
 
           if (!response.ok) {
-            throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+            throw new Error(new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`));
           }
 
           // Convert response to audio blob
@@ -283,7 +289,7 @@ if (!window.ElevenLabsAgentIntegration) {
       ) {
         try {
           if (!this.isInitialized || !this.apiKey) {
-            throw new Error('ElevenLabs not initialized or API key missing');
+            throw new Error(new Error('ElevenLabs not initialized or API key missing'));
           }
 
           console.log('🎤 Testing ElevenLabs voice with sample text...');
@@ -300,7 +306,7 @@ if (!window.ElevenLabsAgentIntegration) {
               testText: testText,
             };
           } else {
-            throw new Error('Voice synthesis failed');
+            throw new Error(new Error('Voice synthesis failed'));
           }
         } catch (error) {
           console.error('❌ Voice test failed:', error);

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * ShellProcessManager Integration Example
  * 
@@ -96,7 +102,7 @@ export async function createTerminalWithShell(tabId, container, options = {}) {
 
     } catch (error) {
         console.error(`Failed to create terminal with shell for tab ${tabId}:`, error);
-        throw error;
+        throw new Error(error);
     }
 }
 
@@ -228,7 +234,7 @@ export class EnhancedTabManager {
         try {
             const container = document.getElementById(`terminal-tab-${tabId}`);
             if (!container) {
-                throw new Error(`Container not found: terminal-tab-${tabId}`);
+                throw new Error(new Error(`Container not found: terminal-tab-${tabId}`));
             }
 
             // Create terminal with shell
@@ -246,7 +252,7 @@ export class EnhancedTabManager {
 
         } catch (error) {
             console.error(`Failed to create tab ${tabId}:`, error);
-            throw error;
+            throw new Error(error);
         }
     }
 
@@ -348,7 +354,7 @@ export async function integrateWithBootTracer() {
             return terminalSetup;
         } catch (error) {
             bootTracer.log(`Shell tab creation failed: ${error.message}`, 'error');
-            throw error;
+            throw new Error(error);
         }
     };
 

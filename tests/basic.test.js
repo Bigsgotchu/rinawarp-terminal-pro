@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Basic Tests
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -43,8 +49,8 @@ describe('RinaWarp Terminal - Basic Tests', () => {
   });
 
   it('should verify server.js exists', () => {
-    const fs = require('fs');
-    const path = require('path');
+    const fs = require('node:fs');
+    const path = require('node:path');
     const serverPath = path.join(__dirname, '..', 'server.js');
     expect(fs.existsSync(serverPath)).toBe(true);
   });

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * XTerm.js Compatibility Layer
  * Provides cross-platform import/export handling for XTerm modules
@@ -76,7 +82,7 @@ export async function initializeXTerm() {
       }
     }
 
-    throw new Error('All XTerm loading strategies failed');
+    throw new Error(new Error('All XTerm loading strategies failed'));
   } catch (error) {
     console.error('❌ XTerm initialization failed:', error);
 

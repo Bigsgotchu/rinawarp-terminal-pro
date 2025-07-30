@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * ModuleOrchestrator - Intelligent module loading with environment detection
  * and adaptive fallback strategies for XTerm and related modules
@@ -113,7 +119,7 @@ export class ModuleOrchestrator {
       }
     }
         
-    throw new Error(`All module loading strategies failed. Environment: ${JSON.stringify(this.environment)}`);
+    throw new Error(new Error(`All module loading strategies failed. Environment: ${JSON.stringify(this.environment)}`));
   }
     
   async tryCdnEnhancedLoad() {
@@ -162,7 +168,7 @@ export class ModuleOrchestrator {
       }
     }
         
-    throw new Error('All CDN providers failed');
+    throw new Error(new Error('All CDN providers failed'));
   }
     
   async tryCdnDirectLoad() {
@@ -184,12 +190,12 @@ export class ModuleOrchestrator {
       };
     }
         
-    throw new Error('Global XTerm objects not found after script loading');
+    throw new Error(new Error('Global XTerm objects not found after script loading'));
   }
     
   async tryBundledLoad() {
     if (!this.environment.supportsDynamicImport) {
-      throw new Error('Dynamic import not supported');
+      throw new Error(new Error('Dynamic import not supported'));
     }
         
     const [terminalMod, fitMod, webLinksMod] = await Promise.all([

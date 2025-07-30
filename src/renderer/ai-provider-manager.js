@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 6 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - AI Provider Manager
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -250,7 +256,7 @@ export class AIProviderManager {
   async setPreferredProvider(providerName) {
     const provider = this.providers.get(providerName);
     if (!provider) {
-      throw new Error(`Provider ${providerName} not found`);
+      throw new Error(new Error(`Provider ${providerName} not found`));
     }
 
     // Try to initialize if not already done
@@ -258,7 +264,7 @@ export class AIProviderManager {
       try {
         await provider.initialize();
       } catch (error) {
-        throw new Error(`Failed to activate provider ${providerName}: ${error.message}`);
+        throw new Error(new Error(`Failed to activate provider ${providerName}: ${error.message}`));
       }
     }
 
@@ -272,7 +278,7 @@ export class AIProviderManager {
   async configureProvider(providerName, config) {
     const provider = this.providers.get(providerName);
     if (!provider) {
-      throw new Error(`Provider ${providerName} not found`);
+      throw new Error(new Error(`Provider ${providerName} not found`));
     }
 
     if (typeof provider.updateConfiguration === 'function') {
@@ -287,7 +293,7 @@ export class AIProviderManager {
       console.log(`✅ Provider ${providerName} configured and initialized`);
     } catch (error) {
       console.warn(`⚠️ Provider ${providerName} configuration failed:`, error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -321,7 +327,7 @@ export class AIProviderManager {
   async retryFailedProvider(providerName) {
     const provider = this.providers.get(providerName);
     if (!provider) {
-      throw new Error(`Provider ${providerName} not found`);
+      throw new Error(new Error(`Provider ${providerName} not found`));
     }
 
     try {
@@ -336,7 +342,7 @@ export class AIProviderManager {
       return true;
     } catch (error) {
       console.warn(`⚠️ Retry failed for provider ${providerName}:`, error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 12 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Advanced Plugin Manager
  * Secure plugin architecture with sandboxing and rich API
@@ -55,7 +61,7 @@ export class PluginManager extends EventEmitter {
         }
 
         if (errors.length) {
-          throw new Error(`Network validation failed: ${errors.join(', ')}`);
+          throw new Error(new Error(`Network validation failed: ${errors.join(', ')}`));
         }
       },
 
@@ -191,14 +197,14 @@ export class PluginManager extends EventEmitter {
 
       return result;
     } catch (error) {
-      throw new Error(`Plugin execution failed: ${error.message}`);
+      throw new Error(new Error(`Plugin execution failed: ${error.message}`));
     }
   }
 
   async unloadPlugin(pluginName) {
     const plugin = this.plugins.get(pluginName);
     if (!plugin) {
-      throw new Error(`Plugin ${pluginName} not found`);
+      throw new Error(new Error(`Plugin ${pluginName} not found`));
     }
 
     try {
@@ -262,7 +268,7 @@ export class PluginManager extends EventEmitter {
     const urlObj = new URL(url);
 
     if (!allowedDomains.includes(urlObj.hostname)) {
-      throw new Error('Domain not whitelisted for plugin requests');
+      throw new Error(new Error('Domain not whitelisted for plugin requests'));
     }
 
     // Make request with timeout and size limits
@@ -280,7 +286,7 @@ export class PluginManager extends EventEmitter {
   async secureFileRead(path) {
     // Implement secure file reading with path validation
     if (!this.security.validatePath(path)) {
-      throw new Error('File path not allowed');
+      throw new Error(new Error('File path not allowed'));
     }
     // Implementation here
   }
@@ -288,7 +294,7 @@ export class PluginManager extends EventEmitter {
   async secureFileWrite(path, _content) {
     // Implement secure file writing with path validation
     if (!this.security.validatePath(path)) {
-      throw new Error('File path not allowed');
+      throw new Error(new Error('File path not allowed'));
     }
     // Implementation here
   }
@@ -410,7 +416,7 @@ export class PluginSecurity {
   async validatePlugin(manifest, code) {
     // Validate plugin manifest
     if (!manifest.name || !manifest.version) {
-      throw new Error('Invalid plugin manifest');
+      throw new Error(new Error('Invalid plugin manifest'));
     }
 
     // Check permissions
@@ -419,7 +425,7 @@ export class PluginSecurity {
 
     for (const permission of requiredPermissions) {
       if (!declaredPermissions.includes(permission)) {
-        throw new Error(`Missing permission: ${permission}`);
+        throw new Error(new Error(`Missing permission: ${permission}`));
       }
     }
 
@@ -466,7 +472,7 @@ export class PluginSecurity {
 
     for (const pattern of dangerousPatterns) {
       if (pattern.test(code)) {
-        throw new Error(`Potentially dangerous code detected: ${pattern}`);
+        throw new Error(new Error(`Potentially dangerous code detected: ${pattern}`));
       }
     }
   }
@@ -491,7 +497,7 @@ export class PluginMarketplace {
       const response = await fetch(`${this.apiEndpoint}/search?q=${query}`);
       return await response.json();
     } catch (error) {
-      throw new Error(`Failed to search plugins: ${error.message}`);
+      throw new Error(new Error(`Failed to search plugins: ${error.message}`));
     }
   }
 
@@ -500,7 +506,7 @@ export class PluginMarketplace {
       const response = await fetch(`${this.apiEndpoint}/plugins/${pluginId}`);
       return await response.json();
     } catch (error) {
-      throw new Error(`Failed to get plugin: ${error.message}`);
+      throw new Error(new Error(`Failed to get plugin: ${error.message}`));
     }
   }
 
@@ -519,7 +525,7 @@ export class PluginMarketplace {
 
       return true;
     } catch (error) {
-      throw new Error(`Failed to install plugin: ${error.message}`);
+      throw new Error(new Error(`Failed to install plugin: ${error.message}`));
     }
   }
 

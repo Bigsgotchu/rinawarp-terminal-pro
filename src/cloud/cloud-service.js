@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Cloud Service Infrastructure
  * Handles settings synchronization, data backup, and cross-device functionality
@@ -280,14 +286,14 @@ export class CloudService extends EventEmitter {
             this.isAuthenticated = false;
             this.emit('authentication-expired');
           }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
         }
 
         return await response.json();
       } catch (error) {
         retries++;
         if (retries >= this.config.maxRetries) {
-          throw error;
+          throw new Error(error);
         }
         await this.delay(1000 * retries);
       }

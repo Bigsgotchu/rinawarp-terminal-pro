@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Rule Schema Definitions
  * Provides standardized structure for rules, conditions, and actions
@@ -48,7 +54,7 @@ class Rule {
 class Condition {
   constructor(fn, description = '') {
     if (typeof fn !== 'function') {
-      throw new Error('Condition must be a function');
+      throw new Error(new Error('Condition must be a function'));
     }
     this.fn = fn;
     this.description = description;
@@ -99,7 +105,7 @@ class Condition {
 class Action {
   constructor(fn, description = '', type = 'default') {
     if (typeof fn !== 'function') {
-      throw new Error('Action must be a function');
+      throw new Error(new Error('Action must be a function'));
     }
     this.fn = fn;
     this.description = description;

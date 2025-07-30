@@ -1,10 +1,16 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Email Campaign Analytics Dashboard
  * Real-time monitoring of open rates, click rates, and conversions
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const http = require('http');
 const url = require('url');
 const ConversionTracker = require('./conversion-tracking.js');

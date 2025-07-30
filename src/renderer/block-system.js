@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Block-Based Terminal System for RinaWarp
  * Inspired by WaveTerm's sophisticated block architecture
@@ -559,7 +565,7 @@ export class BlockManager {
     }
 
     if (!layout) {
-      throw new Error(`Layout "${name}" not found`);
+      throw new Error(new Error(`Layout "${name}" not found`));
     }
 
     // Clear existing blocks

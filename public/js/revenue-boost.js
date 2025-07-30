@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Revenue Boost Script
  * Implements: Exit Intent Popup, Limited Seats Counter, Email Capture, Trust Badges
@@ -191,7 +197,7 @@
                             });
                         }
                     } else {
-                        throw new Error('Submission failed');
+                        throw new Error(new Error('Submission failed'));
                     }
                 } catch (error) {
                     console.error('Email capture error:', error);

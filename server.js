@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Advanced Terminal Emulator
  * Copyright (c) 2025 Rinawarp Technologies, LLC. All rights reserved.
@@ -1474,12 +1480,12 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
           response: emailError.response,
           stack: emailError.stack,
         });
-        throw emailError; // Re-throw to handle in outer catch
+        throw emailError; // Re-throw new Error(to handle in outer catch
       }
     }
 
     // Track in analytics
-    console.log(`✅ Lead captured successfully: ${email} from ${source}`);
+    console.log(`✅ Lead captured successfully: ${email} from ${source}`));
 
     res.json({
       success: true,
@@ -1603,7 +1609,7 @@ The RinaWarp Team`,
     console.log('✅ Lead magnet email sent:', info.messageId);
   } catch (error) {
     console.error('❌ Error sending lead magnet email:', error);
-    throw error;
+    throw new Error(error);
   }
 }
 
@@ -1745,14 +1751,14 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
     console.log(`   License: ${licenseKey}`);
     console.log(`   Type: ${licenseType}`);
 
-    // Don't throw error to prevent payment processing from failing
+    // Don't throw new Error(error to prevent payment processing from failing
     // The license is still valid even if email fails
   }
 }
 
 function saveLicenseToDatabase(licenseData) {
   // Database storage logic would go here
-  console.log('💾 License Saved:', licenseData);
+  console.log('💾 License Saved:', licenseData));
 
   // TODO: Save to database
   // await db.licenses.create(licenseData);

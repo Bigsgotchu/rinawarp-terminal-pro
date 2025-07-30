@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 5 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * WebSocket Communication Layer for RinaWarp
  * Inspired by WaveTerm's sophisticated real-time communication system
@@ -97,7 +103,7 @@ class WebSocketManager {
         console.log(`📤 Message queued: ${type}`);
         return Promise.resolve({ queued: true });
       } else {
-        throw new Error('WebSocket not connected');
+        throw new Error(new Error('WebSocket not connected'));
       }
     }
 
@@ -785,7 +791,7 @@ export class WebSocketServer {
       return { sessionId, shell, pid: proc.pid };
     } catch (error) {
       console.error('❌ Failed to create terminal session:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -794,7 +800,7 @@ export class WebSocketServer {
     const session = this.terminalSessions.get(sessionId);
 
     if (!session || session.clientId !== clientId) {
-      throw new Error(`Terminal session ${sessionId} not found`);
+      throw new Error(new Error(`Terminal session ${sessionId} not found`));
     }
 
     session.process.stdin.write(input);
@@ -814,7 +820,7 @@ export class WebSocketServer {
   // File system operations
   async handleFileContentRequest(clientId, data) {
     const { path } = data;
-    const fs = require('fs').promises;
+    const fs = require('node:fs').promises;
 
     try {
       const content = await fs.readFile(path, 'utf8');
@@ -828,7 +834,7 @@ export class WebSocketServer {
         type: this.getFileType(path),
       };
     } catch (error) {
-      throw new Error(`Failed to read file ${path}: ${error.message}`);
+      throw new Error(new Error(`Failed to read file ${path}: ${error.message}`));
     }
   }
 

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Clean Architecture</title>
+    
+    <!-- XTerm.js for the terminal (updated @xterm structure) -->
+    <script src="../public/vendor/xterm/xterm.js"></script>
+    <link rel="stylesheet" href="../public/vendor/xterm/xterm.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .header {
+            background: #2a2a2a;
+            padding: 10px 20px;
+            border-bottom: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .theme-selector {
+            background: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            border-radius: 3px;
+            padding: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .window-controls {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .window-control.close { background: #ff5f56; }
+        .window-control.minimize { background: #ffbd2e; }
+        .window-control.maximize { background: #27ca3f; }
+        
+        .terminal-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .tab-bar {
+            background: #2a2a2a;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 0 10px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tab {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-bottom: none;
+            padding: 8px 15px;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .tab.active {
+            background: #1a1a1a;
+            color: #00ff88;
+        }
+        
+        .terminal-content {
+            flex: 1;
+            background: #1a1a1a;
+            position: relative;
+        }
+        
+        #terminal-1 {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+        }
+        
+        /* Fallback terminal styles */
+        .terminal-fallback {
+            background: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 10px;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .terminal-output {
+            white-space: pre-wrap;
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            background: #2a2a2a;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        
+        .terminal-prompt {
+            color: #00ff88;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            flex: 1;
+            outline: none;
+        }
+        
+        .status-bar {
+            background: #2a2a2a;
+            border-top: 1px solid #3a3a3a;
+            padding: 5px 20px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-left {
+            color: #888;
+        }
+        
+        .status-right {
+            color: #00ff88;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ff88;
+            text-align: center;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 2px solid #3a3a3a;
+            border-top: 2px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* Error state */
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b6b;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid #ff6b6b;
+            border-radius: 5px;
+        }
+        
+        /* AI Suggestions */
+        .ai-suggestions-overlay {
+            font-family: inherit;
+        }
+        
+        .ai-suggestions-content {
+            background: var(--header-bg, #2a2a2a);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .ai-suggestions-header {
+            background: var(--accent-color, #00ff88);
+            color: var(--bg-primary, #1a1a1a);
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .close-suggestions {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+        }
+        
+        .suggestions-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .suggestion-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color, #3a3a3a);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background: var(--border-color, #3a3a3a);
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-text {
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: var(--accent-color, #00ff88);
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .suggestion-description {
+            color: var(--fg-primary, #ffffff);
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+        }
+        
+        .suggestion-type {
+            color: var(--border-color, #3a3a3a);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        /* AI Help Dialog */
+        .ai-help-content {
+            background: var(--bg-primary, #1a1a1a);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .ai-help-header {
+            background: var(--accent-color, #00ff88);
+            color: var(--bg-primary, #1a1a1a);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .ai-help-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .close-ai-help {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        /* Voice Controls */
+        .voice-control-button {
+            animation: pulse 1.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .voice-status-panel {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .voice-status-text {
+            display: block;
+            color: var(--accent-color, #00ff88);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .voice-status-text.listening {
+            color: #ff6b6b;
+        }
+
+        .voice-status-text.success {
+            color: #00ff88;
+        }
+
+        .voice-status-text.error {
+            color: #ff6b6b;
+        }
+        
+        .ai-help-body {
+            padding: 20px;
+            color: var(--fg-primary, #ffffff);
+        }
+        
+        .help-section {
+            margin-bottom: 20px;
+        }
+        
+        .help-section h4 {
+            color: var(--accent-color, #00ff88);
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+        }
+        
+        .help-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .help-section li {
+            margin-bottom: 5px;
+        }
+        
+        /* Plugin System Styles */
+        .plugin-manager {
+            color: var(--fg-primary, #ffffff);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .plugin-list h4 {
+            color: var(--accent-color, #00ff88);
+            margin: 0 0 15px 0;
+            border-bottom: 1px solid var(--border-color, #3a3a3a);
+            padding-bottom: 5px;
+        }
+        
+        .plugin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--header-bg, #2a2a2a);
+            border-radius: 5px;
+            border: 1px solid var(--border-color, #3a3a3a);
+        }
+        
+        .plugin-info strong {
+            color: var(--accent-color, #00ff88);
+        }
+        
+        .plugin-info small {
+            color: var(--border-color, #666);
+        }
+        
+        .plugin-actions button {
+            background: var(--accent-color, #00ff88);
+            color: var(--bg-primary, #1a1a1a);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .plugin-actions-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color, #3a3a3a);
+            text-align: center;
+        }
+        
+        .plugin-actions-section button {
+            background: var(--border-color, #3a3a3a);
+            color: var(--fg-primary, #ffffff);
+            border: 1px solid var(--border-color, #3a3a3a);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px;
+            font-size: 0.9rem;
+        }
+        
+        .plugin-panel {
+            width: 600px !important;
+            max-width: 90vw;
+        }
+        
+        .plugin-panel-header {
+            background: var(--accent-color, #00ff88);
+            color: var(--bg-primary, #1a1a1a);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .plugin-panel-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .close-plugin-panel {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .plugin-panel-content {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        /* Git Helper Plugin Styles */
+        .git-helper-panel h4 {
+            color: var(--accent-color, #00ff88);
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+        }
+        
+        .workflow-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: var(--header-bg, #2a2a2a);
+            border-radius: 3px;
+        }
+        
+        .workflow-item button {
+            background: var(--accent-color, #00ff88);
+            color: var(--bg-primary, #1a1a1a);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .action-buttons button {
+            background: var(--border-color, #3a3a3a);
+            color: var(--fg-primary, #ffffff);
+            border: 1px solid var(--border-color, #3a3a3a);
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border-color, #3a3a3a);
+        }
+        
+        .stat-item .count {
+            color: var(--accent-color, #00ff88);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>RinaWarp Terminal</h1>
+            <div class="header-controls">
+                <select id="theme-selector" class="theme-selector" title="Select Theme">
+                    <option value="warp-dark">Warp Dark</option>
+                    <option value="ocean-breeze">Ocean Breeze</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                    <option value="sunset">Sunset</option>
+                    <option value="forest">Forest</option>
+                    <option value="high-contrast">High Contrast</option>
+                </select>
+                <div class="window-controls">
+                    <div class="window-control close" onclick="window.close()"></div>
+                    <div class="window-control minimize" onclick="minimizeWindow()"></div>
+                    <div class="window-control maximize" onclick="maximizeWindow()"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="terminal-area">
+            <div class="tab-bar">
+                <div class="tab active" onclick="switchTab(1)">Terminal 1</div>
+            </div>
+            
+            <div class="terminal-content">
+                <div id="terminal-1"></div>
+                <div class="loading" id="loading">Initializing terminal...</div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-left">
+                <span id="current-dir">~</span>
+            </div>
+            <div class="status-right">
+                <span id="shell-info">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global ThemeManager Initialization -->
+    <script src="../public/global-theme-manager-init.js"></script>
+    
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // Simple terminal initialization
+        let terminalManager;
+        let themeManager;
+        let enhancedFeatures;
+        let aiAssistant;
+        let voiceEngine;
+        let pluginManager;
+        let config = {};
+        
+        async function initializeApp() {
+            try {
+                // Get platform info
+                const platformInfo = await ipcRenderer.invoke('get-platform-info');
+                document.getElementById('shell-info').textContent = platformInfo.shell;
+                
+                // Load configuration
+                config = {
+                    shell: platformInfo.shell,
+                    homeDir: platformInfo.homeDir,
+                    platform: platformInfo.platform
+                };
+                
+                // Import enhanced components
+                const { SimpleTerminalManager } = require('./terminal/simple-terminal.cjs');
+                const ThemeManager = require('./themes/theme-manager.cjs');
+                const EnhancedTerminal = require('./features/enhanced-terminal.cjs');
+                
+                // Initialize components
+                terminalManager = new SimpleTerminalManager();
+       themeManager = getThemeManager();
+       window.ThemeManager = ThemeManager;
+                
+                // Create terminal
+                const terminal = terminalManager.createTerminal(1);
+                
+                // Add enhanced features
+                if (terminal && terminal.terminal) {
+                    enhancedFeatures = new EnhancedTerminal(terminal);
+                }
+                
+                // Apply current theme
+                themeManager.applyTheme();
+
+                // Integrate AI Assistant
+                const AIAssistant = require('./ai/ai-assistant.cjs');
+                aiAssistant = new AIAssistant(terminal);
+                aiAssistant.enable(true);
+                
+                // Integrate Voice Engine
+                const VoiceEngine = require('./voice/voice-engine.cjs');
+                voiceEngine = new VoiceEngine(terminal, aiAssistant);
+                voiceEngine.enable(true);
+                
+                // Initialize Plugin System
+                const PluginManager = require('./plugins/plugin-manager.cjs');
+                pluginManager = new PluginManager(terminal, aiAssistant, voiceEngine, themeManager);
+                
+                // Setup theme selector
+                setupThemeSelector();
+                
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                
+                console.log('✅ RinaWarp Terminal initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize terminal:', error);
+                showError(`Failed to initialize: ${error.message}`);
+            }
+        }
+        
+        function showError(message) {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = `<div class="error-message">Error: ${message}<br><small>Check console for details</small></div>`;
+        }
+        
+        function setupThemeSelector() {
+            const selector = document.getElementById('theme-selector');
+            
+            // Set current theme
+            if (themeManager) {
+                selector.value = themeManager.currentTheme;
+                
+                // Handle theme changes
+                selector.addEventListener('change', (e) => {
+                    const selectedTheme = e.target.value;
+                    if (themeManager.setTheme(selectedTheme)) {
+                        themeManager.applyTheme(selectedTheme);
+                        showNotification(`Theme changed to ${themeManager.getTheme(selectedTheme).name}`, 'success');
+                    }
+                });
+            }
+        }
+        
+        function switchTab(tabId) {
+            if (terminalManager) {
+                terminalManager.switchTab(tabId);
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--accent-color, #00ff88);
+                color: var(--bg-primary, #1a1a1a);
+                padding: 10px 15px;
+                border-radius: 5px;
+                z-index: 10000;
+                font-size: 0.9rem;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                animation: slideInRight 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        function minimizeWindow() {
+            ipcRenderer.send('window-minimize');
+        }
+        
+        function maximizeWindow() {
+            ipcRenderer.send('window-maximize');
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (terminalManager) {
+                terminalManager.resizeActiveTerminal();
+            }
+        });
+        
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Alt+V for voice control
+            if (e.ctrlKey && e.altKey && e.key === 'v') {
+                e.preventDefault();
+                if (voiceEngine) {
+                    voiceEngine.toggleVoiceRecognition();
+                }
+            }
+            
+            // Ctrl+Alt+S to speak last output
+            if (e.ctrlKey && e.altKey && e.key === 's') {
+                e.preventDefault();
+                if (voiceEngine) {
+                    voiceEngine.speakLastOutput();
+                }
+            }
+        });
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initializeApp);
+        
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            showError(`Unexpected error: ${event.error.message}`);
+        });
+        
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            showError(`Promise rejection: ${event.reason}`);
+        });
+    </script>
+</body>
+</html>

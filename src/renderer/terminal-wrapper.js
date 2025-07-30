@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 5 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Terminal Wrapper for RinaWarp Terminal
  * This module provides a wrapper around xterm.js that works with Electron's security model
@@ -19,7 +25,7 @@ class TerminalWrapper {
     try {
       // Check if xterm is available globally (loaded via CDN or bundled)
       if (!window.Terminal) {
-        throw new Error('xterm.js is not loaded. Please include it in your HTML.');
+        throw new Error(new Error('xterm.js is not loaded. Please include it in your HTML.'));
       }
 
       // Create terminal instance
@@ -52,7 +58,7 @@ class TerminalWrapper {
       // Open terminal in DOM
       const container = document.getElementById(containerId);
       if (!container) {
-        throw new Error(`Container element '${containerId}' not found`);
+        throw new Error(new Error(`Container element '${containerId}' not found`));
       }
 
       this.terminal.open(container);
@@ -72,7 +78,7 @@ class TerminalWrapper {
       return true;
     } catch (error) {
       console.error('Failed to initialize terminal:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -81,7 +87,7 @@ class TerminalWrapper {
    */
   async startShellProcess() {
     if (!window.electronAPI) {
-      throw new Error('electronAPI not available - running outside Electron context');
+      throw new Error(new Error('electronAPI not available - running outside Electron context'));
     }
 
     try {
@@ -134,7 +140,7 @@ class TerminalWrapper {
       this.terminal.write('🎤 Click "Voice Control" to talk to your terminal\r\n\r\n');
     } catch (error) {
       console.error('Failed to start shell process:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

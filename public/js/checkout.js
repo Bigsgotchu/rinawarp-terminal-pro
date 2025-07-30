@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 6 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Unified Frontend Checkout System
  * Replaces multiple conflicting checkout implementations
@@ -32,7 +38,7 @@ async function loadPricingConfig() {
     try {
         const response = await fetch('/api/payment/pricing-config');
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            throw new Error(new Error(`HTTP ${response.status}`));
         }
         
         const data = await response.json();
@@ -40,11 +46,11 @@ async function loadPricingConfig() {
             pricingConfig = data.pricing;
             console.log('📋 Pricing config loaded:', pricingConfig);
         } else {
-            throw new Error('Invalid pricing config response');
+            throw new Error(new Error('Invalid pricing config response'));
         }
     } catch (error) {
         console.error('❌ Failed to load pricing config:', error);
-        throw error;
+        throw new Error(error);
     }
 }
 
@@ -123,7 +129,7 @@ async function startCheckout(plan, button) {
         
         // Validate plan
         if (pricingConfig && !pricingConfig[plan]) {
-            throw new Error(`Invalid plan: ${plan}`);
+            throw new Error(new Error(`Invalid plan: ${plan}`));
         }
         
         // Track checkout start event
@@ -148,13 +154,13 @@ async function startCheckout(plan, button) {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || `Server error: ${response.status}`);
+            throw new Error(new Error(errorData.error || `Server error: ${response.status}`));
         }
         
         const session = await response.json();
         
         if (!session.success || !session.url) {
-            throw new Error(session.error || 'Invalid session response');
+            throw new Error(new Error(session.error || 'Invalid session response'));
         }
         
         console.log('✅ Checkout session created:', session.sessionId);

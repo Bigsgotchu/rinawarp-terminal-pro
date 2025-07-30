@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Enhanced Shell Process Manager with Lifecycle Integration
  * Combines your existing ShellProcessManager with the new ProcessLifecycleManager
@@ -55,7 +61,7 @@ export class EnhancedShellProcessManager extends ShellProcessManager {
             
     } catch (error) {
       this.handleError('Enhanced initialization failed', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -399,7 +405,7 @@ export class EnhancedShellProcessManager extends ShellProcessManager {
             
     } catch (error) {
       this.log(`Graceful restart failed: ${error.message}`, 'error');
-      throw error;
+      throw new Error(error);
     }
   }
 

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * AI Agent Entry Point
  * Loads and initializes Agent Mode for RinaWarp Terminal
@@ -43,7 +49,7 @@ class AIAgentFeature {
       return this;
     } catch (error) {
       console.error('❌ Failed to initialize AI Agent Feature:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -99,7 +105,7 @@ class AIAgentFeature {
 
   async chatWithAgent(message, options = {}) {
     if (!this.agentIntegration) {
-      throw new Error('Agent integration not initialized');
+      throw new Error(new Error('Agent integration not initialized'));
     }
 
     return await this.agentIntegration.chatWithAgent(message);
@@ -107,7 +113,7 @@ class AIAgentFeature {
 
   async executeWithAgent(command, explanation = '') {
     if (!this.agentIntegration) {
-      throw new Error('Agent integration not initialized');
+      throw new Error(new Error('Agent integration not initialized'));
     }
 
     return await this.agentIntegration.executeWithAgent(command, explanation);

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // Base custom error class
 class AppError extends Error {
   constructor(message, type, code, details = {}) {
@@ -156,7 +162,7 @@ const ErrorRecoveryStrategies = {
         return await operation();
       } catch (error) {
         retries++;
-        if (retries === maxRetries) throw error;
+        if (retries === maxRetries) throw new Error(error);
         
         const delay = initialDelay * Math.pow(2, retries - 1);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -178,7 +184,7 @@ const ErrorRecoveryStrategies = {
       if (failures >= maxFailures) {
         const timeSinceLastFailure = Date.now() - lastFailureTime;
         if (timeSinceLastFailure < resetTimeout) {
-          throw new NetworkError('Circuit breaker is open', 'CIRCUIT_OPEN');
+          throw new Error(new NetworkError('Circuit breaker is open', 'CIRCUIT_OPEN'));
         }
         failures = 0;
       }
@@ -190,7 +196,7 @@ const ErrorRecoveryStrategies = {
       } catch (error) {
         failures++;
         lastFailureTime = Date.now();
-        throw error;
+        throw new Error(error);
       }
     };
   },

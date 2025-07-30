@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -7,7 +13,7 @@
  * Basic core functionality test to verify essential components work
  */
 
-const fs = require('fs');
+const fs = require('node:fs');
 
 console.log('🧪 Running RinaWarp Terminal Core Functionality Tests...\n');
 

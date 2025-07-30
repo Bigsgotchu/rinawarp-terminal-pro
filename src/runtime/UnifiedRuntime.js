@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 5 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * 🌟 RinaWarp Unified Runtime Architecture v2.0
  * Feature-Orchestrated Boot System with Adaptive Module Loading
@@ -66,7 +72,7 @@ export class ModuleRegistry {
         rawModule;
             
       if (!normalizedModule) {
-        throw new Error(`Failed to normalize exports for ${name}`);
+        throw new Error(new Error(`Failed to normalize exports for ${name}`));
       }
 
       this.modules.set(name, {
@@ -321,7 +327,7 @@ export class UnifiedRuntime {
         detail: { error: error.message }
       }));
             
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -374,12 +380,12 @@ export class UnifiedRuntime {
     };
 
     if (!loaders[name]) {
-      throw new Error(`Unknown core module: ${name}`);
+      throw new Error(new Error(`Unknown core module: ${name}`));
     }
 
     const success = await this.registry.register(name, loaders[name]);
     if (!success) {
-      throw new Error(`Failed to load required core module: ${name}`);
+      throw new Error(new Error(`Failed to load required core module: ${name}`));
     }
   }
 
@@ -423,7 +429,7 @@ export class UnifiedRuntime {
     const FitAddon = this.registry.get('FitAddon');
 
     if (!Terminal?.Terminal) {
-      throw new Error('Terminal module not available');
+      throw new Error(new Error('Terminal module not available'));
     }
 
     // Create terminal with environment-optimized config

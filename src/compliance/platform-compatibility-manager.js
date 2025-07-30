@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Platform Compatibility Manager
  * Monitors and ensures compliance across different platforms and app stores
@@ -5,7 +11,7 @@
  */
 
 const EventEmitter = require('events');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 class PlatformCompatibilityManager extends EventEmitter {
   constructor(config = {}) {
@@ -724,7 +730,7 @@ class APIRateLimiter {
     this.requests.set(identifier, validRequests);
 
     if (validRequests.length >= this.config.max) {
-      throw new Error('Rate limit exceeded');
+      throw new Error(new Error('Rate limit exceeded'));
     }
 
     validRequests.push(now);

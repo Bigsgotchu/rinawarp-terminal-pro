@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Unified AI System for RinaWarp Terminal
  * Combines external LLM APIs with advanced learning algorithms
@@ -296,7 +302,7 @@ class UnifiedAISystem {
     console.log('🧠 Processing with external LLM');
 
     if (!this.systemState.llmAvailable) {
-      throw new Error('External LLM not available');
+      throw new Error(new Error('External LLM not available'));
     }
 
     const prompt = this.createLLMPrompt(userInput, context);
@@ -321,7 +327,7 @@ class UnifiedAISystem {
     console.log('📚 Processing with learning engine');
 
     if (!this.systemState.learningEnabled) {
-      throw new Error('Learning engine not available');
+      throw new Error(new Error('Learning engine not available'));
     }
 
     const predictions = await this.learningEngine.generatePredictions(userInput, context);
@@ -348,7 +354,7 @@ class UnifiedAISystem {
         predictions,
       };
     } else {
-      throw new Error('No suitable predictions found');
+      throw new Error(new Error('No suitable predictions found'));
     }
   }
 

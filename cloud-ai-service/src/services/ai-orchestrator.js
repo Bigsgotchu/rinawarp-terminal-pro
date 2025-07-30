@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import { OpenAIProvider } from './providers/openai-provider.js';
 import { AnthropicProvider } from './providers/anthropic-provider.js';
 import { logger } from '../utils/logger.js';
@@ -58,7 +64,7 @@ export class AIOrchestrator {
         logger.info(`Falling back to ${fallback} provider`);
         return await this.providers[fallback].getCompletion(prompt, providerOptions);
       }
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -87,7 +93,7 @@ export class AIOrchestrator {
         logger.info(`Falling back to ${fallback} provider`);
         yield* this.providers[fallback].streamCompletion(prompt, providerOptions);
       } else {
-        throw error;
+        throw new Error(error);
       }
     }
   }

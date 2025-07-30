@@ -1,5 +1,11 @@
-const fs = require('fs');
-const path = require('path');
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
+const fs = require('node:fs');
+const path = require('node:path');
 const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
 const cheerio = require('cheerio');
@@ -572,7 +578,7 @@ class EmailTestingSuite {
       return report;
     } catch (error) {
       console.error('❌ Test suite failed:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 }

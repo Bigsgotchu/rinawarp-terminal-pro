@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 9 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Advanced Voice Recognition System for RinaWarp Terminal
  * Supports multiple speech recognition providers with automatic fallbacks
@@ -62,7 +68,7 @@ class AdvancedVoiceRecognition {
       }
     }
 
-    throw new Error('All voice recognition providers failed to initialize');
+    throw new Error(new Error('All voice recognition providers failed to initialize'));
   }
 
   async initVosk() {
@@ -217,7 +223,7 @@ class AdvancedVoiceRecognition {
     if (provider) {
       return await provider.start();
     }
-    throw new Error('No provider available');
+    throw new Error(new Error('No provider available'));
   }
 
   async stop() {
@@ -279,7 +285,7 @@ class WebSpeechProvider {
 
   async init() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      throw new Error('Web Speech API not supported');
+      throw new Error(new Error('Web Speech API not supported'));
     }
 
     this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -358,7 +364,7 @@ class WebSpeechProvider {
         return true;
       } catch (error) {
         if (this.onError) this.onError(error.message);
-        throw error;
+        throw new Error(error);
       }
     }
     return false;
@@ -454,7 +460,7 @@ class VoskProvider {
     try {
       // Check for audio context support
       if (!window.AudioContext && !window.webkitAudioContext) {
-        throw new Error('AudioContext not supported');
+        throw new Error(new Error('AudioContext not supported'));
       }
 
       // Show initial message
@@ -496,7 +502,7 @@ class VoskProvider {
         `Vosk initialization failed: ${error.message}. Switching to Web Speech API.`,
         'warning'
       );
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -542,7 +548,7 @@ class VoskProvider {
         `Failed to download Vosk model: ${error.message}`,
         'error'
       );
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -577,7 +583,7 @@ class VoskProvider {
           'warning'
         );
       }
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -701,7 +707,7 @@ class VoskProvider {
 
   async start() {
     if (!this.isInitialized) {
-      throw new Error('Vosk provider not initialized');
+      throw new Error(new Error('Vosk provider not initialized'));
     }
 
     if (this.audioContext.state === 'suspended') {

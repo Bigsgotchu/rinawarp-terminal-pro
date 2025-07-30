@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Global Integration System
  * Central coordination hub for all lifecycle management and process monitoring
@@ -72,7 +78,7 @@ export class GlobalIntegrationSystem {
             
     } catch (error) {
       console.error('❌ [GlobalIntegration] Failed to initialize:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

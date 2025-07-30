@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Auto-Updater Module for RinaWarp Terminal
  * Handles automatic updates with user notifications
@@ -95,7 +101,7 @@ class AutoUpdaterManager {
         };
       } catch (error) {
         logger.error('Failed to check for updates:', error);
-        throw error;
+        throw new Error(error);
       }
     });
 

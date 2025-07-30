@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Critical Browser-Side Fixes for RinaWarp Terminal
  *
@@ -111,7 +117,7 @@
           };
         } catch (error) {
           console.error('Command execution failed:', error);
-          throw new Error(`Command execution not available: ${error.message}`);
+          throw new Error(new Error(`Command execution not available: ${error.message}`));
         }
       };
     }

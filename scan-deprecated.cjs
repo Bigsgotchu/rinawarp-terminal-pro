@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -8,8 +14,8 @@
  * Usage: node scan-deprecated.cjs
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // Directories to skip
 const skipDirs = ['node_modules', '.git', 'dist', 'build', 'coverage', 'backup-'];
@@ -27,7 +33,7 @@ const targets = [
   'require("lodash.isequal")',
   "require('lodash.isequal')",
   'import.*from.*[\'"]lodash.isequal[\'"]',
-  'isEqual(',
+  'isDeepStrictEqual(',
 
   // rimraf (legacy versions)
   'require("rimraf")',
@@ -45,10 +51,10 @@ const targets = [
   // mkdirp
   'require("mkdirp")',
   "require('mkdirp')",
-  'mkdirp(',
+  'fs.mkdir(',
 
   // request (deprecated HTTP library)
-  'require("request")',
+  ', { recursive: true }require("request" ? ', ' + require("request" : '')',
   "require('request')",
   'import.*from.*[\'"]request[\'"]',
 

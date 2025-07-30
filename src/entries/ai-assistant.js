@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * AI Assistant Entry Point
  * Lazy-loaded AI functionality for RinaWarp Terminal
@@ -37,7 +43,7 @@ class RinaWarpAIFeature {
       console.log('🤖 AI Assistant feature loaded');
     } catch (error) {
       console.error('Failed to initialize AI Assistant:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

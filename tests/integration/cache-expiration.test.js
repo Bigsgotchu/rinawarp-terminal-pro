@@ -1,6 +1,12 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // tests/integration/cache-expiration.test.js
 
-const path = require('path');
+const path = require('node:path');
 
 // Mock the voice provider path - adjust based on your actual structure
 jest.mock('../../src/voice-enhancements/elevenlabs-voice-provider', () => ({

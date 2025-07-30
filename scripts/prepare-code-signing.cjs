@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -5,8 +11,8 @@
  * This script helps set up the code signing process
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const { execSync } = require('child_process');
 
 // Check if we're on the right platform
@@ -134,8 +140,8 @@ const verifyScriptPath = path.join(__dirname, 'verify-signing.cjs');
 const verifyScriptContent = `#!/usr/bin/env node
 
 const { execSync } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 
 console.log('🔍 Verifying Code Signing\\n');
 

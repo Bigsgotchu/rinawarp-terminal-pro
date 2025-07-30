@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -134,7 +140,7 @@ async function testStripeConfig() {
     // Test server endpoint
     const response = await fetch(`${SERVER_URL}/api/stripe-config`);
     if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}`);
+      throw new Error(new Error(`Server responded with ${response.status}`));
     }
 
     const config = await response.json();

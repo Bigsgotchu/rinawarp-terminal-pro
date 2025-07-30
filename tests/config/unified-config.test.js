@@ -1,6 +1,12 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 const os = require('os');
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 const { UnifiedConfig } = require('../../src/config/unified-config.cjs');
 
 // Mock fs and os modules

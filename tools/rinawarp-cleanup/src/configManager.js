@@ -1,5 +1,11 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 const Conf = require('conf');
-const path = require('path');
+const path = require('node:path');
 
 class ConfigManager {
   constructor() {

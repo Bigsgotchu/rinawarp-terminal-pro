@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * AI Provider Configuration System
  * Manages connections to various AI providers (OpenAI, Anthropic, etc.)
@@ -69,12 +75,12 @@ export class AIProviderConfig {
    */
   setActiveProvider(providerName, modelName) {
     if (!this.providers[providerName]) {
-      throw new Error(`Unknown provider: ${providerName}`);
+      throw new Error(new Error(`Unknown provider: ${providerName}`));
     }
     
     const provider = this.providers[providerName];
     if (!provider.models.includes(modelName)) {
-      throw new Error(`Model ${modelName} not available for provider ${providerName}`);
+      throw new Error(new Error(`Model ${modelName} not available for provider ${providerName}`));
     }
     
     this.activeProvider = {
@@ -102,7 +108,7 @@ export class AIProviderConfig {
    */
   async setApiKey(provider, apiKey) {
     if (!this.providers[provider]) {
-      throw new Error(`Unknown provider: ${provider}`);
+      throw new Error(new Error(`Unknown provider: ${provider}`));
     }
     
     // Encrypt the API key before storing
@@ -191,7 +197,7 @@ export class AIProviderConfig {
    */
   async testConnection(provider, apiKey) {
     if (!this.providers[provider]) {
-      throw new Error(`Unknown provider: ${provider}`);
+      throw new Error(new Error(`Unknown provider: ${provider}`));
     }
     
     const providerConfig = this.providers[provider];

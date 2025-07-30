@@ -1,5 +1,11 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 const { UnifiedConfig } = require('../../src/config/unified-config.cjs');
-const fs = require('fs');
+const fs = require('node:fs');
 const os = require('os');
 
 // Mock modules
@@ -9,7 +15,7 @@ jest.mock('os', () => ({
 }));
 jest.mock('child_process', () => ({
   execSync: jest.fn(() => {
-    throw new Error('Command not found');
+    throw new Error(new Error('Command not found'));
   })
 }));
 

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 22 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - AI Providers
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -30,11 +36,11 @@ class BaseAIProvider {
   }
 
   async initialize() {
-    throw new Error('initialize() method must be implemented by subclass');
+    throw new Error(new Error('initialize() method must be implemented by subclass'));
   }
 
   async generateResponse(_query, _context) {
-    throw new Error('generateResponse() method must be implemented by subclass');
+    throw new Error(new Error('generateResponse() method must be implemented by subclass'));
   }
 
   isAvailable() {
@@ -103,13 +109,13 @@ class LocalAIProvider extends BaseAIProvider {
     } catch (error) {
       // Failed to initialize Local AI Provider
       this.lastError = error;
-      throw error;
+      throw new Error(error);
     }
   }
 
   async generateResponse(query, context) {
     if (!this.isInitialized || !this.aiAssistant) {
-      throw new Error('Local AI Provider not initialized');
+      throw new Error(new Error('Local AI Provider not initialized'));
     }
 
     try {
@@ -131,7 +137,7 @@ class LocalAIProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with Local AI
       this.lastError = error;
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -206,7 +212,7 @@ class OpenAIProvider extends BaseAIProvider {
       this.apiKey = this.getAPIKey();
 
       if (!this.apiKey) {
-        throw new Error('OpenAI API key not configured');
+        throw new Error(new Error('OpenAI API key not configured'));
       }
 
       // Test connection (placeholder)
@@ -220,14 +226,14 @@ class OpenAIProvider extends BaseAIProvider {
       // Failed to initialize OpenAI Provider
       this.lastError = error;
       this.isInitialized = false;
-      // Don't throw - allow graceful fallback to other providers
+      // Don't throw new Error(- allow graceful fallback to other providers
     }
   }
 
   getAPIKey() {
     // Try multiple sources for API key
     if (typeof process !== 'undefined' && process.env) {
-      return process.env.OPENAI_API_KEY;
+      return process.env.OPENAI_API_KEY);
     }
 
     try {
@@ -248,13 +254,13 @@ class OpenAIProvider extends BaseAIProvider {
 
     // For now, always fail if no key is present
     if (!this.apiKey) {
-      throw new Error('No API key available');
+      throw new Error(new Error('No API key available'));
     }
   }
 
   async generateResponse(_query, _context) {
     if (!this.isInitialized) {
-      throw new Error('OpenAI Provider not initialized');
+      throw new Error(new Error('OpenAI Provider not initialized'));
     }
 
     try {
@@ -277,14 +283,14 @@ class OpenAIProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with OpenAI
       this.lastError = error;
-      throw error;
+      throw new Error(error);
     }
   }
 
   async callOpenAI(_query, _context) {
     // Placeholder for actual OpenAI API call
     // This would implement the full API integration
-    throw new Error('OpenAI integration not yet implemented');
+    throw new Error(new Error('OpenAI integration not yet implemented'));
   }
 
   setAPIKey(apiKey) {
@@ -327,7 +333,7 @@ class AnthropicProvider extends BaseAIProvider {
       this.apiKey = this.getAPIKey();
 
       if (!this.apiKey) {
-        throw new Error('Anthropic API key not configured');
+        throw new Error(new Error('Anthropic API key not configured'));
       }
 
       await this.testConnection();
@@ -360,13 +366,13 @@ class AnthropicProvider extends BaseAIProvider {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     if (!this.apiKey) {
-      throw new Error('No API key available');
+      throw new Error(new Error('No API key available'));
     }
   }
 
   async generateResponse(_query, _context) {
     if (!this.isInitialized) {
-      throw new Error('Anthropic Provider not initialized');
+      throw new Error(new Error('Anthropic Provider not initialized'));
     }
 
     try {
@@ -392,12 +398,12 @@ class AnthropicProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with Anthropic
       this.lastError = error;
-      throw error;
+      throw new Error(error);
     }
   }
 
   async callAnthropic(_query, _context) {
-    throw new Error('Anthropic integration not yet implemented');
+    throw new Error(new Error('Anthropic integration not yet implemented'));
   }
 
   setAPIKey(apiKey) {
@@ -439,7 +445,7 @@ class CustomAIProvider extends BaseAIProvider {
       await this.loadConfiguration();
 
       if (!this.config.apiUrl) {
-        throw new Error('Custom AI endpoint not configured');
+        throw new Error(new Error('Custom AI endpoint not configured'));
       }
 
       await this.testConnection();
@@ -479,13 +485,13 @@ class CustomAIProvider extends BaseAIProvider {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     if (!this.config.apiUrl) {
-      throw new Error('No API URL configured');
+      throw new Error(new Error('No API URL configured'));
     }
   }
 
   async generateResponse(_query, _context) {
     if (!this.isInitialized) {
-      throw new Error('Custom AI Provider not initialized');
+      throw new Error(new Error('Custom AI Provider not initialized'));
     }
 
     try {
@@ -506,13 +512,13 @@ class CustomAIProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with Custom AI
       this.lastError = error;
-      throw error;
+      throw new Error(error);
     }
   }
 
   async callCustomAPI(_query, _context) {
     // Placeholder for custom API implementation
-    throw new Error('Custom AI integration requires configuration');
+    throw new Error(new Error('Custom AI integration requires configuration'));
   }
 
   updateConfiguration(newConfig) {
@@ -543,7 +549,7 @@ class AIProviderFactory {
     case 'custom':
       return new CustomAIProvider();
     default:
-      throw new Error(`Unknown AI provider type: ${type}`);
+      throw new Error(new Error(`Unknown AI provider type: ${type}`));
     }
   }
 

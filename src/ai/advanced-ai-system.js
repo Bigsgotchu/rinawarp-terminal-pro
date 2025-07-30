@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 10 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Advanced AI Integration System for RinaWarp
  * Inspired by WaveTerm's sophisticated AI architecture
@@ -72,13 +78,13 @@ class AdvancedAISystem {
       console.log(`✅ Switched to AI provider: ${providerId}`);
       return true;
     }
-    throw new Error(`Provider ${providerId} not found`);
+    throw new Error(new Error(`Provider ${providerId} not found`));
   }
 
   async generateCompletion(prompt, options = {}) {
     const provider = this.providers.get(this.activeProvider);
     if (!provider) {
-      throw new Error('No active AI provider');
+      throw new Error(new Error('No active AI provider'));
     }
 
     const context = await this.contextManager.getContext(options.contextType);
@@ -96,7 +102,7 @@ class AdvancedAISystem {
       return response;
     } catch (error) {
       console.error('AI completion failed:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -187,7 +193,7 @@ Format as executable commands when possible.`;
   async testProvider(providerId) {
     const provider = this.providers.get(providerId);
     if (!provider) {
-      throw new Error(`Provider ${providerId} not found`);
+      throw new Error(new Error(`Provider ${providerId} not found`));
     }
 
     try {
@@ -261,16 +267,16 @@ class AIProvider {
     try {
       const response = await fetch(`${this.config.endpoint}/api/tags`);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(new Error(`HTTP ${response.status}`));
       }
     } catch (error) {
-      throw new Error(`Local AI service not available: ${error.message}`);
+      throw new Error(new Error(`Local AI service not available: ${error.message}`));
     }
   }
 
   async generateCompletion(prompt, options = {}) {
     if (this.status !== 'ready') {
-      throw new Error(`Provider ${this.id} is not ready (status: ${this.status})`);
+      throw new Error(new Error(`Provider ${this.id} is not ready (status: ${this.status})`));
     }
 
     const startTime = Date.now();
@@ -288,7 +294,7 @@ class AIProvider {
       return response;
     } catch (error) {
       this.lastLatency = Date.now() - startTime;
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -310,7 +316,7 @@ class AIProvider {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
     }
 
     const data = await response.json();
@@ -350,7 +356,7 @@ class AIProvider {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
+      throw new Error(new Error(`HTTP ${response.status}: ${errorText}`));
     }
 
     const data = await response.json();

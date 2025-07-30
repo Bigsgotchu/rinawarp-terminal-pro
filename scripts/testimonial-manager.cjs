@@ -1,7 +1,13 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 class TestimonialManager {
   constructor() {
@@ -91,7 +97,7 @@ class TestimonialManager {
     const pendingPath = path.join(this.config.pendingDir, pendingFile);
     
     if (!fs.existsSync(pendingPath)) {
-      throw new Error(`Testimonial ${testimonialId} not found`);
+      throw new Error(new Error(`Testimonial ${testimonialId} not found`));
     }
 
     const testimonial = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));

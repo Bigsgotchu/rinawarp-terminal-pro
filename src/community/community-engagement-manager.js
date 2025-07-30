@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 5 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Community Engagement Manager
  * Manages multi-channel community engagement, Q&A sessions, and user feedback
@@ -223,7 +229,7 @@ class CommunityEngagementManager extends EventEmitter {
   async startQASession(sessionId) {
     const session = this.qaSessionManager.getSession(sessionId);
     if (!session) {
-      throw new Error('Session not found');
+      throw new Error(new Error('Session not found'));
     }
 
     // Start recording if enabled
@@ -246,7 +252,7 @@ class CommunityEngagementManager extends EventEmitter {
   async handleQAQuestion(sessionId, question) {
     const session = this.qaSessionManager.getSession(sessionId);
     if (!session || !session.active) {
-      throw new Error('No active session found');
+      throw new Error(new Error('No active session found'));
     }
 
     // Add question to queue
@@ -269,7 +275,7 @@ class CommunityEngagementManager extends EventEmitter {
   async endQASession(sessionId) {
     const session = this.qaSessionManager.getSession(sessionId);
     if (!session) {
-      throw new Error('Session not found');
+      throw new Error(new Error('Session not found'));
     }
 
     // Stop recording
@@ -621,7 +627,7 @@ class FeedbackPortal {
     const existingVote = this.votes.get(voteKey);
 
     if (existingVote) {
-      throw new Error('User has already voted on this suggestion');
+      throw new Error(new Error('User has already voted on this suggestion'));
     }
 
     this.votes.set(voteKey, { suggestionId, userId, vote, timestamp: new Date().toISOString() });
@@ -642,7 +648,7 @@ class FeedbackPortal {
   async updateStatus(suggestionId, status, notes) {
     const suggestion = this.suggestions.get(suggestionId);
     if (!suggestion) {
-      throw new Error('Suggestion not found');
+      throw new Error(new Error('Suggestion not found'));
     }
 
     suggestion.status = status;

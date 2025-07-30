@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import dotenv from 'dotenv';
 import fs from 'fs';
 
@@ -17,7 +23,7 @@ export function validateEnv({ voiceHandler = null, throwOnError = true } = {}) {
     }
 
     if (throwOnError) {
-      throw new Error(message);
+      throw new Error(new Error(message));
     }
 
     return { valid: false, missing };

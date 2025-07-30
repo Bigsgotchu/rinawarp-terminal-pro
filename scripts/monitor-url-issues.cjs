@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -6,8 +12,8 @@
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
-const fs = require('fs');
-const _path = require('path');
+const fs = require('node:fs');
+const _path = require('node:path');
 const { execSync } = require('child_process');
 
 class URLMonitor {

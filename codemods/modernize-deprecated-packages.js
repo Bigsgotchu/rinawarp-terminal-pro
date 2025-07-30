@@ -94,7 +94,7 @@ module.exports = function transformer(fileInfo, api) {
       const callbackArg = path.value.arguments[0];
 
       if (j.ArrowFunctionExpression.check(callbackArg) || j.FunctionExpression.check(callbackArg)) {
-        // Convert Q.fcall(() => doSomething()) to doSomething()
+        // Convert doSomething() to doSomething()
         if (callbackArg.body.type === 'CallExpression') {
           j(path).replaceWith(callbackArg.body);
         } else if (
@@ -110,7 +110,7 @@ module.exports = function transformer(fileInfo, api) {
       }
     });
 
-  // Transform Q.defer() patterns to Promise constructor
+  // Transform new Promise((resolve, reject) => { /* TODO: Convert deferred pattern */ }) patterns to Promise constructor
   root
     .find(j.CallExpression, {
       callee: {
@@ -128,7 +128,7 @@ module.exports = function transformer(fileInfo, api) {
             j.blockStatement([
               j.expressionStatement(
                 j.callExpression(j.identifier('console'), [
-                  j.literal('// TODO: Convert Q.defer() to Promise constructor pattern'),
+                  j.literal('// TODO: Convert new Promise((resolve, reject) => { /* TODO: Convert deferred pattern */ }) to Promise constructor pattern'),
                 ])
               ),
             ])
@@ -223,7 +223,7 @@ module.exports = function transformer(fileInfo, api) {
       }
     });
 
-  // Transform uuid.v4() calls
+  // Transform crypto.randomUUID() calls
   root
     .find(j.CallExpression, {
       callee: {

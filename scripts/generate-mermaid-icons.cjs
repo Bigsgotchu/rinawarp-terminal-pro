@@ -1,9 +1,15 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const { exec } = require('child_process');
-const { promisify } = require('util');
+const { promisify } = require('node:util');
 
 const execAsync = promisify(exec);
 

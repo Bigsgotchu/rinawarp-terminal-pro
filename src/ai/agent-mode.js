@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 8 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal Agent Mode
  * Advanced AI agent system with function calling capabilities
@@ -439,7 +445,7 @@ System: ${context.platform} ${context.arch}`,
     });
 
     if (!response.ok) {
-      throw new Error(`AI provider error: ${response.statusText}`);
+      throw new Error(new Error(`AI provider error: ${response.statusText}`));
     }
 
     return await response.json();
@@ -539,7 +545,7 @@ Please summarize what was accomplished and suggest logical next steps if appropr
 
     // Validate command safety
     if (this.isDangerousCommand(command)) {
-      throw new Error(`Command potentially dangerous: ${command}`);
+      throw new Error(new Error(`Command potentially dangerous: ${command}`));
     }
 
     try {
@@ -555,7 +561,7 @@ Please summarize what was accomplished and suggest logical next steps if appropr
         command: command,
       };
     } catch (error) {
-      throw new Error(`Command execution failed: ${error.message}`);
+      throw new Error(new Error(`Command execution failed: ${error.message}`));
     }
   }
 
@@ -583,7 +589,7 @@ Please summarize what was accomplished and suggest logical next steps if appropr
         lines: content.split('\n').length,
       };
     } catch (error) {
-      throw new Error(`Failed to read file ${path}: ${error.message}`);
+      throw new Error(new Error(`Failed to read file ${path}: ${error.message}`));
     }
   }
 
@@ -598,7 +604,7 @@ Please summarize what was accomplished and suggest logical next steps if appropr
         mode: mode,
       };
     } catch (error) {
-      throw new Error(`Failed to write file ${path}: ${error.message}`);
+      throw new Error(new Error(`Failed to write file ${path}: ${error.message}`));
     }
   }
 
@@ -654,7 +660,7 @@ Please summarize what was accomplished and suggest logical next steps if appropr
         branch: await this.getCurrentBranch(path),
       };
     } catch (error) {
-      throw new Error(`Git status failed: ${error.message}`);
+      throw new Error(new Error(`Git status failed: ${error.message}`));
     }
   }
 
@@ -690,7 +696,7 @@ Please summarize what was accomplished and suggest logical next steps if appropr
 
       return info;
     } catch (error) {
-      throw new Error(`Failed to get system info: ${error.message}`);
+      throw new Error(new Error(`Failed to get system info: ${error.message}`));
     }
   }
 
@@ -707,7 +713,7 @@ Please summarize what was accomplished and suggest logical next steps if appropr
         itemCount: result.stdout.split('\n').length - 1,
       };
     } catch (error) {
-      throw new Error(`Failed to list directory: ${error.message}`);
+      throw new Error(new Error(`Failed to list directory: ${error.message}`));
     }
   }
 

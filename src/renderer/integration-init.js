@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Integration Init
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -63,7 +69,7 @@ class RinaWarpInitializer {
       // Step 2: Get the integration system through global manager
       this.integrationSystem = await this.globalManager.get('rinaWarpIntegration');
       if (!this.integrationSystem) {
-        throw new Error('Failed to initialize integration system through global manager');
+        throw new Error(new Error('Failed to initialize integration system through global manager'));
       }
 
       // Setup global event handlers
@@ -89,7 +95,7 @@ class RinaWarpInitializer {
       return this.integrationSystem;
     } catch (error) {
       console.error('[RinaWarp] ❌ Failed to initialize integration system:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -375,7 +381,7 @@ window.initializeBeginnerFriendlyUI = async function () {
     return window.beginnerUI;
   } catch (error) {
     console.error('[RinaWarp] Failed to initialize Beginner-Friendly UI:', error);
-    throw error;
+    throw new Error(error);
   }
 };
 

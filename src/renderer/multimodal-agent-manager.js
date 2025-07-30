@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 6 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Multimodal Agent Manager
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -235,7 +241,7 @@ class MultimodalAgentManager {
 
   async initializeFramework() {
     if (!this.config.azureEndpoint || !this.config.apiKey) {
-      throw new Error('Azure OpenAI configuration required');
+      throw new Error(new Error('Azure OpenAI configuration required'));
     }
 
     try {
@@ -253,7 +259,7 @@ class MultimodalAgentManager {
     } catch (error) {
       console.error('Failed to initialize framework:', error);
       this.updateStatus('Connection Failed', 'error');
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -472,7 +478,7 @@ class MultimodalAgentManager {
       const apiKey = modal.querySelector('#azure-api-key').value;
 
       if (!endpoint || !apiKey) {
-        throw new Error('Please provide both endpoint and API key');
+        throw new Error(new Error('Please provide both endpoint and API key'));
       }
 
       // Simulate connection test
@@ -686,7 +692,7 @@ class MultimodalAgentManager {
 
         this.addChatMessage('agent', `🎨 Generated image: "${prompt}"`, 'dalle_assistant');
       } else {
-        throw new Error(result.error);
+        throw new Error(new Error(result.error));
       }
     } catch (error) {
       const errorDiv = document.createElement('div');
@@ -993,7 +999,7 @@ class MultimodalAgentManager {
   // Public API for terminal integration
   async sendToAgents(message) {
     if (!this.isEnabled) {
-      throw new Error('Agents are not enabled');
+      throw new Error(new Error('Agents are not enabled'));
     }
 
     return await this.framework.sendMessage(message);
@@ -1001,7 +1007,7 @@ class MultimodalAgentManager {
 
   async generateImageFromTerminal(prompt) {
     if (!this.isEnabled) {
-      throw new Error('Agents are not enabled');
+      throw new Error(new Error('Agents are not enabled'));
     }
 
     const result = await this.framework.generateImage(prompt);

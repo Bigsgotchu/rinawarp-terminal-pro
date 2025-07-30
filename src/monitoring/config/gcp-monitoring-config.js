@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 6 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import { MonitoringClient } from '@google-cloud/monitoring';
 import { Logging } from '@google-cloud/logging';
 import { readFileSync } from 'fs';
@@ -110,7 +116,7 @@ class GCPMonitoringConfig {
       return true;
     } catch (error) {
       console.error('❌ Failed to connect to Google Cloud Monitoring:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -119,7 +125,7 @@ class GCPMonitoringConfig {
    */
   getMonitoringClient() {
     if (!this.isInitialized) {
-      throw new Error('Monitoring client not initialized. Call initialize() first.');
+      throw new Error(new Error('Monitoring client not initialized. Call initialize() first.'));
     }
     return this.monitoringClient;
   }
@@ -129,7 +135,7 @@ class GCPMonitoringConfig {
    */
   getLoggingClient() {
     if (!this.isInitialized) {
-      throw new Error('Logging client not initialized. Call initialize() first.');
+      throw new Error(new Error('Logging client not initialized. Call initialize() first.'));
     }
     return this.loggingClient;
   }
@@ -173,7 +179,7 @@ class GCPMonitoringConfig {
         return null;
       }
       console.error('❌ Error creating custom metric:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -219,7 +225,7 @@ class GCPMonitoringConfig {
       console.log(`📊 Wrote metric data for ${metricType}: ${value}`);
     } catch (error) {
       console.error('❌ Error writing metric data:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -242,7 +248,7 @@ class GCPMonitoringConfig {
       return policy;
     } catch (error) {
       console.error('❌ Error creating alert policy:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 

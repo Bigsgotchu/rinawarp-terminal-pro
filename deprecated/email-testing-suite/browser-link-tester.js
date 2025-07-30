@@ -1,11 +1,17 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Browser-based Link Tester using Puppeteer
  * Tests email links in actual browser environment for better accuracy
  */
 
 const puppeteer = require('puppeteer');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const cheerio = require('cheerio');
 
 class BrowserLinkTester {

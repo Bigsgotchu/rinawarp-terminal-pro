@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 8 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * 🚦 Feature Flags System
  * Risk-Based Progressive Rollout for RinaWarp Terminal
@@ -7,8 +13,8 @@
  */
 
 const EventEmitter = require('events');
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 
 class FeatureFlagManager extends EventEmitter {
   constructor(options = {}) {
@@ -147,7 +153,7 @@ class FeatureFlagManager extends EventEmitter {
       
     } catch (error) {
       console.error('❌ Feature Flag Manager initialization failed:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -192,7 +198,13 @@ class FeatureFlagManager extends EventEmitter {
       break;
         
     case 'development':
-      // Allow manual enablement in development
+      // Enable experimental features in development for testing
+      Object.keys(this.featureRegistry).forEach(key => {
+        if (this.featureRegistry[key].risk === 'EXPERIMENTAL') {
+          this.featureRegistry[key].enabled = true;
+        }
+        // Keep dangerous features disabled by default but allow manual enablement
+      });
       break;
     }
   }
@@ -252,17 +264,17 @@ class FeatureFlagManager extends EventEmitter {
   async enableFeature(featureName, options = {}) {
     const feature = this.featureRegistry[featureName];
     if (!feature) {
-      throw new Error(`Unknown feature: ${featureName}`);
+      throw new Error(new Error(`Unknown feature: ${featureName}`));
     }
 
     // Risk-based validation
     if (feature.risk === 'DANGEROUS' && !options.force) {
       if (this.runtimeMode === 'production') {
-        throw new Error(`Cannot enable dangerous feature ${featureName} in production`);
+        throw new Error(new Error(`Cannot enable dangerous feature ${featureName} in production`));
       }
       
       if (!options.approvedBy) {
-        throw new Error(`Dangerous feature ${featureName} requires approval`);
+        throw new Error(new Error(`Dangerous feature ${featureName} requires approval`));
       }
     }
 
@@ -291,7 +303,7 @@ class FeatureFlagManager extends EventEmitter {
   async disableFeature(featureName, reason = 'manual') {
     const feature = this.featureRegistry[featureName];
     if (!feature) {
-      throw new Error(`Unknown feature: ${featureName}`);
+      throw new Error(new Error(`Unknown feature: ${featureName}`));
     }
 
     // Check for dependent features
@@ -441,7 +453,7 @@ function createFeatureFlags(options = {}) {
 
 function getFeatureFlags() {
   if (!globalFeatureFlags) {
-    throw new Error('Feature flags not initialized. Call createFeatureFlags() first.');
+    throw new Error(new Error('Feature flags not initialized. Call createFeatureFlags() first.'));
   }
   return globalFeatureFlags;
 }

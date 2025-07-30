@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Authentication Service for RinaWarp API Gateway
  * Handles JWT tokens, API keys, and user management
@@ -95,7 +101,7 @@ export class AuthenticationService {
   async createApiKey(userId, type = 'live') {
     const user = this.users.get(userId);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error(new Error('User not found'));
     }
 
     const apiKey = this.generateApiKey(userId, type);

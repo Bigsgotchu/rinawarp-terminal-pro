@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Authentication Middleware for RinaWarp Terminal
  * Provides JWT token validation and role-based access control
@@ -88,7 +94,7 @@ export function verifyToken(token) {
       audience: 'rinawarp-users',
     });
   } catch (error) {
-    throw new Error('Invalid token');
+    throw new Error(new Error('Invalid token'));
   }
 }
 
@@ -101,7 +107,7 @@ export function verifyRefreshToken(token) {
       issuer: 'rinawarp-terminal',
     });
   } catch (error) {
-    throw new Error('Invalid refresh token');
+    throw new Error(new Error('Invalid refresh token'));
   }
 }
 

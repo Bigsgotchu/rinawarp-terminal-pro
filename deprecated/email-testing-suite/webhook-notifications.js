@@ -1,12 +1,18 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 8 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Webhook Notification System
  * Handles immediate notifications for beta sign-ups via multiple channels
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const axios = require('axios');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 class WebhookNotificationSystem {
   constructor() {
@@ -111,7 +117,7 @@ class WebhookNotificationSystem {
    */
   async sendSlackNotification(notification) {
     if (!this.checkRateLimit('slack')) {
-      throw new Error('Slack rate limit exceeded');
+      throw new Error(new Error('Slack rate limit exceeded'));
     }
 
     const { data } = notification;
@@ -180,7 +186,7 @@ class WebhookNotificationSystem {
    */
   async sendDiscordNotification(notification) {
     if (!this.checkRateLimit('discord')) {
-      throw new Error('Discord rate limit exceeded');
+      throw new Error(new Error('Discord rate limit exceeded'));
     }
 
     const { data } = notification;
@@ -240,7 +246,7 @@ class WebhookNotificationSystem {
    */
   async sendTeamsNotification(notification) {
     if (!this.checkRateLimit('teams')) {
-      throw new Error('Teams rate limit exceeded');
+      throw new Error(new Error('Teams rate limit exceeded'));
     }
 
     const { data } = notification;
@@ -292,7 +298,7 @@ class WebhookNotificationSystem {
    */
   async sendEmailNotification(notification) {
     if (!this.checkRateLimit('email')) {
-      throw new Error('Email rate limit exceeded');
+      throw new Error(new Error('Email rate limit exceeded'));
     }
 
     const nodemailer = require('nodemailer');
@@ -371,7 +377,7 @@ class WebhookNotificationSystem {
    */
   async sendCustomNotification(notification) {
     if (!this.checkRateLimit('custom')) {
-      throw new Error('Custom webhook rate limit exceeded');
+      throw new Error(new Error('Custom webhook rate limit exceeded'));
     }
 
     const headers = {

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal Plugin Loader System
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -50,7 +56,7 @@ export class PluginLoader {
     try {
       const plugin = this.plugins.get(pluginName);
       if (!plugin) {
-        throw new Error(`Plugin "${pluginName}" not found`);
+        throw new Error(new Error(`Plugin "${pluginName}" not found`));
       }
 
       if (this.loadedPlugins.has(pluginName)) {
@@ -94,7 +100,7 @@ export class PluginLoader {
         plugin.error = error.message;
       }
 
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -177,7 +183,7 @@ export class PluginLoader {
   async unload(pluginName) {
     const plugin = this.plugins.get(pluginName);
     if (!plugin) {
-      throw new Error(`Plugin "${pluginName}" not found`);
+      throw new Error(new Error(`Plugin "${pluginName}" not found`));
     }
 
     if (plugin.cleanup) {

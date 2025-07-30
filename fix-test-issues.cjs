@@ -1,7 +1,13 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 console.log('Fixing test issues...\n');
 
@@ -25,7 +31,7 @@ const cacheTestPath = path.join(process.cwd(), 'tests/integration/cache-expirati
 // Rewrite the file to fix the variable scope issue
 const cacheTestContent = `// tests/integration/cache-expiration.test.js
 
-const path = require('path');
+const path = require('node:path');
 
 // Create a simple mock that tracks calls
 let mockConvert;

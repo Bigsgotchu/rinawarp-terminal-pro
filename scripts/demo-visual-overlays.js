@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // Demo script showcasing visual overlay features and error handling
 const {
   createOverlay,
@@ -78,7 +84,7 @@ async function demoErrorHandling() {
     // Simulate a failed operation
     showLoading('Uploading file...');
     await delay(1000);
-    throw new Error('Network timeout');
+    throw new Error(new Error('Network timeout'));
   } catch (error) {
     // Show error state
     showError(`Upload failed: ${error.message}`);

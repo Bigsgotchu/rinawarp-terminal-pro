@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -23,6 +29,6 @@ export async function loadPricingConfig(force = false) {
     return data;
   } catch (error) {
     console.error('Failed to load pricing config:', error);
-    throw new Error('Could not read pricing config');
+    throw new Error(new Error('Could not read pricing config'));
   }
 }

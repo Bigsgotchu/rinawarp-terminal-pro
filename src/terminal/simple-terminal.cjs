@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Simple Terminal Implementation - Inspired by Warp's Clean Architecture
  * Removes complex dependencies and focuses on core terminal functionality
@@ -28,7 +34,7 @@ class SimpleTerminal {
       try {
         this.element = document.getElementById(this.elementId);
         if (!this.element) {
-          throw new Error(`Terminal element ${this.elementId} not found`);
+          throw new Error(new Error(`Terminal element ${this.elementId} not found`));
         }
 
         this.setupTerminalElement();

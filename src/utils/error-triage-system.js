@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Error Triage System
  * "Catch, Categorize, Cure" - Medical-grade error handling
@@ -314,7 +320,7 @@ class ErrorTriageSystem {
         }
       }
 
-      throw new Error('IPC retry failed');
+      throw new Error(new Error('IPC retry failed'));
     });
 
     // UI Subsystem Retry
@@ -351,7 +357,7 @@ class ErrorTriageSystem {
         }
       }
 
-      throw new Error('Performance monitor retry failed');
+      throw new Error(new Error('Performance monitor retry failed'));
     });
   }
 

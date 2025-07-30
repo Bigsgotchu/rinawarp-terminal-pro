@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Metrics Integration Module
  * Integrates terminal and plugin metrics with the existing application
@@ -56,7 +62,7 @@ export class MetricsIntegration {
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
 
-    throw new Error('Metrics service failed to initialize within timeout');
+    throw new Error(new Error('Metrics service failed to initialize within timeout'));
   }
 
   /**

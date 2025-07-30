@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Centralized Error Handling for RinaWarp SDK
  */
@@ -71,7 +77,7 @@ class ErrorHandler {
         return await fn.apply(this.sdk, args);
       } catch (error) {
         this.handleError(error, { ...context, method: fn.name, args });
-        throw error;
+        throw new Error(error);
       }
     };
   }
@@ -93,7 +99,7 @@ class ErrorHandler {
           // Don't retry on client errors
           if (error.status && error.status >= 400 && error.status < 500) {
             this.handleError(error, { ...context, method: fn.name, args, attempt });
-            throw error;
+            throw new Error(error);
           }
 
           // Last attempt, don't retry
@@ -105,7 +111,7 @@ class ErrorHandler {
               attempt,
               exhaustedRetries: true 
             });
-            throw error;
+            throw new Error(error);
           }
 
           // Calculate delay with exponential backoff
@@ -119,7 +125,7 @@ class ErrorHandler {
         }
       }
 
-      throw lastError;
+      throw new Error(lastError);
     };
   }
 

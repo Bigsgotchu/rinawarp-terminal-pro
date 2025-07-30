@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Phase2 Integration
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -59,7 +65,7 @@ class Phase2Integration {
 
       // Check browser compatibility
       if (!this.checkBrowserCompatibility()) {
-        throw new Error('Browser does not support required Phase 2 features');
+        throw new Error(new Error('Browser does not support required Phase 2 features'));
       }
 
       // Load required stylesheets
@@ -170,8 +176,8 @@ class Phase2Integration {
           supported = CSS.supports(feature.test);
         }
       } catch (_e) {
-        // CSS.supports might throw for some features
-        supported = false;
+        // CSS.supports might throw new Error(for some features
+        supported = false);
       }
 
       if (supported) {
@@ -410,7 +416,7 @@ class Phase2Integration {
     } catch (error) {
       console.error('❌ Failed to activate Phase 2:', error);
       await this.deactivate(); // Rollback on failure
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -560,7 +566,7 @@ class Phase2Integration {
       this.emit('phase2-deactivated');
     } catch (error) {
       console.error('❌ Failed to deactivate Phase 2:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

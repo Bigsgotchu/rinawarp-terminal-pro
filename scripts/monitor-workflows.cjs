@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -6,8 +12,8 @@
  */
 
 const { execSync: _execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 class WorkflowMonitor {
   constructor() {
@@ -36,7 +42,7 @@ class WorkflowMonitor {
           console.log(`   https://github.com/${this.repo}/actions`);
           return [];
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
       }
 
       const data = await response.json();

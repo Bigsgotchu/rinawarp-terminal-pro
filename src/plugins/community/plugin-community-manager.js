@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Plugin Community Manager
  * Manages community engagement, feedback, and plugin ecosystem
@@ -228,7 +234,7 @@ export class PluginCommunityManager {
 
   async ratePlugin(pluginName, rating, review = null) {
     if (rating < 1 || rating > 5) {
-      throw new Error('Rating must be between 1 and 5');
+      throw new Error(new Error('Rating must be between 1 and 5'));
     }
 
     const ratingData = {

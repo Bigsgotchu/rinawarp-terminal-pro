@@ -1,5 +1,11 @@
-const fs = require('fs');
-const path = require('path');
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
+const fs = require('node:fs');
+const path = require('node:path');
 const archiver = require('archiver');
 
 // Ensure dist directory exists
@@ -122,7 +128,7 @@ async function packageReleases() {
 }
 
 async function generateChecksums(distDir) {
-  const crypto = require('crypto');
+  const crypto = require('node:crypto');
   const checksumFile = path.join(distDir, 'checksums.txt');
 
   const files = fs.readdirSync(distDir).filter(file => file.endsWith('.zip'));

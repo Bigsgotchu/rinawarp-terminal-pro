@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Speech Recognition & Voice Commands
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -77,7 +83,7 @@ export class SpeechRecognitionEngine {
     // Check for Speech Recognition API
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      throw new Error('Speech Recognition not supported in this browser');
+      throw new Error(new Error('Speech Recognition not supported in this browser'));
     }
 
     // Check for microphone permissions
@@ -86,7 +92,7 @@ export class SpeechRecognitionEngine {
       stream.getTracks().forEach(track => track.stop());
       return true;
     } catch (error) {
-      throw new Error('Microphone access denied or not available');
+      throw new Error(new Error('Microphone access denied or not available'));
     }
   }
 
@@ -453,7 +459,7 @@ export class SpeechRecognitionEngine {
       // Write command to terminal and execute
       this.terminal.terminal.write(command + '\r');
     } else {
-      throw new Error('Terminal not available');
+      throw new Error(new Error('Terminal not available'));
     }
   }
 

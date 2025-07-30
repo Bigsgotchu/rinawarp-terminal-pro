@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 7 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Storage Service (Non-Firebase)
  * Local storage-based file service without Firebase dependencies
@@ -54,14 +60,14 @@ class StorageService {
   async uploadFile(file, path = '', onProgress = null) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) throw new Error(new Error('User not authenticated'));
 
       console.log('Storage: File upload called (localStorage-based, Firebase removed)');
 
       // Validate file
       const validation = this.validateFile(file);
       if (!validation.valid) {
-        throw new Error(validation.error);
+        throw new Error(new Error(validation.error));
       }
 
       // Simulate progress if callback provided
@@ -163,7 +169,7 @@ class StorageService {
   async uploadTerminalSession(sessionData, sessionId) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) throw new Error(new Error('User not authenticated'));
 
       console.log('Storage: Session upload called (localStorage-based, Firebase removed)');
 
@@ -223,7 +229,7 @@ class StorageService {
   async uploadConfigFile(configData, configName) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) throw new Error(new Error('User not authenticated'));
 
       console.log('Storage: Config upload called (localStorage-based, Firebase removed)');
 
@@ -284,7 +290,7 @@ class StorageService {
   async listUserFiles(folder = '') {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) throw new Error(new Error('User not authenticated'));
 
       const fileList = this._getFileList(userId);
       let filteredFiles = fileList;
@@ -314,7 +320,7 @@ class StorageService {
   async deleteFile(filePath) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) throw new Error(new Error('User not authenticated'));
 
       const fileList = this._getFileList(userId);
       const fileIndex = fileList.findIndex(file => file.fullPath === filePath);
@@ -344,7 +350,7 @@ class StorageService {
   async downloadFile(filePath) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId) throw new Error(new Error('User not authenticated'));
 
       const fileList = this._getFileList(userId);
       const file = fileList.find(f => f.fullPath === filePath);

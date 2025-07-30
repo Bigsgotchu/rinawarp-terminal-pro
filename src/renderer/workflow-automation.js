@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 13 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Workflow Automation
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -632,7 +638,7 @@ class ConditionalWorkflowEngine {
   async evaluateCondition(condition, context) {
     const evaluator = this.evaluators.get(condition.type);
     if (!evaluator) {
-      throw new Error(`Unknown condition type: ${condition.type}`);
+      throw new Error(new Error(`Unknown condition type: ${condition.type}`));
     }
     return await evaluator(condition, context);
   }
@@ -768,7 +774,7 @@ class WorkflowAutomationEngine {
   async replayMacro(macroId, options = {}) {
     const macro = this.macros.get(macroId);
     if (!macro) {
-      throw new Error(`Macro ${macroId} not found`);
+      throw new Error(new Error(`Macro ${macroId} not found`));
     }
 
     const replayContext = {
@@ -853,7 +859,7 @@ class WorkflowAutomationEngine {
   async executeWorkflow(workflowId, context = {}) {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) {
-      throw new Error(`Workflow ${workflowId} not found`);
+      throw new Error(new Error(`Workflow ${workflowId} not found`));
     }
 
     const executionContext = {
@@ -933,7 +939,7 @@ class WorkflowAutomationEngine {
   async triggerIntegration(name, action, data) {
     const integration = this.integrations.get(name);
     if (!integration) {
-      throw new Error(`Integration '${name}' not found or not initialized`);
+      throw new Error(new Error(`Integration '${name}' not found or not initialized`));
     }
 
     return await integration.execute(action, data);
@@ -966,7 +972,7 @@ class WorkflowAutomationEngine {
   async publishWorkflow(workflowId, metadata) {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) {
-      throw new Error(`Workflow ${workflowId} not found`);
+      throw new Error(new Error(`Workflow ${workflowId} not found`));
     }
 
     const publishableWorkflow = {
@@ -992,7 +998,7 @@ class WorkflowAutomationEngine {
     // Validate workflow before installation
     const validation = await this.validateWorkflow(workflowData);
     if (!validation.isValid) {
-      throw new Error(`Workflow validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(new Error(`Workflow validation failed: ${validation.errors.join(', ')}`));
     }
 
     // Install workflow
@@ -1224,7 +1230,7 @@ class CrossSystemIntegrator {
   async execute(integrationName, action, data) {
     const integration = this.integrations.get(integrationName);
     if (!integration) {
-      throw new Error(`Integration '${integrationName}' not found`);
+      throw new Error(new Error(`Integration '${integrationName}' not found`));
     }
 
     return await integration.execute(action, data);
@@ -1245,7 +1251,7 @@ class SlackIntegration {
     case 'send_file':
       return await this.sendFile(data.channel, data.file);
     default:
-      throw new Error(`Unknown Slack action: ${action}`);
+      throw new Error(new Error(`Unknown Slack action: ${action}`));
     }
   }
 
@@ -1270,7 +1276,7 @@ class GitHubIntegration {
     case 'trigger_action':
       return await this.triggerAction(data);
     default:
-      throw new Error(`Unknown GitHub action: ${action}`);
+      throw new Error(new Error(`Unknown GitHub action: ${action}`));
     }
   }
 
@@ -1293,7 +1299,7 @@ class JiraIntegration {
     case 'update_ticket':
       return await this.updateTicket(data);
     default:
-      throw new Error(`Unknown Jira action: ${action}`);
+      throw new Error(new Error(`Unknown Jira action: ${action}`));
     }
   }
 
@@ -1314,7 +1320,7 @@ class _JenkinsIntegration {
     case 'trigger_build':
       return await this.triggerBuild(data.jobName, data.parameters);
     default:
-      throw new Error(`Unknown Jenkins action: ${action}`);
+      throw new Error(new Error(`Unknown Jenkins action: ${action}`));
     }
   }
 
@@ -1337,7 +1343,7 @@ class DockerIntegration {
     case 'run_container':
       return await this.runContainer(data);
     default:
-      throw new Error(`Unknown Docker action: ${action}`);
+      throw new Error(new Error(`Unknown Docker action: ${action}`));
     }
   }
 
@@ -1358,7 +1364,7 @@ class _KubernetesIntegration {
     case 'scale':
       return await this.scale(data);
     default:
-      throw new Error(`Unknown Kubernetes action: ${action}`);
+      throw new Error(new Error(`Unknown Kubernetes action: ${action}`));
     }
   }
 

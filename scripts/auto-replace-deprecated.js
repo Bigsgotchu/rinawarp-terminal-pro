@@ -112,7 +112,7 @@ const REPLACEMENT_PATTERNS = [
   {
     name: 'async.series comment',
     find: /async\.series\s*\(/g,
-    replace: '/* TODO: Convert to native async/await */ async.series(',
+    replace: '/* TODO: Convert to native async/await */ /* TODO: Convert to native async/await */ async.series(',
   },
   {
     name: 'async.parallel to Promise.all',
@@ -129,7 +129,7 @@ const REPLACEMENT_PATTERNS = [
 
   // 9. Error handling improvements
   {
-    name: 'throw to proper error',
+    name: 'throw new Error(to proper error',);
     find: /throw\s+([^;]+);?$/gm,
     replace: 'throw new Error($1);',
   },
@@ -289,7 +289,7 @@ async function createBackup() {
     return backupDir;
   } catch (error) {
     console.error('❌ Failed to create backup:', error.message);
-    throw error;
+    throw new Error(error);
   }
 }
 

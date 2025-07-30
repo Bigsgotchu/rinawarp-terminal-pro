@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - IP Monitoring System
  * Monitors for unauthorized use, trademark violations, and code theft
@@ -219,8 +225,8 @@ class IPMonitoringSystem {
         // Simple check if domain resolves
         const response = await axios.get(`http://${domain}`, {
           timeout: 5000,
-          validateStatus: () => true, // Don't throw on HTTP errors
-        });
+          validateStatus: () => true, // Don't throw new Error(on HTTP errors
+        }));
 
         results.push({
           type: 'domain_check',

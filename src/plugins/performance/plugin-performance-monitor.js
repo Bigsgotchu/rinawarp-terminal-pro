@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Plugin Performance Monitor
  * Monitors and optimizes plugin performance
@@ -335,10 +341,10 @@ export class PluginPerformanceUtils {
         };
       } catch (error) {
         const end = performance.now();
-        throw {
+        throw new Error({
           error,
           executionTime: end - start,
-        };
+        });
       }
     };
   }
@@ -409,7 +415,7 @@ export class PluginPerformanceUtils {
           return factory();
         }
 
-        throw new Error('Pool exhausted');
+        throw new Error(new Error('Pool exhausted'));
       },
 
       release(obj) {

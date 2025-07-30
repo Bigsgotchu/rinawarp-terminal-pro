@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 18 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Unified AI Client
  * Provides a consistent interface to interact with multiple AI providers
@@ -11,7 +17,7 @@ const TextDecoder =
     ? global.TextDecoder
     : typeof window !== 'undefined' && window.TextDecoder
       ? window.TextDecoder
-      : require('util').TextDecoder;
+      : require('node:util').TextDecoder;
 
 export class UnifiedAIClient {
   constructor() {
@@ -47,12 +53,12 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
   async chat(message, options = {}) {
     const provider = this.config.getActiveProvider();
     if (!provider) {
-      throw new Error('No AI provider configured');
+      throw new Error(new Error('No AI provider configured'));
     }
 
     const apiKey = await this.config.getApiKey(provider.name);
     if (!apiKey) {
-      throw new Error(`API key not configured for ${provider.name}`);
+      throw new Error(new Error(`API key not configured for ${provider.name}`));
     }
 
     // Add to conversation history
@@ -72,7 +78,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
         response = await this.chatWithGoogle(message, apiKey, options);
         break;
       default:
-        throw new Error(`Provider ${provider.name} not implemented`);
+        throw new Error(new Error(`Provider ${provider.name} not implemented`));
       }
 
       // Add response to history
@@ -84,7 +90,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
       return response;
     } catch (error) {
       console.error(`AI chat error with ${provider.name}:`, error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -115,7 +121,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+      throw new Error(new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`));
     }
 
     const data = await response.json();
@@ -146,7 +152,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(`Anthropic API error: ${error.error?.message || 'Unknown error'}`);
+      throw new Error(new Error(`Anthropic API error: ${error.error?.message || 'Unknown error'}`));
     }
 
     const data = await response.json();
@@ -187,7 +193,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(`Google AI API error: ${error.error?.message || 'Unknown error'}`);
+      throw new Error(new Error(`Google AI API error: ${error.error?.message || 'Unknown error'}`));
     }
 
     const data = await response.json();
@@ -200,12 +206,12 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
   async *streamChat(message, options = {}) {
     const provider = this.config.getActiveProvider();
     if (!provider) {
-      throw new Error('No AI provider configured');
+      throw new Error(new Error('No AI provider configured'));
     }
 
     const apiKey = await this.config.getApiKey(provider.name);
     if (!apiKey) {
-      throw new Error(`API key not configured for ${provider.name}`);
+      throw new Error(new Error(`API key not configured for ${provider.name}`));
     }
 
     options.stream = true;
@@ -218,7 +224,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
       yield* this.streamAnthropic(message, apiKey, options);
       break;
     default:
-      throw new Error(`Streaming not implemented for ${provider.name}`);
+      throw new Error(new Error(`Streaming not implemented for ${provider.name}`));
     }
   }
 
@@ -249,7 +255,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+      throw new Error(new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`));
     }
 
     const reader = response.body.getReader();
@@ -321,7 +327,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
     // Test the connection first
     const isValid = await this.config.testConnection(provider, apiKey);
     if (!isValid) {
-      throw new Error('Invalid API key or connection failed');
+      throw new Error(new Error('Invalid API key or connection failed'));
     }
 
     // Save the API key
@@ -350,7 +356,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
     const capabilities = this.getCapabilities(provider.name);
 
     if (!capabilities.functionCalling) {
-      throw new Error(`Function calling not supported by ${provider.name}`);
+      throw new Error(new Error(`Function calling not supported by ${provider.name}`));
     }
 
     // Implementation depends on provider
@@ -370,12 +376,12 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
     const capabilities = this.getCapabilities(provider.name);
 
     if (!capabilities.embeddings) {
-      throw new Error(`Embeddings not supported by ${provider.name}`);
+      throw new Error(new Error(`Embeddings not supported by ${provider.name}`));
     }
 
     const apiKey = await this.config.getApiKey(provider.name);
     if (!apiKey) {
-      throw new Error(`API key not configured for ${provider.name}`);
+      throw new Error(new Error(`API key not configured for ${provider.name}`));
     }
 
     switch (provider.name) {
@@ -384,7 +390,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
     case 'google':
       return await this.generateGoogleEmbeddings(text, apiKey);
     default:
-      throw new Error(`Embeddings not implemented for ${provider.name}`);
+      throw new Error(new Error(`Embeddings not implemented for ${provider.name}`));
     }
   }
 
@@ -405,7 +411,7 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(`OpenAI embeddings error: ${error.error?.message || 'Unknown error'}`);
+      throw new Error(new Error(`OpenAI embeddings error: ${error.error?.message || 'Unknown error'}`));
     }
 
     const data = await response.json();

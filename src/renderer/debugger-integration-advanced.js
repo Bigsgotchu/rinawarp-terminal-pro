@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 32 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Advanced Debugger Integration System
  * Provides debugging capabilities, breakpoint management, and error analysis
@@ -70,7 +76,7 @@
 
         this.emitDebugEvent('sessionError', { sessionId, error: error.message });
 
-        throw error;
+        throw new Error(error);
       }
     }
 
@@ -164,7 +170,7 @@
       case 'chrome':
         return await this.launchChromeDebugger(session);
       default:
-        throw new Error(`Unsupported project type: ${projectType}`);
+        throw new Error(new Error(`Unsupported project type: ${projectType}`));
       }
     }
 
@@ -196,7 +202,7 @@
 
         return session;
       } catch (error) {
-        throw new Error(`Failed to launch Node.js debugger: ${error.message}`);
+        throw new Error(new Error(`Failed to launch Node.js debugger: ${error.message}`));
       }
     }
 
@@ -232,7 +238,7 @@
 
         return session;
       } catch (error) {
-        throw new Error(`Failed to launch Python debugger: ${error.message}`);
+        throw new Error(new Error(`Failed to launch Python debugger: ${error.message}`));
       }
     }
 
@@ -248,7 +254,7 @@
       });
 
       if (buildResult.exitCode !== 0) {
-        throw new Error('Failed to build Rust project');
+        throw new Error(new Error('Failed to build Rust project'));
       }
 
       // Launch with LLDB
@@ -270,7 +276,7 @@
 
         return session;
       } catch (error) {
-        throw new Error(`Failed to launch Rust debugger: ${error.message}`);
+        throw new Error(new Error(`Failed to launch Rust debugger: ${error.message}`));
       }
     }
 
@@ -303,7 +309,7 @@
 
         return session;
       } catch (error) {
-        throw new Error(`Failed to launch Go debugger: ${error.message}`);
+        throw new Error(new Error(`Failed to launch Go debugger: ${error.message}`));
       }
     }
 
@@ -335,7 +341,7 @@
 
         return session;
       } catch (error) {
-        throw new Error(`Failed to launch Java debugger: ${error.message}`);
+        throw new Error(new Error(`Failed to launch Java debugger: ${error.message}`));
       }
     }
 
@@ -382,7 +388,7 @@
     async setBreakpoint(sessionId, filePath, line, condition = null) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       const breakpointId = this.generateBreakpointId();
@@ -415,7 +421,7 @@
       } catch (error) {
         this.breakpoints.delete(breakpointId);
         session.breakpoints.delete(breakpointId);
-        throw error;
+        throw new Error(error);
       }
     }
 
@@ -427,7 +433,7 @@
       const breakpoint = this.breakpoints.get(breakpointId);
 
       if (!session || !breakpoint) {
-        throw new Error('Breakpoint or session not found');
+        throw new Error(new Error('Breakpoint or session not found'));
       }
 
       try {
@@ -438,7 +444,7 @@
 
         this.emitDebugEvent('breakpointRemoved', { breakpointId });
       } catch (error) {
-        throw new Error(`Failed to remove breakpoint: ${error.message}`);
+        throw new Error(new Error(`Failed to remove breakpoint: ${error.message}`));
       }
     }
 
@@ -448,7 +454,7 @@
     async continue(sessionId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -457,7 +463,7 @@
 
         this.emitDebugEvent('continued', { sessionId });
       } catch (error) {
-        throw new Error(`Failed to continue: ${error.message}`);
+        throw new Error(new Error(`Failed to continue: ${error.message}`));
       }
     }
 
@@ -467,7 +473,7 @@
     async stepOver(sessionId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -475,7 +481,7 @@
 
         this.emitDebugEvent('stepped', { sessionId, type: 'over' });
       } catch (error) {
-        throw new Error(`Failed to step over: ${error.message}`);
+        throw new Error(new Error(`Failed to step over: ${error.message}`));
       }
     }
 
@@ -485,7 +491,7 @@
     async stepInto(sessionId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -493,7 +499,7 @@
 
         this.emitDebugEvent('stepped', { sessionId, type: 'into' });
       } catch (error) {
-        throw new Error(`Failed to step into: ${error.message}`);
+        throw new Error(new Error(`Failed to step into: ${error.message}`));
       }
     }
 
@@ -503,7 +509,7 @@
     async stepOut(sessionId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -511,7 +517,7 @@
 
         this.emitDebugEvent('stepped', { sessionId, type: 'out' });
       } catch (error) {
-        throw new Error(`Failed to step out: ${error.message}`);
+        throw new Error(new Error(`Failed to step out: ${error.message}`));
       }
     }
 
@@ -521,7 +527,7 @@
     async getCallStack(sessionId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -530,7 +536,7 @@
 
         return callStack;
       } catch (error) {
-        throw new Error(`Failed to get call stack: ${error.message}`);
+        throw new Error(new Error(`Failed to get call stack: ${error.message}`));
       }
     }
 
@@ -540,7 +546,7 @@
     async getVariables(sessionId, scopeId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -549,7 +555,7 @@
 
         return variables;
       } catch (error) {
-        throw new Error(`Failed to get variables: ${error.message}`);
+        throw new Error(new Error(`Failed to get variables: ${error.message}`));
       }
     }
 
@@ -559,7 +565,7 @@
     async evaluateExpression(sessionId, expression, frameId = null) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -573,7 +579,7 @@
 
         return result;
       } catch (error) {
-        throw new Error(`Failed to evaluate expression: ${error.message}`);
+        throw new Error(new Error(`Failed to evaluate expression: ${error.message}`));
       }
     }
 
@@ -608,7 +614,7 @@
     async startProfiling(sessionId, options = {}) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       return await this.performanceProfiler.start(session, options);
@@ -620,7 +626,7 @@
     async stopProfiling(sessionId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       return await this.performanceProfiler.stop(session);
@@ -632,7 +638,7 @@
     async stopDebugSession(sessionId) {
       const session = this.debugSessions.get(sessionId);
       if (!session) {
-        throw new Error('Debug session not found');
+        throw new Error(new Error('Debug session not found'));
       }
 
       try {
@@ -651,7 +657,7 @@
 
         this.emitDebugEvent('sessionStopped', { sessionId });
       } catch (error) {
-        throw new Error(`Failed to stop debug session: ${error.message}`);
+        throw new Error(new Error(`Failed to stop debug session: ${error.message}`));
       }
     }
 
@@ -777,7 +783,7 @@
         if (window.electronAPI && window.electronAPI.executeCommand) {
           return await window.electronAPI.executeCommand(cmd, opts);
         }
-        throw new Error('Command execution not available');
+        throw new Error(new Error('Command execution not available'));
       };
 
       return await safeExecuteCommand(command, options);
@@ -956,7 +962,7 @@
       );
 
       if (!profile) {
-        throw new Error('No active profile found');
+        throw new Error(new Error('No active profile found'));
       }
 
       profile.endTime = Date.now();

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Advanced Learning Engine for Terminal AI
  * Implements sophisticated machine learning algorithms for:
@@ -687,7 +693,7 @@ class ContextAnalyzer {
   detectProjectType() {
     // Simple project type detection based on files in current directory
     try {
-      const fs = require('fs');
+      const fs = require('node:fs');
       if (fs.existsSync('package.json')) return 'nodejs';
       if (fs.existsSync('requirements.txt')) return 'python';
       if (fs.existsSync('Cargo.toml')) return 'rust';

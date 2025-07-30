@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Admin Security Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        .token-display { background: #f5f5f5; padding: 10px; border-radius: 3px; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <h1>🔒 RinaWarp Terminal Security Test Dashboard</h1>
+    <p>This page tests the security features of the RinaWarp Terminal production server.</p>
+
+    <div class="test-section">
+        <h2>Step 1: Generate Admin Token</h2>
+        <button onclick="generateToken()">Generate Admin Token</button>
+        <div id="tokenResult"></div>
+        <div id="tokenDisplay" class="token-display" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Test Admin Dashboard Access</h2>
+        <button onclick="testAdminDashboard()" disabled id="dashboardBtn">Test Admin Dashboard</button>
+        <div id="dashboardResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Test Secrets Management</h2>
+        <button onclick="testSecrets()" disabled id="secretsBtn">Test Secrets</button>
+        <div id="secretsResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 4: Test Unauthenticated Access</h2>
+        <button onclick="testUnauthenticated()">Test Without Token</button>
+        <div id="unauthResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Log</h2>
+        <textarea id="logArea" readonly></textarea>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        const API_BASE = 'https://rinawarptech.com/api';
+        let adminToken = null;
+
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorMap = { success: '✅', error: '❌', info: '💡' };
+            logArea.value += `[${timestamp}] ${colorMap[type]} ${message}\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').value = '';
+        }
+
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(API_BASE + endpoint, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+                return { status: response.status, ok: response.ok, data };
+            } catch (error) {
+                log(`API call failed: ${error.message}`, 'error');
+                return { status: 0, ok: false, data: { error: error.message } };
+            }
+        }
+
+        async function generateToken() {
+            log('Generating admin token...');
+            
+            const result = await apiCall('/auth/generate-token', {
+                method: 'POST',
+                body: JSON.stringify({
+                    userId: 'admin-test',
+                    email: 'admin@rinawarptech.com',
+                    role: 'ADMIN',
+                    permissions: ['admin:read', 'admin:write', 'secrets:manage']
+                })
+            });
+
+            const resultDiv = document.getElementById('tokenResult');
+            const tokenDiv = document.getElementById('tokenDisplay');
+
+            if (result.ok && result.data.token) {
+                adminToken = result.data.token;
+                resultDiv.innerHTML = '<span class="success">✅ Admin token generated successfully!</span>';
+                tokenDiv.innerHTML = `<strong>Token:</strong> ${result.data.token}`;
+                tokenDiv.style.display = 'block';
+                
+                // Enable other test buttons
+                document.getElementById('dashboardBtn').disabled = false;
+                document.getElementById('secretsBtn').disabled = false;
+                
+                log('Admin token generated successfully', 'success');
+                log(`Token expires in: ${result.data.expiresIn}`, 'info');
+            } else {
+                resultDiv.innerHTML = `<span class="error">❌ Failed to generate token: ${JSON.stringify(result.data)}</span>`;
+                log(`Token generation failed: ${result.status} - ${JSON.stringify(result.data)}`, 'error');
+            }
+        }
+
+        async function testAdminDashboard() {
+            if (!adminToken) {
+                log('No admin token available', 'error');
+                return;
+            }
+
+            log('Testing admin dashboard access...');
+            
+            const result = await apiCall('/admin/dashboard', {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            });
+
+            const resultDiv = document.getElementById('dashboardResult');
+
+            if (result.ok) {
+                resultDiv.innerHTML = '<span class="success">✅ Admin dashboard accessible!</span>';
+                log('Admin dashboard test passed', 'success');
+                log(`Dashboard data: ${JSON.stringify(result.data)}`, 'info');
+            } else {
+                resultDiv.innerHTML = `<span class="error">❌ Admin dashboard failed: ${result.status}</span>`;
+                log(`Admin dashboard test failed: ${result.status} - ${JSON.stringify(result.data)}`, 'error');
+            }
+        }
+
+        async function testSecrets() {
+            if (!adminToken) {
+                log('No admin token available', 'error');
+                return;
+            }
+
+            log('Testing secrets management...');
+            
+            const result = await apiCall('/admin/secrets', {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            });
+
+            const resultDiv = document.getElementById('secretsResult');
+
+            if (result.ok || result.status === 404) {
+                resultDiv.innerHTML = '<span class="success">✅ Secrets endpoint accessible!</span>';
+                log('Secrets management test passed', 'success');
+                log(`Secrets response: ${JSON.stringify(result.data)}`, 'info');
+            } else {
+                resultDiv.innerHTML = `<span class="error">❌ Secrets test failed: ${result.status}</span>`;
+                log(`Secrets test failed: ${result.status} - ${JSON.stringify(result.data)}`, 'error');
+            }
+        }
+
+        async function testUnauthenticated() {
+            log('Testing unauthenticated access...');
+            
+            const endpoints = ['/admin/dashboard', '/admin/secrets'];
+            const resultDiv = document.getElementById('unauthResult');
+            let results = [];
+
+            for (const endpoint of endpoints) {
+                const result = await apiCall(endpoint);
+                
+                if (result.status === 401 || result.status === 403) {
+                    results.push(`✅ ${endpoint} properly protected (${result.status})`);
+                    log(`${endpoint} properly protected`, 'success');
+                } else {
+                    results.push(`❌ ${endpoint} security issue! (${result.status})`);
+                    log(`${endpoint} security vulnerability: ${result.status}`, 'error');
+                }
+            }
+
+            resultDiv.innerHTML = results.join('<br>');
+        }
+
+        // Initialize
+        log('RinaWarp Security Test Dashboard loaded', 'info');
+        log('Click "Generate Admin Token" to start testing', 'info');
+    </script>
+</body>
+</html>
