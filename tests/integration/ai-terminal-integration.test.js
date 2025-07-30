@@ -1,6 +1,12 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 const { test, expect } = require('@jest/globals');
-const _path = require('path');
-const _fs = require('fs').promises;
+const _path = require('node:path');
+const _fs = require('node:fs').promises;
 
 // Mock AI Assistant functionality for testing
 class MockAIAssistant {

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // shell-harness.js - Abstraction layer between voice commands and shell execution
 export class ShellHarness {
   constructor({ fallback = false, terminalWrapper = null }) {
@@ -93,13 +99,13 @@ export class ShellHarness {
         return await this.simulateCommand(command);
       }
 
-      throw error;
+      throw new Error(error);
     }
   }
 
   async executeReal(command) {
     if (!this.terminalWrapper || !this.terminalWrapper.executeCommand) {
-      throw new Error('Terminal wrapper not available or invalid');
+      throw new Error(new Error('Terminal wrapper not available or invalid'));
     }
 
     this.diagnostics.commandsExecuted++;
@@ -256,7 +262,7 @@ export class ShellHarness {
 
   switchMode(mode) {
     if (mode === 'real' && !this.terminalWrapper) {
-      throw new Error('Cannot switch to real mode without terminal wrapper');
+      throw new Error(new Error('Cannot switch to real mode without terminal wrapper'));
     }
 
     this.fallback = mode === 'fallback';

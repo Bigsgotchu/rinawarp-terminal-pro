@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Terminal Sharing
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -86,7 +92,7 @@ class LiveTerminalSharing {
       // Validate session
       const sessionInfo = await this.validateSession(sessionId, accessCode);
       if (!sessionInfo.valid) {
-        throw new Error('Invalid session or access code');
+        throw new Error(new Error('Invalid session or access code'));
       }
 
       this.sessionId = sessionId;

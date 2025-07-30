@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * System Vitals Entry Point
  * Lazy-loaded system monitoring functionality
@@ -41,7 +47,7 @@ class RinaWarpSystemVitalsFeature {
       console.log('📊 System Vitals feature loaded');
     } catch (error) {
       console.error('Failed to initialize System Vitals:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

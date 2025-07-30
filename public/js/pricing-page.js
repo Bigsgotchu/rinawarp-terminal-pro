@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 11 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // Pricing Page JavaScript - External file for CSP compliance
 
 // Countdown timer - 7 days from page load
@@ -35,13 +41,13 @@ async function initializeStripe() {
         // Fetch Stripe configuration from server
         const response = await fetch('/api/stripe-config');
         if (!response.ok) {
-            throw new Error('Failed to load Stripe configuration');
+            throw new Error(new Error('Failed to load Stripe configuration'));
         }
         
         stripeConfig = await response.json();
         
         if (!stripeConfig.publishableKey) {
-            throw new Error('Stripe publishable key not configured');
+            throw new Error(new Error('Stripe publishable key not configured'));
         }
         
         // For demo/test purposes, check if it's a placeholder key
@@ -103,7 +109,7 @@ async function tryMultipleRoutes(planType, button, originalText) {
     
     const priceId = getPriceId(planType);
     if (!priceId) {
-        throw new Error(`Price not configured for ${planType} plan`);
+        throw new Error(new Error(`Price not configured for ${planType} plan`));
     }
     
     const requestBody = {
@@ -125,13 +131,13 @@ async function tryMultipleRoutes(planType, button, originalText) {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
             }
             
             const session = await response.json();
             
             if (!session.sessionId && !session.url) {
-                throw new Error('Invalid response format');
+                throw new Error(new Error('Invalid response format'));
             }
             
             console.log(`✅ Route ${i + 1} successful!`);
@@ -143,7 +149,7 @@ async function tryMultipleRoutes(planType, button, originalText) {
                 });
                 
                 if (result.error) {
-                    throw new Error(result.error.message);
+                    throw new Error(new Error(result.error.message));
                 }
             } else if (session.url) {
                 // Direct URL redirect
@@ -156,7 +162,7 @@ async function tryMultipleRoutes(planType, button, originalText) {
             console.log(`❌ Route ${i + 1} failed: ${error.message}`);
             if (i === routes.length - 1) {
                 // All routes failed
-                throw error;
+                throw new Error(error);
             }
             // Try next route
             continue;
@@ -216,7 +222,7 @@ async function purchaseBeta(betaType) {
         const priceId = getBetaPriceId(betaType);
         
         if (!priceId) {
-            throw new Error(`Beta pricing not configured for ${betaType}. Please contact support.`);
+            throw new Error(new Error(`Beta pricing not configured for ${betaType}. Please contact support.`));
         }
         
         // Enhanced error handling for checkout session
@@ -238,13 +244,13 @@ async function purchaseBeta(betaType) {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || `Server error: ${response.status}`);
+            throw new Error(new Error(errorData.error || `Server error: ${response.status}`));
         }
         
         const session = await response.json();
         
         if (!session.sessionId) {
-            throw new Error('Invalid session response from server');
+            throw new Error(new Error('Invalid session response from server'));
         }
         
         // Redirect to Stripe Checkout
@@ -253,7 +259,7 @@ async function purchaseBeta(betaType) {
         });
         
         if (result.error) {
-            throw new Error(result.error.message);
+            throw new Error(new Error(result.error.message));
         }
         
     } catch (error) {

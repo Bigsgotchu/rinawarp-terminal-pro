@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Preload Script for RinaWarp Terminal
  *
@@ -9,8 +15,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 const { spawn } = require('child_process');
 const logger = require('./utils/logger.cjs');
 // const os = require('os'); // Removed - unused variable
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 
 // Load .env file if it exists
 const envPath = path.join(__dirname, '..', '.env');

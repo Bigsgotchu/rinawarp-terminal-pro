@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import OpenAI from 'openai';
 import { logger } from '../../utils/logger.js';
 
@@ -48,7 +54,7 @@ export class OpenAIProvider {
       return response.choices[0].message.content;
     } catch (error) {
       logger.error('OpenAI completion error', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -80,7 +86,7 @@ export class OpenAIProvider {
       }
     } catch (error) {
       logger.error('OpenAI streaming error', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

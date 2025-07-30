@@ -1,11 +1,17 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Telemetry module for the Error Triage System
  * Handles anonymous data collection, sanitization, and batched uploads
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const crypto = require('crypto');
+const fs = require('node:fs').promises;
+const path = require('node:path');
+const crypto = require('node:crypto');
 
 class TriageTelemetry {
   constructor(config = {}) {
@@ -192,7 +198,7 @@ class TriageTelemetry {
         for (const data of batch) {
           await this.saveToCache(data);
         }
-        throw new Error(`Failed to upload telemetry: ${response.statusText}`);
+        throw new Error(new Error(`Failed to upload telemetry: ${response.statusText}`));
       }
     } catch (err) {
       console.error('Telemetry upload failed:', err);

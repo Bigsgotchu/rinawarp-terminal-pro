@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal JavaScript SDK
  * Provides easy integration with RinaWarp Terminal API
@@ -16,7 +22,7 @@ class RinaWarpSDK {
     };
 
     if (!this.config.apiKey) {
-      throw new Error('API key is required. Get one at https://dashboard.rinawarp.com');
+      throw new Error(new Error('API key is required. Get one at https://dashboard.rinawarp.com'));
     }
 
     this.ws = null;
@@ -64,11 +70,11 @@ class RinaWarpSDK {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new RinaWarpError(
+          throw new Error(new RinaWarpError(
             errorData.error || `HTTP ${response.status}`,
             response.status,
             errorData.code
-          );
+          ));
         }
 
         return await response.json();
@@ -78,11 +84,11 @@ class RinaWarpSDK {
           await this.delay(Math.pow(2, attempt) * 1000); // Exponential backoff
           continue;
         }
-        throw error;
+        throw new Error(error);
       }
     }
 
-    throw lastError;
+    throw new Error(lastError);
   }
 
   /**

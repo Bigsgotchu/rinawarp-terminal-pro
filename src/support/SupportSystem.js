@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import fs from 'fs/promises';
 import path from 'path';
 import { createTransport } from 'nodemailer';
@@ -352,7 +358,7 @@ class SupportSystem {
     try {
       const ticket = await this.getTicket(ticketId);
       if (!ticket) {
-        throw new Error('Ticket not found');
+        throw new Error(new Error('Ticket not found'));
       }
             
       const response = {
@@ -396,7 +402,7 @@ class SupportSystem {
     try {
       const ticket = await this.getTicket(ticketId);
       if (!ticket) {
-        throw new Error('Ticket not found');
+        throw new Error(new Error('Ticket not found'));
       }
             
       ticket.status = 'resolved';

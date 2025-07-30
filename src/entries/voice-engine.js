@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Voice Engine Entry Point
  * Lazy-loaded voice recognition and synthesis functionality
@@ -23,7 +29,7 @@ class RinaWarpVoiceFeature {
     try {
       // Check for browser support
       if (!this.checkVoiceSupport()) {
-        throw new Error('Voice features not supported in this browser');
+        throw new Error(new Error('Voice features not supported in this browser'));
       }
 
       // Initialize voice components
@@ -46,7 +52,7 @@ class RinaWarpVoiceFeature {
       console.log('🎤 Voice Engine feature loaded');
     } catch (error) {
       console.error('Failed to initialize Voice Engine:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

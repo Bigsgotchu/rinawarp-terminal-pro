@@ -1,5 +1,11 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 const { execSync } = require('child_process');
-const fs = require('fs');
+const fs = require('node:fs');
 
 console.log('🔍 GitHub Actions Debug Analysis');
 console.log('================================');

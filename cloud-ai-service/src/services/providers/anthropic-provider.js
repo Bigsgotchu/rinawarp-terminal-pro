@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import Anthropic from '@anthropic-ai/sdk';
 import { logger } from '../../utils/logger.js';
 
@@ -41,7 +47,7 @@ export class AnthropicProvider {
       return response.content[0].text;
     } catch (error) {
       logger.error('Anthropic completion error', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -72,7 +78,7 @@ export class AnthropicProvider {
       }
     } catch (error) {
       logger.error('Anthropic streaming error', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

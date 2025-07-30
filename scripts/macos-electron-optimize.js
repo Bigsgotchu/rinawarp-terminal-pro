@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * macOS Electron Optimization Script
  * Addresses common Electron issues on macOS
@@ -5,7 +11,7 @@
 
 const { exec } = require('child_process');
 const os = require('os');
-const path = require('path');
+const path = require('node:path');
 
 // Check if running on macOS
 if (os.platform() !== 'darwin') {

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 
@@ -90,7 +96,7 @@ export async function getCommandPrediction(prompt, context = '') {
     if (fallback) {
       return fallback;
     }
-    throw new Error(`Failed to fetch prediction: ${error.message}`);
+    throw new Error(new Error(`Failed to fetch prediction: ${error.message}`));
   }
 }
 
@@ -181,6 +187,6 @@ export async function explainCommand(command) {
     if (fallback) {
       return fallback;
     }
-    throw new Error(`Failed to explain command: ${error.message}`);
+    throw new Error(new Error(`Failed to explain command: ${error.message}`));
   }
 }

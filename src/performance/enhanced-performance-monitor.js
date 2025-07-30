@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Enhanced Performance Monitor with Vercel Speed Insights Integration
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -229,7 +235,7 @@ export class EnhancedPerformanceMonitor {
 
       // Analytics tracking removed - not compatible with Electron
 
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -254,7 +260,7 @@ export class EnhancedPerformanceMonitor {
 
       // Analytics tracking removed - not compatible with Electron
 
-      throw error;
+      throw new Error(error);
     }
   }
 

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Security Manager
  * Consolidated security utilities adapted for Electron environment
@@ -150,7 +156,7 @@ class SecurityManager {
       logger.debug('Secure data stored', { key });
     } catch (error) {
       logger.error('Failed to store secure data', { key, error: error.message });
-      throw new Error('Secure storage failed');
+      throw new Error(new Error('Secure storage failed'));
     }
   }
 

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * AI Integration Loader for RinaWarp Terminal
  * Dynamically loads and integrates all AI components into existing terminal
@@ -233,7 +239,7 @@
                 context: { command, source: 'terminal' }
               });
             }
-            throw error;
+            throw new Error(error);
           }
         };
       }

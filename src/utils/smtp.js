@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - SMTP Utility
  * Handles email functionality with mock support for development
@@ -74,7 +80,7 @@ class SMTPService {
 
   async sendPersonalizedEmail(recipient, template) {
     if (!this.initialized) {
-      throw new Error('SMTP service not initialized');
+      throw new Error(new Error('SMTP service not initialized'));
     }
 
     // Personalize the email
@@ -107,13 +113,13 @@ class SMTPService {
       };
     } catch (error) {
       console.error('❌ Error sending personalized email:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
   async sendEmail(options) {
     if (!this.initialized) {
-      throw new Error('SMTP service not initialized');
+      throw new Error(new Error('SMTP service not initialized'));
     }
 
     const fromEmail =
@@ -140,7 +146,7 @@ class SMTPService {
       return info;
     } catch (error) {
       console.error('❌ Error sending email:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

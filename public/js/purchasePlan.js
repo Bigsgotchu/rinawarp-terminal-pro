@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // purchasePlan.js - Fully Backend-Driven Checkout
 
 /**
@@ -48,7 +54,7 @@ async function purchasePlan(planOrPriceId) {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
     }
 
     const data = await response.json();
@@ -59,7 +65,7 @@ async function purchasePlan(planOrPriceId) {
       // Direct redirect to Stripe-hosted checkout (no frontend Stripe SDK needed)
       window.location.href = data.url;
     } else {
-      throw new Error(data.error || 'No checkout URL received from backend');
+      throw new Error(new Error(data.error || 'No checkout URL received from backend'));
     }
   } catch (error) {
     console.error('❌ Purchase error:', error.message);

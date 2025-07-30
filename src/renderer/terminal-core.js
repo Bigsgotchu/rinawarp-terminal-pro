@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Terminal Core
  * Core terminal functionality using xterm.js
@@ -58,7 +64,7 @@ export class RinaWarpTerminal {
       // Find terminal container
       const container = document.getElementById('terminal');
       if (!container) {
-        throw new Error('Terminal container not found');
+        throw new Error(new Error('Terminal container not found'));
       }
 
       // Open terminal
@@ -84,7 +90,7 @@ export class RinaWarpTerminal {
       this.initialized = true;
     } catch (error) {
       logger.error('Failed to initialize terminal:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

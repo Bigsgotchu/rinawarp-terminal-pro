@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 6 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal Agent Chat API
  * Backend endpoint for processing agent mode requests with AI integration
@@ -103,7 +109,7 @@ class AgentChatAPI {
         break;
 
       default:
-        throw new Error(`Unsupported provider: ${provider}`);
+        throw new Error(new Error(`Unsupported provider: ${provider}`));
       }
 
       res.json({
@@ -124,7 +130,7 @@ class AgentChatAPI {
 
   async handleOpenAIRequest(messages, functions, options) {
     if (!this.openai) {
-      throw new Error('OpenAI provider not configured. Please set OPENAI_API_KEY.');
+      throw new Error(new Error('OpenAI provider not configured. Please set OPENAI_API_KEY.'));
     }
 
     const requestBody = {
@@ -169,7 +175,7 @@ class AgentChatAPI {
 
   async handleAnthropicRequest(messages, functions, options) {
     if (!this.anthropic) {
-      throw new Error('Anthropic provider not configured. Please set ANTHROPIC_API_KEY.');
+      throw new Error(new Error('Anthropic provider not configured. Please set ANTHROPIC_API_KEY.'));
     }
 
     // Convert messages format for Anthropic
@@ -255,7 +261,7 @@ class AgentChatAPI {
       });
 
       if (!response.ok) {
-        throw new Error(`Ollama request failed: ${response.statusText}`);
+        throw new Error(new Error(`Ollama request failed: ${response.statusText}`));
       }
 
       const completion = await response.json();
@@ -271,9 +277,9 @@ class AgentChatAPI {
       };
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
-        throw new Error('Ollama server not running. Please start Ollama and try again.');
+        throw new Error(new Error('Ollama server not running. Please start Ollama and try again.'));
       }
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -570,7 +576,19 @@ class AgentChatAPI {
       }
 
       if (this.anthropic) {
-        health.providers.anthropic = 'configured';
+        try {
+          // Test Anthropic with a minimal request
+          const testResponse = await this.anthropic.messages.create({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'ping' }]
+          });
+          if (testResponse) {
+            health.providers.anthropic = 'connected';
+          }
+        } catch (error) {
+          health.providers.anthropic = `error: ${error.message.substring(0, 100)}`;
+        }
       } else {
         health.providers.anthropic = 'not_configured';
       }

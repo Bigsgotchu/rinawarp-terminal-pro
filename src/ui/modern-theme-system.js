@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 8 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Modern UI Theme System for RinaWarp
  * Inspired by WaveTerm's sophisticated theming architecture
@@ -329,7 +335,7 @@ class ModernThemeSystem {
   registerTheme(id, theme) {
     // Validate theme structure
     if (!theme.name || !theme.colors) {
-      throw new Error(`Invalid theme structure for ${id}`);
+      throw new Error(new Error(`Invalid theme structure for ${id}`));
     }
 
     // Add metadata
@@ -343,7 +349,7 @@ class ModernThemeSystem {
 
   async setActiveTheme(themeId, options = {}) {
     if (!this.themes.has(themeId)) {
-      throw new Error(`Theme ${themeId} not found`);
+      throw new Error(new Error(`Theme ${themeId} not found`));
     }
 
     const previousTheme = this.activeTheme;
@@ -362,7 +368,7 @@ class ModernThemeSystem {
     } catch (error) {
       // Rollback on error
       this.activeTheme = previousTheme;
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -519,7 +525,7 @@ class ModernThemeSystem {
   createCustomTheme(baseThemeId, customizations, name) {
     const baseTheme = this.themes.get(baseThemeId);
     if (!baseTheme) {
-      throw new Error(`Base theme ${baseThemeId} not found`);
+      throw new Error(new Error(`Base theme ${baseThemeId} not found`));
     }
 
     const customTheme = {
@@ -565,7 +571,7 @@ class ModernThemeSystem {
     try {
       // Validate theme data
       if (!themeData.name || !themeData.colors) {
-        throw new Error('Invalid theme data');
+        throw new Error(new Error('Invalid theme data'));
       }
 
       const themeId = `imported-${Date.now()}`;
@@ -587,14 +593,14 @@ class ModernThemeSystem {
       return themeId;
     } catch (error) {
       console.error('Failed to import theme:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
   exportTheme(themeId) {
     const theme = this.themes.get(themeId);
     if (!theme) {
-      throw new Error(`Theme ${themeId} not found`);
+      throw new Error(new Error(`Theme ${themeId} not found`));
     }
 
     // Create exportable theme data
@@ -765,7 +771,7 @@ class ModernThemeSystem {
     const theme = this.themes.get(themeId);
 
     if (!theme || !theme.isCustom) {
-      throw new Error('Cannot delete built-in theme');
+      throw new Error(new Error('Cannot delete built-in theme'));
     }
 
     this.themes.delete(themeId);

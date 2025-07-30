@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import { createTransport } from 'nodemailer';
 import fs from 'fs/promises';
 import path from 'path';
@@ -141,7 +147,7 @@ class LeadCaptureSystem {
       const campaign = campaigns[campaignId];
             
       if (!campaign) {
-        throw new Error(`Campaign ${campaignId} not found`);
+        throw new Error(new Error(`Campaign ${campaignId} not found`));
       }
             
       // Schedule emails

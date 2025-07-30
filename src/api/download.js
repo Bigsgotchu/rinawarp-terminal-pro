@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Download API Handler
  * Secure file downloads with GitHub releases integration
@@ -149,7 +155,7 @@ router.get('/', (req, res) => {
 
     const response = await fetch(GITHUB_API, { headers });
     if (!response.ok) {
-      throw new Error(`GitHub API responded with status: ${response.status}`);
+      throw new Error(new Error(`GitHub API responded with status: ${response.status}`));
     }
 
     const release = await response.json();

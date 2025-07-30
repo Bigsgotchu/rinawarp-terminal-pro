@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 import fs from 'fs';
@@ -286,7 +292,7 @@ if (!fs.existsSync('pricing.html')) {
                         alert('Checkout error: ' + result.error.message);
                     }
                 } else {
-                    throw new Error('No checkout URL received');
+                    throw new Error(new Error('No checkout URL received'));
                 }
             } catch (error) {
                 console.error('Checkout error:', error);

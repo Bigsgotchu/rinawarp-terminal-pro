@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Process Lifecycle Manager - Enhanced Reliability for Terminal Operations
  * Addresses common issues: process crashes, memory leaks, zombie processes
@@ -78,7 +84,7 @@ export class ProcessLifecycleManager {
 
     // Check if process is still alive
     if (process.shellProcess && process.shellProcess.killed) {
-      throw new Error(`Process ${process.id} has been killed`);
+      throw new Error(new Error(`Process ${process.id} has been killed`));
     }
 
     // Memory usage check (if available)

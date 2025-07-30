@@ -1,10 +1,16 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Daily Campaign Performance Reports
  * Automated generation and distribution of daily performance summaries
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const nodemailer = require('nodemailer');
 const ConversionTracker = require('./conversion-tracking.js');
 const WebhookNotificationSystem = require('./webhook-notifications.js');

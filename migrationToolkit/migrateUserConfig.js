@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 /**
  * 🧜‍♀️ RinaWarp Terminal - Configuration Migration Script
@@ -73,7 +79,7 @@ class ConfigurationMigrator {
     } catch (error) {
       this.log(`❌ Migration failed: ${error.message}`, 'error');
       this.migrationResults.errors.push(error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -466,7 +472,7 @@ class ConfigurationMigrator {
     }
 
     if (validationErrors > 0) {
-      throw new Error(`Configuration validation failed with ${validationErrors} errors`);
+      throw new Error(new Error(`Configuration validation failed with ${validationErrors} errors`));
     }
 
     this.log('✅ Configuration validation passed');

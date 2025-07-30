@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 
 // Fixed Beta Checkout Function
 async function purchaseBeta(betaType) {
@@ -25,7 +31,7 @@ async function purchaseBeta(betaType) {
     const priceId = getBetaPriceId(betaType);
         
     if (!priceId) {
-      throw new Error(`Beta pricing not configured for ${betaType}. Please contact support.`);
+      throw new Error(new Error(`Beta pricing not configured for ${betaType}. Please contact support.`));
     }
         
     // Enhanced error handling for checkout session
@@ -47,13 +53,13 @@ async function purchaseBeta(betaType) {
         
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `Server error: ${response.status}`);
+      throw new Error(new Error(errorData.error || `Server error: ${response.status}`));
     }
         
     const session = await response.json();
         
     if (!session.sessionId) {
-      throw new Error('Invalid session response from server');
+      throw new Error(new Error('Invalid session response from server'));
     }
         
     // Redirect to Stripe Checkout
@@ -62,7 +68,7 @@ async function purchaseBeta(betaType) {
     });
         
     if (result.error) {
-      throw new Error(result.error.message);
+      throw new Error(new Error(result.error.message));
     }
         
   } catch (error) {

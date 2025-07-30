@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Next Generation UI
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -254,7 +260,7 @@ class NextGenUIEngine {
 
     const tutorial = tutorials[topic];
     if (!tutorial) {
-      throw new Error(`Tutorial '${topic}' not found`);
+      throw new Error(new Error(`Tutorial '${topic}' not found`));
     }
 
     return await this.interactiveTutorials.startTutorial(tutorial);
@@ -298,7 +304,7 @@ class NextGenUIEngine {
 
   async enableHolographicMode() {
     if (!this.holoMode.isSupported()) {
-      throw new Error('Holographic mode not supported on this device');
+      throw new Error(new Error('Holographic mode not supported on this device'));
     }
 
     await this.holoMode.initialize();

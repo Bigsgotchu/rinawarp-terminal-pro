@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -7,8 +13,8 @@
 
 const https = require('https');
 const http = require('http');
-const _fs = require('fs');
-const _path = require('path');
+const _fs = require('node:fs');
+const _path = require('node:path');
 
 // Configuration
 const PRODUCTION_URL = process.env.PRODUCTION_URL || 'https://rinawarp-terminal-fresh-2024.web.app';

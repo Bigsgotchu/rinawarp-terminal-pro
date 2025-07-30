@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 6 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Core Integration Hub
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -79,13 +85,13 @@ class CoreIntegrationHub {
       console.log('[RinaWarp] Integration Hub initialized successfully');
     } catch (error) {
       console.error('[RinaWarp] Integration Hub initialization failed:', error);
-      throw new IntegrationError('Failed to initialize RinaWarp Terminal', error);
+      throw new Error(new IntegrationError('Failed to initialize RinaWarp Terminal', error));
     }
   }
 
   registerFeature(name, feature, metadata = {}) {
     if (!feature || typeof feature !== 'object') {
-      throw new IntegrationError(`Invalid feature registration: ${name}`);
+      throw new Error(new IntegrationError(`Invalid feature registration: ${name}`));
     }
 
     // Validate feature interface
@@ -122,12 +128,12 @@ class CoreIntegrationHub {
   getFeature(name, requestingContext = null) {
     const feature = this.features.get(name);
     if (!feature) {
-      throw new IntegrationError(`Feature not found: ${name}`);
+      throw new Error(new IntegrationError(`Feature not found: ${name}`));
     }
 
     // Security check
     if (!this.securityManager.canAccess(requestingContext, feature.metadata.securityLevel)) {
-      throw new SecurityError(`Access denied to feature: ${name}`);
+      throw new Error(new SecurityError(`Access denied to feature: ${name}`));
     }
 
     return feature.instance;
@@ -175,7 +181,7 @@ class CoreIntegrationHub {
     // Check for required methods
     for (const method of requiredMethods) {
       if (typeof feature[method] !== 'function') {
-        throw new IntegrationError(`Feature ${name} missing required method: ${method}`);
+        throw new Error(new IntegrationError(`Feature ${name} missing required method: ${method}`));
       }
     }
   }
@@ -392,7 +398,7 @@ class SmartDependencyResolver {
 
     const visit = featureName => {
       if (visiting.has(featureName)) {
-        throw new IntegrationError(`Circular dependency detected involving ${featureName}`);
+        throw new Error(new IntegrationError(`Circular dependency detected involving ${featureName}`));
       }
       if (visited.has(featureName)) return;
 

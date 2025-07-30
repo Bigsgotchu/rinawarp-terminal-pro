@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Plugin System Entry Point
  * Lazy-loaded plugin management and extensibility functionality
@@ -41,7 +47,7 @@ class RinaWarpPluginFeature {
       console.log('🔌 Plugin System feature loaded');
     } catch (error) {
       console.error('Failed to initialize Plugin System:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

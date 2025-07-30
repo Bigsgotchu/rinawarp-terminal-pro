@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - AI Copilot Service
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -92,7 +98,7 @@ class AICopilotService {
 
   async processUserQuery(query, _context = {}) {
     if (!this.isInitialized) {
-      throw new Error('AI Copilot Service not initialized');
+      throw new Error(new Error('AI Copilot Service not initialized'));
     }
 
     // Processing user query silently
@@ -100,7 +106,7 @@ class AICopilotService {
     try {
       // Rate limiting check
       if (!this.rateLimiter.canProceed()) {
-        throw new Error('Rate limit exceeded. Please wait before making another request.');
+        throw new Error(new Error('Rate limit exceeded. Please wait before making another request.'));
       }
 
       // Security filtering
@@ -214,7 +220,7 @@ class AICopilotService {
   // Provider management
   async switchProvider(providerName) {
     if (!this.providers.has(providerName)) {
-      throw new Error(`Provider ${providerName} not available`);
+      throw new Error(new Error(`Provider ${providerName} not available`));
     }
 
     const oldProvider = this.currentProvider;
@@ -229,7 +235,7 @@ class AICopilotService {
     } catch (error) {
       // Rollback on failure
       this.currentProvider = oldProvider;
-      throw new Error(`Failed to switch to provider ${providerName}: ${error.message}`);
+      throw new Error(new Error(`Failed to switch to provider ${providerName}: ${error.message}`));
     }
   }
 

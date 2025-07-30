@@ -1,5 +1,11 @@
-const path = require('path');
-const fs = require('fs');
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
+const path = require('node:path');
+const fs = require('node:fs');
 const os = require('os');
 const { UnifiedConfig } = require('../../src/config/unified-config.cjs');
 

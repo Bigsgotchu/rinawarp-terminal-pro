@@ -1,10 +1,16 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Plugin Manager for RinaWarp Terminal
  * Provides extensible architecture for custom features and third-party integrations
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const config = require('../config/unified-config.cjs');
 
 class PluginManager {

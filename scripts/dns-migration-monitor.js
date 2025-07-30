@@ -1,10 +1,16 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 const https = require('https');
 const dns = require('dns');
-const { promisify } = require('util');
-const fs = require('fs');
-const _path = require('path');
+const { promisify } = require('node:util');
+const fs = require('node:fs');
+const _path = require('node:path');
 
 const resolveTxt = promisify(dns.resolveTxt);
 const resolveA = promisify(dns.resolve4);

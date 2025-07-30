@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/index.js';
@@ -20,7 +26,7 @@ export async function connectDatabase() {
     logger.error('❌ MongoDB connection failed:', error);
     // Don't exit in development
     if (config.nodeEnv !== 'development') {
-      throw error;
+      throw new Error(error);
     }
   }
 }

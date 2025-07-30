@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 /**
  * 🧜‍♀️ RinaWarp Terminal - User Data Backup Script
@@ -81,7 +87,7 @@ class UserDataBackup {
 
     } catch (error) {
       this.log(`❌ Backup failed: ${error.message}`, 'error');
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -578,7 +584,7 @@ class UserDataBackup {
     // Verify manifest exists
     const manifestPath = path.join(this.backupDir, 'manifest.json');
     if (!fs.existsSync(manifestPath)) {
-      throw new Error('Backup manifest not found');
+      throw new Error(new Error('Backup manifest not found'));
     }
 
     // Verify critical files exist

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal Agent Mode Integration
  * Integrates Agent Mode with the existing terminal system
@@ -441,7 +447,7 @@ Quick start: 'rina help me with...' for immediate assistance.
 
   async executeWithAgent(command, explanation = '') {
     if (!this.isAgentActive()) {
-      throw new Error('Agent Mode is not active');
+      throw new Error(new Error('Agent Mode is not active'));
     }
 
     const message = explanation

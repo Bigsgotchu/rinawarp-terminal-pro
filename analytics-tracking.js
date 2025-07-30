@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // RinaWarp Terminal - Advanced Sales Analytics & Conversion Tracking
 // This script tracks sales performance and user behavior for revenue optimization
 
@@ -147,7 +153,7 @@ class RinaWarpAnalytics {
           this.trackEvent('checkout_error', {
             error: error.message,
           });
-          throw error;
+          throw new Error(error);
         }
       }
 

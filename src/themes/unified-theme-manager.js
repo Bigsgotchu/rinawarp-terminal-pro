@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Unified Theme Manager for RinaWarp Terminal
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -639,7 +645,7 @@ class UnifiedThemeManager {
       const theme = typeof themeData === 'string' ? JSON.parse(themeData) : themeData;
 
       if (!theme.id || !theme.name || !theme.colors) {
-        throw new Error('Invalid theme format');
+        throw new Error(new Error('Invalid theme format'));
       }
 
       this.themes[theme.id] = theme;

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Advanced Threat Detection System
  * Automated response system with pattern matching, persistent blocking, and alerting
@@ -549,7 +555,7 @@ class ThreatDetector {
     });
 
     if (!response.ok) {
-      throw new Error(`Webhook request failed: ${response.status}`);
+      throw new Error(new Error(`Webhook request failed: ${response.status}`));
     }
   }
 

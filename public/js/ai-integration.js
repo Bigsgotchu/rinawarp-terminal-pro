@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 9 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - AI Integration for Browser Environment
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -72,7 +78,7 @@ class AIIntegration {
     } catch (error) {
       console.error('❌ Failed to initialize AI Integration system:', error);
       this.isInitialized = false;
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -105,7 +111,7 @@ class AIIntegration {
         this.connectionType = 'websocket';
         console.log('🌊 WebSocket connection established');
       } else {
-        throw new Error('WebSocket endpoint not configured');
+        throw new Error(new Error('WebSocket endpoint not configured'));
       }
     } catch (error) {
       console.warn('⚠️ WebSocket connection failed, using REST API:', error.message);
@@ -116,7 +122,7 @@ class AIIntegration {
         await this.testRestConnection();
         console.log('🌊 REST API connection established');
       } else {
-        throw new Error('No server endpoints configured');
+        throw new Error(new Error('No server endpoints configured'));
       }
     }
   }
@@ -166,12 +172,12 @@ class AIIntegration {
     });
     
     if (!response.ok) {
-      throw new Error(`REST API health check failed: ${response.status}`);
+      throw new Error(new Error(`REST API health check failed: ${response.status}`));
     }
     
     const data = await response.json();
     if (data.status !== 'ok') {
-      throw new Error('REST API is not healthy');
+      throw new Error(new Error('REST API is not healthy'));
     }
   }
 
@@ -243,7 +249,7 @@ class AIIntegration {
         };
         
       default:
-        throw new Error(`Unknown provider type: ${type}`);
+        throw new Error(new Error(`Unknown provider type: ${type}`));
     }
   }
 
@@ -327,7 +333,7 @@ class AIIntegration {
         return await this.tryFallbackResponse(query, enhancedContext);
       }
 
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -426,7 +432,7 @@ class AIIntegration {
     });
 
     if (!response.ok) {
-      throw new Error(`REST request failed: ${response.status} ${response.statusText}`);
+      throw new Error(new Error(`REST request failed: ${response.status} ${response.statusText}`));
     }
 
     return await response.json();
@@ -719,7 +725,7 @@ class AIIntegration {
       }
     }
 
-    throw lastError;
+    throw new Error(lastError);
   }
 
   // Utility methods
