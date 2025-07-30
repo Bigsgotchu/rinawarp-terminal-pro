@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 11 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import monitoringConfig from './config/gcp-monitoring-config.js';
 
 /**
@@ -101,7 +107,7 @@ class AlertManager {
   async createAlertPolicy(alertConfig) {
     try {
       if (!this.isInitialized) {
-        throw new Error('Alert manager not initialized');
+        throw new Error(new Error('Alert manager not initialized'));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -158,7 +164,7 @@ class AlertManager {
         return null;
       }
       console.error('❌ Error creating alert policy:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -168,7 +174,7 @@ class AlertManager {
   async createNotificationChannel(channelConfig) {
     try {
       if (!this.isInitialized) {
-        throw new Error('Alert manager not initialized');
+        throw new Error(new Error('Alert manager not initialized'));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -195,7 +201,7 @@ class AlertManager {
       return channel;
     } catch (error) {
       console.error('❌ Error creating notification channel:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -206,7 +212,7 @@ class AlertManager {
     try {
       const policy = this.alertPolicies.get(policyName);
       if (!policy) {
-        throw new Error(`Alert policy ${policyName} not found`);
+        throw new Error(new Error(`Alert policy ${policyName} not found`));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -215,7 +221,7 @@ class AlertManager {
       const notificationChannels = notificationChannelNames.map(name => {
         const channel = this.notificationChannels.get(name);
         if (!channel) {
-          throw new Error(`Notification channel ${name} not found`);
+          throw new Error(new Error(`Notification channel ${name} not found`));
         }
         return channel.name;
       });
@@ -238,7 +244,7 @@ class AlertManager {
       return updated;
     } catch (error) {
       console.error('❌ Error updating alert policy notifications:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -248,7 +254,7 @@ class AlertManager {
   async listAlertPolicies() {
     try {
       if (!this.isInitialized) {
-        throw new Error('Alert manager not initialized');
+        throw new Error(new Error('Alert manager not initialized'));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -270,7 +276,7 @@ class AlertManager {
       }));
     } catch (error) {
       console.error('❌ Error listing alert policies:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -281,7 +287,7 @@ class AlertManager {
     try {
       const policy = this.alertPolicies.get(policyName);
       if (!policy) {
-        throw new Error(`Alert policy ${policyName} not found`);
+        throw new Error(new Error(`Alert policy ${policyName} not found`));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -296,7 +302,7 @@ class AlertManager {
       console.log(`✅ Deleted alert policy: ${policyName}`);
     } catch (error) {
       console.error('❌ Error deleting alert policy:', error.message);
-      throw error;
+      throw new Error(error);
     }
   }
 

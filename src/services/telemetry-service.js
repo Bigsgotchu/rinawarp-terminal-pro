@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Production Telemetry Service
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -346,7 +352,7 @@ class TelemetryService {
 
       console.log(`📊 [App Insights] ${events.length} events sent`);
     } catch (error) {
-      throw new Error(`App Insights error: ${error.message}`);
+      throw new Error(new Error(`App Insights error: ${error.message}`));
     }
   }
 
@@ -427,7 +433,7 @@ class TelemetryService {
 
       console.log(`📊 [Google Analytics] ${gaEvents.length} events sent`);
     } catch (error) {
-      throw new Error(`Google Analytics error: ${error.message}`);
+      throw new Error(new Error(`Google Analytics error: ${error.message}`));
     }
   }
 

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Advanced Project Analyzer
  * Provides deep project understanding, language detection, and intelligent suggestions
@@ -798,7 +804,7 @@
       if (window.electronAPI && window.electronAPI.readFile) {
         return await window.electronAPI.readFile(`${directory}/${filename}`);
       }
-      throw new Error('File reading not available');
+      throw new Error(new Error('File reading not available'));
     }
 
     async countLines(filename, directory) {

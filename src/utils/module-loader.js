@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Module Loading Utility
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -57,7 +63,7 @@ export async function safeImport(modulePath, options = {}) {
           }
           return typeof fallback === 'function' ? fallback() : fallback;
         }
-        throw new ModuleLoadError(`Failed to load module: ${modulePath}`, error);
+        throw new Error(new ModuleLoadError(`Failed to load module: ${modulePath}`, error));
       }
 
       // Wait before retry
@@ -138,7 +144,7 @@ export class ModuleRegistry {
 
     const moduleSpec = this.modules.get(name);
     if (!moduleSpec) {
-      throw new ModuleLoadError(`Module not registered: ${name}`);
+      throw new Error(new ModuleLoadError(`Module not registered: ${name}`));
     }
 
     // Load the module
@@ -151,7 +157,7 @@ export class ModuleRegistry {
       return module;
     } catch (error) {
       this.loading.delete(name);
-      throw error;
+      throw new Error(error);
     }
   }
 

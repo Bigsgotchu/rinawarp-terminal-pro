@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // Terminal Functions Fix - Expose all required functions globally
 
 // Store references to important objects
@@ -59,7 +65,7 @@ window.startVoiceControl = async function () {
       await voiceRecognition.startListening();
       if (statusEl) statusEl.textContent = '🎤 Listening for voice commands...';
     } else {
-      throw new Error('Voice recognition object has no start method');
+      throw new Error(new Error('Voice recognition object has no start method'));
     }
   } catch (error) {
     console.error('Failed to start voice control:', error);

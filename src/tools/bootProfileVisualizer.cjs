@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 /**
  * 🎛️ Boot Profile Visualizer
@@ -9,8 +15,8 @@
 
 const { createFeatureFlags, getFeatureFlags } = require('../core/featureFlags.cjs');
 const EventEmitter = require('events');
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 
 class BootProfileVisualizer extends EventEmitter {
   constructor(options = {}) {
@@ -85,7 +91,7 @@ class BootProfileVisualizer extends EventEmitter {
       
     } catch (error) {
       console.error('❌ Visualizer initialization failed:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

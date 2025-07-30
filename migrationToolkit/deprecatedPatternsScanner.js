@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 /**
  * 🧜‍♀️ RinaWarp Terminal - Deprecated Patterns Scanner
@@ -42,7 +48,7 @@ class DeprecatedPatternsScanner {
       const absolutePath = path.resolve(targetPath);
       
       if (!fs.existsSync(absolutePath)) {
-        throw new Error(`Path does not exist: ${absolutePath}`);
+        throw new Error(new Error(`Path does not exist: ${absolutePath}`));
       }
 
       if (fs.statSync(absolutePath).isDirectory()) {
@@ -59,7 +65,7 @@ class DeprecatedPatternsScanner {
 
     } catch (error) {
       this.log(`❌ Scan failed: ${error.message}`, 'error');
-      throw error;
+      throw new Error(error);
     }
   }
 

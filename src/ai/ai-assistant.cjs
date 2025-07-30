@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * AI Assistant for RinaWarp Terminal
  * Provides intelligent command suggestions, code assistance, and context-aware help
@@ -197,8 +203,8 @@ class AIAssistant {
   updateContext() {
     try {
       // Detect current directory context
-      const fs = require('fs');
-      const path = require('path');
+      const fs = require('node:fs');
+      const path = require('node:path');
 
       // Check for common project files
       const projectFiles = ['package.json', 'requirements.txt', '.git', 'Cargo.toml', 'go.mod'];
@@ -438,7 +444,7 @@ class AIAssistant {
 
     // Update working directory if cd command
     if (cmd === 'cd' && words[1]) {
-      const path = require('path');
+      const path = require('node:path');
       try {
         this.workingDirectory = path.resolve(this.workingDirectory, words[1]);
       } catch (error) {

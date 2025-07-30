@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -9,8 +15,8 @@
  * 4. Creating beta tester instructions
  */
 
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 const { execSync } = require('child_process');
 
 async function prepareBetaRelease() {
@@ -417,8 +423,8 @@ async function createBetaBuildScript() {
 
 // Beta Build Script
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 console.log('🏗️  Building RinaWarp Terminal Beta...');
 

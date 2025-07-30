@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // Payment System Fix - RinaWarp Terminal
 // This script provides fallback mechanisms for payment processing
 
@@ -66,7 +72,7 @@
             
             const betaInfo = betaPriceMap[betaType];
             if (!betaInfo) {
-                throw new Error('Invalid beta type');
+                throw new Error(new Error('Invalid beta type'));
             }
             
             // Try Stripe checkout

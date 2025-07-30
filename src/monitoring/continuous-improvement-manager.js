@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Continuous Improvement Manager
  * Implements automated monitoring, team retrospectives, and reporting processes
@@ -5,8 +11,8 @@
  */
 
 const EventEmitter = require('events');
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 
 class ContinuousImprovementManager extends EventEmitter {
   constructor(config = {}) {
@@ -104,7 +110,7 @@ class ContinuousImprovementManager extends EventEmitter {
         await fs.mkdir(dir, { recursive: true });
       } catch (error) {
         if (error.code !== 'EEXIST') {
-          throw error;
+          throw new Error(error);
         }
       }
     }
@@ -784,7 +790,7 @@ class IncidentTracker {
   async resolveIncident(incidentId, resolution) {
     const incident = this.incidents.get(incidentId);
     if (!incident) {
-      throw new Error('Incident not found');
+      throw new Error(new Error('Incident not found'));
     }
 
     incident.status = 'resolved';

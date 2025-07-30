@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal AI Orchestrator
  * Coordinates all AI components and provides unified intelligent terminal experience
@@ -651,7 +657,7 @@ Let's build something amazing! 🌊
       return await commandIntel.executeCommandEnhanced(command, options);
     }
 
-    throw new Error('Command execution not available');
+    throw new Error(new Error('Command execution not available'));
   }
 
   async analyzeProject(directory) {
@@ -669,7 +675,7 @@ Let's build something amazing! 🌊
       return await debuggerIntegration.startDebugSession(projectType, options);
     }
 
-    throw new Error('Debugging not available');
+    throw new Error(new Error('Debugging not available'));
   }
 
   getCurrentSuggestions() {

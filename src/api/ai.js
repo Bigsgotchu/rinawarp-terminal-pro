@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - AI API Handler
  * Server-side AI request processing with provider management and mermaid personality
@@ -52,7 +58,7 @@ class AIProviderManager {
       console.log(`[AI] Initialized with providers: ${Array.from(this.providers.keys()).join(', ')}`);
     } catch (error) {
       console.error('[AI] Provider initialization failed:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -70,7 +76,7 @@ class AIProviderManager {
       return fallback;
     }
 
-    throw new Error('No AI providers available');
+    throw new Error(new Error('No AI providers available'));
   }
 
   getAvailableProviders() {

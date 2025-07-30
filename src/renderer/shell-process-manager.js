@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * ShellProcessManager - Core Engine for Terminal Process Management
  *
@@ -69,7 +75,7 @@ export class ShellProcessManager {
       this.log('Initializing shell process...', 'info');
 
       if (!window.electronAPI) {
-        throw new Error('Electron API not available - cannot create shell process');
+        throw new Error(new Error('Electron API not available - cannot create shell process'));
       }
 
       // Create shell process
@@ -107,7 +113,7 @@ export class ShellProcessManager {
       return this.sessionId;
     } catch (error) {
       this.handleError('Failed to initialize shell process', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

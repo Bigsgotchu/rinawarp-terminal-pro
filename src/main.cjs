@@ -1,12 +1,18 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Simplified Version (Inspired by Warp's Clean Architecture)
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
 const { app, BrowserWindow, BrowserView, ipcMain, Menu, _dialog } = require('electron');
-const path = require('path');
+const path = require('node:path');
 const os = require('os');
-const fs = require('fs');
+const fs = require('node:fs');
 const { _execSync } = require('child_process');
 const { config } = require('./config/unified-config.cjs');
 const logger = require('./utils/logger.cjs');
@@ -357,7 +363,7 @@ function createWindow() {
     });
   } catch (error) {
     logger.error('❌ Failed to create window:', { error });
-    throw error;
+    throw new Error(error);
   }
 }
 
@@ -1157,7 +1163,7 @@ ipcMain.handle('create-shell-process', async (event, config) => {
     };
   } catch (error) {
     logger.error('Failed to create shell process:', { error });
-    throw error;
+    throw new Error(error);
   }
 });
 

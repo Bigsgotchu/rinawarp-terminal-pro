@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Electron-Compatible Analytics Service
  * Replaces Vercel Analytics with desktop-friendly alternatives
@@ -354,7 +360,7 @@ class ElectronAnalytics extends EventEmitter {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
     }
 
     return response.json();

@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 5 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Global Object Manager
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -113,7 +119,7 @@ class GlobalObjectManager {
       return instance;
     } catch (error) {
       this.initializationPromises.delete(name);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -127,7 +133,7 @@ class GlobalObjectManager {
     }
 
     if (!this.initializers.has(name)) {
-      throw new Error(`Global object '${name}' not registered`);
+      throw new Error(new Error(`Global object '${name}' not registered`));
     }
 
     const config = this.initializers.get(name);
@@ -176,7 +182,7 @@ class GlobalObjectManager {
         error: error.message,
         stack: error.stack,
       });
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -302,7 +308,7 @@ class GlobalObjectManager {
         error: error.message,
         stack: error.stack,
       });
-      throw error;
+      throw new Error(error);
     } finally {
       this.isInitializing = false;
     }
@@ -319,7 +325,7 @@ class GlobalObjectManager {
 
     const visit = name => {
       if (visiting.has(name)) {
-        throw new Error(`Circular dependency detected involving: ${name}`);
+        throw new Error(new Error(`Circular dependency detected involving: ${name}`));
       }
       if (visited.has(name)) {
         return;

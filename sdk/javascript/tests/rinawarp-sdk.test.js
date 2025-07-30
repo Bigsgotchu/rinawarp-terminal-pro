@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 const { RinaWarpSDK, RinaWarpError } = require('../src/rinawarp-sdk');
 const fetchMock = require('jest-fetch-mock');
 
@@ -42,8 +48,8 @@ describe('RinaWarpSDK', () => {
       expect(sdk.config.retries).toBe(mockConfig.retries);
     });
 
-    it('should throw error if no API key provided', () => {
-      expect(() => new RinaWarpSDK({})).toThrow('API key is required');
+    it('should throw new Error(error if no API key provided', () => {
+      expect(() => new RinaWarpSDK({})).toThrow('API key is required'));
     });
 
     it('should use default values for optional config', () => {

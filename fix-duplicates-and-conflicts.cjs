@@ -1,7 +1,13 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const { execSync } = require('child_process');
 
 console.log('🔧 RinaWarp Duplicate and Conflict Cleanup Script');
@@ -291,7 +297,7 @@ async function consolidateEmailTemplates() {
       const filePath = path.join(templateDir, template);
       try {
         const content = fs.readFileSync(filePath, 'utf8');
-        const contentHash = require('crypto').createHash('md5').update(content).digest('hex');
+        const contentHash = require('node:crypto').createHash('md5').update(content).digest('hex');
                 
         if (templateContents.has(contentHash)) {
           log(`Duplicate content found: ${template} matches ${templateContents.get(contentHash)}`, 'warning');

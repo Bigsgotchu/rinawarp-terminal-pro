@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Advanced Git Integration System
  * Provides visual diff, branch management, and intelligent git suggestions
@@ -424,7 +430,7 @@
         return await window.electronAPI.executeCommand(command, { cwd });
       }
 
-      throw new Error('Command execution not available');
+      throw new Error(new Error('Command execution not available'));
     }
 
     /**
@@ -682,7 +688,7 @@
         const command = `git ${args.join(' ')}`;
         return await window.electronAPI.executeCommand(command, { cwd });
       }
-      throw new Error('Command execution not available');
+      throw new Error(new Error('Command execution not available'));
     }
   }
 

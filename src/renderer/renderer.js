@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 25 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Main Renderer Process
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -21,8 +27,8 @@ let _Terminal, _FitAddon, _WebLinksAddon;
 // Node.js modules are accessed through electronAPI context bridge
 // const { spawn } = require('child_process'); // Only available in main process
 // const os = require('os'); // Only available in main process
-// const path = require('path'); // Only available in main process
-// const fs = require('fs'); // Only available in main process
+// const path = require('node:path'); // Only available in main process
+// const fs = require('node:fs'); // Only available in main process
 
 // Access node modules through electronAPI
 const path = window.electronAPI?.path || { join: (...args) => args.join('/') };
@@ -1445,7 +1451,7 @@ class CloudSyncManager {
 
   async connect(provider, credentials) {
     if (!this.providers[provider]) {
-      throw new Error(`Unknown sync provider: ${provider}`);
+      throw new Error(new Error(`Unknown sync provider: ${provider}`));
     }
 
     try {
@@ -1455,17 +1461,17 @@ class CloudSyncManager {
       return true;
     } catch (error) {
       this.syncStatus = 'error';
-      throw error;
+      throw new Error(error);
     }
   }
 
   async syncUp() {
     if (!this.currentProvider || this.syncStatus !== 'connected') {
-      throw new Error('Not connected to sync provider');
+      throw new Error(new Error('Not connected to sync provider'));
     }
 
     const manager = window.terminalManager;
-    if (!manager) throw new Error('Terminal manager not available');
+    if (!manager) throw new Error(new Error('Terminal manager not available'));
 
     const syncData = {
       version: '1.0',
@@ -1484,13 +1490,13 @@ class CloudSyncManager {
       return true;
     } catch (error) {
       this.syncStatus = 'error';
-      throw error;
+      throw new Error(error);
     }
   }
 
   async syncDown() {
     if (!this.currentProvider || this.syncStatus !== 'connected') {
-      throw new Error('Not connected to sync provider');
+      throw new Error(new Error('Not connected to sync provider'));
     }
 
     try {
@@ -1525,7 +1531,7 @@ class CloudSyncManager {
       return true;
     } catch (error) {
       this.syncStatus = 'error';
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -1582,7 +1588,7 @@ class GitHubSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to connect to GitHub repository');
+      throw new Error(new Error('Failed to connect to GitHub repository'));
     }
   }
 
@@ -1635,7 +1641,7 @@ class GitHubSyncProvider {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to upload sync data to GitHub');
+      throw new Error(new Error('Failed to upload sync data to GitHub'));
     }
   }
 
@@ -1654,7 +1660,7 @@ class GitHubSyncProvider {
       if (response.status === 404) {
         return null; // File doesn't exist
       }
-      throw new Error('Failed to download sync data from GitHub');
+      throw new Error(new Error('Failed to download sync data from GitHub'));
     }
 
     const fileData = await response.json();
@@ -1683,7 +1689,7 @@ class DropboxSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to connect to Dropbox');
+      throw new Error(new Error('Failed to connect to Dropbox'));
     }
   }
 
@@ -1704,7 +1710,7 @@ class DropboxSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to upload sync data to Dropbox');
+      throw new Error(new Error('Failed to upload sync data to Dropbox'));
     }
   }
 
@@ -1723,7 +1729,7 @@ class DropboxSyncProvider {
       if (response.status === 409) {
         return null; // File doesn't exist
       }
-      throw new Error('Failed to download sync data from Dropbox');
+      throw new Error(new Error('Failed to download sync data from Dropbox'));
     }
 
     const content = await response.text();
@@ -1750,7 +1756,7 @@ class CustomSyncProvider {
 
     // Accept any response that doesn't indicate a connection error
     if (response.status >= 500) {
-      throw new Error('Failed to connect to custom sync endpoint');
+      throw new Error(new Error('Failed to connect to custom sync endpoint'));
     }
   }
 
@@ -1765,7 +1771,7 @@ class CustomSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to upload sync data to custom endpoint');
+      throw new Error(new Error('Failed to upload sync data to custom endpoint'));
     }
   }
 
@@ -1779,7 +1785,7 @@ class CustomSyncProvider {
       if (response.status === 404) {
         return null; // No data available
       }
-      throw new Error('Failed to download sync data from custom endpoint');
+      throw new Error(new Error('Failed to download sync data from custom endpoint'));
     }
 
     return await response.json();
@@ -2093,7 +2099,7 @@ class PluginAPI {
       const fs = await import('fs/promises');
       return await fs.readFile(filepath, 'utf8');
     } catch (error) {
-      throw new Error(`Failed to read file: ${error.message}`);
+      throw new Error(new Error(`Failed to read file: ${error.message}`));
     }
   }
 
@@ -2102,7 +2108,7 @@ class PluginAPI {
       const fs = await import('fs/promises');
       await fs.writeFile(filepath, content, 'utf8');
     } catch (error) {
-      throw new Error(`Failed to write file: ${error.message}`);
+      throw new Error(new Error(`Failed to write file: ${error.message}`));
     }
   }
 
@@ -2143,7 +2149,7 @@ class PluginAPI {
     try {
       return await fetch(url, options);
     } catch (error) {
-      throw new Error(`HTTP request failed: ${error.message}`);
+      throw new Error(new Error(`HTTP request failed: ${error.message}`));
     }
   }
 
@@ -3737,7 +3743,7 @@ class TerminalManager extends SimpleEventEmitter {
         shellProcess = await electronAPI.createShellProcess(shellConfig);
 
         if (!shellProcess) {
-          throw new Error('Failed to create shell process via IPC');
+          throw new Error(new Error('Failed to create shell process via IPC'));
         }
 
         console.log(`Shell process started via IPC: ${shell} with ID ${shellProcess.id}`);
@@ -3759,7 +3765,7 @@ class TerminalManager extends SimpleEventEmitter {
             shellProcess = await electronAPI.createShellProcess(fallbackShellConfig);
 
             if (!shellProcess) {
-              throw new Error('Failed to create fallback shell process via IPC');
+              throw new Error(new Error('Failed to create fallback shell process via IPC'));
             }
 
             console.log(`Fallback shell started via IPC: ${shell} with ID ${shellProcess.id}`);
@@ -3885,7 +3891,7 @@ class TerminalManager extends SimpleEventEmitter {
       }, 100);
     } catch (error) {
       console.error('Terminal creation error:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -5233,7 +5239,7 @@ class AdvancedGitIntegration {
   async executeWorkflow(workflowName, parameters = {}) {
     const workflow = this.workflowTemplates[workflowName];
     if (!workflow) {
-      throw new Error(`Unknown workflow: ${workflowName}`);
+      throw new Error(new Error(`Unknown workflow: ${workflowName}`));
     }
 
     const commands = workflow.map(cmd => {

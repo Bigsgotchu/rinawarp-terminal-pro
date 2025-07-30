@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal - Plugin System Integration
  * Integrates the comprehensive plugin system with the main terminal
@@ -75,7 +81,7 @@ export class RinaWarpPluginIntegration {
       return true;
     } catch (error) {
       console.error('❌ Plugin System initialization failed:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

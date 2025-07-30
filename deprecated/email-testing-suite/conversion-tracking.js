@@ -1,11 +1,17 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Beta Sign-up Conversion Tracking System
  * Tracks conversions, integrates with analytics, and provides real-time notifications
  */
 
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
 const axios = require('axios');
 
 class ConversionTracker {

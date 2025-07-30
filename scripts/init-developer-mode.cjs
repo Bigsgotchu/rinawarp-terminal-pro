@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 #!/usr/bin/env node
 
 /**
@@ -5,8 +11,8 @@
  * This script permanently sets up the terminal in developer mode with all features unlocked.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const os = require('os');
 
 console.log('🔧 Initializing RinaWarp Terminal Developer Mode...');

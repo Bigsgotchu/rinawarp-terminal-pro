@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // Security Dashboard JavaScript - CSP Compliant Version
 let refreshInterval;
 
@@ -95,7 +101,7 @@ async function loadSecurityStats() {
         const data = await response.json();
         
         if (!data.success) {
-            throw new Error(data.error || 'Failed to load stats');
+            throw new Error(new Error(data.error || 'Failed to load stats'));
         }
         
         const stats = data.stats;
@@ -132,7 +138,7 @@ async function loadBlockedIPs() {
         const data = await response.json();
         
         if (!data.success) {
-            throw new Error(data.error || 'Failed to load blocked IPs');
+            throw new Error(new Error(data.error || 'Failed to load blocked IPs'));
         }
         
         const blockedIPs = data.blockedIPs || [];
@@ -166,7 +172,7 @@ async function loadSuspiciousActivity() {
         const data = await response.json();
         
         if (!data.success) {
-            throw new Error(data.error || 'Failed to load suspicious activity');
+            throw new Error(new Error(data.error || 'Failed to load suspicious activity'));
         }
         
         const activities = data.activities || [];

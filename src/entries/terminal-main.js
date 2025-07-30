@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 4 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Terminal Main Entry Point
  * Consolidated entry point that dynamically loads terminal features
@@ -38,7 +44,7 @@ class FeatureLoader {
     } catch (error) {
       this.loadingPromises.delete(featureName);
       console.error(`Failed to load feature ${featureName}:`, error);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -53,7 +59,7 @@ class FeatureLoader {
     case 'plugin-system':
       return import(/* webpackChunkName: "plugin-system" */ './plugin-system.js');
     default:
-      throw new Error(`Unknown feature: ${featureName}`);
+      throw new Error(new Error(`Unknown feature: ${featureName}`));
     }
   }
 
@@ -126,7 +132,7 @@ class RinaWarpEnhancedTerminal extends RinaWarpTerminal {
     } catch (error) {
       this.hideLoadingIndicator();
       this.writeError(`❌ Failed to load ${featureName}: ${error.message}`);
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -248,7 +254,7 @@ class RinaWarpApp {
     } catch (error) {
       console.error('Failed to initialize RinaWarp Terminal:', error);
       this.handleInitializationError(error);
-      throw error;
+      throw new Error(error);
     }
   }
 

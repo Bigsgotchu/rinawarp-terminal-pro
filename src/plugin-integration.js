@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal Plugin Integration
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -119,7 +125,7 @@ export class TerminalPluginManager {
       return results;
     } catch (error) {
       console.error('❌ Plugin system initialization failed:', error);
-      throw error;
+      throw new Error(error);
     }
   }
 

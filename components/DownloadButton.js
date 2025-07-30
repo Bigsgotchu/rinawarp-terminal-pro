@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 import { useState } from 'react';
 import styles from './DownloadButton.module.css';
 
@@ -14,7 +20,7 @@ export default function DownloadButton({ fileName = 'rinawarp.zip' }) {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Download failed');
+        throw new Error(new Error(error.message || 'Download failed'));
       }
 
       const blob = await response.blob();

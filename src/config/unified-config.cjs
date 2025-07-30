@@ -1,10 +1,16 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Unified Configuration System - Inspired by Warp's Simplicity
  * Consolidates all configuration to prevent AppData/project conflicts
  */
 
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 const os = require('os');
 
 const logger = require('../utils/logger.cjs');

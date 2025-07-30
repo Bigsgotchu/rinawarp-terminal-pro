@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 3 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * RinaWarp Terminal Boot Tracer
  * Comprehensive terminal initialization sequencing with debug visuals
@@ -72,7 +78,7 @@ export class BootTracer {
       // Step 4: Validate container exists
       const containerValid = await this.validateContainer(tabId);
       if (!containerValid) {
-        throw new Error(`Terminal container 'terminal-tab-${tabId}' not found`);
+        throw new Error(new Error(`Terminal container 'terminal-tab-${tabId}' not found`));
       }
             
       // Step 5: Initialize terminal
@@ -103,7 +109,7 @@ export class BootTracer {
         document.body.style.border = '4px solid #ff6b6b';
       }
             
-      throw error;
+      throw new Error(error);
     }
   }
 
@@ -225,7 +231,7 @@ export class BootTracer {
     this.log('⏳ Creating terminal instance...', 'info');
         
     if (!terminalConstructor || typeof terminalConstructor !== 'function') {
-      throw new Error('Terminal constructor function not provided');
+      throw new Error(new Error('Terminal constructor function not provided'));
     }
         
     const container = document.getElementById(`terminal-tab-${tabId}`);

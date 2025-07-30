@@ -1,11 +1,17 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 2 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Enhanced Terminal Features for RinaWarp Terminal
  * Adds improved functionality while maintaining core stability
  */
 
 const { _spawn } = require('child_process');
-const _path = require('path');
-const _fs = require('fs');
+const _path = require('node:path');
+const _fs = require('node:fs');
 const config = require('../config/unified-config.cjs');
 
 class EnhancedTerminal {

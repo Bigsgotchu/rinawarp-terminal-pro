@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 // tests/integration/fallback-behavior.test.js
 
 require('../setup/voice-mocks.js');
@@ -136,7 +142,7 @@ describe('Voice Fallback Behavior', () => {
       }
     });
 
-    // Should not throw even if everything fails
+    // Should not throw an error even if everything fails
     await expect(voiceProvider.speak('Total failure test')).resolves.not.toThrow();
     
     // Log telemetry
