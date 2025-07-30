@@ -12,9 +12,9 @@
     "ci": { "section": "CI/CD", "hidden": false },
     "revert": { "section": "Reverts", "hidden": false }
   },
-  "commitUrlFormat": "https://github.com/Bigsgotchu/rinawarp-terminal/commit/{{hash}}",
-  "compareUrlFormat": "https://github.com/Bigsgotchu/rinawarp-terminal/compare/{{previousTag}}...{{currentTag}}",
-  "issueUrlFormat": "https://github.com/Bigsgotchu/rinawarp-terminal/issues/{{id}}",
+  "commitUrlFormat": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/Rinawarp-Terminal/rinawarp-terminal/issues/{{id}}",
   "userUrlFormat": "https://github.com/{{user}}",
   "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
   "issuePrefixes": ["#"],
