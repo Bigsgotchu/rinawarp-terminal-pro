@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import Joi from 'joi';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import smtpService from '../utils/smtp.js';
+import { generateToken } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -91,6 +92,46 @@ const VALID_LICENSES = {
     ],
   },
 };
+
+/**
+ * POST /api/auth/generate-token
+ * Generate JWT token for testing purposes
+ */
+router.post(
+  '/generate-token',
+  validate(
+    Joi.object({
+      userId: Joi.string().required(),
+      email: Joi.string().email().required(),
+      role: Joi.string().valid('USER', 'ADMIN', 'SUPER_ADMIN').default('USER'),
+      permissions: Joi.array().items(Joi.string()).default([]),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const { userId, email, role, permissions } = req.body;
+
+    console.log(`[AUTH] Generating token for user: ${email} with role: ${role}`);
+
+    const token = generateToken({
+      userId,
+      email,
+      role,
+      permissions,
+    });
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        userId,
+        email,
+        role,
+        permissions,
+      },
+      expiresIn: '24h',
+    });
+  })
+);
 
 /**
  * POST /api/auth/validate-license

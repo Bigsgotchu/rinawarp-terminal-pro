@@ -90,6 +90,7 @@ class ThreatDetector {
 
       // Whitelisted IP ranges and patterns
       whitelistedIPs: [
+        '136.36.239.142', // Your development IP
         // Cloudflare IP ranges (commonly used by Railway/CDNs)
         /^162\.158\./,
         /^172\.70\./,
@@ -248,7 +249,17 @@ class ThreatDetector {
     const categories = new Set();
 
     // Check if IP is whitelisted
-    if (this.isWhitelisted(ip) || this.config.whitelistedIPs.some(pattern => pattern.test(ip))) {
+    if (
+      this.isWhitelisted(ip) ||
+      this.config.whitelistedIPs.some(pattern => {
+        if (typeof pattern === 'string') {
+          return pattern === ip;
+        } else if (pattern instanceof RegExp) {
+          return pattern.test(ip);
+        }
+        return false;
+      })
+    ) {
       return 0; // Skip all threat analysis for whitelisted IPs
     }
 
@@ -442,10 +453,10 @@ class ThreatDetector {
       blockReason,
       activity: activity
         ? {
-          totalAttempts: activity.attempts.length,
-          firstSeen: new Date(activity.firstSeen),
-          recentUrls: activity.attempts.slice(-5).map(a => a.url),
-        }
+            totalAttempts: activity.attempts.length,
+            firstSeen: new Date(activity.firstSeen),
+            recentUrls: activity.attempts.slice(-5).map(a => a.url),
+          }
         : null,
     });
   }
