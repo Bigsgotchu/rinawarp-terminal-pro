@@ -29,11 +29,13 @@ async function monitorCSPViolations() {
       const count = (violationSummary.get(key) || 0) + 1;
       violationSummary.set(key, count);
 
+      console.log(
         `\n🚨 CSP Violation #${count} [${new Date(entry.timestamp).toLocaleTimeString()}]`
       );
       console.log(`❌ Blocked: ${report['blocked-uri'] || 'inline'}`);
 
       if (report['line-number']) {
+        console.log(
           `📍 Location: Line ${report['line-number']}, Column ${report['column-number']}`
         );
       }
@@ -105,7 +107,8 @@ async function monitorCSPViolations() {
       console.log('✅ No CSP violations detected!');
     } else {
       violationSummary.forEach((count, key) => {
-        const [directive, uri] = key.split('|');
+        const [_directive, _uri] = key.split('|');
+        console.log(`📊 ${key}: ${count} violations`);
       });
     }
 
