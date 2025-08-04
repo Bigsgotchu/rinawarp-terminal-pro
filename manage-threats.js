@@ -14,48 +14,49 @@ const [, , command, ...args] = process.argv;
 
 async function main() {
   switch (command) {
-  case 'stats':
-    showStats();
-    break;
+    case 'stats':
+      showStats();
+      break;
 
-  case 'block':
-    if (args.length < 2) {
-      process.exit(1);
-    }
-    blockIP(args[0], args[1], args[2] ? parseInt(args[2]) : 1);
-    break;
+    case 'block':
+      if (args.length < 2) {
+        process.exit(1);
+      }
+      blockIP(args[0], args[1], args[2] ? parseInt(args[2]) : 1);
+      break;
 
-  case 'unblock':
-    if (args.length < 1) {
-      process.exit(1);
-    }
-    unblockIP(args[0]);
-    break;
+    case 'unblock':
+      if (args.length < 1) {
+        process.exit(1);
+      }
+      unblockIP(args[0]);
+      break;
 
-  case 'list':
-    listBlockedIPs();
-    break;
+    case 'list':
+      listBlockedIPs();
+      break;
 
-  case 'whitelist':
-    if (args.length < 1) {
-      process.exit(1);
-    }
-    addToWhitelist(args[0]);
-    break;
+    case 'whitelist':
+      if (args.length < 1) {
+        process.exit(1);
+      }
+      addToWhitelist(args[0]);
+      break;
 
-  case 'test':
-    if (args.length < 1) {
-        'Example: node manage-threats.js test "/wp-admin/setup-config.php" "curl/7.68.0"'
-      );
-      process.exit(1);
-    }
-    testThreatDetection(args[0], args[1] || 'test-agent');
-    break;
+    case 'test':
+      if (args.length < 1) {
+        console.log(
+          'Example: node manage-threats.js test "/wp-admin/setup-config.php" "curl/7.68.0"'
+        );
+        process.exit(1);
+      }
+      testThreatDetection(args[0], args[1] || 'test-agent');
+      break;
 
-  case 'help':
-  default:
-    showHelp();
-    break;
+    case 'help':
+    default:
+      showHelp();
+      break;
   }
 }
 
@@ -103,7 +104,6 @@ function listBlockedIPs() {
     if (blockInfo.expiresAt > now) {
       const expiresIn = Math.round((blockInfo.expiresAt - now) / (60 * 60 * 1000));
       const blockedAt = new Date(blockInfo.blockedAt).toLocaleString();
-
 
       activeBlocks++;
     }
