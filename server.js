@@ -294,17 +294,17 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   // Test strict CSP without breaking functionality
   const strictCSP = [
-    'default-src \'self\'',
-    'script-src \'self\' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com',
-    'style-src \'self\' \'unsafe-inline\'', // Allow unsafe-inline for styles
-    'img-src \'self\' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com',
-    'font-src \'self\' data: https://fonts.gstatic.com',
-    'connect-src \'self\' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app',
-    'object-src \'none\'',
-    'base-uri \'self\'',
-    'frame-src \'self\' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com',
-    'form-action \'self\' https://checkout.stripe.com',
-    'frame-ancestors \'none\'',
+    "default-src 'self'",
+    "script-src 'self' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
+    "style-src 'self' 'unsafe-inline'", // Allow unsafe-inline for styles
+    "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
+    "form-action 'self' https://checkout.stripe.com",
+    "frame-ancestors 'none'",
     'upgrade-insecure-requests',
     'report-uri /api/csp-report',
   ].join('; ');
@@ -318,9 +318,9 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ['\'self\''],
+        defaultSrc: ["'self'"],
         scriptSrc: [
-          '\'self\'',
+          "'self'",
           'https://js.stripe.com',
           'https://checkout.stripe.com',
           'https://www.googletagmanager.com',
@@ -328,9 +328,9 @@ app.use(
           'https://analytics.google.com',
           // No nonce needed - all scripts are external now
         ],
-        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         imgSrc: [
-          '\'self\'',
+          "'self'",
           'data:',
           'https:',
           'blob:',
@@ -338,9 +338,9 @@ app.use(
           'https://www.googletagmanager.com',
           'https://*.stripe.com',
         ],
-        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
+        fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         connectSrc: [
-          '\'self\'',
+          "'self'",
           'wss:',
           'ws:',
           'https://api.stripe.com',
@@ -350,16 +350,16 @@ app.use(
           'https://www.googletagmanager.com',
           'https://*.railway.app',
         ],
-        objectSrc: ['\'none\''],
-        baseUri: ['\'self\''],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
         frameSrc: [
-          '\'self\'',
+          "'self'",
           'https://js.stripe.com',
           'https://checkout.stripe.com',
           'https://hooks.stripe.com',
         ],
-        formAction: ['\'self\'', 'https://checkout.stripe.com'],
-        frameAncestors: ['\'none\''],
+        formAction: ["'self'", 'https://checkout.stripe.com'],
+        frameAncestors: ["'none'"],
         upgradeInsecureRequests: [],
       },
     },
@@ -1319,26 +1319,26 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed': {
-    const session = event.data.object;
-    console.log('💰 Payment successful:', session.id);
-    handlePaymentSuccess(session);
-    break;
-  }
-  case 'customer.subscription.created':
-    handleSubscriptionCreated(event.data.object);
-    break;
-  case 'customer.subscription.updated':
-    handleSubscriptionUpdated(event.data.object);
-    break;
-  case 'customer.subscription.deleted':
-    console.log('❌ Subscription cancelled:', event.data.object.id);
-    handleSubscriptionCancelled(event.data.object);
-    break;
-  case 'invoice.payment_succeeded':
-    handleInvoicePayment(event.data.object);
-    break;
-  default:
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      console.log('💰 Payment successful:', session.id);
+      handlePaymentSuccess(session);
+      break;
+    }
+    case 'customer.subscription.created':
+      handleSubscriptionCreated(event.data.object);
+      break;
+    case 'customer.subscription.updated':
+      handleSubscriptionUpdated(event.data.object);
+      break;
+    case 'customer.subscription.deleted':
+      console.log('❌ Subscription cancelled:', event.data.object.id);
+      handleSubscriptionCancelled(event.data.object);
+      break;
+    case 'invoice.payment_succeeded':
+      handleInvoicePayment(event.data.object);
+      break;
+    default:
   }
 
   res.json({ received: true });
@@ -1357,19 +1357,19 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed':
-    const session = event.data.object;
-    handlePaymentSuccess(session);
-    break;
-  case 'invoice.payment_succeeded':
-    const invoice = event.data.object;
-    handleInvoicePayment(invoice);
-    break;
-  case 'customer.subscription.deleted':
-    const subscription = event.data.object;
-    handleSubscriptionCancelled(subscription);
-    break;
-  default:
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      handlePaymentSuccess(session);
+      break;
+    case 'invoice.payment_succeeded':
+      const invoice = event.data.object;
+      handleInvoicePayment(invoice);
+      break;
+    case 'customer.subscription.deleted':
+      const subscription = event.data.object;
+      handleSubscriptionCancelled(subscription);
+      break;
+    default:
   }
 
   res.json({ received: true });
@@ -1416,7 +1416,7 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
       success: true,
       message: 'Thank you! Check your email for your free guide.',
       email,
-    }));
+    });
   } catch (error) {
     console.error('❌ Error in lead capture endpoint:', error);
     console.error('Error type:', error.constructor.name);
@@ -1439,6 +1439,7 @@ async function sendLeadMagnetEmail(email) {
     process.env.SMTP_USER ||
     'noreply@rinawarp.com';
 
+  console.log('📧 Sending lead magnet email:', {
     fromEmail,
     toEmail: email,
     transporterType: transporter.constructor.name,
@@ -1668,13 +1669,14 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
   }
 }
 
-function saveLicenseToDatabase(_licenseData) {
+function saveLicenseToDatabase(licenseData) {
   // Database storage logic would go here
-  db.licenses.create(licenseData).then(() => {
-    console.log('✅ License successfully saved to database');
-  }).catch(error => {
-    console.error('❌ Error saving license to database:', error);
-  });
+  // db.licenses.create(licenseData).then(() => {
+  //   console.log('✅ License successfully saved to database');
+  // }).catch(error => {
+  //   console.error('❌ Error saving license to database:', error);
+  // });
+  console.log('📝 License data to be saved:', licenseData);
 }
 
 async function handlePaymentSuccess(session) {
@@ -1781,18 +1783,19 @@ async function handleSubscriptionUpdated(subscription) {
   }
 }
 
-async function handleSubscriptionCancelled(_subscription) {
+async function handleSubscriptionCancelled(subscription) {
   try {
     // Deactivate associated license
-  db.licenses.update({
-    status: 'inactive'
-  }, {
-    where: { subscriptionId: subscription.id }
-  }).then(() => {
-    console.log('✅ License status updated to inactive in database');
-  }).catch(error => {
-    console.error('❌ Error updating license status in database:', error);
-  });
+    // db.licenses.update({
+    //   status: 'inactive'
+    // }, {
+    //   where: { subscriptionId: subscription.id }
+    // }).then(() => {
+    //   console.log('✅ License status updated to inactive in database');
+    // }).catch(error => {
+    //   console.error('❌ Error updating license status in database:', error);
+    // });
+    console.log('📝 Subscription cancelled:', subscription.id);
   } catch (error) {
     console.error('❌ Error processing subscription cancellation:', error);
   }
@@ -2418,6 +2421,7 @@ app.post(
       const price = await stripe.prices.retrieve(priceId);
       const mode = price.recurring ? 'subscription' : 'payment';
 
+      console.log(
         `💡 Price ${priceId} is ${price.recurring ? 'recurring' : 'one-time'}, using mode: ${mode}`
       );
 
@@ -2679,28 +2683,36 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  const bootTime = Date.now() - startTime;
+  const _bootTime = Date.now() - startTime;
+  console.log(
     '- STRIPE_PUBLISHABLE_KEY:',
     process.env.STRIPE_PUBLISHABLE_KEY ? '✅ Set' : '❌ Missing'
   );
+  console.log(
     '- STRIPE_PRICE_PERSONAL_MONTHLY:',
     process.env.STRIPE_PRICE_PERSONAL_MONTHLY ? '✅ Set' : '❌ Missing'
   );
+  console.log(
     '- STRIPE_PRICE_PERSONAL_YEARLY:',
     process.env.STRIPE_PRICE_PERSONAL_YEARLY ? '✅ Set' : '❌ Missing'
   );
+  console.log(
     '- STRIPE_PRICE_PROFESSIONAL_MONTHLY:',
     process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY ? '✅ Set' : '❌ Missing'
   );
+  console.log(
     '- STRIPE_PRICE_PROFESSIONAL_YEARLY:',
     process.env.STRIPE_PRICE_PROFESSIONAL_YEARLY ? '✅ Set' : '❌ Missing'
   );
+  console.log(
     '- STRIPE_PRICE_TEAM_MONTHLY:',
     process.env.STRIPE_PRICE_TEAM_MONTHLY ? '✅ Set' : '❌ Missing'
   );
+  console.log(
     '- STRIPE_PRICE_TEAM_YEARLY:',
     process.env.STRIPE_PRICE_TEAM_YEARLY ? '✅ Set' : '❌ Missing'
   );
+  console.log(
     '- SENDGRID_FROM_EMAIL:',
     process.env.SENDGRID_FROM_EMAIL ? '✅ Set' : '❌ Missing (will use default)'
   );
