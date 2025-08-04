@@ -259,6 +259,7 @@ class EmailTestingSuite {
         totalIssues: errors.length + warnings.length,
       };
 
+      console.log(
         `✅ HTML validation completed: ${errors.length} errors, ${warnings.length} warnings`
       );
     } catch (error) {
@@ -427,7 +428,6 @@ class EmailTestingSuite {
     if (riskLevel === 'HIGH') {
       this.results.spamScore.recommendations.push('Consider significant content revisions');
     }
-
   }
 
   // Generate A/B test variations
@@ -552,7 +552,6 @@ class EmailTestingSuite {
       await this.generateABTestVariations();
 
       const report = await this.generateReport();
-
 
       return report;
     } catch (error) {
