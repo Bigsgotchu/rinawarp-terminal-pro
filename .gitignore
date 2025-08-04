@@ -527,6 +527,18 @@ social_media_manager.py
 website/downloads/
 .env*.local
 
+# Large audio files (use Git LFS if needed)
+*.wav
+!sounds/rina/.gitkeep
+# Allow small audio samples
+!sounds/**/*.wav
+# But exclude large processed audio files
+*_denoised.wav
+*_enhanced.wav
+*_boosted.wav
+*_cleaned.wav
+"Screen Recording*.wav"
+
 # Smart File Manager
 .smart-backup/
 smart-file-manager.log
