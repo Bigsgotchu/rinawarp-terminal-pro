@@ -95,7 +95,7 @@ function ensureDMGInReleases(dmgPath) {
 function updateReleaseMetadata() {
   const metadataPath = path.join(projectRoot, 'public', 'releases', 'metadata.json');
   const dmgPath = path.join(projectRoot, 'public', 'releases', 'RinaWarp-Terminal-macOS.dmg');
-  
+
   if (fs.existsSync(dmgPath)) {
     const stats = fs.statSync(dmgPath);
     const metadata = {
@@ -105,8 +105,8 @@ function updateReleaseMetadata() {
         lastModified: stats.mtime.toISOString(),
         platform: 'macOS',
         type: 'disk-image',
-        url: '/api/download?file=RinaWarp-Terminal-macOS.dmg'
-      }
+        url: '/api/download?file=RinaWarp-Terminal-macOS.dmg',
+      },
     };
 
     // Read existing metadata if it exists
@@ -166,12 +166,11 @@ function deployToRailway() {
       cwd: projectRoot,
     });
     logSuccess('Deployment completed successfully!');
-    
+
     logInfo('');
     logSuccess('🎉 DMG is now available at:');
     logSuccess('   https://rinawarptech.com/api/download?file=RinaWarp-Terminal-macOS.dmg');
     logInfo('');
-    
   } catch (error) {
     logError('Deployment failed');
     console.error(error.message);
@@ -188,8 +187,8 @@ function showAlternativeDeployment() {
   logInfo('3. Cloud storage with CDN');
   logInfo('');
   logInfo('For manual deployment, upload these files:');
-  logInfo(`   - public/releases/RinaWarp-Terminal-macOS.dmg`);
-  logInfo(`   - public/releases/metadata.json`);
+  logInfo('   - public/releases/RinaWarp-Terminal-macOS.dmg');
+  logInfo('   - public/releases/metadata.json');
   logInfo('');
 }
 
@@ -198,13 +197,13 @@ async function main() {
   try {
     // Check for DMG file
     const dmgPath = checkDMGFile();
-    
+
     // Ensure it's in the releases directory
     const releaseDMGPath = ensureDMGInReleases(dmgPath);
-    
+
     // Update metadata
     updateReleaseMetadata();
-    
+
     // Ask user for deployment preference
     const args = process.argv.slice(2);
     if (args.includes('--railway') || args.includes('-r')) {
@@ -225,7 +224,6 @@ async function main() {
       logInfo('To deploy to Railway automatically, run:');
       logInfo('   node scripts/deploy-dmg-to-website.js --railway');
     }
-    
   } catch (error) {
     logError('Deployment preparation failed');
     console.error(error);
