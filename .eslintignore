@@ -1,0 +1,41 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+coverage/
+
+# Third-party libraries
+src/libs/
+public/vendor/
+vendor/
+
+# Non-JavaScript files
+*.md
+*.json
+*.html
+*.css
+*.scss
+*.yaml
+*.yml
+Dockerfile*
+*.sh
+*.txt
+
+# Specific files
+xterm.js
+*.min.js
+package-lock.json
+
+# IDE/Editor files
+.vscode/
+.idea/
+
+# Test fixtures
+test/fixtures/
+__fixtures__/
+
+# Generated files
+*.generated.*

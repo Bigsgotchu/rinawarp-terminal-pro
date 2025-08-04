@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -13,7 +14,6 @@
 
 // Import centralized logger
 let logger = {
-  debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
   info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
   warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
   error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
@@ -73,7 +73,7 @@ export class VoiceEngine {
     try {
       // Check for authorization (allow development mode)
       if (!process.env.RINAWARP_CREATOR && process.env.NODE_ENV === 'production') {
-        throw new Error(new Error('Unauthorized access to Voice Engine'));
+        throw new Error(new Error(new Error('Unauthorized access to Voice Engine')));
       }
 
       // Load voices when they become available
@@ -256,7 +256,6 @@ export class VoiceEngine {
       this.mediaRecorder.start(100); // Collect data every 100ms
       this.isRecording = true;
 
-      console.log('🎤 Voice recording started');
       return true;
     } catch (error) {
       console.error('Failed to start voice recording:', error);
@@ -272,7 +271,6 @@ export class VoiceEngine {
       // Stop all tracks
       this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
 
-      console.log('🎤 Voice recording stopped');
       return true;
     }
     return false;
@@ -305,8 +303,6 @@ export class VoiceEngine {
           sampleRate: audioBuffer.sampleRate,
         });
       }
-
-      console.log(`🎤 Custom voice "${voiceName}" saved successfully`);
 
       // Enable custom voice usage
       this.settings.useCustomVoice = true;
@@ -365,8 +361,6 @@ export class VoiceEngine {
           });
         }
       }
-
-      console.log(`🎤 Loaded ${this.customVoices.size} custom voices`);
     } catch (error) {
       console.error('Failed to load custom voices:', error);
     }
@@ -450,25 +444,21 @@ export class VoiceEngine {
   enable() {
     this.isEnabled = true;
     this.speak('Voice assistance enabled', { type: 'notification' });
-    console.log('🎤 Voice Engine enabled');
   }
 
   disable() {
     this.isEnabled = false;
     this.synth.cancel();
-    console.log('🎤 Voice Engine disabled');
   }
 
   mute() {
     this.isMuted = true;
     this.synth.cancel();
-    console.log('🔇 Voice Engine muted');
   }
 
   unmute() {
     this.isMuted = false;
     this.speak('Voice assistance unmuted', { type: 'notification' });
-    console.log('🔊 Voice Engine unmuted');
   }
 
   toggleMute() {
@@ -561,8 +551,6 @@ export class VoiceEngine {
 
   async installCreatorVoicePermanently(audioBlob, metadata) {
     try {
-      console.log('🎤 Installing creator voice permanently...');
-
       // Import VoiceInstaller
       const { VoiceInstaller } = await import('./voice-installer.js');
       const installer = new VoiceInstaller();
@@ -571,7 +559,7 @@ export class VoiceEngine {
       const success = await installer.installCreatorVoice(audioBlob, metadata);
 
       if (success) {
-        console.log('✅ Creator voice installed permanently into RinaWarp');
+        logger.debug('✅ Creator voice installed permanently into RinaWarp');
         // Show notification about permanent installation
         if (window.terminalManager?.pluginAPI) {
           window.terminalManager.pluginAPI.showNotification(

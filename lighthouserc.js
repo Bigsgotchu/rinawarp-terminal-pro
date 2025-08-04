@@ -22,7 +22,7 @@ module.exports = {
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
         'total-blocking-time': ['warn', { maxNumericValue: 300 }],
         'speed-index': ['warn', { maxNumericValue: 3000 }],
-        'interactive': ['error', { maxNumericValue: 3500 }],
+        interactive: ['error', { maxNumericValue: 3500 }],
         'mainthread-work-breakdown': ['warn', { maxNumericValue: 4000 }],
         'bootup-time': ['warn', { maxNumericValue: 3000 }],
         'uses-rel-preload': 'off',

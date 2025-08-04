@@ -3,7 +3,6 @@
  * This script contains hotfixes for the beta version
  */
 
-console.log('🔧 RinaWarp Terminal Beta Hotfix loaded');
 
 // Simple hotfix placeholder
 window.rinaWarpBetaHotfix = {
@@ -12,7 +11,6 @@ window.rinaWarpBetaHotfix = {
 
   // Initialize hotfixes
   init: function() {
-    console.log('📦 Beta hotfixes initialized');
   }
 };
 

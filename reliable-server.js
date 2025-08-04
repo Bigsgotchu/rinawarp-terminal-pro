@@ -8,15 +8,12 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-console.log('🚀 Starting RinaWarp Terminal Reliable Server...');
 
 // Middleware
 app.use(express.json());
@@ -47,10 +44,10 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
     features: {
       ai: '✅ Enabled',
-      voice: '✅ Enabled', 
+      voice: '✅ Enabled',
       themes: '✅ Enabled',
-      analytics: '✅ Enabled'
-    }
+      analytics: '✅ Enabled',
+    },
   });
 });
 
@@ -62,9 +59,9 @@ app.get('/api/demo/ai', (req, res) => {
       'Command analysis and risk assessment',
       'Intelligent suggestions and alternatives',
       'Context-aware help system',
-      'Safety warnings for dangerous commands'
+      'Safety warnings for dangerous commands',
     ],
-    status: 'active'
+    status: 'active',
   });
 });
 
@@ -73,16 +70,12 @@ app.get('/api/demo/voice', (req, res) => {
     message: '🎤 Voice Demo Working!',
     voices: [
       'Bella (Warm and friendly)',
-      'Antoni (Professional)', 
+      'Antoni (Professional)',
       'Elli (Energetic)',
-      'Josh (Calm)'
+      'Josh (Calm)',
     ],
-    commands: [
-      'Hey Rina, list files',
-      'Hey Rina, git status',
-      'Hey Rina, check disk space'
-    ],
-    status: 'active'
+    commands: ['Hey Rina, list files', 'Hey Rina, git status', 'Hey Rina, check disk space'],
+    status: 'active',
   });
 });
 
@@ -93,24 +86,24 @@ app.get('/api/demo/features', (req, res) => {
       ai: {
         status: 'active',
         description: 'Advanced AI command analysis with risk assessment',
-        capabilities: ['Intent detection', 'Risk scoring', 'Smart suggestions']
+        capabilities: ['Intent detection', 'Risk scoring', 'Smart suggestions'],
       },
       voice: {
-        status: 'active', 
+        status: 'active',
         description: 'Natural language voice control with personality',
-        capabilities: ['Speech recognition', 'Voice synthesis', 'Command translation']
+        capabilities: ['Speech recognition', 'Voice synthesis', 'Command translation'],
       },
       themes: {
         status: 'active',
         description: 'Beautiful visual themes and customization',
-        available: ['Mermaid theme', 'Car dashboard', 'Dark mode', 'Light mode']
+        available: ['Mermaid theme', 'Car dashboard', 'Dark mode', 'Light mode'],
       },
       security: {
         status: 'active',
         description: 'Enterprise-grade security and threat detection',
-        features: ['Command validation', 'Threat detection', 'Safe execution']
-      }
-    }
+        features: ['Command validation', 'Threat detection', 'Safe execution'],
+      },
+    },
   });
 });
 
@@ -203,18 +196,11 @@ app.use((err, req, res, next) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log('✅ RinaWarp Terminal Server running successfully!');
-  console.log(`🌐 Main site: http://localhost:${PORT}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  console.log(`🧠 AI Demo: http://localhost:${PORT}/demo/ai`);
-  console.log(`🎤 Voice Demo: http://localhost:${PORT}/demo/voice`);
   console.log(`📊 Features API: http://localhost:${PORT}/api/demo/features`);
-  console.log(`⚡ Server ready in ${Date.now() - process.hrtime.bigint() / 1000000n}ms`);
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down gracefully...');
   server.close(() => {
     console.log('✅ Server closed successfully');
     process.exit(0);
@@ -222,9 +208,7 @@ process.on('SIGINT', () => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('\n🛑 SIGTERM received, shutting down...');
   server.close(() => {
-    console.log('✅ Server closed successfully'); 
     process.exit(0);
   });
 });

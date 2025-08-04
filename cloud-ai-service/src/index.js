@@ -26,8 +26,8 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 // Initialize AI Orchestrator
@@ -35,10 +35,12 @@ const aiOrchestrator = new AIOrchestrator();
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -46,7 +48,7 @@ app.use(express.urlencoded({ extended: true }));
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: 'Too many requests from this IP, please try again later.',
 });
 
 app.use('/api/', limiter);
@@ -55,7 +57,7 @@ app.use('/api/', limiter);
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`, {
     ip: req.ip,
-    userAgent: req.get('user-agent')
+    userAgent: req.get('user-agent'),
   });
   next();
 });
@@ -78,24 +80,24 @@ io.use(async (socket, next) => {
   }
 });
 
-io.on('connection', (socket) => {
+io.on('connection', socket => {
   logger.info('Client connected', { socketId: socket.id, userId: socket.userId });
 
-  socket.on('ai:prompt', async (data) => {
+  socket.on('ai:prompt', async data => {
     try {
       const { prompt, context, options } = data;
-      
+
       // Stream response back to client
       const stream = await aiOrchestrator.streamCompletion(prompt, {
         userId: socket.userId,
         context,
-        ...options
+        ...options,
       });
 
       for await (const chunk of stream) {
         socket.emit('ai:response', { chunk, done: false });
       }
-      
+
       socket.emit('ai:response', { chunk: '', done: true });
     } catch (error) {
       logger.error('AI processing error', error);
@@ -118,13 +120,13 @@ async function startServer() {
   try {
     // Connect to database
     await connectDatabase();
-    
+
     // Initialize AI models
     await aiOrchestrator.initialize();
-    
+
     // Pass orchestrator to routes
     setAIOrchestrator(aiOrchestrator);
-    
+
     httpServer.listen(PORT, () => {
       logger.info(`🚀 RinaWarp AI Cloud Service running on port ${PORT}`);
       logger.info(`📡 WebSocket server ready`);

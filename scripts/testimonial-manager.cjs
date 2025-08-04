@@ -1,10 +1,9 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -16,24 +15,24 @@ class TestimonialManager {
       templatesDir: path.join(process.cwd(), 'public', 'html', 'templates'),
       approvedDir: path.join(process.cwd(), 'testimonials', 'approved'),
       pendingDir: path.join(process.cwd(), 'testimonials', 'pending'),
-      logFile: path.join(process.cwd(), 'testimonials', 'testimonials.log')
+      logFile: path.join(process.cwd(), 'testimonials', 'testimonials.log'),
     };
-    
+
     this.initializeDirectories();
   }
 
   log(message, level = 'info') {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] [${level.toUpperCase()}] ${message}\n`;
-    
+
     console.log(logEntry.trim());
-    
+
     // Ensure log directory exists
     const logDir = path.dirname(this.config.logFile);
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
-    
+
     fs.appendFileSync(this.config.logFile, logEntry);
   }
 
@@ -42,7 +41,7 @@ class TestimonialManager {
       this.config.testimonialDir,
       this.config.approvedDir,
       this.config.pendingDir,
-      this.config.templatesDir
+      this.config.templatesDir,
     ];
 
     dirs.forEach(dir => {
@@ -69,8 +68,8 @@ class TestimonialManager {
       metadata: {
         source: 'web_form',
         ip: feedbackData.ip || 'unknown',
-        userAgent: feedbackData.userAgent || 'unknown'
-      }
+        userAgent: feedbackData.userAgent || 'unknown',
+      },
     };
 
     fs.writeFileSync(filepath, JSON.stringify(processedFeedback, null, 2));
@@ -81,23 +80,26 @@ class TestimonialManager {
 
   // Get all pending testimonials for review
   getPendingTestimonials() {
-    const pendingFiles = fs.readdirSync(this.config.pendingDir)
+    const pendingFiles = fs
+      .readdirSync(this.config.pendingDir)
       .filter(file => file.endsWith('.json'));
 
-    return pendingFiles.map(file => {
-      const filepath = path.join(this.config.pendingDir, file);
-      const data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
-      return data;
-    }).filter(item => item.testimonialApproved);
+    return pendingFiles
+      .map(file => {
+        const filepath = path.join(this.config.pendingDir, file);
+        const data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+        return data;
+      })
+      .filter(item => item.testimonialApproved);
   }
 
   // Approve a testimonial
   approveTestimonial(testimonialId, reviewNotes = '') {
     const pendingFile = `feedback_${testimonialId}.json`;
     const pendingPath = path.join(this.config.pendingDir, pendingFile);
-    
+
     if (!fs.existsSync(pendingPath)) {
-      throw new Error(new Error(`Testimonial ${testimonialId} not found`));
+      throw new Error(new Error(new Error(`Testimonial ${testimonialId} not found`)));
     }
 
     const testimonial = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
@@ -122,27 +124,30 @@ class TestimonialManager {
       return [];
     }
 
-    const approvedFiles = fs.readdirSync(this.config.approvedDir)
+    const approvedFiles = fs
+      .readdirSync(this.config.approvedDir)
       .filter(file => file.endsWith('.json'));
 
-    return approvedFiles.map(file => {
-      const filepath = path.join(this.config.approvedDir, file);
-      const data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
-      return data;
-    }).sort((a, b) => new Date(b.approvedAt) - new Date(a.approvedAt));
+    return approvedFiles
+      .map(file => {
+        const filepath = path.join(this.config.approvedDir, file);
+        const data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+        return data;
+      })
+      .sort((a, b) => new Date(b.approvedAt) - new Date(a.approvedAt));
   }
 
   // Generate HTML page with approved testimonials
   generateTestimonialPage() {
     const testimonials = this.getApprovedTestimonials();
-    
+
     let testimonialsHTML = '';
-    
+
     testimonials.forEach(testimonial => {
       const data = testimonial.data;
       const company = data.company ? ` at ${data.company}` : '';
       const teamSize = data.team_size ? ` (${data.team_size} team)` : '';
-      
+
       testimonialsHTML += `
         <div class="testimonial-card">
           <div class="testimonial-content">
@@ -170,12 +175,12 @@ class TestimonialManager {
 
     const pageHTML = this.generateTestimonialPageTemplate(testimonialsHTML, testimonials.length);
     const outputPath = path.join(this.config.templatesDir, 'case-studies-real.html');
-    
+
     // Ensure templates directory exists
     if (!fs.existsSync(this.config.templatesDir)) {
       fs.mkdirSync(this.config.templatesDir, { recursive: true });
     }
-    
+
     fs.writeFileSync(outputPath, pageHTML);
     this.log(`Generated testimonial page with ${testimonials.length} testimonials`);
   }
@@ -395,21 +400,21 @@ class TestimonialManager {
     switch (command) {
     case 'list-pending':
       return this.listPendingTestimonials();
-      
+
     case 'approve':
       const testimonialId = args[1];
       const notes = args.slice(2).join(' ');
       return this.approveTestimonialCLI(testimonialId, notes);
-      
+
     case 'generate':
       return this.generateTestimonialPage();
-      
+
     case 'stats':
       return this.showStats();
-      
+
     case 'init':
       return this.initializeSystem();
-      
+
     default:
       return this.showHelp();
     }
@@ -417,21 +422,23 @@ class TestimonialManager {
 
   listPendingTestimonials() {
     const pending = this.getPendingTestimonials();
-    
+
     if (pending.length === 0) {
       console.log('📭 No pending testimonials found.');
       return;
     }
 
     console.log(`📬 ${pending.length} pending testimonials:\n`);
-    
+
     pending.forEach(testimonial => {
       console.log(`ID: ${testimonial.id}`);
       console.log(`Date: ${new Date(testimonial.timestamp).toLocaleDateString()}`);
       console.log(`Name: ${testimonial.data.name || 'Anonymous'}`);
       console.log(`Company: ${testimonial.data.company || 'Not specified'}`);
       console.log(`Team Size: ${testimonial.data.team_size || 'Not specified'}`);
-      console.log(`Feedback: ${(testimonial.data.feedback || testimonial.data.comments || '').substring(0, 100)}...`);
+      console.log(
+        `Feedback: ${(testimonial.data.feedback || testimonial.data.comments || '').substring(0, 100)}...`
+      );
       console.log(`Testimonial OK: ${testimonial.testimonialApproved ? 'Yes' : 'No'}`);
       console.log('─'.repeat(50));
     });
@@ -454,15 +461,17 @@ class TestimonialManager {
   showStats() {
     const pending = this.getPendingTestimonials();
     const approved = this.getApprovedTestimonials();
-    
+
     console.log('📊 Testimonial Statistics:');
     console.log(`   Pending: ${pending.length}`);
     console.log(`   Approved: ${approved.length}`);
     console.log(`   Total: ${pending.length + approved.length}`);
-    
+
     if (approved.length > 0) {
       const latest = approved[0];
-      console.log(`   Latest: ${latest.data.name || 'Anonymous'} (${new Date(latest.approvedAt).toLocaleDateString()})`);
+      console.log(
+        `   Latest: ${latest.data.name || 'Anonymous'} (${new Date(latest.approvedAt).toLocaleDateString()})`
+      );
     }
   }
 

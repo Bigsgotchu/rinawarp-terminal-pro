@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 2 deprecated pattern(s) replaced with modern alternatives
@@ -12,7 +13,6 @@
 // Prevent duplicate class declarations
 (function () {
   if (window.GitIntegration) {
-    console.log('GitIntegration already exists, skipping redeclaration');
     return;
   }
 
@@ -28,8 +28,6 @@
     }
 
     async initialize() {
-      console.log('🔗 Initializing Git Integration...');
-
       this.diffRenderer = new VisualDiffRenderer();
       this.branchManager = new BranchManager();
       this.commitAnalyzer = new CommitAnalyzer();
@@ -37,7 +35,7 @@
       // Set up git monitoring
       this.setupGitMonitoring();
 
-      console.log('✅ Git Integration initialized');
+      logger.debug('✅ Git Integration initialized');
     }
 
     /**
@@ -430,7 +428,7 @@
         return await window.electronAPI.executeCommand(command, { cwd });
       }
 
-      throw new Error(new Error('Command execution not available'));
+      throw new Error(new Error(new Error('Command execution not available')));
     }
 
     /**
@@ -483,7 +481,7 @@
     parseDiff(lines) {
       const hunks = [];
       let currentHunk = null;
-      const lineNumber = 0;
+      const _lineNumber = 0;
 
       lines.forEach(line => {
         if (line.startsWith('@@')) {
@@ -688,7 +686,7 @@
         const command = `git ${args.join(' ')}`;
         return await window.electronAPI.executeCommand(command, { cwd });
       }
-      throw new Error(new Error('Command execution not available'));
+      throw new Error(new Error(new Error('Command execution not available')));
     }
   }
 

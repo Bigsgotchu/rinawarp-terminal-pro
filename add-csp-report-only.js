@@ -3,8 +3,6 @@
 import { promises as fs } from 'fs';
 
 async function addCSPReportOnly() {
-  console.log('🔍 Adding CSP Report-Only header for testing...\n');
-
   const serverPath = './server.js';
 
   try {
@@ -54,12 +52,6 @@ app.use((req, res, next) => {
 app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (req, res) => {
   const report = req.body['csp-report'];
   if (report) {
-    console.log('🚨 CSP Violation Report:');
-    console.log('  - Document:', report['document-uri']);
-    console.log('  - Blocked:', report['blocked-uri']);
-    console.log('  - Directive:', report['violated-directive']);
-    console.log('  - Line:', report['line-number']);
-    console.log('  - Column:', report['column-number']);
     
     // Log to file for analysis
     const logEntry = {
@@ -76,7 +68,7 @@ app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (r
 `;
 
     // Find a good place to insert the report endpoint (after other API routes)
-    const apiHealthIndex = content.indexOf("app.get('/api/health'");
+    const apiHealthIndex = content.indexOf('app.get(\'/api/health\'');
     if (apiHealthIndex !== -1) {
       const insertPoint = content.indexOf('});', apiHealthIndex) + 3;
       content = content.slice(0, insertPoint) + '\n' + reportEndpoint + content.slice(insertPoint);
@@ -93,27 +85,9 @@ app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (r
     await fs.writeFile(serverPath, content, 'utf8');
 
     console.log('✅ Added CSP Report-Only header');
-    console.log('✅ Added CSP violation report endpoint at /api/csp-report');
 
     // Create logs directory if it doesn't exist
     await fs.mkdir('./logs', { recursive: true });
-
-    console.log('\n📋 What this does:');
-    console.log('1. Sends Content-Security-Policy-Report-Only header with strict policy');
-    console.log('2. Browser will report violations but NOT block anything');
-    console.log('3. Violations logged to console and ./logs/csp-violations.log');
-    console.log('4. Test all functionality and check for violations');
-
-    console.log('\n🧪 Testing checklist:');
-    console.log('- [ ] Visit all pages');
-    console.log('- [ ] Click all buttons');
-    console.log('- [ ] Test payment flow');
-    console.log('- [ ] Check browser console for CSP reports');
-    console.log('- [ ] Review ./logs/csp-violations.log');
-
-    console.log('\n📈 Once testing is complete:');
-    console.log('1. If no violations: Remove report-only and enforce strict CSP');
-    console.log('2. If violations found: Fix issues before enforcing');
   } catch (error) {
     console.error('❌ Error:', error.message);
   }

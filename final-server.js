@@ -14,9 +14,6 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 
 // Debug environment variables
-console.log('Environment check:');
-console.log('STRIPE_SECRET_KEY present:', !!process.env.STRIPE_SECRET_KEY);
-console.log('STRIPE_PUBLISHABLE_KEY present:', !!process.env.STRIPE_PUBLISHABLE_KEY);
 
 import stripeRoutes from './src/payment/stripe-checkout.js';
 import analyticsRoutes from './src/api/analytics.js';
@@ -30,8 +27,6 @@ const startTime = Date.now();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-console.log('🚀 Starting RinaWarp Terminal Final Server...');
 
 // Middleware
 app.use(express.json());
@@ -383,21 +378,11 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, () => {
   const bootTime = Date.now() - startTime;
   console.log('✅ RinaWarp Terminal Server running successfully!');
-  console.log('━'.repeat(60));
-  console.log(`🌐 Main Website: http://localhost:${PORT}`);
-  console.log(`🎯 Feature Demo: http://localhost:${PORT}/demo/features`);
-  console.log(`🧠 AI Demo: http://localhost:${PORT}/demo/ai`);
-  console.log(`🎤 Voice Demo: http://localhost:${PORT}/demo/voice`);
   console.log(`📊 API Demo: http://localhost:${PORT}/api/demo/features`);
-  console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
-  console.log('━'.repeat(60));
-  console.log(`⚡ Server ready in ${bootTime}ms`);
-  console.log('🎉 All systems operational - RinaWarp is ready!');
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down gracefully...');
   server.close(() => {
     console.log('✅ Server closed successfully');
     process.exit(0);

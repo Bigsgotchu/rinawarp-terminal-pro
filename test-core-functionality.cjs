@@ -1,10 +1,10 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
 
-#!/usr/bin/env node
 
 /**
  * RinaWarp Terminal - Core Functionality Test

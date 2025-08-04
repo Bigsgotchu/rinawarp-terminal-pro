@@ -38,12 +38,9 @@ class NextGenUIEngine {
     await this.loadInteractiveComponents();
 
     this.isInitialized = true;
-    console.log('Next-Gen UI Engine initialized successfully!');
   }
 
   async setupVisualizationCanvas() {
-    console.log('Setting up visualization canvas...');
-
     // Create visualization canvas container
     const canvasContainer = document.createElement('div');
     canvasContainer.id = 'visualization-canvas-container';
@@ -60,32 +57,25 @@ class NextGenUIEngine {
 
     // Initialize canvas context
     this.canvasContext = canvas.getContext('2d');
-
-    console.log('Visualization canvas setup complete');
   }
 
   async initializeGestureRecognition() {
-    console.log('Initializing gesture recognition...');
     try {
       await this.enableGestureControl();
-      console.log('Gesture recognition initialized successfully');
     } catch (error) {
       console.warn('Gesture recognition initialization failed:', error);
     }
   }
 
   async setupAdaptiveInterface() {
-    console.log('Setting up adaptive interface...');
     try {
       await this.enableAdaptiveInterface();
-      console.log('Adaptive interface setup complete');
     } catch (error) {
       console.warn('Adaptive interface setup failed:', error);
     }
   }
 
   async loadInteractiveComponents() {
-    console.log('Loading interactive components...');
     try {
       // Initialize contextual hints
       this.contextualHints = new ContextualHintSystem();
@@ -94,20 +84,16 @@ class NextGenUIEngine {
       // Load any additional interactive components
       this.loadQuickActionsPanel();
       this.loadCommandSuggestionEngine();
-
-      console.log('Interactive components loaded successfully');
     } catch (error) {
       console.warn('Interactive components loading failed:', error);
     }
   }
 
   loadQuickActionsPanel() {
-    console.log('Loading quick actions panel...');
     // Quick actions panel will be created dynamically when needed
   }
 
   loadCommandSuggestionEngine() {
-    console.log('Loading command suggestion engine...');
     // Command suggestions are handled by the AI system
   }
 
@@ -213,8 +199,6 @@ class NextGenUIEngine {
       for (const [gesture, handler] of Object.entries(gestures)) {
         this.gestureController.registerGesture(gesture, handler);
       }
-
-      console.log('Gesture control enabled with', Object.keys(gestures).length, 'gestures');
     } catch (error) {
       console.warn('Error enabling gesture control:', error);
     }
@@ -260,7 +244,7 @@ class NextGenUIEngine {
 
     const tutorial = tutorials[topic];
     if (!tutorial) {
-      throw new Error(new Error(`Tutorial '${topic}' not found`));
+      throw new Error(new Error(new Error(`Tutorial '${topic}' not found`)));
     }
 
     return await this.interactiveTutorials.startTutorial(tutorial);
@@ -304,7 +288,7 @@ class NextGenUIEngine {
 
   async enableHolographicMode() {
     if (!this.holoMode.isSupported()) {
-      throw new Error(new Error('Holographic mode not supported on this device'));
+      throw new Error(new Error(new Error('Holographic mode not supported on this device')));
     }
 
     await this.holoMode.initialize();
@@ -332,14 +316,12 @@ class NextGenUIEngine {
     });
 
     this.currentMode = 'AR';
-    console.log('Holographic mode activated!');
   }
 
   // Missing methods that are referenced in adaptive interface
   enableNightMode() {
     // Only enable if not already enabled
     if (!document.body.classList.contains('night-mode')) {
-      console.log('🌙 Enabling night mode...');
       document.body.classList.add('night-mode');
       // Apply dark theme styles
       const terminal = document.querySelector('.terminal');
@@ -351,54 +333,44 @@ class NextGenUIEngine {
   }
 
   enableDebuggingMode() {
-    console.log('🐛 Enabling debugging mode...');
     document.body.classList.add('debugging-mode');
     // Show debugging panels and tools
   }
 
   enableCalmedMode() {
-    console.log('😌 Enabling calmed mode for stress reduction...');
     document.body.classList.add('calmed-mode');
     // Apply calming colors and reduce visual noise
   }
 
   switchToNextTab() {
-    console.log('➡️ Switching to next tab');
     // Tab switching logic
   }
 
   switchToPreviousTab() {
-    console.log('⬅️ Switching to previous tab');
     // Tab switching logic
   }
 
   showCommandHistory() {
-    console.log('📜 Showing command history');
     // Show command history panel
   }
 
   hideCommandHistory() {
-    console.log('🙈 Hiding command history');
     // Hide command history panel
   }
 
   increaseFontSize() {
-    console.log('🔍 Increasing font size');
     // Font size increase logic
   }
 
   decreaseFontSize() {
-    console.log('🔍 Decreasing font size');
     // Font size decrease logic
   }
 
   showQuickActions() {
-    console.log('⚡ Showing quick actions panel');
     // Quick actions panel logic
   }
 
   showContextMenu() {
-    console.log('📋 Showing context menu');
     // Context menu logic
   }
 
@@ -665,25 +637,18 @@ class ThreeDVisualizationEngine {
 
   async loadThreeJS() {
     // In a real implementation, load Three.js library
-    console.log('Loading Three.js for 3D visualization...');
   }
 
   setupScene() {
     // Mock 3D scene setup
-    console.log('Setting up 3D scene...');
   }
 
-  async create3DFileSystem() {
-    console.log('Creating 3D file system visualization...');
-  }
+  async create3DFileSystem() {}
 
-  async create3DCommandFlow() {
-    console.log('Creating 3D command flow visualization...');
-  }
+  async create3DCommandFlow() {}
 
   async deactivate() {
     this.isActive = false;
-    console.log('3D visualization deactivated');
   }
 }
 
@@ -829,9 +794,7 @@ class AdaptiveInterface {
     this.monitoringInterval = null;
   }
 
-  async initialize() {
-    console.log('Adaptive interface initialized');
-  }
+  async initialize() {}
 
   addContextAnalyzer(name, analyzer) {
     this.contextAnalyzers.set(name, analyzer);
@@ -961,7 +924,6 @@ class ContextualHintSystem {
   }
 
   async initialize() {
-    console.log('Initializing contextual hint system...');
     this.setupDefaultHints();
     this.isActive = true;
   }
@@ -1062,18 +1024,13 @@ class HolographicMode {
     return 'xr' in navigator || 'getVRDisplays' in navigator;
   }
 
-  async initialize() {
-    console.log('Initializing holographic mode...');
-  }
+  async initialize() {}
 
   async createHolographicSpace(config) {
-    console.log('Creating holographic space with config:', config);
     return { id: 'holo-space-1' };
   }
 
-  async addFloatingElement(element) {
-    console.log('Adding floating element:', element);
-  }
+  async addFloatingElement(_element) {}
 }
 
 export { NextGenUIEngine };

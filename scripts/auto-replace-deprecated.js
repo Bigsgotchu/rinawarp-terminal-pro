@@ -112,7 +112,8 @@ const REPLACEMENT_PATTERNS = [
   {
     name: 'async.series comment',
     find: /async\.series\s*\(/g,
-    replace: '/* TODO: Convert to native async/await */ /* TODO: Convert to native async/await */ async.series(',
+    replace:
+      '/* TODO: Convert to native async/await */ /* TODO: Convert to native async/await */ /* TODO: Convert to native async/await */ /* TODO: Convert to native async/await */ async.series(',
   },
   {
     name: 'async.parallel to Promise.all',
@@ -289,7 +290,7 @@ async function createBackup() {
     return backupDir;
   } catch (error) {
     console.error('❌ Failed to create backup:', error.message);
-    throw new Error(error);
+    throw new Error(new Error(error));
   }
 }
 

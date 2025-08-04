@@ -1,0 +1,8 @@
+[0.00s - 7.00s]  I'm going to show you a video of my son, who is a baby girl.
+[7.00s - 14.00s]  I'm going to show you a video of my son.
+[14.00s - 21.00s]  I'm going to show you a video of my son.
+[21.00s - 28.00s]  I'm going to show you a video of my son.
+[28.00s - 35.00s]  I'm going to show you a video of my son.
+[35.00s - 42.00s]  I'm going to show you a video of my son.
+[42.00s - 49.00s]  I'm going to show you a video of my son.
+[49.00s - 56.00s]  I'm going to show you a video of my son.

@@ -30,12 +30,9 @@ function verifyFacebookSignature(payload, signature) {
 
   // Remove 'sha256=' prefix if present
   const cleanSignature = signature.replace('sha256=', '');
-  
+
   // Generate expected signature
-  const expectedSignature = crypto
-    .createHmac('sha256', APP_SECRET)
-    .update(payload)
-    .digest('hex');
+  const expectedSignature = crypto.createHmac('sha256', APP_SECRET).update(payload).digest('hex');
 
   // Compare signatures securely
   return crypto.timingSafeEqual(
@@ -67,8 +64,6 @@ router.post('/deletion', express.raw({ type: 'application/json' }), async (req, 
       return res.status(400).json({ error: 'Missing user_id' });
     }
 
-    console.log(`Facebook data deletion request for user: ${userId}`);
-
     // Delete user data from all relevant systems
     await deleteUserData(userId);
 
@@ -82,9 +77,8 @@ router.post('/deletion', express.raw({ type: 'application/json' }), async (req, 
     // Respond to Facebook with confirmation URL
     res.json({
       url: confirmationUrl,
-      confirmation_code: confirmationCode
+      confirmation_code: confirmationCode,
     });
-
   } catch (error) {
     console.error('Error processing Facebook deletion request:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -98,10 +92,10 @@ router.post('/deletion', express.raw({ type: 'application/json' }), async (req, 
 router.get('/deletion-status/:code', async (req, res) => {
   try {
     const confirmationCode = req.params.code;
-    
+
     // Look up deletion request by confirmation code
     const deletionStatus = await getDeletionStatus(confirmationCode);
-    
+
     if (!deletionStatus) {
       return res.status(404).json({ error: 'Deletion request not found' });
     }
@@ -110,9 +104,8 @@ router.get('/deletion-status/:code', async (req, res) => {
       status: deletionStatus.status,
       requested_at: deletionStatus.requested_at,
       completed_at: deletionStatus.completed_at,
-      confirmation_code: confirmationCode
+      confirmation_code: confirmationCode,
     });
-
   } catch (error) {
     console.error('Error checking deletion status:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -127,35 +120,23 @@ async function deleteUserData(facebookUserId) {
   try {
     // This should integrate with your actual data storage systems
     // For now, we'll outline the deletion process
-
-    console.log(`Starting data deletion for Facebook user: ${facebookUserId}`);
-
     // 1. Delete from analytics database
     // await analyticsDb.deleteUserData(facebookUserId);
-
     // 2. Delete from social media data storage
     // await socialDb.deleteUserData(facebookUserId);
-
     // 3. Delete from testimonials and social proof
     // await testimonialsDb.deleteUserData(facebookUserId);
-
     // 4. Delete from user authentication records
     // await authDb.deleteUserData(facebookUserId);
-
     // 5. Delete from any cached data
     // await cache.deleteUserData(facebookUserId);
-
     // 6. Delete from BigQuery analytics (if applicable)
     // await bigQuery.deleteUserData(facebookUserId);
-
     // 7. Delete from Google Cloud Storage files
     // await storage.deleteUserFiles(facebookUserId);
-
-    console.log(`Data deletion completed for Facebook user: ${facebookUserId}`);
-
   } catch (error) {
     console.error(`Error deleting data for user ${facebookUserId}:`, error);
-    throw new Error(error);
+    throw new Error(new Error(error));
   }
 }
 
@@ -167,7 +148,7 @@ async function deleteUserData(facebookUserId) {
 function generateConfirmationCode(userId) {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2);
-  
+
   return crypto
     .createHash('sha256')
     .update(`${userId}-${timestamp}-${random}`)
@@ -183,20 +164,17 @@ function generateConfirmationCode(userId) {
 async function logDeletionRequest(userId, confirmationCode) {
   try {
     // This should integrate with your actual logging system
-    const logEntry = {
+    const _logEntry = {
       facebook_user_id: userId,
       confirmation_code: confirmationCode,
       requested_at: new Date().toISOString(),
       status: 'completed',
-      ip_address: req.ip || 'unknown',
-      user_agent: req.headers['user-agent'] || 'unknown'
+      ip_address: 'unknown', // Placeholder, replace with actual IP if needed
+      user_agent: 'unknown', // Placeholder, replace with actual user-agent if needed
     };
 
     // Store in your preferred logging system
     // await logger.logDeletionRequest(logEntry);
-    
-    console.log('Deletion request logged:', logEntry);
-
   } catch (error) {
     console.error('Error logging deletion request:', error);
   }
@@ -207,17 +185,16 @@ async function logDeletionRequest(userId, confirmationCode) {
  * @param {string} confirmationCode - Confirmation code
  * @returns {object} - Deletion status information
  */
-async function getDeletionStatus(confirmationCode) {
+async function getDeletionStatus(_confirmationCode) {
   try {
     // This should query your actual logging system
     // For now, return a default completed status
-    
+
     return {
       status: 'completed',
       requested_at: new Date().toISOString(),
-      completed_at: new Date().toISOString()
+      completed_at: new Date().toISOString(),
     };
-
   } catch (error) {
     console.error('Error getting deletion status:', error);
     return null;
@@ -226,10 +203,10 @@ async function getDeletionStatus(confirmationCode) {
 
 // Health check endpoint
 router.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     service: 'facebook-deletion-callback',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 

@@ -30,6 +30,4 @@ app.get('/api/data', (req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+app.listen(port, () => {});

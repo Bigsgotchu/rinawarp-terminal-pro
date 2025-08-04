@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
@@ -11,7 +12,7 @@
 
 // Enhanced classes with error handling and process safety
 class GitIntegration {
-  async getSuggestions(command, context) {
+  async getSuggestions(_command, _context) {
     try {
       return [];
     } catch (error) {
@@ -50,7 +51,7 @@ class GitIntegration {
 }
 
 class ProjectAnalyzer {
-  async detectProjectType(cwd) {
+  async detectProjectType(_cwd) {
     try {
       // Safe process access through exposed API
       const safeProcess = window.electronAPI?.process || {};
@@ -96,8 +97,6 @@ class EnhancedCommandIntelligence {
   }
 
   async initialize() {
-    console.log('🧠 Initializing Enhanced Command Intelligence...');
-
     // Initialize subsystems
     this.gitIntegration = new GitIntegration();
     this.projectAnalyzer = new ProjectAnalyzer();
@@ -111,7 +110,7 @@ class EnhancedCommandIntelligence {
     this.setupCommandMonitoring();
     this.setupDirectoryWatcher();
 
-    console.log('✅ Enhanced Command Intelligence initialized');
+    logger.debug('✅ Enhanced Command Intelligence initialized');
   }
 
   /**
@@ -186,7 +185,7 @@ class EnhancedCommandIntelligence {
 
     // Project type detection with safe process access
     const safeProcess = window.electronAPI?.process || {};
-    const isNode = safeProcess.versions?.node;
+    const _isNode = safeProcess.versions?.node;
     const cwd = await this.getSafeCwd();
     const projectType = await this.projectAnalyzer.detectProjectType(cwd);
 
@@ -400,8 +399,6 @@ class EnhancedCommandIntelligence {
    * Handle directory changes
    */
   async onDirectoryChanged(newDir, oldDir) {
-    console.log(`📂 Directory changed: ${oldDir} -> ${newDir}`);
-
     // Analyze new directory context
     const context = await this.analyzeDirectoryContext(newDir);
     this.directoryContexts.set(newDir, context);
@@ -543,7 +540,7 @@ class EnhancedCommandIntelligence {
   getCurrentContextSync() {
     // Simplified synchronous version for immediate suggestions with safe process access
     const safeProcess = window.electronAPI?.process || {};
-    const isNode = safeProcess.versions?.node;
+    const _isNode = safeProcess.versions?.node;
     return {
       cwd: this.getSafeCwdSync(),
       timestamp: Date.now(),
@@ -651,7 +648,7 @@ class EnhancedCommandIntelligence {
     if (window.electronAPI && window.electronAPI.readFile) {
       return await window.electronAPI.readFile(filePath);
     }
-    throw new Error(new Error('File reading not available'));
+    throw new Error(new Error(new Error('File reading not available')));
   }
 
   rankSuggestions(suggestions) {
@@ -663,7 +660,7 @@ class EnhancedCommandIntelligence {
     });
   }
 
-  generateWarnings(command, context) {
+  generateWarnings(command, _context) {
     const warnings = [];
     const risk = this.assessCommandRisk(command);
 
@@ -712,7 +709,7 @@ class EnhancedCommandIntelligence {
     return `${command}:${context.cwd}:${context.projectType || 'unknown'}`;
   }
 
-  updateCommandFrequency(command, context) {
+  updateCommandFrequency(command, _context) {
     const key = `frequency:${command}`;
     const current = this.commandHistory.get(key) || 0;
     this.commandHistory.set(key, current + 1);
@@ -789,7 +786,7 @@ class EnhancedCommandIntelligence {
   }
 
   // Command-specific suggestion generators
-  getNodeJSSuggestions(command, context) {
+  getNodeJSSuggestions(command, _context) {
     const suggestions = [];
 
     if (command.startsWith('npm')) {
@@ -804,7 +801,7 @@ class EnhancedCommandIntelligence {
     return suggestions;
   }
 
-  getPythonSuggestions(command, context) {
+  getPythonSuggestions(command, _context) {
     const suggestions = [];
 
     if (command.startsWith('python')) {
@@ -827,7 +824,7 @@ class EnhancedCommandIntelligence {
     return suggestions;
   }
 
-  getRustSuggestions(command, context) {
+  getRustSuggestions(command, _context) {
     const suggestions = [];
 
     if (command.startsWith('cargo')) {
@@ -842,7 +839,7 @@ class EnhancedCommandIntelligence {
     return suggestions;
   }
 
-  getGoSuggestions(command, context) {
+  getGoSuggestions(command, _context) {
     const suggestions = [];
 
     if (command.startsWith('go')) {
@@ -857,7 +854,7 @@ class EnhancedCommandIntelligence {
     return suggestions;
   }
 
-  getGenericSuggestions(command, context) {
+  getGenericSuggestions(command, _context) {
     const suggestions = [];
 
     // Common command suggestions
@@ -946,7 +943,7 @@ class EnhancedCommandIntelligence {
     return completions;
   }
 
-  estimateExecutionTime(command, context) {
+  estimateExecutionTime(command, _context) {
     // Simple estimation based on command type
     const timeEstimates = {
       ls: 100, // milliseconds
@@ -1044,7 +1041,7 @@ class EnhancedExecution {
               console.warn('executeCommand is read-only, using alternative execution method');
               return this.fallbackExecution();
             }
-            throw new Error(error);
+            throw new Error(new Error(error));
           }
         };
 
@@ -1058,7 +1055,7 @@ class EnhancedExecution {
       return await this.fallbackExecution();
     } catch (error) {
       console.error('Command execution error:', error);
-      throw new Error(new Error(`Command execution failed: ${error.message}`));
+      throw new Error(new Error(new Error(`Command execution failed: ${error.message}`)));
     }
   }
 

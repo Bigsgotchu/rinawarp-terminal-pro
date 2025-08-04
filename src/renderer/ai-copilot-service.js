@@ -44,7 +44,7 @@ class AICopilotService {
       enableContextAwareness: true,
       enableCodeSuggestions: true,
       enableSafetyFilters: true,
-      personalityMode: 'helpful', // helpful, professional, casual, debug
+      personalityMode: 'rinawarp', // rinawarp, helpful, professional, casual, debug
       verbosityLevel: 'balanced', // minimal, balanced, detailed
     };
 
@@ -91,14 +91,13 @@ class AICopilotService {
     // Initialize the current provider
     const currentProvider = this.providers.get(this.currentProvider);
     if (currentProvider) {
-      console.log('🌊 Hello from the sassy mermaid AI! Getting things ready...');
       await currentProvider.initialize();
     }
   }
 
   async processUserQuery(query, _context = {}) {
     if (!this.isInitialized) {
-      throw new Error(new Error('AI Copilot Service not initialized'));
+      throw new Error(new Error(new Error('AI Copilot Service not initialized')));
     }
 
     // Processing user query silently
@@ -106,7 +105,9 @@ class AICopilotService {
     try {
       // Rate limiting check
       if (!this.rateLimiter.canProceed()) {
-        throw new Error(new Error('Rate limit exceeded. Please wait before making another request.'));
+        throw new Error(new Error(
+          new Error('Rate limit exceeded. Please wait before making another request.')
+        ));
       }
 
       // Security filtering
@@ -220,7 +221,7 @@ class AICopilotService {
   // Provider management
   async switchProvider(providerName) {
     if (!this.providers.has(providerName)) {
-      throw new Error(new Error(`Provider ${providerName} not available`));
+      throw new Error(new Error(new Error(`Provider ${providerName} not available`)));
     }
 
     const oldProvider = this.currentProvider;
@@ -235,7 +236,7 @@ class AICopilotService {
     } catch (error) {
       // Rollback on failure
       this.currentProvider = oldProvider;
-      throw new Error(new Error(`Failed to switch to provider ${providerName}: ${error.message}`));
+      throw new Error(new Error(new Error(`Failed to switch to provider ${providerName}: ${error.message}`)));
     }
   }
 

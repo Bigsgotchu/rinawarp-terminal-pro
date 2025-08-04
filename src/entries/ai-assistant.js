@@ -40,16 +40,15 @@ class RinaWarpAIFeature {
       await this.copilotService.initialize();
 
       this.initialized = true;
-      console.log('🤖 AI Assistant feature loaded');
     } catch (error) {
       console.error('Failed to initialize AI Assistant:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   setupCommands() {
-    this.terminal.addCommand('ai', (input) => this.handleAIQuery(input));
-    this.terminal.addCommand('ask', (input) => this.handleAIQuery(input));
+    this.terminal.addCommand('ai', input => this.handleAIQuery(input));
+    this.terminal.addCommand('ask', input => this.handleAIQuery(input));
     this.terminal.addCommand('suggest', () => this.showSuggestions());
     this.terminal.addCommand('ai-help', () => this.showAIHelp());
   }
@@ -64,7 +63,7 @@ class RinaWarpAIFeature {
       this.terminal.showLoadingIndicator('🤖 AI thinking...');
       const response = await this.aiAssistant.processQuery(input);
       this.terminal.hideLoadingIndicator();
-      
+
       this.terminal.writeLine(`\\n🤖 AI: ${response}`);
     } catch (error) {
       this.terminal.hideLoadingIndicator();
@@ -75,7 +74,7 @@ class RinaWarpAIFeature {
   async showSuggestions() {
     const context = this.contextEngine.getCurrentContext();
     const suggestions = await this.aiAssistant.getSuggestions(context);
-    
+
     this.terminal.writeLine('\\n💡 AI Suggestions:');
     suggestions.forEach((suggestion, index) => {
       this.terminal.writeLine(`  ${index + 1}. ${suggestion}`);

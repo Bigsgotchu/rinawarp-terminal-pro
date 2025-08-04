@@ -34,7 +34,6 @@ class RinaWarpGA4Tracker {
    */
   async init() {
     if (!this.enabled) {
-      console.log('🔇 GA4 tracking disabled');
       return;
     }
 
@@ -54,10 +53,8 @@ class RinaWarpGA4Tracker {
       // Start session tracking
       this.trackSession();
       
-      console.log('✅ GA4 Enhanced Tracking initialized');
       
       if (this.debug) {
-        console.log('🔍 GA4 Debug mode enabled');
         this.enableDebugMode();
       }
     } catch (error) {
@@ -139,7 +136,6 @@ class RinaWarpGA4Tracker {
     
     // Debug event listener
     window.addEventListener('gtag-debug', (event) => {
-      console.log('🔍 GA4 Debug Event:', event.detail);
     });
   }
 
@@ -659,7 +655,6 @@ class RinaWarpGA4Tracker {
 
   log(message, data = null) {
     if (this.debug) {
-      console.log(`[GA4] ${message}`, data || '');
     }
   }
 

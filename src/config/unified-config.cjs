@@ -13,7 +13,8 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('os');
 
-const logger = require('../utils/logger.cjs');
+const { createLogger } = require('../utils/logger.cjs');
+const logger = createLogger('UnifiedConfig');
 class UnifiedConfig {
   constructor() {
     this.configDir = path.join(os.homedir(), '.rinawarp-terminal');
@@ -88,12 +89,27 @@ class UnifiedConfig {
     try {
       if (fs.existsSync(this.configFile)) {
         const configData = fs.readFileSync(this.configFile, 'utf8');
-        return { ...this.defaultConfig, ...JSON.parse(configData) };
+        const parsedConfig = JSON.parse(configData);
+        return this.deepMerge(this.defaultConfig, parsedConfig);
       }
     } catch (error) {
       logger.warn('Config file corrupted, using defaults:', error.message);
     }
     return this.defaultConfig;
+  }
+
+  deepMerge(target, source) {
+    const result = { ...target };
+    for (const key in source) {
+      if (source.hasOwnProperty(key)) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+          result[key] = this.deepMerge(target[key] || {}, source[key]);
+        } else {
+          result[key] = source[key];
+        }
+      }
+    }
+    return result;
   }
 
   saveConfig() {
@@ -154,49 +170,53 @@ class UnifiedConfig {
   validateElevenLabsConfig() {
     const config = this.get('elevenlabs');
     const errors = [];
-    
+
     if (config?.enabled) {
       if (!config.apiKey && !process.env.ELEVENLABS_API_KEY) {
         errors.push('API key is required when ElevenLabs is enabled');
       }
-      
+
       if (config.voiceSettings) {
-        if (typeof config.voiceSettings.stability !== 'number' || 
-            config.voiceSettings.stability < 0 || 
-            config.voiceSettings.stability > 1) {
+        if (
+          typeof config.voiceSettings.stability !== 'number' ||
+          config.voiceSettings.stability < 0 ||
+          config.voiceSettings.stability > 1
+        ) {
           errors.push('Voice stability must be a number between 0 and 1');
         }
-        
-        if (typeof config.voiceSettings.similarityBoost !== 'number' || 
-            config.voiceSettings.similarityBoost < 0 || 
-            config.voiceSettings.similarityBoost > 1) {
+
+        if (
+          typeof config.voiceSettings.similarityBoost !== 'number' ||
+          config.voiceSettings.similarityBoost < 0 ||
+          config.voiceSettings.similarityBoost > 1
+        ) {
           errors.push('Voice similarity boost must be a number between 0 and 1');
         }
       }
     }
-    
+
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
-  
+
   getElevenLabsApiKey() {
     return process.env.ELEVENLABS_API_KEY || this.get('elevenlabs.apiKey') || '';
   }
-  
+
   async initializeElevenLabsConfig() {
     const config = this.get('elevenlabs');
-    
+
     if (!config) {
       this.set('elevenlabs', this.defaultConfig.elevenlabs);
       return { initialized: true, requiresConfig: false };
     }
-    
+
     if (config.enabled && !this.getElevenLabsApiKey()) {
       return { initialized: false, requiresConfig: true };
     }
-    
+
     return { initialized: true, requiresConfig: false };
   }
 

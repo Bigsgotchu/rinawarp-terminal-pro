@@ -18,7 +18,7 @@ export default function handler(req, res) {
       status: 'ok',
       message: 'RinaWarp Facebook Data Deletion Callback',
       service: 'active',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -28,25 +28,23 @@ export default function handler(req, res) {
       const { user_id } = req.body;
 
       // Log the deletion request (in production, this would trigger actual deletion)
-      console.log(`Facebook data deletion request received for user: ${user_id}`);
-      
+
       // Generate a confirmation code
       const confirmationCode = generateConfirmationCode(user_id);
-      
+
       // Create confirmation URL
       const confirmationUrl = `https://rinawarp-facebook-deletion.vercel.app/status/${confirmationCode}`;
 
       // Return the response Facebook expects
       return res.status(200).json({
         url: confirmationUrl,
-        confirmation_code: confirmationCode
+        confirmation_code: confirmationCode,
       });
-
     } catch (error) {
       console.error('Error processing deletion request:', error);
       return res.status(500).json({
         error: 'Internal server error',
-        message: 'Unable to process deletion request'
+        message: 'Unable to process deletion request',
       });
     }
   }
@@ -54,12 +52,12 @@ export default function handler(req, res) {
   // Method not allowed
   return res.status(405).json({
     error: 'Method not allowed',
-    message: 'Only GET and POST methods are supported'
+    message: 'Only GET and POST methods are supported',
   });
 }
 
 // Generate a unique confirmation code
-function generateConfirmationCode(userId) {
+function generateConfirmationCode(_userId) {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8);
   return `del_${timestamp}_${random}`;

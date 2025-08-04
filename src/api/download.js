@@ -31,14 +31,14 @@ const ALLOWED_FILES = {
   // Platform-specific downloads
   portable: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`, // Windows portable executable
   linux: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`, // Linux tar.gz archive
-  macos: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`, // macOS DMG installer
+  macos: 'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/download/v1.0.0/RinaWarp-Terminal-macOS.dmg', // macOS DMG installer
   setup: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`, // Windows setup executable (default)
 
   // Exact filenames for direct API access
   'RinaWarp-Terminal-Setup-Windows.exe': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`,
   'RinaWarp-Terminal-Portable-Windows.exe': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`,
   'RinaWarp-Terminal-Linux.tar.gz': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`,
-  'RinaWarp-Terminal-macOS.dmg': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-macOS.dmg`,
+  'RinaWarp-Terminal-macOS.dmg': 'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/download/v1.0.0/RinaWarp-Terminal-macOS.dmg',
   'RinaWarp-Terminal-Linux.deb': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.deb`,
   'RinaWarp-Terminal.AppImage': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal.AppImage`,
 };
@@ -52,7 +52,6 @@ const PUBLIC_DIR = path.join(__dirname, '../../public');
 router.get('/', (req, res) => {
   const { file, os } = req.query;
 
-  console.log(
     `[DOWNLOAD] Request for file: ${file || 'default'}, os: ${os || 'none'} from IP: ${req.ip}`
   );
 
@@ -104,8 +103,6 @@ router.get('/', (req, res) => {
     });
   }
 
-  console.log(`[DOWNLOAD] Redirecting to: ${downloadUrl}`);
-
   // Check for local files in development
   if (process.env.NODE_ENV === 'development') {
     const fileName = downloadUrl.split('/').pop();
@@ -116,7 +113,6 @@ router.get('/', (req, res) => {
 
     for (const localPath of localPaths) {
       if (fs.existsSync(localPath)) {
-        console.log(`[DOWNLOAD] Serving local file: ${localPath}`);
         res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         res.setHeader('Cache-Control', 'public, max-age=3600');
@@ -141,8 +137,6 @@ router.get('/', (req, res) => {
   const fileName = fileNameMap[fileKey] || fileKey || 'RinaWarp-Terminal-Setup-Windows.exe';
 
   const githubFallback = async () => {
-    console.log(`[GITHUB FALLBACK] Attempting to find asset: ${fileName}`);
-
     const headers = {
       Accept: 'application/vnd.github+json',
       'User-Agent': 'RinaWarp-Terminal-Download-API',
@@ -155,7 +149,7 @@ router.get('/', (req, res) => {
 
     const response = await fetch(GITHUB_API, { headers });
     if (!response.ok) {
-      throw new Error(new Error(`GitHub API responded with status: ${response.status}`));
+      throw new Error(new Error(new Error(`GitHub API responded with status: ${response.status}`)));
     }
 
     const release = await response.json();
@@ -164,18 +158,15 @@ router.get('/', (req, res) => {
     if (!asset) {
       console.error(`Asset ${fileName} not found in latest GitHub release`);
       // Fall back to direct URL redirect
-      console.log(`[GITHUB FALLBACK] Falling back to direct URL: ${downloadUrl}`);
       return res.redirect(302, downloadUrl);
     }
 
-    console.log(`[GITHUB FALLBACK] Redirecting to GitHub asset URL: ${asset.browser_download_url}`);
     res.redirect(302, asset.browser_download_url);
   };
 
   githubFallback().catch(err => {
     console.error(`[GITHUB FALLBACK ERROR]: ${err.message}`);
     // Final fallback to direct URL
-    console.log(`[FALLBACK] Final fallback to direct URL: ${downloadUrl}`);
     res.redirect(302, downloadUrl);
   });
 });
@@ -237,8 +228,6 @@ router.get('/log', (req, res) => {
   };
 
   const filename = file || osMap[os] || 'RinaWarp-Terminal-Setup-Windows.zip';
-
-  console.log(`[📦 DOWNLOAD LOG] ${new Date().toISOString()} - ${req.ip} requested ${filename}`);
 
   return res.redirect(`/releases/${filename}`);
 });

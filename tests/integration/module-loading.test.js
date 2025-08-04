@@ -20,7 +20,7 @@ describe('Module Loading Integration Tests', () => {
     // Create temporary test directory
     tempConfigDir = path.join(os.tmpdir(), `.rinawarp-terminal-test-${Date.now()}`);
     tempConfigFile = path.join(tempConfigDir, 'config.json');
-    
+
     // Ensure test directory exists
     if (!fs.existsSync(tempConfigDir)) {
       fs.mkdirSync(tempConfigDir, { recursive: true });
@@ -32,7 +32,7 @@ describe('Module Loading Integration Tests', () => {
     if (fs.existsSync(tempConfigFile)) {
       fs.unlinkSync(tempConfigFile);
     }
-    
+
     // Create fresh config instance with custom config directory
     config = new UnifiedConfig();
     // Override config paths for testing
@@ -52,8 +52,8 @@ describe('Module Loading Integration Tests', () => {
       const testConfig = {
         terminal: {
           fontSize: 16,
-          theme: 'dark'
-        }
+          theme: 'dark',
+        },
       };
 
       // Write test config
@@ -64,7 +64,7 @@ describe('Module Loading Integration Tests', () => {
       newConfig.configDir = tempConfigDir;
       newConfig.configFile = tempConfigFile;
       newConfig.config = newConfig.loadConfig();
-      
+
       expect(newConfig.get('terminal.fontSize')).toBe(16);
       expect(newConfig.get('terminal.theme')).toBe('dark');
     });
@@ -88,8 +88,8 @@ describe('Module Loading Integration Tests', () => {
       const testConfig = {
         features: {
           aiAssistant: true,
-          voiceControl: true
-        }
+          voiceControl: true,
+        },
       };
 
       fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig));
@@ -104,7 +104,7 @@ describe('Module Loading Integration Tests', () => {
 
     test('should persist feature flag changes', () => {
       config.set('features.aiAssistant', true);
-      
+
       // Read config directly from disk to verify persistence
       const savedConfig = JSON.parse(fs.readFileSync(tempConfigFile, 'utf8'));
       expect(savedConfig.features.aiAssistant).toBe(true);
@@ -118,8 +118,8 @@ describe('Module Loading Integration Tests', () => {
           enabled: true,
           apiKey: 'test-key',
           voiceId: 'test-voice',
-          modelId: 'test-model'
-        }
+          modelId: 'test-model',
+        },
       };
 
       fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig));
@@ -127,7 +127,7 @@ describe('Module Loading Integration Tests', () => {
       newConfig.configDir = tempConfigDir;
       newConfig.configFile = tempConfigFile;
       newConfig.config = newConfig.loadConfig();
-      
+
       const result = await newConfig.initializeElevenLabsConfig();
       expect(result.initialized).toBe(true);
     });
@@ -137,8 +137,8 @@ describe('Module Loading Integration Tests', () => {
         elevenlabs: {
           enabled: true,
           apiKey: '',
-          voiceId: 'test-voice'
-        }
+          voiceId: 'test-voice',
+        },
       };
 
       fs.writeFileSync(tempConfigFile, JSON.stringify(testConfig));
@@ -146,7 +146,7 @@ describe('Module Loading Integration Tests', () => {
       newConfig.configDir = tempConfigDir;
       newConfig.configFile = tempConfigFile;
       newConfig.config = newConfig.loadConfig();
-      
+
       const result = await newConfig.initializeElevenLabsConfig();
       expect(result.initialized).toBe(false);
       expect(result.requiresConfig).toBe(true);
@@ -156,12 +156,12 @@ describe('Module Loading Integration Tests', () => {
   describe('Performance Testing', () => {
     test('should load configuration quickly', () => {
       const start = process.hrtime();
-      
+
       new UnifiedConfig();
-      
+
       const [seconds, nanoseconds] = process.hrtime(start);
       const milliseconds = seconds * 1000 + nanoseconds / 1000000;
-      
+
       // Loading should be fast (under 50ms)
       expect(milliseconds).toBeLessThan(50);
     });
@@ -171,9 +171,9 @@ describe('Module Loading Integration Tests', () => {
       const largeConfig = {
         terminal: {},
         features: {},
-        performance: {}
+        performance: {},
       };
-      
+
       // Add 1000 settings
       for (let i = 0; i < 1000; i++) {
         largeConfig.terminal[`setting${i}`] = `value${i}`;
@@ -182,7 +182,7 @@ describe('Module Loading Integration Tests', () => {
       }
 
       fs.writeFileSync(tempConfigFile, JSON.stringify(largeConfig));
-      
+
       const start = process.hrtime();
       const newConfig = new UnifiedConfig();
       newConfig.configDir = tempConfigDir;
@@ -190,10 +190,10 @@ describe('Module Loading Integration Tests', () => {
       newConfig.config = newConfig.loadConfig();
       const [seconds, nanoseconds] = process.hrtime(start);
       const milliseconds = seconds * 1000 + nanoseconds / 1000000;
-      
+
       // Should still load quickly with large config (under 100ms)
       expect(milliseconds).toBeLessThan(100);
-      
+
       // Verify random samples from the large config
       expect(newConfig.get('terminal.setting500')).toBe('value500');
       expect(newConfig.get('features.feature100')).toBe(true);

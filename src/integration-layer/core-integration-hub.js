@@ -49,8 +49,6 @@ class CoreIntegrationHub {
 
   async _performInitialization() {
     try {
-      console.log('[RinaWarp] Initializing Core Integration Hub v' + this.version);
-
       // Step 1: Initialize core systems
       await this.stateManager.initialize();
       await this.securityManager.initialize();
@@ -66,7 +64,6 @@ class CoreIntegrationHub {
       for (const featureName of initOrder) {
         const feature = this.features.get(featureName);
         if (feature && feature.initialize) {
-          console.log(`[RinaWarp] Initializing feature: ${featureName}`);
           await this.performanceMonitor.measureAsync(`feature_init_${featureName}`, () =>
             feature.initialize(this)
           );
@@ -81,17 +78,15 @@ class CoreIntegrationHub {
 
       this.isInitialized = true;
       this.eventBus.emit('hub:initialized', { version: this.version });
-
-      console.log('[RinaWarp] Integration Hub initialized successfully');
     } catch (error) {
       console.error('[RinaWarp] Integration Hub initialization failed:', error);
-      throw new Error(new IntegrationError('Failed to initialize RinaWarp Terminal', error));
+      throw new Error(new Error(new IntegrationError('Failed to initialize RinaWarp Terminal', error)));
     }
   }
 
   registerFeature(name, feature, metadata = {}) {
     if (!feature || typeof feature !== 'object') {
-      throw new Error(new IntegrationError(`Invalid feature registration: ${name}`));
+      throw new Error(new Error(new IntegrationError(`Invalid feature registration: ${name}`)));
     }
 
     // Validate feature interface
@@ -115,7 +110,6 @@ class CoreIntegrationHub {
     };
 
     this.features.set(name, featureWrapper);
-    console.log(`[RinaWarp] Registered feature: ${name}`);
 
     // Update dependency graph
     this.dependencyResolver.updateDependencyGraph(name, dependencies);
@@ -128,12 +122,12 @@ class CoreIntegrationHub {
   getFeature(name, requestingContext = null) {
     const feature = this.features.get(name);
     if (!feature) {
-      throw new Error(new IntegrationError(`Feature not found: ${name}`));
+      throw new Error(new Error(new IntegrationError(`Feature not found: ${name}`)));
     }
 
     // Security check
     if (!this.securityManager.canAccess(requestingContext, feature.metadata.securityLevel)) {
-      throw new Error(new SecurityError(`Access denied to feature: ${name}`));
+      throw new Error(new Error(new SecurityError(`Access denied to feature: ${name}`)));
     }
 
     return feature.instance;
@@ -181,7 +175,7 @@ class CoreIntegrationHub {
     // Check for required methods
     for (const method of requiredMethods) {
       if (typeof feature[method] !== 'function') {
-        throw new Error(new IntegrationError(`Feature ${name} missing required method: ${method}`));
+        throw new Error(new Error(new IntegrationError(`Feature ${name} missing required method: ${method}`)));
       }
     }
   }
@@ -224,8 +218,6 @@ class CoreIntegrationHub {
   }
 
   async shutdown() {
-    console.log('[RinaWarp] Shutting down Integration Hub...');
-
     const shutdownOrder = this.dependencyResolver.calculateShutdownOrder(this.features);
 
     for (const featureName of shutdownOrder) {
@@ -233,7 +225,6 @@ class CoreIntegrationHub {
       if (feature && feature.instance.shutdown) {
         try {
           await feature.instance.shutdown();
-          console.log(`[RinaWarp] Shutdown feature: ${featureName}`);
         } catch (error) {
           console.error(`[RinaWarp] Error shutting down feature ${featureName}:`, error);
         }
@@ -398,7 +389,9 @@ class SmartDependencyResolver {
 
     const visit = featureName => {
       if (visiting.has(featureName)) {
-        throw new Error(new IntegrationError(`Circular dependency detected involving ${featureName}`));
+        throw new Error(new Error(
+          new IntegrationError(`Circular dependency detected involving ${featureName}`)
+        ));
       }
       if (visited.has(featureName)) return;
 
@@ -581,8 +574,7 @@ class PerformanceMonitor {
   async measureAsync(name, fn) {
     const start = Date.now();
     const result = await fn();
-    const duration = Date.now() - start;
-    console.log(`[Performance] ${name}: ${duration}ms`);
+    const _duration = Date.now() - start;
     return result;
   }
 

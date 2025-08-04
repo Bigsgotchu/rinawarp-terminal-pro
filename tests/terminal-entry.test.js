@@ -4,13 +4,13 @@
  * Please review and test the changes
  */
 
-const path = require('node:path');
+const _path = require('node:path');
 const { UnifiedConfig } = require('../src/config/unified-config.cjs');
 
 describe('Terminal Entry Points', () => {
   let config;
   let originalConfig;
-  
+
   beforeEach(() => {
     // Reset config instance for each test
     config = new UnifiedConfig();
@@ -31,7 +31,7 @@ describe('Terminal Entry Points', () => {
     test('should correctly identify system shell', () => {
       const shell = config.getDefaultShell();
       expect(shell).toBeTruthy();
-      
+
       if (process.platform === 'win32') {
         expect(['cmd.exe', 'powershell.exe', 'pwsh.exe']).toContain(shell);
       } else {
@@ -42,7 +42,7 @@ describe('Terminal Entry Points', () => {
     test('should handle custom shell configuration', () => {
       const customShell = process.platform === 'win32' ? 'powershell.exe' : '/bin/zsh';
       config.set('terminal.shell', customShell);
-      
+
       expect(config.get('terminal.shell')).toBe(customShell);
     });
   });
@@ -92,14 +92,14 @@ describe('Terminal Entry Points', () => {
   describe('Performance Settings', () => {
     test('should handle GPU acceleration settings', () => {
       expect(config.get('performance.enableGPUAcceleration')).toBe(true);
-      
+
       config.set('performance.enableGPUAcceleration', false);
       expect(config.get('performance.enableGPUAcceleration')).toBe(false);
     });
 
     test('should manage reduced motion preferences', () => {
       expect(config.get('performance.reducedMotion')).toBe(false);
-      
+
       config.set('performance.reducedMotion', true);
       expect(config.get('performance.reducedMotion')).toBe(true);
     });
@@ -107,24 +107,24 @@ describe('Terminal Entry Points', () => {
 
   describe('Feature Integration', () => {
     test('should manage AI assistant integration', () => {
+      expect(config.get('features.aiAssistant')).toBe(true); // Default is true
+
+      config.set('features.aiAssistant', false);
       expect(config.get('features.aiAssistant')).toBe(false);
-      
-      config.set('features.aiAssistant', true);
-      expect(config.get('features.aiAssistant')).toBe(true);
     });
 
     test('should handle voice control settings', () => {
+      expect(config.get('features.voiceControl')).toBe(true); // Default is true
+
+      config.set('features.voiceControl', false);
       expect(config.get('features.voiceControl')).toBe(false);
-      
-      config.set('features.voiceControl', true);
-      expect(config.get('features.voiceControl')).toBe(true);
     });
 
     test('should manage advanced features flag', () => {
+      expect(config.get('features.advancedFeatures')).toBe(true); // Default is true
+
+      config.set('features.advancedFeatures', false);
       expect(config.get('features.advancedFeatures')).toBe(false);
-      
-      config.set('features.advancedFeatures', true);
-      expect(config.get('features.advancedFeatures')).toBe(true);
     });
   });
 
@@ -160,7 +160,7 @@ describe('Terminal Entry Points', () => {
       const promises = [];
       for (let i = 0; i < 10; i++) {
         promises.push(
-          new Promise((resolve) => {
+          new Promise(resolve => {
             const conf = new UnifiedConfig();
             conf.set('terminal.fontSize', 14 + i);
             resolve();
@@ -169,7 +169,7 @@ describe('Terminal Entry Points', () => {
       }
 
       await Promise.all(promises);
-      
+
       // Last write should win
       const finalConfig = new UnifiedConfig();
       expect(finalConfig.get('terminal.fontSize')).toBe(23);

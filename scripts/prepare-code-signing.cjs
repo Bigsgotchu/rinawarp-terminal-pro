@@ -1,19 +1,18 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 4 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
 
-#!/usr/bin/env node
-
 /**
  * Prepare Code Signing Environment
  * This script helps set up the code signing process
  */
 
-const fs = require('node:fs');
+const fs = require('node:fs').promises;
 const path = require('node:path');
-const { execSync } = require('child_process');
+// const { execSync } = require('child_process'); // Unused
 
 // Check if we're on the right platform
 const platform = process.platform;

@@ -36,11 +36,11 @@ class BaseAIProvider {
   }
 
   async initialize() {
-    throw new Error(new Error('initialize() method must be implemented by subclass'));
+    throw new Error(new Error(new Error('initialize() method must be implemented by subclass')));
   }
 
   async generateResponse(_query, _context) {
-    throw new Error(new Error('generateResponse() method must be implemented by subclass'));
+    throw new Error(new Error(new Error('generateResponse() method must be implemented by subclass')));
   }
 
   isAvailable() {
@@ -109,13 +109,13 @@ class LocalAIProvider extends BaseAIProvider {
     } catch (error) {
       // Failed to initialize Local AI Provider
       this.lastError = error;
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async generateResponse(query, context) {
     if (!this.isInitialized || !this.aiAssistant) {
-      throw new Error(new Error('Local AI Provider not initialized'));
+      throw new Error(new Error(new Error('Local AI Provider not initialized')));
     }
 
     try {
@@ -137,7 +137,7 @@ class LocalAIProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with Local AI
       this.lastError = error;
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -283,7 +283,7 @@ class OpenAIProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with OpenAI
       this.lastError = error;
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -333,7 +333,7 @@ class AnthropicProvider extends BaseAIProvider {
       this.apiKey = this.getAPIKey();
 
       if (!this.apiKey) {
-        throw new Error(new Error('Anthropic API key not configured'));
+        throw new Error(new Error(new Error('Anthropic API key not configured')));
       }
 
       await this.testConnection();
@@ -366,13 +366,13 @@ class AnthropicProvider extends BaseAIProvider {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     if (!this.apiKey) {
-      throw new Error(new Error('No API key available'));
+      throw new Error(new Error(new Error('No API key available')));
     }
   }
 
   async generateResponse(_query, _context) {
     if (!this.isInitialized) {
-      throw new Error(new Error('Anthropic Provider not initialized'));
+      throw new Error(new Error(new Error('Anthropic Provider not initialized')));
     }
 
     try {
@@ -398,12 +398,12 @@ class AnthropicProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with Anthropic
       this.lastError = error;
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async callAnthropic(_query, _context) {
-    throw new Error(new Error('Anthropic integration not yet implemented'));
+    throw new Error(new Error(new Error('Anthropic integration not yet implemented')));
   }
 
   setAPIKey(apiKey) {
@@ -445,7 +445,7 @@ class CustomAIProvider extends BaseAIProvider {
       await this.loadConfiguration();
 
       if (!this.config.apiUrl) {
-        throw new Error(new Error('Custom AI endpoint not configured'));
+        throw new Error(new Error(new Error('Custom AI endpoint not configured')));
       }
 
       await this.testConnection();
@@ -485,13 +485,13 @@ class CustomAIProvider extends BaseAIProvider {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     if (!this.config.apiUrl) {
-      throw new Error(new Error('No API URL configured'));
+      throw new Error(new Error(new Error('No API URL configured')));
     }
   }
 
   async generateResponse(_query, _context) {
     if (!this.isInitialized) {
-      throw new Error(new Error('Custom AI Provider not initialized'));
+      throw new Error(new Error(new Error('Custom AI Provider not initialized')));
     }
 
     try {
@@ -512,13 +512,13 @@ class CustomAIProvider extends BaseAIProvider {
     } catch (error) {
       // Error generating response with Custom AI
       this.lastError = error;
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async callCustomAPI(_query, _context) {
     // Placeholder for custom API implementation
-    throw new Error(new Error('Custom AI integration requires configuration'));
+    throw new Error(new Error(new Error('Custom AI integration requires configuration')));
   }
 
   updateConfiguration(newConfig) {
@@ -549,7 +549,7 @@ class AIProviderFactory {
     case 'custom':
       return new CustomAIProvider();
     default:
-      throw new Error(new Error(`Unknown AI provider type: ${type}`));
+      throw new Error(new Error(new Error(`Unknown AI provider type: ${type}`)));
     }
   }
 

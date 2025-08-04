@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 9 deprecated pattern(s) replaced with modern alternatives
@@ -43,8 +44,6 @@ class AdvancedVoiceRecognition {
   }
 
   async init() {
-    console.log('🎤 Initializing Advanced Voice Recognition...');
-
     // Try providers in order of reliability
     const providers = [
       { name: 'vosk', init: () => this.initVosk() },
@@ -54,12 +53,11 @@ class AdvancedVoiceRecognition {
 
     for (const providerConfig of providers) {
       try {
-        console.log(`Trying ${providerConfig.name} provider...`);
         const success = await providerConfig.init();
         if (success) {
           this.provider = providerConfig.name;
           this.isInitialized = true;
-          console.log(`✅ Voice recognition initialized with ${providerConfig.name} provider`);
+          logger.debug(`✅ Voice recognition initialized with ${providerConfig.name} provider`);
           this.notifyStatus('initialized', { provider: providerConfig.name });
           return true;
         }
@@ -68,7 +66,7 @@ class AdvancedVoiceRecognition {
       }
     }
 
-    throw new Error(new Error('All voice recognition providers failed to initialize'));
+    throw new Error(new Error(new Error('All voice recognition providers failed to initialize')));
   }
 
   async initVosk() {
@@ -77,8 +75,6 @@ class AdvancedVoiceRecognition {
       if (typeof window === 'undefined' || !window.AudioContext) {
         return false;
       }
-
-      console.log('🎤 Initializing Vosk offline speech recognition...');
 
       this.voskProvider = new VoskProvider();
       this.voskProvider.onCommand = (command, confidence) => {
@@ -143,7 +139,6 @@ class AdvancedVoiceRecognition {
   }
 
   handleCommand(command, confidence) {
-    console.log(`Voice command received: "${command}" (confidence: ${confidence})`);
     this.lastCommand = command;
     this.confidence = confidence;
 
@@ -163,7 +158,6 @@ class AdvancedVoiceRecognition {
     console.error(`Provider error (${this.errorCount}/${this.maxErrors}):`, error);
 
     if (this.errorCount >= this.maxErrors) {
-      console.log('Too many errors, attempting to switch provider...');
       this.switchToNextProvider();
     }
   }
@@ -186,8 +180,6 @@ class AdvancedVoiceRecognition {
     }
 
     try {
-      console.log(`Switching from ${currentProvider} to ${nextProvider}...`);
-
       // Stop current provider
       await this.stop();
 
@@ -223,7 +215,7 @@ class AdvancedVoiceRecognition {
     if (provider) {
       return await provider.start();
     }
-    throw new Error(new Error('No provider available'));
+    throw new Error(new Error(new Error('No provider available')));
   }
 
   async stop() {
@@ -285,7 +277,7 @@ class WebSpeechProvider {
 
   async init() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      throw new Error(new Error('Web Speech API not supported'));
+      throw new Error(new Error(new Error('Web Speech API not supported')));
     }
 
     this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -296,7 +288,6 @@ class WebSpeechProvider {
 
     // Apply Electron-specific workarounds
     if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
-      console.log('Applying Electron workarounds for Web Speech API...');
       // Try to set service URI (may not work but worth trying)
       try {
         this.recognition.serviceURI = 'wss://www.google.com/speech-api/full-duplex/v1/up';
@@ -335,8 +326,6 @@ class WebSpeechProvider {
     const transcript = result[0].transcript.toLowerCase().trim();
     const confidence = result[0].confidence;
 
-    console.log('Web Speech result:', transcript, 'Confidence:', confidence);
-
     // Check for stop commands
     if (this.stopWords.some(word => transcript.includes(word))) {
       this.stop();
@@ -364,7 +353,7 @@ class WebSpeechProvider {
         return true;
       } catch (error) {
         if (this.onError) this.onError(error.message);
-        throw new Error(error);
+        throw new Error(new Error(error));
       }
     }
     return false;
@@ -455,12 +444,10 @@ class VoskProvider {
   }
 
   async init() {
-    console.log('🐚 Initializing Vosk offline recognition...');
-
     try {
       // Check for audio context support
       if (!window.AudioContext && !window.webkitAudioContext) {
-        throw new Error(new Error('AudioContext not supported'));
+        throw new Error(new Error(new Error('AudioContext not supported')));
       }
 
       // Show initial message
@@ -486,7 +473,6 @@ class VoskProvider {
       await this.setupAudioProcessing();
 
       this.isInitialized = true;
-      console.log('✅ Vosk provider initialized successfully');
 
       this.showMermaidMessage(
         '🐚 Voice recognition treasures acquired!',
@@ -502,7 +488,7 @@ class VoskProvider {
         `Vosk initialization failed: ${error.message}. Switching to Web Speech API.`,
         'warning'
       );
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -515,15 +501,12 @@ class VoskProvider {
   }
 
   async loadCachedModel() {
-    console.log('📦 Loading cached Vosk model...');
     // Simulate loading cached model
     await new Promise(resolve => setTimeout(resolve, 1000));
     this.isModelLoaded = true;
   }
 
   async downloadModel() {
-    console.log('📥 Downloading Vosk model...');
-
     this.showMermaidMessage(
       '🌊 Diving deep to fetch voice recognition treasures...',
       'Downloading compact offline speech model (this may take a moment)',
@@ -534,27 +517,24 @@ class VoskProvider {
       // Simulate model download with progress
       for (let progress = 0; progress <= 100; progress += 20) {
         await new Promise(resolve => setTimeout(resolve, 500));
-        console.log(`Download progress: ${progress}%`);
       }
 
       // Mark as cached
       localStorage.setItem('vosk_model_ready', 'true');
       this.isModelLoaded = true;
 
-      console.log('✅ Vosk model downloaded and cached');
+      logger.debug('✅ Vosk model downloaded and cached');
     } catch (error) {
       this.showMermaidMessage(
         '🌪️ The download currents were too strong!',
         `Failed to download Vosk model: ${error.message}`,
         'error'
       );
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async setupAudioProcessing() {
-    console.log('🎤 Setting up modern audio processing for Vosk...');
-
     try {
       // Request microphone access
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -574,7 +554,6 @@ class VoskProvider {
         await this.setupScriptProcessor();
       }
 
-      console.log('✅ Audio processing setup complete');
     } catch (error) {
       if (error.name === 'NotAllowedError') {
         this.showMermaidMessage(
@@ -583,14 +562,12 @@ class VoskProvider {
           'warning'
         );
       }
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async setupAudioWorklet() {
     try {
-      console.log('🌊 Using modern AudioWorklet for audio processing...');
-
       // Load the AudioWorklet processor
       await this.audioContext.audioWorklet.addModule('./vosk-audio-worklet.js');
 
@@ -613,7 +590,7 @@ class VoskProvider {
       this.audioSource.connect(this.workletNode);
       this.workletNode.connect(this.audioContext.destination);
 
-      console.log('✅ Modern AudioWorklet setup complete');
+      logger.debug('✅ Modern AudioWorklet setup complete');
     } catch (error) {
       console.warn('AudioWorklet setup failed, falling back to ScriptProcessor:', error);
       await this.setupScriptProcessor();
@@ -621,8 +598,6 @@ class VoskProvider {
   }
 
   async setupScriptProcessor() {
-    console.log('🔄 Using ScriptProcessor as fallback...');
-
     // Create audio source and processor (legacy method)
     this.audioSource = this.audioContext.createMediaStreamSource(this.mediaStream);
     this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
@@ -638,8 +613,6 @@ class VoskProvider {
     // Connect audio nodes
     this.audioSource.connect(this.processor);
     this.processor.connect(this.audioContext.destination);
-
-    console.log('📡 ScriptProcessor fallback setup complete');
   }
 
   processAudio(_audioData) {
@@ -683,7 +656,6 @@ class VoskProvider {
 
   handleTranscript(transcript, confidence, isFinal) {
     const lowerTranscript = transcript.toLowerCase().trim();
-    console.log('Vosk transcript:', lowerTranscript, 'Confidence:', confidence);
 
     // Check for stop commands
     if (this.stopWords.some(word => lowerTranscript.includes(word))) {
@@ -707,7 +679,7 @@ class VoskProvider {
 
   async start() {
     if (!this.isInitialized) {
-      throw new Error(new Error('Vosk provider not initialized'));
+      throw new Error(new Error(new Error('Vosk provider not initialized')));
     }
 
     if (this.audioContext.state === 'suspended') {
@@ -723,7 +695,6 @@ class VoskProvider {
 
     if (this.onStatusChange) this.onStatusChange('listening');
 
-    console.log('🎤 Vosk listening started');
     return true;
   }
 
@@ -737,7 +708,6 @@ class VoskProvider {
 
     if (this.onStatusChange) this.onStatusChange('stopped');
 
-    console.log('🎤 Vosk listening stopped');
     return true;
   }
 

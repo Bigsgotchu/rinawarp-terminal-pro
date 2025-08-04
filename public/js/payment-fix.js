@@ -1,3 +1,5 @@
+import logger from './utils/logger.js';
+
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -8,11 +10,11 @@
 // This script provides fallback mechanisms for payment processing
 
 (function() {
-    console.log('🔧 Payment fix script loaded');
+    logger.info('🔧 Payment fix script loaded');
     
     // Override the purchasePlan function with enhanced error handling
     window.purchasePlan = async function(planType) {
-        console.log(`🛒 Purchase initiated for plan: ${planType}`);
+        logger.info(`🛒 Purchase initiated for plan: ${planType}`);
         
         if (planType === 'free') {
             window.location.href = '/api/download';
@@ -37,7 +39,7 @@
             // Fallback to payment links
             const paymentLink = await getPaymentLink(planType);
             if (paymentLink) {
-                console.log('📎 Using payment link fallback');
+                logger.info('📎 Using payment link fallback');
                 window.location.href = paymentLink;
                 return;
             }
@@ -46,7 +48,7 @@
             showPaymentFallback(planType);
             
         } catch (error) {
-            console.error('❌ Payment error:', error);
+            logger.error('❌ Payment error:', error);
             showPaymentError(error.message);
         } finally {
             button.disabled = false;
@@ -56,7 +58,7 @@
     
     // Override purchaseBeta function
     window.purchaseBeta = async function(betaType) {
-        console.log(`🚀 Beta purchase initiated: ${betaType}`);
+        logger.info(`🚀 Beta purchase initiated: ${betaType}`);
         
         const button = event.target;
         const originalText = button.textContent;
@@ -72,7 +74,7 @@
             
             const betaInfo = betaPriceMap[betaType];
             if (!betaInfo) {
-                throw new Error(new Error('Invalid beta type'));
+                throw new Error(new Error(new Error('Invalid beta type')));
             }
             
             // Try Stripe checkout
@@ -85,7 +87,7 @@
             showBetaFallback(betaType, betaInfo.price);
             
         } catch (error) {
-            console.error('❌ Beta purchase error:', error);
+            logger.error('❌ Beta purchase error:', error);
             showPaymentError(error.message);
         } finally {
             button.disabled = false;
@@ -109,7 +111,7 @@
         
         for (const route of routes) {
             try {
-                console.log(`🔄 Trying route: ${route}`);
+                logger.info(`🔄 Trying route: ${route}`);
                 const response = await fetch(route, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -131,7 +133,7 @@
                     }
                 }
             } catch (error) {
-                console.log(`Route ${route} failed:`, error.message);
+                logger.info(`Route ${route} failed:`, error.message);
             }
         }
         
@@ -146,7 +148,7 @@
                 return await response.json();
             }
         } catch (error) {
-            console.error('Failed to load Stripe config:', error);
+            logger.error('Failed to load Stripe config:', error);
         }
         
         // Fallback config
@@ -321,5 +323,5 @@
         document.head.appendChild(style);
     }
     
-    console.log('✅ Payment fix script initialized');
+    logger.info('✅ Payment fix script initialized');
 })();

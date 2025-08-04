@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenvFlow.config({
   path: path.join(__dirname, '..'),
   node_env: process.env.NODE_ENV || 'development',
-  default_node_env: 'development'
+  default_node_env: 'development',
 });
 
 // Configuration schema
@@ -42,8 +42,8 @@ const configSchema = Joi.object({
         earlyBird: Joi.string().required(),
         access: Joi.string().required(),
         premium: Joi.string().required(),
-      }
-    }
+      },
+    },
   },
 
   // Telemetry & Analytics
@@ -104,7 +104,7 @@ const configSchema = Joi.object({
   // URLs
   urls: {
     pricing: Joi.string().uri().required(),
-  }
+  },
 }).required();
 
 // Configuration values
@@ -133,8 +133,8 @@ const config = {
         earlyBird: process.env.STRIPE_PRICE_BETA_EARLYBIRD,
         access: process.env.STRIPE_PRICE_BETA_ACCESS,
         premium: process.env.STRIPE_PRICE_BETA_PREMIUM,
-      }
-    }
+      },
+    },
   },
   telemetry: {
     enabled: process.env.ENABLE_TELEMETRY === 'true',
@@ -180,7 +180,7 @@ const config = {
   },
   urls: {
     pricing: process.env.PRICING_URL,
-  }
+  },
 };
 
 // Validate configuration
@@ -191,7 +191,7 @@ const { error, value: validatedConfig } = configSchema.validate(config, {
 
 if (error) {
   console.error('Configuration validation failed:');
-  error.details.forEach((detail) => {
+  error.details.forEach(detail => {
     console.error(`- ${detail.message}`);
   });
   process.exit(1);

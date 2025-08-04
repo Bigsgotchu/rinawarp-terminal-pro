@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark square background -->
+  <rect width="256" height="256" rx="24" fill="#1E293B"/>
+  
+  <!-- Simple terminal prompt in center -->
+  <g transform="translate(128, 128)">
+    <!-- Large chevron -->
+    <path d="M -60 -50 L -10 0 L -60 50" 
+          stroke="#EC4899" 
+          stroke-width="20" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+    
+    <!-- Cursor line -->
+    <rect x="10" y="-10" width="80" height="20" rx="10" fill="#06B6D4"/>
+  </g>
+  
+  <!-- Small RW in corner -->
+  <text x="200" y="230" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#EC4899" opacity="0.6">RW</text>
+</svg>

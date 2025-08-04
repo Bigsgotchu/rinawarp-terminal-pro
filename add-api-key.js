@@ -64,9 +64,6 @@ function saveConfig(provider, apiKey) {
   // Write config file
   fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
 
-  console.log(`\n✅ ${provider} API key saved successfully!`);
-  console.log(`📁 Configuration saved to: ${configFile}`);
-
   // Also create a .env file for convenience
   const envFile = path.join(__dirname, '.env');
   let envContent = '';
@@ -88,13 +85,10 @@ function saveConfig(provider, apiKey) {
   }
 
   fs.writeFileSync(envFile, envContent);
-  console.log(`📝 Also saved to .env file as ${envKey}`);
 }
 
 // Main function
 function main() {
-  console.log('🔐 Secure API Key Setup\n');
-
   rl.question('Which provider? (anthropic/openai): ', provider => {
     provider = provider.toLowerCase().trim();
 
@@ -103,8 +97,6 @@ function main() {
       rl.close();
       return;
     }
-
-    console.log(`\n📋 Paste your ${provider} API key and press Enter:`);
 
     // Hide the input for security
     rl.stdoutMuted = true;
@@ -115,23 +107,17 @@ function main() {
       apiKey = apiKey.trim();
 
       if (!apiKey) {
-        console.log('\n❌ No API key provided');
         rl.close();
         return;
       }
 
       // Basic validation
       if (provider === 'anthropic' && !apiKey.startsWith('sk-ant-')) {
-        console.log('\n⚠️  Warning: Anthropic API keys usually start with "sk-ant-"');
       } else if (provider === 'openai' && !apiKey.startsWith('sk-')) {
-        console.log('\n⚠️  Warning: OpenAI API keys usually start with "sk-"');
       }
 
       try {
         saveConfig(provider, apiKey);
-
-        console.log('\n🎉 Setup complete! Your API key is now available to the terminal.');
-        console.log('🚀 Restart the terminal to use the new configuration.\n');
       } catch (error) {
         console.error('\n❌ Error saving API key:', error.message);
       }

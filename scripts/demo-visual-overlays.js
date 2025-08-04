@@ -84,7 +84,7 @@ async function demoErrorHandling() {
     // Simulate a failed operation
     showLoading('Uploading file...');
     await delay(1000);
-    throw new Error(new Error('Network timeout'));
+    throw new Error(new Error(new Error('Network timeout')));
   } catch (error) {
     // Show error state
     showError(`Upload failed: ${error.message}`);

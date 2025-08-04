@@ -8,16 +8,16 @@ const __dirname = path.dirname(__filename);
 
 export default {
   mode: 'development',
-  
+
   entry: {
     vendor: './src/entries/vendor.js',
-    terminal: './src/entries/terminal-main.js'
+    terminal: './src/entries/terminal-main.js',
   },
 
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
-    clean: true
+    clean: true,
   },
 
   resolve: {
@@ -25,28 +25,28 @@ export default {
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@utils': path.resolve(__dirname, 'src/utils'),
-      '@renderer': path.resolve(__dirname, 'src/renderer')
+      '@renderer': path.resolve(__dirname, 'src/renderer'),
     },
     fallback: {
-      'crypto': 'crypto-browserify',
-      'stream': 'stream-browserify',
-      'path': 'path-browserify',
-      'os': 'os-browserify',
-      'buffer': 'buffer',
-      'process': 'process/browser',
-      'util': 'util',
-      'fs': false,
-      'child_process': false,
-      'net': false,
-      'tls': false
-    }
+      crypto: 'crypto-browserify',
+      stream: 'stream-browserify',
+      path: 'path-browserify',
+      os: 'os-browserify',
+      buffer: 'buffer',
+      process: 'process/browser',
+      util: 'util',
+      fs: false,
+      child_process: false,
+      net: false,
+      tls: false,
+    },
   },
 
   module: {
     rules: [
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.js$/,
@@ -55,32 +55,35 @@ export default {
           loader: 'babel-loader',
           options: {
             presets: [
-              ['@babel/preset-env', {
-                targets: { browsers: ['> 1%', 'last 2 versions'] }
-              }]
-            ]
-          }
-        }
-      }
-    ]
+              [
+                '@babel/preset-env',
+                {
+                  targets: { browsers: ['> 1%', 'last 2 versions'] },
+                },
+              ],
+            ],
+          },
+        },
+      },
+    ],
   },
 
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('development'),
-      '__VERSION__': JSON.stringify('1.0.19')
+      __VERSION__: JSON.stringify('1.0.19'),
     }),
-    
+
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
-      process: 'process'
+      process: 'process',
     }),
-    
+
     new HtmlWebpackPlugin({
       template: './src/templates/terminal.html',
-      filename: 'terminal.html'
-    })
+      filename: 'terminal.html',
+    }),
   ],
 
-  devtool: 'eval-source-map'
+  devtool: 'eval-source-map',
 };

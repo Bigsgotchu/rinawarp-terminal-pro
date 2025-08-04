@@ -9,6 +9,7 @@
  * Automated response system with pattern matching, persistent blocking, and alerting
  */
 
+import logger from '../utils/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -138,7 +139,7 @@ class ThreatDetector {
     this.loadBlocklist();
     this.startCleanupTimer();
 
-    console.log('🛡️ Advanced Threat Detection System initialized');
+    logger.info('🛡️ Advanced Threat Detection System initialized');
   }
 
   /**
@@ -154,7 +155,7 @@ class ThreatDetector {
       // Check if IP is already blocked
       if (this.isBlocked(clientIP)) {
         const blockInfo = this.blockedIPs.get(clientIP);
-        console.log(`🚫 Blocked request from ${clientIP}: ${method} ${url} (${blockInfo.reason})`);
+        logger.info(`🚫 Blocked request from ${clientIP}: ${method} ${url} (${blockInfo.reason})`);
 
         return res.status(403).json({
           error: 'Access denied',
@@ -377,7 +378,7 @@ class ThreatDetector {
     }
 
     if (threatScore > 0) {
-      console.log(
+      logger.info(
         `⚠️ Threat detected for ${ip}: Score ${threatScore}, Reasons: ${reasons.join(', ')}`
       );
     }
@@ -389,11 +390,11 @@ class ThreatDetector {
    * Log critical threat for immediate attention
    */
   logCriticalThreat(ip, url, userAgent, category) {
-    console.log(`🔥 CRITICAL THREAT DETECTED: ${ip} attempting ${category}`);
-    console.log(`   URL: ${url}`);
-    console.log(`   User-Agent: ${userAgent}`);
-    console.log(`   Category: ${category}`);
-    console.log(`   Timestamp: ${new Date().toISOString()}`);
+    logger.info(`🔥 CRITICAL THREAT DETECTED: ${ip} attempting ${category}`);
+    logger.info(`   URL: ${url}`);
+    logger.info(`   User-Agent: ${userAgent}`);
+    logger.info(`   Category: ${category}`);
+    logger.info(`   Timestamp: ${new Date().toISOString()}`);
 
     // Could trigger immediate webhook alert here for critical threats
     // this.sendImmediateCriticalAlert(ip, url, userAgent, category);
@@ -437,7 +438,7 @@ class ThreatDetector {
       blockReason = 'Light threat detected';
     } else {
       // Just log, don't block yet
-      console.log(`📝 Suspicious activity logged for ${ip}: ${JSON.stringify(threatInfo)}`);
+      logger.info(`📝 Suspicious activity logged for ${ip}: ${JSON.stringify(threatInfo)}`);
       return;
     }
 
@@ -459,10 +460,10 @@ class ThreatDetector {
       blockReason,
       activity: activity
         ? {
-            totalAttempts: activity.attempts.length,
-            firstSeen: new Date(activity.firstSeen),
-            recentUrls: activity.attempts.slice(-5).map(a => a.url),
-          }
+          totalAttempts: activity.attempts.length,
+          firstSeen: new Date(activity.firstSeen),
+          recentUrls: activity.attempts.slice(-5).map(a => a.url),
+        }
         : null,
     });
   }
@@ -483,7 +484,7 @@ class ThreatDetector {
     this.saveBlocklist();
 
     const durationHours = Math.round(duration / (60 * 60 * 1000));
-    console.log(`🔒 Blocked IP ${ip} for ${durationHours}h: ${reason}`);
+    logger.info(`🔒 Blocked IP ${ip} for ${durationHours}h: ${reason}`);
   }
 
   /**
@@ -516,14 +517,14 @@ class ThreatDetector {
     };
 
     // Log alert
-    console.log(`🚨 SECURITY ALERT: ${JSON.stringify(alert, null, 2)}`);
+    logger.info(`🚨 SECURITY ALERT: ${JSON.stringify(alert, null, 2)}`);
 
     // Send to webhooks (Discord, Slack, etc.)
     for (const webhook of this.alertWebhooks) {
       try {
         await this.sendWebhookAlert(webhook, alert);
       } catch (error) {
-        console.error(`❌ Failed to send alert to webhook: ${error.message}`);
+        logger.error(`❌ Failed to send alert to webhook: ${error.message}`);
       }
     }
   }
@@ -555,7 +556,7 @@ class ThreatDetector {
     });
 
     if (!response.ok) {
-      throw new Error(new Error(`Webhook request failed: ${response.status}`));
+      throw new Error(new Error(new Error(`Webhook request failed: ${response.status}`)));
     }
   }
 
@@ -564,7 +565,7 @@ class ThreatDetector {
    */
   addWebhook(url, type = 'discord') {
     this.alertWebhooks.push({ url, type });
-    console.log(`📡 Added ${type} webhook for security alerts`);
+    logger.info(`📡 Added ${type} webhook for security alerts`);
   }
 
   /**
@@ -622,10 +623,10 @@ class ThreatDetector {
           }
         }
 
-        console.log(`📋 Loaded ${this.blockedIPs.size} active blocked IPs from persistent storage`);
+        logger.info(`📋 Loaded ${this.blockedIPs.size} active blocked IPs from persistent storage`);
       }
     } catch (error) {
-      console.error(`❌ Error loading blocklist: ${error.message}`);
+      logger.error(`❌ Error loading blocklist: ${error.message}`);
     }
   }
 
@@ -637,7 +638,7 @@ class ThreatDetector {
       const data = Object.fromEntries(this.blockedIPs);
       fs.writeFileSync(this.blocklistFile, JSON.stringify(data, null, 2));
     } catch (error) {
-      console.error(`❌ Error saving blocklist: ${error.message}`);
+      logger.error(`❌ Error saving blocklist: ${error.message}`);
     }
   }
 
@@ -676,7 +677,7 @@ class ThreatDetector {
     }
 
     if (removedBlocks > 0 || removedActivity > 0) {
-      console.log(
+      logger.info(
         `🧹 Cleanup: Removed ${removedBlocks} expired blocks, ${removedActivity} old activity records`
       );
       if (removedBlocks > 0) {
@@ -742,7 +743,7 @@ class ThreatDetector {
    */
   manualBlock(ip, reason, duration = this.config.blockDuration.moderate) {
     this.blockIP(ip, `Manual block: ${reason}`, duration);
-    console.log(`👮 Manually blocked IP ${ip}: ${reason}`);
+    logger.info(`👮 Manually blocked IP ${ip}: ${reason}`);
   }
 
   /**
@@ -752,7 +753,7 @@ class ThreatDetector {
     if (this.blockedIPs.has(ip)) {
       this.blockedIPs.delete(ip);
       this.saveBlocklist();
-      console.log(`🔓 Unblocked IP ${ip}`);
+      logger.info(`🔓 Unblocked IP ${ip}`);
       return true;
     }
     return false;

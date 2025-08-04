@@ -44,10 +44,9 @@ class RinaWarpSystemVitalsFeature {
       this.startMonitoring();
 
       this.initialized = true;
-      console.log('📊 System Vitals feature loaded');
     } catch (error) {
       console.error('Failed to initialize System Vitals:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -55,7 +54,7 @@ class RinaWarpSystemVitalsFeature {
     this.terminal.addCommand('vitals', () => this.showVitals());
     this.terminal.addCommand('performance', () => this.showPerformance());
     this.terminal.addCommand('heartbeat', () => this.showHeartbeat());
-    this.terminal.addCommand('monitor', (action) => this.handleMonitorCommand(action));
+    this.terminal.addCommand('monitor', action => this.handleMonitorCommand(action));
   }
 
   startMonitoring() {
@@ -84,7 +83,7 @@ class RinaWarpSystemVitalsFeature {
 
   showVitals() {
     const vitals = this.systemVitals.getCurrentVitals();
-    
+
     this.terminal.writeLine(`
 📊 System Vitals:
 ================
@@ -99,7 +98,7 @@ Active Features: ${vitals.features}
 
   showPerformance() {
     const perf = this.performanceMonitor.getMetrics();
-    
+
     this.terminal.writeLine(`
 ⚡ Performance Metrics:
 ======================
@@ -114,7 +113,7 @@ Features Loaded: ${perf.featuresCount}
 
   showHeartbeat() {
     const heartbeat = this.heartbeatMonitor.getStatus();
-    
+
     this.terminal.writeLine(`
 💓 System Heartbeat:
 ===================
@@ -143,7 +142,7 @@ Issues: ${heartbeat.issues.length}
         this.terminal.writeLine('Monitoring is already running');
       }
       break;
-        
+
     case 'stop':
       if (this.monitoringInterval) {
         this.stopMonitoring();
@@ -152,12 +151,12 @@ Issues: ${heartbeat.issues.length}
         this.terminal.writeLine('Monitoring is not running');
       }
       break;
-        
+
     case 'status':
       const status = this.monitoringInterval ? 'Running' : 'Stopped';
       this.terminal.writeLine(`Monitoring Status: ${status}`);
       break;
-        
+
     default:
       this.terminal.writeLine(`
 Monitor Commands:
@@ -174,7 +173,7 @@ Monitor Commands:
 
   async cleanup() {
     this.stopMonitoring();
-    
+
     if (this.systemVitals) {
       await this.systemVitals.cleanup();
     }
@@ -184,7 +183,7 @@ Monitor Commands:
     if (this.performanceMonitor) {
       await this.performanceMonitor.cleanup();
     }
-    
+
     this.initialized = false;
   }
 

@@ -1,3 +1,4 @@
+import logger from './utils/logger.js';
 import express from 'express';
 import Stripe from 'stripe';
 
@@ -47,7 +48,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     res.json({ id: session.id });
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    logger.error('Error creating checkout session:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -60,7 +61,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.log(`Webhook signature verification failed.`, err.message);
+    logger.info(`Webhook signature verification failed.`, err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -68,19 +69,19 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
-      console.log('Payment was successful!', session);
+      logger.info('Payment was successful!', session);
       // TODO: Provision the service (e.g., create account, send license key)
       break;
     case 'invoice.payment_succeeded':
       const invoice = event.data.object;
-      console.log('Subscription payment succeeded:', invoice);
+      logger.info('Subscription payment succeeded:', invoice);
       break;
     case 'customer.subscription.deleted':
       const subscription = event.data.object;
-      console.log('Subscription cancelled:', subscription);
+      logger.info('Subscription cancelled:', subscription);
       break;
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      logger.info(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
@@ -88,7 +89,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Stripe checkout API server running on port ${PORT}`);
+  logger.info(`Stripe checkout API server running on port ${PORT}`);
 });
 
 export default app;

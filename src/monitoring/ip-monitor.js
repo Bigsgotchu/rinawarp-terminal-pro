@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -61,7 +62,7 @@ class IPMonitoringSystem {
           },
         });
       } catch (error) {
-        console.log('⚠️ Email configuration disabled:', error.message);
+        logger.debug('⚠️ Email configuration disabled:', error.message);
         this.emailTransporter = null;
       }
     }
@@ -71,8 +72,6 @@ class IPMonitoringSystem {
    * Initialize monitoring schedules
    */
   initializeMonitoring() {
-    console.log('🔍 Initializing IP Monitoring System...');
-
     // Schedule periodic monitoring
     cron.schedule(this.monitoringInterval, () => {
       this.runFullMonitoringScan();
@@ -82,15 +81,12 @@ class IPMonitoringSystem {
     setTimeout(() => {
       this.runFullMonitoringScan();
     }, 5000);
-
-    console.log(`📅 Monitoring scheduled: ${this.monitoringInterval}`);
   }
 
   /**
    * Run complete monitoring scan
    */
   async runFullMonitoringScan() {
-    console.log('🔍 Starting IP monitoring scan...');
     const scanResults = {
       timestamp: new Date().toISOString(),
       github: await this.monitorGitHub(),
@@ -113,7 +109,6 @@ class IPMonitoringSystem {
     }
 
     this.lastScanResults = scanResults;
-    console.log(
       `✅ Monitoring scan complete. Found ${scanResults.violations.length} potential violations.`
     );
   }
@@ -122,7 +117,6 @@ class IPMonitoringSystem {
    * Monitor GitHub for unauthorized repositories
    */
   async monitorGitHub() {
-    console.log('🔍 Monitoring GitHub...');
     const results = [];
 
     try {
@@ -169,7 +163,6 @@ class IPMonitoringSystem {
    * Monitor NPM for package name conflicts
    */
   async monitorNPM() {
-    console.log('🔍 Monitoring NPM...');
     const results = [];
 
     const npmPackageNames = ['rinawarp-terminal', 'rinawarp', 'rina-warp', 'rinawarp-cli'];
@@ -215,7 +208,6 @@ class IPMonitoringSystem {
    * Monitor domain registrations
    */
   async monitorDomains() {
-    console.log('🔍 Monitoring domains...');
     const results = [];
 
     // Note: In production, you'd use a domain monitoring service
@@ -253,7 +245,6 @@ class IPMonitoringSystem {
    * Check Google search results for mentions
    */
   async checkGoogleResults() {
-    console.log('🔍 Checking Google mentions...');
     const results = [];
 
     // Note: In production, use Google Custom Search API
@@ -292,7 +283,6 @@ class IPMonitoringSystem {
    * Monitor social media for mentions
    */
   async monitorSocialMedia() {
-    console.log('🔍 Monitoring social media...');
     const results = [];
 
     // Note: In production, integrate with Twitter API, Reddit API, etc.
@@ -415,7 +405,6 @@ class IPMonitoringSystem {
       await fs.mkdir(path.dirname(filepath), { recursive: true });
 
       await fs.writeFile(filepath, JSON.stringify(results, null, 2));
-      console.log(`📄 Scan results saved to: ${filepath}`);
     } catch (error) {
       console.error('Failed to store scan results:', error.message);
     }
@@ -426,7 +415,7 @@ class IPMonitoringSystem {
    */
   async sendViolationAlert(violations) {
     if (!this.emailTransporter) {
-      console.log('⚠️ Email not configured, violations logged only');
+      logger.debug('⚠️ Email not configured, violations logged only');
       return;
     }
 
@@ -439,8 +428,6 @@ class IPMonitoringSystem {
         subject: `🚨 RinaWarp IP Violation Alert - ${violations.length} violations detected`,
         html: emailBody,
       });
-
-      console.log('📧 Violation alert email sent successfully');
     } catch (error) {
       console.error('Failed to send violation alert:', error.message);
     }
@@ -492,7 +479,6 @@ class IPMonitoringSystem {
    * Manual scan trigger
    */
   async triggerManualScan() {
-    console.log('🔍 Manual monitoring scan triggered...');
     return await this.runFullMonitoringScan();
   }
 
@@ -515,7 +501,6 @@ class IPMonitoringSystem {
   addMonitoringTerm(term) {
     if (!this.monitoredTerms.includes(term)) {
       this.monitoredTerms.push(term);
-      console.log(`➕ Added monitoring term: ${term}`);
     }
   }
 
@@ -525,7 +510,6 @@ class IPMonitoringSystem {
   addMonitoringDomain(domain) {
     if (!this.monitoredDomains.includes(domain)) {
       this.monitoredDomains.push(domain);
-      console.log(`➕ Added monitoring domain: ${domain}`);
     }
   }
 }

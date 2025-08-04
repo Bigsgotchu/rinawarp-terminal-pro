@@ -20,7 +20,7 @@ export class OpenAIProvider {
       logger.warn('OpenAI API key not configured');
       return false;
     }
-    
+
     try {
       // Test the connection
       await this.client.models.list();
@@ -45,7 +45,7 @@ export class OpenAIProvider {
         model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt },
         ],
         temperature,
         max_tokens: maxTokens,
@@ -54,7 +54,7 @@ export class OpenAIProvider {
       return response.choices[0].message.content;
     } catch (error) {
       logger.error('OpenAI completion error', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -71,7 +71,7 @@ export class OpenAIProvider {
         model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt },
         ],
         temperature,
         max_tokens: maxTokens,
@@ -86,7 +86,7 @@ export class OpenAIProvider {
       }
     } catch (error) {
       logger.error('OpenAI streaming error', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 

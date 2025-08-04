@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
 import { promises as fs } from 'fs';
-import path from 'path';
+// import path from 'path'; // Currently unused
 
 async function updateCSPToStrict() {
-  console.log('🔒 Updating CSP to strict mode (removing unsafe-inline for scripts)...\n');
-
   // Files to update
   const filesToUpdate = [
     {
@@ -22,8 +20,6 @@ async function updateCSPToStrict() {
 
   for (const file of filesToUpdate) {
     try {
-      console.log(`\n📄 Processing ${file.path}...`);
-
       if (
         !(await fs
           .access(file.path)
@@ -59,15 +55,11 @@ async function updateCSPToStrict() {
         // Create backup
         const backupPath = `${file.path}.backup-${Date.now()}`;
         await fs.writeFile(backupPath, originalContent, 'utf8');
-        console.log(`  📋 Created backup: ${backupPath}`);
 
         // Write updated content
         await fs.writeFile(file.path, content, 'utf8');
         updatedCount++;
-        console.log(`  ✅ Updated ${file.description}`);
-        changes.forEach(change => console.log(`     - ${change}`));
       } else {
-        console.log('  ℹ️  No changes needed');
       }
     } catch (error) {
       console.error(`❌ Error processing ${file.path}:`, error.message);
@@ -75,7 +67,6 @@ async function updateCSPToStrict() {
   }
 
   // Create a new strict CSP config file
-  console.log('\n📝 Creating strict CSP configuration file...');
 
   const strictCSPConfig = `// Strict CSP Configuration (no unsafe-inline for scripts)
 // This configuration blocks all inline event handlers and eval()
@@ -117,19 +108,7 @@ export const getDevCSPHeader = () => {
   await fs.writeFile('./src/config/csp-config-strict.js', strictCSPConfig, 'utf8');
   console.log('✅ Created strict CSP configuration file');
 
-  console.log('\n🎉 CSP update completed!');
   console.log(`📊 Updated ${updatedCount} files`);
-
-  console.log('\n📋 Next steps:');
-  console.log('1. Test your website thoroughly to ensure all functionality works');
-  console.log('2. Check browser console for any CSP violations');
-  console.log('3. Deploy and monitor for issues');
-  console.log('4. Consider moving inline styles to external CSS files next');
-
-  console.log('\n🔒 Security improvements:');
-  console.log('- All inline event handlers are now blocked');
-  console.log('- XSS attack surface significantly reduced');
-  console.log('- Code follows modern security best practices');
 }
 
 // Run the update

@@ -1,0 +1,290 @@
+/* Authentication UI Styles */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: rgba(10, 10, 10, 0.95);
+  color: #00ff88;
+  font-family: 'SF Mono', Monaco, Inconsolata, 'Fira Code', monospace;
+}
+
+.auth-form {
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid #00ff88;
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
+}
+
+.auth-form h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #00ff88;
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #00ff88;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.error-message {
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-google {
+  width: 100%;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
+}
+
+.btn-primary {
+  background: #00ff88;
+  color: #000000;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #00cc6a;
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #00ff88;
+  border: 1px solid #00ff88;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.btn-google {
+  background: #ffffff;
+  color: #333333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #dadce0;
+}
+
+.btn-google:hover:not(:disabled) {
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.google-icon {
+  flex-shrink: 0;
+}
+
+.auth-divider {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.auth-divider span {
+  background: rgba(20, 20, 20, 0.9);
+  padding: 0 16px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%);
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.auth-footer p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #00ff88;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.link-button:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.link-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Authenticated state */
+.auth-container.authenticated {
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 20px;
+  min-height: auto;
+}
+
+.user-info {
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid #00ff88;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 300px;
+}
+
+.user-info h3 {
+  color: #00ff88;
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.user-info .user-email {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  background: transparent;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid #00ff88;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #00ff88;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(0, 255, 136, 0.1);
+  transform: rotate(90deg);
+}
+
+/* When in modal, remove min-height from auth-container */
+.modal-content .auth-container {
+  min-height: auto;
+  background: transparent;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .auth-form {
+    padding: 24px;
+    margin: 16px;
+  }
+
+  .auth-form h2 {
+    font-size: 20px;
+  }
+
+  .modal-close {
+    top: 10px;
+    right: 10px;
+  }
+}

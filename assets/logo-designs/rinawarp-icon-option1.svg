@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Modern gradient -->
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.1"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="450" fill="#0F172A" filter="url(#shadow)"/>
+  
+  <!-- Terminal window frame -->
+  <g transform="translate(512, 512)">
+    <!-- Window bar -->
+    <rect x="-300" y="-250" width="600" height="50" rx="25" fill="#1E293B"/>
+    
+    <!-- Window dots -->
+    <circle cx="-250" cy="-225" r="12" fill="#EF4444"/>
+    <circle cx="-210" cy="-225" r="12" fill="#F59E0B"/>
+    <circle cx="-170" cy="-225" r="12" fill="#10B981"/>
+    
+    <!-- Terminal content area -->
+    <rect x="-300" y="-200" width="600" height="400" rx="0" ry="0" fill="#0F172A" opacity="0.5"/>
+    
+    <!-- Prompt symbol with animation -->
+    <g transform="translate(-250, -50)">
+      <path d="M 0 -40 L 80 0 L 0 40" 
+            stroke="url(#gradient1)" 
+            stroke-width="16" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      
+      <!-- Cursor -->
+      <rect x="100" y="-5" width="120" height="10" rx="5" fill="url(#gradient1)">
+        <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+      </rect>
+    </g>
+    
+    <!-- Warp effect lines -->
+    <g opacity="0.3">
+      <rect x="250" y="-100" width="150" height="4" rx="2" fill="url(#gradient1)" transform="skewX(-20)"/>
+      <rect x="250" y="-50" width="100" height="4" rx="2" fill="url(#gradient1)" transform="skewX(-20)"/>
+      <rect x="250" y="0" width="120" height="4" rx="2" fill="url(#gradient1)" transform="skewX(-20)"/>
+      <rect x="250" y="50" width="80" height="4" rx="2" fill="url(#gradient1)" transform="skewX(-20)"/>
+    </g>
+  </g>
+</svg>

@@ -18,15 +18,15 @@ export async function connectDatabase() {
 
     await mongoose.connect(config.mongodb.uri, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
     });
-    
+
     logger.info('✅ Connected to MongoDB');
   } catch (error) {
     logger.error('❌ MongoDB connection failed:', error);
     // Don't exit in development
     if (config.nodeEnv !== 'development') {
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 }
