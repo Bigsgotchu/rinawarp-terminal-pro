@@ -11,9 +11,6 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-console.log('🚀 RinaWarp Pre-Deployment Validation');
-console.log('=====================================\n');
-
 let totalChecks = 0;
 let passedChecks = 0;
 const criticalIssues = [];
@@ -21,8 +18,7 @@ const criticalIssues = [];
 // Helper function to check items
 function check(description, condition, critical = false) {
   totalChecks++;
-  const status = condition ? '✅' : '❌';
-  console.log(`${status} ${description}`);
+  const _status = condition ? '✅' : '❌';
 
   if (condition) {
     passedChecks++;
@@ -34,8 +30,6 @@ function check(description, condition, critical = false) {
 }
 
 // 1. Environment Configuration
-console.log('1️⃣ ENVIRONMENT CONFIGURATION');
-console.log('-----------------------------');
 
 check('.env file exists', fs.existsSync('.env'), true);
 check('.env.example exists', fs.existsSync('.env.example'));
@@ -59,8 +53,6 @@ if (fs.existsSync('.env')) {
 }
 
 // 2. Core Files
-console.log('\n2️⃣ CORE FILES');
-console.log('-------------');
 
 const coreFiles = [
   { file: 'index.html', critical: true },
@@ -80,8 +72,6 @@ coreFiles.forEach(({ file, critical }) => {
 });
 
 // 3. Content Validation
-console.log('\n3️⃣ CONTENT VALIDATION');
-console.log('--------------------');
 
 if (fs.existsSync('index.html')) {
   const indexContent = fs.readFileSync('index.html', 'utf8');
@@ -106,8 +96,6 @@ if (fs.existsSync('src/payment/stripe-checkout.js')) {
 }
 
 // 4. Dependencies
-console.log('\n4️⃣ DEPENDENCIES');
-console.log('---------------');
 
 try {
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -128,17 +116,15 @@ try {
     try {
       execSync('npm audit --audit-level=high', { stdio: 'pipe' });
       check('No high severity vulnerabilities', true);
-    } catch (e) {
+    } catch (_e) {
       check('No high severity vulnerabilities', false);
     }
   }
-} catch (e) {
-  console.error('Error checking dependencies:', e.message);
+} catch (error) {
+  console.error('Error checking dependencies:', error.message);
 }
 
 // 5. Server Configuration
-console.log('\n5️⃣ SERVER CONFIGURATION');
-console.log('----------------------');
 
 if (fs.existsSync('final-server.js')) {
   const serverContent = fs.readFileSync('final-server.js', 'utf8');
@@ -149,8 +135,6 @@ if (fs.existsSync('final-server.js')) {
 }
 
 // 6. Security Checks
-console.log('\n6️⃣ SECURITY CHECKS');
-console.log('------------------');
 
 check(
   'No hardcoded secrets in index.html',
@@ -165,8 +149,6 @@ if (fs.existsSync('.gitignore')) {
 }
 
 // 7. Performance Optimization
-console.log('\n7️⃣ PERFORMANCE OPTIMIZATION');
-console.log('---------------------------');
 
 if (fs.existsSync('index.html')) {
   const indexContent = fs.readFileSync('index.html', 'utf8');
@@ -181,8 +163,6 @@ if (fs.existsSync('index.html')) {
 }
 
 // 8. Download System
-console.log('\n8️⃣ DOWNLOAD SYSTEM');
-console.log('------------------');
 
 check('releases directory exists', fs.existsSync('releases'));
 check('Download redirect handler exists', fs.existsSync('src/api/download-redirect.js'));
@@ -193,10 +173,7 @@ if (fs.existsSync('src/api/download-redirect.js')) {
 }
 
 // 9. Test Server Startup
-console.log('\n9️⃣ SERVER STARTUP TEST');
-console.log('----------------------');
 
-console.log('Testing server startup (5 second timeout)...');
 let serverWorks = false;
 
 try {
@@ -207,39 +184,20 @@ try {
     testProcess.includes('Starting RinaWarp Terminal');
 
   check('Server starts without errors', serverWorks, true);
-} catch (e) {
+} catch (_e) {
   check('Server starts without errors', false, true);
-  console.log('  Error:', e.message);
 }
 
 // Final Report
-console.log('\n' + '='.repeat(50));
 console.log('📊 VALIDATION SUMMARY');
-console.log('='.repeat(50));
-console.log(`Total Checks: ${totalChecks}`);
-console.log(`Passed: ${passedChecks}`);
-console.log(`Failed: ${totalChecks - passedChecks}`);
-console.log(`Success Rate: ${Math.round((passedChecks / totalChecks) * 100)}%`);
 
 if (criticalIssues.length > 0) {
-  console.log('\n🚨 CRITICAL ISSUES THAT MUST BE FIXED:');
-  criticalIssues.forEach((issue, i) => {
-    console.log(`   ${i + 1}. ${issue}`);
+  criticalIssues.forEach((_issue, _i) => {
+    // TODO: Log critical issues
   });
-  console.log('\n❌ DEPLOYMENT BLOCKED - Fix critical issues first!');
   process.exit(1);
 } else if (passedChecks === totalChecks) {
-  console.log('\n✅ ALL CHECKS PASSED - Ready for deployment!');
-
-  console.log('\n📋 DEPLOYMENT CHECKLIST:');
-  console.log('   1. Run: npm run build:releases');
-  console.log('   2. Test payment flow with Stripe test cards');
-  console.log('   3. Deploy to production: npm run deploy:railway');
-  console.log('   4. Test live site: node website-monitor.js');
-  console.log('   5. Monitor logs for first 24 hours');
 } else {
-  console.log('\n⚠️  SOME CHECKS FAILED - Review and fix before deployment');
-  console.log("   Non-critical issues won't block deployment but should be addressed");
 }
 
 // Generate deployment readiness report
@@ -256,4 +214,3 @@ const report = {
 };
 
 fs.writeFileSync('deployment-readiness.json', JSON.stringify(report, null, 2));
-console.log('\n📄 Detailed report saved to: deployment-readiness.json');

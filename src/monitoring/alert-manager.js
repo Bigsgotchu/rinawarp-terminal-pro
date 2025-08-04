@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 11 deprecated pattern(s) replaced with modern alternatives
@@ -30,7 +31,7 @@ class AlertManager {
       // Create default alert policies
       await this.createDefaultAlertPolicies();
 
-      console.log('✅ Alert manager initialized successfully');
+      logger.debug('✅ Alert manager initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize alert manager:', error.message);
       this.isInitialized = false;
@@ -107,7 +108,7 @@ class AlertManager {
   async createAlertPolicy(alertConfig) {
     try {
       if (!this.isInitialized) {
-        throw new Error(new Error('Alert manager not initialized'));
+        throw new Error(new Error(new Error('Alert manager not initialized')));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -154,17 +155,15 @@ class AlertManager {
 
       if (policy) {
         this.alertPolicies.set(alertConfig.name, policy);
-        console.log(`✅ Created alert policy: ${alertConfig.name}`);
       }
 
       return policy;
     } catch (error) {
       if (error.message.includes('already exists')) {
-        console.log(`ℹ️  Alert policy ${alertConfig.name} already exists`);
         return null;
       }
       console.error('❌ Error creating alert policy:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -174,7 +173,7 @@ class AlertManager {
   async createNotificationChannel(channelConfig) {
     try {
       if (!this.isInitialized) {
-        throw new Error(new Error('Alert manager not initialized'));
+        throw new Error(new Error(new Error('Alert manager not initialized')));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -196,12 +195,11 @@ class AlertManager {
       const [channel] = await client.createNotificationChannel(request);
 
       this.notificationChannels.set(channelConfig.displayName, channel);
-      console.log(`✅ Created notification channel: ${channelConfig.displayName}`);
 
       return channel;
     } catch (error) {
       console.error('❌ Error creating notification channel:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -212,7 +210,7 @@ class AlertManager {
     try {
       const policy = this.alertPolicies.get(policyName);
       if (!policy) {
-        throw new Error(new Error(`Alert policy ${policyName} not found`));
+        throw new Error(new Error(new Error(`Alert policy ${policyName} not found`)));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -221,7 +219,7 @@ class AlertManager {
       const notificationChannels = notificationChannelNames.map(name => {
         const channel = this.notificationChannels.get(name);
         if (!channel) {
-          throw new Error(new Error(`Notification channel ${name} not found`));
+          throw new Error(new Error(new Error(`Notification channel ${name} not found`)));
         }
         return channel.name;
       });
@@ -239,12 +237,11 @@ class AlertManager {
       const [updated] = await client.updateAlertPolicy(request);
 
       this.alertPolicies.set(policyName, updated);
-      console.log(`✅ Updated alert policy ${policyName} with notification channels`);
 
       return updated;
     } catch (error) {
       console.error('❌ Error updating alert policy notifications:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -254,7 +251,7 @@ class AlertManager {
   async listAlertPolicies() {
     try {
       if (!this.isInitialized) {
-        throw new Error(new Error('Alert manager not initialized'));
+        throw new Error(new Error(new Error('Alert manager not initialized')));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -276,7 +273,7 @@ class AlertManager {
       }));
     } catch (error) {
       console.error('❌ Error listing alert policies:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -287,7 +284,7 @@ class AlertManager {
     try {
       const policy = this.alertPolicies.get(policyName);
       if (!policy) {
-        throw new Error(new Error(`Alert policy ${policyName} not found`));
+        throw new Error(new Error(new Error(`Alert policy ${policyName} not found`)));
       }
 
       const client = monitoringConfig.getMonitoringClient();
@@ -299,10 +296,10 @@ class AlertManager {
       await client.deleteAlertPolicy(request);
 
       this.alertPolicies.delete(policyName);
-      console.log(`✅ Deleted alert policy: ${policyName}`);
+      logger.debug(`✅ Deleted alert policy: ${policyName}`);
     } catch (error) {
       console.error('❌ Error deleting alert policy:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 

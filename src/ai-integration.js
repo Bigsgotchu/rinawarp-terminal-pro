@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * RinaWarp Terminal - AI Integration Orchestrator
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -8,27 +9,19 @@
 
 // Mock classes for dependencies (will be replaced by actual implementations)
 class AILearningEngine {
-  constructor() {
-    console.log('🧠 AI Learning Engine initialized');
-  }
+  constructor() {}
 }
 
 class LogicalReasoningEngine {
-  constructor() {
-    console.log('🤔 Logical Reasoning Engine initialized');
-  }
+  constructor() {}
 }
 
 class DeepContextEngine {
-  constructor() {
-    console.log('🔍 Deep Context Engine initialized');
-  }
+  constructor() {}
 }
 
 class AIPersonality {
-  constructor() {
-    console.log('🧜‍♀️ AI Personality Core initialized');
-  }
+  constructor() {}
 
   getGreeting() {
     return '🌊 Hello, darling! Your sassy mermaid AI is ready to make waves!';
@@ -56,9 +49,7 @@ class AIPersonality {
     return jokes[Math.floor(Math.random() * jokes.length)];
   }
 
-  adaptToContext(context) {
-    console.log('🎭 Adapting personality to context:', context.current_time);
-  }
+  adaptToContext(_context) {}
 }
 
 // Make classes globally available
@@ -85,7 +76,6 @@ class AIIntegrationManager {
     this.commandProcessor = null;
     this.sessionId = this.generateSessionId();
 
-    console.log('🌊 AI Integration Manager starting...');
     this.init();
   }
 
@@ -95,8 +85,6 @@ class AIIntegrationManager {
 
   async init() {
     try {
-      console.log('🧜‍♀️ Initializing Sassy Mermaid AI System...');
-
       // Initialize AI components in order
       await this.loadAIComponents();
       await this.setupCommandProcessor();
@@ -104,7 +92,6 @@ class AIIntegrationManager {
       await this.setupEventHandlers();
 
       this.isInitialized = true;
-      console.log('✅ Sassy Mermaid AI fully operational! Ready to make waves! 🌊');
 
       // Display welcome message
       this.displayWelcomeMessage();
@@ -122,7 +109,6 @@ class AIIntegrationManager {
 
         if (Component) {
           const instance = new Component();
-          console.log(`✅ ${componentName} loaded successfully`);
           return instance;
         } else {
           console.warn(`⚠️ ${componentName} class not found in module`);
@@ -204,8 +190,6 @@ class AIIntegrationManager {
   async setupCommandProcessor() {
     this.commandProcessor = {
       processCommand: async (command, context = {}) => {
-        console.log(`🌊 Processing command: ${command}`);
-
         if (!this.aiAssistant) {
           return {
             response: '🧜‍♀️ Mermaid AI is initializing...',
@@ -244,9 +228,7 @@ class AIIntegrationManager {
 
   async initializePersonality() {
     if (this.aiAssistant && this.aiAssistant.personality) {
-      console.log('🎭 Initializing mermaid personality...');
-      const greeting = this.aiAssistant.personality.getGreeting();
-      console.log(greeting);
+      const _greeting = this.aiAssistant.personality.getGreeting();
     }
   }
 
@@ -273,16 +255,13 @@ class AIIntegrationManager {
       '🐚 Let\'s make some waves in your development workflow!',
     ];
 
-    welcomeMessages.forEach((msg, index) => {
-      setTimeout(() => console.log(msg), index * 1000);
-    });
+    welcomeMessages.forEach((_msg, _index) => {});
   }
 
   setupFallbackMode() {
-    console.log('🚨 Setting up fallback mode...');
     this.setupFallbackAI();
     this.setupCommandProcessor();
-    console.log('✅ Fallback AI ready - basic mermaid personality active!');
+    logger.debug('✅ Fallback AI ready - basic mermaid personality active!');
   }
 
   // Public API methods
@@ -341,7 +320,6 @@ class AIIntegrationManager {
 Type commands naturally - your mermaid AI will respond! 🌊✨
     `;
 
-    console.log(helpText);
     return helpText;
   }
 }

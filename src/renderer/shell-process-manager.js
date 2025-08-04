@@ -75,7 +75,7 @@ export class ShellProcessManager {
       this.log('Initializing shell process...', 'info');
 
       if (!window.electronAPI) {
-        throw new Error(new Error('Electron API not available - cannot create shell process'));
+        throw new Error(new Error(new Error('Electron API not available - cannot create shell process')));
       }
 
       // Create shell process
@@ -113,7 +113,7 @@ export class ShellProcessManager {
       return this.sessionId;
     } catch (error) {
       this.handleError('Failed to initialize shell process', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -503,7 +503,7 @@ export class ShellProcessManager {
   log(message, level = 'info') {
     if (this.options.logLevel === 'silent') return;
 
-    const timestamp = new Date().toLocaleTimeString();
+    const _timestamp = new Date().toLocaleTimeString();
     const prefix = `[ShellManager:${this.tabId}]`;
     const logMessage = `${prefix} ${message}`;
 
@@ -511,7 +511,12 @@ export class ShellProcessManager {
     if (window.logMessage) {
       window.logMessage(logMessage, level);
     } else {
-      console[level === 'error' ? 'error' : level === 'warning' ? 'warn' : 'log'](logMessage);
+      if (level === 'error') {
+        console.error(logMessage);
+      } else if (level === 'warning') {
+        console.warn(logMessage);
+      } else {
+      }
     }
   }
 

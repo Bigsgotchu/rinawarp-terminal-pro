@@ -17,14 +17,12 @@ class DebugDashboard {
     this.app = express();
     this.server = http.createServer(this.app);
     this.io = socketIo(this.server);
-    
+
     // Setup logger
     this.logger = winston.createLogger({
       level: config.logging.level,
       format: winston.format.json(),
-      transports: [
-        new winston.transports.File({ filename: config.logging.file })
-      ]
+      transports: [new winston.transports.File({ filename: config.logging.file })],
     });
 
     // Setup routes and socket handlers
@@ -36,20 +34,16 @@ class DebugDashboard {
     this.app.get('/', (req, res) => {
       res.sendFile(path.join(__dirname, '../public/index.html'));
     });
-    
+
     this.app.use('/static', express.static(path.join(__dirname, '../public')));
   }
 
   setupSocketHandlers() {
-    this.io.on('connection', (socket) => {
-      if (process.env.NODE_ENV !== 'production') console.log('Client connected');
-      
+    this.io.on('connection', socket => {
       // Start sending metrics
       this.startMetricsInterval(socket);
 
-      socket.on('disconnect', () => {
-        if (process.env.NODE_ENV !== 'production') console.log('Client disconnected');
-      });
+      socket.on('disconnect', () => {});
     });
   }
 
@@ -70,7 +64,7 @@ class DebugDashboard {
       performance: await this.getPerformanceMetrics(),
       errors: await this.getErrorLogs(),
       config: await this.getConfigSnapshot(),
-      system: await this.getSystemMetrics()
+      system: await this.getSystemMetrics(),
     };
   }
 
@@ -79,7 +73,7 @@ class DebugDashboard {
     return {
       loaded: ['core', 'ui', 'network'],
       loading: ['extensions'],
-      failed: []
+      failed: [],
     };
   }
 
@@ -87,7 +81,7 @@ class DebugDashboard {
     return {
       cpu: process.cpuUsage(),
       memory: process.memoryUsage(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
   }
 
@@ -96,7 +90,7 @@ class DebugDashboard {
     return this.logger.query({
       level: 'error',
       limit: 10,
-      order: 'desc'
+      order: 'desc',
     });
   }
 
@@ -109,15 +103,13 @@ class DebugDashboard {
       loadavg: os.loadavg(),
       totalmem: os.totalmem(),
       freemem: os.freemem(),
-      cpus: os.cpus().length
+      cpus: os.cpus().length,
     };
   }
 
   start() {
     const port = this.config.debugOverlay.port;
-    this.server.listen(port, () => {
-      if (process.env.NODE_ENV !== 'production') console.log(`Debug dashboard running on http://localhost:${port}`);
-    });
+    this.server.listen(port, () => {});
   }
 }
 

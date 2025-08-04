@@ -77,7 +77,7 @@ class ErrorHandler {
         return await fn.apply(this.sdk, args);
       } catch (error) {
         this.handleError(error, { ...context, method: fn.name, args });
-        throw new Error(error);
+        throw new Error(new Error(error));
       }
     };
   }
@@ -99,33 +99,32 @@ class ErrorHandler {
           // Don't retry on client errors
           if (error.status && error.status >= 400 && error.status < 500) {
             this.handleError(error, { ...context, method: fn.name, args, attempt });
-            throw new Error(error);
+            throw new Error(new Error(error));
           }
 
           // Last attempt, don't retry
           if (attempt === maxRetries) {
-            this.handleError(error, { 
-              ...context, 
-              method: fn.name, 
-              args, 
+            this.handleError(error, {
+              ...context,
+              method: fn.name,
+              args,
               attempt,
-              exhaustedRetries: true 
+              exhaustedRetries: true,
             });
-            throw new Error(error);
+            throw new Error(new Error(error));
           }
 
           // Calculate delay with exponential backoff
           const delay = retryDelay * Math.pow(backoffMultiplier, attempt);
-          
+
           if (process.env.NODE_ENV !== 'production') {
-            console.log(`Retrying ${fn.name} after ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
           }
 
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
 
-      throw new Error(lastError);
+      throw new Error(new Error(lastError));
     };
   }
 
@@ -155,10 +154,7 @@ class ErrorHandler {
 
     methodsToWrap.forEach(methodName => {
       if (typeof sdk[methodName] === 'function') {
-        safeSDK[methodName] = this.wrapWithRetry(
-          sdk[methodName].bind(sdk),
-          { methodName }
-        );
+        safeSDK[methodName] = this.wrapWithRetry(sdk[methodName].bind(sdk), { methodName });
       }
     });
 
@@ -179,23 +175,23 @@ class ErrorHandler {
     if (error.code === 'NETWORK_ERROR') {
       return 'Network connection error. Please check your internet connection.';
     }
-    
+
     if (error.code === 'AUTH_ERROR') {
       return 'Authentication failed. Please check your API key.';
     }
-    
+
     if (error.code === 'RATE_LIMIT') {
       return 'Rate limit exceeded. Please try again later.';
     }
-    
+
     if (error.status === 404) {
       return 'Resource not found.';
     }
-    
+
     if (error.status === 500) {
       return 'Server error. Please try again later.';
     }
-    
+
     return error.message || 'An unexpected error occurred.';
   }
 }

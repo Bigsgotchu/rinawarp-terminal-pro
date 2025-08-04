@@ -33,7 +33,6 @@ class AgentModeIntegration {
       this.setupEventListeners();
 
       this.isInitialized = true;
-      console.log('✅ Agent Mode integration initialized');
 
       // Show available commands in terminal
       this.showWelcomeMessage();
@@ -380,7 +379,7 @@ and help with development tasks. Always confirms dangerous operations.
     // Display function call results if any
     if (response.functionResults && response.functionResults.length > 0) {
       this.terminal.writeLine('\\n🔧 Actions Performed:');
-      response.functionResults.forEach((result, index) => {
+      response.functionResults.forEach((result, _index) => {
         const status = result.success ? '\\x1b[32m✓\\x1b[0m' : '\\x1b[31m✗\\x1b[0m';
         this.terminal.writeLine(`${status} ${result.functionName}`);
 
@@ -447,7 +446,7 @@ Quick start: 'rina help me with...' for immediate assistance.
 
   async executeWithAgent(command, explanation = '') {
     if (!this.isAgentActive()) {
-      throw new Error(new Error('Agent Mode is not active'));
+      throw new Error(new Error(new Error('Agent Mode is not active')));
     }
 
     const message = explanation

@@ -13,7 +13,7 @@ class AppError extends Error {
     this.code = code;
     this.details = details;
     this.timestamp = new Date().toISOString();
-    
+
     // Capture stack trace
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
@@ -28,7 +28,7 @@ class AppError extends Error {
       message: this.message,
       details: this.details,
       timestamp: this.timestamp,
-      stack: this.stack
+      stack: this.stack,
     };
   }
 }
@@ -71,12 +71,12 @@ class AuthError extends AppError {
 // Error logging service
 class ErrorLogger {
   static instance = null;
-  
+
   constructor() {
     if (ErrorLogger.instance) {
       return ErrorLogger.instance;
     }
-    
+
     this.errorStore = [];
     this.subscribers = new Set();
     ErrorLogger.instance = this;
@@ -90,16 +90,19 @@ class ErrorLogger {
   }
 
   logError(error) {
-    const errorData = error instanceof AppError ? error.toJSON() : {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
-    };
+    const errorData =
+      error instanceof AppError
+        ? error.toJSON()
+        : {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            timestamp: new Date().toISOString(),
+          };
 
     this.errorStore.push(errorData);
     this.notifySubscribers(errorData);
-    
+
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
       console.error(errorData);
@@ -130,23 +133,21 @@ class GlobalErrorBoundary {
     // Handle uncaught promises
     process.on('unhandledRejection', (reason, promise) => {
       const errorLogger = ErrorLogger.getInstance();
-      errorLogger.logError(new AppError(
-        'Unhandled Promise Rejection',
-        'UnhandledRejection',
-        'UNHANDLED_REJECTION',
-        { reason }
-      ));
+      errorLogger.logError(
+        new AppError('Unhandled Promise Rejection', 'UnhandledRejection', 'UNHANDLED_REJECTION', {
+          reason,
+        })
+      );
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', error => {
       const errorLogger = ErrorLogger.getInstance();
-      errorLogger.logError(new AppError(
-        'Uncaught Exception',
-        'UncaughtException',
-        'UNCAUGHT_EXCEPTION',
-        { originalError: error }
-      ));
+      errorLogger.logError(
+        new AppError('Uncaught Exception', 'UncaughtException', 'UNCAUGHT_EXCEPTION', {
+          originalError: error,
+        })
+      );
     });
   }
 }
@@ -156,14 +157,14 @@ const ErrorRecoveryStrategies = {
   // Retry with exponential backoff
   async retryWithBackoff(operation, maxRetries = 3, initialDelay = 1000) {
     let retries = 0;
-    
+
     while (retries < maxRetries) {
       try {
         return await operation();
       } catch (error) {
         retries++;
-        if (retries === maxRetries) throw new Error(error);
-        
+        if (retries === maxRetries) throw new Error(new Error(error));
+
         const delay = initialDelay * Math.pow(2, retries - 1);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -172,10 +173,7 @@ const ErrorRecoveryStrategies = {
 
   // Circuit breaker pattern
   createCircuitBreaker(operation, options = {}) {
-    const {
-      maxFailures = 3,
-      resetTimeout = 60000,
-    } = options;
+    const { maxFailures = 3, resetTimeout = 60000 } = options;
 
     let failures = 0;
     let lastFailureTime = null;
@@ -184,7 +182,7 @@ const ErrorRecoveryStrategies = {
       if (failures >= maxFailures) {
         const timeSinceLastFailure = Date.now() - lastFailureTime;
         if (timeSinceLastFailure < resetTimeout) {
-          throw new Error(new NetworkError('Circuit breaker is open', 'CIRCUIT_OPEN'));
+          throw new Error(new Error(new NetworkError('Circuit breaker is open', 'CIRCUIT_OPEN')));
         }
         failures = 0;
       }
@@ -196,7 +194,7 @@ const ErrorRecoveryStrategies = {
       } catch (error) {
         failures++;
         lastFailureTime = Date.now();
-        throw new Error(error);
+        throw new Error(new Error(error));
       }
     };
   },
@@ -210,7 +208,7 @@ const ErrorRecoveryStrategies = {
         return fallbackValue;
       }
     };
-  }
+  },
 };
 
 // Export all error classes and utilities
@@ -223,5 +221,5 @@ module.exports = {
   AuthError,
   ErrorLogger,
   GlobalErrorBoundary,
-  ErrorRecoveryStrategies
+  ErrorRecoveryStrategies,
 };

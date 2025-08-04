@@ -22,32 +22,25 @@ router.get('/providers', async (req, res) => {
 
 router.post('/completion', async (req, res) => {
   try {
-    const { 
-      prompt, 
-      provider,
-      model,
-      temperature,
-      maxTokens,
-      systemPrompt 
-    } = req.body;
-    
+    const { prompt, provider, model, temperature, maxTokens, systemPrompt } = req.body;
+
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
-    
+
     const response = await aiOrchestrator.getCompletion(prompt, {
       provider,
       model,
       temperature,
       maxTokens,
       systemPrompt,
-      userId: req.user?.id || 'anonymous'
+      userId: req.user?.id || 'anonymous',
     });
-    
+
     res.json({
       response,
       provider: aiOrchestrator.selectProvider(provider),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Completion error:', error);
@@ -57,36 +50,29 @@ router.post('/completion', async (req, res) => {
 
 router.post('/stream', async (req, res) => {
   try {
-    const { 
-      prompt,
-      provider,
-      model,
-      temperature,
-      maxTokens,
-      systemPrompt
-    } = req.body;
-    
+    const { prompt, provider, model, temperature, maxTokens, systemPrompt } = req.body;
+
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
-    
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    
+
     const stream = aiOrchestrator.streamCompletion(prompt, {
       provider,
       model,
       temperature,
       maxTokens,
       systemPrompt,
-      userId: req.user?.id || 'anonymous'
+      userId: req.user?.id || 'anonymous',
     });
-    
+
     for await (const chunk of stream) {
       res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
     }
-    
+
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
   } catch (error) {

@@ -101,7 +101,7 @@ export class AuthenticationService {
   async createApiKey(userId, type = 'live') {
     const user = this.users.get(userId);
     if (!user) {
-      throw new Error(new Error('User not found'));
+      throw new Error(new Error(new Error('User not found')));
     }
 
     const apiKey = this.generateApiKey(userId, type);

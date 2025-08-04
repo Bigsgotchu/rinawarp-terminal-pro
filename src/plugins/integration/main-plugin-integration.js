@@ -43,8 +43,6 @@ export class RinaWarpPluginIntegration {
 
   async _performInit() {
     try {
-      console.log('🔌 Initializing RinaWarp Plugin System...');
-
       // Initialize core plugin manager
       this.pluginManager = new PluginManager(this.terminalManager);
 
@@ -73,7 +71,6 @@ export class RinaWarpPluginIntegration {
       await this.autoLoadPlugins();
 
       this.initialized = true;
-      console.log('✅ Plugin System initialized successfully');
 
       // Emit initialization event
       this.terminalManager.emit('plugin-system-initialized');
@@ -81,7 +78,7 @@ export class RinaWarpPluginIntegration {
       return true;
     } catch (error) {
       console.error('❌ Plugin System initialization failed:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -236,9 +233,7 @@ export class RinaWarpPluginIntegration {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = cssPath;
-    link.onload = () => {
-      console.log('✅ Plugin styles loaded');
-    };
+    link.onload = () => {};
     link.onerror = () => {
       console.warn('⚠️ Failed to load plugin styles');
     };
@@ -432,8 +427,6 @@ export class RinaWarpPluginIntegration {
    */
   async reloadAllPlugins() {
     try {
-      console.log('🔄 Reloading all plugins...');
-
       // Get list of active plugins
       const activePlugins = Array.from(this.pluginManager.plugins.keys());
 

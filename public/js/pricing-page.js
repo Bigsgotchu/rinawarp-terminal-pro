@@ -41,24 +41,22 @@ async function initializeStripe() {
         // Fetch Stripe configuration from server
         const response = await fetch('/api/stripe-config');
         if (!response.ok) {
-            throw new Error(new Error('Failed to load Stripe configuration'));
+            throw new Error(new Error(new Error('Failed to load Stripe configuration')));
         }
         
         stripeConfig = await response.json();
         
         if (!stripeConfig.publishableKey) {
-            throw new Error(new Error('Stripe publishable key not configured'));
+            throw new Error(new Error(new Error('Stripe publishable key not configured')));
         }
         
         // For demo/test purposes, check if it's a placeholder key
         if (stripeConfig.publishableKey.includes('51234567890abcdef')) {
-            console.log('🔧 Demo mode: Using placeholder Stripe configuration');
             showInfo('Demo mode: Payment buttons will show checkout simulation.');
             return;
         }
         
         stripe = Stripe(stripeConfig.publishableKey);
-        console.log('✅ Stripe initialized successfully');
     } catch (error) {
         console.error('❌ Error initializing Stripe:', error);
         // Show user-friendly error message
@@ -109,7 +107,7 @@ async function tryMultipleRoutes(planType, button, originalText) {
     
     const priceId = getPriceId(planType);
     if (!priceId) {
-        throw new Error(new Error(`Price not configured for ${planType} plan`));
+        throw new Error(new Error(new Error(`Price not configured for ${planType} plan`)));
     }
     
     const requestBody = {
@@ -120,7 +118,6 @@ async function tryMultipleRoutes(planType, button, originalText) {
     
     for (let i = 0; i < routes.length; i++) {
         try {
-            console.log(`🔄 Trying route ${i + 1}/${routes.length}: ${routes[i]}`);
             
             const response = await fetch(routes[i], {
                 method: 'POST',
@@ -131,13 +128,13 @@ async function tryMultipleRoutes(planType, button, originalText) {
             });
             
             if (!response.ok) {
-                throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
+                throw new Error(new Error(new Error(`HTTP ${response.status}: ${response.statusText}`)));
             }
             
             const session = await response.json();
             
             if (!session.sessionId && !session.url) {
-                throw new Error(new Error('Invalid response format'));
+                throw new Error(new Error(new Error('Invalid response format')));
             }
             
             console.log(`✅ Route ${i + 1} successful!`);
@@ -149,7 +146,7 @@ async function tryMultipleRoutes(planType, button, originalText) {
                 });
                 
                 if (result.error) {
-                    throw new Error(new Error(result.error.message));
+                    throw new Error(new Error(new Error(result.error.message)));
                 }
             } else if (session.url) {
                 // Direct URL redirect
@@ -162,7 +159,7 @@ async function tryMultipleRoutes(planType, button, originalText) {
             console.log(`❌ Route ${i + 1} failed: ${error.message}`);
             if (i === routes.length - 1) {
                 // All routes failed
-                throw new Error(error);
+                throw new Error(new Error(error));
             }
             // Try next route
             continue;
@@ -175,7 +172,6 @@ async function tryMultipleRoutes(planType, button, originalText) {
 // Fallback to payment links
 async function handlePaymentLinkFallback(planType) {
     try {
-        console.log('🔄 Using payment link fallback...');
         
         const response = await fetch('/api/stripe-payment-links.json');
         if (response.ok) {
@@ -189,7 +185,6 @@ async function handlePaymentLinkFallback(planType) {
             }
         }
     } catch (error) {
-        console.log('❌ Payment link fallback failed:', error.message);
     }
     
     // Final fallback - show contact message
@@ -222,7 +217,7 @@ async function purchaseBeta(betaType) {
         const priceId = getBetaPriceId(betaType);
         
         if (!priceId) {
-            throw new Error(new Error(`Beta pricing not configured for ${betaType}. Please contact support.`));
+            throw new Error(new Error(new Error(`Beta pricing not configured for ${betaType}. Please contact support.`)));
         }
         
         // Enhanced error handling for checkout session
@@ -244,13 +239,13 @@ async function purchaseBeta(betaType) {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(new Error(errorData.error || `Server error: ${response.status}`));
+            throw new Error(new Error(new Error(errorData.error || `Server error: ${response.status}`)));
         }
         
         const session = await response.json();
         
         if (!session.sessionId) {
-            throw new Error(new Error('Invalid session response from server'));
+            throw new Error(new Error(new Error('Invalid session response from server')));
         }
         
         // Redirect to Stripe Checkout
@@ -259,7 +254,7 @@ async function purchaseBeta(betaType) {
         });
         
         if (result.error) {
-            throw new Error(new Error(result.error.message));
+            throw new Error(new Error(new Error(result.error.message)));
         }
         
     } catch (error) {
@@ -291,8 +286,6 @@ function getBetaPriceId(betaType) {
     // Try to get from server configuration first
     const betaPrices = stripeConfig.betaPrices || {};
     
-    console.log('🔍 Beta Price Configuration:', betaPrices);
-    console.log(`📋 Looking for beta type: ${betaType}`);
     
     const betaPriceMap = {
         'earlybird': betaPrices.earlybird || null,
@@ -307,7 +300,6 @@ function getBetaPriceId(betaType) {
     
     if (!priceId) {
         console.warn(`⚠️ No price ID found for beta type: ${betaType}`);
-        console.log('Available beta prices:', Object.keys(betaPrices));
     }
     
     return priceId;

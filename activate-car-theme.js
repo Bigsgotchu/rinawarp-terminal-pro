@@ -24,15 +24,11 @@ class CarThemeActivator {
 
   async activate() {
     try {
-      console.log('🚗 Starting Car Dashboard Theme activation...');
-
       // Initialize theme manager
       this.themeManager = getThemeManager();
 
       // Check if we're in a browser environment
       if (typeof window === 'undefined') {
-        console.log('⚠️  Car Dashboard Theme requires a browser environment');
-        console.log('   Please run this in your RinaWarp terminal application');
         return false;
       }
 
@@ -49,20 +45,7 @@ class CarThemeActivator {
       this.isActive = true;
 
       console.log('✅ Car Dashboard Theme activated successfully!');
-      console.log('');
-      console.log('🎛️  Dashboard Features:');
-      console.log('   • Speedometer gauge (Network Speed)');
-      console.log('   • RPM gauge (CPU Usage)');
-      console.log('   • Fuel gauge (Disk Space)');
-      console.log('   • Temperature gauge (System Temp)');
-      console.log('   • Odometer (Command Counter)');
-      console.log('   • Status lights (System indicators)');
-      console.log('');
       console.log('📊 Click on any gauge for detailed information');
-      console.log('⏱️  Metrics update every 2 seconds');
-      console.log('💾 Your command history is preserved between sessions');
-      console.log('');
-      console.log('To deactivate, run: node deactivate-car-theme.js');
 
       return true;
     } catch (error) {
@@ -73,8 +56,6 @@ class CarThemeActivator {
 
   async deactivate() {
     try {
-      console.log('🚗 Deactivating Car Dashboard Theme...');
-
       if (this.carTheme && this.isActive) {
         this.carTheme.cleanup();
       }
@@ -87,7 +68,6 @@ class CarThemeActivator {
       this.isActive = false;
 
       console.log('✅ Car Dashboard Theme deactivated');
-      console.log('   Switched back to Mermaid Depths theme');
 
       return true;
     } catch (error) {
@@ -106,30 +86,7 @@ class CarThemeActivator {
     };
   }
 
-  showHelp() {
-    console.log('🚗 Car Dashboard Theme - Command Line Interface');
-    console.log('');
-    console.log('Usage:');
-    console.log('  node activate-car-theme.js [command]');
-    console.log('');
-    console.log('Commands:');
-    console.log('  activate    Activate the car dashboard theme (default)');
-    console.log('  deactivate  Deactivate and return to default theme');
-    console.log('  status      Show current theme status');
-    console.log('  help        Show this help message');
-    console.log('');
-    console.log('Features:');
-    console.log('  🏎️  Automotive-inspired color scheme');
-    console.log('  📊 Real-time system metrics gauges');
-    console.log('  🔢 Command counter odometer');
-    console.log('  ⚠️  Status indicator lights');
-    console.log('  ⏱️  Session uptime tracking');
-    console.log('');
-    console.log('Examples:');
-    console.log('  node activate-car-theme.js');
-    console.log('  node activate-car-theme.js activate');
-    console.log('  node activate-car-theme.js status');
-  }
+  showHelp() {}
 }
 
 // Create global instance
@@ -151,12 +108,6 @@ async function main() {
 
   case 'status':
     const status = carThemeActivator.getStatus();
-    console.log('🚗 Car Dashboard Theme Status:');
-    console.log(`   Active: ${status.isActive ? '✅ Yes' : '❌ No'}`);
-    console.log(`   Gauges: ${status.hasGauges ? '✅ Running' : '❌ Not running'}`);
-    console.log(`   Odometer: ${status.hasOdometer ? '✅ Connected' : '❌ Disconnected'}`);
-    console.log(`   Commands: ${status.commandCount}`);
-    console.log(`   Uptime: ${Math.floor(status.uptime / 1000)}s`);
     break;
 
   case 'help':
@@ -167,7 +118,6 @@ async function main() {
 
   default:
     console.log(`❌ Unknown command: ${command}`);
-    console.log('Use "help" to see available commands');
     process.exit(1);
   }
 }

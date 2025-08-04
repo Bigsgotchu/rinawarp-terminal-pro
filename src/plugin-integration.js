@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -63,7 +64,6 @@ export class TerminalPluginManager {
 
     // Initialize with error handling
     this.initializeLoader();
-    console.log('🔌 Terminal Plugin Manager initialized');
   }
 
   async initializeLoader() {
@@ -86,7 +86,7 @@ export class TerminalPluginManager {
 
       if (PluginLoader) {
         this.pluginLoader = new PluginLoader();
-        console.log('✅ PluginLoader initialized');
+        logger.debug('✅ PluginLoader initialized');
       } else {
         console.warn('⚠️ PluginLoader not available, using fallback');
         this.pluginLoader = this.createFallbackLoader();
@@ -110,8 +110,6 @@ export class TerminalPluginManager {
   }
 
   async initialize(context) {
-    console.log('🚀 Initializing Terminal Plugin System...');
-
     try {
       // Register core plugins
       await this.registerCorePlugins();
@@ -120,25 +118,22 @@ export class TerminalPluginManager {
       const results = await this.pluginLoader.loadAll(context);
 
       this.isInitialized = true;
-      console.log('✅ Plugin system initialized successfully');
 
       return results;
     } catch (error) {
       console.error('❌ Plugin system initialization failed:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async registerCorePlugins() {
-    console.log('📦 Registering core plugins...');
-
     const registerPlugin = (PluginClass, name) => {
       try {
         if (PluginClass && typeof PluginClass === 'function') {
           const plugin = new PluginClass();
           this.pluginLoader.register(plugin);
           this.plugins.set(name, plugin);
-          console.log(`✅ Registered ${name} plugin`);
+          logger.debug(`✅ Registered ${name} plugin`);
         } else {
           console.warn(`⚠️ ${name} plugin class not available`);
         }
@@ -168,8 +163,6 @@ export class TerminalPluginManager {
 
     // Register AI Debugging Assistant Plugin
     registerPlugin(AIDebuggingAssistantPlugin, 'AIDebuggingAssistant');
-
-    console.log('✅ Core plugins registration complete');
   }
 
   async loadPlugin(pluginName, context) {
@@ -199,8 +192,6 @@ export class TerminalPluginManager {
 
   // Helper methods for terminal integration
   async enhanceTerminal(terminal, aiWrapper) {
-    console.log('🔧 Enhancing terminal with plugins...');
-
     const context = {
       terminal,
       aiWrapper,
@@ -213,7 +204,6 @@ export class TerminalPluginManager {
     // Add plugin management commands to terminal
     this.addPluginCommands(terminal);
 
-    console.log('✅ Terminal enhanced with plugin system');
   }
 
   addPluginCommands(terminal) {

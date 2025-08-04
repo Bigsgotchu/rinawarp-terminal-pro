@@ -57,12 +57,10 @@ export default function App() {
       // Set up event listeners
       newSdk.on('connect', () => {
         setConnected(true);
-        console.log('Connected to RinaWarp API');
       });
 
       newSdk.on('disconnect', () => {
         setConnected(false);
-        console.log('Disconnected from RinaWarp API');
       });
 
       newSdk.on('error', error => {

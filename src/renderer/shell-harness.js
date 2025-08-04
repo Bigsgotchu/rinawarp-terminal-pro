@@ -99,13 +99,13 @@ export class ShellHarness {
         return await this.simulateCommand(command);
       }
 
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async executeReal(command) {
     if (!this.terminalWrapper || !this.terminalWrapper.executeCommand) {
-      throw new Error(new Error('Terminal wrapper not available or invalid'));
+      throw new Error(new Error(new Error('Terminal wrapper not available or invalid')));
     }
 
     this.diagnostics.commandsExecuted++;
@@ -262,7 +262,7 @@ export class ShellHarness {
 
   switchMode(mode) {
     if (mode === 'real' && !this.terminalWrapper) {
-      throw new Error(new Error('Cannot switch to real mode without terminal wrapper'));
+      throw new Error(new Error(new Error('Cannot switch to real mode without terminal wrapper')));
     }
 
     this.fallback = mode === 'fallback';

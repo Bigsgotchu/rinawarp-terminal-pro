@@ -1,3 +1,5 @@
+import logger from './utils/logger.js';
+
 /**
  * RinaWarp Terminal - Stripe + GA4 Integration
  * Complete purchase tracking and conversion attribution
@@ -18,11 +20,11 @@ class StripeGA4Integration {
 
   init() {
     if (!this.ga4 || !this.stripe) {
-      console.warn('⚠️ Stripe GA4 Integration: Missing required dependencies');
+      logger.warn('⚠️ Stripe GA4 Integration: Missing required dependencies');
       return;
     }
 
-    console.log('🔗 Stripe GA4 Integration initialized');
+    logger.info('🔗 Stripe GA4 Integration initialized');
     this.setupPurchaseFlowTracking();
   }
 
@@ -95,7 +97,7 @@ class StripeGA4Integration {
       step: 'checkout_initiated',
     };
 
-    console.log('🛒 Checkout initiated:', { planType, planInfo });
+    logger.info('🛒 Checkout initiated:', { planType, planInfo });
   }
 
   /**
@@ -171,7 +173,7 @@ class StripeGA4Integration {
       });
     }
 
-    console.log('💰 Purchase completed:', transactionData);
+    logger.info('💰 Purchase completed:', transactionData);
   }
 
   /**
@@ -214,7 +216,7 @@ class StripeGA4Integration {
       this.purchaseFlow[planType][`${step}_at`] = Date.now();
     }
 
-    console.log('📊 Checkout step tracked:', { step, stepNumber, planType });
+    logger.info('📊 Checkout step tracked:', { step, stepNumber, planType });
   }
 
   /**
@@ -289,7 +291,7 @@ class StripeGA4Integration {
       time_spent: timeSpent,
     });
 
-    console.log('🚫 Checkout abandoned:', { planType, step: flow.step, timeSpent });
+    logger.info('🚫 Checkout abandoned:', { planType, step: flow.step, timeSpent });
   }
 
   /**
@@ -341,7 +343,7 @@ class StripeGA4Integration {
       ...additionalData,
     });
 
-    console.log('💸 Refund tracked:', refundData);
+    logger.info('💸 Refund tracked:', refundData);
   }
 
   /**
@@ -359,7 +361,7 @@ class StripeGA4Integration {
       ...additionalData,
     });
 
-    console.log('❌ Cancellation tracked:', cancellationData);
+    logger.info('❌ Cancellation tracked:', cancellationData);
   }
 
   /**
@@ -378,7 +380,7 @@ class StripeGA4Integration {
       ...additionalData,
     });
 
-    console.log('🎫 Coupon usage tracked:', couponData);
+    logger.info('🎫 Coupon usage tracked:', couponData);
   }
 
   /**
@@ -530,7 +532,7 @@ if (typeof window !== 'undefined') {
   const initStripeGA4Integration = () => {
     if (window.rinaWarpGA4 && window.Stripe) {
       window.stripeGA4Integration = new StripeGA4Integration(window.rinaWarpGA4, window.Stripe);
-      console.log('🔗 Stripe GA4 Integration auto-initialized');
+      logger.info('🔗 Stripe GA4 Integration auto-initialized');
     }
   };
 

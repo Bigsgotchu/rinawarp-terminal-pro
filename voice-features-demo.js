@@ -8,9 +8,6 @@
 import fs from 'fs';
 import path from 'path';
 
-console.log('🎤 RinaWarp Terminal - Voice Features Demo');
-console.log('='.repeat(50));
-
 class RinaVoiceDemo {
   constructor() {
     this.soundsPath = './sounds/rina/';
@@ -31,7 +28,6 @@ class RinaVoiceDemo {
   }
 
   async init() {
-    console.log('\n🧠 Initializing Rina Voice System...');
     await this.discoverVoiceFiles();
     this.categorizeVoiceCommands();
     this.showCapabilities();
@@ -100,28 +96,14 @@ class RinaVoiceDemo {
   }
 
   showCapabilities() {
-    console.log('\n🎭 Rina Voice Personality System');
-    console.log('─'.repeat(30));
-
     if (this.voiceFiles.length > 0) {
-      console.log('📂 Available Voice Categories:');
-
-      for (const [category, voices] of this.commandCategories.entries()) {
-        console.log(`\n${category}:`);
-        voices.forEach(voice => {
-          console.log(`   • ${voice.name} (${voice.mood})`);
-        });
+      for (const [_category, voices] of this.commandCategories.entries()) {
+        voices.forEach(_voice => {});
       }
     }
 
-    console.log('\n🎤 ElevenLabs Voice Integration:');
-    console.log('─'.repeat(30));
-    Object.entries(this.elevenlabsVoices).forEach(([voice, description]) => {
-      console.log(`   🎵 ${voice}: ${description}`);
-    });
+    Object.entries(this.elevenlabsVoices).forEach(([_voice, _description]) => {});
 
-    console.log('\n🗣️ Natural Language Commands:');
-    console.log('─'.repeat(30));
     const naturalCommands = [
       '"Hey Rina, list files" → ls -la',
       '"Hey Rina, show processes" → ps aux',
@@ -132,12 +114,8 @@ class RinaVoiceDemo {
       '"Hey Rina, what\'s my current location" → pwd',
     ];
 
-    naturalCommands.forEach(cmd => {
-      console.log(`   💬 ${cmd}`);
-    });
+    naturalCommands.forEach(_cmd => {});
 
-    console.log('\n🧠 Voice AI Features:');
-    console.log('─'.repeat(30));
     const features = [
       '🎯 Context-aware command interpretation',
       '⚠️ Risk assessment with voice warnings',
@@ -151,18 +129,13 @@ class RinaVoiceDemo {
       '🗣️ Natural language processing',
     ];
 
-    features.forEach(feature => {
-      console.log(`   ${feature}`);
-    });
+    features.forEach(_feature => {});
 
     this.showPersonalityDemo();
     this.showVoiceSetupInstructions();
   }
 
   showPersonalityDemo() {
-    console.log('\n🌊 Rina Personality Demo:');
-    console.log('─'.repeat(30));
-
     const scenarios = [
       {
         situation: 'User runs dangerous command: rm -rf /',
@@ -196,36 +169,10 @@ class RinaVoiceDemo {
       },
     ];
 
-    scenarios.forEach((scenario, index) => {
-      console.log(`\n${index + 1}. ${scenario.situation}`);
-      console.log(`   Response: ${scenario.response}`);
-      console.log(`   Voice File: ${scenario.voice}`);
-    });
+    scenarios.forEach((_scenario, _index) => {});
   }
 
   showVoiceSetupInstructions() {
-    console.log('\n🔧 Voice Setup Instructions:');
-    console.log('─'.repeat(30));
-
-    console.log('\n📋 ElevenLabs Configuration:');
-    console.log('1. Get API key from https://elevenlabs.io');
-    console.log('2. Add to .env file: ELEVENLABS_API_KEY=your_key_here');
-    console.log('3. Select voice personality in settings');
-    console.log('4. Test with "Hey Rina" wake word');
-
-    console.log('\n⚙️ Browser Voice Recognition:');
-    console.log('1. Grant microphone permissions');
-    console.log('2. Use Chrome/Safari for best compatibility');
-    console.log('3. Speak clearly and wait for processing');
-    console.log('4. Fallback to keyboard shortcuts (Ctrl+Shift+V)');
-
-    console.log('\n🎛️ Voice Customization:');
-    console.log('1. Train custom voice commands');
-    console.log('2. Adjust personality modes');
-    console.log('3. Set voice response preferences');
-    console.log('4. Configure wake word sensitivity');
-
-    console.log('\n🎵 Available Commands:');
     const quickCommands = [
       'enable-voice.js - Enable voice features',
       'voice-control-demo.cjs - Test voice recognition',
@@ -233,16 +180,11 @@ class RinaVoiceDemo {
       'npm run experimental:voice - Enhanced voice engine',
     ];
 
-    quickCommands.forEach(cmd => {
-      console.log(`   • ${cmd}`);
-    });
+    quickCommands.forEach(_cmd => {});
   }
 
   showSummary() {
-    console.log('\n✅ Voice Features Summary:');
-    console.log('─'.repeat(30));
-
-    const stats = {
+    const _stats = {
       voiceFiles: this.voiceFiles.length,
       categories: this.commandCategories.size,
       moods: new Set(this.voiceFiles.map(v => v.mood)).size,
@@ -250,27 +192,6 @@ class RinaVoiceDemo {
     };
 
     console.log('📊 Statistics:');
-    console.log(`   • ${stats.voiceFiles} Rina voice files`);
-    console.log(`   • ${stats.categories} voice categories`);
-    console.log(`   • ${stats.moods} different moods`);
-    console.log(`   • ${stats.elevenlabsVoices} ElevenLabs voices`);
-    console.log('   • 40+ predefined voice commands');
-
-    console.log('\n🌟 Key Features:');
-    console.log('   🎤 Natural language processing');
-    console.log('   🧠 AI-powered voice recognition');
-    console.log('   🎭 Personality-driven responses');
-    console.log('   ⚠️ Safety-aware voice warnings');
-    console.log('   🔧 Customizable voice commands');
-    console.log('   🌊 Contextual voice interactions');
-
-    console.log('\n🎯 Next Steps:');
-    console.log('   1. Configure ElevenLabs API key for premium voices');
-    console.log('   2. Try voice commands in the terminal interface');
-    console.log('   3. Customize voice personality settings');
-    console.log('   4. Train personalized voice commands');
-
-    console.log('\n🎉 Voice Features Demo Complete!');
   }
 }
 

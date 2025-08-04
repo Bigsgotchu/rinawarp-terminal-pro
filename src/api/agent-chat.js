@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 6 deprecated pattern(s) replaced with modern alternatives
@@ -26,7 +27,7 @@ class AgentChatAPI {
       this.openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
-      console.log('✅ OpenAI provider initialized for Agent Mode');
+      logger.debug('✅ OpenAI provider initialized for Agent Mode');
     }
 
     // Initialize Anthropic if API key is available
@@ -34,12 +35,10 @@ class AgentChatAPI {
       this.anthropic = new Anthropic({
         apiKey: process.env.ANTHROPIC_API_KEY,
       });
-      console.log('✅ Anthropic provider initialized for Agent Mode');
     }
 
     // Initialize Ollama provider (local)
     this.ollamaEndpoint = process.env.OLLAMA_ENDPOINT || 'http://localhost:11434';
-    console.log('✅ Ollama provider configured for Agent Mode');
   }
 
   setupRoutes() {
@@ -109,7 +108,7 @@ class AgentChatAPI {
         break;
 
       default:
-        throw new Error(new Error(`Unsupported provider: ${provider}`));
+        throw new Error(new Error(new Error(`Unsupported provider: ${provider}`)));
       }
 
       res.json({
@@ -130,7 +129,7 @@ class AgentChatAPI {
 
   async handleOpenAIRequest(messages, functions, options) {
     if (!this.openai) {
-      throw new Error(new Error('OpenAI provider not configured. Please set OPENAI_API_KEY.'));
+      throw new Error(new Error(new Error('OpenAI provider not configured. Please set OPENAI_API_KEY.')));
     }
 
     const requestBody = {
@@ -175,7 +174,9 @@ class AgentChatAPI {
 
   async handleAnthropicRequest(messages, functions, options) {
     if (!this.anthropic) {
-      throw new Error(new Error('Anthropic provider not configured. Please set ANTHROPIC_API_KEY.'));
+      throw new Error(new Error(
+        new Error('Anthropic provider not configured. Please set ANTHROPIC_API_KEY.')
+      ));
     }
 
     // Convert messages format for Anthropic
@@ -261,7 +262,7 @@ class AgentChatAPI {
       });
 
       if (!response.ok) {
-        throw new Error(new Error(`Ollama request failed: ${response.statusText}`));
+        throw new Error(new Error(new Error(`Ollama request failed: ${response.statusText}`)));
       }
 
       const completion = await response.json();
@@ -277,9 +278,9 @@ class AgentChatAPI {
       };
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
-        throw new Error(new Error('Ollama server not running. Please start Ollama and try again.'));
+        throw new Error(new Error(new Error('Ollama server not running. Please start Ollama and try again.')));
       }
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -581,7 +582,7 @@ class AgentChatAPI {
           const testResponse = await this.anthropic.messages.create({
             model: 'claude-3-haiku-20240307',
             max_tokens: 10,
-            messages: [{ role: 'user', content: 'ping' }]
+            messages: [{ role: 'user', content: 'ping' }],
           });
           if (testResponse) {
             health.providers.anthropic = 'connected';

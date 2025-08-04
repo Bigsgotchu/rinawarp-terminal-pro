@@ -1,26 +1,39 @@
 module.exports = {
-  testEnvironment: 'jsdom',
-  injectGlobals: true,
-  testMatch: ['<rootDir>/tests/**/*.test.js'],
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+  testEnvironment: 'node',
+  transform: {
+    '^.+\.m?js$': 'babel-jest',
   },
-  testPathIgnorePatterns: [
-    '<rootDir>/node_modules/',
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1'
+  },
+  testMatch: [
+    '<rootDir>/tests/**/*.test.js',
+    '<rootDir>/tests/**/*.spec.js'
+  ],
+  // setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  testTimeout: 30000, // Increased timeout for Puppeteer tests
+  globals: {
+    'window': {},
+  },
+  modulePathIgnorePatterns: [
     '<rootDir>/dist/',
-    '<rootDir>/src/plugins/',
-    '<rootDir>/email-templates/',
-    '<rootDir>/email-testing-suite/',
+    '<rootDir>/out/',
+    '<rootDir>/deprecated/'
   ],
-  testTimeout: 10000,
-  maxWorkers: 1,
-  setupFiles: ['<rootDir>/tests/setup.js'],
-  collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/**/*.test.js',
-    '!src/plugins/**',
-    '!src/**/node_modules/**',
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/out/',
+    '/deprecated/'
   ],
-  coverageDirectory: 'coverage',
-  passWithNoTests: true,
+  transformIgnorePatterns: [
+    'node_modules/(?!(puppeteer)/)'
+  ],
+  // Fix for Puppeteer WebSocket issue
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons'],
+  },
+  // Handle ES modules
+  extensionsToTreatAsEsm: [],
+  moduleFileExtensions: ['js', 'json', 'jsx', 'ts', 'tsx', 'node']
 };

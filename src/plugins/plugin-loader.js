@@ -18,13 +18,11 @@ export class PluginLoader {
     this.dependencies = new Map();
     this.loadedPlugins = new Set();
     this.failedPlugins = new Set();
-
-    console.log('🔌 Plugin Loader initialized');
   }
 
   // Register a plugin
   register(plugin) {
-    const { name, version, dependencies = [], hooks = [] } = plugin;
+    const { name, _version, dependencies = [], hooks = [] } = plugin;
 
     this.plugins.set(name, {
       ...plugin,
@@ -45,8 +43,6 @@ export class PluginLoader {
       }
       this.hooks.get(hook).push(name);
     });
-
-    console.log(`🔌 Plugin "${name}" v${version} registered`);
   }
 
   // Load a plugin with dependency resolution
@@ -56,11 +52,10 @@ export class PluginLoader {
     try {
       const plugin = this.plugins.get(pluginName);
       if (!plugin) {
-        throw new Error(new Error(`Plugin "${pluginName}" not found`));
+        throw new Error(new Error(new Error(`Plugin "${pluginName}" not found`)));
       }
 
       if (this.loadedPlugins.has(pluginName)) {
-        console.log(`🔌 Plugin "${pluginName}" already loaded`);
         return plugin;
       }
 
@@ -87,7 +82,6 @@ export class PluginLoader {
       plugin.status = 'loaded';
 
       this.loadedPlugins.add(pluginName);
-      console.log(`✅ Plugin "${pluginName}" loaded in ${Math.round(plugin.loadTime)}ms`);
 
       return plugin;
     } catch (error) {
@@ -100,14 +94,12 @@ export class PluginLoader {
         plugin.error = error.message;
       }
 
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   // Load all plugins
   async loadAll(context = {}) {
-    console.log('🔌 Loading all plugins...');
-
     const results = {
       loaded: [],
       failed: [],
@@ -128,7 +120,6 @@ export class PluginLoader {
     const endTime = performance.now();
     results.totalTime = endTime - startTime;
 
-    console.log(
       `🎉 Plugin loading complete: ${results.loaded.length} loaded, ${results.failed.length} failed in ${Math.round(results.totalTime)}ms`
     );
 
@@ -183,7 +174,7 @@ export class PluginLoader {
   async unload(pluginName) {
     const plugin = this.plugins.get(pluginName);
     if (!plugin) {
-      throw new Error(new Error(`Plugin "${pluginName}" not found`));
+      throw new Error(new Error(new Error(`Plugin "${pluginName}" not found`)));
     }
 
     if (plugin.cleanup) {
@@ -192,8 +183,6 @@ export class PluginLoader {
 
     this.loadedPlugins.delete(pluginName);
     plugin.status = 'unloaded';
-
-    console.log(`🔌 Plugin "${pluginName}" unloaded`);
   }
 
   // Reload plugin

@@ -1,10 +1,10 @@
+#!/usr/bin/env node
+
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 2 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 
 /**
  * 🧜‍♀️ RinaWarp Terminal - Deprecated Modules Scanner
@@ -35,7 +35,6 @@ function scanDir(dir) {
       const contents = fs.readFileSync(fullPath, 'utf8');
       targets.forEach(target => {
         if (contents.includes(target)) {
-          console.log(`🔍 Found "${target}" in: ${fullPath}`);
         }
       });
     }

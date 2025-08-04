@@ -1,9 +1,11 @@
+import logger from '../utils/logger.js';
 /**
  * Session Replay Integration
  * Supports LogRocket and Sentry Session Replay
  */
 
 import LogRocket from 'logrocket';
+import setupLogRocketReact from 'logrocket-react';
 import * as Sentry from '@sentry/electron';
 
 class SessionReplayService {
@@ -32,7 +34,6 @@ class SessionReplayService {
       }
 
       this.isInitialized = true;
-      console.log('✅ Session replay services initialized');
     } catch (error) {
       console.error('❌ Failed to initialize session replay:', error);
     }
@@ -44,7 +45,7 @@ class SessionReplayService {
   async initializeLogRocket() {
     try {
       // Initialize LogRocket with your app ID
-      LogRocket.init(process.env.LOGROCKET_APP_ID, {
+      LogRocket.init(process.env.LOGROCKET_APP_ID || 'xljdaq/rinawarp-terminal', {
         release: process.env.APP_VERSION || '1.0.6',
         console: {
           isEnabled: process.env.NODE_ENV !== 'production',
@@ -89,8 +90,17 @@ class SessionReplayService {
         });
       }
 
+      // Set up React integration if React is available
+      if (typeof React !== 'undefined' || window.React) {
+        try {
+          setupLogRocketReact(LogRocket);
+          logger.debug('✅ LogRocket React integration enabled');
+        } catch (error) {
+          console.warn('⚠️ LogRocket React integration not available:', error.message);
+        }
+      }
+
       this.providers.logrocket = LogRocket;
-      console.log('✅ LogRocket session replay initialized');
     } catch (error) {
       console.error('❌ Failed to initialize LogRocket:', error);
     }
@@ -106,7 +116,7 @@ class SessionReplayService {
       Sentry.setTag('replay.enabled', true);
 
       this.providers.sentry = true;
-      console.log('✅ Sentry session replay enabled');
+      logger.debug('✅ Sentry session replay enabled');
     } catch (error) {
       console.error('❌ Failed to initialize Sentry replay:', error);
     }
@@ -126,7 +136,10 @@ class SessionReplayService {
         terminalVersion: process.env.APP_VERSION || '1.0.6',
         platform: process.platform,
         electronVersion: process.versions?.electron,
+        licenseTier: userInfo.licenseTier || 'trial',
+        firstSeen: userInfo.firstSeen || new Date().toISOString(),
       });
+
     }
 
     // Set user in Sentry
@@ -136,6 +149,13 @@ class SessionReplayService {
         ...userInfo,
       });
     }
+
+    // Track user identification event
+    this.track('User Identified', {
+      userId,
+      method: userInfo.method || 'manual',
+      timestamp: new Date().toISOString(),
+    });
   }
 
   /**

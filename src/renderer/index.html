@@ -24,14 +24,53 @@
     <link rel="stylesheet" href="../../styles/themes/theme-collection.css">
     <link rel="stylesheet" href="../../styles/phase2-ui.css">
     <link rel="stylesheet" href="../../styles/ai-copilot.css">
+    <link rel="stylesheet" href="./styles/auth-ui.css">
     <!-- <link rel="stylesheet" href="../../node_modules/@xterm/xterm/css/xterm.css"> -->
     <!-- Beta hotfix script -->
     <script src="../../public/js/hotfix-beta.js"></script>
     
     <!-- Module loader fixes (load early to prevent import/export errors) -->
     <script src="module-loader-fix.js"></script>
+    
+    <!-- LogRocket Session Recording -->
+    <script src="https://cdn.logrocket.io/LogRocket.min.js"></script>
+    <script>
+      // Initialize LogRocket immediately
+      if (window.LogRocket) {
+        window.LogRocket.init('xljdaq/rinawarp-terminal', {
+          release: '1.0.6',
+          console: {
+            isEnabled: true,
+            shouldAggregateConsoleErrors: true
+          },
+          dom: {
+            inputSanitizer: true,
+            textSanitizer: true
+          },
+          network: {
+            requestSanitizer: request => {
+              // Sanitize sensitive headers
+              if (request.headers) {
+                delete request.headers['Authorization'];
+                delete request.headers['Cookie'];
+                delete request.headers['X-API-Key'];
+              }
+              return request;
+            }
+          }
+        });
+        
+        // Track terminal startup
+        window.LogRocket.track('Terminal Started', {
+          version: '1.0.6',
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log('✅ LogRocket initialized in terminal');
+      }
+    </script>
 </head>
-<body>
+<body class="theme-rinawarp">
     <div class="app-container">
         <!-- Custom title bar -->
             <div class="title-bar">
@@ -39,6 +78,7 @@
                     <div class="title-bar-title">RinaWarp Terminal</div>
                 </div>
                 <div class="title-bar-menu">
+                    <button class="menu-btn" id="auth-btn" title="Authentication">👤</button>
                     <button class="menu-btn" id="enhanced-ui-toggle" title="Toggle Enhanced Beginner-Friendly UI">🎯</button>
                     <button class="menu-btn" id="sessions-btn" title="Sessions">📂</button>
                     <button class="menu-btn" id="cloud-sync-btn" title="Cloud Sync">☁️</button>
@@ -64,8 +104,14 @@
             </div>
         </div>
 
-        <!-- Main content area -->
-        <div class="main-content">
+    <!-- React App Root -->
+    <div id="app-root"></div>
+    
+    <!-- Auth UI Root -->
+    <div id="auth-root"></div>
+    
+    <!-- Main content area -->
+    <div class="main-content">
             <!-- Terminal tabs -->
             <div class="tab-bar">
                 <div class="tab active" data-tab-id="1">
@@ -118,6 +164,7 @@
                     <div class="setting-group">
                         <label for="theme-select">Theme:</label>
                         <select id="theme-select">
+                            <option value="rinawarp" selected>✨ RinaWarp</option>
                             <option value="dark">Dark</option>
                             <option value="light">Light</option>
                             <option value="solarized">Solarized</option>
@@ -411,9 +458,9 @@
                         <h4>Choose Your Style</h4>
                         <p class="step-description">Select a theme that matches your preference</p>
                         
-                        <div class="theme-grid">
-                            <div class="theme-option" data-theme="mermaid">
-                                <div class="theme-preview mermaid-preview">
+                        <div class=">
+                            <div class=" data-theme="mermaid">
+                                <div class=" mermaid-preview">
                                     <div class="preview-titlebar"></div>
                                     <div class="preview-terminal">
                                         <div class="preview-line">
@@ -422,11 +469,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                <span class="theme-name">Mermaid (Default)</span>
+                                <span class=">Mermaid (Default)</span>
                             </div>
                             
-                            <div class="theme-option" data-theme="dark">
-                                <div class="theme-preview dark-preview">
+                            <div class=" data-theme="dark">
+                                <div class=" dark-preview">
                                     <div class="preview-titlebar"></div>
                                     <div class="preview-terminal">
                                         <div class="preview-line">
@@ -435,11 +482,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                <span class="theme-name">Dark Pro</span>
+                                <span class=">Dark Pro</span>
                             </div>
                             
-                            <div class="theme-option" data-theme="light">
-                                <div class="theme-preview light-preview">
+                            <div class=" data-theme="light">
+                                <div class=" light-preview">
                                     <div class="preview-titlebar"></div>
                                     <div class="preview-terminal">
                                         <div class="preview-line">
@@ -448,7 +495,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <span class="theme-name">Light Mode</span>
+                                <span class=">Light Mode</span>
                             </div>
                         </div>
                     </div>
@@ -639,6 +686,9 @@
     
     <!-- Phase 2 Next-Generation UI Integration -->
     <script type="module" src="phase2-integration.js"></script>
+    
+    <!-- Test React preload exposure -->
+    <script src="../../test-react-preload.js"></script>
     
     <!-- Main renderer loads after integration system -->
     <script type="module" src="renderer.js"></script>

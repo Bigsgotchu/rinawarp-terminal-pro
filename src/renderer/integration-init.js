@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
@@ -23,7 +24,6 @@ import { initializeGlobalRegistry } from '../utils/global-registry.js';
 
 // Import centralized logger
 let logger = {
-  debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
   info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
   warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
   error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
@@ -69,7 +69,9 @@ class RinaWarpInitializer {
       // Step 2: Get the integration system through global manager
       this.integrationSystem = await this.globalManager.get('rinaWarpIntegration');
       if (!this.integrationSystem) {
-        throw new Error(new Error('Failed to initialize integration system through global manager'));
+        throw new Error(new Error(
+          new Error('Failed to initialize integration system through global manager')
+        ));
       }
 
       // Setup global event handlers
@@ -86,16 +88,13 @@ class RinaWarpInitializer {
 
       this.isInitialized = true;
 
-      console.log('[RinaWarp] ✅ Integration system initialized successfully!');
-      console.log('[RinaWarp] All features are now coordinated through the unified system.');
-
       // Display system status
       this.displaySystemStatus();
 
       return this.integrationSystem;
     } catch (error) {
       console.error('[RinaWarp] ❌ Failed to initialize integration system:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -139,8 +138,6 @@ class RinaWarpInitializer {
   integrateWithTerminalManager() {
     // Check if TerminalManager exists
     if (typeof window.TerminalManager !== 'undefined') {
-      console.log('[RinaWarp] Integrating with existing TerminalManager...');
-
       // Extend TerminalManager with integration capabilities
       const originalTerminalManager = window.TerminalManager;
 
@@ -159,10 +156,7 @@ class RinaWarpInitializer {
 
         return result;
       };
-
-      console.log('[RinaWarp] ✅ TerminalManager integration complete');
     } else {
-      console.log('[RinaWarp] ⚠️ TerminalManager not found, skipping integration');
     }
   }
 
@@ -193,8 +187,6 @@ class RinaWarpInitializer {
 
   async initializeBeginnerFriendlyUI() {
     try {
-      console.log('[RinaWarp] 🎯 Initializing Enhanced Beginner-Friendly UI...');
-
       // Dynamic import to avoid bundling issues
       const beginnerUIModule = await import('./beginner-friendly-ui.js');
       const BeginnerFriendlyUI = beginnerUIModule.BeginnerFriendlyUI;
@@ -216,11 +208,8 @@ class RinaWarpInitializer {
           this.registerAvailableFeatures();
         }, 3000);
       }
-
-      console.log('[RinaWarp] 🎯 ✅ Enhanced Beginner-Friendly UI initialized successfully!');
     } catch (error) {
       console.warn('[RinaWarp] ⚠️ Could not load Enhanced Beginner-Friendly UI:', error.message);
-      console.log('[RinaWarp] Continuing without enhanced UI features...');
     }
   }
 
@@ -230,16 +219,12 @@ class RinaWarpInitializer {
     const status = this.integrationSystem.getSystemStatus();
 
     // console.group('[RinaWarp] System Status');
-    // console.log('🔧 Integration Version:', status.integration.version);
-    console.log('📊 Features Registered:', status.integration.featuresCount);
-    console.log('🏗️ Hub Version:', status.hub.hubVersion);
-    console.log('✅ Hub Initialized:', status.hub.isInitialized);
+    logger.debug('📊 Features Registered:', status.integration.featuresCount);
+    logger.debug('✅ Hub Initialized:', status.hub.isInitialized);
 
     if (status.features && Object.keys(status.features).length > 0) {
-      console.log('📋 Feature Status:');
       for (const [name, featureStatus] of Object.entries(status.features)) {
         const icon = featureStatus.isActive ? '🟢' : '🔴';
-        console.log(`  ${icon} ${name}: ${featureStatus.status}`);
       }
     }
 
@@ -254,7 +239,6 @@ class RinaWarpInitializer {
     try {
       const terminalManager = window.terminalManager;
       if (!terminalManager) {
-        console.log('[RinaWarp] ⚠️ Terminal Manager not available yet, will retry later');
         // Retry after terminal manager is initialized
         setTimeout(() => this.registerAvailableFeatures(), 2000);
         return;
@@ -268,7 +252,6 @@ class RinaWarpInitializer {
           status: 'active',
           instance: terminalManager.performanceMonitor,
         });
-        console.log('[RinaWarp] ✅ Performance Monitor registered');
       }
 
       // Register AI Context Engine if available
@@ -279,7 +262,6 @@ class RinaWarpInitializer {
           status: 'active',
           instance: terminalManager.aiEngine,
         });
-        console.log('[RinaWarp] ✅ AI Context Engine registered');
       }
 
       // Register Enhanced Security if available
@@ -290,7 +272,6 @@ class RinaWarpInitializer {
           status: 'active',
           instance: terminalManager.securityEngine,
         });
-        console.log('[RinaWarp] ✅ Enhanced Security registered');
       }
 
       // Register Workflow Automation if available
@@ -301,7 +282,6 @@ class RinaWarpInitializer {
           status: 'active',
           instance: terminalManager.workflowEngine,
         });
-        console.log('[RinaWarp] ✅ Workflow Automation registered');
       }
 
       // Register Next-Gen UI if available
@@ -312,7 +292,6 @@ class RinaWarpInitializer {
           status: 'active',
           instance: terminalManager.nextGenUI,
         });
-        console.log('[RinaWarp] ✅ Next-Gen UI registered');
       }
 
       // Register Multimodal Agent Manager if available
@@ -323,10 +302,8 @@ class RinaWarpInitializer {
           status: 'active',
           instance: window.agentManager,
         });
-        console.log('[RinaWarp] ✅ Multimodal Agent Manager registered');
       }
 
-      console.log(
         '[RinaWarp] 🚀 All available features have been registered with the integration system'
       );
     } catch (error) {
@@ -336,10 +313,8 @@ class RinaWarpInitializer {
 
   async shutdown() {
     if (this.integrationSystem) {
-      console.log('[RinaWarp] Shutting down integration system...');
       await this.integrationSystem.shutdown();
       this.isInitialized = false;
-      console.log('[RinaWarp] ✅ Integration system shutdown complete');
     }
   }
 }
@@ -367,7 +342,6 @@ window.rinaWarpInitializer = rinaWarpInitializer;
 // Export initialization function for easy access
 window.initializeBeginnerFriendlyUI = async function () {
   if (window.beginnerUI) {
-    console.log('[RinaWarp] Beginner-Friendly UI already initialized');
     return window.beginnerUI;
   }
 
@@ -377,11 +351,10 @@ window.initializeBeginnerFriendlyUI = async function () {
 
     window.beginnerUI = new BeginnerFriendlyUI(window.terminalManager);
 
-    console.log('[RinaWarp] ✅ Beginner-Friendly UI initialized on demand');
     return window.beginnerUI;
   } catch (error) {
     console.error('[RinaWarp] Failed to initialize Beginner-Friendly UI:', error);
-    throw new Error(error);
+    throw new Error(new Error(error));
   }
 };
 

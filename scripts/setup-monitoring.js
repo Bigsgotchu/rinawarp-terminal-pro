@@ -1,10 +1,9 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 4 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 
 /**
  * Google Cloud Monitoring Setup Script
@@ -79,7 +78,9 @@ class MonitoringSetup {
       console.log('✅ Google Cloud CLI is installed');
     } catch (error) {
       throw new Error(new Error(
-        'Google Cloud CLI is not installed. Please install it from https://cloud.google.com/sdk/docs/install'
+        new Error(
+          'Google Cloud CLI is not installed. Please install it from https://cloud.google.com/sdk/docs/install'
+        )
       ));
     }
   }
@@ -108,7 +109,7 @@ class MonitoringSetup {
       await execAsync(`gcloud config set project ${this.projectId}`);
       console.log(`✅ Set current project to ${this.projectId}`);
     } catch (error) {
-      throw new Error(new Error(`Failed to setup project: ${error.message}`));
+      throw new Error(new Error(new Error(`Failed to setup project: ${error.message}`)));
     }
   }
 
@@ -166,7 +167,7 @@ class MonitoringSetup {
         }
       }
     } catch (error) {
-      throw new Error(new Error(`Failed to create service account: ${error.message}`));
+      throw new Error(new Error(new Error(`Failed to create service account: ${error.message}`)));
     }
   }
 
@@ -186,7 +187,7 @@ class MonitoringSetup {
       );
       console.log('✅ Service account key created');
     } catch (error) {
-      throw new Error(new Error(`Failed to create service account key: ${error.message}`));
+      throw new Error(new Error(new Error(`Failed to create service account key: ${error.message}`)));
     }
   }
 

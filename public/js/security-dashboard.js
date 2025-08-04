@@ -1,3 +1,5 @@
+import logger from './utils/logger.js';
+
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
@@ -63,7 +65,7 @@ async function refreshData() {
         document.getElementById('lastUpdated').textContent = 
             `Last updated: ${new Date().toLocaleTimeString()}`;
     } catch (error) {
-        console.error('Error refreshing data:', error);
+        logger.error('Error refreshing data:', error);
         showError('Failed to refresh dashboard data');
     }
 }
@@ -101,7 +103,7 @@ async function loadSecurityStats() {
         const data = await response.json();
         
         if (!data.success) {
-            throw new Error(new Error(data.error || 'Failed to load stats'));
+            throw new Error(new Error(new Error(data.error || 'Failed to load stats')));
         }
         
         const stats = data.stats;
@@ -138,7 +140,7 @@ async function loadBlockedIPs() {
         const data = await response.json();
         
         if (!data.success) {
-            throw new Error(new Error(data.error || 'Failed to load blocked IPs'));
+            throw new Error(new Error(new Error(data.error || 'Failed to load blocked IPs')));
         }
         
         const blockedIPs = data.blockedIPs || [];
@@ -172,7 +174,7 @@ async function loadSuspiciousActivity() {
         const data = await response.json();
         
         if (!data.success) {
-            throw new Error(new Error(data.error || 'Failed to load suspicious activity'));
+            throw new Error(new Error(new Error(data.error || 'Failed to load suspicious activity')));
         }
         
         const activities = data.activities || [];
@@ -256,12 +258,12 @@ async function blockIP() {
             alert(`❌ Failed to block IP: ${data.error || 'Unknown error'}`);
         }
     } catch (error) {
-        console.error('Error blocking IP:', error);
+        logger.error('Error blocking IP:', error);
         alert('❌ Failed to block IP: Network error');
     }
 }
 
 function showError(message) {
-    console.error(message);
+    logger.error(message);
     // You could also show this in a toast notification or modal
 }

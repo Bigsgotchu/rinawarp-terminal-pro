@@ -133,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('connect', () => {
-        console.log('Connected to server');
         document.body.classList.remove('connection-error');
     });
 });

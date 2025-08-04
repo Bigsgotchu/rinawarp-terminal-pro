@@ -1,13 +1,15 @@
+import logger from '../utils/logger.js';
 /**
  * Module Loader Fix
  * Handles ES module import/export issues and provides fallbacks
  */
 
+// Import module configuration utilities
+import { ModuleLoader, initializeModule, loadModules } from '../utils/module-config.js';
+
 // Fix for ES module exports in browser context
 (function () {
   'use strict';
-
-  console.log('🔧 Applying module loader fixes...');
 
   // 1. Fix PerformanceMonitor constructor issue
   if (typeof window !== 'undefined') {
@@ -18,19 +20,17 @@
       window.PerformanceMonitor ||
       class PerformanceMonitor {
         constructor() {
-          console.log('📊 PerformanceMonitor (Fallback Mode)');
+          logger.debug('📊 PerformanceMonitor (Fallback Mode)');
           this.metrics = new Map();
           this.isMonitoring = false;
         }
 
         startMonitoring() {
           this.isMonitoring = true;
-          console.log('📊 Performance monitoring started (fallback)');
         }
 
         stopMonitoring() {
           this.isMonitoring = false;
-          console.log('📊 Performance monitoring stopped');
         }
 
         recordMetric(command, executionTime, success = true) {
@@ -50,13 +50,12 @@
       window.PerformanceMonitoringDashboard ||
       class PerformanceMonitoringDashboard {
         constructor() {
-          console.log('📊 PerformanceMonitoringDashboard (Fallback Mode)');
           this.monitor = new window.PerformanceMonitor();
           this.isVisible = false;
         }
 
         showDashboard() {
-          console.log('📊 Would show performance dashboard');
+          logger.debug('📊 Would show performance dashboard');
           this.isVisible = true;
           // Create a simple notification instead
           if (window.terminalManager?.pluginAPI) {
@@ -83,17 +82,14 @@
       window.WorkflowAutomationEngine ||
       class WorkflowAutomationEngine {
         constructor() {
-          console.log('⚡ WorkflowAutomationEngine (Fallback Mode)');
           this.workflows = new Map();
         }
 
         startMacroRecording(name) {
-          console.log(`⚡ Starting macro recording: ${name}`);
           return Promise.resolve({ success: true, name });
         }
 
         discoverWorkflows(type) {
-          console.log(`⚡ Discovering ${type} workflows`);
           return Promise.resolve([
             { name: 'Basic Deploy', type: type },
             { name: 'Quick Build', type: type },
@@ -106,12 +102,10 @@
       window.EnhancedSecurityEngine ||
       class EnhancedSecurityEngine {
         constructor() {
-          console.log('🔒 EnhancedSecurityEngine (Fallback Mode)');
           this.isActive = true;
         }
 
         createSecurityDashboard() {
-          console.log('🔒 Would create security dashboard');
           if (window.terminalManager?.pluginAPI) {
             window.terminalManager.pluginAPI.showNotification(
               '🔒 Security monitoring active',
@@ -127,49 +121,40 @@
       window.NextGenUIEngine ||
       class NextGenUIEngine {
         constructor() {
-          console.log('🎨 NextGenUIEngine (Fallback Mode)');
           this.is3DEnabled = false;
         }
 
         async initialize() {
-          console.log('🎨 Next-Gen UI initialized (fallback)');
           return true;
         }
 
         async enable3DMode() {
-          console.log('🎨 3D mode enabled (fallback)');
           this.is3DEnabled = true;
           return true;
         }
 
         async disable3DMode() {
-          console.log('🎨 3D mode disabled');
           this.is3DEnabled = false;
           return true;
         }
 
         async visualizeCommandFlow(command) {
-          console.log(`🎨 Visualizing flow for: ${command}`);
           return { success: true, command };
         }
 
         async enableGestureControl() {
-          console.log('🎨 Gesture control enabled (fallback)');
           return true;
         }
 
         async enableAdaptiveInterface() {
-          console.log('🎨 Adaptive interface enabled (fallback)');
           return true;
         }
 
-        async optimizeLayoutForTask(task) {
-          console.log(`🎨 Layout optimized for: ${task}`);
+        async optimizeLayoutForTask(_task) {
           return true;
         }
 
         async enableHolographicMode() {
-          console.log('🎨 Holographic mode enabled (fallback)');
           return true;
         }
 
@@ -185,7 +170,6 @@
       window.MultimodalAgentManager ||
       class MultimodalAgentManager {
         constructor(terminalManager) {
-          console.log('🤖 MultimodalAgentManager (Fallback Mode)');
           this.terminalManager = terminalManager;
         }
       };
@@ -195,16 +179,12 @@
       window.AdvancedAIContextEngine ||
       class AdvancedAIContextEngine {
         constructor(terminalManager) {
-          console.log('🧠 AdvancedAIContextEngine (Fallback Mode)');
           this.terminalManager = terminalManager;
         }
 
-        toggleVoiceControl() {
-          console.log('🎤 Voice control toggled (fallback)');
-        }
+        toggleVoiceControl() {}
 
         async generateCommandDocumentation(command) {
-          console.log(`📚 Generating docs for: ${command}`);
           if (this.terminalManager?.pluginAPI) {
             this.terminalManager.pluginAPI.showNotification(
               `📚 Documentation for "${command}" would be generated here`,
@@ -214,8 +194,7 @@
           }
         }
 
-        async analyzeCommandSafety(command) {
-          console.log(`🛡️ Analyzing safety for: ${command}`);
+        async analyzeCommandSafety(_command) {
           return { riskLevel: 'low', risks: [], alternatives: [] };
         }
       };
@@ -227,15 +206,11 @@
       // Only load electron in electron context
       const { ipcRenderer } = require('electron');
       window.ipcRenderer = ipcRenderer;
-      console.log('✅ Electron context detected and configured');
+      logger.debug('✅ Electron context detected and configured');
     } catch (error) {
-      console.log('ℹ️ Not in Electron context, using browser fallbacks');
-
       // Browser fallbacks for Electron APIs
       window.ipcRenderer = {
-        invoke: async (channel, ...args) => {
-          console.log(`📡 IPC invoke (fallback): ${channel}`, args);
-
+        invoke: async (channel, ..._args) => {
           // Provide fallback responses
           switch (channel) {
           case 'get-platform':
@@ -248,12 +223,8 @@
             return null;
           }
         },
-        send: (channel, ...args) => {
-          console.log(`📡 IPC send (fallback): ${channel}`, args);
-        },
-        on: (channel, callback) => {
-          console.log(`📡 IPC listener (fallback): ${channel}`);
-        },
+        send: (_channel, ..._args) => {},
+        on: (_channel, callback) => {},
       };
     }
   }
@@ -263,8 +234,6 @@
     try {
       // Check if XTerm is already loaded
       if (typeof Terminal === 'undefined' && typeof window.Terminal === 'undefined') {
-        console.log('📦 Loading XTerm dependencies...');
-
         // Try multiple loading strategies
         const loadStrategies = [
           // Strategy 1: Load from node_modules
@@ -275,7 +244,6 @@
 
             return new Promise((resolve, reject) => {
               xtermScript.onload = () => {
-                console.log('✅ XTerm loaded from node_modules');
                 resolve();
               };
               xtermScript.onerror = () => {
@@ -293,7 +261,6 @@
 
             return new Promise((resolve, reject) => {
               xtermScript.onload = () => {
-                console.log('✅ XTerm loaded from vendor directory');
                 resolve();
               };
               xtermScript.onerror = () => {
@@ -311,7 +278,7 @@
 
             return new Promise((resolve, reject) => {
               xtermScript.onload = () => {
-                console.log('✅ XTerm loaded from assets directory');
+                logger.debug('✅ XTerm loaded from assets directory');
                 resolve();
               };
               xtermScript.onerror = () => {
@@ -352,7 +319,6 @@
         };
         document.head.appendChild(xtermCSS);
       } else {
-        console.log('✅ XTerm already available');
       }
     } catch (error) {
       console.warn('⚠️ XTerm loading failed:', error);
@@ -406,12 +372,8 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       loadXTermDependencies();
-      console.log('✅ Module loader fixes applied');
     });
   } else {
     loadXTermDependencies();
-    console.log('✅ Module loader fixes applied');
   }
-
-  console.log('🔧 Module loader fixes installation complete');
 })();

@@ -12,18 +12,15 @@
  */
 async function purchasePlan(planOrPriceId) {
   try {
-    console.log(`🛒 Starting backend-driven checkout for: ${planOrPriceId}`);
     
     let priceId;
     
     // Check if it's a direct price ID (starts with 'price_')
     if (planOrPriceId.startsWith('price_')) {
       priceId = planOrPriceId;
-      console.log(`💡 Using direct price ID: ${priceId}`);
     } else {
       // It's a plan name, get price ID from config
       if (!window.stripeConfig || !window.stripeConfig.prices) {
-        console.log('⏳ Waiting for price config to load...');
         alert('Payment system is loading. Please try again in a moment.');
         return;
       }
@@ -35,10 +32,8 @@ async function purchasePlan(planOrPriceId) {
         return;
       }
       
-      console.log(`💡 Using price ID from plan '${planOrPriceId}': ${priceId}`);
     }
     
-    console.log('🔄 Calling backend to create checkout session...');
     
     // Call backend to create checkout session (backend handles mode detection)
     const response = await fetch('/api/create-checkout-session', {
@@ -54,18 +49,17 @@ async function purchasePlan(planOrPriceId) {
     });
 
     if (!response.ok) {
-      throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
+      throw new Error(new Error(new Error(`HTTP ${response.status}: ${response.statusText}`)));
     }
 
     const data = await response.json();
-    console.log('📦 Backend response:', data);
 
     if (data.url) {
       console.log('✅ Redirecting to Stripe Checkout via backend session...');
       // Direct redirect to Stripe-hosted checkout (no frontend Stripe SDK needed)
       window.location.href = data.url;
     } else {
-      throw new Error(new Error(data.error || 'No checkout URL received from backend'));
+      throw new Error(new Error(new Error(data.error || 'No checkout URL received from backend')));
     }
   } catch (error) {
     console.error('❌ Purchase error:', error.message);

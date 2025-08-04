@@ -3,7 +3,6 @@ const helpModal = document.getElementById('helpModal');
 const closeBtn = document.querySelector('.close');
 
 helpBtn.addEventListener('click', () => {
-  console.log('❓ Showing help system');
   helpModal.style.display = 'block';
   showNotification('Help system activated', 'info');
 });

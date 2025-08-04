@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -12,7 +13,6 @@
 // Prevent duplicate class declarations
 (function () {
   if (window.ProjectAnalyzer) {
-    console.log('ProjectAnalyzer already exists, skipping redeclaration');
     return;
   }
 
@@ -27,13 +27,11 @@
     }
 
     async initialize() {
-      console.log('🔍 Initializing Project Analyzer...');
-
       // Initialize language detectors
       this.setupLanguageDetectors();
       this.setupFrameworkDetectors();
 
-      console.log('✅ Project Analyzer initialized');
+      logger.debug('✅ Project Analyzer initialized');
     }
 
     /**
@@ -804,7 +802,7 @@
       if (window.electronAPI && window.electronAPI.readFile) {
         return await window.electronAPI.readFile(`${directory}/${filename}`);
       }
-      throw new Error(new Error('File reading not available'));
+      throw new Error(new Error(new Error('File reading not available')));
     }
 
     async countLines(filename, directory) {

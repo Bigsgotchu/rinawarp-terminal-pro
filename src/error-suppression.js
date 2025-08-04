@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * Error Suppression for Renderer Process
  * Suppresses known harmless Electron/Chromium warnings
@@ -85,7 +86,6 @@
     }
 
     if (window.VERBOSE_LOGGING) {
-      console.log('[SUPPRESSED GLOBAL ERROR]', message);
     }
     return true; // Prevent default error handling
   };
@@ -98,7 +98,6 @@
     if (shouldSuppress) {
       event.preventDefault();
       if (window.VERBOSE_LOGGING) {
-        console.log('[SUPPRESSED PROMISE REJECTION]', event.reason);
       }
     }
   });
@@ -115,5 +114,5 @@
   `;
   document.head.appendChild(style);
 
-  console.log('✅ Error suppression initialized');
+  logger.debug('✅ Error suppression initialized');
 })();

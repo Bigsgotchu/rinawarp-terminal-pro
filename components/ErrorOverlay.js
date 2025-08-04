@@ -7,9 +7,9 @@ const ErrorOverlay = () => {
 
   useEffect(() => {
     const errorLogger = ErrorLogger.getInstance();
-    
+
     // Subscribe to new errors
-    const unsubscribe = errorLogger.subscribe((error) => {
+    const unsubscribe = errorLogger.subscribe(error => {
       setErrors(prevErrors => [...prevErrors, error]);
       setIsVisible(true);
     });

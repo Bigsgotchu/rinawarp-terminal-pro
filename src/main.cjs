@@ -4,18 +4,21 @@
  * Please review and test the changes
  */
 
+// Sentry Performance Monitoring and Tracing
+require('./instrument.cjs');
+
 /**
  * RinaWarp Terminal - Simplified Version (Inspired by Warp's Clean Architecture)
  * Copyright (c) 2025 Rinawarp Technologies, LLC
  */
 
-const { app, BrowserWindow, BrowserView, ipcMain, Menu, _dialog } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, Menu } = require('electron');
 const path = require('node:path');
 const os = require('os');
 const fs = require('node:fs');
-const { _execSync } = require('child_process');
 const { config } = require('./config/unified-config.cjs');
-const logger = require('./utils/logger.cjs');
+const { createLogger } = require('./utils/logger.cjs');
+const logger = createLogger('Main');
 
 // Load environment variables from .env file
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
@@ -296,7 +299,7 @@ function createWindow() {
   logger.info('📋 Window configuration:', {
     terminalHtml: { path: terminalHtmlPath, exists: fs.existsSync(terminalHtmlPath) },
     preloadScript: { path: preloadPath, exists: fs.existsSync(preloadPath) },
-    iconFile: { path: iconPath, exists: fs.existsSync(iconPath) }
+    iconFile: { path: iconPath, exists: fs.existsSync(iconPath) },
   });
 
   const windowConfig = {
@@ -363,7 +366,7 @@ function createWindow() {
     });
   } catch (error) {
     logger.error('❌ Failed to create window:', { error });
-    throw new Error(error);
+    throw new Error(new Error(error));
   }
 }
 
@@ -846,7 +849,7 @@ ipcMain.handle('save-elevenlabs-config', async (event, config) => {
       try {
         const existingData = fs.readFileSync(configPath, 'utf8');
         existingConfig = JSON.parse(existingData);
-      } catch (parseError) {
+      } catch (_parseError) {
         logger.warn('Could not parse existing config, creating new one');
       }
     }
@@ -970,7 +973,7 @@ ipcMain.handle('save-llm-config', async (event, config) => {
       try {
         const existingData = fs.readFileSync(configPath, 'utf8');
         existingConfig = JSON.parse(existingData);
-      } catch (parseError) {
+      } catch (_parseError) {
         logger.warn('Could not parse existing LLM config, creating new one');
       }
     }
@@ -1163,7 +1166,7 @@ ipcMain.handle('create-shell-process', async (event, config) => {
     };
   } catch (error) {
     logger.error('Failed to create shell process:', { error });
-    throw new Error(error);
+    throw new Error(new Error(error));
   }
 });
 
@@ -1200,7 +1203,7 @@ ipcMain.handle('kill-shell-process', async (event, processId) => {
 
 // Execute command handler - CRITICAL FIX
 ipcMain.handle('execute-command', async (event, command, options = {}) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     try {
       const { exec } = require('child_process');
       const { cwd = process.cwd(), env = {}, timeout = 30000 } = options;

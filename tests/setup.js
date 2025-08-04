@@ -136,15 +136,34 @@ global.createMockLogger = () => ({
   security: jest.fn(),
 });
 
-
 // Setup test environment
 process.env = {
   ...process.env,
   NODE_ENV: 'test',
   ELEVENLABS_API_KEY: '',
   SHELL: process.platform === 'win32' ? 'powershell.exe' : '/bin/bash',
-  APPDATA: process.platform === 'win32' ? '/mock/appdata' : undefined
+  APPDATA: process.platform === 'win32' ? '/mock/appdata' : undefined,
 };
 
 // Set up timing threshold for performance tests
 jest.setTimeout(30000); // 30 seconds
+
+// Global logger for tests that expect it
+global.logger = {
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  log: jest.fn(),
+  system: jest.fn(),
+  security: jest.fn()
+};
+
+// Mock window.settingsPanel for autocomplete tests
+if (!global.window.settingsPanel) {
+  global.window.settingsPanel = {
+    settings: {
+      autoComplete: true
+    }
+  };
+}

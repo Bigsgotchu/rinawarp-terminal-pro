@@ -9,6 +9,7 @@
  * Provides JWT token validation and role-based access control
  */
 
+import logger from '../utils/logger.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
@@ -94,7 +95,7 @@ export function verifyToken(token) {
       audience: 'rinawarp-users',
     });
   } catch (error) {
-    throw new Error(new Error('Invalid token'));
+    throw new Error(new Error(new Error('Invalid token')));
   }
 }
 
@@ -107,7 +108,7 @@ export function verifyRefreshToken(token) {
       issuer: 'rinawarp-terminal',
     });
   } catch (error) {
-    throw new Error(new Error('Invalid refresh token'));
+    throw new Error(new Error(new Error('Invalid refresh token')));
   }
 }
 
@@ -147,7 +148,7 @@ export function authenticateToken(req, res, next) {
     req.user = decoded;
     next();
   } catch (error) {
-    console.error('Token validation failed:', error.message);
+    logger.error('Token validation failed:', error.message);
     return res.status(403).json({
       error: 'Invalid or expired token',
       code: 'TOKEN_INVALID',
@@ -171,7 +172,7 @@ export function optionalAuth(req, res, next) {
     req.user = decoded;
   } catch (error) {
     // Log but don't fail - optional auth
-    console.warn('Optional auth token invalid:', error.message);
+    logger.warn('Optional auth token invalid:', error.message);
     req.user = null;
   }
 

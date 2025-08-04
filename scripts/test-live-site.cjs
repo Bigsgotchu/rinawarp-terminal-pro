@@ -1,10 +1,10 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 16 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
 
-#!/usr/bin/env node
 
 /**
  * RinaWarp Terminal - Comprehensive Live Site Testing
@@ -13,7 +13,7 @@
 
 const https = require('https');
 const http = require('http');
-const fs = require('node:fs');
+const _fs = require('node:fs');
 
 console.log('🧜‍♀️ RinaWarp Terminal - Live Site Testing\n');
 
@@ -91,10 +91,10 @@ const tests = {
   async testMainPage() {
     const response = await makeRequest(config.baseUrl);
     if (response.statusCode !== 200) {
-      throw new Error(new Error(`Expected 200, got ${response.statusCode}`));
+      throw new Error(new Error(new Error(`Expected 200, got ${response.statusCode}`)));
     }
     if (!response.body.includes('RinaWarp')) {
-      throw new Error(new Error('Page does not contain RinaWarp branding'));
+      throw new Error(new Error(new Error('Page does not contain RinaWarp branding')));
     }
     return `Main page loads (${response.responseTime}ms)`;
   },
@@ -102,10 +102,10 @@ const tests = {
   async testBetaDownloadPage() {
     const response = await makeRequest(`${config.baseUrl}/beta-download.html`);
     if (response.statusCode !== 200) {
-      throw new Error(new Error(`Expected 200, got ${response.statusCode}`));
+      throw new Error(new Error(new Error(`Expected 200, got ${response.statusCode}`)));
     }
     if (!response.body.includes('Beta Testing')) {
-      throw new Error(new Error('Page does not contain beta testing content'));
+      throw new Error(new Error(new Error('Page does not contain beta testing content')));
     }
     return `Beta download page accessible (${response.responseTime}ms)`;
   },
@@ -113,7 +113,7 @@ const tests = {
   async testSSLCertificate() {
     const response = await makeRequest(config.baseUrl);
     if (!response.headers['strict-transport-security']) {
-      throw new Error(new Error('HSTS header not found'));
+      throw new Error(new Error(new Error('HSTS header not found')));
     }
     return 'SSL certificate and security headers valid';
   },
@@ -121,7 +121,7 @@ const tests = {
   async testResponseTimes() {
     const response = await makeRequest(config.baseUrl);
     if (response.responseTime > 5000) {
-      throw new Error(new Error(`Page load too slow: ${response.responseTime}ms`));
+      throw new Error(new Error(new Error(`Page load too slow: ${response.responseTime}ms`)));
     }
     return `Fast response time: ${response.responseTime}ms`;
   },
@@ -129,7 +129,7 @@ const tests = {
   async testMobileResponsive() {
     const response = await makeRequest(config.baseUrl);
     if (!response.body.includes('viewport')) {
-      throw new Error(new Error('Mobile viewport meta tag not found'));
+      throw new Error(new Error(new Error('Mobile viewport meta tag not found')));
     }
     if (!response.body.includes('responsive') && !response.body.includes('mobile')) {
       // This is a soft check - many sites don't explicitly mention mobile
@@ -153,7 +153,7 @@ const tests = {
     });
     
     if (missing.length > 0) {
-      throw new Error(new Error(`Missing meta tags: ${missing.map(m => m.tag).join(', ')}`));
+      throw new Error(new Error(new Error(`Missing meta tags: ${missing.map(m => m.tag).join(', ')}`)));
     }
     return 'Essential meta tags present';
   },
@@ -162,14 +162,14 @@ const tests = {
     try {
       const response = await makeRequest(`${config.baseUrl}/favicon.ico`);
       if (response.statusCode === 404) {
-        throw new Error(new Error('Favicon not found'));
+        throw new Error(new Error(new Error('Favicon not found')));
       }
       return 'Favicon accessible';
     } catch {
       // Try alternative paths
       const response = await makeRequest(`${config.baseUrl}/public/favicon.ico`);
       if (response.statusCode === 404) {
-        throw new Error(new Error('Favicon not found in common locations'));
+        throw new Error(new Error(new Error('Favicon not found in common locations')));
       }
       return 'Favicon accessible (alternative path)';
     }
@@ -179,12 +179,12 @@ const tests = {
     try {
       const response = await makeRequest(`${config.baseUrl}/robots.txt`);
       if (response.statusCode === 404) {
-        throw new Error(new Error('robots.txt not found'));
+        throw new Error(new Error(new Error('robots.txt not found')));
       }
       return 'robots.txt accessible';
     } catch (error) {
       // robots.txt is optional but recommended
-      throw new Error(new Error('robots.txt not accessible'));
+      throw new Error(new Error(new Error('robots.txt not accessible')));
     }
   },
 
@@ -192,11 +192,11 @@ const tests = {
     try {
       const response = await makeRequest(`${config.baseUrl}/sitemap.xml`);
       if (response.statusCode === 404) {
-        throw new Error(new Error('sitemap.xml not found'));
+        throw new Error(new Error(new Error('sitemap.xml not found')));
       }
       return 'sitemap.xml accessible';
     } catch (error) {
-      throw new Error(new Error('sitemap.xml not accessible'));
+      throw new Error(new Error(new Error('sitemap.xml not accessible')));
     }
   },
 
@@ -216,7 +216,7 @@ const tests = {
     );
     
     if (missing.length > 0) {
-      throw new Error(new Error(`Missing critical content: ${missing.join(', ')}`));
+      throw new Error(new Error(new Error(`Missing critical content: ${missing.join(', ')}`)));
     }
     return 'Critical content elements present';
   }

@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -20,11 +21,8 @@
 
   // Prevent multiple initialization
   if (window.criticalFixesApplied) {
-    console.log('🔧 Critical fixes already applied, skipping...');
     return;
   }
-
-  console.log('🔧 Applying critical browser-side fixes...');
 
   // Fix #1: Initialize start time properly to prevent NaN uptime
   const fixUptimeCalculations = () => {
@@ -117,7 +115,7 @@
           };
         } catch (error) {
           console.error('Command execution failed:', error);
-          throw new Error(new Error(`Command execution not available: ${error.message}`));
+          throw new Error(new Error(new Error(`Command execution not available: ${error.message}`)));
         }
       };
     }
@@ -138,7 +136,6 @@
 
     protectedClasses.forEach(className => {
       if (window[className]) {
-        console.log(`${className} already exists, preventing redeclaration`);
         // Mark as already loaded to prevent duplicate loading
         window[`${className}_LOADED`] = true;
       }
@@ -180,7 +177,7 @@
       if (moduleClass && !window[moduleName]) {
         try {
           window[moduleName] = moduleClass;
-          console.log(`✅ ${moduleName} exported to window`);
+          logger.debug(`✅ ${moduleName} exported to window`);
         } catch (error) {
           console.warn(`⚠️ Failed to export ${moduleName}:`, error);
         }
@@ -233,8 +230,6 @@
 
   // Main initialization function
   const initializeFixes = () => {
-    console.log('🔧 Initializing RinaWarp Terminal browser fixes...');
-
     try {
       preventDuplicateDeclarations();
       setupSafeProcessAccess();
@@ -244,7 +239,6 @@
       repairModuleExports();
       setupErrorHandling();
 
-      console.log('✅ All critical browser fixes applied successfully');
 
       // Set up periodic health checks
       window.performHealthCheck = () => {
@@ -256,7 +250,6 @@
           timestamp: new Date().toISOString(),
         };
 
-        console.log('🏥 Health check:', health);
         return health;
       };
 

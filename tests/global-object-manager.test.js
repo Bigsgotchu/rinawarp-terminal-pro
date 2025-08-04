@@ -1,4 +1,4 @@
-import { GlobalObjectManager } from '@/utils/global-object-manager';
+import { GlobalObjectManager } from '../src/utilities/global-object-manager';
 
 /**
  * Test Suite - GlobalObjectManager

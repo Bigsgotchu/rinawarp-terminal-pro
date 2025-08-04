@@ -73,6 +73,15 @@
             animation: logoWave 8s ease-in-out infinite;
         }
         
+        .header-logo {
+            width: 80px;
+            height: 80px;
+            display: block;
+            margin: 0 auto 20px;
+            filter: drop-shadow(0 4px 8px rgba(255, 20, 147, 0.3));
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
         .status {
             margin: 10px 0;
             padding: 15px;
@@ -270,6 +279,7 @@
 </head>
 <body>
     <div class="header">
+        <img src="../assets/logo-designs/rinawarp-icon-final.svg" alt="RinaWarp Terminal" class="header-logo">
         <h1>🚀 RinaWarp Terminal - AI-Powered Terminal</h1>
         <div class="status" id="status">Initializing AI-powered terminal...</div>
     </div>
@@ -328,6 +338,14 @@
     <script type="module" src="renderer/split-pane.js"></script>
     <script type="module" src="renderer/error-handler.js"></script>
     
+    <!-- Sentry Error Monitoring and User Feedback -->
+    <!-- Temporarily disabled due to module resolution issues
+    <script type="module">
+        import './renderer/sentry-renderer.js';
+        // Sentry is now initialized with User Feedback widget
+    </script>
+    -->
+    
     <script src="voice-recognition-advanced.js"></script>
     <script src="rina-personality-engine.js"></script>
     <script src="rina-dialogue-system.js"></script>
@@ -335,6 +353,19 @@
     <script type="module" src="ai-services/llm-api-client.js"></script>
     <script type="module" src="ai-services/advanced-learning-engine.js"></script>
     <script type="module" src="ai-services/unified-ai-system.js"></script>
+    <!-- Initialize terminalState early to prevent undefined errors -->
+    <script>
+        // Initialize terminalState before any other scripts
+        window.terminalState = {
+            terminal: null,
+            shellHarness: null,
+            terminalWrapper: null,
+            voiceEngine: null,
+            advancedVoiceRecognition: null,
+            isVoiceOutputEnabled: false
+        };
+    </script>
+    
     <script src="terminal-functions-fix.js"></script>
     <script>
         // Terminal modules will be loaded via the preload script

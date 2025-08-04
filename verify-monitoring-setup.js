@@ -17,7 +17,6 @@ config({ path: '.env.monitoring' });
 config({ path: '.env.local' });
 config({ path: '.env' });
 
-console.log('🔍 Verifying Monitoring Setup...\n');
 
 const checks = {
   sentry: {
@@ -50,13 +49,10 @@ const checks = {
 let allGood = true;
 
 // Check each service
-Object.entries(checks).forEach(([service, config]) => {
-  console.log(`\n📦 ${config.name}:`);
+Object.entries(checks).forEach(([_service, config]) => {
 
   if (config.secrets) {
-    console.log(`   ℹ️  ${config.note}`);
     config.secrets.forEach(secret => {
-      console.log(`   - ${secret}: Set in GitHub Secrets`);
     });
     return;
   }
@@ -64,9 +60,7 @@ Object.entries(checks).forEach(([service, config]) => {
   // Check required vars
   config.required.forEach(varName => {
     if (process.env[varName]) {
-      console.log(`   ✅ ${varName}: Configured`);
     } else {
-      console.log(`   ❌ ${varName}: Missing (REQUIRED)`);
       allGood = false;
     }
   });
@@ -74,15 +68,12 @@ Object.entries(checks).forEach(([service, config]) => {
   // Check optional vars
   config.optional.forEach(varName => {
     if (process.env[varName]) {
-      console.log(`   ✅ ${varName}: ${process.env[varName]}`);
     } else {
-      console.log(`   ⚠️  ${varName}: Not set (optional)`);
     }
   });
 });
 
 // Check for config files
-console.log('\n📄 Configuration Files:');
 const configFiles = [
   { path: '.env.monitoring', required: false },
   { path: 'sonar-project.properties', required: true },
@@ -94,47 +85,31 @@ const configFiles = [
 configFiles.forEach(file => {
   const fullPath = path.join(__dirname, file.path);
   if (fs.existsSync(fullPath)) {
-    console.log(`   ✅ ${file.path}: Found`);
   } else {
     if (file.required) {
-      console.log(`   ❌ ${file.path}: Missing (REQUIRED)`);
       allGood = false;
     } else {
-      console.log(`   ⚠️  ${file.path}: Not found (optional)`);
     }
   }
 });
 
 // Check local services
-console.log('\n🌐 Local Services:');
 fetch('http://localhost:8081/health')
   .then(res => {
     if (res.status === 200) {
-      console.log('   ✅ Nginx: Running on http://localhost:8081');
     } else {
-      console.log('   ⚠️  Nginx: Running but health check failed');
     }
   })
   .catch(() => {
-    console.log('   ❌ Nginx: Not running (run: brew services start nginx)');
   });
 
 // Summary
-console.log('\n' + '='.repeat(50));
 if (allGood) {
   console.log('✅ All required configurations are in place!');
-  console.log('\nNext steps:');
-  console.log(
     '1. Add secrets to GitHub: https://github.com/Rinawarp-Terminal/rinawarp-terminal/settings/secrets/actions'
   );
-  console.log(
     '2. Monitor workflow: https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions'
   );
 } else {
   console.log('❌ Some required configurations are missing!');
-  console.log('\nTo fix:');
-  console.log('1. Copy .env.monitoring.example to .env.monitoring');
-  console.log('2. Fill in the missing values');
-  console.log('3. Add GitHub secrets as noted above');
 }
-console.log('='.repeat(50));

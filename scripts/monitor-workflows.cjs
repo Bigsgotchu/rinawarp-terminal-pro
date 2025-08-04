@@ -1,10 +1,9 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 
 /**
  * 🌊 RinaWarp Workflow Monitor
@@ -42,7 +41,7 @@ class WorkflowMonitor {
           console.log(`   https://github.com/${this.repo}/actions`);
           return [];
         }
-        throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
+        throw new Error(new Error(new Error(`HTTP ${response.status}: ${response.statusText}`)));
       }
 
       const data = await response.json();

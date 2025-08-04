@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * RinaWarp Terminal AI Predictive Completion Plugin
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -24,12 +25,10 @@ export class PredictiveCompletionPlugin extends Plugin {
   }
 
   async initialize(_context) {
-    console.log('🔮 Initializing Enhanced Predictive Completion Plugin...');
-
     // Test OpenAI connectivity
     try {
       await getCommandPrediction('test', 'initialization test');
-      console.log('✅ OpenAI integration ready');
+      logger.debug('✅ OpenAI integration ready');
     } catch (error) {
       console.warn('⚠️ OpenAI unavailable, using local AI fallback:', error.message);
       this.useOpenAI = false;
@@ -71,8 +70,6 @@ export class PredictiveCompletionPlugin extends Plugin {
         console.error('Prediction error:', error.message);
       }
     });
-
-    console.log('🔮 Enhanced Predictive Completion Plugin activated');
   }
 
   // Method to explain commands using OpenAI

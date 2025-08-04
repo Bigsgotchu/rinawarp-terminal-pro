@@ -9,7 +9,7 @@ const BootProfileVisualizer = require('./src/tools/bootProfileVisualizer.cjs');
 
 async function runInteractiveDemo() {
   console.log('🧜‍♀️ RinaWarp Terminal - Interactive Risk-Based Integration Demo');
-  console.log('=' .repeat(70));
+  console.log('='.repeat(70));
   console.log('This demo will show you:');
   console.log('• 🚦 Feature flag system with risk-based activation');
   console.log('• 🎛️ Real-time boot profile dashboard');
@@ -17,54 +17,54 @@ async function runInteractiveDemo() {
   console.log('• 🎯 Risk-based decision making');
   console.log('');
   console.log('Press Ctrl+C to stop the demo at any time');
-  console.log('=' .repeat(70));
+  console.log('='.repeat(70));
 
   try {
     // Initialize feature flags
-    const flags = createFeatureFlags({ 
+    const flags = createFeatureFlags({
       runtimeMode: 'development',
-      userProfile: 'interactive-demo' 
+      userProfile: 'interactive-demo',
     });
-    
+
     await flags.initialize();
-    
+
     // Show initial status
     console.log('\n📊 Initial System State:');
     const enabled = flags.getEnabledFeatures();
     enabled.forEach(feature => {
       console.log(`   ${feature.emoji} ${feature.displayName}`);
     });
-    
+
     console.log('\n🎛️ Starting Boot Profile Visualizer...');
-    
+
     // Create and start the visualizer
     const visualizer = new BootProfileVisualizer({ refreshInterval: 3000 });
     await visualizer.initialize();
-    
+
     // Enable some features dynamically to show the system working
     setTimeout(async () => {
       try {
         console.log('\n⚡ Demo: Enabling experimental feature...');
-        await flags.enableFeature('performanceMonitoring', { 
-          approvedBy: 'demo-system' 
+        await flags.enableFeature('performanceMonitoring', {
+          approvedBy: 'demo-system',
         });
       } catch (error) {
         console.log('Note:', error.message);
       }
     }, 5000);
-    
+
     setTimeout(async () => {
       try {
         console.log('\n🔄 Demo: Attempting dangerous feature...');
-        await flags.enableFeature('discordBot', { 
+        await flags.enableFeature('discordBot', {
           approvedBy: 'demo-lead',
-          reason: 'demonstration' 
+          reason: 'demonstration',
         });
       } catch (error) {
         console.log('Note:', error.message);
       }
     }, 10000);
-    
+
     setTimeout(async () => {
       try {
         console.log('\n🧠 Demo: Running performance check...');
@@ -73,10 +73,9 @@ async function runInteractiveDemo() {
         console.log('Note:', error.message);
       }
     }, 15000);
-    
+
     // Start the real-time monitoring
     await visualizer.startRealTimeMonitoring();
-    
   } catch (error) {
     console.error('\n❌ Demo failed:', error.message);
     process.exit(1);
@@ -100,11 +99,10 @@ process.on('SIGINT', () => {
 
 // CLI execution
 if (require.main === module) {
-  runInteractiveDemo()
-    .catch(error => {
-      console.error('Interactive demo error:', error);
-      process.exit(1);
-    });
+  runInteractiveDemo().catch(error => {
+    console.error('Interactive demo error:', error);
+    process.exit(1);
+  });
 }
 
 module.exports = { runInteractiveDemo };

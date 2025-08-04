@@ -7,7 +7,7 @@
 /**
  * 🚦 Feature Flags System
  * Risk-Based Progressive Rollout for RinaWarp Terminal
- * 
+ *
  * Manages feature activation based on risk levels, user profiles,
  * and system performance metrics
  */
@@ -19,32 +19,32 @@ const path = require('node:path');
 class FeatureFlagManager extends EventEmitter {
   constructor(options = {}) {
     super();
-    
+
     this.configPath = options.configPath || path.join(__dirname, '../../config/feature-flags.json');
     this.runtimeMode = options.runtimeMode || process.env.RUNTIME_MODE || 'development';
     this.userProfile = options.userProfile || 'default';
-    
+
     // Risk-based feature categories
     this.riskLevels = {
       STABLE: {
         emoji: '🟢',
         description: 'Production-ready, low risk',
         defaultEnabled: true,
-        requiresApproval: false
+        requiresApproval: false,
       },
       EXPERIMENTAL: {
-        emoji: '🟡', 
+        emoji: '🟡',
         description: 'Medium risk, testing phase',
         defaultEnabled: false,
-        requiresApproval: true
+        requiresApproval: true,
       },
       DANGEROUS: {
         emoji: '🔴',
         description: 'High risk, development only',
         defaultEnabled: false,
         requiresApproval: true,
-        requiresPerformanceCheck: true
-      }
+        requiresPerformanceCheck: true,
+      },
     };
 
     // Feature registry with risk classifications
@@ -55,14 +55,14 @@ class FeatureFlagManager extends EventEmitter {
         risk: 'STABLE',
         enabled: true,
         dependencies: [],
-        description: 'v1.0.7 proven terminal engine'
+        description: 'v1.0.7 proven terminal engine',
       },
       legacyThemes: {
         name: 'Legacy Theme System',
-        risk: 'STABLE', 
+        risk: 'STABLE',
         enabled: true,
         dependencies: ['coreTerminal'],
-        description: 'Original oceanic theme system'
+        description: 'Original oceanic theme system',
       },
 
       // Enhanced Features (EXPERIMENTAL)
@@ -72,21 +72,21 @@ class FeatureFlagManager extends EventEmitter {
         enabled: false,
         dependencies: ['coreTerminal'],
         description: '6+ themes with smooth transitions',
-        performanceImpact: 'medium'
+        performanceImpact: 'medium',
       },
       hybridEmail: {
         name: 'Hybrid Email Service',
         risk: 'EXPERIMENTAL',
         enabled: false,
         dependencies: [],
-        description: 'SendGrid + Nodemailer fallback system'
+        description: 'SendGrid + Nodemailer fallback system',
       },
       performanceMonitoring: {
         name: 'Real-time Performance Monitoring',
-        risk: 'EXPERIMENTAL', 
+        risk: 'EXPERIMENTAL',
         enabled: false,
         dependencies: [],
-        description: 'GCP-based analytics and monitoring'
+        description: 'GCP-based analytics and monitoring',
       },
 
       // Enterprise Features (DANGEROUS - High complexity)
@@ -97,7 +97,7 @@ class FeatureFlagManager extends EventEmitter {
         dependencies: [],
         description: 'Community Discord bot with slash commands',
         performanceImpact: 'high',
-        memoryRequirement: '50MB+'
+        memoryRequirement: '50MB+',
       },
       mobileCompanion: {
         name: 'React Native Mobile Companion',
@@ -105,7 +105,7 @@ class FeatureFlagManager extends EventEmitter {
         enabled: false,
         dependencies: ['performanceMonitoring'],
         description: 'Mobile app for remote terminal monitoring',
-        performanceImpact: 'high'
+        performanceImpact: 'high',
       },
       aiAssistant: {
         name: 'Advanced AI Assistant',
@@ -114,7 +114,7 @@ class FeatureFlagManager extends EventEmitter {
         dependencies: ['performanceMonitoring'],
         description: 'Context-aware AI with multiple models',
         performanceImpact: 'very-high',
-        memoryRequirement: '100MB+'
+        memoryRequirement: '100MB+',
       },
       voiceRecognition: {
         name: 'Enhanced Voice Recognition',
@@ -122,8 +122,8 @@ class FeatureFlagManager extends EventEmitter {
         enabled: false,
         dependencies: ['aiAssistant'],
         description: 'Multi-provider voice engine',
-        performanceImpact: 'high'
-      }
+        performanceImpact: 'high',
+      },
     };
 
     // Performance monitoring for feature impact
@@ -131,7 +131,7 @@ class FeatureFlagManager extends EventEmitter {
       startupTime: null,
       memoryUsage: null,
       featureLoadTimes: new Map(),
-      errors: []
+      errors: [],
     };
 
     this.initialized = false;
@@ -139,21 +139,20 @@ class FeatureFlagManager extends EventEmitter {
 
   async initialize() {
     console.log('🚦 Initializing Feature Flag Manager...');
-    
+
     try {
       await this.loadConfiguration();
       await this.validateDependencies();
       await this.checkPerformanceConstraints();
-      
+
       this.initialized = true;
       this.emit('initialized');
-      
+
       console.log('✅ Feature Flag Manager ready');
       this.logEnabledFeatures();
-      
     } catch (error) {
       console.error('❌ Feature Flag Manager initialization failed:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -161,7 +160,7 @@ class FeatureFlagManager extends EventEmitter {
     try {
       const configData = await fs.readFile(this.configPath, 'utf8');
       const config = JSON.parse(configData);
-      
+
       // Merge with runtime overrides
       for (const [featureName, settings] of Object.entries(config.features || {})) {
         if (this.featureRegistry[featureName]) {
@@ -171,7 +170,6 @@ class FeatureFlagManager extends EventEmitter {
 
       // Apply environment-specific rules
       this.applyEnvironmentRules();
-      
     } catch (error) {
       console.warn('⚠️  Could not load feature config, using defaults:', error.message);
     }
@@ -187,7 +185,7 @@ class FeatureFlagManager extends EventEmitter {
         }
       });
       break;
-        
+
     case 'staging':
       // Stable + experimental in staging
       Object.keys(this.featureRegistry).forEach(key => {
@@ -196,7 +194,7 @@ class FeatureFlagManager extends EventEmitter {
         }
       });
       break;
-        
+
     case 'development':
       // Enable experimental features in development for testing
       Object.keys(this.featureRegistry).forEach(key => {
@@ -224,9 +222,10 @@ class FeatureFlagManager extends EventEmitter {
   }
 
   async checkPerformanceConstraints() {
-    const enabledFeatures = Object.entries(this.featureRegistry)
-      .filter(([_, feature]) => feature.enabled);
-    
+    const enabledFeatures = Object.entries(this.featureRegistry).filter(
+      ([_, feature]) => feature.enabled
+    );
+
     // Calculate memory requirements
     let totalMemoryRequirement = 0;
     for (const [_, feature] of enabledFeatures) {
@@ -237,11 +236,12 @@ class FeatureFlagManager extends EventEmitter {
     }
 
     // Check system constraints
-    if (totalMemoryRequirement > 200) { // 200MB limit
+    if (totalMemoryRequirement > 200) {
+      // 200MB limit
       console.warn(`⚠️  High memory usage projected: ${totalMemoryRequirement}MB`);
-      this.emit('performance-warning', { 
-        type: 'memory', 
-        projected: totalMemoryRequirement 
+      this.emit('performance-warning', {
+        type: 'memory',
+        projected: totalMemoryRequirement,
       });
     }
   }
@@ -264,17 +264,17 @@ class FeatureFlagManager extends EventEmitter {
   async enableFeature(featureName, options = {}) {
     const feature = this.featureRegistry[featureName];
     if (!feature) {
-      throw new Error(new Error(`Unknown feature: ${featureName}`));
+      throw new Error(new Error(new Error(`Unknown feature: ${featureName}`)));
     }
 
     // Risk-based validation
     if (feature.risk === 'DANGEROUS' && !options.force) {
       if (this.runtimeMode === 'production') {
-        throw new Error(new Error(`Cannot enable dangerous feature ${featureName} in production`));
+        throw new Error(new Error(new Error(`Cannot enable dangerous feature ${featureName} in production`)));
       }
-      
+
       if (!options.approvedBy) {
-        throw new Error(new Error(`Dangerous feature ${featureName} requires approval`));
+        throw new Error(new Error(new Error(`Dangerous feature ${featureName} requires approval`)));
       }
     }
 
@@ -283,7 +283,7 @@ class FeatureFlagManager extends EventEmitter {
       const startTime = Date.now();
       await this.performanceCheck();
       const checkTime = Date.now() - startTime;
-      
+
       if (checkTime > 100) {
         console.warn(`⚠️  System showing performance stress (${checkTime}ms check time)`);
       }
@@ -294,8 +294,10 @@ class FeatureFlagManager extends EventEmitter {
     feature.enabledAt = Date.now();
     feature.enabledBy = options.approvedBy || 'system';
 
-    console.log(`✅ Feature enabled: ${feature.name} (${this.riskLevels[feature.risk].emoji} ${feature.risk})`);
-    
+    console.log(
+      `✅ Feature enabled: ${feature.name} (${this.riskLevels[feature.risk].emoji} ${feature.risk})`
+    );
+
     this.emit('feature-enabled', { featureName, feature });
     await this.saveConfiguration();
   }
@@ -303,15 +305,18 @@ class FeatureFlagManager extends EventEmitter {
   async disableFeature(featureName, reason = 'manual') {
     const feature = this.featureRegistry[featureName];
     if (!feature) {
-      throw new Error(new Error(`Unknown feature: ${featureName}`));
+      throw new Error(new Error(new Error(`Unknown feature: ${featureName}`)));
     }
 
     // Check for dependent features
-    const dependents = Object.entries(this.featureRegistry)
-      .filter(([_, f]) => f.dependencies?.includes(featureName) && f.enabled);
+    const dependents = Object.entries(this.featureRegistry).filter(
+      ([_, f]) => f.dependencies?.includes(featureName) && f.enabled
+    );
 
     if (dependents.length > 0) {
-      console.warn(`⚠️  Disabling dependent features: ${dependents.map(([name, _]) => name).join(', ')}`);
+      console.warn(
+        `⚠️  Disabling dependent features: ${dependents.map(([name, _]) => name).join(', ')}`
+      );
       for (const [dependentName, _] of dependents) {
         await this.disableFeature(dependentName, `dependency-${featureName}-disabled`);
       }
@@ -322,7 +327,7 @@ class FeatureFlagManager extends EventEmitter {
     feature.disabledReason = reason;
 
     console.log(`🔄 Feature disabled: ${feature.name} (${reason})`);
-    
+
     this.emit('feature-disabled', { featureName, feature, reason });
     await this.saveConfiguration();
   }
@@ -330,18 +335,20 @@ class FeatureFlagManager extends EventEmitter {
   async performanceCheck() {
     const startTime = Date.now();
     const memUsage = process.memoryUsage();
-    
+
     this.performanceMetrics.startupTime = startTime;
     this.performanceMetrics.memoryUsage = memUsage.heapUsed;
 
     // If memory usage is too high, suggest feature reduction
-    if (memUsage.heapUsed > 200 * 1024 * 1024) { // 200MB
+    if (memUsage.heapUsed > 200 * 1024 * 1024) {
+      // 200MB
       console.warn('🔥 High memory usage detected, consider disabling heavy features');
-      
+
       // Auto-disable non-critical dangerous features
-      const heavyFeatures = Object.entries(this.featureRegistry)
-        .filter(([_, f]) => f.enabled && f.risk === 'DANGEROUS' && f.performanceImpact === 'very-high');
-      
+      const heavyFeatures = Object.entries(this.featureRegistry).filter(
+        ([_, f]) => f.enabled && f.risk === 'DANGEROUS' && f.performanceImpact === 'very-high'
+      );
+
       for (const [featureName, _] of heavyFeatures) {
         await this.disableFeature(featureName, 'auto-performance-optimization');
       }
@@ -355,13 +362,13 @@ class FeatureFlagManager extends EventEmitter {
         name,
         displayName: feature.name,
         risk: feature.risk,
-        emoji: this.riskLevels[feature.risk].emoji
+        emoji: this.riskLevels[feature.risk].emoji,
       }));
   }
 
   getRiskSummary() {
     const summary = { STABLE: 0, EXPERIMENTAL: 0, DANGEROUS: 0 };
-    
+
     Object.values(this.featureRegistry).forEach(feature => {
       if (feature.enabled) {
         summary[feature.risk]++;
@@ -377,7 +384,9 @@ class FeatureFlagManager extends EventEmitter {
 
     console.log('\n🎯 Feature Flag Status:');
     console.log(`   ${this.riskLevels.STABLE.emoji} Stable: ${riskSummary.STABLE}`);
-    console.log(`   ${this.riskLevels.EXPERIMENTAL.emoji} Experimental: ${riskSummary.EXPERIMENTAL}`); 
+    console.log(
+      `   ${this.riskLevels.EXPERIMENTAL.emoji} Experimental: ${riskSummary.EXPERIMENTAL}`
+    );
     console.log(`   ${this.riskLevels.DANGEROUS.emoji} Dangerous: ${riskSummary.DANGEROUS}`);
 
     if (enabled.length > 0) {
@@ -393,7 +402,7 @@ class FeatureFlagManager extends EventEmitter {
       lastUpdated: new Date().toISOString(),
       runtimeMode: this.runtimeMode,
       userProfile: this.userProfile,
-      features: {}
+      features: {},
     };
 
     // Save only dynamic settings
@@ -403,7 +412,7 @@ class FeatureFlagManager extends EventEmitter {
         enabledAt: feature.enabledAt,
         enabledBy: feature.enabledBy,
         disabledAt: feature.disabledAt,
-        disabledReason: feature.disabledReason
+        disabledReason: feature.disabledReason,
       };
     });
 
@@ -421,12 +430,12 @@ class FeatureFlagManager extends EventEmitter {
       // Core features
       coreTerminal: () => this.isEnabled('coreTerminal'),
       legacyThemes: () => this.isEnabled('legacyThemes'),
-      
-      // Enhanced features  
+
+      // Enhanced features
       advancedThemes: () => this.isEnabled('advancedThemes'),
       hybridEmail: () => this.isEnabled('hybridEmail'),
       performanceMonitoring: () => this.isEnabled('performanceMonitoring'),
-      
+
       // Enterprise features
       discordBot: () => this.isEnabled('discordBot'),
       mobileCompanion: () => this.isEnabled('mobileCompanion'),
@@ -434,9 +443,10 @@ class FeatureFlagManager extends EventEmitter {
       voiceRecognition: () => this.isEnabled('voiceRecognition'),
 
       // Convenience combinations
-      hasEnterpriseFeatures: () => this.isEnabled('discordBot') || this.isEnabled('mobileCompanion'),
+      hasEnterpriseFeatures: () =>
+        this.isEnabled('discordBot') || this.isEnabled('mobileCompanion'),
       hasAdvancedUI: () => this.isEnabled('advancedThemes'),
-      hasAI: () => this.isEnabled('aiAssistant') || this.isEnabled('voiceRecognition')
+      hasAI: () => this.isEnabled('aiAssistant') || this.isEnabled('voiceRecognition'),
     };
   }
 }
@@ -453,7 +463,7 @@ function createFeatureFlags(options = {}) {
 
 function getFeatureFlags() {
   if (!globalFeatureFlags) {
-    throw new Error(new Error('Feature flags not initialized. Call createFeatureFlags() first.'));
+    throw new Error(new Error(new Error('Feature flags not initialized. Call createFeatureFlags() first.')));
   }
   return globalFeatureFlags;
 }
@@ -463,13 +473,13 @@ module.exports = {
   FeatureFlagManager,
   createFeatureFlags,
   getFeatureFlags,
-  
+
   // Convenience function for quick checks
-  isEnabled: (featureName) => {
+  isEnabled: featureName => {
     try {
       return getFeatureFlags().isEnabled(featureName);
     } catch {
       return false;
     }
-  }
+  },
 };

@@ -7,8 +7,6 @@
  */
 
 (function () {
-  console.log('🧜‍♀️ Activating Mermaid Theme...');
-
   // Remove any existing theme classes
   const bodyClasses = document.body.className;
   document.body.className = bodyClasses.replace(/\btheme-[\w-]+\b/g, '');
@@ -20,8 +18,8 @@
   try {
     localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
     localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
-  } catch (e) {
-    console.log('Could not save theme preference:', e);
+  } catch (_e) {
+    // Ignore localStorage errors
   }
 
   // Create and inject mermaid CSS if not present
@@ -176,8 +174,6 @@
       }, 400);
     }
   }, 5000);
-
-  console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
 
   return 'Mermaid theme activated successfully! 🧜‍♀️';
 })();

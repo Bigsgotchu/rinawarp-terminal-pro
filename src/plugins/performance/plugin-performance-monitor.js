@@ -265,8 +265,6 @@ export class PluginPerformanceMonitor {
     }
 
     if (optimizations.length > 0) {
-      console.log(`[Performance Monitor] Optimization suggestions for ${pluginName}:`);
-      optimizations.forEach(suggestion => console.log(`  - ${suggestion}`));
     }
 
     return optimizations;
@@ -341,10 +339,10 @@ export class PluginPerformanceUtils {
         };
       } catch (error) {
         const end = performance.now();
-        throw new Error({
+        throw new Error(new Error({
           error,
           executionTime: end - start,
-        });
+        }));
       }
     };
   }
@@ -415,7 +413,7 @@ export class PluginPerformanceUtils {
           return factory();
         }
 
-        throw new Error(new Error('Pool exhausted'));
+        throw new Error(new Error(new Error('Pool exhausted')));
       },
 
       release(obj) {

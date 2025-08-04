@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -24,17 +25,13 @@ window.toggleVoiceOutput = function () {
       ? '🔊 Voice Output: ON'
       : '🔊 Voice Output: OFF';
   }
-  console.log('Voice output toggled:', window.terminalState.isVoiceOutputEnabled);
 };
 
 // Start Voice Control
 window.startVoiceControl = async function () {
-  console.log('Starting voice control...');
-  console.log(
     'advancedVoiceRecognition from terminalState:',
     window.terminalState.advancedVoiceRecognition
   );
-  console.log('advancedVoiceRecognition from window:', window.advancedVoiceRecognition);
   const statusEl = document.getElementById('status');
 
   // Try to find advancedVoiceRecognition from multiple sources
@@ -50,12 +47,9 @@ window.startVoiceControl = async function () {
 
   try {
     // Check available methods
-    console.log(
       'Voice recognition methods:',
       Object.getOwnPropertyNames(Object.getPrototypeOf(voiceRecognition))
     );
-    console.log('Voice recognition provider:', voiceRecognition.provider);
-    console.log('Voice recognition initialized:', voiceRecognition.isInitialized);
 
     // The AdvancedVoiceRecognition uses start() not startListening()
     if (typeof voiceRecognition.start === 'function') {
@@ -65,7 +59,7 @@ window.startVoiceControl = async function () {
       await voiceRecognition.startListening();
       if (statusEl) statusEl.textContent = '🎤 Listening for voice commands...';
     } else {
-      throw new Error(new Error('Voice recognition object has no start method'));
+      throw new Error(new Error(new Error('Voice recognition object has no start method')));
     }
   } catch (error) {
     console.error('Failed to start voice control:', error);
@@ -376,8 +370,6 @@ window.processAICommand = async function () {
 // Start Conversational AI
 window.startConversationalAI = async function () {
   try {
-    console.log('Starting conversational AI...');
-
     // Check if electronAPI is available
     if (!window.electronAPI) {
       console.error('electronAPI not available');
@@ -469,7 +461,7 @@ window.showAIConfig = function () {
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function () {
-    console.log('✅ Terminal functions fix loaded and ready');
+    logger.debug('✅ Terminal functions fix loaded and ready');
     // Double-check that all functions are available
     const requiredFunctions = [
       'startVoiceControl',
@@ -486,12 +478,10 @@ if (document.readyState === 'loading') {
 
     requiredFunctions.forEach(funcName => {
       if (typeof window[funcName] === 'function') {
-        console.log(`✅ ${funcName} is available`);
       } else {
         console.error(`❌ ${funcName} is NOT available`);
       }
     });
   });
 } else {
-  console.log('✅ Terminal functions fix loaded and ready');
 }

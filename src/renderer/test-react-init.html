@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>React Init Test</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+            padding: 20px;
+        }
+        #auth-root {
+            border: 2px solid #00ff88;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <h1>React Initialization Test</h1>
+    <button id="test-btn">Click to Toggle Modal</button>
+    <div id="auth-root"></div>
+    
+    <script type="module">
+        console.log('Starting React test...');
+        
+        async function testReact() {
+            try {
+                // Import React
+                console.log('Importing React...');
+                const React = await import('https://esm.sh/react@18');
+                const ReactDOM = await import('https://esm.sh/react-dom@18/client');
+                
+                console.log('React imported successfully');
+                
+                // Create a simple component
+                const TestModal = ({ isOpen, onClose }) => {
+                    if (!isOpen) return null;
+                    
+                    return React.createElement('div', { className: 'modal-overlay', onClick: onClose },
+                        React.createElement('div', { 
+                            className: 'modal-content',
+                            onClick: (e) => e.stopPropagation()
+                        }, 
+                            React.createElement('h2', null, 'Test Modal'),
+                            React.createElement('p', null, 'React is working!'),
+                            React.createElement('button', { onClick: onClose }, 'Close')
+                        )
+                    );
+                };
+                
+                // Create root
+                const root = ReactDOM.createRoot(document.getElementById('auth-root'));
+                
+                // State management
+                let isOpen = false;
+                
+                const render = () => {
+                    root.render(React.createElement(TestModal, {
+                        isOpen: isOpen,
+                        onClose: () => {
+                            isOpen = false;
+                            render();
+                        }
+                    }));
+                };
+                
+                // Initial render
+                render();
+                
+                // Button handler
+                document.getElementById('test-btn').addEventListener('click', () => {
+                    isOpen = !isOpen;
+                    render();
+                    console.log('Modal toggled:', isOpen);
+                });
+                
+                console.log('React test setup complete!');
+                
+            } catch (error) {
+                console.error('React test failed:', error);
+            }
+        }
+        
+        testReact();
+    </script>
+</body>
+</html>

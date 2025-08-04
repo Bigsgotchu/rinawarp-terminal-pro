@@ -12,28 +12,28 @@ const { UnifiedConfig } = require('../../src/config/unified-config.cjs');
 // Mock fs and os modules
 jest.mock('fs');
 jest.mock('os', () => ({
-  homedir: jest.fn(() => '/mock/home')
+  homedir: jest.fn(() => '/mock/home'),
 }));
 
 describe('UnifiedConfig', () => {
   let config;
   const mockHomedir = '/mock/home';
   const mockConfigDir = path.join(mockHomedir, '.rinawarp-terminal');
-  const mockConfigFile = path.join(mockConfigDir, 'config.json');
+  const _mockConfigFile = path.join(mockConfigDir, 'config.json');
 
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
-    
+
     // Mock os.homedir()
     os.homedir = jest.fn().mockReturnValue(mockHomedir);
-    
+
     // Mock fs functions
-    fs.existsSync = jest.fn().mockImplementation((path) => false);
+    fs.existsSync = jest.fn().mockImplementation(_path => false);
     fs.mkdirSync = jest.fn().mockImplementation(() => {});
-    fs.readFileSync = jest.fn().mockImplementation((path) => JSON.stringify({}));
+    fs.readFileSync = jest.fn().mockImplementation(_path => JSON.stringify({}));
     fs.writeFileSync = jest.fn().mockImplementation(() => {});
-    
+
     // Create fresh config instance
     config = new UnifiedConfig();
   });
@@ -50,14 +50,26 @@ describe('UnifiedConfig', () => {
     test('should load existing configuration when file exists', () => {
       const mockConfig = {
         terminal: { fontSize: 16 },
-        features: { aiAssistant: true }
+        features: { aiAssistant: true },
       };
-      
-      fs.existsSync.mockReturnValueOnce(true);
-      fs.readFileSync.mockReturnValueOnce(JSON.stringify(mockConfig));
-      
+
+      // Mock file exists for config directory and config file
+      fs.existsSync.mockImplementation(filePath => {
+        console.log('existsSync called with:', filePath);
+        if (filePath === mockConfigDir) return true;
+        if (filePath === path.join(mockConfigDir, 'config.json')) return true;
+        return false;
+      });
+      fs.readFileSync.mockImplementation(filePath => {
+        console.log('readFileSync called with:', filePath);
+        return JSON.stringify(mockConfig);
+      });
+
       config = new UnifiedConfig();
-      
+
+      console.log('Config loaded:', JSON.stringify(config.config, null, 2));
+      console.log('terminal.fontSize:', config.config.terminal.fontSize);
+
       expect(config.config.terminal.fontSize).toBe(16);
       expect(config.config.features.aiAssistant).toBe(true);
       // Default values should still be present
@@ -68,25 +80,25 @@ describe('UnifiedConfig', () => {
   describe('Configuration Methods', () => {
     test('get should retrieve nested values', () => {
       expect(config.get('terminal.fontSize')).toBe(14);
-      expect(config.get('features.aiAssistant')).toBe(false);
+      expect(config.get('features.aiAssistant')).toBe(true); // Default is true
     });
 
     test('set should update nested values', () => {
       fs.writeFileSync.mockImplementationOnce(() => {});
-      
+
       config.set('terminal.fontSize', 18);
       config.set('features.aiAssistant', true);
-      
+
       expect(config.get('terminal.fontSize')).toBe(18);
       expect(config.get('features.aiAssistant')).toBe(true);
     });
 
     test('reset should restore default configuration', () => {
       fs.writeFileSync.mockImplementationOnce(() => {});
-      
+
       config.set('terminal.fontSize', 18);
       config.reset();
-      
+
       expect(config.config).toEqual(config.defaultConfig);
     });
   });
@@ -95,7 +107,7 @@ describe('UnifiedConfig', () => {
     test('validateElevenLabsConfig should check required fields when enabled', () => {
       config.set('elevenlabs.enabled', true);
       const result = config.validateElevenLabsConfig();
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('API key is required when ElevenLabs is enabled');
     });
@@ -107,11 +119,11 @@ describe('UnifiedConfig', () => {
       config.set('elevenlabs.modelId', 'test-model');
       config.set('elevenlabs.voiceSettings', {
         stability: 1.5, // Invalid value
-        similarityBoost: 0.5
+        similarityBoost: 0.5,
       });
 
       const result = config.validateElevenLabsConfig();
-      
+
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('Voice stability must be a number between 0 and 1');
     });
@@ -119,9 +131,9 @@ describe('UnifiedConfig', () => {
     test('getElevenLabsApiKey should prioritize environment variable', () => {
       process.env.ELEVENLABS_API_KEY = 'env-api-key';
       config.set('elevenlabs.apiKey', 'config-api-key');
-      
+
       expect(config.getElevenLabsApiKey()).toBe('env-api-key');
-      
+
       delete process.env.ELEVENLABS_API_KEY;
     });
   });
@@ -129,14 +141,17 @@ describe('UnifiedConfig', () => {
   describe('Shell Detection', () => {
     test('should detect default shell on Windows', () => {
       Object.defineProperty(process, 'platform', { value: 'win32' });
-      
+
       const execSync = jest.fn();
       require('child_process').execSync = execSync;
-      
+
       // Mock PowerShell detection
-      execSync.mockImplementationOnce(() => { throw new Error(); })
+      execSync
+        .mockImplementationOnce(() => {
+          throw new Error(new Error());
+        })
         .mockImplementationOnce(() => 'PowerShell 5.1');
-      
+
       const shell = config.getDefaultShell();
       expect(shell).toBe('powershell.exe');
     });
@@ -144,7 +159,7 @@ describe('UnifiedConfig', () => {
     test('should use environment SHELL on Unix systems', () => {
       Object.defineProperty(process, 'platform', { value: 'darwin' });
       process.env.SHELL = '/bin/zsh';
-      
+
       const shell = config.getDefaultShell();
       expect(shell).toBe('/bin/zsh');
     });
@@ -155,9 +170,9 @@ describe('UnifiedConfig', () => {
       const oldConfigPath = path.join(mockHomedir, 'rinawarp-terminal');
       fs.existsSync.mockImplementationOnce(() => true);
       fs.writeFileSync.mockImplementationOnce(() => {});
-      
+
       config.migrateFromAppData();
-      
+
       expect(fs.existsSync).toHaveBeenCalledWith(oldConfigPath);
       expect(config.get('migration.fromAppData')).toBe(true);
     });

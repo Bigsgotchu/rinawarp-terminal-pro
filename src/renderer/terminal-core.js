@@ -18,7 +18,7 @@ export class RinaWarpTerminal {
       theme: 'rinawarp-dark',
       fontSize: 14,
       fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace',
-      ...options
+      ...options,
     };
 
     this.terminal = null;
@@ -26,6 +26,7 @@ export class RinaWarpTerminal {
     this.webLinksAddon = null;
     this.commands = new Map();
     this.currentLine = '';
+    this.cursorPosition = 0;
     this.history = [];
     this.historyIndex = -1;
     this.initialized = false;
@@ -51,25 +52,25 @@ export class RinaWarpTerminal {
         scrollback: 1000,
         tabStopWidth: 4,
         allowTransparency: true,
-        convertEol: true
+        convertEol: true,
       });
 
       // Create and load addons
       this.fitAddon = new FitAddon();
       this.webLinksAddon = new WebLinksAddon();
-      
+
       this.terminal.loadAddon(this.fitAddon);
       this.terminal.loadAddon(this.webLinksAddon);
 
       // Find terminal container
       const container = document.getElementById('terminal');
       if (!container) {
-        throw new Error(new Error('Terminal container not found'));
+        throw new Error(new Error(new Error('Terminal container not found')));
       }
 
       // Open terminal
       this.terminal.open(container);
-      
+
       // Fit to container
       this.fitAddon.fit();
 
@@ -90,7 +91,7 @@ export class RinaWarpTerminal {
       this.initialized = true;
     } catch (error) {
       logger.error('Failed to initialize terminal:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -116,13 +117,13 @@ export class RinaWarpTerminal {
       brightBlue: '#66aaff',
       brightMagenta: '#ff66cc',
       brightCyan: '#66ccff',
-      brightWhite: '#ffffff'
+      brightWhite: '#ffffff',
     };
   }
 
   setupEventHandlers() {
     // Handle input
-    this.terminal.onData((data) => {
+    this.terminal.onData(data => {
       this.handleInput(data);
     });
 
@@ -150,19 +151,34 @@ export class RinaWarpTerminal {
       this.executeCommand(this.currentLine.trim());
       this.addToHistory(this.currentLine);
       this.currentLine = '';
+      this.cursorPosition = 0;
       this.showPrompt();
       break;
 
     case '\u007f': // Backspace
-      if (this.currentLine.length > 0) {
-        this.currentLine = this.currentLine.slice(0, -1);
-        this.terminal.write('\b \b');
+      if (this.cursorPosition > 0) {
+        // Remove character at cursor position
+        this.currentLine =
+            this.currentLine.slice(0, this.cursorPosition - 1) +
+            this.currentLine.slice(this.cursorPosition);
+        this.cursorPosition--;
+
+        // Move cursor back and rewrite the line from cursor position
+        this.terminal.write('\b');
+        this.terminal.write(this.currentLine.slice(this.cursorPosition) + ' ');
+
+        // Move cursor back to correct position
+        const charsAfterCursor = this.currentLine.length - this.cursorPosition + 1;
+        for (let i = 0; i < charsAfterCursor; i++) {
+          this.terminal.write('\b');
+        }
       }
       break;
 
     case '\u0003': // Ctrl+C
       this.terminal.write('^C\r\n');
       this.currentLine = '';
+      this.cursorPosition = 0;
       this.showPrompt();
       break;
 
@@ -175,11 +191,17 @@ export class RinaWarpTerminal {
       break;
 
     case '\u001b[C': // Right arrow
-      // TODO: Implement cursor movement
+      if (this.cursorPosition < this.currentLine.length) {
+        this.cursorPosition++;
+        this.terminal.write('\u001b[C'); // Move cursor right
+      }
       break;
 
     case '\u001b[D': // Left arrow
-      // TODO: Implement cursor movement
+      if (this.cursorPosition > 0) {
+        this.cursorPosition--;
+        this.terminal.write('\u001b[D'); // Move cursor left
+      }
       break;
 
     case '\t': // Tab
@@ -189,8 +211,22 @@ export class RinaWarpTerminal {
     default:
       // Regular character input
       if (data >= ' ' && data <= '~') {
-        this.currentLine += data;
-        this.terminal.write(data);
+        // Insert character at cursor position
+        this.currentLine =
+            this.currentLine.slice(0, this.cursorPosition) +
+            data +
+            this.currentLine.slice(this.cursorPosition);
+
+        // Write the character and everything after it
+        this.terminal.write(data + this.currentLine.slice(this.cursorPosition + 1));
+
+        // Move cursor back to correct position
+        const charsAfterCursor = this.currentLine.length - this.cursorPosition - 1;
+        for (let i = 0; i < charsAfterCursor; i++) {
+          this.terminal.write('\b');
+        }
+
+        this.cursorPosition++;
       }
       break;
     }
@@ -200,7 +236,7 @@ export class RinaWarpTerminal {
     if (this.history.length === 0) return;
 
     this.historyIndex += direction;
-    
+
     if (this.historyIndex < 0) {
       this.historyIndex = -1;
       this.currentLine = '';
@@ -216,12 +252,15 @@ export class RinaWarpTerminal {
     this.terminal.write('\r\x1b[K');
     this.showPrompt(false);
     this.terminal.write(this.currentLine);
+
+    // Set cursor position to end of line
+    this.cursorPosition = this.currentLine.length;
   }
 
   handleTabCompletion() {
     const commands = Array.from(this.commands.keys());
     const matches = commands.filter(cmd => cmd.startsWith(this.currentLine));
-    
+
     if (matches.length === 1) {
       // Auto-complete
       const completion = matches[0].slice(this.currentLine.length);
@@ -255,8 +294,8 @@ export class RinaWarpTerminal {
     this.addCommand('version', () => this.showVersion());
     this.addCommand('history', () => this.showHistory());
     this.addCommand('exit', () => this.showExitMessage());
-    this.addCommand('theme', (theme) => this.setTheme(theme));
-    this.addCommand('font-size', (size) => this.setFontSize(size));
+    this.addCommand('theme', theme => this.setTheme(theme));
+    this.addCommand('font-size', size => this.setFontSize(size));
   }
 
   addCommand(name, handler) {
@@ -286,7 +325,9 @@ export class RinaWarpTerminal {
 
   showWelcome() {
     this.terminal.write('\\x1b[32m🦾 RinaWarp Terminal v1.0.19 initialized\\x1b[0m\\r\\n');
-    this.terminal.write('\\x1b[36mType "help" for available commands or "features" to see loaded features\\x1b[0m\\r\\n');
+    this.terminal.write(
+      '\\x1b[36mType "help" for available commands or "features" to see loaded features\\x1b[0m\\r\\n'
+    );
     this.terminal.write('\\r\\n');
     this.showPrompt();
   }
@@ -375,18 +416,18 @@ Visit https://rinawarptech.com for more information.
       'rinawarp-light': {
         background: '#ffffff',
         foreground: '#00aa66',
-        cursor: '#00aa66'
+        cursor: '#00aa66',
       },
-      'matrix': {
+      matrix: {
         background: '#000000',
         foreground: '#00ff00',
-        cursor: '#00ff00'
+        cursor: '#00ff00',
       },
-      'retro': {
+      retro: {
         background: '#001100',
         foreground: '#00cc00',
-        cursor: '#00cc00'
-      }
+        cursor: '#00cc00',
+      },
     };
 
     if (themes[themeName]) {

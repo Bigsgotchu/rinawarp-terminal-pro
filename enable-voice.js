@@ -10,7 +10,6 @@ if (config.elevenlabs.apiKey && config.elevenlabs.apiKey.length > 20) {
   config.elevenlabs.enabled = true;
   config.features.voiceControl = true;
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-  console.log('✅ Voice features re-enabled!');
 } else {
   console.log('❌ No valid ElevenLabs API key found. Run add-elevenlabs-key.js first.');
 }

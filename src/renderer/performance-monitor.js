@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * RinaWarp Terminal - Performance Monitor
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -46,7 +47,7 @@ export class PerformanceMonitor {
   async init() {
     this.startSystemMonitoring();
     this.loadOptimizationPatterns();
-    console.log('📊 Performance Monitor initialized');
+    logger.debug('📊 Performance Monitor initialized');
   }
 
   async trackCommandStart(command, context) {
@@ -899,7 +900,6 @@ export class PerformanceMonitor {
   // Update thresholds dynamically
   updateThresholds(newThresholds) {
     this.thresholds = { ...this.thresholds, ...newThresholds };
-    console.log('📊 Performance thresholds updated:', this.thresholds);
   }
 
   // Get historical trend analysis
@@ -987,9 +987,7 @@ class PerformanceMonitoringDashboard {
         const historicalData = JSON.parse(storedData);
         this.metrics = new Map(historicalData.metrics || []);
         this.commandHistory = new Map(historicalData.commandHistory || []);
-        console.log('📊 Loaded historical performance data');
       } else {
-        console.log('📊 No historical performance data found, starting fresh');
       }
     } catch (error) {
       console.warn('⚠️ Failed to load historical performance data:', error);

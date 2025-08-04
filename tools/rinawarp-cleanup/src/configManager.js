@@ -15,29 +15,29 @@ class ConfigManager {
         cleanupPaths: {
           type: 'array',
           items: {
-            type: 'string'
+            type: 'string',
           },
-          default: ['tmp', 'cache']
+          default: ['tmp', 'cache'],
         },
         debugOverlay: {
           type: 'object',
           properties: {
             port: {
               type: 'number',
-              default: 3030
+              default: 3030,
             },
             refreshInterval: {
               type: 'number',
-              default: 1000
+              default: 1000,
             },
             enabledMetrics: {
               type: 'array',
               items: {
-                type: 'string'
+                type: 'string',
               },
-              default: ['moduleStatus', 'performance', 'errors']
-            }
-          }
+              default: ['moduleStatus', 'performance', 'errors'],
+            },
+          },
         },
         logging: {
           type: 'object',
@@ -45,15 +45,15 @@ class ConfigManager {
             level: {
               type: 'string',
               enum: ['error', 'warn', 'info', 'debug'],
-              default: 'info'
+              default: 'info',
             },
             file: {
               type: 'string',
-              default: 'rinawarp.log'
-            }
-          }
-        }
-      }
+              default: 'rinawarp.log',
+            },
+          },
+        },
+      },
     });
   }
 
@@ -72,7 +72,7 @@ class ConfigManager {
     } else if (value === 'true' || value === 'false') {
       value = value === 'true';
     }
-    
+
     this.config.set(key, value);
     return this.getValue(key);
   }

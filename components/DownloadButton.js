@@ -20,7 +20,7 @@ export default function DownloadButton({ fileName = 'rinawarp.zip' }) {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(new Error(error.message || 'Download failed'));
+        throw new Error(new Error(new Error(error.message || 'Download failed')));
       }
 
       const blob = await response.blob();

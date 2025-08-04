@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 6 deprecated pattern(s) replaced with modern alternatives
@@ -64,12 +65,11 @@ class MultimodalAgentManager {
 
   async init() {
     try {
-      console.log('🤖 Initializing Multimodal Agent Manager...');
       await this.loadConfiguration();
       await this.createAgentUI();
       await this.setupEventListeners();
       this.isInitialized = true;
-      console.log('✅ Multimodal Agent Manager initialized');
+      logger.debug('✅ Multimodal Agent Manager initialized');
     } catch (error) {
       console.error('❌ Failed to initialize Multimodal Agent Manager:', error);
     }
@@ -241,7 +241,7 @@ class MultimodalAgentManager {
 
   async initializeFramework() {
     if (!this.config.azureEndpoint || !this.config.apiKey) {
-      throw new Error(new Error('Azure OpenAI configuration required'));
+      throw new Error(new Error(new Error('Azure OpenAI configuration required')));
     }
 
     try {
@@ -259,7 +259,7 @@ class MultimodalAgentManager {
     } catch (error) {
       console.error('Failed to initialize framework:', error);
       this.updateStatus('Connection Failed', 'error');
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -280,7 +280,6 @@ class MultimodalAgentManager {
       },
       cleanup: () => {
         // Cleanup resources
-        console.log('Framework cleaned up');
       },
     };
   }
@@ -478,7 +477,7 @@ class MultimodalAgentManager {
       const apiKey = modal.querySelector('#azure-api-key').value;
 
       if (!endpoint || !apiKey) {
-        throw new Error(new Error('Please provide both endpoint and API key'));
+        throw new Error(new Error(new Error('Please provide both endpoint and API key')));
       }
 
       // Simulate connection test
@@ -692,7 +691,7 @@ class MultimodalAgentManager {
 
         this.addChatMessage('agent', `🎨 Generated image: "${prompt}"`, 'dalle_assistant');
       } else {
-        throw new Error(new Error(result.error));
+        throw new Error(new Error(new Error(result.error)));
       }
     } catch (error) {
       const errorDiv = document.createElement('div');
@@ -999,7 +998,7 @@ class MultimodalAgentManager {
   // Public API for terminal integration
   async sendToAgents(message) {
     if (!this.isEnabled) {
-      throw new Error(new Error('Agents are not enabled'));
+      throw new Error(new Error(new Error('Agents are not enabled')));
     }
 
     return await this.framework.sendMessage(message);
@@ -1007,7 +1006,7 @@ class MultimodalAgentManager {
 
   async generateImageFromTerminal(prompt) {
     if (!this.isEnabled) {
-      throw new Error(new Error('Agents are not enabled'));
+      throw new Error(new Error(new Error('Agents are not enabled')));
     }
 
     const result = await this.framework.generateImage(prompt);

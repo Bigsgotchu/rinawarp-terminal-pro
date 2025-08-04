@@ -102,7 +102,7 @@ export class RinaWarpSDK {
     };
 
     if (!this.config.apiKey) {
-      throw new Error(new Error('API key is required. Get one at https://dashboard.rinawarp.com'));
+      throw new Error(new Error(new Error('API key is required. Get one at https://dashboard.rinawarp.com')));
     }
   }
 
@@ -146,10 +146,12 @@ export class RinaWarpSDK {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(new RinaWarpError(
-            errorData.error || `HTTP ${response.status}`,
-            response.status,
-            errorData.code
+          throw new Error(new Error(
+            new RinaWarpError(
+              errorData.error || `HTTP ${response.status}`,
+              response.status,
+              errorData.code
+            )
           ));
         }
 
@@ -160,11 +162,11 @@ export class RinaWarpSDK {
           await this.delay(Math.pow(2, attempt) * 1000);
           continue;
         }
-        throw new Error(error);
+        throw new Error(new Error(error));
       }
     }
 
-    throw new Error(lastError!);
+    throw new Error(new Error(lastError!));
   }
 
   /**

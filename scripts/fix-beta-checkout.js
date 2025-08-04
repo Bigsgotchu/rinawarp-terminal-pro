@@ -1,14 +1,13 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 4 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
 
-#!/usr/bin/env node
-
 /**
  * RinaWarp Terminal - Beta Checkout Fix Script
- * 
+ *
  * This script diagnoses and fixes the "failed to start beta checkout" error
  * by verifying Stripe configuration and environment variables.
  */
@@ -37,7 +36,7 @@ const stripe = new Stripe(stripeSecretKey);
 const betaPrices = {
   earlybird: process.env.STRIPE_PRICE_EARLYBIRD,
   beta: process.env.STRIPE_PRICE_BETA,
-  premium: process.env.STRIPE_PRICE_PREMIUM
+  premium: process.env.STRIPE_PRICE_PREMIUM,
 };
 
 console.log('\n📋 Beta Price Configuration:');
@@ -60,7 +59,9 @@ async function verifyBetaPrices() {
     if (priceId && !priceId.startsWith('{{')) {
       try {
         const price = await stripe.prices.retrieve(priceId);
-        console.log(`✅ ${type.toUpperCase()}: Valid (${price.unit_amount / 100} ${price.currency.toUpperCase()}/${price.recurring?.interval || 'one-time'})`);
+        console.log(
+          `✅ ${type.toUpperCase()}: Valid (${price.unit_amount / 100} ${price.currency.toUpperCase()}/${price.recurring?.interval || 'one-time'})`
+        );
       } catch (error) {
         console.log(`❌ ${type.toUpperCase()}: Invalid price ID - ${error.message}`);
       }
@@ -80,20 +81,20 @@ async function createTestBetaPrices() {
       type: 'earlybird',
       name: 'RinaWarp Terminal - Early Bird Beta',
       amount: 999, // $9.99
-      description: 'Early bird access to RinaWarp Terminal beta with exclusive features'
+      description: 'Early bird access to RinaWarp Terminal beta with exclusive features',
     },
     {
       type: 'beta',
       name: 'RinaWarp Terminal - Beta Access',
       amount: 1499, // $14.99
-      description: 'Full beta access to RinaWarp Terminal with all features'
+      description: 'Full beta access to RinaWarp Terminal with all features',
     },
     {
       type: 'premium',
       name: 'RinaWarp Terminal - Premium Beta',
       amount: 2499, // $24.99
-      description: 'Premium beta access with priority support and exclusive features'
-    }
+      description: 'Premium beta access with priority support and exclusive features',
+    },
   ];
 
   const createdPrices = {};
@@ -106,8 +107,8 @@ async function createTestBetaPrices() {
         description: priceData.description,
         metadata: {
           type: 'beta',
-          betaType: priceData.type
-        }
+          betaType: priceData.type,
+        },
       });
 
       // Create price
@@ -116,16 +117,17 @@ async function createTestBetaPrices() {
         unit_amount: priceData.amount,
         product: product.id,
         recurring: {
-          interval: 'month'
+          interval: 'month',
         },
         metadata: {
-          betaType: priceData.type
-        }
+          betaType: priceData.type,
+        },
       });
 
       createdPrices[priceData.type] = price.id;
-      console.log(`✅ Created ${priceData.type.toUpperCase()}: ${price.id} ($${priceData.amount / 100}/month)`);
-
+      console.log(
+        `✅ Created ${priceData.type.toUpperCase()}: ${price.id} ($${priceData.amount / 100}/month)`
+      );
     } catch (error) {
       console.log(`❌ Failed to create ${priceData.type.toUpperCase()}: ${error.message}`);
     }
@@ -149,7 +151,7 @@ function updateEnvFile(prices) {
   for (const [type, priceId] of Object.entries(prices)) {
     const envVar = `STRIPE_PRICE_${type.toUpperCase()}`;
     const regex = new RegExp(`^${envVar}=.*$`, 'm');
-    
+
     if (regex.test(envContent)) {
       // Update existing
       envContent = envContent.replace(regex, `${envVar}=${priceId}`);
@@ -197,7 +199,7 @@ async function purchaseBeta(betaType) {
         const priceId = getBetaPriceId(betaType);
         
         if (!priceId) {
-            throw new Error(new Error(\`Beta pricing not configured for \${betaType}. Please contact support.\`));
+            throw new Error(new Error(new Error(\`Beta pricing not configured for \${betaType}. Please contact support.\`)));
         }
         
         // Enhanced error handling for checkout session
@@ -219,13 +221,13 @@ async function purchaseBeta(betaType) {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(new Error(errorData.error || \`Server error: \${response.status}\`));
+            throw new Error(new Error(new Error(errorData.error || \`Server error: \${response.status}\`)));
         }
         
         const session = await response.json();
         
         if (!session.sessionId) {
-            throw new Error(new Error('Invalid session response from server'));
+            throw new Error(new Error(new Error('Invalid session response from server')));
         }
         
         // Redirect to Stripe Checkout
@@ -234,7 +236,7 @@ async function purchaseBeta(betaType) {
         });
         
         if (result.error) {
-            throw new Error(new Error(result.error.message));
+            throw new Error(new Error(new Error(result.error.message)));
         }
         
     } catch (error) {
@@ -289,16 +291,16 @@ function getBetaPriceId(betaType) {
 async function main() {
   try {
     await verifyBetaPrices();
-    
+
     // Check if any beta prices are missing
-    const missingPrices = Object.entries(betaPrices).filter(([_, priceId]) => 
-      !priceId || priceId.startsWith('{{')
+    const missingPrices = Object.entries(betaPrices).filter(
+      ([_, priceId]) => !priceId || priceId.startsWith('{{')
     );
-    
+
     if (missingPrices.length > 0) {
       console.log('\n⚠️  Missing beta prices detected. Would you like to create test prices?');
       console.log('   This will create new Stripe products and prices for beta testing.');
-      
+
       // For now, create them automatically in development
       if (process.env.NODE_ENV !== 'production') {
         const newPrices = await createTestBetaPrices();
@@ -307,23 +309,22 @@ async function main() {
         }
       }
     }
-    
+
     // Generate fixed code
     const fixedCode = generateFixedPricingHTML();
     fs.writeFileSync('beta-checkout-fix.js', fixedCode);
-    
+
     console.log('\n🎉 Beta Checkout Diagnostic Complete!');
     console.log('=====================================');
     console.log('✅ Check the generated beta-checkout-fix.js file');
     console.log('✅ Restart your server to load new environment variables');
     console.log('✅ Test the beta checkout functionality');
-    
+
     if (process.env.NODE_ENV === 'production') {
       console.log('\n⚠️  Production Environment Detected:');
       console.log('   Please manually configure beta prices in your Stripe dashboard');
       console.log('   and update the environment variables accordingly.');
     }
-    
   } catch (error) {
     console.error('❌ Diagnostic failed:', error);
     process.exit(1);

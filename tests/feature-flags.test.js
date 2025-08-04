@@ -3,19 +3,21 @@ const featureFlags = require('../config/feature-flags');
 describe('Feature Flags', () => {
   describe('Experimental Features', () => {
     test('should have all expected experimental flags', () => {
-      expect(featureFlags.experimental).toEqual(expect.objectContaining({
-        enhancedAIContext: expect.any(Boolean),
-        predictiveCompletion: expect.any(Boolean),
-        aiDebuggingAssistant: expect.any(Boolean),
-        voiceCommands: expect.any(Boolean),
-        elevenLabsIntegration: expect.any(Boolean),
-        modernThemeSystem: expect.any(Boolean),
-        devtoolsOverlay: expect.any(Boolean),
-        pluginSystem: expect.any(Boolean),
-        performanceMonitoring: expect.any(Boolean),
-        enhancedAnalytics: expect.any(Boolean),
-        revenueMonitoring: expect.any(Boolean)
-      }));
+      expect(featureFlags.experimental).toEqual(
+        expect.objectContaining({
+          enhancedAIContext: expect.any(Boolean),
+          predictiveCompletion: expect.any(Boolean),
+          aiDebuggingAssistant: expect.any(Boolean),
+          voiceCommands: expect.any(Boolean),
+          elevenLabsIntegration: expect.any(Boolean),
+          modernThemeSystem: expect.any(Boolean),
+          devtoolsOverlay: expect.any(Boolean),
+          pluginSystem: expect.any(Boolean),
+          performanceMonitoring: expect.any(Boolean),
+          enhancedAnalytics: expect.any(Boolean),
+          revenueMonitoring: expect.any(Boolean),
+        })
+      );
     });
 
     test('should have modernThemeSystem enabled by default', () => {
@@ -44,12 +46,14 @@ describe('Feature Flags', () => {
 
   describe('Core Features', () => {
     test('should have all expected core flags', () => {
-      expect(featureFlags.core).toEqual(expect.objectContaining({
-        terminalEmulation: expect.any(Boolean),
-        shellIntegration: expect.any(Boolean),
-        themeSupport: expect.any(Boolean),
-        configManagement: expect.any(Boolean)
-      }));
+      expect(featureFlags.core).toEqual(
+        expect.objectContaining({
+          terminalEmulation: expect.any(Boolean),
+          shellIntegration: expect.any(Boolean),
+          themeSupport: expect.any(Boolean),
+          configManagement: expect.any(Boolean),
+        })
+      );
     });
 
     test('should have all core features enabled by default', () => {
@@ -88,39 +92,39 @@ describe('Feature Flags', () => {
       const aiFeatures = [
         featureFlags.experimental.enhancedAIContext,
         featureFlags.experimental.predictiveCompletion,
-        featureFlags.experimental.aiDebuggingAssistant
+        featureFlags.experimental.aiDebuggingAssistant,
       ];
-      
+
       // All AI features should be in the same state (all enabled or all disabled)
       const allEnabled = aiFeatures.every(feature => feature === true);
       const allDisabled = aiFeatures.every(feature => feature === false);
-      
+
       expect(allEnabled || allDisabled).toBe(true);
     });
 
     test('should have all voice features in same state', () => {
       const voiceFeatures = [
         featureFlags.experimental.voiceCommands,
-        featureFlags.experimental.elevenLabsIntegration
+        featureFlags.experimental.elevenLabsIntegration,
       ];
-      
+
       // All voice features should be in the same state
       const allEnabled = voiceFeatures.every(feature => feature === true);
       const allDisabled = voiceFeatures.every(feature => feature === false);
-      
+
       expect(allEnabled || allDisabled).toBe(true);
     });
 
     test('should have all analytics features in same state', () => {
       const analyticsFeatures = [
         featureFlags.experimental.enhancedAnalytics,
-        featureFlags.experimental.revenueMonitoring
+        featureFlags.experimental.revenueMonitoring,
       ];
-      
+
       // All analytics features should be in the same state
       const allEnabled = analyticsFeatures.every(feature => feature === true);
       const allDisabled = analyticsFeatures.every(feature => feature === false);
-      
+
       expect(allEnabled || allDisabled).toBe(true);
     });
   });

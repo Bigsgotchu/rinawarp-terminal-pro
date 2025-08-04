@@ -1,4 +1,8 @@
 /**
+ * @jest-environment jsdom
+ */
+
+/**
  * Test Suite for RinaWarp Terminal
  * Unit and integration tests for core functionality
  */
@@ -27,17 +31,17 @@ describe('AutoCompleteSystem', () => {
         active: {
           cursorX: 0,
           cursorY: 0,
-          getLine: jest.fn()
-        }
+          getLine: jest.fn(),
+        },
       },
       write: jest.fn(),
       attachCustomKeyEventHandler: jest.fn(),
-      onData: jest.fn()
+      onData: jest.fn(),
     };
 
     // Mock DOM
     document.body.innerHTML = '<div id="terminal"></div>';
-    
+
     autoComplete = new AutoCompleteSystem(terminal);
   });
 
@@ -69,9 +73,18 @@ describe('AutoCompleteSystem', () => {
 
   describe('command history integration', () => {
     it('should add commands to history', () => {
+      // Set up autocomplete with suggestions
+      autoComplete.suggestions = ['git status', 'git stash'];
+      autoComplete.currentIndex = 0;
+      autoComplete.isActive = true;
+      
       const addHistorySpy = jest.spyOn(autoComplete, 'addToHistory');
+      
+      // Mock getCurrentLine to return a value
+      autoComplete.getCurrentLine = jest.fn(() => 'git st');
+      
       autoComplete.selectSuggestion();
-      expect(addHistorySpy).toHaveBeenCalled();
+      expect(addHistorySpy).toHaveBeenCalledWith('git status');
     });
   });
 });
@@ -82,9 +95,9 @@ describe('SyntaxHighlighter', () => {
 
   beforeEach(() => {
     terminal = {
-      write: jest.fn()
+      write: jest.fn(),
     };
-    
+
     highlighter = new SyntaxHighlighter(terminal);
   });
 
@@ -123,20 +136,20 @@ describe('CommandHistory', () => {
   beforeEach(() => {
     // Clear localStorage
     localStorage.clear();
-    
+
     terminal = {
       buffer: {
         active: {
           cursorY: 0,
-          getLine: jest.fn(() => ({ 
+          getLine: jest.fn(() => ({
             length: 10,
-            getCell: jest.fn(() => ({ getChars: () => 'test' }))
-          }))
-        }
+            getCell: jest.fn(() => ({ getChars: () => 'test' })),
+          })),
+        },
       },
       write: jest.fn(),
       attachCustomKeyEventHandler: jest.fn(),
-      onData: jest.fn()
+      onData: jest.fn(),
     };
 
     document.body.innerHTML = '<div id="terminal"></div>';
@@ -162,7 +175,7 @@ describe('CommandHistory', () => {
     it('should persist history to localStorage', () => {
       history.addCommand('git status');
       history.saveHistory();
-      
+
       const saved = localStorage.getItem('rinawarp-command-history');
       expect(saved).toContain('git status');
     });
@@ -204,7 +217,7 @@ describe('TerminalThemes', () => {
 
     it('should apply theme to document', () => {
       themes.applyTheme('matrix');
-      
+
       const style = document.getElementById('terminal-theme-styles');
       expect(style).toBeDefined();
       expect(style.textContent).toContain('#00FF00'); // Matrix green
@@ -212,7 +225,7 @@ describe('TerminalThemes', () => {
 
     it('should save theme preference', () => {
       themes.applyTheme('midnight');
-      
+
       const saved = localStorage.getItem('rinawarp-theme');
       expect(saved).toBe('midnight');
     });
@@ -220,12 +233,12 @@ describe('TerminalThemes', () => {
 
   describe('custom themes', () => {
     it('should create custom theme', () => {
-      const customTheme = themes.createCustomTheme({
+      const _customTheme = themes.createCustomTheme({
         name: 'My Theme',
         background: '#000000',
-        foreground: '#FFFFFF'
+        foreground: '#FFFFFF',
       });
-      
+
       expect(themes.themes['custom']).toBeDefined();
       expect(themes.themes['custom'].name).toBe('My Theme');
     });
@@ -233,7 +246,7 @@ describe('TerminalThemes', () => {
     it('should export theme as JSON', () => {
       const exported = themes.exportTheme('mermaid-ocean');
       const parsed = JSON.parse(exported);
-      
+
       expect(parsed.name).toBe('Mermaid Ocean');
     });
   });
@@ -250,14 +263,14 @@ describe('ErrorHandler', () => {
   describe('error categorization', () => {
     it('should determine severity for terminal failures', () => {
       const severity = errorHandler.determineErrorSeverity({
-        error: new Error('terminal failed to initialize')
+        error: new Error('terminal failed to initialize'),
       });
       expect(severity).toBe(3); // Critical
     });
 
     it('should determine severity for warnings', () => {
       const severity = errorHandler.determineErrorSeverity({
-        error: new Error('deprecated function warning')
+        error: new Error('deprecated function warning'),
       });
       expect(severity).toBe(2); // Warning
     });
@@ -279,9 +292,9 @@ describe('ErrorHandler', () => {
     it('should log errors to errorLog', () => {
       errorHandler.handleError({
         type: 'test',
-        error: new Error('Test error')
+        error: new Error('Test error'),
       });
-      
+
       expect(errorHandler.errorLog.length).toBeGreaterThan(0);
       expect(errorHandler.errorLog[0].error.message).toBe('Test error');
     });
@@ -290,10 +303,10 @@ describe('ErrorHandler', () => {
       // Add more than maxLogSize errors
       for (let i = 0; i < 150; i++) {
         errorHandler.logError({
-          error: new Error(`Error ${i}`)
+          error: new Error(`Error ${i}`),
         });
       }
-      
+
       expect(errorHandler.errorLog.length).toBeLessThanOrEqual(100);
     });
   });
@@ -307,15 +320,15 @@ describe('Integration Tests', () => {
         buffer: { active: { cursorY: 0 } },
         write: jest.fn(),
         attachCustomKeyEventHandler: jest.fn(),
-        onData: jest.fn()
+        onData: jest.fn(),
       };
-      
+
       const history = new CommandHistory(terminal);
       history.addCommand('git commit -m "test"');
-      
+
       const autoComplete = new AutoCompleteSystem(terminal);
       autoComplete.commandHistory = history.history;
-      
+
       const suggestions = autoComplete.generateSuggestions('git com');
       expect(suggestions).toContain('git commit -m "test"');
     });
@@ -326,9 +339,9 @@ describe('Integration Tests', () => {
       const terminal = { write: jest.fn() };
       const themes = new TerminalThemes();
       const highlighter = new SyntaxHighlighter(terminal);
-      
+
       themes.applyTheme('matrix');
-      
+
       // Matrix theme uses green for everything
       const highlighted = highlighter.highlightGeneric('success');
       expect(highlighted).toContain('\x1b[32m'); // Green
@@ -343,38 +356,51 @@ describe('Performance Tests', () => {
       buffer: { active: { cursorY: 0 } },
       write: jest.fn(),
       attachCustomKeyEventHandler: jest.fn(),
-      onData: jest.fn()
+      onData: jest.fn(),
     };
-    
+
     const history = new CommandHistory(terminal);
-    
+
     const startTime = Date.now();
-    
+
     // Add 1000 commands
     for (let i = 0; i < 1000; i++) {
       history.addCommand(`command ${i}`);
     }
-    
+
     const endTime = Date.now();
     const timeTaken = endTime - startTime;
-    
+
     expect(timeTaken).toBeLessThan(1000); // Should complete in less than 1 second
   });
 
   it('should generate suggestions quickly', () => {
-    const terminal = { write: jest.fn() };
+    const terminal = {
+      buffer: {
+        active: {
+          cursorX: 0,
+          cursorY: 0,
+          getLine: jest.fn(),
+        },
+      },
+      write: jest.fn(),
+      attachCustomKeyEventHandler: jest.fn(),
+      onData: jest.fn(),
+      cols: 80,
+      rows: 24
+    };
     const autoComplete = new AutoCompleteSystem(terminal);
-    
+
     const startTime = Date.now();
-    
+
     // Generate suggestions 100 times
     for (let i = 0; i < 100; i++) {
       autoComplete.generateSuggestions('git');
     }
-    
+
     const endTime = Date.now();
     const timeTaken = endTime - startTime;
-    
+
     expect(timeTaken).toBeLessThan(100); // Should complete in less than 100ms
   });
 });

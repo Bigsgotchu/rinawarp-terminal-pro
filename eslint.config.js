@@ -21,6 +21,9 @@ export default [
       'public/vendor/**',
       'public/vendor/prism/**',
       'public/vendor/prism/prism.js',
+      // Specific files to ignore
+      'Dockerfile.webapp',
+      'src/libs/xterm.js',
       // Cleanup and modernization scripts
       'scan-deprecated.*',
       'modernize-deprecated-packages.js',

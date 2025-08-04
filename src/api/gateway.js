@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * RinaWarp API Gateway
  * Centralized API management with authentication, rate limiting, and routing
@@ -495,9 +496,8 @@ export class RinaWarpAPIGateway {
   /**
    * Process webhook events
    */
-  async processWebhook(service, event, payload, _user) {
+  async processWebhook(_service, event, _payload, _user) {
     // Implement webhook processing logic
-    console.log(`Processing webhook: ${service}/${event}`, payload);
   }
 
   /**
@@ -511,21 +511,16 @@ export class RinaWarpAPIGateway {
   /**
    * Forward terminal input through WebSocket
    */
-  async forwardTerminalInput(user, payload) {
+  async forwardTerminalInput(_user, _payload) {
     // Implementation would forward to terminal service
-    console.log('Forwarding terminal input:', payload);
   }
 
   /**
    * Handle WebSocket disconnection
    */
   handleWebSocketDisconnect(ws) {
-    console.log(`WebSocket disconnected for user ${ws.user?.id}`);
-
     // Cleanup logic
-    ws.subscriptions.forEach(subscription => {
-      console.log(`Unsubscribed from ${subscription}`);
-    });
+    ws.subscriptions.forEach(_subscription => {});
     ws.subscriptions.clear();
   }
 
@@ -538,10 +533,7 @@ export class RinaWarpAPIGateway {
         if (err) {
           reject(err);
         } else {
-          console.log(`🚀 RinaWarp API Gateway running on port ${this.config.port}`);
-          console.log(`📊 Metrics enabled: ${this.config.enableMetrics}`);
-          console.log(`🔒 Rate limiting enabled: ${this.config.enableRateLimit}`);
-          console.log(`🌐 CORS enabled: ${this.config.enableCors}`);
+          logger.debug(`📊 Metrics enabled: ${this.config.enableMetrics}`);
           resolve();
         }
       });
@@ -554,7 +546,6 @@ export class RinaWarpAPIGateway {
   async stop() {
     return new Promise(resolve => {
       this.server.close(() => {
-        console.log('🛑 RinaWarp API Gateway stopped');
         resolve();
       });
     });

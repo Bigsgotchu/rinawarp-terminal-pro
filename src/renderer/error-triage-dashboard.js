@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * RinaWarp Terminal - Error Triage Dashboard
  * "Real-time Error Monitoring & System Health Visualization"
@@ -49,8 +50,6 @@ class ErrorTriageDashboard {
     // Animation states
     this.animationFrameId = null;
     this.transitionState = null;
-
-    console.log('🩺 Error Triage Dashboard initialized');
   }
 
   show() {
@@ -65,7 +64,7 @@ class ErrorTriageDashboard {
       this.animateDashboard('show');
     }
 
-    console.log('📊 Error Triage Dashboard shown');
+    logger.debug('📊 Error Triage Dashboard shown');
   }
 
   hide() {
@@ -81,8 +80,6 @@ class ErrorTriageDashboard {
     }
 
     this.isVisible = false;
-
-    console.log('📊 Error Triage Dashboard hidden');
   }
 
   toggle() {
@@ -755,7 +752,6 @@ class ErrorTriageDashboard {
   clearHistory() {
     this.errorHistory = [];
     this.updateRecentErrors();
-    console.log('🗑️ Error history cleared');
   }
 
   exportData() {
@@ -773,8 +769,6 @@ class ErrorTriageDashboard {
     a.download = `error-triage-data-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-
-    console.log('📥 Error triage data exported');
   }
 
   // API for external integrations

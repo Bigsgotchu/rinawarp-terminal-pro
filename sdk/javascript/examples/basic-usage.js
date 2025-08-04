@@ -2,11 +2,11 @@ import { RinaWarpSDK } from '@rinawarp/terminal-sdk';
 
 /**
  * RinaWarp SDK Usage Examples
- * 
+ *
  * Set environment variables before running:
  * - RINAWARP_API_KEY: Your RinaWarp API key
  * - RINAWARP_API_URL: API URL (optional, defaults to https://api.rinawarp.com)
- * 
+ *
  * Example:
  * export RINAWARP_API_KEY="your-actual-api-key"
  * node basic-usage.js

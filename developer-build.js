@@ -7,8 +7,6 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Building RinaWarp Terminal with Developer License...');
-
 // Create developer environment
 process.env.RINAWARP_DEVELOPER_MODE = 'true';
 process.env.RINAWARP_BYPASS_LICENSE = 'true';
@@ -28,7 +26,6 @@ if (typeof window !== 'undefined') {
         localStorage.setItem('rinawarp_unlimited_features', 'true');
         localStorage.setItem('rinawarp_last_validation', Date.now().toString());
         
-        console.log('🎉 Developer license pre-activated in build');
     });
 }
 `;
@@ -45,8 +42,6 @@ if (fs.existsSync(preloadPath)) {
 // Build the application
 try {
   execSync('npm run build', { stdio: 'inherit' });
-  console.log('🎉 Developer build completed successfully!');
-  console.log('📦 Your build includes unlimited developer access');
 } catch (error) {
   console.error('❌ Build failed:', error.message);
   process.exit(1);

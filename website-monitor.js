@@ -61,7 +61,6 @@ function log(message, level = 'INFO') {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] [${level}] ${message}\n`;
 
-  console.log(logMessage.trim());
   fs.appendFileSync(LOG_FILE, logMessage);
 }
 
@@ -106,7 +105,7 @@ async function checkEndpoint(check) {
           if (check.checkJson && result.success) {
             try {
               JSON.parse(data);
-            } catch (e) {
+            } catch (_e) {
               result.success = false;
               result.issues.push('Invalid JSON response');
             }
@@ -234,7 +233,7 @@ function sendAlert(report) {
 }
 
 // Auto-fix common issues
-async function autoFixIssues(report) {
+async function autoFixIssues(_report) {
   log('Attempting auto-fixes...');
   let fixCount = 0;
 

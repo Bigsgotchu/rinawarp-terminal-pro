@@ -1,13 +1,12 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 2 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 /**
  * 🧜‍♀️ RinaWarp Terminal - User Data Backup Script
- * 
+ *
  * Comprehensive backup solution for preserving user data and configurations
  * during migration from v1.0.7 to v1.0.19
  */
@@ -28,7 +27,7 @@ class UserDataBackup {
       compression: options.compression || 'gzip',
       verbose: options.verbose || false,
       dryRun: options.dryRun || false,
-      ...options
+      ...options,
     };
 
     this.timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -40,7 +39,7 @@ class UserDataBackup {
       hostname: os.hostname(),
       backupItems: [],
       checksums: {},
-      totalSize: 0
+      totalSize: 0,
     };
   }
 
@@ -50,7 +49,7 @@ class UserDataBackup {
   async backup() {
     try {
       this.log('🧜‍♀️ Starting RinaWarp Terminal data backup...');
-      
+
       if (!this.options.dryRun) {
         await this.createBackupDirectory();
       }
@@ -63,14 +62,14 @@ class UserDataBackup {
       await this.backupLocalStorage();
       await this.backupCustomSettings();
       await this.backupEnvironmentFiles();
-      
+
       if (this.options.includeCache) {
         await this.backupCacheData();
       }
 
       // Generate manifest and checksums
       await this.generateManifest();
-      
+
       if (!this.options.dryRun) {
         await this.createArchive();
         await this.validateBackup();
@@ -82,12 +81,11 @@ class UserDataBackup {
       return {
         success: true,
         backupPath: this.backupDir,
-        manifest: this.manifest
+        manifest: this.manifest,
       };
-
     } catch (error) {
       this.log(`❌ Backup failed: ${error.message}`, 'error');
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -98,7 +96,7 @@ class UserDataBackup {
     if (!fs.existsSync(this.options.outputDir)) {
       fs.mkdirSync(this.options.outputDir, { recursive: true });
     }
-    
+
     if (!fs.existsSync(this.backupDir)) {
       fs.mkdirSync(this.backupDir, { recursive: true });
     }
@@ -117,7 +115,7 @@ class UserDataBackup {
    */
   async backupUserConfigurations() {
     this.log('📝 Backing up user configurations...');
-    
+
     const configPaths = [
       '.rinawarprc',
       'user-config.json',
@@ -126,7 +124,7 @@ class UserDataBackup {
       'settings.json',
       '.env',
       '.env.local',
-      'config/user-preferences.json'
+      'config/user-preferences.json',
     ];
 
     for (const configPath of configPaths) {
@@ -154,7 +152,7 @@ class UserDataBackup {
       'assets/themes/',
       '.rinawarp/themes/',
       'user-themes.json',
-      'theme-preferences.json'
+      'theme-preferences.json',
     ];
 
     for (const themePath of themePaths) {
@@ -177,7 +175,11 @@ class UserDataBackup {
       this.log(`💾 Exported current theme configuration`);
     }
 
-    this.addToManifest('Terminal Themes', 'themes', 'Custom themes, color schemes, and visual preferences');
+    this.addToManifest(
+      'Terminal Themes',
+      'themes',
+      'Custom themes, color schemes, and visual preferences'
+    );
   }
 
   /**
@@ -191,7 +193,7 @@ class UserDataBackup {
       'shortcuts.json',
       'keyboard-config.json',
       '.rinawarp/keybindings/',
-      'config/keymaps.json'
+      'config/keymaps.json',
     ];
 
     for (const kbPath of keybindingPaths) {
@@ -217,7 +219,7 @@ class UserDataBackup {
       '.terminal_history',
       'session-history.json',
       '.rinawarp/history/',
-      'logs/terminal-sessions/'
+      'logs/terminal-sessions/',
     ];
 
     for (const histPath of historyPaths) {
@@ -260,7 +262,6 @@ class UserDataBackup {
       if (fs.existsSync(indexedDBPath)) {
         await this.backupDirectory(indexedDBPath, 'storage/indexed-db');
       }
-
     } catch (error) {
       this.log(`⚠️ Could not backup local storage: ${error.message}`, 'warn');
     }
@@ -280,7 +281,7 @@ class UserDataBackup {
       'custom-commands.json',
       'user-scripts/',
       '.rinawarp/plugins/',
-      '.rinawarp/extensions/'
+      '.rinawarp/extensions/',
     ];
 
     for (const customPath of customPaths) {
@@ -293,7 +294,11 @@ class UserDataBackup {
       }
     }
 
-    this.addToManifest('Custom Settings', 'custom', 'Plugins, extensions, and custom configurations');
+    this.addToManifest(
+      'Custom Settings',
+      'custom',
+      'Plugins, extensions, and custom configurations'
+    );
   }
 
   /**
@@ -303,7 +308,7 @@ class UserDataBackup {
     this.log('🔐 Backing up environment files...');
 
     const envFiles = ['.env.example', '.env.template', '.env.local.example'];
-    
+
     // Only backup template files, not actual secret files
     for (const envFile of envFiles) {
       if (fs.existsSync(envFile)) {
@@ -320,7 +325,11 @@ class UserDataBackup {
       this.log('🔒 Created sanitized environment file reference');
     }
 
-    this.addToManifest('Environment Files', 'configs', 'Environment templates and configuration references');
+    this.addToManifest(
+      'Environment Files',
+      'configs',
+      'Environment templates and configuration references'
+    );
   }
 
   /**
@@ -329,12 +338,7 @@ class UserDataBackup {
   async backupCacheData() {
     this.log('💾 Backing up cache data...');
 
-    const cachePaths = [
-      '.rinawarp/cache/',
-      'node_modules/.cache/',
-      'cache/',
-      'tmp/rinawarp/'
-    ];
+    const cachePaths = ['.rinawarp/cache/', 'node_modules/.cache/', 'cache/', 'tmp/rinawarp/'];
 
     for (const cachePath of cachePaths) {
       if (fs.existsSync(cachePath)) {
@@ -350,7 +354,7 @@ class UserDataBackup {
    */
   async backupFile(filePath, category) {
     const fullPath = path.resolve(filePath);
-    
+
     if (!fs.existsSync(fullPath)) {
       return;
     }
@@ -367,7 +371,9 @@ class UserDataBackup {
     this.manifest.checksums[filePath] = checksum;
     this.manifest.totalSize += stats.size;
 
-    this.log(`📄 ${this.options.dryRun ? 'Would backup' : 'Backed up'}: ${filePath} (${this.formatBytes(stats.size)})`);
+    this.log(
+      `📄 ${this.options.dryRun ? 'Would backup' : 'Backed up'}: ${filePath} (${this.formatBytes(stats.size)})`
+    );
   }
 
   /**
@@ -375,7 +381,7 @@ class UserDataBackup {
    */
   async backupDirectory(dirPath, category) {
     const fullPath = path.resolve(dirPath);
-    
+
     if (!fs.existsSync(fullPath)) {
       return;
     }
@@ -390,7 +396,9 @@ class UserDataBackup {
     const size = await this.getDirectorySize(fullPath);
     this.manifest.totalSize += size;
 
-    this.log(`📁 ${this.options.dryRun ? 'Would backup' : 'Backed up'}: ${dirPath} (${this.formatBytes(size)})`);
+    this.log(
+      `📁 ${this.options.dryRun ? 'Would backup' : 'Backed up'}: ${dirPath} (${this.formatBytes(size)})`
+    );
   }
 
   /**
@@ -399,11 +407,7 @@ class UserDataBackup {
   async getCurrentThemeConfig() {
     try {
       // Try to read current theme from various possible locations
-      const possiblePaths = [
-        'user-config.json',
-        '.rinawarp/config.json',
-        'terminal-config.json'
-      ];
+      const possiblePaths = ['user-config.json', '.rinawarp/config.json', 'terminal-config.json'];
 
       for (const configPath of possiblePaths) {
         if (fs.existsSync(configPath)) {
@@ -412,7 +416,7 @@ class UserDataBackup {
             return {
               source: configPath,
               theme: config.theme || config.appearance,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             };
           }
         }
@@ -436,8 +440,8 @@ class UserDataBackup {
         recentSessions: [], // Would contain recent session info
         preferences: {
           historyLength: 1000,
-          saveHistory: true
-        }
+          saveHistory: true,
+        },
       };
     } catch (error) {
       return null;
@@ -450,7 +454,7 @@ class UserDataBackup {
   getElectronUserDataPath() {
     const platform = os.platform();
     const appName = 'RinaWarp Terminal';
-    
+
     switch (platform) {
       case 'darwin':
         return path.join(os.homedir(), 'Library', 'Application Support', appName);
@@ -471,10 +475,10 @@ class UserDataBackup {
       .split('\n')
       .map(line => {
         if (line.includes('=') && !line.startsWith('#')) {
-          const [key, ] = line.split('=');
+          const [key] = line.split('=');
           const sensitiveKeys = ['API_KEY', 'SECRET', 'PASSWORD', 'TOKEN', 'PRIVATE'];
           const isSensitive = sensitiveKeys.some(sk => key.toUpperCase().includes(sk));
-          
+
           if (isSensitive) {
             return `${key}=***REDACTED***`;
           }
@@ -491,7 +495,7 @@ class UserDataBackup {
     return new Promise((resolve, reject) => {
       const hash = crypto.createHash('sha256');
       const stream = fs.createReadStream(filePath);
-      
+
       stream.on('data', data => hash.update(data));
       stream.on('end', () => resolve(hash.digest('hex')));
       stream.on('error', reject);
@@ -507,11 +511,11 @@ class UserDataBackup {
     }
 
     const items = fs.readdirSync(src);
-    
+
     for (const item of items) {
       const srcPath = path.join(src, item);
       const destPath = path.join(dest, item);
-      
+
       if (fs.statSync(srcPath).isDirectory()) {
         await this.copyDirectoryRecursive(srcPath, destPath);
       } else {
@@ -525,19 +529,19 @@ class UserDataBackup {
    */
   async getDirectorySize(dirPath) {
     let totalSize = 0;
-    
+
     const items = fs.readdirSync(dirPath);
     for (const item of items) {
       const itemPath = path.join(dirPath, item);
       const stats = fs.statSync(itemPath);
-      
+
       if (stats.isDirectory()) {
         totalSize += await this.getDirectorySize(itemPath);
       } else {
         totalSize += stats.size;
       }
     }
-    
+
     return totalSize;
   }
 
@@ -546,7 +550,7 @@ class UserDataBackup {
    */
   async generateManifest() {
     const manifestPath = path.join(this.backupDir, 'manifest.json');
-    
+
     if (!this.options.dryRun) {
       fs.writeFileSync(manifestPath, JSON.stringify(this.manifest, null, 2));
     }
@@ -580,11 +584,11 @@ class UserDataBackup {
    */
   async validateBackup() {
     this.log('🔍 Validating backup integrity...');
-    
+
     // Verify manifest exists
     const manifestPath = path.join(this.backupDir, 'manifest.json');
     if (!fs.existsSync(manifestPath)) {
-      throw new Error(new Error('Backup manifest not found'));
+      throw new Error(new Error(new Error('Backup manifest not found')));
     }
 
     // Verify critical files exist
@@ -607,7 +611,7 @@ class UserDataBackup {
       name,
       path,
       description,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -615,23 +619,8 @@ class UserDataBackup {
    * Print backup summary
    */
   printSummary() {
-    console.log('\n🧜‍♀️ ===== BACKUP SUMMARY =====');
-    console.log(`📅 Timestamp: ${this.timestamp}`);
-    console.log(`📁 Location: ${this.backupDir}`);
-    console.log(`💾 Total Size: ${this.formatBytes(this.manifest.totalSize)}`);
-    console.log(`📦 Items Backed Up: ${this.manifest.backupItems.length}`);
-    
-    console.log('\n📋 Backup Contents:');
     for (const item of this.manifest.backupItems) {
-      console.log(`  ✅ ${item.name}: ${item.description}`);
     }
-    
-    console.log('\n🔧 Next Steps:');
-    console.log('  1. Run migration: node migrationToolkit/migrateUserConfig.js');
-    console.log('  2. Install new version: npm install');
-    console.log('  3. Test compatibility: npm run test:migration');
-    console.log('\n🆘 If issues occur, restore with:');
-    console.log(`  node migrationToolkit/rollback.js --backup-dir="${this.backupDir}"`);
   }
 
   /**
@@ -650,15 +639,14 @@ class UserDataBackup {
    */
   log(message, level = 'info') {
     if (!this.options.verbose && level === 'debug') return;
-    
-    const prefix = {
-      info: '💙',
-      warn: '⚠️',
-      error: '❌',
-      debug: '🔍'
-    }[level] || '📝';
 
-    console.log(`${prefix} ${message}`);
+    const prefix =
+      {
+        info: '💙',
+        warn: '⚠️',
+        error: '❌',
+        debug: '🔍',
+      }[level] || '📝';
   }
 }
 
@@ -669,15 +657,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     verbose: args.includes('--verbose') || args.includes('-v'),
     dryRun: args.includes('--dry-run'),
     includeCache: args.includes('--include-cache'),
-    includeHistory: !args.includes('--no-history')
+    includeHistory: !args.includes('--no-history'),
   };
 
   const backup = new UserDataBackup(options);
-  
-  backup.backup()
+
+  backup
+    .backup()
     .then(result => {
       if (result.success) {
-        console.log('\n✅ Backup completed successfully!');
         process.exit(0);
       }
     })

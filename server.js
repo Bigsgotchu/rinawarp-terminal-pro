@@ -31,10 +31,13 @@
  * @since 2025-01-01
  */
 
-// Load environment variables FIRST, before any other imports
+// Import Sentry instrumentation FIRST, before any other imports
+// This ensures proper auto-instrumentation of all modules
+import './src/instrument.js';
+
+// Load environment variables SECOND, after Sentry
 import { config } from 'dotenv';
 const startTime = Date.now();
-console.log('🚀 Starting RinaWarp Terminal Server v1.0.8...');
 
 config();
 console.log('✅ Environment variables loaded');
@@ -52,7 +55,6 @@ if (missing.length && process.env.NODE_ENV === 'production') {
   // Don't exit in production, but log the issue
   console.log('⚠️ Server will continue but some features may not work');
 } else if (missing.length) {
-  console.log(`⚠️ Development mode: Missing environment keys: ${missing.join(', ')}`);
 }
 
 if (missingRecommended.length) {
@@ -61,7 +63,6 @@ if (missingRecommended.length) {
   );
 }
 
-console.log('🧠 RinaWarp Environment Status:');
 console.log(
   `   Required keys: ${requiredKeys.length - missing.length}/${requiredKeys.length} configured`
 );
@@ -95,13 +96,7 @@ import supportRouter from './src/api/support.js';
 import ThreatDetector from './src/security/ThreatDetector.js';
 import AgentChatAPI from './src/api/agent-chat.js';
 import { getSecretsManager } from './src/security/SecretsManager.js';
-import {
-  authenticateToken,
-  optionalAuth,
-  requireAdmin,
-  generateToken,
-  ROLES,
-} from './src/middleware/auth.js';
+import { authenticateToken, requireAdmin } from './src/middleware/auth.js';
 import adminRouter from './src/api/admin.js';
 // import cookieParser from 'cookie-parser'; // Removed for Railway deployment
 
@@ -112,7 +107,6 @@ const sendgridConfigured = process.env.SENDGRID_API_KEY && process.env.SENDGRID_
 if (smtpConfigured || sendgridConfigured) {
   console.log('✅ SMTP credentials detected and configured');
 } else if (process.env.NODE_ENV === 'development') {
-  console.log('📧 SMTP not configured - using mock mode for development');
 } else {
   console.log('⚠️ SMTP credentials not configured for production mode');
 }
@@ -142,17 +136,11 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       pass: process.env.SENDGRID_API_KEY,
     },
   });
-  console.log('✅ Nodemailer SendGrid transporter configured successfully');
 } else {
   // Create mock transporter for development
   if (process.env.NODE_ENV === 'development') {
     transporter = {
       sendMail: async mailOptions => {
-        console.log('📧 [MOCK EMAIL] Simulating email send:');
-        console.log('   To:', mailOptions.to);
-        console.log('   Subject:', mailOptions.subject);
-        console.log('   From:', mailOptions.from);
-        console.log('   Text Preview:', mailOptions.text?.substring(0, 200) + '...');
         return {
           messageId: 'mock-' + Date.now(),
           accepted: [mailOptions.to],
@@ -160,7 +148,6 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
         };
       },
     };
-    console.log('✅ Mock SMTP transporter configured for development');
   } else {
     console.log('⚠️ No email service configured (neither SMTP nor SendGrid)');
   }
@@ -172,7 +159,6 @@ if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== '{{STRIPE
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   console.log('✅ Stripe configured successfully');
 } else {
-  console.log('⚠️ Stripe secret key not configured');
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -197,20 +183,12 @@ if (process.env.SLACK_WEBHOOK_URL) {
   threatDetector.addWebhook(process.env.SLACK_WEBHOOK_URL, 'slack');
 }
 
-console.log('🔍 Startup Debug Info:');
-console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
-console.log('PORT environment variable:', process.env.PORT);
-console.log('Using PORT:', PORT);
-console.log('Current working directory:', process.cwd());
-console.log('Node version:', process.version);
-
 // Add error handling for startup with graceful handling
 process.on('uncaughtException', error => {
   console.error('❌ Uncaught Exception:', error);
   console.error('Stack trace:', error.stack);
   // Log but don't exit immediately during startup/operation
   if (process.env.NODE_ENV === 'production') {
-    console.log('⚠️ Continuing operation despite error...');
   } else {
     process.exit(1);
   }
@@ -223,7 +201,6 @@ process.on('unhandledRejection', (reason, promise) => {
   }
   // Log but don't exit immediately during startup/operation
   if (process.env.NODE_ENV === 'production') {
-    console.log('⚠️ Continuing operation despite rejection...');
   } else {
     process.exit(1);
   }
@@ -252,16 +229,10 @@ const _RELEASES_DIR = path.join(__dirname, 'releases');
 
 // Enhanced logging middleware with proxy trust verification
 function logRequest(req, res, next) {
-  const timestamp = new Date().toISOString();
-  const clientIp = req.ip;
-  const xForwardedFor = req.get('X-Forwarded-For');
-  const realIp = req.get('X-Real-IP');
-
-  console.log(`[${timestamp}] ${req.method} ${req.url}`);
-  console.log(`  - Client IP: ${clientIp}`);
-  if (xForwardedFor) console.log(`  - X-Forwarded-For: ${xForwardedFor}`);
-  if (realIp) console.log(`  - X-Real-IP: ${realIp}`);
-  console.log(`  - Trust Proxy: ${req.app.get('trust proxy')}`);
+  const _timestamp = new Date().toISOString();
+  const _clientIp = req.ip;
+  const _xForwardedFor = req.get('X-Forwarded-For');
+  const _realIp = req.get('X-Real-IP');
 
   next();
 }
@@ -323,17 +294,17 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   // Test strict CSP without breaking functionality
   const strictCSP = [
-    "default-src 'self'",
-    "script-src 'self' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
-    "style-src 'self' 'unsafe-inline'", // Allow unsafe-inline for styles
-    "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
-    "form-action 'self' https://checkout.stripe.com",
-    "frame-ancestors 'none'",
+    'default-src \'self\'',
+    'script-src \'self\' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com',
+    'style-src \'self\' \'unsafe-inline\'', // Allow unsafe-inline for styles
+    'img-src \'self\' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com',
+    'font-src \'self\' data: https://fonts.gstatic.com',
+    'connect-src \'self\' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app',
+    'object-src \'none\'',
+    'base-uri \'self\'',
+    'frame-src \'self\' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com',
+    'form-action \'self\' https://checkout.stripe.com',
+    'frame-ancestors \'none\'',
     'upgrade-insecure-requests',
     'report-uri /api/csp-report',
   ].join('; ');
@@ -347,9 +318,9 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'"],
+        defaultSrc: ['\'self\''],
         scriptSrc: [
-          "'self'",
+          '\'self\'',
           'https://js.stripe.com',
           'https://checkout.stripe.com',
           'https://www.googletagmanager.com',
@@ -357,9 +328,9 @@ app.use(
           'https://analytics.google.com',
           // No nonce needed - all scripts are external now
         ],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
         imgSrc: [
-          "'self'",
+          '\'self\'',
           'data:',
           'https:',
           'blob:',
@@ -367,9 +338,9 @@ app.use(
           'https://www.googletagmanager.com',
           'https://*.stripe.com',
         ],
-        fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
+        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
         connectSrc: [
-          "'self'",
+          '\'self\'',
           'wss:',
           'ws:',
           'https://api.stripe.com',
@@ -379,16 +350,16 @@ app.use(
           'https://www.googletagmanager.com',
           'https://*.railway.app',
         ],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
+        objectSrc: ['\'none\''],
+        baseUri: ['\'self\''],
         frameSrc: [
-          "'self'",
+          '\'self\'',
           'https://js.stripe.com',
           'https://checkout.stripe.com',
           'https://hooks.stripe.com',
         ],
-        formAction: ["'self'", 'https://checkout.stripe.com'],
-        frameAncestors: ["'none'"],
+        formAction: ['\'self\'', 'https://checkout.stripe.com'],
+        frameAncestors: ['\'none\''],
         upgradeInsecureRequests: [],
       },
     },
@@ -416,9 +387,7 @@ app.use(
 app.use(
   morgan('combined', {
     stream: {
-      write: message => {
-        console.log(message.trim());
-      },
+      write: _message => {},
     },
   })
 );
@@ -440,7 +409,6 @@ app.use((req, res, next) => {
   );
 
   if (isSuspicious) {
-    console.log(`🚫 Blocked WordPress scanner attempt: ${req.method} ${req.url} from ${req.ip}`);
     return res.status(403).json({ error: 'Access denied' });
   }
 
@@ -668,22 +636,13 @@ function validateAndNormalizePath(requestedPath, allowedBaseDir) {
 function _secureFileServer(baseDir, allowedFiles = [], allowedDirs = []) {
   return (req, res, _next) => {
     const requestedPath = req.path.startsWith('/') ? req.path.slice(1) : req.path;
-    console.log(`[DEBUG] Attempting to serve: ${requestedPath} from baseDir: ${baseDir}`);
-    console.log(`[DEBUG] Allowed files: ${allowedFiles.join(', ')}`);
-    console.log(`[DEBUG] Allowed dirs: ${allowedDirs.join(', ')}`);
 
     // Log current working directory and file existence
-    console.log(`[DEBUG] Current working directory: ${process.cwd()}`);
-    console.log(`[DEBUG] Checking path: ${baseDir}/${requestedPath}`);
 
     const fullPath = path.join(baseDir, requestedPath);
-    console.log(`[DEBUG] Full resolved path: ${fullPath}`);
-    console.log(`[DEBUG] File exists: ${fs.existsSync(fullPath)}`);
 
     if (fs.existsSync(fullPath)) {
-      const stats = fs.statSync(fullPath);
-      console.log(`[DEBUG] Is directory: ${stats.isDirectory()}`);
-      console.log(`[DEBUG] File size: ${stats.size} bytes`);
+      const _stats = fs.statSync(fullPath);
     }
 
     // Validate and normalize the path
@@ -790,13 +749,11 @@ const licenseValidationLimiter = rateLimit({
 
 // Health check endpoint for Railway (simple and reliable)
 app.get('/health', (req, res) => {
-  console.log('[HEALTH] Health check requested');
   res.status(200).send('OK');
 });
 
 // API health check endpoint
 app.get('/api/health', (req, res) => {
-  console.log('[API HEALTH] API health check requested');
   res.status(200).json({
     status: 'healthy',
     service: 'RinaWarp Terminal API',
@@ -808,13 +765,6 @@ app.get('/api/health', (req, res) => {
   app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (req, res) => {
     const report = req.body['csp-report'];
     if (report) {
-      console.log('🚨 CSP Violation Report:');
-      console.log('  - Document:', report['document-uri']);
-      console.log('  - Blocked:', report['blocked-uri']);
-      console.log('  - Directive:', report['violated-directive']);
-      console.log('  - Line:', report['line-number']);
-      console.log('  - Column:', report['column-number']);
-
       // Log to file for analysis
       const logEntry = {
         timestamp: new Date().toISOString(),
@@ -836,8 +786,6 @@ app.get('/api/health', (req, res) => {
 
 // API endpoint to get Stripe configuration
 app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
-  console.log('[STRIPE] Config requested');
-
   // Only send publishable key and price IDs (never secret keys!)
   const config = {
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY?.trim(),
@@ -855,13 +803,11 @@ app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
 
   // Validate that required config is present
   if (!config.publishableKey) {
-    console.log('[STRIPE] Missing publishable key');
     return res.status(500).json({
       error: 'Missing Stripe publishable key',
     });
   }
 
-  console.log('[STRIPE] Config sent successfully');
   res.json(config);
 });
 
@@ -883,10 +829,8 @@ app.get('/favicon.ico', (req, res) => {
 
 // Serve the main page (index.html) with nonce injection for CSP compliance
 app.get('/', staticPageLimiter, (req, res) => {
-  console.log('[ROUTE] Root route requested');
   const safePath = validateAndNormalizePath('index.html', _PUBLIC_DIR);
   if (!safePath || !fs.existsSync(safePath)) {
-    console.log('[ROUTE] index.html not found, serving API status');
     return res.status(200).json({
       message: 'RinaWarp Terminal API is running',
       status: 'healthy',
@@ -895,8 +839,6 @@ app.get('/', staticPageLimiter, (req, res) => {
       availableEndpoints: ['/health', '/api/stripe-config'],
     });
   }
-
-  console.log('[ROUTE] Serving index.html');
 
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -1317,18 +1259,15 @@ app.get('/ga4-test.html', staticPageLimiter, (req, res) => {
 // General release files handler
 app.use('/releases', staticPageLimiter, (req, res, _next) => {
   const requestedPath = req.path.startsWith('/') ? req.path.slice(1) : req.path;
-  console.log(`[RELEASES] Attempting to serve: ${requestedPath}`);
   const releasesDir = path.join(_PUBLIC_DIR, 'releases');
   const safePath = validateAndNormalizePath(requestedPath, releasesDir);
 
   if (!safePath) {
-    console.log(`[ERROR] Invalid path for releases: ${requestedPath}`);
     return res.status(403).json({ error: 'Access denied: Invalid file path' });
   }
 
   // Check if file exists and is not a directory
   if (!fs.existsSync(safePath)) {
-    console.log(`[ERROR] Release file not found: ${safePath}`);
     return res.status(404).json({ error: 'File not found' });
   }
 
@@ -1372,40 +1311,34 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
         event = JSON.parse(req.body);
       }
     } else {
-      console.log('⚠️ Webhook secret not configured, parsing event without verification');
       event = JSON.parse(req.body);
     }
   } catch (err) {
-    console.log('⚠️ Webhook signature verification failed.', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      console.log('💰 Payment successful:', session.id);
-      handlePaymentSuccess(session);
-      break;
-    }
-    case 'customer.subscription.created':
-      console.log('🔄 Subscription created:', event.data.object.id);
-      handleSubscriptionCreated(event.data.object);
-      break;
-    case 'customer.subscription.updated':
-      console.log('🔄 Subscription updated:', event.data.object.id);
-      handleSubscriptionUpdated(event.data.object);
-      break;
-    case 'customer.subscription.deleted':
-      console.log('❌ Subscription cancelled:', event.data.object.id);
-      handleSubscriptionCancelled(event.data.object);
-      break;
-    case 'invoice.payment_succeeded':
-      console.log('💳 Invoice paid:', event.data.object.id);
-      handleInvoicePayment(event.data.object);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  case 'checkout.session.completed': {
+    const session = event.data.object;
+    console.log('💰 Payment successful:', session.id);
+    handlePaymentSuccess(session);
+    break;
+  }
+  case 'customer.subscription.created':
+    handleSubscriptionCreated(event.data.object);
+    break;
+  case 'customer.subscription.updated':
+    handleSubscriptionUpdated(event.data.object);
+    break;
+  case 'customer.subscription.deleted':
+    console.log('❌ Subscription cancelled:', event.data.object.id);
+    handleSubscriptionCancelled(event.data.object);
+    break;
+  case 'invoice.payment_succeeded':
+    handleInvoicePayment(event.data.object);
+    break;
+  default:
   }
 
   res.json({ received: true });
@@ -1419,29 +1352,24 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.log('Webhook signature verification failed.', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      console.log('Payment was successful!', session);
-      handlePaymentSuccess(session);
-      break;
-    case 'invoice.payment_succeeded':
-      const invoice = event.data.object;
-      console.log('Subscription payment succeeded:', invoice);
-      handleInvoicePayment(invoice);
-      break;
-    case 'customer.subscription.deleted':
-      const subscription = event.data.object;
-      console.log('Subscription cancelled:', subscription);
-      handleSubscriptionCancelled(subscription);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  case 'checkout.session.completed':
+    const session = event.data.object;
+    handlePaymentSuccess(session);
+    break;
+  case 'invoice.payment_succeeded':
+    const invoice = event.data.object;
+    handleInvoicePayment(invoice);
+    break;
+  case 'customer.subscription.deleted':
+    const subscription = event.data.object;
+    handleSubscriptionCancelled(subscription);
+    break;
+  default:
   }
 
   res.json({ received: true });
@@ -1464,11 +1392,9 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
 
   try {
     // Store lead in database (for now, we'll log it)
-    console.log('📧 New lead captured:', { email, source, timestamp: new Date().toISOString() });
 
     // Send lead magnet email if source is lead_magnet
     if (source === 'lead_magnet') {
-      console.log('🎯 Attempting to send lead magnet email to:', email);
       try {
         await sendLeadMagnetEmail(email);
         console.log('✅ Lead magnet email sent successfully');
@@ -1485,13 +1411,12 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
     }
 
     // Track in analytics
-    console.log(`✅ Lead captured successfully: ${email} from ${source}`));
 
     res.json({
       success: true,
       message: 'Thank you! Check your email for your free guide.',
       email,
-    });
+    }));
   } catch (error) {
     console.error('❌ Error in lead capture endpoint:', error);
     console.error('Error type:', error.constructor.name);
@@ -1514,7 +1439,6 @@ async function sendLeadMagnetEmail(email) {
     process.env.SMTP_USER ||
     'noreply@rinawarp.com';
 
-  console.log('📧 Email configuration:', {
     fromEmail,
     toEmail: email,
     transporterType: transporter.constructor.name,
@@ -1609,7 +1533,7 @@ The RinaWarp Team`,
     console.log('✅ Lead magnet email sent:', info.messageId);
   } catch (error) {
     console.error('❌ Error sending lead magnet email:', error);
-    throw new Error(error);
+    throw new Error(new Error(error));
   }
 }
 
@@ -1650,9 +1574,6 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
     // Check if Nodemailer is configured
     if (!transporter) {
       console.log('⚠️ SMTP not configured, logging license details instead:');
-      console.log(`   Email: ${customerEmail}`);
-      console.log(`   License: ${licenseKey}`);
-      console.log(`   Type: ${licenseType}`);
       return;
     }
 
@@ -1736,38 +1657,28 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
     };
 
     // Send email using Nodemailer
-    const info = await transporter.sendMail(mailOptions);
-    console.log('📧 License Email Sent Successfully:');
-    console.log(`   Email: ${customerEmail}`);
-    console.log(`   License: ${licenseKey}`);
-    console.log(`   Type: ${licenseType}`);
-    console.log(`   Message ID: ${info.messageId}`);
+    const _info = await transporter.sendMail(mailOptions);
   } catch (error) {
     console.error('❌ Error sending license email:', error);
 
     // Log the license details even if email fails
-    console.log('📧 Email failed, logging license details:');
-    console.log(`   Email: ${customerEmail}`);
-    console.log(`   License: ${licenseKey}`);
-    console.log(`   Type: ${licenseType}`);
 
-    // Don't throw new Error(error to prevent payment processing from failing
+    // Don't throw new Error(new Error(error to prevent payment processing from failing
     // The license is still valid even if email fails
   }
 }
 
-function saveLicenseToDatabase(licenseData) {
+function saveLicenseToDatabase(_licenseData) {
   // Database storage logic would go here
-  console.log('💾 License Saved:', licenseData));
-
-  // TODO: Save to database
-  // await db.licenses.create(licenseData);
+  db.licenses.create(licenseData).then(() => {
+    console.log('✅ License successfully saved to database');
+  }).catch(error => {
+    console.error('❌ Error saving license to database:', error);
+  });
 }
 
 async function handlePaymentSuccess(session) {
   try {
-    console.log('🎯 Processing payment success for session:', session.id);
-
     // Extract customer and payment information
     const customerId = session.customer;
     let customerEmail = session.customer_details?.email;
@@ -1777,7 +1688,6 @@ async function handlePaymentSuccess(session) {
       try {
         const customer = await stripe.customers.retrieve(customerId);
         customerEmail = customer.email;
-        console.log('📝 Retrieved customer email from Stripe:', customerEmail);
       } catch (error) {
         console.error('⚠️ Failed to retrieve customer from Stripe:', error.message);
       }
@@ -1793,7 +1703,6 @@ async function handlePaymentSuccess(session) {
           expand: ['line_items', 'line_items.data.price'],
         });
         lineItems = sessionWithLineItems.line_items?.data || [];
-        console.log('📝 Retrieved line items from Stripe:', lineItems.length, 'items');
       } catch (error) {
         console.error('⚠️ Failed to retrieve line items from Stripe:', error.message);
       }
@@ -1803,13 +1712,6 @@ async function handlePaymentSuccess(session) {
       const priceId = lineItems[0].price?.id;
       const licenseType = getLicenseTypeFromPrice(priceId);
       const licenseKey = generateLicenseKey(customerId, licenseType);
-
-      console.log('📝 License details:');
-      console.log('  - Customer ID:', customerId);
-      console.log('  - Customer Email:', customerEmail);
-      console.log('  - Price ID:', priceId);
-      console.log('  - License Type:', licenseType);
-      console.log('  - License Key:', licenseKey);
 
       // Create license record
       const licenseData = {
@@ -1844,8 +1746,6 @@ async function handlePaymentSuccess(session) {
 
 async function handleSubscriptionCreated(subscription) {
   try {
-    console.log('🎯 Processing new subscription:', subscription.id);
-
     const customerId = subscription.customer;
     const priceId = subscription.items?.data[0]?.price?.id;
     const licenseType = getLicenseTypeFromPrice(priceId);
@@ -1863,7 +1763,6 @@ async function handleSubscriptionCreated(subscription) {
     };
 
     saveLicenseToDatabase(licenseData);
-    console.log('✅ Subscription license created successfully!');
   } catch (error) {
     console.error('❌ Error processing subscription creation:', error);
   }
@@ -1871,13 +1770,10 @@ async function handleSubscriptionCreated(subscription) {
 
 async function handleSubscriptionUpdated(subscription) {
   try {
-    console.log('🎯 Processing subscription update:', subscription.id);
-
     if (subscription.status === 'active') {
       console.log('✅ Subscription reactivated');
       // Reactivate license if needed
     } else if (subscription.cancel_at_period_end) {
-      console.log('⏰ Subscription will cancel at period end');
       // Mark license for future cancellation
     }
   } catch (error) {
@@ -1885,13 +1781,18 @@ async function handleSubscriptionUpdated(subscription) {
   }
 }
 
-async function handleSubscriptionCancelled(subscription) {
+async function handleSubscriptionCancelled(_subscription) {
   try {
-    console.log('🎯 Processing subscription cancellation:', subscription.id);
-
     // Deactivate associated license
-    console.log('🔒 License deactivated for cancelled subscription');
-    // TODO: Update license status in database
+  db.licenses.update({
+    status: 'inactive'
+  }, {
+    where: { subscriptionId: subscription.id }
+  }).then(() => {
+    console.log('✅ License status updated to inactive in database');
+  }).catch(error => {
+    console.error('❌ Error updating license status in database:', error);
+  });
   } catch (error) {
     console.error('❌ Error processing subscription cancellation:', error);
   }
@@ -1899,11 +1800,8 @@ async function handleSubscriptionCancelled(subscription) {
 
 async function handleInvoicePayment(invoice) {
   try {
-    console.log('🎯 Processing invoice payment:', invoice.id);
-
     // Handle recurring payment success
     if (invoice.billing_reason === 'subscription_cycle') {
-      console.log('🔄 Recurring payment successful - license remains active');
     }
   } catch (error) {
     console.error('❌ Error processing invoice payment:', error);
@@ -2037,11 +1935,7 @@ app.post('/api/test/lead-magnet-simple', async (req, res) => {
       html: '<p>Thank you for your interest! <a href="https://rinawarptech.com/guides/terminal-productivity-hacks.pdf">Download your guide here</a></p>',
     };
 
-    console.log('🧪 Testing simplified email to:', email);
-    console.log('📧 Mail options:', JSON.stringify(simpleMailOptions, null, 2));
-
     const info = await transporter.sendMail(simpleMailOptions);
-    console.log('✅ Simple email sent successfully:', info.messageId);
 
     res.json({
       success: true,
@@ -2138,7 +2032,7 @@ const analyticsData = new Map(); // In-memory storage for demo (use database in 
 
 // Track conversions for A/B testing (simplified for Railway deployment)
 app.post('/api/track-conversion', express.json(), (req, res) => {
-  const { event, plan, variant } = req.body;
+  const { _event, plan, variant } = req.body;
 
   // Note: Without cookie-parser, variant must be provided in request body
   // This is handled by frontend JavaScript
@@ -2171,7 +2065,7 @@ app.get('/api/ab-test-results', async (req, res) => {
         .map(line => {
           try {
             return JSON.parse(line);
-          } catch (e) {
+          } catch (_e) {
             return null;
           }
         })
@@ -2512,10 +2406,6 @@ app.post(
     try {
       const { priceId, successUrl, cancelUrl, customerEmail, userId, metadata } = req.body;
 
-      console.log('🛒 Creating checkout session for price:', priceId);
-      console.log('📧 Customer email:', customerEmail);
-      console.log('👤 User ID:', userId);
-
       if (!stripe) {
         return res.status(500).json({ error: 'Stripe not configured' });
       }
@@ -2528,7 +2418,6 @@ app.post(
       const price = await stripe.prices.retrieve(priceId);
       const mode = price.recurring ? 'subscription' : 'payment';
 
-      console.log(
         `💡 Price ${priceId} is ${price.recurring ? 'recurring' : 'one-time'}, using mode: ${mode}`
       );
 
@@ -2791,58 +2680,38 @@ app.use(errorHandler);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   const bootTime = Date.now() - startTime;
-  console.log(`🚀 RinaWarp Terminal server running on http://0.0.0.0:${PORT}`);
-  console.log(`🌍 Server started at ${new Date().toISOString()}`);
-  console.log(`⚡ Boot time: ${bootTime}ms`);
-  console.log(`💾 Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
-  console.log('🔧 Environment variables loaded:');
-  console.log(
     '- STRIPE_PUBLISHABLE_KEY:',
     process.env.STRIPE_PUBLISHABLE_KEY ? '✅ Set' : '❌ Missing'
   );
-  console.log(
     '- STRIPE_PRICE_PERSONAL_MONTHLY:',
     process.env.STRIPE_PRICE_PERSONAL_MONTHLY ? '✅ Set' : '❌ Missing'
   );
-  console.log(
     '- STRIPE_PRICE_PERSONAL_YEARLY:',
     process.env.STRIPE_PRICE_PERSONAL_YEARLY ? '✅ Set' : '❌ Missing'
   );
-  console.log(
     '- STRIPE_PRICE_PROFESSIONAL_MONTHLY:',
     process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY ? '✅ Set' : '❌ Missing'
   );
-  console.log(
     '- STRIPE_PRICE_PROFESSIONAL_YEARLY:',
     process.env.STRIPE_PRICE_PROFESSIONAL_YEARLY ? '✅ Set' : '❌ Missing'
   );
-  console.log(
     '- STRIPE_PRICE_TEAM_MONTHLY:',
     process.env.STRIPE_PRICE_TEAM_MONTHLY ? '✅ Set' : '❌ Missing'
   );
-  console.log(
     '- STRIPE_PRICE_TEAM_YEARLY:',
     process.env.STRIPE_PRICE_TEAM_YEARLY ? '✅ Set' : '❌ Missing'
   );
-  console.log('- SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? '✅ Set' : '❌ Missing');
-  console.log(
     '- SENDGRID_FROM_EMAIL:',
     process.env.SENDGRID_FROM_EMAIL ? '✅ Set' : '❌ Missing (will use default)'
   );
-  console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅ Set' : '❌ Missing');
 
   // Email test ping on startup
   if (sendgridConfigured) {
-    console.log('📧 Testing SendGrid connectivity...');
     // Note: We'll add a test ping endpoint instead of testing on startup to avoid delays
   }
 
   console.log('✅ Server ready to accept connections');
   console.log('📊 Marketing System: Initialized for lead capture and email campaigns');
-  console.log('📈 Analytics System: Ready for event tracking and funnel analysis');
-  console.log('🎯 Support System: Help desk and knowledge base operational');
-  console.log('🔗 Health endpoint: http://localhost:' + PORT + '/api/status/health');
-  console.log('🐚 All systems operational - RinaWarp is ready to make waves!');
 });
 
 server.on('error', error => {
@@ -2851,17 +2720,13 @@ server.on('error', error => {
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
   server.close(() => {
-    console.log('Server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
   server.close(() => {
-    console.log('Server closed');
     process.exit(0);
   });
 });

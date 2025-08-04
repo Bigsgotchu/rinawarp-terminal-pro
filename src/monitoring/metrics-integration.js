@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -28,8 +29,6 @@ export class MetricsIntegration {
    */
   async initialize() {
     try {
-      console.log('🔄 Initializing metrics integration...');
-
       // Wait for metrics service to be ready
       await this.waitForMetricsService();
 
@@ -37,7 +36,7 @@ export class MetricsIntegration {
       await this.initializeInstrumentation();
 
       this.isInitialized = true;
-      console.log('✅ Metrics integration initialized successfully');
+      logger.debug('✅ Metrics integration initialized successfully');
 
       return true;
     } catch (error) {
@@ -62,7 +61,7 @@ export class MetricsIntegration {
       await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
 
-    throw new Error(new Error('Metrics service failed to initialize within timeout'));
+    throw new Error(new Error(new Error('Metrics service failed to initialize within timeout')));
   }
 
   /**
@@ -75,7 +74,7 @@ export class MetricsIntegration {
     // Plugin instrumentation is already started in constructor
     this.integrationStatus.pluginSystem = true;
 
-    console.log('📊 Instrumentation modules initialized');
+    logger.debug('📊 Instrumentation modules initialized');
   }
 
   /**
@@ -108,8 +107,6 @@ export class MetricsIntegration {
     terminalManager.on('command-error', data => {
       this.onCommandError(data);
     });
-
-    console.log('📊 Integrated with terminal manager');
   }
 
   /**
@@ -131,7 +128,6 @@ export class MetricsIntegration {
       return originalDeleteSession(sessionId);
     };
 
-    console.log('📊 Integrated with session manager');
   }
 
   /**
@@ -145,8 +141,6 @@ export class MetricsIntegration {
 
     // Use the built-in integration method
     pluginInstrumentation.integrateWithPluginManager(pluginManager);
-
-    console.log('📊 Integrated with plugin manager');
   }
 
   /**
@@ -155,15 +149,13 @@ export class MetricsIntegration {
   async onTerminalCreated(terminalId) {
     // For now, we'll consider each terminal as potentially starting a new session
     // In a real implementation, this would be more sophisticated
-    console.log(`📊 Terminal created: ${terminalId}`);
+    logger.debug(`📊 Terminal created: ${terminalId}`);
   }
 
   /**
    * Handle terminal destruction event
    */
-  async onTerminalDestroyed(terminalId) {
-    console.log(`📊 Terminal destroyed: ${terminalId}`);
-  }
+  async onTerminalDestroyed(_terminalId) {}
 
   /**
    * Handle command execution event
@@ -227,7 +219,6 @@ export class MetricsIntegration {
     try {
       await terminalSessionInstrumentation.collectAndReportMetrics();
       await pluginInstrumentation.collectAndReportMetrics();
-      console.log('📊 Forced metrics collection completed');
     } catch (error) {
       console.error('📊 Error during forced metrics collection:', error);
     }
@@ -240,7 +231,6 @@ export class MetricsIntegration {
     terminalSessionInstrumentation.stopMetricsCollection();
     pluginInstrumentation.stopMetricsCollection();
     this.isInitialized = false;
-    console.log('📊 Metrics integration shutdown completed');
   }
 }
 

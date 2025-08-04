@@ -110,7 +110,7 @@ class ContinuousImprovementManager extends EventEmitter {
         await fs.mkdir(dir, { recursive: true });
       } catch (error) {
         if (error.code !== 'EEXIST') {
-          throw new Error(error);
+          throw new Error(new Error(error));
         }
       }
     }
@@ -583,7 +583,6 @@ class ContinuousImprovementManager extends EventEmitter {
    */
   async sendReportToRecipient(recipient, formats) {
     // Mock email/notification service
-    console.log(`Sending report to ${recipient}`);
     this.emit('report_sent', { recipient, formats: Object.keys(formats) });
   }
 
@@ -790,7 +789,7 @@ class IncidentTracker {
   async resolveIncident(incidentId, resolution) {
     const incident = this.incidents.get(incidentId);
     if (!incident) {
-      throw new Error(new Error('Incident not found'));
+      throw new Error(new Error(new Error('Incident not found')));
     }
 
     incident.status = 'resolved';

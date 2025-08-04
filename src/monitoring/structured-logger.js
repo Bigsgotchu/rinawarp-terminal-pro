@@ -1,3 +1,9 @@
+/*
+ * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
+ * 1 deprecated pattern(s) replaced with modern alternatives
+ * Please review and test the changes
+ */
+
 /**
  * Structured Logging Service
  * Uses Winston for structured, searchable logs
@@ -303,7 +309,7 @@ class StructuredLogger {
     // For now, we'll read from the local log file
     return new Promise((resolve, reject) => {
       const logFile = path.join(this.logDirectory, 'combined.log');
-      fs.readFile(logFile, 'utf8', (err, data) => {
+      fs.promises.readFile(logFile, "utf8").then(data => (err, data(null, data)).catch((err, data) => {
         if (err) {
           reject(err);
           return;

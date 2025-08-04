@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * Terminal Session Metrics Instrumentation
  * Integrates with the SessionManager to collect terminal-specific metrics
@@ -53,7 +54,7 @@ export class TerminalSessionInstrumentation {
     // Record session start event
     await metricsService.recordSessionStart(sessionId);
 
-    console.log(`📊 Session instrumentation started for session: ${sessionId}`);
+    logger.debug(`📊 Session instrumentation started for session: ${sessionId}`);
   }
 
   /**
@@ -76,7 +77,6 @@ export class TerminalSessionInstrumentation {
       this.commandCounters.delete(sessionId);
       this.commandRateTrackers.delete(sessionId);
 
-      console.log(
         `📊 Session instrumentation ended for session: ${sessionId}, duration: ${durationSeconds}s`
       );
     }
@@ -109,7 +109,7 @@ export class TerminalSessionInstrumentation {
       );
     }
 
-    console.log(`📊 Command executed in session ${sessionId}: ${command} (success: ${success})`);
+    logger.debug(`📊 Command executed in session ${sessionId}: ${command} (success: ${success})`);
   }
 
   /**
@@ -117,8 +117,6 @@ export class TerminalSessionInstrumentation {
    */
   async onCommandError(sessionId, command, errorType, errorMessage, terminalId = null) {
     await metricsService.recordCommandExecutionError(command, errorType, errorMessage, terminalId);
-
-    console.log(`📊 Command error in session ${sessionId}: ${command} - ${errorType}`);
   }
 
   /**
@@ -144,7 +142,6 @@ export class TerminalSessionInstrumentation {
         }
       }
 
-      console.log(`📊 Periodic metrics collected - Active sessions: ${activeSessionCount}`);
     } catch (error) {
       console.error('📊 Error collecting periodic metrics:', error);
     }

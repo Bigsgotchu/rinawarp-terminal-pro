@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -60,7 +61,7 @@ class ElectronAnalytics extends EventEmitter {
         timestamp: Date.now(),
       });
 
-      console.log('📊 Electron Analytics initialized successfully');
+      logger.debug('📊 Electron Analytics initialized successfully');
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize Electron Analytics:', error);
@@ -116,7 +117,6 @@ class ElectronAnalytics extends EventEmitter {
     this.emit('event', event);
 
     if (this.config.debug) {
-      console.log('📈 Analytics event:', eventName, event.properties);
     }
 
     // Flush if queue is full
@@ -360,7 +360,7 @@ class ElectronAnalytics extends EventEmitter {
     });
 
     if (!response.ok) {
-      throw new Error(new Error(`HTTP ${response.status}: ${response.statusText}`));
+      throw new Error(new Error(new Error(`HTTP ${response.status}: ${response.statusText}`)));
     }
 
     return response.json();
@@ -466,7 +466,6 @@ class ElectronAnalytics extends EventEmitter {
     this.config = { ...this.config, ...newConfig };
 
     if (this.config.debug) {
-      console.log('📊 Analytics configuration updated:', this.config);
     }
   }
 
@@ -482,7 +481,7 @@ class ElectronAnalytics extends EventEmitter {
    */
   enable() {
     this.config.enableAnalytics = true;
-    console.log('✅ Analytics enabled');
+    logger.debug('✅ Analytics enabled');
   }
 
   /**
@@ -490,7 +489,6 @@ class ElectronAnalytics extends EventEmitter {
    */
   disable() {
     this.config.enableAnalytics = false;
-    console.log('🔒 Analytics disabled');
   }
 
   /**
@@ -498,7 +496,6 @@ class ElectronAnalytics extends EventEmitter {
    */
   enableDebug() {
     this.config.debug = true;
-    console.log('🔍 Analytics debug mode enabled');
   }
 
   /**
@@ -506,7 +503,6 @@ class ElectronAnalytics extends EventEmitter {
    */
   disableDebug() {
     this.config.debug = false;
-    console.log('🔍 Analytics debug mode disabled');
   }
 
   /**
@@ -516,7 +512,6 @@ class ElectronAnalytics extends EventEmitter {
     try {
       fs.writeFileSync(this.analyticsFile, JSON.stringify([]));
       fs.writeFileSync(this.metricsFile, JSON.stringify({}));
-      console.log('🗑️ Analytics data cleared');
     } catch (error) {
       console.error('Failed to clear analytics data:', error);
     }

@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * Terminal Initialization System
  * Complete initialization flow for RinaWarp Terminal with AI readiness checks,
@@ -12,14 +13,15 @@ class TerminalInitializationSystem {
       elevenLabs: { status: 'pending', timestamp: null, error: null },
       commandInput: { status: 'pending', timestamp: null, error: null },
       globalIntegration: { status: 'pending', timestamp: null, error: null },
-      processLifecycle: { status: 'pending', timestamp: null, error: null }
+      processLifecycle: { status: 'pending', timestamp: null, error: null },
     };
-    
+
     this.initStartTime = Date.now();
-    this.debugMode = localStorage.getItem('rina-debug') === 'true' || 
-                     new URLSearchParams(window.location.search).has('debug');
+    this.debugMode =
+      localStorage.getItem('rina-debug') === 'true' ||
+      new URLSearchParams(window.location.search).has('debug');
     this.debugOverlay = null;
-    
+
     // Bind methods to preserve context
     this.updateComponentStatus = this.updateComponentStatus.bind(this);
     this.createDebugOverlay = this.createDebugOverlay.bind(this);
@@ -30,8 +32,6 @@ class TerminalInitializationSystem {
    * Main initialization sequence
    */
   async initTerminal() {
-    console.log('🚀 [TerminalInit] Starting terminal initialization...');
-    
     try {
       // Create debug overlay first if enabled
       if (this.debugMode) {
@@ -40,33 +40,34 @@ class TerminalInitializationSystem {
 
       // Wait for DOM to be ready
       await this.waitForDOM();
-      
+
       // Initialize components in parallel where possible
       const initPromises = [
         this.setupCommandInput(),
         this.waitUntilAIReady(),
         this.initializeGlobalIntegration(),
-        this.initializeProcessLifecycle()
+        this.initializeProcessLifecycle(),
       ];
 
       await Promise.allSettled(initPromises);
-      
+
       // Final setup
       this.setupGlobalErrorHandling();
       this.registerDebugCommands();
-      
+
       const totalTime = Date.now() - this.initStartTime;
-      console.log(`✅ [TerminalInit] Initialization complete in ${totalTime}ms`);
-      
+      logger.debug(`✅ [TerminalInit] Initialization complete in ${totalTime}ms`);
+
       // Emit initialization complete event
-      window.dispatchEvent(new CustomEvent('terminal:init-complete', {
-        detail: {
-          components: this.components,
-          initTime: totalTime,
-          debugMode: this.debugMode
-        }
-      }));
-      
+      window.dispatchEvent(
+        new CustomEvent('terminal:init-complete', {
+          detail: {
+            components: this.components,
+            initTime: totalTime,
+            debugMode: this.debugMode,
+          },
+        })
+      );
     } catch (error) {
       console.error('❌ [TerminalInit] Critical initialization error:', error);
       this.handleCriticalError(error);
@@ -77,7 +78,7 @@ class TerminalInitializationSystem {
    * Wait for DOM to be ready
    */
   async waitForDOM() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
           this.updateComponentStatus('dom', 'loaded');
@@ -95,19 +96,20 @@ class TerminalInitializationSystem {
    */
   async setupCommandInput() {
     try {
-      const inputBox = document.getElementById('commandInput') || 
-                      document.querySelector('.terminal-input') ||
-                      document.querySelector('input[type="text"]');
-      
+      const inputBox =
+        document.getElementById('commandInput') ||
+        document.querySelector('.terminal-input') ||
+        document.querySelector('input[type="text"]');
+
       if (!inputBox) {
         // Create a fallback input if none exists
-        const fallbackInput = this.createFallbackInput();
+        const _fallbackInput = this.createFallbackInput();
         this.updateComponentStatus('commandInput', 'created-fallback');
         return;
       }
 
       // Enhanced event handling
-      inputBox.addEventListener('keydown', (e) => {
+      inputBox.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
           e.preventDefault();
           const command = inputBox.value.trim();
@@ -116,14 +118,14 @@ class TerminalInitializationSystem {
             inputBox.value = '';
           }
         }
-        
+
         // Add support for command history
         if (e.key === 'ArrowUp' && this.commandHistory.length > 0) {
           e.preventDefault();
           this.historyIndex = Math.max(0, this.historyIndex - 1);
           inputBox.value = this.commandHistory[this.historyIndex] || '';
         }
-        
+
         if (e.key === 'ArrowDown') {
           e.preventDefault();
           this.historyIndex = Math.min(this.commandHistory.length, this.historyIndex + 1);
@@ -132,7 +134,7 @@ class TerminalInitializationSystem {
       });
 
       // Add autocomplete support
-      inputBox.addEventListener('input', (e) => {
+      inputBox.addEventListener('input', e => {
         this.handleAutocomplete(e.target.value);
       });
 
@@ -140,8 +142,6 @@ class TerminalInitializationSystem {
       this.historyIndex = this.commandHistory.length;
 
       this.updateComponentStatus('commandInput', 'active');
-      console.log('⌨️ [TerminalInit] Command input configured');
-      
     } catch (error) {
       this.updateComponentStatus('commandInput', 'error', error);
       console.error('❌ [TerminalInit] Command input setup failed:', error);
@@ -203,9 +203,11 @@ class TerminalInitializationSystem {
       this.historyIndex = this.commandHistory.length;
 
       // Emit command event
-      window.dispatchEvent(new CustomEvent('terminal:command', {
-        detail: { command, timestamp: Date.now() }
-      }));
+      window.dispatchEvent(
+        new CustomEvent('terminal:command', {
+          detail: { command, timestamp: Date.now() },
+        })
+      );
 
       // Process with AI if available
       if (window.advancedAI && typeof window.advancedAI.processCommand === 'function') {
@@ -217,16 +219,15 @@ class TerminalInitializationSystem {
         this.displayCommandResult({
           response: `Command received: "${command}"\nAI processing not available yet.`,
           confidence: 0.3,
-          source: 'fallback'
+          source: 'fallback',
         });
       }
-
     } catch (error) {
       console.error('❌ [TerminalInit] Command processing error:', error);
       this.displayCommandResult({
         response: `Error processing command: ${error.message}`,
         confidence: 0.1,
-        source: 'error'
+        source: 'error',
       });
     }
   }
@@ -235,9 +236,9 @@ class TerminalInitializationSystem {
    * Display command results
    */
   displayCommandResult(result) {
-    const outputContainer = document.getElementById('terminal-output') || 
-                           document.querySelector('.terminal-output');
-    
+    const outputContainer =
+      document.getElementById('terminal-output') || document.querySelector('.terminal-output');
+
     if (outputContainer) {
       const resultElement = document.createElement('div');
       resultElement.className = 'command-result';
@@ -252,7 +253,6 @@ class TerminalInitializationSystem {
       outputContainer.appendChild(resultElement);
       outputContainer.scrollTop = outputContainer.scrollHeight;
     } else {
-      console.log('📤 [Terminal Output]:', result.response);
     }
   }
 
@@ -263,10 +263,9 @@ class TerminalInitializationSystem {
     // Simple autocomplete logic
     const commonCommands = ['help', 'clear', 'status', 'debug', 'history', 'config'];
     const matches = commonCommands.filter(cmd => cmd.startsWith(value.toLowerCase()));
-    
+
     // You can extend this to show suggestions
     if (matches.length > 0 && this.debugMode) {
-      console.log('💡 [Autocomplete]:', matches);
     }
   }
 
@@ -279,7 +278,7 @@ class TerminalInitializationSystem {
 
     const tryInit = async () => {
       attempts++;
-      
+
       try {
         // Check for advanced AI
         if (window.advancedAI) {
@@ -290,7 +289,6 @@ class TerminalInitializationSystem {
         if (typeof window.configureElevenLabs === 'function') {
           await window.configureElevenLabs();
           this.updateComponentStatus('elevenLabs', 'configured');
-          console.log('🎤 [TerminalInit] ElevenLabs configuration successful');
         } else if (attempts < maxAttempts) {
           setTimeout(tryInit, 100);
           return;
@@ -298,13 +296,11 @@ class TerminalInitializationSystem {
 
         // Final AI readiness check
         if (window.advancedAI && window.configureElevenLabs) {
-          console.log('🧠 [TerminalInit] AI systems ready');
         }
-
       } catch (err) {
         console.error('❌ [TerminalInit] AI initialization error:', err);
         this.updateComponentStatus('elevenLabs', 'error', err);
-        
+
         if (attempts < maxAttempts) {
           setTimeout(tryInit, 100);
         }
@@ -361,9 +357,11 @@ class TerminalInitializationSystem {
       }
 
       // Emit component status event
-      window.dispatchEvent(new CustomEvent('terminal:component-status', {
-        detail: { component, status, error, timestamp: Date.now() }
-      }));
+      window.dispatchEvent(
+        new CustomEvent('terminal:component-status', {
+          detail: { component, status, error, timestamp: Date.now() },
+        })
+      );
     }
   }
 
@@ -417,7 +415,7 @@ class TerminalInitializationSystem {
     overlay.querySelector('#debug-toggle').addEventListener('click', () => {
       const content = overlay.querySelector('#debug-content');
       const toggle = overlay.querySelector('#debug-toggle');
-      
+
       if (content.style.display === 'none') {
         content.style.display = 'block';
         toggle.textContent = '−';
@@ -444,27 +442,29 @@ class TerminalInitializationSystem {
 
     let statusHtml = '';
     for (const [name, info] of Object.entries(this.components)) {
-      const statusColor = {
-        'pending': '#ffaa00',
-        'loaded': '#00ff88',
-        'active': '#00ff88',
-        'configured': '#00ff88',
-        'created-fallback': '#00aaff',
-        'fallback-active': '#00aaff',
-        'not-available': '#888',
-        'error': '#ff6b6b'
-      }[info.status] || '#888';
+      const statusColor =
+        {
+          pending: '#ffaa00',
+          loaded: '#00ff88',
+          active: '#00ff88',
+          configured: '#00ff88',
+          'created-fallback': '#00aaff',
+          'fallback-active': '#00aaff',
+          'not-available': '#888',
+          error: '#ff6b6b',
+        }[info.status] || '#888';
 
-      const statusIcon = {
-        'pending': '⏳',
-        'loaded': '✅',
-        'active': '🟢',
-        'configured': '⚙️',
-        'created-fallback': '🔄',
-        'fallback-active': '🔄',
-        'not-available': '⚫',
-        'error': '❌'
-      }[info.status] || '⚪';
+      const statusIcon =
+        {
+          pending: '⏳',
+          loaded: '✅',
+          active: '🟢',
+          configured: '⚙️',
+          'created-fallback': '🔄',
+          'fallback-active': '🔄',
+          'not-available': '⚫',
+          error: '❌',
+        }[info.status] || '⚪';
 
       statusHtml += `
         <div style="margin: 2px 0; font-size: 10px;">
@@ -483,14 +483,14 @@ class TerminalInitializationSystem {
    * Setup global error handling
    */
   setupGlobalErrorHandling() {
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       console.error('🚨 [Global Error]:', event.error);
       if (this.debugMode) {
         this.showErrorNotification(event.error.message, 'error');
       }
     });
 
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       console.error('🚨 [Unhandled Promise Rejection]:', event.reason);
       if (this.debugMode) {
         this.showErrorNotification(`Promise rejection: ${event.reason}`, 'warning');
@@ -621,10 +621,8 @@ class TerminalInitializationSystem {
         localStorage.removeItem('rina-command-history');
         return 'Command history cleared';
       },
-      version: () => `RinaWarp Terminal v${window.RinaWarp?.version || '1.0.0'}`
+      version: () => `RinaWarp Terminal v${window.RinaWarp?.version || '1.0.0'}`,
     };
-
-    console.log('🛠️ [TerminalInit] Debug commands registered (window.rinaDebug)');
   }
 }
 

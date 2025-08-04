@@ -40,7 +40,6 @@
                             item_name: 'Pro Plan'
                         }]
                     });
-                    console.log('🛒 Checkout started!');
                 });
             });
 
@@ -57,7 +56,6 @@
                             item_name: 'Pro Plan'
                         }]
                     });
-                    console.log('💸 Purchase completed!');
                 });
             });
         });
@@ -77,7 +75,6 @@
             console.error('❌ GA4 is not configured. Please check setup.');
         }
         captureConversionEvents();
-        console.log('🔍 Conversion analysis tracking activated.');
     }
 })();
 

@@ -32,8 +32,6 @@ class EmailTestingSuite {
 
   // Test 1: Cross-client compatibility testing
   async testEmailClients() {
-    console.log('🧪 Testing email client compatibility...');
-
     const clients = [
       { name: 'Gmail', viewport: { width: 600, height: 800 } },
       { name: 'Outlook', viewport: { width: 640, height: 800 } },
@@ -110,8 +108,6 @@ class EmailTestingSuite {
 
   // Test 2: Link validation
   async validateLinks() {
-    console.log('🔗 Validating all links...');
-
     const template = await this.loadTemplate();
     const $ = cheerio.load(template);
     const links = [];
@@ -155,15 +151,12 @@ class EmailTestingSuite {
           status: 'ERROR',
           error: error.message,
         });
-        console.log(`❌ ${link.href} - ${error.message}`);
       }
     }
   }
 
   // Test 3: Device responsiveness
   async testDeviceResponsiveness() {
-    console.log('📱 Testing device responsiveness...');
-
     const devices = [
       { name: 'Mobile Portrait', width: 320, height: 568 },
       { name: 'Mobile Landscape', width: 568, height: 320 },
@@ -248,8 +241,6 @@ class EmailTestingSuite {
 
   // Test 4: HTML validation
   async validateHTML() {
-    console.log('🔍 Validating HTML...');
-
     const template = await this.loadTemplate();
 
     try {
@@ -268,7 +259,6 @@ class EmailTestingSuite {
         totalIssues: errors.length + warnings.length,
       };
 
-      console.log(
         `✅ HTML validation completed: ${errors.length} errors, ${warnings.length} warnings`
       );
     } catch (error) {
@@ -282,8 +272,6 @@ class EmailTestingSuite {
 
   // Test 5: Performance metrics
   async analyzePerformance() {
-    console.log('⚡ Analyzing performance metrics...');
-
     const template = await this.loadTemplate();
     const $ = cheerio.load(template);
 
@@ -352,8 +340,6 @@ class EmailTestingSuite {
 
   // Test 6: Spam score analysis
   async analyzeSpamScore() {
-    console.log('🛡️ Analyzing spam score...');
-
     const template = await this.loadTemplate();
     const $ = cheerio.load(template);
 
@@ -442,13 +428,10 @@ class EmailTestingSuite {
       this.results.spamScore.recommendations.push('Consider significant content revisions');
     }
 
-    console.log(`✅ Spam analysis completed: ${spamScore} points (${riskLevel} risk)`);
   }
 
   // Generate A/B test variations
   async generateABTestVariations() {
-    console.log('🧪 Generating A/B test variations...');
-
     const template = await this.loadTemplate();
     const $ = cheerio.load(template);
 
@@ -551,8 +534,6 @@ class EmailTestingSuite {
 
   // Run all tests
   async runAllTests() {
-    console.log('🚀 Starting comprehensive email template testing...\n');
-
     // Create output directories
     const dirs = ['./screenshots', './ab-test-variations'];
     dirs.forEach(dir => {
@@ -572,13 +553,11 @@ class EmailTestingSuite {
 
       const report = await this.generateReport();
 
-      console.log('\n🎉 All tests completed successfully!');
-      console.log(`📊 Summary: ${report.summary.passed}/${report.summary.totalTests} tests passed`);
 
       return report;
     } catch (error) {
       console.error('❌ Test suite failed:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 }

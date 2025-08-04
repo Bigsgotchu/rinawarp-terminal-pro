@@ -4,8 +4,6 @@
  */
 
 function activateMermaidTheme() {
-  console.log('🧜‍♀️ Activating Mermaid Color Scheme...');
-
   // Remove any existing theme classes
   const themeClasses = [
     'theme-default-dark',
@@ -52,15 +50,12 @@ function activateMermaidTheme() {
   try {
     localStorage.setItem('rinawarp-current-theme', 'mermaid-depths');
     localStorage.setItem('rinawarp-theme-class', 'theme-mermaid');
-    console.log('✅ Theme preference saved');
   } catch (error) {
     console.warn('Failed to save theme preference:', error);
   }
 
   // Add some visual flair
   showMermaidActivationMessage();
-
-  console.log('🌊 Mermaid theme activated! Enjoy the mystical underwater colors! 🐚');
 
   return true;
 }

@@ -1,91 +1,71 @@
 /**
- * CommonJS wrapper for the ES module logger
- * This allows CommonJS files to use the logger
+ * Simple logger utility for RinaWarp Terminal (CommonJS version)
  */
 
-// Simple logger implementation for CommonJS files
+const LOG_LEVELS = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+  FATAL: 4,
+};
+
 class Logger {
-  constructor() {
-    this.isDevelopment =
-      process.env.NODE_ENV === 'development' ||
-      process.argv.includes('--dev') ||
-      process.env.DEBUG === 'true';
-
-    this.logLevel = process.env.LOG_LEVEL || (this.isDevelopment ? 'debug' : 'warn');
-
-    // Log levels in order of priority
-    this.levels = {
-      debug: 0,
-      info: 1,
-      warn: 2,
-      error: 3,
-    };
-
-    this.currentLevel = this.levels[this.logLevel] || this.levels.warn;
-  }
-
-  formatMessage(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const contextStr = Object.keys(context).length > 0 ? ` [${JSON.stringify(context)}]` : '';
-    return `[${timestamp}] [${level.toUpperCase()}]${contextStr} ${message}`;
-  }
-
-  shouldLog(level) {
-    return this.levels[level] >= this.currentLevel;
-  }
-
-  debug(message, context = {}) {
-    if (!this.shouldLog('debug')) return;
-    if (this.isDevelopment) {
-      console.log(this.formatMessage('debug', message, context));
+  constructor(name) {
+    this.name = name;
+    this.level = LOG_LEVELS.INFO;
+    
+    // Check environment for log level
+    if (process.env.LOG_LEVEL) {
+      this.level = LOG_LEVELS[process.env.LOG_LEVEL.toUpperCase()] || LOG_LEVELS.INFO;
     }
   }
 
-  info(message, context = {}) {
-    if (!this.shouldLog('info')) return;
-    const formattedMessage = this.formatMessage('info', message, context);
-    if (this.isDevelopment) {
-      console.info(formattedMessage);
+  _log(level, message, ...args) {
+    if (LOG_LEVELS[level] >= this.level) {
+      const timestamp = new Date().toISOString();
+      const prefix = `[${timestamp}] [${level}] [${this.name}]`;
+      
+      switch (level) {
+      case 'ERROR':
+      case 'FATAL':
+        console.error(prefix, message, ...args);
+        break;
+      case 'WARN':
+        console.warn(prefix, message, ...args);
+        break;
+      default:
+        console.log(prefix, message, ...args);
+      }
     }
   }
 
-  warn(message, context = {}) {
-    if (!this.shouldLog('warn')) return;
-    const formattedMessage = this.formatMessage('warn', message, context);
-    if (this.isDevelopment) {
-      console.warn(formattedMessage);
-    }
+  debug(message, ...args) {
+    this._log('DEBUG', message, ...args);
   }
 
-  error(message, context = {}) {
-    const formattedMessage = this.formatMessage('error', message, context);
-    if (this.isDevelopment) {
-      console.error(formattedMessage);
-    }
+  info(message, ...args) {
+    this._log('INFO', message, ...args);
   }
 
-  performance(operation, duration, context = {}) {
-    const message = `${operation} completed in ${duration}ms`;
-    this.info(message, { ...context, performance: true, duration });
+  warn(message, ...args) {
+    this._log('WARN', message, ...args);
   }
 
-  userAction(action, context = {}) {
-    this.info(`User action: ${action}`, { ...context, userAction: true });
+  error(message, ...args) {
+    this._log('ERROR', message, ...args);
   }
 
-  security(event, context = {}) {
-    this.warn(`Security event: ${event}`, { ...context, security: true });
-  }
-
-  system(event, context = {}) {
-    this.info(`System event: ${event}`, { ...context, system: true });
+  fatal(message, ...args) {
+    this._log('FATAL', message, ...args);
   }
 }
 
-// Create singleton instance
-const logger = new Logger();
+// Factory function to create logger instances
+function createLogger(name) {
+  return new Logger(name);
+}
 
-// Export for CommonJS
-module.exports = logger;
-module.exports.default = logger;
-module.exports.Logger = Logger;
+// CommonJS exports
+module.exports = Logger;
+module.exports.createLogger = createLogger;

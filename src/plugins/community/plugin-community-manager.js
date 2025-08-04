@@ -234,7 +234,7 @@ export class PluginCommunityManager {
 
   async ratePlugin(pluginName, rating, review = null) {
     if (rating < 1 || rating > 5) {
-      throw new Error(new Error('Rating must be between 1 and 5'));
+      throw new Error(new Error(new Error('Rating must be between 1 and 5')));
     }
 
     const ratingData = {

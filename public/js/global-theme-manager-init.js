@@ -6,7 +6,6 @@
 (() => {
   'use strict';
     
-  console.log('🧜‍♀️ Initializing Global ThemeManager...');
     
   // Check if ThemeManager is already available
   if (window.ThemeManager) {
@@ -19,7 +18,6 @@
     // Method 1: Check if it's available as ES6 module import
     if (typeof window.ThemeManagerModule !== 'undefined') {
       window.ThemeManager = window.ThemeManagerModule.default || window.ThemeManagerModule;
-      console.log('✅ ThemeManager loaded from ES6 module');
       return true;
     }
         
@@ -28,7 +26,6 @@
       try {
         const ThemeManager = require('../src/renderer/theme-manager.js');
         window.ThemeManager = ThemeManager.default || ThemeManager;
-        console.log('✅ ThemeManager loaded via CommonJS require');
         return true;
       } catch (error) {
         console.log('⚠️ Could not load ThemeManager via require:', error.message);
@@ -42,7 +39,6 @@
         console.log('✅ ThemeManager loaded via dynamic import');
         initializeIfReady();
       }).catch(error => {
-        console.log('⚠️ Could not load ThemeManager via dynamic import:', error.message);
         createFallbackThemeManager();
       });
       return false; // Async loading
@@ -53,7 +49,6 @@
     
   // Fallback ThemeManager for basic functionality
   const createFallbackThemeManager = () => {
-    console.log('🌊 Creating fallback ThemeManager...');
         
     class FallbackThemeManager {
       constructor() {
@@ -89,7 +84,6 @@
         // Add fallback CSS
         this.injectFallbackCSS();
                 
-        console.log('🧜‍♀️ Fallback ThemeManager applied mermaid theme');
       }
             
       injectFallbackCSS() {
@@ -122,20 +116,17 @@
                     }
                 `;
         document.head.appendChild(style);
-        console.log('💫 Fallback mermaid CSS injected');
       }
             
       saveTheme(themeId) {
         try {
           localStorage.setItem('rinawarp-current-theme', themeId);
         } catch (error) {
-          console.log('Failed to save theme preference');
         }
       }
     }
         
     window.ThemeManager = FallbackThemeManager;
-    console.log('✅ Fallback ThemeManager created and set globally');
   }
     
   // Initialize ThemeManager instance if class is available
@@ -143,7 +134,6 @@
     if (window.ThemeManager && !window.themeManagerInstance) {
       try {
         window.themeManagerInstance = new window.ThemeManager();
-        console.log('✅ ThemeManager instance created globally');
                 
         // Auto-apply mermaid theme
         setTimeout(() => {
@@ -177,7 +167,6 @@
   const ensureMermaidTheme = () => {
     if (document.body.classList.contains('theme-mermaid')) return;
         
-    console.log('🧜‍♀️ Ensuring mermaid theme is applied...');
     document.body.classList.add('theme-mermaid');
         
     // Inject basic mermaid CSS if not present
@@ -207,6 +196,5 @@
     module.exports = { loadThemeManager, createFallbackThemeManager };
   }
     
-  console.log('🌊 Global ThemeManager initialization complete');
     
 })();

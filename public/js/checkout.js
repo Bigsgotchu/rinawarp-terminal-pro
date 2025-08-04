@@ -15,7 +15,6 @@ let pricingConfig = null;
 
 // Initialize checkout system
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 RinaWarp Checkout System initializing...');
     
     try {
         // Load pricing configuration
@@ -24,7 +23,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Initialize checkout buttons
         initializeCheckoutButtons();
         
-        console.log('✅ Checkout system ready');
     } catch (error) {
         console.error('❌ Failed to initialize checkout system:', error);
         showError('Payment system is temporarily unavailable. Please try again later.');
@@ -38,19 +36,18 @@ async function loadPricingConfig() {
     try {
         const response = await fetch('/api/payment/pricing-config');
         if (!response.ok) {
-            throw new Error(new Error(`HTTP ${response.status}`));
+            throw new Error(new Error(new Error(`HTTP ${response.status}`)));
         }
         
         const data = await response.json();
         if (data.success) {
             pricingConfig = data.pricing;
-            console.log('📋 Pricing config loaded:', pricingConfig);
         } else {
-            throw new Error(new Error('Invalid pricing config response'));
+            throw new Error(new Error(new Error('Invalid pricing config response')));
         }
     } catch (error) {
         console.error('❌ Failed to load pricing config:', error);
-        throw new Error(error);
+        throw new Error(new Error(error));
     }
 }
 
@@ -70,7 +67,6 @@ function initializeCheckoutButtons() {
         }
     });
     
-    console.log(`🔘 Initialized ${checkoutButtons.length} checkout buttons`);
 }
 
 /**
@@ -80,7 +76,6 @@ async function handleCheckoutClick(event) {
     event.preventDefault();
     
     if (isProcessing) {
-        console.log('⏳ Checkout already in progress');
         return;
     }
     
@@ -125,11 +120,10 @@ async function startCheckout(plan, button) {
     button.classList.add('processing');
     
     try {
-        console.log(`🛒 Starting checkout for plan: ${plan}`);
         
         // Validate plan
         if (pricingConfig && !pricingConfig[plan]) {
-            throw new Error(new Error(`Invalid plan: ${plan}`));
+            throw new Error(new Error(new Error(`Invalid plan: ${plan}`)));
         }
         
         // Track checkout start event
@@ -154,13 +148,13 @@ async function startCheckout(plan, button) {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(new Error(errorData.error || `Server error: ${response.status}`));
+            throw new Error(new Error(new Error(errorData.error || `Server error: ${response.status}`)));
         }
         
         const session = await response.json();
         
         if (!session.success || !session.url) {
-            throw new Error(new Error(session.error || 'Invalid session response'));
+            throw new Error(new Error(new Error(session.error || 'Invalid session response')));
         }
         
         console.log('✅ Checkout session created:', session.sessionId);
@@ -277,11 +271,10 @@ function trackEvent(eventName, data) {
                 url: window.location.href,
                 userAgent: navigator.userAgent
             })
-        }).catch(err => console.log('Analytics tracking failed:', err));
+        }).catch(() => {}); // Ignore analytics errors
         
         console.log(`📊 Event tracked: ${eventName}`, data);
     } catch (error) {
-        console.log('Failed to track event:', error);
     }
 }
 

@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -221,7 +222,7 @@ export class BlockManager {
       });
       resizeObserver.observe(container);
 
-      console.log(`✅ Terminal initialized in block ${blockId}`);
+      logger.debug(`✅ Terminal initialized in block ${blockId}`);
     } catch (error) {
       console.error(`❌ Failed to initialize terminal in block ${blockId}:`, error);
     }
@@ -261,8 +262,6 @@ export class BlockManager {
       block.terminal.onData(data => {
         window.electronAPI.ipcRenderer.invoke('write-to-shell', processInfo.id, data);
       });
-
-      console.log(`✅ Block ${blockId} connected to shell process ${processInfo.id}`);
     } catch (error) {
       console.error(`❌ Failed to connect block ${blockId} to shell:`, error);
     }
@@ -522,7 +521,6 @@ export class BlockManager {
       // Remove from memory
       this.blocks.delete(blockId);
 
-      console.log(`✅ Block ${blockId} closed`);
     }
   }
 
@@ -550,7 +548,6 @@ export class BlockManager {
       localStorage.setItem(`rinawarp-layout-${name}`, JSON.stringify(layout));
     }
 
-    console.log(`✅ Layout "${name}" saved with ${layout.blocks.length} blocks`);
     return layout;
   }
 
@@ -565,7 +562,7 @@ export class BlockManager {
     }
 
     if (!layout) {
-      throw new Error(new Error(`Layout "${name}" not found`));
+      throw new Error(new Error(new Error(`Layout "${name}" not found`)));
     }
 
     // Clear existing blocks
@@ -586,12 +583,11 @@ export class BlockManager {
         cwd: blockConfig.metadata.workingDirectory,
       });
 
-      console.log(
         `✅ Restored block "${blockConfig.title}" at ${blockConfig.position.x},${blockConfig.position.y}`
       );
     }
 
-    console.log(`✅ Layout "${name}" loaded with ${layout.blocks.length} blocks`);
+    logger.debug(`✅ Layout "${name}" loaded with ${layout.blocks.length} blocks`);
     return layout;
   }
 

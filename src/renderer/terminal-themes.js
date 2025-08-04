@@ -6,6 +6,34 @@
 export class TerminalThemes {
   constructor() {
     this.themes = {
+      rinawarp: {
+        name: 'RinaWarp',
+        description: 'Official RinaWarp branded theme with vibrant gradients',
+        background: 'linear-gradient(135deg, #FF1493 0%, #FF6B9D 25%, #00CED1 75%, #4169E1 100%)',
+        terminalBackground: 'rgba(5, 5, 8, 0.95)',
+        terminalBorder: 'rgba(255, 20, 147, 0.3)',
+        foreground: '#FFFFFF',
+        cursor: '#FF1493',
+        selection: 'rgba(255, 20, 147, 0.2)',
+        colors: {
+          black: '#0a0a0f',
+          red: '#FF1493',
+          green: '#00FF88',
+          yellow: '#FFD93D',
+          blue: '#4169E1',
+          magenta: '#9B59B6',
+          cyan: '#00CED1',
+          white: '#FFFFFF',
+          brightBlack: '#2a2a33',
+          brightRed: '#FF69B4',
+          brightGreen: '#00FA9A',
+          brightYellow: '#FFFF00',
+          brightBlue: '#00BFFF',
+          brightMagenta: '#DA70D6',
+          brightCyan: '#48D1CC',
+          brightWhite: '#FFFFFF',
+        },
+      },
       'mermaid-ocean': {
         name: 'Mermaid Ocean',
         description: 'Default theme with oceanic colors',
@@ -31,11 +59,11 @@ export class TerminalThemes {
           brightBlue: '#00BFFF',
           brightMagenta: '#DA70D6',
           brightCyan: '#48D1CC',
-          brightWhite: '#FFFFFF'
-        }
+          brightWhite: '#FFFFFF',
+        },
       },
-      
-      'cyberpunk': {
+
+      cyberpunk: {
         name: 'Cyberpunk',
         description: 'Neon colors with dark background',
         background: 'linear-gradient(135deg, #0F0F0F 0%, #1A0033 50%, #0F0F0F 100%)',
@@ -60,11 +88,11 @@ export class TerminalThemes {
           brightBlue: '#00FFFF',
           brightMagenta: '#FF00FF',
           brightCyan: '#00FFFF',
-          brightWhite: '#FFFFFF'
-        }
+          brightWhite: '#FFFFFF',
+        },
       },
-      
-      'midnight': {
+
+      midnight: {
         name: 'Midnight',
         description: 'Dark theme with subtle colors',
         background: 'linear-gradient(135deg, #0F0F23 0%, #1A1A3E 50%, #0F0F23 100%)',
@@ -89,11 +117,11 @@ export class TerminalThemes {
           brightBlue: '#6B9FFF',
           brightMagenta: '#E0AAFF',
           brightCyan: '#A5E3FF',
-          brightWhite: '#FFFFFF'
-        }
+          brightWhite: '#FFFFFF',
+        },
       },
-      
-      'sunset': {
+
+      sunset: {
         name: 'Sunset',
         description: 'Warm colors inspired by sunset',
         background: 'linear-gradient(135deg, #FF6B6B 0%, #FFE66D 50%, #FF6B6B 100%)',
@@ -118,11 +146,11 @@ export class TerminalThemes {
           brightBlue: '#1E90FF',
           brightMagenta: '#FF69B4',
           brightCyan: '#00FFFF',
-          brightWhite: '#FFFFFF'
-        }
+          brightWhite: '#FFFFFF',
+        },
       },
-      
-      'matrix': {
+
+      matrix: {
         name: 'Matrix',
         description: 'Classic green on black terminal',
         background: 'radial-gradient(circle, #001100 0%, #000000 100%)',
@@ -147,11 +175,11 @@ export class TerminalThemes {
           brightBlue: '#00CC00',
           brightMagenta: '#00DD00',
           brightCyan: '#00FF00',
-          brightWhite: '#00FF00'
-        }
+          brightWhite: '#00FF00',
+        },
       },
-      
-      'dracula': {
+
+      dracula: {
         name: 'Dracula',
         description: 'Popular dark theme with vibrant colors',
         background: 'linear-gradient(135deg, #282a36 0%, #44475a 100%)',
@@ -176,24 +204,24 @@ export class TerminalThemes {
           brightBlue: '#d6acff',
           brightMagenta: '#ff92df',
           brightCyan: '#a4ffff',
-          brightWhite: '#ffffff'
-        }
-      }
+          brightWhite: '#ffffff',
+        },
+      },
     };
-    
-    this.currentTheme = 'mermaid-ocean';
+
+    this.currentTheme = 'rinawarp';
     this.customTheme = null;
-    
+
     // Load saved theme
     this.loadTheme();
   }
-  
+
   loadTheme() {
     const saved = localStorage.getItem('rinawarp-theme');
     if (saved && this.themes[saved]) {
       this.currentTheme = saved;
     }
-    
+
     // Load custom theme if exists
     const customSaved = localStorage.getItem('rinawarp-custom-theme');
     if (customSaved) {
@@ -205,39 +233,40 @@ export class TerminalThemes {
       }
     }
   }
-  
+
   saveTheme() {
     localStorage.setItem('rinawarp-theme', this.currentTheme);
     if (this.customTheme) {
       localStorage.setItem('rinawarp-custom-theme', JSON.stringify(this.customTheme));
     }
   }
-  
+
   applyTheme(themeName) {
     if (!this.themes[themeName]) {
       console.error('Theme not found:', themeName);
       return;
     }
-    
+
     const theme = this.themes[themeName];
     this.currentTheme = themeName;
-    
+
     // Apply to document
     this.applyThemeToDocument(theme);
-    
+
     // Apply to terminal if available
     if (window.terminal) {
       this.applyThemeToTerminal(theme);
     }
-    
+
     // Save preference
     this.saveTheme();
   }
-  
+
   applyThemeToDocument(theme) {
-    const style = document.getElementById('terminal-theme-styles') || document.createElement('style');
+    const style =
+      document.getElementById('terminal-theme-styles') || document.createElement('style');
     style.id = 'terminal-theme-styles';
-    
+
     style.textContent = `
       body {
         background: ${theme.background};
@@ -301,13 +330,13 @@ export class TerminalThemes {
         color: ${theme.colors.cyan};
       }
     `;
-    
+
     document.head.appendChild(style);
   }
-  
+
   applyThemeToTerminal(theme) {
     if (!window.terminal) return;
-    
+
     // Apply xterm.js theme
     window.terminal.options.theme = {
       background: this.extractColor(theme.terminalBackground),
@@ -330,10 +359,10 @@ export class TerminalThemes {
       brightBlue: theme.colors.brightBlue,
       brightMagenta: theme.colors.brightMagenta,
       brightCyan: theme.colors.brightCyan,
-      brightWhite: theme.colors.brightWhite
+      brightWhite: theme.colors.brightWhite,
     };
   }
-  
+
   extractColor(rgba) {
     // Extract hex color from rgba string
     const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -345,39 +374,39 @@ export class TerminalThemes {
     }
     return rgba;
   }
-  
+
   getThemeList() {
     return Object.entries(this.themes).map(([id, theme]) => ({
       id,
       name: theme.name,
-      description: theme.description
+      description: theme.description,
     }));
   }
-  
+
   getCurrentTheme() {
     return this.themes[this.currentTheme];
   }
-  
+
   createCustomTheme(config) {
     this.customTheme = {
       name: config.name || 'Custom Theme',
       description: config.description || 'User created theme',
-      ...config
+      ...config,
     };
-    
+
     this.themes['custom'] = this.customTheme;
     this.saveTheme();
-    
+
     return this.customTheme;
   }
-  
+
   exportTheme(themeName) {
     const theme = this.themes[themeName];
     if (!theme) return null;
-    
+
     return JSON.stringify(theme, null, 2);
   }
-  
+
   importTheme(themeJson) {
     try {
       const theme = JSON.parse(themeJson);

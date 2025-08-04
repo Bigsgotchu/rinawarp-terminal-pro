@@ -6,21 +6,50 @@
 
 // tests/integration/cache-expiration.test.js
 
-const path = require('node:path');
+const _path = require('node:path');
 
 // Mock the voice provider path - adjust based on your actual structure
-jest.mock('../../src/voice-enhancements/elevenlabs-voice-provider', () => ({
-  initialize: jest.fn().mockResolvedValue(true),
-  speak: jest.fn(),
-  cache: {
-    clear: jest.fn()
+jest.mock(
+  '../../src/voice-enhancements/elevenlabs-voice-provider',
+  () => {
+    const cache = new Map();
+    let mockConvert = jest.fn();
+    
+    return {
+      initialize: jest.fn().mockResolvedValue(true),
+      speak: jest.fn(async (text) => {
+        // Simple cache implementation
+        const cacheKey = text;
+        const cached = cache.get(cacheKey);
+        
+        if (cached && cached.expires > Date.now()) {
+          return cached.data;
+        }
+        
+        // Call convert if not cached
+        const result = await mockConvert(text);
+        cache.set(cacheKey, {
+          data: result,
+          expires: Date.now() + 60000 // 60 second TTL
+        });
+        
+        return result;
+      }),
+      cache: {
+        clear: jest.fn(() => cache.clear()),
+      },
+      client: {
+        textToSpeech: {
+          get convert() { return mockConvert; },
+          set convert(fn) { 
+            mockConvert = fn;
+          }
+        },
+      },
+    };
   },
-  client: {
-    textToSpeech: {
-      convert: jest.fn()
-    }
-  }
-}), { virtual: true });
+  { virtual: true }
+);
 
 const voiceProvider = require('../../src/voice-enhancements/elevenlabs-voice-provider');
 

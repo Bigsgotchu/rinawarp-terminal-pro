@@ -19,8 +19,6 @@ class RinaWarpAnalytics {
   }
 
   init() {
-    console.log('🎯 RinaWarp Analytics initialized');
-
     // Track page views
     this.trackPageView();
 
@@ -54,7 +52,6 @@ class RinaWarpAnalytics {
     };
 
     this.events.push(event);
-    console.log('📊 Event tracked:', eventName, data);
 
     // Send immediately for critical events
     if (['checkout_initiated', 'payment_success', 'purchase_completed'].includes(eventName)) {
@@ -153,7 +150,7 @@ class RinaWarpAnalytics {
           this.trackEvent('checkout_error', {
             error: error.message,
           });
-          throw new Error(error);
+          throw new Error(new Error(error));
         }
       }
 
@@ -196,7 +193,6 @@ class RinaWarpAnalytics {
         body: JSON.stringify(batch),
       });
 
-      console.log(`📊 Analytics batch sent: ${this.events.length} events`);
       this.events = []; // Clear sent events
     } catch (error) {
       console.warn('Analytics batch failed:', error);

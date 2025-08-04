@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 2 deprecated pattern(s) replaced with modern alternatives
@@ -16,13 +17,12 @@ class RinaWarpAIOrchestrator {
     this.context = null;
     this.suggestions = [];
     this.activeFeatures = new Set();
+    this.startTime = Date.now();
 
     this.initialize();
   }
 
   async initialize() {
-    console.log('🚀 Initializing RinaWarp AI Orchestrator...');
-
     // Initialize event bus
     this.eventBus = new EventBus();
     window.rinaWarp = window.rinaWarp || {};
@@ -37,7 +37,6 @@ class RinaWarpAIOrchestrator {
     // Initialize context tracking
     this.context = new ContextManager();
 
-    console.log('✅ RinaWarp AI Orchestrator initialized');
 
     // Start the AI system
     this.startAISystem();
@@ -49,35 +48,31 @@ class RinaWarpAIOrchestrator {
       if (window.EnhancedCommandIntelligence) {
         this.components.set('commandIntelligence', new window.EnhancedCommandIntelligence());
         this.activeFeatures.add('enhanced-commands');
-        console.log('✅ Command Intelligence loaded');
       }
 
       // Git Integration
       if (window.GitIntegration) {
         this.components.set('gitIntegration', new window.GitIntegration());
         this.activeFeatures.add('git-integration');
-        console.log('✅ Git Integration loaded');
+        logger.debug('✅ Git Integration loaded');
       }
 
       // Project Analyzer
       if (window.ProjectAnalyzer) {
         this.components.set('projectAnalyzer', new window.ProjectAnalyzer());
         this.activeFeatures.add('project-analysis');
-        console.log('✅ Project Analyzer loaded');
       }
 
       // Debugger Integration
       if (window.DebuggerIntegration) {
         this.components.set('debuggerIntegration', new window.DebuggerIntegration());
         this.activeFeatures.add('debugging');
-        console.log('✅ Debugger Integration loaded');
       }
 
       // Voice Control (if available)
       if (window.VoiceCommandSystem) {
         this.components.set('voiceControl', new window.VoiceCommandSystem());
         this.activeFeatures.add('voice-control');
-        console.log('✅ Voice Control loaded');
       }
     } catch (error) {
       console.error('Error initializing AI components:', error);
@@ -641,7 +636,6 @@ Let's build something amazing! 🌊
     const componentCount = this.components.size;
     const activeFeatures = this.activeFeatures.size;
 
-    console.log('🔍 RinaWarp AI Performance:', {
       components: componentCount,
       activeFeatures,
       memoryUsed: Math.round((memoryInfo.usedJSHeapSize || 0) / 1024 / 1024) + 'MB',
@@ -657,7 +651,7 @@ Let's build something amazing! 🌊
       return await commandIntel.executeCommandEnhanced(command, options);
     }
 
-    throw new Error(new Error('Command execution not available'));
+    throw new Error(new Error(new Error('Command execution not available')));
   }
 
   async analyzeProject(directory) {
@@ -675,7 +669,7 @@ Let's build something amazing! 🌊
       return await debuggerIntegration.startDebugSession(projectType, options);
     }
 
-    throw new Error(new Error('Debugging not available'));
+    throw new Error(new Error(new Error('Debugging not available')));
   }
 
   getCurrentSuggestions() {

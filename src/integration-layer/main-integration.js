@@ -27,7 +27,6 @@ import { safeImport, createFallback, _ModuleLoadError } from '../utils/module-lo
 
 // Centralized logger with fallback
 let logger = {
-  debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`, ctx),
   info: (msg, ctx) => console.info(`[INFO] ${msg}`, ctx),
   warn: (msg, ctx) => console.warn(`[WARN] ${msg}`, ctx),
   error: (msg, ctx) => console.error(`[ERROR] ${msg}`, ctx),
@@ -95,7 +94,7 @@ class RinaWarpIntegration {
         error: error.message,
         stack: error.stack,
       });
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -340,7 +339,6 @@ class RinaWarpIntegration {
     const feature = this.features[featureName];
     if (feature && feature.preload && !feature.isPreloaded) {
       feature.preload();
-      console.log(`[RinaWarp] Preloaded feature: ${featureName}`);
     }
   }
 
@@ -523,8 +521,6 @@ class RinaWarpIntegration {
   }
 
   async shutdown() {
-    console.log('[RinaWarp] Shutting down integration system...');
-
     await this.hub.shutdown();
 
     for (const feature of Object.values(this.features)) {
@@ -534,7 +530,6 @@ class RinaWarpIntegration {
     }
 
     this.isInitialized = false;
-    console.log('[RinaWarp] Integration system shutdown complete');
   }
 }
 

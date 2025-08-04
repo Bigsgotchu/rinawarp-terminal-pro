@@ -57,13 +57,9 @@ async function registerCommands() {
   try {
     const rest = new REST({ version: '10' }).setToken(BOT_TOKEN);
 
-    console.log('Started refreshing application (/) commands.');
-
     await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
       body: commands.map(command => command.toJSON()),
     });
-
-    console.log('Successfully reloaded application (/) commands.');
   } catch (error) {
     console.error('Error registering commands:', error);
   }
@@ -71,7 +67,6 @@ async function registerCommands() {
 
 // When the client is ready, run this code
 client.once('ready', () => {
-  console.log(`🧜‍♀️ RinaWarp Bot is ready! Logged in as ${client.user.tag}`);
   client.user.setActivity('🌊 Managing RinaWarp Terminal', { type: 'WATCHING' });
 });
 
@@ -299,10 +294,9 @@ if (BOT_TOKEN && BOT_TOKEN !== 'YOUR_BOT_TOKEN_HERE') {
   client.login(BOT_TOKEN);
   registerCommands();
 } else {
-  console.log(
+  console.error(
     '❌ Please set your Discord bot token in the environment variables or update the script.'
   );
-  console.log('📝 You need to set: DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID, and DISCORD_GUILD_ID');
 }
 
 export default client;

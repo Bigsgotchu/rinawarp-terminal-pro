@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 6 deprecated pattern(s) replaced with modern alternatives
@@ -25,34 +26,30 @@ export class AIProviderManager {
       enableFallback: true,
       responseTimeout: 10000, // 10 seconds
     };
-    
+
     // Load configuration
     this.loadConfiguration();
   }
 
   async initialize() {
-    console.log('🚀 Initializing AI Provider Manager...');
-    
     // Initialize all available providers
     await this.initializeProviders();
-    
+
     // Set up the active provider
     await this.selectActiveProvider();
-    
+
     this.isInitialized = true;
-    console.log(`✅ AI Provider Manager initialized with ${this.providers.size} providers`);
-    console.log(`🎯 Active provider: ${this.activeProvider?.getName() || 'fallback'}`);
   }
 
   async initializeProviders() {
     const providerTypes = ['local', 'anthropic', 'openai', 'custom'];
-    
+
     for (const type of providerTypes) {
       try {
         const provider = AIProviderFactory.createProvider(type);
         await provider.initialize();
         this.providers.set(type, provider);
-        console.log(`✅ ${type} provider initialized successfully`);
+        logger.debug(`✅ ${type} provider initialized successfully`);
       } catch (error) {
         console.warn(`⚠️ Failed to initialize ${type} provider:`, error.message);
         // Store the failed provider for potential later retry
@@ -78,7 +75,6 @@ export class AIProviderManager {
       const provider = this.providers.get(providerType);
       if (provider && provider.isAvailable()) {
         this.activeProvider = provider;
-        console.log(`📋 Using fallback provider: ${providerType}`);
         return;
       }
     }
@@ -99,20 +95,19 @@ export class AIProviderManager {
         availableProviders: Array.from(this.providers.keys()),
         activeProvider: this.activeProvider?.getName() || 'fallback',
         timestamp: new Date().toISOString(),
-      }
+      },
     };
 
     // Try active provider first
     if (this.activeProvider) {
       try {
-        console.log(`🧜‍♀️ Generating response with ${this.activeProvider.getName()} provider...`);
         const startTime = Date.now();
-        
+
         const response = await Promise.race([
           this.activeProvider.generateResponse(query, enhancedContext),
-          new Promise((_, reject) => 
+          new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Response timeout')), this.config.responseTimeout)
-          )
+          ),
         ]);
 
         response.processing_time = Date.now() - startTime;
@@ -125,13 +120,16 @@ export class AIProviderManager {
         return response;
       } catch (error) {
         console.error(`❌ Error with ${this.activeProvider.getName()} provider:`, error);
-        
+
         // Mark provider as failed and try fallback
         this.activeProvider.lastError = error;
-        
-        if (this.config.enableFallback) {
+
+        if (this.config.enableFallback && error.message !== 'Response timeout') {
           return await this.tryFallbackResponse(query, enhancedContext);
         }
+        
+        // Re-throw the error if fallback is disabled or it's a timeout
+        throw error;
       }
     }
 
@@ -140,20 +138,17 @@ export class AIProviderManager {
   }
 
   async tryFallbackResponse(query, context) {
-    console.log('🔄 Attempting fallback response...');
-    
     // Try other available providers
     for (const providerType of this.fallbackChain) {
       const provider = this.providers.get(providerType);
-      
+
       if (provider && provider.isAvailable() && provider !== this.activeProvider) {
         try {
-          console.log(`🔄 Trying fallback provider: ${providerType}`);
           const response = await provider.generateResponse(query, context);
-          
+
           // Update active provider if this one works
           this.activeProvider = provider;
-          
+
           response.provider_info = {
             name: provider.getName(),
             description: provider.getDescription(),
@@ -173,21 +168,22 @@ export class AIProviderManager {
     return this.generateBasicFallbackResponse(query, context);
   }
 
-  generateBasicFallbackResponse(query, context) {
-    console.log('🆘 Using basic fallback response');
-    
+  generateBasicFallbackResponse(query, _context) {
     const basicResponses = {
       help: '🧜‍♀️ I\'m here to help! Even though my advanced AI is temporarily unavailable, I can still provide basic assistance. What would you like to know?',
       git: '🐙 Git is a powerful version control system! Try "git status" to see your current state, "git add ." to stage changes, and "git commit -m "message"" to save them.',
-      docker: '🐳 Docker helps you containerize applications! Use "docker ps" to see running containers, "docker images" to list images, and "docker run" to start new containers.',
-      error: '🤔 Errors can be tricky! Try reading the error message carefully, checking file permissions, and ensuring all dependencies are installed.',
+      docker:
+        '🐳 Docker helps you containerize applications! Use "docker ps" to see running containers, "docker images" to list images, and "docker run" to start new containers.',
+      error:
+        '🤔 Errors can be tricky! Try reading the error message carefully, checking file permissions, and ensuring all dependencies are installed.',
       node: '🌿 Node.js is great for JavaScript development! Use "npm install" for dependencies, "npm start" to run your app, and "node filename.js" to execute scripts.',
-      python: '🐍 Python is wonderful for many tasks! Use "pip install package" for libraries, "python script.py" to run code, and "python -m venv env" for virtual environments.',
+      python:
+        '🐍 Python is wonderful for many tasks! Use "pip install package" for libraries, "python script.py" to run code, and "python -m venv env" for virtual environments.',
     };
 
     const queryLower = query.toLowerCase();
     let explanation = '🧜‍♀️ I\'m still here to help, even with limited AI capabilities!';
-    
+
     // Find matching response
     for (const [keyword, response] of Object.entries(basicResponses)) {
       if (queryLower.includes(keyword)) {
@@ -212,7 +208,7 @@ export class AIProviderManager {
         description: 'Emergency fallback responses',
         capabilities: ['basic_responses'],
         fallback: true,
-      }
+      },
     };
   }
 
@@ -245,7 +241,7 @@ export class AIProviderManager {
   updateConfiguration(newConfig) {
     this.config = { ...this.config, ...newConfig };
     this.saveConfiguration();
-    
+
     // Reinitialize if needed
     if (this.isInitialized && newConfig.preferredProvider !== this.config.preferredProvider) {
       this.selectActiveProvider();
@@ -256,7 +252,7 @@ export class AIProviderManager {
   async setPreferredProvider(providerName) {
     const provider = this.providers.get(providerName);
     if (!provider) {
-      throw new Error(new Error(`Provider ${providerName} not found`));
+      throw new Error(new Error(new Error(`Provider ${providerName} not found`)));
     }
 
     // Try to initialize if not already done
@@ -264,21 +260,20 @@ export class AIProviderManager {
       try {
         await provider.initialize();
       } catch (error) {
-        throw new Error(new Error(`Failed to activate provider ${providerName}: ${error.message}`));
+        throw new Error(new Error(new Error(`Failed to activate provider ${providerName}: ${error.message}`)));
       }
     }
 
     this.config.preferredProvider = providerName;
     this.activeProvider = provider;
     this.saveConfiguration();
-    
-    console.log(`✅ Switched to provider: ${providerName}`);
+
   }
 
   async configureProvider(providerName, config) {
     const provider = this.providers.get(providerName);
     if (!provider) {
-      throw new Error(new Error(`Provider ${providerName} not found`));
+      throw new Error(new Error(new Error(`Provider ${providerName} not found`)));
     }
 
     if (typeof provider.updateConfiguration === 'function') {
@@ -290,10 +285,9 @@ export class AIProviderManager {
     // Try to initialize with new config
     try {
       await provider.initialize();
-      console.log(`✅ Provider ${providerName} configured and initialized`);
     } catch (error) {
       console.warn(`⚠️ Provider ${providerName} configuration failed:`, error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -327,22 +321,22 @@ export class AIProviderManager {
   async retryFailedProvider(providerName) {
     const provider = this.providers.get(providerName);
     if (!provider) {
-      throw new Error(new Error(`Provider ${providerName} not found`));
+      throw new Error(new Error(new Error(`Provider ${providerName} not found`)));
     }
 
     try {
       await provider.initialize();
-      console.log(`✅ Successfully retried provider: ${providerName}`);
-      
+      logger.debug(`✅ Successfully retried provider: ${providerName}`);
+
       // If this was our preferred provider, make it active again
       if (providerName === this.config.preferredProvider) {
         this.activeProvider = provider;
       }
-      
+
       return true;
     } catch (error) {
       console.warn(`⚠️ Retry failed for provider ${providerName}:`, error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 

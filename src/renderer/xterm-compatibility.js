@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -19,8 +20,6 @@ let Terminal, FitAddon, WebLinksAddon;
  * Initialize XTerm modules with fallback strategies
  */
 export async function initializeXTerm() {
-  console.log('🔧 Initializing XTerm compatibility layer...');
-
   try {
     // Strategy 1: Try ES module imports
     if (isBrowser) {
@@ -33,7 +32,6 @@ export async function initializeXTerm() {
         FitAddon = fitModule.FitAddon;
         WebLinksAddon = webLinksModule.WebLinksAddon;
 
-        console.log('✅ XTerm modules loaded via ES imports');
         return { Terminal, FitAddon, WebLinksAddon };
       } catch (importError) {
         console.warn('⚠️ ES module import failed:', importError.message);
@@ -51,7 +49,6 @@ export async function initializeXTerm() {
         FitAddon = fitModule.FitAddon;
         WebLinksAddon = webLinksModule.WebLinksAddon;
 
-        console.log('✅ XTerm modules loaded via CommonJS');
         return { Terminal, FitAddon, WebLinksAddon };
       } catch (requireError) {
         console.warn('⚠️ CommonJS require failed:', requireError.message);
@@ -64,7 +61,7 @@ export async function initializeXTerm() {
       FitAddon = window.FitAddon;
       WebLinksAddon = window.WebLinksAddon;
 
-      console.log('✅ XTerm modules loaded from globals');
+      logger.debug('✅ XTerm modules loaded from globals');
       return { Terminal, FitAddon, WebLinksAddon };
     }
 
@@ -77,12 +74,11 @@ export async function initializeXTerm() {
       WebLinksAddon = window.WebLinksAddon;
 
       if (Terminal) {
-        console.log('✅ XTerm modules loaded via dynamic script loading');
         return { Terminal, FitAddon, WebLinksAddon };
       }
     }
 
-    throw new Error(new Error('All XTerm loading strategies failed'));
+    throw new Error(new Error(new Error('All XTerm loading strategies failed')));
   } catch (error) {
     console.error('❌ XTerm initialization failed:', error);
 
@@ -159,16 +155,12 @@ function loadScript(src) {
  * Create fallback terminal implementation
  */
 function createFallbackTerminal() {
-  console.log('🔧 Creating fallback Terminal implementation');
-
   class FallbackTerminal {
     constructor(options = {}) {
       this.options = options;
       this.element = null;
       this.onDataHandlers = [];
       this.onResizeHandlers = [];
-
-      console.log('📺 FallbackTerminal created with options:', options);
     }
 
     open(element) {
@@ -236,7 +228,6 @@ function createFallbackTerminal() {
     }
 
     loadAddon(addon) {
-      console.log('🔌 Loading addon (fallback):', addon.constructor.name);
       if (addon.activate) {
         addon.activate(this);
       }
@@ -258,28 +249,22 @@ function createFallbackTerminal() {
   }
 
   class FallbackFitAddon {
-    constructor() {
-      console.log('📏 FallbackFitAddon created');
-    }
+    constructor() {}
 
     activate(terminal) {
       this.terminal = terminal;
     }
 
     fit() {
-      console.log('📏 Fitting terminal (fallback)');
       // Basic resize handling
       if (this.terminal && this.terminal.element) {
-        const rect = this.terminal.element.getBoundingClientRect();
-        console.log('Terminal size:', rect.width, 'x', rect.height);
+        const _rect = this.terminal.element.getBoundingClientRect();
       }
     }
   }
 
   class FallbackWebLinksAddon {
-    constructor() {
-      console.log('🔗 FallbackWebLinksAddon created');
-    }
+    constructor() {}
 
     activate(terminal) {
       this.terminal = terminal;

@@ -17,7 +17,6 @@ class BuildStatusChecker {
                 return status;
             }
         } catch (error) {
-            console.log('Build status JSON not available, checking files directly');
         }
 
         // Fallback: check individual files

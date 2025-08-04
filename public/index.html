@@ -20,6 +20,24 @@
       gtag('config', 'G-G424CV5GGT');
     </script>
     
+    <!-- LogRocket Session Recording -->
+    <script src="https://cdn.logrocket.io/LogRocket.min.js"></script>
+    <script>
+      window.LogRocket && window.LogRocket.init('xljdaq/rinawarp-terminal', {
+        release: '1.0.6',
+        console: {
+          isEnabled: true,
+          shouldAggregateConsoleErrors: true
+        }
+      });
+      
+      // Track page view
+      window.LogRocket && window.LogRocket.track('Page View', {
+        page: window.location.pathname,
+        timestamp: new Date().toISOString()
+      });
+    </script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         

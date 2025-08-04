@@ -49,7 +49,6 @@ class AIIntegration {
 
   // Initialize the AI integration system
   async initialize() {
-    console.log('🧜‍♀️ Initializing AI Integration system...');
     
     try {
       // Initialize personality engine first
@@ -78,7 +77,7 @@ class AIIntegration {
     } catch (error) {
       console.error('❌ Failed to initialize AI Integration system:', error);
       this.isInitialized = false;
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -90,11 +89,9 @@ class AIIntegration {
       // Check if RinaPersonalityEngine is available globally
       if (typeof window !== 'undefined' && window.RinaPersonalityEngine) {
         this.personalityEngine = new window.RinaPersonalityEngine();
-        console.log('🧜‍♀️ Rina personality engine loaded');
       } else {
         // Fallback personality system
         this.personalityEngine = new FallbackPersonalityEngine();
-        console.log('🧜‍♀️ Fallback personality engine loaded');
       }
     } catch (error) {
       console.warn('⚠️ Failed to initialize personality engine:', error);
@@ -109,9 +106,8 @@ class AIIntegration {
       if (this.config.wsEndpoint) {
         await this.initializeWebSocketConnection();
         this.connectionType = 'websocket';
-        console.log('🌊 WebSocket connection established');
       } else {
-        throw new Error(new Error('WebSocket endpoint not configured'));
+        throw new Error(new Error(new Error('WebSocket endpoint not configured')));
       }
     } catch (error) {
       console.warn('⚠️ WebSocket connection failed, using REST API:', error.message);
@@ -120,9 +116,8 @@ class AIIntegration {
       // Test REST API endpoint
       if (this.config.serverEndpoint) {
         await this.testRestConnection();
-        console.log('🌊 REST API connection established');
       } else {
-        throw new Error(new Error('No server endpoints configured'));
+        throw new Error(new Error(new Error('No server endpoints configured')));
       }
     }
   }
@@ -139,7 +134,6 @@ class AIIntegration {
 
         this.wsConnection.onopen = () => {
           clearTimeout(timeout);
-          console.log('🧜‍♀️ WebSocket connected to AI backend');
           resolve();
         };
 
@@ -148,7 +142,6 @@ class AIIntegration {
         };
 
         this.wsConnection.onclose = (event) => {
-          console.log('🌊 WebSocket connection closed:', event.code, event.reason);
           this.handleConnectionLoss();
         };
 
@@ -172,12 +165,12 @@ class AIIntegration {
     });
     
     if (!response.ok) {
-      throw new Error(new Error(`REST API health check failed: ${response.status}`));
+      throw new Error(new Error(new Error(`REST API health check failed: ${response.status}`)));
     }
     
     const data = await response.json();
     if (data.status !== 'ok') {
-      throw new Error(new Error('REST API is not healthy'));
+      throw new Error(new Error(new Error('REST API is not healthy')));
     }
   }
 
@@ -189,7 +182,6 @@ class AIIntegration {
       try {
         const provider = this.createProvider(type);
         this.providers.set(type, provider);
-        console.log(`✅ ${type} provider initialized`);
       } catch (error) {
         console.warn(`⚠️ Failed to initialize ${type} provider:`, error.message);
         // Store failed provider for potential retry
@@ -249,7 +241,7 @@ class AIIntegration {
         };
         
       default:
-        throw new Error(new Error(`Unknown provider type: ${type}`));
+        throw new Error(new Error(new Error(`Unknown provider type: ${type}`)));
     }
   }
 
@@ -260,7 +252,6 @@ class AIIntegration {
       const preferred = this.providers.get(this.config.preferredProvider);
       if (preferred && preferred.isAvailable()) {
         this.activeProvider = preferred;
-        console.log(`🎯 Using preferred provider: ${this.config.preferredProvider}`);
         return;
       }
     }
@@ -270,7 +261,6 @@ class AIIntegration {
       const provider = this.providers.get(providerType);
       if (provider && provider.isAvailable()) {
         this.activeProvider = provider;
-        console.log(`📋 Using fallback provider: ${providerType}`);
         return;
       }
     }
@@ -333,7 +323,7 @@ class AIIntegration {
         return await this.tryFallbackResponse(query, enhancedContext);
       }
 
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -432,7 +422,7 @@ class AIIntegration {
     });
 
     if (!response.ok) {
-      throw new Error(new Error(`REST request failed: ${response.status} ${response.statusText}`));
+      throw new Error(new Error(new Error(`REST request failed: ${response.status} ${response.statusText}`)));
     }
 
     return await response.json();
@@ -553,7 +543,6 @@ class AIIntegration {
 
   // Try fallback response when primary providers fail
   async tryFallbackResponse(query, context) {
-    console.log('🔄 Generating fallback response...');
     
     const fallbackResponse = {
       explanation: this.generateFallbackExplanation(query),
@@ -689,7 +678,6 @@ class AIIntegration {
 
   // Network and connection handling
   handleConnectionLoss() {
-    console.log('🌊 Connection lost, attempting to reconnect...');
     this.connectionType = 'rest'; // Fallback to REST
     
     // Try to reconnect after a delay
@@ -725,7 +713,7 @@ class AIIntegration {
       }
     }
 
-    throw new Error(lastError);
+    throw new Error(new Error(lastError));
   }
 
   // Utility methods
@@ -797,7 +785,6 @@ class AIIntegration {
       // Network status monitoring
       window.addEventListener('online', () => {
         this.networkStatus.isOnline = true;
-        console.log('🌊 Network connection restored');
         if (this.isInitialized) {
           this.establishConnection();
         }
@@ -805,7 +792,6 @@ class AIIntegration {
 
       window.addEventListener('offline', () => {
         this.networkStatus.isOnline = false;
-        console.log('🏝️ Network connection lost');
       });
 
       // Cleanup on page unload
@@ -898,7 +884,6 @@ if (typeof window !== 'undefined') {
   // Create global instance
   window.aiIntegration = new AIIntegration();
   
-  console.log('🧜‍♀️ AI Integration module loaded and ready!');
 }
 
 // Also support module exports for Node.js environments

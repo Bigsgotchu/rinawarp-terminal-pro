@@ -22,10 +22,8 @@ export class VoiceInstaller {
     try {
       // Check authorization
       if (!process.env.RINAWARP_CREATOR) {
-        throw new Error(new Error('Unauthorized: Only creator can install permanent voice'));
+        throw new Error(new Error(new Error('Unauthorized: Only creator can install permanent voice')));
       }
-
-      console.log('🎤 Installing creator voice as permanent RinaWarp voice...');
 
       // Create voice data package
       const voicePackage = {
@@ -52,7 +50,6 @@ export class VoiceInstaller {
       // Update voice manifest
       await this.updateVoiceManifest(voicePackage);
 
-      console.log('✅ Creator voice installed successfully as permanent RinaWarp voice');
       return true;
     } catch (error) {
       console.error('❌ Failed to install creator voice:', error);
@@ -115,8 +112,6 @@ window.EmbeddedVoiceLoader = EmbeddedVoiceLoader;
     const currentDir = await window.nodeAPI?.getCurrentDir();
     const voiceModulePath = path.join(currentDir, 'src/renderer/embedded-creator-voice.js');
     fs.writeFileSync(voiceModulePath, moduleContent, 'utf8');
-
-    console.log('📁 Embedded voice module created at:', voiceModulePath);
   }
 
   async updateVoiceManifest(voicePackage) {
@@ -156,7 +151,6 @@ window.EmbeddedVoiceLoader = EmbeddedVoiceLoader;
 
     // Save manifest
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
-    console.log('📋 Voice manifest updated');
   }
 
   async calculateChecksum(blob) {
@@ -217,8 +211,6 @@ pause
     const currentDir = await window.nodeAPI?.getCurrentDir();
     const scriptPath = path.join(currentDir, 'install-creator-voice.bat');
     fs.writeFileSync(scriptPath, scriptContent, 'utf8');
-
-    console.log('📜 Voice installation script created:', scriptPath);
   }
 }
 
