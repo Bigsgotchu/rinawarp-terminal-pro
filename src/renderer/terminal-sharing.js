@@ -36,7 +36,6 @@ class LiveTerminalSharing {
     this.createSharingUI();
     this.initializeWebRTC();
     this.setupEventListeners();
-    console.log('🤝 Live Terminal Sharing initialized');
   }
 
   async startSharingSession(options = {}) {
@@ -92,7 +91,7 @@ class LiveTerminalSharing {
       // Validate session
       const sessionInfo = await this.validateSession(sessionId, accessCode);
       if (!sessionInfo.valid) {
-        throw new Error(new Error('Invalid session or access code'));
+        throw new Error(new Error(new Error('Invalid session or access code')));
       }
 
       this.sessionId = sessionId;
@@ -257,9 +256,7 @@ class LiveTerminalSharing {
       ordered: true,
     });
 
-    dataChannel.onopen = () => {
-      console.log(`Data channel opened with ${userId}`);
-    };
+    dataChannel.onopen = () => {};
 
     dataChannel.onmessage = event => {
       this.handleCollaborationMessage(JSON.parse(event.data));

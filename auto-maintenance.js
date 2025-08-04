@@ -8,13 +8,9 @@ import { execSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🔧 RinaWarp Auto-Maintenance System');
-console.log('===================================\n');
-
 const fixes = [];
 
 // 1. Fix common file issues
-console.log('1️⃣ Checking file integrity...');
 
 // Ensure critical directories exist
 const requiredDirs = ['releases', 'logs', 'public', 'src/api', 'src/payment'];
@@ -26,14 +22,14 @@ requiredDirs.forEach(dir => {
 });
 
 // 2. Fix pricing consistency
-console.log('\n2️⃣ Checking pricing consistency...');
 
 const checkPricing = () => {
-  const correctPrices = {
-    basic: 29,
-    pro: 99,
-    enterprise: 299,
-  };
+  // Correct prices defined for reference
+  // const correctPrices = {
+  //   basic: 29,
+  //   pro: 99,
+  //   enterprise: 299,
+  // };
 
   // Check payment handler
   if (fs.existsSync('src/payment/stripe-checkout.js')) {
@@ -64,7 +60,6 @@ const checkPricing = () => {
 checkPricing();
 
 // 3. Validate and fix HTML files
-console.log('\n3️⃣ Validating HTML files...');
 
 const validateHTML = filePath => {
   if (!fs.existsSync(filePath)) return;
@@ -100,7 +95,6 @@ const validateHTML = filePath => {
 ['index.html', 'pricing.html', 'public/success.html'].forEach(validateHTML);
 
 // 4. Clean up temporary files
-console.log('\n4️⃣ Cleaning temporary files...');
 
 const cleanupPatterns = ['*.tmp', '*.log.old', '.DS_Store', 'npm-debug.log*', 'yarn-error.log*'];
 
@@ -122,7 +116,7 @@ const cleanup = (dir = '.') => {
         });
       }
     });
-  } catch (e) {
+  } catch (_e) {
     // Ignore errors
   }
 };
@@ -130,7 +124,6 @@ const cleanup = (dir = '.') => {
 cleanup();
 
 // 5. Optimize package.json
-console.log('\n5️⃣ Optimizing package.json...');
 
 if (fs.existsSync('package.json')) {
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -158,7 +151,6 @@ if (fs.existsSync('package.json')) {
 }
 
 // 6. Create/Update .env.example
-console.log('\n6️⃣ Updating .env.example...');
 
 const envExample = `# RinaWarp Terminal Environment Variables
 # Copy this file to .env and fill in your values
@@ -199,7 +191,6 @@ fs.writeFileSync('.env.example', envExample);
 fixes.push('Updated .env.example with all required variables');
 
 // 7. Fix permissions
-console.log('\n7️⃣ Fixing file permissions...');
 
 try {
   // Make scripts executable
@@ -215,12 +206,11 @@ try {
     }
   });
   fixes.push('Fixed script permissions');
-} catch (e) {
+} catch (_e) {
   // Ignore on Windows
 }
 
 // 8. Validate server endpoints
-console.log('\n8️⃣ Validating server endpoints...');
 
 if (fs.existsSync('final-server.js')) {
   const serverContent = fs.readFileSync('final-server.js', 'utf8');
@@ -235,14 +225,13 @@ if (fs.existsSync('final-server.js')) {
 
   if (missingEndpoints.length > 0) {
     console.log('⚠️  Missing endpoints detected:');
-    missingEndpoints.forEach(ep => {
-      console.log(`   - ${ep.route} (${ep.desc})`);
+    missingEndpoints.forEach(_ep => {
+      console.log(`  - ${ep.desc} (${ep.route})`);
     });
   }
 }
 
 // 9. Create maintenance report
-console.log('\n9️⃣ Generating maintenance report...');
 
 const report = {
   timestamp: new Date().toISOString(),
@@ -257,25 +246,15 @@ fs.writeFileSync(
 );
 
 // Summary
-console.log('\n' + '='.repeat(50));
 console.log('📊 MAINTENANCE SUMMARY');
-console.log('='.repeat(50));
 
 if (fixes.length === 0) {
   console.log('✅ No issues found - system is healthy!');
 } else {
-  console.log(`🔧 Applied ${fixes.length} fixes:`);
-  fixes.forEach((fix, i) => {
-    console.log(`   ${i + 1}. ${fix}`);
+  fixes.forEach((_fix, _i) => {
+    console.log(`  ${i + 1}. ${fix}`);
   });
 }
-
-console.log('\n💡 RECOMMENDATIONS:');
-console.log('   1. Run pre-deploy-check.js before each deployment');
-console.log('   2. Set up cron job for auto-maintenance.js (daily)');
-console.log('   3. Monitor website-health.log for issues');
-console.log('   4. Keep .env file updated with production values');
-console.log('   5. Regular backups of database and user data');
 
 // Create systemd service file for Linux
 const systemdService = `[Unit]
@@ -295,7 +274,3 @@ WantedBy=multi-user.target
 `;
 
 fs.writeFileSync('rinawarp-monitor.service', systemdService);
-console.log('\n📝 Created systemd service file: rinawarp-monitor.service');
-console.log('   Install with: sudo cp rinawarp-monitor.service /etc/systemd/system/');
-console.log('   Enable with: sudo systemctl enable rinawarp-monitor');
-console.log('   Start with: sudo systemctl start rinawarp-monitor');

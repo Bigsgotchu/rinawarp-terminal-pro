@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 6 deprecated pattern(s) replaced with modern alternatives
@@ -66,7 +67,6 @@ class GCPMonitoringConfig {
           const credentials = JSON.parse(credentialsContent);
 
           // Validate service account has required roles
-          console.log(
             `📊 Initializing GCP Monitoring with service account: ${credentials.client_email}`
           );
         } catch (error) {
@@ -91,7 +91,7 @@ class GCPMonitoringConfig {
       await this.testConnection();
 
       this.isInitialized = true;
-      console.log('✅ Google Cloud Monitoring initialized successfully');
+      logger.debug('✅ Google Cloud Monitoring initialized successfully');
 
       return { success: true, message: 'Monitoring initialized successfully' };
     } catch (error) {
@@ -112,11 +112,10 @@ class GCPMonitoringConfig {
         pageSize: 1,
       });
 
-      console.log('✅ Successfully connected to Google Cloud Monitoring');
       return true;
     } catch (error) {
       console.error('❌ Failed to connect to Google Cloud Monitoring:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -125,7 +124,7 @@ class GCPMonitoringConfig {
    */
   getMonitoringClient() {
     if (!this.isInitialized) {
-      throw new Error(new Error('Monitoring client not initialized. Call initialize() first.'));
+      throw new Error(new Error(new Error('Monitoring client not initialized. Call initialize() first.')));
     }
     return this.monitoringClient;
   }
@@ -135,7 +134,7 @@ class GCPMonitoringConfig {
    */
   getLoggingClient() {
     if (!this.isInitialized) {
-      throw new Error(new Error('Logging client not initialized. Call initialize() first.'));
+      throw new Error(new Error(new Error('Logging client not initialized. Call initialize() first.')));
     }
     return this.loggingClient;
   }
@@ -169,17 +168,15 @@ class GCPMonitoringConfig {
       };
 
       const [descriptor] = await client.createMetricDescriptor(request);
-      console.log(`✅ Created custom metric: ${descriptor.name}`);
 
       return descriptor;
     } catch (error) {
       if (error.code === 6) {
         // ALREADY_EXISTS
-        console.log(`ℹ️  Custom metric ${metricType} already exists`);
         return null;
       }
       console.error('❌ Error creating custom metric:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -222,10 +219,10 @@ class GCPMonitoringConfig {
       };
 
       await client.createTimeSeries(request);
-      console.log(`📊 Wrote metric data for ${metricType}: ${value}`);
+      logger.debug(`📊 Wrote metric data for ${metricType}: ${value}`);
     } catch (error) {
       console.error('❌ Error writing metric data:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -243,12 +240,12 @@ class GCPMonitoringConfig {
       };
 
       const [policy] = await client.createAlertPolicy(request);
-      console.log(`✅ Created alert policy: ${policy.name}`);
+      logger.debug(`✅ Created alert policy: ${policy.name}`);
 
       return policy;
     } catch (error) {
       console.error('❌ Error creating alert policy:', error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 

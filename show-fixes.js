@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-console.log(`
+/*
 🔧 RinaWarp Terminal - Critical Fixes Summary
 =============================================
 
@@ -54,4 +54,6 @@ Open browser console and run: window.performHealthCheck()
 4. The terminal now works without critical errors!
 
 All systems operational! ✨
-`);
+*/
+
+// This file is now a comment block to avoid parsing errors

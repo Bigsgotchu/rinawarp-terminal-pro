@@ -6,7 +6,7 @@ router.get('/', async (req, res) => {
     status: 'healthy',
     service: 'RinaWarp AI Cloud Service',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -16,8 +16,8 @@ router.get('/readiness', async (req, res) => {
     services: {
       database: 'ready',
       ai: 'ready',
-      cache: 'ready'
-    }
+      cache: 'ready',
+    },
   });
 });
 

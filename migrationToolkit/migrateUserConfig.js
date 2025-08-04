@@ -1,13 +1,13 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 2 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
 
-#!/usr/bin/env node
 /**
  * 🧜‍♀️ RinaWarp Terminal - Configuration Migration Script
- * 
+ *
  * Smart transformation of user configurations from v1.0.7 to v1.0.19
  * Preserves user preferences while enabling new features
  */
@@ -25,7 +25,7 @@ class ConfigurationMigrator {
       verbose: options.verbose || false,
       dryRun: options.dryRun || false,
       preserveLegacy: options.preserveLegacy !== false,
-      ...options
+      ...options,
     };
 
     this.migrationRules = this.defineMigrationRules();
@@ -34,7 +34,7 @@ class ConfigurationMigrator {
       changes: [],
       warnings: [],
       errors: [],
-      backupPath: null
+      backupPath: null,
     };
   }
 
@@ -52,7 +52,7 @@ class ConfigurationMigrator {
 
       // Step 2: Detect existing configuration format
       const existingConfig = await this.detectExistingConfiguration();
-      
+
       // Step 3: Transform configuration
       const newConfig = await this.transformConfiguration(existingConfig);
 
@@ -75,11 +75,10 @@ class ConfigurationMigrator {
       this.log('✅ Configuration migration completed successfully!');
 
       return this.migrationResults;
-
     } catch (error) {
       this.log(`❌ Migration failed: ${error.message}`, 'error');
       this.migrationResults.errors.push(error.message);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -88,15 +87,15 @@ class ConfigurationMigrator {
    */
   async createMigrationBackup() {
     this.log('📦 Creating pre-migration backup...');
-    
+
     const backup = new UserDataBackup({
       verbose: this.options.verbose,
-      dryRun: this.options.dryRun
+      dryRun: this.options.dryRun,
     });
 
     const result = await backup.backup();
     this.migrationResults.backupPath = result.backupPath;
-    
+
     this.log(`✅ Backup created: ${result.backupPath}`);
   }
 
@@ -111,7 +110,7 @@ class ConfigurationMigrator {
       { path: 'user-config.json', format: 'json', priority: 2 },
       { path: 'terminal-config.json', format: 'json', priority: 3 },
       { path: 'preferences.json', format: 'json', priority: 4 },
-      { path: path.join(os.homedir(), '.rinawarp/config.json'), format: 'json', priority: 5 }
+      { path: path.join(os.homedir(), '.rinawarp/config.json'), format: 'json', priority: 5 },
     ];
 
     let existingConfig = {};
@@ -139,7 +138,7 @@ class ConfigurationMigrator {
     return {
       version: detectedVersion,
       source: configSource,
-      config: existingConfig
+      config: existingConfig,
     };
   }
 
@@ -173,7 +172,7 @@ class ConfigurationMigrator {
       migrated: true,
       migratedFrom: version,
       migratedAt: new Date().toISOString(),
-      ...this.getDefaultV1019Config()
+      ...this.getDefaultV1019Config(),
     };
 
     // Apply version-specific transformations
@@ -189,7 +188,9 @@ class ConfigurationMigrator {
     // Apply transformation rules
     newConfig = await this.applyMigrationRules(config, newConfig);
 
-    this.log(`✅ Configuration transformed (${Object.keys(this.migrationResults.changes).length} changes)`);
+    this.log(
+      `✅ Configuration transformed (${Object.keys(this.migrationResults.changes).length} changes)`
+    );
     return newConfig;
   }
 
@@ -206,7 +207,7 @@ class ConfigurationMigrator {
         scrollback: 1000,
         glowEffects: false,
         smoothTransitions: true,
-        responsiveDesign: true
+        responsiveDesign: true,
       },
       email: {
         provider: 'sendgrid',
@@ -214,8 +215,8 @@ class ConfigurationMigrator {
         rateLimitPerHour: 100,
         templates: {
           welcome: 'default',
-          notification: 'default'
-        }
+          notification: 'default',
+        },
       },
       monitoring: {
         enabled: true,
@@ -223,7 +224,7 @@ class ConfigurationMigrator {
         interval: 60000,
         gcpEnabled: false,
         metricsRetention: '7d',
-        realTimeUpdates: true
+        realTimeUpdates: true,
       },
       features: {
         discordBot: false,
@@ -231,7 +232,7 @@ class ConfigurationMigrator {
         voiceRecognition: false,
         aiAssistant: false,
         performanceOptimization: true,
-        advancedThemes: true
+        advancedThemes: true,
       },
       security: {
         encryptionEnabled: true,
@@ -239,7 +240,7 @@ class ConfigurationMigrator {
         maxLoginAttempts: 5,
         auditLogging: true,
         csrfProtection: true,
-        rateLimiting: true
+        rateLimiting: true,
       },
       ui: {
         animations: true,
@@ -250,15 +251,15 @@ class ConfigurationMigrator {
         accessibility: {
           highContrast: false,
           reduceMotion: false,
-          screenReader: false
-        }
+          screenReader: false,
+        },
       },
       performance: {
         progressiveLoading: true,
         caching: true,
         compressionEnabled: true,
-        lazyLoading: true
-      }
+        lazyLoading: true,
+      },
     };
   }
 
@@ -294,7 +295,7 @@ class ConfigurationMigrator {
       // Keep SendGrid as primary but enable fallback
       newConfig.email.provider = 'sendgrid';
       newConfig.email.sendgrid = {
-        apiKey: '${SENDGRID_API_KEY}' // Reference to environment variable
+        apiKey: '${SENDGRID_API_KEY}', // Reference to environment variable
       };
       this.addChange('email.provider', 'hybrid', 'sendgrid-primary');
       this.addWarning('SendGrid API key needs to be set in environment variables');
@@ -333,7 +334,7 @@ class ConfigurationMigrator {
     Object.assign(newConfig.terminal, {
       theme: oldConfig.theme || 'oceanic',
       fontSize: oldConfig.fontSize || 14,
-      fontFamily: oldConfig.fontFamily || newConfig.terminal.fontFamily
+      fontFamily: oldConfig.fontFamily || newConfig.terminal.fontFamily,
     });
 
     // Conservative feature defaults for legacy users
@@ -341,13 +342,13 @@ class ConfigurationMigrator {
       discordBot: false,
       mobileCompanion: false,
       voiceRecognition: false,
-      aiAssistant: false
+      aiAssistant: false,
     });
 
     // Basic monitoring only
     Object.assign(newConfig.monitoring, {
       enabled: false,
-      level: 'basic'
+      level: 'basic',
     });
 
     this.addChange('migration.type', null, 'legacy-to-v1.0.19');
@@ -376,47 +377,47 @@ class ConfigurationMigrator {
     return [
       {
         name: 'Preserve custom keybindings',
-        condition: (config) => config.keybindings && Object.keys(config.keybindings).length > 0,
+        condition: config => config.keybindings && Object.keys(config.keybindings).length > 0,
         transform: (oldConfig, newConfig) => {
           newConfig.keybindings = oldConfig.keybindings;
           this.addChange('keybindings', null, 'preserved');
           return newConfig;
-        }
+        },
       },
       {
         name: 'Migrate color customizations',
-        condition: (config) => config.colors || config.colorScheme,
+        condition: config => config.colors || config.colorScheme,
         transform: (oldConfig, newConfig) => {
           if (oldConfig.colors) {
             newConfig.terminal.customColors = oldConfig.colors;
             this.addChange('terminal.customColors', null, 'migrated');
           }
           return newConfig;
-        }
+        },
       },
       {
         name: 'Preserve window preferences',
-        condition: (config) => config.window,
+        condition: config => config.window,
         transform: (oldConfig, newConfig) => {
           newConfig.window = {
             width: oldConfig.window.width || 1200,
             height: oldConfig.window.height || 800,
             position: oldConfig.window.position || 'center',
-            ...oldConfig.window
+            ...oldConfig.window,
           };
           this.addChange('window', null, 'preserved');
           return newConfig;
-        }
+        },
       },
       {
         name: 'Migrate plugin configurations',
-        condition: (config) => config.plugins,
+        condition: config => config.plugins,
         transform: (oldConfig, newConfig) => {
           newConfig.plugins = oldConfig.plugins;
           this.addChange('plugins', null, 'preserved');
           return newConfig;
-        }
-      }
+        },
+      },
     ];
   }
 
@@ -425,14 +426,14 @@ class ConfigurationMigrator {
    */
   mapLegacyTheme(legacyTheme) {
     const themeMap = {
-      'default': 'oceanic',
-      'dark': 'oceanic',
-      'light': 'minimal',
-      'blue': 'oceanic',
-      'green': 'neon',
-      'purple': 'glassmorphic',
-      'ocean': 'oceanic',
-      'cyber': 'neon'
+      default: 'oceanic',
+      dark: 'oceanic',
+      light: 'minimal',
+      blue: 'oceanic',
+      green: 'neon',
+      purple: 'glassmorphic',
+      ocean: 'oceanic',
+      cyber: 'neon',
     };
 
     return themeMap[legacyTheme] || 'oceanic';
@@ -447,20 +448,23 @@ class ConfigurationMigrator {
     const validationRules = [
       {
         name: 'Required fields present',
-        validate: (cfg) => cfg.version && cfg.terminal && cfg.email && cfg.monitoring
+        validate: cfg => cfg.version && cfg.terminal && cfg.email && cfg.monitoring,
       },
       {
         name: 'Theme is valid',
-        validate: (cfg) => ['oceanic', 'neon', 'glassmorphic', 'minimal', 'high-contrast'].includes(cfg.terminal.theme)
+        validate: cfg =>
+          ['oceanic', 'neon', 'glassmorphic', 'minimal', 'high-contrast'].includes(
+            cfg.terminal.theme
+          ),
       },
       {
         name: 'Email provider is valid',
-        validate: (cfg) => ['sendgrid', 'nodemailer', 'hybrid'].includes(cfg.email.provider)
+        validate: cfg => ['sendgrid', 'nodemailer', 'hybrid'].includes(cfg.email.provider),
       },
       {
         name: 'Monitoring level is valid',
-        validate: (cfg) => ['basic', 'standard', 'advanced'].includes(cfg.monitoring.level)
-      }
+        validate: cfg => ['basic', 'standard', 'advanced'].includes(cfg.monitoring.level),
+      },
     ];
 
     let validationErrors = 0;
@@ -472,7 +476,7 @@ class ConfigurationMigrator {
     }
 
     if (validationErrors > 0) {
-      throw new Error(new Error(`Configuration validation failed with ${validationErrors} errors`));
+      throw new Error(new Error(new Error(`Configuration validation failed with ${validationErrors} errors`)));
     }
 
     this.log('✅ Configuration validation passed');
@@ -497,9 +501,9 @@ class ConfigurationMigrator {
         fontSize: config.terminal.fontSize,
         fontFamily: config.terminal.fontFamily,
         glowEffects: config.terminal.glowEffects,
-        customColors: config.terminal.customColors
+        customColors: config.terminal.customColors,
       },
-      availableThemes: ['oceanic', 'neon', 'glassmorphic', 'minimal', 'high-contrast', 'custom']
+      availableThemes: ['oceanic', 'neon', 'glassmorphic', 'minimal', 'high-contrast', 'custom'],
     };
     fs.writeFileSync(themeConfigPath, JSON.stringify(themeConfig, null, 2));
     this.log(`✅ Written: ${themeConfigPath}`);
@@ -543,7 +547,7 @@ class ConfigurationMigrator {
       'ENABLE_AUDIT_LOGGING=true',
       'SESSION_TIMEOUT=3600000',
       'MAX_LOGIN_ATTEMPTS=5',
-      ''
+      '',
     ];
 
     // Update .env.template
@@ -572,45 +576,45 @@ class ConfigurationMigrator {
           enabled: false,
           description: 'Discord bot integration for community management',
           dependencies: ['discord.js'],
-          rolloutStrategy: 'opt-in'
+          rolloutStrategy: 'opt-in',
         },
         mobileCompanion: {
           enabled: true,
           description: 'React Native companion app for monitoring',
           dependencies: ['react-native'],
-          rolloutStrategy: 'gradual'
+          rolloutStrategy: 'gradual',
         },
         advancedMonitoring: {
           enabled: false,
           description: 'Advanced monitoring with GCP integration',
           dependencies: ['@google-cloud/monitoring'],
-          rolloutStrategy: 'enterprise'
+          rolloutStrategy: 'enterprise',
         },
         voiceRecognition: {
           enabled: false,
           description: 'Enhanced voice command system',
           dependencies: ['voice-engine'],
-          rolloutStrategy: 'beta'
+          rolloutStrategy: 'beta',
         },
         aiAssistant: {
           enabled: false,
           description: 'AI-powered terminal assistant',
           dependencies: ['openai'],
-          rolloutStrategy: 'beta'
+          rolloutStrategy: 'beta',
         },
         glowEffects: {
           enabled: false,
           description: 'Visual glow effects and animations',
           dependencies: [],
-          rolloutStrategy: 'opt-in'
-        }
+          rolloutStrategy: 'opt-in',
+        },
       },
       rolloutProfiles: {
         conservative: ['mobileCompanion'],
         standard: ['mobileCompanion', 'advancedMonitoring'],
         advanced: ['mobileCompanion', 'advancedMonitoring', 'voiceRecognition', 'glowEffects'],
-        enterprise: ['mobileCompanion', 'advancedMonitoring', 'discordBot', 'aiAssistant']
-      }
+        enterprise: ['mobileCompanion', 'advancedMonitoring', 'discordBot', 'aiAssistant'],
+      },
     };
 
     fs.writeFileSync('feature-flags.json', JSON.stringify(featureFlagConfig, null, 2));
@@ -627,8 +631,8 @@ class ConfigurationMigrator {
         success: this.migrationResults.success,
         version: {
           from: 'v1.0.7',
-          to: 'v1.0.19'
-        }
+          to: 'v1.0.19',
+        },
       },
       changes: this.migrationResults.changes,
       warnings: this.migrationResults.warnings,
@@ -639,14 +643,14 @@ class ConfigurationMigrator {
         'Run npm install to install new dependencies',
         'Test application with npm run test:migration',
         'Configure feature flags in feature-flags.json',
-        'Start application with npm start'
+        'Start application with npm start',
       ],
       support: {
         documentation: 'docs/migration-guide.md',
         troubleshooting: 'docs/troubleshooting.md',
         community: 'https://discord.gg/rinawarp',
-        email: 'rinawarptechnologies25@gmail.com'
-      }
+        email: 'rinawarptechnologies25@gmail.com',
+      },
     };
 
     const reportPath = 'migration-report.json';
@@ -655,7 +659,7 @@ class ConfigurationMigrator {
     }
 
     this.log(`📋 Generated migration report: ${reportPath}`);
-    
+
     // Print summary
     this.printMigrationSummary(report);
   }
@@ -664,46 +668,30 @@ class ConfigurationMigrator {
    * Print migration summary
    */
   printMigrationSummary(report) {
-    console.log('\n🧜‍♀️ ===== MIGRATION SUMMARY =====');
-    console.log(`📅 Completed: ${report.migration.timestamp}`);
-    console.log(`✅ Status: ${report.migration.success ? 'SUCCESS' : 'FAILED'}`);
-    console.log(`🔄 Changes: ${report.changes.length}`);
     console.log(`⚠️ Warnings: ${report.warnings.length}`);
     console.log(`❌ Errors: ${report.errors.length}`);
 
     if (report.changes.length > 0) {
-      console.log('\n📝 Configuration Changes:');
-      for (const change of report.changes.slice(0, 10)) { // Show first 10
-        console.log(`  • ${change.field}: ${change.from} → ${change.to}`);
+      for (const change of report.changes.slice(0, 10)) {
+        // Show first 10
       }
       if (report.changes.length > 10) {
-        console.log(`  ... and ${report.changes.length - 10} more changes`);
       }
     }
 
     if (report.warnings.length > 0) {
-      console.log('\n⚠️ Warnings:');
       for (const warning of report.warnings) {
-        console.log(`  • ${warning}`);
       }
     }
 
     if (report.errors.length > 0) {
-      console.log('\n❌ Errors:');
       for (const error of report.errors) {
-        console.log(`  • ${error}`);
       }
     }
 
-    console.log('\n🔧 Next Steps:');
-    for (const step of report.nextSteps.slice(0, 5)) { // Show first 5 steps
-      console.log(`  ${report.nextSteps.indexOf(step) + 1}. ${step}`);
+    for (const step of report.nextSteps.slice(0, 5)) {
+      // Show first 5 steps
     }
-
-    console.log('\n📞 Need Help?');
-    console.log(`  📚 Documentation: ${report.support.documentation}`);
-    console.log(`  💬 Community: ${report.support.community}`);
-    console.log(`  📧 Email: ${report.support.email}`);
   }
 
   /**
@@ -728,15 +716,14 @@ class ConfigurationMigrator {
    */
   log(message, level = 'info') {
     if (!this.options.verbose && level === 'debug') return;
-    
-    const prefix = {
-      info: '💙',
-      warn: '⚠️',
-      error: '❌',
-      debug: '🔍'
-    }[level] || '📝';
 
-    console.log(`${prefix} ${message}`);
+    const prefix =
+      {
+        info: '💙',
+        warn: '⚠️',
+        error: '❌',
+        debug: '🔍',
+      }[level] || '📝';
   }
 }
 
@@ -749,16 +736,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     verbose: args.includes('--verbose') || args.includes('-v'),
     dryRun: args.includes('--dry-run'),
     preserveLegacy: !args.includes('--no-legacy'),
-    forceEnvUpdate: args.includes('--force-env')
+    forceEnvUpdate: args.includes('--force-env'),
   };
 
   const migrator = new ConfigurationMigrator(options);
-  
-  migrator.migrate()
+
+  migrator
+    .migrate()
     .then(result => {
       if (result.success) {
-        console.log('\n✅ Migration completed successfully!');
-        console.log('🔧 Next: npm install && npm run test:migration && npm start');
         process.exit(0);
       }
     })

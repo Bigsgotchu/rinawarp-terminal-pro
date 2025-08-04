@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Simple shadow -->
+    <filter id="monoShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.1" />
+    </filter>
+  </defs>
+  
+  <!-- White background -->
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+  
+  <g transform="translate(512, 512)">
+    <!-- RW Monogram -->
+    <g opacity="0.1">
+      <path d="M -120 -180 L -120 180 M -120 -180 L 0 -180 Q 80 -180 80 -100 Q 80 -20 0 -20 L -120 -20 M -40 -20 L 80 180" 
+            stroke="#000000" 
+            stroke-width="20" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      
+      <path d="M 100 -180 L 140 180 M 140 180 L 180 -60 M 180 -60 L 220 180 M 220 180 L 260 -180" 
+            stroke="#000000" 
+            stroke-width="20" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+    </g>
+    
+    <!-- Simple hexagon -->
+    <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" 
+             fill="none" 
+             stroke="#1E293B" 
+             stroke-width="6"
+             filter="url(#monoShadow)"/>
+    
+    <!-- Terminal prompt -->
+    <g transform="scale(2)">
+      <path d="M -35 -25 L -10 0 L -35 25" 
+            stroke="#1E293B" 
+            stroke-width="8" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      <line x1="5" y1="0" x2="40" y2="0" 
+            stroke="#1E293B" 
+            stroke-width="8" 
+            stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

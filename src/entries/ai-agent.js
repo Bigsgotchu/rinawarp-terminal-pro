@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
@@ -20,8 +21,6 @@ class AIAgentFeature {
 
   async initialize() {
     try {
-      console.log('🤖 Initializing AI Agent Feature...');
-
       // Initialize Agent Mode Integration
       this.agentIntegration = new AgentModeIntegration(this.terminal);
 
@@ -38,7 +37,7 @@ class AIAgentFeature {
       });
 
       this.isInitialized = true;
-      console.log('✅ AI Agent Feature initialized successfully');
+      logger.debug('✅ AI Agent Feature initialized successfully');
 
       // Notify terminal that agent is ready
       this.terminal.emit('agent:ready', {
@@ -49,7 +48,7 @@ class AIAgentFeature {
       return this;
     } catch (error) {
       console.error('❌ Failed to initialize AI Agent Feature:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -105,7 +104,7 @@ class AIAgentFeature {
 
   async chatWithAgent(message, options = {}) {
     if (!this.agentIntegration) {
-      throw new Error(new Error('Agent integration not initialized'));
+      throw new Error(new Error(new Error('Agent integration not initialized')));
     }
 
     return await this.agentIntegration.chatWithAgent(message);
@@ -113,7 +112,7 @@ class AIAgentFeature {
 
   async executeWithAgent(command, explanation = '') {
     if (!this.agentIntegration) {
-      throw new Error(new Error('Agent integration not initialized'));
+      throw new Error(new Error(new Error('Agent integration not initialized')));
     }
 
     return await this.agentIntegration.executeWithAgent(command, explanation);

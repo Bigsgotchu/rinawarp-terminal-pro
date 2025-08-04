@@ -20,7 +20,7 @@ export class AIOrchestrator {
 
   async initialize() {
     logger.info('Initializing AI providers...');
-    
+
     // Initialize all providers and track which ones are available
     for (const [name, provider] of Object.entries(this.providers)) {
       try {
@@ -47,7 +47,7 @@ export class AIOrchestrator {
   async getCompletion(prompt, options = {}) {
     const { provider: requestedProvider, ...providerOptions } = options;
     const providerName = this.selectProvider(requestedProvider);
-    
+
     if (!providerName) {
       // Fallback to mock response
       return `Mock response to: ${prompt}`;
@@ -64,21 +64,21 @@ export class AIOrchestrator {
         logger.info(`Falling back to ${fallback} provider`);
         return await this.providers[fallback].getCompletion(prompt, providerOptions);
       }
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async *streamCompletion(prompt, options = {}) {
     const { userId, context, provider: requestedProvider, ...providerOptions } = options;
     const providerName = this.selectProvider(requestedProvider);
-    
+
     logger.info(`Processing prompt for user ${userId} using ${providerName || 'mock'} provider`);
-    
+
     if (!providerName) {
       // Fallback to mock response
-      yield "Mock Response: ";
+      yield 'Mock Response: ';
       yield prompt.substring(0, 50);
-      yield "...";
+      yield '...';
       return;
     }
 
@@ -93,7 +93,7 @@ export class AIOrchestrator {
         logger.info(`Falling back to ${fallback} provider`);
         yield* this.providers[fallback].streamCompletion(prompt, providerOptions);
       } else {
-        throw new Error(error);
+        throw new Error(new Error(error));
       }
     }
   }

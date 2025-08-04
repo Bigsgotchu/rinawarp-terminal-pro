@@ -1,10 +1,10 @@
+#!/usr/bin/env node
+
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 
 /**
  * 🧜‍♀️ RinaWarp Terminal - Modern Package Refactoring Tool
@@ -29,9 +29,6 @@ import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-console.log('🧜‍♀️ RinaWarp Terminal - Modern Package Refactoring Tool');
-console.log('===========================================================');
 
 // Modern utility functions to replace deprecated packages
 const modernUtils = {
@@ -79,7 +76,6 @@ const modernUtils = {
   ensureDir: async dirPath => {
     try {
       await fs.mkdir(dirPath, { recursive: true });
-      console.log(`✅ Created directory: ${dirPath}`);
     } catch (error) {
       console.error(`❌ Failed to create directory ${dirPath}:`, error.message);
     }
@@ -161,7 +157,7 @@ const modernUtils = {
         body: await response.text(),
       };
     } catch (error) {
-      throw new Error(new Error(`HTTP request failed: ${error.message}`));
+      throw new Error(new Error(new Error(`HTTP request failed: ${error.message}`)));
     }
   },
 };
@@ -221,8 +217,6 @@ async function refactorFile(filePath) {
 
     for (const pattern of deprecatedPatterns) {
       if (pattern.pattern.test(content)) {
-        console.log(`🔍 Found ${pattern.name} in ${filePath}`);
-
         // Replace the require statement
         modifiedContent = modifiedContent.replace(pattern.pattern, pattern.replacement);
 
@@ -237,7 +231,6 @@ async function refactorFile(filePath) {
 
     if (hasChanges) {
       await fs.writeFile(filePath, modifiedContent, 'utf8');
-      console.log(`✅ Refactored ${filePath}`);
       return true;
     }
 
@@ -279,8 +272,6 @@ async function scanDirectory(dir) {
 
 // Main execution function
 async function main() {
-  console.log('\n🔍 Scanning for deprecated package usage...');
-
   const filesToProcess = await scanDirectory('.');
   let processedCount = 0;
   let refactoredCount = 0;
@@ -293,13 +284,7 @@ async function main() {
     }
   }
 
-  console.log('\n📊 Processing Summary:');
-  console.log(`   Files scanned: ${processedCount}`);
-  console.log(`   Files refactored: ${refactoredCount}`);
-
   if (refactoredCount > 0) {
-    console.log('\n🧜‍♀️ Creating modern utility library...');
-
     // Create a modern utilities file
     const utilsContent = `
 /**
@@ -413,17 +398,7 @@ export declare function asyncWaterfall<T>(tasks: Array<(prev: T) => Promise<T>>,
 `;
 
     await fs.writeFile('./src/utils/modern-utils.d.ts', typesContent);
-    console.log('✅ Created TypeScript definitions: src/utils/modern-utils.d.ts');
   }
-
-  console.log('\n🧜‍♀️ Next steps:');
-  console.log('1. Review the refactored code and test functionality');
-  console.log('2. Run npm install to apply package.json overrides');
-  console.log('3. Run your test suite to ensure everything works');
-  console.log('4. Consider removing old deprecated packages from package.json');
-  console.log('5. Update your documentation to reflect the modern patterns');
-
-  console.log('\n✨ Your codebase is now swimming in modern waters! 🌊');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

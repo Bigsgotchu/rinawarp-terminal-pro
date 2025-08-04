@@ -1,3 +1,269 @@
+import logger from '../utils/logger.js';
+// Debug: Check what's available at startup
+
+// Performance monitoring
+import PerformanceMonitor from '../utilities/performance-monitor.js';
+const perfMonitor = new PerformanceMonitor();
+
+// React imports and initialization will happen after DOM is ready
+let reactInitialized = false;
+let aiAssistant = null;
+let terminalManager = null;
+
+// Lazy load AI Assistant
+async function getAIAssistant() {
+  if (!aiAssistant) {
+    perfMonitor.mark('aiLoadStart');
+    const { AIAssistant } = await import('../ai-system/terminal-ai-assistant.js');
+    aiAssistant = new AIAssistant();
+    perfMonitor.mark('aiLoaded');
+  }
+  return aiAssistant;
+}
+
+// Lazy load Terminal Manager
+async function getTerminalManager() {
+  if (!terminalManager) {
+    const { TerminalManager } = await import('./terminal-manager.js');
+    terminalManager = new TerminalManager();
+    window.terminalManager = terminalManager;
+  }
+  return terminalManager;
+}
+
+async function initializeReact() {
+  if (reactInitialized) {
+    return;
+  }
+
+
+  try {
+    // Check if React is available from electronAPI
+
+    let React, ReactDOM;
+
+    // Try to get React from electronAPI first
+    if (window.electronAPI && window.electronAPI.React && window.electronAPI.ReactDOM) {
+      logger.debug('✅ Using React from Electron preload');
+      React = window.electronAPI.React;
+      ReactDOM = window.electronAPI.ReactDOM;
+
+      // Also expose to window for compatibility
+      window.React = React;
+      window.ReactDOM = ReactDOM;
+    } else if (window.React && window.ReactDOM) {
+      // React already available on window
+      React = window.React;
+      ReactDOM = window.ReactDOM;
+    } else {
+      // Fallback to CDN if electronAPI doesn't provide React
+      console.warn('⚠️ React not available from Electron, falling back to CDN...');
+
+      // Load React
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.crossOrigin = 'anonymous';
+        script.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+
+      // Load ReactDOM
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.crossOrigin = 'anonymous';
+        script.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+
+      logger.debug('✅ React and ReactDOM loaded from CDN');
+      React = window.React;
+      ReactDOM = window.ReactDOM;
+    }
+
+    if (!React || !ReactDOM) {
+      throw new Error(new Error('React libraries failed to load'));
+    }
+
+    // Create a global auth modal state
+    window.authModalState = {
+      isOpen: false,
+      setIsOpen: value => {
+        window.authModalState.isOpen = value;
+        window.authModalState.render();
+      },
+      render: () => {
+      },
+    };
+
+
+    // For now, create a simple modal component inline
+    // We'll load the actual AuthModal component later
+    const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
+      if (!isOpen) return null;
+
+      return React.createElement(
+        'div',
+        {
+          className: 'modal-overlay',
+          onClick: onClose,
+          style: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          },
+        },
+        React.createElement(
+          'div',
+          {
+            className: 'modal-content',
+            onClick: e => e.stopPropagation(),
+            style: {
+              background: '#2a2a2a',
+              padding: '40px',
+              borderRadius: '8px',
+              border: '2px solid #00ff88',
+              color: '#ffffff',
+              minWidth: '400px',
+              position: 'relative',
+            },
+          },
+          React.createElement(
+            'button',
+            {
+              onClick: onClose,
+              style: {
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: 'none',
+                border: 'none',
+                color: '#00ff88',
+                fontSize: '24px',
+                cursor: 'pointer',
+              },
+            },
+            '×'
+          ),
+          React.createElement(
+            'h2',
+            {
+              style: { color: '#00ff88', marginBottom: '20px' },
+            },
+            '🧜‍♀️ RinaWarp Authentication'
+          ),
+          React.createElement(
+            'p',
+            {
+              style: { marginBottom: '20px' },
+            },
+            'Authentication UI is loading...'
+          ),
+          React.createElement(
+            'button',
+            {
+              onClick: () => {
+                // Mock authentication for testing
+                const mockUser = {
+                  email: 'user@example.com',
+                  displayName: 'Test User',
+                };
+                onAuthSuccess(mockUser);
+                onClose();
+              },
+              style: {
+                background: '#00ff88',
+                color: '#000',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                width: '100%',
+              },
+            },
+            'Mock Login (for testing)'
+          )
+        )
+      );
+    };
+
+    const authRoot = document.getElementById('auth-root');
+
+    if (authRoot) {
+      const authModalRoot = ReactDOM.createRoot(authRoot);
+
+      window.authModalState.render = () => {
+        authModalRoot.render(
+          React.createElement(AuthModal, {
+            isOpen: window.authModalState.isOpen,
+            onClose: () => {
+              window.authModalState.setIsOpen(false);
+            },
+            onAuthSuccess: user => {
+              logger.debug('✅ Authentication successful:', user);
+              window.terminalManager?.pluginAPI?.showNotification(
+                `Welcome back, ${user.displayName || user.email}!`,
+                'success',
+                3000
+              );
+              // Update UI elements based on auth state
+              updateAuthUI(user);
+            },
+          })
+        );
+      };
+
+      // Initial render
+      window.authModalState.render();
+    } else {
+      console.error('❌ Auth root element not found!');
+    }
+
+    reactInitialized = true;
+    logger.debug('✅ React authentication UI initialized successfully');
+
+    // Now try to load the actual AuthModal component
+    loadAuthComponents();
+  } catch (error) {
+    console.error('❌ React initialization failed:', error);
+    console.error('Stack trace:', error.stack);
+  }
+}
+
+// Load the actual Auth components after React is initialized
+async function loadAuthComponents() {
+  try {
+    // This will be implemented later with proper bundling
+    // For now, the inline component will work
+  } catch (error) {
+    console.warn('⚠️ Could not load Auth components, using fallback:', error);
+  }
+}
+
+// Helper function to update UI based on auth state
+function updateAuthUI(user) {
+  const authBtn = document.getElementById('auth-btn');
+  if (authBtn) {
+    if (user) {
+      authBtn.innerHTML = '👤';
+      authBtn.title = `Signed in as ${user.displayName || user.email}`;
+    } else {
+      authBtn.innerHTML = '🔓';
+      authBtn.title = 'Sign In';
+    }
+  }
+}
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 25 deprecated pattern(s) replaced with modern alternatives
@@ -21,6 +287,9 @@ const electronAPI = window.electronAPI; // accessed via contextBridge from prelo
 // Import XTerm modules with compatibility layer
 import { initializeXTerm } from './xterm-compatibility.js';
 import { SafeAIWrapper } from '../ai/safe-ai-wrapper';
+
+// Initialize LogRocket for session replay and monitoring
+import './logrocket-integration.js';
 
 // XTerm modules will be initialized dynamically
 let _Terminal, _FitAddon, _WebLinksAddon;
@@ -53,7 +322,7 @@ if (nodeAPI) {
     .getPlatformInfo()
     .then(info => {
       _platformInfo = info;
-      console.log('✅ Platform info loaded:', info);
+      logger.debug('✅ Platform info loaded:', info);
       checkDeviceStatus(); // Fetch device status initially
     })
     .catch(err => {
@@ -74,7 +343,6 @@ let PluginSystemIntegration;
 try {
   const pluginModule = await import('../plugins/integration/main-plugin-integration.js');
   PluginSystemIntegration = pluginModule.initializePluginSystem;
-  console.log('✅ Plugin System Integration loaded');
 } catch (error) {
   console.warn('⚠️ Plugin System Integration not available:', error.message);
   PluginSystemIntegration = null;
@@ -97,7 +365,6 @@ try {
     TerminalSignalHandler: enhancedFeatures.TerminalSignalHandler,
     EnhancedTerminalThemeManager: enhancedFeatures.EnhancedTerminalThemeManager,
   };
-  console.log('✅ Enhanced terminal features loaded from warp projects');
 } catch (error) {
   console.warn('Enhanced terminal features not available:', error.message);
 }
@@ -108,7 +375,6 @@ ipcRenderer
   .invoke('init-performance-monitor')
   .then(monitor => {
     _performanceMonitor = monitor;
-    console.log('✅ Performance Monitor initialized');
   })
   .catch(err => {
     console.warn('⚠️ Performance Monitor initialization failed:', err);
@@ -117,8 +383,7 @@ ipcRenderer
 // Update: Use IPC to get current directory
 (async () => {
   try {
-    const currentDir = await nodeAPI.getCurrentDir();
-    console.log('Current Directory:', currentDir);
+    const _currentDir = await nodeAPI.getCurrentDir();
   } catch (error) {
     console.error('Failed to get current directory:', error);
   }
@@ -129,7 +394,6 @@ let licenseManager;
 try {
   licenseManager = new LicenseManager();
   licenseManager.startTrial(); // Start trial for new users
-  console.log('License Manager initialized:', licenseManager.getStatus());
 } catch (error) {
   console.error('License Manager failed to initialize:', error);
   // Fallback to basic functionality
@@ -148,11 +412,9 @@ try {
     maxRetries: 3,
     timeout: 10000,
   });
-  console.log('AI Wrapper initialized:', aiWrapper.getStatus());
 
   // Get current directory through IPC
-  const currentDir = await nodeAPI.getCurrentDir();
-  console.log('Current Working Directory:', currentDir);
+  const _currentDir = await nodeAPI.getCurrentDir();
 } catch (error) {
   console.warn('AI features disabled. Falling back to non-AI mode.');
   aiWrapper = new SafeAIWrapper(null, { fallbackMode: true });
@@ -161,8 +423,6 @@ try {
 // Device status checking function
 async function checkDeviceStatus() {
   try {
-    console.log('🔍 Checking device status...');
-
     // Check if we're in a browser environment or have access to the API
     if (typeof window !== 'undefined' && window.location) {
       const response = await fetch('/api/status/devices');
@@ -171,11 +431,10 @@ async function checkDeviceStatus() {
         const data = await response.json();
 
         if (data.iPhone) {
-          console.log('📱 iPhone detected!');
           const details = data.deviceDetails;
 
           if (details) {
-            console.log('📋 Device Details:', {
+            logger.debug('Device details:', {
               serialNumber: details.serialNumber,
               productId: details.productId,
               connectionSpeed: details.connectionSpeed,
@@ -187,10 +446,9 @@ async function checkDeviceStatus() {
             if (window.terminalManager?.pluginAPI) {
               window.terminalManager.pluginAPI.showNotification(notification, 'success', 4000);
             } else {
-              console.log('✅', notification);
+              logger.debug('✅', notification);
             }
           } else {
-            console.log('✅ iPhone connected (no details available)');
             if (window.terminalManager?.pluginAPI) {
               window.terminalManager.pluginAPI.showNotification(
                 '📱 iPhone Connected',
@@ -200,7 +458,6 @@ async function checkDeviceStatus() {
             }
           }
         } else {
-          console.log('📱 No iPhone detected');
         }
 
         // Store device status globally for other components
@@ -209,7 +466,6 @@ async function checkDeviceStatus() {
         console.warn('⚠️ Failed to check device status - API not available');
       }
     } else {
-      console.log('🌐 Browser environment not detected - skipping device check');
     }
   } catch (error) {
     console.error('❌ Error checking device status:', error.message);
@@ -223,8 +479,6 @@ function startDeviceStatusMonitoring() {
 
   // Then check every 30 seconds
   setInterval(checkDeviceStatus, 30000);
-
-  console.log('🔄 Device status monitoring started (30s interval)');
 }
 
 // Enable predictive completion using AI
@@ -261,45 +515,29 @@ async function loadAdvancedFeatures() {
     NextGenUIEngine = uiModule.NextGenUIEngine;
     MultimodalAgentManager = agentModule.MultimodalAgentManager;
 
-    console.log('🚀 All Advanced Features Loaded Successfully!');
-    console.log('✅ Phase 1: AI Context Engine & Performance Monitor');
-    console.log('✅ Phase 1: Workflow Automation & Enhanced Security');
-    console.log('✅ Phase 2: Next-Gen UI with 3D/AR capabilities');
-    console.log('✅ Phase 3: Multimodal AI Agent Framework');
+    logger.debug('✅ Phase 2: Next-Gen UI with 3D/AR capabilities');
 
     return true;
   } catch (error) {
     console.warn('⚠️  Some advanced features not available:', error.message);
     // Provide fallback implementations
     AdvancedAIContextEngine = class {
-      constructor() {
-        console.log('AI Context Engine - Fallback Mode');
-      }
+      constructor() {}
     };
     PerformanceMonitoringDashboard = class {
-      constructor() {
-        console.log('Performance Monitor - Fallback Mode');
-      }
+      constructor() {}
     };
     WorkflowAutomationEngine = class {
-      constructor() {
-        console.log('Workflow Automation - Fallback Mode');
-      }
+      constructor() {}
     };
     EnhancedSecurityEngine = class {
-      constructor() {
-        console.log('Enhanced Security - Fallback Mode');
-      }
+      constructor() {}
     };
     NextGenUIEngine = class {
-      constructor() {
-        console.log('Next-Gen UI - Fallback Mode');
-      }
+      constructor() {}
     };
     MultimodalAgentManager = class {
-      constructor() {
-        console.log('Multimodal Agent Manager - Fallback Mode');
-      }
+      constructor() {}
     };
 
     return false;
@@ -359,9 +597,7 @@ class CommandHistoryManager {
         const data = await window.electronAPI?.fs?.readFile(historyPath, 'utf8');
         this.history = data.split('\n').filter(cmd => cmd.trim());
       }
-    } catch (error) {
-      console.log('Could not load command history:', error.message);
-    }
+    } catch (error) {}
   }
 
   async saveHistory() {
@@ -370,9 +606,7 @@ class CommandHistoryManager {
       const historyPath = path.join(homeDir, '.rinawarp-terminal-history');
       const historyData = this.history.slice(-1000).join('\n'); // Keep last 1000 commands
       await window.electronAPI?.fs?.writeFile(historyPath, historyData);
-    } catch (error) {
-      console.log('Could not save command history:', error.message);
-    }
+    } catch (error) {}
   }
 
   addCommand(command) {
@@ -717,7 +951,6 @@ class ThemeManager {
     // Add special effects for mermaid theme
     if (themeName === 'mermaid') {
       document.body.style.backgroundAttachment = 'fixed';
-      console.log('🧜‍♀️ Mermaid theme activated with special effects!');
     } else {
       document.body.style.backgroundAttachment = 'initial';
     }
@@ -928,9 +1161,7 @@ class AdvancedGitPlugin {
 
       // Update UI with git information
       this.updateGitUI(branchInfo.value, statusInfo.value, remoteInfo.value);
-    } catch (error) {
-      console.log('Git integration error:', error.message);
-    }
+    } catch (error) {}
   }
 
   async getBranchInfo(execAsync, directory) {
@@ -1067,9 +1298,7 @@ class GitIntegrationPlugin {
       } catch (error) {
         // Not a git repository or other error
       }
-    } catch (error) {
-      console.log('Git integration error:', error.message);
-    }
+    } catch (error) {}
   }
 }
 
@@ -1094,9 +1323,7 @@ class AIAssistantPlugin {
           return aiSuggestions;
         }
       }
-    } catch (error) {
-      console.log('AI API failed, using fallback:', error.message);
-    }
+    } catch (error) {}
 
     // Fallback to mock suggestions
     const suggestions = [];
@@ -1269,9 +1496,7 @@ class SessionManager {
         this.sessions = new Map(data.sessions || []);
         this.sessionHistory = data.history || [];
       }
-    } catch (error) {
-      console.log('Failed to load sessions:', error.message);
-    }
+    } catch (error) {}
   }
 
   saveSessions() {
@@ -1281,9 +1506,7 @@ class SessionManager {
         history: this.sessionHistory,
       };
       localStorage.setItem('rinawarp-terminal-sessions', JSON.stringify(data));
-    } catch (error) {
-      console.log('Failed to save sessions:', error.message);
-    }
+    } catch (error) {}
   }
 
   createSession(name, description = '') {
@@ -1329,9 +1552,7 @@ class SessionManager {
       try {
         const currentDir = await nodeAPI.getCurrentDir();
         session.workingDirectories.set(terminalId, currentDir);
-      } catch (error) {
-        console.log('Could not get working directory for terminal', terminalId);
-      }
+      } catch (error) {}
     });
 
     // Update command history
@@ -1451,7 +1672,7 @@ class CloudSyncManager {
 
   async connect(provider, credentials) {
     if (!this.providers[provider]) {
-      throw new Error(new Error(`Unknown sync provider: ${provider}`));
+      throw new Error(new Error(new Error(`Unknown sync provider: ${provider}`)));
     }
 
     try {
@@ -1461,17 +1682,17 @@ class CloudSyncManager {
       return true;
     } catch (error) {
       this.syncStatus = 'error';
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async syncUp() {
     if (!this.currentProvider || this.syncStatus !== 'connected') {
-      throw new Error(new Error('Not connected to sync provider'));
+      throw new Error(new Error(new Error('Not connected to sync provider')));
     }
 
     const manager = window.terminalManager;
-    if (!manager) throw new Error(new Error('Terminal manager not available'));
+    if (!manager) throw new Error(new Error(new Error('Terminal manager not available')));
 
     const syncData = {
       version: '1.0',
@@ -1490,13 +1711,13 @@ class CloudSyncManager {
       return true;
     } catch (error) {
       this.syncStatus = 'error';
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async syncDown() {
     if (!this.currentProvider || this.syncStatus !== 'connected') {
-      throw new Error(new Error('Not connected to sync provider'));
+      throw new Error(new Error(new Error('Not connected to sync provider')));
     }
 
     try {
@@ -1531,7 +1752,7 @@ class CloudSyncManager {
       return true;
     } catch (error) {
       this.syncStatus = 'error';
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -1544,9 +1765,7 @@ class CloudSyncManager {
     this.autoSyncInterval = setInterval(async () => {
       try {
         await this.syncUp();
-      } catch (error) {
-        console.log('Auto sync failed:', error.message);
-      }
+      } catch (error) {}
     }, interval);
   }
 
@@ -1588,7 +1807,7 @@ class GitHubSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error(new Error('Failed to connect to GitHub repository'));
+      throw new Error(new Error(new Error('Failed to connect to GitHub repository')));
     }
   }
 
@@ -1641,7 +1860,7 @@ class GitHubSyncProvider {
     );
 
     if (!response.ok) {
-      throw new Error(new Error('Failed to upload sync data to GitHub'));
+      throw new Error(new Error(new Error('Failed to upload sync data to GitHub')));
     }
   }
 
@@ -1660,7 +1879,7 @@ class GitHubSyncProvider {
       if (response.status === 404) {
         return null; // File doesn't exist
       }
-      throw new Error(new Error('Failed to download sync data from GitHub'));
+      throw new Error(new Error(new Error('Failed to download sync data from GitHub')));
     }
 
     const fileData = await response.json();
@@ -1689,7 +1908,7 @@ class DropboxSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error(new Error('Failed to connect to Dropbox'));
+      throw new Error(new Error(new Error('Failed to connect to Dropbox')));
     }
   }
 
@@ -1710,7 +1929,7 @@ class DropboxSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error(new Error('Failed to upload sync data to Dropbox'));
+      throw new Error(new Error(new Error('Failed to upload sync data to Dropbox')));
     }
   }
 
@@ -1729,7 +1948,7 @@ class DropboxSyncProvider {
       if (response.status === 409) {
         return null; // File doesn't exist
       }
-      throw new Error(new Error('Failed to download sync data from Dropbox'));
+      throw new Error(new Error(new Error('Failed to download sync data from Dropbox')));
     }
 
     const content = await response.text();
@@ -1756,7 +1975,7 @@ class CustomSyncProvider {
 
     // Accept any response that doesn't indicate a connection error
     if (response.status >= 500) {
-      throw new Error(new Error('Failed to connect to custom sync endpoint'));
+      throw new Error(new Error(new Error('Failed to connect to custom sync endpoint')));
     }
   }
 
@@ -1771,7 +1990,7 @@ class CustomSyncProvider {
     });
 
     if (!response.ok) {
-      throw new Error(new Error('Failed to upload sync data to custom endpoint'));
+      throw new Error(new Error(new Error('Failed to upload sync data to custom endpoint')));
     }
   }
 
@@ -1785,7 +2004,7 @@ class CustomSyncProvider {
       if (response.status === 404) {
         return null; // No data available
       }
-      throw new Error(new Error('Failed to download sync data from custom endpoint'));
+      throw new Error(new Error(new Error('Failed to download sync data from custom endpoint')));
     }
 
     return await response.json();
@@ -2099,7 +2318,7 @@ class PluginAPI {
       const fs = await import('fs/promises');
       return await fs.readFile(filepath, 'utf8');
     } catch (error) {
-      throw new Error(new Error(`Failed to read file: ${error.message}`));
+      throw new Error(new Error(new Error(`Failed to read file: ${error.message}`)));
     }
   }
 
@@ -2108,7 +2327,7 @@ class PluginAPI {
       const fs = await import('fs/promises');
       await fs.writeFile(filepath, content, 'utf8');
     } catch (error) {
-      throw new Error(new Error(`Failed to write file: ${error.message}`));
+      throw new Error(new Error(new Error(`Failed to write file: ${error.message}`)));
     }
   }
 
@@ -2149,7 +2368,7 @@ class PluginAPI {
     try {
       return await fetch(url, options);
     } catch (error) {
-      throw new Error(new Error(`HTTP request failed: ${error.message}`));
+      throw new Error(new Error(new Error(`HTTP request failed: ${error.message}`)));
     }
   }
 
@@ -2241,7 +2460,6 @@ function getThemeManager() {
       // Fallback to basic theme manager
       console.warn('Using basic theme manager fallback:', error.message);
       themeManagerInstance = {
-        applyTheme: theme => console.log(`Applied theme: ${theme}`),
         getCurrentTheme: () => 'default-dark',
         getAvailableThemes: () => ['default-dark', 'mermaid-depths'],
       };
@@ -2345,7 +2563,6 @@ class TerminalManager extends SimpleEventEmitter {
       try {
         const pluginSystem = PluginSystemIntegration(this, electronAPI);
         this.pluginSystem = pluginSystem;
-        console.log('✅ Plugin system initialized successfully');
       } catch (error) {
         console.warn('⚠️ Plugin system initialization failed:', error.message);
       }
@@ -2361,8 +2578,6 @@ class TerminalManager extends SimpleEventEmitter {
 
   async initializePhase1Features() {
     try {
-      console.log('🚀 Initializing Revolutionary Features...');
-
       // Load all advanced features dynamically
       const featuresLoaded = await loadAdvancedFeatures();
 
@@ -2381,8 +2596,6 @@ class TerminalManager extends SimpleEventEmitter {
         window.voiceEngine = voiceEngine;
         window.voiceControlUI = voiceControlUI;
 
-        console.log('🎤 Voice Engine initialized successfully');
-
         // Add voice control button to status bar
         voiceControlUI.addVoiceControlButton();
       } catch (error) {
@@ -2393,13 +2606,12 @@ class TerminalManager extends SimpleEventEmitter {
         // Initialize Advanced AI Context Engine
         if (AdvancedAIContextEngine) {
           this.aiEngine = new AdvancedAIContextEngine(this);
-          console.log('✅ Advanced AI Context Engine initialized');
+          logger.debug('✅ Advanced AI Context Engine initialized');
         }
 
         // Initialize Performance Monitoring Dashboard
         if (PerformanceMonitoringDashboard) {
           this.performanceMonitor = new PerformanceMonitoringDashboard();
-          console.log('✅ Performance Monitoring Dashboard initialized');
 
           // Add performance dashboard button to status bar
           this.pluginAPI.addStatusBarItem(
@@ -2418,7 +2630,6 @@ class TerminalManager extends SimpleEventEmitter {
         // Initialize Workflow Automation Engine
         if (WorkflowAutomationEngine) {
           this.workflowEngine = new WorkflowAutomationEngine();
-          console.log('✅ Workflow Automation Engine initialized');
 
           // Add workflow automation button to status bar
           this.pluginAPI.addStatusBarItem(
@@ -2437,7 +2648,6 @@ class TerminalManager extends SimpleEventEmitter {
         // Initialize Enhanced Security Engine
         if (EnhancedSecurityEngine) {
           this.securityEngine = new EnhancedSecurityEngine();
-          console.log('✅ Enhanced Security Engine initialized');
 
           // Add security dashboard button to status bar
           this.pluginAPI.addStatusBarItem(
@@ -2457,7 +2667,7 @@ class TerminalManager extends SimpleEventEmitter {
         if (NextGenUIEngine) {
           this.nextGenUI = new NextGenUIEngine();
           await this.nextGenUI.initialize();
-          console.log('✅ Next-Gen UI Engine initialized');
+          logger.debug('✅ Next-Gen UI Engine initialized');
 
           // Add 3D/AR mode button to status bar
           this.pluginAPI.addStatusBarItem(
@@ -2488,8 +2698,6 @@ class TerminalManager extends SimpleEventEmitter {
           'right'
         );
       }
-
-      console.log('🎉 Advanced Features Successfully Initialized!');
 
       // Show initialization notification
       setTimeout(() => {
@@ -2976,8 +3184,6 @@ class TerminalManager extends SimpleEventEmitter {
   // Natural Language Processing method
   async processNaturalLanguageCommand(input) {
     try {
-      console.log(`🧜‍♀️ Processing natural language: "${input}"`);
-
       // Check if AI integration is available
       if (window.aiIntegration && window.aiIntegration.isInitialized) {
         const currentDirectory = await nodeAPI.getCurrentDir();
@@ -2986,8 +3192,6 @@ class TerminalManager extends SimpleEventEmitter {
           platform: this.platform,
           activeTerminalId: this.activeTerminalId,
         });
-
-        console.log('🌊 AI Response:', aiResponse);
 
         if (aiResponse && aiResponse.response) {
           // Show the mermaid AI response with personality
@@ -3183,6 +3387,9 @@ class TerminalManager extends SimpleEventEmitter {
 
     // Setup quick theme switch button
     this.setupQuickThemeSwitch();
+
+    // Setup authentication button
+    this.setupAuthButton();
   }
 
   setupQuickThemeSwitch() {
@@ -3223,23 +3430,42 @@ class TerminalManager extends SimpleEventEmitter {
     window.addEventListener('resize', debouncedResize);
   }
 
+  setupAuthButton() {
+    const authBtn = document.getElementById('auth-btn');
+    if (authBtn) {
+      authBtn.addEventListener('click', () => {
+
+        // Toggle the authentication modal
+        if (window.authModalState) {
+          const newState = !window.authModalState.isOpen;
+          window.authModalState.setIsOpen(newState);
+        } else {
+          logger.debug('⚠️ Auth modal state not initialized yet');
+          this.pluginAPI.showNotification(
+            'Authentication UI is loading, please try again.',
+            'info',
+            2000
+          );
+        }
+      });
+    } else {
+      console.error('❌ Auth button not found in DOM');
+    }
+  }
+
   loadSettings() {
     try {
       const saved = localStorage.getItem('rinawarp-terminal-settings');
       if (saved) {
         this.settings = { ...this.settings, ...JSON.parse(saved) };
       }
-    } catch (error) {
-      console.log('Failed to load settings:', error.message);
-    }
+    } catch (error) {}
   }
 
   saveSettings() {
     try {
       localStorage.setItem('rinawarp-terminal-settings', JSON.stringify(this.settings));
-    } catch (error) {
-      console.log('Failed to save settings:', error.message);
-    }
+    } catch (error) {}
   }
 
   setupSettingsModal() {
@@ -3298,7 +3524,6 @@ class TerminalManager extends SimpleEventEmitter {
 
     // AI assistance toggle
     aiAssistanceCheck.addEventListener('change', () => {
-      console.log('🧜‍♀️ AI assistance checkbox changed:', aiAssistanceCheck.checked);
       this.settings.aiAssistance = aiAssistanceCheck.checked;
       this.saveSettings();
       // Add visual feedback
@@ -3312,16 +3537,12 @@ class TerminalManager extends SimpleEventEmitter {
     });
 
     // Add debugging for checkbox state
-    console.log('AI assistance checkbox element:', aiAssistanceCheck);
-    console.log('AI assistance checkbox checked:', aiAssistanceCheck.checked);
-    console.log('AI assistance setting:', this.settings.aiAssistance);
 
     // Handle Real AI toggle
     const realAICheck = document.getElementById('real-ai');
     if (realAICheck) {
       realAICheck.checked = this.settings.realAI;
       realAICheck.addEventListener('change', () => {
-        console.log('🤖 Real AI checkbox changed:', realAICheck.checked);
         this.settings.realAI = realAICheck.checked;
         this.saveSettings();
         this.pluginAPI.showNotification(
@@ -3339,7 +3560,6 @@ class TerminalManager extends SimpleEventEmitter {
     if (aiProviderSelect) {
       aiProviderSelect.value = this.settings.aiProvider;
       aiProviderSelect.addEventListener('change', () => {
-        console.log('🔧 AI Provider changed:', aiProviderSelect.value);
         this.settings.aiProvider = aiProviderSelect.value;
         this.saveSettings();
         this.pluginAPI.showNotification(
@@ -3355,7 +3575,6 @@ class TerminalManager extends SimpleEventEmitter {
     if (aiApiKeyInput) {
       aiApiKeyInput.value = this.settings.aiApiKey || '';
       aiApiKeyInput.addEventListener('change', () => {
-        console.log('🔑 AI API Key updated');
         this.settings.aiApiKey = aiApiKeyInput.value;
         this.saveSettings();
         this.pluginAPI.showNotification('AI API Key updated!', 'success', 2000);
@@ -3743,10 +3962,9 @@ class TerminalManager extends SimpleEventEmitter {
         shellProcess = await electronAPI.createShellProcess(shellConfig);
 
         if (!shellProcess) {
-          throw new Error(new Error('Failed to create shell process via IPC'));
+          throw new Error(new Error(new Error('Failed to create shell process via IPC')));
         }
 
-        console.log(`Shell process started via IPC: ${shell} with ID ${shellProcess.id}`);
         terminal.write('\r\nWelcome to RinaWarp Terminal\r\n');
       } catch (error) {
         console.error('Shell creation error:', error);
@@ -3765,10 +3983,9 @@ class TerminalManager extends SimpleEventEmitter {
             shellProcess = await electronAPI.createShellProcess(fallbackShellConfig);
 
             if (!shellProcess) {
-              throw new Error(new Error('Failed to create fallback shell process via IPC'));
+              throw new Error(new Error(new Error('Failed to create fallback shell process via IPC')));
             }
 
-            console.log(`Fallback shell started via IPC: ${shell} with ID ${shellProcess.id}`);
             terminal.write('\r\nWelcome to RinaWarp Terminal (PowerShell)\r\n');
           } catch (fallbackError) {
             terminal.write(`\r\n[Failed to start shell process: ${fallbackError.message}]\r\n`);
@@ -3787,7 +4004,7 @@ class TerminalManager extends SimpleEventEmitter {
       electronAPI.onShellData(shellProcessId, data => {
         try {
           const output = data.toString();
-          console.log(
+          logger.debug(
             'Shell stdout via IPC:',
             output.slice(0, 100) + (output.length > 100 ? '...' : '')
           );
@@ -3801,7 +4018,7 @@ class TerminalManager extends SimpleEventEmitter {
       electronAPI.onShellError(shellProcessId, data => {
         try {
           const output = data.toString();
-          console.log(
+          logger.debug(
             'Shell stderr via IPC:',
             output.slice(0, 100) + (output.length > 100 ? '...' : '')
           );
@@ -3812,8 +4029,7 @@ class TerminalManager extends SimpleEventEmitter {
         }
       });
 
-      electronAPI.onShellExit(shellProcessId, (code, signal) => {
-        console.log(`Shell process exited with code ${code}, signal ${signal}`);
+      electronAPI.onShellExit(shellProcessId, (code, _signal) => {
         terminal.write(`\r\n[Process exited with code ${code}]\r\n`);
       });
 
@@ -3825,9 +4041,7 @@ class TerminalManager extends SimpleEventEmitter {
       // Handle terminal input with IPC communication
       terminal.onData(data => {
         try {
-          console.log(`Input received: ${JSON.stringify(data)}`);
           electronAPI.writeToShell(shellProcessId, data);
-          console.log('Data written to shell process via IPC successfully');
         } catch (error) {
           console.error('Failed to write to shell process via IPC:', error);
           terminal.write(`\r\n[Input error: ${error.message}]\r\n`);
@@ -3836,13 +4050,10 @@ class TerminalManager extends SimpleEventEmitter {
 
       // Send initial setup command via IPC
       setTimeout(() => {
-        console.log('Sending initial setup to shell via IPC');
-
         if (this.platform === 'win32') {
           // For PowerShell, send a simple command to get the prompt started
           try {
             electronAPI.writeToShell(shellProcessId, '\r\n'); // Send enter to trigger prompt
-            console.log('Sent initial enter to PowerShell via IPC');
           } catch (error) {
             console.error('Failed to send initial command to shell via IPC:', error);
           }
@@ -3850,7 +4061,6 @@ class TerminalManager extends SimpleEventEmitter {
           // For Unix shells, send enter to get prompt
           try {
             electronAPI.writeToShell(shellProcessId, '\n');
-            console.log('Sent initial command to Unix shell via IPC');
           } catch (error) {
             console.error('Failed to send initial command to shell via IPC:', error);
           }
@@ -3887,11 +4097,10 @@ class TerminalManager extends SimpleEventEmitter {
         // Ensure the terminal element is focusable and focused
         terminalElement.setAttribute('tabindex', '0');
         terminalElement.focus();
-        console.log(`Terminal ${terminalId} focused and ready for input`);
       }, 100);
     } catch (error) {
       console.error('Terminal creation error:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -5239,7 +5448,7 @@ class AdvancedGitIntegration {
   async executeWorkflow(workflowName, parameters = {}) {
     const workflow = this.workflowTemplates[workflowName];
     if (!workflow) {
-      throw new Error(new Error(`Unknown workflow: ${workflowName}`));
+      throw new Error(new Error(new Error(`Unknown workflow: ${workflowName}`)));
     }
 
     const commands = workflow.map(cmd => {
@@ -5319,7 +5528,6 @@ if (document.readyState === 'loading') {
     // Initialize Theme Manager
     try {
       window.themeManager = getThemeManager();
-      console.log('🎨 Theme Manager initialized successfully');
     } catch (error) {
       console.warn('Theme Manager initialization failed:', error.message);
     }
@@ -5329,6 +5537,9 @@ if (document.readyState === 'loading') {
     window.nlProcessor = new NaturalLanguageProcessor();
     window.advancedGit = new AdvancedGitIntegration(window.terminalManager);
 
+    // Initialize React Authentication UI
+    initializeReact();
+
     // Initialize Phase 2 UI Manager
     initializePhase2UI();
 
@@ -5336,7 +5547,6 @@ if (document.readyState === 'loading') {
     if (MultimodalAgentManager) {
       try {
         window.agentManager = new MultimodalAgentManager(window.terminalManager);
-        console.log('🤖 Multimodal Agent Manager initialized successfully');
       } catch (error) {
         console.error('❌ Failed to initialize Multimodal Agent Manager:', error);
       }
@@ -5417,8 +5627,6 @@ function toggleEnhancedUI() {
 // Phase 2 UI Initialization Function
 async function initializePhase2UI() {
   try {
-    console.log('🚀 Starting Phase 2 UI initialization...');
-
     // Import Phase2MainIntegration dynamically
     const { default: Phase2MainIntegration } = await import('./phase2-main-integration.js');
 
@@ -5428,7 +5636,7 @@ async function initializePhase2UI() {
     // Initialize with terminal manager
     await window.phase2Integration.initialize(window.terminalManager);
 
-    console.log('✅ Phase 2 UI integration completed successfully');
+    logger.debug('✅ Phase 2 UI integration completed successfully');
   } catch (error) {
     console.error('❌ Phase 2 UI integration failed:', error);
 

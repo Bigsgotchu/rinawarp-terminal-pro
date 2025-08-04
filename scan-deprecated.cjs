@@ -1,10 +1,10 @@
+#!/usr/bin/env node
+
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 4 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 
 /**
  * 🧜‍♀️ RinaWarp Terminal - Deprecated Modules Scanner
@@ -54,7 +54,7 @@ const targets = [
   'fs.mkdir(',
 
   // request (deprecated HTTP library)
-  ', { recursive: true }require("request" ? ', ' + require("request" : '')',
+  'require("request")',
   "require('request')",
   'import.*from.*[\'"]request[\'"]',
 

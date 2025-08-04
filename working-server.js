@@ -1,4 +1,3 @@
-
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -20,9 +19,4 @@ app.get('/test', (req, res) => {
   res.send('✅ RinaWarp Terminal Server is working!');
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 RinaWarp Terminal running on http://localhost:${PORT}`);
-  console.log(`🧪 Test endpoint: http://localhost:${PORT}/test`);
-  console.log(`🌐 Main site: http://localhost:${PORT}`);
-});
-
+app.listen(PORT, () => {});

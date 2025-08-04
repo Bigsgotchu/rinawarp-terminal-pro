@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -41,8 +42,6 @@ class Phase3IntegrationManager {
    */
   async initializeComponents() {
     try {
-      console.log('🚀 Initializing Phase 3 - Long-term Improvements...');
-
       // Initialize Platform Compatibility Manager
       if (this.config.enableComponents.platformCompatibility) {
         this.components.platformCompatibility = new PlatformCompatibilityManager({
@@ -60,7 +59,7 @@ class Phase3IntegrationManager {
 
         // Set up platform compatibility event handlers
         this.setupPlatformCompatibilityHandlers();
-        console.log('✅ Platform Compatibility Manager initialized');
+        logger.debug('✅ Platform Compatibility Manager initialized');
       }
 
       // Initialize Community Engagement Manager
@@ -94,7 +93,6 @@ class Phase3IntegrationManager {
 
         // Set up community engagement event handlers
         this.setupCommunityEngagementHandlers();
-        console.log('✅ Community Engagement Manager initialized');
       }
 
       // Initialize Continuous Improvement Manager
@@ -119,14 +117,12 @@ class Phase3IntegrationManager {
 
         // Set up continuous improvement event handlers
         this.setupContinuousImprovementHandlers();
-        console.log('✅ Continuous Improvement Manager initialized');
       }
 
       // Schedule Q&A session
       await this.scheduleInitialQASession();
 
       this.isInitialized = true;
-      console.log('🎉 Phase 3 initialization complete!');
 
       // Send initialization notification
       await this.sendNotification(
@@ -135,7 +131,7 @@ class Phase3IntegrationManager {
       );
     } catch (error) {
       console.error('❌ Phase 3 initialization failed:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -146,7 +142,7 @@ class Phase3IntegrationManager {
     const manager = this.components.platformCompatibility;
 
     manager.on('compliance_check_complete', async results => {
-      console.log('📋 Platform compliance check completed:', {
+      logger.debug('📊 Compliance check complete:', {
         timestamp: results.timestamp,
         violations: results.compliance_violations.length,
         platforms: Object.keys(results.platform_status).length,
@@ -168,11 +164,10 @@ class Phase3IntegrationManager {
     });
 
     manager.on('auto_remediation_success', data => {
-      console.log('🔧 Auto-remediation successful:', data.remediation);
+      logger.debug('✅ Auto-remediation successful:', data);
     });
 
     manager.on('rate_limiting_enabled', () => {
-      console.log('🛡️ API rate limiting enabled for compliance');
     });
   }
 
@@ -183,7 +178,6 @@ class Phase3IntegrationManager {
     const manager = this.components.communityEngagement;
 
     manager.on('campaign_executed', async data => {
-      console.log('📢 Campaign executed:', {
         type: data.campaign.type,
         platforms: data.campaign.platforms,
         success: Object.values(data.results).every(r => r.success),
@@ -191,7 +185,6 @@ class Phase3IntegrationManager {
     });
 
     manager.on('qa_session_scheduled', async session => {
-      console.log('🎙️ Q&A session scheduled:', {
         id: session.id,
         date: session.date,
         platforms: session.platforms,
@@ -204,7 +197,6 @@ class Phase3IntegrationManager {
     });
 
     manager.on('suggestion_created', suggestion => {
-      console.log('💡 New community suggestion:', {
         title: suggestion.title,
         category: suggestion.category,
         author: suggestion.author,
@@ -212,7 +204,7 @@ class Phase3IntegrationManager {
     });
 
     manager.on('community_report_generated', report => {
-      console.log('📊 Community report generated:', {
+      logger.debug('📊 Community report generated:', {
         period: report.period,
         engagement: report.engagement.totalEngagements,
         growth: report.growth.monthlyGrowthRate,
@@ -230,7 +222,6 @@ class Phase3IntegrationManager {
       // Only log periodically to avoid spam
       if (Date.now() % (5 * 60 * 1000) < 1000) {
         // Every 5 minutes
-        console.log('📈 Metrics collected:', {
           timestamp: metrics.timestamp,
           responseTime: Math.round(metrics.performance.responseTime),
           errorRate: (metrics.errors.rate * 100).toFixed(2) + '%',
@@ -264,14 +255,13 @@ class Phase3IntegrationManager {
     });
 
     manager.on('incident_resolved', incident => {
-      console.log('✅ Incident resolved:', {
+      logger.debug('✅ Incident resolved:', {
         id: incident.id,
         resolution: incident.resolution,
       });
     });
 
     manager.on('monthly_report_generated', async report => {
-      console.log('📋 Monthly report generated:', {
         id: report.id,
         period: report.period,
         incidents: report.summary.total_incidents,
@@ -285,7 +275,6 @@ class Phase3IntegrationManager {
     });
 
     manager.on('retrospective_scheduled', retrospective => {
-      console.log('🔄 Retrospective scheduled:', {
         type: retrospective.type,
         participants: retrospective.participants,
         period: retrospective.period,
@@ -304,8 +293,6 @@ class Phase3IntegrationManager {
           topics: ['phase 3 features', 'community feedback', 'roadmap discussion'],
           maxParticipants: 100,
         });
-
-        console.log('🎙️ Initial Q&A session scheduled:', session.id);
       } catch (error) {
         console.error('Failed to schedule initial Q&A session:', error);
       }
@@ -328,7 +315,6 @@ class Phase3IntegrationManager {
       }
 
       // Log notification
-      console.log('📬 Notification sent:', title);
     } catch (error) {
       console.error('Failed to send notification:', error);
     }
@@ -337,17 +323,15 @@ class Phase3IntegrationManager {
   /**
    * Send Slack notification
    */
-  async sendSlackNotification(title, message) {
+  async sendSlackNotification(_title, _message) {
     // Mock implementation - would use actual Slack API
-    console.log(`Slack: ${title} - ${message}`);
   }
 
   /**
    * Send Discord notification
    */
-  async sendDiscordNotification(title, message) {
+  async sendDiscordNotification(_title, _message) {
     // Mock implementation - would use actual Discord webhook
-    console.log(`Discord: ${title} - ${message}`);
   }
 
   /**
@@ -439,8 +423,6 @@ class Phase3IntegrationManager {
    * Shutdown all Phase 3 components
    */
   async shutdown() {
-    console.log('🛑 Shutting down Phase 3 components...');
-
     if (this.components.platformCompatibility) {
       this.components.platformCompatibility.stopMonitoring();
     }
@@ -449,7 +431,7 @@ class Phase3IntegrationManager {
       this.components.continuousImprovement.stop();
     }
 
-    console.log('✅ Phase 3 shutdown complete');
+    logger.debug('✅ Phase 3 shutdown complete');
   }
 
   /**
@@ -506,13 +488,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   // Handle process termination gracefully
   process.on('SIGINT', async () => {
-    console.log('\n🛑 Received SIGINT, shutting down gracefully...');
     await manager.shutdown();
     process.exit(0);
   });
 
   process.on('SIGTERM', async () => {
-    console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
     await manager.shutdown();
     process.exit(0);
   });
@@ -522,7 +502,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     async () => {
       try {
         const report = await manager.generateStatusReport();
-        console.log('📊 Phase 3 Status:', {
+        logger.debug('📊 Phase 3 Status:', {
           compliance_score: report.components.platform_compatibility?.compliance_score,
           community_engagements: report.components.community_engagement?.total_engagements,
           system_health: report.system_status.initialized ? 'operational' : 'initializing',
@@ -533,7 +513,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     },
     60 * 60 * 1000
   ); // Every hour
-
-  console.log('🚀 Phase 3 Integration Manager started');
-  console.log('Press Ctrl+C to shutdown');
 }

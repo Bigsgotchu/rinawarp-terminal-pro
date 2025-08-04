@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * Plugin System Metrics Instrumentation
  * Integrates with the PluginManager to collect plugin-specific metrics
@@ -64,8 +65,6 @@ export class PluginInstrumentation {
 
     // Record metrics
     await metricsService.recordPluginLoaded(pluginName, version, loadTime);
-
-    console.log(`📊 Plugin instrumentation started for: ${pluginName} v${version}`);
   }
 
   /**
@@ -82,7 +81,7 @@ export class PluginInstrumentation {
       this.pluginErrorCounts.delete(pluginName);
       this.executionTimeTrackers.delete(pluginName);
 
-      console.log(`📊 Plugin instrumentation ended for: ${pluginName} (reason: ${reason})`);
+      logger.debug(`📊 Plugin instrumentation ended for: ${pluginName} (reason: ${reason})`);
     }
   }
 
@@ -128,7 +127,6 @@ export class PluginInstrumentation {
     // Clean up tracker
     this.executionTimeTrackers.delete(executionId);
 
-    console.log(
       `📊 Plugin execution tracked: ${tracker.pluginName} (${tracker.operationType}) - ${executionTime}ms`
     );
   }
@@ -150,7 +148,7 @@ export class PluginInstrumentation {
     // Record error
     await metricsService.recordPluginError(pluginName, errorType, errorMessage, severity);
 
-    console.log(`📊 Plugin error tracked: ${pluginName} - ${errorType}`);
+    logger.debug(`📊 Plugin error tracked: ${pluginName} - ${errorType}`);
   }
 
   /**
@@ -175,8 +173,6 @@ export class PluginInstrumentation {
           await metricsService.recordPluginErrorRate(pluginName, errorRate);
         }
       }
-
-      console.log(`📊 Plugin metrics collected - Loaded plugins: ${loadedPluginCount}`);
     } catch (error) {
       console.error('📊 Error collecting plugin metrics:', error);
     }
@@ -301,7 +297,6 @@ export class PluginInstrumentation {
       return result;
     };
 
-    console.log('📊 Plugin instrumentation integrated with PluginManager');
   }
 }
 

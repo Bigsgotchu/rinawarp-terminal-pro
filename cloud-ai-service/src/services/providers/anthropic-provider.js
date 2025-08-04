@@ -20,7 +20,7 @@ export class AnthropicProvider {
       logger.warn('Anthropic API key not configured');
       return false;
     }
-    
+
     logger.info('Anthropic provider initialized');
     return true;
   }
@@ -39,15 +39,13 @@ export class AnthropicProvider {
         max_tokens: maxTokens,
         temperature,
         system: systemPrompt,
-        messages: [
-          { role: 'user', content: prompt }
-        ],
+        messages: [{ role: 'user', content: prompt }],
       });
 
       return response.content[0].text;
     } catch (error) {
       logger.error('Anthropic completion error', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -65,9 +63,7 @@ export class AnthropicProvider {
         max_tokens: maxTokens,
         temperature,
         system: systemPrompt,
-        messages: [
-          { role: 'user', content: prompt }
-        ],
+        messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
 
@@ -78,7 +74,7 @@ export class AnthropicProvider {
       }
     } catch (error) {
       logger.error('Anthropic streaming error', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 

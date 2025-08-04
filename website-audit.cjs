@@ -1,13 +1,12 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 2 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
 
-#!/usr/bin/env node
-
 const fs = require('node:fs');
-const path = require('node:path');
+const _path = require('node:path');
 const https = require('https');
 
 console.log('🌊 RinaWarp Website Comprehensive Audit');

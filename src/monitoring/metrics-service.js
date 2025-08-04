@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 import monitoringConfig from './config/gcp-monitoring-config.js';
 
 /**
@@ -28,7 +29,7 @@ class MetricsService {
       // Start buffer flush interval
       this.startBufferFlush();
 
-      console.log('✅ Metrics service initialized successfully');
+      logger.debug('✅ Metrics service initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize metrics service:', error.message);
       this.isInitialized = false;
@@ -216,7 +217,6 @@ class MetricsService {
     }
 
     if (this.metricsBuffer.length > 0) {
-      console.log(
         `📊 Flushed ${metricsToFlush.length - this.metricsBuffer.length} metrics, ${this.metricsBuffer.length} failed`
       );
     }

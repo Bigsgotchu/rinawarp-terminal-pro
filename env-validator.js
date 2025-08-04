@@ -23,13 +23,12 @@ export function validateEnv({ voiceHandler = null, throwOnError = true } = {}) {
     }
 
     if (throwOnError) {
-      throw new Error(new Error(message));
+      throw new Error(new Error(new Error(message)));
     }
 
     return { valid: false, missing };
   }
 
-  console.log('✅ All required environment variables are present.');
   if (voiceHandler?.speak) {
     voiceHandler.speak('All systems go. Environment is fully configured.');
   }

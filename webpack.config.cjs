@@ -72,7 +72,7 @@ module.exports = {
       stream: require.resolve('stream-browserify'),
       util: require.resolve('util'),
       buffer: require.resolve('buffer'),
-      process: require.resolve('process/browser'),
+      process: require.resolve('process/browser.js'),
       child_process: false,
       net: false,
       tls: false,
@@ -86,7 +86,7 @@ module.exports = {
     }),
     new (require('webpack').ProvidePlugin)({
       Buffer: ['buffer', 'Buffer'],
-      process: 'process/browser',
+      process: 'process/browser.js',
     }),
   ],
   devServer: {

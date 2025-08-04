@@ -44,7 +44,7 @@ class FeatureLoader {
     } catch (error) {
       this.loadingPromises.delete(featureName);
       console.error(`Failed to load feature ${featureName}:`, error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -59,7 +59,7 @@ class FeatureLoader {
     case 'plugin-system':
       return import(/* webpackChunkName: "plugin-system" */ './plugin-system.js');
     default:
-      throw new Error(new Error(`Unknown feature: ${featureName}`));
+      throw new Error(new Error(new Error(`Unknown feature: ${featureName}`)));
     }
   }
 
@@ -113,9 +113,9 @@ class RinaWarpEnhancedTerminal extends RinaWarpTerminal {
   async loadFeature(featureName) {
     try {
       this.showLoadingIndicator(`Loading ${featureName}...`);
-      
+
       const featureModule = await this.featureLoader.loadFeature(featureName);
-      
+
       // Initialize the feature
       if (featureModule.default) {
         const FeatureClass = featureModule.default;
@@ -127,18 +127,18 @@ class RinaWarpEnhancedTerminal extends RinaWarpTerminal {
       this.hideLoadingIndicator();
       this.writeSuccess(`✅ ${featureName} loaded successfully!`);
       this.emitEvent('feature:loaded', { feature: featureName });
-      
+
       return featureModule;
     } catch (error) {
       this.hideLoadingIndicator();
       this.writeError(`❌ Failed to load ${featureName}: ${error.message}`);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   async loadEssentialFeatures() {
     const essentialFeatures = ['system-vitals']; // Start with minimal set
-    
+
     for (const feature of essentialFeatures) {
       try {
         await this.loadFeature(feature);
@@ -151,16 +151,16 @@ class RinaWarpEnhancedTerminal extends RinaWarpTerminal {
   showFeatureStatus() {
     const loaded = this.featureLoader.getLoadedFeatures();
     const available = ['ai-assistant', 'system-vitals', 'voice-engine', 'plugin-system'];
-    
+
     this.writeLine('\n🦾 RinaWarp Feature Status:');
     this.writeLine('========================');
-    
+
     available.forEach(feature => {
       const status = loaded.includes(feature) ? '✅ Loaded' : '⏳ Available';
       const command = loaded.includes(feature) ? '' : ` (use 'load-${feature.split('-')[0]}')`;
       this.writeLine(`  ${feature}: ${status}${command}`);
     });
-    
+
     this.writeLine('');
   }
 
@@ -219,13 +219,13 @@ class RinaWarpApp {
       terminal: {
         theme: 'rinawarp-dark',
         fontSize: 14,
-        fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace'
+        fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace',
       },
       features: {
         autoLoad: ['system-vitals'],
-        available: ['ai-assistant', 'voice-engine', 'plugin-system']
+        available: ['ai-assistant', 'voice-engine', 'plugin-system'],
       },
-      debug: typeof process !== 'undefined' && process.env.NODE_ENV === 'development'
+      debug: typeof process !== 'undefined' && process.env.NODE_ENV === 'development',
     };
   }
 
@@ -241,10 +241,8 @@ class RinaWarpApp {
           terminal: this.terminal,
           version: this.__VERSION__ || '1.0.0',
           buildDate: typeof process !== 'undefined' ? process.env.BUILD_DATE : 'Unknown',
-          config: this.config
+          config: this.config,
         };
-        
-        console.log('🦾 RinaWarp Terminal initialized:', window.RinaWarp);
       }
 
       // Set up error handling
@@ -254,17 +252,17 @@ class RinaWarpApp {
     } catch (error) {
       console.error('Failed to initialize RinaWarp Terminal:', error);
       this.handleInitializationError(error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   setupErrorHandling() {
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       console.error('Global error:', event.error);
       this.terminal?.writeError(`System error: ${event.error.message}`);
     });
 
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       console.error('Unhandled promise rejection:', event.reason);
       this.terminal?.writeError(`Promise rejection: ${event.reason}`);
     });

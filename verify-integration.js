@@ -1,10 +1,9 @@
+#!/usr/bin/env node
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
-#!/usr/bin/env node
 
 /**
  * RinaWarp Terminal - Comprehensive Integration Verification
@@ -52,10 +51,9 @@ function log(level, message, data = null) {
   };
 
   const color = levelColors[level] || colors.white;
-  console.log(`${color}[${level}]${colors.reset} ${timestamp} - ${message}`);
+
 
   if (data) {
-    console.log(`${colors.cyan}${JSON.stringify(data, null, 2)}${colors.reset}`);
   }
 }
 
@@ -374,10 +372,8 @@ async function testSecurityConfig() {
 
 // Main verification function
 async function runVerification() {
-  console.log(
     `${colors.bold}${colors.cyan}🔍 RinaWarp Terminal Integration Verification${colors.reset}\n`
   );
-  console.log(`${colors.blue}Server URL: ${SERVER_URL}${colors.reset}\n`);
 
   const results = {
     timestamp: new Date().toISOString(),
@@ -390,22 +386,16 @@ async function runVerification() {
     log('INFO', '🚀 Starting comprehensive verification...\n');
 
     results.tests.environment = await testEnvironmentConfig();
-    console.log('');
 
     results.tests.stripe = await testStripeConfig();
-    console.log('');
 
     results.tests.webhook = await testWebhookSecurity();
-    console.log('');
 
     results.tests.email = await testEmailConfig();
-    console.log('');
 
     results.tests.security = await testSecurityConfig();
-    console.log('');
 
     // Generate summary
-    console.log(`${colors.bold}${colors.cyan}📋 VERIFICATION SUMMARY${colors.reset}\n`);
 
     const envScore = results.tests.environment.score;
     const stripeOk = results.tests.stripe.success;
@@ -413,25 +403,19 @@ async function runVerification() {
     const emailOk = results.tests.email.success;
     const securityScore = results.tests.security.securityScore;
 
-    console.log(
       `Environment Configuration: ${envScore >= 80 ? colors.green : envScore >= 60 ? colors.yellow : colors.red}${envScore}%${colors.reset}`
     );
-    console.log(
       `Stripe Configuration: ${stripeOk ? colors.green + '✅ PASS' : colors.red + '❌ FAIL'}${colors.reset}`
     );
-    console.log(
       `Webhook Security: ${webhookOk ? colors.green + '✅ PASS' : colors.red + '❌ FAIL'}${colors.reset}`
     );
-    console.log(
       `Email Configuration: ${emailOk ? colors.green + '✅ PASS' : colors.red + '❌ FAIL'}${colors.reset}`
     );
-    console.log(
       `Security Score: ${securityScore >= 80 ? colors.green : securityScore >= 60 ? colors.yellow : colors.red}${securityScore}%${colors.reset}\n`
     );
 
     // Overall assessment
     const overallOk = envScore >= 70 && stripeOk && webhookOk && securityScore >= 60;
-    console.log(
       `${colors.bold}Overall Status: ${overallOk ? colors.green + '✅ READY FOR PRODUCTION' : colors.yellow + '⚠️ NEEDS ATTENTION'}${colors.reset}\n`
     );
 
@@ -443,41 +427,33 @@ async function runVerification() {
     ];
 
     if (allIssues.length > 0) {
-      console.log(`${colors.bold}${colors.red}🚨 CRITICAL ISSUES TO ADDRESS:${colors.reset}`);
       allIssues.forEach((issue, index) => {
-        console.log(`${colors.red}${index + 1}. ${issue}${colors.reset}`);
       });
-      console.log('');
     }
 
     // Recommendations
     const recommendations = results.tests.security.recommendations;
     if (recommendations.length > 0) {
-      console.log(`${colors.bold}${colors.yellow}💡 RECOMMENDATIONS:${colors.reset}`);
       recommendations.forEach((rec, index) => {
-        console.log(`${colors.yellow}${index + 1}. ${rec}${colors.reset}`);
       });
-      console.log('');
     }
 
     // Next steps
-    console.log(`${colors.bold}${colors.blue}📝 NEXT STEPS:${colors.reset}`);
 
     if (!emailOk) {
-      console.log(`${colors.blue}1. Configure email delivery (SMTP or SendGrid)${colors.reset}`);
+        `${colors.yellow}Next Step: Configure email delivery (SMTP or SendGrid)${colors.reset}`
+      );
     }
 
     if (!stripeOk) {
-      console.log(`${colors.blue}2. Fix Stripe configuration issues${colors.reset}`);
+        `${colors.yellow}Next Step: Check Stripe configuration and price IDs${colors.reset}`
+      );
     }
 
     if (securityScore < 80) {
-      console.log(`${colors.blue}3. Address security configuration issues${colors.reset}`);
+        `${colors.yellow}Next Step: Review security recommendations above${colors.reset}`
+      );
     }
-
-    console.log(`${colors.blue}4. Test payment flow end-to-end${colors.reset}`);
-    console.log(`${colors.blue}5. Verify webhook delivery with Stripe CLI${colors.reset}`);
-    console.log(`${colors.blue}6. Monitor Railway deployment logs${colors.reset}\n`);
 
     // Save results
     const outputFile = `verification-results-${Date.now()}.json`;

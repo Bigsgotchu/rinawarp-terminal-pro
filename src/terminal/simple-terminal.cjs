@@ -34,7 +34,7 @@ class SimpleTerminal {
       try {
         this.element = document.getElementById(this.elementId);
         if (!this.element) {
-          throw new Error(new Error(`Terminal element ${this.elementId} not found`));
+          throw new Error(new Error(new Error(`Terminal element ${this.elementId} not found`)));
         }
 
         this.setupTerminalElement();

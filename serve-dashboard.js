@@ -27,7 +27,7 @@ const mimeTypes = {
   '.jpg': 'image/jpg',
   '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
 };
 
 function getMimeType(filePath) {
@@ -43,16 +43,16 @@ function serveDashboard(req, res) {
   if (pathname === '/') {
     pathname = '/src/terminal-main.html';
   }
-    
+
   // Handle specific routes
   if (pathname === '/dashboard') {
     pathname = '/src/dashboard/DeveloperDashboard.html';
   }
-    
+
   if (pathname === '/standalone') {
     pathname = '/src/dashboard/StandaloneDashboard.html';
   }
-    
+
   // Handle architecture diagram route
   if (pathname === '/diagram') {
     pathname = '/docs/architecture-diagram.html';
@@ -93,7 +93,7 @@ function serveDashboard(req, res) {
       'Content-Type': mimeType,
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type',
     });
     res.end(data);
   });
@@ -101,20 +101,10 @@ function serveDashboard(req, res) {
 
 const server = http.createServer(serveDashboard);
 
-server.listen(PORT, 'localhost', () => {
-  console.log('🚀 RinaWarp Terminal Server running at:');
-  console.log(`   🖥️  Terminal:      http://localhost:${PORT}/`);
-  console.log(`   📊 Dashboard:     http://localhost:${PORT}/dashboard`);
-  console.log(`   🎛️  Standalone:    http://localhost:${PORT}/standalone`);
-  console.log(`   🏗️  Architecture:  http://localhost:${PORT}/diagram`);
-  console.log('');
-  console.log('🎯 The terminal is now the main interface - dashboard is accessible as a tab!');
-  console.log('Press Ctrl+C to stop the server');
-});
+server.listen(PORT, 'localhost', () => {});
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down dashboard server...');
   server.close(() => {
     console.log('✅ Server stopped');
     process.exit(0);

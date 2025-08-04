@@ -29,7 +29,7 @@ class RinaWarpVoiceFeature {
     try {
       // Check for browser support
       if (!this.checkVoiceSupport()) {
-        throw new Error(new Error('Voice features not supported in this browser'));
+        throw new Error(new Error(new Error('Voice features not supported in this browser')));
       }
 
       // Initialize voice components
@@ -49,36 +49,37 @@ class RinaWarpVoiceFeature {
       this.setupVoiceHandlers();
 
       this.initialized = true;
-      console.log('🎤 Voice Engine feature loaded');
     } catch (error) {
       console.error('Failed to initialize Voice Engine:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   checkVoiceSupport() {
-    return 'speechSynthesis' in window && 
-           ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+    return (
+      'speechSynthesis' in window &&
+      ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
+    );
   }
 
   setupCommands() {
-    this.terminal.addCommand('voice', (action) => this.handleVoiceCommand(action));
-    this.terminal.addCommand('speak', (text) => this.speak(text));
+    this.terminal.addCommand('voice', action => this.handleVoiceCommand(action));
+    this.terminal.addCommand('speak', text => this.speak(text));
     this.terminal.addCommand('listen', () => this.startListening());
     this.terminal.addCommand('voice-help', () => this.showVoiceHelp());
   }
 
   setupVoiceHandlers() {
-    this.commandSystem.on('command', (command) => {
+    this.commandSystem.on('command', command => {
       this.handleVoiceCommand(command);
     });
 
-    this.speechRecognition.on('result', (text) => {
+    this.speechRecognition.on('result', text => {
       this.terminal.writeLine(`🎤 Heard: "${text}"`);
       this.processVoiceInput(text);
     });
 
-    this.speechRecognition.on('error', (error) => {
+    this.speechRecognition.on('error', error => {
       this.terminal.writeError(`Voice Error: ${error.message}`);
     });
   }
@@ -89,20 +90,20 @@ class RinaWarpVoiceFeature {
     case 'on':
       await this.startListening();
       break;
-        
+
     case 'stop':
     case 'off':
       await this.stopListening();
       break;
-        
+
     case 'status':
       this.showVoiceStatus();
       break;
-        
+
     case 'test':
       await this.testVoice();
       break;
-        
+
     default:
       this.showVoiceHelp();
     }
@@ -156,7 +157,7 @@ class RinaWarpVoiceFeature {
 
   async processVoiceInput(text) {
     const normalizedText = text.toLowerCase().trim();
-    
+
     // Voice command patterns
     const commands = {
       'clear screen': 'clear',
@@ -167,7 +168,7 @@ class RinaWarpVoiceFeature {
       'show vitals': 'vitals',
       'load ai': 'load-ai',
       'stop voice': 'voice stop',
-      'voice off': 'voice off'
+      'voice off': 'voice off',
     };
 
     // Check for direct command matches
@@ -199,7 +200,7 @@ class RinaWarpVoiceFeature {
       listening: this.isListening,
       speechSynthesis: 'speechSynthesis' in window,
       speechRecognition: 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window,
-      voices: this.voiceEngine.getAvailableVoices().length
+      voices: this.voiceEngine.getAvailableVoices().length,
     };
 
     this.terminal.writeLine(`
@@ -214,8 +215,10 @@ Available Voices: ${status.voices}
 
   async testVoice() {
     this.terminal.writeLine('🔊 Testing voice synthesis...');
-    await this.speak('Voice engine test successful. RinaWarp Terminal is ready for voice commands.');
-    
+    await this.speak(
+      'Voice engine test successful. RinaWarp Terminal is ready for voice commands.'
+    );
+
     if (!this.isListening) {
       this.terminal.writeLine('🎤 Testing voice recognition... (speak "test complete" to confirm)');
       await this.startListening();
@@ -254,7 +257,7 @@ Examples:
     if (this.isListening) {
       await this.stopListening();
     }
-    
+
     if (this.voiceEngine) {
       await this.voiceEngine.cleanup();
     }
@@ -264,7 +267,7 @@ Examples:
     if (this.speechRecognition) {
       await this.speechRecognition.cleanup();
     }
-    
+
     this.initialized = false;
   }
 

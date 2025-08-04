@@ -5,6 +5,7 @@
  * Securely configure Stripe keys and prices
  */
 
+import logger from './utils/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,7 +24,7 @@ const colors = {
 };
 
 function log(message, color = 'reset') {
-  console.log(`${colors[color]}${message}${colors.reset}`);
+  logger.info(`${colors[color]}${message}${colors.reset}`);
 }
 
 function updateStripeConfig(publishableKey, prices) {

@@ -44,26 +44,24 @@ class RinaWarpPluginFeature {
       await this.loadBuiltinPlugins();
 
       this.initialized = true;
-      console.log('🔌 Plugin System feature loaded');
     } catch (error) {
       console.error('Failed to initialize Plugin System:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   setupCommands() {
-    this.terminal.addCommand('plugins', (action) => this.handlePluginCommand(action));
-    this.terminal.addCommand('plugin', (action, ...args) => this.handleSinglePluginCommand(action, ...args));
-    this.terminal.addCommand('install-plugin', (url) => this.installPlugin(url));
-    this.terminal.addCommand('uninstall-plugin', (name) => this.uninstallPlugin(name));
+    this.terminal.addCommand('plugins', action => this.handlePluginCommand(action));
+    this.terminal.addCommand('plugin', (action, ...args) =>
+      this.handleSinglePluginCommand(action, ...args)
+    );
+    this.terminal.addCommand('install-plugin', url => this.installPlugin(url));
+    this.terminal.addCommand('uninstall-plugin', name => this.uninstallPlugin(name));
     this.terminal.addCommand('plugin-help', () => this.showPluginHelp());
   }
 
   async loadBuiltinPlugins() {
-    const builtinPlugins = [
-      'predictive-completion',
-      'ai-debugging-assistant'
-    ];
+    const builtinPlugins = ['predictive-completion', 'ai-debugging-assistant'];
 
     for (const pluginName of builtinPlugins) {
       try {
@@ -79,23 +77,23 @@ class RinaWarpPluginFeature {
     case 'list':
       this.listPlugins();
       break;
-        
+
     case 'loaded':
       this.listLoadedPlugins();
       break;
-        
+
     case 'available':
       this.listAvailablePlugins();
       break;
-        
+
     case 'reload':
       await this.reloadAllPlugins();
       break;
-        
+
     case 'status':
       this.showPluginStatus();
       break;
-        
+
     default:
       this.showPluginHelp();
     }
@@ -111,23 +109,23 @@ class RinaWarpPluginFeature {
     case 'load':
       await this.loadPlugin(pluginName);
       break;
-        
+
     case 'unload':
       await this.unloadPlugin(pluginName);
       break;
-        
+
     case 'reload':
       await this.reloadPlugin(pluginName);
       break;
-        
+
     case 'info':
       this.showPluginInfo(pluginName);
       break;
-        
+
     case 'config':
       await this.configurePlugin(pluginName, args);
       break;
-        
+
     default:
       this.terminal.writeLine(`Unknown plugin action: ${action}`);
     }
@@ -141,9 +139,9 @@ class RinaWarpPluginFeature {
 
     try {
       this.terminal.showLoadingIndicator(`Loading plugin: ${pluginName}...`);
-      
+
       const plugin = await this.pluginLoader.loadPlugin(pluginName);
-      
+
       // Initialize plugin with terminal context
       if (plugin.initialize) {
         await plugin.initialize(this.terminal);
@@ -152,14 +150,13 @@ class RinaWarpPluginFeature {
       this.loadedPlugins.set(pluginName, plugin);
       this.terminal.hideLoadingIndicator();
       this.terminal.writeSuccess(`✅ Plugin '${pluginName}' loaded successfully!`);
-      
+
       // Register plugin commands if available
       if (plugin.commands) {
         Object.entries(plugin.commands).forEach(([command, handler]) => {
           this.terminal.addCommand(`${pluginName}:${command}`, handler.bind(plugin));
         });
       }
-
     } catch (error) {
       this.terminal.hideLoadingIndicator();
       this.terminal.writeError(`❌ Failed to load plugin '${pluginName}': ${error.message}`);
@@ -202,20 +199,20 @@ class RinaWarpPluginFeature {
 
   async reloadAllPlugins() {
     const pluginNames = Array.from(this.loadedPlugins.keys());
-    
+
     this.terminal.writeLine(`Reloading ${pluginNames.length} plugins...`);
-    
+
     for (const pluginName of pluginNames) {
       await this.reloadPlugin(pluginName);
     }
-    
+
     this.terminal.writeSuccess('✅ All plugins reloaded!');
   }
 
   listPlugins() {
     const loaded = Array.from(this.loadedPlugins.keys());
     const available = this.pluginSystem.getAvailablePlugins();
-    
+
     this.terminal.writeLine(`
 🔌 Plugin System Overview:
 =========================
@@ -229,7 +226,7 @@ ${available.map(name => `  📦 ${name}${loaded.includes(name) ? ' (loaded)' : '
 
   listLoadedPlugins() {
     const loaded = Array.from(this.loadedPlugins.entries());
-    
+
     if (loaded.length === 0) {
       this.terminal.writeLine('No plugins are currently loaded');
       return;
@@ -252,7 +249,7 @@ ${'='.repeat(25)}
   listAvailablePlugins() {
     const available = this.pluginSystem.getAvailablePlugins();
     const loaded = Array.from(this.loadedPlugins.keys());
-    
+
     this.terminal.writeLine(`
 📦 Available Plugins (${available.length}):
 ${'='.repeat(30)}
@@ -267,14 +264,14 @@ ${'='.repeat(30)}
 
   showPluginInfo(pluginName) {
     const plugin = this.loadedPlugins.get(pluginName);
-    
+
     if (!plugin) {
       this.terminal.writeError(`Plugin '${pluginName}' is not loaded`);
       return;
     }
 
     const info = plugin.getInfo ? plugin.getInfo() : {};
-    
+
     this.terminal.writeLine(`
 🔌 Plugin Information: ${pluginName}
 ${'='.repeat(35)}
@@ -282,14 +279,20 @@ Name: ${info.name || pluginName}
 Version: ${info.version || 'unknown'}
 Author: ${info.author || 'unknown'}
 Description: ${info.description || 'No description available'}
-Commands: ${plugin.commands ? Object.keys(plugin.commands).map(cmd => `${pluginName}:${cmd}`).join(', ') : 'none'}
+Commands: ${
+  plugin.commands
+    ? Object.keys(plugin.commands)
+      .map(cmd => `${pluginName}:${cmd}`)
+      .join(', ')
+    : 'none'
+}
 Status: ${this.loadedPlugins.has(pluginName) ? '✅ Loaded' : '❌ Not Loaded'}
     `);
   }
 
   async configurePlugin(pluginName, args) {
     const plugin = this.loadedPlugins.get(pluginName);
-    
+
     if (!plugin) {
       this.terminal.writeError(`Plugin '${pluginName}' is not loaded`);
       return;
@@ -313,7 +316,7 @@ Status: ${this.loadedPlugins.has(pluginName) ? '✅ Loaded' : '❌ Not Loaded'}
       loaded: this.loadedPlugins.size,
       available: this.pluginSystem.getAvailablePlugins().length,
       system: this.pluginSystem.isEnabled(),
-      loader: this.pluginLoader.isReady()
+      loader: this.pluginLoader.isReady(),
     };
 
     this.terminal.writeLine(`

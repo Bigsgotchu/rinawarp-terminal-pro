@@ -41,31 +41,26 @@ class AIProviderManager {
         const openaiProvider = AIProviderFactory.createProvider('openai');
         await openaiProvider.initialize();
         this.providers.set('openai', openaiProvider);
-      } catch (error) {
-        console.log('[AI] OpenAI provider not available:', error.message);
-      }
+      } catch (error) {}
 
       // Try to initialize Anthropic provider
       try {
         const anthropicProvider = AIProviderFactory.createProvider('anthropic');
         await anthropicProvider.initialize();
         this.providers.set('anthropic', anthropicProvider);
-      } catch (error) {
-        console.log('[AI] Anthropic provider not available:', error.message);
-      }
+      } catch (error) {}
 
       this.initialized = true;
-      console.log(`[AI] Initialized with providers: ${Array.from(this.providers.keys()).join(', ')}`);
     } catch (error) {
       console.error('[AI] Provider initialization failed:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
   getProvider(name = null) {
     const providerName = name || this.currentProvider;
     const provider = this.providers.get(providerName);
-    
+
     if (provider && provider.isAvailable()) {
       return provider;
     }
@@ -76,7 +71,7 @@ class AIProviderManager {
       return fallback;
     }
 
-    throw new Error(new Error('No AI providers available'));
+    throw new Error(new Error(new Error('No AI providers available')));
   }
 
   getAvailableProviders() {
@@ -87,7 +82,7 @@ class AIProviderManager {
           name,
           description: provider.getDescription(),
           capabilities: provider.getCapabilities(),
-          rateLimits: provider.getRateLimits()
+          rateLimits: provider.getRateLimits(),
         });
       }
     }
@@ -113,7 +108,7 @@ const aiLimiter = rateLimit({
   message: {
     error: 'Too many AI requests. Please slow down, the mermaids need time to think! 🧜‍♀️',
     retryAfter: '1 minute',
-    hint: 'Deep thoughts require deep waters - patience, dear sailor! ⭐'
+    hint: 'Deep thoughts require deep waters - patience, dear sailor! ⭐',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -124,7 +119,7 @@ const heavyLimiter = rateLimit({
   max: 10, // Limit heavy requests
   message: {
     error: 'Too many complex AI requests. Even mermaids need rest! 🧜‍♀️💤',
-    retryAfter: '5 minutes'
+    retryAfter: '5 minutes',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -134,38 +129,40 @@ const heavyLimiter = rateLimit({
 const aiQuerySchema = Joi.object({
   query: Joi.string().required().min(1).max(5000).messages({
     'string.empty': 'Query cannot be empty - what would you like to know?',
-    'string.max': 'Query too long - mermaids prefer concise questions! 🧜‍♀️'
+    'string.max': 'Query too long - mermaids prefer concise questions! 🧜‍♀️',
   }),
   context: Joi.object({
     workingDirectory: Joi.string().optional(),
     recentHistory: Joi.array().items(Joi.string()).max(50).optional(),
     systemInfo: Joi.object().optional(),
-    sessionId: Joi.string().optional()
+    sessionId: Joi.string().optional(),
   }).optional(),
   provider: Joi.string().valid('local', 'openai', 'anthropic', 'auto').default('auto'),
-  personality: Joi.string().valid('mermaid', 'professional', 'friendly', 'expert').default('mermaid'),
-  requestType: Joi.string().valid('chat', 'command', 'explain', 'analyze').default('chat')
+  personality: Joi.string()
+    .valid('mermaid', 'professional', 'friendly', 'expert')
+    .default('mermaid'),
+  requestType: Joi.string().valid('chat', 'command', 'explain', 'analyze').default('chat'),
 });
 
 const commandSchema = Joi.object({
   command: Joi.string().required().min(1).max(500),
-  context: Joi.object().optional()
+  context: Joi.object().optional(),
 });
 
 const providerConfigSchema = Joi.object({
   provider: Joi.string().valid('openai', 'anthropic', 'custom').required(),
   apiKey: Joi.string().when('provider', {
     is: Joi.string().valid('openai', 'anthropic'),
-    then: Joi.required().min(10)
+    then: Joi.required().min(10),
   }),
   config: Joi.object().when('provider', {
     is: 'custom',
     then: Joi.object({
       apiUrl: Joi.string().uri().required(),
       model: Joi.string().optional(),
-      headers: Joi.object().optional()
-    }).required()
-  })
+      headers: Joi.object().optional(),
+    }).required(),
+  }),
 });
 
 // Validation middleware
@@ -199,7 +196,7 @@ class MermaidPersonality {
       '🏖️ Surfacing with wisdom...',
       '💎 A pearl of technical insight:',
       '🌙 By the light of the code moon...',
-      '🐠 Swimming through the data currents...'
+      '🐠 Swimming through the data currents...',
     ];
 
     const closingPhrases = [
@@ -209,7 +206,7 @@ class MermaidPersonality {
       'Keep your terminals shipshape! 🚢',
       'Smooth sailing ahead! ⛵',
       'May your bugs be as rare as sea pearls! 💎',
-      'Dive deeper, code stronger! 🤿'
+      'Dive deeper, code stronger! 🤿',
     ];
 
     // Add mermaid introduction
@@ -227,7 +224,7 @@ class MermaidPersonality {
     // Add mermaid metadata
     response.personality = 'mermaid';
     response.mood = this.generateMermaidMood();
-    
+
     return response;
   }
 
@@ -237,7 +234,7 @@ class MermaidPersonality {
       { mood: 'wise', emoji: '🧙‍♀️🔮', description: 'Ancient wisdom flows...' },
       { mood: 'curious', emoji: '👀🔍', description: 'Exploring new depths!' },
       { mood: 'helpful', emoji: '🤝💙', description: 'Ready to assist!' },
-      { mood: 'energetic', emoji: '⚡🌊', description: 'Charged with sea power!' }
+      { mood: 'energetic', emoji: '⚡🌊', description: 'Charged with sea power!' },
     ];
     return moods[Math.floor(Math.random() * moods.length)];
   }
@@ -255,7 +252,7 @@ async function ensureInitialized(req, res, next) {
       error: 'AI service initialization failed',
       message: '🧜‍♀️ The mermaids are still setting up their digital coral reef...',
       details: error.message,
-      retryAfter: 30
+      retryAfter: 30,
     });
   }
 }
@@ -264,52 +261,48 @@ async function ensureInitialized(req, res, next) {
  * POST /api/ai/chat
  * Main AI chat endpoint with personality transformation
  */
-router.post('/chat', 
-  aiLimiter, 
-  validate(aiQuerySchema), 
+router.post(
+  '/chat',
+  aiLimiter,
+  validate(aiQuerySchema),
   ensureInitialized,
   asyncHandler(async (req, res) => {
     const { query, context, provider, personality, requestType } = req.body;
     const startTime = Date.now();
 
-    console.log(`[AI] Chat request: ${query.substring(0, 100)}... [${requestType}/${personality}]`);
-
     try {
       const aiProvider = aiManager.getProvider(provider === 'auto' ? null : provider);
-      
+
       // Enhanced context with session info
       const enhancedContext = {
         ...context,
         requestType,
         timestamp: Date.now(),
         userAgent: req.get('User-Agent'),
-        ip: req.ip
+        ip: req.ip,
       };
 
       const response = await aiProvider.generateResponse(query, enhancedContext);
-      
+
       // Apply personality transformation
       const transformedResponse = MermaidPersonality.transform(response, personality);
-      
+
       // Add processing metadata
       transformedResponse.metadata = {
         provider: aiProvider.getName(),
         processingTime: Date.now() - startTime,
         requestType,
         personality,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
-      console.log(`[AI] Response generated in ${Date.now() - startTime}ms using ${aiProvider.getName()}`);
-      
       res.json({
         success: true,
-        response: transformedResponse
+        response: transformedResponse,
       });
-
     } catch (error) {
       console.error('[AI] Chat error:', error);
-      
+
       // Fallback response with mermaid personality
       const fallbackResponse = MermaidPersonality.transform(
         `🧜‍♀️ *apologetic bubble sounds* \n\nSorry, sailor! The digital currents are a bit choppy right now. ${error.message}\n\nTry again in a moment when the waves calm down!`,
@@ -320,7 +313,7 @@ router.post('/chat',
         success: false,
         error: 'AI processing failed',
         fallback: fallbackResponse,
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
   })
@@ -330,34 +323,34 @@ router.post('/chat',
  * POST /api/ai/command
  * Command prediction and analysis
  */
-router.post('/command',
+router.post(
+  '/command',
   aiLimiter,
   validate(commandSchema),
   ensureInitialized,
   asyncHandler(async (req, res) => {
     const { command, context } = req.body;
-    
+
     try {
       // Use legacy OpenAI client for command prediction
       const prediction = await getCommandPrediction(command, context?.workingDirectory);
       const explanation = await explainCommand(command);
-      
+
       const response = MermaidPersonality.transform({
         command,
         prediction,
         explanation,
         safety: {
           riskLevel: calculateCommandRisk(command),
-          warnings: generateSafetyWarnings(command)
+          warnings: generateSafetyWarnings(command),
         },
-        alternatives: generateAlternatives(command)
+        alternatives: generateAlternatives(command),
       });
 
       res.json({
         success: true,
-        response
+        response,
       });
-
     } catch (error) {
       console.error('[AI] Command analysis error:', error);
       res.status(500).json({
@@ -365,7 +358,7 @@ router.post('/command',
         error: 'Command analysis failed',
         fallback: MermaidPersonality.transform(
           `🧜‍♀️ The command currents are murky... Try: \`man ${command.split(' ')[0]}\` for guidance!`
-        )
+        ),
       });
     }
   })
@@ -375,31 +368,33 @@ router.post('/command',
  * POST /api/ai/workflow
  * Workflow automation suggestions
  */
-router.post('/workflow',
+router.post(
+  '/workflow',
   heavyLimiter,
-  validate(Joi.object({
-    commandHistory: Joi.array().items(Joi.string()).max(100).required(),
-    context: Joi.object().optional()
-  })),
+  validate(
+    Joi.object({
+      commandHistory: Joi.array().items(Joi.string()).max(100).required(),
+      context: Joi.object().optional(),
+    })
+  ),
   ensureInitialized,
   asyncHandler(async (req, res) => {
-    const { commandHistory, context } = req.body;
+    const { commandHistory, _context } = req.body;
 
     try {
       const automation = await getWorkflowAutomation(commandHistory);
-      
+
       const response = MermaidPersonality.transform({
         automation,
         patterns: analyzeCommandPatterns(commandHistory),
         suggestions: generateWorkflowSuggestions(commandHistory),
-        scripts: generateAutomationScripts(commandHistory)
+        scripts: generateAutomationScripts(commandHistory),
       });
 
       res.json({
         success: true,
-        response
+        response,
       });
-
     } catch (error) {
       console.error('[AI] Workflow analysis error:', error);
       res.status(500).json({
@@ -407,7 +402,7 @@ router.post('/workflow',
         error: 'Workflow analysis failed',
         fallback: MermaidPersonality.transform(
           '🧜‍♀️ The workflow waves are too complex right now. Try organizing your commands in smaller groups!'
-        )
+        ),
       });
     }
   })
@@ -417,17 +412,18 @@ router.post('/workflow',
  * GET /api/ai/providers
  * List available AI providers
  */
-router.get('/providers', 
+router.get(
+  '/providers',
   ensureInitialized,
   asyncHandler(async (req, res) => {
     const providers = aiManager.getAvailableProviders();
     const current = aiManager.currentProvider;
-    
+
     res.json({
       success: true,
       current,
       available: providers,
-      message: '🧜‍♀️ Here are your available AI companions!'
+      message: '🧜‍♀️ Here are your available AI companions!',
     });
   })
 );
@@ -436,11 +432,12 @@ router.get('/providers',
  * POST /api/ai/provider
  * Configure AI provider
  */
-router.post('/provider',
+router.post(
+  '/provider',
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5, // Limited provider changes
-    message: { error: 'Too many provider configuration attempts' }
+    message: { error: 'Too many provider configuration attempts' },
   }),
   validate(providerConfigSchema),
   ensureInitialized,
@@ -468,22 +465,21 @@ router.post('/provider',
 
       // Set as current provider
       const success = aiManager.setProvider(provider);
-      
+
       res.json({
         success,
-        message: success 
-          ? `🧜‍♀️ Successfully switched to ${provider} AI provider!` 
+        message: success
+          ? `🧜‍♀️ Successfully switched to ${provider} AI provider!`
           : `🧜‍♀️ Could not switch to ${provider} - check your configuration!`,
-        currentProvider: aiManager.currentProvider
+        currentProvider: aiManager.currentProvider,
       });
-
     } catch (error) {
       console.error('[AI] Provider configuration error:', error);
       res.status(400).json({
         success: false,
         error: 'Provider configuration failed',
         message: '🧜‍♀️ The AI spirits are not responding to this configuration...',
-        details: error.message
+        details: error.message,
       });
     }
   })
@@ -493,37 +489,40 @@ router.post('/provider',
  * GET /api/ai/health
  * AI service health check
  */
-router.get('/health', asyncHandler(async (req, res) => {
-  const health = {
-    status: 'ok',
-    initialized: aiManager.initialized,
-    providers: {},
-    timestamp: new Date().toISOString()
-  };
-
-  // Check each provider
-  for (const [name, provider] of aiManager.providers) {
-    health.providers[name] = {
-      available: provider.isAvailable(),
-      description: provider.getDescription(),
-      lastError: provider.lastError?.message || null
+router.get(
+  '/health',
+  asyncHandler(async (req, res) => {
+    const health = {
+      status: 'ok',
+      initialized: aiManager.initialized,
+      providers: {},
+      timestamp: new Date().toISOString(),
     };
-  }
 
-  const overallHealth = Object.values(health.providers).some(p => p.available);
-  
-  res.status(overallHealth ? 200 : 503).json({
-    ...health,
-    message: overallHealth 
-      ? '🧜‍♀️ All AI systems are swimming smoothly!' 
-      : '🧜‍♀️ Some AI systems need attention...'
-  });
-}));
+    // Check each provider
+    for (const [name, provider] of aiManager.providers) {
+      health.providers[name] = {
+        available: provider.isAvailable(),
+        description: provider.getDescription(),
+        lastError: provider.lastError?.message || null,
+      };
+    }
+
+    const overallHealth = Object.values(health.providers).some(p => p.available);
+
+    res.status(overallHealth ? 200 : 503).json({
+      ...health,
+      message: overallHealth
+        ? '🧜‍♀️ All AI systems are swimming smoothly!'
+        : '🧜‍♀️ Some AI systems need attention...',
+    });
+  })
+);
 
 // Helper functions
 function calculateCommandRisk(command) {
   const dangerousCommands = ['rm -rf', 'sudo rm', 'format', 'del /f', 'killall'];
-  const hasRisk = dangerousCommands.some(danger => 
+  const hasRisk = dangerousCommands.some(danger =>
     command.toLowerCase().includes(danger.toLowerCase())
   );
   return hasRisk ? 'high' : 'low';
@@ -545,17 +544,17 @@ function generateSafetyWarnings(command) {
 
 function generateAlternatives(command) {
   const alternatives = [];
-  
+
   if (command.includes('rm ')) {
     alternatives.push('Use `trash` command for safer file deletion');
     alternatives.push('Use `mv file /tmp/` to move instead of delete');
   }
-  
+
   if (command.includes('chmod 777')) {
     alternatives.push('Use `chmod 755` for executable files');
     alternatives.push('Use `chmod 644` for regular files');
   }
-  
+
   return alternatives;
 }
 
@@ -563,15 +562,15 @@ function analyzeCommandPatterns(history) {
   const patterns = {
     frequency: {},
     sequences: [],
-    timePatterns: {}
+    timePatterns: {},
   };
-  
+
   // Count command frequency
   history.forEach(cmd => {
     const baseCmd = cmd.split(' ')[0];
     patterns.frequency[baseCmd] = (patterns.frequency[baseCmd] || 0) + 1;
   });
-  
+
   // Find common sequences
   for (let i = 0; i < history.length - 1; i++) {
     const sequence = `${history[i]} → ${history[i + 1]}`;
@@ -582,13 +581,13 @@ function analyzeCommandPatterns(history) {
       patterns.sequences.push({ sequence, count: 1 });
     }
   }
-  
+
   return patterns;
 }
 
 function generateWorkflowSuggestions(history) {
   const suggestions = [];
-  
+
   // Git workflow detection
   const hasGitCommands = history.some(cmd => cmd.startsWith('git'));
   if (hasGitCommands) {
@@ -596,10 +595,10 @@ function generateWorkflowSuggestions(history) {
       type: 'git-workflow',
       title: 'Create Git workflow alias',
       description: 'Automate your git add, commit, push workflow',
-      script: 'git add . && git commit -m "$1" && git push'
+      script: 'git add . && git commit -m "$1" && git push',
     });
   }
-  
+
   // Build workflow detection
   const hasBuildCommands = history.some(cmd => cmd.includes('npm') || cmd.includes('yarn'));
   if (hasBuildCommands) {
@@ -607,25 +606,25 @@ function generateWorkflowSuggestions(history) {
       type: 'build-workflow',
       title: 'Create build and test script',
       description: 'Automate install, test, and build process',
-      script: 'npm install && npm test && npm run build'
+      script: 'npm install && npm test && npm run build',
     });
   }
-  
+
   return suggestions;
 }
 
 function generateAutomationScripts(history) {
   // Generate shell scripts based on common patterns
   const scripts = {};
-  
+
   const gitCommands = history.filter(cmd => cmd.startsWith('git'));
   if (gitCommands.length > 3) {
     scripts.quickCommit = {
       name: 'Quick Commit',
-      content: '#!/bin/bash\ngit add .\ngit commit -m "${1:-Quick update}"\ngit push'
+      content: '#!/bin/bash\ngit add .\ngit commit -m "${1:-Quick update}"\ngit push',
     };
   }
-  
+
   return scripts;
 }
 

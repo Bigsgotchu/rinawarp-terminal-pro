@@ -9,7 +9,7 @@
  * Local storage-based file service without Firebase dependencies
  */
 
-import { authService } from './auth-service.js';
+import authService from './auth-service-enhanced.js';
 
 class StorageService {
   constructor() {
@@ -60,14 +60,12 @@ class StorageService {
   async uploadFile(file, path = '', onProgress = null) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error(new Error('User not authenticated'));
-
-      console.log('Storage: File upload called (localStorage-based, Firebase removed)');
+      if (!userId) throw new Error(new Error(new Error('User not authenticated')));
 
       // Validate file
       const validation = this.validateFile(file);
       if (!validation.valid) {
-        throw new Error(new Error(validation.error));
+        throw new Error(new Error(new Error(validation.error)));
       }
 
       // Simulate progress if callback provided
@@ -169,9 +167,7 @@ class StorageService {
   async uploadTerminalSession(sessionData, sessionId) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error(new Error('User not authenticated'));
-
-      console.log('Storage: Session upload called (localStorage-based, Firebase removed)');
+      if (!userId) throw new Error(new Error(new Error('User not authenticated')));
 
       const sessionBlob = JSON.stringify(sessionData, null, 2);
       const fileName = `session_${sessionId}_${Date.now()}.json`;
@@ -229,9 +225,7 @@ class StorageService {
   async uploadConfigFile(configData, configName) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error(new Error('User not authenticated'));
-
-      console.log('Storage: Config upload called (localStorage-based, Firebase removed)');
+      if (!userId) throw new Error(new Error(new Error('User not authenticated')));
 
       const configBlob = JSON.stringify(configData, null, 2);
       const fileName = `${configName}.json`;
@@ -290,7 +284,7 @@ class StorageService {
   async listUserFiles(folder = '') {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error(new Error('User not authenticated'));
+      if (!userId) throw new Error(new Error(new Error('User not authenticated')));
 
       const fileList = this._getFileList(userId);
       let filteredFiles = fileList;
@@ -309,7 +303,6 @@ class StorageService {
         fullPath: folderName,
       }));
 
-      console.log('Storage: Listed user files (localStorage)', filteredFiles.length);
       return { success: true, files: filteredFiles, folders };
     } catch (error) {
       console.error('Error listing files:', error);
@@ -320,7 +313,7 @@ class StorageService {
   async deleteFile(filePath) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error(new Error('User not authenticated'));
+      if (!userId) throw new Error(new Error(new Error('User not authenticated')));
 
       const fileList = this._getFileList(userId);
       const fileIndex = fileList.findIndex(file => file.fullPath === filePath);
@@ -336,7 +329,6 @@ class StorageService {
         fileList.splice(fileIndex, 1);
         this._saveFileList(userId, fileList);
 
-        console.log('Storage: File deleted (localStorage)');
         return { success: true };
       }
 
@@ -350,7 +342,7 @@ class StorageService {
   async downloadFile(filePath) {
     try {
       const userId = authService.getUserId();
-      if (!userId) throw new Error(new Error('User not authenticated'));
+      if (!userId) throw new Error(new Error(new Error('User not authenticated')));
 
       const fileList = this._getFileList(userId);
       const file = fileList.find(f => f.fullPath === filePath);

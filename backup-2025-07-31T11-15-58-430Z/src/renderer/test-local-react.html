@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Local React Test</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
+            padding: 20px;
+        }
+        #status {
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { color: #00ff88; }
+        .error { color: #ff6b6b; }
+        .info { color: #74c0fc; }
+    </style>
+</head>
+<body>
+    <h1>Local React Import Test</h1>
+    <div id="status"></div>
+    <button id="test-btn">Test React Import</button>
+    <div id="auth-root"></div>
+    
+    <script type="module">
+        const status = document.getElementById('status');
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            status.appendChild(entry);
+            console.log(message);
+        }
+        
+        document.getElementById('test-btn').addEventListener('click', async () => {
+            log('Starting React import test...', 'info');
+            
+            try {
+                // Test 1: Import React from node_modules
+                log('Test 1: Importing React from node_modules...', 'info');
+                const React = await import('../../node_modules/react/index.js').catch(e => {
+                    log('Failed to import React directly: ' + e.message, 'error');
+                    return null;
+                });
+                
+                // Test 2: Import using bare specifier
+                log('Test 2: Importing React using bare specifier...', 'info');
+                const React2 = await import('react').catch(e => {
+                    log('Failed to import React with bare specifier: ' + e.message, 'error');
+                    return null;
+                });
+                
+                // Test 3: Check if React is already available globally
+                log('Test 3: Checking global React...', 'info');
+                if (typeof window.React !== 'undefined') {
+                    log('React found globally!', 'success');
+                } else {
+                    log('React not found globally', 'info');
+                }
+                
+                // Test 4: Import from CDN
+                log('Test 4: Importing React from CDN...', 'info');
+                const script = document.createElement('script');
+                script.crossOrigin = 'anonymous';
+                script.src = 'https://unpkg.com/react@18/umd/react.development.js';
+                
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+                
+                const script2 = document.createElement('script');
+                script2.crossOrigin = 'anonymous';
+                script2.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js';
+                
+                await new Promise((resolve, reject) => {
+                    script2.onload = resolve;
+                    script2.onerror = reject;
+                    document.head.appendChild(script2);
+                });
+                
+                if (window.React && window.ReactDOM) {
+                    log('React loaded from CDN successfully!', 'success');
+                    
+                    // Create a simple component
+                    const e = React.createElement;
+                    const TestComponent = () => {
+                        return e('div', { style: { padding: '20px', border: '2px solid #00ff88', marginTop: '20px' } },
+                            e('h3', null, '✅ React is working!'),
+                            e('p', null, 'React version: ' + React.version)
+                        );
+                    };
+                    
+                    const root = ReactDOM.createRoot(document.getElementById('auth-root'));
+                    root.render(e(TestComponent));
+                    
+                    log('React component rendered successfully!', 'success');
+                } else {
+                    log('Failed to load React from CDN', 'error');
+                }
+                
+            } catch (error) {
+                log('Test failed: ' + error.message, 'error');
+                console.error(error);
+            }
+        });
+        
+        log('Test page ready. Click the button to start.', 'info');
+    </script>
+</body>
+</html>

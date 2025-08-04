@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -9,10 +10,8 @@
  * Dynamically loads and integrates all AI components into existing terminal
  */
 
-(function() {
+(function () {
   'use strict';
-
-  console.log('🚀 Loading RinaWarp Terminal AI Enhancements...');
 
   // Check if we're in the right environment
   if (typeof window === 'undefined') {
@@ -23,10 +22,10 @@
   // Configuration
   const AI_COMPONENTS = [
     'enhanced-command-intelligence.js',
-    'git-integration-advanced.js', 
+    'git-integration-advanced.js',
     'project-analyzer-advanced.js',
     'debugger-integration-advanced.js',
-    'ai-orchestrator.js'
+    'ai-orchestrator.js',
   ];
 
   const BASE_PATH = './renderer/';
@@ -37,7 +36,7 @@
       this.loadedComponents = new Set();
       this.loadingPromises = new Map();
       this.dependencies = new Map();
-      
+
       this.setupDependencies();
     }
 
@@ -47,7 +46,7 @@
         'enhanced-command-intelligence.js',
         'git-integration-advanced.js',
         'project-analyzer-advanced.js',
-        'debugger-integration-advanced.js'
+        'debugger-integration-advanced.js',
       ]);
     }
 
@@ -60,8 +59,6 @@
         return this.loadingPromises.get(componentPath);
       }
 
-      console.log(`📦 Loading component: ${componentPath}`);
-
       const loadPromise = new Promise(async (resolve, reject) => {
         try {
           // Load dependencies first
@@ -72,11 +69,10 @@
 
           // Load the component
           await this.loadScript(`${BASE_PATH}${componentPath}`);
-          
+
           this.loadedComponents.add(componentPath);
-          console.log(`✅ Loaded: ${componentPath}`);
+          logger.debug(`✅ Loaded: ${componentPath}`);
           resolve();
-          
         } catch (error) {
           console.error(`❌ Failed to load ${componentPath}:`, error);
           reject(error);
@@ -100,26 +96,20 @@
         script.src = src;
         script.type = 'text/javascript';
         script.async = false; // Ensure order
-        
+
         script.onload = () => resolve();
-        script.onerror = (error) => reject(new Error(`Failed to load script: ${src}`));
-        
+        script.onerror = error => reject(new Error(`Failed to load script: ${src}`));
+
         document.head.appendChild(script);
       });
     }
 
     async loadAllComponents() {
       try {
-        console.log('📚 Loading all AI components...');
-        
         // Load all components
-        await Promise.all(
-          AI_COMPONENTS.map(component => this.loadComponent(component))
-        );
-        
-        console.log('✅ All AI components loaded successfully!');
+        await Promise.all(AI_COMPONENTS.map(component => this.loadComponent(component)));
+
         return true;
-        
       } catch (error) {
         console.error('❌ Failed to load AI components:', error);
         return false;
@@ -138,8 +128,6 @@
     async integrate() {
       if (this.integrated) return;
 
-      console.log('🔧 Integrating AI system with terminal...');
-
       // Find the terminal instance
       this.findTerminal();
 
@@ -156,34 +144,32 @@
       this.addAIUIElements();
 
       this.integrated = true;
-      console.log('✅ AI system integrated with terminal');
+      logger.debug('✅ AI system integrated with terminal');
     }
 
     findTerminal() {
       // Try to find XTerm.js terminal instance
       if (window.terminal) {
         this.terminal = window.terminal;
-        console.log('📺 Found terminal instance');
         return;
       }
 
       // Try to find terminal in common locations
-      const terminalElement = document.getElementById('terminal') || 
-                            document.querySelector('.xterm') ||
-                            document.querySelector('.terminal');
-      
+      const terminalElement =
+        document.getElementById('terminal') ||
+        document.querySelector('.xterm') ||
+        document.querySelector('.terminal');
+
       if (terminalElement) {
-        console.log('📺 Found terminal element');
         // Terminal element found but no instance - we'll create integration hooks anyway
       }
     }
 
     async waitForAISystem() {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         const checkForAI = () => {
           if (window.rinaWarpAI && window.rinaWarpAI.getSystemStatus().initialized) {
             this.aiSystem = window.rinaWarpAI;
-            console.log('🧠 AI system ready');
             resolve();
           } else {
             setTimeout(checkForAI, 100);
@@ -209,58 +195,68 @@
     hookCommandExecution() {
       // Create a wrapper for command execution
       const originalExecuteCommand = window.electronAPI?.executeCommand;
-      
+
       if (originalExecuteCommand) {
-        window.electronAPI.executeCommand = async (command, options) => {
-          try {
-            // Notify AI system of command execution
-            if (this.aiSystem.context) {
-              this.aiSystem.context.updateCommand(command);
-            }
+        // Don't try to reassign if property is read-only
+        try {
+          window.electronAPI.executeCommand = async (command, options) => {
+            try {
+              // Notify AI system of command execution
+              if (this.aiSystem.context) {
+                this.aiSystem.context.updateCommand(command);
+              }
 
-            // Execute the command
-            const result = await originalExecuteCommand.call(window.electronAPI, command, options);
-            
-            // Let AI system learn from the result
-            if (this.aiSystem.eventBus) {
-              this.aiSystem.eventBus.emit('commandExecuted', {
+              // Execute the command
+              const result = await originalExecuteCommand.call(
+                window.electronAPI,
                 command,
-                result,
                 options
-              });
-            }
+              );
 
-            return result;
-          } catch (error) {
-            // Handle errors through AI system
-            if (this.aiSystem.eventBus) {
-              this.aiSystem.eventBus.emit('error', {
-                error,
-                context: { command, source: 'terminal' }
-              });
+              // Let AI system learn from the result
+              if (this.aiSystem.eventBus) {
+                this.aiSystem.eventBus.emit('commandExecuted', {
+                  command,
+                  result,
+                  options,
+                });
+              }
+
+              return result;
+            } catch (error) {
+              // Handle errors through AI system
+              if (this.aiSystem.eventBus) {
+                this.aiSystem.eventBus.emit('error', {
+                  error,
+                  context: { command, source: 'terminal' },
+                });
+              }
+              throw new Error(new Error(error));
             }
-            throw new Error(error);
-          }
-        };
+          };
+        } catch (error) {
+          // Property is read-only, skip hooking
+          console.warn('Cannot hook executeCommand - property is read-only');
+        }
       }
     }
 
     hookDirectoryChanges() {
       // Monitor for directory changes
       let lastDirectory = '';
-      
+
       const checkDirectory = async () => {
         try {
           if (window.electronAPI?.getCurrentDirectory) {
             const currentDir = await window.electronAPI.getCurrentDirectory();
             if (currentDir && currentDir !== lastDirectory) {
               lastDirectory = currentDir;
-              
+
               // Notify AI system
               if (this.aiSystem.eventBus) {
                 this.aiSystem.eventBus.emit('directoryChanged', {
                   newDir: currentDir,
-                  oldDir: lastDirectory
+                  oldDir: lastDirectory,
                 });
               }
             }
@@ -268,7 +264,7 @@
         } catch (error) {
           // Silently handle directory check errors
         }
-        
+
         setTimeout(checkDirectory, 2000);
       };
 
@@ -278,13 +274,13 @@
     hookErrorHandling() {
       // Global error handler
       const originalErrorHandler = window.onerror;
-      
+
       window.onerror = (message, source, lineno, colno, error) => {
         // Send to AI system for analysis
         if (this.aiSystem.eventBus && error) {
           this.aiSystem.eventBus.emit('error', {
             error,
-            context: { source: 'global', lineno, colno }
+            context: { source: 'global', lineno, colno },
           });
         }
 
@@ -300,7 +296,7 @@
 
       // Listen for terminal data
       if (this.terminal.onData) {
-        this.terminal.onData((data) => {
+        this.terminal.onData(data => {
           // Send keystroke data to AI for real-time analysis
           if (this.aiSystem.eventBus) {
             this.aiSystem.eventBus.emit('terminalInput', { data });
@@ -347,7 +343,7 @@
         cursor: pointer;
         transition: all 0.3s ease;
       `;
-      
+
       const updateStatus = () => {
         if (this.aiSystem) {
           const status = this.aiSystem.getSystemStatus();
@@ -362,7 +358,6 @@
 
       indicator.onclick = () => {
         if (this.aiSystem) {
-          console.log('RinaWarp AI Status:', this.aiSystem.getSystemStatus());
         }
       };
 
@@ -388,20 +383,18 @@
           title: 'Analyze Project',
           action: async () => {
             if (this.aiSystem) {
-              const analysis = await this.aiSystem.analyzeProject('.');
-              console.log('Project Analysis:', analysis);
+              const _analysis = await this.aiSystem.analyzeProject('.');
             }
-          }
+          },
         },
         {
           text: '💡',
           title: 'Get Suggestions',
           action: () => {
             if (this.aiSystem) {
-              const suggestions = this.aiSystem.getCurrentSuggestions();
-              console.log('Current Suggestions:', suggestions);
+              const _suggestions = this.aiSystem.getCurrentSuggestions();
             }
-          }
+          },
         },
         {
           text: '🐛',
@@ -409,14 +402,13 @@
           action: async () => {
             if (this.aiSystem) {
               try {
-                const sessionId = await this.aiSystem.startDebugSession('node');
-                console.log('Debug session started:', sessionId);
+                const _sessionId = await this.aiSystem.startDebugSession('node');
               } catch (error) {
                 console.error('Debug session failed:', error.message);
               }
             }
-          }
-        }
+          },
+        },
       ];
 
       buttons.forEach(btn => {
@@ -434,17 +426,17 @@
           cursor: pointer;
           transition: all 0.3s ease;
         `;
-        
+
         button.onmouseover = () => {
           button.style.background = 'rgba(255, 20, 147, 0.9)';
           button.style.transform = 'scale(1.1)';
         };
-        
+
         button.onmouseout = () => {
           button.style.background = 'rgba(0, 170, 255, 0.9)';
           button.style.transform = 'scale(1)';
         };
-        
+
         button.onclick = btn.action;
         container.appendChild(button);
       });
@@ -453,27 +445,25 @@
     }
 
     addKeyboardShortcuts() {
-      document.addEventListener('keydown', (e) => {
+      document.addEventListener('keydown', e => {
         // Ctrl+Shift+R: Reload AI system
         if (e.ctrlKey && e.shiftKey && e.key === 'R') {
           e.preventDefault();
           location.reload();
         }
-        
+
         // Ctrl+Shift+A: Show AI status
         if (e.ctrlKey && e.shiftKey && e.key === 'A') {
           e.preventDefault();
           if (this.aiSystem) {
-            console.log('RinaWarp AI Status:', this.aiSystem.getSystemStatus());
           }
         }
-        
+
         // Ctrl+Shift+S: Show suggestions
         if (e.ctrlKey && e.shiftKey && e.key === 'S') {
           e.preventDefault();
           if (this.aiSystem) {
-            const suggestions = this.aiSystem.getCurrentSuggestions();
-            console.log('AI Suggestions:', suggestions);
+            const _suggestions = this.aiSystem.getCurrentSuggestions();
           }
         }
       });
@@ -483,12 +473,10 @@
   // Main initialization function
   async function initializeAIEnhancements() {
     try {
-      console.log('🎯 Starting RinaWarp AI Enhancement initialization...');
-
       // Load all AI components
       const loader = new AIComponentLoader();
       const success = await loader.loadAllComponents();
-      
+
       if (!success) {
         console.error('❌ Failed to load AI components');
         return;
@@ -501,17 +489,10 @@
       const integrator = new TerminalIntegrator();
       await integrator.integrate();
 
-      console.log('🎉 RinaWarp Terminal AI Enhancements fully loaded and integrated!');
-      
       // Show welcome notification
       if (window.rinaWarpAI) {
-        setTimeout(() => {
-          console.log('🌊 Welcome to Enhanced RinaWarp Terminal!');
-          console.log('Available features:', window.rinaWarpAI.getAvailableFeatures());
-          console.log('Keyboard shortcuts: Ctrl+Shift+A (status), Ctrl+Shift+S (suggestions)');
-        }, 2000);
+        setTimeout(() => {}, 2000);
       }
-
     } catch (error) {
       console.error('❌ Failed to initialize AI enhancements:', error);
     }
@@ -527,7 +508,6 @@
   // Expose loader for manual control
   window.rinaWarpAILoader = {
     initialize: initializeAIEnhancements,
-    reload: () => location.reload()
+    reload: () => location.reload(),
   };
-
 })();

@@ -1,0 +1,66 @@
+# Exclude large files and directories from Railway deployment
+public/releases/*.dmg
+public/releases/*.exe
+public/releases/*.tar.gz
+public/releases/*.AppImage
+public/releases/*.zip
+dist/
+temp-build/
+releases/
+backup-*/
+
+# Build artifacts
+*.dmg
+*.exe
+*.tar.gz
+*.AppImage
+*.zip
+
+# Node modules and caches
+node_modules/
+.npm/
+.cache/
+
+# Development files
+.env.development
+.env.local
+*.log
+coverage/
+.nyc_output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+test-results/
+playwright-report/
+
+# Large audio files
+*.wav
+ffmpeg.zip
+*.tar.gz
+
+# Backups
+project-backup-*
+backup-*/
+
+# Large directories
+public/releases/
+public/*.dmg
+public/*.exe
+public/*.tar.gz
+
+# Secrets and reports
+secrets-scan-report.json
+package-lock.json.backup-*

@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 /**
  * RinaWarp Terminal - Performance Optimization Script
  * Copyright (c) 2025 Rinawarp Technologies, LLC
@@ -34,8 +35,6 @@ class PerformanceOptimizer {
   }
 
   async init() {
-    console.log('🚀 Initializing Performance Optimizer...');
-
     // Create cache directory if it doesn't exist
     if (!existsSync(this.cacheDir)) {
       execSync(`mkdir -p ${this.cacheDir}`);
@@ -49,12 +48,10 @@ class PerformanceOptimizer {
     await this.optimizeMemoryUsage();
     await this.optimizeStartupSequence();
 
-    console.log('✅ Performance Optimizer initialized');
+    logger.debug('✅ Performance Optimizer initialized');
   }
 
   async optimizeModuleLoading() {
-    console.log('📦 Optimizing module loading...');
-
     // Identify critical modules that should be preloaded
     const criticalModules = [
       'src/renderer/performance-monitor.js',
@@ -82,12 +79,9 @@ class PerformanceOptimizer {
       JSON.stringify(preloadManifest, null, 2)
     );
 
-    console.log('✅ Module loading optimized');
   }
 
   async optimizeMemoryUsage() {
-    console.log('🧠 Optimizing memory usage...');
-
     // Enable garbage collection optimizations
     if (this.config.enableGarbageCollection) {
       // Force garbage collection every 30 seconds
@@ -104,12 +98,10 @@ class PerformanceOptimizer {
       this.performMemoryCleanup();
     }
 
-    console.log('✅ Memory usage optimized');
+    logger.debug('✅ Memory usage optimized');
   }
 
   async optimizeStartupSequence() {
-    console.log('⚡ Optimizing startup sequence...');
-
     // Create startup optimization script
     const startupScript = `
 // RinaWarp Terminal - Optimized Startup Sequence
@@ -152,7 +144,6 @@ class PerformanceOptimizer {
   // Optimize initial render
   requestAnimationFrame(() => {
     const endTime = performance.now();
-    console.log(\`🚀 Startup optimized: \${endTime - startTime}ms\`);
   });
 })();
     `;
@@ -160,12 +151,9 @@ class PerformanceOptimizer {
     // Save startup script
     writeFileSync(join(this.cacheDir, 'startup-optimization.js'), startupScript);
 
-    console.log('✅ Startup sequence optimized');
   }
 
   performMemoryCleanup() {
-    console.log('🧹 Performing memory cleanup...');
-
     // Clear optimization cache
     this.optimizationCache.clear();
 
@@ -174,7 +162,7 @@ class PerformanceOptimizer {
       global.gc();
     }
 
-    console.log('✅ Memory cleanup completed');
+    logger.debug('✅ Memory cleanup completed');
   }
 
   loadOptimizationCache() {
@@ -184,7 +172,7 @@ class PerformanceOptimizer {
       try {
         const cache = JSON.parse(readFileSync(cacheFile, 'utf8'));
         this.optimizationCache = new Map(cache);
-        console.log('📊 Optimization cache loaded');
+        logger.debug('📊 Optimization cache loaded');
       } catch (error) {
         console.warn('⚠️ Failed to load optimization cache:', error.message);
       }
@@ -197,7 +185,6 @@ class PerformanceOptimizer {
 
     try {
       writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
-      console.log('💾 Optimization cache saved');
     } catch (error) {
       console.warn('⚠️ Failed to save optimization cache:', error.message);
     }
@@ -231,7 +218,6 @@ class PerformanceOptimizer {
     // Save report
     writeFileSync(join(this.cacheDir, 'performance-report.json'), JSON.stringify(report, null, 2));
 
-    console.log('📈 Performance report generated');
     return report;
   }
 
@@ -261,8 +247,6 @@ class PerformanceOptimizer {
   }
 
   async benchmarkPerformance() {
-    console.log('🏃 Running performance benchmarks...');
-
     const benchmarks = {
       moduleLoadTime: await this.benchmarkModuleLoading(),
       memoryEfficiency: await this.benchmarkMemoryUsage(),
@@ -276,7 +260,7 @@ class PerformanceOptimizer {
       JSON.stringify(benchmarks, null, 2)
     );
 
-    console.log('✅ Performance benchmarks completed');
+    logger.debug('✅ Performance benchmarks completed');
     return benchmarks;
   }
 
@@ -335,15 +319,12 @@ class PerformanceOptimizer {
   }
 
   cleanup() {
-    console.log('🧹 Cleaning up performance optimizer...');
-
     // Save cache before cleanup
     this.saveOptimizationCache();
 
     // Clear intervals and timeouts
     // (In a real implementation, you'd store these references)
 
-    console.log('✅ Performance optimizer cleaned up');
   }
 }
 
@@ -356,13 +337,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   // Run benchmarks
   optimizer.benchmarkPerformance().then(results => {
-    console.log('📊 Benchmark Results:', results);
+    logger.debug('📊 Benchmark Results:', results);
   });
 
   // Generate performance report
-  optimizer.generatePerformanceReport().then(report => {
-    console.log('📈 Performance Report:', report);
-  });
+  optimizer.generatePerformanceReport().then(_report => {});
 
   // Cleanup on exit
   process.on('exit', () => {

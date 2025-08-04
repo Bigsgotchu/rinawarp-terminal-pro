@@ -17,11 +17,6 @@ if (typeof window !== 'undefined' && window.LicenseManager) {
   localStorage.setItem('rinawarp_debug_mode', 'true');
   localStorage.setItem('rinawarp_unlimited_features', 'true');
 
-  console.log('🎉 Developer license activated successfully!');
-  console.log('License Key:', developerKey);
-  console.log('License Type: developer');
-  console.log('Features: Unlimited access to all features');
-
   // Force refresh to apply changes
   if (confirm('Developer license activated! Refresh the app to apply changes?')) {
     location.reload();

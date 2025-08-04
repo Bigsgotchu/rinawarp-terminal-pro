@@ -17,8 +17,6 @@ function question(query) {
 }
 
 async function addApiKey() {
-  console.log('🔐 Secure API Key Setup\n');
-
   const provider = await question('Which provider? (anthropic/openai): ');
 
   if (!['anthropic', 'openai'].includes(provider.toLowerCase())) {
@@ -27,18 +25,15 @@ async function addApiKey() {
     return;
   }
 
-  console.log('\n📋 Paste your API key and press Enter:');
   const apiKey = await question('');
 
   // Validate key format
   if (provider === 'anthropic' && !apiKey.startsWith('sk-ant-')) {
-    console.log('❌ Invalid Anthropic key format. Should start with sk-ant-');
     rl.close();
     return;
   }
 
   if (provider === 'openai' && !apiKey.startsWith('sk-')) {
-    console.log('❌ Invalid OpenAI key format. Should start with sk-');
     rl.close();
     return;
   }
@@ -53,16 +48,11 @@ async function addApiKey() {
 
   if (regex.test(envContent)) {
     envContent = envContent.replace(regex, `${keyName}=${apiKey}`);
-    console.log(`\n✅ Updated ${keyName} in .env file`);
   } else {
-    console.log(`\n❌ Could not find ${keyName} in .env file`);
   }
 
   // Write back
   fs.writeFileSync(envPath, envContent);
-
-  console.log('\n🎉 API key added successfully!');
-  console.log('You can now test it with: node test-' + provider + '.js');
 
   rl.close();
 }

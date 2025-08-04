@@ -8,14 +8,31 @@
 
 /* ===== THEME VARIABLES ===== */
 :root {
+  /* RinaWarp Brand Colors */
+  --rinawarp-pink: #FF1493;
+  --rinawarp-coral: #FF6B9D;
+  --rinawarp-teal: #00CED1;
+  --rinawarp-blue: #4169E1;
+  --rinawarp-purple: #9B59B6;
+  --rinawarp-green: #00FF88;
+  
+  /* RinaWarp Gradient Definitions */
+  --rinawarp-gradient-primary: linear-gradient(135deg, var(--rinawarp-pink) 0%, var(--rinawarp-coral) 50%, var(--rinawarp-teal) 100%);
+  --rinawarp-gradient-secondary: linear-gradient(45deg, var(--rinawarp-blue) 0%, var(--rinawarp-purple) 50%, var(--rinawarp-pink) 100%);
+  --rinawarp-gradient-hover: linear-gradient(135deg, var(--rinawarp-coral) 0%, var(--rinawarp-teal) 50%, var(--rinawarp-blue) 100%);
+  
+  /* RinaWarp Shadows and Effects */
+  --rinawarp-glow: 0 0 20px rgba(255, 20, 147, 0.5), 0 0 40px rgba(255, 107, 157, 0.3);
+  --rinawarp-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  
   /* Default Dark Theme */
   --bg-primary: #1a1a1a;
   --bg-secondary: #2d2d2d;
   --bg-tertiary: #3d3d3d;
   --text-primary: #ffffff;
   --text-secondary: #cccccc;
-  --accent-primary: #00ff88;
-  --accent-secondary: #00bcd4;
+  --accent-primary: var(--rinawarp-pink);
+  --accent-secondary: var(--rinawarp-teal);
   --border-color: #4d4d4d;
   --terminal-bg: #0a0a0a;
 }
@@ -357,6 +374,24 @@
   --status-light-signal: #3399ff;
 }
 
+/* ===== RINAWARP BRAND THEME ===== */
+.theme-rinawarp {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #15151a;
+  --bg-tertiary: #1f1f26;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --accent-primary: var(--rinawarp-pink);
+  --accent-secondary: var(--rinawarp-teal);
+  --border-color: #2a2a33;
+  --terminal-bg: #050508;
+  
+  /* Special brand effects */
+  --button-gradient: var(--rinawarp-gradient-primary);
+  --button-gradient-hover: var(--rinawarp-gradient-hover);
+  --highlight-glow: var(--rinawarp-glow);
+}
+
 /* ===== APPLY THEME STYLES ===== */
 body {
   background-color: var(--bg-primary);
@@ -479,6 +514,78 @@ body,
   font-weight: bold;
 }
 
+/* RinaWarp theme special effects */
+.theme-rinawarp .btn {
+  background: var(--rinawarp-gradient-primary);
+  border: none;
+  box-shadow: var(--rinawarp-shadow);
+  transition: all 0.3s ease;
+}
+
+.theme-rinawarp .btn:hover {
+  background: var(--rinawarp-gradient-hover);
+  box-shadow: var(--rinawarp-glow);
+  transform: translateY(-2px);
+}
+
+.theme-rinawarp .accent-primary {
+  background: var(--rinawarp-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.theme-rinawarp .terminal-header {
+  background: linear-gradient(to right, var(--bg-secondary) 0%, rgba(255, 20, 147, 0.1) 50%, var(--bg-secondary) 100%);
+}
+
+.theme-rinawarp .tab.active {
+  border-top: 3px solid transparent;
+  border-image: var(--rinawarp-gradient-primary) 1;
+}
+
+.theme-rinawarp .status-bar {
+  background: linear-gradient(to right, var(--bg-secondary) 0%, rgba(0, 206, 209, 0.1) 50%, var(--bg-secondary) 100%);
+}
+
+/* Glow effect for focused elements */
+.theme-rinawarp input:focus,
+.theme-rinawarp textarea:focus,
+.theme-rinawarp .terminal-container:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 20, 147, 0.3), var(--rinawarp-glow);
+}
+
+/* Animated gradient border for modals */
+.theme-rinawarp .modal-content {
+  position: relative;
+  border: none;
+  background: var(--bg-secondary);
+}
+
+.theme-rinawarp .modal-content::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--rinawarp-gradient-primary);
+  border-radius: 8px;
+  z-index: -1;
+  opacity: 0.7;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background: var(--rinawarp-gradient-primary);
+  }
+  50% {
+    background: var(--rinawarp-gradient-secondary);
+  }
+}
+
 /* Accessibility improvements */
 @media (prefers-reduced-motion: reduce) {
   body,
@@ -489,6 +596,10 @@ body,
   .status-bar,
   .modal-content {
     transition: none;
+  }
+  
+  .theme-rinawarp .modal-content::before {
+    animation: none;
   }
 }
 

@@ -65,7 +65,7 @@ class Phase2Integration {
 
       // Check browser compatibility
       if (!this.checkBrowserCompatibility()) {
-        throw new Error(new Error('Browser does not support required Phase 2 features'));
+        throw new Error(new Error(new Error('Browser does not support required Phase 2 features')));
       }
 
       // Load required stylesheets
@@ -176,7 +176,7 @@ class Phase2Integration {
           supported = CSS.supports(feature.test);
         }
       } catch (_e) {
-        // CSS.supports might throw new Error(for some features
+        // CSS.supports might throw new Error(error for some features
         supported = false);
       }
 
@@ -416,7 +416,7 @@ class Phase2Integration {
     } catch (error) {
       console.error('❌ Failed to activate Phase 2:', error);
       await this.deactivate(); // Rollback on failure
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 
@@ -566,7 +566,7 @@ class Phase2Integration {
       this.emit('phase2-deactivated');
     } catch (error) {
       console.error('❌ Failed to deactivate Phase 2:', error);
-      throw new Error(error);
+      throw new Error(new Error(error));
     }
   }
 

@@ -1,10 +1,10 @@
 import express from 'express';
 const router = express.Router();
 
-// GitHub release URLs (update these with actual release URLs)
+// GitHub release URLs (updated with actual release URLs)
 const DOWNLOAD_URLS = {
   macos:
-    'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-macOS.zip',
+    'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/download/v1.0.0/RinaWarp-Terminal-macOS.dmg',
   windows:
     'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/latest/download/RinaWarp-Terminal-Setup-Windows.exe',
   linux:
@@ -17,7 +17,6 @@ router.get('/:platform', (req, res) => {
 
   if (downloadUrl) {
     // Track download
-    console.log(`📥 Download initiated for ${platform}`);
     res.redirect(downloadUrl);
   } else {
     res.status(404).json({ error: 'Invalid platform' });

@@ -1,6 +1,8 @@
 <div align="center">
 
-![RinaWarp Terminal Logo](./assets/png/logo-mermaid.png)
+<p align="center">
+  <img src="assets/logo-designs/rinawarp-banner.svg" alt="RinaWarp Terminal" width="800">
+</p>
 
 # RinaWarp Terminal Fresh
 

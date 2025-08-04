@@ -71,7 +71,6 @@ export class SpeechRecognitionEngine {
       this.createSpeechUI();
       this.setupEventListeners();
 
-      console.log('🎤 Speech Recognition Engine initialized');
       return true;
     } catch (error) {
       console.error('Failed to initialize Speech Recognition:', error);
@@ -83,7 +82,7 @@ export class SpeechRecognitionEngine {
     // Check for Speech Recognition API
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      throw new Error(new Error('Speech Recognition not supported in this browser'));
+      throw new Error(new Error(new Error('Speech Recognition not supported in this browser')));
     }
 
     // Check for microphone permissions
@@ -92,7 +91,7 @@ export class SpeechRecognitionEngine {
       stream.getTracks().forEach(track => track.stop());
       return true;
     } catch (error) {
-      throw new Error(new Error('Microphone access denied or not available'));
+      throw new Error(new Error(new Error('Microphone access denied or not available')));
     }
   }
 
@@ -185,8 +184,6 @@ export class SpeechRecognitionEngine {
   }
 
   async processFinalTranscript(transcript) {
-    console.log('Speech recognized:', transcript, 'Confidence:', this.confidence);
-
     // Update UI
     this.showSpeechFeedback(`✅ "${transcript}"`, 'success');
     this.commandBuffer = transcript;
@@ -459,7 +456,7 @@ export class SpeechRecognitionEngine {
       // Write command to terminal and execute
       this.terminal.terminal.write(command + '\r');
     } else {
-      throw new Error(new Error('Terminal not available'));
+      throw new Error(new Error(new Error('Terminal not available')));
     }
   }
 
@@ -766,7 +763,6 @@ export class SpeechRecognitionEngine {
     }
 
     this.speakResponse('Speech recognition enabled');
-    console.log('🎤 Speech Recognition enabled');
   }
 
   disable() {
@@ -784,8 +780,6 @@ export class SpeechRecognitionEngine {
     if (this.confidenceIndicator) {
       this.confidenceIndicator.classList.add('hidden');
     }
-
-    console.log('🎤 Speech Recognition disabled');
   }
 
   toggle() {
@@ -856,13 +850,11 @@ export class SpeechRecognitionEngine {
 
   showSettings() {
     // Implementation for speech settings modal
-    console.log('Speech settings - TODO: Implement settings modal');
     this.speakResponse('Speech settings opened');
   }
 
   showTraining() {
     // Implementation for speech training interface
-    console.log('Speech training - TODO: Implement training interface');
     this.speakResponse('Speech training opened');
   }
 

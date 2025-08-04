@@ -197,7 +197,7 @@
                             });
                         }
                     } else {
-                        throw new Error(new Error('Submission failed'));
+                        throw new Error(new Error(new Error('Submission failed')));
                     }
                 } catch (error) {
                     console.error('Email capture error:', error);

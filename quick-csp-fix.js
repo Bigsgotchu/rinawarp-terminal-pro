@@ -7,8 +7,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🔧 Quick CSP Fix for Inline Handlers\n');
-
 // Update the server middleware to allow inline handlers temporarily
 const updatedMiddleware = `export const securityHeaders = (req, res, next) => {
   // Generate a nonce for this request
@@ -64,7 +62,7 @@ if (fs.existsSync('final-server.js')) {
     // Update to more permissive CSP
     serverContent = serverContent.replace(
       /script-src-attr\s*['"][^'"]*['"]/g,
-      "script-src-attr 'unsafe-inline'"
+      'script-src-attr \'unsafe-inline\''
     );
 
     // If script-src doesn't have unsafe-inline, add it
@@ -76,21 +74,7 @@ if (fs.existsSync('final-server.js')) {
     });
 
     fs.writeFileSync('final-server.js', serverContent);
-    console.log('✅ Updated final-server.js CSP settings\n');
   }
 }
 
-console.log('📝 What this fix does:');
-console.log('   • Temporarily allows inline event handlers (onclick, etc.)');
-console.log('   • Adds "unsafe-inline" to script-src-attr directive');
-console.log('   • This is a TEMPORARY fix for immediate functionality\n');
-
 console.log('⚠️  IMPORTANT:');
-console.log('   This reduces security temporarily!');
-console.log('   Plan to migrate to event listeners as shown in CSP_MIGRATION_GUIDE.md\n');
-
-console.log('🚀 Next Steps:');
-console.log('   1. Deploy these changes immediately');
-console.log('   2. Your payment buttons should work again');
-console.log('   3. Plan migration to remove inline handlers');
-console.log('   4. Use the safe-event-handler.js utility for new code');

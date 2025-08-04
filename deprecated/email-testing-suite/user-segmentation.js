@@ -99,7 +99,7 @@ class UserSegmentation {
    */
   async processTrackingData(eventLogPath) {
     if (!fs.existsSync(eventLogPath)) {
-      throw new Error(new Error('Tracking data file not found at ' + eventLogPath));
+      throw new Error(new Error(new Error('Tracking data file not found at ' + eventLogPath)));
     }
 
     const events = JSON.parse(fs.readFileSync(eventLogPath, 'utf8'));

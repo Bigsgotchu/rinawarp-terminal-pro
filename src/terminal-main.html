@@ -103,7 +103,7 @@
             width: 350px;
         }
 
-        .terminal-container {
+        .terminal-wrapper {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -324,7 +324,7 @@
             </div>
 
             <!-- Terminal Container (always visible, takes up full width when sidebar collapsed) -->
-            <div class="terminal-container">
+            <div class="terminal-wrapper">
                 <div class="terminal-view" id="terminal-view">
                     <div id="terminal"></div>
                 </div>
@@ -384,8 +384,9 @@
                 };
                 
                 this.initializePatterns();
-                this.loadLearningData();
-                this.setupAdaptiveLearning();
+                // TODO: Implement learning features
+                // this.loadLearningData();
+                // this.setupAdaptiveLearning();
             }
 
             initializePatterns() {
@@ -698,6 +699,12 @@
             isNaturalLanguage(input) {
                 // Simple heuristics to detect natural language vs direct commands
                 if (!input || input.length < 3) return false;
+                
+                // Check if it's a known single-word command first
+                const singleWordCommands = ['help', 'clear', 'status', 'version', 'exit', 'dashboard'];
+                if (singleWordCommands.includes(input.trim().toLowerCase())) {
+                    return false; // Not natural language, it's a direct command
+                }
                 
                 const indicators = [
                     /\b(?:can you|could you|please|how do i|how to|what is|show me|tell me)\b/i,
