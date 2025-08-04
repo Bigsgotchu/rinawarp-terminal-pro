@@ -33,6 +33,16 @@ export default [
       'scripts/auto-replace-deprecated.js',
       'scripts/modernize-github-workflows.js',
       'scripts/upgrade-workflows-to-v4.cjs',
+      // Backup directories with potentially malformed code
+      'backup-*/**',
+      '*-backup/**',
+      '.backups/**',
+      'extracted-*/**',
+      // Temporary and generated files
+      'temp-*/**',
+      'tmp/**',
+      'warnings.txt',
+      'lint-output.txt',
       // Completely ignore React/JSX files and directories
       'sdk/**',
       'analytics-dashboard/**',
