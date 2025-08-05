@@ -185,6 +185,7 @@ class GA4ConversionSetup {
       });
     });
 
+    console.log(
       'Audience segments configured:',
       audienceSegments.map(s => s.name)
     );
