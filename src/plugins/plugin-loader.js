@@ -120,6 +120,7 @@ export class PluginLoader {
     const endTime = performance.now();
     results.totalTime = endTime - startTime;
 
+    console.log(
       `🎉 Plugin loading complete: ${results.loaded.length} loaded, ${results.failed.length} failed in ${Math.round(results.totalTime)}ms`
     );
 
