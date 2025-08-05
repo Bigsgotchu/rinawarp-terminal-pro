@@ -109,6 +109,7 @@ class IPMonitoringSystem {
     }
 
     this.lastScanResults = scanResults;
+    console.log(
       `✅ Monitoring scan complete. Found ${scanResults.violations.length} potential violations.`
     );
   }
@@ -129,8 +130,8 @@ class IPMonitoringSystem {
           },
           headers: this.config.githubToken
             ? {
-              Authorization: `token ${this.config.githubToken}`,
-            }
+                Authorization: `token ${this.config.githubToken}`,
+              }
             : {},
         });
 
@@ -218,7 +219,7 @@ class IPMonitoringSystem {
         const response = await axios.get(`http://${domain}`, {
           timeout: 5000,
           validateStatus: () => true, // Don't throw new Error(on HTTP errors
-        }));
+        });
 
         results.push({
           type: 'domain_check',
