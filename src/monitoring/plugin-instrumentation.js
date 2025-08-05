@@ -127,6 +127,7 @@ export class PluginInstrumentation {
     // Clean up tracker
     this.executionTimeTrackers.delete(executionId);
 
+    console.log(
       `📊 Plugin execution tracked: ${tracker.pluginName} (${tracker.operationType}) - ${executionTime}ms`
     );
   }
@@ -296,7 +297,6 @@ export class PluginInstrumentation {
 
       return result;
     };
-
   }
 }
 

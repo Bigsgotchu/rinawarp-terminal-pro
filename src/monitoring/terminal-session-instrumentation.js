@@ -77,6 +77,7 @@ export class TerminalSessionInstrumentation {
       this.commandCounters.delete(sessionId);
       this.commandRateTrackers.delete(sessionId);
 
+      console.log(
         `📊 Session instrumentation ended for session: ${sessionId}, duration: ${durationSeconds}s`
       );
     }
@@ -141,7 +142,6 @@ export class TerminalSessionInstrumentation {
           await metricsService.recordCommandsPerMinute(commandsPerMinute, sessionId);
         }
       }
-
     } catch (error) {
       console.error('📊 Error collecting periodic metrics:', error);
     }
