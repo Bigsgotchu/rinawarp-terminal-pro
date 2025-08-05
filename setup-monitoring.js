@@ -15,13 +15,11 @@ const rl = readline.createInterface({
 
 const question = query => new Promise(resolve => rl.question(query, resolve));
 
-
 async function setup() {
   // Check if .env.monitoring exists
   if (!fs.existsSync('.env.monitoring')) {
     fs.copyFileSync('.env.monitoring.example', '.env.monitoring');
   }
-
 
   // LogRocket
 
@@ -51,6 +49,7 @@ async function setup() {
 
   fs.writeFileSync('.env.monitoring', envContent);
 
+  console.log(
     '2. Add secrets to GitHub: https://github.com/Rinawarp-Terminal/rinawarp-terminal/settings/secrets/actions'
   );
 
