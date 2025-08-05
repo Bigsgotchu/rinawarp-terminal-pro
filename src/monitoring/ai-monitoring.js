@@ -68,6 +68,7 @@ export function monitorAICall(provider, operation, fn, options = {}) {
 
           // Log to console in development
           if (process.env.NODE_ENV === 'development') {
+            console.log({
               tokens: result?.usage,
               model: args[0]?.model,
             });
