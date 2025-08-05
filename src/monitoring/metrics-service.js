@@ -217,6 +217,7 @@ class MetricsService {
     }
 
     if (this.metricsBuffer.length > 0) {
+      console.log(
         `📊 Flushed ${metricsToFlush.length - this.metricsBuffer.length} metrics, ${this.metricsBuffer.length} failed`
       );
     }
