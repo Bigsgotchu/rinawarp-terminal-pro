@@ -37,7 +37,6 @@ class RinaWarpAIOrchestrator {
     // Initialize context tracking
     this.context = new ContextManager();
 
-
     // Start the AI system
     this.startAISystem();
   }
@@ -591,9 +590,9 @@ Let's build something amazing! 🌊
     panel.innerHTML = `
       <h3 style="margin: 0 0 10px 0; color: #00AAFF;">🧠 AI Suggestions</h3>
       ${suggestions
-    .slice(0, 5)
-    .map(
-      suggestion => `
+        .slice(0, 5)
+        .map(
+          suggestion => `
         <div style="
           background: rgba(0, 170, 255, 0.1);
           border-left: 2px solid #00AAFF;
@@ -601,13 +600,13 @@ Let's build something amazing! 🌊
           margin: 5px 0;
           cursor: pointer;
           border-radius: 3px;
-        " onclick="navigator.clipboard.writeText('${suggestion.text.replace(/'/g, '\\\'')}')">
+        " onclick="navigator.clipboard.writeText('${suggestion.text.replace(/'/g, "\\'")}')">
           <strong>${suggestion.text}</strong><br>
           <small style="color: #ccc;">${suggestion.description}</small>
         </div>
       `
-    )
-    .join('')}
+        )
+        .join('')}
       <div style="text-align: center; margin-top: 10px; font-size: 10px; color: #888;">
         Click any suggestion to copy to clipboard
       </div>
@@ -636,6 +635,7 @@ Let's build something amazing! 🌊
     const componentCount = this.components.size;
     const activeFeatures = this.activeFeatures.size;
 
+    console.log({
       components: componentCount,
       activeFeatures,
       memoryUsed: Math.round((memoryInfo.usedJSHeapSize || 0) / 1024 / 1024) + 'MB',

@@ -91,6 +91,7 @@ export class ModuleRegistry {
         })
       );
 
+      console.log(
         `✅ ${name} loaded successfully (${this.modules.get(name).loadTime.toFixed(2)}ms)`
       );
       return true;
@@ -233,21 +234,21 @@ export class EnvironmentDetector {
 
     // Platform-specific optimizations
     switch (environment.platform) {
-    case 'electron':
-      config.modules.enhanced.push('ShellManager', 'VoiceEngine', 'ErrorDetection');
-      config.modules.optional.push('MoodDetector', 'AnalyticsEngine');
-      break;
+      case 'electron':
+        config.modules.enhanced.push('ShellManager', 'VoiceEngine', 'ErrorDetection');
+        config.modules.optional.push('MoodDetector', 'AnalyticsEngine');
+        break;
 
-    case 'mobile':
-      config.modules.enhanced.push('MobileCompanion');
-      config.performance.lazyLoad = true;
-      config.ui.animations = false;
-      break;
+      case 'mobile':
+        config.modules.enhanced.push('MobileCompanion');
+        config.performance.lazyLoad = true;
+        config.ui.animations = false;
+        break;
 
-    case 'browser':
-      config.modules.optional.push('VoiceEngine');
-      config.performance.lazyLoad = true;
-      break;
+      case 'browser':
+        config.modules.optional.push('VoiceEngine');
+        config.performance.lazyLoad = true;
+        break;
     }
 
     // Performance-based adjustments
@@ -507,7 +508,6 @@ export class UnifiedRuntime {
       if (this.terminal) {
         engine.setIntegration(this.terminal, this.terminal.shellManager);
       }
-
     } catch (error) {
       console.warn('⚠️ Voice engine activation failed:', error.message);
     }
@@ -588,9 +588,9 @@ export class UnifiedRuntime {
       modules: this.registry ? this.registry.getDiagnostics() : null,
       terminal: this.terminal
         ? {
-          active: true,
-          hasShell: !!this.terminal.shellManager,
-        }
+            active: true,
+            hasShell: !!this.terminal.shellManager,
+          }
         : null,
     };
   }
