@@ -167,8 +167,7 @@ class Phase3IntegrationManager {
       logger.debug('✅ Auto-remediation successful:', data);
     });
 
-    manager.on('rate_limiting_enabled', () => {
-    });
+    manager.on('rate_limiting_enabled', () => {});
   }
 
   /**
@@ -178,6 +177,7 @@ class Phase3IntegrationManager {
     const manager = this.components.communityEngagement;
 
     manager.on('campaign_executed', async data => {
+      logger.debug('📊 Campaign executed:', {
         type: data.campaign.type,
         platforms: data.campaign.platforms,
         success: Object.values(data.results).every(r => r.success),
@@ -185,6 +185,7 @@ class Phase3IntegrationManager {
     });
 
     manager.on('qa_session_scheduled', async session => {
+      logger.debug('📊 Q&A session scheduled:', {
         id: session.id,
         date: session.date,
         platforms: session.platforms,
@@ -197,6 +198,7 @@ class Phase3IntegrationManager {
     });
 
     manager.on('suggestion_created', suggestion => {
+      logger.debug('📊 Community suggestion created:', {
         title: suggestion.title,
         category: suggestion.category,
         author: suggestion.author,
@@ -222,6 +224,7 @@ class Phase3IntegrationManager {
       // Only log periodically to avoid spam
       if (Date.now() % (5 * 60 * 1000) < 1000) {
         // Every 5 minutes
+        logger.debug('📊 Periodic metrics:', {
           timestamp: metrics.timestamp,
           responseTime: Math.round(metrics.performance.responseTime),
           errorRate: (metrics.errors.rate * 100).toFixed(2) + '%',
@@ -262,6 +265,7 @@ class Phase3IntegrationManager {
     });
 
     manager.on('monthly_report_generated', async report => {
+      logger.debug('📊 Monthly report generated:', {
         id: report.id,
         period: report.period,
         incidents: report.summary.total_incidents,
@@ -275,6 +279,7 @@ class Phase3IntegrationManager {
     });
 
     manager.on('retrospective_scheduled', retrospective => {
+      logger.debug('📊 Retrospective scheduled:', {
         type: retrospective.type,
         participants: retrospective.participants,
         period: retrospective.period,
