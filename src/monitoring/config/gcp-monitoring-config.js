@@ -67,6 +67,7 @@ class GCPMonitoringConfig {
           const credentials = JSON.parse(credentialsContent);
 
           // Validate service account has required roles
+          console.log(
             `📊 Initializing GCP Monitoring with service account: ${credentials.client_email}`
           );
         } catch (error) {
@@ -124,7 +125,9 @@ class GCPMonitoringConfig {
    */
   getMonitoringClient() {
     if (!this.isInitialized) {
-      throw new Error(new Error(new Error('Monitoring client not initialized. Call initialize() first.')));
+      throw new Error(
+        new Error(new Error('Monitoring client not initialized. Call initialize() first.'))
+      );
     }
     return this.monitoringClient;
   }
@@ -134,7 +137,9 @@ class GCPMonitoringConfig {
    */
   getLoggingClient() {
     if (!this.isInitialized) {
-      throw new Error(new Error(new Error('Logging client not initialized. Call initialize() first.')));
+      throw new Error(
+        new Error(new Error('Logging client not initialized. Call initialize() first.'))
+      );
     }
     return this.loggingClient;
   }
