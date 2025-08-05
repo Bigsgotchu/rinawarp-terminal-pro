@@ -309,12 +309,7 @@ class StructuredLogger {
     // For now, we'll read from the local log file
     return new Promise((resolve, reject) => {
       const logFile = path.join(this.logDirectory, 'combined.log');
-      fs.promises.readFile(logFile, "utf8").then(data => (err, data(null, data)).catch((err, data) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
+      fs.promises.readFile(logFile, 'utf8').then(data => {
         const logs = data
           .split('\n')
           .filter(line => line.trim())
