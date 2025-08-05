@@ -141,6 +141,7 @@ class TelemetryService {
     }
 
     if (endpoints.length > 0) {
+      console.log(
         `✅ Custom telemetry endpoints initialized: ${endpoints.map(e => e.name).join(', ')}`
       );
     }
@@ -408,7 +409,6 @@ class TelemetryService {
             timeout: 5000,
           }
         );
-
       } catch (error) {
         console.warn(`⚠️ Custom endpoint ${endpoint.name} failed:`, error.message);
       }

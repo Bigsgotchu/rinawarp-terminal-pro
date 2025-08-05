@@ -31,14 +31,16 @@ const ALLOWED_FILES = {
   // Platform-specific downloads
   portable: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`, // Windows portable executable
   linux: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`, // Linux tar.gz archive
-  macos: 'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/download/v1.0.0/RinaWarp-Terminal-macOS.dmg', // macOS DMG installer
+  macos:
+    'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/download/v1.0.0/RinaWarp-Terminal-macOS.dmg', // macOS DMG installer
   setup: `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`, // Windows setup executable (default)
 
   // Exact filenames for direct API access
   'RinaWarp-Terminal-Setup-Windows.exe': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Setup-Windows.exe`,
   'RinaWarp-Terminal-Portable-Windows.exe': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Portable-Windows.exe`,
   'RinaWarp-Terminal-Linux.tar.gz': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.tar.gz`,
-  'RinaWarp-Terminal-macOS.dmg': 'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/download/v1.0.0/RinaWarp-Terminal-macOS.dmg',
+  'RinaWarp-Terminal-macOS.dmg':
+    'https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases/download/v1.0.0/RinaWarp-Terminal-macOS.dmg',
   'RinaWarp-Terminal-Linux.deb': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal-Linux.deb`,
   'RinaWarp-Terminal.AppImage': `${GITHUB_RELEASE_BASE_URL}/RinaWarp-Terminal.AppImage`,
 };
@@ -52,6 +54,7 @@ const PUBLIC_DIR = path.join(__dirname, '../../public');
 router.get('/', (req, res) => {
   const { file, os } = req.query;
 
+  console.log(
     `[DOWNLOAD] Request for file: ${file || 'default'}, os: ${os || 'none'} from IP: ${req.ip}`
   );
 
@@ -149,7 +152,7 @@ router.get('/', (req, res) => {
 
     const response = await fetch(GITHUB_API, { headers });
     if (!response.ok) {
-      throw new Error(new Error(new Error(`GitHub API responded with status: ${response.status}`)));
+      throw new Error(`GitHub API responded with status: ${response.status}`);
     }
 
     const release = await response.json();

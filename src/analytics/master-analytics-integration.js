@@ -125,6 +125,7 @@ class MasterAnalyticsIntegration {
       });
     });
 
+    console.log(
       '🎯 Conversion funnels initialized:',
       funnels.map(f => f.name)
     );
