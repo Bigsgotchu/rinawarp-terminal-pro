@@ -3,12 +3,12 @@
  * Handles license validation, Stripe integration, and user authentication
  */
 
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import Joi from 'joi';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import smtpService from '../utils/smtp.js';
+import smtpService from '../utilities/smtp.js';
 import { generateToken } from '../middleware/auth.js';
 
 const router = Router();

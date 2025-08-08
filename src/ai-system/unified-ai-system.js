@@ -10,17 +10,8 @@
  * for sophisticated contextual understanding and reasoning
  */
 
-// Import required classes - these would be implemented separately
-// For now, we'll create stub classes to avoid undefined errors
-class LLMAPIClient {
-  constructor(config) {
-    this.config = config;
-  }
-
-  async initialize() {
-    return true;
-  }
-}
+// Import required classes from their modules
+// LLM client will be dynamically imported during initialization
 
 class AdvancedLearningEngine {
   constructor(config) {
@@ -85,6 +76,21 @@ class UnifiedAISystem {
       // Initialize external LLM if enabled
       if (this.config.enableExternalLLM) {
         try {
+          // Dynamically import LLM client
+          let LLMAPIClient;
+          try {
+            const llmModule = await import('./llm-api-client.js');
+            LLMAPIClient = llmModule.LLMAPIClient || llmModule.default;
+          } catch (importError) {
+            console.warn('Could not import LLM client:', importError);
+            // Create a fallback stub class
+            LLMAPIClient = class {
+              constructor() {}
+              async initialize() { return false; }
+              async generateResponse() { throw new Error('LLM client not available'); }
+            };
+          }
+          
           this.llmClient = new LLMAPIClient(this.config.llmConfig);
           this.systemState.llmAvailable = await this.llmClient.initialize();
         } catch (error) {
@@ -695,3 +701,13 @@ if (typeof window !== 'undefined') {
   window.ResponseOptimizer = ResponseOptimizer;
   window.ConfidenceEngine = ConfidenceEngine;
 }
+
+// ES6 module exports for modern import syntax
+export {
+  UnifiedAISystem,
+  ContextManager,
+  ResponseOptimizer,
+  ConfidenceEngine
+};
+
+export default UnifiedAISystem;

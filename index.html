@@ -20,6 +20,9 @@
       gtag('config', 'G-G424CV5GGT');
     </script>
     
+    <!-- 🧜‍♀️ Enhanced AI Integration - Adds Warp Agent capabilities -->
+    <script type="module" src="./src/enhanced-ai-terminal-init.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -1050,7 +1053,7 @@
     const element = document.querySelector('[data-handler-id="csp-safe-1753586469633-1"]');
     if (element) {
       element.addEventListener('click', function(event) {
-        purchasePlan(
+        purchasePlan('starter');
       });
     }
   });
@@ -1060,7 +1063,7 @@
     const element = document.querySelector('[data-handler-id="csp-safe-1753586469633-2"]');
     if (element) {
       element.addEventListener('click', function(event) {
-        purchasePlan(
+        purchasePlan('pro');
       });
     }
   });
@@ -1070,7 +1073,7 @@
     const element = document.querySelector('[data-handler-id="csp-safe-1753586469633-3"]');
     if (element) {
       element.addEventListener('click', function(event) {
-        purchasePlan(
+        purchasePlan('enterprise');
       });
     }
   });

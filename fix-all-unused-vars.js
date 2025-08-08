@@ -4,7 +4,7 @@
  * Please review and test the changes
  */
 
-#!/usr/bin/env node
+// #!/usr/bin/env node
 
 const fs = require('node:fs');
 const _path = require('node:path');

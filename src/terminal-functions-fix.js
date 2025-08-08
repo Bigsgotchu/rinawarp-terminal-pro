@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from './utilities/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -29,6 +29,7 @@ window.toggleVoiceOutput = function () {
 
 // Start Voice Control
 window.startVoiceControl = async function () {
+  console.log(
     'advancedVoiceRecognition from terminalState:',
     window.terminalState.advancedVoiceRecognition
   );
@@ -47,6 +48,7 @@ window.startVoiceControl = async function () {
 
   try {
     // Check available methods
+    console.log(
       'Voice recognition methods:',
       Object.getOwnPropertyNames(Object.getPrototypeOf(voiceRecognition))
     );
@@ -59,7 +61,7 @@ window.startVoiceControl = async function () {
       await voiceRecognition.startListening();
       if (statusEl) statusEl.textContent = '🎤 Listening for voice commands...';
     } else {
-      throw new Error(new Error(new Error('Voice recognition object has no start method')));
+      throw new Error('Voice recognition object has no start method');
     }
   } catch (error) {
     console.error('Failed to start voice control:', error);

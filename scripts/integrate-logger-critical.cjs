@@ -44,7 +44,7 @@ const METHOD_MAP = {
 // Get relative path for logger import
 function getLoggerImportPath(filePath) {
   const fileDir = path.dirname(filePath);
-  const loggerPath = path.join(process.cwd(), 'src/utils/logger.js');
+  const loggerPath = path.join(process.cwd(), '../src/utilities/logger.js');
   let relativePath = path.relative(fileDir, loggerPath);
 
   if (!relativePath.startsWith('.')) {

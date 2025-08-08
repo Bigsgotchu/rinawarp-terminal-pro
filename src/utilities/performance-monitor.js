@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 // Performance Monitor for RinaWarp Terminal
 class PerformanceMonitor {
   constructor() {

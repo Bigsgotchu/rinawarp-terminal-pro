@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * RinaWarp Terminal AI Predictive Completion Plugin
  * Copyright (c) 2025 Rinawarp Technologies, LLC

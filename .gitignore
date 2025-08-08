@@ -550,3 +550,71 @@ testimonials/
 !testimonials/.gitkeep
 # Keep templates public
 !public/html/templates/
+
+# ========================================
+# 👑 CREATOR EDITION - STRICTLY PERSONAL
+# ========================================
+# NEVER COMMIT OR PUSH THESE FILES - PERSONAL USE ONLY
+
+# Creator Edition Application Files (PERSONAL)
+creator-edition-terminal.html
+main-creator.cjs
+creator-build.config.cjs
+
+# Creator Edition Build Outputs (PERSONAL)
+dist-creator/
+build-creator/
+*creator*.dmg
+*creator*.exe
+*creator*.deb
+*creator*.AppImage
+*Creator*.app
+*Creator*.zip
+
+# Creator Edition Configuration (PERSONAL)
+update-config.json
+update-check.sh
+creator-*.json
+creator-*.config
+*-creator.*
+
+# Creator Edition Scripts (PERSONAL)
+scripts/setup-auto-updates.cjs
+verify-creator-status.cjs
+*creator*setup*
+*creator*verify*
+
+# Creator Edition Logs (PERSONAL)
+/tmp/rinawarp-creator-updates.log
+creator-*.log
+
+# Creator Edition Desktop Shortcuts (PERSONAL)
+"Check Creator Updates.command"
+"RinaWarp Terminal - Creator Edition.app"
+
+# LaunchAgent for Creator Edition (PERSONAL)
+com.rinawarptech.terminal-creator.autoupdate.plist
+
+# Any file with "creator" in the name (PERSONAL)
+*creator*
+*Creator*
+*CREATOR*
+
+# Personal License Files (NEVER COMMIT)
+*license*personal*
+*personal*license*
+*unlimited*license*
+*lifetime*license*
+
+# Personal Configuration Files (NEVER COMMIT)
+src/creator-edition-config.js
+*personal*config*
+*unlimited*config*
+
+# Creator Edition Documentation (PERSONAL)
+CREATOR_PRIVACY_PROTECTION.md
+scripts/protect-creator-files.cjs
+
+# ========================================
+# END CREATOR EDITION PROTECTION
+# ========================================

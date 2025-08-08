@@ -10,7 +10,7 @@
  * Inspired by modern AI terminal assistants like Cursor Agent Mode
  */
 
-import { EventEmitter } from 'events';
+const { EventEmitter } = require('events');
 
 class AgentMode extends EventEmitter {
   constructor(terminalInstance) {
@@ -959,5 +959,11 @@ class AgentSession {
   }
 }
 
-export default AgentMode;
-export { AgentContextManager, AgentFunctionRegistry, AgentSession };
+// Export for both CommonJS and ES modules
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = AgentMode;
+  module.exports.AgentContextManager = AgentContextManager;
+  module.exports.AgentFunctionRegistry = AgentFunctionRegistry;
+  module.exports.AgentSession = AgentSession;
+  module.exports.default = AgentMode;
+}

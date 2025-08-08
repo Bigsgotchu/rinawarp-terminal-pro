@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 4 deprecated pattern(s) replaced with modern alternatives
@@ -64,6 +64,7 @@ class SMTPService {
       };
       this.initialized = true;
     } else {
+      logger.warn(
         '⚠️ No email service configured (neither SMTP nor SendGrid) and not in development mode'
       );
       this.initialized = false;
@@ -72,7 +73,7 @@ class SMTPService {
 
   async sendPersonalizedEmail(recipient, template) {
     if (!this.initialized) {
-      throw new Error(new Error(new Error('SMTP service not initialized')));
+      throw new Error('SMTP service not initialized');
     }
 
     // Personalize the email
@@ -91,6 +92,7 @@ class SMTPService {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
+      logger.debug('📧 Personalized email sent successfully', {
         to: recipient.email,
         subject: personalizedContent.subject,
         messageId: info.messageId,
@@ -104,13 +106,13 @@ class SMTPService {
       };
     } catch (error) {
       console.error('❌ Error sending personalized email:', error);
-      throw new Error(new Error(error));
+      throw new Error(error);
     }
   }
 
   async sendEmail(options) {
     if (!this.initialized) {
-      throw new Error(new Error(new Error('SMTP service not initialized')));
+      throw new Error('SMTP service not initialized');
     }
 
     const fromEmail =
@@ -129,6 +131,7 @@ class SMTPService {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
+      logger.debug('📧 Email sent successfully', {
         to: options.to,
         subject: options.subject,
         messageId: info.messageId,
@@ -136,7 +139,7 @@ class SMTPService {
       return info;
     } catch (error) {
       console.error('❌ Error sending email:', error);
-      throw new Error(new Error(error));
+      throw new Error(error);
     }
   }
 

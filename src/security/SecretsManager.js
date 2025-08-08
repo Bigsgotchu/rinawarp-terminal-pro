@@ -3,7 +3,7 @@
  * Provides secure storage and retrieval of sensitive configuration
  */
 
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 import crypto from 'crypto';
 import fs from 'fs';
 // import path from 'path'; // Currently unused

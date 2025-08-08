@@ -9,7 +9,7 @@
  * Automated response system with pattern matching, persistent blocking, and alerting
  */
 
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

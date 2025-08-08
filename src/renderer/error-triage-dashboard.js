@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * RinaWarp Terminal - Error Triage Dashboard
  * "Real-time Error Monitoring & System Health Visualization"

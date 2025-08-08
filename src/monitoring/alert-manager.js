@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 11 deprecated pattern(s) replaced with modern alternatives

@@ -50,7 +50,7 @@ function processFile(filePath) {
     
     // Add logger import if needed and console.log was found
     if (count > 0 && !content.includes('import logger') && !content.includes('require.*logger')) {
-      modified = `import logger from '../utils/logger.js';\n${modified}`;
+      modified = `import logger from '../src/utilities/logger.js';\n${modified}`;
     }
   }
   

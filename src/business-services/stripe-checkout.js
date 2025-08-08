@@ -3,7 +3,7 @@
  * Replaces multiple conflicting checkout implementations
  */
 
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 import dotenv from 'dotenv';
 import express from 'express';
 import Stripe from 'stripe';

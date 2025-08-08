@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import rateLimit from 'express-rate-limit';
-import { logger } from './utils/logger.js';
+import { logger } from '../../src/utilities/logger.js';
 import { config } from './config/index.js';
 import { connectDatabase } from './db/connection.js';
 import { AIOrchestrator } from './services/ai-orchestrator.js';

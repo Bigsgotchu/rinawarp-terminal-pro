@@ -53,7 +53,7 @@ function getLoggerImport(filePath, fileContent) {
   if (isESModule && !isCJS) {
     const relativePath = path.relative(
       path.dirname(filePath),
-      path.join(process.cwd(), 'src/utils/logger.js')
+      path.join(process.cwd(), '../src/utilities/logger.js')
     );
     const importPath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
     return `import logger from '${importPath}';`;

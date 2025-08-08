@@ -3,7 +3,7 @@
  * API routes for monitoring and managing the threat detection system
  */
 
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 

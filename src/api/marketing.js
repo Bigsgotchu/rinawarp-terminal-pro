@@ -1,11 +1,8 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import LeadCaptureSystem from '../marketing/LeadCaptureSystem.js';
+import leadCapture from '../marketing/LeadCaptureSystem.js';
 
 const router = express.Router();
-
-// Initialize lead capture system
-const leadCapture = new LeadCaptureSystem();
 
 // Rate limiting for marketing endpoints
 const marketingLimiter = rateLimit({

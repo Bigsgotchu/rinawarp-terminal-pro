@@ -1,11 +1,8 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import SupportSystem from '../support/SupportSystem.js';
+import support from '../support/SupportSystem.js';
 
 const router = express.Router();
-
-// Initialize support system
-const support = new SupportSystem();
 
 // Rate limiting for support endpoints
 const supportLimiter = rateLimit({

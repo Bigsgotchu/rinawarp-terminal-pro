@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * RinaWarp API Gateway
  * Centralized API management with authentication, rate limiting, and routing

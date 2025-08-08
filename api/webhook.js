@@ -1,7 +1,7 @@
 // Stripe Webhook Handler
 // This endpoint processes Stripe events like successful payments
 
-import logger from './utils/logger.js';
+import logger from '../src/utilities/logger.js';
 import Stripe from 'stripe';
 import emailService from '../utils/smtp.js';
 import database from '../database-service.js';

@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from './utilities/logger.js';
 /**
  * Script Deduplication System for RinaWarp Terminal
  * Prevents duplicate script loading and declaration errors

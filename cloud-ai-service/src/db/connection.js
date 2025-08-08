@@ -5,7 +5,7 @@
  */
 
 import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+import { logger } from '../../../src/utilities/logger.js';
 import { config } from '../config/index.js';
 
 export async function connectDatabase() {

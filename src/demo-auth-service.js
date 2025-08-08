@@ -1,6 +1,6 @@
 // Example Usage of Enhanced Authentication Service
 
-import logger from './utils/logger.js';
+import logger from './utilities/logger.js';
 import authService from './auth-service-enhanced.js';
 
 // Function to demonstrate the auth service

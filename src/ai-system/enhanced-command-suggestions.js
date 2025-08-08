@@ -3,7 +3,7 @@
  * Provides intelligent, context-aware command suggestions with fuzzy matching
  */
 
-import { levenshteinDistance } from '../utils/string-utils.js';
+// levenshteinDistance function is defined at the bottom of this file
 
 export class EnhancedCommandSuggestions {
   constructor() {

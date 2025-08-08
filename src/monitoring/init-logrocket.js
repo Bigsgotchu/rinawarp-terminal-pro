@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Direct LogRocket Initialization
  * This file immediately initializes LogRocket when imported

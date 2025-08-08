@@ -225,7 +225,7 @@ if (fs.existsSync('final-server.js')) {
 
   if (missingEndpoints.length > 0) {
     console.log('⚠️  Missing endpoints detected:');
-    missingEndpoints.forEach(_ep => {
+    missingEndpoints.forEach(ep => {
       console.log(`  - ${ep.desc} (${ep.route})`);
     });
   }
@@ -251,7 +251,7 @@ console.log('📊 MAINTENANCE SUMMARY');
 if (fixes.length === 0) {
   console.log('✅ No issues found - system is healthy!');
 } else {
-  fixes.forEach((_fix, _i) => {
+  fixes.forEach((fix, i) => {
     console.log(`  ${i + 1}. ${fix}`);
   });
 }

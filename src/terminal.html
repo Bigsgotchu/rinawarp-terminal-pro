@@ -286,16 +286,29 @@
     
     <div class="controls">
         <button onclick="runCommand()">⚡ Quick Command</button>
+        <button onclick="startNaturalLanguageAgent()" id="agentModeBtn">🤖 AI Agent</button>
+        <button onclick="startVoiceControl()" id="voiceControlBtn">🎤 Voice Control <span class="voice-indicator" id="voiceIndicator"></span></button>
         <button onclick="clearTerminal()">🗑️ Clear</button>
         <button onclick="showAIHelp()">💡 Help</button>
-        <button onclick="window.settingsPanel.toggle()" class="settings-btn">⚙️ Settings</button>
+        <button onclick="window.settingsPanel && window.settingsPanel.toggle()" class="settings-btn">⚙️ Settings</button>
     </div>
     
-    <div class="ai-section" style="display: none;">
-        <!-- AI Assistant is now enabled by default and works without this UI -->
-        <input type="text" id="aiInput" style="display: none;" />
-        <div id="aiResponse" style="display: none;"></div>
+    <!-- Natural Language AI Agent Section -->
+    <div class="ai-section" id="aiAgentSection">
+        <h3 style="color: #FF1493; margin-top: 0;">🧜‍♀️ Rina - AI Terminal Assistant</h3>
+        <p style="color: #74c0fc; margin-bottom: 15px;">Talk to me naturally! I understand commands like "list my files", "what's my current directory", or "run git status"</p>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+            <input type="text" id="aiInput" placeholder="Ask me anything... (e.g., 'show me the files in this folder')" 
+                   style="flex: 1; font-size: 16px; padding: 12px;" />
+            <button onclick="processAICommand()" style="padding: 12px 20px;">💬 Ask Rina</button>
+        </div>
+        
+        <div id="aiResponse" style="min-height: 50px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,20,147,0.3);">
+            🧜‍♀️ <em>*swims gracefully into view*</em> Hello darling! I'm Rina, your AI mermaid assistant. Ask me anything about your terminal, files, or system!
+        </div>
     </div>
+    
     
     <div class="terminal-container">
         <div id="terminal"></div>
@@ -305,10 +318,9 @@
         RinaWarp Terminal v1.0.7 - AI Edition
     </div>
 
-    <!-- Load xterm.js and addons locally -->
-    <link rel="stylesheet" href="../node_modules/@xterm/xterm/css/xterm.css" />
-    <script src="../node_modules/@xterm/xterm/lib/xterm.js"></script>
-    <script src="../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+    <!-- Load xterm.js and addons from working public vendor directory -->
+    <script src="../public/vendor/xterm/xterm.js"></script>
+    <script src="utilities/addon-fit.js"></script>
     
     <!-- Script deduplication system -->
     <script src="script-loader.js"></script>
@@ -353,6 +365,13 @@
     <script type="module" src="ai-services/llm-api-client.js"></script>
     <script type="module" src="ai-services/advanced-learning-engine.js"></script>
     <script type="module" src="ai-services/unified-ai-system.js"></script>
+    
+    <!-- Enhanced Development Assistant System -->
+    <script type="module" src="ai-system/enhanced-development-assistant.js"></script>
+    <script type="module" src="ai-system/enhanced-ai-integration.js"></script>
+    
+    <!-- Enhanced AI Terminal Integration -->
+    <script type="module" src="enhanced-ai-terminal-init.js"></script>
     <!-- Initialize terminalState early to prevent undefined errors -->
     <script>
         // Initialize terminalState before any other scripts
@@ -1134,6 +1153,52 @@
             }
         }
         
+        // Natural Language Agent Mode - Enhanced AI interaction
+        function startNaturalLanguageAgent() {
+            const agentSection = document.getElementById('aiAgentSection');
+            const agentBtn = document.getElementById('agentModeBtn');
+            const aiInput = document.getElementById('aiInput');
+            
+            // Toggle agent section visibility
+            if (agentSection.style.display === 'none') {
+                agentSection.style.display = 'block';
+                agentBtn.textContent = '🤖 AI Agent: ON';
+                agentBtn.style.background = 'linear-gradient(45deg, #00FF88, #00AAFF, #FF1493)';
+                updateStatus('🤖 Natural Language AI Agent activated! Ask me anything.');
+                
+                // Show welcome message
+                const responseDiv = document.getElementById('aiResponse');
+                responseDiv.innerHTML = `
+                    <div style="color: #FF1493; font-weight: bold;">
+                        🧜‍♀️ *emerges from digital depths* Hello! I'm Rina, your AI terminal assistant!
+                    </div>
+                    <div style="color: #00AAFF; margin-top: 10px;">
+                        I can understand natural language and help you with:
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>📁 File operations ("show me my files", "create a new folder")</li>
+                            <li>🔧 System tasks ("what processes are running?", "check disk space")</li>
+                            <li>🔨 Development ("git status", "run tests", "install packages")</li>
+                            <li>🌐 Network ("ping google", "show my IP address")</li>
+                        </ul>
+                        Just talk to me naturally, like "Can you list the files in my current directory?"
+                    </div>
+                    <div style="color: #8A2BE2; margin-top: 15px; font-size: 14px;">
+                        💡 Pro tip: I understand context and can handle complex requests!
+                    </div>
+                `;
+                
+                // Focus on input and add placeholder
+                aiInput.focus();
+                aiInput.placeholder = "Ask me anything... (e.g., 'What files are in this directory?')";
+                
+            } else {
+                agentSection.style.display = 'none';
+                agentBtn.textContent = '🤖 AI Agent';
+                agentBtn.style.background = '';
+                updateStatus('🤖 Natural Language AI Agent deactivated.');
+            }
+        }
+        
         function showFeatures() {
             const modal = document.createElement('div');
             modal.style.cssText = `
@@ -1848,15 +1913,60 @@
             try {
                 console.log('🎤 Initializing Advanced Voice Recognition System...');
                 
-                // Initialize Rina's personality engine
-                rinaPersonality = new RinaPersonalityEngine();
-                console.log('🧜‍♀️ Rina\'s personality engine initialized!');
+                // Initialize Rina's personality engine (if available)
+                if (window.RinaPersonalityEngine) {
+                    rinaPersonality = new RinaPersonalityEngine();
+                    console.log('🧜‍♀️ Rina\'s personality engine initialized!');
+                } else {
+                    console.log('🧜‍♀️ Rina\'s personality engine not available, using fallback');
+                    rinaPersonality = {
+                        mood: 'happy',
+                        handleSpecialTrigger: () => null,
+                        generateResponse: (command, result) => ({ ...result, mood: 'happy', suggestions: [] })
+                    };
+                }
                 
-                // Initialize Rina's advanced dialogue system
-                rinaDialogue = new RinaDialogueSystem();
-                console.log('🧜‍♀️ Rina\'s dialogue system initialized!');
+                // Initialize Rina's advanced dialogue system (if available)
+                if (window.RinaDialogueSystem) {
+                    rinaDialogue = new RinaDialogueSystem();
+                    console.log('🧜‍♀️ Rina\'s dialogue system initialized!');
+                } else {
+                    console.log('🧜‍♀️ Rina\'s dialogue system not available, using fallback');
+                    rinaDialogue = {
+                        generateResponse: (context, response) => response
+                    };
+                }
                 
-                // Initialize the advanced voice recognition system
+                // Import and initialize the advanced voice recognition system
+                let AdvancedVoiceRecognition;
+                try {
+                    const voiceModule = await import('./voice-recognition-advanced.js');
+                    AdvancedVoiceRecognition = voiceModule.AdvancedVoiceRecognition || voiceModule.default;
+                } catch (error) {
+                    console.warn('Advanced voice recognition not available, using fallback:', error);
+                    // Create a fallback voice recognition system
+                    AdvancedVoiceRecognition = class {
+                        constructor() {
+                            this.isListening = false;
+                            this.onCommand = null;
+                            this.onStatusChange = null;
+                        }
+                        async init() { 
+                            if (this.onStatusChange) this.onStatusChange('initialized', { provider: 'keyboard' });
+                            return true; 
+                        }
+                        async start() { 
+                            this.isListening = true;
+                            if (this.onStatusChange) this.onStatusChange('listening');
+                        }
+                        async stop() { 
+                            this.isListening = false;
+                            if (this.onStatusChange) this.onStatusChange('stopped');
+                        }
+                        getProviderInfo() { return { current: 'fallback' }; }
+                    };
+                }
+                
                 advancedVoiceRecognition = new AdvancedVoiceRecognition();
                 
                 // Make sure we use the enhanced keyboard provider
@@ -2060,7 +2170,28 @@
                     }
                 };
                 
-                // Create and initialize the unified AI system
+                // Import and create the unified AI system
+                let UnifiedAISystem;
+                try {
+                    const aiModule = await import('./ai-system/unified-ai-system.js');
+                    UnifiedAISystem = aiModule.UnifiedAISystem || aiModule.default;
+                } catch (error) {
+                    console.warn('UnifiedAISystem not available, using fallback:', error);
+                    // Create a fallback AI system
+                    UnifiedAISystem = class {
+                        constructor(config) { this.config = config; }
+                        async initialize() { return true; }
+                        getSystemStatus() { return { initialized: false, currentMode: 'fallback' }; }
+                        async processCommand(input) {
+                            return {
+                                response: `🧜‍♀️ Basic AI: I heard "${input}" but enhanced features are not available.`,
+                                confidence: 0.5,
+                                source: 'fallback'
+                            };
+                        }
+                    };
+                }
+                
                 window.rinaWarpAI = new UnifiedAISystem(config);
                 const initialized = await window.rinaWarpAI.initialize();
                 

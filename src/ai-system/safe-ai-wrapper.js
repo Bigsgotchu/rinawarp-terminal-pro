@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Safe AI Wrapper - Fault-tolerant AI Integration
  * Copyright (c) 2025 Rinawarp Technologies, LLC

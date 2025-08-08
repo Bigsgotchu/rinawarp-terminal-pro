@@ -1,4 +1,4 @@
-import logger from './utils/logger.js';
+import logger from '../utilities/logger.js';
 
 /**
  * RinaWarp Terminal - Stripe + GA4 Integration

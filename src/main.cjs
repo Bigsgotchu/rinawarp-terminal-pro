@@ -17,8 +17,7 @@ const path = require('node:path');
 const os = require('os');
 const fs = require('node:fs');
 const { config } = require('./config/unified-config.cjs');
-const { createLogger } = require('./utils/logger.cjs');
-const logger = createLogger('Main');
+const logger = require('./utilities/logger.cjs');
 
 // Load environment variables from .env file
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
@@ -322,6 +321,13 @@ function createWindow() {
     show: false,
     icon: iconPath,
     titleBarStyle: 'default',
+    // Add visibility and focus settings for debugging
+    alwaysOnTop: false, // Set to true if you want it always on top
+    center: true,
+    resizable: true,
+    minimizable: true,
+    maximizable: true,
+    closable: true,
   };
 
   try {
@@ -344,6 +350,17 @@ function createWindow() {
       logger.info('👁️ Window ready to show, displaying...');
       mainWindow.show();
       logger.info('✅ Window displayed successfully');
+      
+      // Ensure window is properly focused and visible
+      mainWindow.focus();
+      mainWindow.moveTop();
+      
+      // Force window to be visible on macOS
+      if (process.platform === 'darwin') {
+        app.dock.show();
+      }
+      
+      logger.info('🎯 Window focused and brought to front');
 
       // Enable dev tools only if configured
       if (config.get('ui.enableDevTools')) {

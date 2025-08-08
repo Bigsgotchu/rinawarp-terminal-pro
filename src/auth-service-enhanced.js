@@ -3,7 +3,7 @@
  * Integrates with monitoring services for user tracking
  */
 
-import logger from './utils/logger.js';
+import logger from './utilities/logger.js';
 import userIdentificationService from './monitoring/user-identification.js';
 import sessionReplayService from './monitoring/session-replay.js';
 

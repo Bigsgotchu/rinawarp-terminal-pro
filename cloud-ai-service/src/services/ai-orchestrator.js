@@ -6,7 +6,7 @@
 
 import { OpenAIProvider } from './providers/openai-provider.js';
 import { AnthropicProvider } from './providers/anthropic-provider.js';
-import { logger } from '../utils/logger.js';
+import { logger } from '../../../src/utilities/logger.js';
 
 export class AIOrchestrator {
   constructor() {

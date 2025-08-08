@@ -5,7 +5,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { logger } from '../../utils/logger.js';
+import { logger } from '../../../../src/utilities/logger.js';
 
 export class AnthropicProvider {
   constructor() {

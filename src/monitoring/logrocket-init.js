@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * LogRocket Initialization
  * This file initializes LogRocket for session replay and monitoring

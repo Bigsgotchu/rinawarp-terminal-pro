@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 import monitoringConfig from './config/gcp-monitoring-config.js';
 
 /**
