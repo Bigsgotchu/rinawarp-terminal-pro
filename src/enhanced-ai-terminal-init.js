@@ -413,7 +413,7 @@ function addEnhancedUIControls() {
                 const input = prompt('🧜‍♀️ What would you like me to analyze?\n\nExamples:\n• Analyze the current project structure\n• Debug this error: [paste error]\n• Review the code in main.js\n• Explain how this algorithm works');
                 if (input) {
                     document.getElementById('aiInput').value = input;
-                    processAICommand();
+                    window.processAICommand();
                 }
             } else {
                 alert('🧠 Please enable Enhanced Mode first!');
@@ -429,7 +429,7 @@ function addEnhancedUIControls() {
                 const input = prompt('🧜‍♀️ What would you like me to generate?\n\nExamples:\n• Create a Python web scraper\n• Write a React component for user login\n• Generate a bash script to backup files\n• Build a simple REST API in Node.js');
                 if (input) {
                     document.getElementById('aiInput').value = `generate ${input}`;
-                    processAICommand();
+                    window.processAICommand();
                 }
             } else {
                 alert('🧠 Please enable Enhanced Mode first!');
