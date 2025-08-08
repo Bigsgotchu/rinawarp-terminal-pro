@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Terminal</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #111; color: #fff; font-family: monospace; }
+        #terminal { width: 100%; height: 400px; background: #000; margin: 20px 0; }
+        .debug { background: #222; padding: 10px; margin: 10px 0; border-left: 3px solid #0f0; }
+        .error { border-left-color: #f00; }
+        button { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Terminal Debug Test</h1>
+    
+    <div class="debug">
+        <strong>Debug Info:</strong>
+        <div id="debug-info"></div>
+    </div>
+
+    <div id="terminal"></div>
+    
+    <div>
+        <button onclick="testTerminal()">Test Terminal</button>
+        <button onclick="sendTestInput()">Send Test Input</button>
+        <button onclick="focusTerminal()">Focus Terminal</button>
+    </div>
+
+    <!-- Load xterm.js from the working public vendor directory -->
+    <script src="../public/vendor/xterm/xterm.js"></script>
+    <script src="utilities/addon-fit.js"></script>
+    
+    <script>
+        let terminal = null;
+        const debugInfo = document.getElementById('debug-info');
+        
+        function debug(message, isError = false) {
+            const div = document.createElement('div');
+            div.style.color = isError ? '#f00' : '#0f0';
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugInfo.appendChild(div);
+            console.log(message);
+            
+            // Keep only last 20 debug messages
+            while (debugInfo.children.length > 20) {
+                debugInfo.removeChild(debugInfo.firstChild);
+            }
+        }
+
+        function testTerminal() {
+            try {
+                debug('=== Starting Terminal Test ===');
+                
+                // 1. Check xterm.js availability
+                debug(`window.Terminal exists: ${!!window.Terminal}`);
+                debug(`window.Terminal type: ${typeof window.Terminal}`);
+                
+                if (window.Terminal) {
+                    debug(`window.Terminal.default exists: ${!!window.Terminal.default}`);
+                    debug(`window.Terminal.Terminal exists: ${!!window.Terminal.Terminal}`);
+                }
+                
+                // 2. Create Terminal instance
+                const Terminal = window.Terminal.default || window.Terminal;
+                debug(`Using Terminal constructor: ${Terminal.name || 'anonymous'}`);
+                
+                terminal = new Terminal({
+                    fontSize: 14,
+                    fontFamily: 'monospace',
+                    cursorBlink: true,
+                    theme: {
+                        background: '#000000',
+                        foreground: '#ffffff',
+                        cursor: '#00ff88'
+                    }
+                });
+                debug('✓ Terminal instance created');
+                
+                // 3. Open terminal
+                const container = document.getElementById('terminal');
+                terminal.open(container);
+                debug('✓ Terminal opened in container');
+                
+                // 4. Set up input handler with detailed logging
+                terminal.onData(data => {
+                    debug(`📨 Input received: "${data}" (length: ${data.length}, first char code: ${data.charCodeAt(0)})`);
+                    // Echo the input back
+                    terminal.write(data);
+                });
+                debug('✓ Input handler registered');
+                
+                // 5. Set up other event handlers
+                terminal.onKey(({ key, domEvent }) => {
+                    debug(`🔑 Key event: "${key}" (${domEvent.type})`);
+                });
+                
+                terminal.onRender((e) => {
+                    // debug(`🎨 Render event: ${e.start}-${e.end}`);
+                });
+                
+                // 6. Write initial content
+                terminal.write('🚀 Terminal Debug Test\\r\\n');
+                terminal.write('Type something to test input handling...\\r\\n');
+                terminal.write('Press Enter to test line input\\r\\n\\r\\n');
+                debug('✓ Initial content written');
+                
+                // 7. Focus the terminal
+                terminal.focus();
+                debug('✓ Terminal focused');
+                
+                debug('=== Terminal Test Complete ===');
+                
+            } catch (error) {
+                debug(`❌ ERROR: ${error.message}`, true);
+                console.error('Terminal test error:', error);
+            }
+        }
+
+        function sendTestInput() {
+            if (terminal) {
+                debug('📤 Sending test input programmatically');
+                // Simulate typing "hello"
+                const testText = 'hello\\r\\n';
+                for (let i = 0; i < testText.length; i++) {
+                    const char = testText[i];
+                    debug(`Simulating char: "${char}" (${char.charCodeAt(0)})`);
+                    // This would normally come from user input
+                    terminal.write(char);
+                }
+            } else {
+                debug('❌ No terminal instance available', true);
+            }
+        }
+
+        function focusTerminal() {
+            if (terminal) {
+                terminal.focus();
+                debug('🎯 Terminal focused');
+            } else {
+                debug('❌ No terminal instance available', true);
+            }
+        }
+
+        // Auto-start the test
+        window.addEventListener('load', () => {
+            debug('🌐 Page loaded, starting automatic test...');
+            setTimeout(testTerminal, 500);
+        });
+        
+        // Monitor any errors
+        window.addEventListener('error', (e) => {
+            debug(`💥 Global error: ${e.message}`, true);
+        });
+    </script>
+</body>
+</html>

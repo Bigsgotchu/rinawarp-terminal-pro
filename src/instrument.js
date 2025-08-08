@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from './utilities/logger.js';
 /**
  * Sentry Performance Monitoring and Tracing Instrumentation
  * This file must be imported at the very top of your application

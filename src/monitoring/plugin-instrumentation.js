@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Plugin System Metrics Instrumentation
  * Integrates with the PluginManager to collect plugin-specific metrics

@@ -1,4 +1,3 @@
-import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
@@ -33,7 +32,7 @@ let logger = {
 // Try to load the actual logger module
 (async () => {
   try {
-    const loggerModule = await import('../utils/logger.js');
+    const loggerModule = await import('../utilities/logger.js');
     logger = loggerModule.default;
   } catch (error) {
     console.warn('Failed to load logger module, using fallback console logging');
@@ -304,8 +303,7 @@ class RinaWarpInitializer {
         });
       }
 
-        '[RinaWarp] 🚀 All available features have been registered with the integration system'
-      );
+      logger.debug('[RinaWarp] 🚀 All available features have been registered with the integration system');
     } catch (error) {
       console.warn('[RinaWarp] ⚠️ Error registering some features:', error);
     }
@@ -354,7 +352,7 @@ window.initializeBeginnerFriendlyUI = async function () {
     return window.beginnerUI;
   } catch (error) {
     console.error('[RinaWarp] Failed to initialize Beginner-Friendly UI:', error);
-    throw new Error(new Error(error));
+    throw new Error(error);
   }
 };
 

@@ -12,7 +12,7 @@
 const { spawn } = require('child_process');
 const config = require('../config/unified-config.cjs');
 
-const logger = require('../utils/logger.cjs');
+const logger = require('../utilities/logger.cjs');
 class SimpleTerminal {
   constructor(elementId = 'terminal-1') {
     this.elementId = elementId;

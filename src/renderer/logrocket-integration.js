@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * LogRocket Integration for RinaWarp Terminal
  * Initializes LogRocket session replay and monitoring

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Terminal Test</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #000; color: #fff; }
+        #terminal { width: 800px; height: 400px; background: #000; }
+        .test-output { margin: 10px 0; padding: 10px; background: #333; }
+    </style>
+</head>
+<body>
+    <h1>Terminal Test Page</h1>
+    <div id="terminal"></div>
+    
+    <div class="test-output">
+        <h3>Test Results:</h3>
+        <div id="results"></div>
+    </div>
+
+    <!-- Load xterm.js from the working public vendor directory -->
+    <script src="public/vendor/xterm/xterm.js"></script>
+    <script src="utilities/addon-fit.js"></script>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, status = 'info') {
+            const div = document.createElement('div');
+            div.style.color = status === 'success' ? '#0f0' : status === 'error' ? '#f00' : '#fff';
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        try {
+            log('Testing xterm.js loading...');
+            
+            // Test 1: Check if window.Terminal exists
+            if (!window.Terminal) {
+                log('ERROR: window.Terminal is not available', 'error');
+            } else {
+                log('✓ window.Terminal is available', 'success');
+                log(`window.Terminal type: ${typeof window.Terminal}`);
+                
+                // Check if it has .default property
+                if (window.Terminal.default) {
+                    log('✓ window.Terminal.default exists', 'success');
+                } else {
+                    log('window.Terminal.default does not exist');
+                }
+            }
+
+            // Test 2: Try to create Terminal instance
+            const Terminal = window.Terminal.default || window.Terminal;
+            if (typeof Terminal === 'function') {
+                log('✓ Terminal constructor is available', 'success');
+                
+                const terminal = new Terminal({
+                    fontSize: 14,
+                    fontFamily: 'monospace'
+                });
+                
+                log('✓ Terminal instance created successfully', 'success');
+                
+                // Test 3: Try to open terminal
+                terminal.open(document.getElementById('terminal'));
+                log('✓ Terminal opened in DOM', 'success');
+                
+                // Test 4: Try to write to terminal
+                terminal.write('Hello World! Type something...\r\n');
+                log('✓ Terminal write works', 'success');
+                
+                // Test 5: Set up input handler
+                terminal.onData(data => {
+                    log(`Input received: "${data}" (code: ${data.charCodeAt(0)})`, 'success');
+                    terminal.write(data); // Echo back
+                });
+                
+                log('✓ Input handler set up', 'success');
+                
+                // Focus the terminal
+                terminal.focus();
+                log('✓ Terminal focused - try typing now!', 'success');
+                
+            } else {
+                log('ERROR: Terminal is not a constructor function', 'error');
+            }
+            
+        } catch (error) {
+            log(`ERROR: ${error.message}`, 'error');
+            console.error('Terminal test error:', error);
+        }
+    </script>
+</body>
+</html>

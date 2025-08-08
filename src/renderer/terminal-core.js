@@ -11,7 +11,7 @@
 
 import { Terminal, FitAddon, WebLinksAddon } from '../entries/vendor.js';
 
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 export class RinaWarpTerminal {
   constructor(options = {}) {
     this.options = {

@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -562,7 +562,7 @@ export class BlockManager {
     }
 
     if (!layout) {
-      throw new Error(new Error(new Error(`Layout "${name}" not found`)));
+      throw new Error(`Layout "${name}" not found`);
     }
 
     // Clear existing blocks
@@ -583,8 +583,7 @@ export class BlockManager {
         cwd: blockConfig.metadata.workingDirectory,
       });
 
-        `✅ Restored block "${blockConfig.title}" at ${blockConfig.position.x},${blockConfig.position.y}`
-      );
+      logger.debug(`✅ Restored block "${blockConfig.title}" at ${blockConfig.position.x},${blockConfig.position.y}`);
     }
 
     logger.debug(`✅ Layout "${name}" loaded with ${layout.blocks.length} blocks`);

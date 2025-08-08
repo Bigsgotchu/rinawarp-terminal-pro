@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * User Identification Service
  * Handles user identification across all monitoring and analytics services

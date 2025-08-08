@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Module Loader Fix
  * Handles ES module import/export issues and provides fallbacks

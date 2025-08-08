@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Phase 2 Main Integration - Stub module
  * This module provides integration with Phase 2 UI features

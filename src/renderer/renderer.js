@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 // Debug: Check what's available at startup
 
 // Performance monitoring

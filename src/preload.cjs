@@ -13,7 +13,7 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 const { spawn } = require('child_process');
-const logger = require('./utils/logger.cjs');
+const logger = require('./utilities/logger.cjs');
 // const os = require('os'); // Removed - unused variable
 const path = require('node:path');
 const fs = require('node:fs');

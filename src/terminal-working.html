@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧜‍♀️ RinaWarp Terminal</title>
+    
+    <!-- xterm.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@xterm/xterm@5.5.0/css/xterm.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            background: #0a0a0a;
+            color: #00ff88;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .terminal-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .logo::before {
+            content: "🧜‍♀️";
+            font-size: 24px;
+        }
+
+        .ai-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .ai-input {
+            padding: 8px 12px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+            border-radius: 6px;
+            font-family: inherit;
+            min-width: 300px;
+        }
+
+        .ai-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .ai-btn {
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .ai-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .terminal-view {
+            flex: 1;
+            padding: 20px;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #terminal {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ai-response {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 350px;
+            max-height: 400px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            color: #00ff88;
+            font-size: 14px;
+            line-height: 1.4;
+            z-index: 1000;
+            display: none;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .ai-response.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .status-bar {
+            padding: 8px 20px;
+            background: rgba(0, 255, 136, 0.05);
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+            font-size: 12px;
+            color: #00ff88;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Terminal customizations */
+        .xterm {
+            font-feature-settings: "liga" 0;
+            position: relative;
+            user-select: none;
+            -ms-user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .xterm.focus,
+        .xterm:focus {
+            outline: none;
+        }
+
+        .xterm .xterm-viewport {
+            background-color: transparent;
+        }
+
+        .xterm .xterm-cursor-layer {
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="header">
+            <div class="logo">RinaWarp Terminal</div>
+            <div class="ai-controls">
+                <input type="text" class="ai-input" id="aiInput" placeholder="Ask Rina anything... (e.g., 'show me all files')" />
+                <button class="ai-btn" id="aiBtn">🧜‍♀️ Ask Rina</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="terminal-wrapper">
+                <div class="terminal-view">
+                    <div id="terminal"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div id="status">🧜‍♀️ Ready to help! Terminal and AI assistant active</div>
+            <div>RinaWarp Terminal v1.1.0</div>
+        </div>
+    </div>
+
+    <div class="ai-response" id="aiResponse">
+        <div class="close-btn" onclick="hideAIResponse()">×</div>
+        <div id="aiResponseContent"></div>
+    </div>
+
+    <!-- xterm.js -->
+    <script src="https://unpkg.com/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+
+    <script>
+        // Initialize terminal
+        const terminal = new Terminal({
+            cursorBlink: true,
+            fontSize: 14,
+            fontFamily: '"SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace',
+            theme: {
+                background: '#000000',
+                foreground: '#00ff88',
+                cursor: '#00ff88',
+                selection: 'rgba(0, 255, 136, 0.3)',
+                black: '#000000',
+                red: '#ff6b6b',
+                green: '#00ff88',
+                yellow: '#ffd93d',
+                blue: '#74c0fc',
+                magenta: '#ff1493',
+                cyan: '#00ffff',
+                white: '#ffffff',
+                brightBlack: '#666666',
+                brightRed: '#ff8a80',
+                brightGreen: '#69f0ae',
+                brightYellow: '#ffff8d',
+                brightBlue: '#82b1ff',
+                brightMagenta: '#ff80ab',
+                brightCyan: '#84ffff',
+                brightWhite: '#ffffff'
+            }
+        });
+
+        const fitAddon = new FitAddon.FitAddon();
+        terminal.loadAddon(fitAddon);
+        
+        terminal.open(document.getElementById('terminal'));
+        fitAddon.fit();
+
+        // Welcome message
+        terminal.writeln('🧜‍♀️ Welcome to RinaWarp Terminal!');
+        terminal.writeln('✨ Type commands below or use the AI assistant above');
+        terminal.writeln('💬 Try: "ls", "pwd", "help", or ask Rina natural language questions');
+        terminal.writeln('');
+        terminal.write('$ ');
+
+        // Command handling
+        let currentLine = '';
+        let commandHistory = [];
+        let historyIndex = -1;
+
+        terminal.onData((data) => {
+            const char = data.charCodeAt(0);
+            
+            if (char === 13) { // Enter key
+                terminal.writeln('');
+                if (currentLine.trim()) {
+                    executeCommand(currentLine.trim());
+                    commandHistory.unshift(currentLine.trim());
+                    if (commandHistory.length > 100) commandHistory.pop();
+                }
+                currentLine = '';
+                historyIndex = -1;
+                terminal.write('$ ');
+            } else if (char === 127) { // Backspace
+                if (currentLine.length > 0) {
+                    currentLine = currentLine.slice(0, -1);
+                    terminal.write('\b \b');
+                }
+            } else if (char === 27) { // Escape sequences (arrow keys)
+                // Handle arrow keys for command history
+                return;
+            } else if (char >= 32 && char <= 126) { // Printable characters
+                currentLine += data;
+                terminal.write(data);
+            }
+        });
+
+        // Command execution
+        async function executeCommand(command) {
+            const cmd = command.toLowerCase().trim();
+            
+            // Built-in commands that work without shell
+            if (cmd === 'help' || cmd === 'h') {
+                terminal.writeln('🧜‍♀️ RinaWarp Terminal Commands:');
+                terminal.writeln('  help, h          - Show this help');
+                terminal.writeln('  clear, cls       - Clear terminal');
+                terminal.writeln('  date             - Show current date/time');
+                terminal.writeln('  whoami           - Show current user');
+                terminal.writeln('  pwd              - Show current directory');
+                terminal.writeln('  echo [text]      - Echo text');
+                terminal.writeln('  rina [question]  - Ask Rina AI assistant');
+                terminal.writeln('  status           - Show system status');
+                terminal.writeln('  version          - Show terminal version');
+                terminal.writeln('');
+                terminal.writeln('🌊 You can also ask questions in natural language!');
+                terminal.writeln('   Examples: "what time is it?", "show me files", etc.');
+            } else if (cmd === 'clear' || cmd === 'cls') {
+                terminal.clear();
+            } else if (cmd === 'date') {
+                terminal.writeln(new Date().toString());
+            } else if (cmd === 'whoami') {
+                terminal.writeln(navigator.userAgent.includes('Mac') ? 'user@macbook' : 'user@computer');
+            } else if (cmd === 'pwd') {
+                terminal.writeln('/Users/' + (navigator.userAgent.includes('Mac') ? 'user' : 'user'));
+            } else if (cmd.startsWith('echo ')) {
+                terminal.writeln(command.substring(5));
+            } else if (cmd.startsWith('rina ')) {
+                const question = command.substring(5);
+                const response = await processAICommand(question);
+                terminal.writeln('🧜‍♀️ Rina: ' + response);
+            } else if (cmd === 'status') {
+                terminal.writeln('🧜‍♀️ RinaWarp Terminal Status:');
+                terminal.writeln('  Terminal: ✅ Active');
+                terminal.writeln('  AI Assistant: ✅ Ready (Local Mode)');
+                terminal.writeln('  Commands: ✅ Functional');
+                terminal.writeln('  Theme: 🌊 Mermaid Magic');
+            } else if (cmd === 'version') {
+                terminal.writeln('🧜‍♀️ RinaWarp Terminal v1.1.0');
+                terminal.writeln('✨ AI-Powered Terminal with Mermaid Magic');
+            } else {
+                // Try to interpret as natural language
+                const response = await processAICommand(command);
+                if (response.includes('Unknown command')) {
+                    terminal.writeln(`bash: ${command}: command not found`);
+                    terminal.writeln('💡 Try "help" for available commands or ask Rina in natural language');
+                } else {
+                    terminal.writeln('🧜‍♀️ ' + response);
+                }
+            }
+        }
+
+        // AI Assistant (Local Processing)
+        async function processAICommand(input) {
+            const cleanInput = input.toLowerCase().trim();
+            
+            // Natural language patterns
+            const patterns = {
+                greeting: /(hello|hi|hey|good morning|good afternoon|good evening)/i,
+                time: /(what time|current time|time is it|now)/i,
+                date: /(what date|today|current date)/i,
+                files: /(show files|list files|what files|files here|ls|dir)/i,
+                directory: /(where am i|current directory|pwd|location)/i,
+                help: /(help|what can you do|commands|assist)/i,
+                status: /(how are you|status|working|ok)/i,
+                thanks: /(thank you|thanks|appreciate)/i,
+                clear: /(clear|clean|cls)/i,
+                user: /(who am i|whoami|user)/i
+            };
+
+            // Pattern matching
+            if (patterns.greeting.test(cleanInput)) {
+                return "Hello there! I'm Rina, your AI mermaid assistant! 🧜‍♀️ How can I help you navigate the digital seas today?";
+            } else if (patterns.time.test(cleanInput)) {
+                return `The current time is ${new Date().toLocaleTimeString()} 🕐`;
+            } else if (patterns.date.test(cleanInput)) {
+                return `Today is ${new Date().toLocaleDateString()} 📅`;
+            } else if (patterns.files.test(cleanInput)) {
+                return "In a real environment, I'd show you files with 'ls -la'. This demo runs locally! 📁";
+            } else if (patterns.directory.test(cleanInput)) {
+                return `You're in ${navigator.userAgent.includes('Mac') ? '/Users/user' : '/home/user'} 📍`;
+            } else if (patterns.help.test(cleanInput)) {
+                return "I can help with terminal commands, answer questions, and explain concepts! Try asking me about files, directories, time, or just chat! 💬";
+            } else if (patterns.status.test(cleanInput)) {
+                return "I'm swimming along perfectly! All systems are go and ready to help! 🌊✨";
+            } else if (patterns.thanks.test(cleanInput)) {
+                return "You're very welcome! Always happy to help a fellow digital explorer! 🧜‍♀️💖";
+            } else if (patterns.clear.test(cleanInput)) {
+                terminal.clear();
+                return "Screen cleared! Fresh as ocean foam! 🌊";
+            } else if (patterns.user.test(cleanInput)) {
+                return `You are ${navigator.userAgent.includes('Mac') ? 'user@macbook' : 'user@computer'} 👤`;
+            } else {
+                // Generic helpful response
+                return `I understand you're asking about "${input}". While I'd love to help with everything, I'm running in local demo mode! Try terminal commands like 'help', 'date', 'status', or ask me simple questions! 🧜‍♀️`;
+            }
+        }
+
+        // AI Input handling
+        document.getElementById('aiBtn').addEventListener('click', handleAIInput);
+        document.getElementById('aiInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleAIInput();
+            }
+        });
+
+        async function handleAIInput() {
+            const input = document.getElementById('aiInput').value.trim();
+            if (!input) return;
+
+            // Show processing
+            showAIResponse('🌊 Swimming through the data currents...');
+            
+            // Process the input
+            setTimeout(async () => {
+                const response = await processAICommand(input);
+                showAIResponse(`🧜‍♀️ <strong>Rina says:</strong><br><br>${response}`);
+                
+                // Clear input
+                document.getElementById('aiInput').value = '';
+            }, 500);
+        }
+
+        function showAIResponse(content) {
+            const responseDiv = document.getElementById('aiResponse');
+            const contentDiv = document.getElementById('aiResponseContent');
+            contentDiv.innerHTML = content;
+            responseDiv.classList.add('show');
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (responseDiv.classList.contains('show')) {
+                    hideAIResponse();
+                }
+            }, 10000);
+        }
+
+        function hideAIResponse() {
+            document.getElementById('aiResponse').classList.remove('show');
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
+
+        // Focus management
+        terminal.focus();
+        
+        // Update status
+        document.getElementById('status').textContent = '🧜‍♀️ Terminal ready! Try typing "help" or asking me questions above!';
+    </script>
+</body>
+</html>
