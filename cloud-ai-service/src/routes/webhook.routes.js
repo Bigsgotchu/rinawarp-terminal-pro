@@ -1,4 +1,4 @@
-import logger from './utils/logger.js';
+import logger from '../../../src/utilities/logger.js';
 import express from 'express';
 const router = express.Router();
 

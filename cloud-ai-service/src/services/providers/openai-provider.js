@@ -5,7 +5,7 @@
  */
 
 import OpenAI from 'openai';
-import { logger } from '../../utils/logger.js';
+import { logger } from '../../../../src/utilities/logger.js';
 
 export class OpenAIProvider {
   constructor() {

@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Mock ElevenLabs Voice Provider for testing
  * This is a placeholder file for the ElevenLabs integration

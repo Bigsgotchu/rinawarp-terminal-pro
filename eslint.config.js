@@ -50,6 +50,15 @@ export default [
       'pages/**',
       'components/**',
       '**/*.jsx',
+      // Ignore utility and maintenance scripts with potential parsing issues
+      'fix-all-unused-vars.js',
+      'prefix_unused_variables.cjs',
+      'test-anthropic-integration.js',
+      'test-email-templates-simple.js',
+      'test-sentry.cjs',
+      'auto-maintenance.js',
+      'deprecated/**',
+      'cloud-ai-service/test-*.js',
     ],
   },
   // Configuration for JavaScript files

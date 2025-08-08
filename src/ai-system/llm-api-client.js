@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 11 deprecated pattern(s) replaced with modern alternatives
@@ -149,7 +149,7 @@ class LLMAPIClient {
     if (this.config.apiKey) {
       this.config.provider = 'openai';
     } else {
-      throw new Error(new Error(new Error('No available LLM provider found')));
+      throw new Error('No available LLM provider found');
     }
   }
 
@@ -168,10 +168,10 @@ class LLMAPIClient {
       if (response && response.toLowerCase().includes('ok')) {
         return true;
       } else {
-        throw new Error(new Error(new Error('Unexpected response from LLM provider')));
+        throw new Error('Unexpected response from LLM provider');
       }
     } catch (error) {
-      throw new Error(new Error(new Error(`Connection test failed: ${error.message}`)));
+      throw new Error(`Connection test failed: ${error.message}`);
     }
   }
 
@@ -189,14 +189,14 @@ class LLMAPIClient {
 
     // Check rate limiting
     if (this.isRateLimited()) {
-      throw new Error(new Error(new Error('Rate limit exceeded. Please wait before making another request.')));
+      throw new Error('Rate limit exceeded. Please wait before making another request.');
     }
 
     const provider = this.config.provider;
     const providerConfig = this.providers[provider];
 
     if (!providerConfig) {
-      throw new Error(new Error(new Error(`Unsupported provider: ${provider}`)));
+      throw new Error(`Unsupported provider: ${provider}`);
     }
 
     let response;
@@ -218,7 +218,7 @@ class LLMAPIClient {
           response = await this.callOllama(prompt, options);
           break;
         default:
-          throw new Error(new Error(new Error(`Unsupported provider: ${provider}`)));
+          throw new Error(`Unsupported provider: ${provider}`);
         }
 
         // Cache successful response
@@ -234,7 +234,7 @@ class LLMAPIClient {
       } catch (error) {
         retries--;
         if (retries < 0) {
-          throw new Error(new Error(error));
+          throw error;
         }
 
         console.warn(
@@ -279,7 +279,7 @@ class LLMAPIClient {
     });
 
     if (!response.ok) {
-      throw new Error(new Error(new Error(`OpenAI API error: ${response.status} ${response.statusText}`)));
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -314,7 +314,7 @@ class LLMAPIClient {
     });
 
     if (!response.ok) {
-      throw new Error(new Error(new Error(`Anthropic API error: ${response.status} ${response.statusText}`)));
+      throw new Error(`Anthropic API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -354,7 +354,7 @@ class LLMAPIClient {
     );
 
     if (!response.ok) {
-      throw new Error(new Error(new Error(`Google AI API error: ${response.status} ${response.statusText}`)));
+      throw new Error(`Google AI API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -385,7 +385,7 @@ class LLMAPIClient {
     });
 
     if (!response.ok) {
-      throw new Error(new Error(new Error(`Ollama API error: ${response.status} ${response.statusText}`)));
+      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -475,8 +475,14 @@ class LLMAPIClient {
 }
 
 // Export for use in other modules
+export { LLMAPIClient };
+
+// Also provide global access for browser
+if (typeof window !== 'undefined') {
+  window.LLMAPIClient = LLMAPIClient;
+}
+
+// CommonJS compatibility
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { LLMAPIClient };
-} else if (typeof window !== 'undefined') {
-  window.LLMAPIClient = LLMAPIClient;
 }

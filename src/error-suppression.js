@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from './utilities/logger.js';
 /**
  * Error Suppression for Renderer Process
  * Suppresses known harmless Electron/Chromium warnings

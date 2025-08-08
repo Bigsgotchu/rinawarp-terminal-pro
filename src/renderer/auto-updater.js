@@ -11,7 +11,7 @@
 
 import { autoUpdater } from 'electron-updater';
 import { dialog, _BrowserWindow, ipcMain } from 'electron';
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 
 class AutoUpdaterManager {
   constructor() {

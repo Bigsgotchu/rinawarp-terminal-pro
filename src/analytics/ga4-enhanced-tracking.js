@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * RinaWarp Terminal - Enhanced Google Analytics 4 Tracking System
  * Complete conversion tracking, user behavior analysis, and business metrics

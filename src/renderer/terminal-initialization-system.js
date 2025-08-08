@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Terminal Initialization System
  * Complete initialization flow for RinaWarp Terminal with AI readiness checks,

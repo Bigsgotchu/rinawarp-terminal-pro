@@ -9,7 +9,7 @@
  * Provides JWT token validation and role-based access control
  */
 
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 

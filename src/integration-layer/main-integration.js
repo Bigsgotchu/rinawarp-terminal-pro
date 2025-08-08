@@ -36,7 +36,7 @@ let logger = {
 // Initialize logger with proper error handling
 (async () => {
   try {
-    const loggerModule = await safeImport('../utils/logger.js', {
+    const loggerModule = await safeImport('../utilities/logger.js', {
       name: 'logger',
       fallback: createFallback('logger'),
       timeout: 5000,

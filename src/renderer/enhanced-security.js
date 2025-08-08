@@ -24,7 +24,7 @@ let logger = {
 // Try to load the actual logger module
 (async () => {
   try {
-    const loggerModule = await import('../utils/logger.js');
+    const loggerModule = await import('../utilities/logger.js');
     logger = loggerModule.default;
   } catch (error) {
     logger.warn('Failed to load logger module, using fallback console logging');

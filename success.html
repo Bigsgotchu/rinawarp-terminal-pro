@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧜‍♀️ Welcome to RinaWarp - Purchase Successful!</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #20b2aa 0%, #87ceeb 25%, #ff1493 50%, #00ced1 75%, #20b2aa 100%);
+            background-size: 400% 400%;
+            animation: oceanWaves 8s ease-in-out infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0f4c75;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes oceanWaves {
+            0% { background-position: 0% 50%; }
+            33% { background-position: 100% 50%; }
+            66% { background-position: 50% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(135, 206, 235, 0.1));
+            border-radius: 25px;
+            padding: 50px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(32, 178, 170, 0.3), 0 0 0 1px rgba(255, 20, 147, 0.2);
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(32, 178, 170, 0.3);
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #20b2aa, #ff1493, #00ced1, #ff69b4, #20b2aa);
+            background-size: 300% 300%;
+            border-radius: 25px;
+            z-index: -1;
+            animation: borderShimmer 4s ease-in-out infinite;
+        }
+        
+        @keyframes borderShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #20b2aa, #ff1493, #00ced1);
+            background-size: 200% 200%;
+            animation: textShimmer 3s ease-in-out infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes textShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #0f4c75;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .divider {
+            font-size: 2rem;
+            margin: 30px 0;
+            opacity: 0.7;
+        }
+        
+        .info-section {
+            background: linear-gradient(135deg, rgba(135, 206, 235, 0.1), rgba(255, 20, 147, 0.05));
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid rgba(32, 178, 170, 0.2);
+        }
+        
+        .info-section h3 {
+            color: #ff1493;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .info-section p {
+            color: #0f4c75;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .email-notice {
+            background: linear-gradient(45deg, rgba(32, 178, 170, 0.1), rgba(255, 20, 147, 0.1));
+            border: 2px solid #20b2aa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .email-notice .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .download-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #20b2aa, #ff1493, #00ced1);
+            background-size: 200% 200%;
+            animation: buttonShimmer 3s ease-in-out infinite;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(32, 178, 170, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(32, 178, 170, 0.4);
+        }
+        
+        @keyframes buttonShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .support-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+        }
+        
+        .support-info h4 {
+            color: #0f4c75;
+            margin-bottom: 10px;
+        }
+        
+        .support-info a {
+            color: #ff1493;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .support-info a:hover {
+            color: #20b2aa;
+        }
+        
+        .feature-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(32, 178, 170, 0.2);
+        }
+        
+        .feature-card .emoji {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .feature-card .text {
+            color: #0f4c75;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">🧜‍♀️</div>
+        <h1 class="title">Welcome to RinaWarp!</h1>
+        <p class="subtitle">Your AI-Powered Terminal Adventure Begins Now</p>
+        
+        <div class="divider">🌊 ≋≋≋ 🐚 ≋≋≋ 🌊</div>
+        
+        <div class="email-notice">
+            <div class="icon">📧</div>
+            <h3>Check Your Email!</h3>
+            <p><strong>Your license key and download links are swimming your way!</strong></p>
+            <p>Look for an email from RinaWarp with your personalized download instructions and license key.</p>
+        </div>
+        
+        <div class="info-section">
+            <h3>🚀 What Happens Next?</h3>
+            <p>1. <strong>Check your email</strong> for download links and your license key</p>
+            <p>2. <strong>Download</strong> the version for your operating system</p>
+            <p>3. <strong>Install</strong> RinaWarp Terminal</p>
+            <p>4. <strong>Enter your license key</strong> and start exploring</p>
+            <p>5. <strong>Say "Hey Rina"</strong> to begin your AI terminal journey!</p>
+        </div>
+        
+        <div class="divider">🐚 ≋≋≋ 🧜‍♀️ ≋≋≋ 🐚</div>
+        
+        <div class="info-section">
+            <h3>🌊 Your Magical Features Await</h3>
+            <div class="feature-highlights">
+                <div class="feature-card">
+                    <div class="emoji">🤖</div>
+                    <div class="text">AI Command Suggestions</div>
+                </div>
+                <div class="feature-card">
+                    <div class="emoji">🎤</div>
+                    <div class="text">Voice Control</div>
+                </div>
+                <div class="feature-card">
+                    <div class="emoji">🎨</div>
+                    <div class="text">Beautiful Themes</div>
+                </div>
+                <div class="feature-card">
+                    <div class="emoji">🔄</div>
+                    <div class="text">Git Integration</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="support-info">
+            <h4>🆘 Need Help?</h4>
+            <p>📖 <a href="https://github.com/Rinawarp-Terminal/rinawarp-terminal">Documentation</a></p>
+            <p>💬 Support: <a href="mailto:rinawarptechnologies25@gmail.com">rinawarptechnologies25@gmail.com</a></p>
+            <p>🎬 <a href="https://jumpstart-webapp-eb23gy3dlq-uc.a.run.app">Live Demo</a></p>
+        </div>
+        
+        <div class="divider">🌊 ≋≋≋ Thank You! ≋≋≋ 🌊</div>
+        
+        <p style="color: #666; font-style: italic; margin-top: 20px;">
+            Welcome to the RinaWarp family! Dive deep into the most magical terminal experience ever created. 🧜‍♀️✨
+        </p>
+    </div>
+
+    <script>
+        // Track successful purchase
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'purchase', {
+                transaction_id: new Date().getTime().toString(),
+                value: 29.00, // Default value, could be dynamic
+                currency: 'USD'
+            });
+        }
+        
+        // Add some sparkle effects
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.innerHTML = '✨';
+            sparkle.style.position = 'fixed';
+            sparkle.style.left = Math.random() * 100 + 'vw';
+            sparkle.style.top = '-20px';
+            sparkle.style.fontSize = '20px';
+            sparkle.style.pointerEvents = 'none';
+            sparkle.style.zIndex = '1000';
+            sparkle.style.animation = `sparkle-fall ${3 + Math.random() * 2}s linear forwards`;
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 5000);
+        }
+        
+        // Add sparkle animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes sparkle-fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Create sparkles periodically
+        setInterval(createSparkle, 2000);
+        
+        // Create initial sparkles
+        for (let i = 0; i < 5; i++) {
+            setTimeout(createSparkle, i * 400);
+        }
+    </script>
+</body>
+</html>

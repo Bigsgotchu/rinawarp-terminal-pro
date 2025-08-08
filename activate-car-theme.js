@@ -107,7 +107,7 @@ async function main() {
     break;
 
   case 'status':
-    const status = carThemeActivator.getStatus();
+    const _status = carThemeActivator.getStatus();
     break;
 
   case 'help':

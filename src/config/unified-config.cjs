@@ -13,8 +13,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('os');
 
-const { createLogger } = require('../utils/logger.cjs');
-const logger = createLogger('UnifiedConfig');
+const logger = require('../utilities/logger.cjs');
 class UnifiedConfig {
   constructor() {
     this.configDir = path.join(os.homedir(), '.rinawarp-terminal');

@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Terminal Session Metrics Instrumentation
  * Integrates with the SessionManager to collect terminal-specific metrics

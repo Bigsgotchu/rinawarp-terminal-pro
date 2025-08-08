@@ -1,4 +1,3 @@
-import logger from '../utils/logger.js';
 /*
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 1 deprecated pattern(s) replaced with modern alternatives
@@ -23,7 +22,7 @@ let logger = {
 // Try to load the actual logger module
 (async () => {
   try {
-    const loggerModule = await import('../utils/logger.js');
+    const loggerModule = await import('../utilities/logger.js');
     logger = loggerModule.default;
   } catch (error) {
     console.warn('Failed to load logger module, using fallback console logging');

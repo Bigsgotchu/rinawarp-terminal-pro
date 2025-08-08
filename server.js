@@ -70,6 +70,8 @@ console.log(
   `   Optional keys: ${recommendedKeys.length - missingRecommended.length}/${recommendedKeys.length} configured`
 );
 
+// Import Sentry for distributed tracing
+import Sentry from './src/instrument.js';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -420,6 +422,14 @@ app.use(threatDetector.createMiddleware());
 
 // Apply custom logging middleware to all requests
 app.use(logRequest);
+
+// Sentry distributed tracing middleware - must be before other middleware
+if (Sentry && Sentry.Handlers) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+} else {
+  console.log('⚠️ Sentry handlers not available - continuing without request tracing');
+}
 
 // Middleware
 app.use(express.json({ limit: '10mb' })); // Increase limit and add security
@@ -2675,6 +2685,13 @@ app.get('/stripe-csp-test.html', staticPageLimiter, (req, res) => {
 
 // Note: Removed catch-all static file server to prevent conflicts with API routes
 // Static files are now served via express.static middleware and specific routes
+
+// Sentry error handler - must be before other error handlers (conditional)
+if (Sentry.Handlers && Sentry.Handlers.errorHandler) {
+  app.use(Sentry.Handlers.errorHandler());
+} else {
+  console.log('⚠️ Sentry error handler not available - continuing without error tracking');
+}
 
 // 404 Handler for undefined routes (must be after all other routes)
 app.use(notFoundHandler);

@@ -1,0 +1,19 @@
+# Creator Edition Protection - NEVER commit these files
+creator-edition-terminal.html filter=creator-block
+main-creator.cjs filter=creator-block
+creator-build.config.cjs filter=creator-block
+update-config.json filter=creator-block
+update-check.sh filter=creator-block
+verify-creator-status.cjs filter=creator-block
+scripts/setup-auto-updates.cjs filter=creator-block
+src/creator-edition-config.js filter=creator-block
+
+# Block any file with creator in the name
+*creator* filter=creator-block
+*Creator* filter=creator-block
+*CREATOR* filter=creator-block
+
+# Personal use files
+*personal* filter=creator-block
+*unlimited* filter=creator-block
+*lifetime* filter=creator-block

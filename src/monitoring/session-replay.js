@@ -1,4 +1,4 @@
-import logger from '../utils/logger.js';
+import logger from '../utilities/logger.js';
 /**
  * Session Replay Integration
  * Supports LogRocket and Sentry Session Replay

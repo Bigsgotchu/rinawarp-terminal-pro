@@ -29,7 +29,8 @@ class TerminalWrapper {
       }
 
       // Create terminal instance
-      this.terminal = new window.Terminal({
+      const Terminal = window.Terminal.default || window.Terminal;
+      this.terminal = new Terminal({
         fontFamily: 'Consolas, "Courier New", monospace',
         fontSize: 14,
         cursorBlink: true,
@@ -51,7 +52,8 @@ class TerminalWrapper {
 
       // Create and load fit addon if available
       if (window.FitAddon) {
-        this.fitAddon = new window.FitAddon.FitAddon();
+        const FitAddon = window.FitAddon.FitAddon || window.FitAddon;
+        this.fitAddon = new FitAddon();
         this.terminal.loadAddon(this.fitAddon);
       }
 
