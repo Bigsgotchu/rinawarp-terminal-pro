@@ -105,9 +105,15 @@ async function main() {
       process.exit(1);
     }
 
-    // 6. Create release commit
-    log('6. Creating release commit...');
+    // 6. Update website download links
+    log('6. Updating website download links...');
     const version = getCurrentVersion();
+    const { updateDownloadPage } = require('./update-download-links.cjs');
+    updateDownloadPage(version);
+    success('Website download links updated');
+
+    // 7. Create release commit
+    log('7. Creating release commit...');
     const commitMessage = await askQuestion(
       `Enter commit message (default: "chore: release v${version}"): `
     );

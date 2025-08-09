@@ -138,15 +138,15 @@ jobs:
         echo "*May your code flow like gentle tides! 🌊✨*" >> CHANGELOG.md
 
     - name: 🚀 Create GitHub Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref_name }}
-        release_name: 🧜‍♀️ RinaWarp Terminal ${{ github.ref_name }}
+        name: 🧜‍♀️ RinaWarp Terminal ${{ github.ref_name }}
         body_path: CHANGELOG.md
         draft: false
         prerelease: ${{ contains(github.ref_name, 'beta') }}
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 📦 Publish to NPM (if configured)
       if: ${{ !contains(github.ref_name, 'beta') }}
