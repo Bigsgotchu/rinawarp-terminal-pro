@@ -506,64 +506,64 @@
             <div class="logo">
                 <img src="/assets/rinawarp-mermaid-logo-v2.svg" alt="RinaWarp Terminal" width="200" height="60">
             </div>
-            <h1>RinaWarp Terminal</h1>
-            <p>The AI-Powered Terminal with Voice Control</p>
-            <div class="version-badge">✨ v1.1.0 - Professional Terminal for Developers</div>
+            <h1>Your Terminal Just Got Superpowers 🚀</h1>
+            <p>AI-powered terminal that learns your workflow, suggests commands, and automates repetitive tasks. Start free, upgrade when you need team features.</p>
+            <div class="version-badge">💰 Start free forever - No credit card required</div>
         </section>
 
         <!-- PROMINENT PRICING SECTION - MOVED TO TOP -->
         <section class="pricing-hero">
             <h2>🚀 Get Started Today</h2>
-            <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">Choose your plan and experience the future of terminal computing</p>
+            <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">Start with our free version or upgrade for advanced features</p>
             
             <div class="pricing-cards">
                 <div class="pricing-card">
-                    <div class="plan-name">Personal</div>
-                    <div class="plan-price">$15</div>
-                    <div class="plan-period">per month</div>
+                    <div class="plan-name">Free Starter</div>
+                    <div class="plan-price">$0</div>
+                    <div class="plan-period">forever</div>
                     <ul class="plan-features">
-                        <li>AI Assistant Integration</li>
-                        <li>Voice Commands & TTS</li>
-                        <li>Custom Themes</li>
-                        <li>3 Device License</li>
-                        <li>Email Support</li>
+                        <li>Basic Terminal Features</li>
+                        <li>3 Tabs & Split Panes</li>
+                        <li>6 Beautiful Themes</li>
+                        <li>Basic AI Assistant</li>
+                        <li>1 Device License</li>
                     </ul>
-                    <button class="buy-button" data-handler-id="csp-safe-1753586469638-1"personal')">
-                        Get Personal Plan
+                    <button class="buy-button" onclick="window.location.href='/download'">
+                        Start Free
                     </button>
                 </div>
 
                 <div class="pricing-card popular">
+                    <div class="plan-name">Personal</div>
+                    <div class="plan-price">$15</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li>Everything in Free</li>
+                        <li>Advanced AI Features</li>
+                        <li>Voice Commands & TTS</li>
+                        <li>Cloud Sync</li>
+                        <li>3 Device License</li>
+                        <li>Email Support</li>
+                    </ul>
+                    <button class="buy-button" onclick="purchasePlan('personal')">
+                        Get Personal Plan
+                    </button>
+                </div>
+
+                <div class="pricing-card">
                     <div class="plan-name">Professional</div>
                     <div class="plan-price">$29</div>
                     <div class="plan-period">per month</div>
                     <ul class="plan-features">
                         <li>Everything in Personal</li>
-                        <li>Advanced AI Features</li>
                         <li>ElevenLabs Voice AI</li>
+                        <li>Team Collaboration</li>
                         <li>5 Device License</li>
                         <li>Priority Support</li>
                         <li>Beta Access</li>
                     </ul>
-                    <button class="buy-button" data-handler-id="csp-safe-1753586469638-2"professional')">
+                    <button class="buy-button" onclick="purchasePlan('professional')">
                         Get Pro Plan
-                    </button>
-                </div>
-
-                <div class="pricing-card">
-                    <div class="plan-name">Team</div>
-                    <div class="plan-price">$49</div>
-                    <div class="plan-period">per month</div>
-                    <ul class="plan-features">
-                        <li>Everything in Pro</li>
-                        <li>Team Management</li>
-                        <li>Collaboration Tools</li>
-                        <li>10 Device License</li>
-                        <li>Custom Integrations</li>
-                        <li>SLA Support</li>
-                    </ul>
-                    <button class="buy-button" data-handler-id="csp-safe-1753586469638-3"team')">
-                        Get Team Plan
                     </button>
                 </div>
             </div>
@@ -587,7 +587,7 @@
                         <div class="terminal-line terminal-output">📁 public/js/terminal.js (12.4KB)</div>
                         <div class="terminal-line terminal-ai">💡 Would you like me to analyze any specific file?</div>
                     </div>
-                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-4">🔄 Run Demo</button>
+                    <button class="demo-button" onclick="runAIDemo()">🔄 Run Demo</button>
                 </div>
 
                 <div class="demo-card">
@@ -600,7 +600,7 @@
                         <div class="terminal-line terminal-output">/dev/disk1s1   500G  287G  210G  58%</div>
                         <div class="terminal-line terminal-ai">🗣️ "You're using 287GB out of 500GB. You have 210GB available."</div>
                     </div>
-                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-5">🎤 Try Voice Demo</button>
+                    <button class="demo-button" onclick="runVoiceDemo()">🎤 Try Voice Demo</button>
                 </div>
 
                 <div class="demo-card">
@@ -613,7 +613,7 @@
                         <div class="terminal-line terminal-output" style="color: #ff1493;">🧜‍♀️ Special cursor: Swimming mermaid</div>
                         <div class="terminal-line terminal-output" style="color: #20b2aa;">🎵 Sound effects: Ocean waves</div>
                     </div>
-                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-6">🎨 Change Theme</button>
+                    <button class="demo-button" onclick="runThemeDemo()">🎨 Change Theme</button>
                 </div>
 
                 <div class="demo-card">
@@ -627,7 +627,7 @@
                         <div class="terminal-line terminal-output">💾 Memory usage: 45MB</div>
                         <div class="terminal-line terminal-ai">🧜‍♀️ Performance: Excellent! All systems optimal.</div>
                     </div>
-                    <button class="demo-button" data-handler-id="csp-safe-1753586469638-7">⚡ Run Benchmark</button>
+                    <button class="demo-button" onclick="runPerfDemo()">⚡ Run Benchmark</button>
                 </div>
             </div>
         </section>
@@ -789,8 +789,23 @@
             <a href="/releases/RinaWarp-Terminal-macOS.zip" class="download-button">🍎 Download for macOS</a>
             <a href="/releases/RinaWarp-Terminal-Setup-Windows.exe" class="download-button">🪟 Download for Windows</a>
             <a href="/releases/RinaWarp-Terminal-Linux.tar.gz" class="download-button">🐧 Download for Linux</a>
-            <p style="color: #e0ffff; margin-top: 20px;">30-day money-back guarantee • Free beta access • Cancel anytime</p>
+            <p style="color: #e0ffff; margin-top: 20px;">Start free forever • No credit card required • Upgrade anytime</p>
         </section>
+        
+        <!-- Footer with Copyright -->
+        <footer style="text-align: center; padding: 40px 20px; margin-top: 60px; border-top: 2px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.1); border-radius: 20px;">
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 10px 0;">
+                © 2025 RinaWarp Technologies, LLC. All rights reserved.
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; margin: 5px 0;">
+                Advanced Terminal Emulator • AI-Powered • Enterprise Security
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.8rem; margin: 5px 0;">
+                <a href="/privacy" style="color: #00ffff; text-decoration: none;">Privacy Policy</a> • 
+                <a href="/terms" style="color: #00ffff; text-decoration: none;">Terms of Service</a> • 
+                <a href="mailto:support@rinawarp.com" style="color: #00ffff; text-decoration: none;">Support</a>
+            </p>
+        </footer>
     </div>
 
     <!-- Enhanced GA4 Tracking -->
@@ -988,81 +1003,5 @@
     <!-- Revenue Boost Script -->
     <script src="/js/revenue-boost.js"></script>
 
-<script>
-(function() {
-  'use strict';
-  
-  // Handler for click event
-  document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-1"]');
-    if (element) {
-      element.addEventListener('click', function(event) {
-        purchasePlan(
-      });
-    }
-  });
-
-  // Handler for click event
-  document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-2"]');
-    if (element) {
-      element.addEventListener('click', function(event) {
-        purchasePlan(
-      });
-    }
-  });
-
-  // Handler for click event
-  document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-3"]');
-    if (element) {
-      element.addEventListener('click', function(event) {
-        purchasePlan(
-      });
-    }
-  });
-
-  // Handler for click event
-  document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-4"]');
-    if (element) {
-      element.addEventListener('click', function(event) {
-        runAIDemo()
-      });
-    }
-  });
-
-  // Handler for click event
-  document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-5"]');
-    if (element) {
-      element.addEventListener('click', function(event) {
-        runVoiceDemo()
-      });
-    }
-  });
-
-  // Handler for click event
-  document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-6"]');
-    if (element) {
-      element.addEventListener('click', function(event) {
-        runThemeDemo()
-      });
-    }
-  });
-
-  // Handler for click event
-  document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('[data-handler-id="csp-safe-1753586469638-7"]');
-    if (element) {
-      element.addEventListener('click', function(event) {
-        runPerfDemo()
-      });
-    }
-  });
-
-})();
-</script>
 </body>
 </html>
