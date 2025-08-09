@@ -47,7 +47,6 @@ export class RinaVoiceIntegration {
     if (this.config.enableMoodSync) {
       this.syncMoodWithVoiceEngine();
     }
-
   }
 
   updateAPIConnectionStatus(isConnected) {
@@ -142,21 +141,29 @@ export class RinaVoiceIntegration {
 
         // Try to initialize with the new API key
         try {
-          const elevenLabsProvider = new ElevenLabsVoiceProvider();
-          elevenLabsProvider.initialize(apiKey).then(connected => {
-            this.updateAPIConnectionStatus(connected);
-            if (connected) {
-              console.log('ElevenLabs API key successfully configured');
-            } else {
-              alert(
-                'Failed to connect with the provided API key. Please check your key and try again.'
-              );
-            }
-          }).catch(error => {
-            console.error('ElevenLabs initialization failed:', error.message);
-            alert('Failed to initialize ElevenLabs. Please try again.');
+          if (typeof ElevenLabsVoiceProvider !== 'undefined') {
+            const elevenLabsProvider = new ElevenLabsVoiceProvider();
+            elevenLabsProvider
+              .initialize(apiKey)
+              .then(connected => {
+                this.updateAPIConnectionStatus(connected);
+                if (connected) {
+                  console.log('ElevenLabs API key successfully configured');
+                } else {
+                  alert(
+                    'Failed to connect with the provided API key. Please check your key and try again.'
+                  );
+                }
+              })
+              .catch(error => {
+                console.error('ElevenLabs initialization failed:', error.message);
+                alert('Failed to initialize ElevenLabs. Please try again.');
+                this.updateAPIConnectionStatus(false);
+              });
+          } else {
+            console.warn('ElevenLabs provider not available');
             this.updateAPIConnectionStatus(false);
-          });
+          }
         } catch (error) {
           console.error('Failed to create ElevenLabs provider:', error.message);
           alert('ElevenLabs provider is not available.');
@@ -270,24 +277,35 @@ export class RinaVoiceIntegration {
 
   setupToggleEvents() {
     try {
-      const elevenLabsProvider = new ElevenLabsVoiceProvider();
-      const apiKey = elevenLabsProvider.getApiKeyFromStorage();
+      // Skip ElevenLabs provider initialization in test environment
+      if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+        this.updateAPIConnectionStatus(false);
+      } else if (typeof ElevenLabsVoiceProvider !== 'undefined') {
+        const elevenLabsProvider = new ElevenLabsVoiceProvider();
+        const apiKey = elevenLabsProvider.getApiKeyFromStorage();
 
-      if (!apiKey) {
-        this.showApiKeyConfigurationUI();
+        if (!apiKey) {
+          this.showApiKeyConfigurationUI();
+        } else {
+          elevenLabsProvider
+            .initialize(apiKey)
+            .then(connected => {
+              this.updateAPIConnectionStatus(connected);
+            })
+            .catch(error => {
+              console.warn('Failed to initialize ElevenLabs provider:', error.message);
+              this.updateAPIConnectionStatus(false);
+            });
+        }
       } else {
-        elevenLabsProvider.initialize(apiKey).then(connected => {
-          this.updateAPIConnectionStatus(connected);
-        }).catch(error => {
-          console.warn('Failed to initialize ElevenLabs provider:', error.message);
-          this.updateAPIConnectionStatus(false);
-        });
+        console.warn('ElevenLabs provider not available');
+        this.updateAPIConnectionStatus(false);
       }
     } catch (error) {
       console.warn('Failed to create ElevenLabs provider:', error.message);
       this.updateAPIConnectionStatus(false);
     }
-    
+
     const select = document.getElementById('voice-mode-select');
     const status = document.getElementById('voice-status');
 
@@ -386,18 +404,18 @@ export class RinaVoiceIntegration {
 
     // Configure voice systems based on mode
     switch (mode) {
-    case 'system':
-      this.configureSystemMode();
-      break;
-    case 'rina':
-      this.configureRinaMode();
-      break;
-    case 'hybrid':
-      this.configureHybridMode();
-      break;
-    case 'elevenlabs':
-      this.configureElevenLabsMode();
-      break;
+      case 'system':
+        this.configureSystemMode();
+        break;
+      case 'rina':
+        this.configureRinaMode();
+        break;
+      case 'hybrid':
+        this.configureHybridMode();
+        break;
+      case 'elevenlabs':
+        this.configureElevenLabsMode();
+        break;
     }
 
     // Trigger glow effect for mode switch
@@ -540,15 +558,15 @@ export class RinaVoiceIntegration {
 
     // Mood-specific Rina responses
     switch (mood) {
-    case 'frustrated':
-      await this.rinaVoice?.onUserFrustrated();
-      break;
-    case 'uncertain':
-      await this.rinaVoice?.onUserUncertain();
-      break;
-    case 'confident':
-      await this.rinaVoice?.speak('performanceGood', { mood: 'pleased' });
-      break;
+      case 'frustrated':
+        await this.rinaVoice?.onUserFrustrated();
+        break;
+      case 'uncertain':
+        await this.rinaVoice?.onUserUncertain();
+        break;
+      case 'confident':
+        await this.rinaVoice?.speak('performanceGood', { mood: 'pleased' });
+        break;
     }
   }
 
