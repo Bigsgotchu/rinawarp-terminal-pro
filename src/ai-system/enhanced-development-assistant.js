@@ -81,32 +81,32 @@ export class EnhancedDevelopmentAssistant {
     
     try {
       switch (requestType.category) {
-        case 'code_analysis':
-          return await this.analyzeCode(input, context, requestType.specifics);
+      case 'code_analysis':
+        return await this.analyzeCode(input, context, requestType.specifics);
         
-        case 'debugging':
-          return await this.debugCode(input, context, requestType.specifics);
+      case 'debugging':
+        return await this.debugCode(input, context, requestType.specifics);
         
-        case 'program_generation':
-          return await this.generateProgram(input, context, requestType.specifics);
+      case 'program_generation':
+        return await this.generateProgram(input, context, requestType.specifics);
         
-        case 'architecture':
-          return await this.analyzeArchitecture(input, context, requestType.specifics);
+      case 'architecture':
+        return await this.analyzeArchitecture(input, context, requestType.specifics);
         
-        case 'explanation':
-          return await this.provideTechnicalExplanation(input, context, requestType.specifics);
+      case 'explanation':
+        return await this.provideTechnicalExplanation(input, context, requestType.specifics);
         
-        case 'code_review':
-          return await this.reviewCode(input, context, requestType.specifics);
+      case 'code_review':
+        return await this.reviewCode(input, context, requestType.specifics);
         
-        case 'refactoring':
-          return await this.refactorCode(input, context, requestType.specifics);
+      case 'refactoring':
+        return await this.refactorCode(input, context, requestType.specifics);
         
-        case 'testing':
-          return await this.generateTests(input, context, requestType.specifics);
+      case 'testing':
+        return await this.generateTests(input, context, requestType.specifics);
         
-        default:
-          return await this.handleGeneralDevelopmentQuery(input, context);
+      default:
+        return await this.handleGeneralDevelopmentQuery(input, context);
       }
     } catch (error) {
       return {

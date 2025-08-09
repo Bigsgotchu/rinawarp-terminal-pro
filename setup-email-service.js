@@ -70,7 +70,7 @@ async function main() {
     return;
   }
 
-  let emailConfig = {};
+  const emailConfig = {};
 
   if (choice === '1') {
     // SendGrid setup

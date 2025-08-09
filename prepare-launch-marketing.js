@@ -495,7 +495,7 @@ const launchChecklist = `# 🚀 RinaWarp Terminal Launch Checklist
 
 fs.writeFileSync('marketing-launch/LAUNCH_CHECKLIST.md', launchChecklist);
 
-console.log(`✅ Created: marketing-launch/LAUNCH_CHECKLIST.md`);
+console.log('✅ Created: marketing-launch/LAUNCH_CHECKLIST.md');
 
 console.log('\n🎉 Marketing materials created successfully!');
 console.log('📁 Check the marketing-launch/ directory for all templates');
