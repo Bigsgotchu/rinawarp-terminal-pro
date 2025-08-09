@@ -621,3 +621,39 @@ scripts/protect-creator-files.cjs
 
 # Creator license (keep private)
 .creator-license
+
+# Security & Sensitive Files
+.env.*
+*.key
+*.pem
+*.p12
+secrets/
+credentials/
+private/
+*.secret
+
+# Stripe & Payment Data
+stripe-webhook-*
+payment-logs/
+stripe-events.json
+
+# User Data
+user-data/
+analytics/raw/
+logs/personal/
+
+# Backup Files (may contain sensitive data)
+*.backup
+*.bak
+backup-*
+*-backup/
+
+# Development Tools
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS Files
+.DS_Store
+Thumbs.db
