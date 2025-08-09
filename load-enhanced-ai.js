@@ -13,31 +13,31 @@ console.log('🚀 Loading Enhanced AI Integration for RinaWarp Terminal...');
 
 // Function to inject the enhancement script into a running terminal
 function injectEnhancement() {
-    // Create script element
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = './src/enhanced-ai-terminal-init.js';
+  // Create script element
+  const script = document.createElement('script');
+  script.type = 'module';
+  script.src = './src/enhanced-ai-terminal-init.js';
     
-    // Add to document
-    document.head.appendChild(script);
+  // Add to document
+  document.head.appendChild(script);
     
-    console.log('✅ Enhanced AI integration loaded!');
+  console.log('✅ Enhanced AI integration loaded!');
     
-    // Show success message
-    setTimeout(() => {
-        if (window.rinaWarpAgent) {
-            console.log('🧜‍♀️ Warp Agent capabilities now available in your RinaWarp Terminal!');
+  // Show success message
+  setTimeout(() => {
+    if (window.rinaWarpAgent) {
+      console.log('🧜‍♀️ Warp Agent capabilities now available in your RinaWarp Terminal!');
             
-            // Show the agent panel briefly as demonstration
-            setTimeout(() => {
-                if (window.rinaWarpAgent.toggleAgentPanel) {
-                    window.rinaWarpAgent.toggleAgentPanel(true);
+      // Show the agent panel briefly as demonstration
+      setTimeout(() => {
+        if (window.rinaWarpAgent.toggleAgentPanel) {
+          window.rinaWarpAgent.toggleAgentPanel(true);
                     
-                    // Add welcome message
-                    setTimeout(() => {
-                        if (window.rinaWarpAgent.addMessageToConversation) {
-                            window.rinaWarpAgent.addMessageToConversation('assistant', 
-                                `🧜‍♀️ Hello! I'm your new AI agent, integrated seamlessly with your beautiful RinaWarp Terminal!
+          // Add welcome message
+          setTimeout(() => {
+            if (window.rinaWarpAgent.addMessageToConversation) {
+              window.rinaWarpAgent.addMessageToConversation('assistant', 
+                `🧜‍♀️ Hello! I'm your new AI agent, integrated seamlessly with your beautiful RinaWarp Terminal!
 
 I can help you with:
 • Code analysis and debugging 🔍
@@ -54,21 +54,21 @@ Your existing features are all preserved:
 Try asking me: "Analyze my current project" or "Help me debug an error"
 
 What would you like help with today?`);
-                        }
-                    }, 1000);
-                }
-            }, 2000);
+            }
+          }, 1000);
         }
-    }, 3000);
+      }, 2000);
+    }
+  }, 3000);
 }
 
 // If running in a browser environment
 if (typeof window !== 'undefined') {
-    // Browser environment - inject directly
-    injectEnhancement();
+  // Browser environment - inject directly
+  injectEnhancement();
 } else {
-    // Node.js environment - provide instructions
-    console.log(`
+  // Node.js environment - provide instructions
+  console.log(`
 🧜‍♀️ Enhanced AI Integration for RinaWarp Terminal
 
 To add Warp Agent-like capabilities to your terminal:
@@ -107,5 +107,5 @@ in Warp's Agent Mode, but with your beautiful RinaWarp design!
 
 // Export for module usage
 if (typeof module !== 'undefined') {
-    module.exports = { injectEnhancement };
+  module.exports = { injectEnhancement };
 }

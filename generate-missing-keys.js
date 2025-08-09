@@ -44,7 +44,7 @@ const securityKeys = {
 console.log('✅ Security keys generated successfully!');
 
 // Read existing development config to copy Stripe keys
-let existingConfig = {};
+const existingConfig = {};
 if (hasEnvDev) {
   console.log('\n📋 Reading existing Stripe configuration...');
   const devContent = fs.readFileSync('.env.development', 'utf8');

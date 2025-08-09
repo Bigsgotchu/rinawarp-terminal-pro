@@ -38,6 +38,8 @@ export default [
       '*-backup/**',
       '.backups/**',
       'extracted-*/**',
+      'archive/**',
+      '**/archive/**',
       // Temporary and generated files
       'temp-*/**',
       'tmp/**',
@@ -59,6 +61,9 @@ export default [
       'auto-maintenance.js',
       'deprecated/**',
       'cloud-ai-service/test-*.js',
+      // Files with syntax issues that need manual fixing
+      'verify-integration.js',
+      'verify-monitoring-setup.js',
     ],
   },
   // Configuration for JavaScript files

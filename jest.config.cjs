@@ -1,7 +1,9 @@
 module.exports = {
   testEnvironment: 'node',
   transform: {
-    '^.+\.m?js$': ['babel-jest', { presets: ['@babel/preset-env'] }],
+    '^.+\.(js|jsx|ts|tsx|mjs)$': ['babel-jest', {
+      presets: [['@babel/preset-env', { targets: { node: 'current' } }]]
+    }],
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'

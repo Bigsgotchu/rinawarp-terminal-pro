@@ -372,6 +372,7 @@ async function testSecurityConfig() {
 
 // Main verification function
 async function runVerification() {
+  console.log(
     `${colors.bold}${colors.cyan}🔍 RinaWarp Terminal Integration Verification${colors.reset}\n`
   );
 

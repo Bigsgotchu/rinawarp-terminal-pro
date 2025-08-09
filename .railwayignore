@@ -1,66 +1,101 @@
-# Exclude large files and directories from Railway deployment
-public/releases/*.dmg
-public/releases/*.exe
-public/releases/*.tar.gz
-public/releases/*.AppImage
-public/releases/*.zip
+# Node modules and caches
+node_modules/
+.npm/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts and releases
 dist/
+build/
 temp-build/
 releases/
-backup-*/
-
-# Build artifacts
+public/releases/
 *.dmg
 *.exe
 *.tar.gz
 *.AppImage
 *.zip
+*.deb
+*.rpm
 
-# Node modules and caches
-node_modules/
-.npm/
-.cache/
-
-# Development files
-.env.development
-.env.local
-*.log
+# Development and testing
+.env*
+!.env.example
 coverage/
 .nyc_output/
+test-results/
+playwright-report/
+tests/
+__tests__/
+*.test.js
+*.spec.js
 
-# OS files
+# OS and editor files
 .DS_Store
 Thumbs.db
-
-# Git
-.git/
-.gitignore
-
-# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# Testing
-test-results/
-playwright-report/
+# Git and version control
+.git/
+.gitignore
+.gitattributes
 
-# Large audio files
-*.wav
-ffmpeg.zip
-*.tar.gz
+# Documentation (except README)
+*.md
+!README.md
+docs/
 
-# Backups
-project-backup-*
+# Backups and temporary files
 backup-*/
+project-backup-*
+temp-*/
+*.backup
+*.tmp
+*.bak
 
-# Large directories
-public/releases/
-public/*.dmg
-public/*.exe
-public/*.tar.gz
+# Large media files
+*.wav
+*.mp4
+*.avi
+*.mov
+*.mkv
+ffmpeg.zip
 
-# Secrets and reports
+# Electron specific (not needed for web deployment)
+src/tests/
+main-creator.cjs
+creator-build.config.cjs
+build/
+assets/icons/
+public/dmg-assets/
+
+# Development dependencies artifacts
+babel.config.js
+jest.config.cjs
+webpack.config.js
+eslint.config.js
+.eslintrc*
+.prettierrc*
+
+# Logs and reports
+*.log
 secrets-scan-report.json
 package-lock.json.backup-*
+
+# Docker files (using Nixpacks)
+Dockerfile*
+.dockerignore
+
+# Large directories that aren't needed
+scripts/testimonial-manager.cjs
+scripts/smart-file-manager.cjs
+scripts/cleanup-old-files.js
+scripts/build-*
+scripts/download-releases.js
+scripts/check-build-status.js

@@ -1,0 +1,19 @@
+{
+  "name": "rinawarp-terminal-test",
+  "version": "1.0.0",
+  "description": "Test deployment for RinaWarp Terminal",
+  "main": "test-deploy-server.cjs",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "start": "node test-deploy-server.cjs"
+  },
+  "dependencies": {},
+  "author": {
+    "name": "Rinawarp Technologies, LLC",
+    "email": "rinawarptechnologies25@gmail.com"
+  },
+  "license": "PROPRIETARY"
+}

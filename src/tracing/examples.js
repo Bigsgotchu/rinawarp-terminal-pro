@@ -63,7 +63,7 @@ export const createCheckoutSessionTraced = traceAsync(
 );
 
 // Example 2: Tracing AI Operations with Anthropic Claude
-export const processAICommandTraced = traceAsync(
+const processAICommandTraced = traceAsync(
   'ai_command_processing',
   async function(userCommand, context) {
     // Set user context for tracing
@@ -115,7 +115,7 @@ export const processAICommandTraced = traceAsync(
 );
 
 // Example 3: Tracing Database Operations
-export async function getUserLicenseTraced(userId) {
+const getUserLicenseTraced = async function(userId) {
   return await traceDatabase(
     'SELECT * FROM licenses WHERE user_id = ?',
     [userId],
@@ -159,7 +159,7 @@ export async function getUserLicenseTraced(userId) {
 }
 
 // Example 4: Tracing External API Calls
-export async function sendEmailNotificationTraced(to, subject, body) {
+const sendEmailNotificationTraced = async function(to, subject, body) {
   return await traceHttpRequest(
     'POST',
     'https://api.sendgrid.v3/mail/send',
@@ -194,7 +194,7 @@ export async function sendEmailNotificationTraced(to, subject, body) {
 }
 
 // Example 5: Tracing Complex Business Logic
-export async function processLicenseActivationTraced(licenseKey, userInfo) {
+const processLicenseActivationTraced = async function(licenseKey, userInfo) {
   const span = createSpan('business.license_activation', 'Process license activation', {
     'license.type': 'activation',
     'user.id': userInfo.id

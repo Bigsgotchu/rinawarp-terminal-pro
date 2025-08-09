@@ -43,9 +43,18 @@ config();
 console.log('✅ Environment variables loaded');
 
 // RinaWarp Environment Validator
-const requiredKeys = ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_ID'];
+const requiredKeys = ['STRIPE_SECRET_KEY', 'STRIPE_PUBLISHABLE_KEY'];
+const stripeKeys = [
+  'STRIPE_PRICE_PERSONAL_MONTHLY',
+  'STRIPE_PRICE_PERSONAL_YEARLY', 
+  'STRIPE_PRICE_PROFESSIONAL_MONTHLY',
+  'STRIPE_PRICE_PROFESSIONAL_YEARLY',
+  'STRIPE_PRICE_TEAM_MONTHLY',
+  'STRIPE_PRICE_TEAM_YEARLY'
+];
 const recommendedKeys = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'SENDGRID_API_KEY'];
-const missing = requiredKeys.filter(k => !process.env[k] || process.env[k] === `{{${k}}}`);
+const missing = requiredKeys.filter(k => !process.env[k] || process.env[k] === `{{${k}}}`); 
+const missingStripeKeys = stripeKeys.filter(k => !process.env[k] || process.env[k] === `{{${k}}}`);
 const missingRecommended = recommendedKeys.filter(
   k => !process.env[k] || process.env[k] === `{{${k}}}`
 );
@@ -63,8 +72,19 @@ if (missingRecommended.length) {
   );
 }
 
+// Log Stripe price keys validation
+if (missingStripeKeys.length === 0) {
+  console.log('✅ All Stripe price keys configured');
+} else {
+  console.log(`⚠️ Missing Stripe price keys: ${missingStripeKeys.join(', ')}`);
+  console.log('   Payment checkout will still work with available price IDs');
+}
+
 console.log(
   `   Required keys: ${requiredKeys.length - missing.length}/${requiredKeys.length} configured`
+);
+console.log(
+  `   Stripe price keys: ${stripeKeys.length - missingStripeKeys.length}/${stripeKeys.length} configured`
 );
 console.log(
   `   Optional keys: ${recommendedKeys.length - missingRecommended.length}/${recommendedKeys.length} configured`
@@ -296,17 +316,17 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   // Test strict CSP without breaking functionality
   const strictCSP = [
-    "default-src 'self'",
-    "script-src 'self' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
-    "style-src 'self' 'unsafe-inline'", // Allow unsafe-inline for styles
-    "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
-    "form-action 'self' https://checkout.stripe.com",
-    "frame-ancestors 'none'",
+    'default-src \'self\'',
+    'script-src \'self\' \'unsafe-inline\' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://cdn.logrocket.io',
+    'style-src \'self\' \'unsafe-inline\'', // Allow unsafe-inline for styles
+    'img-src \'self\' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com',
+    'font-src \'self\' data: https://fonts.gstatic.com',
+    'connect-src \'self\' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app',
+    'object-src \'none\'',
+    'base-uri \'self\'',
+    'frame-src \'self\' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com',
+    'form-action \'self\' https://checkout.stripe.com',
+    'frame-ancestors \'none\'',
     'upgrade-insecure-requests',
     'report-uri /api/csp-report',
   ].join('; ');
@@ -320,19 +340,20 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'"],
+        defaultSrc: ['\'self\''],
         scriptSrc: [
-          "'self'",
+          '\'self\'',
+          '\'unsafe-inline\'', // Allow inline scripts for functionality
           'https://js.stripe.com',
           'https://checkout.stripe.com',
           'https://www.googletagmanager.com',
           'https://www.google-analytics.com',
           'https://analytics.google.com',
-          // No nonce needed - all scripts are external now
+          'https://cdn.logrocket.io', // Allow LogRocket analytics
         ],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
         imgSrc: [
-          "'self'",
+          '\'self\'',
           'data:',
           'https:',
           'blob:',
@@ -340,9 +361,9 @@ app.use(
           'https://www.googletagmanager.com',
           'https://*.stripe.com',
         ],
-        fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
+        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
         connectSrc: [
-          "'self'",
+          '\'self\'',
           'wss:',
           'ws:',
           'https://api.stripe.com',
@@ -352,16 +373,16 @@ app.use(
           'https://www.googletagmanager.com',
           'https://*.railway.app',
         ],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
+        objectSrc: ['\'none\''],
+        baseUri: ['\'self\''],
         frameSrc: [
-          "'self'",
+          '\'self\'',
           'https://js.stripe.com',
           'https://checkout.stripe.com',
           'https://hooks.stripe.com',
         ],
-        formAction: ["'self'", 'https://checkout.stripe.com'],
-        frameAncestors: ["'none'"],
+        formAction: ['\'self\'', 'https://checkout.stripe.com'],
+        frameAncestors: ['\'none\''],
         upgradeInsecureRequests: [],
       },
     },
@@ -424,11 +445,21 @@ app.use(threatDetector.createMiddleware());
 app.use(logRequest);
 
 // Sentry distributed tracing middleware - must be before other middleware
-if (Sentry && Sentry.Handlers) {
-  app.use(Sentry.Handlers.requestHandler());
-  app.use(Sentry.Handlers.tracingHandler());
-} else {
-  console.log('⚠️ Sentry handlers not available - continuing without request tracing');
+try {
+  if (Sentry && typeof Sentry.setupExpressErrorHandler === 'function') {
+    // Sentry v8+ API - automatic instrumentation setup
+    app.use(Sentry.expressIntegration());
+    console.log('✅ Sentry request tracing enabled (v8+ API)');
+  } else if (Sentry && Sentry.Handlers) {
+    // Legacy Sentry API (v7 and below)
+    app.use(Sentry.Handlers.requestHandler());
+    app.use(Sentry.Handlers.tracingHandler());
+    console.log('✅ Sentry request tracing enabled (legacy API)');
+  } else {
+    console.log('⚠️ Sentry request handlers not available - continuing without request tracing');
+  }
+} catch (error) {
+  console.log('⚠️ Sentry middleware setup failed - continuing without request tracing:', error.message);
 }
 
 // Middleware
@@ -770,23 +801,29 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.7',
   });
+});
 
-  // CSP Violation Report Endpoint
-  app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (req, res) => {
-    const report = req.body['csp-report'];
-    if (report) {
-      // Log to file for analysis
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        report: report,
-        userAgent: req.headers['user-agent'],
-      };
-
-      fs.appendFile('./logs/csp-violations.log', JSON.stringify(logEntry) + '\n').catch(() => {});
+// CSP Violation Report Endpoint
+app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (req, res) => {
+  const report = req.body['csp-report'];
+  if (report) {
+    // Create logs directory if it doesn't exist
+    const logDir = './logs';
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
     }
 
-    res.status(204).end();
-  });
+    // Log to file for analysis
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      report: report,
+      userAgent: req.headers['user-agent'],
+    };
+
+    fs.appendFile('./logs/csp-violations.log', JSON.stringify(logEntry) + '\n').catch(() => {});
+  }
+
+  res.status(204).end();
 });
 
 // Status endpoint moved to modular router (src/api/status.js)
@@ -1329,26 +1366,26 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      console.log('💰 Payment successful:', session.id);
-      handlePaymentSuccess(session);
-      break;
-    }
-    case 'customer.subscription.created':
-      handleSubscriptionCreated(event.data.object);
-      break;
-    case 'customer.subscription.updated':
-      handleSubscriptionUpdated(event.data.object);
-      break;
-    case 'customer.subscription.deleted':
-      console.log('❌ Subscription cancelled:', event.data.object.id);
-      handleSubscriptionCancelled(event.data.object);
-      break;
-    case 'invoice.payment_succeeded':
-      handleInvoicePayment(event.data.object);
-      break;
-    default:
+  case 'checkout.session.completed': {
+    const session = event.data.object;
+    console.log('💰 Payment successful:', session.id);
+    handlePaymentSuccess(session);
+    break;
+  }
+  case 'customer.subscription.created':
+    handleSubscriptionCreated(event.data.object);
+    break;
+  case 'customer.subscription.updated':
+    handleSubscriptionUpdated(event.data.object);
+    break;
+  case 'customer.subscription.deleted':
+    console.log('❌ Subscription cancelled:', event.data.object.id);
+    handleSubscriptionCancelled(event.data.object);
+    break;
+  case 'invoice.payment_succeeded':
+    handleInvoicePayment(event.data.object);
+    break;
+  default:
   }
 
   res.json({ received: true });
@@ -1367,19 +1404,19 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      handlePaymentSuccess(session);
-      break;
-    case 'invoice.payment_succeeded':
-      const invoice = event.data.object;
-      handleInvoicePayment(invoice);
-      break;
-    case 'customer.subscription.deleted':
-      const subscription = event.data.object;
-      handleSubscriptionCancelled(subscription);
-      break;
-    default:
+  case 'checkout.session.completed':
+    const session = event.data.object;
+    handlePaymentSuccess(session);
+    break;
+  case 'invoice.payment_succeeded':
+    const invoice = event.data.object;
+    handleInvoicePayment(invoice);
+    break;
+  case 'customer.subscription.deleted':
+    const subscription = event.data.object;
+    handleSubscriptionCancelled(subscription);
+    break;
+  default:
   }
 
   res.json({ received: true });
@@ -2687,10 +2724,20 @@ app.get('/stripe-csp-test.html', staticPageLimiter, (req, res) => {
 // Static files are now served via express.static middleware and specific routes
 
 // Sentry error handler - must be before other error handlers (conditional)
-if (Sentry.Handlers && Sentry.Handlers.errorHandler) {
-  app.use(Sentry.Handlers.errorHandler());
-} else {
-  console.log('⚠️ Sentry error handler not available - continuing without error tracking');
+try {
+  if (Sentry && typeof Sentry.setupExpressErrorHandler === 'function') {
+    // Sentry v8+ API
+    Sentry.setupExpressErrorHandler(app);
+    console.log('✅ Sentry error tracking enabled (v8+ API)');
+  } else if (Sentry && Sentry.Handlers && Sentry.Handlers.errorHandler) {
+    // Legacy Sentry API (v7 and below)
+    app.use(Sentry.Handlers.errorHandler());
+    console.log('✅ Sentry error tracking enabled (legacy API)');
+  } else {
+    console.log('⚠️ Sentry error handler not available - continuing without error tracking');
+  }
+} catch (error) {
+  console.log('⚠️ Sentry error handler setup failed - continuing without error tracking:', error.message);
 }
 
 // 404 Handler for undefined routes (must be after all other routes)

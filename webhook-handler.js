@@ -78,7 +78,7 @@ function createDownloadEmail(customerEmail, customerName, plan, licenseKey) {
   return {
     from: process.env.FROM_EMAIL || 'sales@rinawarptech.com',
     to: customerEmail,
-    subject: `🧜‍♀️ Your RinaWarp Terminal is Ready! License Key & Downloads Inside`,
+    subject: '🧜‍♀️ Your RinaWarp Terminal is Ready! License Key & Downloads Inside',
     html: `
       <!DOCTYPE html>
       <html>
@@ -239,7 +239,7 @@ app.post('/webhook', express.raw({type: 'application/json'}), async (request, re
   try {
     event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
   } catch (err) {
-    console.log(`Webhook signature verification failed.`, err.message);
+    console.log('Webhook signature verification failed.', err.message);
     return response.status(400).send(`Webhook Error: ${err.message}`);
   }
 
