@@ -115,8 +115,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "Rinawarp-Terminal",
-        "repo": "rinawarp-terminal"
+        "owner": "Bigsgotchu",
+        "repo": "rinawarp-terminal-pro"
       }
     ]
   },
@@ -128,7 +128,7 @@
   "homepage": "https://rinawarptech.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rinawarp-Terminal/rinawarp-terminal.git"
+    "url": "https://github.com/Bigsgotchu/rinawarp-terminal-pro.git"
   },
   "license": "PROPRIETARY",
   "engines": {
