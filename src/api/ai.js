@@ -15,6 +15,7 @@ import Joi from 'joi';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { AIProviderFactory } from '../renderer/ai-providers.js';
 import { getCommandPrediction, explainCommand, getWorkflowAutomation } from '../ai/openaiClient.js';
+import { cliAIHandler } from './cli-ai-handler.js';
 
 const router = Router();
 
@@ -256,6 +257,41 @@ async function ensureInitialized(req, res, next) {
     });
   }
 }
+
+/**
+ * POST /api/ai/cli-ask
+ * CLI ask endpoint for rina ask command
+ */
+router.post(
+  '/cli-ask',
+  rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 50, // Higher limit for CLI usage
+    message: { error: 'Too many CLI requests' },
+  }),
+  asyncHandler(async (req, res) => {
+    const { query } = req.body;
+
+    if (!query || typeof query !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Query is required',
+      });
+    }
+
+    try {
+      const result = await cliAIHandler.processQuery(query);
+      res.json(result);
+    } catch (error) {
+      console.error('[CLI] AI query failed:', error);
+      res.status(500).json({
+        success: false,
+        error: 'AI query failed',
+        message: '🧜‍♀️ The AI currents are choppy right now, try again in a moment!',
+      });
+    }
+  })
+);
 
 /**
  * POST /api/ai/chat

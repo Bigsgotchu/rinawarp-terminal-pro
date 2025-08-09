@@ -1,0 +1,20 @@
+🧜‍♀️ INSTANT DOWNLOAD FIX - Copy and paste this into your browser console:
+
+(function(){console.log('🧜‍♀️ Applying download fix...');const originalError=console.error;console.error=function(...args){const msg=args.join(' ');if(msg.includes('A listener indicated an asynchronous response')||msg.includes('message channel closed')){console.log('🌊 Suppressed harmless extension error');return;}originalError.apply(console,args);};function fixDownload(url,filename){try{console.log(`🧜‍♀️ Starting download: ${filename}`);const link=document.createElement('a');link.href=url;link.download=filename||'';link.style.display='none';document.body.appendChild(link);link.click();setTimeout(()=>{if(link.parentNode)link.parentNode.removeChild(link);},1000);console.log('🌊 Download initiated successfully');return true;}catch(error){console.warn('🧜‍♀️ Primary download failed, trying fallback:',error);try{window.open(url,'_blank');console.log('🌊 Opened in new tab');return true;}catch(fallbackError){console.error('🧜‍♀️ All methods failed:',fallbackError);alert('Download failed. Please try right-clicking and "Save as..."');return false;}}}document.querySelectorAll('a[href*=".exe"], a.download-btn').forEach((link,index)=>{const originalClick=link.onclick;link.onclick=null;link.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();const url=this.href;const filename=url.split('/').pop()||'rinawarp-installer.exe';const originalText=this.textContent;this.textContent='🌊 Downloading...';this.style.opacity='0.7';fixDownload(url,filename);setTimeout(()=>{this.textContent=originalText;this.style.opacity='1';},2000);});console.log(`🌊 Fixed download link ${index+1}: ${link.href}`);});const notification=document.createElement('div');notification.style.cssText=`position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#0a0b1e,#2d1b69);border:2px solid #ff1493;border-radius:12px;padding:15px 20px;color:#ff69b4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;font-weight:600;z-index:999999;box-shadow:0 4px 12px rgba(255,20,147,0.3);backdrop-filter:blur(10px);transform:translateX(100%);transition:all 0.3s ease;`;notification.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🧜‍♀️</span><span>Download system fixed! Ready for downloads 🌊</span><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:#ff69b4;cursor:pointer;margin-left:auto;padding:0 5px;">×</button></div>';document.body.appendChild(notification);setTimeout(()=>notification.style.transform='translateX(0)',100);setTimeout(()=>{if(notification.parentNode){notification.style.transform='translateX(100%)';setTimeout(()=>notification.remove(),300);}},4000);console.log('🧜‍♀️ Download fix applied successfully! Try clicking download buttons now.');})();
+
+🌊 WHAT IT DOES:
+✅ Suppresses harmless async listener errors from browser extensions
+✅ Fixes download button click handlers
+✅ Provides fallback download methods
+✅ Shows beautiful mermaid-themed notification
+✅ Works instantly without needing to reload the page
+
+🚀 HOW TO USE:
+1. Make sure you're on https://rinawarptech.com/
+2. Press F12 to open Developer Tools  
+3. Click the "Console" tab
+4. Paste the code above and press Enter
+5. Look for the "🧜‍♀️ Download system fixed!" notification
+6. Try clicking the download button - it should work now!
+
+This is a complete, self-contained solution that doesn't require any server files!

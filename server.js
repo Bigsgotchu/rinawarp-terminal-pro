@@ -522,6 +522,10 @@ const agentChatAPI = new AgentChatAPI();
 const secretsManager = getSecretsManager();
 app.set('secretsManager', secretsManager);
 
+// Import backend routes
+import paymentsRouter from './backend/routes/payments.js';
+import backendAnalyticsRouter from './backend/routes/analytics.js';
+
 // Routes
 app.use('/api/status', statusRouter);
 app.use('/api/download', downloadRouter);
@@ -533,6 +537,10 @@ app.use('/api/support', supportRouter);
 app.use('/api/admin', requireAdmin, adminRouter);
 app.use('/api/ai', agentChatAPI.getRouter());
 app.use('/api/csp-report', cspReportRouter);
+
+// Backend routes for payments and analytics
+app.use('/api/payments', paymentsRouter);
+app.use('/api/analytics', backendAnalyticsRouter);
 
 // Health Check
 app.get('/api/ping', (req, res) => {

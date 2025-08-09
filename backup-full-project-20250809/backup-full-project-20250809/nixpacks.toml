@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["nodejs_22", "npm-9_x"]
+
+[phases.install]
+cmds = ["npm ci --omit=optional --omit=dev"]
+
+[phases.build]
+cmds = ["echo 'Build phase - RinaWarp Terminal debug server ready'"]
+
+[phases.start]
+cmd = "NODE_OPTIONS='--import ./src/instrument.mjs' node server.js"
+
+[variables]
+NODE_ENV = "production"
+PORT = "8080"

@@ -41,7 +41,12 @@
     "forceCodeSigning": false,
     "afterSign": null,
     "mac": {
-      "target": "zip",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64"]
+        }
+      ],
       "icon": "assets/icons/icon.icns",
       "category": "public.app-category.developer-tools",
       "hardenedRuntime": false,
@@ -129,6 +134,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Bigsgotchu/rinawarp-terminal-pro.git"
+  },
+  "bin": {
+    "rina": "./bin/rina"
   },
   "license": "PROPRIETARY",
   "engines": {
@@ -219,7 +227,12 @@
     "convo:test": "node scripts/test-convo-integration.js test",
     "convo:chat": "node scripts/test-convo-integration.js chat",
     "convo:health": "node scripts/test-convo-integration.js health",
-    "convo:debug": "node scripts/test-convo-integration.js debug"
+    "convo:debug": "node scripts/test-convo-integration.js debug",
+    "workflow:release": "node scripts/dev-to-release-workflow.cjs",
+    "workflow:patch": "npm version patch && npm run workflow:release",
+    "workflow:minor": "npm version minor && npm run workflow:release",
+    "workflow:major": "npm version major && npm run workflow:release",
+    "test:cli-ai": "node scripts/test-cli-ai.cjs"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
