@@ -24,8 +24,8 @@ if (process.env.SENDGRID_API_KEY) {
     service: 'SendGrid',
     auth: {
       user: 'apikey',
-      pass: process.env.SENDGRID_API_KEY
-    }
+      pass: process.env.SENDGRID_API_KEY,
+    },
   });
 } else if (process.env.SMTP_HOST) {
   transporter = nodemailer.createTransport({
@@ -44,18 +44,18 @@ const DOWNLOAD_LINKS = {
   personal: {
     windows: '/releases/RinaWarp-Terminal-Windows-Portable.zip',
     macos: '/releases/rinawarp.zip',
-    linux: '/releases/rinawarp.zip'
+    linux: '/releases/rinawarp.zip',
   },
   professional: {
     windows: '/releases/RinaWarp-Terminal-Windows-Portable.zip',
-    macos: '/releases/rinawarp.zip', 
-    linux: '/releases/rinawarp.zip'
+    macos: '/releases/rinawarp.zip',
+    linux: '/releases/rinawarp.zip',
   },
   team: {
     windows: '/releases/RinaWarp-Terminal-Windows-Portable.zip',
     macos: '/releases/rinawarp.zip',
-    linux: '/releases/rinawarp.zip'
-  }
+    linux: '/releases/rinawarp.zip',
+  },
 };
 
 // Simplified deployment - same binary for all tiers, license key controls features
@@ -63,18 +63,19 @@ const DOWNLOAD_LINKS = {
 function generateLicenseKey(plan, email) {
   const timestamp = Date.now();
   const random = crypto.randomBytes(4).toString('hex');
-  const planCode = {
-    personal: 'PER',
-    professional: 'PRO', 
-    team: 'TEAM'
-  }[plan] || 'UNK';
-  
+  const planCode =
+    {
+      personal: 'PER',
+      professional: 'PRO',
+      team: 'TEAM',
+    }[plan] || 'UNK';
+
   return `RWT-${planCode}-${timestamp.toString(36).toUpperCase()}-${random.toUpperCase()}`;
 }
 
 function createDownloadEmail(customerEmail, customerName, plan, licenseKey) {
   const downloads = DOWNLOAD_LINKS[plan] || DOWNLOAD_LINKS.personal;
-  
+
   return {
     from: process.env.FROM_EMAIL || 'sales@rinawarptech.com',
     to: customerEmail,
@@ -168,7 +169,7 @@ function createDownloadEmail(customerEmail, customerName, plan, licenseKey) {
         </div>
       </body>
       </html>
-    `
+    `,
   };
 }
 
@@ -176,44 +177,54 @@ function createDownloadEmail(customerEmail, customerName, plan, licenseKey) {
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { plan, price, email, name, company } = req.body;
-    
+
     console.log(`🛒 Creating checkout session for ${plan} plan - ${email}`);
-    
+
     // Plan configurations
     const planConfig = {
-      personal: { name: '🏠 Personal License', description: 'RinaWarp Terminal Personal License with Enhanced AI Features' },
-      professional: { name: '💼 Professional License', description: 'RinaWarp Terminal Professional License with Advanced AI & Commercial Rights' },
-      team: { name: '👥 Team License', description: 'RinaWarp Terminal Team License for 5 Developers with Full Features' }
+      personal: {
+        name: '🏠 Personal License',
+        description: 'RinaWarp Terminal Personal License with Enhanced AI Features',
+      },
+      professional: {
+        name: '💼 Professional License',
+        description: 'RinaWarp Terminal Professional License with Advanced AI & Commercial Rights',
+      },
+      team: {
+        name: '👥 Team License',
+        description: 'RinaWarp Terminal Team License for 5 Developers with Full Features',
+      },
     };
-    
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: planConfig[plan].name,
-            description: planConfig[plan].description,
-            images: ['https://github.com/Rinawarp-Terminal/rinawarp-terminal/raw/main/logo.png'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: planConfig[plan].name,
+              description: planConfig[plan].description,
+              images: ['https://github.com/Rinawarp-Terminal/rinawarp-terminal/raw/main/logo.png'],
+            },
+            unit_amount: price,
           },
-          unit_amount: price,
+          quantity: 1,
         },
-        quantity: 1,
-      }],
+      ],
       mode: 'payment',
       customer_email: email,
       metadata: {
         plan: plan,
         customer_name: name,
         company: company || '',
-        email: email
+        email: email,
       },
       success_url: `${req.headers.origin || process.env.SITE_URL || 'http://localhost:3001'}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin || process.env.SITE_URL || 'http://localhost:3001'}/stripe-checkout.html`,
     });
-    
+
     res.json({ id: session.id });
-    
   } catch (error) {
     console.error('❌ Error creating checkout session:', error);
     res.status(500).json({ error: error.message });
@@ -222,17 +233,17 @@ app.post('/create-checkout-session', async (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     service: 'rinawarp-webhook-handler',
     timestamp: new Date().toISOString(),
     stripe: !!process.env.STRIPE_SECRET_KEY,
-    email: !!transporter
+    email: !!transporter,
   });
 });
 
 // Webhook endpoint
-app.post('/webhook', express.raw({type: 'application/json'}), async (request, response) => {
+app.post('/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
   const sig = request.headers['stripe-signature'];
   let event;
 
@@ -245,19 +256,20 @@ app.post('/webhook', express.raw({type: 'application/json'}), async (request, re
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    
+
     console.log(`✅ Payment completed for session: ${session.id}`);
-    
+
     // Extract customer info from metadata and session
     const customerEmail = session.metadata.email || session.customer_details.email;
-    const customerName = session.metadata.customer_name || session.customer_details.name || 'Valued Customer';
+    const customerName =
+      session.metadata.customer_name || session.customer_details.name || 'Valued Customer';
     const plan = session.metadata.plan || 'personal';
-    
+
     console.log(`📦 Processing order: ${plan} plan for ${customerEmail}`);
-    
+
     // Generate license key
     const licenseKey = generateLicenseKey(plan, customerEmail);
-    
+
     // Send download email
     try {
       const emailData = createDownloadEmail(customerEmail, customerName, plan, licenseKey);
@@ -268,7 +280,7 @@ app.post('/webhook', express.raw({type: 'application/json'}), async (request, re
     }
   }
 
-  response.json({received: true});
+  response.json({ received: true });
 });
 
 const PORT = process.env.PORT || 3001;

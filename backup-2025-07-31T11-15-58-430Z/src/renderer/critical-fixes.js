@@ -238,7 +238,6 @@
       repairModuleExports();
       setupErrorHandling();
 
-
       // Set up periodic health checks
       window.performHealthCheck = () => {
         const health = {

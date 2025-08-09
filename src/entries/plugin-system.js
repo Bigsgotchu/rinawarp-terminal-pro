@@ -74,28 +74,28 @@ class RinaWarpPluginFeature {
 
   async handlePluginCommand(action) {
     switch (action) {
-    case 'list':
-      this.listPlugins();
-      break;
+      case 'list':
+        this.listPlugins();
+        break;
 
-    case 'loaded':
-      this.listLoadedPlugins();
-      break;
+      case 'loaded':
+        this.listLoadedPlugins();
+        break;
 
-    case 'available':
-      this.listAvailablePlugins();
-      break;
+      case 'available':
+        this.listAvailablePlugins();
+        break;
 
-    case 'reload':
-      await this.reloadAllPlugins();
-      break;
+      case 'reload':
+        await this.reloadAllPlugins();
+        break;
 
-    case 'status':
-      this.showPluginStatus();
-      break;
+      case 'status':
+        this.showPluginStatus();
+        break;
 
-    default:
-      this.showPluginHelp();
+      default:
+        this.showPluginHelp();
     }
   }
 
@@ -106,28 +106,28 @@ class RinaWarpPluginFeature {
     }
 
     switch (action) {
-    case 'load':
-      await this.loadPlugin(pluginName);
-      break;
+      case 'load':
+        await this.loadPlugin(pluginName);
+        break;
 
-    case 'unload':
-      await this.unloadPlugin(pluginName);
-      break;
+      case 'unload':
+        await this.unloadPlugin(pluginName);
+        break;
 
-    case 'reload':
-      await this.reloadPlugin(pluginName);
-      break;
+      case 'reload':
+        await this.reloadPlugin(pluginName);
+        break;
 
-    case 'info':
-      this.showPluginInfo(pluginName);
-      break;
+      case 'info':
+        this.showPluginInfo(pluginName);
+        break;
 
-    case 'config':
-      await this.configurePlugin(pluginName, args);
-      break;
+      case 'config':
+        await this.configurePlugin(pluginName, args);
+        break;
 
-    default:
-      this.terminal.writeLine(`Unknown plugin action: ${action}`);
+      default:
+        this.terminal.writeLine(`Unknown plugin action: ${action}`);
     }
   }
 
@@ -280,12 +280,12 @@ Version: ${info.version || 'unknown'}
 Author: ${info.author || 'unknown'}
 Description: ${info.description || 'No description available'}
 Commands: ${
-  plugin.commands
-    ? Object.keys(plugin.commands)
-      .map(cmd => `${pluginName}:${cmd}`)
-      .join(', ')
-    : 'none'
-}
+      plugin.commands
+        ? Object.keys(plugin.commands)
+            .map(cmd => `${pluginName}:${cmd}`)
+            .join(', ')
+        : 'none'
+    }
 Status: ${this.loadedPlugins.has(pluginName) ? '✅ Loaded' : '❌ Not Loaded'}
     `);
   }

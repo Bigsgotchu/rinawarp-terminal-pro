@@ -371,13 +371,13 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed':
-    const session = event.data.object;
-    console.log('Payment successful:', session.id);
-    // Additional fulfillment logic here
-    break;
-  default:
-    console.log(`Unhandled event type ${event.type}`);
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      console.log('Payment successful:', session.id);
+      // Additional fulfillment logic here
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });

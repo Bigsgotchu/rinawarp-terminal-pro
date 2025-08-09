@@ -38,7 +38,7 @@ function generateSecureKey(bytes) {
 const securityKeys = {
   ENCRYPTION_KEY: generateSecureKey(32),
   ENCRYPTION_SALT: generateSecureKey(16),
-  JWT_SECRET: generateSecureKey(32)
+  JWT_SECRET: generateSecureKey(32),
 };
 
 console.log('✅ Security keys generated successfully!');
@@ -49,7 +49,7 @@ if (hasEnvDev) {
   console.log('\n📋 Reading existing Stripe configuration...');
   const devContent = fs.readFileSync('.env.development', 'utf8');
   const lines = devContent.split('\n');
-  
+
   for (const line of lines) {
     if (line.includes('=') && !line.startsWith('#')) {
       const [key, ...valueParts] = line.split('=');
@@ -68,38 +68,42 @@ const productionConfig = {
   APP_VERSION: '1.0.0',
   LOG_LEVEL: 'info',
   PORT: '8080',
-  
+
   // Domain settings
   URL: 'https://rinawarptech.com',
   RAILWAY_PUBLIC_DOMAIN: 'rinawarptech.com',
-  
+
   // Copy Stripe keys from development
   STRIPE_SECRET_KEY: existingConfig.STRIPE_SECRET_KEY || 'YOUR_STRIPE_SECRET_KEY',
   STRIPE_PUBLISHABLE_KEY: existingConfig.STRIPE_PUBLISHABLE_KEY || 'YOUR_STRIPE_PUBLISHABLE_KEY',
   STRIPE_WEBHOOK_SECRET: existingConfig.STRIPE_WEBHOOK_SECRET || 'YOUR_WEBHOOK_SECRET',
-  
+
   // Copy Stripe price IDs
-  STRIPE_PRICE_PERSONAL_MONTHLY: existingConfig.STRIPE_PRICE_PERSONAL_MONTHLY || 'price_personal_monthly',
-  STRIPE_PRICE_PERSONAL_YEARLY: existingConfig.STRIPE_PRICE_PERSONAL_YEARLY || 'price_personal_yearly',
-  STRIPE_PRICE_PROFESSIONAL_MONTHLY: existingConfig.STRIPE_PRICE_PROFESSIONAL_MONTHLY || 'price_professional_monthly',
-  STRIPE_PRICE_PROFESSIONAL_YEARLY: existingConfig.STRIPE_PRICE_PROFESSIONAL_YEARLY || 'price_professional_yearly',
+  STRIPE_PRICE_PERSONAL_MONTHLY:
+    existingConfig.STRIPE_PRICE_PERSONAL_MONTHLY || 'price_personal_monthly',
+  STRIPE_PRICE_PERSONAL_YEARLY:
+    existingConfig.STRIPE_PRICE_PERSONAL_YEARLY || 'price_personal_yearly',
+  STRIPE_PRICE_PROFESSIONAL_MONTHLY:
+    existingConfig.STRIPE_PRICE_PROFESSIONAL_MONTHLY || 'price_professional_monthly',
+  STRIPE_PRICE_PROFESSIONAL_YEARLY:
+    existingConfig.STRIPE_PRICE_PROFESSIONAL_YEARLY || 'price_professional_yearly',
   STRIPE_PRICE_TEAM_MONTHLY: existingConfig.STRIPE_PRICE_TEAM_MONTHLY || 'price_team_monthly',
   STRIPE_PRICE_TEAM_YEARLY: existingConfig.STRIPE_PRICE_TEAM_YEARLY || 'price_team_yearly',
-  
+
   // Beta pricing
   STRIPE_PRICE_BETA_EARLYBIRD: existingConfig.STRIPE_PRICE_BETA_EARLYBIRD || 'price_beta_earlybird',
   STRIPE_PRICE_BETA_ACCESS: existingConfig.STRIPE_PRICE_BETA_ACCESS || 'price_beta_access',
   STRIPE_PRICE_PREMIUM: existingConfig.STRIPE_PRICE_PREMIUM || 'price_premium',
-  
+
   // Security keys (generated)
   ...securityKeys,
-  
+
   // Feature flags
   ENABLE_AI_FEATURES: 'true',
   ENABLE_VOICE_FEATURES: 'true',
   ENABLE_TELEMETRY: 'true',
   TELEMETRY_PRIVACY_MODE: 'false',
-  
+
   // Copy existing Sentry if available
   SENTRY_DSN: existingConfig.SENTRY_DSN || 'https://your_sentry_dsn@sentry.io/project',
   SENTRY_ENVIRONMENT: 'production',

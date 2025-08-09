@@ -405,9 +405,9 @@ class AnalyticsSystem {
         completedUsers: stepCounts[stepIds[stepIds.length - 1]] || 0,
         overallConversion: stepCounts[stepIds[0]]
           ? (
-            ((stepCounts[stepIds[stepIds.length - 1]] || 0) / stepCounts[stepIds[0]]) *
+              ((stepCounts[stepIds[stepIds.length - 1]] || 0) / stepCounts[stepIds[0]]) *
               100
-          ).toFixed(2)
+            ).toFixed(2)
           : 0,
       };
     }

@@ -33,8 +33,12 @@ console.log('============================');
 
 // Read environment variables
 const envContent = fs.readFileSync('.env.production', 'utf8');
-const hasEmailConfig = envContent.includes('SENDGRID_API_KEY=') && !envContent.includes('SENDGRID_API_KEY=SG.your_sendgrid') ||
-                      envContent.includes('SMTP_HOST=smtp.gmail.com') && envContent.includes('SMTP_PASS=') && !envContent.includes('SMTP_PASS=your_16');
+const hasEmailConfig =
+  (envContent.includes('SENDGRID_API_KEY=') &&
+    !envContent.includes('SENDGRID_API_KEY=SG.your_sendgrid')) ||
+  (envContent.includes('SMTP_HOST=smtp.gmail.com') &&
+    envContent.includes('SMTP_PASS=') &&
+    !envContent.includes('SMTP_PASS=your_16'));
 
 console.log('✅ Stripe Keys: Configured');
 console.log('✅ Security Keys: Generated');
@@ -76,13 +80,14 @@ try {
 
   // Parse environment variables from .env.production
   console.log('\n🔧 Setting up environment variables...');
-  
-  const envLines = envContent.split('\n').filter(line => 
-    line.trim() && 
-    !line.startsWith('#') && 
-    line.includes('=') &&
-    !line.includes('your_') && // Skip template values
-    !line.includes('YOUR_') // Skip template values
+
+  const envLines = envContent.split('\n').filter(
+    line =>
+      line.trim() &&
+      !line.startsWith('#') &&
+      line.includes('=') &&
+      !line.includes('your_') && // Skip template values
+      !line.includes('YOUR_') // Skip template values
   );
 
   console.log(`📋 Found ${envLines.length} environment variables to configure`);
@@ -90,7 +95,7 @@ try {
   for (const line of envLines) {
     const [key, ...valueParts] = line.split('=');
     const value = valueParts.join('=').trim();
-    
+
     if (key && value && value !== '') {
       try {
         execSync(`railway variables set ${key}="${value}"`, { stdio: 'ignore' });
@@ -102,17 +107,17 @@ try {
   }
 
   console.log('\n🚀 Deploying application...');
-  
+
   // Deploy the application
   execSync('railway up', { stdio: 'inherit' });
-  
+
   console.log('\n✅ Deployment completed!');
 
   // Get the deployment URL
   try {
     const url = execSync('railway domain', { encoding: 'utf8' }).trim();
     console.log(`\n🌐 Your application is live at: ${url}`);
-    
+
     console.log('\n🧪 Next steps:');
     console.log('==============');
     console.log('1. Test your deployment:');
@@ -127,7 +132,6 @@ try {
     console.log('');
     console.log('4. Configure custom domain:');
     console.log('   railway domain add rinawarptech.com');
-    
   } catch (error) {
     console.log('\n🌐 Deployment successful!');
     console.log('Run: railway domain');
@@ -139,7 +143,6 @@ try {
   console.log('• View logs: railway logs');
   console.log('• Check status: railway status');
   console.log('• Open dashboard: railway open');
-
 } catch (error) {
   console.error('\n❌ Deployment failed!');
   console.error('Error:', error.message);
@@ -149,7 +152,7 @@ try {
   console.log('2. Check authentication: railway whoami');
   console.log('3. Check project status: railway status');
   console.log('4. View detailed logs: railway logs');
-  
+
   process.exit(1);
 }
 

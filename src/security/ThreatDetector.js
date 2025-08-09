@@ -460,10 +460,10 @@ class ThreatDetector {
       blockReason,
       activity: activity
         ? {
-          totalAttempts: activity.attempts.length,
-          firstSeen: new Date(activity.firstSeen),
-          recentUrls: activity.attempts.slice(-5).map(a => a.url),
-        }
+            totalAttempts: activity.attempts.length,
+            firstSeen: new Date(activity.firstSeen),
+            recentUrls: activity.attempts.slice(-5).map(a => a.url),
+          }
         : null,
     });
   }

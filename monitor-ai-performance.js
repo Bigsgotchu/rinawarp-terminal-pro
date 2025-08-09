@@ -37,7 +37,6 @@ class PerformanceMonitor {
 
     this.generateSummary();
     this.saveLogData();
-
   }
 
   async measurePerformance(providerId) {

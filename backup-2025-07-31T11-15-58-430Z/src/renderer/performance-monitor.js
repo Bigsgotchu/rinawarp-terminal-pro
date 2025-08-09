@@ -549,23 +549,23 @@ export class PerformanceMonitor {
                 <span>Memory: ${insights.metrics.memoryDelta}MB</span>
             </div>
             ${insights.optimizations
-    .map(
-      opt => `
+              .map(
+                opt => `
                 <div class="optimization ${opt.severity}">
                     💡 ${opt.message}
                 </div>
             `
-    )
-    .join('')}
+              )
+              .join('')}
             ${insights.warnings
-    .map(
-      warn => `
+              .map(
+                warn => `
                 <div class="warning ${warn.severity}">
                     ⚠️ ${warn.message}
                 </div>
             `
-    )
-    .join('')}
+              )
+              .join('')}
         `;
 
     // Add to terminal interface

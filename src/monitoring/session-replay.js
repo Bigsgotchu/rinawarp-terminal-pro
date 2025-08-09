@@ -139,7 +139,6 @@ class SessionReplayService {
         licenseTier: userInfo.licenseTier || 'trial',
         firstSeen: userInfo.firstSeen || new Date().toISOString(),
       });
-
     }
 
     // Set user in Sentry

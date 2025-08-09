@@ -293,7 +293,7 @@ router.post('/contact', ticketCreateLimit, async (req, res) => {
     if (result.success) {
       res.json({
         success: true,
-        message: 'Thank you for contacting us! We\'ll get back to you soon.',
+        message: "Thank you for contacting us! We'll get back to you soon.",
         ticketId: result.ticketId,
       });
     } else {

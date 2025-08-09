@@ -22,7 +22,9 @@ export class VoiceInstaller {
     try {
       // Check authorization
       if (!process.env.RINAWARP_CREATOR) {
-        throw new Error(new Error(new Error('Unauthorized: Only creator can install permanent voice')));
+        throw new Error(
+          new Error(new Error('Unauthorized: Only creator can install permanent voice'))
+        );
       }
 
       // Create voice data package

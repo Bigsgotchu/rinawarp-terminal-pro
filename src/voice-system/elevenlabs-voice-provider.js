@@ -15,11 +15,11 @@ export class ElevenLabsVoiceProvider {
     if (!apiKey) {
       return false;
     }
-    
+
     this.apiKey = apiKey;
     this.isInitialized = true;
     this.isConnected = true;
-    
+
     return true;
   }
 
@@ -27,10 +27,10 @@ export class ElevenLabsVoiceProvider {
     if (!this.isInitialized || !this.isConnected) {
       throw new Error('ElevenLabs provider not initialized or connected');
     }
-    
+
     // Mock implementation
     logger.debug(`[ElevenLabs] Speaking: ${text}`, options);
-    
+
     return Promise.resolve({
       text,
       options,

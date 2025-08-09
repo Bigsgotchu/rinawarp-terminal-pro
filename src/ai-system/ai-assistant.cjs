@@ -80,43 +80,43 @@ class AIAssistant {
       windows:
         platform === 'win32'
           ? {
-            dir: 'List directory contents',
-            cd: 'Change directory',
-            copy: 'Copy files',
-            move: 'Move/rename files',
-            del: 'Delete files',
-            mkdir: 'Create directory',
-            rmdir: 'Remove directory',
-            type: 'Display file contents',
-            cls: 'Clear screen',
-            ipconfig: 'Display network configuration',
-            tasklist: 'List running processes',
-            taskkill: 'Terminate processes',
-            powershell: 'Start PowerShell',
-            code: 'Open Visual Studio Code',
-          }
+              dir: 'List directory contents',
+              cd: 'Change directory',
+              copy: 'Copy files',
+              move: 'Move/rename files',
+              del: 'Delete files',
+              mkdir: 'Create directory',
+              rmdir: 'Remove directory',
+              type: 'Display file contents',
+              cls: 'Clear screen',
+              ipconfig: 'Display network configuration',
+              tasklist: 'List running processes',
+              taskkill: 'Terminate processes',
+              powershell: 'Start PowerShell',
+              code: 'Open Visual Studio Code',
+            }
           : {},
 
       // Unix-like commands
       unix:
         platform !== 'win32'
           ? {
-            ls: 'List directory contents',
-            cd: 'Change directory',
-            cp: 'Copy files',
-            mv: 'Move/rename files',
-            rm: 'Remove files',
-            mkdir: 'Create directory',
-            rmdir: 'Remove directory',
-            cat: 'Display file contents',
-            clear: 'Clear screen',
-            grep: 'Search text patterns',
-            find: 'Find files',
-            ps: 'List processes',
-            kill: 'Terminate processes',
-            chmod: 'Change file permissions',
-            code: 'Open Visual Studio Code',
-          }
+              ls: 'List directory contents',
+              cd: 'Change directory',
+              cp: 'Copy files',
+              mv: 'Move/rename files',
+              rm: 'Remove files',
+              mkdir: 'Create directory',
+              rmdir: 'Remove directory',
+              cat: 'Display file contents',
+              clear: 'Clear screen',
+              grep: 'Search text patterns',
+              find: 'Find files',
+              ps: 'List processes',
+              kill: 'Terminate processes',
+              chmod: 'Change file permissions',
+              code: 'Open Visual Studio Code',
+            }
           : {},
 
       // Programming contexts
@@ -300,16 +300,16 @@ class AIAssistant {
         </div>
         <div class="suggestions-list">
           ${suggestions
-    .map(
-      (suggestion, index) => `
+            .map(
+              (suggestion, index) => `
             <div class="suggestion-item" data-index="${index}">
               <div class="suggestion-text">${this.escapeHtml(suggestion.text)}</div>
               <div class="suggestion-description">${this.escapeHtml(suggestion.description)}</div>
               <div class="suggestion-type">${suggestion.type}</div>
             </div>
           `
-    )
-    .join('')}
+            )
+            .join('')}
         </div>
       </div>
     `;
@@ -407,9 +407,9 @@ class AIAssistant {
             <h4>Recent Commands</h4>
             <ul>
               ${this.commandHistory
-    .slice(-5)
-    .map(cmd => `<li>${this.escapeHtml(cmd)}</li>`)
-    .join('')}
+                .slice(-5)
+                .map(cmd => `<li>${this.escapeHtml(cmd)}</li>`)
+                .join('')}
             </ul>
           </div>
         </div>

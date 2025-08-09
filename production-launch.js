@@ -14,7 +14,7 @@ console.log('🚀 LAUNCHING RINAWARP TERMINAL TO FULL PRODUCTION...\n');
 console.log('1️⃣ Enabling Full CSP Enforcement...');
 
 const serverPath = path.join(__dirname, 'server.js');
-let serverContent = fs.readFileSync(serverPath, 'utf8');
+const serverContent = fs.readFileSync(serverPath, 'utf8');
 
 // Update CSP to include all the script hashes and remove report-only
 const updatedServerContent = serverContent.replace(

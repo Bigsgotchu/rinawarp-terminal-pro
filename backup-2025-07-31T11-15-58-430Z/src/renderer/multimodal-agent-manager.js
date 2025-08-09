@@ -296,7 +296,7 @@ class MultimodalAgentManager {
     if (message.toLowerCase().includes('generate') && message.toLowerCase().includes('image')) {
       response.type = 'image_request';
       response.content =
-        'I\'ll generate that image for you. Please use the Image tab for better results.';
+        "I'll generate that image for you. Please use the Image tab for better results.";
     } else if (
       message.toLowerCase().includes('analyze') &&
       message.toLowerCase().includes('code')

@@ -152,16 +152,16 @@ export class VoiceEngine {
 
   shouldAnnounce(type) {
     switch (type) {
-    case 'command':
-      return this.settings.announceCommands;
-    case 'result':
-      return this.settings.announceResults;
-    case 'error':
-      return this.settings.announceErrors;
-    case 'notification':
-      return this.settings.announceNotifications;
-    default:
-      return true;
+      case 'command':
+        return this.settings.announceCommands;
+      case 'result':
+        return this.settings.announceResults;
+      case 'error':
+        return this.settings.announceErrors;
+      case 'notification':
+        return this.settings.announceNotifications;
+      default:
+        return true;
     }
   }
 
@@ -561,7 +561,7 @@ export class VoiceEngine {
         // Show notification about permanent installation
         if (window.terminalManager?.pluginAPI) {
           window.terminalManager.pluginAPI.showNotification(
-            '🎉 Your voice has been permanently installed as RinaWarp\'s voice!',
+            "🎉 Your voice has been permanently installed as RinaWarp's voice!",
             'success',
             5000
           );

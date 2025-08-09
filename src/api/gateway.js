@@ -54,11 +54,11 @@ export class RinaWarpAPIGateway {
       helmet({
         contentSecurityPolicy: {
           directives: {
-            defaultSrc: ['\'self\''],
-            scriptSrc: ['\'self\'', '\'unsafe-inline\''],
-            styleSrc: ['\'self\'', '\'unsafe-inline\''],
-            imgSrc: ['\'self\'', 'data:', 'https:'],
-            connectSrc: ['\'self\'', 'ws:', 'wss:'],
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+            connectSrc: ["'self'", 'ws:', 'wss:'],
           },
         },
       })
@@ -390,42 +390,42 @@ export class RinaWarpAPIGateway {
     const { type, payload } = message;
 
     switch (type) {
-    case 'subscribe':
-      ws.subscriptions.add(payload.channel);
-      ws.send(
-        JSON.stringify({
-          type: 'subscribed',
-          channel: payload.channel,
-        })
-      );
-      break;
+      case 'subscribe':
+        ws.subscriptions.add(payload.channel);
+        ws.send(
+          JSON.stringify({
+            type: 'subscribed',
+            channel: payload.channel,
+          })
+        );
+        break;
 
-    case 'unsubscribe':
-      ws.subscriptions.delete(payload.channel);
-      ws.send(
-        JSON.stringify({
-          type: 'unsubscribed',
-          channel: payload.channel,
-        })
-      );
-      break;
+      case 'unsubscribe':
+        ws.subscriptions.delete(payload.channel);
+        ws.send(
+          JSON.stringify({
+            type: 'unsubscribed',
+            channel: payload.channel,
+          })
+        );
+        break;
 
-    case 'terminal_input':
-      // Forward terminal input to appropriate service
-      await this.forwardTerminalInput(ws.user, payload);
-      break;
+      case 'terminal_input':
+        // Forward terminal input to appropriate service
+        await this.forwardTerminalInput(ws.user, payload);
+        break;
 
-    case 'ping':
-      ws.send(JSON.stringify({ type: 'pong' }));
-      break;
+      case 'ping':
+        ws.send(JSON.stringify({ type: 'pong' }));
+        break;
 
-    default:
-      ws.send(
-        JSON.stringify({
-          type: 'error',
-          error: 'Unknown message type',
-        })
-      );
+      default:
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            error: 'Unknown message type',
+          })
+        );
     }
   }
 

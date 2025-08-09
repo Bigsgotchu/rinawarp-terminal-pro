@@ -46,7 +46,6 @@ class AgentMode extends EventEmitter {
 
     // Initialize UI components
     this.initializeUI();
-
   }
 
   getSystemPrompt() {

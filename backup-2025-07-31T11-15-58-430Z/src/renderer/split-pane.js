@@ -314,14 +314,14 @@ export class SplitPaneManager {
     let newIndex;
 
     switch (direction) {
-    case 'left':
-    case 'up':
-      newIndex = currentIndex - 1;
-      break;
-    case 'right':
-    case 'down':
-      newIndex = currentIndex + 1;
-      break;
+      case 'left':
+      case 'up':
+        newIndex = currentIndex - 1;
+        break;
+      case 'right':
+      case 'down':
+        newIndex = currentIndex + 1;
+        break;
     }
 
     if (newIndex >= 0 && newIndex < this.panes.length) {

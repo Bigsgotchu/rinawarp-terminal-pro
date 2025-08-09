@@ -166,7 +166,7 @@ export class AIProviderManager {
 
   generateBasicFallbackResponse(query, _context) {
     const basicResponses = {
-      help: '🧜‍♀️ I\'m here to help! Even though my advanced AI is temporarily unavailable, I can still provide basic assistance. What would you like to know?',
+      help: "🧜‍♀️ I'm here to help! Even though my advanced AI is temporarily unavailable, I can still provide basic assistance. What would you like to know?",
       git: '🐙 Git is a powerful version control system! Try "git status" to see your current state, "git add ." to stage changes, and "git commit -m "message"" to save them.',
       docker:
         '🐳 Docker helps you containerize applications! Use "docker ps" to see running containers, "docker images" to list images, and "docker run" to start new containers.',
@@ -178,7 +178,7 @@ export class AIProviderManager {
     };
 
     const queryLower = query.toLowerCase();
-    let explanation = '🧜‍♀️ I\'m still here to help, even with limited AI capabilities!';
+    let explanation = "🧜‍♀️ I'm still here to help, even with limited AI capabilities!";
 
     // Find matching response
     for (const [keyword, response] of Object.entries(basicResponses)) {
@@ -263,7 +263,6 @@ export class AIProviderManager {
     this.config.preferredProvider = providerName;
     this.activeProvider = provider;
     this.saveConfiguration();
-
   }
 
   async configureProvider(providerName, config) {

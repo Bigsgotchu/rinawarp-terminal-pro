@@ -178,38 +178,38 @@ class WebSocketManager {
 
     // Built-in message handlers
     switch (type) {
-    case 'heartbeat':
-      this.send('heartbeat_response', { receivedAt: Date.now() });
-      break;
+      case 'heartbeat':
+        this.send('heartbeat_response', { receivedAt: Date.now() });
+        break;
 
-    case 'terminal_data':
-      this.handleTerminalData(data);
-      break;
+      case 'terminal_data':
+        this.handleTerminalData(data);
+        break;
 
-    case 'terminal_resize':
-      this.handleTerminalResize(data);
-      break;
+      case 'terminal_resize':
+        this.handleTerminalResize(data);
+        break;
 
-    case 'file_change':
-      this.handleFileChange(data);
-      break;
+      case 'file_change':
+        this.handleFileChange(data);
+        break;
 
-    case 'system_notification':
-      this.handleSystemNotification(data);
-      break;
+      case 'system_notification':
+        this.handleSystemNotification(data);
+        break;
 
-    case 'block_update':
-      this.handleBlockUpdate(data);
-      break;
+      case 'block_update':
+        this.handleBlockUpdate(data);
+        break;
 
-    case 'connection_status':
-      this.handleConnectionStatus(data);
-      break;
+      case 'connection_status':
+        this.handleConnectionStatus(data);
+        break;
 
-    default:
-      // Emit to custom handlers
-      this.emit(type, data, id);
-      break;
+      default:
+        // Emit to custom handlers
+        this.emit(type, data, id);
+        break;
     }
   }
 
@@ -538,7 +538,6 @@ export class WebSocketServer {
 
     // Start heartbeat monitoring
     this.startHeartbeatMonitoring();
-
   }
 
   generateClientId() {
@@ -572,45 +571,45 @@ export class WebSocketServer {
       let response = null;
 
       switch (type) {
-      case 'heartbeat':
-        response = { timestamp: Date.now() };
-        break;
+        case 'heartbeat':
+          response = { timestamp: Date.now() };
+          break;
 
-      case 'terminal_input':
-        await this.handleTerminalInput(clientId, data);
-        break;
+        case 'terminal_input':
+          await this.handleTerminalInput(clientId, data);
+          break;
 
-      case 'terminal_resize':
-        await this.handleTerminalResize(clientId, data);
-        break;
+        case 'terminal_resize':
+          await this.handleTerminalResize(clientId, data);
+          break;
 
-      case 'create_terminal_session':
-        response = await this.createTerminalSession(clientId, data);
-        break;
+        case 'create_terminal_session':
+          response = await this.createTerminalSession(clientId, data);
+          break;
 
-      case 'close_terminal_session':
-        await this.closeTerminalSession(clientId, data);
-        break;
+        case 'close_terminal_session':
+          await this.closeTerminalSession(clientId, data);
+          break;
 
-      case 'file_content_request':
-        response = await this.handleFileContentRequest(clientId, data);
-        break;
+        case 'file_content_request':
+          response = await this.handleFileContentRequest(clientId, data);
+          break;
 
-      case 'file_watch':
-        await this.handleFileWatch(clientId, data);
-        break;
+        case 'file_watch':
+          await this.handleFileWatch(clientId, data);
+          break;
 
-      case 'ai_completion_request':
-        response = await this.handleAICompletionRequest(clientId, data);
-        break;
+        case 'ai_completion_request':
+          response = await this.handleAICompletionRequest(clientId, data);
+          break;
 
-      case 'create_remote_connection':
-        response = await this.createRemoteConnection(clientId, data);
-        break;
+        case 'create_remote_connection':
+          response = await this.createRemoteConnection(clientId, data);
+          break;
 
-      default:
-        console.warn(`⚠️ Unknown message type: ${type}`);
-        break;
+        default:
+          console.warn(`⚠️ Unknown message type: ${type}`);
+          break;
       }
 
       // Send response if expected

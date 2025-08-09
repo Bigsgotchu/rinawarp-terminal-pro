@@ -28,7 +28,7 @@ class SupportSystem {
         ...ticketData,
         createdAt: new Date().toISOString(),
         status: 'open',
-        priority: ticketData.priority || 'medium'
+        priority: ticketData.priority || 'medium',
       };
 
       this.tickets.set(ticketId, ticket);
@@ -37,13 +37,13 @@ class SupportSystem {
       return {
         success: true,
         ticketId,
-        message: 'Support ticket created successfully'
+        message: 'Support ticket created successfully',
       };
     } catch (error) {
       logger.error('Error creating support ticket:', error);
       return {
         success: false,
-        error: 'Failed to create support ticket'
+        error: 'Failed to create support ticket',
       };
     }
   }

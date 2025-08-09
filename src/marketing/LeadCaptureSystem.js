@@ -28,7 +28,7 @@ class LeadCaptureSystem {
         ...leadData,
         capturedAt: new Date().toISOString(),
         source: leadData.source || 'website',
-        status: 'new'
+        status: 'new',
       };
 
       this.leads.set(leadId, lead);
@@ -37,13 +37,13 @@ class LeadCaptureSystem {
       return {
         success: true,
         leadId,
-        message: 'Lead captured successfully'
+        message: 'Lead captured successfully',
       };
     } catch (error) {
       logger.error('Error capturing lead:', error);
       return {
         success: false,
-        error: 'Failed to capture lead'
+        error: 'Failed to capture lead',
       };
     }
   }

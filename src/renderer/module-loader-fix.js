@@ -213,14 +213,14 @@ import { ModuleLoader, initializeModule, loadModules } from '../utils/module-con
         invoke: async (channel, ..._args) => {
           // Provide fallback responses
           switch (channel) {
-          case 'get-platform':
-            return navigator.platform.includes('Win') ? 'win32' : 'linux';
-          case 'get-shell':
-            return navigator.platform.includes('Win') ? 'powershell.exe' : '/bin/bash';
-          case 'check-for-updates':
-            return { updateInfo: null };
-          default:
-            return null;
+            case 'get-platform':
+              return navigator.platform.includes('Win') ? 'win32' : 'linux';
+            case 'get-shell':
+              return navigator.platform.includes('Win') ? 'powershell.exe' : '/bin/bash';
+            case 'check-for-updates':
+              return { updateInfo: null };
+            default:
+              return null;
           }
         },
         send: (_channel, ..._args) => {},

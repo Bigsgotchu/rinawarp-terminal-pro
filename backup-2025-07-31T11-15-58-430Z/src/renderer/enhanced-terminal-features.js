@@ -373,18 +373,18 @@ class TerminalSignalHandler {
 
       if (domEvent.ctrlKey) {
         switch (domEvent.key.toLowerCase()) {
-        case 'c':
-          this.sendSignal('SIGINT'); // Interrupt
-          break;
-        case 'd':
-          this.sendEOF(); // End of file
-          break;
-        case 'z':
-          this.sendSignal('SIGTSTP'); // Suspend
-          break;
-        case '\\':
-          this.sendSignal('SIGQUIT'); // Quit with core dump
-          break;
+          case 'c':
+            this.sendSignal('SIGINT'); // Interrupt
+            break;
+          case 'd':
+            this.sendEOF(); // End of file
+            break;
+          case 'z':
+            this.sendSignal('SIGTSTP'); // Suspend
+            break;
+          case '\\':
+            this.sendSignal('SIGQUIT'); // Quit with core dump
+            break;
         }
       }
     });

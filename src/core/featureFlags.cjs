@@ -177,33 +177,33 @@ class FeatureFlagManager extends EventEmitter {
 
   applyEnvironmentRules() {
     switch (this.runtimeMode) {
-    case 'production':
-      // Only stable features in production
-      Object.keys(this.featureRegistry).forEach(key => {
-        if (this.featureRegistry[key].risk !== 'STABLE') {
-          this.featureRegistry[key].enabled = false;
-        }
-      });
-      break;
+      case 'production':
+        // Only stable features in production
+        Object.keys(this.featureRegistry).forEach(key => {
+          if (this.featureRegistry[key].risk !== 'STABLE') {
+            this.featureRegistry[key].enabled = false;
+          }
+        });
+        break;
 
-    case 'staging':
-      // Stable + experimental in staging
-      Object.keys(this.featureRegistry).forEach(key => {
-        if (this.featureRegistry[key].risk === 'DANGEROUS') {
-          this.featureRegistry[key].enabled = false;
-        }
-      });
-      break;
+      case 'staging':
+        // Stable + experimental in staging
+        Object.keys(this.featureRegistry).forEach(key => {
+          if (this.featureRegistry[key].risk === 'DANGEROUS') {
+            this.featureRegistry[key].enabled = false;
+          }
+        });
+        break;
 
-    case 'development':
-      // Enable experimental features in development for testing
-      Object.keys(this.featureRegistry).forEach(key => {
-        if (this.featureRegistry[key].risk === 'EXPERIMENTAL') {
-          this.featureRegistry[key].enabled = true;
-        }
-        // Keep dangerous features disabled by default but allow manual enablement
-      });
-      break;
+      case 'development':
+        // Enable experimental features in development for testing
+        Object.keys(this.featureRegistry).forEach(key => {
+          if (this.featureRegistry[key].risk === 'EXPERIMENTAL') {
+            this.featureRegistry[key].enabled = true;
+          }
+          // Keep dangerous features disabled by default but allow manual enablement
+        });
+        break;
     }
   }
 
@@ -270,7 +270,9 @@ class FeatureFlagManager extends EventEmitter {
     // Risk-based validation
     if (feature.risk === 'DANGEROUS' && !options.force) {
       if (this.runtimeMode === 'production') {
-        throw new Error(new Error(new Error(`Cannot enable dangerous feature ${featureName} in production`)));
+        throw new Error(
+          new Error(new Error(`Cannot enable dangerous feature ${featureName} in production`))
+        );
       }
 
       if (!options.approvedBy) {
@@ -463,7 +465,9 @@ function createFeatureFlags(options = {}) {
 
 function getFeatureFlags() {
   if (!globalFeatureFlags) {
-    throw new Error(new Error(new Error('Feature flags not initialized. Call createFeatureFlags() first.')));
+    throw new Error(
+      new Error(new Error('Feature flags not initialized. Call createFeatureFlags() first.'))
+    );
   }
   return globalFeatureFlags;
 }

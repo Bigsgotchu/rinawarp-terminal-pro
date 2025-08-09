@@ -151,18 +151,18 @@ const ConditionBuilders = {
       if (typeof value !== 'number') return false;
 
       switch (operator) {
-      case '>=':
-        return value >= threshold;
-      case '>':
-        return value > threshold;
-      case '<=':
-        return value <= threshold;
-      case '<':
-        return value < threshold;
-      case '===':
-        return value === threshold;
-      default:
-        return false;
+        case '>=':
+          return value >= threshold;
+        case '>':
+          return value > threshold;
+        case '<=':
+          return value <= threshold;
+        case '<':
+          return value < threshold;
+        case '===':
+          return value === threshold;
+        default:
+          return false;
       }
     }, `${path} ${operator} ${threshold}`),
 

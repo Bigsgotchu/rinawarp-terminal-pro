@@ -13,12 +13,12 @@ export default class Phase2MainIntegration {
   async initialize(terminalManager) {
     this.terminalManager = terminalManager;
     this.initialized = true;
-    
+
     logger.debug('Phase 2 UI features loaded (stub mode)');
-    
+
     // Add any Phase 2 specific features here
     // For now, this is just a stub
-    
+
     return true;
   }
 

@@ -77,12 +77,12 @@ describe('AutoCompleteSystem', () => {
       autoComplete.suggestions = ['git status', 'git stash'];
       autoComplete.currentIndex = 0;
       autoComplete.isActive = true;
-      
+
       const addHistorySpy = jest.spyOn(autoComplete, 'addToHistory');
-      
+
       // Mock getCurrentLine to return a value
       autoComplete.getCurrentLine = jest.fn(() => 'git st');
-      
+
       autoComplete.selectSuggestion();
       expect(addHistorySpy).toHaveBeenCalledWith('git status');
     });
@@ -387,7 +387,7 @@ describe('Performance Tests', () => {
       attachCustomKeyEventHandler: jest.fn(),
       onData: jest.fn(),
       cols: 80,
-      rows: 24
+      rows: 24,
     };
     const autoComplete = new AutoCompleteSystem(terminal);
 

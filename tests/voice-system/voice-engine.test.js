@@ -17,9 +17,7 @@ const mockSpeechRecognition = jest.fn().mockImplementation(() => ({
 global.speechSynthesis = {
   speak: jest.fn(),
   cancel: jest.fn(),
-  getVoices: jest.fn().mockReturnValue([
-    { name: 'Test Voice', lang: 'en-US', default: true },
-  ]),
+  getVoices: jest.fn().mockReturnValue([{ name: 'Test Voice', lang: 'en-US', default: true }]),
   onvoiceschanged: null,
 };
 
@@ -72,7 +70,7 @@ describe('VoiceEngine', () => {
     // Create a mock terminal and AI assistant
     const mockTerminal = {};
     const mockAIAssistant = {};
-    
+
     voiceEngine = new VoiceEngine(mockTerminal, mockAIAssistant);
   });
 
@@ -95,7 +93,7 @@ describe('VoiceEngine', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     voiceEngine.recognition.onerror(mockError);
-    
+
     expect(warnSpy).toHaveBeenCalledWith('Speech recognition error:', 'network');
 
     warnSpy.mockRestore();
@@ -105,4 +103,3 @@ describe('VoiceEngine', () => {
     // TODO: Implement performance tests
   });
 });
-

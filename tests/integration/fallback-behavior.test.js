@@ -164,5 +164,5 @@ afterAll(() => {
   dashboard.exportJSON();
 
   console.log('\n🎯 Voice System Confidence Score:', dashboard.getConfidenceScore() + '%');
-  console.log('💬 Rina\'s Commentary:', dashboard.getRinaCommentary());
+  console.log("💬 Rina's Commentary:", dashboard.getRinaCommentary());
 });

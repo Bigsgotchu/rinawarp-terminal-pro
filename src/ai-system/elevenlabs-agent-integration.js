@@ -150,9 +150,11 @@ if (!window.ElevenLabsAgentIntegration) {
           );
 
           if (!response.ok) {
-            throw new Error(new Error(
-              new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`)
-            ));
+            throw new Error(
+              new Error(
+                new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`)
+              )
+            );
           }
 
           // Convert response to audio blob

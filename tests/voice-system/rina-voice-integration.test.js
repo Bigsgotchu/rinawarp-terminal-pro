@@ -24,7 +24,7 @@ jest.mock('../../src/voice-system/elevenlabs-voice-provider.js', () => ({
 }));
 
 // Mock DOM elements
-const mockElement = (id) => {
+const mockElement = id => {
   const element = {
     id,
     textContent: '',
@@ -40,13 +40,13 @@ const mockElement = (id) => {
     focus: jest.fn(),
     remove: jest.fn(),
   };
-  
+
   // Make style properties settable
   Object.defineProperty(element, 'textContent', {
     writable: true,
     value: '',
   });
-  
+
   return element;
 };
 
@@ -59,7 +59,7 @@ global.localStorage = {
 
 // Mock document
 global.document = {
-  getElementById: jest.fn((id) => {
+  getElementById: jest.fn(id => {
     if (id === 'save-api-key' || id === 'cancel-api-key' || id === 'api-key-input') {
       return mockElement(id);
     }
@@ -69,7 +69,7 @@ global.document = {
     return element;
   }),
   querySelector: jest.fn(() => null), // No dashboard by default
-  createElement: jest.fn((tag) => ({
+  createElement: jest.fn(tag => ({
     id: '',
     innerHTML: '',
     style: { cssText: '' },
@@ -94,7 +94,7 @@ describe('RinaVoiceIntegration', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockVoiceEngine = {
       moodState: 'neutral',
       speak: jest.fn().mockResolvedValue(true),
@@ -102,7 +102,7 @@ describe('RinaVoiceIntegration', () => {
         enableFeedback: true,
       },
     };
-    
+
     integration = new RinaVoiceIntegration(mockVoiceEngine);
   });
 
@@ -116,7 +116,7 @@ describe('RinaVoiceIntegration', () => {
 
     it('should initialize Rina voice system', async () => {
       const result = await integration.initializeRinaVoice();
-      
+
       expect(result).toBe(true);
       expect(integration.rinaVoice).toBeDefined();
       expect(integration.rinaVoice.init).toHaveBeenCalled();
@@ -130,7 +130,7 @@ describe('RinaVoiceIntegration', () => {
 
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
       const result = await integration.initializeRinaVoice();
-      
+
       expect(result).toBe(false);
       expect(warnSpy).toHaveBeenCalledWith(
         '⚠️ Failed to initialize Rina Voice System:',
@@ -146,21 +146,21 @@ describe('RinaVoiceIntegration', () => {
 
     it('should switch to Rina voice mode', async () => {
       await integration.switchVoiceMode('rina');
-      
+
       expect(integration.currentMode).toBe('rina');
       expect(integration.isRinaEnabled).toBe(true);
     });
 
     it('should switch to system voice mode', async () => {
       await integration.switchVoiceMode('system');
-      
+
       expect(integration.currentMode).toBe('system');
       expect(integration.isRinaEnabled).toBe(false);
     });
 
     it('should switch to hybrid voice mode', async () => {
       await integration.switchVoiceMode('hybrid');
-      
+
       expect(integration.currentMode).toBe('hybrid');
       expect(integration.isRinaEnabled).toBe(true);
     });
@@ -168,7 +168,7 @@ describe('RinaVoiceIntegration', () => {
     it('should handle invalid voice mode', async () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
       await integration.switchVoiceMode('invalid');
-      
+
       expect(warnSpy).toHaveBeenCalledWith('⚠️ Invalid voice mode: invalid');
       expect(integration.currentMode).toBe('system'); // Should remain unchanged
     });
@@ -178,10 +178,10 @@ describe('RinaVoiceIntegration', () => {
     it.skip('should update API connection status to connected', () => {
       // Skip DOM manipulation tests - these are better tested with integration tests
       integration.updateAPIConnectionStatus(true);
-      
+
       const indicator = document.getElementById('api-indicator');
       const text = document.getElementById('api-text');
-      
+
       expect(indicator.style.color).toBe('#4CAF50');
       expect(text.textContent).toBe('ElevenLabs API Connected');
     });
@@ -189,17 +189,17 @@ describe('RinaVoiceIntegration', () => {
     it.skip('should update API connection status to disconnected', () => {
       // Skip DOM manipulation tests - these are better tested with integration tests
       integration.updateAPIConnectionStatus(false);
-      
+
       const indicator = document.getElementById('api-indicator');
       const text = document.getElementById('api-text');
-      
+
       expect(indicator.style.color).toBe('#f44336');
       expect(text.textContent).toBe('ElevenLabs API Disconnected');
     });
 
     it('should handle missing DOM elements gracefully', () => {
       document.getElementById.mockReturnValue(null);
-      
+
       // Should not throw
       expect(() => integration.updateAPIConnectionStatus(true)).not.toThrow();
     });
@@ -209,7 +209,7 @@ describe('RinaVoiceIntegration', () => {
     it.skip('should show API key configuration UI', () => {
       // Skip complex DOM tests - innerHTML doesn't create real DOM elements in JSDOM
       integration.showApiKeyConfigurationUI();
-      
+
       expect(document.createElement).toHaveBeenCalledWith('div');
       expect(document.body.appendChild).toHaveBeenCalled();
     });
@@ -217,10 +217,10 @@ describe('RinaVoiceIntegration', () => {
     it('should not create duplicate configuration UI', () => {
       // Clear any previous calls
       jest.clearAllMocks();
-      
+
       // Mock that the config UI already exists
       const originalGetElementById = document.getElementById;
-      document.getElementById = jest.fn((id) => {
+      document.getElementById = jest.fn(id => {
         if (id === 'api-key-config') {
           return { id: 'api-key-config' }; // UI already exists
         }
@@ -229,11 +229,11 @@ describe('RinaVoiceIntegration', () => {
         }
         return null;
       });
-      
+
       integration.showApiKeyConfigurationUI();
-      
+
       expect(document.createElement).not.toHaveBeenCalled();
-      
+
       // Restore original mock
       document.getElementById = originalGetElementById;
     });
@@ -242,28 +242,28 @@ describe('RinaVoiceIntegration', () => {
   describe('dashboard integration', () => {
     it('should create dashboard toggle', () => {
       integration.createDashboardToggle();
-      
+
       // Should create the toggle element
       expect(document.createElement).toHaveBeenCalled();
     });
 
     it('should handle voice mode toggle events', async () => {
       await integration.setupDashboardIntegration();
-      
+
       const switchModeSpy = jest.spyOn(integration, 'switchVoiceMode');
-      
+
       // Simulate event
       const event = new CustomEvent('voice-mode-toggle', {
         detail: { mode: 'rina' },
       });
-      
+
       // Get the event listener that was added
       const [[eventName, handler]] = window.addEventListener.mock.calls;
       expect(eventName).toBe('voice-mode-toggle');
-      
+
       // Call the handler
       await handler(event);
-      
+
       expect(switchModeSpy).toHaveBeenCalledWith('rina');
     });
   });
@@ -276,13 +276,13 @@ describe('RinaVoiceIntegration', () => {
     it('should sync mood with voice engine', () => {
       integration.voiceEngine.moodState = 'happy';
       integration.syncMoodWithVoiceEngine();
-      
+
       expect(integration.rinaVoice.setMood).toHaveBeenCalledWith('happy');
     });
 
     it('should handle missing mood state', () => {
       integration.voiceEngine.moodState = null;
-      
+
       // Should not throw
       expect(() => integration.syncMoodWithVoiceEngine()).not.toThrow();
     });
@@ -296,9 +296,9 @@ describe('RinaVoiceIntegration', () => {
     it('should speak using Rina voice when enabled', async () => {
       integration.isRinaEnabled = true;
       integration.currentMode = 'rina';
-      
+
       await integration.speak('Hello world', { mood: 'happy' });
-      
+
       expect(integration.rinaVoice.speak).toHaveBeenCalledWith('Hello world', {
         mood: 'happy',
       });
@@ -306,20 +306,20 @@ describe('RinaVoiceIntegration', () => {
 
     it('should use voice engine when Rina is disabled', async () => {
       integration.isRinaEnabled = false;
-      
+
       await integration.speak('Hello world');
-      
+
       expect(mockVoiceEngine.speak).toHaveBeenCalledWith('Hello world', {});
     });
 
     it('should handle hybrid mode correctly', async () => {
       integration.currentMode = 'hybrid';
       integration.isRinaEnabled = true;
-      
+
       // Test command response - should use system
       await integration.speak('Command executed', { isCommand: true });
       expect(mockVoiceEngine.speak).toHaveBeenCalled();
-      
+
       // Test personality response - should use Rina
       mockVoiceEngine.speak.mockClear();
       await integration.speak('Hello darling!', { isPersonality: true });
@@ -330,19 +330,19 @@ describe('RinaVoiceIntegration', () => {
   describe('event listeners', () => {
     it('should setup event listeners', () => {
       integration.setupEventListeners();
-      
+
       // Check that event listeners were added
       expect(window.addEventListener.mock.calls.length).toBeGreaterThan(0);
     });
 
     it('should handle voice mode change events', () => {
       integration.setupEventListeners();
-      
+
       // We should have at least terminal event listeners
       const terminalBootListener = window.addEventListener.mock.calls.find(
         ([event]) => event === 'terminal-boot-complete'
       );
-      
+
       expect(terminalBootListener).toBeDefined();
     });
   });
@@ -353,9 +353,9 @@ describe('RinaVoiceIntegration', () => {
       integration.rinaVoice.switchVoiceMode.mockImplementation(() => {
         throw new Error('Mode switch failed');
       });
-      
+
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
+
       // The error will be thrown and crash the test, so we need to catch it
       expect(() => integration.switchVoiceMode('rina')).toThrow('Mode switch failed');
     });
@@ -363,23 +363,20 @@ describe('RinaVoiceIntegration', () => {
     it.skip('should handle errors in speaking', async () => {
       // Set up console.error spy first to catch all errors
       const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       await integration.initializeRinaVoice();
       integration.isRinaEnabled = true;
       integration.currentMode = 'rina';
-      
+
       // Override the speak method to reject
       integration.rinaVoice.speak = jest.fn().mockImplementation(() => {
         return Promise.reject(new Error('Speak error'));
       });
-      
+
       await integration.speak('Test');
-      
-      expect(errorSpy).toHaveBeenCalledWith(
-        'Error in voice output:',
-        expect.any(Error)
-      );
-      
+
+      expect(errorSpy).toHaveBeenCalledWith('Error in voice output:', expect.any(Error));
+
       errorSpy.mockRestore();
     });
   });

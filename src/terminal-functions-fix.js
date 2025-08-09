@@ -414,8 +414,8 @@ window.showAIConfig = function () {
             <h2 style="color: #00ff88; margin-top: 0;">🤖 AI Configuration</h2>
             
             ${
-  aiStatus
-    ? `
+              aiStatus
+                ? `
                 <div style="color: #74c0fc; margin: 20px 0;">
                     <h3>System Status:</h3>
                     <p>Initialized: ${aiStatus.initialized ? '✅' : '❌'}</p>
@@ -424,8 +424,8 @@ window.showAIConfig = function () {
                     <p>Avg Response Time: ${aiStatus.performanceMetrics?.avgResponseTime || 0}ms</p>
                 </div>
             `
-    : '<p style="color: #ff6b6b;">AI System not initialized</p>'
-}
+                : '<p style="color: #ff6b6b;">AI System not initialized</p>'
+            }
             
             <div style="color: #ffd93d; margin: 20px 0;">
                 <h3>Available Providers:</h3>

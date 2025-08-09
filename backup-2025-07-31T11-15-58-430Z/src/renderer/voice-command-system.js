@@ -272,7 +272,7 @@ export class VoiceCommandSystem {
     this.log(`Voice input: "${transcript}" (confidence: ${Math.round(confidence * 100)}%)`, 'info');
 
     if (confidence < this.options.confidence) {
-      this.speak('Sorry, I didn\'t catch that clearly. Could you repeat?');
+      this.speak("Sorry, I didn't catch that clearly. Could you repeat?");
       return;
     }
 
@@ -288,7 +288,7 @@ export class VoiceCommandSystem {
     this.emit('error', { type: 'recognition', error: event.error });
 
     const errorMessages = {
-      'no-speech': 'I didn\'t hear anything. Please try again.',
+      'no-speech': "I didn't hear anything. Please try again.",
       'audio-capture': 'Microphone not accessible. Please check permissions.',
       'not-allowed': 'Microphone permission denied. Please enable it in settings.',
       network: 'Network error. Please check your connection.',
@@ -314,7 +314,7 @@ export class VoiceCommandSystem {
       const parsedCommand = this.parseNaturalLanguage(transcript);
 
       if (!parsedCommand) {
-        this.speak('I didn\'t understand that command. Try saying \'help\' for available commands.');
+        this.speak("I didn't understand that command. Try saying 'help' for available commands.");
         return;
       }
 

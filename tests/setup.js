@@ -156,14 +156,14 @@ global.logger = {
   error: jest.fn(),
   log: jest.fn(),
   system: jest.fn(),
-  security: jest.fn()
+  security: jest.fn(),
 };
 
 // Mock window.settingsPanel for autocomplete tests
 if (!global.window.settingsPanel) {
   global.window.settingsPanel = {
     settings: {
-      autoComplete: true
-    }
+      autoComplete: true,
+    },
   };
 }

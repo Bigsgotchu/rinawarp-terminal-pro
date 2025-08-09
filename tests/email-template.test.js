@@ -25,9 +25,9 @@ describe('Email Template Tests', () => {
       try {
         // Dynamic import to avoid issues in test environment
         puppeteer = require('puppeteer');
-        browser = await puppeteer.launch({ 
+        browser = await puppeteer.launch({
           headless: 'new',
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
       } catch (error) {
         console.warn('Puppeteer not available, skipping browser tests:', error.message);

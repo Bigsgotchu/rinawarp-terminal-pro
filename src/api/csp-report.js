@@ -24,7 +24,7 @@ const cspReportLimiter = rateLimit({
 router.post('/', cspReportLimiter, express.json({ limit: '1mb' }), (req, res) => {
   try {
     const report = req.body;
-    
+
     // Log CSP violation (in production, send to monitoring service)
     console.log('🛡️ CSP Violation Report:', {
       timestamp: new Date().toISOString(),
@@ -39,15 +39,15 @@ router.post('/', cspReportLimiter, express.json({ limit: '1mb' }), (req, res) =>
         sourceFile: report['csp-report']?.['source-file'],
         lineNumber: report['csp-report']?.['line-number'],
         columnNumber: report['csp-report']?.['column-number'],
-        statusCode: report['csp-report']?.['status-code']
-      }
+        statusCode: report['csp-report']?.['status-code'],
+      },
     });
 
     // In production, you might want to:
     // - Send to monitoring service (Sentry, LogRocket, etc.)
     // - Store in database for analysis
     // - Alert on critical violations
-    
+
     res.status(204).end(); // No content response
   } catch (error) {
     console.error('❌ Error processing CSP report:', error);
@@ -64,7 +64,7 @@ router.get('/status', (req, res) => {
     status: 'active',
     endpoint: '/api/csp-report',
     purpose: 'Content Security Policy violation reporting',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 

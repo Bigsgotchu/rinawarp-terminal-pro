@@ -352,11 +352,11 @@ class CLIAnimationGenerator {
 <body>
     <div class="terminal">
         ${frames
-    .map(
-      (frame, index) =>
-        `<div class="frame ${getFrameClasses(frame, index)}" id="frame${index}">${frame}</div>`
-    )
-    .join('')}
+          .map(
+            (frame, index) =>
+              `<div class="frame ${getFrameClasses(frame, index)}" id="frame${index}">${frame}</div>`
+          )
+          .join('')}
     </div>
     
     <script>
@@ -390,15 +390,15 @@ class CLIAnimationGenerator {
 ## CLI Demo Sequence
 
 ${frames
-    .map(
-      (frame, index) => `
+  .map(
+    (frame, index) => `
 ### Step ${index + 1}
 \`\`\`
 ${frame}
 \`\`\`
 `
-    )
-    .join('')}
+  )
+  .join('')}
 
 ## Usage
 This animation demonstrates the RinaWarp Terminal deployment process:

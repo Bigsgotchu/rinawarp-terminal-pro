@@ -213,7 +213,7 @@ export class RinaVoiceSystem {
             professional: 'sounds/rina/hello-rina-professional.wav',
             friendly: 'sounds/rina/hello-rina-friendly.wav',
           },
-          fallback: 'Hello! I\'m Rina, your terminal assistant.',
+          fallback: "Hello! I'm Rina, your terminal assistant.",
         },
       ],
 
@@ -250,7 +250,7 @@ export class RinaVoiceSystem {
             patient: 'sounds/rina/uncertain-guidance-patient.wav',
             gentle: 'sounds/rina/uncertain-guidance-gentle.wav',
           },
-          fallback: 'No worries! Let\'s take this step by step.',
+          fallback: "No worries! Let's take this step by step.",
         },
       ],
 
@@ -331,7 +331,7 @@ export class RinaVoiceSystem {
 
       const audio = new Audio(clipPath);
       audio.preload = 'auto';
-      
+
       // Set a timeout for audio loading to prevent hanging
       const loadTimeout = setTimeout(() => {
         logger.debug(`⚠️ Audio loading timeout: ${clipPath}`);
@@ -344,12 +344,12 @@ export class RinaVoiceSystem {
           resolve(true);
         });
 
-        audio.addEventListener('error', (error) => {
+        audio.addEventListener('error', error => {
           clearTimeout(loadTimeout);
           logger.debug(`⚠️ Audio file not found (will use synthesis): ${clipPath}`);
           resolve(false);
         });
-        
+
         // Handle load start to catch early errors
         audio.addEventListener('loadstart', () => {
           logger.debug(`🎵 Loading audio: ${clipPath}`);
@@ -615,10 +615,10 @@ export class RinaVoiceSystem {
       'Running that now...',
       'Command completed successfully.',
       'Let me think...',
-      'Hello! I\'m Rina, your terminal assistant.',
+      "Hello! I'm Rina, your terminal assistant.",
       'All systems are running smoothly.',
       'I understand this can be frustrating. Let me help simplify things.',
-      'No worries! Let\'s take this step by step.',
+      "No worries! Let's take this step by step.",
     ];
 
     for (const phrase of frequentPhrases) {
@@ -802,7 +802,6 @@ export class RinaVoiceSystem {
     return clips;
   }
 
-
   async playClip(clipPath, volume, onComplete, onError) {
     // Simplified playback logic
     try {
@@ -839,7 +838,6 @@ export class RinaVoiceSystem {
     }
   }
 
-
   // Status and diagnostics
   getStatus() {
     return {
@@ -858,7 +856,6 @@ export class RinaVoiceSystem {
       },
     };
   }
-
 
   // Enhanced speak method that accepts either key or direct text
   async speak(keyOrText, options = {}) {

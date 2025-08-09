@@ -16,21 +16,24 @@ const __dirname = path.dirname(__filename);
 function applyThemeToHTML(filePath) {
   try {
     let content = fs.readFileSync(filePath, 'utf8');
-    
+
     // Check if body tag exists and add theme class
     if (content.includes('<body')) {
       // Remove any existing theme classes
-      content = content.replace(/class="[^"]*theme-[^"\s]*[^"]*"/g, (match) => {
-        return match.replace(/theme-\S+/g, '').replace(/\s+/g, ' ').trim();
+      content = content.replace(/class="[^"]*theme-[^"\s]*[^"]*"/g, match => {
+        return match
+          .replace(/theme-\S+/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
       });
-      
+
       // Add RinaWarp theme class
       if (content.includes('class="')) {
         content = content.replace(/<body\s+class="([^"]*)"/, '<body class="$1 theme-rinawarp"');
       } else {
         content = content.replace(/<body(\s|>)/, '<body class="theme-rinawarp"$1');
       }
-      
+
       fs.writeFileSync(filePath, content, 'utf8');
       console.log(`✅ Applied RinaWarp theme to: ${filePath}`);
     }
@@ -43,14 +46,14 @@ function applyThemeToHTML(filePath) {
 function updateThemeInJS(filePath) {
   try {
     let content = fs.readFileSync(filePath, 'utf8');
-    
+
     // Update default theme references
     if (content.includes('currentTheme')) {
       content = content.replace(
         /this\.currentTheme\s*=\s*['"][^'"]+['"]/g,
-        'this.currentTheme = \'rinawarp\''
+        "this.currentTheme = 'rinawarp'"
       );
-      
+
       // Add RinaWarp theme to themes object if not present
       if (!content.includes('rinawarp:') && content.includes('themes = {')) {
         const rinawarpTheme = `
@@ -82,10 +85,10 @@ function updateThemeInJS(filePath) {
           brightWhite: '#FFFFFF',
         },
       },`;
-        
+
         content = content.replace(/themes\s*=\s*{/, 'themes = {' + rinawarpTheme);
       }
-      
+
       fs.writeFileSync(filePath, content, 'utf8');
       console.log(`✅ Updated theme defaults in: ${filePath}`);
     }
@@ -104,7 +107,7 @@ const htmlFiles = [
   'src/terminal-simple.html',
   'src/minimal-terminal.html',
   'demo-car-theme.html',
-  'demo-car-standalone.html'
+  'demo-car-standalone.html',
 ];
 
 htmlFiles.forEach(file => {
@@ -118,7 +121,7 @@ htmlFiles.forEach(file => {
 const jsFiles = [
   'src/renderer/terminal-themes.js',
   'src/themes/unified-theme-manager.js',
-  'src/ui/modern-theme-system.js'
+  'src/ui/modern-theme-system.js',
 ];
 
 jsFiles.forEach(file => {
@@ -135,8 +138,8 @@ const startupConfig = {
   themeSettings: {
     enableGradients: true,
     enableAnimations: true,
-    enableGlow: true
-  }
+    enableGlow: true,
+  },
 };
 
 fs.writeFileSync(

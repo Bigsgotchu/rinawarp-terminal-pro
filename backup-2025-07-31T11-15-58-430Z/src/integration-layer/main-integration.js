@@ -329,10 +329,10 @@ class RinaWarpIntegration {
     return saved
       ? JSON.parse(saved)
       : {
-        preferredFeatures: [],
-        workflowPatterns: [],
-        securityLevel: 'standard',
-      };
+          preferredFeatures: [],
+          workflowPatterns: [],
+          securityLevel: 'standard',
+        };
   }
 
   preloadFeature(featureName) {
@@ -357,19 +357,19 @@ class RinaWarpIntegration {
 
   adjustFeaturesForSecurity(threatLevel) {
     switch (threatLevel) {
-    case 'critical':
-      // Disable non-essential features
-      this.features.liveSharing?.enterSecureMode?.();
-      this.features.workflowAutomation?.restrictAutomation?.();
-      break;
-    case 'high':
-      // Increase monitoring
-      this.features.performanceMonitor?.increaseMonitoring?.();
-      break;
-    case 'normal':
-      // Resume normal operations
-      this.resumeNormalOperations();
-      break;
+      case 'critical':
+        // Disable non-essential features
+        this.features.liveSharing?.enterSecureMode?.();
+        this.features.workflowAutomation?.restrictAutomation?.();
+        break;
+      case 'high':
+        // Increase monitoring
+        this.features.performanceMonitor?.increaseMonitoring?.();
+        break;
+      case 'normal':
+        // Resume normal operations
+        this.resumeNormalOperations();
+        break;
     }
   }
 
@@ -435,15 +435,15 @@ class RinaWarpIntegration {
 
   executeOptimization(optimization) {
     switch (optimization.type) {
-    case 'memory-cleanup':
-      this.performMemoryCleanup();
-      break;
-    case 'cache-optimization':
-      this.optimizeCache();
-      break;
-    case 'feature-preload':
-      this.preloadFeature(optimization.feature);
-      break;
+      case 'memory-cleanup':
+        this.performMemoryCleanup();
+        break;
+      case 'cache-optimization':
+        this.optimizeCache();
+        break;
+      case 'feature-preload':
+        this.preloadFeature(optimization.feature);
+        break;
     }
   }
 

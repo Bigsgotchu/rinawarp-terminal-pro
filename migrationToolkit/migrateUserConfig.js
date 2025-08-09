@@ -476,7 +476,9 @@ class ConfigurationMigrator {
     }
 
     if (validationErrors > 0) {
-      throw new Error(new Error(new Error(`Configuration validation failed with ${validationErrors} errors`)));
+      throw new Error(
+        new Error(new Error(`Configuration validation failed with ${validationErrors} errors`))
+      );
     }
 
     this.log('✅ Configuration validation passed');

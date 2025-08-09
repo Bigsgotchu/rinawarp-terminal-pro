@@ -6,9 +6,7 @@ const { execSync } = require('child_process');
 console.log('🧹 Cleaning up dependencies...\n');
 
 // Unused dependencies to remove
-const unusedDeps = [
-  'morgan'
-];
+const unusedDeps = ['morgan'];
 
 const unusedDevDeps = [
   '@babel/plugin-syntax-dynamic-import',
@@ -49,25 +47,25 @@ const unusedDevDeps = [
   'webpack-cli',
   'webpack-dev-server',
   'webpack-merge',
-  'worker-loader'
+  'worker-loader',
 ];
 
 // Optional: Dependencies that seem to be used by optional features
 const optionalDeps = {
   'discord.js': 'Used by check-setup.js',
   'js-yaml': 'Used by diagnose-github-workflow.cjs',
-  'glob': 'Used by remove-console-logs.js',
+  glob: 'Used by remove-console-logs.js',
   'crypto-browserify': 'Used by webpack.config.cjs',
   'node-pty': 'Core terminal dependency',
   'winston-daily-rotate-file': 'Enhanced logging',
   'electron-updater': 'Auto-update functionality',
-  'vm2': 'Plugin sandbox (deprecated, needs alternative)',
-  'axios': 'Community features',
-  'bcryptjs': 'License server',
+  vm2: 'Plugin sandbox (deprecated, needs alternative)',
+  axios: 'Community features',
+  bcryptjs: 'License server',
   'http-proxy-middleware': 'API gateway',
   'express-graphql': 'GraphQL API',
-  'graphql': 'GraphQL API',
-  'googleapis': 'GA4 integration'
+  graphql: 'GraphQL API',
+  googleapis: 'GA4 integration',
 };
 
 console.log('📋 Unused dependencies found:');
@@ -88,22 +86,21 @@ try {
     console.log('  Removing dependencies:', unusedDeps.join(' '));
     execSync(`npm uninstall ${unusedDeps.join(' ')}`, { stdio: 'inherit' });
   }
-  
+
   if (unusedDevDeps.length > 0) {
     console.log('  Removing devDependencies:', unusedDevDeps.join(' '));
     execSync(`npm uninstall ${unusedDevDeps.join(' ')}`, { stdio: 'inherit' });
   }
-  
+
   console.log('\n✅ Dependencies cleaned up successfully!');
-  
+
   console.log('\n📦 Optional dependencies to consider:');
   Object.entries(optionalDeps).forEach(([dep, usage]) => {
     console.log(`  - ${dep}: ${usage}`);
   });
-  
+
   console.log('\n💡 To add any missing dependencies, run:');
   console.log('  npm install <package-name>');
-  
 } catch (error) {
   console.error('\n❌ Error cleaning dependencies:', error.message);
   console.log('Restoring package.json from backup...');

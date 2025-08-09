@@ -66,16 +66,19 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: [
-              ['@babel/preset-env', {
-                modules: false,
-                targets: {
-                  electron: '37'
-                }
-              }]
+              [
+                '@babel/preset-env',
+                {
+                  modules: false,
+                  targets: {
+                    electron: '37',
+                  },
+                },
+              ],
             ],
             plugins: [
               '@babel/plugin-syntax-dynamic-import',
-              '@babel/plugin-transform-modules-commonjs'
+              '@babel/plugin-transform-modules-commonjs',
             ],
           },
         },
@@ -83,9 +86,10 @@ module.exports = {
     ],
   },
   plugins: [
-    process.env.ANALYZE && new BundleAnalyzerPlugin({
-      analyzerMode: 'static',
-      reportFilename: 'bundle-report.html',
-    }),
+    process.env.ANALYZE &&
+      new BundleAnalyzerPlugin({
+        analyzerMode: 'static',
+        reportFilename: 'bundle-report.html',
+      }),
   ].filter(Boolean),
 };

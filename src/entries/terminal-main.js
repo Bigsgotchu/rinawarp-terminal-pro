@@ -50,16 +50,16 @@ class FeatureLoader {
 
   async _loadFeatureModule(featureName) {
     switch (featureName) {
-    case 'ai-assistant':
-      return import(/* webpackChunkName: "ai-assistant" */ './ai-assistant.js');
-    case 'system-vitals':
-      return import(/* webpackChunkName: "system-vitals" */ './system-vitals.js');
-    case 'voice-engine':
-      return import(/* webpackChunkName: "voice-engine" */ './voice-engine.js');
-    case 'plugin-system':
-      return import(/* webpackChunkName: "plugin-system" */ './plugin-system.js');
-    default:
-      throw new Error(new Error(new Error(`Unknown feature: ${featureName}`)));
+      case 'ai-assistant':
+        return import(/* webpackChunkName: "ai-assistant" */ './ai-assistant.js');
+      case 'system-vitals':
+        return import(/* webpackChunkName: "system-vitals" */ './system-vitals.js');
+      case 'voice-engine':
+        return import(/* webpackChunkName: "voice-engine" */ './voice-engine.js');
+      case 'plugin-system':
+        return import(/* webpackChunkName: "plugin-system" */ './plugin-system.js');
+      default:
+        throw new Error(new Error(new Error(`Unknown feature: ${featureName}`)));
     }
   }
 

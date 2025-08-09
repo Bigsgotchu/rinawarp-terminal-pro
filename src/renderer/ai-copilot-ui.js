@@ -69,7 +69,7 @@ class AICopilotUI {
       this.updateStatus('ready', 'AI Copilot ready to assist');
       this.updateHeaderForPersonality();
       this.addSystemMessage(
-        '🧜‍♀️ *Splish splash!* Hey there, terminal explorer! I\'m Rina, your mermaid AI assistant! Ready to dive deep into the command ocean together? 🌊✨'
+        "🧜‍♀️ *Splish splash!* Hey there, terminal explorer! I'm Rina, your mermaid AI assistant! Ready to dive deep into the command ocean together? 🌊✨"
       );
     });
 
@@ -446,7 +446,7 @@ class AICopilotUI {
       content += '</ul></div>';
     }
 
-    return content || 'I\'m here to help, but I don\'t have a specific response for that.';
+    return content || "I'm here to help, but I don't have a specific response for that.";
   }
 
   getMessageIcon(type) {
@@ -471,25 +471,25 @@ class AICopilotUI {
 
   async handleQuickAction(action) {
     switch (action) {
-    case 'explain-last-error':
-      this.inputField.value = 'Can you explain the last error I encountered?';
-      this.sendMessage();
-      break;
+      case 'explain-last-error':
+        this.inputField.value = 'Can you explain the last error I encountered?';
+        this.sendMessage();
+        break;
 
-    case 'suggest-commands':
-      this.inputField.value = 'What commands would be useful in my current context?';
-      this.sendMessage();
-      break;
+      case 'suggest-commands':
+        this.inputField.value = 'What commands would be useful in my current context?';
+        this.sendMessage();
+        break;
 
-    case 'optimize-workflow':
-      this.inputField.value = 'How can I optimize my current workflow?';
-      this.sendMessage();
-      break;
+      case 'optimize-workflow':
+        this.inputField.value = 'How can I optimize my current workflow?';
+        this.sendMessage();
+        break;
 
-    case 'security-check':
-      this.inputField.value = 'Can you check the security implications of my recent commands?';
-      this.sendMessage();
-      break;
+      case 'security-check':
+        this.inputField.value = 'Can you check the security implications of my recent commands?';
+        this.sendMessage();
+        break;
     }
   }
 
@@ -757,7 +757,7 @@ class AICopilotUI {
       // Show confirmation with personality-specific message
       if (personalitySelect.value === 'rinawarp') {
         this.addSystemMessage(
-          '🧜‍♀️ *Swish!* Settings updated! I\'m feeling extra sparkly today! ✨🌊'
+          "🧜‍♀️ *Swish!* Settings updated! I'm feeling extra sparkly today! ✨🌊"
         );
       } else {
         this.addSystemMessage('✅ Settings updated successfully!');

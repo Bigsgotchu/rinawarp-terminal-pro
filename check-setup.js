@@ -37,8 +37,7 @@ try {
 try {
   await import('discord.js');
   console.log('✅ discord.js is installed');
-} catch (error) {
-}
+} catch (error) {}
 
 try {
   await import('dotenv/config');

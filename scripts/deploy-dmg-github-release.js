@@ -112,23 +112,24 @@ function createGitHubRelease(version, dmgPath) {
     try {
       execSync(`gh release view v${version}`, { stdio: 'ignore' });
       logInfo(`Release v${version} already exists, updating...`);
-      
+
       // Delete existing asset if it exists
       try {
-        execSync(`gh release delete-asset v${version} RinaWarp-Terminal-macOS.dmg --yes`, { stdio: 'ignore' });
+        execSync(`gh release delete-asset v${version} RinaWarp-Terminal-macOS.dmg --yes`, {
+          stdio: 'ignore',
+        });
         logInfo('Removed existing DMG asset');
       } catch (error) {
         // Asset doesn't exist, that's fine
       }
-      
+
       // Upload new asset
       execSync(`gh release upload v${version} "${dmgPath}" --clobber`, { stdio: 'inherit' });
       logSuccess('DMG uploaded to existing release');
-      
     } catch (error) {
       // Release doesn't exist, create it
       logInfo('Creating new release...');
-      
+
       const releaseNotes = `# RinaWarp Terminal v${version}
 
 🌊 **Advanced Terminal Emulator with AI Assistance**
@@ -162,14 +163,13 @@ Visit [rinawarptech.com](https://rinawarptech.com) for full documentation and su
     // Get the download URL
     const releaseInfo = execSync(`gh release view v${version} --json assets`, { encoding: 'utf8' });
     const release = JSON.parse(releaseInfo);
-    
+
     const dmgAsset = release.assets.find(asset => asset.name === 'RinaWarp-Terminal-macOS.dmg');
     if (dmgAsset) {
       logSuccess('🎉 DMG is now available at:');
       logSuccess(`   ${dmgAsset.url}`);
       return dmgAsset.url;
     }
-
   } catch (error) {
     logError('Failed to create GitHub release');
     console.error(error.message);
@@ -180,13 +180,13 @@ Visit [rinawarptech.com](https://rinawarptech.com) for full documentation and su
 // Update website download configuration
 function updateWebsiteConfig(downloadUrl) {
   logInfo('Updating website download configuration...');
-  
+
   // Update the download redirect script
   const downloadScriptPath = path.join(projectRoot, 'src', 'api', 'download-redirect.js');
-  
+
   if (fs.existsSync(downloadScriptPath)) {
     let downloadScript = fs.readFileSync(downloadScriptPath, 'utf8');
-    
+
     // Update the macOS download URL
     const macOSPattern = /(RinaWarp-Terminal-macOS\.dmg['"]?\s*:\s*['"])[^'"]*(['"])/;
     if (macOSPattern.test(downloadScript)) {
@@ -199,7 +199,7 @@ function updateWebsiteConfig(downloadUrl) {
   } else {
     logWarning('Download redirect script not found');
   }
-  
+
   // Create a simple redirect file
   const redirectHTML = `<!DOCTYPE html>
 <html>
@@ -221,7 +221,7 @@ function updateWebsiteConfig(downloadUrl) {
 // Deploy website updates (without large files)
 function deployWebsiteUpdates() {
   logInfo('Deploying website updates to Railway...');
-  
+
   try {
     // First, let's exclude the large DMG files from deployment
     const gitignorePath = path.join(projectRoot, '.railwayignore');
@@ -237,17 +237,16 @@ dist/
 *.tar.gz
 *.AppImage
 `;
-    
+
     fs.writeFileSync(gitignorePath, ignoreContent);
     logInfo('Created .railwayignore to exclude large files');
-    
+
     // Check authentication
     execSync('railway whoami', { stdio: 'ignore' });
-    
+
     // Deploy
     execSync('railway up', { stdio: 'inherit', cwd: projectRoot });
     logSuccess('Website updates deployed to Railway');
-    
   } catch (error) {
     logError('Failed to deploy website updates');
     console.error(error.message);
@@ -261,42 +260,43 @@ async function main() {
     if (!checkGitHubCLI()) {
       process.exit(1);
     }
-    
+
     if (!checkGitHubAuth()) {
       process.exit(1);
     }
-    
+
     // Check for DMG file
     const dmgPath = checkDMGFile();
     if (!dmgPath) {
       process.exit(1);
     }
-    
+
     // Get version
     const version = getPackageVersion();
     logInfo(`Package version: ${version}`);
-    
+
     // Create GitHub release and upload DMG
     const downloadUrl = createGitHubRelease(version, dmgPath);
     if (!downloadUrl) {
       process.exit(1);
     }
-    
+
     // Update website configuration
     updateWebsiteConfig(downloadUrl);
-    
+
     // Deploy website updates (without large files)
     deployWebsiteUpdates();
-    
+
     logSuccess('');
     logSuccess('🎉 Deployment completed successfully!');
     logSuccess('');
     logSuccess('Your DMG is now available via:');
     logSuccess(`1. Direct GitHub release: ${downloadUrl}`);
     logSuccess('2. Website redirect: https://rinawarptech.com/download-macos.html');
-    logSuccess('3. API endpoint: https://rinawarptech.com/api/download?file=RinaWarp-Terminal-macOS.dmg');
+    logSuccess(
+      '3. API endpoint: https://rinawarptech.com/api/download?file=RinaWarp-Terminal-macOS.dmg'
+    );
     logSuccess('');
-    
   } catch (error) {
     logError('Deployment failed');
     console.error(error);

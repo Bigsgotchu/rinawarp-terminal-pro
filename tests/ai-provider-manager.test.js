@@ -4,7 +4,7 @@ import { AIProviderManager } from '../src/renderer/ai-provider-manager.js';
 // Mock the AIProviderFactory
 jest.mock('../src/renderer/ai-providers.js', () => ({
   AIProviderFactory: {
-    createProvider: jest.fn((type) => {
+    createProvider: jest.fn(type => {
       const mockProvider = {
         type,
         initialize: jest.fn().mockResolvedValue(true),
@@ -68,7 +68,7 @@ describe('AIProviderManager', () => {
       });
 
       await manager.initializeProviders();
-      
+
       // Should still have the provider in the map with error stored
       expect(manager.providers.size).toBe(4);
     });
@@ -131,8 +131,8 @@ describe('AIProviderManager', () => {
       manager.config.responseTimeout = 100;
       manager.config.enableFallback = false; // Disable fallback to force timeout error
       const provider = manager.activeProvider;
-      provider.generateResponse.mockImplementation(() => 
-        new Promise(resolve => setTimeout(resolve, 200))
+      provider.generateResponse.mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 200))
       );
 
       await expect(manager.generateResponse('test')).rejects.toThrow('Response timeout');
@@ -186,7 +186,7 @@ describe('AIProviderManager', () => {
 
     it('should provide generic response for unknown queries', () => {
       const response = manager.generateBasicFallbackResponse('random query', {});
-      expect(response.explanation).toContain('I\'m still here to help');
+      expect(response.explanation).toContain("I'm still here to help");
     });
   });
 

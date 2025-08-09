@@ -161,13 +161,13 @@ export class PluginManager extends EventEmitter {
       // Limited Node.js modules for trusted plugins
       ...(trusted
         ? {
-          Buffer: Buffer,
-          process: {
-            env: process.env,
-            platform: process.platform,
-            version: process.version,
-          },
-        }
+            Buffer: Buffer,
+            process: {
+              env: process.env,
+              platform: process.platform,
+              version: process.version,
+            },
+          }
         : {}),
     };
 

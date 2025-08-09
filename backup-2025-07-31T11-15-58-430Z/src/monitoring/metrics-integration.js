@@ -126,7 +126,6 @@ export class MetricsIntegration {
       terminalSessionInstrumentation.onSessionEnd(sessionId);
       return originalDeleteSession(sessionId);
     };
-
   }
 
   /**

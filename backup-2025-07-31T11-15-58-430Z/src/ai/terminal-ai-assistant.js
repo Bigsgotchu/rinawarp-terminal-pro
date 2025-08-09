@@ -160,7 +160,7 @@ export class TerminalAIAssistant {
     const patterns = this.languagePatterns;
 
     if (patterns.greeting.test(input)) {
-      return '👋 Hello! I\'m Rina, your AI terminal assistant. I can help you with commands, explain what they do, or just chat. What would you like to do?';
+      return "👋 Hello! I'm Rina, your AI terminal assistant. I can help you with commands, explain what they do, or just chat. What would you like to do?";
     }
 
     if (patterns.help.test(input)) {
@@ -175,11 +175,11 @@ Just type naturally - I'll understand!`;
     }
 
     if (patterns.thanks.test(input)) {
-      return '😊 You\'re welcome! Anything else I can help with?';
+      return "😊 You're welcome! Anything else I can help with?";
     }
 
     if (patterns.goodbye.test(input)) {
-      return '👋 Goodbye! Type \'rina\' anytime to chat again.';
+      return "👋 Goodbye! Type 'rina' anytime to chat again.";
     }
 
     return null;

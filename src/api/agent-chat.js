@@ -82,33 +82,33 @@ class AgentChatAPI {
       let response;
 
       switch (provider.toLowerCase()) {
-      case 'openai':
-        response = await this.handleOpenAIRequest(messages, functions, {
-          model,
-          temperature,
-          max_tokens: maxTokens,
-        });
-        break;
+        case 'openai':
+          response = await this.handleOpenAIRequest(messages, functions, {
+            model,
+            temperature,
+            max_tokens: maxTokens,
+          });
+          break;
 
-      case 'anthropic':
-      case 'claude':
-        response = await this.handleAnthropicRequest(messages, functions, {
-          model: model.includes('claude') ? model : 'claude-3-sonnet-20240229',
-          temperature,
-          max_tokens: maxTokens,
-        });
-        break;
+        case 'anthropic':
+        case 'claude':
+          response = await this.handleAnthropicRequest(messages, functions, {
+            model: model.includes('claude') ? model : 'claude-3-sonnet-20240229',
+            temperature,
+            max_tokens: maxTokens,
+          });
+          break;
 
-      case 'ollama':
-        response = await this.handleOllamaRequest(messages, functions, {
-          model: model.includes('llama') ? model : 'llama2',
-          temperature,
-          max_tokens: maxTokens,
-        });
-        break;
+        case 'ollama':
+          response = await this.handleOllamaRequest(messages, functions, {
+            model: model.includes('llama') ? model : 'llama2',
+            temperature,
+            max_tokens: maxTokens,
+          });
+          break;
 
-      default:
-        throw new Error(new Error(new Error(`Unsupported provider: ${provider}`)));
+        default:
+          throw new Error(new Error(new Error(`Unsupported provider: ${provider}`)));
       }
 
       res.json({
@@ -129,7 +129,9 @@ class AgentChatAPI {
 
   async handleOpenAIRequest(messages, functions, options) {
     if (!this.openai) {
-      throw new Error(new Error(new Error('OpenAI provider not configured. Please set OPENAI_API_KEY.')));
+      throw new Error(
+        new Error(new Error('OpenAI provider not configured. Please set OPENAI_API_KEY.'))
+      );
     }
 
     const requestBody = {
@@ -174,9 +176,9 @@ class AgentChatAPI {
 
   async handleAnthropicRequest(messages, functions, options) {
     if (!this.anthropic) {
-      throw new Error(new Error(
-        new Error('Anthropic provider not configured. Please set ANTHROPIC_API_KEY.')
-      ));
+      throw new Error(
+        new Error(new Error('Anthropic provider not configured. Please set ANTHROPIC_API_KEY.'))
+      );
     }
 
     // Convert messages format for Anthropic
@@ -278,7 +280,9 @@ class AgentChatAPI {
       };
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
-        throw new Error(new Error(new Error('Ollama server not running. Please start Ollama and try again.')));
+        throw new Error(
+          new Error(new Error('Ollama server not running. Please start Ollama and try again.'))
+        );
       }
       throw new Error(new Error(error));
     }

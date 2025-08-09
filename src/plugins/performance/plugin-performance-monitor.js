@@ -339,10 +339,12 @@ export class PluginPerformanceUtils {
         };
       } catch (error) {
         const end = performance.now();
-        throw new Error(new Error({
-          error,
-          executionTime: end - start,
-        }));
+        throw new Error(
+          new Error({
+            error,
+            executionTime: end - start,
+          })
+        );
       }
     };
   }

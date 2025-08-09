@@ -1,6 +1,6 @@
 /**
  * Distributed Tracing Utilities for RinaWarp Terminal
- * 
+ *
  * This module provides utilities for creating custom spans, transactions,
  * and propagating trace context across microservices and external API calls.
  */
@@ -22,8 +22,8 @@ export function createTransaction(name, op = 'custom', context = {}) {
     tags: {
       service: 'rinawarp-terminal',
       component: context.component || 'server',
-      ...context.tags
-    }
+      ...context.tags,
+    },
   });
 
   // Set the transaction on the scope so spans are attached to it
@@ -43,7 +43,7 @@ export function createTransaction(name, op = 'custom', context = {}) {
  */
 export function createSpan(operation, description, data = {}) {
   const transaction = Sentry.getCurrentHub().getScope()?.getTransaction();
-  
+
   if (!transaction) {
     console.warn('No active transaction found for span creation');
     return null;
@@ -55,8 +55,8 @@ export function createSpan(operation, description, data = {}) {
     data,
     tags: {
       service: 'rinawarp-terminal',
-      ...data.tags
-    }
+      ...data.tags,
+    },
   });
 
   return span;
@@ -71,44 +71,40 @@ export function createSpan(operation, description, data = {}) {
  */
 export function traceAsync(operationName, fn, options = {}) {
   return async function tracedFunction(...args) {
-    const span = createSpan(
-      options.op || 'function',
-      operationName,
-      {
-        functionName: fn.name,
-        args: options.logArgs ? args : undefined,
-        ...options.data
-      }
-    );
+    const span = createSpan(options.op || 'function', operationName, {
+      functionName: fn.name,
+      args: options.logArgs ? args : undefined,
+      ...options.data,
+    });
 
     try {
       const result = await fn.apply(this, args);
-      
+
       if (span) {
         span.setTag('success', true);
         if (options.logResult && result !== undefined) {
           span.setData('result', result);
         }
       }
-      
+
       return result;
     } catch (error) {
       if (span) {
         span.setTag('success', false);
         span.setData('error', error.message);
       }
-      
+
       // Record the error in Sentry
       Sentry.captureException(error, {
         tags: {
           operation: operationName,
-          function: fn.name
+          function: fn.name,
         },
         extra: {
-          args: options.logArgs ? args : 'hidden'
-        }
+          args: options.logArgs ? args : 'hidden',
+        },
       });
-      
+
       throw error;
     } finally {
       if (span) {
@@ -125,24 +121,20 @@ export function traceAsync(operationName, fn, options = {}) {
  */
 export function createTracingMiddleware(options = {}) {
   return (req, res, next) => {
-    const transactionName = options.getTransactionName 
+    const transactionName = options.getTransactionName
       ? options.getTransactionName(req)
       : `${req.method} ${req.route?.path || req.path}`;
 
-    const transaction = createTransaction(
-      transactionName,
-      'http.server',
-      {
-        component: 'express',
-        tags: {
-          'http.method': req.method,
-          'http.path': req.path,
-          'http.route': req.route?.path,
-          'http.user_agent': req.get('user-agent'),
-          'http.ip': req.ip
-        }
-      }
-    );
+    const transaction = createTransaction(transactionName, 'http.server', {
+      component: 'express',
+      tags: {
+        'http.method': req.method,
+        'http.path': req.path,
+        'http.route': req.route?.path,
+        'http.user_agent': req.get('user-agent'),
+        'http.ip': req.ip,
+      },
+    });
 
     // Add request context to transaction
     transaction.setData('request', {
@@ -150,10 +142,12 @@ export function createTracingMiddleware(options = {}) {
       url: req.url,
       path: req.path,
       query: req.query,
-      headers: options.logHeaders ? req.headers : {
-        'user-agent': req.get('user-agent'),
-        'content-type': req.get('content-type')
-      }
+      headers: options.logHeaders
+        ? req.headers
+        : {
+            'user-agent': req.get('user-agent'),
+            'content-type': req.get('content-type'),
+          },
     });
 
     // Store transaction in request for later use
@@ -161,20 +155,20 @@ export function createTracingMiddleware(options = {}) {
 
     // Handle response completion
     const originalEnd = res.end;
-    res.end = function(...args) {
+    res.end = function (...args) {
       transaction.setTag('http.status_code', res.statusCode);
       transaction.setData('response', {
         status: res.statusCode,
-        headers: options.logResponseHeaders ? res.getHeaders() : {}
+        headers: options.logResponseHeaders ? res.getHeaders() : {},
       });
-      
+
       // Set transaction status based on HTTP status
       if (res.statusCode >= 400) {
         transaction.setStatus('failed_precondition');
       } else {
         transaction.setStatus('ok');
       }
-      
+
       transaction.finish();
       originalEnd.apply(this, args);
     };
@@ -194,30 +188,30 @@ export async function traceDatabase(query, params, executor) {
   const span = createSpan('db.query', query, {
     'db.type': 'sql',
     'db.statement': query,
-    'db.params': params
+    'db.params': params,
   });
 
   try {
     const startTime = Date.now();
     const result = await executor();
-    
+
     if (span) {
       span.setData('db.duration', Date.now() - startTime);
       span.setTag('db.success', true);
-      
+
       // Log result size if it's an array
       if (Array.isArray(result)) {
         span.setData('db.rows', result.length);
       }
     }
-    
+
     return result;
   } catch (error) {
     if (span) {
       span.setTag('db.success', false);
       span.setData('db.error', error.message);
     }
-    
+
     throw error;
   } finally {
     if (span) {
@@ -241,31 +235,31 @@ export async function traceHttpRequest(method, url, options, executor) {
     'http.url': url,
     'http.host': urlObj.hostname,
     'http.scheme': urlObj.protocol.replace(':', ''),
-    'http.target': `${urlObj.pathname}${urlObj.search}`
+    'http.target': `${urlObj.pathname}${urlObj.search}`,
   });
 
   try {
     const startTime = Date.now();
     const response = await executor();
-    
+
     if (span) {
       span.setData('http.duration', Date.now() - startTime);
       span.setTag('http.status_code', response.status || response.statusCode);
-      
+
       if (response.status >= 400) {
         span.setStatus('failed_precondition');
       } else {
         span.setStatus('ok');
       }
     }
-    
+
     return response;
   } catch (error) {
     if (span) {
       span.setStatus('internal_error');
       span.setData('http.error', error.message);
     }
-    
+
     throw error;
   } finally {
     if (span) {
@@ -287,20 +281,20 @@ export async function traceAI(model, operation, input, executor) {
     'ai.model': model,
     'ai.operation': operation,
     'ai.input_size': JSON.stringify(input).length,
-    'ai.provider': 'anthropic' // or detect based on model
+    'ai.provider': 'anthropic', // or detect based on model
   });
 
   try {
     const startTime = Date.now();
     const result = await executor();
-    
+
     if (span) {
       span.setData('ai.duration', Date.now() - startTime);
       span.setTag('ai.success', true);
-      
+
       if (result) {
         span.setData('ai.output_size', JSON.stringify(result).length);
-        
+
         // Track token usage if available
         if (result.usage) {
           span.setData('ai.tokens_input', result.usage.input_tokens);
@@ -309,14 +303,14 @@ export async function traceAI(model, operation, input, executor) {
         }
       }
     }
-    
+
     return result;
   } catch (error) {
     if (span) {
       span.setTag('ai.success', false);
       span.setData('ai.error', error.message);
     }
-    
+
     throw error;
   } finally {
     if (span) {
@@ -337,29 +331,29 @@ export async function tracePayment(operation, data, executor) {
     'payment.provider': 'stripe',
     'payment.operation': operation,
     'payment.currency': data.currency || 'usd',
-    'payment.amount': data.amount
+    'payment.amount': data.amount,
   });
 
   try {
     const startTime = Date.now();
     const result = await executor();
-    
+
     if (span) {
       span.setData('payment.duration', Date.now() - startTime);
       span.setTag('payment.success', true);
-      
+
       if (result && result.id) {
         span.setData('payment.session_id', result.id);
       }
     }
-    
+
     return result;
   } catch (error) {
     if (span) {
       span.setTag('payment.success', false);
       span.setData('payment.error', error.message);
     }
-    
+
     throw error;
   } finally {
     if (span) {
@@ -415,10 +409,10 @@ export function getTraceHeaders() {
 
   const traceId = transaction.traceId;
   const spanId = transaction.spanId;
-  
+
   return {
     'sentry-trace': `${traceId}-${spanId}-1`,
-    'baggage': `sentry-trace_id=${traceId},sentry-public_key=${Sentry.getCurrentHub().getClient()?.getDsn()?.publicKey},sentry-sample_rate=1`
+    baggage: `sentry-trace_id=${traceId},sentry-public_key=${Sentry.getCurrentHub().getClient()?.getDsn()?.publicKey},sentry-sample_rate=1`,
   };
 }
 
@@ -428,14 +422,14 @@ export function getTraceHeaders() {
  * @returns {Function} Decorator function
  */
 export function traced(operationName) {
-  return function(target, propertyKey, descriptor) {
+  return function (target, propertyKey, descriptor) {
     const originalMethod = descriptor.value;
-    
-    descriptor.value = async function(...args) {
+
+    descriptor.value = async function (...args) {
       const span = createSpan('method', `${target.constructor.name}.${propertyKey}`, {
         class: target.constructor.name,
         method: propertyKey,
-        operation: operationName
+        operation: operationName,
       });
 
       try {
@@ -474,5 +468,5 @@ export default {
   addTransactionData,
   setUser,
   getTraceHeaders,
-  traced
+  traced,
 };

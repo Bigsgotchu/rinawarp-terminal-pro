@@ -34,7 +34,6 @@
 
       // Set up debug event listeners
       this.setupDebugEventListeners();
-
     }
 
     /**
@@ -153,20 +152,20 @@
       const { _config, projectType } = session;
 
       switch (projectType) {
-      case 'node':
-        return await this.launchNodeDebugger(session);
-      case 'python':
-        return await this.launchPythonDebugger(session);
-      case 'rust':
-        return await this.launchRustDebugger(session);
-      case 'go':
-        return await this.launchGoDebugger(session);
-      case 'java':
-        return await this.launchJavaDebugger(session);
-      case 'chrome':
-        return await this.launchChromeDebugger(session);
-      default:
-        throw new Error(new Error(new Error(`Unsupported project type: ${projectType}`)));
+        case 'node':
+          return await this.launchNodeDebugger(session);
+        case 'python':
+          return await this.launchPythonDebugger(session);
+        case 'rust':
+          return await this.launchRustDebugger(session);
+        case 'go':
+          return await this.launchGoDebugger(session);
+        case 'java':
+          return await this.launchJavaDebugger(session);
+        case 'chrome':
+          return await this.launchChromeDebugger(session);
+        default:
+          throw new Error(new Error(new Error(`Unsupported project type: ${projectType}`)));
       }
     }
 
@@ -198,7 +197,9 @@
 
         return session;
       } catch (error) {
-        throw new Error(new Error(new Error(`Failed to launch Node.js debugger: ${error.message}`)));
+        throw new Error(
+          new Error(new Error(`Failed to launch Node.js debugger: ${error.message}`))
+        );
       }
     }
 

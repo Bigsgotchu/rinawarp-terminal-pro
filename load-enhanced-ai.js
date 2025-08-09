@@ -2,10 +2,10 @@
 
 /**
  * 🧜‍♀️ Load Enhanced AI Integration into RinaWarp Terminal
- * 
+ *
  * This script loads the Warp Agent-like capabilities into your existing
  * RinaWarp Terminal while preserving all your beautiful design and features.
- * 
+ *
  * Usage: node load-enhanced-ai.js
  */
 
@@ -17,26 +17,27 @@ function injectEnhancement() {
   const script = document.createElement('script');
   script.type = 'module';
   script.src = './src/enhanced-ai-terminal-init.js';
-    
+
   // Add to document
   document.head.appendChild(script);
-    
+
   console.log('✅ Enhanced AI integration loaded!');
-    
+
   // Show success message
   setTimeout(() => {
     if (window.rinaWarpAgent) {
       console.log('🧜‍♀️ Warp Agent capabilities now available in your RinaWarp Terminal!');
-            
+
       // Show the agent panel briefly as demonstration
       setTimeout(() => {
         if (window.rinaWarpAgent.toggleAgentPanel) {
           window.rinaWarpAgent.toggleAgentPanel(true);
-                    
+
           // Add welcome message
           setTimeout(() => {
             if (window.rinaWarpAgent.addMessageToConversation) {
-              window.rinaWarpAgent.addMessageToConversation('assistant', 
+              window.rinaWarpAgent.addMessageToConversation(
+                'assistant',
                 `🧜‍♀️ Hello! I'm your new AI agent, integrated seamlessly with your beautiful RinaWarp Terminal!
 
 I can help you with:
@@ -53,7 +54,8 @@ Your existing features are all preserved:
 
 Try asking me: "Analyze my current project" or "Help me debug an error"
 
-What would you like help with today?`);
+What would you like help with today?`
+              );
             }
           }, 1000);
         }

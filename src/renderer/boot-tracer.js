@@ -77,7 +77,9 @@ export class BootTracer {
       // Step 4: Validate container exists
       const containerValid = await this.validateContainer(tabId);
       if (!containerValid) {
-        throw new Error(new Error(new Error(`Terminal container 'terminal-tab-${tabId}' not found`)));
+        throw new Error(
+          new Error(new Error(`Terminal container 'terminal-tab-${tabId}' not found`))
+        );
       }
 
       // Step 5: Initialize terminal
@@ -304,12 +306,12 @@ export class BootTracer {
 <div>🧪 Boot Sequence: <span style="color: #00ff88">${this.bootSequence.length} steps</span></div>
 <div style="margin-top: 8px; border-top: 1px solid #333; padding-top: 4px; color: #aaa; font-size: 10px;">
 Recent: ${this.bootSequence
-    .slice(-3)
-    .map(
-      entry =>
-        `<div style="color: ${entry.type === 'error' ? '#ff6b6b' : entry.type === 'success' ? '#00ff88' : '#74c0fc'}">${entry.message}</div>`
-    )
-    .join('')}
+      .slice(-3)
+      .map(
+        entry =>
+          `<div style="color: ${entry.type === 'error' ? '#ff6b6b' : entry.type === 'success' ? '#00ff88' : '#74c0fc'}">${entry.message}</div>`
+      )
+      .join('')}
 </div>
         `.trim();
 

@@ -9,22 +9,37 @@
 /* ===== THEME VARIABLES ===== */
 :root {
   /* RinaWarp Brand Colors */
-  --rinawarp-pink: #FF1493;
-  --rinawarp-coral: #FF6B9D;
-  --rinawarp-teal: #00CED1;
-  --rinawarp-blue: #4169E1;
-  --rinawarp-purple: #9B59B6;
-  --rinawarp-green: #00FF88;
-  
+  --rinawarp-pink: #ff1493;
+  --rinawarp-coral: #ff6b9d;
+  --rinawarp-teal: #00ced1;
+  --rinawarp-blue: #4169e1;
+  --rinawarp-purple: #9b59b6;
+  --rinawarp-green: #00ff88;
+
   /* RinaWarp Gradient Definitions */
-  --rinawarp-gradient-primary: linear-gradient(135deg, var(--rinawarp-pink) 0%, var(--rinawarp-coral) 50%, var(--rinawarp-teal) 100%);
-  --rinawarp-gradient-secondary: linear-gradient(45deg, var(--rinawarp-blue) 0%, var(--rinawarp-purple) 50%, var(--rinawarp-pink) 100%);
-  --rinawarp-gradient-hover: linear-gradient(135deg, var(--rinawarp-coral) 0%, var(--rinawarp-teal) 50%, var(--rinawarp-blue) 100%);
-  
+  --rinawarp-gradient-primary: linear-gradient(
+    135deg,
+    var(--rinawarp-pink) 0%,
+    var(--rinawarp-coral) 50%,
+    var(--rinawarp-teal) 100%
+  );
+  --rinawarp-gradient-secondary: linear-gradient(
+    45deg,
+    var(--rinawarp-blue) 0%,
+    var(--rinawarp-purple) 50%,
+    var(--rinawarp-pink) 100%
+  );
+  --rinawarp-gradient-hover: linear-gradient(
+    135deg,
+    var(--rinawarp-coral) 0%,
+    var(--rinawarp-teal) 50%,
+    var(--rinawarp-blue) 100%
+  );
+
   /* RinaWarp Shadows and Effects */
   --rinawarp-glow: 0 0 20px rgba(255, 20, 147, 0.5), 0 0 40px rgba(255, 107, 157, 0.3);
   --rinawarp-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  
+
   /* Default Dark Theme */
   --bg-primary: #1a1a1a;
   --bg-secondary: #2d2d2d;
@@ -385,7 +400,7 @@
   --accent-secondary: var(--rinawarp-teal);
   --border-color: #2a2a33;
   --terminal-bg: #050508;
-  
+
   /* Special brand effects */
   --button-gradient: var(--rinawarp-gradient-primary);
   --button-gradient-hover: var(--rinawarp-gradient-hover);
@@ -536,7 +551,12 @@ body,
 }
 
 .theme-rinawarp .terminal-header {
-  background: linear-gradient(to right, var(--bg-secondary) 0%, rgba(255, 20, 147, 0.1) 50%, var(--bg-secondary) 100%);
+  background: linear-gradient(
+    to right,
+    var(--bg-secondary) 0%,
+    rgba(255, 20, 147, 0.1) 50%,
+    var(--bg-secondary) 100%
+  );
 }
 
 .theme-rinawarp .tab.active {
@@ -545,7 +565,12 @@ body,
 }
 
 .theme-rinawarp .status-bar {
-  background: linear-gradient(to right, var(--bg-secondary) 0%, rgba(0, 206, 209, 0.1) 50%, var(--bg-secondary) 100%);
+  background: linear-gradient(
+    to right,
+    var(--bg-secondary) 0%,
+    rgba(0, 206, 209, 0.1) 50%,
+    var(--bg-secondary) 100%
+  );
 }
 
 /* Glow effect for focused elements */
@@ -553,7 +578,9 @@ body,
 .theme-rinawarp textarea:focus,
 .theme-rinawarp .terminal-container:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 20, 147, 0.3), var(--rinawarp-glow);
+  box-shadow:
+    0 0 0 2px rgba(255, 20, 147, 0.3),
+    var(--rinawarp-glow);
 }
 
 /* Animated gradient border for modals */
@@ -578,7 +605,8 @@ body,
 }
 
 @keyframes gradient-shift {
-  0%, 100% {
+  0%,
+  100% {
     background: var(--rinawarp-gradient-primary);
   }
   50% {
@@ -597,7 +625,7 @@ body,
   .modal-content {
     transition: none;
   }
-  
+
   .theme-rinawarp .modal-content::before {
     animation: none;
   }

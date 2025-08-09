@@ -105,9 +105,9 @@ class AICopilotService {
     try {
       // Rate limiting check
       if (!this.rateLimiter.canProceed()) {
-        throw new Error(new Error(
-          new Error('Rate limit exceeded. Please wait before making another request.')
-        ));
+        throw new Error(
+          new Error(new Error('Rate limit exceeded. Please wait before making another request.'))
+        );
       }
 
       // Security filtering
@@ -236,7 +236,9 @@ class AICopilotService {
     } catch (error) {
       // Rollback on failure
       this.currentProvider = oldProvider;
-      throw new Error(new Error(new Error(`Failed to switch to provider ${providerName}: ${error.message}`)));
+      throw new Error(
+        new Error(new Error(`Failed to switch to provider ${providerName}: ${error.message}`))
+      );
     }
   }
 
@@ -547,16 +549,16 @@ class ResponseFormatter {
 
     // Adjust response based on verbosity level
     switch (verbosity) {
-    case 'minimal':
-      formatted = this.minimizeResponse(formatted);
-      break;
-    case 'detailed':
-      formatted = this.expandResponse(formatted);
-      break;
-    case 'balanced':
-    default:
-      // Keep as is
-      break;
+      case 'minimal':
+        formatted = this.minimizeResponse(formatted);
+        break;
+      case 'detailed':
+        formatted = this.expandResponse(formatted);
+        break;
+      case 'balanced':
+      default:
+        // Keep as is
+        break;
     }
 
     // Adjust personality
@@ -588,15 +590,15 @@ class ResponseFormatter {
 
   adjustPersonality(flavor, mode) {
     switch (mode) {
-    case 'professional':
-      return flavor.replace(/[🤖😄💡🚀✨]/gu, '').trim();
-    case 'casual':
-      return flavor + ' 😊';
-    case 'debug':
-      return `[DEBUG] ${flavor}`;
-    case 'helpful':
-    default:
-      return flavor;
+      case 'professional':
+        return flavor.replace(/[🤖😄💡🚀✨]/gu, '').trim();
+      case 'casual':
+        return flavor + ' 😊';
+      case 'debug':
+        return `[DEBUG] ${flavor}`;
+      case 'helpful':
+      default:
+        return flavor;
     }
   }
 }

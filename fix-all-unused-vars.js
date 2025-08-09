@@ -48,7 +48,6 @@ for (const line of lines) {
   }
 }
 
-
 // Group warnings by file
 const warningsByFile = {};
 for (const warning of warnings) {
@@ -61,7 +60,6 @@ for (const warning of warnings) {
 // Process each file
 let totalFixed = 0;
 for (const [filePath, fileWarnings] of Object.entries(warningsByFile)) {
-
   try {
     let content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n');
@@ -126,11 +124,9 @@ for (const [filePath, fileWarnings] of Object.entries(warningsByFile)) {
   }
 }
 
-
 // Run lint again to verify
 try {
   const newWarningCount = execSync('npm run lint 2>&1 | grep "warning" | wc -l', {
     encoding: 'utf8',
   }).trim();
-} catch (error) {
-}
+} catch (error) {}

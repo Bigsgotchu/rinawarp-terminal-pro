@@ -443,7 +443,6 @@ export class ModernThemeSystem {
 
     // Emit theme change event
     this.emitThemeChange(themeName, theme);
-
   }
 
   getTheme(name) {
@@ -517,15 +516,15 @@ export class ModernThemeSystem {
 
     // Add animations based on theme
     switch (theme.effects.animation) {
-    case 'smooth':
-      animations = `
+      case 'smooth':
+        animations = `
           * {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           }
         `;
-      break;
-    case 'wave':
-      animations = `
+        break;
+      case 'wave':
+        animations = `
           @keyframes wave {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-2px); }
@@ -534,9 +533,9 @@ export class ModernThemeSystem {
             animation: wave 2s ease-in-out infinite;
           }
         `;
-      break;
-    case 'neon':
-      animations = `
+        break;
+      case 'neon':
+        animations = `
           @keyframes neon-glow {
             0%, 100% { box-shadow: 0 0 5px currentColor; }
             50% { box-shadow: 0 0 20px currentColor; }
@@ -545,14 +544,14 @@ export class ModernThemeSystem {
             animation: neon-glow 2s ease-in-out infinite;
           }
         `;
-      break;
-    case 'gentle':
-      animations = `
+        break;
+      case 'gentle':
+        animations = `
           * {
             transition: all 0.5s ease-in-out;
           }
         `;
-      break;
+        break;
     }
 
     style.textContent = `
@@ -569,26 +568,26 @@ export class ModernThemeSystem {
       }
       
       ${
-  theme.effects.glowEffect
-    ? `
+        theme.effects.glowEffect
+          ? `
         .glow-effect {
           box-shadow: 0 0 10px ${theme.colors.primary}40;
         }
       `
-    : ''
-}
+          : ''
+      }
       
       ${
-  this.accessibilitySettings.reducedMotion
-    ? `
+        this.accessibilitySettings.reducedMotion
+          ? `
         *, *::before, *::after {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
         }
       `
-    : ''
-}
+          : ''
+      }
     `;
 
     document.head.appendChild(style);
@@ -715,18 +714,18 @@ export class ModernThemeSystem {
 
     style.textContent = `
       ${
-  this.accessibilitySettings.highContrast
-    ? `
+        this.accessibilitySettings.highContrast
+          ? `
         body {
           filter: contrast(1.5);
         }
       `
-    : ''
-}
+          : ''
+      }
       
       ${
-  this.accessibilitySettings.largeText
-    ? `
+        this.accessibilitySettings.largeText
+          ? `
         body {
           font-size: 1.2em;
         }
@@ -734,20 +733,20 @@ export class ModernThemeSystem {
           font-size: 1.2em;
         }
       `
-    : ''
-}
+          : ''
+      }
       
       ${
-  this.accessibilitySettings.colorBlindFriendly
-    ? `
+        this.accessibilitySettings.colorBlindFriendly
+          ? `
         .color-primary { background-color: #0066cc; }
         .color-secondary { background-color: #ff6600; }
         .color-success { background-color: #009900; }
         .color-warning { background-color: #ffcc00; }
         .color-error { background-color: #cc0000; }
       `
-    : ''
-}
+          : ''
+      }
     `;
 
     document.head.appendChild(style);

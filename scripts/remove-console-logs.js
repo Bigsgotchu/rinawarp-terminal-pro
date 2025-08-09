@@ -18,7 +18,7 @@ const excludePatterns = [
   /\.spec\.js$/,
   /test-/,
   /debug/i,
-  /logger\.js$/
+  /logger\.js$/,
 ];
 
 let totalProcessed = 0;
@@ -30,11 +30,11 @@ function shouldProcessFile(filePath) {
 
 function processFile(filePath) {
   if (!shouldProcessFile(filePath)) return;
-  
+
   const content = fs.readFileSync(filePath, 'utf8');
   let modified = content;
   let count = 0;
-  
+
   if (mode === 'remove') {
     // Remove console.log statements entirely
     modified = content.replace(/console\.log\([^)]*\);?\s*/g, () => {
@@ -47,16 +47,18 @@ function processFile(filePath) {
       count++;
       return 'logger.debug(';
     });
-    
+
     // Add logger import if needed and console.log was found
     if (count > 0 && !content.includes('import logger') && !content.includes('require.*logger')) {
       modified = `import logger from '../src/utilities/logger.js';\n${modified}`;
     }
   }
-  
+
   if (count > 0) {
     fs.writeFileSync(filePath, modified);
-    console.log(`✅ Processed ${filePath}: ${count} console.log statements ${mode === 'remove' ? 'removed' : 'converted'}`);
+    console.log(
+      `✅ Processed ${filePath}: ${count} console.log statements ${mode === 'remove' ? 'removed' : 'converted'}`
+    );
     totalRemoved += count;
     totalProcessed++;
   }
@@ -64,11 +66,11 @@ function processFile(filePath) {
 
 function processDirectory(dir) {
   const files = fs.readdirSync(dir);
-  
+
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
       processDirectory(filePath);
     } else if (stat.isFile() && (file.endsWith('.js') || file.endsWith('.ts'))) {
@@ -80,7 +82,9 @@ function processDirectory(dir) {
 console.log(`🔍 Processing console.log statements (mode: ${mode})...`);
 processDirectory(srcDir);
 
-console.log(`\n✨ Complete! Processed ${totalProcessed} files, ${totalRemoved} console.log statements ${mode === 'remove' ? 'removed' : 'converted'}.`);
+console.log(
+  `\n✨ Complete! Processed ${totalProcessed} files, ${totalRemoved} console.log statements ${mode === 'remove' ? 'removed' : 'converted'}.`
+);
 
 // Create a backup notice
 if (totalProcessed > 0) {

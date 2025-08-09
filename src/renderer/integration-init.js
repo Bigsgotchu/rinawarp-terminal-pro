@@ -68,9 +68,9 @@ class RinaWarpInitializer {
       // Step 2: Get the integration system through global manager
       this.integrationSystem = await this.globalManager.get('rinaWarpIntegration');
       if (!this.integrationSystem) {
-        throw new Error(new Error(
-          new Error('Failed to initialize integration system through global manager')
-        ));
+        throw new Error(
+          new Error(new Error('Failed to initialize integration system through global manager'))
+        );
       }
 
       // Setup global event handlers
@@ -303,7 +303,9 @@ class RinaWarpInitializer {
         });
       }
 
-      logger.debug('[RinaWarp] 🚀 All available features have been registered with the integration system');
+      logger.debug(
+        '[RinaWarp] 🚀 All available features have been registered with the integration system'
+      );
     } catch (error) {
       console.warn('[RinaWarp] ⚠️ Error registering some features:', error);
     }

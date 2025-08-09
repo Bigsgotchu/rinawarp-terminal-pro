@@ -11,33 +11,35 @@ import readline from 'readline';
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 function ask(question) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     rl.question(question, resolve);
   });
 }
 
 function askSecret(question) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     process.stdout.write(question);
     process.stdin.setRawMode(true);
     process.stdin.resume();
     process.stdin.setEncoding('utf8');
-    
+
     let input = '';
-    const onData = (char) => {
+    const onData = char => {
       if (char === '\r' || char === '\n') {
         process.stdin.setRawMode(false);
         process.stdin.pause();
         process.stdin.off('data', onData);
         console.log(''); // New line
         resolve(input);
-      } else if (char === '\u0003') { // Ctrl+C
+      } else if (char === '\u0003') {
+        // Ctrl+C
         process.exit();
-      } else if (char === '\u007f') { // Backspace
+      } else if (char === '\u007f') {
+        // Backspace
         if (input.length > 0) {
           input = input.slice(0, -1);
           process.stdout.write('\b \b');
@@ -47,7 +49,7 @@ function askSecret(question) {
         process.stdout.write('*');
       }
     };
-    
+
     process.stdin.on('data', onData);
   });
 }
@@ -75,7 +77,7 @@ async function main() {
 
   console.log('\n📦 PRICING CONFIGURATION');
   console.log('Create these price IDs in your Stripe Dashboard first.\n');
-  
+
   config.STRIPE_PRICE_PERSONAL_MONTHLY = await ask('Personal Plan Monthly Price ID: ');
   config.STRIPE_PRICE_PROFESSIONAL_MONTHLY = await ask('Professional Plan Monthly Price ID: ');
   config.STRIPE_PRICE_TEAM_MONTHLY = await ask('Team Plan Monthly Price ID: ');
@@ -89,7 +91,7 @@ async function main() {
     config.SENDGRID_FROM_EMAIL = await ask('From Email Address: ');
   } else {
     config.SMTP_HOST = await ask('SMTP Host (e.g., smtp.gmail.com): ');
-    config.SMTP_PORT = await ask('SMTP Port (default 587): ') || '587';
+    config.SMTP_PORT = (await ask('SMTP Port (default 587): ')) || '587';
     config.SMTP_USER = await ask('SMTP Username: ');
     config.SMTP_PASS = await askSecret('SMTP Password/App Password: ');
     config.SMTP_FROM_EMAIL = await ask('From Email Address: ');
@@ -97,8 +99,10 @@ async function main() {
 
   // Domain Configuration
   console.log('\n🌐 DOMAIN CONFIGURATION');
-  config.URL = await ask('Production URL (https://rinawarptech.com): ') || 'https://rinawarptech.com';
-  config.RAILWAY_PUBLIC_DOMAIN = await ask('Railway Domain (rinawarptech.com): ') || 'rinawarptech.com';
+  config.URL =
+    (await ask('Production URL (https://rinawarptech.com): ')) || 'https://rinawarptech.com';
+  config.RAILWAY_PUBLIC_DOMAIN =
+    (await ask('Railway Domain (rinawarptech.com): ')) || 'rinawarptech.com';
 
   // Security Keys
   console.log('\n🔐 SECURITY CONFIGURATION');

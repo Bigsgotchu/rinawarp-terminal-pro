@@ -14,25 +14,25 @@ jest.mock(
   () => {
     const cache = new Map();
     let mockConvert = jest.fn();
-    
+
     return {
       initialize: jest.fn().mockResolvedValue(true),
-      speak: jest.fn(async (text) => {
+      speak: jest.fn(async text => {
         // Simple cache implementation
         const cacheKey = text;
         const cached = cache.get(cacheKey);
-        
+
         if (cached && cached.expires > Date.now()) {
           return cached.data;
         }
-        
+
         // Call convert if not cached
         const result = await mockConvert(text);
         cache.set(cacheKey, {
           data: result,
-          expires: Date.now() + 60000 // 60 second TTL
+          expires: Date.now() + 60000, // 60 second TTL
         });
-        
+
         return result;
       }),
       cache: {
@@ -40,10 +40,12 @@ jest.mock(
       },
       client: {
         textToSpeech: {
-          get convert() { return mockConvert; },
-          set convert(fn) { 
+          get convert() {
+            return mockConvert;
+          },
+          set convert(fn) {
             mockConvert = fn;
-          }
+          },
         },
       },
     };

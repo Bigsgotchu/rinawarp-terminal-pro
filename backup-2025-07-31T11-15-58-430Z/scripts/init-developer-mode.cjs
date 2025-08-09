@@ -113,7 +113,7 @@ ELEVENLABS_ENABLED=true
   }
 
   console.log('\n🎉 RinaWarp Terminal Developer Mode Setup Complete!');
-  console.log('\n📋 What\'s enabled in Developer Mode:');
+  console.log("\n📋 What's enabled in Developer Mode:");
   console.log('   • 🧠 Unlimited AI Assistant');
   console.log('   • 🎤 Voice Control (ElevenLabs)');
   console.log('   • 🔧 All Advanced Features');

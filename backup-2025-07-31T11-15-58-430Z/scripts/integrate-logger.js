@@ -70,10 +70,10 @@ function getLoggerImport(filePath, fileContent) {
 // Check if logger is already imported
 function hasLoggerImport(content) {
   return (
-    content.includes('from \'../utils/logger') ||
-    content.includes('from \'./utils/logger') ||
-    content.includes('require(\'../utils/logger') ||
-    content.includes('require(\'./utils/logger') ||
+    content.includes("from '../utils/logger") ||
+    content.includes("from './utils/logger") ||
+    content.includes("require('../utils/logger") ||
+    content.includes("require('./utils/logger") ||
     content.includes('logger.js')
   );
 }

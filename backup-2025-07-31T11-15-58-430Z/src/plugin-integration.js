@@ -202,7 +202,6 @@ export class TerminalPluginManager {
 
     // Add plugin management commands to terminal
     this.addPluginCommands(terminal);
-
   }
 
   addPluginCommands(terminal) {

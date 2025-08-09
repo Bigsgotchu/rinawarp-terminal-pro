@@ -25,7 +25,9 @@ class TerminalWrapper {
     try {
       // Check if xterm is available globally (loaded via CDN or bundled)
       if (!window.Terminal) {
-        throw new Error(new Error(new Error('xterm.js is not loaded. Please include it in your HTML.')));
+        throw new Error(
+          new Error(new Error('xterm.js is not loaded. Please include it in your HTML.'))
+        );
       }
 
       // Create terminal instance
@@ -89,7 +91,9 @@ class TerminalWrapper {
    */
   async startShellProcess() {
     if (!window.electronAPI) {
-      throw new Error(new Error(new Error('electronAPI not available - running outside Electron context')));
+      throw new Error(
+        new Error(new Error('electronAPI not available - running outside Electron context'))
+      );
     }
 
     try {

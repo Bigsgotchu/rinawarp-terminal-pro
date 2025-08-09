@@ -8,7 +8,6 @@ import setupLogRocketReact from 'logrocket-react';
 
 // Initialize LogRocket immediately
 try {
-
   LogRocket.init('xljdaq/rinawarp-terminal', {
     release: '1.0.6',
     console: {
@@ -52,8 +51,7 @@ try {
   });
 
   // Log session URL for debugging
-  LogRocket.getSessionURL(sessionURL => {
-  });
+  LogRocket.getSessionURL(sessionURL => {});
 
   // Make LogRocket globally available
   window.LogRocket = LogRocket;

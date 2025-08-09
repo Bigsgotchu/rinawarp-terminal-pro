@@ -176,21 +176,21 @@ function createApplicationMenu() {
     // App Menu (macOS only)
     ...(isMac
       ? [
-        {
-          label: app.getName(),
-          submenu: [
-            { role: 'about' },
-            { type: 'separator' },
-            { role: 'services', submenu: [] },
-            { type: 'separator' },
-            { role: 'hide' },
-            { role: 'hideOthers' },
-            { role: 'unhide' },
-            { type: 'separator' },
-            { role: 'quit' },
-          ],
-        },
-      ]
+          {
+            label: app.getName(),
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              { role: 'services', submenu: [] },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' },
+            ],
+          },
+        ]
       : []),
 
     // File Menu
@@ -211,15 +211,15 @@ function createApplicationMenu() {
         { role: 'paste' },
         ...(isMac
           ? [
-            { role: 'pasteAndMatchStyle' },
-            { role: 'delete' },
-            { role: 'selectAll' },
-            { type: 'separator' },
-            {
-              label: 'Speech',
-              submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }],
-            },
-          ]
+              { role: 'pasteAndMatchStyle' },
+              { role: 'delete' },
+              { role: 'selectAll' },
+              { type: 'separator' },
+              {
+                label: 'Speech',
+                submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }],
+              },
+            ]
           : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }]),
       ],
     },
@@ -350,16 +350,16 @@ function createWindow() {
       logger.info('👁️ Window ready to show, displaying...');
       mainWindow.show();
       logger.info('✅ Window displayed successfully');
-      
+
       // Ensure window is properly focused and visible
       mainWindow.focus();
       mainWindow.moveTop();
-      
+
       // Force window to be visible on macOS
       if (process.platform === 'darwin') {
         app.dock.show();
       }
-      
+
       logger.info('🎯 Window focused and brought to front');
 
       // Enable dev tools only if configured

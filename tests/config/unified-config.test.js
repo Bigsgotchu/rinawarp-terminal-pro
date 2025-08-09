@@ -25,6 +25,9 @@ describe('UnifiedConfig', () => {
     // Reset all mocks
     jest.clearAllMocks();
 
+    // Clear environment variables that might affect tests
+    delete process.env.ELEVENLABS_API_KEY;
+
     // Mock os.homedir()
     os.homedir = jest.fn().mockReturnValue(mockHomedir);
 
@@ -105,7 +108,13 @@ describe('UnifiedConfig', () => {
 
   describe('ElevenLabs Integration', () => {
     test('validateElevenLabsConfig should check required fields when enabled', () => {
+      // Make sure writeFileSync mock returns true to simulate successful save
+      fs.writeFileSync.mockReturnValueOnce(undefined); // fs.writeFileSync returns undefined on success
+
       config.set('elevenlabs.enabled', true);
+      // Ensure the value was actually set by checking it directly
+      expect(config.get('elevenlabs.enabled')).toBe(true);
+
       const result = config.validateElevenLabsConfig();
 
       expect(result.valid).toBe(false);

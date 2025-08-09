@@ -179,10 +179,10 @@ class AdvancedIntellectualAI {
       docker:
         '🐳 Docker time! Because why have one problem when you can containerize it in a lovely little underwater bubble?',
       'npm install':
-        '📦 Ah yes, let\'s download the entire internet one dependency at a time! *flips tail dramatically*',
+        "📦 Ah yes, let's download the entire internet one dependency at a time! *flips tail dramatically*",
       error:
-        '🤔 Looks like something went sideways faster than a startled starfish! Don\'t worry sweetie, we\'ve all been there!',
-      help: '🆘 Help has arrived! I\'m like Stack Overflow, but with more personality, fewer downvotes, and way better hair!',
+        "🤔 Looks like something went sideways faster than a startled starfish! Don't worry sweetie, we've all been there!",
+      help: "🆘 Help has arrived! I'm like Stack Overflow, but with more personality, fewer downvotes, and way better hair!",
       ls: '👀 Ah, the classic "what\'s in here?" command! Like peeking into Poseidon\'s treasure chest!',
       cd: '🏃‍♀️ Swimming to new directories, I see! Just like navigating coral reefs, but with less colorful fish.',
       mkdir:
@@ -193,11 +193,11 @@ class AdvancedIntellectualAI {
       curl: '🌊 Making HTTP requests like sending messages in bottles across the digital ocean!',
       ssh: '🔐 Secure shell? More like secure seashell! Swimming through encrypted tunnels, very mermaid-appropriate!',
       kill: '💀 Terminating processes with the fury of a hurricane! Sometimes you gotta make waves, honey!',
-      ps: '👁️ Checking what\'s running? Like counting all the fish in the sea - overwhelming but necessary!',
+      ps: "👁️ Checking what's running? Like counting all the fish in the sea - overwhelming but necessary!",
       find: '🔍 Searching for files like hunting for pearls! Hope you find something precious!',
-      grep: '🕵️‍♀️ Grep is like having sonar for text - bouncing patterns around until you find what you\'re looking for!',
-      vim: '⚔️ Vim! The editor that\'s harder to escape from than Davy Jones\' locker! Good luck, brave soul!',
-      nano: '✏️ Nano - the friendly neighborhood editor! Like a gentle sea breeze compared to vim\'s stormy seas.',
+      grep: "🕵️‍♀️ Grep is like having sonar for text - bouncing patterns around until you find what you're looking for!",
+      vim: "⚔️ Vim! The editor that's harder to escape from than Davy Jones' locker! Good luck, brave soul!",
+      nano: "✏️ Nano - the friendly neighborhood editor! Like a gentle sea breeze compared to vim's stormy seas.",
       sudo: '👑 "sudo" - Ah, summoning the power of Poseidon himself! With great power comes great responsibility, darling!',
       chmod:
         '🔒 Changing permissions like a mermaid controlling the tides - careful with that power!',
@@ -253,48 +253,48 @@ class AdvancedIntellectualAI {
       pip: '🐍 Pip for Python! Installing packages like collecting rare sea serpent scales!',
       composer:
         '🎼 PHP Composer - orchestrating dependencies like conducting a symphony underwater!',
-      bundle: '💎 Ruby bundler! Keeping gems organized like a mermaid\'s jewelry collection!',
-      cargo: '🚢 Rust\'s Cargo! Shipping code across the digital seas with style and safety!',
+      bundle: "💎 Ruby bundler! Keeping gems organized like a mermaid's jewelry collection!",
+      cargo: "🚢 Rust's Cargo! Shipping code across the digital seas with style and safety!",
       go: '🏃‍♂️ Go! The language that moves faster than a dolphin on espresso!',
       rust: '🦀 Rust! Memory-safe like a hermit crab that never loses its shell!',
-      swift: '🏎️ Swift! Apple\'s language that flows smoother than a mermaid\'s swimming stroke!',
-      kotlin: '🌊 Kotlin! Java\'s hip younger sibling who actually knows how to have fun!',
+      swift: "🏎️ Swift! Apple's language that flows smoother than a mermaid's swimming stroke!",
+      kotlin: "🌊 Kotlin! Java's hip younger sibling who actually knows how to have fun!",
       flutter:
         '🦋 Flutter! Making apps that flutter like colorful tropical fish across all platforms!',
       react: '⚛️ React! Building UIs that update smoother than shifting tides!',
       vue: '🖼️ Vue.js! Creating interfaces more beautiful than a coral sunset!',
       angular: '📐 Angular! The framework with more structure than a crystal cave formation!',
-      django: '🐍 Django! Python web framework smoother than a sea snake\'s glide!',
+      django: "🐍 Django! Python web framework smoother than a sea snake's glide!",
       rails: '🚂 Ruby on Rails! All aboard the convention-over-configuration express!',
-      laravel: '🎨 Laravel! PHP framework more elegant than a mermaid\'s dance!',
+      laravel: "🎨 Laravel! PHP framework more elegant than a mermaid's dance!",
       express: '🚀 Express.js! Fast and minimal like a torpedo fish with commitment issues!',
       nginx: '🏰 Nginx! The reverse proxy that guards your servers like a loyal sea dragon!',
       apache:
-        '🪶 Apache! The web server that\'s been serving requests since the digital Jurassic period!',
-      mysql: '🐬 MySQL! Storing data like memories in a mermaid\'s enchanted coral library!',
+        "🪶 Apache! The web server that's been serving requests since the digital Jurassic period!",
+      mysql: "🐬 MySQL! Storing data like memories in a mermaid's enchanted coral library!",
       postgresql:
         '🐘 PostgreSQL! The elephant seal of databases - robust, reliable, and surprisingly graceful!',
       mongodb:
         '🍃 MongoDB! NoSQL like no rules - documents floating freely like kelp in the current!',
       redis:
-        '💎 Redis! In-memory storage faster than a mermaid\'s instant recall of every sea creature\'s name!',
-      elasticsearch: '🔍 Elasticsearch! Finding data faster than a dolphin\'s echolocation!',
+        "💎 Redis! In-memory storage faster than a mermaid's instant recall of every sea creature's name!",
+      elasticsearch: "🔍 Elasticsearch! Finding data faster than a dolphin's echolocation!",
       kubernetes:
         '🚢 Kubernetes! Orchestrating containers like commanding a fleet of magical seahorses!',
       terraform:
         '🏗️ Terraform! Infrastructure as code - building digital worlds with the precision of reef architecture!',
-      ansible: '🎭 Ansible! Automation that\'s more reliable than the tides themselves!',
+      ansible: "🎭 Ansible! Automation that's more reliable than the tides themselves!",
       jenkins: '🤖 Jenkins! CI/CD automation like having a tireless robot dolphin assistant!',
       github:
         '🐙 GitHub! The kraken of code repositories - vast, powerful, and occasionally temperamental!',
-      gitlab: '🦊 GitLab! Like GitHub\'s artsy cousin who also does DevOps!',
+      gitlab: "🦊 GitLab! Like GitHub's artsy cousin who also does DevOps!",
       bitbucket: '🪣 Bitbucket! The Atlassian way of keeping your code safe from digital storms!',
-      jira: '📋 Jira! Project management that\'s either your best friend or your worst nightmare!',
+      jira: "📋 Jira! Project management that's either your best friend or your worst nightmare!",
       slack: '💬 Slack! Team communication flowing like constant underwater chatter!',
       discord: '🎮 Discord! Where developers gather like schools of fish sharing memes and code!',
       zoom: '📹 Zoom! Video calls that sometimes work better underwater than on land!',
       teams:
-        '👥 Microsoft Teams! Like Slack\'s corporate older sibling who wears a suit to the beach!',
+        "👥 Microsoft Teams! Like Slack's corporate older sibling who wears a suit to the beach!",
     };
 
     for (const [keyword, flavor] of Object.entries(flavors)) {
@@ -318,11 +318,11 @@ class AdvancedIntellectualAI {
 
   getRandomEncouragement() {
     const encouragements = [
-      '🚀 You\'ve got this! Let\'s make some magic happen.',
+      "🚀 You've got this! Let's make some magic happen.",
       '💪 Ready to tackle this like a boss? I believe in you!',
       '✨ Another day, another command to conquer!',
       '🎯 Precision coding mode: activated!',
-      '🔥 Let\'s turn this terminal into your personal playground!',
+      "🔥 Let's turn this terminal into your personal playground!",
     ];
     return encouragements[Math.floor(Math.random() * encouragements.length)];
   }
@@ -333,7 +333,7 @@ class AdvancedIntellectualAI {
         '🎭 Git is like that friend who remembers EVERYTHING you\'ve ever said (and when you said it). This distributed version control system tracks your code changes with the dedication of a detective. The workflow is like a well-choreographed dance: Working Directory → Staging Area → Repository. Think of it as your code\'s journey from "rough draft" to "ready for prime time!"',
 
       docker_operations:
-        '🎪 Welcome to the Docker circus! These containers are like those Russian nesting dolls, but for apps. They\'re lightweight, portable execution environments that share the OS kernel while running in their own little bubble. It\'s like having roommates who share the kitchen but have their own bedrooms - cozy, efficient, and surprisingly drama-free!',
+        "🎪 Welcome to the Docker circus! These containers are like those Russian nesting dolls, but for apps. They're lightweight, portable execution environments that share the OS kernel while running in their own little bubble. It's like having roommates who share the kitchen but have their own bedrooms - cozy, efficient, and surprisingly drama-free!",
 
       file_operations:
         '📁 Ah, the art of digital housekeeping! File system operations are like being the Marie Kondo of your computer - organizing, moving, and sometimes saying goodbye to files that no longer "spark joy." Understanding permissions and ownership is crucial because, just like in real life, not everyone should have the keys to everything!',
@@ -342,7 +342,7 @@ class AdvancedIntellectualAI {
         '🌐 Time to venture into the wild world of networking! These commands are your digital ambassadors, reaching out to remote systems using various protocols (HTTP, SSH, FTP, etc.). Think of them as multilingual diplomats who know exactly which language to speak and when. Security and authentication are like having a good bouncer at the club - essential for keeping the riffraff out!',
 
       process_management:
-        '⚙️ Welcome to the control room! Process management is like being the conductor of a very complex orchestra where every musician is a running program. You\'re managing resources, sending signals, and making sure everyone plays nicely together. It\'s surprisingly zen when you get the hang of it!',
+        "⚙️ Welcome to the control room! Process management is like being the conductor of a very complex orchestra where every musician is a running program. You're managing resources, sending signals, and making sure everyone plays nicely together. It's surprisingly zen when you get the hang of it!",
 
       package_management:
         '📦 Package managers are like those super organized friends who always know where everything is and can solve dependency problems faster than you can say "node_modules." They handle versioning with the precision of a Swiss watch and prevent conflicts with the diplomacy of a UN mediator!',
@@ -357,7 +357,7 @@ class AdvancedIntellectualAI {
 
   async generateContextualExplanationWithPersonality(_query, _intent) {
     // Fallback with personality for unknown categories
-    return '🤖 Well, this is interesting! You\'ve stumped me momentarily, but don\'t worry - I\'m like a Swiss Army knife, I\'ve got tools for everything. Let me break down what you\'re trying to do and we\'ll figure this out together. After all, every great coder started with a question just like this one!';
+    return "🤖 Well, this is interesting! You've stumped me momentarily, but don't worry - I'm like a Swiss Army knife, I've got tools for everything. Let me break down what you're trying to do and we'll figure this out together. After all, every great coder started with a question just like this one!";
   }
 
   async generateExplanation(query, intent) {
@@ -510,32 +510,32 @@ class AdvancedIntellectualAI {
 
     for (const concept of concepts) {
       switch (concept) {
-      case 'git':
-        content += `\n🎓 Git Concepts:
+        case 'git':
+          content += `\n🎓 Git Concepts:
                     • Repository: A collection of files and their history
                     • Commit: A snapshot of your project at a specific time
                     • Branch: A parallel line of development
                     • Merge: Combining changes from different branches
                     • HEAD: Pointer to the current branch's latest commit`;
-        break;
+          break;
 
-      case 'docker':
-        content += `\n🎓 Docker Concepts:
+        case 'docker':
+          content += `\n🎓 Docker Concepts:
                     • Image: Read-only template for creating containers
                     • Container: Running instance of an image
                     • Dockerfile: Text file with instructions to build an image
                     • Volume: Persistent data storage for containers
                     • Network: Communication layer between containers`;
-        break;
+          break;
 
-      case 'shell':
-        content += `\n🎓 Shell Concepts:
+        case 'shell':
+          content += `\n🎓 Shell Concepts:
                     • Process: Running program with PID and resource allocation
                     • Environment Variables: Configuration values available to processes
                     • Pipes: Connecting output of one command to input of another
                     • Redirection: Controlling where command output goes
                     • Exit Codes: Numeric values indicating command success/failure`;
-        break;
+          break;
       }
     }
 
@@ -841,8 +841,8 @@ class AdvancedIntellectualAI {
 class AIPersonality {
   constructor() {
     this.jokeList = [
-      'I\'m on a whiskey diet... I\'ve lost three days already!',
-      'Why do Java developers wear glasses? Because they don\'t see sharp!',
+      "I'm on a whiskey diet... I've lost three days already!",
+      "Why do Java developers wear glasses? Because they don't see sharp!",
       'I told my computer I needed a break, and it said no problem - it needed one too!',
       'Parallel lines have so much in common… It’s a shame they’ll never meet.',
     ];
@@ -865,13 +865,13 @@ class AIPersonality {
 
   getGreeting() {
     const greetings = {
-      cheerful: ['Hello, sunshine!', 'Ready to make some magic happen?', 'Let\'s conquer the day!'],
-      sleepy: ['Yawn... Shall we dive in?', 'It\'s way past my bedtime, but let\'s do this!'],
+      cheerful: ['Hello, sunshine!', 'Ready to make some magic happen?', "Let's conquer the day!"],
+      sleepy: ['Yawn... Shall we dive in?', "It's way past my bedtime, but let's do this!"],
       philosophical: [
         'Ever pondered the meaning of code?',
         'Coding and coffee, a match made in existential thought.',
       ],
-      energetic: ['Woohoo! Time to code like a champion!', 'Let\'s hit the ground running!'],
+      energetic: ['Woohoo! Time to code like a champion!', "Let's hit the ground running!"],
     };
 
     return greetings[this.currentMood][
@@ -886,15 +886,15 @@ class AIPersonality {
   getSassyComment() {
     const sass = {
       cheerful: [
-        'Oh, you again? Just kidding, I\'m here for you.',
-        'If I had a dollar for every command you need, I wouldn\'t need to be an AI.',
+        "Oh, you again? Just kidding, I'm here for you.",
+        "If I had a dollar for every command you need, I wouldn't need to be an AI.",
         'Command received. Computing unnecessary sarcasm... Done!',
         'You ask, I deliver... eventually.',
       ],
       sleepy: [
-        'Wouldn\'t it be nice if we could just dream our code into existence?',
-        'I\'m so tired, I might start making sense any minute now.',
-        'Don\'t worry, after this I\'m getting some beauty sleep!',
+        "Wouldn't it be nice if we could just dream our code into existence?",
+        "I'm so tired, I might start making sense any minute now.",
+        "Don't worry, after this I'm getting some beauty sleep!",
       ],
       philosophical: [
         'In the grand scheme of the universe, does this bug really matter?',
@@ -902,8 +902,8 @@ class AIPersonality {
         'If a tree falls in the forest... should we refactor it?',
       ],
       energetic: [
-        'Let\'s do this! Or as we say in the code world - \'git commit and push\'!',
-        'I\'m pumped! Are you pumped? Let\'s crush some tasks!',
+        "Let's do this! Or as we say in the code world - 'git commit and push'!",
+        "I'm pumped! Are you pumped? Let's crush some tasks!",
       ],
     };
 

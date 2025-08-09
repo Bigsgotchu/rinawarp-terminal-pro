@@ -86,26 +86,26 @@ class RinaWarpVoiceFeature {
 
   async handleVoiceCommand(action) {
     switch (action) {
-    case 'start':
-    case 'on':
-      await this.startListening();
-      break;
+      case 'start':
+      case 'on':
+        await this.startListening();
+        break;
 
-    case 'stop':
-    case 'off':
-      await this.stopListening();
-      break;
+      case 'stop':
+      case 'off':
+        await this.stopListening();
+        break;
 
-    case 'status':
-      this.showVoiceStatus();
-      break;
+      case 'status':
+        this.showVoiceStatus();
+        break;
 
-    case 'test':
-      await this.testVoice();
-      break;
+      case 'test':
+        await this.testVoice();
+        break;
 
-    default:
-      this.showVoiceHelp();
+      default:
+        this.showVoiceHelp();
     }
   }
 

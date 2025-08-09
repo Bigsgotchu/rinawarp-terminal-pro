@@ -1,7 +1,7 @@
 /**
  * 🧜‍♀️ Warp Agent Integration for RinaWarp Terminal
  * Integrates advanced AI agent capabilities (like Warp's Agent Mode) with RinaWarp's beautiful UI
- * 
+ *
  * This provides the same powerful AI assistance you experience in Warp, but with:
  * - Your beautiful RinaWarp Terminal design and branding
  * - All your existing premium features intact
@@ -20,7 +20,7 @@ export class WarpAgentIntegration {
       agentPersonality: config.agentPersonality || 'helpful-technical',
       contextMemory: config.contextMemory || 50,
       enableTools: config.enableTools !== false,
-      ...config
+      ...config,
     };
 
     // Agent capabilities - similar to Warp's Agent Mode
@@ -31,7 +31,7 @@ export class WarpAgentIntegration {
       os: process.platform,
       shell: process.env.SHELL || 'bash',
       terminal: 'RinaWarp',
-      user: process.env.USER || 'user'
+      user: process.env.USER || 'user',
     };
 
     // UI state
@@ -47,7 +47,7 @@ export class WarpAgentIntegration {
 
       // Create agent interface in your beautiful UI
       this.createAgentInterface();
-      
+
       // Initialize agent tools
       await this.initializeTools();
 
@@ -160,8 +160,8 @@ export class WarpAgentIntegration {
 
     // Send message on Enter or button click
     const sendMessage = () => this.processAgentRequest(input.value);
-    
-    input.addEventListener('keypress', (e) => {
+
+    input.addEventListener('keypress', e => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
@@ -176,45 +176,45 @@ export class WarpAgentIntegration {
     // File system tools
     this.agentTools.set('read_files', {
       description: 'Read and analyze files in the current project',
-      execute: async (filePaths) => {
+      execute: async filePaths => {
         // Implementation for reading files
         return this.readProjectFiles(filePaths);
-      }
+      },
     });
 
     this.agentTools.set('search_codebase', {
       description: 'Search through codebase for specific patterns or functions',
       execute: async (query, options = {}) => {
         return this.searchCodebase(query, options);
-      }
+      },
     });
 
     this.agentTools.set('run_command', {
       description: 'Execute terminal commands safely',
       execute: async (command, options = {}) => {
         return this.executeCommand(command, options);
-      }
+      },
     });
 
     this.agentTools.set('analyze_project', {
       description: 'Analyze current project structure and provide insights',
       execute: async () => {
         return this.analyzeProject();
-      }
+      },
     });
 
     this.agentTools.set('file_glob', {
       description: 'Find files matching patterns',
       execute: async (patterns, path = '.') => {
         return this.findFiles(patterns, path);
-      }
+      },
     });
 
     this.agentTools.set('git_operations', {
       description: 'Perform git operations and analysis',
       execute: async (operation, args = []) => {
         return this.performGitOperation(operation, args);
-      }
+      },
     });
   }
 
@@ -229,9 +229,10 @@ export class WarpAgentIntegration {
   addAgentToggleButton() {
     // Find a suitable place in your terminal UI to add the agent button
     // This preserves your existing beautiful design
-    const terminalContainer = document.querySelector('.terminal-container') || 
-                             document.querySelector('#terminal') ||
-                             document.body;
+    const terminalContainer =
+      document.querySelector('.terminal-container') ||
+      document.querySelector('#terminal') ||
+      document.body;
 
     if (terminalContainer) {
       const agentButton = document.createElement('button');
@@ -273,7 +274,7 @@ export class WarpAgentIntegration {
     // Agent chat command
     this.terminal.addCommand('agent', {
       description: 'Open AI Agent for advanced assistance',
-      execute: async (args) => {
+      execute: async args => {
         if (args.length === 0) {
           this.toggleAgentPanel(true);
           return '🧜‍♀️ AI Agent panel opened. You can also ask questions directly: agent "your question"';
@@ -281,32 +282,32 @@ export class WarpAgentIntegration {
           const query = args.join(' ');
           return await this.processAgentRequest(query, { fromTerminal: true });
         }
-      }
+      },
     });
 
     // Quick analysis commands
     this.terminal.addCommand('analyze', {
       description: 'Analyze code or project with AI',
-      execute: async (args) => {
+      execute: async args => {
         const request = `Analyze: ${args.join(' ')}`;
         return await this.processAgentRequest(request, { command: 'analyze' });
-      }
+      },
     });
 
     this.terminal.addCommand('explain', {
       description: 'Get AI explanation of code, commands, or concepts',
-      execute: async (args) => {
+      execute: async args => {
         const request = `Explain: ${args.join(' ')}`;
         return await this.processAgentRequest(request, { command: 'explain' });
-      }
+      },
     });
 
     this.terminal.addCommand('debug', {
       description: 'Get AI help with debugging',
-      execute: async (args) => {
+      execute: async args => {
         const request = `Help debug: ${args.join(' ')}`;
         return await this.processAgentRequest(request, { command: 'debug' });
-      }
+      },
     });
   }
 
@@ -319,27 +320,27 @@ export class WarpAgentIntegration {
     try {
       // Gather context about current state
       const systemContext = await this.gatherSystemContext();
-      
+
       // Prepare the request with full context
       const fullContext = {
         ...context,
         ...systemContext,
         workingDirectory: this.workingDirectory,
         terminalHistory: this.getRecentTerminalHistory(),
-        conversationHistory: this.conversationHistory.slice(-10) // Last 10 messages
+        conversationHistory: this.conversationHistory.slice(-10), // Last 10 messages
       };
 
       // Process with AI (this would connect to your AI provider)
       const response = await this.callAIProvider(query, fullContext);
-      
+
       this.addMessageToConversation('assistant', response);
-      
+
       // Update conversation history
       this.conversationHistory.push({
         timestamp: new Date(),
         user: query,
         assistant: response,
-        context: fullContext
+        context: fullContext,
       });
 
       if (context.fromTerminal) {
@@ -361,9 +362,9 @@ export class WarpAgentIntegration {
   async callAIProvider(query, context) {
     // This is where you'd integrate with your AI provider
     // For now, providing a structured response similar to how I work
-    
+
     const prompt = this.buildAgentPrompt(query, context);
-    
+
     // You would replace this with actual AI provider calls
     // For example, using your existing OpenAI integration:
     /*
@@ -406,9 +407,9 @@ Please provide a helpful, concise response. If the query requires file operation
   generateMockIntelligentResponse(query, context) {
     // This provides intelligent mock responses based on query patterns
     // Replace with actual AI provider integration
-    
+
     const lowerQuery = query.toLowerCase();
-    
+
     if (lowerQuery.includes('analyze') || lowerQuery.includes('code')) {
       return `I can analyze your code! Here's what I can do:
 
@@ -424,8 +425,12 @@ To get started, you can:
 
 What would you like me to focus on?`;
     }
-    
-    if (lowerQuery.includes('debug') || lowerQuery.includes('error') || lowerQuery.includes('fix')) {
+
+    if (
+      lowerQuery.includes('debug') ||
+      lowerQuery.includes('error') ||
+      lowerQuery.includes('fix')
+    ) {
       return `I'm here to help debug! 🔍
 
 **Common debugging approaches I can assist with:**
@@ -441,8 +446,12 @@ What would you like me to focus on?`;
 
 Paste your error or describe the issue, and I'll provide specific guidance!`;
     }
-    
-    if (lowerQuery.includes('explain') || lowerQuery.includes('how') || lowerQuery.includes('what')) {
+
+    if (
+      lowerQuery.includes('explain') ||
+      lowerQuery.includes('how') ||
+      lowerQuery.includes('what')
+    ) {
       return `I love explaining things! 💡
 
 I can explain:
@@ -460,7 +469,11 @@ Just ask me about any concept, command, or code you'd like to understand better.
 What would you like me to explain?`;
     }
 
-    if (lowerQuery.includes('file') || lowerQuery.includes('search') || lowerQuery.includes('find')) {
+    if (
+      lowerQuery.includes('file') ||
+      lowerQuery.includes('search') ||
+      lowerQuery.includes('find')
+    ) {
       return `I can help with file operations! 📂
 
 **File Management:**
@@ -500,7 +513,7 @@ What would you like help with today?`;
   toggleAgentPanel(show = null) {
     const shouldShow = show !== null ? show : !this.agentPanelVisible;
     this.agentPanelVisible = shouldShow;
-    
+
     if (this.agentPanel) {
       this.agentPanel.style.transform = shouldShow ? 'translateX(0)' : 'translateX(100%)';
     }
@@ -512,7 +525,7 @@ What would you like help with today?`;
 
     const messageDiv = document.createElement('div');
     messageDiv.style.marginBottom = '10px';
-    
+
     if (sender === 'user') {
       messageDiv.innerHTML = `<div style="
         background: linear-gradient(45deg, #ff1493, #00ffff);
@@ -557,7 +570,7 @@ What would you like help with today?`;
     return {
       timestamp: new Date().toISOString(),
       workingDirectory: this.workingDirectory,
-      ...this.systemContext
+      ...this.systemContext,
     };
   }
 
@@ -570,7 +583,7 @@ What would you like help with today?`;
   updateProcessingState() {
     const sendBtn = document.getElementById('send-agent');
     const input = document.getElementById('agent-input');
-    
+
     if (sendBtn && input) {
       sendBtn.disabled = this.isProcessing;
       input.disabled = this.isProcessing;

@@ -17,8 +17,8 @@ const hasApiKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim(
 // Initialize OpenAI client with newer API (only if API key is available)
 let openai = hasApiKey
   ? new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+      apiKey: process.env.OPENAI_API_KEY,
+    })
   : null;
 
 // Wrap OpenAI client with monitoring

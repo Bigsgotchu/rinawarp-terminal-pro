@@ -188,21 +188,21 @@ class SimpleTerminal {
 
     // Handle built-in commands
     switch (command.toLowerCase()) {
-    case 'help':
-      this.writeOutput('Available commands:\n');
-      this.writeOutput('  help - Show this help\n');
-      this.writeOutput('  clear - Clear terminal\n');
-      this.writeOutput('  exit - Exit terminal\n');
-      break;
-    case 'clear':
-      this.clearOutput();
-      break;
-    case 'exit':
-      this.writeOutput('Goodbye!\n');
-      break;
-    default:
-      // Execute system command
-      this.executeSystemCommand(command);
+      case 'help':
+        this.writeOutput('Available commands:\n');
+        this.writeOutput('  help - Show this help\n');
+        this.writeOutput('  clear - Clear terminal\n');
+        this.writeOutput('  exit - Exit terminal\n');
+        break;
+      case 'clear':
+        this.clearOutput();
+        break;
+      case 'exit':
+        this.writeOutput('Goodbye!\n');
+        break;
+      default:
+        // Execute system command
+        this.executeSystemCommand(command);
     }
   }
 

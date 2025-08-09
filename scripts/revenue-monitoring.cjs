@@ -559,24 +559,24 @@ async function main() {
   const command = process.argv[2] || 'check';
 
   switch (command) {
-  case 'start':
-    await monitor.startRevenueMonitoring();
-    break;
-  case 'check':
-    await monitor.checkRevenueCriticalEndpoints();
-    monitor.showRevenueDashboard();
-    break;
-  case 'dashboard':
-    monitor.showRevenueDashboard();
-    break;
-  case 'alerts':
-    console.log('🚨 Revenue-Critical Alerts:');
-    monitor.monitoringState.alerts.forEach(alert => {
-      console.log(`- [${alert.impact}] ${alert.endpoint}: ${alert.message} (${alert.timestamp})`);
-    });
-    break;
-  default:
-    console.log(`
+    case 'start':
+      await monitor.startRevenueMonitoring();
+      break;
+    case 'check':
+      await monitor.checkRevenueCriticalEndpoints();
+      monitor.showRevenueDashboard();
+      break;
+    case 'dashboard':
+      monitor.showRevenueDashboard();
+      break;
+    case 'alerts':
+      console.log('🚨 Revenue-Critical Alerts:');
+      monitor.monitoringState.alerts.forEach(alert => {
+        console.log(`- [${alert.impact}] ${alert.endpoint}: ${alert.message} (${alert.timestamp})`);
+      });
+      break;
+    default:
+      console.log(`
 💰 Revenue-Critical Monitoring Commands:
   start      - Start continuous revenue monitoring
   check      - Check revenue-critical endpoints

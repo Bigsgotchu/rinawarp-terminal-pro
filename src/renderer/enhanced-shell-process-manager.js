@@ -306,14 +306,14 @@ export class EnhancedShellProcessManager extends ShellProcessManager {
   async optimizeResources(resourceType) {
     try {
       switch (resourceType) {
-      case 'memory':
-        await this.optimizeMemoryUsage();
-        break;
-      case 'cpu':
-        await this.optimizeCpuUsage();
-        break;
-      default:
-        this.log(`Unknown resource type for optimization: ${resourceType}`, 'warning');
+        case 'memory':
+          await this.optimizeMemoryUsage();
+          break;
+        case 'cpu':
+          await this.optimizeCpuUsage();
+          break;
+        default:
+          this.log(`Unknown resource type for optimization: ${resourceType}`, 'warning');
       }
     } catch (error) {
       this.log(`Resource optimization failed: ${error.message}`, 'error');

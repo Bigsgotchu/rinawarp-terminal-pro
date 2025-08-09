@@ -630,7 +630,7 @@ Remember: Launch day is just the beginning! Consistent follow-up and engagement 
 const guides = {
   'screenshots-guide.md': screenshotsGuide,
   'press-kit.md': pressKitTemplate,
-  'marketing-checklist.md': marketingChecklist
+  'marketing-checklist.md': marketingChecklist,
 };
 
 console.log('📝 Creating visual assets guides...\n');

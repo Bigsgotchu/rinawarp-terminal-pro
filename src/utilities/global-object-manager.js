@@ -227,20 +227,20 @@ class GlobalObjectManager {
    */
   _getGlobalObject(namespace) {
     switch (namespace) {
-    case 'window':
-      return typeof window !== 'undefined' ? window : null;
-    case 'global':
-      return typeof global !== 'undefined' ? global : null;
-    case 'globalThis':
-      return typeof globalThis !== 'undefined' ? globalThis : null;
-    default:
-      return typeof window !== 'undefined'
-        ? window
-        : typeof global !== 'undefined'
-          ? global
-          : typeof globalThis !== 'undefined'
-            ? globalThis
-            : null;
+      case 'window':
+        return typeof window !== 'undefined' ? window : null;
+      case 'global':
+        return typeof global !== 'undefined' ? global : null;
+      case 'globalThis':
+        return typeof globalThis !== 'undefined' ? globalThis : null;
+      default:
+        return typeof window !== 'undefined'
+          ? window
+          : typeof global !== 'undefined'
+            ? global
+            : typeof globalThis !== 'undefined'
+              ? globalThis
+              : null;
     }
   }
 

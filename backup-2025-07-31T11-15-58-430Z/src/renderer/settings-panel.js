@@ -200,67 +200,67 @@ export class SettingsPanel {
 
     // Apply specific feature changes
     switch (setting) {
-    case 'aiAssistant':
-      window.aiAssistantEnabled = value;
-      break;
+      case 'aiAssistant':
+        window.aiAssistantEnabled = value;
+        break;
 
-    case 'agentMode':
-      window.agentModeEnabled = value;
-      break;
+      case 'agentMode':
+        window.agentModeEnabled = value;
+        break;
 
-    case 'voiceControl':
-      if (value && window.advancedVoiceRecognition) {
-        window.advancedVoiceRecognition.start();
-      } else if (!value && window.advancedVoiceRecognition) {
-        window.advancedVoiceRecognition.stop();
-      }
-      break;
+      case 'voiceControl':
+        if (value && window.advancedVoiceRecognition) {
+          window.advancedVoiceRecognition.start();
+        } else if (!value && window.advancedVoiceRecognition) {
+          window.advancedVoiceRecognition.stop();
+        }
+        break;
 
-    case 'voiceOutput':
-      window.isVoiceOutputEnabled = value;
-      const btn = document.getElementById('voiceOutputBtn');
-      if (btn) {
-        btn.textContent = value ? '🔊 Voice Output: ON' : '🔊 Voice Output: OFF';
-      }
-      break;
+      case 'voiceOutput':
+        window.isVoiceOutputEnabled = value;
+        const btn = document.getElementById('voiceOutputBtn');
+        if (btn) {
+          btn.textContent = value ? '🔊 Voice Output: ON' : '🔊 Voice Output: OFF';
+        }
+        break;
 
-    case 'terminalTransparency':
-      const terminal = document.querySelector('.terminal-container');
-      if (terminal) {
-        terminal.style.background = value ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 1)';
-      }
-      break;
+      case 'terminalTransparency':
+        const terminal = document.querySelector('.terminal-container');
+        if (terminal) {
+          terminal.style.background = value ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 1)';
+        }
+        break;
 
-    case 'performanceMode':
-      if (value) {
-        // Disable animations for performance
-        document.body.classList.add('performance-mode');
-      } else {
-        document.body.classList.remove('performance-mode');
-      }
-      break;
+      case 'performanceMode':
+        if (value) {
+          // Disable animations for performance
+          document.body.classList.add('performance-mode');
+        } else {
+          document.body.classList.remove('performance-mode');
+        }
+        break;
     }
 
     // Apply immediate changes for some settings
     switch (setting) {
-    case 'aiAssistant':
-      window.aiAssistantEnabled = value;
-      this.updateStatus(`AI Assistant ${value ? 'enabled' : 'disabled'}`);
-      break;
-    case 'agentMode':
-      window.agentModeEnabled = value;
-      this.updateStatus(`Agent Mode ${value ? 'enabled' : 'disabled'}`);
-      break;
-    case 'voiceControl':
-      if (value) {
-        window.startVoiceControl?.();
-      } else {
-        window.stopVoiceControl?.();
-      }
-      break;
-    case 'terminalTransparency':
-      document.querySelector('.terminal-container')?.classList.toggle('transparent', value);
-      break;
+      case 'aiAssistant':
+        window.aiAssistantEnabled = value;
+        this.updateStatus(`AI Assistant ${value ? 'enabled' : 'disabled'}`);
+        break;
+      case 'agentMode':
+        window.agentModeEnabled = value;
+        this.updateStatus(`Agent Mode ${value ? 'enabled' : 'disabled'}`);
+        break;
+      case 'voiceControl':
+        if (value) {
+          window.startVoiceControl?.();
+        } else {
+          window.stopVoiceControl?.();
+        }
+        break;
+      case 'terminalTransparency':
+        document.querySelector('.terminal-container')?.classList.toggle('transparent', value);
+        break;
     }
   }
 

@@ -37,7 +37,7 @@ const SKIP_PATTERNS = [
 ];
 
 // Production logger template
-const LOGGER_IMPORT = 'import logger from \'./utils/logger.js\';';
+const LOGGER_IMPORT = "import logger from './utils/logger.js';";
 const LOGGER_TEMPLATE = {
   'console.log': 'logger.info',
   'console.debug': 'logger.debug',
@@ -83,7 +83,7 @@ async function processFile(filePath) {
       if (
         fileModified &&
         !content.includes('import logger') &&
-        !content.includes('require(\'.*logger')
+        !content.includes("require('.*logger")
       ) {
         // Find the right place to insert the import
         const firstImportMatch = content.match(/^import .* from/m);

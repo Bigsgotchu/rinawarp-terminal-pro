@@ -1,8 +1,7 @@
-
 // Updated CSP Configuration with all required hashes
-export const getCSPHeader = (nonce) => {
+export const getCSPHeader = nonce => {
   const scriptHashes = [
-        'sha256-75UjkgWl1ciiClQcZlt3z6BXga/OTL1hm9z3tozPwKA=',
+    'sha256-75UjkgWl1ciiClQcZlt3z6BXga/OTL1hm9z3tozPwKA=',
     'sha256-KKraR6z3U0TYXEIFhs9yFznk2lRjBRawwkQ4u2ThztA=',
     'sha256-AsGotMGpy72AfMtuDKwlIvCehG49Z2RXPoNvsL5zf+8=',
     'sha256-5bOs6iB5Qs6WlEddMTpwnnVfzKxWh1k5OkpP3/v/e+Q=',
@@ -32,9 +31,9 @@ export const getCSPHeader = (nonce) => {
     'sha256-VzjepCSDIm+svU+t9beZC2kWFe9C4+MBAzYK7+t+r00=',
     'sha256-eOhGgqWHp9mkN57ACzFqy4g8sM82ikqmPtbW5cFpI9c=',
     'sha256-oI+DsseCcKKYNZbJovA1sy7JvqOKC6b8hRlso+EVMvI=',
-    'sha256-872hLtYh89v1MmFad56ii3HkHlWvcX56j7Cpz72gMLQ='
+    'sha256-872hLtYh89v1MmFad56ii3HkHlWvcX56j7Cpz72gMLQ=',
   ];
-  
+
   const directives = [
     "default-src 'self'",
     `script-src 'self' ${scriptHashes.join(' ')} https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://cdn.logrocket.io`,
@@ -47,7 +46,7 @@ export const getCSPHeader = (nonce) => {
     "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
     "form-action 'self' https://checkout.stripe.com",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests"
+    'upgrade-insecure-requests',
   ];
 
   return directives.join('; ');

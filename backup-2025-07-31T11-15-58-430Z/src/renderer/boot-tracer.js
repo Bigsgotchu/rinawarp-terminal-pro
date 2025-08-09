@@ -304,12 +304,12 @@ export class BootTracer {
 <div>🧪 Boot Sequence: <span style="color: #00ff88">${this.bootSequence.length} steps</span></div>
 <div style="margin-top: 8px; border-top: 1px solid #333; padding-top: 4px; color: #aaa; font-size: 10px;">
 Recent: ${this.bootSequence
-    .slice(-3)
-    .map(
-      entry =>
-        `<div style="color: ${entry.type === 'error' ? '#ff6b6b' : entry.type === 'success' ? '#00ff88' : '#74c0fc'}">${entry.message}</div>`
-    )
-    .join('')}
+      .slice(-3)
+      .map(
+        entry =>
+          `<div style="color: ${entry.type === 'error' ? '#ff6b6b' : entry.type === 'success' ? '#00ff88' : '#74c0fc'}">${entry.message}</div>`
+      )
+      .join('')}
 </div>
         `.trim();
 

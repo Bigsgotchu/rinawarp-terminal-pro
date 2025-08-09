@@ -27,7 +27,6 @@ localStorage.setItem('rinawarp_last_validation', Date.now().toString());
 localStorage.removeItem('rinawarp_trial_start');
 localStorage.removeItem('ai_usage_' + new Date().toDateString());
 
-
 // Try to activate with LicenseManager if available
 if (typeof window !== 'undefined' && window.LicenseManager) {
   try {

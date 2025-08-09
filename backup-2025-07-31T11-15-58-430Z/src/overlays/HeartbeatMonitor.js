@@ -22,7 +22,6 @@ class HeartbeatMonitor {
   }
 
   renderCLIDisplay() {
-     
     console.clear();
     const _waveform = this.generateWaveform();
     this.animateASCIIArt();
