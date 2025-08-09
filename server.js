@@ -874,8 +874,8 @@ app.get('/pricing', staticPageLimiter, (req, res) => {
     if (err) console.error('Error writing A/B test log:', err);
   });
 
-  // Determine which file to serve
-  const filename = variant === 'simple' ? 'pricing.html' : 'pricing-old-basic.html';
+  // Determine which file to serve - always serve the main pricing page for now
+  const filename = 'pricing.html';
   const safePath = validateAndNormalizePath(filename, _PUBLIC_DIR);
 
   if (!safePath || !fs.existsSync(safePath)) {
