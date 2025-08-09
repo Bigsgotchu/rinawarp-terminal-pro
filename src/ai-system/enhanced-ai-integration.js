@@ -188,11 +188,58 @@ export class EnhancedAIIntegration {
   shouldUseEnhancedMode(input) {
     if (!this.isEnhancedMode || !this.enhancedAssistant) return false;
 
+    // Check user tier - Enhanced AI requires Professional+ tier
+    const userTier = this.getUserTier();
+    if (!this.hasTierAccess(userTier, 'ai_advanced')) {
+      console.log('🧜‍♀️ Enhanced AI requires Professional tier or higher');
+      return false;
+    }
+
     // Check against enhanced trigger patterns
     return this.enhancedTriggers.some(pattern => pattern.test(input));
   }
 
+  getUserTier() {
+    // Get user tier from localStorage, session, or API
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('userTier') || 'free';
+    }
+    return process.env.USER_TIER || 'free';
+  }
+
+  hasTierAccess(tier, feature) {
+    // Import pricing tiers config
+    const { hasFeature } = require('../config/pricing-tiers.js');
+    return hasFeature(tier, feature);
+  }
+
+  showUpgradePrompt(feature) {
+    const { getUpgradeMessage } = require('../config/pricing-tiers.js');
+    const currentTier = this.getUserTier();
+    const upgrade = getUpgradeMessage(currentTier, feature);
+
+    return {
+      response: `🧜‍♀️ ${upgrade.icon} ${upgrade.message}
+      
+💫 Upgrade to unlock:
+• Advanced code analysis and debugging
+• AI-powered program generation  
+• Enhanced context awareness
+• Unlimited AI queries
+
+🌊 Dive deeper: /pricing`,
+      needsUpgrade: true,
+      upgradeTo: upgrade.upgradeTo,
+      price: upgrade.price,
+    };
+  }
+
   async processEnhancedRequest(input, context = {}) {
+    // Check tier access first
+    const userTier = this.getUserTier();
+    if (!this.hasTierAccess(userTier, 'ai_advanced')) {
+      return this.showUpgradePrompt('ai_advanced');
+    }
     if (!this.isEnhancedMode || !this.enhancedAssistant) {
       // Fall back to basic Rina
       if (this.basicRina) {

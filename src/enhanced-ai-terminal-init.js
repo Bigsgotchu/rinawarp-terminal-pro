@@ -10,6 +10,16 @@
     // Wait for required dependencies
     await waitForDependencies(['terminal', 'shellHarness', 'terminalWrapper']);
 
+    // Check if user has access to enhanced AI features
+    const userTier = getUserTier();
+    const { hasFeature } = await import('./config/pricing-tiers.js');
+
+    if (!hasFeature(userTier, 'ai_advanced')) {
+      console.log('🧜‍♀️ Enhanced AI requires Professional tier - using basic mode');
+      updateStatus('💎 Upgrade to Professional for Enhanced AI features');
+      return;
+    }
+
     // Initialize Enhanced AI Integration with fallback support
     let EnhancedAIIntegration, WarpAgentIntegration;
 
@@ -153,6 +163,13 @@
     updateStatus('❌ Enhanced AI failed to initialize');
   }
 })();
+
+function getUserTier() {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('userTier') || 'free';
+  }
+  return process.env.USER_TIER || 'free';
+}
 
 // Helper Functions
 
