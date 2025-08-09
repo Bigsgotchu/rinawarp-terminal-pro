@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growth Dashboard - RinaWarp Terminal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .metric-icon.users { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .metric-icon.revenue { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .metric-icon.conversion { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .metric-icon.engagement { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .metric-icon.growth { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .metric-icon.retention { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        
+        .metric-title {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+        
+        .metric-change {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .metric-change.positive {
+            color: #10b981;
+        }
+        
+        .metric-change.negative {
+            color: #ef4444;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .chart-period {
+            padding: 5px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .acquisition-channels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .channel-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .channel-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .channel-users {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .channel-cost {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .goals-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+        
+        .goals-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .goal-item {
+            padding: 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .goal-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .goal-period {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .goal-target {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .goal-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .action-items {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .action-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .action-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .action-checkbox {
+            margin-right: 15px;
+        }
+        
+        .action-text {
+            flex: 1;
+            font-size: 1rem;
+        }
+        
+        .action-priority {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .priority-high { background: #fee2e2; color: #dc2626; }
+        .priority-medium { background: #fef3c7; color: #d97706; }
+        .priority-low { background: #dcfce7; color: #16a34a; }
+        
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>🚀 Growth Dashboard</h1>
+            <p>Track your journey to 1000+ users</p>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon users">👥</div>
+                    <div class="metric-title">Total Users</div>
+                </div>
+                <div class="metric-value" id="totalUsers">0</div>
+                <div class="metric-change positive">
+                    <span>↗</span> +0% from last week
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon revenue">💰</div>
+                    <div class="metric-title">Monthly Revenue</div>
+                </div>
+                <div class="metric-value" id="monthlyRevenue">$0</div>
+                <div class="metric-change positive">
+                    <span>↗</span> +0% from last month
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon conversion">📈</div>
+                    <div class="metric-title">Conversion Rate</div>
+                </div>
+                <div class="metric-value" id="conversionRate">0%</div>
+                <div class="metric-change positive">
+                    <span>↗</span> +0% from last week
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon engagement">⚡</div>
+                    <div class="metric-title">Daily Active Users</div>
+                </div>
+                <div class="metric-value" id="dailyActiveUsers">0</div>
+                <div class="metric-change positive">
+                    <span>↗</span> +0% from yesterday
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon growth">📊</div>
+                    <div class="metric-title">Growth Rate</div>
+                </div>
+                <div class="metric-value" id="growthRate">0%</div>
+                <div class="metric-change positive">
+                    <span>↗</span> Weekly growth
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon retention">🔄</div>
+                    <div class="metric-title">Retention Rate</div>
+                </div>
+                <div class="metric-value" id="retentionRate">0%</div>
+                <div class="metric-change positive">
+                    <span>↗</span> 7-day retention
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">User Growth Trend</div>
+                    <div class="chart-period">Last 30 days</div>
+                </div>
+                <div class="chart-placeholder">
+                    📈 User growth chart will be here<br>
+                    <small>(Chart.js integration recommended)</small>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Traffic Sources</div>
+                    <div class="chart-period">This month</div>
+                </div>
+                <div class="chart-placeholder">
+                    🥧 Traffic sources pie chart<br>
+                    <small>(Analytics integration needed)</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acquisition Channels -->
+        <div class="acquisition-channels">
+            <div class="channel-card">
+                <div class="channel-name">🔍 Organic Search</div>
+                <div class="channel-users">0</div>
+                <div class="channel-cost">Free</div>
+            </div>
+            
+            <div class="channel-card">
+                <div class="channel-name">📱 Social Media</div>
+                <div class="channel-users">0</div>
+                <div class="channel-cost">$0 spent</div>
+            </div>
+            
+            <div class="channel-card">
+                <div class="channel-name">📧 Email Marketing</div>
+                <div class="channel-users">0</div>
+                <div class="channel-cost">$0 spent</div>
+            </div>
+            
+            <div class="channel-card">
+                <div class="channel-name">💰 Paid Ads</div>
+                <div class="channel-users">0</div>
+                <div class="channel-cost">$0 spent</div>
+            </div>
+            
+            <div class="channel-card">
+                <div class="channel-name">🤝 Referrals</div>
+                <div class="channel-users">0</div>
+                <div class="channel-cost">$0 rewards</div>
+            </div>
+            
+            <div class="channel-card">
+                <div class="channel-name">🎪 Product Hunt</div>
+                <div class="channel-users">0</div>
+                <div class="channel-cost">$0 spent</div>
+            </div>
+        </div>
+        
+        <!-- Goals Section -->
+        <div class="goals-section">
+            <div class="goals-header">
+                <h2>🎯 Growth Milestones</h2>
+                <p>Track progress toward your 1000+ user goal</p>
+            </div>
+            
+            <div class="goals-grid">
+                <div class="goal-item">
+                    <div class="goal-period">30-Day Goal</div>
+                    <div class="goal-target">100+ Users</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="goal-progress">
+                        <span>0 / 100</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+                
+                <div class="goal-item">
+                    <div class="goal-period">60-Day Goal</div>
+                    <div class="goal-target">500+ Users</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="goal-progress">
+                        <span>0 / 500</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+                
+                <div class="goal-item">
+                    <div class="goal-period">90-Day Goal</div>
+                    <div class="goal-target">1000+ Users</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="goal-progress">
+                        <span>0 / 1000</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+                
+                <div class="goal-item">
+                    <div class="goal-period">Revenue Goal</div>
+                    <div class="goal-target">$10K MRR</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="goal-progress">
+                        <span>$0 / $10K</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Items -->
+        <div class="action-items">
+            <h2 style="margin-bottom: 20px;">📋 This Week's Action Items</h2>
+            
+            <div class="action-item">
+                <input type="checkbox" class="action-checkbox">
+                <div class="action-text">Launch Product Hunt campaign</div>
+                <div class="action-priority priority-high">High</div>
+            </div>
+            
+            <div class="action-item">
+                <input type="checkbox" class="action-checkbox">
+                <div class="action-text">Create developer onboarding tutorial</div>
+                <div class="action-priority priority-high">High</div>
+            </div>
+            
+            <div class="action-item">
+                <input type="checkbox" class="action-checkbox">
+                <div class="action-text">Post in 5 developer communities</div>
+                <div class="action-priority priority-medium">Medium</div>
+            </div>
+            
+            <div class="action-item">
+                <input type="checkbox" class="action-checkbox">
+                <div class="action-text">Set up email marketing automation</div>
+                <div class="action-priority priority-medium">Medium</div>
+            </div>
+            
+            <div class="action-item">
+                <input type="checkbox" class="action-checkbox">
+                <div class="action-text">Optimize website for mobile users</div>
+                <div class="action-priority priority-medium">Medium</div>
+            </div>
+            
+            <div class="action-item">
+                <input type="checkbox" class="action-checkbox">
+                <div class="action-text">Create social media content calendar</div>
+                <div class="action-priority priority-low">Low</div>
+            </div>
+            
+            <div class="action-item">
+                <input type="checkbox" class="action-checkbox">
+                <div class="action-text">Research competitor pricing strategies</div>
+                <div class="action-priority priority-low">Low</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Mock data for demonstration
+        function updateMetrics() {
+            // These would be populated from your analytics API
+            const metrics = {
+                totalUsers: 47,
+                monthlyRevenue: 234,
+                conversionRate: 3.2,
+                dailyActiveUsers: 23,
+                growthRate: 15.4,
+                retentionRate: 68
+            };
+            
+            document.getElementById('totalUsers').textContent = metrics.totalUsers;
+            document.getElementById('monthlyRevenue').textContent = `$${metrics.monthlyRevenue}`;
+            document.getElementById('conversionRate').textContent = `${metrics.conversionRate}%`;
+            document.getElementById('dailyActiveUsers').textContent = metrics.dailyActiveUsers;
+            document.getElementById('growthRate').textContent = `${metrics.growthRate}%`;
+            document.getElementById('retentionRate').textContent = `${metrics.retentionRate}%`;
+            
+            // Update progress bars
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars[0].style.width = `${(metrics.totalUsers / 1000) * 100}%`;
+            progressBars[1].style.width = `${(metrics.monthlyRevenue / 10000) * 100}%`;
+            progressBars[2].style.width = `${(metrics.conversionRate / 10) * 100}%`;
+            progressBars[3].style.width = `${(metrics.dailyActiveUsers / 100) * 100}%`;
+            progressBars[4].style.width = `${Math.min(metrics.growthRate / 50 * 100, 100)}%`;
+            progressBars[5].style.width = `${metrics.retentionRate}%`;
+        }
+        
+        // Update goals progress
+        function updateGoals() {
+            const currentUsers = 47;
+            const currentRevenue = 234;
+            
+            // 30-day goal
+            const goal30 = document.querySelectorAll('.goal-item')[0];
+            const progress30 = Math.min((currentUsers / 100) * 100, 100);
+            goal30.querySelector('.progress-fill').style.width = `${progress30}%`;
+            goal30.querySelector('.goal-progress span:first-child').textContent = `${currentUsers} / 100`;
+            goal30.querySelector('.goal-progress span:last-child').textContent = `${Math.round(progress30)}%`;
+            
+            // 60-day goal
+            const goal60 = document.querySelectorAll('.goal-item')[1];
+            const progress60 = Math.min((currentUsers / 500) * 100, 100);
+            goal60.querySelector('.progress-fill').style.width = `${progress60}%`;
+            goal60.querySelector('.goal-progress span:first-child').textContent = `${currentUsers} / 500`;
+            goal60.querySelector('.goal-progress span:last-child').textContent = `${Math.round(progress60)}%`;
+            
+            // 90-day goal
+            const goal90 = document.querySelectorAll('.goal-item')[2];
+            const progress90 = Math.min((currentUsers / 1000) * 100, 100);
+            goal90.querySelector('.progress-fill').style.width = `${progress90}%`;
+            goal90.querySelector('.goal-progress span:first-child').textContent = `${currentUsers} / 1000`;
+            goal90.querySelector('.goal-progress span:last-child').textContent = `${Math.round(progress90)}%`;
+            
+            // Revenue goal
+            const goalRevenue = document.querySelectorAll('.goal-item')[3];
+            const progressRevenue = Math.min((currentRevenue / 10000) * 100, 100);
+            goalRevenue.querySelector('.progress-fill').style.width = `${progressRevenue}%`;
+            goalRevenue.querySelector('.goal-progress span:first-child').textContent = `$${currentRevenue} / $10K`;
+            goalRevenue.querySelector('.goal-progress span:last-child').textContent = `${Math.round(progressRevenue)}%`;
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMetrics();
+            updateGoals();
+            
+            // Update every 5 minutes
+            setInterval(() => {
+                updateMetrics();
+                updateGoals();
+            }, 5 * 60 * 1000);
+        });
+        
+        // Handle action item checkboxes
+        document.querySelectorAll('.action-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const actionItem = this.parentElement;
+                if (this.checked) {
+                    actionItem.style.opacity = '0.5';
+                    actionItem.style.textDecoration = 'line-through';
+                } else {
+                    actionItem.style.opacity = '1';
+                    actionItem.style.textDecoration = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

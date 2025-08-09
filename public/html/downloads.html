@@ -269,6 +269,7 @@
             }
         }
     </style>
+    <script src="js/csp-handlers-downloads.js"></script>
 </head>
 <body>
     <div class="ocean-bg"></div>
@@ -455,7 +456,7 @@
                         RinaWarp Terminal download files are being prepared.<br>
                         Check back soon for the latest releases!
                     </div>
-                    <button onclick="this.parentElement.remove()" style="
+                    <button data-onclick="this.parentElement.remove()" class="csp-event-handler" style="
                         margin-top: 20px;
                         padding: 10px 20px;
                         background: #001122;

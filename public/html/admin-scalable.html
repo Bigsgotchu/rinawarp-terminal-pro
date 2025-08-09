@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testimonial Admin - RinaWarp Terminal (Scalable)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background: #f8f9fa;
+        }
+        
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+        }
+        
+        .login-form {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff1493;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .error-message {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            text-align: center; 
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff1493;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .stat-change {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        
+        .stat-change.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .stat-change.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .analytics-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        
+        .chart-container {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .recent-activity {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-type {
+            font-weight: bold;
+            color: #ff1493;
+        }
+        
+        .activity-time {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .testimonials-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .testimonial-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            transition: box-shadow 0.2s;
+        }
+        
+        .testimonial-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .testimonial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .testimonial-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .user-info {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .submission-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .testimonial-content {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-style: italic;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .testimonial-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        
+        .data-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .data-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 2px;
+        }
+        
+        .data-value {
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #007bff;
+            color: white;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ff1493;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 60px 20px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .page-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .page-btn.active {
+            background: #ff1493;
+            color: white;
+            border-color: #ff1493;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 768px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .testimonial-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container { 
+                padding: 10px; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-form">
+            <h2>🔐 Admin Login</h2>
+            <div id="loginError" class="error-message" style="display: none;"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <div class="container">
+            <div class="header">
+                <h1>📊 Testimonial Analytics Dashboard</h1>
+                <p>Scalable testimonial management for 1000+ users</p>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-change positive" id="pendingChange">+12%</div>
+                    <div class="stat-number" id="pendingCount">-</div>
+                    <div class="stat-label">Pending Review</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-change positive" id="approvedChange">+8%</div>
+                    <div class="stat-number" id="approvedCount">-</div>
+                    <div class="stat-label">Approved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-change positive" id="totalChange">+15%</div>
+                    <div class="stat-number" id="totalCount">-</div>
+                    <div class="stat-label">Total Submissions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-change positive" id="viewsChange">+24%</div>
+                    <div class="stat-number" id="viewsCount">-</div>
+                    <div class="stat-label">Page Views</div>
+                </div>
+            </div>
+            
+            <div class="analytics-section">
+                <h2>📈 Analytics Overview</h2>
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        📊 Submission trends chart would be here<br>
+                        <small>(Chart.js integration recommended)</small>
+                    </div>
+                    <div class="recent-activity">
+                        <h3>Recent Activity</h3>
+                        <div id="recentActivity">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                Loading activity...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonials-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>📋 Testimonial Management</h2>
+                    <button class="btn btn-view" onclick="loadPendingTestimonials()">🔄 Refresh</button>
+                </div>
+                
+                <div class="filters">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="all">All Status</option>
+                    </select>
+                    <select class="filter-select" id="typeFilter">
+                        <option value="all">All Types</option>
+                        <option value="beta_feedback">Beta Feedback</option>
+                        <option value="feature_request">Feature Request</option>
+                    </select>
+                    <input type="search" class="search-input" id="searchInput" placeholder="Search testimonials...">
+                </div>
+                
+                <div id="testimonials-container">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading testimonials...
+                    </div>
+                </div>
+                
+                <div id="pagination" class="pagination" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let authToken = localStorage.getItem('adminToken');
+        let currentPage = 0;
+        let totalPages = 0;
+        const pageSize = 10;
+        
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authToken) {
+                showDashboard();
+                loadDashboardData();
+            } else {
+                showLogin();
+            }
+        });
+        
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await login();
+        });
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    authToken = data.token;
+                    localStorage.setItem('adminToken', authToken);
+                    showDashboard();
+                    loadDashboardData();
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('adminToken');
+            authToken = null;
+            showLogin();
+        }
+        
+        function showLogin() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+        
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        }
+        
+        async function makeAuthenticatedRequest(url, options = {}) {
+            const headers = {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+            
+            if (response.status === 401) {
+                logout();
+                throw new Error('Authentication failed');
+            }
+            
+            return response;
+        }
+        
+        async function loadDashboardData() {
+            await Promise.all([
+                loadStats(),
+                loadPendingTestimonials(),
+                loadRecentActivity()
+            ]);
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await makeAuthenticatedRequest('/health');
+                const data = await response.json();
+                
+                if (data.testimonials) {
+                    document.getElementById('pendingCount').textContent = data.testimonials.pending;
+                    document.getElementById('approvedCount').textContent = data.testimonials.approved;
+                    document.getElementById('totalCount').textContent = 
+                        parseInt(data.testimonials.pending) + parseInt(data.testimonials.approved);
+                }
+                
+                // Load analytics for views
+                await loadAnalytics();
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        async function loadAnalytics() {
+            try {
+                const response = await makeAuthenticatedRequest('/admin/analytics?days=7');
+                const data = await response.json();
+                
+                if (data.success && data.analytics) {
+                    const viewCount = data.analytics
+                        .filter(item => item.event_type === 'view')
+                        .reduce((sum, item) => sum + parseInt(item.count), 0);
+                    
+                    document.getElementById('viewsCount').textContent = viewCount;
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+        
+        async function loadRecentActivity() {
+            const container = document.getElementById('recentActivity');
+            
+            // Mock recent activity for demo
+            container.innerHTML = `
+                <div class="activity-item">
+                    <div>
+                        <div class="activity-type">New Submission</div>
+                        <div>Beta feedback from John Doe</div>
+                    </div>
+                    <div class="activity-time">2 minutes ago</div>
+                </div>
+                <div class="activity-item">
+                    <div>
+                        <div class="activity-type">Approved</div>
+                        <div>Testimonial from Jane Smith</div>
+                    </div>
+                    <div class="activity-time">15 minutes ago</div>
+                </div>
+                <div class="activity-item">
+                    <div>
+                        <div class="activity-type">New Submission</div>
+                        <div>Feature request from DevCorp</div>
+                    </div>
+                    <div class="activity-time">1 hour ago</div>
+                </div>
+            `;
+        }
+        
+        async function loadPendingTestimonials() {
+            const container = document.getElementById('testimonials-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading testimonials...</div>';
+            
+            try {
+                const response = await makeAuthenticatedRequest('/admin/pending');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderTestimonials(data.pending);
+                } else {
+                    container.innerHTML = '<div class="empty-state">❌ Error loading testimonials</div>';
+                }
+            } catch (error) {
+                console.error('Error loading testimonials:', error);
+                container.innerHTML = '<div class="empty-state">❌ Failed to connect to server</div>';
+            }
+        }
+        
+        function renderTestimonials(testimonials) {
+            const container = document.getElementById('testimonials-container');
+            
+            if (testimonials.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📭 No pending testimonials</h3>
+                        <p>All feedback has been reviewed, or no submissions received yet.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = testimonials.map(testimonial => `
+                <div class="testimonial-item" id="testimonial-${testimonial.id}">
+                    <div class="testimonial-header">
+                        <div class="testimonial-meta">
+                            <div class="user-info">${testimonial.display_name || testimonial.user_name || 'Anonymous'}</div>
+                            <div class="submission-info">
+                                ${new Date(testimonial.created_at).toLocaleString()} • 
+                                ${testimonial.type}
+                                ${testimonial.user_company ? ` • ${testimonial.user_company}` : ''}
+                            </div>
+                        </div>
+                        <span class="status-badge status-${testimonial.status}">${testimonial.status}</span>
+                    </div>
+                    
+                    <div class="testimonial-content">
+                        "${testimonial.content.substring(0, 200)}${testimonial.content.length > 200 ? '...' : ''}"
+                    </div>
+                    
+                    <div class="testimonial-data">
+                        <div class="data-item">
+                            <div class="data-label">Email</div>
+                            <div class="data-value">${testimonial.email || 'Not provided'}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Company</div>
+                            <div class="data-value">${testimonial.display_company || 'Not provided'}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Consent</div>
+                            <div class="data-value">${testimonial.testimonial_approved ? '✅ Yes' : '❌ No'}</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Priority</div>
+                            <div class="data-value">${testimonial.priority || 'Not specified'}</div>
+                        </div>
+                    </div>
+                    
+                    ${testimonial.testimonial_approved && testimonial.status === 'pending' ? `
+                        <div class="action-buttons">
+                            <button class="btn btn-approve" onclick="approveTestimonial('${testimonial.id}')">
+                                ✅ Approve
+                            </button>
+                            <button class="btn btn-reject" onclick="rejectTestimonial('${testimonial.id}')">
+                                ❌ Reject
+                            </button>
+                            <button class="btn btn-view" onclick="viewFullTestimonial('${testimonial.id}')">
+                                👁️ View Full
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="action-buttons">
+                            <button class="btn btn-view" onclick="viewFullTestimonial('${testimonial.id}')">
+                                👁️ View Full
+                            </button>
+                        </div>
+                    `}
+                </div>
+            `).join('');
+        }
+        
+        async function approveTestimonial(id) {
+            const notes = prompt('Add review notes (optional):');
+            
+            try {
+                const response = await makeAuthenticatedRequest(`/admin/approve/${id}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ notes: notes || '' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById(`testimonial-${id}`).remove();
+                    loadStats(); // Refresh stats
+                    alert('✅ Testimonial approved successfully!');
+                } else {
+                    alert('❌ Error approving testimonial: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error approving testimonial:', error);
+                alert('❌ Failed to approve testimonial');
+            }
+        }
+        
+        function rejectTestimonial(id) {
+            if (confirm('Are you sure you want to reject this testimonial?')) {
+                // In production, you'd implement a rejection endpoint
+                document.getElementById(`testimonial-${id}`).remove();
+                alert('Testimonial rejected');
+            }
+        }
+        
+        function viewFullTestimonial(id) {
+            alert(`View full testimonial ${id} - This would open a modal with full details`);
+        }
+        
+        // Filter functionality
+        document.getElementById('searchInput').addEventListener('input', filterTestimonials);
+        document.getElementById('statusFilter').addEventListener('change', filterTestimonials);
+        document.getElementById('typeFilter').addEventListener('change', filterTestimonials);
+        
+        function filterTestimonials() {
+            // Implementation for client-side filtering
+            console.log('Filtering testimonials...');
+        }
+    </script>
+</body>
+</html>
