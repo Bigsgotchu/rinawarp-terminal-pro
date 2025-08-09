@@ -1262,6 +1262,50 @@ app.get('/ga4-test.html', staticPageLimiter, (req, res) => {
   res.sendFile(safePath);
 });
 
+// Debug endpoint to list public directory contents (temporary)
+app.get('/api/debug/public-files', (req, res) => {
+  try {
+    const files = fs.readdirSync(_PUBLIC_DIR);
+    const analyticsExists = fs.existsSync(path.join(_PUBLIC_DIR, 'analytics-dashboard.html'));
+    res.json({
+      publicDir: _PUBLIC_DIR,
+      files: files,
+      analyticsExists: analyticsExists,
+      analyticsPath: path.join(_PUBLIC_DIR, 'analytics-dashboard.html'),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      publicDir: _PUBLIC_DIR,
+    });
+  }
+});
+
+// Serve analytics dashboard
+app.get('/analytics-dashboard.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('analytics-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Analytics dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+  res.sendFile(safePath);
+});
+
+// Serve analytics dashboard without extension
+app.get('/analytics-dashboard', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('analytics-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Analytics dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(safePath);
+});
+
 // Release files are served directly from the public/releases directory
 
 // General release files handler
