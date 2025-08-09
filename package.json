@@ -213,7 +213,13 @@
     "manual-sales": "node scripts/manual-sales.js",
     "setup-revenue": "node scripts/setup-revenue-system.js",
     "qa:test": "node scripts/qa-test.js",
-    "qa:full": "npm run qa:test && npm run test:ci && npm run lint"
+    "qa:full": "npm run qa:test && npm run test:ci && npm run lint",
+    "test:convo": "node scripts/test-convo-integration.js",
+    "convo:init": "node scripts/test-convo-integration.js init",
+    "convo:test": "node scripts/test-convo-integration.js test",
+    "convo:chat": "node scripts/test-convo-integration.js chat",
+    "convo:health": "node scripts/test-convo-integration.js health",
+    "convo:debug": "node scripts/test-convo-integration.js debug"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
@@ -255,6 +261,7 @@
     "chalk": "5.5.0",
     "clean-webpack-plugin": "4.0.0",
     "conventional-changelog-cli": "5.0.0",
+    "convo-sdk": "1.0.47",
     "copy-webpack-plugin": "13.0.0",
     "core-js": "3.45.0",
     "cors": "2.8.5",
