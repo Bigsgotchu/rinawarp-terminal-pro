@@ -5,10 +5,10 @@ nixPkgs = ["nodejs_22", "npm-9_x"]
 cmds = ["npm ci --omit=optional --omit=dev"]
 
 [phases.build]
-cmds = ["echo 'Build phase - RinaWarp Terminal ready'"]
+cmds = ["echo 'Build phase - RinaWarp Terminal debug server ready'"]
 
 [phases.start]
-cmd = "npm start"
+cmd = "node railway-debug.js"
 
 [variables]
 NODE_ENV = "production"
