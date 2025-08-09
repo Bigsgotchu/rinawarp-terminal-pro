@@ -167,12 +167,12 @@ async function commitChanges() {
   // Validate conventional commit format
   const conventionalFormat =
     /^(feat|fix|docs|style|refactor|test|chore|ci|build|perf)(\(.+\))?: .+/;
-  if (!conventionalFormat.test(message)) {
+  if (!conventionalFormat.test(message.trim())) {
     warn('Invalid commit format! Using conventional format...');
-    const suggestedMessage = `fix: ${message}`;
+    const suggestedMessage = `fix: ${message.replace(/^\s+/, '')}`;
     log(`Suggested: ${suggestedMessage}`);
     const useDefault = await askQuestion('Use suggested format? (Y/n): ');
-    const finalMessage = useDefault.toLowerCase() === 'n' ? message : suggestedMessage;
+    const finalMessage = useDefault.toLowerCase() === 'n' ? message.trim() : suggestedMessage;
     execSync('git add -A');
     execSync(`git commit -m "${finalMessage}"`);
   } else {
@@ -197,10 +197,11 @@ function getReleaseInfo(type) {
 function updateVersion(type) {
   try {
     if (type === 'beta') {
-      // For beta, append beta suffix
-      execSync('npm version prerelease --preid=beta');
+      // For beta, append beta suffix - skip git commit and tag
+      execSync('npm version prerelease --preid=beta --no-git-tag-version');
     } else {
-      execSync(`npm version ${type}`);
+      // Skip git commit and tag, we'll handle this ourselves
+      execSync(`npm version ${type} --no-git-tag-version`);
     }
     success('Version updated');
   } catch (versionErr) {
