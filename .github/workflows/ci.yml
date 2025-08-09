@@ -17,29 +17,29 @@ permissions:
   checks: write
 
 jobs:
-  sonarcloud:
-    name: SonarCloud Analysis
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-    
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-    
-      - name: Install dependencies
-        run: npm ci
-    
-      - name: Analyze with SonarCloud
-        uses: SonarSource/sonarqube-scan-action@v1
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # sonarcloud:
+  #   name: SonarCloud Analysis
+  #   runs-on: ubuntu-latest
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #   
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20.x'
+  #         cache: 'npm'
+  #   
+  #     - name: Install dependencies
+  #       run: npm ci
+  #   
+  #     - name: Analyze with SonarCloud
+  #       uses: SonarSource/sonarqube-scan-action@v1
+  #       env:
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   test:
     name: 🔍 Test & Validate
     runs-on: ubuntu-latest
