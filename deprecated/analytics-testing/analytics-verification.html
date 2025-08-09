@@ -73,6 +73,7 @@
             100% { opacity: 1; }
         }
     </style>
+    <script src="js/csp-handlers-analytics-verification.js"></script>
 </head>
 <body>
     <h1>🚀 RinaWarp Analytics Test Suite</h1>
@@ -97,43 +98,43 @@
 
     <div class="test-section">
         <h2>🧪 Basic Event Tests</h2>
-        <button onclick="testPageView()">Test Page View</button>
-        <button onclick="testCustomEvent()">Test Custom Event</button>
-        <button onclick="testUserEngagement()">Test User Engagement</button>
-        <button onclick="testSearch()">Test Search Event</button>
+        <button data-onclick="testPageView()" class="csp-event-handler">Test Page View</button>
+        <button data-onclick="testCustomEvent()" class="csp-event-handler">Test Custom Event</button>
+        <button data-onclick="testUserEngagement()" class="csp-event-handler">Test User Engagement</button>
+        <button data-onclick="testSearch()" class="csp-event-handler">Test Search Event</button>
         <div class="log-output" id="basic-log"></div>
     </div>
 
     <div class="test-section">
         <h2>💳 E-commerce Event Tests</h2>
-        <button onclick="testViewPricing()">View Pricing</button>
-        <button onclick="testSelectPlan()">Select Plan</button>
-        <button onclick="testBeginCheckout()">Begin Checkout</button>
-        <button onclick="testPurchase()">Complete Purchase</button>
-        <button onclick="testAbandonCheckout()">Abandon Checkout</button>
+        <button data-onclick="testViewPricing()" class="csp-event-handler">View Pricing</button>
+        <button data-onclick="testSelectPlan()" class="csp-event-handler">Select Plan</button>
+        <button data-onclick="testBeginCheckout()" class="csp-event-handler">Begin Checkout</button>
+        <button data-onclick="testPurchase()" class="csp-event-handler">Complete Purchase</button>
+        <button data-onclick="testAbandonCheckout()" class="csp-event-handler">Abandon Checkout</button>
         <div class="log-output" id="ecommerce-log"></div>
     </div>
 
     <div class="test-section">
         <h2>🔄 Subscription Event Tests</h2>
-        <button onclick="testSubscriptionCreated()">Subscription Created</button>
-        <button onclick="testSubscriptionUpdated()">Subscription Updated</button>
-        <button onclick="testSubscriptionCancelled()">Subscription Cancelled</button>
-        <button onclick="testRefund()">Process Refund</button>
+        <button data-onclick="testSubscriptionCreated()" class="csp-event-handler">Subscription Created</button>
+        <button data-onclick="testSubscriptionUpdated()" class="csp-event-handler">Subscription Updated</button>
+        <button data-onclick="testSubscriptionCancelled()" class="csp-event-handler">Subscription Cancelled</button>
+        <button data-onclick="testRefund()" class="csp-event-handler">Process Refund</button>
         <div class="log-output" id="subscription-log"></div>
     </div>
 
     <div class="test-section">
         <h2>🎯 Conversion Funnel Tests</h2>
-        <button onclick="testFullFunnel()">Run Full Funnel</button>
-        <button onclick="testFunnelWithAbandonment()">Funnel with Abandonment</button>
-        <button onclick="testDiscountUsage()">Test Discount Usage</button>
+        <button data-onclick="testFullFunnel()" class="csp-event-handler">Run Full Funnel</button>
+        <button data-onclick="testFunnelWithAbandonment()" class="csp-event-handler">Funnel with Abandonment</button>
+        <button data-onclick="testDiscountUsage()" class="csp-event-handler">Test Discount Usage</button>
         <div class="log-output" id="funnel-log"></div>
     </div>
 
     <div class="test-section">
         <h2>📋 Event History</h2>
-        <button onclick="clearHistory()">Clear History</button>
+        <button data-onclick="clearHistory()" class="csp-event-handler">Clear History</button>
         <div class="log-output" id="event-history" style="max-height: 400px;"></div>
     </div>
 

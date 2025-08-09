@@ -51,15 +51,16 @@
             font-size: 12px;
         }
     </style>
+    <script src="js/csp-handlers-test-payment.js"></script>
 </head>
 <body>
     <h1>🔧 Payment System Diagnostic</h1>
     
     <div class="test-section">
         <h2>1. API Connectivity Test</h2>
-        <button onclick="testAPI('/api/stripe-config', 'config-result')">Test Stripe Config API</button>
-        <button onclick="testAPI('/api/download?file=rinawarp.zip', 'download-result')">Test Download API</button>
-        <button onclick="testCheckoutAPI()">Test Checkout API</button>
+        <button data-onclick="testAPI(" class="csp-event-handler"/api/stripe-config', 'config-result')">Test Stripe Config API</button>
+        <button data-onclick="testAPI(" class="csp-event-handler"/api/download?file=rinawarp.zip', 'download-result')">Test Download API</button>
+        <button data-onclick="testCheckoutAPI()" class="csp-event-handler">Test Checkout API</button>
         <div id="config-result"></div>
         <div id="download-result"></div>
         <div id="checkout-result"></div>
@@ -67,23 +68,23 @@
 
     <div class="test-section">
         <h2>2. Stripe Initialization Test</h2>
-        <button onclick="initStripeTest()">Initialize Stripe</button>
+        <button data-onclick="initStripeTest()" class="csp-event-handler">Initialize Stripe</button>
         <div id="stripe-init-result"></div>
     </div>
 
     <div class="test-section">
         <h2>3. Payment Flow Test</h2>
-        <button onclick="testPaymentFlow('personal')">Test Personal Plan ($15)</button>
-        <button onclick="testPaymentFlow('professional')">Test Professional Plan ($25)</button>
-        <button onclick="testPaymentFlow('beta')">Test Beta Access ($39)</button>
+        <button data-onclick="testPaymentFlow(" class="csp-event-handler"personal')">Test Personal Plan ($15)</button>
+        <button data-onclick="testPaymentFlow(" class="csp-event-handler"professional')">Test Professional Plan ($25)</button>
+        <button data-onclick="testPaymentFlow(" class="csp-event-handler"beta')">Test Beta Access ($39)</button>
         <div id="payment-flow-result"></div>
     </div>
 
     <div class="test-section">
         <h2>4. Download Test</h2>
-        <button onclick="testDownload('windows')">Test Windows Download</button>
-        <button onclick="testDownload('mac')">Test macOS Download</button>
-        <button onclick="testDownload('linux')">Test Linux Download</button>
+        <button data-onclick="testDownload(" class="csp-event-handler"windows')">Test Windows Download</button>
+        <button data-onclick="testDownload(" class="csp-event-handler"mac')">Test macOS Download</button>
+        <button data-onclick="testDownload(" class="csp-event-handler"linux')">Test Linux Download</button>
         <div id="download-test-result"></div>
     </div>
 

@@ -152,6 +152,7 @@
             color: #00ff88;
         }
     </style>
+    <script src="js/csp-handlers-ga4-test.js"></script>
 </head>
 <body>
     <div class="container">
@@ -201,12 +202,12 @@
             <h2>🧪 Manual GA4 Event Testing</h2>
             <p>Use these buttons to manually test GA4 event tracking:</p>
             
-            <button onclick="testPageView()">📄 Test Page View</button>
-            <button onclick="testCustomEvent()">⚡ Test Custom Event</button>
-            <button onclick="testPricingView()">💰 Test Pricing View</button>
-            <button onclick="testPlanSelection()">🎯 Test Plan Selection</button>
-            <button onclick="testCheckoutStart()">🛒 Test Checkout Start</button>
-            <button onclick="testError()">❌ Test Error Event</button>
+            <button data-onclick="testPageView()" class="csp-event-handler">📄 Test Page View</button>
+            <button data-onclick="testCustomEvent()" class="csp-event-handler">⚡ Test Custom Event</button>
+            <button data-onclick="testPricingView()" class="csp-event-handler">💰 Test Pricing View</button>
+            <button data-onclick="testPlanSelection()" class="csp-event-handler">🎯 Test Plan Selection</button>
+            <button data-onclick="testCheckoutStart()" class="csp-event-handler">🛒 Test Checkout Start</button>
+            <button data-onclick="testError()" class="csp-event-handler">❌ Test Error Event</button>
             
             <div class="log-container" id="event-log">
                 <div class="info-log">[INFO] Event testing ready. Click buttons above to test GA4 events.</div>

@@ -49,6 +49,7 @@
             font-family: monospace;
         }
     </style>
+    <script src="js/csp-handlers-test-ga4.js"></script>
 </head>
 <body>
     <div class="container">
@@ -56,11 +57,11 @@
         <p>This page tests Google Analytics 4 tracking for RinaWarp Terminal.</p>
         
         <h2>🧪 Test Events</h2>
-        <button class="test-button" onclick="testPageView()">📄 Test Page View</button>
-        <button class="test-button" onclick="testCustomEvent()">⚡ Test Custom Event</button>
-        <button class="test-button" onclick="testPricingView()">💰 Test Pricing View</button>
-        <button class="test-button" onclick="testPlanSelect()">🎯 Test Plan Selection</button>
-        <button class="test-button" onclick="testCheckoutStart()">🛒 Test Checkout Start</button>
+        <button class="test-button" data-onclick="testPageView()" class="csp-event-handler">📄 Test Page View</button>
+        <button class="test-button" data-onclick="testCustomEvent()" class="csp-event-handler">⚡ Test Custom Event</button>
+        <button class="test-button" data-onclick="testPricingView()" class="csp-event-handler">💰 Test Pricing View</button>
+        <button class="test-button" data-onclick="testPlanSelect()" class="csp-event-handler">🎯 Test Plan Selection</button>
+        <button class="test-button" data-onclick="testCheckoutStart()" class="csp-event-handler">🛒 Test Checkout Start</button>
         
         <div id="results">
             <h3>📊 Event Log:</h3>

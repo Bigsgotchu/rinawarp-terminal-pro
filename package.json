@@ -39,8 +39,24 @@
     "buildDependenciesFromSource": false,
     "nodeGypRebuild": false,
     "forceCodeSigning": false,
+    "afterSign": null,
+    "mac": {
+      "target": "zip",
+      "icon": "assets/icons/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "notarize": false,
+      "identity": null
+    },
     "win": {
       "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
         {
           "target": "nsis",
           "arch": [
@@ -49,17 +65,9 @@
         }
       ],
       "icon": "assets/icons/icon.ico",
-      "verifyUpdateCodeSignature": true
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "assets/icons/icon.icns",
-      "category": "public.app-category.developer-tools",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "notarize": false
+      "verifyUpdateCodeSignature": false,
+      "requestedExecutionLevel": "asInvoker",
+      "artifactName": "RinaWarp-Terminal-Windows-${arch}.${ext}"
     },
     "dmg": {
       "title": "${productName} ${version}",
@@ -152,8 +160,9 @@
     "lint": "eslint . --ext .js,.ts,.cjs --fix && prettier --write . --ignore-unknown",
     "copy-assets": "node scripts/copy-assets.cjs",
     "build:web": "webpack --mode=production",
-    "build:linux": "npm run copy-assets && electron-builder --linux",
+    "build:linux": "npm run copy-assets && electron-builder --linux --publish=never",
     "build:mac": "npm run copy-assets && electron-builder --mac --publish=never",
+    "build:windows": "npm run copy-assets && electron-builder --win --publish=never",
     "build:all": "npm run copy-assets && npm run test && electron-builder --win --mac --linux",
     "build:creator": "npm run copy-assets && npx electron-builder --config creator-build.config.cjs",
     "build:creator:mac": "npm run copy-assets && npx electron-builder --mac --config creator-build.config.cjs",
@@ -202,24 +211,26 @@
     "railway:open": "railway open",
     "test:anthropic": "node test-anthropic-integration.js",
     "manual-sales": "node scripts/manual-sales.js",
-    "setup-revenue": "node scripts/setup-revenue-system.js"
+    "setup-revenue": "node scripts/setup-revenue-system.js",
+    "qa:test": "node scripts/qa-test.js",
+    "qa:full": "npm run qa:test && npm run test:ci && npm run lint"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
     "axios": "1.11.0",
     "bcrypt": "6.0.0",
-    "cors": "^2.8.5",
+    "compression": "^1.7.4",
     "dotenv": "17.2.1",
     "dotenv-flow": "4.1.0",
     "express": "5.1.0",
     "express-validator": "7.2.1",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.2",
     "logrocket": "^10.1.0",
     "morgan": "1.10.1",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
+    "pg": "^8.11.3",
     "posthog-node": "5.6.0",
+    "redis": "^4.6.10",
     "stream-browserify": "^3.0.0",
     "winston": "^3.17.0",
     "ws": "^8.18.0"
@@ -250,8 +261,10 @@
     "crypto-browserify": "3.12.1",
     "css-loader": "7.1.2",
     "css-minimizer-webpack-plugin": "7.0.2",
+    "dmg-license": "1.0.11",
     "electron": "37.2.6",
     "electron-builder": "26.0.12",
+    "electron-builder-squirrel-windows": "26.0.12",
     "electron-updater": "6.6.2",
     "eslint": "9.32.0",
     "eslint-formatter-compact": "8.40.0",

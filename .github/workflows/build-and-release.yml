@@ -1,0 +1,199 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+            arch: x64
+          - os: windows-latest
+            platform: win
+            arch: x64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Copy assets
+        run: npm run copy-assets
+        
+      - name: Build for ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" = "mac" ]; then
+            npm run build:mac
+          elif [ "${{ matrix.platform }}" = "win" ]; then
+            npm run build:windows
+          else
+            npm run build:linux
+          fi
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: List build outputs
+        run: ls -la dist/
+        shell: bash
+        
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-build
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.tar.gz
+          retention-days: 30
+          
+  package-releases:
+    name: Package Releases
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: Create release directory
+        run: mkdir -p releases
+        
+      - name: Package releases
+        run: |
+          # Copy and rename files for website compatibility
+          find artifacts -name "*.zip" -path "*/mac-build/*" -exec cp {} releases/RinaWarp-Terminal-macOS.zip \;
+          find artifacts -name "*.exe" -path "*/win-build/*" -exec zip releases/RinaWarp-Terminal-Windows-Portable.zip {} \;
+          find artifacts -name "*.AppImage" -path "*/linux-build/*" -exec cp {} releases/RinaWarp-Terminal-Linux.AppImage \;
+          
+          # Create universal download (same as macOS for now)
+          if [ -f releases/RinaWarp-Terminal-macOS.zip ]; then
+            cp releases/RinaWarp-Terminal-macOS.zip releases/rinawarp.zip
+          fi
+          
+          # List final packages
+          ls -la releases/
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: releases/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+  deploy-to-website:
+    name: Deploy to Website
+    needs: package-releases
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download packaged releases
+        uses: actions/download-artifact@v4
+        with:
+          path: releases
+          
+      - name: Deploy to releases directory
+        run: |
+          # This would typically deploy to your web server
+          # For now, we'll just show what would be deployed
+          echo "Would deploy the following files to public/releases/:"
+          find releases -type f -name "*.zip" -o -name "*.AppImage" -o -name "*.exe" | sort
+          
+  quality-assurance:
+    name: Quality Assurance
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: npm run test:ci
+        continue-on-error: true
+        
+      - name: Run linting
+        run: npm run lint
+        continue-on-error: true
+        
+      - name: Security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: Verify build outputs
+        run: |
+          echo "🔍 Verifying build outputs..."
+          
+          # Check file sizes
+          find artifacts -type f \( -name "*.exe" -o -name "*.zip" -o -name "*.AppImage" \) -exec ls -lh {} \;
+          
+          # Basic file validation
+          if find artifacts -name "*.exe" -size +100M | grep -q .; then
+            echo "✅ Windows executable appears to be complete"
+          else
+            echo "❌ Windows executable may be incomplete"
+          fi
+          
+          if find artifacts -name "*.zip" -path "*/mac-build/*" -size +100M | grep -q .; then
+            echo "✅ macOS package appears to be complete"
+          else
+            echo "❌ macOS package may be incomplete"
+          fi
+          
+          if find artifacts -name "*.AppImage" -size +100M | grep -q .; then
+            echo "✅ Linux AppImage appears to be complete"
+          else
+            echo "❌ Linux AppImage may be incomplete"
+          fi

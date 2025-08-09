@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real User Stories - RinaWarp Terminal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #0a1628; 
+            background: linear-gradient(135deg, #ff1493 0%, #00ced1 15%, #1e90ff 30%, #ff69b4 45%, #20b2aa 60%, #ff1493 75%, #00ffff 90%, #ff69b4 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .header { text-align: center; color: white; margin-bottom: 60px; }
+        .header h1 { 
+            font-size: 3.5rem; 
+            margin-bottom: 20px; 
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 20, 147, 0.6);
+        }
+        
+        .nav { display: flex; justify-content: center; gap: 20px; margin: 40px 0; flex-wrap: wrap; }
+        .nav a { 
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.4), rgba(0, 206, 209, 0.5)); 
+            color: #ffffff; 
+            padding: 15px 30px; 
+            border-radius: 25px; 
+            text-decoration: none; 
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 105, 180, 0.6);
+            backdrop-filter: blur(15px);
+        }
+        .nav a:hover { 
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.8), rgba(0, 255, 255, 0.8)); 
+            transform: translateY(-2px);
+        }
+        
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 60px 40px;
+            margin: 40px 0;
+            box-shadow: 0 20px 40px rgba(255, 20, 147, 0.3);
+            border: 2px solid rgba(255, 20, 147, 0.2);
+            text-align: center;
+        }
+        
+        .main-content h2 {
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        
+        .main-content p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .testimonial-forms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .form-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 30px rgba(255, 20, 147, 0.2);
+            border: 2px solid rgba(255, 20, 147, 0.1);
+        }
+        
+        .form-card h3 {
+            color: #ff1493;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .form-card p {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 20, 147, 0.2);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ff1493;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 20, 147, 0.3);
+        }
+        
+        .enterprise-section {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 40px 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .enterprise-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ff1493;
+        }
+        
+        .enterprise-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .enterprise-feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .enterprise-feature h4 {
+            color: #ff1493;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #ff1493, #00ffff, #ff69b4);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 40px 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .cta-button {
+            background: rgba(255, 255, 255, 0.9);
+            color: #ff1493;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            display: inline-block;
+        }
+        
+        .cta-button:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5rem; }
+            .main-content { padding: 30px 20px; }
+            .testimonial-forms { grid-template-columns: 1fr; }
+            .nav { gap: 10px; }
+            .nav a { padding: 10px 20px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ Share Your Experience</h1>
+            <p>Help us build RinaWarp Terminal with authentic user feedback</p>
+        </div>
+        
+        <div class="nav">
+            <a href="/">🏠 Home</a>
+            <a href="/pricing.html">💰 Pricing</a>
+            <a href="/download.html">📥 Download</a>
+            <a href="/beta.html">🚀 Beta</a>
+            <a href="/templates/case-studies-real.html">👥 User Stories</a>
+        </div>
+        
+        <div class="main-content">
+            <h2>🎯 We Value Your Authentic Feedback</h2>
+            <p>RinaWarp Terminal is built by developers, for developers. Your real experiences help us create better tools and show other developers what's possible.</p>
+            <p><strong>No fake testimonials here</strong> - only authentic feedback from real users like you.</p>
+        </div>
+        
+        <!-- Beta Feedback Form -->
+        <div class="testimonial-forms">
+            <div class="form-card">
+                <h3>🧪 Beta Tester Feedback</h3>
+                <p>Share your experience using RinaWarp Terminal</p>
+                
+                <form method="POST" action="https://rinawarptech.com/api/submit-feedback">
+                    <input type="hidden" name="type" value="beta_feedback">
+                    
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company">Company/Organization</label>
+                        <input type="text" id="company" name="company">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="team_size">Team Size</label>
+                        <select id="team_size" name="team_size">
+                            <option value="solo">Solo developer</option>
+                            <option value="2-5">2-5 developers</option>
+                            <option value="6-20">6-20 developers</option>
+                            <option value="21-50">21-50 developers</option>
+                            <option value="50+">50+ developers</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="feedback">Your Experience *</label>
+                        <textarea id="feedback" name="feedback" placeholder="Tell us about your experience with RinaWarp Terminal. What features do you love? What could be improved?" required></textarea>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="testimonial_ok" name="testimonial_ok">
+                        <label for="testimonial_ok">I'm okay with my feedback being used as a testimonial (name and company only - email stays private)</label>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">📝 Share My Experience</button>
+                </form>
+            </div>
+            
+            <!-- Feature Request Form -->
+            <div class="form-card">
+                <h3>💡 Feature Requests</h3>
+                <p>Help us prioritize what to build next</p>
+                
+                <form method="POST" action="https://rinawarptech.com/api/submit-feedback">
+                    <input type="hidden" name="type" value="feature_request">
+                    
+                    <div class="form-group">
+                        <label for="req_name">Name *</label>
+                        <input type="text" id="req_name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="req_email">Email *</label>
+                        <input type="email" id="req_email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select id="priority" name="priority">
+                            <option value="nice-to-have">Nice to have</option>
+                            <option value="important">Important</option>
+                            <option value="critical">Critical</option>
+                            <option value="game-changer">Game changer</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="feature_description">Feature Description *</label>
+                        <textarea id="feature_description" name="feature_description" placeholder="Describe the feature you'd like to see. How would it improve your workflow?" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">💡 Submit Request</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Enterprise Section -->
+        <div class="enterprise-section">
+            <h2>🏢 Enterprise Solutions</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 30px;">Scale RinaWarp Terminal across your entire organization</p>
+            
+            <div class="enterprise-features">
+                <div class="enterprise-feature">
+                    <h4>🔒 Advanced Security</h4>
+                    <p>SOC2 compliance, SSO integration, audit logs, and enterprise-grade security controls.</p>
+                </div>
+                
+                <div class="enterprise-feature">
+                    <h4>👥 Team Management</h4>
+                    <p>Centralized user management, role-based permissions, and team analytics dashboards.</p>
+                </div>
+                
+                <div class="enterprise-feature">
+                    <h4>🎯 Custom AI Training</h4>
+                    <p>Train AI assistants on your specific codebase, workflows, and company standards.</p>
+                </div>
+                
+                <div class="enterprise-feature">
+                    <h4>📊 Analytics & Insights</h4>
+                    <p>Team productivity metrics, usage analytics, and custom reporting capabilities.</p>
+                </div>
+                
+                <div class="enterprise-feature">
+                    <h4>🛠️ Custom Integrations</h4>
+                    <p>Integrate with your existing tools, CI/CD pipelines, and internal systems.</p>
+                </div>
+                
+                <div class="enterprise-feature">
+                    <h4>🚀 Priority Support</h4>
+                    <p>24/7 dedicated support, custom onboarding, and direct access to our engineering team.</p>
+                </div>
+            </div>
+            
+            <p style="font-size: 1.1rem; margin: 30px 0;">
+                Contact us for custom pricing and enterprise features tailored to your organization's needs.
+            </p>
+            
+            <a href="mailto:rinawarptechnologies25@gmail.com?subject=Enterprise%20Inquiry%20-%20RinaWarp%20Terminal&body=Hi%20RinaWarp%20Team%2C%0A%0AI%27m%20interested%20in%20learning%20more%20about%20enterprise%20solutions.%0A%0ACompany%3A%20%0ATeam%20Size%3A%20%0ASpecific%20Needs%3A%20%0A%0APlease%20reach%20out%20to%20discuss%20options.%0A%0AThanks%21" 
+               class="cta-button" style="background: #ff1493; color: white; font-size: 1.2rem; padding: 20px 40px;">
+                📧 Contact Enterprise Sales
+            </a>
+        </div>
+        
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2 style="margin-bottom: 20px;">Ready to Experience RinaWarp Terminal?</h2>
+            <p style="margin-bottom: 30px; font-size: 1.2rem;">Join the community of developers building the future of terminal productivity</p>
+            
+            <a href="/download.html" class="cta-button">📥 Download Free</a>
+            <a href="/pricing.html" class="cta-button">💰 View Pricing</a>
+            <a href="/beta.html" class="cta-button">🚀 Join Beta</a>
+        </div>
+    </div>
+    
+    <script>
+        // Simple form handling
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Simple validation
+                const required = this.querySelectorAll('[required]');
+                let valid = true;
+                
+                required.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.style.borderColor = '#e74c3c';
+                        valid = false;
+                    } else {
+                        field.style.borderColor = 'rgba(255, 20, 147, 0.2)';
+                    }
+                });
+                
+                if (valid) {
+                    // Show success message
+                    const btn = this.querySelector('.submit-btn');
+                    btn.innerHTML = '✅ Thank you! We\'ll be in touch soon.';
+                    btn.style.background = '#27ae60';
+                    btn.disabled = true;
+                    
+                    // In a real implementation, you'd submit to your API endpoint
+                    console.log('Form submitted:', new FormData(this));
+                } else {
+                    alert('Please fill in all required fields');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

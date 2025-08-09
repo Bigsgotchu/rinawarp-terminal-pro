@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 RinaWarp Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .metric-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #00ffff;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .metric-change {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .metric-change.positive { color: #00ff88; }
+        .metric-change.negative { color: #ff4444; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .chart-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ff69b4;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-healthy { background: #00ff88; }
+        .status-warning { background: #ffaa00; }
+        .status-error { background: #ff4444; }
+        
+        .live-feed {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .feed-entry {
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .timestamp {
+            color: #888;
+            font-size: 0.8rem;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.3);
+        }
+    </style>
+    <script src="js/csp-handlers-performance-dashboard.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>🔍 RinaWarp Analytics Dashboard</h1>
+            <p>Real-time monitoring for rinawarptech.com</p>
+            <button class="refresh-btn" data-onclick="refreshDashboard()" class="csp-event-handler">🔄 Refresh Data</button>
+            <button class="refresh-btn" data-onclick="toggleAutoRefresh()" class="csp-event-handler">⏱️ Auto Refresh: ON</button>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-title">
+                    <span class="status-indicator status-healthy"></span>
+                    Site Status
+                </div>
+                <div class="metric-value" id="site-status">🟢 ONLINE</div>
+                <div class="metric-change">Last checked: <span id="last-check">--</span></div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">📊 Today's Visitors</div>
+                <div class="metric-value" id="visitors-today">--</div>
+                <div class="metric-change positive" id="visitors-change">+0% vs yesterday</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">💰 Revenue (24h)</div>
+                <div class="metric-value" id="revenue-today">$0</div>
+                <div class="metric-change positive" id="revenue-change">+0% vs yesterday</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">⚡ Avg Response Time</div>
+                <div class="metric-value" id="response-time">--ms</div>
+                <div class="metric-change positive" id="response-change">Excellent performance</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">🎯 Conversion Rate</div>
+                <div class="metric-value" id="conversion-rate">--%</div>
+                <div class="metric-change" id="conversion-change">+0% vs last week</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">🚨 Error Rate</div>
+                <div class="metric-value" id="error-rate">0%</div>
+                <div class="metric-change positive">All systems normal</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">📈 Visitor Traffic (Last 7 Days)</div>
+                <canvas id="traffic-chart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">💵 Revenue Trends</div>
+                <canvas id="revenue-chart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">🎯 Conversion Funnel</div>
+                <canvas id="funnel-chart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">🌍 Top Traffic Sources</div>
+                <canvas id="sources-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Live Activity Feed -->
+        <div class="chart-card">
+            <div class="chart-title">📡 Live Activity Feed</div>
+            <div class="live-feed" id="activity-feed">
+                <div class="feed-entry">
+                    <span class="timestamp">[Loading...]</span> Initializing dashboard...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefresh = true;
+        let refreshInterval;
+        
+        // Dashboard data
+        const dashboardData = {
+            visitors: {
+                today: 0,
+                yesterday: 0,
+                trend: []
+            },
+            revenue: {
+                today: 0,
+                yesterday: 0,
+                trend: []
+            },
+            performance: {
+                responseTime: 0,
+                errorRate: 0,
+                uptime: 100
+            },
+            conversions: {
+                rate: 0,
+                funnel: []
+            }
+        };
+
+        // Initialize charts
+        let charts = {};
+        
+        function initCharts() {
+            // Traffic chart
+            const trafficCtx = document.getElementById('traffic-chart').getContext('2d');
+            charts.traffic = new Chart(trafficCtx, {
+                type: 'line',
+                data: {
+                    labels: ['7 days ago', '6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', '1 day ago', 'Today'],
+                    datasets: [{
+                        label: 'Visitors',
+                        data: [45, 67, 89, 123, 156, 201, 289, 324],
+                        borderColor: '#00ffff',
+                        backgroundColor: 'rgba(0, 255, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    }
+                }
+            });
+
+            // Revenue chart
+            const revenueCtx = document.getElementById('revenue-chart').getContext('2d');
+            charts.revenue = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Personal', 'Professional', 'Team'],
+                    datasets: [{
+                        label: 'Revenue by Plan',
+                        data: [450, 870, 490],
+                        backgroundColor: ['#ff69b4', '#00ffff', '#ff1493'],
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { color: 'white' }
+                        },
+                        x: { ticks: { color: 'white' } }
+                    }
+                }
+            });
+
+            // Conversion funnel
+            const funnelCtx = document.getElementById('funnel-chart').getContext('2d');
+            charts.funnel = new Chart(funnelCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Visitors', 'Demo Views', 'Pricing Views', 'Purchases'],
+                    datasets: [{
+                        data: [1000, 450, 180, 27],
+                        backgroundColor: ['#ff1493', '#ff69b4', '#00ffff', '#20b2aa'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    }
+                }
+            });
+
+            // Traffic sources
+            const sourcesCtx = document.getElementById('sources-chart').getContext('2d');
+            charts.sources = new Chart(sourcesCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Direct', 'Google', 'Social Media', 'Referrals', 'Email'],
+                    datasets: [{
+                        data: [35, 28, 15, 12, 10],
+                        backgroundColor: ['#ff1493', '#00ffff', '#ff69b4', '#20b2aa', '#ffd700'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    }
+                }
+            });
+        }
+
+        // Refresh dashboard data
+        async function refreshDashboard() {
+            try {
+                // Check site health
+                await checkSiteHealth();
+                
+                // Update metrics
+                updateMetrics();
+                
+                // Add to activity feed
+                addToActivityFeed('📊 Dashboard refreshed successfully');
+                
+            } catch (error) {
+                console.error('Dashboard refresh failed:', error);
+                addToActivityFeed('❌ Dashboard refresh failed: ' + error.message);
+            }
+        }
+
+        // Check site health
+        async function checkSiteHealth() {
+            try {
+                const start = Date.now();
+                const response = await fetch('https://rinawarptech.com/api/status/health');
+                const responseTime = Date.now() - start;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('site-status').textContent = '🟢 ONLINE';
+                    document.getElementById('response-time').textContent = responseTime + 'ms';
+                    document.getElementById('last-check').textContent = new Date().toLocaleTimeString();
+                    
+                    addToActivityFeed(`✅ Health check passed (${responseTime}ms)`);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                document.getElementById('site-status').textContent = '🔴 OFFLINE';
+                addToActivityFeed(`❌ Health check failed: ${error.message}`);
+            }
+        }
+
+        // Update metrics with simulated data (replace with real API calls)
+        function updateMetrics() {
+            // Simulate visitor data
+            const todayVisitors = Math.floor(Math.random() * 500) + 200;
+            document.getElementById('visitors-today').textContent = todayVisitors.toLocaleString();
+            
+            // Simulate revenue data
+            const todayRevenue = Math.floor(Math.random() * 2000) + 500;
+            document.getElementById('revenue-today').textContent = '$' + todayRevenue.toLocaleString();
+            
+            // Simulate conversion rate
+            const conversionRate = (Math.random() * 5 + 2).toFixed(1);
+            document.getElementById('conversion-rate').textContent = conversionRate + '%';
+            
+            // Update error rate
+            document.getElementById('error-rate').textContent = '0.01%';
+        }
+
+        // Add entry to activity feed
+        function addToActivityFeed(message) {
+            const feed = document.getElementById('activity-feed');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = 'feed-entry';
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            feed.insertBefore(entry, feed.firstChild);
+            
+            // Keep only last 50 entries
+            while (feed.children.length > 50) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        // Toggle auto refresh
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const btn = document.querySelector('.refresh-btn:nth-of-type(2)');
+            btn.textContent = `⏱️ Auto Refresh: ${autoRefresh ? 'ON' : 'OFF'}`;
+            
+            if (autoRefresh) {
+                refreshInterval = setInterval(refreshDashboard, 30000); // 30 seconds
+                addToActivityFeed('🔄 Auto refresh enabled (30s interval)');
+            } else {
+                clearInterval(refreshInterval);
+                addToActivityFeed('⏸️ Auto refresh disabled');
+            }
+        }
+
+        // Initialize dashboard
+        window.addEventListener('load', () => {
+            initCharts();
+            refreshDashboard();
+            
+            // Start auto refresh
+            refreshInterval = setInterval(refreshDashboard, 30000);
+            
+            addToActivityFeed('🚀 RinaWarp Analytics Dashboard initialized');
+            addToActivityFeed('📡 Monitoring rinawarptech.com');
+        });
+
+        // Simulate some live activity
+        setInterval(() => {
+            const activities = [
+                '👤 New visitor from United States',
+                '🎬 Demo interaction: AI Assistant',
+                '💳 Pricing card viewed: Professional',
+                '📱 Download started: macOS version',
+                '🔍 Search performed: "terminal AI"',
+                '📧 Email signup: newsletter',
+                '🎯 Conversion: Trial signup',
+                '🌍 International visitor: Germany'
+            ];
+            
+            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+            addToActivityFeed(randomActivity);
+        }, 8000);
+    </script>
+</body>
+</html>
