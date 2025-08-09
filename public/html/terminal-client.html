@@ -135,6 +135,7 @@
             }
         }
     </style>
+    <script src="js/csp-handlers-terminal-client.js"></script>
 </head>
 <body>
     <div class="container">
@@ -153,11 +154,11 @@
 
         <div class="controls">
             <h3>🎮 Controls</h3>
-            <button id="connectBtn" onclick="connect()">Connect to WebSocket</button>
-            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
-            <button id="createTerminalBtn" onclick="createTerminal()" disabled>Create Terminal Session</button>
-            <button id="closeTerminalBtn" onclick="closeTerminal()" disabled>Close Terminal</button>
-            <button id="refreshStatusBtn" onclick="refreshStatus()">Refresh Status</button>
+            <button id="connectBtn" data-onclick="connect()" class="csp-event-handler">Connect to WebSocket</button>
+            <button id="disconnectBtn" data-onclick="disconnect()" class="csp-event-handler" disabled>Disconnect</button>
+            <button id="createTerminalBtn" data-onclick="createTerminal()" class="csp-event-handler" disabled>Create Terminal Session</button>
+            <button id="closeTerminalBtn" data-onclick="closeTerminal()" class="csp-event-handler" disabled>Close Terminal</button>
+            <button id="refreshStatusBtn" data-onclick="refreshStatus()" class="csp-event-handler">Refresh Status</button>
         </div>
 
         <div class="terminal-container">
@@ -166,14 +167,14 @@
                 <div id="terminal" class="terminal"></div>
                 <div class="input-container">
                     <input type="text" id="terminalInput" placeholder="Type command and press Enter..." disabled>
-                    <button onclick="sendCommand()" disabled id="sendBtn">Send</button>
+                    <button data-onclick="sendCommand()" class="csp-event-handler" disabled id="sendBtn">Send</button>
                 </div>
             </div>
 
             <div>
                 <h3>📋 Debug Log</h3>
                 <div id="log" class="log"></div>
-                <button onclick="clearLog()" style="margin-top: 10px;">Clear Log</button>
+                <button data-onclick="clearLog()" class="csp-event-handler" style="margin-top: 10px;">Clear Log</button>
             </div>
         </div>
     </div>

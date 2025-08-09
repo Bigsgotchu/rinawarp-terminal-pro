@@ -5,28 +5,28 @@
 
 export const PRICING_TIERS = {
   free: {
-    name: 'Free Hobbyist',
+    name: 'Free Starter',
     price: 0,
-    icon: '🆓',
+    icon: '🚀',
     features: {
       // Terminal Features
       terminal_basic: true,
-      terminal_tabs: 1,
-      terminal_split_panes: false,
-      terminal_themes: ['default', 'dark', 'light'], // Only 3 basic themes
+      terminal_tabs: 3, // Allow multiple tabs
+      terminal_split_panes: true, // Allow basic split panes
+      terminal_themes: ['default', 'dark', 'light', 'ocean', 'forest', 'sunset'], // 6 good themes
       terminal_custom_themes: false,
 
-      // AI Features
-      ai_assistant: false,
-      ai_voice_control: false,
-      ai_command_suggestions: false,
+      // AI Features - Give basic AI to hook users
+      ai_assistant: true, // Basic AI assistant
+      ai_voice_control: false, // No voice control
+      ai_command_suggestions: true, // Basic command suggestions
       ai_advanced: false,
-      ai_query_limit: 0,
+      ai_query_limit: 20, // 20 AI queries per day
 
-      // Cloud Features
-      cloud_sync: false,
-      cloud_devices: 0,
-      cloud_storage_mb: 0,
+      // Cloud Features - Limited but useful
+      cloud_sync: true, // Allow cloud sync
+      cloud_devices: 2, // 2 devices max
+      cloud_storage_mb: 50, // 50MB storage
 
       // Development Features
       ssh_key_management: false,
@@ -42,12 +42,12 @@ export const PRICING_TIERS = {
 
       // Support
       support_level: 'community',
-      support_response_time: 'none',
+      support_response_time: '7d',
 
       // Limits
-      command_history_limit: 100,
-      saved_sessions: 1,
-      export_formats: ['txt'],
+      command_history_limit: 1000, // More history
+      saved_sessions: 5, // More saved sessions
+      export_formats: ['txt', 'json'], // Basic export formats
     },
   },
 
