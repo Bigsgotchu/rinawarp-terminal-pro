@@ -29,20 +29,41 @@ logger.info('📄 Main script:', { filename: __filename });
 logger.info('👤 User:', { user: process.env.USER });
 logger.info('🏠 Home directory:', { home: os.homedir() });
 
-// Developer bypass check - unlock all features for the developer
-const isDeveloper =
+// Enhanced Creator/Developer bypass check - unlock all features
+const isCreator =
   process.env.USER === 'kgilley' ||
+  process.env.USERNAME === 'kgilley' ||
+  os.userInfo().username === 'kgilley' ||
+  fs.existsSync(path.join(os.homedir(), '.rinawarp-creator')) ||
+  fs.existsSync(path.join(__dirname, '..', '.creator-license'));
+
+const isDeveloper =
+  isCreator ||
   process.env.NODE_ENV === 'development' ||
   fs.existsSync(path.join(os.homedir(), '.rinawarp-dev'));
 
-logger.debug('🔍 Developer check:', {
+logger.debug('🔍 Creator/Developer check:', {
   user: process.env.USER === 'kgilley',
+  username: process.env.USERNAME === 'kgilley',
+  osUser: os.userInfo().username === 'kgilley',
+  creatorFile: fs.existsSync(path.join(os.homedir(), '.rinawarp-creator')),
+  licenseFile: fs.existsSync(path.join(__dirname, '..', '.creator-license')),
   nodeEnv: process.env.NODE_ENV === 'development',
   devFile: fs.existsSync(path.join(os.homedir(), '.rinawarp-dev')),
+  isCreator,
   isDeveloper,
 });
 
-if (isDeveloper) {
+if (isCreator) {
+  logger.info('🧜‍♀️ CREATOR MODE ENABLED - Unlimited access granted to product owner');
+  // Set environment variables to unlock ALL features
+  process.env.RINAWARP_LICENSE_TIER = 'creator';
+  process.env.RINAWARP_DEV_MODE = 'true';
+  process.env.RINAWARP_CREATOR_MODE = 'true';
+  process.env.RINAWARP_BYPASS_AUTH = 'true';
+  process.env.RINAWARP_UNLIMITED_FEATURES = 'true';
+  process.env.RINAWARP_ADMIN_ACCESS = 'true';
+} else if (isDeveloper) {
   logger.info('🔓 Developer mode enabled - Full access granted');
   // Set environment variables to unlock all features
   process.env.RINAWARP_LICENSE_TIER = 'enterprise';

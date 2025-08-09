@@ -347,6 +347,143 @@
             margin-bottom: 1rem;
         }
 
+        /* Tier Selector Styles */
+        .tier-selector {
+            margin-bottom: 3rem;
+        }
+
+        .tier-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tier-tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .tier-tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tier-tab.active {
+            background: linear-gradient(45deg, #FF1493, #FF6B9D);
+            border-color: #FF1493;
+            color: white;
+        }
+
+        .tier-downloads {
+            margin-top: 2rem;
+        }
+
+        .tier-info {
+            margin-bottom: 3rem;
+            text-align: left;
+        }
+
+        .tier-info h3 {
+            color: #FF1493;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .tier-description {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .features-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .features-preview h4 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .features-preview ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features-preview li {
+            padding: 0.3rem 0;
+            font-size: 0.95rem;
+        }
+
+        .included-features h4 {
+            color: #28a745;
+        }
+
+        .restricted-features h4 {
+            color: #ffc107;
+        }
+
+        .trial-info, .enterprise-info {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+
+        .purchase-section {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .purchase-section p {
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .enterprise-contact {
+            margin-top: 2rem;
+        }
+
+        .contact-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .contact-card h3 {
+            color: #FF1493;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .contact-options {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .enterprise-note {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
         footer {
             background: #222;
             color: white;
@@ -399,6 +536,45 @@
             
             .pricing-card.featured {
                 transform: none;
+            }
+            
+            /* Mobile tier selector */
+            .tier-tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .tier-tab {
+                width: 100%;
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            /* Mobile features preview */
+            .features-preview {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .tier-info h3 {
+                font-size: 1.4rem;
+            }
+            
+            .tier-description {
+                font-size: 1rem;
+            }
+            
+            .contact-options {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .contact-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .contact-card h3 {
+                font-size: 1.4rem;
             }
         }
     </style>
@@ -516,26 +692,156 @@
         <section id="download" class="download-section">
             <div class="container">
                 <h2>Download RinaWarp Terminal</h2>
-                <p>Get started with the most advanced terminal emulator available today.</p>
+                <p>Choose your tier and get started with the most advanced terminal emulator available today.</p>
                 
-                <div class="download-grid">
-                    <div class="download-card">
-                        <div class="platform-icon">🍎</div>
-                        <h3>macOS</h3>
-                        <p>macOS 10.14 or later</p>
-                        <a href="downloads/RinaWarp-Terminal-1.0.8-mac.zip" class="btn btn-primary">Download ZIP</a>
+                <!-- Tier Selection -->
+                <div class="tier-selector">
+                    <div class="tier-tabs">
+                        <button class="tier-tab active" data-tier="free">Personal (Free)</button>
+                        <button class="tier-tab" data-tier="professional">Professional</button>
+                        <button class="tier-tab" data-tier="enterprise">Enterprise</button>
                     </div>
-                    <div class="download-card">
-                        <div class="platform-icon">🪟</div>
-                        <h3>Windows</h3>
-                        <p>Windows 10 or later</p>
-                        <a href="downloads/RinaWarp-Terminal-1.0.8-win-x64.zip" class="btn btn-primary">Download ZIP</a>
+                </div>
+
+                <!-- Free Tier Downloads -->
+                <div class="tier-downloads" id="free-downloads" style="display: block;">
+                    <div class="tier-info">
+                        <h3>Personal Edition - Free</h3>
+                        <p class="tier-description">Perfect for students and casual developers. Includes basic terminal functionality with limited themes and community support.</p>
+                        
+                        <div class="features-preview">
+                            <div class="included-features">
+                                <h4>✅ Included:</h4>
+                                <ul>
+                                    <li>Basic terminal functionality</li>
+                                    <li>3 standard themes</li>
+                                    <li>Community support</li>
+                                    <li>Single user license</li>
+                                </ul>
+                            </div>
+                            <div class="restricted-features">
+                                <h4>🔒 Professional/Enterprise Only:</h4>
+                                <ul>
+                                    <li>AI command suggestions</li>
+                                    <li>Voice control system</li>
+                                    <li>Advanced themes & plugins</li>
+                                    <li>Team collaboration</li>
+                                    <li>Priority support</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="download-card">
-                        <div class="platform-icon">🐧</div>
-                        <h3>Linux</h3>
-                        <p>Ubuntu 18.04+ / Similar</p>
-                        <a href="downloads/RinaWarp-Terminal-1.0.8-linux-x64.zip" class="btn btn-primary">Download ZIP</a>
+                    
+                    <div class="download-grid">
+                        <div class="download-card">
+                            <div class="platform-icon">🍎</div>
+                            <h3>macOS</h3>
+                            <p>macOS 10.14 or later (107MB)</p>
+                            <a href="releases/RinaWarp-Terminal-macOS.dmg" class="btn btn-primary">Download DMG</a>
+                        </div>
+                        <div class="download-card">
+                            <div class="platform-icon">🪟</div>
+                            <h3>Windows</h3>
+                            <p>Windows 10 or later (124MB)</p>
+                            <a href="releases/RinaWarp-Terminal-Setup-Windows.zip" class="btn btn-primary">Download ZIP</a>
+                        </div>
+                        <div class="download-card">
+                            <div class="platform-icon">🐧</div>
+                            <h3>Linux</h3>
+                            <p>Ubuntu 18.04+ / Similar (114MB)</p>
+                            <a href="releases/RinaWarp-Terminal-Linux.tar.gz" class="btn btn-primary">Download TAR.GZ</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Tier Downloads -->
+                <div class="tier-downloads" id="professional-downloads" style="display: none;">
+                    <div class="tier-info">
+                        <h3>Professional Edition - $29/month</h3>
+                        <p class="tier-description">For professional developers and small teams. Includes AI features, voice control, unlimited themes, and priority support.</p>
+                        
+                        <div class="features-preview">
+                            <div class="included-features">
+                                <h4>🚀 Everything in Free PLUS:</h4>
+                                <ul>
+                                    <li>AI command suggestions</li>
+                                    <li>Voice control system</li>
+                                    <li>Unlimited themes & plugins</li>
+                                    <li>Advanced Git integration</li>
+                                    <li>Performance analytics</li>
+                                    <li>Team collaboration tools</li>
+                                    <li>Priority email support</li>
+                                    <li>Plugin development kit</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="download-grid">
+                        <div class="download-card">
+                            <div class="platform-icon">🍎</div>
+                            <h3>macOS Pro</h3>
+                            <p>macOS 10.14 or later (109MB)</p>
+                            <a href="#" class="btn btn-primary" onclick="buyProfessional()">Purchase License</a>
+                        </div>
+                        <div class="download-card">
+                            <div class="platform-icon">🪟</div>
+                            <h3>Windows Pro</h3>
+                            <p>Windows 10 or later (126MB)</p>
+                            <a href="#" class="btn btn-primary" onclick="buyProfessional()">Purchase License</a>
+                        </div>
+                        <div class="download-card">
+                            <div class="platform-icon">🐧</div>
+                            <h3>Linux Pro</h3>
+                            <p>Ubuntu 18.04+ / Similar (116MB)</p>
+                            <a href="#" class="btn btn-primary" onclick="buyProfessional()">Purchase License</a>
+                        </div>
+                    </div>
+                    
+                    <div class="purchase-section">
+                        <p>Already have a Professional license?</p>
+                        <a href="#" class="btn btn-secondary" onclick="showLoginDialog()">Sign In to Download</a>
+                    </div>
+                </div>
+
+                <!-- Enterprise Tier Downloads -->
+                <div class="tier-downloads" id="enterprise-downloads" style="display: none;">
+                    <div class="tier-info">
+                        <h3>Enterprise Edition - Custom Pricing</h3>
+                        <p class="tier-description">For large organizations with advanced requirements. Includes SSO, on-premise deployment, and dedicated support.</p>
+                        
+                        <div class="features-preview">
+                            <div class="included-features">
+                                <h4>🏢 Everything in Professional PLUS:</h4>
+                                <ul>
+                                    <li>SSO integration (SAML, OAuth, LDAP)</li>
+                                    <li>On-premise deployment options</li>
+                                    <li>Dedicated customer success manager</li>
+                                    <li>Custom integrations & plugins</li>
+                                    <li>Enterprise compliance (SOC2, GDPR)</li>
+                                    <li>Advanced audit logging</li>
+                                    <li>24/7 phone and chat support</li>
+                                    <li>Service level agreements (SLA)</li>
+                                </ul>
+                            </div>
+                            <div class="enterprise-info">
+                                <p>💼 <strong>Minimum 50 seats</strong> • Custom pricing based on requirements</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="enterprise-contact">
+                        <div class="contact-card">
+                            <h3>Ready to Transform Your Development Workflow?</h3>
+                            <p>Our enterprise team will work with you to customize RinaWarp Terminal for your organization's specific needs.</p>
+                            
+                            <div class="contact-options">
+                                <a href="mailto:enterprise@rinawarptech.com" class="btn btn-primary">Contact Sales Team</a>
+                                <a href="#" class="btn btn-secondary" onclick="scheduleDemo()">Schedule Demo</a>
+                            </div>
+                            
+                            <p class="enterprise-note">Enterprise downloads are provided through your dedicated customer portal after contract signing.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -614,9 +920,27 @@
         </div>
     </footer>
 
+    <!-- A/B Testing System -->
+    <script src="js/ab-testing.js"></script>
+    
     <script>
-        // Stripe configuration
-        const stripe = Stripe('pk_test_51234567890abcdef'); // Replace with your actual publishable key
+        // Stripe configuration - Load from server
+        let stripe = null;
+        let stripeConfig = null;
+        
+        // Load Stripe configuration
+        fetch('/api/payments/config')
+          .then(response => response.json())
+          .then(config => {
+            stripeConfig = config;
+            stripe = Stripe(config.publishableKey);
+            console.log('Stripe initialized with config:', config.pricing);
+          })
+          .catch(error => {
+            console.error('Failed to load payment config:', error);
+            // Fallback to test key
+            stripe = Stripe('pk_test_51234567890abcdef');
+          });
         
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -642,19 +966,24 @@
             }
         });
         
-        // Stripe checkout functions
+        // Enhanced Stripe checkout functions with analytics
         async function buyProfessional() {
             try {
-                // This would typically call your backend to create a checkout session
-                // For now, we'll redirect to Stripe's example checkout
-                const response = await fetch('/api/create-checkout-session', {
+                // Track conversion intent
+                if (window.abTesting) {
+                    window.abTesting.trackGoal('conversion_attempt', {
+                        tier: 'professional',
+                        source: 'pricing_page'
+                    });
+                }
+                
+                const response = await fetch('/api/payments/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        plan: 'professional',
-                        price: 'price_1234567890abcdef' // Replace with your actual price ID
+                        platform: 'web'
                     })
                 });
                 
@@ -664,16 +993,42 @@
                 
                 const session = await response.json();
                 
+                // Track checkout initiation
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'begin_checkout', {
+                        currency: 'USD',
+                        value: 29.00,
+                        items: [{
+                            item_id: 'professional_subscription',
+                            item_name: 'RinaWarp Terminal Professional',
+                            category: 'Software',
+                            quantity: 1,
+                            price: 29.00
+                        }]
+                    });
+                }
+                
                 // Redirect to Stripe Checkout
                 const result = await stripe.redirectToCheckout({
-                    sessionId: session.id
+                    sessionId: session.sessionId
                 });
                 
                 if (result.error) {
+                    // Track checkout error
+                    if (window.abTesting) {
+                        window.abTesting.trackGoal('checkout_error', {
+                            error: result.error.message
+                        });
+                    }
                     alert(result.error.message);
                 }
             } catch (error) {
                 console.error('Error:', error);
+                if (window.abTesting) {
+                    window.abTesting.trackGoal('checkout_error', {
+                        error: error.message
+                    });
+                }
                 alert('Sorry, there was an error processing your request. Please try again or contact support.');
             }
         }
@@ -683,6 +1038,123 @@
             // Replace with your actual Stripe payment link
             window.open('https://buy.stripe.com/test_12345678', '_blank');
         }
+        
+        // Tier switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tierTabs = document.querySelectorAll('.tier-tab');
+            const tierDownloads = document.querySelectorAll('.tier-downloads');
+            
+            tierTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTier = this.dataset.tier;
+                    
+                    // Remove active class from all tabs
+                    tierTabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Hide all tier downloads
+                    tierDownloads.forEach(td => td.style.display = 'none');
+                    
+                    // Show target tier downloads
+                    const targetDownload = document.getElementById(`${targetTier}-downloads`);
+                    if (targetDownload) {
+                        targetDownload.style.display = 'block';
+                    }
+                });
+            });
+        });
+        
+        // Professional trial functions
+        function startProfessionalTrial(platform) {
+            // Track the trial signup attempt
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'trial_signup_attempt', {
+                    'platform': platform,
+                    'tier': 'professional'
+                });
+            }
+            
+            // In a real application, this would:
+            // 1. Show a signup form
+            // 2. Collect user information
+            // 3. Create a trial account
+            // 4. Generate download links
+            
+            alert(`Starting Professional trial for ${platform}. In a real implementation, this would redirect to a signup form and provide trial download links.`);
+            
+            // For demo purposes, redirect to a trial signup page
+            // window.location.href = `/trial-signup?platform=${platform}&tier=professional`;
+        }
+        
+        function showLoginDialog() {
+            // In a real application, this would show a login modal or redirect
+            alert('This would show a login dialog or redirect to the customer portal for existing Professional subscribers.');
+            
+            // Example redirect:
+            // window.location.href = '/login?redirect=downloads';
+        }
+        
+        function scheduleDemo() {
+            // Track demo request
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'demo_requested', {
+                    'tier': 'enterprise'
+                });
+            }
+            
+            // In a real application, this would:
+            // 1. Open a calendar booking widget
+            // 2. Or redirect to a Calendly/similar service
+            // 3. Or show a form to collect contact information
+            
+            alert('This would open a calendar booking system or contact form for enterprise demo scheduling.');
+            
+            // Example redirect:
+            // window.open('https://calendly.com/rinawarp-enterprise/demo', '_blank');
+        }
+        
+        // Load tier metadata and update download information
+        async function loadTierMetadata() {
+            try {
+                const response = await fetch('data/tiers.json');
+                if (response.ok) {
+                    const tierData = await response.json();
+                    window.rinawarpTiers = tierData;
+                    
+                    // Update download URLs and information based on metadata
+                    updateDownloadInfo(tierData);
+                } else {
+                    console.warn('Could not load tier metadata');
+                }
+            } catch (error) {
+                console.warn('Error loading tier metadata:', error);
+            }
+        }
+        
+        function updateDownloadInfo(tierData) {
+            // Update file sizes and requirements based on metadata
+            const tiers = ['free', 'professional', 'enterprise'];
+            
+            tiers.forEach(tier => {
+                if (tierData.tiers[tier] && tierData.tiers[tier].downloads) {
+                    const downloads = tierData.tiers[tier].downloads;
+                    
+                    // Update download cards with accurate information
+                    Object.keys(downloads).forEach(platform => {
+                        const platformData = downloads[platform];
+                        if (typeof platformData === 'object' && !platformData.note) {
+                            // Update size and requirements in the UI if needed
+                            console.log(`${tier} ${platform}:`, platformData);
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Load tier metadata on page load
+        loadTierMetadata();
     </script>
 </body>
 </html>
