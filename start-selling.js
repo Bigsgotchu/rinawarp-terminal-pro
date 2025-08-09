@@ -62,7 +62,7 @@ setTimeout(() => {
   
   // Auto-open browser if possible
   const open = process.platform === 'darwin' ? 'open' : 
-                process.platform === 'win32' ? 'start' : 'xdg-open';
+    process.platform === 'win32' ? 'start' : 'xdg-open';
   
   exec(`${open} http://localhost:8080/standalone-checkout.html`, () => {
     // Ignore errors, browser opening is optional

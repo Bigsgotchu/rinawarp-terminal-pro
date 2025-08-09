@@ -5,15 +5,10 @@ import logger from './utilities/logger.js';
  */
 
 import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
-// Try to import profiling integration if available
-let ProfilingIntegration;
-try {
-  const profilingModule = await import('@sentry/profiling-node');
-  ProfilingIntegration = profilingModule.ProfilingIntegration;
-} catch (error) {
-  logger.debug('⚠️ Sentry Profiling not available - continuing without profiling');
-}
+// Check if Sentry is properly configured
+const sentryConfigured = process.env.SENTRY_DSN || process.env.NODE_ENV === 'production';
 
 // Initialize Sentry with performance and AI agent monitoring
 Sentry.init({
@@ -36,8 +31,8 @@ Sentry.init({
   integrations: [
     // Automatically instrument Node.js libraries and frameworks
     ...Sentry.getDefaultIntegrations(),
-    // Enable profiling integration if available
-    ...(ProfilingIntegration ? [new ProfilingIntegration()] : []),
+    // Enable profiling integration
+    nodeProfilingIntegration(),
   ],
 
   // Configure scope

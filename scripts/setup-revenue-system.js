@@ -168,21 +168,21 @@ class RevenueSystemSetup {
     const choice = '1';
     
     switch (choice) {
-      case '1':
-        await this.deployToVercel();
-        break;
-      case '2':
-        await this.deployToNetlify();
-        break;
-      case '3':
-        await this.deployToGitHubPages();
-        break;
-      case '4':
-        await this.startLocalServer();
-        break;
-      case '5':
-        await this.setupManualProcessing();
-        break;
+    case '1':
+      await this.deployToVercel();
+      break;
+    case '2':
+      await this.deployToNetlify();
+      break;
+    case '3':
+      await this.deployToGitHubPages();
+      break;
+    case '4':
+      await this.startLocalServer();
+      break;
+    case '5':
+      await this.setupManualProcessing();
+      break;
     }
   }
 

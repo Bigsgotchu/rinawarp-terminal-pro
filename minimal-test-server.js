@@ -69,7 +69,7 @@ app.use((req, res) => {
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Minimal test server running on port ${PORT}`);
   console.log(`🌐 Access at: http://0.0.0.0:${PORT}`);
-  console.log(`📊 Memory usage:`, process.memoryUsage());
+  console.log('📊 Memory usage:', process.memoryUsage());
 });
 
 server.on('error', (error) => {
