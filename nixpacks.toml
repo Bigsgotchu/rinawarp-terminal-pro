@@ -5,10 +5,11 @@ nixPkgs = ["nodejs_22", "npm-9_x"]
 cmds = ["npm ci --omit=optional --omit=dev"]
 
 [phases.build]
-cmds = []
+cmds = ["echo 'Build phase - RinaWarp Terminal ready'"]
 
 [phases.start]
 cmd = "npm start"
 
 [variables]
 NODE_ENV = "production"
+PORT = "8080"

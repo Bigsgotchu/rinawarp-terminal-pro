@@ -2748,6 +2748,9 @@ app.use(errorHandler);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   const _bootTime = Date.now() - startTime;
+  console.log(`🚀 RinaWarp Terminal Server started on port ${PORT}`);
+  console.log(`🌐 Server URL: http://0.0.0.0:${PORT}`);
+  console.log(`📅 Started at: ${new Date().toISOString()}`);
   console.log(
     '- STRIPE_PUBLISHABLE_KEY:',
     process.env.STRIPE_PUBLISHABLE_KEY ? '✅ Set' : '❌ Missing'

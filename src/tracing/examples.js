@@ -355,6 +355,5 @@ export {
   processAICommandTraced,
   getUserLicenseTraced,
   sendEmailNotificationTraced,
-  processLicenseActivationTraced,
-  createTracedRoute
+  processLicenseActivationTraced
 };
