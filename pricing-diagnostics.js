@@ -120,8 +120,7 @@ async function runDiagnostics() {
     });
   });
 
-  req.on('error', err => {
-  });
+  req.on('error', err => {});
 
   req.write(postData);
   req.end();

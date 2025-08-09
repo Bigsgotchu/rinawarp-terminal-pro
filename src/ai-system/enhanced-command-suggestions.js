@@ -12,34 +12,85 @@ export class EnhancedCommandSuggestions {
     this.frequencyMap = new Map();
     this.lastDirectory = null;
     this.projectContext = null;
-    
+
     // Common command patterns
     this.commandPatterns = {
       git: {
-        commands: ['status', 'add', 'commit', 'push', 'pull', 'branch', 'checkout', 'merge', 'rebase', 'log', 'diff', 'stash', 'reset', 'fetch', 'clone'],
+        commands: [
+          'status',
+          'add',
+          'commit',
+          'push',
+          'pull',
+          'branch',
+          'checkout',
+          'merge',
+          'rebase',
+          'log',
+          'diff',
+          'stash',
+          'reset',
+          'fetch',
+          'clone',
+        ],
         contextual: {
           'package.json': ['npm install', 'npm run dev', 'npm test', 'npm build'],
-          'Gemfile': ['bundle install', 'bundle exec', 'bundle update'],
+          Gemfile: ['bundle install', 'bundle exec', 'bundle update'],
           'requirements.txt': ['pip install -r requirements.txt', 'python -m venv venv'],
           'Cargo.toml': ['cargo build', 'cargo run', 'cargo test'],
-          'go.mod': ['go build', 'go run', 'go test', 'go mod tidy']
-        }
+          'go.mod': ['go build', 'go run', 'go test', 'go mod tidy'],
+        },
       },
       npm: {
-        commands: ['install', 'run', 'test', 'build', 'start', 'init', 'publish', 'update', 'audit', 'ci'],
-        scripts: [] // Will be populated from package.json
+        commands: [
+          'install',
+          'run',
+          'test',
+          'build',
+          'start',
+          'init',
+          'publish',
+          'update',
+          'audit',
+          'ci',
+        ],
+        scripts: [], // Will be populated from package.json
       },
       docker: {
-        commands: ['build', 'run', 'ps', 'images', 'exec', 'logs', 'stop', 'rm', 'compose up', 'compose down'],
+        commands: [
+          'build',
+          'run',
+          'ps',
+          'images',
+          'exec',
+          'logs',
+          'stop',
+          'rm',
+          'compose up',
+          'compose down',
+        ],
         contextual: {
-          'Dockerfile': ['docker build -t', 'docker run'],
-          'docker-compose.yml': ['docker-compose up', 'docker-compose down', 'docker-compose logs']
-        }
+          Dockerfile: ['docker build -t', 'docker run'],
+          'docker-compose.yml': ['docker-compose up', 'docker-compose down', 'docker-compose logs'],
+        },
       },
       system: {
-        commands: ['ls', 'cd', 'pwd', 'mkdir', 'rm', 'cp', 'mv', 'cat', 'grep', 'find', 'chmod', 'chown'],
-        aliases: new Map()
-      }
+        commands: [
+          'ls',
+          'cd',
+          'pwd',
+          'mkdir',
+          'rm',
+          'cp',
+          'mv',
+          'cat',
+          'grep',
+          'find',
+          'chmod',
+          'chown',
+        ],
+        aliases: new Map(),
+      },
     };
 
     // Initialize fuzzy matching cache
@@ -70,7 +121,7 @@ export class EnhancedCommandSuggestions {
       includeHistory = true,
       includeContextual = true,
       includeFuzzy = true,
-      minScore = 0.3
+      minScore = 0.3,
     } = options;
 
     const suggestions = new Map(); // Use Map to avoid duplicates
@@ -81,7 +132,7 @@ export class EnhancedCommandSuggestions {
       suggestions.set(this.commandPatterns.system.aliases.get(inputLower), {
         type: 'alias',
         score: 1.0,
-        description: `Alias for: ${inputLower}`
+        description: `Alias for: ${inputLower}`,
       });
     }
 
@@ -130,7 +181,7 @@ export class EnhancedCommandSuggestions {
   async getContextualSuggestions(input) {
     const suggestions = [];
     const files = await this.getProjectFiles();
-    
+
     // Check for project-specific files
     for (const [file, commands] of Object.entries(this.commandPatterns.git.contextual)) {
       if (files.includes(file)) {
@@ -140,7 +191,7 @@ export class EnhancedCommandSuggestions {
               command: cmd,
               type: 'contextual',
               score: this.fuzzyMatch(input, cmd),
-              description: `Common command for ${file}`
+              description: `Common command for ${file}`,
             });
           }
         });
@@ -157,7 +208,7 @@ export class EnhancedCommandSuggestions {
             command: cmd,
             type: 'npm-script',
             score: this.fuzzyMatch(input, cmd),
-            description: 'NPM script'
+            description: 'NPM script',
           });
         }
       });
@@ -180,7 +231,7 @@ export class EnhancedCommandSuggestions {
           command: cmd,
           type: 'history',
           score: score,
-          description: 'From history'
+          description: 'From history',
         });
       }
     });
@@ -202,7 +253,7 @@ export class EnhancedCommandSuggestions {
           command: cmd,
           type: 'fuzzy',
           score: score,
-          description: this.getCommandDescription(cmd)
+          description: this.getCommandDescription(cmd),
         });
       }
     });
@@ -231,14 +282,14 @@ export class EnhancedCommandSuggestions {
 
     // Starts with
     if (targetLower.startsWith(inputLower)) {
-      const score = 0.9 - (0.1 * (targetLower.length - inputLower.length) / targetLower.length);
+      const score = 0.9 - (0.1 * (targetLower.length - inputLower.length)) / targetLower.length;
       this.fuzzyCache.set(cacheKey, score);
       return score;
     }
 
     // Contains
     if (targetLower.includes(inputLower)) {
-      const score = 0.7 - (0.1 * targetLower.indexOf(inputLower) / targetLower.length);
+      const score = 0.7 - (0.1 * targetLower.indexOf(inputLower)) / targetLower.length;
       this.fuzzyCache.set(cacheKey, score);
       return score;
     }
@@ -250,7 +301,7 @@ export class EnhancedCommandSuggestions {
 
     for (let i = 0; i < targetLower.length && inputIndex < inputLower.length; i++) {
       if (targetLower[i] === inputLower[inputIndex]) {
-        score += 1 + (consecutiveMatches * 0.5); // Bonus for consecutive matches
+        score += 1 + consecutiveMatches * 0.5; // Bonus for consecutive matches
         consecutiveMatches++;
         inputIndex++;
       } else {
@@ -268,8 +319,8 @@ export class EnhancedCommandSuggestions {
     // Levenshtein distance as fallback
     const distance = levenshteinDistance(inputLower, targetLower);
     const maxLength = Math.max(inputLower.length, targetLower.length);
-    const levScore = Math.max(0, 1 - (distance / maxLength)) * 0.5;
-    
+    const levScore = Math.max(0, 1 - distance / maxLength) * 0.5;
+
     this.fuzzyCache.set(cacheKey, levScore);
     return levScore;
   }
@@ -306,7 +357,7 @@ export class EnhancedCommandSuggestions {
    */
   getCommandDescription(command) {
     const [base, ...args] = command.split(' ');
-    
+
     const descriptions = {
       git: 'Version control',
       npm: 'Node package manager',
@@ -322,7 +373,7 @@ export class EnhancedCommandSuggestions {
       grep: 'Search text patterns',
       find: 'Find files/directories',
       chmod: 'Change file permissions',
-      chown: 'Change file ownership'
+      chown: 'Change file ownership',
     };
 
     return descriptions[base] || 'Command';
@@ -365,14 +416,14 @@ export class EnhancedCommandSuggestions {
   async getProjectFiles() {
     // In a real implementation, this would scan the current directory
     // For now, return mock data based on common project types
-    
+
     if (this.projectContext) {
       return this.projectContext;
     }
 
     // Mock implementation
     const mockFiles = [];
-    
+
     // Simulate checking for project files
     const possibleFiles = [
       'package.json',
@@ -383,7 +434,7 @@ export class EnhancedCommandSuggestions {
       'Cargo.toml',
       'go.mod',
       '.git',
-      'Makefile'
+      'Makefile',
     ];
 
     // In real implementation, check if these files exist
@@ -414,15 +465,15 @@ export class EnhancedCommandSuggestions {
 // Levenshtein distance helper
 function levenshteinDistance(str1, str2) {
   const matrix = [];
-  
+
   for (let i = 0; i <= str2.length; i++) {
     matrix[i] = [i];
   }
-  
+
   for (let j = 0; j <= str1.length; j++) {
     matrix[0][j] = j;
   }
-  
+
   for (let i = 1; i <= str2.length; i++) {
     for (let j = 1; j <= str1.length; j++) {
       if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
@@ -436,7 +487,7 @@ function levenshteinDistance(str1, str2) {
       }
     }
   }
-  
+
   return matrix[str2.length][str1.length];
 }
 

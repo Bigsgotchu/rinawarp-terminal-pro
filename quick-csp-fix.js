@@ -62,7 +62,7 @@ if (fs.existsSync('final-server.js')) {
     // Update to more permissive CSP
     serverContent = serverContent.replace(
       /script-src-attr\s*['"][^'"]*['"]/g,
-      'script-src-attr \'unsafe-inline\''
+      "script-src-attr 'unsafe-inline'"
     );
 
     // If script-src doesn't have unsafe-inline, add it

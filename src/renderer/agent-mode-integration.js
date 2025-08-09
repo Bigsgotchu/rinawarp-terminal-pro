@@ -94,42 +94,42 @@ class AgentModeIntegration {
     const [subcommand, ...restArgs] = args;
 
     switch (subcommand?.toLowerCase()) {
-    case 'start':
-    case 'on':
-    case 'activate':
-      return await this.startAgent();
+      case 'start':
+      case 'on':
+      case 'activate':
+        return await this.startAgent();
 
-    case 'stop':
-    case 'off':
-    case 'deactivate':
-      return await this.stopAgent();
+      case 'stop':
+      case 'off':
+      case 'deactivate':
+        return await this.stopAgent();
 
-    case 'status':
-      return this.showStatus();
+      case 'status':
+        return this.showStatus();
 
-    case 'help':
-      return this.showHelp();
-
-    case 'functions':
-      return await this.showFunctions();
-
-    case 'config':
-      return await this.showConfig();
-
-    case 'clear':
-      return this.clearConversation();
-
-    case 'export':
-      return await this.exportConversation();
-
-    default:
-      if (subcommand) {
-        // Treat as a chat message
-        const message = [subcommand, ...restArgs].join(' ');
-        return await this.chatWithAgent(message);
-      } else {
+      case 'help':
         return this.showHelp();
-      }
+
+      case 'functions':
+        return await this.showFunctions();
+
+      case 'config':
+        return await this.showConfig();
+
+      case 'clear':
+        return this.clearConversation();
+
+      case 'export':
+        return await this.exportConversation();
+
+      default:
+        if (subcommand) {
+          // Treat as a chat message
+          const message = [subcommand, ...restArgs].join(' ');
+          return await this.chatWithAgent(message);
+        } else {
+          return this.showHelp();
+        }
     }
   }
 

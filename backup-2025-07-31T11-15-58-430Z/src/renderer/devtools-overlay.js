@@ -574,15 +574,15 @@ class RinaWarpDevTools {
             <div class="result-group">
                 <strong>${title}</strong> <small>(${timestamp})</small>
                 ${results
-    .map(
-      result => `
+                  .map(
+                    result => `
                     <div class="result-item result-${result.type}">
                         ${result.exists ? '✅' : '❌'} ${result.name}
                         <br><small>${result.status}</small>
                     </div>
                 `
-    )
-    .join('')}
+                  )
+                  .join('')}
             </div>
         `;
 

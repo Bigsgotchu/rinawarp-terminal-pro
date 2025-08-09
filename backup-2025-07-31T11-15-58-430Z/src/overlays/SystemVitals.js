@@ -78,8 +78,8 @@ class SystemVitals {
             flex-wrap: wrap;
           ">
             ${triageCategories
-    .map(
-      category => `
+              .map(
+                category => `
               <span class="triage-badge" data-code="${category.code}" style="
                 color: ${category.color};
                 background: rgba(${this.hexToRgb(category.color)}, 0.2);
@@ -96,8 +96,8 @@ class SystemVitals {
                 <span class="badge-count">0</span>
               </span>
             `
-    )
-    .join('')}
+              )
+              .join('')}
           </div>
 
           <div class="core-modules" style="
@@ -107,8 +107,8 @@ class SystemVitals {
             margin-bottom: 15px;
           ">
             ${coreModules
-    .map(
-      module => `
+              .map(
+                module => `
               <div class="module-container" data-module="${module}" style="
                 position: relative;
                 display: flex;
@@ -138,8 +138,8 @@ class SystemVitals {
                 ">●</div>
               </div>
             `
-    )
-    .join('')}
+              )
+              .join('')}
           </div>
 
           <div class="event-log" style="
@@ -220,14 +220,14 @@ class SystemVitals {
 
   checkModuleHealth(moduleName) {
     switch (moduleName) {
-    case 'electronAPI':
-      return !!window.electronAPI;
-    case 'ipcBridge':
-      return !!(window.electronAPI && window.nodeAPI);
-    case 'pluginLoader':
-      return !!(window.pluginLoader && window.pluginLoader.isInitialized);
-    default:
-      return true;
+      case 'electronAPI':
+        return !!window.electronAPI;
+      case 'ipcBridge':
+        return !!(window.electronAPI && window.nodeAPI);
+      case 'pluginLoader':
+        return !!(window.pluginLoader && window.pluginLoader.isInitialized);
+      default:
+        return true;
     }
   }
 
@@ -263,7 +263,6 @@ class SystemVitals {
 
     // Update event log
     this.updateEventLog();
-
   }
 
   updateTriageBadges() {

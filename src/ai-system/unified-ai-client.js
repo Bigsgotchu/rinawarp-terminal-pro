@@ -67,24 +67,24 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
       let response;
 
       switch (provider.name.toLowerCase()) {
-      case 'openai':
-        response = await this.chatWithOpenAI(message, apiKey, options);
-        break;
-      case 'anthropic':
-        response = await this.chatWithAnthropic(message, apiKey, options);
-        break;
-      case 'google':
-      case 'google ai':
-        response = await this.chatWithGoogle(message, apiKey, options);
-        break;
-      case 'deepseek':
-      case 'tencent':
-      case 'zai':
-      case 'z.ai':
-        response = await this.chatWithOpenRouter(message, apiKey, options, provider.name);
-        break;
-      default:
-        throw new Error(new Error(`Provider ${provider.name} not implemented`));
+        case 'openai':
+          response = await this.chatWithOpenAI(message, apiKey, options);
+          break;
+        case 'anthropic':
+          response = await this.chatWithAnthropic(message, apiKey, options);
+          break;
+        case 'google':
+        case 'google ai':
+          response = await this.chatWithGoogle(message, apiKey, options);
+          break;
+        case 'deepseek':
+        case 'tencent':
+        case 'zai':
+        case 'z.ai':
+          response = await this.chatWithOpenRouter(message, apiKey, options, provider.name);
+          break;
+        default:
+          throw new Error(new Error(`Provider ${provider.name} not implemented`));
       }
 
       // Add response to history
@@ -233,7 +233,9 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(new Error(`${provider.name} API error: ${error.error?.message || 'Unknown error'}`));
+      throw new Error(
+        new Error(`${provider.name} API error: ${error.error?.message || 'Unknown error'}`)
+      );
     }
 
     const data = await response.json();
@@ -257,14 +259,14 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
     options.stream = true;
 
     switch (provider.name) {
-    case 'openai':
-      yield* this.streamOpenAI(message, apiKey, options);
-      break;
-    case 'anthropic':
-      yield* this.streamAnthropic(message, apiKey, options);
-      break;
-    default:
-      throw new Error(new Error(`Streaming not implemented for ${provider.name}`));
+      case 'openai':
+        yield* this.streamOpenAI(message, apiKey, options);
+        break;
+      case 'anthropic':
+        yield* this.streamAnthropic(message, apiKey, options);
+        break;
+      default:
+        throw new Error(new Error(`Streaming not implemented for ${provider.name}`));
     }
   }
 
@@ -425,12 +427,12 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
     }
 
     switch (provider.name) {
-    case 'openai':
-      return await this.generateOpenAIEmbeddings(text, apiKey);
-    case 'google':
-      return await this.generateGoogleEmbeddings(text, apiKey);
-    default:
-      throw new Error(new Error(`Embeddings not implemented for ${provider.name}`));
+      case 'openai':
+        return await this.generateOpenAIEmbeddings(text, apiKey);
+      case 'google':
+        return await this.generateGoogleEmbeddings(text, apiKey);
+      default:
+        throw new Error(new Error(`Embeddings not implemented for ${provider.name}`));
     }
   }
 
@@ -451,7 +453,9 @@ Be concise, accurate, and helpful. Use markdown formatting when appropriate.`;
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(new Error(`OpenAI embeddings error: ${error.error?.message || 'Unknown error'}`));
+      throw new Error(
+        new Error(`OpenAI embeddings error: ${error.error?.message || 'Unknown error'}`)
+      );
     }
 
     const data = await response.json();

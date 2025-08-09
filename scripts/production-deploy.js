@@ -29,10 +29,12 @@ const requiredEnvVars = [
   'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRICE_BETA_PREMIUM',
   'TELEMETRY_ENDPOINT',
-  'ANALYTICS_ENDPOINT'
+  'ANALYTICS_ENDPOINT',
 ];
 
-const missingEnvVars = requiredEnvVars.filter(key => !process.env[key] || process.env[key].includes('{{'));
+const missingEnvVars = requiredEnvVars.filter(
+  key => !process.env[key] || process.env[key].includes('{{')
+);
 if (missingEnvVars.length > 0) {
   errors.push(`Missing environment variables: ${missingEnvVars.join(', ')}`);
 } else {
@@ -59,7 +61,9 @@ try {
   if (output.includes('found 0 vulnerabilities')) {
     checks.push('✅ No security vulnerabilities in production dependencies');
   } else {
-    warnings.push('⚠️  Security vulnerabilities found in dependencies. Run "npm audit" for details');
+    warnings.push(
+      '⚠️  Security vulnerabilities found in dependencies. Run "npm audit" for details'
+    );
   }
 }
 
@@ -83,12 +87,10 @@ const criticalFiles = [
   'package.json',
   'railway.json',
   'public/index.html',
-  'public/pricing.html'
+  'public/pricing.html',
 ];
 
-const missingFiles = criticalFiles.filter(file => 
-  !fs.existsSync(path.join(__dirname, '..', file))
-);
+const missingFiles = criticalFiles.filter(file => !fs.existsSync(path.join(__dirname, '..', file)));
 
 if (missingFiles.length > 0) {
   errors.push(`Missing critical files: ${missingFiles.join(', ')}`);
@@ -107,7 +109,9 @@ if (process.env.NODE_ENV === 'production' && !process.env.FORCE_HTTPS) {
 // Check 7: Database Configuration
 console.log(chalk.yellow('📋 Checking database configuration...'));
 if (!process.env.DATABASE_URL) {
-  warnings.push('⚠️  No DATABASE_URL set. Using in-memory storage (not recommended for production)');
+  warnings.push(
+    '⚠️  No DATABASE_URL set. Using in-memory storage (not recommended for production)'
+  );
 } else {
   checks.push('✅ Database configured');
 }

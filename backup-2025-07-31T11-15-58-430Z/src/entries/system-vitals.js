@@ -134,31 +134,31 @@ Issues: ${heartbeat.issues.length}
 
   handleMonitorCommand(action) {
     switch (action) {
-    case 'start':
-      if (!this.monitoringInterval) {
-        this.startMonitoring();
-        this.terminal.writeSuccess('✅ Monitoring started');
-      } else {
-        this.terminal.writeLine('Monitoring is already running');
-      }
-      break;
+      case 'start':
+        if (!this.monitoringInterval) {
+          this.startMonitoring();
+          this.terminal.writeSuccess('✅ Monitoring started');
+        } else {
+          this.terminal.writeLine('Monitoring is already running');
+        }
+        break;
 
-    case 'stop':
-      if (this.monitoringInterval) {
-        this.stopMonitoring();
-        this.terminal.writeSuccess('✅ Monitoring stopped');
-      } else {
-        this.terminal.writeLine('Monitoring is not running');
-      }
-      break;
+      case 'stop':
+        if (this.monitoringInterval) {
+          this.stopMonitoring();
+          this.terminal.writeSuccess('✅ Monitoring stopped');
+        } else {
+          this.terminal.writeLine('Monitoring is not running');
+        }
+        break;
 
-    case 'status':
-      const status = this.monitoringInterval ? 'Running' : 'Stopped';
-      this.terminal.writeLine(`Monitoring Status: ${status}`);
-      break;
+      case 'status':
+        const status = this.monitoringInterval ? 'Running' : 'Stopped';
+        this.terminal.writeLine(`Monitoring Status: ${status}`);
+        break;
 
-    default:
-      this.terminal.writeLine(`
+      default:
+        this.terminal.writeLine(`
 Monitor Commands:
 ================
   monitor start   - Start system monitoring

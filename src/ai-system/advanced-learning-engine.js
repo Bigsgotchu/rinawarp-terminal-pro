@@ -502,7 +502,7 @@ class AdvancedLearningEngine {
 
     // Suggest based on skill level
     if (this.userProfile.skillLevel === 'beginner') {
-      suggestions.push('Try using \'help\' commands to learn more about available options');
+      suggestions.push("Try using 'help' commands to learn more about available options");
     } else if (this.userProfile.skillLevel === 'advanced') {
       suggestions.push('Consider creating aliases for your frequently used commands');
     }

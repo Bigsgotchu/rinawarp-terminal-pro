@@ -81,20 +81,20 @@ const useVoiceRecognition = () => {
 
       // Handle specific errors
       switch (event.error) {
-      case 'no-speech':
-        setError('No speech detected. Please try again.');
-        break;
-      case 'audio-capture':
-        setError('Audio capture failed. Check microphone permissions.');
-        break;
-      case 'not-allowed':
-        setError('Microphone access denied. Please allow microphone access.');
-        break;
-      case 'network':
-        setError('Network error. Please check your internet connection.');
-        break;
-      default:
-        setError(`Voice recognition error: ${event.error}`);
+        case 'no-speech':
+          setError('No speech detected. Please try again.');
+          break;
+        case 'audio-capture':
+          setError('Audio capture failed. Check microphone permissions.');
+          break;
+        case 'not-allowed':
+          setError('Microphone access denied. Please allow microphone access.');
+          break;
+        case 'network':
+          setError('Network error. Please check your internet connection.');
+          break;
+        default:
+          setError(`Voice recognition error: ${event.error}`);
       }
     };
 
@@ -183,26 +183,26 @@ const useVoiceRecognition = () => {
 
   const getActionForType = (type, command) => {
     switch (type) {
-    case 'help':
-      return 'help';
-    case 'clear':
-      return 'clear';
-    case 'list':
-      return 'ls -la';
-    case 'git':
-      return 'git status';
-    case 'directory':
-      return 'pwd';
-    case 'home':
-      return 'cd ~';
-    case 'back':
-      return 'cd ..';
-    case 'theme':
-      return command.includes('dark') ? 'theme:dark' : 'theme:light';
-    case 'voice':
-      return 'voice:stop';
-    default:
-      return command;
+      case 'help':
+        return 'help';
+      case 'clear':
+        return 'clear';
+      case 'list':
+        return 'ls -la';
+      case 'git':
+        return 'git status';
+      case 'directory':
+        return 'pwd';
+      case 'home':
+        return 'cd ~';
+      case 'back':
+        return 'cd ..';
+      case 'theme':
+        return command.includes('dark') ? 'theme:dark' : 'theme:light';
+      case 'voice':
+        return 'voice:stop';
+      default:
+        return command;
     }
   };
 

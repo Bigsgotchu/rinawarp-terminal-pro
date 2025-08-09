@@ -9,7 +9,7 @@ const execAsync = promisify(exec);
 
 async function buildSimple() {
   console.log('🚀 Building RinaWarp Terminal - Simple Build Process');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
 
   // Clean dist directory
   try {
@@ -82,10 +82,12 @@ async function packageReleases() {
   for (const file of winFiles) {
     const srcPath = path.join(distPath, file);
     const destPath = path.join(releasesPath, 'RinaWarp-Terminal-Windows-Portable.zip');
-    
+
     // Create a ZIP from the Windows executable
-    await execAsync(`cd ${distPath} && zip -r ../public/releases/RinaWarp-Terminal-Windows-Portable.zip ${file}`);
-    console.log(`✅ Packaged Windows build to releases`);
+    await execAsync(
+      `cd ${distPath} && zip -r ../public/releases/RinaWarp-Terminal-Windows-Portable.zip ${file}`
+    );
+    console.log('✅ Packaged Windows build to releases');
   }
 
   // Package Linux

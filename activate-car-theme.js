@@ -98,27 +98,27 @@ const command = args[0] || 'activate';
 
 async function main() {
   switch (command) {
-  case 'activate':
-    await carThemeActivator.activate();
-    break;
+    case 'activate':
+      await carThemeActivator.activate();
+      break;
 
-  case 'deactivate':
-    await carThemeActivator.deactivate();
-    break;
+    case 'deactivate':
+      await carThemeActivator.deactivate();
+      break;
 
-  case 'status':
-    const _status = carThemeActivator.getStatus();
-    break;
+    case 'status':
+      const _status = carThemeActivator.getStatus();
+      break;
 
-  case 'help':
-  case '--help':
-  case '-h':
-    carThemeActivator.showHelp();
-    break;
+    case 'help':
+    case '--help':
+    case '-h':
+      carThemeActivator.showHelp();
+      break;
 
-  default:
-    console.log(`❌ Unknown command: ${command}`);
-    process.exit(1);
+    default:
+      console.log(`❌ Unknown command: ${command}`);
+      process.exit(1);
   }
 }
 

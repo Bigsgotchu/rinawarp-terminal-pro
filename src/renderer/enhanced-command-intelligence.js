@@ -190,20 +190,20 @@ class EnhancedCommandIntelligence {
     const projectType = await this.projectAnalyzer.detectProjectType(cwd);
 
     switch (projectType) {
-    case 'node':
-      suggestions.push(...this.getNodeJSSuggestions(command, context));
-      break;
-    case 'python':
-      suggestions.push(...this.getPythonSuggestions(command, context));
-      break;
-    case 'rust':
-      suggestions.push(...this.getRustSuggestions(command, context));
-      break;
-    case 'go':
-      suggestions.push(...this.getGoSuggestions(command, context));
-      break;
-    default:
-      suggestions.push(...this.getGenericSuggestions(command, context));
+      case 'node':
+        suggestions.push(...this.getNodeJSSuggestions(command, context));
+        break;
+      case 'python':
+        suggestions.push(...this.getPythonSuggestions(command, context));
+        break;
+      case 'rust':
+        suggestions.push(...this.getRustSuggestions(command, context));
+        break;
+      case 'go':
+        suggestions.push(...this.getGoSuggestions(command, context));
+        break;
+      default:
+        suggestions.push(...this.getGenericSuggestions(command, context));
     }
 
     // File-based suggestions

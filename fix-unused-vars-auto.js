@@ -144,4 +144,3 @@ for (const file of files) {
     filesFixed++;
   }
 }
-

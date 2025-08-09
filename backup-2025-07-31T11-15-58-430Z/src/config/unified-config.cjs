@@ -128,15 +128,15 @@ class UnifiedConfig {
       const defaultType = typeof defaultValue;
       if (typeof value !== defaultType) {
         switch (defaultType) {
-        case 'number':
-          value = Number(value);
-          break;
-        case 'boolean':
-          value = Boolean(value);
-          break;
-        case 'string':
-          value = String(value);
-          break;
+          case 'number':
+            value = Number(value);
+            break;
+          case 'boolean':
+            value = Boolean(value);
+            break;
+          case 'string':
+            value = String(value);
+            break;
         }
       }
     }

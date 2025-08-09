@@ -115,7 +115,9 @@ import logger from '../utilities/logger.js';
           };
         } catch (error) {
           console.error('Command execution failed:', error);
-          throw new Error(new Error(new Error(`Command execution not available: ${error.message}`)));
+          throw new Error(
+            new Error(new Error(`Command execution not available: ${error.message}`))
+          );
         }
       };
     }
@@ -238,7 +240,6 @@ import logger from '../utilities/logger.js';
       validatePerformanceMetrics();
       repairModuleExports();
       setupErrorHandling();
-
 
       // Set up periodic health checks
       window.performHealthCheck = () => {

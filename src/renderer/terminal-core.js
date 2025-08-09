@@ -146,89 +146,89 @@ export class RinaWarpTerminal {
 
   handleInput(data) {
     switch (data) {
-    case '\r': // Enter
-      this.terminal.write('\r\n');
-      this.executeCommand(this.currentLine.trim());
-      this.addToHistory(this.currentLine);
-      this.currentLine = '';
-      this.cursorPosition = 0;
-      this.showPrompt();
-      break;
+      case '\r': // Enter
+        this.terminal.write('\r\n');
+        this.executeCommand(this.currentLine.trim());
+        this.addToHistory(this.currentLine);
+        this.currentLine = '';
+        this.cursorPosition = 0;
+        this.showPrompt();
+        break;
 
-    case '\u007f': // Backspace
-      if (this.cursorPosition > 0) {
-        // Remove character at cursor position
-        this.currentLine =
+      case '\u007f': // Backspace
+        if (this.cursorPosition > 0) {
+          // Remove character at cursor position
+          this.currentLine =
             this.currentLine.slice(0, this.cursorPosition - 1) +
             this.currentLine.slice(this.cursorPosition);
-        this.cursorPosition--;
+          this.cursorPosition--;
 
-        // Move cursor back and rewrite the line from cursor position
-        this.terminal.write('\b');
-        this.terminal.write(this.currentLine.slice(this.cursorPosition) + ' ');
-
-        // Move cursor back to correct position
-        const charsAfterCursor = this.currentLine.length - this.cursorPosition + 1;
-        for (let i = 0; i < charsAfterCursor; i++) {
+          // Move cursor back and rewrite the line from cursor position
           this.terminal.write('\b');
+          this.terminal.write(this.currentLine.slice(this.cursorPosition) + ' ');
+
+          // Move cursor back to correct position
+          const charsAfterCursor = this.currentLine.length - this.cursorPosition + 1;
+          for (let i = 0; i < charsAfterCursor; i++) {
+            this.terminal.write('\b');
+          }
         }
-      }
-      break;
+        break;
 
-    case '\u0003': // Ctrl+C
-      this.terminal.write('^C\r\n');
-      this.currentLine = '';
-      this.cursorPosition = 0;
-      this.showPrompt();
-      break;
+      case '\u0003': // Ctrl+C
+        this.terminal.write('^C\r\n');
+        this.currentLine = '';
+        this.cursorPosition = 0;
+        this.showPrompt();
+        break;
 
-    case '\u001b[A': // Up arrow
-      this.navigateHistory(-1);
-      break;
+      case '\u001b[A': // Up arrow
+        this.navigateHistory(-1);
+        break;
 
-    case '\u001b[B': // Down arrow
-      this.navigateHistory(1);
-      break;
+      case '\u001b[B': // Down arrow
+        this.navigateHistory(1);
+        break;
 
-    case '\u001b[C': // Right arrow
-      if (this.cursorPosition < this.currentLine.length) {
-        this.cursorPosition++;
-        this.terminal.write('\u001b[C'); // Move cursor right
-      }
-      break;
+      case '\u001b[C': // Right arrow
+        if (this.cursorPosition < this.currentLine.length) {
+          this.cursorPosition++;
+          this.terminal.write('\u001b[C'); // Move cursor right
+        }
+        break;
 
-    case '\u001b[D': // Left arrow
-      if (this.cursorPosition > 0) {
-        this.cursorPosition--;
-        this.terminal.write('\u001b[D'); // Move cursor left
-      }
-      break;
+      case '\u001b[D': // Left arrow
+        if (this.cursorPosition > 0) {
+          this.cursorPosition--;
+          this.terminal.write('\u001b[D'); // Move cursor left
+        }
+        break;
 
-    case '\t': // Tab
-      this.handleTabCompletion();
-      break;
+      case '\t': // Tab
+        this.handleTabCompletion();
+        break;
 
-    default:
-      // Regular character input
-      if (data >= ' ' && data <= '~') {
-        // Insert character at cursor position
-        this.currentLine =
+      default:
+        // Regular character input
+        if (data >= ' ' && data <= '~') {
+          // Insert character at cursor position
+          this.currentLine =
             this.currentLine.slice(0, this.cursorPosition) +
             data +
             this.currentLine.slice(this.cursorPosition);
 
-        // Write the character and everything after it
-        this.terminal.write(data + this.currentLine.slice(this.cursorPosition + 1));
+          // Write the character and everything after it
+          this.terminal.write(data + this.currentLine.slice(this.cursorPosition + 1));
 
-        // Move cursor back to correct position
-        const charsAfterCursor = this.currentLine.length - this.cursorPosition - 1;
-        for (let i = 0; i < charsAfterCursor; i++) {
-          this.terminal.write('\b');
+          // Move cursor back to correct position
+          const charsAfterCursor = this.currentLine.length - this.cursorPosition - 1;
+          for (let i = 0; i < charsAfterCursor; i++) {
+            this.terminal.write('\b');
+          }
+
+          this.cursorPosition++;
         }
-
-        this.cursorPosition++;
-      }
-      break;
+        break;
     }
   }
 

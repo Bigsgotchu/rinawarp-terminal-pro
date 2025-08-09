@@ -172,48 +172,48 @@ export class AutoCompleteSystem {
 
       if (event.type === 'keydown') {
         switch (event.key) {
-        case 'Tab':
-          if (this.isActive) {
-            event.preventDefault();
-            this.selectSuggestion();
-            return false;
-          } else {
-            // Trigger autocomplete
-            this.triggerAutoComplete();
-            return false;
-          }
+          case 'Tab':
+            if (this.isActive) {
+              event.preventDefault();
+              this.selectSuggestion();
+              return false;
+            } else {
+              // Trigger autocomplete
+              this.triggerAutoComplete();
+              return false;
+            }
 
-        case 'ArrowUp':
-          if (this.isActive) {
-            event.preventDefault();
-            this.navigateSuggestions(-1);
-            return false;
-          }
-          break;
+          case 'ArrowUp':
+            if (this.isActive) {
+              event.preventDefault();
+              this.navigateSuggestions(-1);
+              return false;
+            }
+            break;
 
-        case 'ArrowDown':
-          if (this.isActive) {
-            event.preventDefault();
-            this.navigateSuggestions(1);
-            return false;
-          }
-          break;
+          case 'ArrowDown':
+            if (this.isActive) {
+              event.preventDefault();
+              this.navigateSuggestions(1);
+              return false;
+            }
+            break;
 
-        case 'Escape':
-          if (this.isActive) {
-            event.preventDefault();
-            this.hide();
-            return false;
-          }
-          break;
+          case 'Escape':
+            if (this.isActive) {
+              event.preventDefault();
+              this.hide();
+              return false;
+            }
+            break;
 
-        case 'Enter':
-          if (this.isActive && this.currentIndex >= 0) {
-            event.preventDefault();
-            this.selectSuggestion();
-            return false;
-          }
-          break;
+          case 'Enter':
+            if (this.isActive && this.currentIndex >= 0) {
+              event.preventDefault();
+              this.selectSuggestion();
+              return false;
+            }
+            break;
         }
       }
 

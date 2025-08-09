@@ -186,37 +186,37 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   // Handle the event
   try {
     switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      logger.info('✅ Payment successful:', session.id, 'Plan:', session.metadata.plan);
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        logger.info('✅ Payment successful:', session.id, 'Plan:', session.metadata.plan);
 
-      // Provision service, send welcome email, update user account
-      await handleSuccessfulPayment(session);
-      break;
+        // Provision service, send welcome email, update user account
+        await handleSuccessfulPayment(session);
+        break;
 
-    case 'invoice.payment_succeeded':
-      const invoice = event.data.object;
-      logger.info('✅ Subscription payment succeeded:', invoice.id);
-      break;
+      case 'invoice.payment_succeeded':
+        const invoice = event.data.object;
+        logger.info('✅ Subscription payment succeeded:', invoice.id);
+        break;
 
-    case 'customer.subscription.deleted':
-      const subscription = event.data.object;
-      logger.info('⚠️ Subscription cancelled:', subscription.id);
+      case 'customer.subscription.deleted':
+        const subscription = event.data.object;
+        logger.info('⚠️ Subscription cancelled:', subscription.id);
 
-      // Handle subscription cancellation
-      await handleSubscriptionCancelled(subscription);
-      break;
+        // Handle subscription cancellation
+        await handleSubscriptionCancelled(subscription);
+        break;
 
-    case 'invoice.payment_failed':
-      const failedInvoice = event.data.object;
-      logger.info('❌ Payment failed:', failedInvoice.id);
+      case 'invoice.payment_failed':
+        const failedInvoice = event.data.object;
+        logger.info('❌ Payment failed:', failedInvoice.id);
 
-      // Handle failed payment, send notification
-      await handleFailedPayment(failedInvoice);
-      break;
+        // Handle failed payment, send notification
+        await handleFailedPayment(failedInvoice);
+        break;
 
-    default:
-      logger.info(`ℹ️ Unhandled event type: ${event.type}`);
+      default:
+        logger.info(`ℹ️ Unhandled event type: ${event.type}`);
     }
   } catch (error) {
     logger.error('❌ Error handling webhook event:', error);

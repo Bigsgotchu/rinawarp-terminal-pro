@@ -270,12 +270,12 @@ export class BlockManager {
   getShellForConnection(connection) {
     // This could be expanded to support different connections
     switch (connection) {
-    case 'local':
-      return process.platform === 'win32' ? 'pwsh.exe' : '/bin/bash';
-    case 'ssh':
-      return 'ssh';
-    default:
-      return process.platform === 'win32' ? 'pwsh.exe' : '/bin/bash';
+      case 'local':
+        return process.platform === 'win32' ? 'pwsh.exe' : '/bin/bash';
+      case 'ssh':
+        return 'ssh';
+      default:
+        return process.platform === 'win32' ? 'pwsh.exe' : '/bin/bash';
     }
   }
 
@@ -387,22 +387,22 @@ export class BlockManager {
     const base = 'position: absolute; background: transparent;';
 
     switch (handle) {
-    case 'nw':
-      return `${base} top: -3px; left: -3px; width: 6px; height: 6px; cursor: nw-resize;`;
-    case 'ne':
-      return `${base} top: -3px; right: -3px; width: 6px; height: 6px; cursor: ne-resize;`;
-    case 'sw':
-      return `${base} bottom: -3px; left: -3px; width: 6px; height: 6px; cursor: sw-resize;`;
-    case 'se':
-      return `${base} bottom: -3px; right: -3px; width: 6px; height: 6px; cursor: se-resize;`;
-    case 'n':
-      return `${base} top: -3px; left: 6px; right: 6px; height: 6px; cursor: n-resize;`;
-    case 's':
-      return `${base} bottom: -3px; left: 6px; right: 6px; height: 6px; cursor: s-resize;`;
-    case 'e':
-      return `${base} right: -3px; top: 6px; bottom: 6px; width: 6px; cursor: e-resize;`;
-    case 'w':
-      return `${base} left: -3px; top: 6px; bottom: 6px; width: 6px; cursor: w-resize;`;
+      case 'nw':
+        return `${base} top: -3px; left: -3px; width: 6px; height: 6px; cursor: nw-resize;`;
+      case 'ne':
+        return `${base} top: -3px; right: -3px; width: 6px; height: 6px; cursor: ne-resize;`;
+      case 'sw':
+        return `${base} bottom: -3px; left: -3px; width: 6px; height: 6px; cursor: sw-resize;`;
+      case 'se':
+        return `${base} bottom: -3px; right: -3px; width: 6px; height: 6px; cursor: se-resize;`;
+      case 'n':
+        return `${base} top: -3px; left: 6px; right: 6px; height: 6px; cursor: n-resize;`;
+      case 's':
+        return `${base} bottom: -3px; left: 6px; right: 6px; height: 6px; cursor: s-resize;`;
+      case 'e':
+        return `${base} right: -3px; top: 6px; bottom: 6px; width: 6px; cursor: e-resize;`;
+      case 'w':
+        return `${base} left: -3px; top: 6px; bottom: 6px; width: 6px; cursor: w-resize;`;
     }
   }
 
@@ -520,7 +520,6 @@ export class BlockManager {
 
       // Remove from memory
       this.blocks.delete(blockId);
-
     }
   }
 
@@ -583,7 +582,9 @@ export class BlockManager {
         cwd: blockConfig.metadata.workingDirectory,
       });
 
-      logger.debug(`✅ Restored block "${blockConfig.title}" at ${blockConfig.position.x},${blockConfig.position.y}`);
+      logger.debug(
+        `✅ Restored block "${blockConfig.title}" at ${blockConfig.position.x},${blockConfig.position.y}`
+      );
     }
 
     logger.debug(`✅ Layout "${name}" loaded with ${layout.blocks.length} blocks`);

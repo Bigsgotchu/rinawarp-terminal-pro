@@ -247,11 +247,11 @@ class MonitoringSetup {
 
 5. Assign IAM roles:
    ${this.requiredRoles
-    .map(
-      role =>
-        `gcloud projects add-iam-policy-binding ${this.projectId} --member="serviceAccount:${this.serviceAccountEmail}" --role="${role}"`
-    )
-    .join('\\n   ')}
+     .map(
+       role =>
+         `gcloud projects add-iam-policy-binding ${this.projectId} --member="serviceAccount:${this.serviceAccountEmail}" --role="${role}"`
+     )
+     .join('\\n   ')}
 
 6. Create service account key:
    gcloud iam service-accounts keys create ${this.keyFilePath} --iam-account=${this.serviceAccountEmail}
@@ -296,14 +296,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
 
   switch (command) {
-  case 'test':
-    await setup.testSetup();
-    break;
-  case 'manual':
-    setup.showManualSetupInstructions();
-    break;
-  default:
-    await setup.setup();
+    case 'test':
+      await setup.testSetup();
+      break;
+    case 'manual':
+      setup.showManualSetupInstructions();
+      break;
+    default:
+      await setup.setup();
   }
 }
 

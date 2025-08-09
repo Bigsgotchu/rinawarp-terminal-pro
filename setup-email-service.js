@@ -10,33 +10,35 @@ import readline from 'readline';
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 function ask(question) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     rl.question(question, resolve);
   });
 }
 
 function askSecret(question) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     process.stdout.write(question);
     process.stdin.setRawMode(true);
     process.stdin.resume();
     process.stdin.setEncoding('utf8');
-    
+
     let input = '';
-    const onData = (char) => {
+    const onData = char => {
       if (char === '\r' || char === '\n') {
         process.stdin.setRawMode(false);
         process.stdin.pause();
         process.stdin.off('data', onData);
         console.log('');
         resolve(input);
-      } else if (char === '\u0003') { // Ctrl+C
+      } else if (char === '\u0003') {
+        // Ctrl+C
         process.exit();
-      } else if (char === '\u007f') { // Backspace
+      } else if (char === '\u007f') {
+        // Backspace
         if (input.length > 0) {
           input = input.slice(0, -1);
           process.stdout.write('\b \b');
@@ -46,7 +48,7 @@ function askSecret(question) {
         process.stdout.write('*');
       }
     };
-    
+
     process.stdin.on('data', onData);
   });
 }
@@ -99,14 +101,14 @@ async function main() {
     console.log('7. Copy the API key (starts with SG.)\n');
 
     emailConfig.SENDGRID_API_KEY = await askSecret('Paste your SendGrid API Key: ');
-    emailConfig.SENDGRID_FROM_EMAIL = await ask('From Email (noreply@rinawarptech.com): ') || 'noreply@rinawarptech.com';
+    emailConfig.SENDGRID_FROM_EMAIL =
+      (await ask('From Email (noreply@rinawarptech.com): ')) || 'noreply@rinawarptech.com';
 
     console.log('\n📧 Email Verification:');
     console.log('1. Go to Settings → Sender Authentication');
     console.log('2. Choose "Single Sender Verification"');
     console.log(`3. Add: ${emailConfig.SENDGRID_FROM_EMAIL}`);
     console.log('4. Complete verification process');
-
   } else if (choice === '2') {
     // Gmail SMTP setup
     console.log('\n📨 Gmail SMTP Setup');
@@ -134,7 +136,8 @@ async function main() {
     emailConfig.SMTP_PORT = '587';
     emailConfig.SMTP_USER = await ask('Your Gmail address: ');
     emailConfig.SMTP_PASS = await askSecret('Gmail App Password (16 chars): ');
-    emailConfig.SMTP_FROM_EMAIL = await ask('From Email (noreply@rinawarptech.com): ') || 'noreply@rinawarptech.com';
+    emailConfig.SMTP_FROM_EMAIL =
+      (await ask('From Email (noreply@rinawarptech.com): ')) || 'noreply@rinawarptech.com';
   }
 
   // Update .env.production file
@@ -150,7 +153,10 @@ async function main() {
   let envContent = fs.readFileSync('.env.production', 'utf8');
 
   // Remove existing email configuration comments
-  envContent = envContent.replace(/# Choose ONE of these options:[\s\S]*?# SMTP_FROM_EMAIL=noreply@rinawarptech\.com/g, '');
+  envContent = envContent.replace(
+    /# Choose ONE of these options:[\s\S]*?# SMTP_FROM_EMAIL=noreply@rinawarptech\.com/g,
+    ''
+  );
 
   // Add new email configuration
   const emailSection = Object.entries(emailConfig)

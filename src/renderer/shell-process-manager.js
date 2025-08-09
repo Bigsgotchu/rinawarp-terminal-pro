@@ -75,7 +75,9 @@ export class ShellProcessManager {
       this.log('Initializing shell process...', 'info');
 
       if (!window.electronAPI) {
-        throw new Error(new Error(new Error('Electron API not available - cannot create shell process')));
+        throw new Error(
+          new Error(new Error('Electron API not available - cannot create shell process'))
+        );
       }
 
       // Create shell process

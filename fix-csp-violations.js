@@ -37,7 +37,7 @@ const commonScripts = {
       page: window.location.pathname,
       timestamp: new Date().toISOString()
     });
-  `
+  `,
 };
 
 // Function to generate CSP hash for content
@@ -53,7 +53,7 @@ function extractInlineScripts(htmlContent) {
   const scriptRegex = /<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/gi;
   const scripts = [];
   let match;
-  
+
   while ((match = scriptRegex.exec(htmlContent)) !== null) {
     const scriptContent = match[1].trim();
     if (scriptContent) {
@@ -61,12 +61,12 @@ function extractInlineScripts(htmlContent) {
       scripts.push({
         content: scriptContent,
         hash: hash,
-        fullMatch: match[0]
+        fullMatch: match[0],
       });
       scriptHashes.add(hash);
     }
   }
-  
+
   return scripts;
 }
 
@@ -75,7 +75,7 @@ function extractInlineStyles(htmlContent) {
   const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
   const styles = [];
   let match;
-  
+
   while ((match = styleRegex.exec(htmlContent)) !== null) {
     const styleContent = match[1].trim();
     if (styleContent) {
@@ -83,12 +83,12 @@ function extractInlineStyles(htmlContent) {
       styles.push({
         content: styleContent,
         hash: hash,
-        fullMatch: match[0]
+        fullMatch: match[0],
       });
       styleHashes.add(hash);
     }
   }
-  
+
   return styles;
 }
 
@@ -97,113 +97,117 @@ function findInlineEventHandlers(htmlContent) {
   const eventHandlers = [];
   const handlerRegex = /\s(on\w+)=["']([^"']*)["']/gi;
   let match;
-  
+
   while ((match = handlerRegex.exec(htmlContent)) !== null) {
     eventHandlers.push({
       attribute: match[1],
       content: match[2],
-      fullMatch: match[0]
+      fullMatch: match[0],
     });
   }
-  
+
   return eventHandlers;
 }
 
 // Function to convert inline event handlers to external scripts
 function convertInlineHandlers(htmlContent, fileName) {
   const handlers = findInlineEventHandlers(htmlContent);
-  
+
   if (handlers.length === 0) {
     return htmlContent;
   }
-  
+
   let updatedContent = htmlContent;
   let jsContent = `// Auto-generated CSP-safe event handlers for ${fileName}\n`;
   let handlerCounter = 0;
-  
+
   handlers.forEach(handler => {
     handlerCounter++;
     const functionName = `${handler.attribute}Handler${handlerCounter}`;
-    
+
     // Add the function to JS content
     jsContent += `
 function ${functionName}(element) {
   ${handler.content}
 }
 `;
-    
+
     // Replace inline handler with data attribute and class
     const replacement = ` data-${handler.attribute}="${handler.content}" class="csp-event-handler"`;
     updatedContent = updatedContent.replace(handler.fullMatch, replacement);
   });
-  
+
   if (handlerCounter > 0) {
     // Add event delegation script
     jsContent += `
 // Event delegation for CSP compliance
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.csp-event-handler').forEach(function(element) {
-    ${handlers.map((handler, index) => `
+    ${handlers
+      .map(
+        (handler, index) => `
     if (element.hasAttribute('data-${handler.attribute}')) {
       element.addEventListener('${handler.attribute.substring(2)}', function(event) {
         ${handler.attribute}Handler${index + 1}(this);
       });
-    }`).join('')}
+    }`
+      )
+      .join('')}
   });
 });
 `;
-    
+
     // Write the JS file
     const jsFileName = `js/csp-handlers-${fileName.replace('.html', '')}.js`;
     const jsFilePath = path.join(publicDir, jsFileName);
-    
+
     return { updatedContent, jsContent, jsFileName };
   }
-  
+
   return { updatedContent };
 }
 
 // Function to process HTML files
 async function processHTMLFile(filePath) {
   console.log(`\n🔍 Processing: ${filePath}`);
-  
+
   const content = await fs.readFile(filePath, 'utf8');
   const fileName = path.basename(filePath);
-  
+
   // Extract inline scripts and styles
   const inlineScripts = extractInlineScripts(content);
   const inlineStyles = extractInlineStyles(content);
   const eventHandlers = findInlineEventHandlers(content);
-  
+
   console.log(`   📜 Found ${inlineScripts.length} inline scripts`);
   console.log(`   🎨 Found ${inlineStyles.length} inline styles`);
   console.log(`   🖱️  Found ${eventHandlers.length} inline event handlers`);
-  
+
   // Show the hashes needed for scripts
   if (inlineScripts.length > 0) {
-    console.log(`   🔐 Script hashes needed:`);
+    console.log('   🔐 Script hashes needed:');
     inlineScripts.forEach((script, index) => {
       console.log(`      ${index + 1}. ${script.hash}`);
       console.log(`         Content preview: "${script.content.substring(0, 50)}..."`);
     });
   }
-  
+
   // Convert inline handlers if any exist
   if (eventHandlers.length > 0) {
-    console.log(`   ⚠️  Converting inline event handlers to external JS`);
+    console.log('   ⚠️  Converting inline event handlers to external JS');
     const result = convertInlineHandlers(content, fileName);
-    
+
     if (result.jsContent) {
       // Save the JS file
       const jsFilePath = path.join(publicDir, result.jsFileName);
       await fs.mkdir(path.dirname(jsFilePath), { recursive: true });
       await fs.writeFile(jsFilePath, result.jsContent);
       console.log(`   ✅ Created ${result.jsFileName}`);
-      
+
       // Add script tag to HTML
       const scriptTag = `    <script src="${result.jsFileName}"></script>\n</head>`;
       result.updatedContent = result.updatedContent.replace('</head>', scriptTag);
-      
+
       // Save updated HTML
       await fs.writeFile(filePath, result.updatedContent);
       console.log(`   ✅ Updated ${fileName} with external event handlers`);
@@ -215,10 +219,10 @@ async function processHTMLFile(filePath) {
 async function scanDirectory(dir) {
   const files = [];
   const entries = await fs.readdir(dir, { withFileTypes: true });
-  
+
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    
+
     if (entry.isDirectory()) {
       const subFiles = await scanDirectory(fullPath);
       files.push(...subFiles);
@@ -226,7 +230,7 @@ async function scanDirectory(dir) {
       files.push(fullPath);
     }
   }
-  
+
   return files;
 }
 
@@ -234,16 +238,16 @@ async function scanDirectory(dir) {
 function generateUpdatedCSP() {
   const allScriptHashes = Array.from(scriptHashes);
   const allStyleHashes = Array.from(styleHashes);
-  
-  console.log(`\n🛡️ Updated CSP Configuration needed:`);
+
+  console.log('\n🛡️ Updated CSP Configuration needed:');
   console.log(`   📜 Script hashes (${allScriptHashes.length}):`);
   allScriptHashes.forEach(hash => console.log(`      ${hash}`));
-  
+
   if (allStyleHashes.length > 0) {
     console.log(`   🎨 Style hashes (${allStyleHashes.length}):`);
     allStyleHashes.forEach(hash => console.log(`      ${hash}`));
   }
-  
+
   const cspConfig = `
 // Updated CSP Configuration with all required hashes
 export const getCSPHeader = (nonce) => {
@@ -269,41 +273,40 @@ export const getCSPHeader = (nonce) => {
   return directives.join('; ');
 };
 `;
-  
+
   return cspConfig;
 }
 
 // Main execution
 async function main() {
   console.log('🚀 Starting CSP Violation Analysis for RinaWarp Terminal\n');
-  
+
   try {
     // Scan all HTML files
     const htmlFiles = await scanDirectory(publicDir);
     console.log(`📁 Found ${htmlFiles.length} HTML files to analyze\n`);
-    
+
     // Process each HTML file
     for (const file of htmlFiles) {
       await processHTMLFile(file);
     }
-    
+
     console.log('\n📊 Analysis Summary:');
     console.log(`   📜 Total unique script hashes needed: ${scriptHashes.size}`);
     console.log(`   🎨 Total unique style hashes needed: ${styleHashes.size}`);
-    
+
     // Generate updated CSP configuration
     const updatedCSP = generateUpdatedCSP();
-    
+
     // Save the updated CSP configuration
     await fs.writeFile('./src/config/csp-config-updated.js', updatedCSP);
     console.log('\n✅ Updated CSP configuration saved to src/config/csp-config-updated.js');
-    
+
     console.log('\n🎯 Next Steps:');
     console.log('1. Review the generated CSP configuration');
     console.log('2. Update your server.js to use the new CSP hashes');
     console.log('3. Test your pages to ensure no CSP violations');
     console.log('4. Move from CSP-Report-Only to enforcing CSP');
-    
   } catch (error) {
     console.error('❌ Error during CSP analysis:', error);
     process.exit(1);

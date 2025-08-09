@@ -547,16 +547,16 @@ class ResponseFormatter {
 
     // Adjust response based on verbosity level
     switch (verbosity) {
-    case 'minimal':
-      formatted = this.minimizeResponse(formatted);
-      break;
-    case 'detailed':
-      formatted = this.expandResponse(formatted);
-      break;
-    case 'balanced':
-    default:
-      // Keep as is
-      break;
+      case 'minimal':
+        formatted = this.minimizeResponse(formatted);
+        break;
+      case 'detailed':
+        formatted = this.expandResponse(formatted);
+        break;
+      case 'balanced':
+      default:
+        // Keep as is
+        break;
     }
 
     // Adjust personality
@@ -588,15 +588,15 @@ class ResponseFormatter {
 
   adjustPersonality(flavor, mode) {
     switch (mode) {
-    case 'professional':
-      return flavor.replace(/[🤖😄💡🚀✨]/gu, '').trim();
-    case 'casual':
-      return flavor + ' 😊';
-    case 'debug':
-      return `[DEBUG] ${flavor}`;
-    case 'helpful':
-    default:
-      return flavor;
+      case 'professional':
+        return flavor.replace(/[🤖😄💡🚀✨]/gu, '').trim();
+      case 'casual':
+        return flavor + ' 😊';
+      case 'debug':
+        return `[DEBUG] ${flavor}`;
+      case 'helpful':
+      default:
+        return flavor;
     }
   }
 }

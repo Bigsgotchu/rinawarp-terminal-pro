@@ -446,23 +446,23 @@ async function main() {
   const command = process.argv[2] || 'check';
 
   switch (command) {
-  case 'start':
-    await monitor.startMonitoring();
-    break;
-  case 'check':
-    await monitor.runFullCheck();
-    break;
-  case 'dashboard':
-    monitor.showDashboard();
-    break;
-  case 'alerts':
-    console.log('🚨 Active Alerts:');
-    monitor.monitoringState.alerts.forEach(alert => {
-      console.log(`- [${alert.type}] ${alert.message} (${alert.timestamp})`);
-    });
-    break;
-  default:
-    console.log(`
+    case 'start':
+      await monitor.startMonitoring();
+      break;
+    case 'check':
+      await monitor.runFullCheck();
+      break;
+    case 'dashboard':
+      monitor.showDashboard();
+      break;
+    case 'alerts':
+      console.log('🚨 Active Alerts:');
+      monitor.monitoringState.alerts.forEach(alert => {
+        console.log(`- [${alert.type}] ${alert.message} (${alert.timestamp})`);
+      });
+      break;
+    default:
+      console.log(`
 🔧 Enhanced Monitoring System Commands:
   start      - Start continuous monitoring
   check      - Run one-time health check

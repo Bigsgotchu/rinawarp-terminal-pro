@@ -63,7 +63,9 @@ export async function safeImport(modulePath, options = {}) {
           }
           return typeof fallback === 'function' ? fallback() : fallback;
         }
-        throw new Error(new Error(new ModuleLoadError(`Failed to load module: ${modulePath}`, error)));
+        throw new Error(
+          new Error(new ModuleLoadError(`Failed to load module: ${modulePath}`, error))
+        );
       }
 
       // Wait before retry
