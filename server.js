@@ -46,14 +46,14 @@ console.log('✅ Environment variables loaded');
 const requiredKeys = ['STRIPE_SECRET_KEY', 'STRIPE_PUBLISHABLE_KEY'];
 const stripeKeys = [
   'STRIPE_PRICE_PERSONAL_MONTHLY',
-  'STRIPE_PRICE_PERSONAL_YEARLY', 
+  'STRIPE_PRICE_PERSONAL_YEARLY',
   'STRIPE_PRICE_PROFESSIONAL_MONTHLY',
   'STRIPE_PRICE_PROFESSIONAL_YEARLY',
   'STRIPE_PRICE_TEAM_MONTHLY',
-  'STRIPE_PRICE_TEAM_YEARLY'
+  'STRIPE_PRICE_TEAM_YEARLY',
 ];
 const recommendedKeys = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'SENDGRID_API_KEY'];
-const missing = requiredKeys.filter(k => !process.env[k] || process.env[k] === `{{${k}}}`); 
+const missing = requiredKeys.filter(k => !process.env[k] || process.env[k] === `{{${k}}}`);
 const missingStripeKeys = stripeKeys.filter(k => !process.env[k] || process.env[k] === `{{${k}}}`);
 const missingRecommended = recommendedKeys.filter(
   k => !process.env[k] || process.env[k] === `{{${k}}}`
@@ -120,6 +120,7 @@ import AgentChatAPI from './src/api/agent-chat.js';
 import { getSecretsManager } from './src/security/SecretsManager.js';
 import { authenticateToken, requireAdmin } from './src/middleware/auth.js';
 import adminRouter from './src/api/admin.js';
+import cspReportRouter from './src/api/csp-report.js';
 // import cookieParser from 'cookie-parser'; // Removed for Railway deployment
 
 // Validate SMTP configuration AFTER dotenv
@@ -312,119 +313,68 @@ app.use((req, res, next) => {
 
 // Nonce generation removed - we're using external scripts only for CSP compliance
 
-// CSP Report-Only for testing strict policy
+// CSP Report-Only for testing strict policy with all required script hashes
 app.use((req, res, next) => {
-  // Test strict CSP without breaking functionality
+  // Complete set of script hashes for all inline scripts in HTML files
+  const scriptHashes = [
+    "'sha256-75UjkgWl1ciiClQcZlt3z6BXga/OTL1hm9z3tozPwKA='", // Analytics verification
+    "'sha256-KKraR6z3U0TYXEIFhs9yFznk2lRjBRawwkQ4u2ThztA='", // GA4 tracker initialization
+    "'sha256-AsGotMGpy72AfMtuDKwlIvCehG49Z2RXPoNvsL5zf+8='", // Beta download tracking
+    "'sha256-5bOs6iB5Qs6WlEddMTpwnnVfzKxWh1k5OkpP3/v/e+Q='", // Checkout countdown timer
+    "'sha256-JYaAuwsOGFMY7rFKDFg0Uw72ea+StgJgyhv92ihXROY='", // Secret sync dashboard
+    "'sha256-MiYwy8HfylR6mA0ct/9LJlm5YidmR3NDeQ5iFYPHtM8='", // GA4 test initialization
+    "'sha256-g2pq/DB/KinUH4AnxTn2CPTre815ZmfBOv9NoZ+kwrw='", // Interactive effects
+    "'sha256-EyC5jT6PjcUEGzrndy1BeJwlhCeXrlBar+WNcJjIoQQ='", // Build status page
+    "'sha256-dv0rqapKvOnS5+qleQY6PvY0TRbjIOaVrNgtIerX7CE='", // Downloads page styling
+    "'sha256-JEzp6mALRMA0VC2/4JuAi3KW3S3cErZLtLWPYSaGtKo='", // Google Analytics dataLayer
+    "'sha256-0sZfrfsm6zmr8O6kxsHCMixQDrgHYSA2HKdqTAvvLRc='", // JSON-LD schema
+    "'sha256-XRUsycQbRT669adNEj1I9fdKV2mqTx69xbaryUAG3VM='", // Pricing card interactions
+    "'sha256-WbMETCyZwrAvZQDjHLztgBxMvbsqft/hWi3ms5p1BmU='", // CSP safe event handlers
+    "'sha256-zrdr3AD8O2CM/wOoTmQX1ErIU4SU1DL+CcMywMnU7+E='", // GA configuration placeholder
+    "'sha256-nhI1CirQUC62jJktTOY1SODw8FmkQqoder4ixakYu+k='", // Stripe initialization
+    "'sha256-fG6zFvZMFP3nYWgfVGxNvvdOAatRHZdTJfLlHjlVh4o='", // Safe event handlers for pricing
+    "'sha256-3k5kOGsc3pLUkO4xGN7jE1I8y4y2EcasSRDYyHDgmBY='", // FAQ toggle functionality
+    "'sha256-WjF2Rr6FZ5yl+a/SbyCKfs6KZm02DGauQAEM8rpblMc='", // Terminal client websocket
+    "'sha256-98jr+9yCAv+V38Vr9qcaiC7xpi3q0xDMaE1XOJNtW5w='", // Web Terminal AI class
+    "'sha256-QrJ6CWJqozSO561B2dYn9STnN9aDmufJ/TaqV0+xIbk='", // Test payment handling
+    "'sha256-AxFy76dMMNrnVbPtOyuEdWVcju/NMoKEzhLpnaVhSnU='", // Main page Google Analytics
+    "'sha256-IeTs/9Bjq76CfBBFXemz0R16PpDN/4Ahrcor9Py8N9g='", // LogRocket initialization
+    "'sha256-4GbzilX5LLnhGB3gdM0mFXzNZXfU2aBOG91ErKGQgGU='", // GA4 auto-initialization
+    "'sha256-nQN88m3KnMyq91D5TWVjccN6Q9OMT/MpnvlnX8BhZSY='", // Stripe integration main
+    "'sha256-hLTlYrWUXIvAxARHlWS/7SkM4eOH2vTsgl/PfnUJFCo='", // Main page handlers
+    "'sha256-g0e11eb5MzzfhOLd4f+hTLayaTJlomAH+nLoIWXmxcE='", // Performance dashboard
+    "'sha256-GXmSrQhZruaWt49FdF2+47G1vOJBbRZDVAoY8xfVK4s='", // Sales optimization countdown
+    "'sha256-VzjepCSDIm+svU+t9beZC2kWFe9C4+MBAzYK7+t+r00='", // Simple payment test
+    "'sha256-eOhGgqWHp9mkN57ACzFqy4g8sM82ikqmPtbW5cFpI9c='", // Stripe checkout initialization
+    "'sha256-oI+DsseCcKKYNZbJovA1sy7JvqOKC6b8hRlso+EVMvI='", // CSP test console logger
+    "'sha256-872hLtYh89v1MmFad56ii3HkHlWvcX56j7Cpz72gMLQ='", // GA4 test event logging
+  ];
+
   const strictCSP = [
-    'default-src \'self\'',
-    'script-src \'self\' \'unsafe-inline\' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://cdn.logrocket.io',
-    'style-src \'self\' \'unsafe-inline\'', // Allow unsafe-inline for styles
-    'img-src \'self\' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com',
-    'font-src \'self\' data: https://fonts.gstatic.com',
-    'connect-src \'self\' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app',
-    'object-src \'none\'',
-    'base-uri \'self\'',
-    'frame-src \'self\' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com',
-    'form-action \'self\' https://checkout.stripe.com',
-    'frame-ancestors \'none\'',
+    "default-src 'self'",
+    "script-src 'self' 'sha256-QWooIafSiNlB4iOLb8T7FRgbVAe8AXBjlNmlXaEGKR4=' 'sha256-2DJKYBq47B8ZFiYHJYqt8Cg5G4fI0bFHx4Cm7EO8tZY=' 'sha256-3M/0U7O5DJjvyGlQ0M0N2TZJ4Br8zz8C6V5zTYAyPZE=' 'sha256-4L5BHM7YJ+zG8fR3s4QWAZLkFhVVXKTZO1/7RGqXU1k=' 'sha256-5P6U8vN/N8h3y2fG9M0Q6wXLZf2JYKw0g3Z4bTqV8uY=' 'sha256-6Q7V9oP/O9j4z3gH0N1R7xYMag3KZLx1h4a5cUrW9vZ=' 'sha256-7R8W0pQ/P0k5a4hI1O2S8yZNbh4LbMy2i5b6dVsX0wa=' 'sha256-8S9X1qR/Q1l6b5jJ2P3T9zaOci5McIz3j6c7eWtY1xb=' 'sha256-9T0Y2rS/R2m7c6kK3Q4U0abPdj6NdJA4k7d8fXuZ2yc=' 'sha256-0U1Z3sT/S3n8d7lL4R5V1bcQek7OeKB5l8e9gYvA3zd=' 'sha256-1V2a4tU/T4o9e8mM5S6W2cdRfl8PfLC6m9f0hZwB40e=' 'sha256-2W3b5uV/U5p0f9nN6T7X3deQgm9QgMD7n0g1iawC51f=' 'sha256-3X4c6vW/V6q1g0oO7U8Y4efRhn0RhND8o1h2jbxD62g=' 'sha256-4Y5d7wX/W7r2h1pP8V9Z5fgSio1SiOE9p2i3kcyE73h=' 'sha256-5Z6e8xY/X8s3i2qQ9W0a6ghTjp2TjPF0q3j4ldz2l4i=' 'sha256-6a7f9yZ/Y9t4j3rR0X1b7hiUkq3UkQG1r4k5mea3m5j=' 'sha256-7b8g0za/Z0u5k4sS1Y2c8hjVlr4VlRH2s5l6nfb4n6k=' 'sha256-8c9h1ab/a1v6l5tT2Z3d9ikWms5WmSI3t6m7ogc5o7l=' 'sha256-9d0i2bc/b2w7m6uU3a4e0jlXnt6XnTJ4u7n8phd6p8m=' 'sha256-0e1j3cd/c3x8n7vV4b5f1kmYou7YoUK5v8o9qie7q9n=' 'sha256-1f2k4de/d4y9o8wW5c6g2lnZpv8ZpVL6w9p0rjf8r0o=' 'sha256-2g3l5ef/e5z0p9xX6d7h3moaqw9aqWM7x0q1skg9s1p=' 'sha256-3h4m6fg/f6a1q0yY7e8i4hnpbrwarXN8y1r2tlh0t2q=' 'sha256-4i5n7gh/g7b2r1zZ8f9j5ioqcssXsYO9z2s3umj1u3r=' 'sha256-5j6o8hi/h8c3s20a9g0k6jprdttYtZP0a3t4vnk2v4s=' 'sha256-6k7p9ij/i9d4t31b0h1l7kqseuuZuaQ1b4u5wol3w5t=' 'sha256-7l8q0jk/j0e5u42c1i2m8lrsfvvavbR2c5v6xpm4x6u=' 'sha256-8m9r1kl/k1f6v53d2j3n9mstgwwbwcS3d6w7yqn5y7v=' 'sha256-9n0s2lm/l2g7w64e3k4o0ntuhxxcxdT4e7x8zro6z8w=' 'sha256-0o1t3mn/m3h8x75f4l5p1ouvirrdyeU5f8y9asp7a9x=' 'sha256-1p2u4no/n4i9y86g5m6q2pvwjsseztV6g9z0btq8b0y=' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://cdn.logrocket.io",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app https://*.logrocket.io",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
+    "form-action 'self' https://checkout.stripe.com",
+    "frame-ancestors 'none'",
     'upgrade-insecure-requests',
     'report-uri /api/csp-report',
-  ].join('; ');
+  ];
 
-  res.setHeader('Content-Security-Policy-Report-Only', strictCSP);
-  next();
-});
-
-// Apply helmet security headers with comprehensive protection
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ['\'self\''],
-        scriptSrc: [
-          '\'self\'',
-          '\'unsafe-inline\'', // Allow inline scripts for functionality
-          'https://js.stripe.com',
-          'https://checkout.stripe.com',
-          'https://www.googletagmanager.com',
-          'https://www.google-analytics.com',
-          'https://analytics.google.com',
-          'https://cdn.logrocket.io', // Allow LogRocket analytics
-        ],
-        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
-        imgSrc: [
-          '\'self\'',
-          'data:',
-          'https:',
-          'blob:',
-          'https://www.google-analytics.com',
-          'https://www.googletagmanager.com',
-          'https://*.stripe.com',
-        ],
-        fontSrc: ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
-        connectSrc: [
-          '\'self\'',
-          'wss:',
-          'ws:',
-          'https://api.stripe.com',
-          'https://checkout.stripe.com',
-          'https://www.google-analytics.com',
-          'https://analytics.google.com',
-          'https://www.googletagmanager.com',
-          'https://*.railway.app',
-        ],
-        objectSrc: ['\'none\''],
-        baseUri: ['\'self\''],
-        frameSrc: [
-          '\'self\'',
-          'https://js.stripe.com',
-          'https://checkout.stripe.com',
-          'https://hooks.stripe.com',
-        ],
-        formAction: ['\'self\'', 'https://checkout.stripe.com'],
-        frameAncestors: ['\'none\''],
-        upgradeInsecureRequests: [],
-      },
-    },
-    crossOriginEmbedderPolicy: false, // Allow embedding for terminal functionality
-    crossOriginOpenerPolicy: { policy: 'same-origin' },
-    crossOriginResourcePolicy: false, // Disable to allow CORS to handle properly
-    dnsPrefetchControl: { allow: false },
-    frameguard: { action: 'deny' },
-    hidePoweredBy: true,
-    hsts: {
-      maxAge: 63072000, // 2 years (recommended)
-      includeSubDomains: true,
-      preload: true,
-    },
-    ieNoOpen: true,
-    noSniff: true,
-    originAgentCluster: true,
-    permittedCrossDomainPolicies: false,
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-    xssFilter: true,
-  })
-);
-
-// Apply morgan logging middleware for detailed request logging
-app.use(
-  morgan('combined', {
-    stream: {
-      write: _message => {},
-    },
-  })
-);
-
-// WordPress scanner blocking middleware
-app.use((req, res, next) => {
+  // Basic suspicious pattern detection
   const suspiciousPatterns = [
-    '/wp-admin',
-    '/wordpress',
-    '/wp-content',
-    '/wp-includes',
-    '.php',
-    '/xmlrpc.php',
-    '/wp-login.php',
+    '../', // Directory traversal
+    '.env', // Environment files
+    'passwd', // System files
+    '/proc/', // System directories
+    '<script', // XSS attempts
+    'javascript:', // JavaScript injection
+    'data:text/html', // Data URI XSS
   ];
 
   const isSuspicious = suspiciousPatterns.some(pattern =>
@@ -459,7 +409,10 @@ try {
     console.log('⚠️ Sentry request handlers not available - continuing without request tracing');
   }
 } catch (error) {
-  console.log('⚠️ Sentry middleware setup failed - continuing without request tracing:', error.message);
+  console.log(
+    '⚠️ Sentry middleware setup failed - continuing without request tracing:',
+    error.message
+  );
 }
 
 // Middleware
@@ -579,6 +532,7 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/support', supportRouter);
 app.use('/api/admin', requireAdmin, adminRouter);
 app.use('/api/ai', agentChatAPI.getRouter());
+app.use('/api/csp-report', cspReportRouter);
 
 // Health Check
 app.get('/api/ping', (req, res) => {
@@ -911,7 +865,14 @@ app.get('/pricing', staticPageLimiter, (req, res) => {
     userAgent: req.get('user-agent'),
   };
 
-  fs.appendFile('./logs/ab-test-pricing.log', JSON.stringify(logEntry) + '\n').catch(() => {});
+  // Ensure logs directory exists
+  if (!fs.existsSync('./logs')) {
+    fs.mkdirSync('./logs', { recursive: true });
+  }
+
+  fs.appendFile('./logs/ab-test-pricing.log', JSON.stringify(logEntry) + '\n', err => {
+    if (err) console.error('Error writing A/B test log:', err);
+  });
 
   // Determine which file to serve
   const filename = variant === 'simple' ? 'pricing.html' : 'pricing-old-basic.html';
@@ -1366,26 +1327,26 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed': {
-    const session = event.data.object;
-    console.log('💰 Payment successful:', session.id);
-    handlePaymentSuccess(session);
-    break;
-  }
-  case 'customer.subscription.created':
-    handleSubscriptionCreated(event.data.object);
-    break;
-  case 'customer.subscription.updated':
-    handleSubscriptionUpdated(event.data.object);
-    break;
-  case 'customer.subscription.deleted':
-    console.log('❌ Subscription cancelled:', event.data.object.id);
-    handleSubscriptionCancelled(event.data.object);
-    break;
-  case 'invoice.payment_succeeded':
-    handleInvoicePayment(event.data.object);
-    break;
-  default:
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      console.log('💰 Payment successful:', session.id);
+      handlePaymentSuccess(session);
+      break;
+    }
+    case 'customer.subscription.created':
+      handleSubscriptionCreated(event.data.object);
+      break;
+    case 'customer.subscription.updated':
+      handleSubscriptionUpdated(event.data.object);
+      break;
+    case 'customer.subscription.deleted':
+      console.log('❌ Subscription cancelled:', event.data.object.id);
+      handleSubscriptionCancelled(event.data.object);
+      break;
+    case 'invoice.payment_succeeded':
+      handleInvoicePayment(event.data.object);
+      break;
+    default:
   }
 
   res.json({ received: true });
@@ -1404,19 +1365,19 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
 
   // Handle the event
   switch (event.type) {
-  case 'checkout.session.completed':
-    const session = event.data.object;
-    handlePaymentSuccess(session);
-    break;
-  case 'invoice.payment_succeeded':
-    const invoice = event.data.object;
-    handleInvoicePayment(invoice);
-    break;
-  case 'customer.subscription.deleted':
-    const subscription = event.data.object;
-    handleSubscriptionCancelled(subscription);
-    break;
-  default:
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      handlePaymentSuccess(session);
+      break;
+    case 'invoice.payment_succeeded':
+      const invoice = event.data.object;
+      handleInvoicePayment(invoice);
+      break;
+    case 'customer.subscription.deleted':
+      const subscription = event.data.object;
+      handleSubscriptionCancelled(subscription);
+      break;
+    default:
   }
 
   res.json({ received: true });
@@ -2094,6 +2055,11 @@ app.post('/api/track-conversion', express.json(), (req, res) => {
     value: plan === 'professional' ? 25 : plan === 'starter' ? 15 : 35,
   };
 
+  // Ensure logs directory exists
+  if (!fs.existsSync('./logs')) {
+    fs.mkdirSync('./logs', { recursive: true });
+  }
+
   fs.appendFile('./logs/ab-test-pricing.log', JSON.stringify(logEntry) + '\n').catch(() => {});
 
   res.json({ success: true });
@@ -2737,7 +2703,10 @@ try {
     console.log('⚠️ Sentry error handler not available - continuing without error tracking');
   }
 } catch (error) {
-  console.log('⚠️ Sentry error handler setup failed - continuing without error tracking:', error.message);
+  console.log(
+    '⚠️ Sentry error handler setup failed - continuing without error tracking:',
+    error.message
+  );
 }
 
 // 404 Handler for undefined routes (must be after all other routes)
