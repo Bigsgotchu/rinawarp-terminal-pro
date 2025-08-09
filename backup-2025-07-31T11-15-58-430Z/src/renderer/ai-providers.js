@@ -540,16 +540,16 @@ class CustomAIProvider extends BaseAIProvider {
 class AIProviderFactory {
   static createProvider(type) {
     switch (type.toLowerCase()) {
-    case 'local':
-      return new LocalAIProvider();
-    case 'openai':
-      return new OpenAIProvider();
-    case 'anthropic':
-      return new AnthropicProvider();
-    case 'custom':
-      return new CustomAIProvider();
-    default:
-      throw new Error(new Error(`Unknown AI provider type: ${type}`));
+      case 'local':
+        return new LocalAIProvider();
+      case 'openai':
+        return new OpenAIProvider();
+      case 'anthropic':
+        return new AnthropicProvider();
+      case 'custom':
+        return new CustomAIProvider();
+      default:
+        throw new Error(new Error(`Unknown AI provider type: ${type}`));
     }
   }
 

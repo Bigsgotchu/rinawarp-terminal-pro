@@ -169,7 +169,7 @@ router.post('/beta-signup', leadCaptureLimit, async (req, res) => {
     if (result.success) {
       res.json({
         success: true,
-        message: 'Beta signup successful! We\'ll be in touch soon.',
+        message: "Beta signup successful! We'll be in touch soon.",
         leadId: result.leadId,
       });
     } else {

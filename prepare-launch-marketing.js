@@ -144,7 +144,7 @@ Want to see it in action? Check out the demo: https://rinawarptech.com
 Thanks for all your support on this journey! ❤️
 
 #RinaWarp #Terminal #AI #Developer #Launch #Productivity
-`
+`,
 };
 
 // Email Templates
@@ -234,10 +234,10 @@ Keep being awesome,
 [Your name]
 
 P.S. - Keep that beta feedback coming. The roadmap is full of exciting features!
-`
+`,
 };
 
-// Product Hunt Templates  
+// Product Hunt Templates
 const productHuntTemplates = {
   'product-hunt-submission.md': `# 🏆 Product Hunt Submission Guide
 
@@ -320,7 +320,7 @@ The AI learns your workflow patterns and suggests commands, while the voice inte
 Special PH launch discount: Use code 'PRODUCTHUNT30' for 30% off! 
 
 AMA about building AI-powered dev tools! 🚀"
-`
+`,
 };
 
 // Blog Post Template
@@ -411,7 +411,7 @@ const allTemplates = {
   ...socialMediaTemplates,
   ...emailTemplates,
   ...productHuntTemplates,
-  'launch-blog-post.md': blogTemplate
+  'launch-blog-post.md': blogTemplate,
 };
 
 console.log('📝 Creating marketing materials...\n');
@@ -504,7 +504,7 @@ console.log('\n🚀 Your launch toolkit includes:');
 console.log('==================================');
 console.log('📱 Social Media Templates:');
 console.log('  • Twitter launch thread');
-console.log('  • LinkedIn professional posts');  
+console.log('  • LinkedIn professional posts');
 console.log('  • Facebook announcement');
 console.log('');
 console.log('📧 Email Templates:');
@@ -523,7 +523,7 @@ console.log('  • Complete launch checklist');
 console.log('\n💡 Next Steps:');
 console.log('==============');
 console.log('1. Review and customize all templates');
-console.log('2. Schedule Product Hunt submission'); 
+console.log('2. Schedule Product Hunt submission');
 console.log('3. Prepare screenshots and demo GIFs');
 console.log('4. Set launch date (Tuesday-Thursday recommended)');
 console.log('5. Notify your network about the upcoming launch');

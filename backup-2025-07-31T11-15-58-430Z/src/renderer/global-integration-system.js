@@ -426,10 +426,10 @@ export class GlobalIntegrationSystem {
           uptime: Date.now() - (window.RinaWarpStartTime || Date.now()),
           memoryUsage: performance.memory
             ? {
-              used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
-              total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024),
-              limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024),
-            }
+                used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
+                total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024),
+                limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024),
+              }
             : null,
         },
       };
@@ -531,15 +531,15 @@ export class GlobalIntegrationSystem {
                 <span>${status.shells.totalCommands}</span>
             </div>
             ${
-  memInfo
-    ? `
+              memInfo
+                ? `
                 <div class="metric-item">
                     <span>Memory:</span>
                     <span>${memInfo.used}MB/${memInfo.total}MB</span>
                 </div>
             `
-    : ''
-}
+                : ''
+            }
         `;
   }
 
@@ -675,7 +675,6 @@ export class GlobalIntegrationSystem {
     }
 
     this.initialized = false;
-
   }
 
   /**

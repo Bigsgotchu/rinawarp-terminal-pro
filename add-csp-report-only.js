@@ -68,7 +68,7 @@ app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (r
 `;
 
     // Find a good place to insert the report endpoint (after other API routes)
-    const apiHealthIndex = content.indexOf('app.get(\'/api/health\'');
+    const apiHealthIndex = content.indexOf("app.get('/api/health'");
     if (apiHealthIndex !== -1) {
       const insertPoint = content.indexOf('});', apiHealthIndex) + 3;
       content = content.slice(0, insertPoint) + '\n' + reportEndpoint + content.slice(insertPoint);

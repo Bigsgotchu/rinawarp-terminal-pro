@@ -80,7 +80,9 @@ class CoreIntegrationHub {
       this.eventBus.emit('hub:initialized', { version: this.version });
     } catch (error) {
       console.error('[RinaWarp] Integration Hub initialization failed:', error);
-      throw new Error(new Error(new IntegrationError('Failed to initialize RinaWarp Terminal', error)));
+      throw new Error(
+        new Error(new IntegrationError('Failed to initialize RinaWarp Terminal', error))
+      );
     }
   }
 
@@ -175,7 +177,9 @@ class CoreIntegrationHub {
     // Check for required methods
     for (const method of requiredMethods) {
       if (typeof feature[method] !== 'function') {
-        throw new Error(new Error(new IntegrationError(`Feature ${name} missing required method: ${method}`)));
+        throw new Error(
+          new Error(new IntegrationError(`Feature ${name} missing required method: ${method}`))
+        );
       }
     }
   }
@@ -389,9 +393,9 @@ class SmartDependencyResolver {
 
     const visit = featureName => {
       if (visiting.has(featureName)) {
-        throw new Error(new Error(
-          new IntegrationError(`Circular dependency detected involving ${featureName}`)
-        ));
+        throw new Error(
+          new Error(new IntegrationError(`Circular dependency detected involving ${featureName}`))
+        );
       }
       if (visited.has(featureName)) return;
 

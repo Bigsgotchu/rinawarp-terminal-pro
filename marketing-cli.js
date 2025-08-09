@@ -22,11 +22,11 @@ const colors = {
 };
 
 const log = {
-  info: (msg) => console.log(`${colors.blue}💡 ${msg}${colors.reset}`),
-  success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
-  warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
-  error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
-  header: (msg) => console.log(`${colors.cyan}${colors.bright}\n🚀 ${msg}${colors.reset}`),
+  info: msg => console.log(`${colors.blue}💡 ${msg}${colors.reset}`),
+  success: msg => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
+  warning: msg => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
+  error: msg => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
+  header: msg => console.log(`${colors.cyan}${colors.bright}\n🚀 ${msg}${colors.reset}`),
 };
 
 // Marketing content templates
@@ -216,7 +216,7 @@ What terminal features do you wish existed but no one has built yet?`,
 Whether you're a solo developer or part of a large team, RinaWarp Terminal adapts to your workflow and makes you more productive.
 
 Start free - no credit card required!`,
-    
+
     gallery: [
       'Voice command demonstration',
       'AI suggestion interface',
@@ -246,20 +246,20 @@ const commands = {
 
   async social(platform = 'all') {
     log.header('Social Media Marketing');
-    
+
     const platforms = platform === 'all' ? ['twitter', 'linkedin'] : [platform];
-    
+
     for (const p of platforms) {
       if (marketingContent[p]) {
         log.info(`Generating ${p.toUpperCase()} content...`);
         console.log(`\n${colors.bright}=== ${p.toUpperCase()} POSTS ===${colors.reset}\n`);
-        
+
         Object.entries(marketingContent[p]).forEach(([type, content]) => {
           console.log(`${colors.yellow}📝 ${type.toUpperCase()}:${colors.reset}`);
           console.log(content);
           console.log('\n' + '─'.repeat(60) + '\n');
         });
-        
+
         // Copy to clipboard if pbcopy available
         try {
           const firstPost = Object.values(marketingContent[p])[0];
@@ -274,33 +274,33 @@ const commands = {
 
   async launch() {
     log.header('Full Marketing Launch Campaign');
-    
+
     log.info('Step 1: Checking system status...');
     await this.checkStatus();
-    
+
     log.info('Step 2: Generating all social content...');
     await this.social('all');
-    
+
     log.info('Step 3: Opening launch platforms...');
     await this.openUrls();
-    
+
     log.info('Step 4: Creating launch checklist...');
     await this.createLaunchChecklist();
-    
+
     log.success('Launch campaign ready! Execute checklist items manually.');
   },
 
   async analytics() {
     log.header('Marketing Analytics');
-    
+
     try {
       log.info('Fetching analytics data...');
-      
+
       // Check site health
       const healthResponse = await fetch('https://rinawarptech.com/api/health');
       const health = await healthResponse.json();
       log.success(`Site Status: ${health.status}`);
-      
+
       // Check analytics endpoint
       try {
         const analyticsResponse = await fetch('https://rinawarptech.com/api/analytics/health');
@@ -309,7 +309,7 @@ const commands = {
       } catch (e) {
         log.warning('Analytics endpoint not responding');
       }
-      
+
       // Mock analytics data (would be real in production)
       console.log('\n📊 Marketing Metrics:');
       console.log('─────────────────────');
@@ -318,7 +318,6 @@ const commands = {
       console.log('📧 Email Signups: 89 (↑45% this week)');
       console.log('🎯 A/B Test Winner: Simple pricing page (+12% conversions)');
       console.log('📱 Top Referrer: Product Hunt (34% of traffic)');
-      
     } catch (error) {
       log.error(`Analytics fetch failed: ${error.message}`);
     }
@@ -326,11 +325,11 @@ const commands = {
 
   async email(type = 'launch') {
     log.header('Email Marketing Campaign');
-    
+
     const emailTemplates = {
       launch: {
         subject: '🚀 RinaWarp Terminal is LIVE!',
-        preview: 'The AI-powered terminal you\'ve been waiting for...',
+        preview: "The AI-powered terminal you've been waiting for...",
         content: `We did it! RinaWarp Terminal is officially live and ready to transform your development workflow.
 
 🎙️ Voice Control: Speak your commands instead of typing
@@ -345,9 +344,9 @@ Special Launch Features:
 
 Try it now → https://rinawarptech.com
 
-Thank you for being part of this journey!`
+Thank you for being part of this journey!`,
       },
-      
+
       welcome: {
         subject: 'Welcome to the future of terminal development! 🚀',
         preview: 'Your RinaWarp Terminal journey starts here...',
@@ -365,10 +364,10 @@ Here's how to get started:
 
 Need help? Reply to this email - we respond personally to every message.
 
-Happy coding!`
-      }
+Happy coding!`,
+      },
     };
-    
+
     const template = emailTemplates[type];
     if (template) {
       console.log(`\n📧 EMAIL TEMPLATE - ${type.toUpperCase()}\n`);
@@ -376,7 +375,7 @@ Happy coding!`
       console.log(`Preview: ${template.preview}\n`);
       console.log(template.content);
       console.log('\n' + '═'.repeat(60));
-      
+
       log.info('Email template ready for your ESP (SendGrid, Mailchimp, etc.)');
     } else {
       log.error(`Unknown email type: ${type}`);
@@ -385,7 +384,7 @@ Happy coding!`
 
   async urls() {
     log.header('Marketing URLs & Tracking');
-    
+
     const baseUrl = 'https://rinawarptech.com';
     const urls = {
       'Main Site': baseUrl,
@@ -396,20 +395,20 @@ Happy coding!`
       'Twitter Share': `https://twitter.com/intent/tweet?text=${encodeURIComponent('Just discovered RinaWarp Terminal - AI-powered terminal with voice control! 🚀')}&url=${baseUrl}`,
       'LinkedIn Share': `https://www.linkedin.com/sharing/share-offsite/?url=${baseUrl}`,
     };
-    
+
     console.log('\n🔗 Marketing URLs:\n');
     Object.entries(urls).forEach(([name, url]) => {
       console.log(`${colors.cyan}${name}:${colors.reset} ${url}`);
     });
-    
+
     log.info('URLs ready for campaign deployment!');
   },
 
   async copy(content = 'twitter') {
     log.header('Copy Marketing Content');
-    
+
     let textToCopy = '';
-    
+
     if (marketingContent.twitter[content]) {
       textToCopy = marketingContent.twitter[content];
     } else if (marketingContent.linkedin[content]) {
@@ -417,7 +416,7 @@ Happy coding!`
     } else {
       textToCopy = marketingContent.twitter.launch; // default
     }
-    
+
     try {
       execSync(`echo "${textToCopy.replace(/"/g, '\\"')}" | pbcopy`);
       log.success(`${content} content copied to clipboard!`);
@@ -435,15 +434,15 @@ Happy coding!`
   async blast() {
     log.header('Marketing Blast - All Platforms');
     log.warning('This will open multiple browser tabs and copy content');
-    
+
     await new Promise(resolve => {
       import('readline').then(({ createInterface }) => {
         const readline = createInterface({
           input: process.stdin,
-          output: process.stdout
+          output: process.stdout,
         });
-        
-        readline.question('Continue? (y/n): ', (answer) => {
+
+        readline.question('Continue? (y/n): ', answer => {
           readline.close();
           if (answer.toLowerCase() === 'y') {
             this.executeBlast();
@@ -458,14 +457,14 @@ Happy coding!`
 
   async executeBlast() {
     log.info('Opening all launch platforms...');
-    
+
     const urls = [
       'https://www.producthunt.com/posts/new',
       'https://news.ycombinator.com/submit',
       'https://twitter.com/compose/tweet',
       'https://www.linkedin.com/feed/',
     ];
-    
+
     urls.forEach((url, index) => {
       setTimeout(() => {
         try {
@@ -476,18 +475,18 @@ Happy coding!`
         }
       }, index * 1000); // Stagger opening by 1 second
     });
-    
+
     // Copy main launch post
     setTimeout(() => {
       this.copy('launch');
     }, 3000);
-    
+
     log.success('Marketing blast initiated! Check your browser tabs.');
   },
 
   async track(metric = 'all') {
     log.header('Campaign Performance Tracking');
-    
+
     // This would integrate with real analytics in production
     const mockMetrics = {
       reach: {
@@ -505,9 +504,9 @@ Happy coding!`
         daily: '$1,240 MRR gained',
         weekly: '$4,560 MRR projection',
         monthly: '$18,200 MRR target',
-      }
+      },
     };
-    
+
     if (metric === 'all') {
       Object.entries(mockMetrics).forEach(([category, data]) => {
         console.log(`\n📊 ${category.toUpperCase()} METRICS:`);
@@ -523,7 +522,7 @@ Happy coding!`
         console.log(`${colors.cyan}${platform}:${colors.reset} ${stats}`);
       });
     }
-    
+
     log.success('Campaign tracking data retrieved!');
   },
 
@@ -533,7 +532,7 @@ Happy coding!`
       'https://www.producthunt.com/posts/new',
       'https://news.ycombinator.com/submit',
     ];
-    
+
     urls.forEach(url => {
       try {
         execSync(`open "${url}"`);
@@ -603,18 +602,18 @@ LAUNCH STATUS: ${new Date().toISOString()}
       log.error('Site health check failed');
       return false;
     }
-  }
+  },
 };
 
 // Main CLI handler
 async function main() {
-  const [,, command, ...args] = process.argv;
-  
+  const [, , command, ...args] = process.argv;
+
   if (!command || command === 'help') {
     await commands.help();
     return;
   }
-  
+
   if (commands[command]) {
     await commands[command](...args);
   } else {
@@ -625,17 +624,17 @@ async function main() {
 
 // Add fetch polyfill for Node.js
 if (!global.fetch) {
-  global.fetch = async function(url, options = {}) {
+  global.fetch = async function (url, options = {}) {
     return new Promise((resolve, reject) => {
-      const request = https.get(url, (response) => {
+      const request = https.get(url, response => {
         let data = '';
-        response.on('data', chunk => data += chunk);
+        response.on('data', chunk => (data += chunk));
         response.on('end', () => {
           resolve({
             json: () => Promise.resolve(JSON.parse(data)),
             text: () => Promise.resolve(data),
             status: response.statusCode,
-            ok: response.statusCode >= 200 && response.statusCode < 300
+            ok: response.statusCode >= 200 && response.statusCode < 300,
           });
         });
       });

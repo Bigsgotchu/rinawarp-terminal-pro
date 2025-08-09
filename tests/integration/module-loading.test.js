@@ -33,6 +33,9 @@ describe('Module Loading Integration Tests', () => {
       fs.unlinkSync(tempConfigFile);
     }
 
+    // Clear environment variables that might affect tests
+    delete process.env.ELEVENLABS_API_KEY;
+
     // Create fresh config instance with custom config directory
     config = new UnifiedConfig();
     // Override config paths for testing

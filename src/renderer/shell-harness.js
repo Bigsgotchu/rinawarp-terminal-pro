@@ -67,7 +67,7 @@ export class ShellHarness {
       help: '🧜‍♀️ Available commands in fallback mode:\n  • File: list files, show files\n  • Directory: current directory, pwd\n  • System: show processes, system info\n  • Git: git status, git log\n  • Network: show ip, ping google',
 
       // Fun responses
-      hello: '🧜‍♀️ Hello darling! Even in fallback mode, I\'m fabulous!',
+      hello: "🧜‍♀️ Hello darling! Even in fallback mode, I'm fabulous!",
       test: '✨ Test successful! Fallback mode is working perfectly!',
       version: '🚀 RinaWarp Terminal v1.0.7 - AI Edition (Fallback Mode)',
     };
@@ -228,10 +228,10 @@ export class ShellHarness {
         successRate:
           this.diagnostics.commandsExecuted > 0
             ? (
-              ((this.diagnostics.commandsExecuted - this.diagnostics.commandsFailed) /
+                ((this.diagnostics.commandsExecuted - this.diagnostics.commandsFailed) /
                   this.diagnostics.commandsExecuted) *
                 100
-            ).toFixed(2) + '%'
+              ).toFixed(2) + '%'
             : '0%',
       },
       lastError: this.diagnostics.lastError,

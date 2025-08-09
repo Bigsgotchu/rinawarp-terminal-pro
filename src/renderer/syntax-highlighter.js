@@ -175,19 +175,19 @@ export class SyntaxHighlighter {
 
     // Apply appropriate highlighting
     switch (commandType) {
-    case 'powershell':
-      return this.highlightPowerShell(text);
-    case 'git':
-      return this.highlightGit(text);
-    case 'npm':
-      return this.highlightNpm(text);
-    case 'docker':
-      return this.highlightDocker(text);
-    case 'ls':
-    case 'dir':
-      return this.highlightFileList(text);
-    default:
-      return this.highlightGeneric(text);
+      case 'powershell':
+        return this.highlightPowerShell(text);
+      case 'git':
+        return this.highlightGit(text);
+      case 'npm':
+        return this.highlightNpm(text);
+      case 'docker':
+        return this.highlightDocker(text);
+      case 'ls':
+      case 'dir':
+        return this.highlightFileList(text);
+      default:
+        return this.highlightGeneric(text);
     }
   }
 

@@ -77,7 +77,7 @@ class LeadCaptureSystem {
                   },
                   {
                     delay: 3 * 24 * 60 * 60 * 1000, // 3 days
-                    subject: 'Advanced Features You\'ll Love ⚡',
+                    subject: "Advanced Features You'll Love ⚡",
                     template: 'features',
                   },
                   {

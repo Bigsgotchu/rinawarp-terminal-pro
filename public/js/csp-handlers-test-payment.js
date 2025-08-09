@@ -1,43 +1,63 @@
 // Auto-generated CSP-safe event handlers for test-payment.html
 
 function onclickHandler1(element) {
-  testAPI(
+  if (typeof testAPI === 'function') {
+    testAPI();
+  }
 }
 
 function onclickHandler2(element) {
-  testAPI(
+  if (typeof testAPI === 'function') {
+    testAPI();
+  }
 }
 
 function onclickHandler3(element) {
-  testCheckoutAPI()
+  if (typeof testCheckoutAPI === 'function') {
+    testCheckoutAPI();
+  }
 }
 
 function onclickHandler4(element) {
-  initStripeTest()
+  if (typeof initStripeTest === 'function') {
+    initStripeTest();
+  }
 }
 
 function onclickHandler5(element) {
-  testPaymentFlow(
+  if (typeof testPaymentFlow === 'function') {
+    testPaymentFlow();
+  }
 }
 
 function onclickHandler6(element) {
-  testPaymentFlow(
+  if (typeof testPaymentFlow === 'function') {
+    testPaymentFlow();
+  }
 }
 
 function onclickHandler7(element) {
-  testPaymentFlow(
+  if (typeof testPaymentFlow === 'function') {
+    testPaymentFlow();
+  }
 }
 
 function onclickHandler8(element) {
-  testDownload(
+  if (typeof testDownload === 'function') {
+    testDownload();
+  }
 }
 
 function onclickHandler9(element) {
-  testDownload(
+  if (typeof testDownload === 'function') {
+    testDownload();
+  }
 }
 
 function onclickHandler10(element) {
-  testDownload(
+  if (typeof testDownload === 'function') {
+    testDownload();
+  }
 }
 
 // Event delegation for CSP compliance

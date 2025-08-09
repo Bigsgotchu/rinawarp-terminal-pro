@@ -7,13 +7,20 @@
 const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
 
 // Safe process object for browser
-const safeProcess = isBrowser ? {
-  env: {},
-  cwd: () => '~',
-  platform: navigator.platform.toLowerCase().includes('mac') ? 'darwin' : 
-    navigator.platform.toLowerCase().includes('win') ? 'win32' : 'linux',
-  versions: { node: 'browser' }
-} : (typeof process !== 'undefined' ? process : {});
+const safeProcess = isBrowser
+  ? {
+      env: {},
+      cwd: () => '~',
+      platform: navigator.platform.toLowerCase().includes('mac')
+        ? 'darwin'
+        : navigator.platform.toLowerCase().includes('win')
+          ? 'win32'
+          : 'linux',
+      versions: { node: 'browser' },
+    }
+  : typeof process !== 'undefined'
+    ? process
+    : {};
 
 // Export fallback classes if the real modules fail to load
 
@@ -39,58 +46,74 @@ export class EnhancedAIIntegration {
   shouldUseEnhancedMode(input) {
     // Basic heuristics for when to use enhanced mode
     const enhancedKeywords = [
-      'analyze', 'debug', 'explain', 'generate', 'create', 'build', 
-      'review', 'optimize', 'refactor', 'architecture', 'design',
-      'algorithm', 'pattern', 'structure', 'performance'
+      'analyze',
+      'debug',
+      'explain',
+      'generate',
+      'create',
+      'build',
+      'review',
+      'optimize',
+      'refactor',
+      'architecture',
+      'design',
+      'algorithm',
+      'pattern',
+      'structure',
+      'performance',
     ];
-        
-    return this.isEnhancedMode && enhancedKeywords.some(keyword => 
-      input.toLowerCase().includes(keyword)
+
+    return (
+      this.isEnhancedMode && enhancedKeywords.some(keyword => input.toLowerCase().includes(keyword))
     );
   }
 
   async processEnhancedRequest(input, context) {
     console.log('🧠 Processing with enhanced fallback:', input);
-        
+
     const type = this.detectRequestType(input);
     let response = '';
-        
+
     switch (type) {
-    case 'code_analysis':
-      response = this.generateAnalysisResponse(input, context);
-      break;
-    case 'debugging':
-      response = this.generateDebuggingResponse(input, context);
-      break;
-    case 'program_generation':
-      response = this.generateProgramResponse(input, context);
-      break;
-    case 'architecture':
-      response = this.generateArchitectureResponse(input, context);
-      break;
-    case 'explanation':
-      response = this.generateExplanationResponse(input, context);
-      break;
-    default:
-      response = this.generateGeneralResponse(input, context);
+      case 'code_analysis':
+        response = this.generateAnalysisResponse(input, context);
+        break;
+      case 'debugging':
+        response = this.generateDebuggingResponse(input, context);
+        break;
+      case 'program_generation':
+        response = this.generateProgramResponse(input, context);
+        break;
+      case 'architecture':
+        response = this.generateArchitectureResponse(input, context);
+        break;
+      case 'explanation':
+        response = this.generateExplanationResponse(input, context);
+        break;
+      default:
+        response = this.generateGeneralResponse(input, context);
     }
-        
+
     return {
       type: type,
       response: response,
       confidence: 0.7, // Fallback confidence
       source: 'enhanced-fallback',
-      suggestions: this.generateSuggestions(type, input)
+      suggestions: this.generateSuggestions(type, input),
     };
   }
 
   detectRequestType(input) {
     const lower = input.toLowerCase();
     if (lower.includes('analyze') || lower.includes('analysis')) return 'code_analysis';
-    if (lower.includes('debug') || lower.includes('error') || lower.includes('fix')) return 'debugging';
-    if (lower.includes('generate') || lower.includes('create') || lower.includes('build')) return 'program_generation';
-    if (lower.includes('architecture') || lower.includes('design') || lower.includes('structure')) return 'architecture';
-    if (lower.includes('explain') || lower.includes('how') || lower.includes('what')) return 'explanation';
+    if (lower.includes('debug') || lower.includes('error') || lower.includes('fix'))
+      return 'debugging';
+    if (lower.includes('generate') || lower.includes('create') || lower.includes('build'))
+      return 'program_generation';
+    if (lower.includes('architecture') || lower.includes('design') || lower.includes('structure'))
+      return 'architecture';
+    if (lower.includes('explain') || lower.includes('how') || lower.includes('what'))
+      return 'explanation';
     return 'general';
   }
 
@@ -219,8 +242,10 @@ ${context.recentCommands ? `**Recent activity:** ${context.recentCommands.length
   detectLanguage(input) {
     const lower = input.toLowerCase();
     if (lower.includes('python') || lower.includes('.py')) return 'python';
-    if (lower.includes('javascript') || lower.includes('js') || lower.includes('node')) return 'javascript';
-    if (lower.includes('bash') || lower.includes('shell') || lower.includes('script')) return 'bash';
+    if (lower.includes('javascript') || lower.includes('js') || lower.includes('node'))
+      return 'javascript';
+    if (lower.includes('bash') || lower.includes('shell') || lower.includes('script'))
+      return 'bash';
     if (lower.includes('java')) return 'java';
     if (lower.includes('c++') || lower.includes('cpp')) return 'cpp';
     if (lower.includes('html')) return 'html';
@@ -270,9 +295,9 @@ WHERE condition = 'value';
 
 -- Add your queries here`,
       text: `// Basic template
-// Add your code here`
+// Add your code here`,
     };
-        
+
     return templates[language] || templates.text;
   }
 
@@ -281,31 +306,21 @@ WHERE condition = 'value';
       code_analysis: [
         'Run static analysis tools',
         'Check code complexity metrics',
-        'Look for code duplication'
+        'Look for code duplication',
       ],
-      debugging: [
-        'Add console.log statements',
-        'Use debugger breakpoints',
-        'Check error logs'
-      ],
-      program_generation: [
-        'Start with a simple version',
-        'Add error handling',
-        'Write unit tests'
-      ],
-      architecture: [
-        'Consider scalability',
-        'Plan for maintenance',
-        'Document your decisions'
-      ],
-      explanation: [
-        'Read official docs',
-        'Try hands-on examples',
-        'Ask specific questions'
-      ]
+      debugging: ['Add console.log statements', 'Use debugger breakpoints', 'Check error logs'],
+      program_generation: ['Start with a simple version', 'Add error handling', 'Write unit tests'],
+      architecture: ['Consider scalability', 'Plan for maintenance', 'Document your decisions'],
+      explanation: ['Read official docs', 'Try hands-on examples', 'Ask specific questions'],
     };
-        
-    return suggestions[type] || ['Try being more specific', 'Break down the problem', 'Look for examples'];
+
+    return (
+      suggestions[type] || [
+        'Try being more specific',
+        'Break down the problem',
+        'Look for examples',
+      ]
+    );
   }
 }
 
@@ -324,7 +339,7 @@ export class WarpAgentIntegration {
 }
 
 // Global error handler for missing modules
-window.addEventListener('error', function(e) {
+window.addEventListener('error', function (e) {
   if (e.message && e.message.includes('process is not defined')) {
     console.warn('🔄 Process reference error caught - using browser fallback');
     // Prevent the error from breaking the app

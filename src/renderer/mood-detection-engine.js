@@ -167,29 +167,29 @@ export class MoodDetectionEngine {
     };
 
     switch (this.currentMood) {
-    case 'positive':
-      return {
-        ...baseParams,
-        stability: 0.6,
-        similarityBoost: 0.7,
-        style: 0.2,
-      };
-    case 'negative':
-      return {
-        ...baseParams,
-        stability: 0.8,
-        similarityBoost: 0.4,
-        style: -0.2,
-      };
-    case 'stressed':
-      return {
-        ...baseParams,
-        stability: 0.7,
-        similarityBoost: 0.6,
-        style: 0.1,
-      };
-    default:
-      return baseParams;
+      case 'positive':
+        return {
+          ...baseParams,
+          stability: 0.6,
+          similarityBoost: 0.7,
+          style: 0.2,
+        };
+      case 'negative':
+        return {
+          ...baseParams,
+          stability: 0.8,
+          similarityBoost: 0.4,
+          style: -0.2,
+        };
+      case 'stressed':
+        return {
+          ...baseParams,
+          stability: 0.7,
+          similarityBoost: 0.6,
+          style: 0.1,
+        };
+      default:
+        return baseParams;
     }
   }
 

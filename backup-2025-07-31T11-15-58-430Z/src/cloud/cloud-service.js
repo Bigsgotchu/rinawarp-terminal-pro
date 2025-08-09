@@ -220,15 +220,15 @@ export class CloudService extends EventEmitter {
     for (const item of queue) {
       try {
         switch (item.type) {
-        case 'settings':
-          await this.syncSettings(item.data);
-          break;
-        case 'history':
-          await this.syncCommandHistory(item.data);
-          break;
-        case 'session':
-          await this.backupSession(item.data);
-          break;
+          case 'settings':
+            await this.syncSettings(item.data);
+            break;
+          case 'history':
+            await this.syncCommandHistory(item.data);
+            break;
+          case 'session':
+            await this.backupSession(item.data);
+            break;
         }
       } catch (error) {
         // Re-queue failed items

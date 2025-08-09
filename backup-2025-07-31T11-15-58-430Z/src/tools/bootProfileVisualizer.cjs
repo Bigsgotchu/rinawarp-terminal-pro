@@ -185,16 +185,16 @@ class BootProfileVisualizer extends EventEmitter {
 
     // Estimate based on performance impact
     switch (feature.performanceImpact) {
-    case 'very-high':
-      return 100;
-    case 'high':
-      return 50;
-    case 'medium':
-      return 20;
-    case 'low':
-      return 5;
-    default:
-      return 10;
+      case 'very-high':
+        return 100;
+      case 'high':
+        return 50;
+      case 'medium':
+        return 20;
+      case 'low':
+        return 5;
+      default:
+        return 10;
     }
   }
 

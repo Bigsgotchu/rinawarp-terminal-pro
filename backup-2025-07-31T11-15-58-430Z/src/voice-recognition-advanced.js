@@ -166,16 +166,16 @@ class AdvancedVoiceRecognition {
     let nextProvider = null;
 
     switch (currentProvider) {
-    case 'vosk':
-      nextProvider = 'webspeech';
-      break;
-    case 'webspeech':
-      nextProvider = 'keyboard';
-      break;
-    case 'keyboard':
-      // Already at the most basic provider
-      console.warn('Already using keyboard provider, cannot fallback further');
-      return false;
+      case 'vosk':
+        nextProvider = 'webspeech';
+        break;
+      case 'webspeech':
+        nextProvider = 'keyboard';
+        break;
+      case 'keyboard':
+        // Already at the most basic provider
+        console.warn('Already using keyboard provider, cannot fallback further');
+        return false;
     }
 
     try {
@@ -234,14 +234,14 @@ class AdvancedVoiceRecognition {
 
   getCurrentProvider() {
     switch (this.provider) {
-    case 'vosk':
-      return this.voskProvider;
-    case 'webspeech':
-      return this.webSpeechProvider;
-    case 'keyboard':
-      return this.keyboardProvider;
-    default:
-      return null;
+      case 'vosk':
+        return this.voskProvider;
+      case 'webspeech':
+        return this.webSpeechProvider;
+      case 'keyboard':
+        return this.keyboardProvider;
+      default:
+        return null;
     }
   }
 
@@ -552,7 +552,6 @@ class VoskProvider {
       } else {
         await this.setupScriptProcessor();
       }
-
     } catch (error) {
       if (error.name === 'NotAllowedError') {
         this.showMermaidMessage(
@@ -809,8 +808,8 @@ class VoskProvider {
                         ">🐚 Got it!</button>
                         
                         ${
-  type === 'warning'
-    ? `
+                          type === 'warning'
+                            ? `
                             <button onclick="if(window.retryVoiceRecognition) window.retryVoiceRecognition(); this.closest('.mermaid-message-modal').remove()" style="
                                 background: rgba(0, 255, 136, 0.2);
                                 border: 2px solid #00FF88;
@@ -823,8 +822,8 @@ class VoskProvider {
                                 backdrop-filter: blur(10px);
                             ">🎤 Retry Voice</button>
                         `
-    : ''
-}
+                            : ''
+                        }
                         
                         <button onclick="if(window.startVoiceControl) window.startVoiceControl(); this.closest('.mermaid-message-modal').remove()" style="
                             background: rgba(138, 43, 226, 0.2);

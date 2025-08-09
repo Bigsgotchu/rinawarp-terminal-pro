@@ -78,7 +78,6 @@ class PerformanceOptimizer {
       join(this.cacheDir, 'preload-manifest.json'),
       JSON.stringify(preloadManifest, null, 2)
     );
-
   }
 
   async optimizeMemoryUsage() {
@@ -150,7 +149,6 @@ class PerformanceOptimizer {
 
     // Save startup script
     writeFileSync(join(this.cacheDir, 'startup-optimization.js'), startupScript);
-
   }
 
   performMemoryCleanup() {
@@ -324,7 +322,6 @@ class PerformanceOptimizer {
 
     // Clear intervals and timeouts
     // (In a real implementation, you'd store these references)
-
   }
 }
 

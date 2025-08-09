@@ -142,25 +142,25 @@ const RECORDING_PHRASES = [
   // Greetings
   {
     id: 'hello-rina-neutral',
-    text: 'Hello! I\'m Rina, your terminal assistant.',
+    text: "Hello! I'm Rina, your terminal assistant.",
     category: 'greeting',
     mood: 'neutral',
   },
   {
     id: 'hello-rina-warm',
-    text: 'Hello! I\'m Rina, your terminal assistant.',
+    text: "Hello! I'm Rina, your terminal assistant.",
     category: 'greeting',
     mood: 'warm',
   },
   {
     id: 'hello-rina-professional',
-    text: 'Hello! I\'m Rina, your terminal assistant.',
+    text: "Hello! I'm Rina, your terminal assistant.",
     category: 'greeting',
     mood: 'professional',
   },
   {
     id: 'hello-rina-friendly',
-    text: 'Hello! I\'m Rina, your terminal assistant.',
+    text: "Hello! I'm Rina, your terminal assistant.",
     category: 'greeting',
     mood: 'friendly',
   },
@@ -207,19 +207,19 @@ const RECORDING_PHRASES = [
 
   {
     id: 'uncertain-guidance-reassuring',
-    text: 'No worries! Let\'s take this step by step.',
+    text: "No worries! Let's take this step by step.",
     category: 'mood',
     mood: 'reassuring',
   },
   {
     id: 'uncertain-guidance-patient',
-    text: 'No worries! Let\'s take this step by step.',
+    text: "No worries! Let's take this step by step.",
     category: 'mood',
     mood: 'patient',
   },
   {
     id: 'uncertain-guidance-gentle',
-    text: 'No worries! Let\'s take this step by step.',
+    text: "No worries! Let's take this step by step.",
     category: 'mood',
     mood: 'gentle',
   },
@@ -286,7 +286,7 @@ class RecordingSessionOrganizer {
   showWelcome() {
     console.log(kleur.bold().cyan('\n🎙️ RinaWarp Terminal - Voice Recording Session\n'));
     console.log(kleur.white('Welcome to your personalized voice recording session!'));
-    console.log(kleur.gray('You\'ll be recording 36 core phrases with mood variations.'));
+    console.log(kleur.gray("You'll be recording 36 core phrases with mood variations."));
     console.log(kleur.gray('Each phrase should be 2-8 seconds long with clear articulation.\n'));
 
     this.showProgress();

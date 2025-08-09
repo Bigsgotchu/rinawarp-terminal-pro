@@ -10,15 +10,15 @@ const voiceEngine = new EnhancedVoiceEngine();
 export async function runVoiceCommand(command) {
   // Simulate processing a voice command
   switch (command.toLowerCase()) {
-  case 'list files':
-    return 'List of files...';
-  case 'how is the weather today?':
-    return 'The weather is sunny with a high of 75°F.';
-  case 'remind me to call john at 3 pm':
-    return 'Reminder set for 3 PM to call John.';
-  default:
-    // For other commands, just echo back
-    return `Executing: ${command}`;
+    case 'list files':
+      return 'List of files...';
+    case 'how is the weather today?':
+      return 'The weather is sunny with a high of 75°F.';
+    case 'remind me to call john at 3 pm':
+      return 'Reminder set for 3 PM to call John.';
+    default:
+      // For other commands, just echo back
+      return `Executing: ${command}`;
   }
 }
 

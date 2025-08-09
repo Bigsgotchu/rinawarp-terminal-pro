@@ -65,8 +65,7 @@ const deprecatedDeps = [
 ];
 
 if (deprecatedDeps.length > 0) {
-  deprecatedDeps.forEach(({ pkg, version, type }) => {
-  });
+  deprecatedDeps.forEach(({ pkg, version, type }) => {});
 } else {
   console.log('✅ No known deprecated packages found');
 }
@@ -85,7 +84,6 @@ const _totalDevDeps = Object.keys(packageJson.devDependencies || {}).length;
 // Check if Dockerfile exists and is updated
 const dockerfilePath = path.join(process.cwd(), 'Dockerfile');
 if (fs.existsSync(dockerfilePath)) {
-
   const dockerfile = fs.readFileSync(dockerfilePath, 'utf8');
 
   // Check if Dockerfile uses updated dependency versions

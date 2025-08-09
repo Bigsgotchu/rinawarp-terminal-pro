@@ -1,15 +1,21 @@
 // Auto-generated CSP-safe event handlers for sales-optimization.html
 
 function onclickHandler1(element) {
-  buyNow(
+  if (typeof buyNow === 'function') {
+    buyNow();
+  }
 }
 
 function onclickHandler2(element) {
-  buyNow(
+  if (typeof buyNow === 'function') {
+    buyNow();
+  }
 }
 
 function onclickHandler3(element) {
-  buyNow(
+  if (typeof buyNow === 'function') {
+    buyNow();
+  }
 }
 
 // Event delegation for CSP compliance

@@ -121,15 +121,15 @@ class ZeroTrustSecurity {
         });
 
         switch (evaluation.action) {
-        case 'block':
-          policyResult.shouldBlock = true;
-          break;
-        case 'require_approval':
-          policyResult.requiresApproval = true;
-          break;
-        case 'mitigate':
-          policyResult.mitigations.push(...evaluation.mitigations);
-          break;
+          case 'block':
+            policyResult.shouldBlock = true;
+            break;
+          case 'require_approval':
+            policyResult.requiresApproval = true;
+            break;
+          case 'mitigate':
+            policyResult.mitigations.push(...evaluation.mitigations);
+            break;
         }
       }
     }
@@ -154,15 +154,15 @@ class ZeroTrustSecurity {
 
       // Progressive authentication based on threat level
       switch (threatLevel) {
-      case 'medium':
-        authMethods.push('fingerprint');
-        break;
-      case 'high':
-        authMethods.push('fingerprint', 'facial_recognition');
-        break;
-      case 'critical':
-        authMethods.push('fingerprint', 'facial_recognition', 'voice_recognition');
-        break;
+        case 'medium':
+          authMethods.push('fingerprint');
+          break;
+        case 'high':
+          authMethods.push('fingerprint', 'facial_recognition');
+          break;
+        case 'critical':
+          authMethods.push('fingerprint', 'facial_recognition', 'voice_recognition');
+          break;
       }
 
       // Try each authentication method

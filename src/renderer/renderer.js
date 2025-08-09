@@ -36,7 +36,6 @@ async function initializeReact() {
     return;
   }
 
-
   try {
     // Check if React is available from electronAPI
 
@@ -95,10 +94,8 @@ async function initializeReact() {
         window.authModalState.isOpen = value;
         window.authModalState.render();
       },
-      render: () => {
-      },
+      render: () => {},
     };
-
 
     // For now, create a simple modal component inline
     // We'll load the actual AuthModal component later
@@ -3216,7 +3213,7 @@ class TerminalManager extends SimpleEventEmitter {
           // this.executeCommand(command);
         } else {
           this.pluginAPI.showNotification(
-            '🤔 I don\'t understand that command. Try being more specific!',
+            "🤔 I don't understand that command. Try being more specific!",
             'info',
             3000
           );
@@ -3434,7 +3431,6 @@ class TerminalManager extends SimpleEventEmitter {
     const authBtn = document.getElementById('auth-btn');
     if (authBtn) {
       authBtn.addEventListener('click', () => {
-
         // Toggle the authentication modal
         if (window.authModalState) {
           const newState = !window.authModalState.isOpen;
@@ -3983,7 +3979,9 @@ class TerminalManager extends SimpleEventEmitter {
             shellProcess = await electronAPI.createShellProcess(fallbackShellConfig);
 
             if (!shellProcess) {
-              throw new Error(new Error(new Error('Failed to create fallback shell process via IPC')));
+              throw new Error(
+                new Error(new Error('Failed to create fallback shell process via IPC'))
+              );
             }
 
             terminal.write('\r\nWelcome to RinaWarp Terminal (PowerShell)\r\n');
@@ -4447,33 +4445,33 @@ class TerminalManager extends SimpleEventEmitter {
       let statusColor = '';
 
       switch (status.tier) {
-      case 'trial':
-        statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
-        statusColor = '#ffd93d';
-        break;
-      case 'personal':
-        statusText = '👤 Personal';
-        statusColor = '#51cf66';
-        break;
-      case 'professional':
-        statusText = '💼 Professional';
-        statusColor = '#74c0fc';
-        break;
-      case 'team':
-        statusText = '👥 Team';
-        statusColor = '#9775fa';
-        break;
-      case 'enterprise':
-        statusText = '🏢 Enterprise';
-        statusColor = '#ff8c42';
-        break;
-      case 'expired':
-        statusText = '❌ Expired';
-        statusColor = '#f92672';
-        break;
-      default:
-        statusText = '❓ Unknown';
-        statusColor = '#666';
+        case 'trial':
+          statusText = `🔑 Trial (${status.trialDaysRemaining} days)`;
+          statusColor = '#ffd93d';
+          break;
+        case 'personal':
+          statusText = '👤 Personal';
+          statusColor = '#51cf66';
+          break;
+        case 'professional':
+          statusText = '💼 Professional';
+          statusColor = '#74c0fc';
+          break;
+        case 'team':
+          statusText = '👥 Team';
+          statusColor = '#9775fa';
+          break;
+        case 'enterprise':
+          statusText = '🏢 Enterprise';
+          statusColor = '#ff8c42';
+          break;
+        case 'expired':
+          statusText = '❌ Expired';
+          statusColor = '#f92672';
+          break;
+        default:
+          statusText = '❓ Unknown';
+          statusColor = '#666';
       }
 
       licenseElement.textContent = statusText;
@@ -4498,15 +4496,15 @@ class TerminalManager extends SimpleEventEmitter {
                         <div class="license-tier">${status.tier.toUpperCase()}</div>
                         <div class="license-details">
                             ${
-  status.tier === 'trial'
-    ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
-    : '<p>License is active</p>'
-}
+                              status.tier === 'trial'
+                                ? `<p>Trial expires in <strong>${status.trialDaysRemaining} days</strong></p>`
+                                : '<p>License is active</p>'
+                            }
                             ${
-  status.aiQueriesRemaining !== 'unlimited'
-    ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
-    : '<p>Unlimited AI queries</p>'
-}
+                              status.aiQueriesRemaining !== 'unlimited'
+                                ? `<p>AI queries remaining today: <strong>${status.aiQueriesRemaining}</strong></p>`
+                                : '<p>Unlimited AI queries</p>'
+                            }
                         </div>
                     </div>
                 </div>

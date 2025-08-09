@@ -277,7 +277,7 @@ class SupportSystem {
                 `,
       },
       outOfHours: {
-        subject: 'Out of Office - We\'ll respond soon! - Ticket #{ticketId}',
+        subject: "Out of Office - We'll respond soon! - Ticket #{ticketId}",
         template: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #00D4FF;">Thanks for your message!</h2>
@@ -522,7 +522,7 @@ class SupportSystem {
       text.includes('down') ||
       text.includes('not working') ||
       text.includes('broken') ||
-      text.includes('can\'t login') ||
+      text.includes("can't login") ||
       text.includes('billing issue')
     ) {
       return 'urgent';

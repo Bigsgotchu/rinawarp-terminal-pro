@@ -30,7 +30,7 @@ app.get('/health', (req, res) => {
     platform: process.platform,
     nodeVersion: process.version,
     port: PORT,
-    env: process.env.NODE_ENV || 'not set'
+    env: process.env.NODE_ENV || 'not set',
   });
 });
 
@@ -38,7 +38,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
     message: 'API is working',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -47,7 +47,7 @@ app.get('/', (req, res) => {
     message: 'RinaWarp Terminal API is running!',
     status: 'operational',
     endpoints: ['/health', '/api/health'],
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -59,10 +59,10 @@ app.use((error, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Not found',
     requested: req.url,
-    available: ['/', '/health', '/api/health']
+    available: ['/', '/health', '/api/health'],
   });
 });
 
@@ -72,7 +72,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('📊 Memory usage:', process.memoryUsage());
 });
 
-server.on('error', (error) => {
+server.on('error', error => {
   console.error('❌ Server error:', error);
 });
 

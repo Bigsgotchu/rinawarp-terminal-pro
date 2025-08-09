@@ -12,7 +12,7 @@ const distPath = path.join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {
   const files = fs.readdirSync(distPath);
   const bundleFiles = files.filter(f => f.endsWith('.js'));
-  
+
   console.log('Current bundles:');
   bundleFiles.forEach(file => {
     const stats = fs.statSync(path.join(distPath, file));
@@ -28,7 +28,7 @@ console.log('\n📦 Analyzing large dependencies...');
 try {
   const packageLock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
   const packages = packageLock.packages || {};
-  
+
   const largeDeps = [];
   Object.entries(packages).forEach(([name, info]) => {
     if (name && info.resolved) {
@@ -36,14 +36,14 @@ try {
       const knownLargePackages = {
         'monaco-editor': 10000,
         '@xterm/xterm': 500,
-        'electron': 50000,
-        'puppeteer': 20000,
-        'webpack': 5000,
+        electron: 50000,
+        puppeteer: 20000,
+        webpack: 5000,
         '@sentry': 1000,
-        'react': 300,
-        'react-dom': 800
+        react: 300,
+        'react-dom': 800,
       };
-      
+
       Object.entries(knownLargePackages).forEach(([pkg, size]) => {
         if (name.includes(pkg)) {
           largeDeps.push({ name: name.replace('node_modules/', ''), estimatedSize: size });
@@ -51,9 +51,10 @@ try {
       });
     }
   });
-  
+
   console.log('Large dependencies found:');
-  largeDeps.sort((a, b) => b.estimatedSize - a.estimatedSize)
+  largeDeps
+    .sort((a, b) => b.estimatedSize - a.estimatedSize)
     .slice(0, 10)
     .forEach(dep => {
       console.log(`  - ${dep.name}: ~${dep.estimatedSize} KB`);
@@ -177,7 +178,7 @@ async function getAIAssistant() {
     aiAssistant = new AIAssistant();
   }
   return aiAssistant;
-}`
+}`,
   },
   {
     title: 'Defer Theme Loading',
@@ -188,7 +189,7 @@ setTimeout(() => {
   import('./themes/theme-loader.js').then(({ loadTheme }) => {
     loadTheme(userPreferredTheme);
   });
-}, 100);`
+}, 100);`,
   },
   {
     title: 'Use Web Workers for Heavy Processing',
@@ -196,7 +197,7 @@ setTimeout(() => {
     impact: 'High',
     implementation: `// Create AI worker
 const aiWorker = new Worker('./ai-worker.js');
-aiWorker.postMessage({ command: 'process', data });`
+aiWorker.postMessage({ command: 'process', data });`,
   },
   {
     title: 'Implement Module Preloading',
@@ -207,7 +208,7 @@ app.on('ready', () => {
   require('v8').setFlagsFromString('--max-old-space-size=4096');
   // Preload critical modules
   require('./preload-modules.js');
-});`
+});`,
   },
   {
     title: 'Enable Electron Context Isolation',
@@ -218,8 +219,8 @@ webPreferences: {
   contextIsolation: true,
   nodeIntegration: false,
   preload: path.join(__dirname, 'preload.cjs')
-}`
-  }
+}`,
+  },
 ];
 
 recommendations.forEach((rec, index) => {
@@ -227,7 +228,12 @@ recommendations.forEach((rec, index) => {
   console.log(`   Impact: ${rec.impact}`);
   console.log(`   ${rec.description}`);
   console.log('   Implementation:');
-  console.log(rec.implementation.split('\n').map(line => '     ' + line).join('\n'));
+  console.log(
+    rec.implementation
+      .split('\n')
+      .map(line => '     ' + line)
+      .join('\n')
+  );
   console.log();
 });
 

@@ -162,7 +162,7 @@ class DNSMigrationMonitor {
           this.status.contentMatch = true;
         }
       } else {
-        this.log('⚠️  Content Warning: HTTP 200 but content doesn\'t match expected site');
+        this.log("⚠️  Content Warning: HTTP 200 but content doesn't match expected site");
       }
 
       // Check SSL certificate

@@ -116,11 +116,13 @@ export class ModuleOrchestrator {
       }
     }
 
-    throw new Error(new Error(
+    throw new Error(
       new Error(
-        `All module loading strategies failed. Environment: ${JSON.stringify(this.environment)}`
+        new Error(
+          `All module loading strategies failed. Environment: ${JSON.stringify(this.environment)}`
+        )
       )
-    ));
+    );
   }
 
   async tryCdnEnhancedLoad() {

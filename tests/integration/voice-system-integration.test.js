@@ -4,7 +4,6 @@ import { mockTerminal, mockAISystem } from './test-utils'; // Utility functions
 // Sample integration test suite for the voice system
 
 describe('Voice System Integration Tests', () => {
-
   beforeAll(() => {
     // Setup: Initialize mocks and any required global setup
     mockTerminal();
@@ -15,7 +14,7 @@ describe('Voice System Integration Tests', () => {
     const command = 'list files';
     const expectedOutcome = 'List of files...';
 
-    return runVoiceCommand(command).then((result) => {
+    return runVoiceCommand(command).then(result => {
       expect(result).toBe(expectedOutcome);
       // Additional assertions based on terminal mock behavior
     });
@@ -25,7 +24,7 @@ describe('Voice System Integration Tests', () => {
     const voiceCommand = 'How is the weather today?';
     const aiResponse = 'The weather is sunny with a high of 75°F.';
 
-    return runVoiceCommand(voiceCommand).then((response) => {
+    return runVoiceCommand(voiceCommand).then(response => {
       expect(response).toBe(aiResponse);
       // Add more assertions if necessary to verify communication integrity
     });
@@ -35,7 +34,7 @@ describe('Voice System Integration Tests', () => {
     const realWorldCommand = 'Remind me to call John at 3 PM';
     const expectedResult = 'Reminder set for 3 PM to call John.';
 
-    return runVoiceCommand(realWorldCommand).then((outcome) => {
+    return runVoiceCommand(realWorldCommand).then(outcome => {
       expect(outcome).toBe(expectedResult);
       // More complex checks around reminders and scheduling
     });
@@ -44,5 +43,4 @@ describe('Voice System Integration Tests', () => {
   afterAll(() => {
     // Teardown: Clean up mocks, reset states if needed
   });
-
 });

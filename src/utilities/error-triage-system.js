@@ -204,16 +204,16 @@ class ErrorTriageSystem {
     const { code } = category;
 
     switch (code) {
-    case 'C100':
-      return await this.handleCriticalPass(detection);
-    case 'W200':
-      return await this.handleWarningOnly(detection);
-    case 'E300':
-      return await this.handleRecoverableFault(detection);
-    case 'F500':
-      return await this.handleHardFailure(detection);
-    default:
-      return await this.handleUnknownError(detection);
+      case 'C100':
+        return await this.handleCriticalPass(detection);
+      case 'W200':
+        return await this.handleWarningOnly(detection);
+      case 'E300':
+        return await this.handleRecoverableFault(detection);
+      case 'F500':
+        return await this.handleHardFailure(detection);
+      default:
+        return await this.handleUnknownError(detection);
     }
   }
 
@@ -542,16 +542,16 @@ class ErrorTriageSystem {
 
   getLogLevel(code) {
     switch (code) {
-    case 'C100':
-      return 'log';
-    case 'W200':
-      return 'warn';
-    case 'E300':
-      return 'error';
-    case 'F500':
-      return 'error';
-    default:
-      return 'log';
+      case 'C100':
+        return 'log';
+      case 'W200':
+        return 'warn';
+      case 'E300':
+        return 'error';
+      case 'F500':
+        return 'error';
+      default:
+        return 'log';
     }
   }
 
@@ -607,35 +607,35 @@ class ErrorTriageSystem {
     const steps = [];
 
     switch (category.code) {
-    case 'C100':
-      steps.push('✅ Continue normal operation');
-      steps.push('📊 Monitor system metrics');
-      break;
+      case 'C100':
+        steps.push('✅ Continue normal operation');
+        steps.push('📊 Monitor system metrics');
+        break;
 
-    case 'W200':
-      steps.push('⚠️  Review warning details');
-      steps.push('📝 Log incident for analysis');
-      steps.push('🔍 Monitor for escalation');
-      break;
+      case 'W200':
+        steps.push('⚠️  Review warning details');
+        steps.push('📝 Log incident for analysis');
+        steps.push('🔍 Monitor for escalation');
+        break;
 
-    case 'E300':
-      steps.push('🔄 Attempt automatic retry');
-      steps.push('🛠️  Apply fallback strategy');
-      steps.push('📞 Notify user if persistent');
-      steps.push('🔍 Investigate root cause');
-      break;
+      case 'E300':
+        steps.push('🔄 Attempt automatic retry');
+        steps.push('🛠️  Apply fallback strategy');
+        steps.push('📞 Notify user if persistent');
+        steps.push('🔍 Investigate root cause');
+        break;
 
-    case 'F500':
-      steps.push('🚨 Immediate system halt');
-      steps.push('💾 Save current state');
-      steps.push('🏥 Execute emergency recovery');
-      steps.push('📞 Contact support team');
-      steps.push('🔧 Manual intervention required');
-      break;
+      case 'F500':
+        steps.push('🚨 Immediate system halt');
+        steps.push('💾 Save current state');
+        steps.push('🏥 Execute emergency recovery');
+        steps.push('📞 Contact support team');
+        steps.push('🔧 Manual intervention required');
+        break;
 
-    default:
-      steps.push('❓ Unknown error type');
-      steps.push('🔍 Investigate further');
+      default:
+        steps.push('❓ Unknown error type');
+        steps.push('🔍 Investigate further');
     }
 
     // Add resolution-specific steps
@@ -740,16 +740,16 @@ class ErrorTriageSystem {
    */
   getSeverityColor(severity) {
     switch (severity) {
-    case 'info':
-      return kleur.green().bold;
-    case 'warning':
-      return kleur.yellow().bold;
-    case 'error':
-      return kleur.red().bold;
-    case 'critical':
-      return kleur.magenta().bold;
-    default:
-      return kleur.white().bold;
+      case 'info':
+        return kleur.green().bold;
+      case 'warning':
+        return kleur.yellow().bold;
+      case 'error':
+        return kleur.red().bold;
+      case 'critical':
+        return kleur.magenta().bold;
+      default:
+        return kleur.white().bold;
     }
   }
 
@@ -927,20 +927,20 @@ const simulateFault = async (config = {}) => {
 
   let simulatedError;
   switch (type) {
-  case 'ipc':
-    simulatedError = new Error('Simulated IPC connection timeout');
-    break;
-  case 'css':
-    simulatedError = new Error('Simulated CSS feature not supported');
-    break;
-  case 'ui':
-    simulatedError = new Error('Simulated UI component render failure');
-    break;
-  case 'performance':
-    simulatedError = new Error('Simulated performance threshold exceeded');
-    break;
-  default:
-    simulatedError = new Error(`Simulated ${type} error`);
+    case 'ipc':
+      simulatedError = new Error('Simulated IPC connection timeout');
+      break;
+    case 'css':
+      simulatedError = new Error('Simulated CSS feature not supported');
+      break;
+    case 'ui':
+      simulatedError = new Error('Simulated UI component render failure');
+      break;
+    case 'performance':
+      simulatedError = new Error('Simulated performance threshold exceeded');
+      break;
+    default:
+      simulatedError = new Error(`Simulated ${type} error`);
   }
 
   const result = await errorTriageSystem.reportError(simulatedError, {
@@ -995,16 +995,16 @@ const getSystemStatusSnapshot = () => {
 
 const checkModuleHealth = moduleName => {
   switch (moduleName) {
-  case 'aiCopilot':
-    return window.aiCopilot && window.aiCopilot.isReady;
-  case 'pluginLoader':
-    return window.pluginLoader && window.pluginLoader.isInitialized;
-  case 'uiManager':
-    return window.RinaWarpPhase2 && window.RinaWarpPhase2.isReady();
-  case 'ipcBridge':
-    return window.electronAPI && window.nodeAPI;
-  default:
-    return true; // Unknown modules are assumed healthy
+    case 'aiCopilot':
+      return window.aiCopilot && window.aiCopilot.isReady;
+    case 'pluginLoader':
+      return window.pluginLoader && window.pluginLoader.isInitialized;
+    case 'uiManager':
+      return window.RinaWarpPhase2 && window.RinaWarpPhase2.isReady();
+    case 'ipcBridge':
+      return window.electronAPI && window.nodeAPI;
+    default:
+      return true; // Unknown modules are assumed healthy
   }
 };
 

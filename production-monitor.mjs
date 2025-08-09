@@ -18,23 +18,25 @@ function logMessage(message) {
 }
 
 function checkHealth() {
-  const req = https.get(`${SITE_URL}/api/health`, (res) => {
+  const req = https.get(`${SITE_URL}/api/health`, res => {
     let data = '';
-    res.on('data', chunk => data += chunk);
+    res.on('data', chunk => (data += chunk));
     res.on('end', () => {
       if (res.statusCode === 200) {
         const health = JSON.parse(data);
-        logMessage(`✅ Site healthy - Status: ${health.status}, Uptime: ${Math.floor(health.uptime)}s`);
+        logMessage(
+          `✅ Site healthy - Status: ${health.status}, Uptime: ${Math.floor(health.uptime)}s`
+        );
       } else {
         logMessage(`⚠️ Site issue - HTTP ${res.statusCode}`);
       }
     });
   });
-  
-  req.on('error', (error) => {
+
+  req.on('error', error => {
     logMessage(`❌ Site down - ${error.message}`);
   });
-  
+
   req.setTimeout(10000, () => {
     logMessage(`⏰ Site timeout - No response in 10s`);
     req.abort();

@@ -86,11 +86,15 @@ class UnifiedAISystem {
             // Create a fallback stub class
             LLMAPIClient = class {
               constructor() {}
-              async initialize() { return false; }
-              async generateResponse() { throw new Error('LLM client not available'); }
+              async initialize() {
+                return false;
+              }
+              async generateResponse() {
+                throw new Error('LLM client not available');
+              }
             };
           }
-          
+
           this.llmClient = new LLMAPIClient(this.config.llmConfig);
           this.systemState.llmAvailable = await this.llmClient.initialize();
         } catch (error) {
@@ -150,17 +154,17 @@ class UnifiedAISystem {
 
       // Choose processing strategy based on current mode
       switch (this.systemState.currentMode) {
-      case 'hybrid':
-        response = await this.processHybrid(userInput, enhancedContext);
-        break;
-      case 'llm':
-        response = await this.processWithLLM(userInput, enhancedContext);
-        break;
-      case 'learning':
-        response = await this.processWithLearning(userInput, enhancedContext);
-        break;
-      default:
-        response = await this.processLocal(userInput, enhancedContext);
+        case 'hybrid':
+          response = await this.processHybrid(userInput, enhancedContext);
+          break;
+        case 'llm':
+          response = await this.processWithLLM(userInput, enhancedContext);
+          break;
+        case 'learning':
+          response = await this.processWithLearning(userInput, enhancedContext);
+          break;
+        default:
+          response = await this.processLocal(userInput, enhancedContext);
       }
 
       // Extract response details
@@ -405,7 +409,7 @@ Keep the response under 200 words and focus on actionable advice.`;
   combineResponses(responses, _userInput, _context) {
     if (responses.length === 0) {
       return {
-        response: 'I couldn\'t generate a response. Please try rephrasing your request.',
+        response: "I couldn't generate a response. Please try rephrasing your request.",
         confidence: 0.1,
         source: 'no_response',
       };
@@ -703,11 +707,6 @@ if (typeof window !== 'undefined') {
 }
 
 // ES6 module exports for modern import syntax
-export {
-  UnifiedAISystem,
-  ContextManager,
-  ResponseOptimizer,
-  ConfidenceEngine
-};
+export { UnifiedAISystem, ContextManager, ResponseOptimizer, ConfidenceEngine };
 
 export default UnifiedAISystem;

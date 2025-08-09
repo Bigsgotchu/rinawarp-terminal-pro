@@ -148,12 +148,12 @@ class CommunityEngagementManager extends EventEmitter {
         '⚡ Quick Tip: Press Ctrl+, to access settings and customize your terminal experience! #Customization #Terminal',
       ],
       features: [
-        '🎨 Feature Spotlight: RinaWarp Terminal\'s AI-powered command suggestions help you work faster! Try it today. #AI #Terminal',
+        "🎨 Feature Spotlight: RinaWarp Terminal's AI-powered command suggestions help you work faster! Try it today. #AI #Terminal",
         '🔧 New Feature: Enhanced Git integration shows your branch status in real-time! #Git #Development',
         '🌈 Theme Update: Check out our new Monokai theme for a vibrant coding experience! #Themes #UI',
       ],
       development_updates: [
-        '🛠️ Development Update: We\'ve fixed 15 bugs and added 3 new features this week! See our changelog for details. #Development',
+        "🛠️ Development Update: We've fixed 15 bugs and added 3 new features this week! See our changelog for details. #Development",
         '📈 Progress Report: Performance improvements have reduced startup time by 30%! #Performance #Updates',
         '🔒 Security Update: Latest release includes enhanced security features and dependency updates. #Security',
       ],

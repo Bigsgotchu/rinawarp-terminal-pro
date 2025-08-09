@@ -42,17 +42,17 @@ class BiometricAuth {
   async checkBiometricSupport() {
     try {
       switch (this.platform) {
-      case 'darwin':
-        await this.checkMacOSBiometrics();
-        break;
-      case 'win32':
-        await this.checkWindowsBiometrics();
-        break;
-      case 'linux':
-        await this.checkLinuxBiometrics();
-        break;
-      default:
-        logger.warn('Unsupported platform for biometrics', { platform: this.platform });
+        case 'darwin':
+          await this.checkMacOSBiometrics();
+          break;
+        case 'win32':
+          await this.checkWindowsBiometrics();
+          break;
+        case 'linux':
+          await this.checkLinuxBiometrics();
+          break;
+        default:
+          logger.warn('Unsupported platform for biometrics', { platform: this.platform });
       }
     } catch (error) {
       logger.error('Biometric support check failed', { error: error.message });
@@ -111,14 +111,14 @@ class BiometricAuth {
       }
 
       switch (this.platform) {
-      case 'darwin':
-        return await this.authenticateMacOS(_reason);
-      case 'win32':
-        return await this.authenticateWindows(_reason);
-      case 'linux':
-        return await this.authenticateLinux(_reason);
-      default:
-        return await this.fallbackAuthentication(_reason);
+        case 'darwin':
+          return await this.authenticateMacOS(_reason);
+        case 'win32':
+          return await this.authenticateWindows(_reason);
+        case 'linux':
+          return await this.authenticateLinux(_reason);
+        default:
+          return await this.fallbackAuthentication(_reason);
       }
     } catch (error) {
       logger.error('Biometric authentication failed', { error: error.message });

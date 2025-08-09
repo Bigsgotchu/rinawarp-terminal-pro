@@ -39,9 +39,9 @@ window.purchaseBeta = async function purchaseBeta(betaType, event) {
     const priceId = getBetaPriceId(betaType);
 
     if (!priceId) {
-      throw new Error(new Error(
-        new Error(`Beta pricing not configured for ${betaType}. Please contact support.`)
-      ));
+      throw new Error(
+        new Error(new Error(`Beta pricing not configured for ${betaType}. Please contact support.`))
+      );
     }
 
     // Enhanced error handling for checkout session

@@ -1,7 +1,7 @@
 // Auto-generated CSP-safe event handlers for beta.html
 
 function onclickHandler1(element) {
-  alert(
+  alert('Handler triggered');
 }
 
 // Event delegation for CSP compliance

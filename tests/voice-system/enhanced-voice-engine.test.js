@@ -15,7 +15,7 @@ global.window = {
 };
 
 // Mock SpeechSynthesisUtterance
-global.SpeechSynthesisUtterance = jest.fn().mockImplementation((text) => ({
+global.SpeechSynthesisUtterance = jest.fn().mockImplementation(text => ({
   text,
   volume: 1,
   rate: 1,
@@ -91,19 +91,19 @@ describe('EnhancedVoiceEngine', () => {
 
     it('should check browser support correctly', () => {
       expect(engine.checkBrowserSupport()).toBe(true);
-      
+
       // Test unsupported browser
       delete global.window.SpeechRecognition;
       delete global.window.webkitSpeechRecognition;
       expect(engine.checkBrowserSupport()).toBe(false);
-      
+
       // Restore
       global.window.SpeechRecognition = MockSpeechRecognition;
     });
 
     it('should initialize speech recognition with proper settings', async () => {
       await engine.initializeRecognition();
-      
+
       expect(engine.recognition).toBeDefined();
       expect(engine.recognition.continuous).toBe(true);
       expect(engine.recognition.interimResults).toBe(true);
@@ -120,7 +120,7 @@ describe('EnhancedVoiceEngine', () => {
   describe('custom commands', () => {
     it('should load default commands', async () => {
       await engine.loadCustomCommands();
-      
+
       expect(engine.customCommands.has('clear screen')).toBe(true);
       expect(engine.customCommands.get('clear screen')).toBe('clear');
       expect(engine.customCommands.has('git status')).toBe(true);
@@ -133,9 +133,9 @@ describe('EnhancedVoiceEngine', () => {
         'another command': 'ls -la',
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(customCommands));
-      
+
       await engine.loadCustomCommands();
-      
+
       expect(engine.customCommands.has('custom command')).toBe(true);
       expect(engine.customCommands.get('custom command')).toBe('echo custom');
     });
@@ -144,10 +144,10 @@ describe('EnhancedVoiceEngine', () => {
       localStorageMock.getItem.mockImplementation(() => {
         throw new Error('Storage error');
       });
-      
+
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
       await engine.loadCustomCommands();
-      
+
       expect(warnSpy).toHaveBeenCalledWith('Failed to load custom commands:', expect.any(Error));
       // Should still have default commands
       expect(engine.customCommands.size).toBeGreaterThan(0);
@@ -161,9 +161,9 @@ describe('EnhancedVoiceEngine', () => {
         preferences: { speed: 1.2 },
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(profile));
-      
+
       await engine.loadVoiceProfile();
-      
+
       expect(engine.voiceProfile).toEqual(profile);
     });
 
@@ -171,10 +171,10 @@ describe('EnhancedVoiceEngine', () => {
       localStorageMock.getItem.mockImplementation(() => {
         throw new Error('Profile error');
       });
-      
+
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
       await engine.loadVoiceProfile();
-      
+
       expect(warnSpy).toHaveBeenCalledWith('Failed to load voice profile:', expect.any(Error));
       expect(engine.voiceProfile).toBeNull();
     });
@@ -212,7 +212,7 @@ describe('EnhancedVoiceEngine', () => {
       // Mock handleRecognitionResult
       engine.handleRecognitionResult = jest.fn();
       engine.recognition.onresult(mockEvent);
-      
+
       expect(engine.handleRecognitionResult).toHaveBeenCalledWith(mockEvent);
     });
 
@@ -224,7 +224,7 @@ describe('EnhancedVoiceEngine', () => {
 
       engine.handleRecognitionError = jest.fn();
       engine.recognition.onerror(mockError);
-      
+
       expect(engine.handleRecognitionError).toHaveBeenCalledWith(mockError);
     });
   });
@@ -250,7 +250,7 @@ describe('EnhancedVoiceEngine', () => {
   describe('command processing', () => {
     it('should add custom command', () => {
       engine.addCustomCommand('test command', 'echo test');
-      
+
       expect(engine.customCommands.has('test command')).toBe(true);
       expect(engine.customCommands.get('test command')).toBe('echo test');
     });
@@ -258,7 +258,7 @@ describe('EnhancedVoiceEngine', () => {
     it('should remove custom command', () => {
       engine.addCustomCommand('test command', 'echo test');
       engine.removeCustomCommand('test command');
-      
+
       expect(engine.customCommands.has('test command')).toBe(false);
     });
 
@@ -293,7 +293,7 @@ describe('EnhancedVoiceEngine', () => {
   describe('noise filter', () => {
     it('should initialize noise filter', () => {
       engine.initializeNoiseFilter();
-      
+
       expect(engine.noiseFilter).toBeDefined();
       expect(engine.noiseFilter.enabled).toBe(true);
       expect(engine.noiseFilter.threshold).toBe(0.1);
@@ -302,7 +302,7 @@ describe('EnhancedVoiceEngine', () => {
     it('should toggle noise filter', () => {
       engine.initializeNoiseFilter();
       const initialState = engine.noiseFilter.enabled;
-      
+
       engine.toggleNoiseFilter();
       expect(engine.noiseFilter.enabled).toBe(!initialState);
     });
@@ -319,10 +319,10 @@ describe('EnhancedVoiceEngine', () => {
       engine.startCalibration();
       // Add some mock calibration data
       engine.calibrationData = [0.8, 0.9, 0.7];
-      
+
       const setSpy = jest.spyOn(localStorage, 'setItem');
       engine.stopCalibration();
-      
+
       expect(engine.config.calibrationMode).toBe(false);
       expect(setSpy).toHaveBeenCalled();
     });
@@ -332,20 +332,20 @@ describe('EnhancedVoiceEngine', () => {
     it('should handle unsupported browser', async () => {
       delete global.window.SpeechRecognition;
       delete global.window.webkitSpeechRecognition;
-      
+
       const errorSpy = jest.spyOn(console, 'error').mockImplementation();
       const newEngine = new EnhancedVoiceEngine();
       await newEngine.init();
-      
+
       expect(errorSpy).toHaveBeenCalledWith('Voice recognition not supported in this browser');
-      
+
       // Restore
       global.window.SpeechRecognition = MockSpeechRecognition;
     });
 
     it('should handle recognition errors gracefully', () => {
       const errors = ['network', 'no-speech', 'aborted', 'audio-capture'];
-      
+
       errors.forEach(errorType => {
         engine.handleRecognitionError({ error: errorType });
         // Should not throw
