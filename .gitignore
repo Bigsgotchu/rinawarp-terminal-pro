@@ -618,3 +618,6 @@ scripts/protect-creator-files.cjs
 # ========================================
 # END CREATOR EDITION PROTECTION
 # ========================================
+
+# Creator license (keep private)
+.creator-license

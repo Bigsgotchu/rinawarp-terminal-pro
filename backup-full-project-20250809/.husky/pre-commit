@@ -1,0 +1,4 @@
+npx lint-staged
+
+# Smart File Manager cleanup
+.husky/smart-cleanup
