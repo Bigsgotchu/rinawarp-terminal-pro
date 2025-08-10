@@ -1,5 +1,10 @@
 name: Build and Release
 
+permissions:
+  contents: write
+  packages: read
+  actions: read
+
 on:
   push:
     branches: [ main, develop ]
@@ -158,7 +163,7 @@ jobs:
           cache: 'npm'
           
       - name: Install dependencies
-        run: npm install --omit=optional
+        run: npm install --force
         
       - name: Run tests
         run: npm run test:ci
