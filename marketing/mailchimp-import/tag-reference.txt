@@ -1,0 +1,37 @@
+# Mailchimp Tags Reference for RinaWarp Terminal
+
+## Source Tags (assign during import)
+- source-existing          (current 4 subscribers)
+- source-personal-network  (friends, family, colleagues)
+- source-github            (GitHub connections)
+- source-reddit            (Reddit outreach)
+- source-discord           (Discord communities)
+- source-linkedin          (LinkedIn connections)
+- source-website           (organic website signups)
+- source-launch-day        (launch day signups)
+
+## Interest Level Tags
+- interest-high    (very engaged, likely early adopters)
+- interest-medium  (interested but need nurturing)
+- interest-low     (general interest, long-term prospects)
+
+## User Type Tags
+- type-developer   (professional developers)
+- type-student     (students, learning to code)
+- type-manager     (engineering managers, CTOs)
+- type-personal    (friends, family, non-tech)
+- type-enterprise  (enterprise decision makers)
+
+## Company Size Tags
+- company-individual  (freelancers, solo developers)
+- company-startup     (1-20 employees)
+- company-small       (21-100 employees)
+- company-medium      (101-500 employees)
+- company-large       (500+ employees)
+
+## Engagement Tags (apply based on behavior)
+- engaged-high         (opens emails, clicks links)
+- engaged-medium       (opens emails regularly)
+- engaged-low          (minimal engagement)
+- beta-participant     (signed up for beta)
+- launch-supporter     (promoted launch to others)

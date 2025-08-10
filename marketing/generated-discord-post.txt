@@ -1,0 +1,16 @@
+Hey everyone! 👋
+
+Just launched my side project - RinaWarp Terminal! 🚀
+
+It's an AI-powered terminal that understands voice commands and automates repetitive tasks. Think of it as having an AI assistant for your command line.
+
+Free download: https://rinawarptech.com
+
+Would love your feedback if anyone wants to try it out! Built it because I got tired of typing the same git/npm/docker commands over and over.
+
+Features:
+• Voice commands → terminal actions  
+• Smart automation suggestions
+• Cross-platform support
+
+Still early days but excited to share with the dev community! 🎉

@@ -1,0 +1,9 @@
+# Quick Contact List
+# Format: email,name
+# Example: john@example.com,John Doe
+# 
+# Add your contacts here, then run: ./launch-helper bulk-add -f quick-contacts.txt
+#
+# friend1@example.com,Developer Friend
+# colleague@company.com,Former Colleague  
+# family@gmail.com,Family Member

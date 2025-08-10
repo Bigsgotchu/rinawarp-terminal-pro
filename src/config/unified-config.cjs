@@ -14,10 +14,12 @@ const fs = require('node:fs');
 const os = require('os');
 
 const logger = require('../utilities/logger.cjs');
+
 class UnifiedConfig {
   constructor() {
     this.configDir = path.join(os.homedir(), '.rinawarp-terminal');
     this.configFile = path.join(this.configDir, 'config.json');
+    this.logger = logger;
     this.defaultConfig = {
       terminal: {
         shell: this.getDefaultShell(),
@@ -79,8 +81,17 @@ class UnifiedConfig {
   }
 
   ensureConfigDir() {
-    if (!fs.existsSync(this.configDir)) {
-      fs.mkdirSync(this.configDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.configDir)) {
+        fs.mkdirSync(this.configDir, { recursive: true });
+        this.logger.info('Configuration directory created', { configDir: this.configDir });
+      }
+    } catch (error) {
+      this.logger.error('Failed to create configuration directory', { 
+        configDir: this.configDir, 
+        error: error.message 
+      });
+      throw error;
     }
   }
 
@@ -92,7 +103,10 @@ class UnifiedConfig {
         return this.deepMerge(this.defaultConfig, parsedConfig);
       }
     } catch (error) {
-      logger.warn('Config file corrupted, using defaults:', error.message);
+      this.logger.warn('Config file corrupted, using defaults', { 
+        configFile: this.configFile, 
+        error: error.message 
+      });
     }
     return this.defaultConfig;
   }
@@ -116,7 +130,10 @@ class UnifiedConfig {
       fs.writeFileSync(this.configFile, JSON.stringify(this.config, null, 2));
       return true;
     } catch (error) {
-      logger.error('Failed to save config:', error);
+      this.logger.error('Failed to save config', { 
+        configFile: this.configFile, 
+        error: error.message 
+      });
       return false;
     }
   }
@@ -224,14 +241,20 @@ class UnifiedConfig {
     const oldConfigPath = path.join(process.env.APPDATA || os.homedir(), 'rinawarp-terminal');
     if (fs.existsSync(oldConfigPath)) {
       try {
-        logger.info('Migrating from old AppData configuration...');
+        this.logger.info('Migrating from old AppData configuration', { oldConfigPath });
         // Copy any important settings but don't merge complex structures
         const migrationCompleted = this.set('migration.fromAppData', true);
         if (migrationCompleted) {
-          logger.info('Migration completed successfully');
+          this.logger.info('Migration completed successfully', { 
+            configDir: this.configDir, 
+            configFile: this.configFile 
+          });
         }
       } catch (error) {
-        logger.warn('Migration failed:', error.message);
+        this.logger.warn('Migration failed', { 
+          oldConfigPath, 
+          error: error.message 
+        });
       }
     }
   }

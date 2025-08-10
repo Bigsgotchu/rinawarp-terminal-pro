@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Login</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #64748b;
+            --background: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --error-color: #dc2626;
+            --success-color: #059669;
+            --shadow: 0 10px 25px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .form-container {
+            padding: 40px 30px;
+        }
+
+        .tab-switcher {
+            display: flex;
+            margin-bottom: 30px;
+            background: var(--background);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        input[type="text"], 
+        input[type="email"], 
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 20px;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .submit-button:disabled {
+            background: var(--secondary-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff40;
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: var(--error-color);
+            border: 1px solid #fecaca;
+        }
+
+        .success {
+            background: #d1fae5;
+            color: var(--success-color);
+            border: 1px solid #a7f3d0;
+        }
+
+        .password-requirements {
+            background: var(--background);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+            color: var(--text-secondary);
+        }
+
+        .requirement.met {
+            color: var(--success-color);
+        }
+
+        .requirement-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .requirement-icon.met {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .requirement-icon:not(.met) {
+            background: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .demo-credentials {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .demo-credentials h4 {
+            color: #92400e;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .demo-credentials p {
+            font-size: 12px;
+            color: #a16207;
+            margin: 2px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .quick-actions {
+            padding: 20px 30px;
+            background: var(--background);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .quick-action-button {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+        }
+
+        .quick-action-button:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 30px 20px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RinaWarp Terminal</h1>
+            <p>Secure authentication system</p>
+        </div>
+
+        <div class="form-container">
+            <div class="tab-switcher">
+                <button class="tab-button active" data-tab="login">Sign In</button>
+                <button class="tab-button" data-tab="register">Sign Up</button>
+            </div>
+
+            <div id="message"></div>
+
+            <div class="demo-credentials">
+                <h4>🎯 Demo Quick Access</h4>
+                <p>Click "Generate Demo Admin Token" below to access the dashboard instantly</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" name="email" autocomplete="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                    <label for="rememberMe" class="checkbox-label">Keep me signed in</label>
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <span class="button-text">Sign In</span>
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" autocomplete="given-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" autocomplete="family-name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerEmail">Email Address</label>
+                    <input type="email" id="registerEmail" name="email" autocomplete="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" name="password" autocomplete="new-password" required>
+                    
+                    <div class="password-requirements">
+                        <div class="requirement" data-req="length">
+                            <span class="requirement-icon">?</span>
+                            <span>At least 8 characters long</span>
+                        </div>
+                        <div class="requirement" data-req="lowercase">
+                            <span class="requirement-icon">?</span>
+                            <span>Contains lowercase letter</span>
+                        </div>
+                        <div class="requirement" data-req="uppercase">
+                            <span class="requirement-icon">?</span>
+                            <span>Contains uppercase letter</span>
+                        </div>
+                        <div class="requirement" data-req="number">
+                            <span class="requirement-icon">?</span>
+                            <span>Contains number</span>
+                        </div>
+                        <div class="requirement" data-req="special">
+                            <span class="requirement-icon">?</span>
+                            <span>Contains special character</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <span class="button-text">Create Account</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="quick-actions">
+            <button class="quick-action-button" onclick="generateDemoToken()">
+                🚀 Generate Demo Admin Token
+            </button>
+            <button class="quick-action-button" onclick="window.location.href='/realtime-dashboard'">
+                📊 View Dashboard (Requires Token)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class AuthManager {
+            constructor() {
+                this.initializeEventListeners();
+                this.currentTab = 'login';
+                this.passwordRequirements = {
+                    length: false,
+                    lowercase: false,
+                    uppercase: false,
+                    number: false,
+                    special: false
+                };
+            }
+
+            initializeEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+
+                // Form submissions
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                document.getElementById('registerForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleRegister();
+                });
+
+                // Password validation for registration
+                document.getElementById('registerPassword').addEventListener('input', (e) => {
+                    this.validatePassword(e.target.value);
+                });
+            }
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                
+                // Update tab buttons
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.classList.toggle('active', button.dataset.tab === tab);
+                });
+
+                // Update forms
+                document.querySelectorAll('.auth-form').forEach(form => {
+                    form.classList.toggle('hidden', !form.id.includes(tab));
+                });
+
+                this.clearMessage();
+            }
+
+            validatePassword(password) {
+                this.passwordRequirements = {
+                    length: password.length >= 8,
+                    lowercase: /[a-z]/.test(password),
+                    uppercase: /[A-Z]/.test(password),
+                    number: /\d/.test(password),
+                    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+                };
+
+                Object.entries(this.passwordRequirements).forEach(([req, met]) => {
+                    const element = document.querySelector(`[data-req="${req}"]`);
+                    const icon = element.querySelector('.requirement-icon');
+                    
+                    element.classList.toggle('met', met);
+                    icon.classList.toggle('met', met);
+                    icon.textContent = met ? '✓' : '?';
+                });
+            }
+
+            async handleLogin() {
+                const form = document.getElementById('loginForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                data.rememberMe = form.rememberMe.checked;
+
+                this.setLoading(true, 'login');
+
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showMessage(`Welcome back, ${result.user.firstName}!`, 'success');
+                        
+                        // Redirect to dashboard after success
+                        setTimeout(() => {
+                            window.location.href = `/realtime-dashboard?token=${result.tokens.accessToken}`;
+                        }, 1000);
+                    } else {
+                        this.showMessage(result.error || 'Login failed', 'error');
+                    }
+                } catch (error) {
+                    this.showMessage('Network error. Please try again.', 'error');
+                    console.error('Login error:', error);
+                } finally {
+                    this.setLoading(false, 'login');
+                }
+            }
+
+            async handleRegister() {
+                const form = document.getElementById('registerForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Check if all password requirements are met
+                const allRequirementsMet = Object.values(this.passwordRequirements).every(req => req);
+                if (!allRequirementsMet) {
+                    this.showMessage('Please meet all password requirements', 'error');
+                    return;
+                }
+
+                this.setLoading(true, 'register');
+
+                try {
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showMessage('Account created successfully! You can now sign in.', 'success');
+                        form.reset();
+                        
+                        // Switch to login tab after successful registration
+                        setTimeout(() => {
+                            this.switchTab('login');
+                        }, 2000);
+                    } else {
+                        if (result.requirements) {
+                            this.showMessage(`${result.error}: ${result.requirements.join(', ')}`, 'error');
+                        } else {
+                            this.showMessage(result.error || 'Registration failed', 'error');
+                        }
+                    }
+                } catch (error) {
+                    this.showMessage('Network error. Please try again.', 'error');
+                    console.error('Registration error:', error);
+                } finally {
+                    this.setLoading(false, 'register');
+                }
+            }
+
+            setLoading(loading, form) {
+                const button = document.querySelector(`#${form}Form .submit-button`);
+                const buttonText = button.querySelector('.button-text');
+                
+                if (loading) {
+                    button.disabled = true;
+                    buttonText.innerHTML = '<span class="loading"></span>Processing...';
+                } else {
+                    button.disabled = false;
+                    buttonText.textContent = form === 'login' ? 'Sign In' : 'Create Account';
+                }
+            }
+
+            showMessage(text, type) {
+                const messageEl = document.getElementById('message');
+                messageEl.innerHTML = `<div class="message ${type}">${text}</div>`;
+                
+                // Auto-clear success messages after 5 seconds
+                if (type === 'success') {
+                    setTimeout(() => this.clearMessage(), 5000);
+                }
+            }
+
+            clearMessage() {
+                document.getElementById('message').innerHTML = '';
+            }
+        }
+
+        // Quick action functions
+        async function generateDemoToken() {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.textContent = '🔄 Generating...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/api/auth/generate-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Redirect to dashboard with token
+                    window.location.href = `/realtime-dashboard?token=${result.token}`;
+                } else {
+                    alert('Failed to generate token: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Token generation error:', error);
+                alert('Network error. Please try again.');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Initialize the app
+        const authManager = new AuthManager();
+
+        // Auto-focus first input
+        document.getElementById('loginEmail').focus();
+    </script>
+</body>
+</html>

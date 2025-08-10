@@ -1,0 +1,3 @@
+#!/bin/bash
+# Convenience wrapper for Mailchimp CLI
+cd "$(dirname "$0")" && node bin/mailchimp-cli.cjs "$@"
