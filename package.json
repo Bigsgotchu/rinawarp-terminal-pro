@@ -234,7 +234,10 @@
     "workflow:patch": "npm version patch && npm run workflow:release",
     "workflow:minor": "npm version minor && npm run workflow:release",
     "workflow:major": "npm version major && npm run workflow:release",
-    "test:cli-ai": "node scripts/test-cli-ai.cjs"
+    "test:cli-ai": "node scripts/test-cli-ai.cjs",
+    "start:backend": "cd src/backend && npm start",
+    "dev:backend": "cd src/backend && npm run dev",
+    "install:backend": "cd src/backend && npm install"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
@@ -263,6 +266,7 @@
     "@babel/plugin-transform-modules-commonjs": "7.27.1",
     "@babel/preset-env": "7.28.0",
     "@jest/globals": "30.0.5",
+    "@mailchimp/mailchimp_marketing": "3.0.80",
     "@sentry/electron": "6.9.0",
     "@sentry/node": "10.3.0",
     "@sentry/profiling-node": "10.3.0",
@@ -275,6 +279,7 @@
     "buffer": "6.0.3",
     "chalk": "5.5.0",
     "clean-webpack-plugin": "4.0.0",
+    "commander": "14.0.0",
     "conventional-changelog-cli": "5.0.0",
     "convo-sdk": "1.0.47",
     "copy-webpack-plugin": "13.0.0",
@@ -283,7 +288,8 @@
     "crypto-browserify": "3.12.1",
     "css-loader": "7.1.2",
     "css-minimizer-webpack-plugin": "7.0.2",
-    "dmg-license": "1.0.11",
+    "csv-parser": "3.2.0",
+    "csv-writer": "1.6.0",
     "electron": "37.2.6",
     "electron-builder": "26.0.12",
     "electron-builder-squirrel-windows": "26.0.12",
