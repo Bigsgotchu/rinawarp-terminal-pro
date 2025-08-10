@@ -19,6 +19,144 @@
     <!-- Stripe Integration -->
     <script src="https://js.stripe.com/v3/"></script>
     
+    <!-- Sentry Browser SDK for Error Tracking -->
+    <script
+      src="https://js.sentry-cdn.com/4c22d2c576b2d0ebbeda9941d59fff95.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      // Sentry initialization with User Feedback integration
+      window.sentryOnLoad = function() {
+        if (typeof Sentry !== 'undefined') {
+          Sentry.init({
+            dsn: 'https://4c22d2c576b2d0ebbeda9941d59fff95@o4508607128346624.ingest.us.sentry.io/4508607133655040',
+            environment: window.location.hostname.includes('localhost') ? 'development' : 'production',
+            release: 'rinawarp-terminal@1.0.9',
+            tracesSampleRate: 1.0,
+            replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+            integrations: [
+              new Sentry.BrowserTracing(),
+              new Sentry.Replay({ sessionSampleRate: 0.1, errorSampleRate: 1.0 }),
+            ],
+            beforeSend(event, hint) {
+              const error = hint.originalException;
+              if (error && typeof error.message === 'string') {
+                if (error.message.includes('Extension context invalidated') ||
+                    error.message.includes('chrome-extension://') ||
+                    error.message.includes('moz-extension://')) {
+                  return null;
+                }
+              }
+              return event;
+            }
+          });
+          
+          Sentry.setTag('page_type', 'home');
+          console.log('✅ Sentry browser SDK initialized');
+          
+          // Lazy load User Feedback integration
+          Sentry.lazyLoadIntegration("feedbackIntegration")
+            .then((feedbackIntegration) => {
+              Sentry.addIntegration(feedbackIntegration({
+                // RinaWarp Terminal User Feedback configuration
+                colorScheme: 'dark',
+                showBranding: false,
+                showName: true,
+                showEmail: true,
+                isRequiredName: false,
+                isRequiredEmail: false,
+                formTitle: '🧜‍♀️ Share Your Feedback',
+                submitButtonLabel: 'Send to RinaWarp Team',
+                cancelButtonLabel: 'Cancel',
+                messagePlaceholder: 'Tell us what happened or share your suggestions for RinaWarp Terminal...',
+                nameLabel: 'Your Name (optional)',
+                emailLabel: 'Your Email (optional)',
+                successMessageText: 'Thank you! Your feedback helps us make RinaWarp Terminal better. 🚀',
+                // Custom styling
+                themeLight: {
+                  background: '#ffffff',
+                  backgroundHover: '#f8f9fa',
+                  foreground: '#2b2233',
+                  border: '#d1d5db',
+                  borderRadius: '12px',
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  interactiveFilter: 'brightness(96%)',
+                  submitBackground: 'linear-gradient(45deg, #ff1493, #00ffff)',
+                  submitBackgroundHover: 'linear-gradient(45deg, #e61278, #00e6e6)',
+                  submitForeground: '#ffffff',
+                  cancelBackground: '#6b7280',
+                  cancelBackgroundHover: '#4b5563',
+                  cancelForeground: '#ffffff'
+                },
+                themeDark: {
+                  background: '#1a1a2e',
+                  backgroundHover: '#16213e',
+                  foreground: '#ffffff',
+                  border: '#0f3460',
+                  borderRadius: '12px',
+                  boxShadow: '0 20px 25px -5px rgba(255, 20, 147, 0.3), 0 10px 10px -5px rgba(0, 255, 255, 0.1)',
+                  interactiveFilter: 'brightness(150%)',
+                  submitBackground: 'linear-gradient(45deg, #ff1493, #00ffff)',
+                  submitBackgroundHover: 'linear-gradient(45deg, #ff69b4, #20b2aa)',
+                  submitForeground: '#ffffff',
+                  cancelBackground: '#374151',
+                  cancelBackgroundHover: '#4b5563',
+                  cancelForeground: '#d1d5db'
+                },
+                // Trigger conditions
+                autoInject: false, // We'll manually trigger it
+                showDialog: false,  // Don't auto-show
+                onFormOpen: () => {
+                  console.log('🧜‍♀️ Feedback form opened');
+                  // Track feedback form opening
+                  if (typeof gtag !== 'undefined') {
+                    gtag('event', 'feedback_form_opened', {
+                      event_category: 'user_feedback',
+                      event_label: 'manual_trigger'
+                    });
+                  }
+                },
+                onFormSubmitted: () => {
+                  console.log('🚀 Feedback submitted successfully');
+                  // Track feedback submission
+                  if (typeof gtag !== 'undefined') {
+                    gtag('event', 'feedback_submitted', {
+                      event_category: 'user_feedback',
+                      event_label: 'success'
+                    });
+                  }
+                },
+                onFormClosed: () => {
+                  console.log('👋 Feedback form closed');
+                }
+              }));
+              
+              console.log('✅ Sentry User Feedback integration loaded');
+              
+              // Make feedback function globally available
+              window.openFeedbackDialog = () => {
+                const feedback = Sentry.getFeedback();
+                if (feedback) {
+                  feedback.openDialog();
+                } else {
+                  console.warn('Feedback integration not available');
+                }
+              };
+              
+            })
+            .catch((error) => {
+              console.warn('⚠️ User Feedback integration failed to load:', error);
+            });
+        }
+      };
+      
+      // Call initialization immediately or when Sentry loads
+      if (typeof Sentry !== 'undefined') {
+        window.sentryOnLoad();
+      }
+    </script>
+    
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
     <script>
@@ -504,6 +642,49 @@
             border-color: rgba(255, 255, 255, 0.8);
         }
         
+        /* Feedback Button */
+        .feedback-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .feedback-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255, 20, 147, 0.6);
+            background: linear-gradient(135deg, #ff69b4, #20b2aa);
+        }
+        
+        .feedback-button:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+        
+        .feedback-button .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
         /* Responsive Design */
         @media (max-width: 768px) {
             .hero h1 { font-size: 2.5rem; }
@@ -514,6 +695,13 @@
             .progress-grid { grid-template-columns: 1fr; }
             .features-grid { grid-template-columns: 1fr; }
             .container { padding: 10px; }
+            
+            .feedback-button {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 16px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -826,6 +1014,15 @@
         </footer>
     </div>
 
+    <!-- Floating Feedback Button -->
+    <button class="feedback-button" onclick="window.openFeedbackDialog && window.openFeedbackDialog()" title="Share your feedback with the RinaWarp team">
+        <span class="pulse">💬</span>
+        <span>Feedback</span>
+    </button>
+
+    <!-- Sentry Frontend Helpers -->
+    <script src="/js/sentry-frontend.js" defer></script>
+    
     <!-- Enhanced GA4 Tracking -->
     <script>
         // Set GA4 measurement ID for auto-initialization
@@ -835,90 +1032,6 @@
     <script type="module" src="/js/analytics/stripe-ga4-integration.js"></script>
     
     <script>
-        // Stripe integration
-        let stripe;
-        let stripeConfig;
-
-        // Initialize Stripe
-        async function initStripe() {
-            try {
-                const response = await fetch('/api/stripe-config');
-                stripeConfig = await response.json();
-                stripe = Stripe(stripeConfig.publishableKey);
-                console.log('Stripe initialized successfully');
-            } catch (error) {
-                console.error('Error initializing Stripe:', error);
-            }
-        }
-
-        // Purchase plan function
-        async function purchasePlan(planType) {
-            if (!stripe || !stripeConfig) {
-                alert('Payment system is loading... Please try again in a moment.');
-                await initStripe();
-                if (!stripe) return;
-            }
-
-            try {
-                // Map plan types to price IDs
-                const priceMapping = {
-                    'personal': stripeConfig.prices?.personal,
-                    'professional': stripeConfig.prices?.professional, 
-                    'team': stripeConfig.prices?.team
-                };
-
-                const priceId = priceMapping[planType];
-                
-                if (!priceId) {
-                    // Fallback to beta prices if regular prices not available
-                    const betaPriceMapping = {
-                        'personal': stripeConfig.betaPrices?.beta,
-                        'professional': stripeConfig.betaPrices?.premium,
-                        'team': stripeConfig.betaPrices?.premium
-                    };
-                    
-                    const betaPriceId = betaPriceMapping[planType];
-                    if (betaPriceId) {
-                        window.location.href = `/beta-download.html?plan=${planType}`;
-                        return;
-                    } else {
-                        throw new Error(`Price ID not found for plan: ${planType}`);
-                    }
-                }
-
-                // Create checkout session
-                const response = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        priceId: priceId,
-                        successUrl: `${window.location.origin}/success.html?plan=${planType}`,
-                        cancelUrl: `${window.location.origin}/?cancelled=true`
-                    }),
-                });
-
-                const { sessionId, url } = await response.json();
-
-                if (url) {
-                    // Redirect to Stripe Checkout
-                    window.location.href = url;
-                } else {
-                    // Fallback: redirect to Stripe Checkout using sessionId
-                    const result = await stripe.redirectToCheckout({
-                        sessionId: sessionId,
-                    });
-
-                    if (result.error) {
-                        throw new Error(result.error.message);
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert(`Payment error: ${error.message}`);
-            }
-        }
 
         // Demo functions
         function runAIDemo() {
@@ -1005,7 +1118,6 @@
 
         // Initialize everything when page loads
         window.addEventListener('load', () => {
-            initStripe();
             setTimeout(animateProgressBars, 1000);
         });
         
@@ -1017,6 +1129,9 @@
             }, 1000);
         }
     </script>
+    
+    <!-- Enhanced Stripe Integration -->
+    <script src="/js/stripe-enhanced-client.js"></script>
     
     <!-- Revenue Boost Script -->
     <script src="/js/revenue-boost.js"></script>

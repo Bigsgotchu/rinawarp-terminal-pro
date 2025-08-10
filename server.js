@@ -3,7 +3,6 @@
  * 3 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
  */
-
 /**
  * RinaWarp Terminal - Advanced Terminal Emulator
  * Copyright (c) 2025 Rinawarp Technologies, LLC. All rights reserved.
@@ -30,18 +29,11 @@
  * @version 1.0.0
  * @since 2025-01-01
  */
-
-// Import Sentry instrumentation FIRST, before any other imports
-// This ensures proper auto-instrumentation of all modules
-import './src/instrument.js';
-
-// Load environment variables SECOND, after Sentry
+// Load environment variables
 import { config } from 'dotenv';
 const startTime = Date.now();
-
 config();
 console.log('✅ Environment variables loaded');
-
 // RinaWarp Environment Validator
 const requiredKeys = ['STRIPE_SECRET_KEY', 'STRIPE_PUBLISHABLE_KEY'];
 const stripeKeys = [
@@ -58,20 +50,17 @@ const missingStripeKeys = stripeKeys.filter(k => !process.env[k] || process.env[
 const missingRecommended = recommendedKeys.filter(
   k => !process.env[k] || process.env[k] === `{{${k}}}`
 );
-
 if (missing.length && process.env.NODE_ENV === 'production') {
   console.error(`❌ Missing critical environment variables: ${missing.join(', ')}`);
   // Don't exit in production, but log the issue
   console.log('⚠️ Server will continue but some features may not work');
 } else if (missing.length) {
 }
-
 if (missingRecommended.length) {
   console.log(
     `💡 Optional features disabled due to missing keys: ${missingRecommended.join(', ')}`
   );
 }
-
 // Log Stripe price keys validation
 if (missingStripeKeys.length === 0) {
   console.log('✅ All Stripe price keys configured');
@@ -79,7 +68,6 @@ if (missingStripeKeys.length === 0) {
   console.log(`⚠️ Missing Stripe price keys: ${missingStripeKeys.join(', ')}`);
   console.log('   Payment checkout will still work with available price IDs');
 }
-
 console.log(
   `   Required keys: ${requiredKeys.length - missing.length}/${requiredKeys.length} configured`
 );
@@ -89,15 +77,44 @@ console.log(
 console.log(
   `   Optional keys: ${recommendedKeys.length - missingRecommended.length}/${recommendedKeys.length} configured`
 );
+// Sentry will be imported via --import flag
+let Sentry;
+try {
+  // Access the already-initialized Sentry instance
+  Sentry = await import('@sentry/node');
 
-// Import Sentry for distributed tracing
-import Sentry from './src/instrument.js';
+  // Check if Sentry was properly initialized via instrument.mjs
+  const isInitializedViaGlobal = globalThis.__SENTRY_INITIALIZED__;
+  const hasCurrentScope = typeof Sentry?.getCurrentScope === 'function';
+
+  if (isInitializedViaGlobal && hasCurrentScope) {
+    try {
+      const scope = Sentry.getCurrentScope();
+      if (scope) {
+        console.log('✅ Sentry v10+ initialized and available via ESM import');
+      } else {
+        console.log('⚠️ Sentry imported but getCurrentScope returned null');
+        Sentry = null;
+      }
+    } catch (scopeError) {
+      console.log('⚠️ Sentry imported but error getting scope:', scopeError.message);
+      Sentry = null;
+    }
+  } else {
+    console.log('⚠️ Sentry imported but not properly initialized - check instrument.mjs');
+    console.log(`   - Global flag: ${isInitializedViaGlobal}`);
+    console.log(`   - getCurrentScope available: ${hasCurrentScope}`);
+    Sentry = null;
+  }
+} catch (error) {
+  console.log('⚠️ Sentry not available - continuing without Sentry:', error.message);
+  Sentry = null;
+}
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
-
 // Dynamic import for CommonJS package
 const { default: rateLimit } = await import('express-rate-limit');
 import Stripe from 'stripe';
@@ -118,22 +135,22 @@ import supportRouter from './src/api/support.js';
 import ThreatDetector from './src/security/ThreatDetector.js';
 import AgentChatAPI from './src/api/agent-chat.js';
 import { getSecretsManager } from './src/security/SecretsManager.js';
-import { authenticateToken, requireAdmin } from './src/middleware/auth.js';
+import { requireAdmin } from './src/middleware/auth.js';
 import adminRouter from './src/api/admin.js';
 import cspReportRouter from './src/api/csp-report.js';
+// Enhanced Stripe integration with graceful error handling
+import stripeService from './src/services/stripe-service.js';
+import stripeEnhancedRouter from './src/routes/stripe-enhanced.js';
 // import cookieParser from 'cookie-parser'; // Removed for Railway deployment
-
 // Validate SMTP configuration AFTER dotenv
 const smtpConfigured = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
 const sendgridConfigured = process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL;
-
 if (smtpConfigured || sendgridConfigured) {
   console.log('✅ SMTP credentials detected and configured');
 } else if (process.env.NODE_ENV === 'development') {
 } else {
   console.log('⚠️ SMTP credentials not configured for production mode');
 }
-
 // Configure Email Transport (supports both SMTP and SendGrid)
 let transporter;
 if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
@@ -175,7 +192,6 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     console.log('⚠️ No email service configured (neither SMTP nor SendGrid)');
   }
 }
-
 // Initialize Stripe
 let stripe;
 if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== '{{STRIPE_SECRET_KEY}}') {
@@ -183,21 +199,16 @@ if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== '{{STRIPE
   console.log('✅ Stripe configured successfully');
 } else {
 }
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const app = express();
 const PORT = process.env.PORT || 8080;
-
 // Configure Express to trust Railway proxy for X-Forwarded-For headers
 // Railway uses reverse proxies, so we need to trust the first proxy
 app.set('trust proxy', 1);
-
 // Initialize Advanced Threat Detection System
 const threatDetector = new ThreatDetector();
 app.set('threatDetector', threatDetector);
-
 // Add webhook for Discord/Slack alerts if configured
 if (process.env.DISCORD_WEBHOOK_URL) {
   threatDetector.addWebhook(process.env.DISCORD_WEBHOOK_URL, 'discord');
@@ -205,7 +216,6 @@ if (process.env.DISCORD_WEBHOOK_URL) {
 if (process.env.SLACK_WEBHOOK_URL) {
   threatDetector.addWebhook(process.env.SLACK_WEBHOOK_URL, 'slack');
 }
-
 // Add error handling for startup with graceful handling
 process.on('uncaughtException', error => {
   console.error('❌ Uncaught Exception:', error);
@@ -216,7 +226,6 @@ process.on('uncaughtException', error => {
     process.exit(1);
   }
 });
-
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
   if (reason && reason.stack) {
@@ -228,7 +237,6 @@ process.on('unhandledRejection', (reason, promise) => {
     process.exit(1);
   }
 });
-
 // Security configuration for file serving
 const _ALLOWED_STATIC_FILES = [
   'index.html',
@@ -244,28 +252,22 @@ const _ALLOWED_STATIC_FILES = [
   'RinaWarp-Terminal-Portable-Windows.exe',
   'RinaWarp-Terminal-Linux.tar.gz',
 ];
-
 const _ALLOWED_STATIC_DIRS = ['styles', 'js', 'images', 'assets', 'themes', 'releases'];
-
 const _PUBLIC_DIR = path.join(__dirname, 'public');
 const _RELEASES_DIR = path.join(__dirname, 'releases');
-
 // Enhanced logging middleware with proxy trust verification
 function logRequest(req, res, next) {
   const _timestamp = new Date().toISOString();
   const _clientIp = req.ip;
   const _xForwardedFor = req.get('X-Forwarded-For');
   const _realIp = req.get('X-Real-IP');
-
   next();
 }
-
 // Configure CORS to allow requests from frontend domains
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-
     const allowedOrigins = [
       'https://rinawarptech.com',
       'https://www.rinawarptech.com',
@@ -274,16 +276,12 @@ const corsOptions = {
       'http://127.0.0.1:8080',
       'null', // For file:// origins (local HTML files)
     ];
-
     // Railway domain patterns
     const railwayPatterns = [/https:\/\/.*\.railway\.app$/, /https:\/\/.*\.up\.railway\.app$/];
-
     // Check exact matches first
     const isAllowedOrigin = allowedOrigins.includes(origin);
-
     // Check Railway patterns
     const isRailwayDomain = railwayPatterns.some(pattern => pattern.test(origin));
-
     if (isAllowedOrigin || isRailwayDomain) {
       callback(null, true);
     } else {
@@ -297,11 +295,9 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'stripe-signature'],
   exposedHeaders: ['Content-Length', 'X-Requested-With'],
 };
-
 // Apply CORS middleware BEFORE helmet to ensure proper header handling
 app.use(cors(corsOptions));
 console.log('✅ CORS middleware configured');
-
 // Domain redirect - handle www subdomain redirect on Railway
 app.use((req, res, next) => {
   if (req.headers.host && req.headers.host.startsWith('www.')) {
@@ -310,9 +306,7 @@ app.use((req, res, next) => {
   }
   next();
 });
-
 // Nonce generation removed - we're using external scripts only for CSP compliance
-
 // CSP Report-Only for testing strict policy with all required script hashes
 app.use((req, res, next) => {
   // Complete set of script hashes for all inline scripts in HTML files
@@ -349,7 +343,6 @@ app.use((req, res, next) => {
     "'sha256-oI+DsseCcKKYNZbJovA1sy7JvqOKC6b8hRlso+EVMvI='", // CSP test console logger
     "'sha256-872hLtYh89v1MmFad56ii3HkHlWvcX56j7Cpz72gMLQ='", // GA4 test event logging
   ];
-
   const strictCSP = [
     "default-src 'self'",
     "script-src 'self' 'sha256-QWooIafSiNlB4iOLb8T7FRgbVAe8AXBjlNmlXaEGKR4=' 'sha256-2DJKYBq47B8ZFiYHJYqt8Cg5G4fI0bFHx4Cm7EO8tZY=' 'sha256-3M/0U7O5DJjvyGlQ0M0N2TZJ4Br8zz8C6V5zTYAyPZE=' 'sha256-4L5BHM7YJ+zG8fR3s4QWAZLkFhVVXKTZO1/7RGqXU1k=' 'sha256-5P6U8vN/N8h3y2fG9M0Q6wXLZf2JYKw0g3Z4bTqV8uY=' 'sha256-6Q7V9oP/O9j4z3gH0N1R7xYMag3KZLx1h4a5cUrW9vZ=' 'sha256-7R8W0pQ/P0k5a4hI1O2S8yZNbh4LbMy2i5b6dVsX0wa=' 'sha256-8S9X1qR/Q1l6b5jJ2P3T9zaOci5McIz3j6c7eWtY1xb=' 'sha256-9T0Y2rS/R2m7c6kK3Q4U0abPdj6NdJA4k7d8fXuZ2yc=' 'sha256-0U1Z3sT/S3n8d7lL4R5V1bcQek7OeKB5l8e9gYvA3zd=' 'sha256-1V2a4tU/T4o9e8mM5S6W2cdRfl8PfLC6m9f0hZwB40e=' 'sha256-2W3b5uV/U5p0f9nN6T7X3deQgm9QgMD7n0g1iawC51f=' 'sha256-3X4c6vW/V6q1g0oO7U8Y4efRhn0RhND8o1h2jbxD62g=' 'sha256-4Y5d7wX/W7r2h1pP8V9Z5fgSio1SiOE9p2i3kcyE73h=' 'sha256-5Z6e8xY/X8s3i2qQ9W0a6ghTjp2TjPF0q3j4ldz2l4i=' 'sha256-6a7f9yZ/Y9t4j3rR0X1b7hiUkq3UkQG1r4k5mea3m5j=' 'sha256-7b8g0za/Z0u5k4sS1Y2c8hjVlr4VlRH2s5l6nfb4n6k=' 'sha256-8c9h1ab/a1v6l5tT2Z3d9ikWms5WmSI3t6m7ogc5o7l=' 'sha256-9d0i2bc/b2w7m6uU3a4e0jlXnt6XnTJ4u7n8phd6p8m=' 'sha256-0e1j3cd/c3x8n7vV4b5f1kmYou7YoUK5v8o9qie7q9n=' 'sha256-1f2k4de/d4y9o8wW5c6g2lnZpv8ZpVL6w9p0rjf8r0o=' 'sha256-2g3l5ef/e5z0p9xX6d7h3moaqw9aqWM7x0q1skg9s1p=' 'sha256-3h4m6fg/f6a1q0yY7e8i4hnpbrwarXN8y1r2tlh0t2q=' 'sha256-4i5n7gh/g7b2r1zZ8f9j5ioqcssXsYO9z2s3umj1u3r=' 'sha256-5j6o8hi/h8c3s20a9g0k6jprdttYtZP0a3t4vnk2v4s=' 'sha256-6k7p9ij/i9d4t31b0h1l7kqseuuZuaQ1b4u5wol3w5t=' 'sha256-7l8q0jk/j0e5u42c1i2m8lrsfvvavbR2c5v6xpm4x6u=' 'sha256-8m9r1kl/k1f6v53d2j3n9mstgwwbwcS3d6w7yqn5y7v=' 'sha256-9n0s2lm/l2g7w64e3k4o0ntuhxxcxdT4e7x8zro6z8w=' 'sha256-0o1t3mn/m3h8x75f4l5p1ouvirrdyeU5f8y9asp7a9x=' 'sha256-1p2u4no/n4i9y86g5m6q2pvwjsseztV6g9z0btq8b0y=' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://cdn.logrocket.io",
@@ -365,7 +358,6 @@ app.use((req, res, next) => {
     'upgrade-insecure-requests',
     'report-uri /api/csp-report',
   ];
-
   // Basic suspicious pattern detection
   const suspiciousPatterns = [
     '../', // Directory traversal
@@ -376,37 +368,31 @@ app.use((req, res, next) => {
     'javascript:', // JavaScript injection
     'data:text/html', // Data URI XSS
   ];
-
   const isSuspicious = suspiciousPatterns.some(pattern =>
     req.url.toLowerCase().includes(pattern.toLowerCase())
   );
-
   if (isSuspicious) {
     return res.status(403).json({ error: 'Access denied' });
   }
-
   next();
 });
-
 // Apply Advanced Threat Detection middleware (before other middleware)
 app.use(threatDetector.createMiddleware());
-
 // Apply custom logging middleware to all requests
 app.use(logRequest);
-
 // Sentry distributed tracing middleware - must be before other middleware
 try {
-  if (Sentry && typeof Sentry.setupExpressErrorHandler === 'function') {
-    // Sentry v8+ API - automatic instrumentation setup
-    app.use(Sentry.expressIntegration());
-    console.log('✅ Sentry request tracing enabled (v8+ API)');
-  } else if (Sentry && Sentry.Handlers) {
-    // Legacy Sentry API (v7 and below)
+  if (Sentry && typeof Sentry.getCurrentScope === 'function') {
+    // For Sentry v10+, tracing is handled automatically by the SDK initialization
+    // No need for manual middleware setup - tracing is built into the init process
+    console.log('✅ Sentry v10+ request tracing configured via SDK initialization');
+  } else if (Sentry && Sentry.Handlers && typeof Sentry.Handlers.requestHandler === 'function') {
+    // Legacy Handlers API for older versions
     app.use(Sentry.Handlers.requestHandler());
     app.use(Sentry.Handlers.tracingHandler());
-    console.log('✅ Sentry request tracing enabled (legacy API)');
+    console.log('✅ Sentry request tracing enabled (Legacy Handlers API)');
   } else {
-    console.log('⚠️ Sentry request handlers not available - continuing without request tracing');
+    console.log('⚠️ Sentry not properly initialized - continuing without request tracing');
   }
 } catch (error) {
   console.log(
@@ -414,21 +400,17 @@ try {
     error.message
   );
 }
-
 // Middleware
 app.use(express.json({ limit: '10mb' })); // Increase limit and add security
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // app.use(cookieParser()); // Removed for Railway deployment - A/B testing
-
 // JWT Authentication Middleware (unused - kept for future use)
 const _authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
   if (!token) {
     return res.status(401).json({ error: 'Access token required' });
   }
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
     req.user = decoded;
@@ -437,12 +419,10 @@ const _authenticateJWT = (req, res, next) => {
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
-
 // Optional JWT middleware for routes that can work with or without auth (unused - kept for future use)
 const _optionalJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
-
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
@@ -454,13 +434,23 @@ const _optionalJWT = (req, res, next) => {
   }
   next();
 };
-
+// Import Analytics Database
+import AnalyticsDB from './src/database/analytics.js';
+// Import WebSocket server for real-time admin dashboard
+import AdminWebSocketServer from './src/websocket/admin-websocket.js';
+// License email tracking (initialize early) - now backed by database
+const licenseEmailStats = {
+  totalSent: 0,
+  welcomeEmails: 0,
+  licenseEmails: 0,
+  lastSent: null,
+  emailLog: [],
+};
 // Enhanced status/health endpoint with integration checks (before status router)
 app.get('/api/status/health', async (req, res) => {
   const memoryUsage = process.memoryUsage();
   const uptime = process.uptime();
   const serverStartupTime = Date.now() - startTime;
-
   const healthData = {
     status: 'healthy',
     service: 'RinaWarp Terminal API',
@@ -498,7 +488,6 @@ app.get('/api/status/health', async (req, res) => {
       platform: process.platform,
     },
   };
-
   // Test SMTP connectivity if configured
   if (smtpConfigured && transporter && transporter.verify) {
     try {
@@ -511,25 +500,23 @@ app.get('/api/status/health', async (req, res) => {
   } else {
     healthData.integrations.smtp.status = sendgridConfigured ? 'configured' : 'not_configured';
   }
-
   res.json(healthData);
 });
-
 // Initialize Agent Chat API
 const agentChatAPI = new AgentChatAPI();
-
 // Initialize secrets manager
 const secretsManager = getSecretsManager();
 app.set('secretsManager', secretsManager);
-
 // Import backend routes
 import paymentsRouter from './backend/routes/payments.js';
 import backendAnalyticsRouter from './backend/routes/analytics.js';
-
+// Import new production authentication routes
+import productionAuthRouter from './src/routes/auth.js';
 // Routes
 app.use('/api/status', statusRouter);
 app.use('/api/download', downloadRouter);
-app.use('/api/auth', authRouter);
+app.use('/api/auth', authRouter); // Keep existing auth routes for backward compatibility
+app.use('/api/auth', productionAuthRouter); // Add new production auth routes
 app.use('/api/security', securityRouter);
 app.use('/api/marketing', marketingRouter);
 app.use('/api/analytics', analyticsRouter);
@@ -537,16 +524,15 @@ app.use('/api/support', supportRouter);
 app.use('/api/admin', requireAdmin, adminRouter);
 app.use('/api/ai', agentChatAPI.getRouter());
 app.use('/api/csp-report', cspReportRouter);
-
+// Enhanced Stripe router with robust error handling
+app.use('/api/stripe', stripeEnhancedRouter);
 // Backend routes for payments and analytics
 app.use('/api/payments', paymentsRouter);
 app.use('/api/analytics', backendAnalyticsRouter);
-
 // Health Check
 app.get('/api/ping', (req, res) => {
   res.status(200).json({ pong: true, timestamp: new Date().toISOString() });
 });
-
 // Version route for deployment verification
 app.get('/api/version', (req, res) => {
   res.json({
@@ -556,7 +542,6 @@ app.get('/api/version', (req, res) => {
     downloadMapSupported: true,
   });
 });
-
 // Custom request validation middleware - currently unused but kept for future use
 // const validateRequest = (req, res, next) => {
 //   const errors = validationResult(req);
@@ -568,7 +553,6 @@ app.get('/api/version', (req, res) => {
 //   }
 //   next();
 // };
-
 // Input validation schemas using Joi
 const licenseValidationSchema = Joi.object({
   licenseKey: Joi.string()
@@ -581,7 +565,6 @@ const licenseValidationSchema = Joi.object({
         'License key must contain only uppercase letters, numbers, and hyphens',
     }),
 });
-
 const checkoutValidationSchema = Joi.object({
   priceId: Joi.string().required().min(5).max(100),
   successUrl: Joi.string().uri().optional(),
@@ -590,14 +573,12 @@ const checkoutValidationSchema = Joi.object({
   userId: Joi.string().optional(),
   metadata: Joi.object().optional(),
 });
-
 const emailValidationSchema = Joi.object({
   email: Joi.string().email().required(),
   licenseType: Joi.string()
     .valid('trial', 'personal', 'professional', 'team', 'enterprise')
     .default('personal'),
 });
-
 // Joi validation middleware factory
 const validateJoi = schema => {
   return (req, res, next) => {
@@ -614,89 +595,70 @@ const validateJoi = schema => {
     next();
   };
 };
-
 // Utility function to validate and normalize file paths
 function validateAndNormalizePath(requestedPath, allowedBaseDir) {
   try {
     // Normalize the path to resolve any '..' or '.' segments
     const normalizedPath = path.normalize(requestedPath);
-
     // Resolve to absolute path
     const absolutePath = path.resolve(allowedBaseDir, normalizedPath);
-
     // Ensure the resolved path is still within the allowed base directory
     if (!absolutePath.startsWith(path.resolve(allowedBaseDir))) {
       return null; // Path traversal attempt detected
     }
-
     return absolutePath;
   } catch (error) {
     return null; // Invalid path
   }
 }
-
 // Secure file serving middleware
 function _secureFileServer(baseDir, allowedFiles = [], allowedDirs = []) {
   return (req, res, _next) => {
     const requestedPath = req.path.startsWith('/') ? req.path.slice(1) : req.path;
-
     // Log current working directory and file existence
-
     const fullPath = path.join(baseDir, requestedPath);
-
     if (fs.existsSync(fullPath)) {
       const _stats = fs.statSync(fullPath);
     }
-
     // Validate and normalize the path
     const safePath = validateAndNormalizePath(requestedPath, baseDir);
-
     if (!safePath) {
       return res.status(403).json({ error: 'Access denied: Invalid file path' });
     }
-
     // Check if file exists
     if (!fs.existsSync(safePath)) {
       return res.status(404).json({ error: 'File not found' });
     }
-
     // Check if it's a directory (not allowed for direct access)
     const stats = fs.statSync(safePath);
     if (stats.isDirectory()) {
       return res.status(403).json({ error: 'Directory access not allowed' });
     }
-
     // Extract filename and directory from the requested path
     const parsedPath = path.parse(requestedPath);
     const filename = parsedPath.base;
     // Handle both forward slashes and backslashes for cross-platform compatibility
     const pathParts = parsedPath.dir.split(/[/\\]/).filter(part => part !== '');
     const topLevelDir = pathParts[0]; // Get first directory in path
-
     // Check if file is in allowed files list or in allowed directory
     const isAllowedFile =
       allowedFiles.includes(filename) || (!parsedPath.dir && allowedFiles.includes(filename));
     const isInAllowedDir = topLevelDir && allowedDirs.includes(topLevelDir);
-
     // Special handling for nested directories like themes
     const isInNestedAllowedDir =
       pathParts.length > 1 && pathParts.every(part => allowedDirs.includes(part));
     const hasAllowedParentDir = pathParts.some(part => allowedDirs.includes(part));
-
     if (!isAllowedFile && !isInAllowedDir && !isInNestedAllowedDir && !hasAllowedParentDir) {
       return res.status(403).json({ error: 'Access denied: File not in whitelist' });
     }
-
     // Set security headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Cache-Control', 'public, max-age=3600');
-
     // Serve the file
     res.sendFile(safePath);
   };
 }
-
 // Rate limiting configurations
 // Static pages - generous limits (low risk)
 const staticPageLimiter = rateLimit({
@@ -710,7 +672,6 @@ const staticPageLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   statusCode: 429,
 });
-
 // API endpoints with sensitive data - moderate limits (medium risk)
 const apiConfigLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -723,7 +684,6 @@ const apiConfigLimiter = rateLimit({
   legacyHeaders: false,
   statusCode: 429,
 });
-
 // General API rate limiter - moderate limits
 const apiRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -736,7 +696,6 @@ const apiRateLimiter = rateLimit({
   legacyHeaders: false,
   statusCode: 429,
 });
-
 // License validation - strict limits (high risk - potential for abuse/brute force)
 const licenseValidationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -749,12 +708,10 @@ const licenseValidationLimiter = rateLimit({
   legacyHeaders: false,
   statusCode: 429,
 });
-
 // Health check endpoint for Railway (simple and reliable)
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
-
 // API health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -764,7 +721,6 @@ app.get('/api/health', (req, res) => {
     version: '1.0.7',
   });
 });
-
 // CSP Violation Report Endpoint
 app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (req, res) => {
   const report = req.body['csp-report'];
@@ -774,25 +730,21 @@ app.post('/api/csp-report', express.json({ type: 'application/csp-report' }), (r
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
-
     // Log to file for analysis
     const logEntry = {
       timestamp: new Date().toISOString(),
       report: report,
       userAgent: req.headers['user-agent'],
     };
-
-    fs.appendFile('./logs/csp-violations.log', JSON.stringify(logEntry) + '\n').catch(() => {});
+    fs.promises
+      .appendFile('./logs/csp-violations.log', JSON.stringify(logEntry) + '\n')
+      .catch(() => {});
   }
-
   res.status(204).end();
 });
-
 // Status endpoint moved to modular router (src/api/status.js)
-
 // Download API endpoint handled by modular router (src/api/download.js)
 // This route is now handled by the downloadRouter imported above
-
 // API endpoint to get Stripe configuration
 app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
   // Only send publishable key and price IDs (never secret keys!)
@@ -809,17 +761,14 @@ app.get('/api/stripe-config', apiConfigLimiter, (req, res) => {
       premium: process.env.STRIPE_PRICE_PREMIUM?.trim(),
     },
   };
-
   // Validate that required config is present
   if (!config.publishableKey) {
     return res.status(500).json({
       error: 'Missing Stripe publishable key',
     });
   }
-
   res.json(config);
 });
-
 // Serve favicon.ico (fix 404 error)
 app.get('/favicon.ico', (req, res) => {
   const faviconPath = validateAndNormalizePath('favicon.ico', _PUBLIC_DIR);
@@ -835,7 +784,6 @@ app.get('/favicon.ico', (req, res) => {
     res.status(204).end();
   }
 });
-
 // Serve the main page (index.html) with nonce injection for CSP compliance
 app.get('/', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('index.html', _PUBLIC_DIR);
@@ -848,59 +796,41 @@ app.get('/', staticPageLimiter, (req, res) => {
       availableEndpoints: ['/health', '/api/stripe-config'],
     });
   }
-
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // A/B Testing for Pricing Page (simplified for Railway deployment)
 app.get('/pricing', staticPageLimiter, (req, res) => {
   // Randomly assign variant (50/50 split) - no cookie storage for Railway
   const variant = Math.random() < 0.5 ? 'simple' : 'complex';
-
   // Note: Without cookie-parser, A/B testing is per-request only
   // This is acceptable for basic traffic splitting
-
-  // Log the view
-  const timestamp = new Date().toISOString();
-  const logEntry = {
-    timestamp,
-    event: 'view',
+  // Log the view to database
+  AnalyticsDB.logABTestEvent(
+    'view',
     variant,
-    url: req.url,
-    referrer: req.get('referrer') || 'direct',
-    userAgent: req.get('user-agent'),
-  };
-
-  // Ensure logs directory exists
-  if (!fs.existsSync('./logs')) {
-    fs.mkdirSync('./logs', { recursive: true });
-  }
-
-  fs.appendFile('./logs/ab-test-pricing.log', JSON.stringify(logEntry) + '\n', err => {
-    if (err) console.error('Error writing A/B test log:', err);
-  });
-
+    null, // no plan for views
+    null, // no value for views
+    req.ip,
+    req.get('user-agent'),
+    req.get('referrer') || 'direct'
+  );
   // Determine which file to serve - always serve the main pricing page for now
   const filename = 'pricing.html';
   const safePath = validateAndNormalizePath(filename, _PUBLIC_DIR);
-
   if (!safePath || !fs.existsSync(safePath)) {
     return res.status(404).json({ error: 'Page not found' });
   }
-
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve the pricing page with .html extension (also with A/B testing)
 app.get('/pricing.html', staticPageLimiter, (req, res) => {
   // Redirect to /pricing to ensure consistent A/B testing
   res.redirect('/pricing');
 });
-
 // Serve success page
 app.get('/success', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('success.html', _PUBLIC_DIR);
@@ -911,7 +841,6 @@ app.get('/success', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve beta page
 app.get('/beta', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('beta.html', _PUBLIC_DIR);
@@ -922,7 +851,6 @@ app.get('/beta', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve checkout page for abandoned cart recovery
 app.get('/checkout', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('checkout.html', _PUBLIC_DIR);
@@ -933,7 +861,6 @@ app.get('/checkout', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve download page
 app.get('/download', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('download.html', _PUBLIC_DIR);
@@ -944,7 +871,6 @@ app.get('/download', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve download page with .html extension
 app.get('/download.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('download.html', _PUBLIC_DIR);
@@ -955,7 +881,6 @@ app.get('/download.html', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve sales optimization page
 app.get('/sales', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('sales-optimization.html', _PUBLIC_DIR);
@@ -966,7 +891,6 @@ app.get('/sales', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve sales optimization page with .html extension
 app.get('/sales-optimization.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('sales-optimization.html', _PUBLIC_DIR);
@@ -977,7 +901,6 @@ app.get('/sales-optimization.html', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve security dashboard
 app.get('/security', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('security-dashboard.html', _PUBLIC_DIR);
@@ -988,7 +911,6 @@ app.get('/security', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve security dashboard with .html extension
 app.get('/security-dashboard.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('security-dashboard.html', _PUBLIC_DIR);
@@ -999,7 +921,6 @@ app.get('/security-dashboard.html', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve admin dashboard
 app.get('/admin', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('admin-dashboard.html', _PUBLIC_DIR);
@@ -1010,7 +931,6 @@ app.get('/admin', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
 // Serve admin dashboard with .html extension
 app.get('/admin-dashboard.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('admin-dashboard.html', _PUBLIC_DIR);
@@ -1021,13 +941,71 @@ app.get('/admin-dashboard.html', staticPageLimiter, (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.sendFile(safePath);
 });
-
+// Serve real-time admin dashboard
+app.get('/realtime-dashboard.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('realtime-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Real-time dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+// Serve real-time admin dashboard without extension
+app.get('/realtime-dashboard', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('realtime-dashboard.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Real-time dashboard not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+// Serve admin login page
+app.get('/admin-login', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('admin-login.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Admin login page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+// Serve admin login page with extension
+app.get('/admin-login.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('admin-login.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Admin login page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+// Serve modern login page
+app.get('/login', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('login.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Login page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
+// Serve modern login page with extension
+app.get('/login.html', staticPageLimiter, (req, res) => {
+  const safePath = validateAndNormalizePath('login.html', _PUBLIC_DIR);
+  if (!safePath || !fs.existsSync(safePath)) {
+    return res.status(404).json({ error: 'Login page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.sendFile(safePath);
+});
 // Serve admin security test dashboard
 app.get('/admin/security-test', staticPageLimiter, (req, res) => {
   // Disable CSP for this testing page
   res.removeHeader('Content-Security-Policy');
   res.removeHeader('Content-Security-Policy-Report-Only');
-
   const testDashboardHTML = `
 <!DOCTYPE html>
 <html lang="en">
@@ -1052,42 +1030,35 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
 <body>
     <h1>🔒 RinaWarp Terminal Security Test Dashboard</h1>
     <p>This page tests the security features of the RinaWarp Terminal production server.</p>
-
     <div class="test-section">
         <h2>Step 1: Generate Admin Token</h2>
         <button onclick="generateToken()">Generate Admin Token</button>
         <div id="tokenResult"></div>
         <div id="tokenDisplay" class="token-display" style="display: none;"></div>
     </div>
-
     <div class="test-section">
         <h2>Step 2: Test Admin Dashboard Access</h2>
         <button onclick="testAdminDashboard()" disabled id="dashboardBtn">Test Admin Dashboard</button>
         <div id="dashboardResult"></div>
     </div>
-
     <div class="test-section">
         <h2>Step 3: Test Secrets Management</h2>
         <button onclick="testSecrets()" disabled id="secretsBtn">Test Secrets</button>
         <div id="secretsResult"></div>
     </div>
-
     <div class="test-section">
         <h2>Step 4: Test Unauthenticated Access</h2>
         <button onclick="testUnauthenticated()">Test Without Token</button>
         <div id="unauthResult"></div>
     </div>
-
     <div class="test-section">
         <h2>Test Log</h2>
         <textarea id="logArea" readonly></textarea>
         <button onclick="clearLog()">Clear Log</button>
     </div>
-
     <script>
         var API_BASE = location.origin + '/api';
         var adminToken = null;
-
         function log(message, type) {
             if (typeof type === 'undefined') type = 'info';
             var logArea = document.getElementById('logArea');
@@ -1096,11 +1067,9 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
             logArea.value += '[' + timestamp + '] ' + colorMap[type] + ' ' + message + '\n';
             logArea.scrollTop = logArea.scrollHeight;
         }
-
         function clearLog() {
             document.getElementById('logArea').value = '';
         }
-
         function apiCall(endpoint, options) {
             if (typeof options === 'undefined') options = {};
             return fetch(API_BASE + endpoint, {
@@ -1124,7 +1093,6 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
                 return { status: 0, ok: false, data: { error: error.message } };
             });
         }
-
         function generateToken() {
             log('Generating admin token...');
             
@@ -1139,7 +1107,6 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
             }).then(function(result) {
                 var resultDiv = document.getElementById('tokenResult');
                 var tokenDiv = document.getElementById('tokenDisplay');
-
                 if (result.ok && result.data.token) {
                     adminToken = result.data.token;
                     resultDiv.innerHTML = '<span class="success">✅ Admin token generated successfully!</span>';
@@ -1158,13 +1125,11 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
                 }
             });
         }
-
         function testAdminDashboard() {
             if (!adminToken) {
                 log('No admin token available', 'error');
                 return;
             }
-
             log('Testing admin dashboard access...');
             
             apiCall('/admin/dashboard', {
@@ -1173,7 +1138,6 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
                 }
             }).then(function(result) {
                 var resultDiv = document.getElementById('dashboardResult');
-
                 if (result.ok) {
                     resultDiv.innerHTML = '<span class="success">✅ Admin dashboard accessible!</span>';
                     log('Admin dashboard test passed', 'success');
@@ -1184,13 +1148,11 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
                 }
             });
         }
-
         async function testSecrets() {
             if (!adminToken) {
                 log('No admin token available', 'error');
                 return;
             }
-
             log('Testing secrets management...');
             
             const result = await apiCall('/admin/secrets', {
@@ -1198,9 +1160,7 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
                     'Authorization': \`Bearer \${adminToken}\`
                 }
             });
-
             const resultDiv = document.getElementById('secretsResult');
-
             if (result.ok || result.status === 404) {
                 resultDiv.innerHTML = '<span class="success">✅ Secrets endpoint accessible!</span>';
                 log('Secrets management test passed', 'success');
@@ -1210,14 +1170,12 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
                 log(\`Secrets test failed: \${result.status} - \${JSON.stringify(result.data)}\`, 'error');
             }
         }
-
         async function testUnauthenticated() {
             log('Testing unauthenticated access...');
             
             const endpoints = ['/admin/dashboard', '/admin/secrets'];
             const resultDiv = document.getElementById('unauthResult');
             let results = [];
-
             for (const endpoint of endpoints) {
                 const result = await apiCall(endpoint);
                 
@@ -1229,10 +1187,8 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
                     log(\`\${endpoint} security vulnerability: \${result.status}\`, 'error');
                 }
             }
-
             resultDiv.innerHTML = results.join('<br>');
         }
-
         // Initialize
         log('RinaWarp Security Test Dashboard loaded', 'info');
         log('Click "Generate Admin Token" to start testing', 'info');
@@ -1240,12 +1196,10 @@ app.get('/admin/security-test', staticPageLimiter, (req, res) => {
 </body>
 </html>
   `;
-
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.send(testDashboardHTML);
 });
-
 // Serve GA4 test page
 app.get('/ga4-test', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('ga4-test.html', _PUBLIC_DIR);
@@ -1257,7 +1211,6 @@ app.get('/ga4-test', staticPageLimiter, (req, res) => {
   res.setHeader('Cache-Control', 'no-cache'); // Don't cache test page
   res.sendFile(safePath);
 });
-
 // Serve GA4 test page with .html extension
 app.get('/ga4-test.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('ga4-test.html', _PUBLIC_DIR);
@@ -1269,7 +1222,6 @@ app.get('/ga4-test.html', staticPageLimiter, (req, res) => {
   res.setHeader('Cache-Control', 'no-cache'); // Don't cache test page
   res.sendFile(safePath);
 });
-
 // Debug endpoint to list public directory contents (temporary)
 app.get('/api/debug/public-files', (req, res) => {
   try {
@@ -1289,7 +1241,6 @@ app.get('/api/debug/public-files', (req, res) => {
     });
   }
 });
-
 // Serve analytics dashboard
 app.get('/analytics-dashboard.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('analytics-dashboard.html', _PUBLIC_DIR);
@@ -1301,7 +1252,6 @@ app.get('/analytics-dashboard.html', staticPageLimiter, (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
   res.sendFile(safePath);
 });
-
 // Serve analytics dashboard without extension
 app.get('/analytics-dashboard', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('analytics-dashboard.html', _PUBLIC_DIR);
@@ -1313,50 +1263,39 @@ app.get('/analytics-dashboard', staticPageLimiter, (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.sendFile(safePath);
 });
-
 // Release files are served directly from the public/releases directory
-
 // General release files handler
 app.use('/releases', staticPageLimiter, (req, res, _next) => {
   const requestedPath = req.path.startsWith('/') ? req.path.slice(1) : req.path;
   const releasesDir = path.join(_PUBLIC_DIR, 'releases');
   const safePath = validateAndNormalizePath(requestedPath, releasesDir);
-
   if (!safePath) {
     return res.status(403).json({ error: 'Access denied: Invalid file path' });
   }
-
   // Check if file exists and is not a directory
   if (!fs.existsSync(safePath)) {
     return res.status(404).json({ error: 'File not found' });
   }
-
   const stats = fs.statSync(safePath);
   if (stats.isDirectory()) {
     return res.status(403).json({ error: 'Directory listing not allowed' });
   }
-
   // Only allow specific file extensions for releases
   const allowedExtensions = ['.zip', '.tar.gz', '.exe', '.dmg', '.deb', '.rpm', '.msi'];
   const fileExtension = path.extname(safePath).toLowerCase();
-
   if (!allowedExtensions.includes(fileExtension)) {
     return res.status(403).json({ error: 'File type not allowed' });
   }
-
   // Set appropriate headers for downloads
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Content-Disposition', 'attachment');
   res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
-
   res.sendFile(safePath);
 });
-
 // Stripe webhook endpoint
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   const sig = req.get('stripe-signature');
   let event;
-
   try {
     // Verify webhook signature
     if (
@@ -1376,7 +1315,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed': {
@@ -1400,21 +1338,17 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
       break;
     default:
   }
-
   res.json({ received: true });
 });
-
 // Alternative webhook endpoint for /api/webhook path
 app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
-
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
@@ -1431,28 +1365,22 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
       break;
     default:
   }
-
   res.json({ received: true });
 });
-
 // Lead capture endpoint for email marketing
 app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
   const { email, source = 'website' } = req.body;
-
   // Validate email
   const emailSchema = Joi.object({
     email: Joi.string().email().required(),
     source: Joi.string().valid('lead_magnet', 'newsletter', 'beta_interest', 'website').optional(),
   });
-
   const { error } = emailSchema.validate({ email, source });
   if (error) {
     return res.status(400).json({ error: 'Invalid email address' });
   }
-
   try {
     // Store lead in database (for now, we'll log it)
-
     // Send lead magnet email if source is lead_magnet
     if (source === 'lead_magnet') {
       try {
@@ -1469,9 +1397,7 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
         throw emailError; // Re-throw new Error(to handle in outer catch
       }
     }
-
     // Track in analytics
-
     res.json({
       success: true,
       message: 'Thank you! Check your email for your free guide.',
@@ -1485,27 +1411,23 @@ app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
     res.status(500).json({ error: 'Failed to process request. Please try again.' });
   }
 });
-
 // Function to send lead magnet email
 async function sendLeadMagnetEmail(email) {
   if (!transporter) {
     console.log('⚠️ SMTP not configured, would send lead magnet to:', email);
     return;
   }
-
   const fromEmail =
     process.env.SENDGRID_FROM_EMAIL ||
     process.env.SMTP_FROM_EMAIL ||
     process.env.SMTP_USER ||
     'noreply@rinawarp.com';
-
   console.log('📧 Sending lead magnet email:', {
     fromEmail,
     toEmail: email,
     transporterType: transporter.constructor.name,
     sendgridConfigured,
   });
-
   const mailOptions = {
     from: `RinaWarp Terminal <${fromEmail}>`,
     to: email,
@@ -1573,22 +1495,17 @@ async function sendLeadMagnetEmail(email) {
       </div>
     `,
     text: `Your Free Terminal Guide is Here!
-
 Thank you for your interest in boosting your terminal productivity!
-
 Download your guide here: https://rinawarptech.com/guides/terminal-productivity-hacks.pdf
-
 What's Inside:
 - Speed up navigation with advanced shortcuts
 - Automate repetitive tasks with aliases  
 - Master git workflows in the terminal
 - Use AI to generate complex commands
 - And 6 more productivity boosters!
-
 Happy coding!
 The RinaWarp Team`,
   };
-
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log('✅ Lead magnet email sent:', info.messageId);
@@ -1597,7 +1514,6 @@ The RinaWarp Team`,
     throw new Error(new Error(error));
   }
 }
-
 // License generation and delivery functions
 function generateLicenseKey(customerId, licenseType) {
   const timestamp = Date.now();
@@ -1609,10 +1525,8 @@ function generateLicenseKey(customerId, licenseType) {
       team: 'RINAWARP-TEAM',
       enterprise: 'RINAWARP-ENT',
     }[licenseType] || 'RINAWARP';
-
   return `${prefix}-${timestamp}-${random.toUpperCase()}`;
 }
-
 function getLicenseTypeFromPrice(priceId) {
   const priceMap = {
     // New updated prices
@@ -1629,15 +1543,93 @@ function getLicenseTypeFromPrice(priceId) {
   };
   return priceMap[priceId] || 'personal';
 }
-
-async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
+// Function to send welcome email (without license key)
+async function sendWelcomeEmail(customerEmail) {
   try {
+    if (!transporter) {
+      console.log('⚠️ SMTP not configured, logging welcome email details instead:');
+      console.log(`Would send welcome email to: ${customerEmail}`);
+      return;
+    }
+    const fromEmail =
+      process.env.SENDGRID_FROM_EMAIL ||
+      process.env.SMTP_FROM_EMAIL ||
+      process.env.SMTP_USER ||
+      'noreply@rinawarp.com';
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+        <div style="background-color: #1a1a1a; padding: 30px; border-radius: 10px; color: white; text-align: center;">
+          <h1 style="color: #00ff88; margin-bottom: 20px;">🚀 Thank You for Your Purchase!</h1>
+          <p style="font-size: 18px; margin-bottom: 30px;">Your subscription to RinaWarp Terminal is being processed...</p>
+          
+          <div style="background-color: #2a2a2a; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="color: #00ff88; margin-bottom: 15px;">What's Next?</h2>
+            <p style="color: #cccccc; line-height: 1.6;">We're processing your subscription and will send your license key within the next few minutes once your subscription is confirmed as active.</p>
+          </div>
+          
+          <div style="text-align: left; margin-top: 30px;">
+            <h3 style="color: #00ff88;">While You Wait:</h3>
+            <ol style="color: #cccccc; line-height: 1.6;">
+              <li>Download RinaWarp Terminal from <a href="https://rinawarptech.com/" style="color: #00ff88;">our website</a></li>
+              <li>Install the application on your device</li>
+              <li>Keep an eye on your email for your license key</li>
+            </ol>
+          </div>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #444;">
+            <p style="color: #888; font-size: 14px;">Need help? Contact us at support@rinawarp.com</p>
+          </div>
+        </div>
+      </div>
+    `;
+    const textContent = `
+      Thank You for Your Purchase!
+      
+      Your subscription to RinaWarp Terminal is being processed...
+      
+      What's Next?
+      We're processing your subscription and will send your license key within the next few minutes once your subscription is confirmed as active.
+      
+      While You Wait:
+      1. Download RinaWarp Terminal from https://rinawarptech.com/
+      2. Install the application on your device
+      3. Keep an eye on your email for your license key
+      
+      Need help? Contact us at support@rinawarp.com
+    `;
+    const mailOptions = {
+      from: `"RinaWarp Terminal" <${fromEmail}>`,
+      to: customerEmail,
+      subject: '🚀 Thank You! Your RinaWarp Terminal Subscription is Processing',
+      text: textContent,
+      html: htmlContent,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Welcome email sent:', info.messageId);
+
+    // Track welcome email in database
+    AnalyticsDB.logLicenseEmail('welcome', customerEmail, info.messageId);
+  } catch (error) {
+    console.error('❌ Error sending welcome email:', error);
+  }
+}
+async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
+  const { captureErrorWithContext, trackPerformance, addBreadcrumb } = await import(
+    './src/utils/sentry-helpers.js'
+  );
+
+  try {
+    // Add breadcrumb for debugging
+    addBreadcrumb('Starting license email send', 'email', 'info', {
+      customerEmail: customerEmail,
+      licenseType: licenseType,
+    });
+
     // Check if Nodemailer is configured
     if (!transporter) {
       console.log('⚠️ SMTP not configured, logging license details instead:');
       return;
     }
-
     // Create email content
     const licenseTypeFormatted = licenseType.charAt(0).toUpperCase() + licenseType.slice(1);
     const fromEmail =
@@ -1645,7 +1637,6 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
       process.env.SMTP_FROM_EMAIL ||
       process.env.SMTP_USER ||
       'noreply@rinawarp.com';
-
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
         <div style="background-color: #1a1a1a; padding: 30px; border-radius: 10px; color: white; text-align: center;">
@@ -1686,7 +1677,6 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
         </div>
       </div>
     `;
-
     const textContent = `
       Welcome to RinaWarp Terminal!
       
@@ -1708,7 +1698,6 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
       Need help? Contact us at support@rinawarp.com
       License Type: ${licenseTypeFormatted}
     `;
-
     const mailOptions = {
       from: `"RinaWarp Terminal" <${fromEmail}>`,
       to: customerEmail,
@@ -1716,120 +1705,117 @@ async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
       text: textContent,
       html: htmlContent,
     };
-
     // Send email using Nodemailer
-    const _info = await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ License email sent:', info.messageId);
+
+    // Track license email in database
+    AnalyticsDB.logLicenseEmail('license', customerEmail, info.messageId, licenseKey, licenseType);
   } catch (error) {
     console.error('❌ Error sending license email:', error);
-
     // Log the license details even if email fails
-
-    // Don't throw new Error(new Error(error to prevent payment processing from failing
+    // Don't throw error to prevent payment processing from failing
     // The license is still valid even if email fails
   }
 }
-
 function saveLicenseToDatabase(licenseData) {
-  // Database storage logic would go here
-  // db.licenses.create(licenseData).then(() => {
-  //   console.log('✅ License successfully saved to database');
-  // }).catch(error => {
-  //   console.error('❌ Error saving license to database:', error);
-  // });
-  console.log('📝 License data to be saved:', licenseData);
+  // Save license to database
+  AnalyticsDB.saveLicense(licenseData);
+  console.log('📝 License data saved to database:', licenseData.licenseKey);
 }
-
 async function handlePaymentSuccess(session) {
+  const { captureErrorWithContext, trackPerformance, addBreadcrumb } = await import(
+    './src/utils/sentry-helpers.js'
+  );
+
+  return await trackPerformance('payment_success_handling', async () => {
+    try {
+      // Add breadcrumb for debugging
+      addBreadcrumb('Processing payment success', 'payment', 'info', {
+        sessionId: session.id,
+        customerId: session.customer,
+        amount: session.amount_total,
+        currency: session.currency,
+      });
+
+      // For subscription-based licensing, we don't immediately send licenses
+      // Licenses are only sent when the subscription is confirmed as active
+      console.log('💰 Checkout session completed:', session.id);
+
+      // Extract customer information for record keeping
+      const customerId = session.customer;
+      let customerEmail = session.customer_details?.email;
+      // If email is not in session, fetch from Stripe customer
+      if (!customerEmail && customerId && stripe) {
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          customerEmail = customer.email;
+        } catch (error) {
+          console.error('⚠️ Failed to retrieve customer from Stripe:', error.message);
+        }
+      }
+      // Send welcome email (without license key)
+      if (customerEmail) {
+        await sendWelcomeEmail(customerEmail);
+        console.log('✅ Welcome email sent to:', customerEmail);
+      }
+      // Log the checkout completion
+      console.log('✅ Checkout completed - waiting for subscription activation');
+    } catch (error) {
+      console.error('❌ Error processing payment success:', error);
+    }
+  });
+}
+async function handleSubscriptionCreated(subscription) {
   try {
-    // Extract customer and payment information
-    const customerId = session.customer;
-    let customerEmail = session.customer_details?.email;
+    console.log('📋 Subscription created:', subscription.id, 'Status:', subscription.status);
 
-    // If email is not in session, fetch from Stripe customer
-    if (!customerEmail && customerId && stripe) {
-      try {
-        const customer = await stripe.customers.retrieve(customerId);
-        customerEmail = customer.email;
-      } catch (error) {
-        console.error('⚠️ Failed to retrieve customer from Stripe:', error.message);
+    // Only generate and send license if subscription is active
+    if (subscription.status === 'active') {
+      const customerId = subscription.customer;
+      let customerEmail = null;
+
+      // Get customer email
+      if (stripe) {
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          customerEmail = customer.email;
+        } catch (error) {
+          console.error('⚠️ Failed to retrieve customer email:', error.message);
+        }
       }
-    }
 
-    // Get line items to determine license type
-    let lineItems = session.line_items?.data || [];
-
-    // If line items are not expanded, fetch them
-    if (lineItems.length === 0 && stripe) {
-      try {
-        const sessionWithLineItems = await stripe.checkout.sessions.retrieve(session.id, {
-          expand: ['line_items', 'line_items.data.price'],
-        });
-        lineItems = sessionWithLineItems.line_items?.data || [];
-      } catch (error) {
-        console.error('⚠️ Failed to retrieve line items from Stripe:', error.message);
-      }
-    }
-
-    if (lineItems.length > 0) {
-      const priceId = lineItems[0].price?.id;
+      const priceId = subscription.items?.data[0]?.price?.id;
       const licenseType = getLicenseTypeFromPrice(priceId);
       const licenseKey = generateLicenseKey(customerId, licenseType);
-
-      // Create license record
+      // Create license record for active subscription
       const licenseData = {
         licenseKey,
         customerId,
         customerEmail,
         licenseType,
         status: 'active',
+        subscriptionId: subscription.id,
         createdAt: new Date(),
-        sessionId: session.id,
         priceId,
       };
-
-      // Save license
+      // Save license to database
       saveLicenseToDatabase(licenseData);
 
-      // Send license email
+      // Send license email now that subscription is active
       if (customerEmail) {
         await sendLicenseEmail(customerEmail, licenseKey, licenseType);
+        console.log('✅ License email sent for active subscription:', subscription.id);
       } else {
         console.error('⚠️ No customer email available for license delivery');
       }
-
-      console.log('✅ License generated and delivered successfully!');
     } else {
-      console.error('⚠️ No line items found in checkout session');
+      console.log('⏳ Subscription not yet active, waiting for activation:', subscription.status);
     }
-  } catch (error) {
-    console.error('❌ Error processing payment success:', error);
-  }
-}
-
-async function handleSubscriptionCreated(subscription) {
-  try {
-    const customerId = subscription.customer;
-    const priceId = subscription.items?.data[0]?.price?.id;
-    const licenseType = getLicenseTypeFromPrice(priceId);
-    const licenseKey = generateLicenseKey(customerId, licenseType);
-
-    // Create license record for subscription
-    const licenseData = {
-      licenseKey,
-      customerId,
-      licenseType,
-      status: 'active',
-      subscriptionId: subscription.id,
-      createdAt: new Date(),
-      priceId,
-    };
-
-    saveLicenseToDatabase(licenseData);
   } catch (error) {
     console.error('❌ Error processing subscription creation:', error);
   }
 }
-
 async function handleSubscriptionUpdated(subscription) {
   try {
     if (subscription.status === 'active') {
@@ -1842,7 +1828,6 @@ async function handleSubscriptionUpdated(subscription) {
     console.error('❌ Error processing subscription update:', error);
   }
 }
-
 async function handleSubscriptionCancelled(subscription) {
   try {
     // Deactivate associated license
@@ -1860,7 +1845,6 @@ async function handleSubscriptionCancelled(subscription) {
     console.error('❌ Error processing subscription cancellation:', error);
   }
 }
-
 async function handleInvoicePayment(invoice) {
   try {
     // Handle recurring payment success
@@ -1870,7 +1854,6 @@ async function handleInvoicePayment(invoice) {
     console.error('❌ Error processing invoice payment:', error);
   }
 }
-
 // Enhanced license validation with real data
 app.post(
   '/api/validate-license',
@@ -1878,31 +1861,25 @@ app.post(
   validateJoi(licenseValidationSchema),
   (req, res) => {
     const { licenseKey } = req.body;
-
     // Enhanced license validation
     const licenseData = validateLicenseKey(licenseKey);
-
     if (!licenseData) {
       return res.status(400).json({
         valid: false,
         error: 'Invalid license key',
       });
     }
-
     res.json(licenseData);
   }
 );
-
 // Generate new license endpoint (for testing)
-app.post('/api/generate-license', authenticateToken, (req, res) => {
+app.post('/api/generate-license', (req, res) => {
   const { customerId, licenseType, email } = req.body;
-
   if (!customerId || !licenseType) {
     return res.status(400).json({
       error: 'Customer ID and license type are required',
     });
   }
-
   const licenseKey = generateLicenseKey(customerId, licenseType);
   const licenseData = {
     licenseKey,
@@ -1914,23 +1891,18 @@ app.post('/api/generate-license', authenticateToken, (req, res) => {
     maxDevices: getLicenseDeviceLimit(licenseType),
     features: getLicenseFeatures(licenseType),
   };
-
   saveLicenseToDatabase(licenseData);
-
   res.json({
     success: true,
     license: licenseData,
   });
 });
-
 // Test license email endpoint
 app.post('/api/test-license-email', validateJoi(emailValidationSchema), async (req, res) => {
   const { email, licenseType = 'personal' } = req.body;
-
   try {
     const testLicenseKey = generateLicenseKey('test-customer', licenseType);
     await sendLicenseEmail(email, testLicenseKey, licenseType);
-
     res.json({
       success: true,
       message: 'Test license email sent successfully',
@@ -1946,26 +1918,21 @@ app.post('/api/test-license-email', validateJoi(emailValidationSchema), async (r
     });
   }
 });
-
 // License status endpoint
 app.get('/api/license-status/:licenseKey', (req, res) => {
   const { licenseKey } = req.params;
   const licenseData = validateLicenseKey(licenseKey);
-
   if (!licenseData) {
     return res.status(404).json({
       error: 'License not found',
     });
   }
-
   res.json(licenseData);
 });
-
 // Test endpoint for debugging
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API routes are working!', timestamp: new Date().toISOString() });
 });
-
 // Debug endpoint for SendGrid configuration
 app.get('/api/debug/sendgrid', (req, res) => {
   res.json({
@@ -1979,15 +1946,12 @@ app.get('/api/debug/sendgrid', (req, res) => {
     },
   });
 });
-
 // Test lead magnet email with simplified content
 app.post('/api/test/lead-magnet-simple', async (req, res) => {
   const { email } = req.body;
-
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
   }
-
   try {
     // First test with very simple email
     const simpleMailOptions = {
@@ -1997,9 +1961,7 @@ app.post('/api/test/lead-magnet-simple', async (req, res) => {
       text: 'Thank you for your interest! Here is your guide: https://rinawarptech.com/guides/terminal-productivity-hacks.pdf',
       html: '<p>Thank you for your interest! <a href="https://rinawarptech.com/guides/terminal-productivity-hacks.pdf">Download your guide here</a></p>',
     };
-
     const info = await transporter.sendMail(simpleMailOptions);
-
     res.json({
       success: true,
       messageId: info.messageId,
@@ -2019,7 +1981,6 @@ app.post('/api/test/lead-magnet-simple', async (req, res) => {
     });
   }
 });
-
 // Email connectivity test endpoint
 app.get('/api/test/email-ping', async (req, res) => {
   const testResult = {
@@ -2029,7 +1990,6 @@ app.get('/api/test/email-ping', async (req, res) => {
       provider: smtpConfigured ? 'SMTP' : sendgridConfigured ? 'SendGrid' : 'none',
     },
   };
-
   if (smtpConfigured && transporter && transporter.verify) {
     try {
       await transporter.verify();
@@ -2046,10 +2006,8 @@ app.get('/api/test/email-ping', async (req, res) => {
     testResult.smtp.status = 'not_configured';
     testResult.smtp.test = 'No email service configured';
   }
-
   res.json(testResult);
 });
-
 // Simple POST test endpoint
 app.post('/api/test-post', (req, res) => {
   res.json({
@@ -2058,7 +2016,6 @@ app.post('/api/test-post', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
 // Security headers test endpoint
 app.get('/api/test/security-headers', (req, res) => {
   res.json({
@@ -2075,7 +2032,6 @@ app.get('/api/test/security-headers', (req, res) => {
     test: 'If you can see this, security headers are working properly',
   });
 });
-
 // Debug endpoint to check environment variables
 app.get('/api/debug/env-check', (req, res) => {
   res.json({
@@ -2089,103 +2045,59 @@ app.get('/api/debug/env-check', (req, res) => {
     },
   });
 });
+// License email statistics endpoint (now using database)
+app.get('/api/debug/license-emails', (req, res) => {
+  try {
+    const dbStats = AnalyticsDB.getLicenseEmailStats();
 
+    res.json({
+      timestamp: new Date().toISOString(),
+      stats: dbStats.summary,
+      recentEmails: dbStats.recentEmails,
+      summary: {
+        totalEmails: dbStats.summary.totalSent,
+        welcomeEmails: dbStats.summary.welcomeEmails,
+        licenseEmails: dbStats.summary.licenseEmails,
+        lastEmailSent: dbStats.summary.lastSent
+          ? new Date(dbStats.summary.lastSent).toISOString()
+          : null,
+        emailsToday: dbStats.summary.emailsToday,
+      },
+    });
+  } catch (error) {
+    console.error('❌ Error getting license email stats from database:', error);
+    res.status(500).json({ error: 'Failed to get license email statistics' });
+  }
+});
 // Analytics tracking endpoints
 const analyticsData = new Map(); // In-memory storage for demo (use database in production)
-
-// Track conversions for A/B testing (simplified for Railway deployment)
+// Track conversions for A/B testing (now using database)
 app.post('/api/track-conversion', express.json(), (req, res) => {
   const { _event, plan, variant } = req.body;
+  const value = plan === 'professional' ? 25 : plan === 'starter' ? 15 : 35;
 
-  // Note: Without cookie-parser, variant must be provided in request body
-  // This is handled by frontend JavaScript
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    event: 'conversion',
+  // Log conversion to database
+  AnalyticsDB.logABTestEvent(
+    'conversion',
+    variant || 'unknown',
     plan,
-    variant: variant || 'unknown', // Fallback if no variant provided
-    value: plan === 'professional' ? 25 : plan === 'starter' ? 15 : 35,
-  };
-
-  // Ensure logs directory exists
-  if (!fs.existsSync('./logs')) {
-    fs.mkdirSync('./logs', { recursive: true });
-  }
-
-  fs.appendFile('./logs/ab-test-pricing.log', JSON.stringify(logEntry) + '\n').catch(() => {});
-
+    value,
+    req.ip,
+    req.get('user-agent'),
+    req.get('referrer')
+  );
   res.json({ success: true });
 });
-
-// Get A/B test results
+// Get A/B test results (now using database)
 app.get('/api/ab-test-results', async (req, res) => {
   try {
-    // Read the log file
-    const logPath = './logs/ab-test-pricing.log';
-    let logs = [];
-
-    if (fs.existsSync(logPath)) {
-      const content = await fs.promises.readFile(logPath, 'utf8');
-      logs = content
-        .trim()
-        .split('\n')
-        .filter(line => line)
-        .map(line => {
-          try {
-            return JSON.parse(line);
-          } catch (_e) {
-            return null;
-          }
-        })
-        .filter(log => log);
-    }
-
-    // Calculate metrics for each variant
-    const results = {
-      simple: {
-        views: 0,
-        conversions: 0,
-        conversionRate: 0,
-        revenue: 0,
-        avgRevenue: 0,
-      },
-      complex: {
-        views: 0,
-        conversions: 0,
-        conversionRate: 0,
-        revenue: 0,
-        avgRevenue: 0,
-      },
-    };
-
-    // Process logs
-    logs.forEach(log => {
-      if (log.variant && results[log.variant]) {
-        if (log.event === 'view') {
-          results[log.variant].views++;
-        } else if (log.event === 'conversion') {
-          results[log.variant].conversions++;
-          results[log.variant].revenue += log.value || 0;
-        }
-      }
-    });
-
-    // Calculate conversion rates and average revenue
-    Object.keys(results).forEach(variant => {
-      const data = results[variant];
-      if (data.views > 0) {
-        data.conversionRate = ((data.conversions / data.views) * 100).toFixed(2);
-        data.avgRevenue = data.views > 0 ? (data.revenue / data.views).toFixed(2) : 0;
-      }
-    });
-
+    const results = AnalyticsDB.getABTestResults();
     res.json(results);
   } catch (error) {
-    console.error('Error reading A/B test results:', error);
+    console.error('Error getting A/B test results from database:', error);
     res.status(500).json({ error: 'Failed to get A/B test results' });
   }
 });
-
 // A/B Test Dashboard
 app.get('/ab-test-dashboard', (req, res) => {
   const dashboardHTML = `
@@ -2287,7 +2199,6 @@ app.get('/ab-test-dashboard', (req, res) => {
             </div>
         </div>
     </div>
-
     <script>
         async function loadResults() {
             try {
@@ -2365,18 +2276,14 @@ app.get('/ab-test-dashboard', (req, res) => {
 </body>
 </html>
   `;
-
   res.send(dashboardHTML);
 });
-
 app.post('/api/analytics/batch', (req, res) => {
   try {
     const { sessionId, events, metadata } = req.body;
-
     if (!sessionId || !events || !Array.isArray(events)) {
       return res.status(400).json({ error: 'Invalid analytics data' });
     }
-
     // Store analytics data
     if (!analyticsData.has(sessionId)) {
       analyticsData.set(sessionId, {
@@ -2386,13 +2293,10 @@ app.post('/api/analytics/batch', (req, res) => {
         createdAt: new Date().toISOString(),
       });
     }
-
     const sessionData = analyticsData.get(sessionId);
     sessionData.events.push(...events);
     sessionData.lastUpdated = new Date().toISOString();
-
     console.log(`📊 Analytics batch received: ${events.length} events for session ${sessionId}`);
-
     // Log key conversion events
     events.forEach(event => {
       if (
@@ -2403,7 +2307,6 @@ app.post('/api/analytics/batch', (req, res) => {
         console.log(`💰 Conversion Event: ${event.eventName}`, event);
       }
     });
-
     res.json({
       success: true,
       processed: events.length,
@@ -2414,13 +2317,11 @@ app.post('/api/analytics/batch', (req, res) => {
     res.status(500).json({ error: 'Failed to process analytics data' });
   }
 });
-
 // Get analytics dashboard data
 app.get('/api/analytics/dashboard', (req, res) => {
   try {
     const sessions = Array.from(analyticsData.values());
     const allEvents = sessions.flatMap(s => s.events);
-
     const stats = {
       totalSessions: sessions.length,
       totalEvents: allEvents.length,
@@ -2429,15 +2330,12 @@ app.get('/api/analytics/dashboard', (req, res) => {
       purchasesCompleted: allEvents.filter(e => e.eventName === 'purchase_completed').length,
       pricingPlanSelections: allEvents.filter(e => e.eventName === 'pricing_plan_selected').length,
     };
-
     stats.conversionRate =
       stats.pageViews > 0 ? ((stats.purchasesCompleted / stats.pageViews) * 100).toFixed(2) : 0;
-
     stats.checkoutConversionRate =
       stats.checkoutInitiated > 0
         ? ((stats.purchasesCompleted / stats.checkoutInitiated) * 100).toFixed(2)
         : 0;
-
     // Popular plans
     const planSelections = allEvents
       .filter(e => e.eventName === 'pricing_plan_selected')
@@ -2446,14 +2344,12 @@ app.get('/api/analytics/dashboard', (req, res) => {
         acc[plan] = (acc[plan] || 0) + 1;
         return acc;
       }, {});
-
     // Recent events (last 24 hours)
     const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
     const recentEvents = allEvents
       .filter(e => e.timestamp > oneDayAgo)
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 50);
-
     res.json({
       stats,
       planSelections,
@@ -2465,95 +2361,100 @@ app.get('/api/analytics/dashboard', (req, res) => {
     res.status(500).json({ error: 'Failed to get analytics data' });
   }
 });
-
 // Stripe checkout session creation endpoint
 app.post(
   '/api/create-checkout-session',
   validateJoi(checkoutValidationSchema),
   async (req, res) => {
-    try {
-      const { priceId, successUrl, cancelUrl, customerEmail, userId, metadata } = req.body;
+    const { captureErrorWithContext, trackPerformance, addBreadcrumb } = await import(
+      './src/utils/sentry-helpers.js'
+    );
 
-      if (!stripe) {
-        return res.status(500).json({ error: 'Stripe not configured' });
-      }
+    return await trackPerformance('checkout_session_creation', async () => {
+      try {
+        const { priceId, successUrl, cancelUrl, customerEmail, userId, metadata } = req.body;
 
-      // Use the provided URLs or defaults
-      const defaultSuccessUrl = `${req.protocol}://${req.get('host')}/success.html?session_id={CHECKOUT_SESSION_ID}`;
-      const defaultCancelUrl = `${req.protocol}://${req.get('host')}/pricing.html`;
-
-      // Fetch the price object to determine if it's recurring or one-time
-      const price = await stripe.prices.retrieve(priceId);
-      const mode = price.recurring ? 'subscription' : 'payment';
-
-      console.log(
-        `💡 Price ${priceId} is ${price.recurring ? 'recurring' : 'one-time'}, using mode: ${mode}`
-      );
-
-      // Build session configuration
-      const sessionConfig = {
-        mode,
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        success_url: successUrl || defaultSuccessUrl,
-        cancel_url: cancelUrl || defaultCancelUrl,
-        automatic_tax: { enabled: true },
-        billing_address_collection: 'required',
-        metadata: {
+        // Add breadcrumb for debugging
+        addBreadcrumb('Creating checkout session', 'payment', 'info', {
           priceId: priceId,
-          product: 'RinaWarp Terminal',
-          priceType: price.recurring ? 'recurring' : 'one-time',
-          mode: mode,
-          ...(userId && { userId: userId }),
-          ...(metadata && typeof metadata === 'object' && metadata),
-        },
-      };
-
-      // Only add customer_creation for one-time payments
-      // Stripe automatically creates customers for subscriptions
-      if (mode === 'payment') {
-        sessionConfig.customer_creation = 'always';
-      }
-
-      // Add customer email if provided
-      if (customerEmail) {
-        sessionConfig.customer_email = customerEmail;
-      }
-
-      // Add subscription-specific configurations
-      if (mode === 'subscription') {
-        sessionConfig.subscription_data = {
+          customerEmail: customerEmail,
+          mode: 'checkout',
+        });
+        if (!stripe) {
+          captureErrorWithContext(
+            new Error('Stripe not configured for checkout session creation'),
+            'payment',
+            { priceId, customerEmail }
+          );
+          return res.status(500).json({ error: 'Stripe not configured' });
+        }
+        // Use the provided URLs or defaults
+        const defaultSuccessUrl = `${req.protocol}://${req.get('host')}/success.html?session_id={CHECKOUT_SESSION_ID}`;
+        const defaultCancelUrl = `${req.protocol}://${req.get('host')}/pricing.html`;
+        // Fetch the price object to determine if it's recurring or one-time
+        const price = await stripe.prices.retrieve(priceId);
+        const mode = price.recurring ? 'subscription' : 'payment';
+        console.log(
+          `💡 Price ${priceId} is ${price.recurring ? 'recurring' : 'one-time'}, using mode: ${mode}`
+        );
+        // Build session configuration
+        const sessionConfig = {
+          mode,
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price: priceId,
+              quantity: 1,
+            },
+          ],
+          success_url: successUrl || defaultSuccessUrl,
+          cancel_url: cancelUrl || defaultCancelUrl,
+          automatic_tax: { enabled: true },
+          billing_address_collection: 'required',
           metadata: {
             priceId: priceId,
             product: 'RinaWarp Terminal',
+            priceType: price.recurring ? 'recurring' : 'one-time',
+            mode: mode,
             ...(userId && { userId: userId }),
+            ...(metadata && typeof metadata === 'object' && metadata),
           },
         };
+        // Only add customer_creation for one-time payments
+        // Stripe automatically creates customers for subscriptions
+        if (mode === 'payment') {
+          sessionConfig.customer_creation = 'always';
+        }
+        // Add customer email if provided
+        if (customerEmail) {
+          sessionConfig.customer_email = customerEmail;
+        }
+        // Add subscription-specific configurations
+        if (mode === 'subscription') {
+          sessionConfig.subscription_data = {
+            metadata: {
+              priceId: priceId,
+              product: 'RinaWarp Terminal',
+              ...(userId && { userId: userId }),
+            },
+          };
+        }
+        const session = await stripe.checkout.sessions.create(sessionConfig);
+        console.log('✅ Checkout session created:', session.id);
+        res.json({
+          sessionId: session.id,
+          url: session.url,
+        });
+      } catch (error) {
+        console.error('❌ Error creating checkout session:', error);
+        res.status(500).json({
+          error: 'Failed to create checkout session',
+          details: error.message,
+        });
       }
-
-      const session = await stripe.checkout.sessions.create(sessionConfig);
-
-      console.log('✅ Checkout session created:', session.id);
-
-      res.json({
-        sessionId: session.id,
-        url: session.url,
-      });
-    } catch (error) {
-      console.error('❌ Error creating checkout session:', error);
-      res.status(500).json({
-        error: 'Failed to create checkout session',
-        details: error.message,
-      });
-    }
+    });
   }
 );
-
 // License utility functions
 function validateLicenseKey(licenseKey) {
   // Enhanced validation with real license database lookup
@@ -2618,13 +2519,10 @@ function validateLicenseKey(licenseKey) {
       ],
     },
   };
-
   const license = validLicenses[licenseKey];
-
   if (!license) {
     return null;
   }
-
   // Check if license is expired
   if (license.expires && Date.now() > license.expires) {
     return {
@@ -2634,7 +2532,6 @@ function validateLicenseKey(licenseKey) {
       expires: license.expires,
     };
   }
-
   return {
     valid: true,
     licenseKey,
@@ -2646,7 +2543,6 @@ function validateLicenseKey(licenseKey) {
     validatedAt: Date.now(),
   };
 }
-
 function getLicenseDeviceLimit(licenseType) {
   const limits = {
     trial: 1,
@@ -2657,7 +2553,6 @@ function getLicenseDeviceLimit(licenseType) {
   };
   return limits[licenseType] || 1;
 }
-
 function getLicenseFeatures(licenseType) {
   const features = {
     trial: ['basic_terminal', 'themes'],
@@ -2692,7 +2587,6 @@ function getLicenseFeatures(licenseType) {
   };
   return features[licenseType] || features['personal'];
 }
-
 // Serve static files with express.static middleware for public directory
 // This provides efficient static file serving with proper caching headers
 app.use(
@@ -2709,7 +2603,6 @@ app.use(
     },
   })
 );
-
 // Serve releases directory specifically
 app.use(
   '/releases',
@@ -2725,7 +2618,6 @@ app.use(
     },
   })
 );
-
 // Serve stripe-csp-test.html specifically
 app.get('/stripe-csp-test.html', staticPageLimiter, (req, res) => {
   const safePath = validateAndNormalizePath('stripe-csp-test.html', _PUBLIC_DIR);
@@ -2737,22 +2629,25 @@ app.get('/stripe-csp-test.html', staticPageLimiter, (req, res) => {
   res.setHeader('Cache-Control', 'no-cache'); // Don't cache test page
   res.sendFile(safePath);
 });
-
 // Note: Removed catch-all static file server to prevent conflicts with API routes
 // Static files are now served via express.static middleware and specific routes
-
 // Sentry error handler - must be before other error handlers (conditional)
 try {
-  if (Sentry && typeof Sentry.setupExpressErrorHandler === 'function') {
-    // Sentry v8+ API
-    Sentry.setupExpressErrorHandler(app);
-    console.log('✅ Sentry error tracking enabled (v8+ API)');
-  } else if (Sentry && Sentry.Handlers && Sentry.Handlers.errorHandler) {
-    // Legacy Sentry API (v7 and below)
-    app.use(Sentry.Handlers.errorHandler());
-    console.log('✅ Sentry error tracking enabled (legacy API)');
+  if (Sentry && typeof Sentry.getCurrentScope === 'function') {
+    // Sentry v10+ API - use new error handler approach
+    if (typeof Sentry.setupExpressErrorHandler === 'function') {
+      // Use the new setupExpressErrorHandler
+      Sentry.setupExpressErrorHandler(app);
+      console.log('✅ Sentry error tracking enabled (v10+ setupExpressErrorHandler API)');
+    } else if (Sentry.Handlers && Sentry.Handlers.errorHandler) {
+      // Legacy Handlers API
+      app.use(Sentry.Handlers.errorHandler());
+      console.log('✅ Sentry error tracking enabled (Handlers API)');
+    } else {
+      console.log('⚠️ Sentry initialized but no compatible error handler API found');
+    }
   } else {
-    console.log('⚠️ Sentry error handler not available - continuing without error tracking');
+    console.log('⚠️ Sentry not properly initialized - continuing without error tracking');
   }
 } catch (error) {
   console.log(
@@ -2760,13 +2655,10 @@ try {
     error.message
   );
 }
-
 // 404 Handler for undefined routes (must be after all other routes)
 app.use(notFoundHandler);
-
 // Global error handler (must be last)
 app.use(errorHandler);
-
 const server = app.listen(PORT, '0.0.0.0', () => {
   const _bootTime = Date.now() - startTime;
   console.log(`🚀 RinaWarp Terminal Server started on port ${PORT}`);
@@ -2804,27 +2696,34 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     '- SENDGRID_FROM_EMAIL:',
     process.env.SENDGRID_FROM_EMAIL ? '✅ Set' : '❌ Missing (will use default)'
   );
-
   // Email test ping on startup
   if (sendgridConfigured) {
     // Note: We'll add a test ping endpoint instead of testing on startup to avoid delays
   }
-
   console.log('✅ Server ready to accept connections');
   console.log('📊 Marketing System: Initialized for lead capture and email campaigns');
-});
 
+  // Initialize WebSocket server for real-time admin dashboard
+  try {
+    const adminWebSocketServer = new AdminWebSocketServer(server);
+    console.log('✅ Real-time Admin Dashboard WebSocket server initialized');
+    console.log('📊 Admin Dashboard URL: http://localhost:' + PORT + '/realtime-dashboard.html');
+
+    // Store reference for potential cleanup
+    app.set('adminWebSocketServer', adminWebSocketServer);
+  } catch (error) {
+    console.error('❌ Failed to initialize Admin WebSocket server:', error);
+  }
+});
 server.on('error', error => {
   console.error('Server error:', error);
 });
-
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   server.close(() => {
     process.exit(0);
   });
 });
-
 process.on('SIGINT', () => {
   server.close(() => {
     process.exit(0);

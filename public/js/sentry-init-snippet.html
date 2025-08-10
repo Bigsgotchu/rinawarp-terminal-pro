@@ -1,0 +1,184 @@
+<!-- RinaWarp Terminal - Sentry Browser SDK Integration -->
+<!-- Add this snippet to the <head> section of your HTML files -->
+
+<!-- Sentry Browser SDK -->
+<script
+  src="https://js.sentry-cdn.com/4c22d2c576b2d0ebbeda9941d59fff95.min.js"
+  crossorigin="anonymous"
+></script>
+
+<!-- Sentry Initialization -->
+<script>
+  // Initialize Sentry with configuration from our frontend integration
+  if (typeof Sentry !== 'undefined') {
+    Sentry.init({
+      dsn: 'https://4c22d2c576b2d0ebbeda9941d59fff95@o4508607128346624.ingest.us.sentry.io/4508607133655040',
+      environment: window.location.hostname.includes('localhost') ? 'development' : 'production',
+      release: 'rinawarp-terminal@1.0.9',
+      
+      // Performance monitoring
+      tracesSampleRate: 1.0,
+      
+      // Session replay for debugging
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+      
+      // Integrations
+      integrations: [
+        new Sentry.BrowserTracing({
+          // Set up automatic route change tracking for SPAs
+          routingInstrumentation: Sentry.routingInstrumentation(
+            window.history,
+            window.location,
+            (from, to) => {
+              // Custom routing logic if needed
+              return { name: to.pathname || 'unknown' };
+            }
+          ),
+        }),
+        new Sentry.Replay({
+          // Capture 10% of all sessions,
+          sessionSampleRate: 0.1,
+          // But capture 100% of sessions with an error
+          errorSampleRate: 1.0,
+        }),
+      ],
+      
+      // Filter out common non-critical errors
+      beforeSend(event, hint) {
+        const error = hint.originalException;
+        
+        if (error && typeof error.message === 'string') {
+          // Skip common browser extension errors
+          if (error.message.includes('Extension context invalidated') ||
+              error.message.includes('chrome-extension://') ||
+              error.message.includes('moz-extension://')) {
+            return null;
+          }
+          
+          // Skip network errors in development
+          if (error.message.includes('NetworkError') && 
+              window.location.hostname === 'localhost') {
+            return null;
+          }
+        }
+        
+        // Add additional context
+        if (event.tags) {
+          event.tags.userAgent = navigator.userAgent;
+          event.tags.url = window.location.href;
+          event.tags.timestamp = new Date().toISOString();
+        }
+        
+        return event;
+      },
+      
+      beforeBreadcrumb(breadcrumb, hint) {
+        // Filter out noisy breadcrumbs
+        if (breadcrumb.category === 'console' && breadcrumb.level === 'debug') {
+          return null;
+        }
+        
+        // Enhance navigation breadcrumbs
+        if (breadcrumb.category === 'navigation') {
+          breadcrumb.data = {
+            ...breadcrumb.data,
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        return breadcrumb;
+      }
+    });
+    
+    // Add initial context
+    Sentry.setTag('page_type', document.title.includes('Pricing') ? 'pricing' : 
+                               document.title.includes('Download') ? 'download' : 
+                               window.location.pathname.includes('admin') ? 'admin' : 'general');
+    
+    console.log('✅ Sentry browser SDK initialized');
+  } else {
+    console.warn('⚠️ Sentry SDK not loaded - error tracking disabled');
+  }
+</script>
+
+<!-- Load our custom Sentry helpers -->
+<script src="/js/sentry-frontend.js" defer></script>
+
+<!-- Usage Examples in your existing JavaScript: -->
+<script>
+  // Example: Track Stripe checkout initiation
+  function initiateCheckout(plan, amount) {
+    try {
+      // Your existing Stripe checkout code
+      window.StripeMonitoring?.trackCheckoutStart(plan, amount);
+      
+      // ... rest of your checkout logic
+      
+    } catch (error) {
+      window.SentryHelpers?.captureError(error, {
+        context: 'stripe_checkout',
+        plan: plan,
+        amount: amount
+      });
+      throw error;
+    }
+  }
+  
+  // Example: Track form submissions
+  document.addEventListener('DOMContentLoaded', function() {
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+      contactForm.addEventListener('submit', function(event) {
+        window.SentryHelpers?.addBreadcrumb('Contact form submitted', 'form', 'info', {
+          formId: 'contact-form',
+          timestamp: new Date().toISOString()
+        });
+      });
+    }
+  });
+  
+  // Example: Track user authentication
+  function loginUser(email, plan) {
+    window.SentryHelpers?.setUser({
+      email: email,
+      plan: plan,
+      signup_date: new Date().toISOString()
+    });
+    
+    window.SentryHelpers?.addBreadcrumb('User logged in', 'auth', 'info', {
+      plan: plan
+    });
+  }
+  
+  // Example: Track performance of custom operations
+  async function loadDashboardData() {
+    const startTime = Date.now();
+    try {
+      const data = await fetch('/api/dashboard-data');
+      const duration = Date.now() - startTime;
+      
+      window.SentryHelpers?.trackTiming('dashboard_load', duration, {
+        success: true,
+        recordCount: data.length
+      });
+      
+      return data;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      
+      window.SentryHelpers?.trackTiming('dashboard_load', duration, {
+        success: false,
+        error: error.message
+      });
+      
+      window.SentryHelpers?.captureError(error, {
+        context: 'dashboard_loading',
+        duration: duration
+      });
+      
+      throw error;
+    }
+  }
+</script>
