@@ -43,7 +43,8 @@ jobs:
           if [ "${{ runner.os }}" = "macOS" ]; then
             npm install
           else
-            npm install --omit=optional
+            # For non-macOS platforms, use --force to bypass dmg-license platform check
+            npm install --force
           fi
         shell: bash
         
