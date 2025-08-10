@@ -58,6 +58,23 @@
             border: 2px solid rgba(255, 255, 255, 0.1);
         }
         
+        .logo {
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+        
+        .logo img {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 4px 12px rgba(255, 20, 147, 0.3));
+            transition: all 0.3s ease;
+        }
+        
+        .logo img:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 8px 20px rgba(255, 20, 147, 0.5));
+        }
+        
         .hero h1 {
             font-size: 4rem;
             margin-bottom: 20px;
@@ -533,7 +550,10 @@
     <div class="container">
         <!-- Hero Section -->
         <section class="hero">
-            <h1>🧜‍♀️ RinaWarp Terminal</h1>
+            <div class="logo">
+                <img src="/assets/rinawarp-icon-final.svg" alt="RinaWarp Terminal" width="120" height="120">
+            </div>
+            <h1>RinaWarp Terminal</h1>
             <p>The AI-Powered Terminal with Voice Control & Mermaid Magic</p>
             <div class="version-badge">✨ v1.1.0 - Now with Live Demos!</div>
         </section>

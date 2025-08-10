@@ -91,9 +91,15 @@
         }
         
         .logo img {
-            width: 200px;
-            height: auto;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 4px 12px rgba(255, 20, 147, 0.3));
+            transition: all 0.3s ease;
+        }
+        
+        .logo img:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 8px 20px rgba(255, 20, 147, 0.5));
         }
         
         .hero h1 {
@@ -516,7 +522,7 @@
         <!-- Hero Section -->
         <section class="hero">
             <div class="logo">
-                <img src="/assets/rinawarp-mermaid-logo-v2.svg" alt="RinaWarp Terminal" width="200" height="60">
+                <img src="/assets/rinawarp-icon-final.svg" alt="RinaWarp Terminal" width="120" height="120">
             </div>
             <h1>Your Terminal Just Got Superpowers 🚀</h1>
             <p>AI-powered terminal that learns your workflow, suggests commands, and automates repetitive tasks. Start free, upgrade when you need team features.</p>
