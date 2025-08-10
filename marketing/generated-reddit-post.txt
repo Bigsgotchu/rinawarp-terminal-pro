@@ -1,0 +1,19 @@
+**[LAUNCH] RinaWarp Terminal - AI-powered terminal with voice commands**
+
+Hey r/programming! 
+
+Just launched my AI terminal app after months of development. It brings voice commands and intelligent automation to your terminal workflow.
+
+**Key features:**
+• Voice-to-command translation
+• Context-aware automation
+• Cross-platform compatibility (macOS, Windows, Linux)
+• Smart project understanding
+
+**Free download:** https://rinawarptech.com
+
+Would love feedback from fellow developers! Any suggestions for features or improvements?
+
+Built this because I was tired of repetitive terminal tasks. RinaWarp understands your intent and helps you work faster.
+
+What do you think? Does this solve a pain point for you?

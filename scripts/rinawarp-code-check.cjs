@@ -95,7 +95,6 @@ const ISSUE_PATTERNS = {
 };
 
 async function findRinaWarpFiles(dir) {
-  // TODO: Review this async function - may need await or try-catch
   const files = [];
 
   try {
@@ -132,7 +131,6 @@ async function findRinaWarpFiles(dir) {
 }
 
 async function checkFile(filePath) {
-  // TODO: Review this async function - may need await or try-catch
   const issues = [];
 
   try {
@@ -205,8 +203,8 @@ async function checkFile(filePath) {
 }
 
 async function main() {
-  // TODO: Review this async function - may need await or try-catch
-  process.env.NODE_ENV !== 'production' && console.log('🔍 RinaWarp Code Quality Check\n');
+  try {
+    process.env.NODE_ENV !== 'production' && console.log('🔍 RinaWarp Code Quality Check\n');
   process.env.NODE_ENV !== 'production' && console.log('Scanning for RinaWarp-specific files...\n');
 
   const rootDir = process.cwd();
@@ -303,6 +301,10 @@ async function main() {
   process.env.NODE_ENV !== 'production' && console.log('3. Remove or guard console.log statements');
   process.env.NODE_ENV !== 'production' && console.log('4. Move secrets to environment variables');
   process.env.NODE_ENV !== 'production' && console.log('5. Add try-catch blocks around SDK calls');
+  } catch (error) {
+    console.error('Code quality check failed:', error.message);
+    process.exit(1);
+  }
 }
 
 main().catch(console.error);

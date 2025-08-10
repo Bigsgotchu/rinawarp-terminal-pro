@@ -1,0 +1,26 @@
+# Mailchimp Custom Fields Setup
+# Copy and paste these into Mailchimp Audience Settings > Audience fields and *|MERGE|* tags
+
+## Contact Info Fields
+COMPANY         | Text Field      | Company name
+JOB_TITLE       | Text Field      | Job title/position
+GITHUB_USER     | Text Field      | GitHub username
+TIMEZONE        | Dropdown        | EST,CST,MST,PST,Other
+
+## Preference Fields  
+CONTACT_TIME    | Dropdown        | Morning,Afternoon,Evening,Flexible
+TECH_LEVEL      | Dropdown        | Beginner,Intermediate,Advanced,Expert
+USE_CASE        | Text Field      | Primary use case for RinaWarp
+
+## Tracking Fields
+REF_SOURCE      | Text Field      | How they heard about us
+LAST_INTERACT   | Date Field      | Last interaction date
+BETA_INTEREST   | Dropdown        | High,Medium,Low,None
+LAUNCH_SUPPORT  | Dropdown        | Yes,No,Maybe
+
+## Merge Tag Usage in Emails
+*|FNAME|*       - First name
+*|COMPANY|*     - Company name
+*|JOB_TITLE|*   - Job title
+*|USE_CASE|*    - Primary use case
+*|TECH_LEVEL|*  - Technical level

@@ -166,9 +166,9 @@
 
 function getUserTier() {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('userTier') || 'free';
+    return localStorage.getItem('userTier') || 'professional'; // Set to professional for development
   }
-  return process.env.USER_TIER || 'free';
+  return process.env.USER_TIER || 'professional'; // Set to professional for development
 }
 
 // Helper Functions

@@ -1,0 +1,30 @@
+# Welcome Series Automation Setup
+
+## Trigger: Someone subscribes to audience
+## Wait: 1 hour after signup
+
+## Email 1: Welcome & Download Link (Send immediately)
+Subject: Welcome to RinaWarp Terminal! 🚀
+- Thank them for subscribing
+- Provide download link
+- Set expectations for future emails
+- Add tag: "status-welcomed"
+
+## Email 2: Getting Started Guide (Wait 2 days)  
+Subject: Your first AI terminal command awaits...
+- Getting started tutorial
+- Feature highlights
+- Community links
+- Add tag: "status-onboarded"
+
+## Email 3: Beta Invitation (Wait 5 days)
+Subject: Ready to shape the future of terminal AI?
+- Invite to beta program
+- Feedback form link
+- Early adopter benefits
+- Add tag: "beta-invited"
+
+## Conditions:
+- Stop if unsubscribed
+- Stop if tagged "beta-participant"
+- Continue only if opened previous email

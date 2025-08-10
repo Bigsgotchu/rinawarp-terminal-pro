@@ -1,0 +1,9 @@
+email,first_name,last_name,source,interest_level,user_type,company,company_size,notes,signup_date,last_contact,job_title,technical_level,primary_use_case
+john.doe@example.com,John,Doe,personal-network,high,developer,TechCorp,startup,Former colleague excited about AI tools,2024-01-15,2024-01-20,Software Engineer,advanced,CI/CD automation
+jane.smith@company.com,Jane,Smith,personal-network,medium,manager,StartupXYZ,small,Engineering manager interested in team productivity,2024-01-18,2024-01-22,Engineering Manager,expert,Team productivity
+alex.johnson@startup.io,Alex,Johnson,existing,high,developer,StartupIO,startup,Open source contributor interested in AI-powered tools,2024-01-12,2024-01-19,Senior Developer,expert,Personal workflow
+sam.wilson@enterprise.com,Sam,Wilson,existing,medium,manager,Enterprise Corp,large,IT Director evaluating developer tools,2024-01-20,2024-01-21,IT Director,intermediate,Team onboarding
+taylor.brown@freelance.com,Taylor,Brown,existing,high,developer,Freelance,individual,Freelance developer and power terminal user,2024-01-16,2024-01-23,Freelance Developer,advanced,Client project efficiency
+mike.johnson@college.edu,Mike,Johnson,personal-network,medium,student,College University,education,College connection studying computer science,2024-01-10,2024-01-15,Student,beginner,Learning development
+sarah.wilson@linkedin.com,Sarah,Wilson,personal-network,low,developer,LinkedInCorp,large,LinkedIn connection showed initial interest,2024-01-12,2024-01-18,Product Manager,intermediate,Product development
+tom.brown@family.com,Tom,Brown,personal-network,high,personal,Family Business,small,Family member supportive of launch,2024-01-08,2024-01-12,Business Owner,beginner,General interest

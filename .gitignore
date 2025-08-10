@@ -637,6 +637,9 @@ stripe-webhook-*
 payment-logs/
 stripe-events.json
 
+# Mailchimp CLI configuration
+.mailchimp-config.json
+
 # User Data
 user-data/
 analytics/raw/

@@ -265,6 +265,56 @@
             100% { transform: translateY(0px) rotate(360deg); }
         }
         
+        /* Organized interface styles */
+        .main-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0 10px;
+        }
+        
+        .advanced-controls {
+            background: rgba(0, 139, 139, 0.15);
+            border-radius: 15px;
+            margin: 10px 0 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 20, 147, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .controls-section {
+            margin-bottom: 20px;
+        }
+        
+        .controls-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .controls-section h4 {
+            color: #FF1493;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-align: center;
+            background: rgba(255, 20, 147, 0.1);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 20, 147, 0.3);
+        }
+        
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .controls-row button {
+            padding: 8px 16px;
+            font-size: 13px;
+            background: linear-gradient(45deg, #00AAFF, #8A2BE2, #FF1493);
+        }
+        
         /* Performance mode - disable animations */
         body.performance-mode * {
             animation: none !important;
@@ -284,13 +334,41 @@
         <div class="status" id="status">Initializing AI-powered terminal...</div>
     </div>
     
-    <div class="controls">
+    <!-- Main Controls -->
+    <div class="main-controls">
         <button onclick="runCommand()">⚡ Quick Command</button>
-        <button onclick="startNaturalLanguageAgent()" id="agentModeBtn">🤖 AI Agent</button>
-        <button onclick="startVoiceControl()" id="voiceControlBtn">🎤 Voice Control <span class="voice-indicator" id="voiceIndicator"></span></button>
         <button onclick="clearTerminal()">🗑️ Clear</button>
-        <button onclick="showAIHelp()">💡 Help</button>
-        <button onclick="window.settingsPanel && window.settingsPanel.toggle()" class="settings-btn">⚙️ Settings</button>
+        <button onclick="toggleAdvancedControls()" id="advancedToggle">🔧 Advanced Tools</button>
+    </div>
+    
+    <!-- Advanced Controls (Initially Hidden) -->
+    <div class="advanced-controls" id="advancedControls" style="display: none;">
+        <div class="controls-section">
+            <h4>🤖 AI Features</h4>
+            <div class="controls-row">
+                <button onclick="startNaturalLanguageAgent()" id="agentModeBtn">🤖 AI Agent</button>
+                <button onclick="startVoiceControl()" id="voiceControlBtn">🎤 Voice Control <span class="voice-indicator" id="voiceIndicator"></span></button>
+                <button onclick="showAIHelp()">💡 AI Help</button>
+            </div>
+        </div>
+        
+        <div class="controls-section">
+            <h4>⚙️ Configuration</h4>
+            <div class="controls-row">
+                <button onclick="window.settingsPanel && window.settingsPanel.toggle()" class="settings-btn">⚙️ Settings</button>
+                <button onclick="showAIConfiguration()">🧠 AI Config</button>
+                <button onclick="configureElevenLabs()">🎤 ElevenLabs</button>
+            </div>
+        </div>
+        
+        <div class="controls-section">
+            <h4>🚀 Features</h4>
+            <div class="controls-row">
+                <button onclick="showFeatures()">✨ Features</button>
+                <button onclick="startConversationalAI()">🗣️ Conversational AI</button>
+                <button onclick="toggleVoiceOutput()">🔊 Voice Output</button>
+            </div>
+        </div>
     </div>
     
     <!-- Natural Language AI Agent Section -->
@@ -323,10 +401,10 @@
     <script src="utilities/addon-fit.js"></script>
     
     <!-- Script deduplication system -->
-    <script src="script-loader.js"></script>
+    <script type="module" src="script-loader.js"></script>
     
     <!-- Error suppression for known harmless warnings -->
-    <script src="error-suppression.js"></script>
+    <script type="module" src="error-suppression.js"></script>
     
     <!-- Terminal wrapper that works without nodeIntegration -->
     <script src="renderer/terminal-wrapper.js"></script>
@@ -385,7 +463,7 @@
         };
     </script>
     
-    <script src="terminal-functions-fix.js"></script>
+    <script type="module" src="terminal-functions-fix.js"></script>
     <script>
         // Terminal modules will be loaded via the preload script
         // Removing direct require() calls as they won't work without nodeIntegration
@@ -890,6 +968,22 @@
         function updateStatus(message) {
             document.getElementById('status').textContent = message;
             console.log('[Status]', message);
+        }
+        
+        // Toggle advanced controls visibility
+        function toggleAdvancedControls() {
+            const controls = document.getElementById('advancedControls');
+            const button = document.getElementById('advancedToggle');
+            
+            if (controls.style.display === 'none') {
+                controls.style.display = 'block';
+                button.textContent = '🔧 Hide Tools';
+                button.style.background = 'linear-gradient(45deg, #FF1493, #00FF88, #8A2BE2)';
+            } else {
+                controls.style.display = 'none';
+                button.textContent = '🔧 Advanced Tools';
+                button.style.background = '';
+            }
         }
         
         let isVoiceOutputEnabled = false;
@@ -2550,6 +2644,29 @@
                     } catch (error) {
                         console.warn('Settings Panel not available:', error);
                     }
+                }
+                
+                // Initialize Enhanced Voice AI Integration
+                try {
+                    const VoiceAIModule = await import('./voice-ai-integration.js');
+                    const { VoiceAIIntegration } = VoiceAIModule;
+                    
+                    // Replace/enhance existing voice system with our new AI-powered one
+                    window.voiceAI = new VoiceAIIntegration();
+                    
+                    // Hook into existing voice control button
+                    const voiceBtn = document.getElementById('voiceControlBtn');
+                    if (voiceBtn) {
+                        voiceBtn.onclick = () => window.voiceAI.toggleVoiceRecognition();
+                        voiceBtn.title = 'Voice AI (Ctrl+Shift+V) - Say "Hey Rina" + command';
+                    }
+                    
+                    console.log('✅ Enhanced Voice AI Integration initialized');
+                    updateStatus('🎤 Voice AI ready - say "Hey Rina" to start');
+                    
+                } catch (error) {
+                    console.warn('Voice AI Integration not available:', error);
+                    updateStatus('⚠️ Voice AI unavailable - check console for details');
                 }
                 
                 updateStatus('✅ All terminal features initialized successfully');

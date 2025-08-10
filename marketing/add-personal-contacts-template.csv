@@ -1,0 +1,5 @@
+email,first_name,last_name,source,interest_level,user_type,company_size
+friend1@example.com,Friend,One,personal-network,high,developer,startup
+colleague@example.com,Former,Colleague,personal-network,high,developer,medium
+family@example.com,Family,Member,personal-network,medium,personal,small
+linkedin@example.com,LinkedIn,Connection,personal-network,medium,manager,large

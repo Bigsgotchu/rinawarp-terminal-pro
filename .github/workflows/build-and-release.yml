@@ -55,6 +55,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI: true
           
       - name: List build outputs
         run: ls -la dist/
@@ -64,13 +65,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-build
-          path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.zip
-            dist/*.AppImage
-            dist/*.tar.gz
+          path: dist/
           retention-days: 30
+        if: always()
           
   package-releases:
     name: Package Releases

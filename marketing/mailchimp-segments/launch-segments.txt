@@ -1,0 +1,25 @@
+# Mailchimp Segment Definitions for Launch Campaign
+
+## VIP Early Supporters
+Conditions: (Tag contains "source-existing" OR Tag contains "interest-high") 
+          AND (Tag contains "type-developer" OR Tag contains "type-manager")
+
+## Personal Network  
+Conditions: Tag contains "source-personal-network"
+
+## Developer Prospects
+Conditions: Tag contains "type-developer" 
+          AND (Tag contains "source-github" OR Tag contains "source-reddit" OR Tag contains "source-discord")
+
+## Enterprise Leads
+Conditions: (Tag contains "type-manager" OR Tag contains "type-enterprise")
+          AND (Tag contains "company-medium" OR Tag contains "company-large")
+
+## Beta Interested
+Conditions: Custom Field "BETA_INTEREST" is "High" OR Tag contains "beta-participant"
+
+## High Engagement
+Conditions: Tag contains "engaged-high" OR Tag contains "launch-supporter"
+
+## Re-engagement Needed
+Conditions: Tag contains "engaged-low" AND Signup Date is before 30 days ago
