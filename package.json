@@ -341,8 +341,7 @@
   },
   "overrides": {
     "rimraf": "^4.4.1",
-    "glob": "^11.0.3",
-    "@npmcli/move-file": "@npmcli/fs"
+    "glob": "^11.0.3"
   },
   "lint-staged": {
     "*.{js,cjs,jsx,ts,tsx}": [
