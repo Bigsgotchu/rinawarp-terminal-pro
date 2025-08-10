@@ -27,7 +27,7 @@ jobs:
         cache: 'npm'
 
     - name: 📥 Install dependencies
-      run: npm ci
+      run: npm ci --omit=optional
 
     - name: 🔍 Lint code
       run: npm run lint
@@ -58,7 +58,7 @@ jobs:
         cache: 'npm'
 
     - name: 📥 Install dependencies
-      run: npm ci
+      run: npm ci --omit=optional
 
     - name: 🏗️ Build project
       run: npm run build
@@ -85,7 +85,7 @@ jobs:
         cache: 'npm'
 
     - name: 📥 Install dependencies
-      run: npm ci
+      run: npm ci --omit=optional
 
     - name: 🔍 Run security audit
       run: npm audit --audit-level moderate
@@ -117,7 +117,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
 
     - name: 📥 Install dependencies
-      run: npm ci
+      run: npm ci --omit=optional
 
     - name: 🏗️ Build for release
       run: npm run build
@@ -180,7 +180,12 @@ jobs:
         cache: 'npm'
 
     - name: 📥 Install dependencies
-      run: npm ci
+      run: |
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          npm ci
+        else
+          npm ci --omit=optional
+        fi
 
     - name: 🏗️ Build executable
       run: |
