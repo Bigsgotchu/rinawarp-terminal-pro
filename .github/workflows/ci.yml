@@ -60,7 +60,7 @@ jobs:
       - name: 🔧 Install Dependencies
         continue-on-error: true
         run: |
-          npm ci --prefer-offline --no-audit || echo "Dependency install failed - continuing"
+          npm ci --prefer-offline --no-audit --omit=optional || echo "Dependency install failed - continuing"
         env:
           NODE_ENV: production
 
@@ -170,7 +170,12 @@ jobs:
 
       - name: 🔧 Install Dependencies
         continue-on-error: true
-        run: npm ci --prefer-offline --no-audit || echo "Dependency install failed - continuing"
+        run: |
+          if [ "${{ matrix.platform }}" = "mac" ]; then
+            npm ci --prefer-offline --no-audit || echo "Dependency install failed - continuing"
+          else
+            npm ci --prefer-offline --no-audit --omit=optional || echo "Dependency install failed - continuing"
+          fi
 
       - name: 🛠️ Set up build environment
         shell: bash

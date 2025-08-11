@@ -196,7 +196,7 @@
     "clean:smart:dry": "node scripts/smart-file-manager.cjs --dry-run --verbose",
     "clean:smart:interactive": "node scripts/smart-file-manager.cjs --interactive --verbose",
     "clean:smart:watch": "node scripts/smart-file-manager.cjs --verbose",
-    "clean:all": "npm run clean:smart && node scripts/cleanup-old-files.js",
+    "clean:all": "npm run clean:smart && node scripts/cleanup-old-files.cjs",
     "testimonials:init": "node scripts/testimonial-manager.cjs init",
     "testimonials:pending": "node scripts/testimonial-manager.cjs list-pending",
     "testimonials:approve": "node scripts/testimonial-manager.cjs approve",
@@ -284,7 +284,6 @@
     "css-minimizer-webpack-plugin": "7.0.2",
     "csv-parser": "3.2.0",
     "csv-writer": "1.6.0",
-    "dmg-license": "1.0.11",
     "electron": "37.2.6",
     "electron-builder": "26.0.12",
     "electron-builder-squirrel-windows": "26.0.12",
@@ -292,6 +291,7 @@
     "eslint": "9.32.0",
     "eslint-formatter-compact": "8.40.0",
     "express-rate-limit": "8.0.1",
+    "facebook-nodejs-business-sdk": "23.0.1",
     "helmet": "8.1.0",
     "html-webpack-plugin": "5.6.3",
     "jest": "30.0.5",
@@ -332,7 +332,9 @@
     "winston": "3.17.0",
     "ws": "8.18.3"
   },
-  "optionalDependencies": {},
+  "optionalDependencies": {
+    "dmg-license": "1.0.11"
+  },
   "overrides": {
     "rimraf": "^4.4.1",
     "glob": "^11.0.3"

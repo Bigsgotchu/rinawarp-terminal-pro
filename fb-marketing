@@ -1,0 +1,4 @@
+#!/bin/bash
+# Facebook Marketing CLI wrapper
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+node "$DIR/facebook-marketing-cli.cjs" "$@"

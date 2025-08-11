@@ -512,6 +512,8 @@ import paymentsRouter from './backend/routes/payments.js';
 import backendAnalyticsRouter from './backend/routes/analytics.js';
 // Import new production authentication routes
 import productionAuthRouter from './src/routes/auth.js';
+// Import AI router with CLI support
+import aiRouter from './src/api/ai.js';
 // Routes
 app.use('/api/status', statusRouter);
 app.use('/api/download', downloadRouter);
@@ -522,7 +524,8 @@ app.use('/api/marketing', marketingRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/support', supportRouter);
 app.use('/api/admin', requireAdmin, adminRouter);
-app.use('/api/ai', agentChatAPI.getRouter());
+app.use('/api/ai', aiRouter);
+app.use('/api/agent', agentChatAPI.getRouter());
 app.use('/api/csp-report', cspReportRouter);
 // Enhanced Stripe router with robust error handling
 app.use('/api/stripe', stripeEnhancedRouter);
