@@ -660,3 +660,11 @@ backup-*
 # OS Files
 .DS_Store
 Thumbs.db
+
+
+# Build and cache directories
+.cache/**
+node_modules/.cache/
+.webpack/
+.nyc_output/
+.jest/

@@ -159,10 +159,10 @@
     "test:quick": "jest --passWithNoTests --maxWorkers=2",
     "test:ci": "jest --passWithNoTests --maxWorkers=2 --ci || echo 'Tests have known issues, continuing build'",
     "test:voice": "jest tests/integration/fallback-behavior.test.js",
-    "test:cache": "jest tests/integration/cache-expiration.test.js",
+    "test:cache": "jest --cache --cacheDirectory=.cache/jest",
     "lint": "eslint . --ext .js,.ts,.cjs --fix && prettier --write . --ignore-unknown",
     "copy-assets": "node scripts/copy-assets.cjs",
-    "build:web": "webpack --mode=production",
+    "build:web": "NODE_OPTIONS=\"--max-old-space-size=4096\" webpack --mode=production --cache-type filesystem",
     "build:linux": "npm run copy-assets && electron-builder --linux --publish=never",
     "build:mac": "npm run copy-assets && electron-builder --mac --publish=never",
     "build:windows": "npm run copy-assets && electron-builder --win --publish=never",
@@ -230,7 +230,13 @@
     "test:cli-ai": "node scripts/test-cli-ai.cjs",
     "start:backend": "cd src/backend && npm start",
     "dev:backend": "cd src/backend && npm run dev",
-    "install:backend": "cd src/backend && npm install"
+    "install:backend": "cd src/backend && npm install",
+    "cache:clear": "rm -rf .cache && npm run cache:create",
+    "cache:create": "mkdir -p .cache/{npm,webpack,electron-rebuild,assets,jest,tsc}",
+    "cache:info": "du -sh .cache/* 2>/dev/null || echo \"Cache directories not found\"",
+    "cache:analyze": "node scripts/analyze-cache.js",
+    "install:cache": "npm ci --cache .cache/npm --prefer-offline",
+    "build:cache": "npm run copy-assets && NODE_OPTIONS=\"--max-old-space-size=4096\" webpack --cache-type filesystem"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
