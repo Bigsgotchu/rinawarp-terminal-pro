@@ -165,7 +165,7 @@ jobs:
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: 🔧 Install Dependencies
@@ -174,7 +174,10 @@ jobs:
           if [ "${{ matrix.platform }}" = "mac" ]; then
             npm ci --prefer-offline --no-audit || echo "Dependency install failed - continuing"
           else
+            # Install dependencies excluding optional (platform-specific) packages
             npm ci --prefer-offline --no-audit --omit=optional || echo "Dependency install failed - continuing"
+            # Ensure electron-builder is available for builds
+            npm install electron-builder --no-save || echo "electron-builder install failed - continuing"
           fi
 
       - name: 🛠️ Set up build environment
