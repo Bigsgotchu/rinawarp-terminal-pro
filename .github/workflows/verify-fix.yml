@@ -57,7 +57,15 @@ jobs:
       - name: ✅ Validate package.json
         run: |
           echo "📝 Validating package.json schema..."
-          node -e "import fs from 'fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); if (!pkg.name || !pkg.version) throw new Error('Missing name or version'); console.log('✅ package.json is valid');"
+          # Create a temporary CommonJS validation script
+          cat > validate-pkg.cjs << 'EOF'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json'));
+          if (!pkg.name || !pkg.version) throw new Error('Missing name or version');
+          console.log('✅ package.json is valid');
+          EOF
+          node validate-pkg.cjs
+          rm validate-pkg.cjs
           
       - name: 🔍 Workflow YAML Validation
         run: |
@@ -79,10 +87,22 @@ jobs:
         run: |
           echo "✅ RinaWarp Terminal Enterprise"
           echo "🌊 GitHub Actions is working!"
-          echo "📦 Package: $(node -e "import fs from 'fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); console.log(pkg.name)")"
-          echo "🏷️ Version: $(node -e "import fs from 'fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); console.log(pkg.version)")"
+          # Create temporary scripts for package info
+          cat > get-name.cjs << 'EOF'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json'));
+          console.log(pkg.name);
+          EOF
+          cat > get-version.cjs << 'EOF'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json'));
+          console.log(pkg.version);
+          EOF
+          echo "📦 Package: $(node get-name.cjs)"
+          echo "🏷️ Version: $(node get-version.cjs)"
           echo "📋 Node.js version: $(node --version)"
           echo "📊 npm version: $(npm --version)"
+          rm get-name.cjs get-version.cjs
           
       - name: 🧜‍♀️ Success Report
         run: |
