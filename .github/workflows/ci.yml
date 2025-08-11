@@ -135,6 +135,7 @@ jobs:
   build:
     name: 🏗️ Build Multi-Platform
     strategy:
+      fail-fast: false  # Allow other builds to continue if one fails
       matrix:
         include:
           - os: macos-latest
@@ -170,7 +171,11 @@ jobs:
 
       - name: 🔧 Install Dependencies
         continue-on-error: true
+        shell: bash
         run: |
+          echo "📝 Platform: ${{ matrix.platform }}"
+          echo "📝 OS: ${{ matrix.os }}"
+          
           if [ "${{ matrix.platform }}" = "mac" ]; then
             npm ci --prefer-offline --no-audit || echo "Dependency install failed - continuing"
           else
@@ -178,6 +183,12 @@ jobs:
             npm ci --prefer-offline --no-audit --omit=optional || echo "Dependency install failed - continuing"
             # Ensure electron-builder is available for builds
             npm install electron-builder --no-save || echo "electron-builder install failed - continuing"
+            
+            # Debug: Check if electron-builder is available
+            echo "📝 Checking electron-builder installation..."
+            which electron-builder || echo "electron-builder not in PATH"
+            npx electron-builder --version || echo "electron-builder version check failed"
+            ls -la node_modules/.bin/ | grep electron || echo "electron binaries not found"
           fi
 
       - name: 🛠️ Set up build environment
@@ -197,23 +208,44 @@ jobs:
           sudo apt-get install -y xvfb
 
       - name: 📁 Copy Assets
+        shell: bash
         run: npm run copy-assets || echo "Asset copy failed - continuing"
         continue-on-error: true
 
       - name: 🧪 Run tests (skip if failing)
+        shell: bash
         run: npm test || echo "Tests completed with warnings"
         continue-on-error: true
 
       - name: ${{ matrix.emoji }} Build ${{ matrix.platform }} Application
         shell: bash
         run: |
+          echo "📝 Starting ${{ matrix.platform }} build..."
+          echo "📝 Build command: ${{ matrix.build_command }}"
+          echo "📝 Working directory: $(pwd)"
+          echo "📝 Node version: $(node --version)"
+          echo "📝 NPM version: $(npm --version)"
+          
+          # Check for required files
+          echo "📝 Checking required files..."
+          ls -la src/main.cjs || echo "main.cjs not found"
+          ls -la package.json || echo "package.json not found"
+          
+          # Check electron-builder availability again
+          echo "📝 Final electron-builder check..."
+          npx electron-builder --help | head -5 || echo "electron-builder help failed"
+          
+          # Run the actual build
           if [ "${{ matrix.platform }}" = "linux" ]; then
+            echo "🐧 Running Linux build with xvfb..."
             xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' ${{ matrix.build_command }}
           else
+            echo "🍎🪟 Running ${{ matrix.platform }} build..."
             ${{ matrix.build_command }}
           fi
         env:
           NODE_ENV: production
+        continue-on-error: false  # Let build failures be explicit
 
       - name: 🔍 List build artifacts
         shell: bash
