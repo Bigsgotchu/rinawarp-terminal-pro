@@ -83,6 +83,7 @@
                     <button class="menu-btn" id="sessions-btn" title="Sessions">📂</button>
                     <button class="menu-btn" id="cloud-sync-btn" title="Cloud Sync">☁️</button>
                     <button class="menu-btn" id="theme-quick-btn" title="Switch to Mermaid Theme">🧜‍♀️</button>
+                    <button class="menu-btn" id="command-builder-btn" title="Visual Command Builder (Ctrl+Shift+B)">🔨</button>
                     <button class="menu-btn" id="settings-btn" title="Settings">⚙️</button>
                 </div>
                 <div class="title-bar-controls">
@@ -664,6 +665,19 @@
     <!-- Load AI integration first -->
     <script type="module" src="../ai-integration.js"></script>
     
+    <!-- Contextual Tips System -->
+    <link rel="stylesheet" href="./styles/contextual-tips.css">
+    <script type="module" src="./contextual-tips-system.js"></script>
+    <script type="module" src="./terminal-tips-integration.js"></script>
+    
+    <!-- Visual Command Builder System 🧜‍♀️ -->
+    <link rel="stylesheet" href="./visual-command-builder.css">
+    <script type="module" src="./visual-command-builder.js"></script>
+    <script type="module" src="./command-builder-integration.js"></script>
+    <script src="./command-builder-titlebar-integration.js"></script>
+    
+    <!-- Command Builder Analytics System 📊 -->
+    <script type="module" src="./command-builder-analytics.js"></script>
     
     <!-- Load advanced features first as modules -->
     <script type="module" src="ai-context-engine.js"></script>
