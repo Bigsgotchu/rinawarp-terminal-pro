@@ -1,0 +1,16 @@
+{
+  "name": "RinaWarp Terminal",
+  "hostname": "{{RAILWAY_HOSTNAME}}",
+  "resolution": 5,
+  "type": "http",
+  "url": "/api/health",
+  "port": 443,
+  "encryption": true,
+  "shouldcontain": "\"status\":\"healthy\"",
+  "tags": [
+    "production",
+    "rinawarp",
+    "terminal"
+  ],
+  "integrationids": "{{INTEGRATION_IDS}}"
+}

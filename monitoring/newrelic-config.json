@@ -1,0 +1,14 @@
+{
+  "name": "RinaWarp Terminal Synthetic Monitor",
+  "type": "SIMPLE",
+  "frequency": 5,
+  "locations": [
+    "AWS_US_EAST_1",
+    "AWS_EU_WEST_1",
+    "AWS_AP_SOUTHEAST_1"
+  ],
+  "status": "ENABLED",
+  "uri": "{{RAILWAY_URL}}/api/health",
+  "validation_string": "\"status\":\"healthy\"",
+  "verify_ssl": true
+}

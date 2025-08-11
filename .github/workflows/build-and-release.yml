@@ -42,6 +42,30 @@ jobs:
           node-version: '20'
           cache: 'npm'
           
+      
+      # Cache dependencies and build artifacts
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            .cache
+            node_modules
+            dist
+          key: ${{ runner.os }}-cache-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('webpack.config.js') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-cache-
+
+      # Cache Electron binaries
+      - name: Cache Electron
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/electron
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
       - name: Install dependencies
         run: |
           # Handle platform-specific dependencies

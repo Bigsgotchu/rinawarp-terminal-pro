@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import webpack from 'webpack';
 import { fileURLToPath } from 'url';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -19,6 +20,21 @@ const isAnalyze = process.env.ANALYZE === 'true';
 
 export default {
   mode: isProd ? 'production' : 'development',
+  // Build cache configuration for faster builds
+  cache: {
+    type: 'filesystem',
+    cacheDirectory: path.resolve(__dirname, '.cache/webpack'),
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    compression: 'gzip',
+    buildDependencies: {
+      config: [__filename],
+      tsconfig: [path.resolve(__dirname, 'tsconfig.json')].filter(f => fs.existsSync(f))
+    },
+    managedPaths: [
+      path.resolve(__dirname, 'node_modules'),
+      path.resolve(__dirname, 'src')
+    ]
+  },
   
   // Simplified entry point configuration
   entry: {
