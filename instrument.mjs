@@ -17,6 +17,17 @@ try {
     // Performance monitoring
     profilesSampleRate: 1.0,
     
+    // Integrations
+    integrations: [
+      // Default integrations
+      ...Sentry.getDefaultIntegrations(),
+      // Add OpenAI integration for AI monitoring
+      Sentry.openAIIntegration({
+        recordInputs: true,
+        recordOutputs: true,
+      }),
+    ],
+    
     // Error filtering
     beforeSend(event, hint) {
       // Filter out development errors in production

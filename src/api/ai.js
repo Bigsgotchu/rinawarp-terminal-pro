@@ -14,7 +14,11 @@ import rateLimit from 'express-rate-limit';
 import Joi from 'joi';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { AIProviderFactory } from '../renderer/ai-providers.js';
-import { getCommandPrediction, explainCommand, getWorkflowAutomation } from '../ai/openaiClient.js';
+import {
+  getCommandPrediction,
+  explainCommand,
+  getWorkflowAutomation,
+} from '../ai-system/openaiClient.js';
 import { cliAIHandler } from './cli-ai-handler.js';
 
 const router = Router();
@@ -154,7 +158,7 @@ const providerConfigSchema = Joi.object({
   provider: Joi.string().valid('openai', 'anthropic', 'custom').required(),
   apiKey: Joi.string().when('provider', {
     is: Joi.string().valid('openai', 'anthropic'),
-    then: Joi.required().min(10),
+    then: Joi.string().required().min(10),
   }),
   config: Joi.object().when('provider', {
     is: 'custom',

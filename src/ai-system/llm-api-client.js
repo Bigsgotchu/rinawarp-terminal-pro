@@ -36,8 +36,8 @@ class LLMAPIClient {
       },
       google: {
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
-        defaultModel: 'gemini-pro',
-        endpoint: '/models/gemini-pro:generateContent',
+        defaultModel: 'gemini-1.5-pro-latest',
+        endpoint: '/models/gemini-1.5-pro-latest:generateContent',
       },
       ollama: {
         baseUrl: 'http://localhost:11434',
@@ -104,8 +104,12 @@ class LLMAPIClient {
         console.warn('Could not load API keys via IPC:', error);
       }
     } else if (typeof process !== 'undefined' && process.env) {
-      // Node.js context
-      if (process.env.ANTHROPIC_API_KEY) {
+      // Node.js context - check in order of preference
+      if (process.env.GOOGLE_AI_API_KEY) {
+        this.config.apiKey = process.env.GOOGLE_AI_API_KEY;
+        this.config.provider = 'google';
+        logger.debug('✅ Loaded Google AI API key from environment');
+      } else if (process.env.ANTHROPIC_API_KEY) {
         this.config.apiKey = process.env.ANTHROPIC_API_KEY;
         this.config.provider = 'anthropic';
       } else if (process.env.OPENAI_API_KEY) {

@@ -1,0 +1,411 @@
+/**
+ * RinaWarp Terminal - Contextual Tips System Styles 🧜‍♀️
+ * Beautiful mermaid-themed styling for the contextual tips
+ */
+
+/* Tips Container */
+.rina-tips-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+/* Individual Tip Notification */
+.rina-tip-notification {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 20, 147, 0.95) 0%,
+    rgba(0, 255, 255, 0.9) 50%,
+    rgba(138, 43, 226, 0.95) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  margin-bottom: 15px;
+  box-shadow:
+    0 8px 32px rgba(255, 20, 147, 0.4),
+    0 0 20px rgba(0, 255, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: all;
+  position: relative;
+  overflow: hidden;
+}
+
+.rina-tip-notification::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.rina-tip-notification.tip-visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.rina-tip-notification.tip-dismissing {
+  transform: translateX(120%) scale(0.8);
+  opacity: 0;
+}
+
+/* Tip Content */
+.tip-content {
+  padding: 20px;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+.tip-message {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.tip-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tip-action-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 8px 16px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.tip-action-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.tip-action-btn:active {
+  transform: translateY(0) scale(1.02);
+}
+
+.tip-learn-more {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 229, 255, 0.2));
+  border-color: rgba(0, 255, 255, 0.5);
+}
+
+.tip-learn-more:hover {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.5), rgba(0, 229, 255, 0.4));
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+}
+
+.tip-dismiss {
+  background: linear-gradient(135deg, rgba(255, 20, 147, 0.3), rgba(255, 69, 180, 0.2));
+  border-color: rgba(255, 20, 147, 0.5);
+}
+
+.tip-dismiss:hover {
+  background: linear-gradient(135deg, rgba(255, 20, 147, 0.5), rgba(255, 69, 180, 0.4));
+  box-shadow: 0 4px 15px rgba(255, 20, 147, 0.3);
+}
+
+/* Help Modal */
+.rina-help-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(5px);
+  }
+}
+
+.help-modal-content {
+  background: linear-gradient(135deg, #0a0b1e 0%, #1a0b3d 50%, #2d1b69 100%);
+  border: 2px solid #ff1493;
+  border-radius: 20px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(255, 20, 147, 0.4),
+    0 0 40px rgba(0, 255, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Header */
+.help-header {
+  background: linear-gradient(135deg, rgba(255, 20, 147, 0.8), rgba(0, 255, 255, 0.6));
+  padding: 20px 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.help-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.help-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.help-close:hover {
+  background: rgba(255, 20, 147, 0.6);
+  transform: scale(1.1);
+}
+
+/* Modal Body */
+.help-body {
+  padding: 25px;
+  color: #ffffff;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.help-body h4 {
+  color: #00ffff;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.help-body p {
+  margin: 0 0 15px 0;
+  line-height: 1.6;
+  color: #e0e0e0;
+}
+
+.help-body ul {
+  margin: 15px 0;
+  padding-left: 20px;
+}
+
+.help-body li {
+  margin: 8px 0;
+  color: #e0e0e0;
+}
+
+.help-body code {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+  color: #00ff88;
+}
+
+/* Modal Actions */
+.help-actions {
+  padding: 20px 25px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.help-action-btn {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 20, 147, 0.3));
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  padding: 12px 24px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.help-action-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.5), rgba(255, 20, 147, 0.5));
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 255, 255, 0.3);
+}
+
+/* Scrollbar for modal content */
+.help-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.help-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.help-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ff1493, #00ffff);
+  border-radius: 4px;
+}
+
+.help-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #ff69b4, #20b2aa);
+}
+
+/* Priority-based styling */
+.rina-tip-notification[data-priority='10'] {
+  border-color: #ffd700;
+  box-shadow:
+    0 8px 32px rgba(255, 215, 0, 0.4),
+    0 0 20px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.rina-tip-notification[data-priority='10']::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .rina-tips-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .rina-tip-notification {
+    margin-bottom: 10px;
+  }
+
+  .tip-content {
+    padding: 15px;
+  }
+
+  .tip-message {
+    font-size: 13px;
+  }
+
+  .tip-actions {
+    gap: 8px;
+  }
+
+  .tip-action-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .help-modal-content {
+    margin: 10px;
+    max-height: 90vh;
+  }
+
+  .help-body {
+    padding: 15px;
+    max-height: 50vh;
+  }
+
+  .help-actions {
+    padding: 15px;
+    flex-direction: column;
+  }
+
+  .help-action-btn {
+    width: 100%;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .help-body {
+    color: #f0f0f0;
+  }
+
+  .help-body p {
+    color: #d0d0d0;
+  }
+
+  .help-body li {
+    color: #d0d0d0;
+  }
+}
+
+/* Animation for high priority tips */
+.rina-tip-notification[data-priority='10'] {
+  animation: priorityPulse 2s ease-in-out infinite;
+}
+
+@keyframes priorityPulse {
+  0%,
+  100% {
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    transform: translateX(0) scale(1.02);
+  }
+}
