@@ -170,26 +170,32 @@ jobs:
           cache: 'npm'
 
       - name: 🔧 Install Dependencies
-        continue-on-error: true
         shell: bash
         run: |
           echo "📝 Platform: ${{ matrix.platform }}"
           echo "📝 OS: ${{ matrix.os }}"
           
+          # Always do a fresh install to avoid package-lock sync issues
           if [ "${{ matrix.platform }}" = "mac" ]; then
+            echo "🍎 Installing macOS dependencies (including optional)..."
+            npm install --prefer-offline --no-audit || echo "Full install failed, trying npm ci..."
             npm ci --prefer-offline --no-audit || echo "Dependency install failed - continuing"
           else
+            echo "🐧🪟 Installing non-macOS dependencies..."
             # Install dependencies excluding optional (platform-specific) packages
-            npm ci --prefer-offline --no-audit --omit=optional || echo "Dependency install failed - continuing"
+            npm ci --prefer-offline --no-audit --omit=optional || {
+              echo "npm ci failed, trying npm install..."
+              npm install --prefer-offline --no-audit --omit=optional || echo "Install failed - continuing"
+            }
             # Ensure electron-builder is available for builds
             npm install electron-builder --no-save || echo "electron-builder install failed - continuing"
-            
-            # Debug: Check if electron-builder is available
-            echo "📝 Checking electron-builder installation..."
-            which electron-builder || echo "electron-builder not in PATH"
-            npx electron-builder --version || echo "electron-builder version check failed"
-            ls -la node_modules/.bin/ | grep electron || echo "electron binaries not found"
           fi
+          
+          # Debug: Check if electron-builder is available
+          echo "📝 Checking electron-builder installation..."
+          which electron-builder || echo "electron-builder not in PATH"
+          ./node_modules/.bin/electron-builder --version || echo "electron-builder version check failed"
+          ls -la node_modules/.bin/ | grep electron || echo "electron binaries not found"
 
       - name: 🛠️ Set up build environment
         shell: bash
@@ -233,15 +239,18 @@ jobs:
           
           # Check electron-builder availability again
           echo "📝 Final electron-builder check..."
-          npx electron-builder --help | head -5 || echo "electron-builder help failed"
+          ./node_modules/.bin/electron-builder --help | head -5 || npx electron-builder --help | head -5 || echo "electron-builder help failed"
           
-          # Run the actual build
+          # Run the actual build using explicit path
           if [ "${{ matrix.platform }}" = "linux" ]; then
             echo "🐧 Running Linux build with xvfb..."
-            xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' ${{ matrix.build_command }}
+            xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' ./node_modules/.bin/electron-builder --linux tar.gz --publish=never
+          elif [ "${{ matrix.platform }}" = "mac" ]; then
+            echo "🍎 Running macOS build..."
+            ./node_modules/.bin/electron-builder --mac --publish=never || npx electron-builder --mac --publish=never
           else
-            echo "🍎🪟 Running ${{ matrix.platform }} build..."
-            ${{ matrix.build_command }}
+            echo "🪟 Running Windows build..."
+            ./node_modules/.bin/electron-builder --win --publish=never || npx electron-builder --win --publish=never
           fi
         env:
           NODE_ENV: production
