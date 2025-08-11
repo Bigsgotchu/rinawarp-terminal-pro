@@ -272,7 +272,7 @@
     "better-sqlite3": "11.10.0",
     "buffer": "6.0.3",
     "chalk": "5.5.0",
-    "clean-webpack-plugin": "4.0.0",
+    "clean-webpack-plugin": "^4.0.0",
     "commander": "14.0.0",
     "conventional-changelog-cli": "5.0.0",
     "convo-sdk": "1.0.47",
@@ -337,7 +337,9 @@
   },
   "overrides": {
     "rimraf": "^4.4.1",
-    "glob": "^11.0.3"
+    "glob": "^11.0.3",
+    "globby": "^14.0.0",
+    "del": "^7.0.0"
   },
   "lint-staged": {
     "*.{js,cjs,jsx,ts,tsx}": [
