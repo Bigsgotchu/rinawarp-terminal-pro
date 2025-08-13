@@ -2741,16 +2741,7 @@ app.get('/terminal', (req, res) => {
   res.sendFile(terminalPath);
 });
 
-// Default route to marketing page
-app.get('/', (req, res) => {
-  const marketingPath = path.join(_PUBLIC_DIR, 'index.html');
-  if (!fs.existsSync(marketingPath)) {
-    return res.status(404).json({ error: 'Marketing page not found' });
-  }
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.sendFile(marketingPath);
-});
+// Removed duplicate route - homepage already handled above
 // Note: Removed catch-all static file server to prevent conflicts with API routes
 // Static files are now served via express.static middleware and specific routes
 // Sentry error handler - must be before other error handlers (conditional)
