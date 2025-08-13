@@ -3,7 +3,7 @@
 ## Incident Details
 - **Date:** August 13, 2025
 - **Issue:** Google Cloud API key exposed in public GitHub repository
-- **Compromised Key:** `AIzaSyAx4RY1Hw_5WFTbB-qpOHwk0bncKJm1m6o`
+- **Compromised Key:** `{{REDACTED_API_KEY}}`
 - **Exposure Location:** `temp-build/universal/src/firebase-config.js` in commit `e83b852`
 - **Repository:** https://github.com/Bigsgotchu/rinawarp-terminal-pro
 
@@ -20,7 +20,7 @@
 ### Google Cloud Console (YOU MUST DO THIS NOW)
 - [ ] **Log into Google Cloud Console** - https://console.cloud.google.com/
 - [ ] **Navigate to Credentials** - APIs & Credentials → Credentials
-- [ ] **Find Compromised Key** - Search for `AIzaSyAx4RY1Hw_5WFTbB-qpOHwk0bncKJm1m6o`
+- [ ] **Find Compromised Key** - Search for `{{REDACTED_API_KEY}}`
 - [ ] **Regenerate Key** - Click "Regenerate Key" to create new key
 - [ ] **Add Restrictions** - Set domain restrictions, API restrictions, etc.
 - [ ] **Update Applications** - Replace old key with new key in your apps

@@ -14,9 +14,9 @@ Since the Railway CLI is having connectivity issues, please add these environmen
 
 ```bash
 # Stripe API Keys
-STRIPE_SECRET_KEY=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
-STRIPE_PUBLISHABLE_KEY=pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj
-STRIPE_WEBHOOK_SECRET=whsec_wM1hTCGUD13jr8zsPdYOCbptueYUlHbh
+STRIPE_SECRET_KEY={{REDACTED_SECRET}}
+STRIPE_PUBLISHABLE_KEY={{REDACTED_SECRET}}
+STRIPE_WEBHOOK_SECRET={{REDACTED_SECRET}}
 
 # Main Price IDs (used by /api/stripe-config)
 STRIPE_PRICE_ID=price_1RayttG2ToGP7Chn6ectv20s
@@ -34,7 +34,7 @@ STRIPE_PRICE_PREMIUM=price_1Rk9fCG2ToGP7ChnocLnwjie
 
 ```bash
 # SendGrid Configuration
-SENDGRID_API_KEY=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
+SENDGRID_API_KEY={{REDACTED_SECRET}}
 SENDGRID_FROM_EMAIL=noreply@rinawarptech.com
 
 # SMTP Backup Configuration

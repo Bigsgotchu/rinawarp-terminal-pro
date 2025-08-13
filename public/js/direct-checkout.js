@@ -5,7 +5,7 @@
 
 // Production Stripe Configuration
 const STRIPE_CONFIG = {
-  publishableKey: 'pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj',
+  publishableKey: '{{REDACTED_SECRET}}',
   
   // Working Stripe Payment Links (bypasses need for backend)
   paymentLinks: {

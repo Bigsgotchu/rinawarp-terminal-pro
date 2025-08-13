@@ -4,11 +4,11 @@
 export const STRIPE_CONFIG = {
   // Test mode keys (for development)
   testPublishableKey:
-    'pk_test_51RaxSiG2ToGP7ChnAm08sYNZkNR5Qss4783CcXajvK5VOmXnprbk8boIRUbaOuDijB3yC5xW7TI1wOcTfPFhyXhW006hIBuNpG',
+    '{{REDACTED_SECRET}}',
 
   // Live mode keys (for production)
   livePublishableKey:
-    'pk_live_51RaxSiG2ToGP7Chntmrt8SEr2jO7MxKH6Y6XtFS4MttiPvE5DkQ67aNNzjfnhn9J4SPKRVW0qCIqHF2OjO9T04Vr00qtnxd5Qj',
+    '{{REDACTED_SECRET}}',
 
   // Monthly subscription prices
   prices: {

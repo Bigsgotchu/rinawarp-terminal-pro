@@ -237,7 +237,22 @@
     "cache:info": "du -sh .cache/* 2>/dev/null || echo \"Cache directories not found\"",
     "cache:analyze": "node scripts/analyze-cache.js",
     "install:cache": "npm ci --cache .cache/npm --prefer-offline",
-    "build:cache": "npm run copy-assets && NODE_OPTIONS=\"--max-old-space-size=4096\" webpack --cache-type filesystem"
+    "build:cache": "npm run copy-assets && NODE_OPTIONS=\"--max-old-space-size=4096\" webpack --cache-type filesystem",
+    "seo:optimize": "node scripts/seo-automation.js",
+    "seo:audit": "node scripts/seo-automation.js --audit-only",
+    "otto:install": "node scripts/install-otto-pixel.js",
+    "otto:check": "node scripts/install-otto-pixel.js --check-only",
+    "otto:help": "node scripts/install-otto-pixel.js --help",
+    "otto:cli": "node bin/otto-cli.js",
+    "otto:demo": "node bin/otto-cli.js demo",
+    "otto:status": "node bin/otto-cli.js check",
+    "otto:update": "node bin/otto-update.js",
+    "fix:scan": "node bin/fix-cli.js scan",
+    "fix:all": "node bin/fix-cli.js all",
+    "fix:lint": "node bin/fix-cli.js lint",
+    "fix:otto": "node bin/fix-cli.js otto",
+    "fix:deps": "node bin/fix-cli.js dependencies",
+    "security:emergency": "node scripts/emergency-security-cleanup.cjs"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",
