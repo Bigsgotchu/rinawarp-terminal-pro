@@ -252,7 +252,12 @@
     "fix:lint": "node bin/fix-cli.js lint",
     "fix:otto": "node bin/fix-cli.js otto",
     "fix:deps": "node bin/fix-cli.js dependencies",
-    "security:emergency": "node scripts/emergency-security-cleanup.cjs"
+    "security:emergency": "node security-emergency-cleanup.js",
+    "security:harden": "node security-hardening-final.js",
+    "security:disable-tests": "node disable-test-endpoints.js",
+    "security:production-ready": "npm run security:harden && echo 'Set ENABLE_TEST_ENDPOINTS=true, deploy, test, then run npm run security:disable-tests'",
+    "security:test": "node test-security.cjs",
+    "security:test:production": "SERVER_URL=https://rinawarptech.com node test-security.cjs"
   },
   "dependencies": {
     "@xterm/addon-web-links": "^0.11.0",

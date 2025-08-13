@@ -31,7 +31,7 @@ export const ROLES = {
   ADMIN: 'ADMIN',
   MODERATOR: 'MODERATOR',
   USER: 'USER',
-  SUPPORT: 'SUPPORT'
+  SUPPORT: 'SUPPORT',
 };
 
 export const PERMISSIONS = {
@@ -39,50 +39,61 @@ export const PERMISSIONS = {
   'users:read': 'View user accounts',
   'users:write': 'Create/edit user accounts',
   'users:delete': 'Delete user accounts',
-  
+
   // Admin dashboard
   'admin:dashboard': 'Access admin dashboard',
   'admin:metrics': 'View system metrics',
   'admin:settings': 'Modify system settings',
-  
+
   // License management
   'licenses:read': 'View licenses',
   'licenses:write': 'Create/edit licenses',
   'licenses:delete': 'Delete licenses',
-  
+
   // Support
   'support:read': 'View support tickets',
   'support:write': 'Handle support tickets',
-  
+
   // Analytics
   'analytics:read': 'View analytics data',
-  'analytics:export': 'Export analytics data'
+  'analytics:export': 'Export analytics data',
 };
 
 // Role-based permissions mapping
 const ROLE_PERMISSIONS = {
   [ROLES.SUPER_ADMIN]: Object.keys(PERMISSIONS),
   [ROLES.ADMIN]: [
-    'users:read', 'users:write',
-    'admin:dashboard', 'admin:metrics', 'admin:settings',
-    'licenses:read', 'licenses:write', 'licenses:delete',
-    'support:read', 'support:write',
-    'analytics:read', 'analytics:export'
+    'users:read',
+    'users:write',
+    'admin:dashboard',
+    'admin:metrics',
+    'admin:settings',
+    'licenses:read',
+    'licenses:write',
+    'licenses:delete',
+    'support:read',
+    'support:write',
+    'analytics:read',
+    'analytics:export',
   ],
   [ROLES.MODERATOR]: [
     'users:read',
-    'admin:dashboard', 'admin:metrics',
-    'licenses:read', 'licenses:write',
-    'support:read', 'support:write',
-    'analytics:read'
+    'admin:dashboard',
+    'admin:metrics',
+    'licenses:read',
+    'licenses:write',
+    'support:read',
+    'support:write',
+    'analytics:read',
   ],
   [ROLES.SUPPORT]: [
     'users:read',
     'admin:dashboard',
-    'support:read', 'support:write',
-    'analytics:read'
+    'support:read',
+    'support:write',
+    'analytics:read',
   ],
-  [ROLES.USER]: []
+  [ROLES.USER]: [],
 };
 
 // Initialize database schema
@@ -177,33 +188,33 @@ const statements = {
     INSERT INTO users (email, password_hash, first_name, last_name, role, email_verified)
     VALUES (?, ?, ?, ?, ?, ?)
   `),
-  
+
   getUserByEmail: db.prepare(`
     SELECT * FROM users WHERE email = ? AND is_active = 1
   `),
-  
+
   getUserById: db.prepare(`
     SELECT * FROM users WHERE id = ? AND is_active = 1
   `),
-  
+
   updateUser: db.prepare(`
     UPDATE users 
     SET first_name = ?, last_name = ?, role = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `),
-  
+
   updateLastLogin: db.prepare(`
     UPDATE users 
     SET last_login = CURRENT_TIMESTAMP, login_attempts = 0, locked_until = NULL
     WHERE id = ?
   `),
-  
+
   updatePasswordHash: db.prepare(`
     UPDATE users 
     SET password_hash = ?, password_reset_token = NULL, password_reset_expires = NULL, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `),
-  
+
   incrementLoginAttempts: db.prepare(`
     UPDATE users 
     SET login_attempts = login_attempts + 1, locked_until = CASE 
@@ -212,59 +223,59 @@ const statements = {
     END
     WHERE email = ?
   `),
-  
+
   // Session management
   createSession: db.prepare(`
     INSERT INTO user_sessions (user_id, session_token, refresh_token, expires_at, ip_address, user_agent)
     VALUES (?, ?, ?, ?, ?, ?)
   `),
-  
+
   getSession: db.prepare(`
     SELECT s.*, u.email, u.role, u.is_active 
     FROM user_sessions s 
     JOIN users u ON s.user_id = u.id 
     WHERE s.session_token = ? AND s.is_revoked = 0 AND s.expires_at > datetime('now')
   `),
-  
+
   revokeSession: db.prepare(`
     UPDATE user_sessions SET is_revoked = 1 WHERE session_token = ?
   `),
-  
+
   revokeAllUserSessions: db.prepare(`
     UPDATE user_sessions SET is_revoked = 1 WHERE user_id = ?
   `),
-  
+
   cleanupExpiredSessions: db.prepare(`
     DELETE FROM user_sessions WHERE expires_at < datetime('now', '-7 days')
   `),
-  
+
   // Permissions
   getUserPermissions: db.prepare(`
     SELECT permission FROM user_permissions WHERE user_id = ?
   `),
-  
+
   grantPermission: db.prepare(`
     INSERT OR REPLACE INTO user_permissions (user_id, permission, granted_by)
     VALUES (?, ?, ?)
   `),
-  
+
   revokePermission: db.prepare(`
     DELETE FROM user_permissions WHERE user_id = ? AND permission = ?
   `),
-  
+
   // Audit logging
   logAuditEvent: db.prepare(`
     INSERT INTO audit_log (user_id, action, resource, details, ip_address, user_agent)
     VALUES (?, ?, ?, ?, ?, ?)
   `),
-  
+
   getAuditLog: db.prepare(`
     SELECT a.*, u.email as user_email 
     FROM audit_log a 
     LEFT JOIN users u ON a.user_id = u.id 
     ORDER BY timestamp DESC 
     LIMIT ?
-  `)
+  `),
 };
 
 export class UserManager {
@@ -275,8 +286,15 @@ export class UserManager {
 
   // Create a new user
   static async createUser(userData) {
-    const { email, password, firstName, lastName, role = ROLES.USER, emailVerified = false } = userData;
-    
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      role = ROLES.USER,
+      emailVerified = false,
+    } = userData;
+
     try {
       // Check if user already exists
       const existingUser = statements.getUserByEmail.get(email);
@@ -294,21 +312,21 @@ export class UserManager {
 
       // Create user
       const result = statements.createUser.run(
-        email, 
-        passwordHash, 
-        firstName, 
-        lastName, 
-        role, 
+        email,
+        passwordHash,
+        firstName,
+        lastName,
+        role,
         emailVerified ? 1 : 0
       );
 
       // Log audit event
       statements.logAuditEvent.run(
-        null, 
-        'USER_CREATED', 
-        'users', 
-        JSON.stringify({ email, role }), 
-        null, 
+        null,
+        'USER_CREATED',
+        'users',
+        JSON.stringify({ email, role }),
+        null,
         null
       );
 
@@ -318,7 +336,7 @@ export class UserManager {
         firstName,
         lastName,
         role,
-        emailVerified
+        emailVerified,
       };
     } catch (error) {
       console.error('Error creating user:', error);
@@ -330,7 +348,7 @@ export class UserManager {
   static async authenticateUser(email, password, ipAddress, userAgent) {
     try {
       const user = statements.getUserByEmail.get(email);
-      
+
       if (!user) {
         // Still increment attempts for non-existent users to prevent enumeration
         statements.incrementLoginAttempts.run(email);
@@ -349,20 +367,20 @@ export class UserManager {
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password_hash);
-      
+
       if (!isValidPassword) {
         statements.incrementLoginAttempts.run(email);
-        
+
         // Log failed attempt
         statements.logAuditEvent.run(
-          user.id, 
-          'LOGIN_FAILED', 
-          'authentication', 
-          JSON.stringify({ reason: 'invalid_password' }), 
-          ipAddress, 
+          user.id,
+          'LOGIN_FAILED',
+          'authentication',
+          JSON.stringify({ reason: 'invalid_password' }),
+          ipAddress,
           userAgent
         );
-        
+
         throw new Error('Invalid email or password');
       }
 
@@ -371,11 +389,11 @@ export class UserManager {
 
       // Log successful login
       statements.logAuditEvent.run(
-        user.id, 
-        'LOGIN_SUCCESS', 
-        'authentication', 
-        null, 
-        ipAddress, 
+        user.id,
+        'LOGIN_SUCCESS',
+        'authentication',
+        null,
+        ipAddress,
         userAgent
       );
 
@@ -386,7 +404,7 @@ export class UserManager {
         lastName: user.last_name,
         role: user.role,
         emailVerified: user.email_verified,
-        lastLogin: user.last_login
+        lastLogin: user.last_login,
       };
     } catch (error) {
       console.error('Authentication error:', error);
@@ -413,7 +431,7 @@ export class UserManager {
       return {
         sessionToken,
         refreshToken,
-        expiresAt
+        expiresAt,
       };
     } catch (error) {
       console.error('Error creating session:', error);
@@ -425,7 +443,7 @@ export class UserManager {
   static validateSession(sessionToken) {
     try {
       const session = statements.getSession.get(sessionToken);
-      
+
       if (!session || !session.is_active) {
         return null;
       }
@@ -434,7 +452,7 @@ export class UserManager {
         userId: session.user_id,
         email: session.email,
         role: session.role,
-        sessionId: session.id
+        sessionId: session.id,
       };
     } catch (error) {
       console.error('Error validating session:', error);
@@ -447,14 +465,15 @@ export class UserManager {
     try {
       // Get role-based permissions
       const rolePermissions = ROLE_PERMISSIONS[role] || [];
-      
+
       // Get custom permissions
-      const customPermissions = statements.getUserPermissions.all(userId)
+      const customPermissions = statements.getUserPermissions
+        .all(userId)
         .map(row => row.permission);
 
       // Combine and deduplicate
       const allPermissions = [...new Set([...rolePermissions, ...customPermissions])];
-      
+
       return allPermissions;
     } catch (error) {
       console.error('Error getting user permissions:', error);
@@ -482,14 +501,14 @@ export class UserManager {
   static revokeAllUserSessions(userId) {
     try {
       statements.revokeAllUserSessions.run(userId);
-      
+
       // Log audit event
       statements.logAuditEvent.run(
-        userId, 
-        'LOGOUT_ALL_SESSIONS', 
-        'authentication', 
-        null, 
-        null, 
+        userId,
+        'LOGOUT_ALL_SESSIONS',
+        'authentication',
+        null,
+        null,
         null
       );
     } catch (error) {
@@ -503,19 +522,12 @@ export class UserManager {
     try {
       const passwordHash = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
       statements.updatePasswordHash.run(passwordHash, userId);
-      
+
       // Revoke all sessions to force re-login
       this.revokeAllUserSessions(userId);
-      
+
       // Log audit event
-      statements.logAuditEvent.run(
-        userId, 
-        'PASSWORD_CHANGED', 
-        'users', 
-        null, 
-        null, 
-        null
-      );
+      statements.logAuditEvent.run(userId, 'PASSWORD_CHANGED', 'users', null, null, null);
     } catch (error) {
       console.error('Error updating password:', error);
       throw error;
@@ -536,7 +548,7 @@ export class UserManager {
         role: user.role,
         emailVerified: user.email_verified,
         lastLogin: user.last_login,
-        createdAt: user.created_at
+        createdAt: user.created_at,
       };
     } catch (error) {
       console.error('Error getting user:', error);
@@ -565,11 +577,112 @@ export class UserManager {
       return [];
     }
   }
+
+  // Log audit event (external interface)
+  static logAuditEvent(userId, action, resource, details, ipAddress, userAgent) {
+    try {
+      statements.logAuditEvent.run(
+        userId,
+        action,
+        resource,
+        details ? JSON.stringify(details) : null,
+        ipAddress,
+        userAgent
+      );
+    } catch (error) {
+      console.error('Error logging audit event:', error);
+    }
+  }
+
+  // Get audit log by user
+  static getUserAuditLog(userId, limit = 50) {
+    try {
+      const stmt = db.prepare(`
+        SELECT a.*, u.email as user_email 
+        FROM audit_log a 
+        LEFT JOIN users u ON a.user_id = u.id 
+        WHERE a.user_id = ?
+        ORDER BY timestamp DESC 
+        LIMIT ?
+      `);
+      return stmt.all(userId, limit);
+    } catch (error) {
+      console.error('Error getting user audit log:', error);
+      return [];
+    }
+  }
+
+  // Get security events (failed logins, suspicious activity)
+  static getSecurityEvents(limit = 100) {
+    try {
+      const stmt = db.prepare(`
+        SELECT a.*, u.email as user_email 
+        FROM audit_log a 
+        LEFT JOIN users u ON a.user_id = u.id 
+        WHERE a.action IN ('LOGIN_FAILED', 'IP_BLOCKED', 'API_KEY_INVALID', 'UNAUTHORIZED_ACCESS', 'RATE_LIMITED')
+        ORDER BY timestamp DESC 
+        LIMIT ?
+      `);
+      return stmt.all(limit);
+    } catch (error) {
+      console.error('Error getting security events:', error);
+      return [];
+    }
+  }
+
+  // Get audit statistics
+  static getAuditStats() {
+    try {
+      const totalEvents = db.prepare('SELECT COUNT(*) as count FROM audit_log').get();
+      const recentEvents = db
+        .prepare(
+          `
+        SELECT COUNT(*) as count FROM audit_log 
+        WHERE timestamp > datetime('now', '-24 hours')
+      `
+        )
+        .get();
+      const securityEvents = db
+        .prepare(
+          `
+        SELECT COUNT(*) as count FROM audit_log 
+        WHERE action IN ('LOGIN_FAILED', 'IP_BLOCKED', 'API_KEY_INVALID') 
+        AND timestamp > datetime('now', '-24 hours')
+      `
+        )
+        .get();
+      const topActions = db
+        .prepare(
+          `
+        SELECT action, COUNT(*) as count 
+        FROM audit_log 
+        WHERE timestamp > datetime('now', '-7 days')
+        GROUP BY action 
+        ORDER BY count DESC 
+        LIMIT 10
+      `
+        )
+        .all();
+
+      return {
+        totalEvents: totalEvents.count,
+        recentEvents: recentEvents.count,
+        securityEventsToday: securityEvents.count,
+        topActions,
+      };
+    } catch (error) {
+      console.error('Error getting audit stats:', error);
+      return null;
+    }
+  }
 }
 
 // Setup periodic cleanup
-setInterval(() => {
-  UserManager.cleanupExpiredSessions();
-}, 60 * 60 * 1000); // Every hour
+setInterval(
+  () => {
+    UserManager.cleanupExpiredSessions();
+  },
+  60 * 60 * 1000
+); // Every hour
 
 export default UserManager;
