@@ -12,32 +12,32 @@ import * as Sentry from '@sentry/node';
  * @param {string} level - Error level: 'error', 'warning', 'info', 'debug'
  */
 export function captureErrorWithContext(error, context = {}, level = 'error') {
-  return Sentry.withScope((scope) => {
+  return Sentry.withScope(scope => {
     // Set the severity level
     scope.setLevel(level);
-    
+
     // Add custom context
     if (context.user) {
       scope.setUser(context.user);
     }
-    
+
     if (context.tags) {
       Object.entries(context.tags).forEach(([key, value]) => {
         scope.setTag(key, value);
       });
     }
-    
+
     if (context.extra) {
       Object.entries(context.extra).forEach(([key, value]) => {
         scope.setExtra(key, value);
       });
     }
-    
+
     // Add fingerprinting for similar errors
     if (context.fingerprint) {
       scope.setFingerprint(context.fingerprint);
     }
-    
+
     return Sentry.captureException(error);
   });
 }
@@ -49,21 +49,21 @@ export function captureErrorWithContext(error, context = {}, level = 'error') {
  * @param {string} level - Message level
  */
 export function captureMessageWithContext(message, context = {}, level = 'info') {
-  return Sentry.withScope((scope) => {
+  return Sentry.withScope(scope => {
     scope.setLevel(level);
-    
+
     if (context.tags) {
       Object.entries(context.tags).forEach(([key, value]) => {
         scope.setTag(key, value);
       });
     }
-    
+
     if (context.extra) {
       Object.entries(context.extra).forEach(([key, value]) => {
         scope.setExtra(key, value);
       });
     }
-    
+
     return Sentry.captureMessage(message);
   });
 }
@@ -81,7 +81,7 @@ export async function trackPerformance(operation, callback, data = {}) {
       op: 'function',
       data: data,
     },
-    async (span) => {
+    async span => {
       try {
         const result = await callback();
         span.setStatus({ code: 1, message: 'ok' }); // Success
@@ -109,7 +109,7 @@ export function wrapRouteHandler(handler) {
         headers: req.headers,
         ip: req.ip,
       });
-      
+
       if (req.user) {
         Sentry.getCurrentScope().setUser({
           id: req.user.id,
@@ -117,7 +117,7 @@ export function wrapRouteHandler(handler) {
           username: req.user.username,
         });
       }
-      
+
       await handler(req, res, next);
     } catch (error) {
       captureErrorWithContext(error, {
@@ -165,28 +165,32 @@ export async function monitorDatabaseOperation(operation, dbCallback) {
  * @param {Function} apiCallback - API call function
  */
 export async function monitorApiCall(service, endpoint, apiCallback) {
-  return await trackPerformance(`http.${service}`, async () => {
-    try {
-      return await apiCallback();
-    } catch (error) {
-      captureErrorWithContext(error, {
-        tags: {
-          service: service,
-          endpoint: endpoint,
-          operation: 'external_api',
-        },
-        extra: {
-          service: service,
-          endpoint: endpoint,
-        },
-        fingerprint: [`api.${service}`, endpoint, error.message],
-      });
-      throw error;
+  return await trackPerformance(
+    `http.${service}`,
+    async () => {
+      try {
+        return await apiCallback();
+      } catch (error) {
+        captureErrorWithContext(error, {
+          tags: {
+            service: service,
+            endpoint: endpoint,
+            operation: 'external_api',
+          },
+          extra: {
+            service: service,
+            endpoint: endpoint,
+          },
+          fingerprint: [`api.${service}`, endpoint, error.message],
+        });
+        throw error;
+      }
+    },
+    {
+      service: service,
+      endpoint: endpoint,
     }
-  }, {
-    service: service,
-    endpoint: endpoint,
-  });
+  );
 }
 
 /**

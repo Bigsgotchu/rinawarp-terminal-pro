@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Write the JS file
     const jsFileName = `js/csp-handlers-${fileName.replace('.html', '')}.js`;
-    const jsFilePath = path.join(publicDir, jsFileName);
+    const _jsFilePath = path.join(publicDir, jsFileName);
 
     return { updatedContent, jsContent, jsFileName };
   }

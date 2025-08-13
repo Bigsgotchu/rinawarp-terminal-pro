@@ -6,13 +6,13 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import UserManager, { ROLES } from '../database/users.js';
-import { 
-  AuthService, 
-  requireAuth, 
+import {
+  AuthService,
+  requireAuth,
   requireAdmin,
   authRateLimit,
   validatePasswordStrength,
-  validateEmail 
+  validateEmail,
 } from '../middleware/auth.js';
 import logger from '../utilities/logger.js';
 
@@ -25,10 +25,10 @@ const authLimiter = rateLimit({
   message: {
     error: 'Too many authentication attempts',
     code: 'RATE_LIMITED',
-    retryAfter: '15 minutes'
+    retryAfter: '15 minutes',
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
 const registerLimiter = rateLimit({
@@ -37,15 +37,15 @@ const registerLimiter = rateLimit({
   message: {
     error: 'Too many registration attempts',
     code: 'REGISTRATION_RATE_LIMITED',
-    retryAfter: '1 hour'
-  }
+    retryAfter: '1 hour',
+  },
 });
 
 // Helper function to get client IP and user agent
 function getClientInfo(req) {
   return {
     ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
-    userAgent: req.headers['user-agent'] || 'unknown'
+    userAgent: req.headers['user-agent'] || 'unknown',
   };
 }
 
@@ -63,7 +63,7 @@ router.post('/register', registerLimiter, async (req, res) => {
       return res.status(400).json({
         error: 'All fields are required',
         code: 'MISSING_FIELDS',
-        required: ['email', 'password', 'firstName', 'lastName']
+        required: ['email', 'password', 'firstName', 'lastName'],
       });
     }
 
@@ -71,7 +71,7 @@ router.post('/register', registerLimiter, async (req, res) => {
     if (!validateEmail(email)) {
       return res.status(400).json({
         error: 'Invalid email format',
-        code: 'INVALID_EMAIL'
+        code: 'INVALID_EMAIL',
       });
     }
 
@@ -81,7 +81,7 @@ router.post('/register', registerLimiter, async (req, res) => {
       return res.status(400).json({
         error: 'Password does not meet requirements',
         code: 'WEAK_PASSWORD',
-        requirements: passwordValidation.errors
+        requirements: passwordValidation.errors,
       });
     }
 
@@ -89,7 +89,7 @@ router.post('/register', registerLimiter, async (req, res) => {
     if (role !== ROLES.USER && (!req.user || req.user.role !== ROLES.ADMIN)) {
       return res.status(403).json({
         error: 'Only administrators can create accounts with elevated roles',
-        code: 'INSUFFICIENT_PRIVILEGES'
+        code: 'INSUFFICIENT_PRIVILEGES',
       });
     }
 
@@ -100,14 +100,14 @@ router.post('/register', registerLimiter, async (req, res) => {
       firstName,
       lastName,
       role,
-      emailVerified: false
+      emailVerified: false,
     });
 
     // Log registration
-    logger.info('User registered', { 
-      userId: newUser.id, 
-      email: newUser.email, 
-      ipAddress 
+    logger.info('User registered', {
+      userId: newUser.id,
+      email: newUser.email,
+      ipAddress,
     });
 
     res.status(201).json({
@@ -118,23 +118,22 @@ router.post('/register', registerLimiter, async (req, res) => {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         role: newUser.role,
-        emailVerified: newUser.emailVerified
-      }
+        emailVerified: newUser.emailVerified,
+      },
     });
-
   } catch (error) {
     logger.error('Registration error:', error);
-    
+
     if (error.message.includes('already exists')) {
       return res.status(409).json({
         error: 'An account with this email already exists',
-        code: 'EMAIL_EXISTS'
+        code: 'EMAIL_EXISTS',
       });
     }
 
     res.status(500).json({
       error: 'Registration failed',
-      code: 'REGISTRATION_ERROR'
+      code: 'REGISTRATION_ERROR',
     });
   }
 });
@@ -151,7 +150,7 @@ router.post('/login', authLimiter, async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         error: 'Email and password are required',
-        code: 'MISSING_CREDENTIALS'
+        code: 'MISSING_CREDENTIALS',
       });
     }
 
@@ -168,19 +167,19 @@ router.post('/login', authLimiter, async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000 // 7 days or 1 day
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000, // 7 days or 1 day
     };
 
     res.cookie('auth_token', loginResult.tokens.accessToken, cookieOptions);
     res.cookie('refresh_token', loginResult.tokens.refreshToken, {
       ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000 // Always 7 days for refresh token
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Always 7 days for refresh token
     });
 
-    logger.info('User logged in', { 
-      userId: loginResult.user.id, 
-      email: loginResult.user.email, 
-      ipAddress 
+    logger.info('User logged in', {
+      userId: loginResult.user.id,
+      email: loginResult.user.email,
+      ipAddress,
     });
 
     res.json({
@@ -188,18 +187,17 @@ router.post('/login', authLimiter, async (req, res) => {
       user: loginResult.user,
       tokens: {
         accessToken: loginResult.tokens.accessToken,
-        expiresIn: loginResult.tokens.expiresIn
+        expiresIn: loginResult.tokens.expiresIn,
         // Don't send refresh token in response for security
-      }
+      },
     });
-
   } catch (error) {
     logger.error('Login error:', error);
-    
+
     // Generic error message to prevent user enumeration
     res.status(401).json({
       error: 'Invalid credentials',
-      code: 'AUTHENTICATION_FAILED'
+      code: 'AUTHENTICATION_FAILED',
     });
   }
 });
@@ -215,7 +213,7 @@ router.post('/refresh', async (req, res) => {
     if (!refreshToken) {
       return res.status(401).json({
         error: 'Refresh token required',
-        code: 'NO_REFRESH_TOKEN'
+        code: 'NO_REFRESH_TOKEN',
       });
     }
 
@@ -226,21 +224,20 @@ router.post('/refresh', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
     res.json({
       message: 'Token refreshed successfully',
       accessToken: result.accessToken,
-      expiresIn: result.expiresIn
+      expiresIn: result.expiresIn,
     });
-
   } catch (error) {
     logger.error('Token refresh error:', error);
-    
+
     res.status(401).json({
       error: 'Invalid refresh token',
-      code: 'INVALID_REFRESH_TOKEN'
+      code: 'INVALID_REFRESH_TOKEN',
     });
   }
 });
@@ -260,21 +257,20 @@ router.post('/logout', requireAuth(), async (req, res) => {
     res.clearCookie('auth_token');
     res.clearCookie('refresh_token');
 
-    logger.info('User logged out', { 
-      userId: req.user.id, 
-      email: req.user.email, 
-      ipAddress 
+    logger.info('User logged out', {
+      userId: req.user.id,
+      email: req.user.email,
+      ipAddress,
     });
 
     res.json({
-      message: 'Logout successful'
+      message: 'Logout successful',
     });
-
   } catch (error) {
     logger.error('Logout error:', error);
     res.status(500).json({
       error: 'Logout failed',
-      code: 'LOGOUT_ERROR'
+      code: 'LOGOUT_ERROR',
     });
   }
 });
@@ -293,21 +289,20 @@ router.post('/logout-all', requireAuth(), async (req, res) => {
     res.clearCookie('auth_token');
     res.clearCookie('refresh_token');
 
-    logger.info('User logged out from all devices', { 
-      userId: req.user.id, 
-      email: req.user.email, 
-      ipAddress 
+    logger.info('User logged out from all devices', {
+      userId: req.user.id,
+      email: req.user.email,
+      ipAddress,
     });
 
     res.json({
-      message: 'Logged out from all devices'
+      message: 'Logged out from all devices',
     });
-
   } catch (error) {
     logger.error('Logout all error:', error);
     res.status(500).json({
       error: 'Logout all failed',
-      code: 'LOGOUT_ALL_ERROR'
+      code: 'LOGOUT_ALL_ERROR',
     });
   }
 });
@@ -328,14 +323,14 @@ router.get('/me', requireAuth(), async (req, res) => {
         emailVerified: req.user.emailVerified,
         lastLogin: req.user.lastLogin,
         createdAt: req.user.createdAt,
-        permissions: req.user.permissions
-      }
+        permissions: req.user.permissions,
+      },
     });
   } catch (error) {
     logger.error('Get profile error:', error);
     res.status(500).json({
       error: 'Failed to get profile',
-      code: 'PROFILE_ERROR'
+      code: 'PROFILE_ERROR',
     });
   }
 });
@@ -352,7 +347,7 @@ router.put('/password', requireAuth(), async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         error: 'Current password and new password are required',
-        code: 'MISSING_PASSWORDS'
+        code: 'MISSING_PASSWORDS',
       });
     }
 
@@ -362,7 +357,7 @@ router.put('/password', requireAuth(), async (req, res) => {
     } catch (error) {
       return res.status(401).json({
         error: 'Current password is incorrect',
-        code: 'INVALID_CURRENT_PASSWORD'
+        code: 'INVALID_CURRENT_PASSWORD',
       });
     }
 
@@ -372,7 +367,7 @@ router.put('/password', requireAuth(), async (req, res) => {
       return res.status(400).json({
         error: 'New password does not meet requirements',
         code: 'WEAK_NEW_PASSWORD',
-        requirements: passwordValidation.errors
+        requirements: passwordValidation.errors,
       });
     }
 
@@ -383,21 +378,20 @@ router.put('/password', requireAuth(), async (req, res) => {
     res.clearCookie('auth_token');
     res.clearCookie('refresh_token');
 
-    logger.info('Password updated', { 
-      userId: req.user.id, 
-      email: req.user.email, 
-      ipAddress 
+    logger.info('Password updated', {
+      userId: req.user.id,
+      email: req.user.email,
+      ipAddress,
     });
 
     res.json({
-      message: 'Password updated successfully. Please log in again.'
+      message: 'Password updated successfully. Please log in again.',
     });
-
   } catch (error) {
     logger.error('Password update error:', error);
     res.status(500).json({
       error: 'Password update failed',
-      code: 'PASSWORD_UPDATE_ERROR'
+      code: 'PASSWORD_UPDATE_ERROR',
     });
   }
 });
@@ -415,7 +409,7 @@ router.post('/generate-token', authLimiter, async (req, res) => {
       email: 'admin@rinawarp.com',
       firstName: 'Admin',
       lastName: 'User',
-      role: ROLES.ADMIN
+      role: ROLES.ADMIN,
     };
 
     const token = AuthService.generateToken(demoAdminUser);
@@ -424,14 +418,13 @@ router.post('/generate-token', authLimiter, async (req, res) => {
       success: true,
       token: token,
       expiresIn: '24h',
-      message: 'Admin token generated successfully'
+      message: 'Admin token generated successfully',
     });
-
   } catch (error) {
     logger.error('Admin token generation error:', error);
     res.status(500).json({
       error: 'Token generation failed',
-      code: 'TOKEN_GENERATION_ERROR'
+      code: 'TOKEN_GENERATION_ERROR',
     });
   }
 });
@@ -447,14 +440,13 @@ router.get('/audit-log', requireAdmin(), async (req, res) => {
 
     res.json({
       auditLog,
-      total: auditLog.length
+      total: auditLog.length,
     });
-
   } catch (error) {
     logger.error('Audit log error:', error);
     res.status(500).json({
       error: 'Failed to get audit log',
-      code: 'AUDIT_LOG_ERROR'
+      code: 'AUDIT_LOG_ERROR',
     });
   }
 });

@@ -1,6 +1,11 @@
 export const securityHeaders = (req, res, next) => {
   // Generate a nonce for this request
   const nonce = Buffer.from(Math.random().toString()).toString('base64');
+
+  // Ensure res.locals exists
+  if (!res.locals) {
+    res.locals = {};
+  }
   res.locals.nonce = nonce;
 
   // Set security headers

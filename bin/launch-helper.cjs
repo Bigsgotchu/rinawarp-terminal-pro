@@ -4,9 +4,7 @@ const { program } = require('commander');
 const fs = require('fs');
 const { execSync } = require('child_process');
 
-program
-  .version('1.0.0')
-  .description('RinaWarp Terminal Launch Helper CLI');
+program.version('1.0.0').description('RinaWarp Terminal Launch Helper CLI');
 
 // Generate social media posts
 program
@@ -36,10 +34,10 @@ Special thanks to everyone who provided feedback during development. This is jus
 #AI #Developer #Terminal #Launch #Innovation #Startup`,
 
       twitter: [
-        "🚀 LAUNCH DAY! RinaWarp Terminal is now live! \n\nAI-powered terminal that understands voice commands and automates your workflow. \n\n✨ Free download: https://rinawarptech.com \n\n🧵 Thread about the journey... 1/4",
-        "2/4 What makes RinaWarp special:\n• Voice-to-command translation\n• Context-aware automation  \n• Cross-platform compatibility\n• Built for developers who want to code at the speed of thought",
-        "3/4 Why I built this:\n\nTired of typing the same git commands? Frustrated with remembering complex syntax? \n\nRinaWarp Terminal bridges the gap between what you want to do and how to do it.",
-        "4/4 This is just the beginning! \n\nNext up: Advanced AI integrations, team features, plugin ecosystem.\n\nTry it out and let me know what you think! 🙏\n\nhttps://rinawarptech.com"
+        '🚀 LAUNCH DAY! RinaWarp Terminal is now live! \n\nAI-powered terminal that understands voice commands and automates your workflow. \n\n✨ Free download: https://rinawarptech.com \n\n🧵 Thread about the journey... 1/4',
+        '2/4 What makes RinaWarp special:\n• Voice-to-command translation\n• Context-aware automation  \n• Cross-platform compatibility\n• Built for developers who want to code at the speed of thought',
+        '3/4 Why I built this:\n\nTired of typing the same git commands? Frustrated with remembering complex syntax? \n\nRinaWarp Terminal bridges the gap between what you want to do and how to do it.',
+        '4/4 This is just the beginning! \n\nNext up: Advanced AI integrations, team features, plugin ecosystem.\n\nTry it out and let me know what you think! 🙏\n\nhttps://rinawarptech.com',
       ],
 
       reddit: `**[LAUNCH] RinaWarp Terminal - AI-powered terminal with voice commands**
@@ -77,7 +75,7 @@ Features:
 • Smart automation suggestions
 • Cross-platform support
 
-Still early days but excited to share with the dev community! 🎉`
+Still early days but excited to share with the dev community! 🎉`,
     };
 
     // Save posts to files
@@ -107,7 +105,7 @@ program
   .option('-s, --source <source>', 'Contact source', 'manual')
   .option('-l, --level <level>', 'Interest level', 'medium')
   .option('-t, --type <type>', 'User type', 'developer')
-  .action(async (options) => {
+  .action(async options => {
     if (!options.email || !options.name) {
       console.error('❌ Please provide email and name');
       console.log('Usage: launch-helper add-contact -e "user@example.com" -n "John Doe"');
@@ -129,10 +127,13 @@ ${options.email},${firstName},${lastName},${options.source},${options.level},${o
     try {
       execSync(`./mailchimp-cli import-contacts -f ${tempFile}`, { stdio: 'inherit' });
       fs.unlinkSync(tempFile); // Clean up
-      
+
       // Tag the contact
-      execSync(`./mailchimp-cli add-tags -t "source-${options.source},type-${options.type},interest-${options.level}" -e "${options.email}"`, { stdio: 'inherit' });
-      
+      execSync(
+        `./mailchimp-cli add-tags -t "source-${options.source},type-${options.type},interest-${options.level}" -e "${options.email}"`,
+        { stdio: 'inherit' }
+      );
+
       console.log('✅ Contact added and tagged successfully!');
     } catch (error) {
       console.error('❌ Error adding contact:', error.message);
@@ -155,25 +156,31 @@ program
       const currentMembers = memberMatch ? parseInt(memberMatch[1]) : 0;
 
       console.log(`📊 Current Subscribers: ${currentMembers}`);
-      
+
       // Calculate progress
       const targets = {
         hour1: 10,
-        hour6: 25, 
-        day1: 50
+        hour6: 25,
+        day1: 50,
       };
 
       console.log(`🎯 Progress toward goals:`);
-      console.log(`   Hour 1 target (10): ${Math.min(100, Math.round(currentMembers/targets.hour1 * 100))}% (${currentMembers}/${targets.hour1})`);
-      console.log(`   Hour 6 target (25): ${Math.min(100, Math.round(currentMembers/targets.hour6 * 100))}% (${currentMembers}/${targets.hour6})`);
-      console.log(`   Day 1 target (50): ${Math.min(100, Math.round(currentMembers/targets.day1 * 100))}% (${currentMembers}/${targets.day1})\n`);
+      console.log(
+        `   Hour 1 target (10): ${Math.min(100, Math.round((currentMembers / targets.hour1) * 100))}% (${currentMembers}/${targets.hour1})`
+      );
+      console.log(
+        `   Hour 6 target (25): ${Math.min(100, Math.round((currentMembers / targets.hour6) * 100))}% (${currentMembers}/${targets.hour6})`
+      );
+      console.log(
+        `   Day 1 target (50): ${Math.min(100, Math.round((currentMembers / targets.day1) * 100))}% (${currentMembers}/${targets.day1})\n`
+      );
 
       // Show next actions based on progress
       if (currentMembers < 5) {
         console.log('⚡ PRIORITY ACTIONS:');
         console.log('1. Text 3 developer friends RIGHT NOW');
         console.log('2. Post on LinkedIn (highest conversion)');
-        console.log('3. Share in Discord communities you\'re active in\n');
+        console.log("3. Share in Discord communities you're active in\n");
       } else if (currentMembers < 15) {
         console.log('🔥 KEEP THE MOMENTUM:');
         console.log('1. Twitter thread about your launch');
@@ -193,9 +200,10 @@ program
 
       // Export current contacts
       const timestamp = new Date().toISOString().slice(0, 16).replace(/[:-]/g, '');
-      execSync(`./mailchimp-cli export-contacts -o "./analytics/progress-${timestamp}.csv"`, { stdio: 'pipe' });
+      execSync(`./mailchimp-cli export-contacts -o "./analytics/progress-${timestamp}.csv"`, {
+        stdio: 'pipe',
+      });
       console.log(`💾 Progress snapshot saved to analytics/progress-${timestamp}.csv`);
-
     } catch (error) {
       console.error('❌ Error tracking progress:', error.message);
     }
@@ -206,7 +214,7 @@ program
   .command('bulk-add')
   .description('Add multiple contacts from a simple text file')
   .option('-f, --file <file>', 'File with contacts (email,name per line)')
-  .action(async (options) => {
+  .action(async options => {
     if (!options.file) {
       console.error('❌ Please provide a file with contacts');
       console.log('File format: email,name per line');
@@ -224,9 +232,9 @@ program
     try {
       const content = fs.readFileSync(options.file, 'utf8');
       const lines = content.trim().split('\n');
-      
+
       let csvContent = 'email,first_name,last_name,source,interest_level,user_type,company_size\n';
-      
+
       lines.forEach(line => {
         const [email, name] = line.split(',').map(s => s.trim());
         if (email && name) {
@@ -240,12 +248,11 @@ program
       fs.writeFileSync(tempFile, csvContent);
 
       console.log(`📊 Found ${lines.length} contacts to import`);
-      
+
       execSync(`./mailchimp-cli import-contacts -f ${tempFile}`, { stdio: 'inherit' });
       fs.unlinkSync(tempFile);
 
       console.log('✅ Bulk import completed!');
-      
     } catch (error) {
       console.error('❌ Error with bulk import:', error.message);
     }
@@ -257,12 +264,12 @@ program
   .description('Open all launch materials for easy copying')
   .action(() => {
     console.log('📂 Opening launch materials...\n');
-    
+
     try {
       execSync('open ./marketing/generated-linkedin-post.txt', { stdio: 'pipe' });
       execSync('open ./marketing/generated-twitter-thread.txt', { stdio: 'pipe' });
       execSync('open ./LAUNCH-NOW-CHECKLIST.md', { stdio: 'pipe' });
-      
+
       console.log('✅ Launch materials opened in text editor');
       console.log('📋 Copy and paste to social media platforms');
     } catch (error) {
@@ -289,14 +296,13 @@ program
 
       // List recent contacts
       const contactsOutput = execSync('./mailchimp-cli list-contacts -l 5', { encoding: 'utf8' });
-      
+
       console.log(`📈 Total Subscribers: ${currentMembers}`);
       console.log(`🚀 Launch Day Goal: 50 subscribers`);
-      console.log(`📊 Progress: ${Math.round(currentMembers/50 * 100)}%\n`);
-      
+      console.log(`📊 Progress: ${Math.round((currentMembers / 50) * 100)}%\n`);
+
       console.log('👥 Recent Contacts:');
       console.log(contactsOutput.split('\n').slice(2, -1).join('\n'));
-
     } catch (error) {
       console.error('❌ Error getting stats:', error.message);
     }

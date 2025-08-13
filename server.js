@@ -1420,7 +1420,7 @@ app.post(
   requireAuthOrApiKey({ roles: ['ADMIN', 'MODERATOR'], apiKeyType: 'ADMIN' }),
   auditLog('CAPTURE_LEAD', 'leads'),
   criticalRateLimit(),
-  securityHeaders(),
+  securityHeaders,
   async (req, res) => {
     const { email, source = 'website' } = req.body;
     // Validate email
@@ -2133,7 +2133,7 @@ app.post(
   requireAuthOrApiKey({ roles: ['ADMIN', 'MODERATOR'], apiKeyType: 'ANALYTICS_SERVICE' }),
   auditLog('TRACK_CONVERSION', 'analytics'),
   analyticsRateLimit(),
-  securityHeaders(),
+  securityHeaders,
   express.json(),
   (req, res) => {
     const { _event, plan, variant } = req.body;
@@ -2349,7 +2349,7 @@ app.post(
   requireAuthOrApiKey({ roles: ['ADMIN', 'MODERATOR'], apiKeyType: 'ANALYTICS_SERVICE' }),
   auditLog('BATCH_ANALYTICS', 'analytics'),
   analyticsRateLimit(),
-  securityHeaders(),
+  securityHeaders,
   express.json(),
   (req, res) => {
     try {

@@ -29,10 +29,10 @@ class SubscriptionClient {
       this.token = data.token;
       this.currentUser = data.user;
       this.currentTier = data.user.tier;
-      
+
       localStorage.setItem('auth_token', this.token);
       localStorage.setItem('user_tier', this.currentTier);
-      
+
       return data;
     } catch (error) {
       console.error('Login error:', error);
@@ -77,11 +77,11 @@ class SubscriptionClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
+          Authorization: `Bearer ${this.token}`,
         },
-        body: JSON.stringify({ 
-          userId: this.currentUser?.id, 
-          subscriptionId 
+        body: JSON.stringify({
+          userId: this.currentUser?.id,
+          subscriptionId,
         }),
       });
 
@@ -90,12 +90,12 @@ class SubscriptionClient {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         this.currentTier = data.tier;
         localStorage.setItem('user_tier', this.currentTier);
       }
-      
+
       return data;
     } catch (error) {
       console.error('Subscription verification error:', error);
@@ -110,11 +110,11 @@ class SubscriptionClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
+          Authorization: `Bearer ${this.token}`,
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           featureName,
-          tier: this.currentTier 
+          tier: this.currentTier,
         }),
       });
 
@@ -142,12 +142,12 @@ class SubscriptionClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
+          Authorization: `Bearer ${this.token}`,
         },
-        body: JSON.stringify({ 
-          prompt, 
+        body: JSON.stringify({
+          prompt,
           model,
-          tier: this.currentTier 
+          tier: this.currentTier,
         }),
       });
 
@@ -168,7 +168,7 @@ class SubscriptionClient {
     try {
       const response = await fetch(`${this.baseURL}/api/features/${this.currentTier}`, {
         headers: {
-          'Authorization': `Bearer ${this.token}`,
+          Authorization: `Bearer ${this.token}`,
         },
       });
 
@@ -200,7 +200,7 @@ class SubscriptionClient {
   init() {
     const storedToken = localStorage.getItem('auth_token');
     const storedTier = localStorage.getItem('user_tier');
-    
+
     if (storedToken) {
       this.token = storedToken;
       this.currentTier = storedTier || 'free';
