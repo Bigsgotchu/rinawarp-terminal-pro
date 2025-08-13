@@ -84,7 +84,11 @@ jobs:
       - name: 🔧 Install Dependencies
         continue-on-error: true
         run: |
-          npm ci --prefer-offline --no-audit --omit=optional || echo "Dependency install failed - continuing"
+          # Fix package-lock sync issues
+          npm ci --prefer-offline --no-audit --omit=optional || {
+            echo "npm ci failed, trying npm install..."
+            npm install --prefer-offline --no-audit --omit=optional
+          }
         env:
           NODE_ENV: production
 

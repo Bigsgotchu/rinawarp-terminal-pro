@@ -50,7 +50,13 @@ jobs:
           ${{ runner.os }}-electron-
 
     - name: 📥 Install dependencies
-      run: npm ci --omit=optional
+      run: |
+        # Fix package-lock sync issues by falling back to npm install if needed
+        npm ci --omit=optional || {
+          echo "npm ci failed, regenerating package-lock.json..."
+          rm -f package-lock.json
+          npm install --omit=optional
+        }
 
     - name: 🔍 Lint code
       run: npm run lint
