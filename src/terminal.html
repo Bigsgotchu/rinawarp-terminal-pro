@@ -94,14 +94,168 @@
             font-weight: bold;
         }
         
+        /* Clean Main Layout */
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 200px);
+            margin-top: 20px;
+            gap: 20px;
+        }
+        
+        /* Collapsible Sidebar */
+        .features-sidebar {
+            width: 300px;
+            background: rgba(0, 139, 139, 0.2);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 20, 147, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .features-sidebar.collapsed {
+            width: 60px;
+            padding: 20px 10px;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(45deg, #FF1493, #00AAFF);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        .sidebar-content {
+            margin-top: 40px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .features-sidebar.collapsed .sidebar-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .sidebar-title {
+            color: #FF1493;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .feature-group {
+            margin-bottom: 20px;
+        }
+        
+        .feature-group-title {
+            color: #00AAFF;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .feature-button {
+            display: block;
+            width: 100%;
+            background: rgba(255, 20, 147, 0.1);
+            border: 1px solid rgba(255, 20, 147, 0.3);
+            color: #FF1493;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-align: left;
+        }
+        
+        .feature-button:hover {
+            background: rgba(255, 20, 147, 0.2);
+            border-color: rgba(255, 20, 147, 0.6);
+            transform: translateX(5px);
+        }
+        
+        .feature-button.active {
+            background: rgba(255, 20, 147, 0.3);
+            border-color: #FF1493;
+        }
+        
+        /* Main Terminal Area */
+        .terminal-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .terminal-header-clean {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 139, 139, 0.2);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 20, 147, 0.3);
+            border-bottom: none;
+            border-radius: 20px 20px 0 0;
+            padding: 15px 20px;
+        }
+        
+        .terminal-title {
+            color: #FF1493;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .terminal-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            background: rgba(0, 170, 255, 0.1);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            color: #00AAFF;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 170, 255, 0.2);
+            border-color: #00AAFF;
+        }
+        
         .terminal-container {
+            flex: 1;
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid rgba(0, 170, 255, 0.3);
-            border-radius: 20px;
-            height: 500px;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
             padding: 20px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 30px rgba(0, 170, 255, 0.3);
+            position: relative;
+            overflow: hidden;
         }
         
         #terminal {
@@ -325,6 +479,135 @@
         body.performance-mode .ai-section::before {
             display: none;
         }
+        
+        /* AI Chat Overlay Styles */
+        .ai-chat-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .ai-chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 70%;
+            background: rgba(0, 139, 139, 0.2);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 20, 147, 0.3);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 170, 255, 0.3);
+        }
+        
+        .ai-chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            background: rgba(255, 20, 147, 0.1);
+            border-bottom: 1px solid rgba(255, 20, 147, 0.3);
+        }
+        
+        .ai-chat-title {
+            color: #FF1493;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .ai-chat-close {
+            background: transparent;
+            border: 1px solid rgba(255, 20, 147, 0.5);
+            color: #FF1493;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .ai-chat-close:hover {
+            background: rgba(255, 20, 147, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .ai-chat-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .ai-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+        
+        .ai-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 20, 147, 0.1);
+            border-radius: 8px;
+            color: #FF1493;
+        }
+        
+        .user-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 170, 255, 0.1);
+            border-radius: 8px;
+            color: #00AAFF;
+            text-align: right;
+        }
+        
+        .ai-chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .ai-chat-input input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .ai-chat-input button {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #FF1493, #00AAFF);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .ai-chat-input button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -371,25 +654,96 @@
         </div>
     </div>
     
-    <!-- Natural Language AI Agent Section -->
-    <div class="ai-section" id="aiAgentSection">
-        <h3 style="color: #FF1493; margin-top: 0;">🧜‍♀️ Rina - AI Terminal Assistant</h3>
-        <p style="color: #74c0fc; margin-bottom: 15px;">Talk to me naturally! I understand commands like "list my files", "what's my current directory", or "run git status"</p>
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
-            <input type="text" id="aiInput" placeholder="Ask me anything... (e.g., 'show me the files in this folder')" 
-                   style="flex: 1; font-size: 16px; padding: 12px;" />
-            <button onclick="processAICommand()" style="padding: 12px 20px;">💬 Ask Rina</button>
+    <!-- Main Layout with Collapsible Sidebar -->
+    <div class="main-layout">
+        <!-- Collapsible Features Sidebar -->
+        <div class="features-sidebar" id="featuresSidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">←</button>
+            
+            <div class="sidebar-content">
+                <div class="sidebar-title">🛠️ Features</div>
+                
+                <!-- AI Features -->
+                <div class="feature-group">
+                    <div class="feature-group-title">🧠 AI Assistant</div>
+                    <button class="feature-button active" onclick="showAIChat()">💬 AI Chat</button>
+                    <button class="feature-button" onclick="startCodeGeneration()">⚡ Code Generation</button>
+                    <button class="feature-button" onclick="startDebugging()">🔧 Smart Debug</button>
+                    <button class="feature-button" onclick="startArchAnalysis()">🏗️ Architecture</button>
+                </div>
+                
+                <!-- Voice & Control -->
+                <div class="feature-group">
+                    <div class="feature-group-title">🎤 Voice & Control</div>
+                    <button class="feature-button" onclick="startVoiceControl()">🎤 Voice Control</button>
+                    <button class="feature-button" onclick="enableVoiceOutput()">🔊 Voice Output</button>
+                    <button class="feature-button" onclick="customizeVoice()">🎭 Voice Settings</button>
+                </div>
+                
+                <!-- Cloud & Sync -->
+                <div class="feature-group">
+                    <div class="feature-group-title">☁️ Cloud & Sync</div>
+                    <button class="feature-button" onclick="openCloudSync()">☁️ Cloud Sync</button>
+                    <button class="feature-button" onclick="manageBackups()">💾 Backups</button>
+                    <button class="feature-button" onclick="shareSession()">🔗 Share Session</button>
+                </div>
+                
+                <!-- Team & Security -->
+                <div class="feature-group">
+                    <div class="feature-group-title">👥 Team & Security</div>
+                    <button class="feature-button" onclick="startCollaboration()">🤝 Collaboration</button>
+                    <button class="feature-button" onclick="openSecurityPanel()">🔒 Security</button>
+                    <button class="feature-button" onclick="managePermissions()">🛡️ Permissions</button>
+                </div>
+                
+                <!-- Advanced -->
+                <div class="feature-group">
+                    <div class="feature-group-title">⚙️ Advanced</div>
+                    <button class="feature-button" onclick="showAIConfig()">🧠 AI Config</button>
+                    <button class="feature-button" onclick="configureElevenLabs()">🎤 ElevenLabs</button>
+                    <button class="feature-button" onclick="showFeatures()">✨ All Features</button>
+                </div>
+            </div>
         </div>
         
-        <div id="aiResponse" style="min-height: 50px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,20,147,0.3);">
-            🧜‍♀️ <em>*swims gracefully into view*</em> Hello darling! I'm Rina, your AI mermaid assistant. Ask me anything about your terminal, files, or system!
+        <!-- Main Terminal Area -->
+        <div class="terminal-area">
+            <div class="terminal-header-clean">
+                <div class="terminal-title">🧜‍♀️ Rina Terminal - AI Powered</div>
+                <div class="terminal-controls">
+                    <button class="control-btn" onclick="clearTerminal()">🗑️ Clear</button>
+                    <button class="control-btn" onclick="runCommand()">⚡ Run</button>
+                    <button class="control-btn" onclick="showAIChat()">💬 AI</button>
+                </div>
+            </div>
+            
+            <div class="terminal-container">
+                <div id="terminal"></div>
+            </div>
         </div>
     </div>
     
-    
-    <div class="terminal-container">
-        <div id="terminal"></div>
+    <!-- AI Chat Overlay (Initially Hidden) -->
+    <div class="ai-chat-overlay" id="aiChatOverlay" style="display: none;">
+        <div class="ai-chat-container">
+            <div class="ai-chat-header">
+                <div class="ai-chat-title">🧜‍♀️ Rina - AI Assistant</div>
+                <button class="ai-chat-close" onclick="hideAIChat()">✕</button>
+            </div>
+            
+            <div class="ai-chat-content">
+                <div class="ai-chat-messages" id="aiChatMessages">
+                    <div class="ai-message">
+                        🧜‍♀️ <em>*emerges from digital depths*</em> Hello! I'm Rina, your AI terminal assistant. Ask me anything!
+                    </div>
+                </div>
+                
+                <div class="ai-chat-input">
+                    <input type="text" id="aiChatInput" placeholder="Ask Rina anything... (e.g., 'list files')" />
+                    <button onclick="sendAIMessage()">Send</button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="version-info">
@@ -2675,6 +3029,198 @@
                 console.error('Error initializing terminal features:', error);
                 updateStatus('⚠️ Some features may not be available');
             }
+        }
+        
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('featuresSidebar');
+            const toggleBtn = sidebar.querySelector('.sidebar-toggle');
+            
+            sidebar.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                toggleBtn.textContent = '→';
+                toggleBtn.title = 'Expand Features Panel';
+            } else {
+                toggleBtn.textContent = '←';
+                toggleBtn.title = 'Collapse Features Panel';
+            }
+        }
+        
+        // AI Chat overlay functions
+        function showAIChat() {
+            document.getElementById('aiChatOverlay').style.display = 'flex';
+            
+            // Focus on the input
+            setTimeout(() => {
+                document.getElementById('aiChatInput').focus();
+            }, 100);
+        }
+        
+        function hideAIChat() {
+            document.getElementById('aiChatOverlay').style.display = 'none';
+        }
+        
+        async function sendAIMessage() {
+            const input = document.getElementById('aiChatInput');
+            const messagesContainer = document.getElementById('aiChatMessages');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'user-message';
+            userMessage.innerHTML = `👤 ${message}`;
+            messagesContainer.appendChild(userMessage);
+            
+            // Clear input
+            input.value = '';
+            
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'ai-message';
+            typingIndicator.innerHTML = '🧜‍♀️ <em>*thinking...*</em>';
+            messagesContainer.appendChild(typingIndicator);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            try {
+                let response;
+                
+                // Use enhanced AI system if available
+                if (window.rinaWarpAI && window.rinaWarpAI.getSystemStatus().initialized) {
+                    const result = await window.rinaWarpAI.processCommand(message);
+                    response = result.response || result.message;
+                } else if (window.aiManager && window.aiManager.isInitialized) {
+                    const aiResult = await window.aiManager.processUserCommand(message, {
+                        timestamp: new Date().toISOString(),
+                        sessionId: window.aiManager.sessionId
+                    });
+                    response = aiResult.response;
+                } else {
+                    // Legacy mode - find matching command
+                    const match = findBestMatch(message);
+                    if (match) {
+                        response = `🧜‍♀️ I understand! "${match.phrase}" → <code>${match.command}</code>`;
+                        
+                        // Execute command if shell harness is available
+                        if (shellHarness) {
+                            try {
+                                await shellHarness.execute(match.command);
+                                terminal.write(`\r\n💬 Chat Command: ${match.command}\r\n`);
+                            } catch (execError) {
+                                response += `<br>❌ Execution failed: ${execError.message}`;
+                            }
+                        }
+                    } else {
+                        response = `🧜‍♀️ <em>*adjusts seashell crown*</em> I'm not sure about "${message}". Try asking about files, git, npm, or system info!`;
+                    }
+                }
+                
+                // Remove typing indicator
+                messagesContainer.removeChild(typingIndicator);
+                
+                // Add AI response
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'ai-message';
+                aiMessage.innerHTML = response;
+                messagesContainer.appendChild(aiMessage);
+                
+                // Add some mermaid flair
+                if (!response.includes('not sure') && !response.includes('adjusts seashell')) {
+                    const emojis = ['🌊', '🐚', '🐙', '🐳', '🌺', '✨'];
+                    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                    const flairMessage = document.createElement('div');
+                    flairMessage.className = 'ai-message';
+                    flairMessage.innerHTML = `<em style="opacity: 0.7; text-align: right;">${randomEmoji}</em>`;
+                    messagesContainer.appendChild(flairMessage);
+                }
+                
+                // Speak response if voice output is enabled
+                if (isVoiceOutputEnabled && voiceEngine && voiceEngine.isInitialized) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = response;
+                    const textToSpeak = tempDiv.textContent || tempDiv.innerText || '';
+                    const cleanText = textToSpeak.replace(/[🧜‍♀️🌊🐚🎤⚡✨🚀]/g, '').replace(/\s+/g, ' ').trim();
+                    if (cleanText && cleanText.length > 5) {
+                        voiceEngine.speak(cleanText);
+                    }
+                }
+                
+            } catch (error) {
+                // Remove typing indicator
+                if (messagesContainer.contains(typingIndicator)) {
+                    messagesContainer.removeChild(typingIndicator);
+                }
+                
+                // Show error
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'ai-message';
+                errorMessage.innerHTML = `🧜‍♀️ <em>*bubbles of confusion*</em> Sorry, I encountered an error: ${error.message}`;
+                messagesContainer.appendChild(errorMessage);
+            }
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Handle Enter key in AI chat
+        document.addEventListener('DOMContentLoaded', () => {
+            const aiChatInput = document.getElementById('aiChatInput');
+            if (aiChatInput) {
+                aiChatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendAIMessage();
+                    }
+                });
+            }
+        });
+        
+        // Sidebar feature placeholder functions (to be implemented)
+        function startCodeGeneration() {
+            alert('🧜‍♀️ Code generation is coming soon in the next update! Stay tuned for AI-powered coding assistance.');
+        }
+        
+        function startDebugging() {
+            alert('🧜‍♀️ Smart debugging tools are under development! Soon you\'ll have AI-powered debugging assistance.');
+        }
+        
+        function startArchAnalysis() {
+            alert('🧜‍♀️ Architecture analysis will be available soon! I\'ll help you understand and optimize your codebase.');
+        }
+        
+        function enableVoiceOutput() {
+            toggleVoiceOutput();
+        }
+        
+        function customizeVoice() {
+            alert('🧜‍♀️ Voice customization settings are coming! You\'ll be able to adjust my voice and personality.');
+        }
+        
+        function openCloudSync() {
+            alert('🧜‍♀️ Cloud sync features are in development! Soon you\'ll sync your terminal sessions across devices.');
+        }
+        
+        function manageBackups() {
+            alert('🧜‍♀️ Backup management is coming soon! I\'ll help you keep your configurations safe.');
+        }
+        
+        function shareSession() {
+            alert('🧜‍♀️ Session sharing features are being developed! Soon you can collaborate with your team.');
+        }
+        
+        function startCollaboration() {
+            alert('🧜‍♀️ Real-time collaboration tools are coming! Work together with your team seamlessly.');
+        }
+        
+        function openSecurityPanel() {
+            alert('🧜‍♀️ Security management panel is under development! Enhanced security features coming soon.');
+        }
+        
+        function managePermissions() {
+            alert('🧜‍♀️ Permission management system is coming! Fine-grained control over access and features.');
         }
         
         // Load AI and Voice Systems on page ready

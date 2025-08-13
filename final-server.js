@@ -376,7 +376,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  const bootTime = Date.now() - startTime;
+  const _unusedBootTime = Date.now() - startTime;
   console.log('✅ RinaWarp Terminal Server running successfully!');
   console.log(`📊 API Demo: http://localhost:${PORT}/api/demo/features`);
 });

@@ -14,10 +14,10 @@ const router = express.Router();
 const paymentLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // limit each IP to 10 payment attempts per windowMs
-  message: { 
+  message: {
     success: false,
     error: 'Too many payment attempts, please try again later.',
-    retryAfter: '15 minutes'
+    retryAfter: '15 minutes',
   },
 });
 
@@ -27,7 +27,7 @@ const apiLimiter = rateLimit({
   message: {
     success: false,
     error: 'Too many API requests, please try again later.',
-    retryAfter: '15 minutes'
+    retryAfter: '15 minutes',
   },
 });
 
@@ -45,7 +45,7 @@ router.get('/status', apiLimiter, (req, res) => {
 router.get('/config', apiLimiter, (req, res) => {
   try {
     const publishableKey = stripeService.getPublishableKey();
-    
+
     if (!publishableKey) {
       return res.status(503).json({
         success: false,
@@ -77,7 +77,7 @@ router.get('/config', apiLimiter, (req, res) => {
 router.get('/pricing-config', apiLimiter, (req, res) => {
   try {
     const pricing = stripeService.getPricingConfig();
-    
+
     res.json({
       success: true,
       pricing,
@@ -141,7 +141,8 @@ router.post('/create-checkout-session', paymentLimiter, async (req, res) => {
 
     // Validate URLs
     const baseUrl = req.headers.origin || process.env.BASE_URL || 'https://rinawarptech.com';
-    const validatedSuccessUrl = successUrl || `${baseUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`;
+    const validatedSuccessUrl =
+      successUrl || `${baseUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`;
     const validatedCancelUrl = cancelUrl || `${baseUrl}/pricing.html`;
 
     // Create checkout session data
@@ -189,12 +190,11 @@ router.post('/create-checkout-session', paymentLimiter, async (req, res) => {
       priceId: finalPriceId,
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     logger.error('❌ Enhanced checkout error:', error);
 
     // The service handles most error formatting, but add some additional context
-    let errorResponse = {
+    const errorResponse = {
       success: false,
       error: error.message || 'Payment system error. Please try again.',
       timestamp: new Date().toISOString(),
@@ -213,9 +213,15 @@ router.post('/create-checkout-session', paymentLimiter, async (req, res) => {
     let statusCode = 500;
     if (error.message.includes('not available') || error.message.includes('check configuration')) {
       statusCode = 503; // Service Unavailable
-    } else if (error.message.includes('configuration error') || error.message.includes('contact support')) {
+    } else if (
+      error.message.includes('configuration error') ||
+      error.message.includes('contact support')
+    ) {
       statusCode = 502; // Bad Gateway (configuration issue)
-    } else if (error.message.includes('Customer information') || error.message.includes('check your details')) {
+    } else if (
+      error.message.includes('Customer information') ||
+      error.message.includes('check your details')
+    ) {
       statusCode = 400; // Bad Request
     }
 
@@ -259,22 +265,21 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   // Handle the event with comprehensive error handling
   try {
     await handleWebhookEvent(event);
-    
+
     logger.info(`✅ Webhook event handled successfully: ${event.type} - ${event.id}`);
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       received: true,
       eventId: event.id,
       type: event.type,
     });
-
   } catch (error) {
     logger.error(`❌ Error handling webhook event ${event.type}:`, error);
-    
+
     // Still return 200 to prevent Stripe from retrying on our internal errors
     // but log the issue for investigation
-    res.json({ 
-      success: false, 
+    res.json({
+      success: false,
       received: true,
       error: 'Internal processing error',
       eventId: event.id,
@@ -287,7 +292,7 @@ router.post('/retry-init', apiLimiter, async (req, res) => {
   try {
     await stripeService.retry();
     const status = stripeService.getStatus();
-    
+
     res.json({
       success: true,
       message: 'Stripe initialization retry completed',
@@ -335,12 +340,12 @@ async function handleWebhookEvent(event) {
 async function handleCheckoutCompleted(session) {
   try {
     logger.info('✅ Processing successful checkout:', session.id);
-    
+
     // Track conversion in analytics (if available)
     try {
       const { default: AnalyticsSystem } = await import('../analytics/AnalyticsSystem.js');
       const analytics = new AnalyticsSystem();
-      
+
       await analytics.trackConversion({
         type: 'subscription_purchase',
         value: session.amount_total / 100,
@@ -359,7 +364,6 @@ async function handleCheckoutCompleted(session) {
 
     // Additional processing (email, database updates, etc.)
     // This would be implemented based on your specific requirements
-    
   } catch (error) {
     logger.error('❌ Error handling checkout completion:', error);
     throw error;

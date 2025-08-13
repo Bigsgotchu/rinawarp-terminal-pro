@@ -17,7 +17,7 @@ class StripeService {
     this.initializationError = null;
     this.initializationAttempts = 0;
     this.maxRetries = 3;
-    
+
     // Initialize on construction
     this.initialize();
   }
@@ -28,51 +28,55 @@ class StripeService {
   async initialize() {
     try {
       this.initializationAttempts++;
-      
+
       // Check for required environment variables
       const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
       const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY?.trim();
-      
+
       if (!secretKey) {
         throw new Error('STRIPE_SECRET_KEY environment variable is required but not set');
       }
-      
+
       if (!publishableKey) {
         logger.warn('⚠️ STRIPE_PUBLISHABLE_KEY not set - some client-side features may not work');
       }
-      
+
       // Validate key format
       if (!this.isValidStripeKey(secretKey)) {
         throw new Error('STRIPE_SECRET_KEY format is invalid');
       }
-      
+
       // Initialize Stripe
       this.stripe = new Stripe(secretKey, {
         apiVersion: '2023-10-16', // Use a specific API version
         timeout: 10000, // 10 second timeout
         maxNetworkRetries: 2,
       });
-      
+
       // Test the connection with a lightweight API call
       await this.testConnection();
-      
+
       this.isInitialized = true;
       this.initializationError = null;
-      
+
       logger.info('✅ Stripe service initialized successfully');
-      
     } catch (error) {
       this.initializationError = error;
       this.isInitialized = false;
-      
-      logger.error(`❌ Stripe initialization failed (attempt ${this.initializationAttempts}/${this.maxRetries}):`, error.message);
-      
+
+      logger.error(
+        `❌ Stripe initialization failed (attempt ${this.initializationAttempts}/${this.maxRetries}):`,
+        error.message
+      );
+
       // Don't crash the app - instead set a flag and log the error
       if (this.initializationAttempts < this.maxRetries) {
-        logger.info(`🔄 Retrying Stripe initialization in 5 seconds...`);
+        logger.info('🔄 Retrying Stripe initialization in 5 seconds...');
         setTimeout(() => this.initialize(), 5000);
       } else {
-        logger.error('🚨 Stripe service failed to initialize after maximum retries. Payment features will be disabled.');
+        logger.error(
+          '🚨 Stripe service failed to initialize after maximum retries. Payment features will be disabled.'
+        );
       }
     }
   }
@@ -99,7 +103,7 @@ class StripeService {
    */
   isValidStripeKey(key) {
     if (!key || typeof key !== 'string') return false;
-    
+
     // Check for common Stripe key patterns
     const patterns = [
       /^sk_test_[a-zA-Z0-9]{99}$/, // Test secret key
@@ -107,7 +111,7 @@ class StripeService {
       /^rk_test_[a-zA-Z0-9]{99}$/, // Restricted test key
       /^rk_live_[a-zA-Z0-9]{99}$/, // Restricted live key
     ];
-    
+
     return patterns.some(pattern => pattern.test(key));
   }
 
@@ -116,8 +120,12 @@ class StripeService {
    */
   getStripe() {
     if (!this.isInitialized) {
-      throw new Error('Stripe service not initialized. ' + 
-        (this.initializationError ? `Error: ${this.initializationError.message}` : 'Unknown error'));
+      throw new Error(
+        'Stripe service not initialized. ' +
+          (this.initializationError
+            ? `Error: ${this.initializationError.message}`
+            : 'Unknown error')
+      );
     }
     return this.stripe;
   }
@@ -169,13 +177,17 @@ class StripeService {
           throw new Error('Customer information error. Please check your details.');
         }
       } else if (error.type === 'StripeAPIError') {
-        throw new Error('Payment service temporarily unavailable. Please try again in a few minutes.');
+        throw new Error(
+          'Payment service temporarily unavailable. Please try again in a few minutes.'
+        );
       } else if (error.type === 'StripeConnectionError') {
-        throw new Error('Unable to connect to payment service. Please check your internet connection.');
+        throw new Error(
+          'Unable to connect to payment service. Please check your internet connection.'
+        );
       } else if (error.type === 'StripeAuthenticationError') {
         throw new Error('Payment service authentication failed. Please contact support.');
       }
-      
+
       // Re-throw with original message if no specific handling
       throw error;
     }
@@ -212,7 +224,12 @@ class StripeService {
         name: 'Basic',
         price_id: process.env.STRIPE_PRICE_BASIC || 'price_basic_monthly',
         price: 29.0,
-        features: ['AI Terminal Assistant', 'Basic Voice Commands', '5 Custom Themes', 'Email Support'],
+        features: [
+          'AI Terminal Assistant',
+          'Basic Voice Commands',
+          '5 Custom Themes',
+          'Email Support',
+        ],
       },
       pro: {
         name: 'Professional',

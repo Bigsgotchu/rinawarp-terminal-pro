@@ -7,13 +7,32 @@ import jwt from 'jsonwebtoken';
 import UserManager, { ROLES, PERMISSIONS } from '../database/users.js';
 import logger from '../utilities/logger.js';
 
+// Role permissions mapping
+const ROLE_PERMISSIONS = {
+  [ROLES.ADMIN]: [
+    PERMISSIONS.READ_USERS,
+    PERMISSIONS.WRITE_USERS,
+    PERMISSIONS.READ_ANALYTICS,
+    PERMISSIONS.WRITE_ANALYTICS,
+    PERMISSIONS.READ_SUPPORT,
+    PERMISSIONS.WRITE_SUPPORT,
+    PERMISSIONS.ADMIN_ACCESS,
+  ],
+  [ROLES.ANALYTICS]: [PERMISSIONS.READ_ANALYTICS, PERMISSIONS.WRITE_ANALYTICS],
+  [ROLES.SUPPORT]: [PERMISSIONS.READ_SUPPORT, PERMISSIONS.WRITE_SUPPORT, PERMISSIONS.READ_USERS],
+  [ROLES.USER]: [],
+};
+
 // JWT Configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'rinawarp-dev-secret-change-in-production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const REFRESH_SECRET =
+  process.env.REFRESH_SECRET ||
+  process.env.JWT_SECRET ||
+  'rinawarp-refresh-secret-change-in-production';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
 export class AuthService {
-  
   // Generate JWT token for user
   static generateToken(user, expiresIn = JWT_EXPIRES_IN) {
     const payload = {
@@ -22,27 +41,23 @@ export class AuthService {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
-      permissions: UserManager.getUserPermissions(user.id, user.role)
+      permissions: UserManager.getUserPermissions(user.id, user.role),
     };
 
-    return jwt.sign(payload, JWT_SECRET, { 
+    return jwt.sign(payload, JWT_SECRET, {
       expiresIn,
       issuer: 'rinawarp-terminal',
-      audience: 'rinawarp-users'
+      audience: 'rinawarp-users',
     });
   }
 
   // Generate refresh token
   static generateRefreshToken(userId) {
-    return jwt.sign(
-      { userId, type: 'refresh' },
-      JWT_SECRET,
-      { 
-        expiresIn: JWT_REFRESH_EXPIRES_IN,
-        issuer: 'rinawarp-terminal',
-        audience: 'rinawarp-refresh'
-      }
-    );
+    return jwt.sign({ userId, type: 'refresh' }, JWT_SECRET, {
+      expiresIn: JWT_REFRESH_EXPIRES_IN,
+      issuer: 'rinawarp-terminal',
+      audience: 'rinawarp-refresh',
+    });
   }
 
   // Verify and decode JWT token
@@ -50,7 +65,7 @@ export class AuthService {
     try {
       const decoded = jwt.verify(token, JWT_SECRET, {
         issuer: 'rinawarp-terminal',
-        audience: 'rinawarp-users'
+        audience: 'rinawarp-users',
       });
       return decoded;
     } catch (error) {
@@ -64,13 +79,13 @@ export class AuthService {
     try {
       const decoded = jwt.verify(token, JWT_SECRET, {
         issuer: 'rinawarp-terminal',
-        audience: 'rinawarp-refresh'
+        audience: 'rinawarp-refresh',
       });
-      
+
       if (decoded.type !== 'refresh') {
         throw new Error('Invalid token type');
       }
-      
+
       return decoded;
     } catch (error) {
       console.error('Refresh token verification failed:', error.message);
@@ -83,22 +98,22 @@ export class AuthService {
     try {
       // Authenticate user
       const user = await UserManager.authenticateUser(email, password, ipAddress, userAgent);
-      
+
       // Create session
       const session = UserManager.createSession(user.id, ipAddress, userAgent);
-      
+
       // Generate tokens
       const accessToken = this.generateToken(user);
       const refreshToken = this.generateRefreshToken(user.id);
-      
+
       return {
         user,
         session,
         tokens: {
           accessToken,
           refreshToken,
-          expiresIn: JWT_EXPIRES_IN
-        }
+          expiresIn: JWT_EXPIRES_IN,
+        },
       };
     } catch (error) {
       throw error;
@@ -121,10 +136,10 @@ export class AuthService {
 
       // Generate new access token
       const accessToken = this.generateToken(user);
-      
+
       return {
         accessToken,
-        expiresIn: JWT_EXPIRES_IN
+        expiresIn: JWT_EXPIRES_IN,
       };
     } catch (error) {
       throw error;
@@ -137,17 +152,10 @@ export class AuthService {
       if (sessionToken) {
         UserManager.revokeSession(sessionToken);
       }
-      
+
       // Log audit event
       if (userId) {
-        UserManager.logAuditEvent(
-          userId,
-          'LOGOUT',
-          'authentication',
-          null,
-          null,
-          null
-        );
+        UserManager.logAuditEvent(userId, 'LOGOUT', 'authentication', null, null, null);
       }
     } catch (error) {
       console.error('Logout error:', error);

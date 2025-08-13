@@ -87,9 +87,9 @@ class UnifiedConfig {
         this.logger.info('Configuration directory created', { configDir: this.configDir });
       }
     } catch (error) {
-      this.logger.error('Failed to create configuration directory', { 
-        configDir: this.configDir, 
-        error: error.message 
+      this.logger.error('Failed to create configuration directory', {
+        configDir: this.configDir,
+        error: error.message,
       });
       throw error;
     }
@@ -103,9 +103,9 @@ class UnifiedConfig {
         return this.deepMerge(this.defaultConfig, parsedConfig);
       }
     } catch (error) {
-      this.logger.warn('Config file corrupted, using defaults', { 
-        configFile: this.configFile, 
-        error: error.message 
+      this.logger.warn('Config file corrupted, using defaults', {
+        configFile: this.configFile,
+        error: error.message,
       });
     }
     return this.defaultConfig;
@@ -130,9 +130,9 @@ class UnifiedConfig {
       fs.writeFileSync(this.configFile, JSON.stringify(this.config, null, 2));
       return true;
     } catch (error) {
-      this.logger.error('Failed to save config', { 
-        configFile: this.configFile, 
-        error: error.message 
+      this.logger.error('Failed to save config', {
+        configFile: this.configFile,
+        error: error.message,
       });
       return false;
     }
@@ -245,15 +245,15 @@ class UnifiedConfig {
         // Copy any important settings but don't merge complex structures
         const migrationCompleted = this.set('migration.fromAppData', true);
         if (migrationCompleted) {
-          this.logger.info('Migration completed successfully', { 
-            configDir: this.configDir, 
-            configFile: this.configFile 
+          this.logger.info('Migration completed successfully', {
+            configDir: this.configDir,
+            configFile: this.configFile,
           });
         }
       } catch (error) {
-        this.logger.warn('Migration failed', { 
-          oldConfigPath, 
-          error: error.message 
+        this.logger.warn('Migration failed', {
+          oldConfigPath,
+          error: error.message,
         });
       }
     }

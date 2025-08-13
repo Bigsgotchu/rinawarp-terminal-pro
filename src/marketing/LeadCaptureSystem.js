@@ -68,6 +68,53 @@ class LeadCaptureSystem {
   }
 
   /**
+   * Get lead statistics
+   */
+  async getLeadStats() {
+    try {
+      const leads = this.getAllLeads();
+      const now = Date.now();
+      const day = 24 * 60 * 60 * 1000;
+      const week = 7 * day;
+      const month = 30 * day;
+
+      // Count leads by time period
+      const todayLeads = leads.filter(
+        lead => new Date(lead.capturedAt).getTime() > now - day
+      ).length;
+
+      const weekLeads = leads.filter(
+        lead => new Date(lead.capturedAt).getTime() > now - week
+      ).length;
+
+      const monthLeads = leads.filter(
+        lead => new Date(lead.capturedAt).getTime() > now - month
+      ).length;
+
+      // Count by source
+      const sourceStats = {};
+      leads.forEach(lead => {
+        const source = lead.source || 'unknown';
+        sourceStats[source] = (sourceStats[source] || 0) + 1;
+      });
+
+      return {
+        totalLeads: leads.length,
+        todayLeads,
+        weekLeads,
+        monthLeads,
+        sourceBreakdown: sourceStats,
+        averagePerDay: leads.length > 0 ? (leads.length / 30).toFixed(1) : 0,
+        lastCaptured:
+          leads.length > 0 ? Math.max(...leads.map(l => new Date(l.capturedAt).getTime())) : null,
+      };
+    } catch (error) {
+      logger.error('Error getting lead stats:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Generate unique lead ID
    */
   generateLeadId() {

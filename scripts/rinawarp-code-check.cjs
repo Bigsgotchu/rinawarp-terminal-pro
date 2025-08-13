@@ -205,102 +205,108 @@ async function checkFile(filePath) {
 async function main() {
   try {
     process.env.NODE_ENV !== 'production' && console.log('🔍 RinaWarp Code Quality Check\n');
-  process.env.NODE_ENV !== 'production' && console.log('Scanning for RinaWarp-specific files...\n');
-
-  const rootDir = process.cwd();
-  const files = await findRinaWarpFiles(rootDir);
-
-  process.env.NODE_ENV !== 'production' &&
-    console.log(`Found ${files.length} RinaWarp-related files\n`);
-
-  let allIssues = [];
-
-  // Check each file
-  for (const file of files) {
-    const issues = await checkFile(file);
-    allIssues = allIssues.concat(issues);
-  }
-
-  // Group issues by type
-  const issuesByType = {};
-  allIssues.forEach(issue => {
-    if (!issuesByType[issue.type]) {
-      issuesByType[issue.type] = [];
-    }
-    issuesByType[issue.type].push(issue);
-  });
-
-  // Display results
-  process.env.NODE_ENV !== 'production' && console.log('📊 Summary:');
-  process.env.NODE_ENV !== 'production' && console.log(`Total issues found: ${allIssues.length}\n`);
-
-  if (allIssues.length === 0) {
     process.env.NODE_ENV !== 'production' &&
-      console.log('✅ No issues found! Your RinaWarp code looks good.');
-    return;
-  }
+      console.log('Scanning for RinaWarp-specific files...\n');
 
-  process.env.NODE_ENV !== 'production' && console.log('Issues by type:');
-  Object.entries(issuesByType).forEach(([type, issues]) => {
-    process.env.NODE_ENV !== 'production' && console.log(`  ${type}: ${issues.length}`);
-  });
+    const rootDir = process.cwd();
+    const files = await findRinaWarpFiles(rootDir);
 
-  process.env.NODE_ENV !== 'production' && console.log('\n🔥 Critical Issues to Fix:\n');
+    process.env.NODE_ENV !== 'production' &&
+      console.log(`Found ${files.length} RinaWarp-related files\n`);
 
-  // Show critical issues first
-  const criticalTypes = [
-    'syntaxError',
-    'unclosedBrackets',
-    'evalUsage',
-    'hardcodedSecrets',
-    'unhandledSDKCall',
-  ];
-  const criticalIssues = allIssues.filter(issue => criticalTypes.includes(issue.type));
+    let allIssues = [];
 
-  if (criticalIssues.length > 0) {
-    criticalIssues.slice(0, 10).forEach((issue, index) => {
+    // Check each file
+    for (const file of files) {
+      const issues = await checkFile(file);
+      allIssues = allIssues.concat(issues);
+    }
+
+    // Group issues by type
+    const issuesByType = {};
+    allIssues.forEach(issue => {
+      if (!issuesByType[issue.type]) {
+        issuesByType[issue.type] = [];
+      }
+      issuesByType[issue.type].push(issue);
+    });
+
+    // Display results
+    process.env.NODE_ENV !== 'production' && console.log('📊 Summary:');
+    process.env.NODE_ENV !== 'production' &&
+      console.log(`Total issues found: ${allIssues.length}\n`);
+
+    if (allIssues.length === 0) {
+      process.env.NODE_ENV !== 'production' &&
+        console.log('✅ No issues found! Your RinaWarp code looks good.');
+      return;
+    }
+
+    process.env.NODE_ENV !== 'production' && console.log('Issues by type:');
+    Object.entries(issuesByType).forEach(([type, issues]) => {
+      process.env.NODE_ENV !== 'production' && console.log(`  ${type}: ${issues.length}`);
+    });
+
+    process.env.NODE_ENV !== 'production' && console.log('\n🔥 Critical Issues to Fix:\n');
+
+    // Show critical issues first
+    const criticalTypes = [
+      'syntaxError',
+      'unclosedBrackets',
+      'evalUsage',
+      'hardcodedSecrets',
+      'unhandledSDKCall',
+    ];
+    const criticalIssues = allIssues.filter(issue => criticalTypes.includes(issue.type));
+
+    if (criticalIssues.length > 0) {
+      criticalIssues.slice(0, 10).forEach((issue, index) => {
+        process.env.NODE_ENV !== 'production' &&
+          console.log(`${index + 1}. [${issue.type}] ${issue.message}`);
+        process.env.NODE_ENV !== 'production' &&
+          console.log(`   File: ${issue.file}:${issue.line}`);
+        process.env.NODE_ENV !== 'production' && console.log(`   Code: ${issue.snippet}\n`);
+      });
+    }
+
+    // Show other issues
+    process.env.NODE_ENV !== 'production' && console.log('⚠️  Other Issues:\n');
+    const otherIssues = allIssues.filter(issue => !criticalTypes.includes(issue.type));
+    otherIssues.slice(0, 10).forEach((issue, index) => {
       process.env.NODE_ENV !== 'production' &&
         console.log(`${index + 1}. [${issue.type}] ${issue.message}`);
       process.env.NODE_ENV !== 'production' && console.log(`   File: ${issue.file}:${issue.line}`);
       process.env.NODE_ENV !== 'production' && console.log(`   Code: ${issue.snippet}\n`);
     });
-  }
 
-  // Show other issues
-  process.env.NODE_ENV !== 'production' && console.log('⚠️  Other Issues:\n');
-  const otherIssues = allIssues.filter(issue => !criticalTypes.includes(issue.type));
-  otherIssues.slice(0, 10).forEach((issue, index) => {
+    // Save detailed report
+    const report = {
+      timestamp: new Date().toISOString(),
+      totalIssues: allIssues.length,
+      issuesByType,
+      files: files.length,
+      allIssues,
+    };
+
+    await fs.writeFile(
+      path.join(rootDir, 'rinawarp-code-report.json'),
+      JSON.stringify(report, null, 2)
+    );
+
     process.env.NODE_ENV !== 'production' &&
-      console.log(`${index + 1}. [${issue.type}] ${issue.message}`);
-    process.env.NODE_ENV !== 'production' && console.log(`   File: ${issue.file}:${issue.line}`);
-    process.env.NODE_ENV !== 'production' && console.log(`   Code: ${issue.snippet}\n`);
-  });
+      console.log('\n📝 Full report saved to: rinawarp-code-report.json');
 
-  // Save detailed report
-  const report = {
-    timestamp: new Date().toISOString(),
-    totalIssues: allIssues.length,
-    issuesByType,
-    files: files.length,
-    allIssues,
-  };
-
-  await fs.writeFile(
-    path.join(rootDir, 'rinawarp-code-report.json'),
-    JSON.stringify(report, null, 2)
-  );
-
-  process.env.NODE_ENV !== 'production' &&
-    console.log('\n📝 Full report saved to: rinawarp-code-report.json');
-
-  // Provide fixing tips
-  process.env.NODE_ENV !== 'production' && console.log('\n💡 Quick Fixes:');
-  process.env.NODE_ENV !== 'production' &&
-    console.log('1. Replace === with === for strict equality');
-  process.env.NODE_ENV !== 'production' && console.log('2. Add .catch() to all promise chains');
-  process.env.NODE_ENV !== 'production' && console.log('3. Remove or guard console.log statements');
-  process.env.NODE_ENV !== 'production' && console.log('4. Move secrets to environment variables');
-  process.env.NODE_ENV !== 'production' && console.log('5. Add try-catch blocks around SDK calls');
+    // Provide fixing tips
+    process.env.NODE_ENV !== 'production' && console.log('\n💡 Quick Fixes:');
+    process.env.NODE_ENV !== 'production' &&
+      console.log('1. Replace === with === for strict equality');
+    process.env.NODE_ENV !== 'production' && console.log('2. Add .catch() to all promise chains');
+    process.env.NODE_ENV !== 'production' &&
+      console.log('3. Remove or guard console.log statements');
+    process.env.NODE_ENV !== 'production' &&
+      console.log('4. Move secrets to environment variables');
+    process.env.NODE_ENV !== 'production' &&
+      console.log('5. Add try-catch blocks around SDK calls');
   } catch (error) {
     console.error('Code quality check failed:', error.message);
     process.exit(1);

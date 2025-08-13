@@ -1,0 +1,424 @@
+/**
+ * 🧜‍♀️ Clean Mermaid Interface for RinaWarp Creator
+ * Inspired by our successful interaction style with beautiful mermaid colors
+ */
+
+:root {
+  /* Mermaid Color Palette */
+  --mermaid-hot-pink: #ff1493;
+  --mermaid-cyan: #00ffff;
+  --mermaid-teal: #20b2aa;
+  --mermaid-coral: #ff7f7f;
+  --mermaid-aqua: #87ceeb;
+
+  /* Background Gradients */
+  --mermaid-gradient: linear-gradient(135deg, var(--mermaid-hot-pink), var(--mermaid-cyan));
+  --mermaid-gradient-soft: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(0, 255, 255, 0.1));
+
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-accent: var(--mermaid-hot-pink);
+  --text-success: #00ff88;
+  --text-warning: #ffaa00;
+  --text-error: #ff4444;
+
+  /* Interface Elements */
+  --bg-primary: rgba(0, 0, 0, 0.85);
+  --bg-secondary: rgba(0, 0, 0, 0.6);
+  --bg-accent: rgba(255, 20, 147, 0.15);
+  --border-glow: 0 0 20px rgba(0, 255, 255, 0.3);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Main Terminal Container */
+.rina-terminal {
+  background: var(--mermaid-gradient);
+  min-height: 100vh;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* Clean Terminal Window */
+.terminal-window {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border: 2px solid var(--mermaid-cyan);
+  box-shadow: var(--border-glow), var(--shadow-soft);
+  margin: 20px;
+  padding: 0;
+  backdrop-filter: blur(10px);
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* Terminal Header */
+.terminal-header {
+  background: var(--mermaid-gradient);
+  padding: 12px 20px;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.terminal-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.terminal-title::before {
+  content: '🧜‍♀️';
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+/* Traffic Light Buttons */
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+}
+
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.traffic-light.close {
+  background: #ff5f57;
+}
+.traffic-light.minimize {
+  background: #ffbd2e;
+}
+.traffic-light.maximize {
+  background: #28ca42;
+}
+
+.traffic-light:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Main Terminal Content */
+.terminal-content {
+  padding: 20px;
+  height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chat Messages */
+.chat-container {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 10px;
+}
+
+.chat-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  animation: fadeIn 0.3s ease-in;
+  max-width: 90%;
+}
+
+.chat-message.user {
+  background: var(--bg-accent);
+  border-left: 3px solid var(--mermaid-hot-pink);
+  margin-left: auto;
+  text-align: right;
+}
+
+.chat-message.rina {
+  background: rgba(0, 255, 255, 0.1);
+  border-left: 3px solid var(--mermaid-cyan);
+  margin-right: auto;
+}
+
+.message-header {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user .message-header {
+  color: var(--mermaid-hot-pink);
+  justify-content: flex-end;
+}
+
+.rina .message-header {
+  color: var(--mermaid-cyan);
+}
+
+.message-content {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+/* Priority Indicators */
+.priority-high {
+  border-left-color: var(--text-error) !important;
+  background: rgba(255, 68, 68, 0.1) !important;
+}
+
+.priority-medium {
+  border-left-color: var(--text-warning) !important;
+  background: rgba(255, 170, 0, 0.1) !important;
+}
+
+.priority-low {
+  border-left-color: var(--text-success) !important;
+  background: rgba(0, 255, 136, 0.1) !important;
+}
+
+/* Input Area */
+.input-area {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  padding: 8px 0;
+}
+
+.input-field::placeholder {
+  color: var(--text-secondary);
+}
+
+.send-button {
+  background: var(--mermaid-gradient);
+  border: none;
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: bold;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+.send-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+}
+
+.send-button:active {
+  transform: translateY(0);
+}
+
+/* Suggestions Panel */
+.suggestions-panel {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 20, 147, 0.3);
+}
+
+.suggestions-title {
+  color: var(--mermaid-hot-pink);
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.suggestion-item {
+  background: rgba(0, 255, 255, 0.1);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  border-left: 2px solid var(--mermaid-cyan);
+}
+
+.suggestion-item:hover {
+  background: rgba(0, 255, 255, 0.2);
+  transform: translateX(4px);
+}
+
+/* Status Indicators */
+.status-bar {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-indicator.online::before {
+  content: '●';
+  color: var(--text-success);
+}
+
+.status-indicator.thinking::before {
+  content: '●';
+  color: var(--text-warning);
+  animation: pulse 1.5s infinite;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes typing {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.typing-indicator::after {
+  content: '▋';
+  animation: typing 1s infinite;
+  color: var(--mermaid-cyan);
+}
+
+/* Scrollbar Styling */
+.chat-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background: var(--mermaid-cyan);
+  border-radius: 3px;
+  opacity: 0.6;
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .terminal-window {
+    margin: 10px;
+    height: calc(100vh - 20px);
+  }
+
+  .terminal-header {
+    padding: 10px 15px;
+  }
+
+  .terminal-content {
+    padding: 15px;
+    height: calc(100vh - 160px);
+  }
+
+  .chat-message {
+    max-width: 95%;
+  }
+}
+
+/* Clean Focus States */
+.input-field:focus,
+.send-button:focus,
+.suggestion-item:focus {
+  outline: 2px solid var(--mermaid-cyan);
+  outline-offset: 2px;
+}
+
+/* Enhanced Readability */
+.message-content h1,
+.message-content h2,
+.message-content h3 {
+  color: var(--text-accent);
+  margin: 12px 0 8px 0;
+}
+
+.message-content code {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  color: var(--mermaid-cyan);
+  font-family: 'Monaco', 'Menlo', monospace;
+  padding: 2px 6px;
+}
+
+.message-content pre {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+  border-left: 3px solid var(--mermaid-hot-pink);
+  margin: 8px 0;
+  overflow-x: auto;
+  padding: 12px;
+}
+
+.message-content ul,
+.message-content ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.message-content li {
+  margin-bottom: 4px;
+}
+
+/* Success/Error States */
+.message-success {
+  background: rgba(0, 255, 136, 0.15) !important;
+  border-left-color: var(--text-success) !important;
+}
+
+.message-error {
+  background: rgba(255, 68, 68, 0.15) !important;
+  border-left-color: var(--text-error) !important;
+}

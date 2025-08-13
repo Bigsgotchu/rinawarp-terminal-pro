@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1270, height=760">
+    <title>RinaWarp Terminal Hero Shot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            width: 1270px;
+            height: 760px;
+            background: linear-gradient(135deg, #ff1493 0%, #00ffff 100%);
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ffffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .terminal {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            padding: 30px;
+            border: 3px solid #ff1493;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            flex-grow: 1;
+            max-height: 500px;
+        }
+        
+        .terminal-header {
+            color: #ff1493;
+            font-size: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .voice-dot {
+            width: 12px;
+            height: 12px;
+            background: #00ff00;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .command {
+            color: #00ffff;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        
+        .ai-suggestion {
+            background: rgba(255, 20, 147, 0.15);
+            border-left: 4px solid #ff1493;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            color: #ff69b4;
+            font-size: 16px;
+        }
+        
+        .voice-command {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #00ff00;
+            font-size: 18px;
+        }
+        
+        .mermaid-icon {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 64px;
+            opacity: 0.7;
+        }
+        
+        .features {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            text-align: right;
+        }
+        
+        .feature {
+            font-size: 16px;
+            margin: 5px 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="mermaid-icon">🧜‍♀️</div>
+        
+        <div class="header">
+            <div class="title">RinaWarp Terminal</div>
+            <div class="subtitle">AI-Powered Terminal with Voice Control</div>
+        </div>
+        
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="voice-dot"></div>
+                Listening for "Hey Rina" commands...
+            </div>
+            
+            <div class="command">$ git status</div>
+            
+            <div class="ai-suggestion">
+                🧠 AI Suggestion: Would you like to commit these changes?<br>
+                Try: git add . && git commit -m "your message"
+            </div>
+            
+            <div class="command">$ <span style="color: #ff1493;">rina "deploy to staging"</span></div>
+            
+            <div class="voice-command">
+                🎤 Voice command detected: "deploy to staging"<br>
+                🤖 AI: Running: npm run build && railway deploy --env staging
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">✨ AI Command Suggestions</div>
+            <div class="feature">🎤 Voice Control</div>
+            <div class="feature">🧜‍♀️ Beautiful Mermaid Theme</div>
+            <div class="feature">⚡ 10x Productivity</div>
+        </div>
+    </div>
+</body>
+</html>

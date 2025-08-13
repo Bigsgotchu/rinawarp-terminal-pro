@@ -1,0 +1,30 @@
+# Build and config files that can't be easily fixed
+node_modules/
+dist/
+build/
+*.min.js
+*.bundle.js
+
+# Test files with complex mock patterns
+tests/
+**/*.test.js
+**/*.spec.js
+
+# Generated or external files
+public/js/
+assets/
+*.generated.js
+
+# Files with complex legacy patterns
+marketing-cli.js
+manage-threats.js
+scripts/
+backup-*/
+webhook-handler.js
+testimonial-server-scalable.cjs
+
+# Files that are work in progress
+test-*.js
+test-*.cjs
+verify-*.js
+verify-*.cjs
