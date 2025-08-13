@@ -68,7 +68,7 @@
       "icon": "assets/icon.ico",
       "verifyUpdateCodeSignature": false,
       "requestedExecutionLevel": "asInvoker",
-      "artifactName": "RinaWarp-Terminal-Windows-${arch}.${ext}"
+      "artifactName": "RinaWarp-Terminal-Setup-Windows.${ext}"
     },
     "dmg": {
       "title": "${productName} ${version}",
@@ -110,7 +110,8 @@
         }
       ],
       "icon": "assets/rinawarp-icon-1024.png",
-      "category": "Development"
+      "category": "Development",
+      "artifactName": "RinaWarp-Terminal-Linux.${ext}"
     },
     "publish": [
       {
@@ -175,7 +176,7 @@
     "build:releases": "node scripts/build-releases.js",
     "download:releases": "node scripts/download-releases.js",
     "check:build-status": "node scripts/check-build-status.js",
-    "release": "standard-version",
+    "release": "npm version patch && npm run changelog",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0 ",
     "release:major": "node scripts/release.cjs major",
     "release:minor": "node scripts/release.cjs minor",
@@ -290,7 +291,6 @@
     "css-minimizer-webpack-plugin": "7.0.2",
     "csv-parser": "3.2.0",
     "csv-writer": "1.6.0",
-    "dmg-license": "1.0.11",
     "electron": "37.2.6",
     "electron-builder": "26.0.12",
     "electron-builder-squirrel-windows": "26.0.12",
@@ -313,7 +313,7 @@
     "mini-css-extract-plugin": "2.9.3",
     "monaco-editor": "0.52.2",
     "monaco-editor-webpack-plugin": "7.1.0",
-    "node-fetch": "3.3.2",
+    "node-fetch": "^3.3.2",
     "nodemailer": "7.0.5",
     "openai": "5.12.2",
     "os-browserify": "0.3.0",
@@ -327,7 +327,8 @@
     "react-dom": "19.1.1",
     "regenerator-runtime": "0.14.1",
     "sqlite3": "5.1.7",
-    "standard-version": "9.5.0",
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
     "stream-browserify": "3.0.0",
     "stripe": "18.4.0",
     "style-loader": "4.0.0",
@@ -346,7 +347,11 @@
     "rimraf": "^4.4.1",
     "glob": "^11.0.3",
     "globby": "^14.0.0",
-    "del": "^7.0.0"
+    "del": "^7.0.0",
+    "formidable": "^3.5.1",
+    "superagent": "^10.2.2",
+    "lodash.isequal": "^4.5.0",
+    "fetch-blob": "^3.2.0"
   },
   "lint-staged": {
     "*.{js,cjs,jsx,ts,tsx}": [
