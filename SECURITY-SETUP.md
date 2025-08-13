@@ -53,8 +53,19 @@ The server will start with all security features enabled.
 
 ### Automated Testing
 Run the comprehensive security test suite:
+
+**Local Development Server:**
 ```bash
+npm run security:test
+# or
 node test-security.js
+```
+
+**Production Server:**
+```bash
+npm run security:test:production
+# or
+SERVER_URL=https://rinawarptech.com node test-security.js
 ```
 
 This will test:

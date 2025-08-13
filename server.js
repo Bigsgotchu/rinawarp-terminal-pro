@@ -133,7 +133,14 @@ import supportRouter from './src/api/support.js';
 import ThreatDetector from './src/security/ThreatDetector.js';
 import AgentChatAPI from './src/api/agent-chat.js';
 import { getSecretsManager } from './src/security/SecretsManager.js';
-import { requireAdmin } from './src/middleware/auth.js';
+import {
+  requireAdmin,
+  authenticateToken,
+  requireAuthOrApiKey,
+  auditLog,
+} from './src/middleware/auth.js';
+import { securityHeaders } from './src/middleware/securityHeaders.js';
+import { criticalRateLimit, analyticsRateLimit } from './src/middleware/rate-limiter.js';
 import adminRouter from './src/api/admin.js';
 import cspReportRouter from './src/api/csp-report.js';
 // Enhanced Stripe integration with graceful error handling
@@ -378,6 +385,9 @@ app.use((req, res, next) => {
 app.use(threatDetector.createMiddleware());
 // Apply custom logging middleware to all requests
 app.use(logRequest);
+
+// Apply security headers globally to all responses
+app.use(securityHeaders);
 // Sentry distributed tracing middleware - must be before other middleware
 try {
   if (Sentry && typeof Sentry.getCurrentScope === 'function') {
@@ -1403,50 +1413,60 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
   }
   res.json({ received: true });
 });
-// Lead capture endpoint for email marketing
-app.post('/api/capture-lead', apiRateLimiter, async (req, res) => {
-  const { email, source = 'website' } = req.body;
-  // Validate email
-  const emailSchema = Joi.object({
-    email: Joi.string().email().required(),
-    source: Joi.string().valid('lead_magnet', 'newsletter', 'beta_interest', 'website').optional(),
-  });
-  const { error } = emailSchema.validate({ email, source });
-  if (error) {
-    return res.status(400).json({ error: 'Invalid email address' });
-  }
-  try {
-    // Store lead in database (for now, we'll log it)
-    // Send lead magnet email if source is lead_magnet
-    if (source === 'lead_magnet') {
-      try {
-        await sendLeadMagnetEmail(email);
-        console.log('✅ Lead magnet email sent successfully');
-      } catch (emailError) {
-        console.error('❌ Error sending lead magnet email:', emailError);
-        console.error('Error details:', {
-          message: emailError.message,
-          code: emailError.code,
-          response: emailError.response,
-          stack: emailError.stack,
-        });
-        throw emailError; // Re-throw new Error(to handle in outer catch
-      }
-    }
-    // Track in analytics
-    res.json({
-      success: true,
-      message: 'Thank you! Check your email for your free guide.',
-      email,
+// Lead capture endpoint for email marketing - SECURED
+app.post(
+  '/api/capture-lead',
+  // Security middleware stack
+  requireAuthOrApiKey({ roles: ['ADMIN', 'MODERATOR'], apiKeyType: 'ADMIN' }),
+  auditLog('CAPTURE_LEAD', 'leads'),
+  criticalRateLimit(),
+  securityHeaders(),
+  async (req, res) => {
+    const { email, source = 'website' } = req.body;
+    // Validate email
+    const emailSchema = Joi.object({
+      email: Joi.string().email().required(),
+      source: Joi.string()
+        .valid('lead_magnet', 'newsletter', 'beta_interest', 'website')
+        .optional(),
     });
-  } catch (error) {
-    console.error('❌ Error in lead capture endpoint:', error);
-    console.error('Error type:', error.constructor.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ error: 'Failed to process request. Please try again.' });
+    const { error } = emailSchema.validate({ email, source });
+    if (error) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+    try {
+      // Store lead in database (for now, we'll log it)
+      // Send lead magnet email if source is lead_magnet
+      if (source === 'lead_magnet') {
+        try {
+          await sendLeadMagnetEmail(email);
+          console.log('✅ Lead magnet email sent successfully');
+        } catch (emailError) {
+          console.error('❌ Error sending lead magnet email:', emailError);
+          console.error('Error details:', {
+            message: emailError.message,
+            code: emailError.code,
+            response: emailError.response,
+            stack: emailError.stack,
+          });
+          throw emailError; // Re-throw new Error(to handle in outer catch
+        }
+      }
+      // Track in analytics
+      res.json({
+        success: true,
+        message: 'Thank you! Check your email for your free guide.',
+        email,
+      });
+    } catch (error) {
+      console.error('❌ Error in lead capture endpoint:', error);
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ error: 'Failed to process request. Please try again.' });
+    }
   }
-});
+);
 // Function to send lead magnet email
 async function sendLeadMagnetEmail(email) {
   if (!transporter) {
@@ -1902,8 +1922,8 @@ app.post(
     res.json(licenseData);
   }
 );
-// Generate new license endpoint (for testing)
-app.post('/api/generate-license', (req, res) => {
+// Generate new license endpoint (SECURED with JWT authentication)
+app.post('/api/generate-license', authenticateToken, (req, res) => {
   const { customerId, licenseType, email } = req.body;
   if (!customerId || !licenseType) {
     return res.status(400).json({
@@ -1927,27 +1947,32 @@ app.post('/api/generate-license', (req, res) => {
     license: licenseData,
   });
 });
-// Test license email endpoint
-app.post('/api/test-license-email', validateJoi(emailValidationSchema), async (req, res) => {
-  const { email, licenseType = 'personal' } = req.body;
-  try {
-    const testLicenseKey = generateLicenseKey('test-customer', licenseType);
-    await sendLicenseEmail(email, testLicenseKey, licenseType);
-    res.json({
-      success: true,
-      message: 'Test license email sent successfully',
-      licenseKey: testLicenseKey,
-      email: email,
-      licenseType: licenseType,
-    });
-  } catch (error) {
-    console.error('Error sending test license email:', error);
-    res.status(500).json({
-      error: 'Failed to send test email',
-      details: error.message,
-    });
+// Test license email endpoint (SECURED - Admin only)
+app.post(
+  '/api/test-license-email',
+  authenticateToken,
+  validateJoi(emailValidationSchema),
+  async (req, res) => {
+    const { email, licenseType = 'personal' } = req.body;
+    try {
+      const testLicenseKey = generateLicenseKey('test-customer', licenseType);
+      await sendLicenseEmail(email, testLicenseKey, licenseType);
+      res.json({
+        success: true,
+        message: 'Test license email sent successfully',
+        licenseKey: testLicenseKey,
+        email: email,
+        licenseType: licenseType,
+      });
+    } catch (error) {
+      console.error('Error sending test license email:', error);
+      res.status(500).json({
+        error: 'Failed to send test email',
+        details: error.message,
+      });
+    }
   }
-});
+);
 // License status endpoint
 app.get('/api/license-status/:licenseKey', (req, res) => {
   const { licenseKey } = req.params;
@@ -1976,8 +2001,8 @@ app.get('/api/debug/sendgrid', (req, res) => {
     },
   });
 });
-// Test lead magnet email with simplified content
-app.post('/api/test/lead-magnet-simple', async (req, res) => {
+// Test lead magnet email with simplified content (SECURED - Admin only)
+app.post('/api/test/lead-magnet-simple', authenticateToken, async (req, res) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
@@ -2101,23 +2126,32 @@ app.get('/api/debug/license-emails', (req, res) => {
 });
 // Analytics tracking endpoints
 const analyticsData = new Map(); // In-memory storage for demo (use database in production)
-// Track conversions for A/B testing (now using database)
-app.post('/api/track-conversion', express.json(), (req, res) => {
-  const { _event, plan, variant } = req.body;
-  const value = plan === 'professional' ? 25 : plan === 'starter' ? 15 : 35;
+// Track conversions for A/B testing - SECURED
+app.post(
+  '/api/track-conversion',
+  // Security middleware stack
+  requireAuthOrApiKey({ roles: ['ADMIN', 'MODERATOR'], apiKeyType: 'ANALYTICS_SERVICE' }),
+  auditLog('TRACK_CONVERSION', 'analytics'),
+  analyticsRateLimit(),
+  securityHeaders(),
+  express.json(),
+  (req, res) => {
+    const { _event, plan, variant } = req.body;
+    const value = plan === 'professional' ? 25 : plan === 'starter' ? 15 : 35;
 
-  // Log conversion to database
-  AnalyticsDB.logABTestEvent(
-    'conversion',
-    variant || 'unknown',
-    plan,
-    value,
-    req.ip,
-    req.get('user-agent'),
-    req.get('referrer')
-  );
-  res.json({ success: true });
-});
+    // Log conversion to database
+    AnalyticsDB.logABTestEvent(
+      'conversion',
+      variant || 'unknown',
+      plan,
+      value,
+      req.ip,
+      req.get('user-agent'),
+      req.get('referrer')
+    );
+    res.json({ success: true });
+  }
+);
 // Get A/B test results (now using database)
 app.get('/api/ab-test-results', async (req, res) => {
   try {
@@ -2308,45 +2342,55 @@ app.get('/ab-test-dashboard', (req, res) => {
   `;
   res.send(dashboardHTML);
 });
-app.post('/api/analytics/batch', (req, res) => {
-  try {
-    const { sessionId, events, metadata } = req.body;
-    if (!sessionId || !events || !Array.isArray(events)) {
-      return res.status(400).json({ error: 'Invalid analytics data' });
-    }
-    // Store analytics data
-    if (!analyticsData.has(sessionId)) {
-      analyticsData.set(sessionId, {
-        sessionId,
-        metadata,
-        events: [],
-        createdAt: new Date().toISOString(),
-      });
-    }
-    const sessionData = analyticsData.get(sessionId);
-    sessionData.events.push(...events);
-    sessionData.lastUpdated = new Date().toISOString();
-    console.log(`📊 Analytics batch received: ${events.length} events for session ${sessionId}`);
-    // Log key conversion events
-    events.forEach(event => {
-      if (
-        ['checkout_initiated', 'purchase_completed', 'pricing_plan_selected'].includes(
-          event.eventName
-        )
-      ) {
-        console.log(`💰 Conversion Event: ${event.eventName}`, event);
+// Analytics batch endpoint - SECURED
+app.post(
+  '/api/analytics/batch',
+  // Security middleware stack
+  requireAuthOrApiKey({ roles: ['ADMIN', 'MODERATOR'], apiKeyType: 'ANALYTICS_SERVICE' }),
+  auditLog('BATCH_ANALYTICS', 'analytics'),
+  analyticsRateLimit(),
+  securityHeaders(),
+  express.json(),
+  (req, res) => {
+    try {
+      const { sessionId, events, metadata } = req.body;
+      if (!sessionId || !events || !Array.isArray(events)) {
+        return res.status(400).json({ error: 'Invalid analytics data' });
       }
-    });
-    res.json({
-      success: true,
-      processed: events.length,
-      sessionId,
-    });
-  } catch (error) {
-    console.error('Analytics error:', error);
-    res.status(500).json({ error: 'Failed to process analytics data' });
+      // Store analytics data
+      if (!analyticsData.has(sessionId)) {
+        analyticsData.set(sessionId, {
+          sessionId,
+          metadata,
+          events: [],
+          createdAt: new Date().toISOString(),
+        });
+      }
+      const sessionData = analyticsData.get(sessionId);
+      sessionData.events.push(...events);
+      sessionData.lastUpdated = new Date().toISOString();
+      console.log(`📊 Analytics batch received: ${events.length} events for session ${sessionId}`);
+      // Log key conversion events
+      events.forEach(event => {
+        if (
+          ['checkout_initiated', 'purchase_completed', 'pricing_plan_selected'].includes(
+            event.eventName
+          )
+        ) {
+          console.log(`💰 Conversion Event: ${event.eventName}`, event);
+        }
+      });
+      res.json({
+        success: true,
+        processed: events.length,
+        sessionId,
+      });
+    } catch (error) {
+      console.error('Analytics error:', error);
+      res.status(500).json({ error: 'Failed to process analytics data' });
+    }
   }
-});
+);
 // Get analytics dashboard data
 app.get('/api/analytics/dashboard', (req, res) => {
   try {
@@ -2733,6 +2777,42 @@ try {
     error.message
   );
 }
+
+// JWT Test Token Generation Endpoint (for security testing only)
+app.post(
+  '/api/auth/generate-test-token',
+  // This endpoint should be restricted to development/testing only
+  (req, res) => {
+    if (process.env.NODE_ENV === 'production' && !process.env.ENABLE_TEST_ENDPOINTS) {
+      return res.status(404).json({ error: 'Test endpoints disabled in production' });
+    }
+
+    try {
+      const testUser = {
+        userId: req.body.userId || 'test-admin-' + Date.now(),
+        email: req.body.email || 'test@rinawarptech.com',
+        role: req.body.role || 'ADMIN',
+        permissions: req.body.permissions || ['admin:read', 'admin:write'],
+      };
+
+      const token = jwt.sign(testUser, process.env.JWT_SECRET || 'default-secret', {
+        expiresIn: '1h',
+        issuer: 'rinawarp-terminal',
+        audience: 'rinawarp-users',
+      });
+
+      res.json({
+        token,
+        expiresIn: '1h',
+        user: testUser,
+      });
+    } catch (error) {
+      console.error('Test token generation error:', error);
+      res.status(500).json({ error: 'Failed to generate test token' });
+    }
+  }
+);
+
 // 404 Handler for undefined routes (must be after all other routes)
 app.use(notFoundHandler);
 // Global error handler (must be last)

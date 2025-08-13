@@ -12,6 +12,35 @@ const JWT_SECRET = process.env.JWT_SECRET || 'rinawarp-dev-secret-change-in-prod
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
+// API Key Configuration for service-to-service authentication
+const API_KEYS = {
+  ADMIN: process.env.ADMIN_API_KEY || 'rw-admin-dev-key-change-in-production',
+  LICENSE_SERVICE: process.env.LICENSE_API_KEY || 'rw-license-dev-key-change-in-production',
+  ANALYTICS_SERVICE: process.env.ANALYTICS_API_KEY || 'rw-analytics-dev-key-change-in-production',
+  WEBHOOK_SERVICE: process.env.WEBHOOK_API_KEY || 'rw-webhook-dev-key-change-in-production',
+};
+
+// IP Whitelist for sensitive operations (comma-separated in env)
+const ADMIN_IP_WHITELIST = process.env.ADMIN_IP_WHITELIST
+  ? process.env.ADMIN_IP_WHITELIST.split(',').map(ip => ip.trim())
+  : ['127.0.0.1', '::1', 'localhost'];
+
+// Audit logger for administrative actions
+class AuditLogger {
+  static log(userId, action, resource, details = null, ipAddress = null, userAgent = null) {
+    try {
+      UserManager.logAuditEvent(userId, action, resource, details, ipAddress, userAgent);
+      console.log(`🔍 AUDIT: ${action} on ${resource} by user ${userId} from ${ipAddress}`);
+    } catch (error) {
+      console.error('Audit logging failed:', error);
+    }
+  }
+
+  static logAdminAction(req, action, resource, details = null) {
+    this.log(req.user?.id || 'system', action, resource, details, req.ip, req.get('user-agent'));
+  }
+}
+
 export class AuthService {
   // Generate JWT token for user
   static generateToken(user, expiresIn = JWT_EXPIRES_IN) {
@@ -394,6 +423,203 @@ export function verifyToken(token) {
 export function authenticateToken(req, res, next) {
   return requireAuth()(req, res, next);
 }
+
+// 🔒 ENTERPRISE SECURITY ENHANCEMENTS 🔒
+
+// API Key authentication for service-to-service communication
+export function requireApiKey(keyType = null) {
+  return (req, res, next) => {
+    const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('ApiKey ', '');
+
+    if (!apiKey) {
+      AuditLogger.log(
+        'system',
+        'API_KEY_MISSING',
+        'api_auth',
+        { endpoint: req.path },
+        req.ip,
+        req.get('user-agent')
+      );
+      return res.status(401).json({
+        error: 'API key required',
+        code: 'MISSING_API_KEY',
+      });
+    }
+
+    // Check if API key is valid
+    const validKey = Object.values(API_KEYS).includes(apiKey);
+    if (!validKey) {
+      AuditLogger.log(
+        'system',
+        'API_KEY_INVALID',
+        'api_auth',
+        {
+          endpoint: req.path,
+          keyPrefix: apiKey.substring(0, 8) + '...',
+        },
+        req.ip,
+        req.get('user-agent')
+      );
+      return res.status(401).json({
+        error: 'Invalid API key',
+        code: 'INVALID_API_KEY',
+      });
+    }
+
+    // If specific key type required, validate it
+    if (keyType && API_KEYS[keyType] !== apiKey) {
+      AuditLogger.log(
+        'system',
+        'API_KEY_WRONG_TYPE',
+        'api_auth',
+        {
+          endpoint: req.path,
+          required: keyType,
+          keyPrefix: apiKey.substring(0, 8) + '...',
+        },
+        req.ip,
+        req.get('user-agent')
+      );
+      return res.status(403).json({
+        error: `API key not authorized for ${keyType} operations`,
+        code: 'UNAUTHORIZED_API_KEY',
+      });
+    }
+
+    // Add API key info to request
+    req.apiKey = {
+      key: apiKey,
+      type: Object.keys(API_KEYS).find(key => API_KEYS[key] === apiKey),
+      authMethod: 'api-key',
+    };
+
+    AuditLogger.log(
+      'system',
+      'API_KEY_AUTH_SUCCESS',
+      'api_auth',
+      {
+        endpoint: req.path,
+        keyType: req.apiKey.type,
+      },
+      req.ip,
+      req.get('user-agent')
+    );
+
+    next();
+  };
+}
+
+// Hybrid authentication: JWT or API Key
+export function requireAuthOrApiKey(options = {}) {
+  return async (req, res, next) => {
+    const hasApiKey =
+      req.headers['x-api-key'] || req.headers['authorization']?.startsWith('ApiKey ');
+    const hasJwtToken = req.headers['authorization']?.startsWith('Bearer ');
+
+    if (hasApiKey) {
+      // Use API Key authentication
+      return requireApiKey(options.apiKeyType)(req, res, next);
+    } else if (hasJwtToken) {
+      // Use JWT authentication
+      return requireAuth(options)(req, res, next);
+    } else {
+      return res.status(401).json({
+        error: 'Authentication required - provide either JWT token or API key',
+        code: 'NO_AUTHENTICATION',
+      });
+    }
+  };
+}
+
+// IP Whitelist middleware for sensitive admin operations
+export function requireWhitelistedIP() {
+  return (req, res, next) => {
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+
+    // Check if IP is whitelisted
+    const isWhitelisted = ADMIN_IP_WHITELIST.some(allowedIP => {
+      if (allowedIP === 'localhost') {
+        return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(clientIP);
+      }
+      return clientIP === allowedIP || clientIP === `::ffff:${allowedIP}`;
+    });
+
+    if (!isWhitelisted) {
+      AuditLogger.log(
+        req.user?.id || 'anonymous',
+        'IP_BLOCKED',
+        'security',
+        {
+          endpoint: req.path,
+          blockedIP: clientIP,
+          whitelist: ADMIN_IP_WHITELIST,
+        },
+        clientIP,
+        req.get('user-agent')
+      );
+
+      return res.status(403).json({
+        error: 'Access denied - IP not whitelisted for admin operations',
+        code: 'IP_NOT_WHITELISTED',
+        clientIP: process.env.NODE_ENV === 'development' ? clientIP : undefined,
+      });
+    }
+
+    next();
+  };
+}
+
+// Enhanced admin authentication with IP whitelist
+export function requireSecureAdmin() {
+  return [requireWhitelistedIP(), requireAdmin()];
+}
+
+// Role-based access with specific permission for license generation
+export function requireLicenseAdmin() {
+  return requireAuth({
+    roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN],
+    permissions: ['licenses:write'],
+  });
+}
+
+// Audit logging middleware for sensitive operations
+export function auditLog(action, resource) {
+  return (req, res, next) => {
+    // Store audit info in request for later logging
+    req.auditInfo = { action, resource };
+
+    // Override res.json to log successful operations
+    const originalJson = res.json;
+    res.json = function (data) {
+      if (res.statusCode < 400) {
+        AuditLogger.logAdminAction(req, action, resource, {
+          endpoint: req.path,
+          method: req.method,
+          success: true,
+          responseStatus: res.statusCode,
+        });
+      }
+      return originalJson.call(this, data);
+    };
+
+    next();
+  };
+}
+
+// Security headers middleware
+export function securityHeaders() {
+  return (req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    next();
+  };
+}
+
+// Export AuditLogger for use in other modules
+export { AuditLogger };
 
 export default {
   AuthService,
