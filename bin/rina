@@ -21,7 +21,7 @@ const colors = {
   blue: '\x1b[34m',
   cyan: '\x1b[36m',
   yellow: '\x1b[33m',
-  pink: '\x1b[95m'
+  pink: '\x1b[95m',
 };
 
 function rinaLog(message, color = 'cyan') {
@@ -92,8 +92,8 @@ ${colors.dim}Copyright (c) 2025 Rinawarp Technologies, LLC${colors.reset}
 
 async function showStatus() {
   rinaLog('🧜‍♀️ Checking RinaWarp Terminal status...');
-  
-  return new Promise((resolve) => {
+
+  return new Promise(resolve => {
     exec('pgrep -f "RinaWarp Terminal|rinawarp-terminal"', (error, stdout) => {
       if (!error && stdout.trim()) {
         rinaSuccess('✅ RinaWarp Terminal is running');
@@ -109,43 +109,43 @@ async function showStatus() {
 
 async function startRinaWarp() {
   rinaLog('🧜‍♀️ Starting RinaWarp Terminal...');
-  
+
   const possiblePaths = [
     '/Users/kgilley/rinawarp-terminal/launch-creator-terminal.cjs',
-    '/Applications/RinaWarp Terminal.app/Contents/MacOS/RinaWarp Terminal'
+    '/Applications/RinaWarp Terminal.app/Contents/MacOS/RinaWarp Terminal',
   ];
-  
+
   for (const terminalPath of possiblePaths) {
     if (fs.existsSync(terminalPath)) {
       rinaInfo(`Found RinaWarp Terminal at: ${terminalPath}`);
-      
+
       if (terminalPath.endsWith('.cjs')) {
-        spawn('node', [terminalPath], { 
-          detached: true, 
+        spawn('node', [terminalPath], {
+          detached: true,
           stdio: 'ignore',
-          cwd: path.dirname(terminalPath)
+          cwd: path.dirname(terminalPath),
         }).unref();
       } else {
-        spawn(terminalPath, [], { 
-          detached: true, 
-          stdio: 'ignore' 
+        spawn(terminalPath, [], {
+          detached: true,
+          stdio: 'ignore',
         }).unref();
       }
-      
+
       setTimeout(() => {
         rinaSuccess('✅ Done! Anything else?');
       }, 2000);
       return;
     }
   }
-  
+
   rinaError('Could not find RinaWarp Terminal installation');
 }
 
 // Helper function to query AI API
 async function queryAIAPI(question) {
   const possiblePorts = [3000, 8080, 8081, 3001];
-  
+
   for (const port of possiblePorts) {
     try {
       const response = await makeAPIRequest(port, question);
@@ -155,7 +155,7 @@ async function queryAIAPI(question) {
       continue;
     }
   }
-  
+
   throw new Error('No API server found');
 }
 
@@ -163,7 +163,7 @@ async function queryAIAPI(question) {
 function makeAPIRequest(port, query) {
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify({ query });
-    
+
     const options = {
       hostname: 'localhost',
       port: port,
@@ -171,18 +171,18 @@ function makeAPIRequest(port, query) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
+        'Content-Length': Buffer.byteLength(postData),
       },
-      timeout: 5000
+      timeout: 5000,
     };
 
-    const req = http.request(options, (res) => {
+    const req = http.request(options, res => {
       let data = '';
-      
-      res.on('data', (chunk) => {
+
+      res.on('data', chunk => {
         data += chunk;
       });
-      
+
       res.on('end', () => {
         try {
           const parsed = JSON.parse(data);
@@ -196,16 +196,16 @@ function makeAPIRequest(port, query) {
         }
       });
     });
-    
-    req.on('error', (error) => {
+
+    req.on('error', error => {
       reject(error);
     });
-    
+
     req.on('timeout', () => {
       req.destroy();
       reject(new Error('Request timeout'));
     });
-    
+
     req.write(postData);
     req.end();
   });
@@ -213,30 +213,40 @@ function makeAPIRequest(port, query) {
 
 async function askRina(question) {
   rinaLog('🧜‍♀️ 🤔 Let me think about that...');
-  
+
   try {
     // Try to connect to the local API server
     const response = await queryAIAPI(question);
-    
+
     console.log(`\n${colors.cyan}🧜‍♀️ Rina says:${colors.reset}\n`);
     console.log(response);
-    console.log(`\n${colors.dim}💡 Need more help? Try: rina ask "more details about <topic>"${colors.reset}\n`);
+    console.log(
+      `\n${colors.dim}💡 Need more help? Try: rina ask "more details about <topic>"${colors.reset}\n`
+    );
   } catch (error) {
     // Fallback to enhanced static responses if API is not available
-    console.log(`\n${colors.yellow}⚠️ AI service unavailable, using offline responses${colors.reset}\n`);
-    
+    console.log(
+      `\n${colors.yellow}⚠️ AI service unavailable, using offline responses${colors.reset}\n`
+    );
+
     const fallbackResponse = generateFallbackResponse(question);
     console.log(`\n${colors.cyan}🧜‍♀️ Rina says:${colors.reset}\n`);
     console.log(fallbackResponse);
-    console.log(`\n${colors.dim}💡 Start RinaWarp Terminal for full AI capabilities${colors.reset}\n`);
+    console.log(
+      `\n${colors.dim}💡 Start RinaWarp Terminal for full AI capabilities${colors.reset}\n`
+    );
   }
 }
 
 // Enhanced fallback responses when API is not available
 function generateFallbackResponse(question) {
   const lowerQuestion = question.toLowerCase();
-  
-  if (lowerQuestion.includes('file') || lowerQuestion.includes('list') || lowerQuestion.includes('ls')) {
+
+  if (
+    lowerQuestion.includes('file') ||
+    lowerQuestion.includes('list') ||
+    lowerQuestion.includes('ls')
+  ) {
     return `🧜‍♀️ Here are the best commands for file operations:
 
 📁 **List Files:**
@@ -277,7 +287,13 @@ function generateFallbackResponse(question) {
 • ${colors.green}docker container prune${colors.reset} - Remove stopped containers`;
   }
 
-  if (lowerQuestion.includes('system') || lowerQuestion.includes('monitor') || lowerQuestion.includes('memory') || lowerQuestion.includes('cpu') || lowerQuestion.includes('performance')) {
+  if (
+    lowerQuestion.includes('system') ||
+    lowerQuestion.includes('monitor') ||
+    lowerQuestion.includes('memory') ||
+    lowerQuestion.includes('cpu') ||
+    lowerQuestion.includes('performance')
+  ) {
     return `🧜‍♀️ System monitoring like checking the ocean's vital signs:
 
 📊 **System Resources:**
@@ -315,8 +331,8 @@ function generateFallbackResponse(question) {
 
 async function executeCommand(cmdString) {
   rinaLog(`🧜‍♀️ Executing: ${colors.bright}${cmdString}${colors.reset}`);
-  
-  return new Promise((resolve) => {
+
+  return new Promise(resolve => {
     const child = exec(cmdString, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
       if (error) {
         rinaError(`Command failed: ${error.message}`);
@@ -332,17 +348,19 @@ async function executeCommand(cmdString) {
 
 async function showConfig() {
   rinaLog('🧜‍♀️ Current Configuration:');
-  
+
   const configInfo = {
     'CLI Version': '1.0.0',
-    'Platform': os.platform(),
-    'Architecture': os.arch(),
+    Platform: os.platform(),
+    Architecture: os.arch(),
     'Node Version': process.version,
     'Home Directory': os.homedir(),
     'Current Directory': process.cwd(),
-    'License Status': fs.existsSync(path.join(os.homedir(), '.rinawarp-creator')) ? '✅ Creator License Active' : 'Standard'
+    'License Status': fs.existsSync(path.join(os.homedir(), '.rinawarp-creator'))
+      ? '✅ Creator License Active'
+      : 'Standard',
   };
-  
+
   console.log();
   Object.entries(configInfo).forEach(([key, value]) => {
     console.log(`  ${colors.blue}${key}:${colors.reset} ${value}`);
@@ -353,7 +371,7 @@ async function showConfig() {
 async function processCommand(args) {
   const command = args[0]?.toLowerCase();
   const input = args.slice(1).join(' ');
-  
+
   switch (command) {
     case 'help':
     case '--help':

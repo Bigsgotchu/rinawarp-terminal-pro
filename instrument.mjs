@@ -1,22 +1,22 @@
-import * as Sentry from "@sentry/node";
+import * as Sentry from '@sentry/node';
 
 console.log('🔍 Initializing Sentry v10+ from instrument.mjs');
 
 // Ensure to call this before importing any other modules!
 try {
   Sentry.init({
-    dsn: "https://4c22d2c576b2d0ebbeda9941d59fff95@o4509759638536192.ingest.us.sentry.io/4509759649087488",
+    dsn: 'https://4c22d2c576b2d0ebbeda9941d59fff95@o4509759638536192.ingest.us.sentry.io/4509759649087488',
 
     // Add Tracing by setting tracesSampleRate
     // We recommend adjusting this value in production
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    
+
     // Environment configuration
     environment: process.env.NODE_ENV || 'development',
-    
+
     // Performance monitoring
     profilesSampleRate: 1.0,
-    
+
     // Integrations
     integrations: [
       // Default integrations
@@ -27,24 +27,27 @@ try {
         recordOutputs: true,
       }),
     ],
-    
+
     // Error filtering
     beforeSend(event, hint) {
       // Filter out development errors in production
       if (process.env.NODE_ENV === 'production') {
         // Skip certain error types that are not actionable
-        if (event.exception?.values?.some(ex => 
-          ex.type === 'ENOENT' || 
-          ex.type === 'ECONNRESET' ||
-          ex.value?.includes('socket hang up')
-        )) {
+        if (
+          event.exception?.values?.some(
+            ex =>
+              ex.type === 'ENOENT' ||
+              ex.type === 'ECONNRESET' ||
+              ex.value?.includes('socket hang up')
+          )
+        ) {
           return null;
         }
       }
       return event;
     },
   });
-  
+
   // Test that Sentry is properly initialized
   if (typeof Sentry.getCurrentScope === 'function') {
     const scope = Sentry.getCurrentScope();

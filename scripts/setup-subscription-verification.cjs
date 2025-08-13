@@ -14,25 +14,24 @@ async function setupSubscriptionVerification() {
   try {
     // 0. Create necessary directories first
     await createDirectories();
-    
+
     // 1. Create backend API endpoints
     await createAPIEndpoints();
-    
+
     // 2. Create subscription verification middleware
     await createVerificationMiddleware();
-    
+
     // 3. Create user authentication system
     await createAuthSystem();
-    
+
     // 4. Create feature access controls
     await createFeatureControls();
-    
+
     // 5. Create Stripe webhook handler
     await createWebhookHandler();
-    
+
     console.log('\n✅ Subscription verification system setup complete!');
     console.log('🔒 Users will now be authenticated before accessing premium features');
-    
   } catch (error) {
     console.error('❌ Failed to setup subscription verification:', error);
   }
@@ -42,14 +41,14 @@ async function createDirectories() {
   const directories = [
     'src/backend',
     'src/backend/api',
-    'src/backend/middleware', 
+    'src/backend/middleware',
     'src/backend/auth',
     'src/backend/features',
-    'src/backend/webhooks'
+    'src/backend/webhooks',
   ];
-  
+
   console.log('📁 Creating backend directories...');
-  
+
   for (const dir of directories) {
     try {
       await fs.mkdir(dir, { recursive: true });
@@ -60,7 +59,7 @@ async function createDirectories() {
       }
     }
   }
-  
+
   console.log('✅ Created backend directory structure');
 }
 
@@ -600,7 +599,9 @@ if (process.argv.includes('--setup')) {
   setupSubscriptionVerification();
 } else {
   console.log('🔐 Subscription Verification System Setup');
-  console.log('\nThis will create a complete user authentication and subscription verification system.');
+  console.log(
+    '\nThis will create a complete user authentication and subscription verification system.'
+  );
   console.log('\n📋 Components to be created:');
   console.log('1. Backend API endpoints for subscription verification');
   console.log('2. Authentication middleware with JWT tokens');

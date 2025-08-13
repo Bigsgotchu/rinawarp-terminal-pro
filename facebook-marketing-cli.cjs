@@ -9,7 +9,7 @@ const AdAccount = bizSdk.AdAccount;
 const Campaign = bizSdk.Campaign;
 const AdSet = bizSdk.AdSet;
 const Ad = bizSdk.Ad;
-const Page = bizSdk.Page;
+const _Page = bizSdk.Page;
 const User = bizSdk.User;
 
 class FacebookMarketingCLI {

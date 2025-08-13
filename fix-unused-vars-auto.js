@@ -137,10 +137,10 @@ function fixUnusedVariablesInFile(file) {
 const files = getAllJSFiles('.');
 
 const _totalFixed = 0;
-let filesFixed = 0;
+let _filesFixed = 0;
 
 for (const file of files) {
   if (fixUnusedVariablesInFile(file)) {
-    filesFixed++;
+    _filesFixed++;
   }
 }

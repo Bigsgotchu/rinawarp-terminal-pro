@@ -69,10 +69,10 @@ async function packageReleases() {
   // Package macOS
   const macFiles = fs.readdirSync(distPath).filter(f => f.endsWith('-mac.zip'));
   for (const file of macFiles) {
-    const srcPath = path.join(distPath, file);
-    const destPath = path.join(releasesPath, 'RinaWarp-Terminal-macOS.zip');
-    if (fs.existsSync(srcPath)) {
-      fs.copyFileSync(srcPath, destPath);
+    const _srcPath = path.join(distPath, file);
+    const _destPath = path.join(releasesPath, 'RinaWarp-Terminal-macOS.zip');
+    if (fs.existsSync(_srcPath)) {
+      fs.copyFileSync(_srcPath, _destPath);
       console.log(`✅ Copied ${file} to releases`);
     }
   }
@@ -80,8 +80,8 @@ async function packageReleases() {
   // Package Windows
   const winFiles = fs.readdirSync(distPath).filter(f => f.includes('win') && f.endsWith('.exe'));
   for (const file of winFiles) {
-    const srcPath = path.join(distPath, file);
-    const destPath = path.join(releasesPath, 'RinaWarp-Terminal-Windows-Portable.zip');
+    const _srcPath = path.join(distPath, file);
+    const _destPath = path.join(releasesPath, 'RinaWarp-Terminal-Windows-Portable.zip');
 
     // Create a ZIP from the Windows executable
     await execAsync(

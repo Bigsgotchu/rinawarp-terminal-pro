@@ -65,7 +65,9 @@ const deprecatedDeps = [
 ];
 
 if (deprecatedDeps.length > 0) {
-  deprecatedDeps.forEach(({ pkg, version, type }) => {});
+  deprecatedDeps.forEach(({ pkg, version, type }) => {
+    console.log(`⚠️ Deprecated ${type} dependency: ${pkg}@${version}`);
+  });
 } else {
   console.log('✅ No known deprecated packages found');
 }

@@ -4,11 +4,7 @@
  */
 
 import express from 'express';
-import {
-  requireAuth,
-  requireAdmin,
-  requirePermission
-} from '../middleware/auth.js';
+import { requireAuth, requireAdmin, requirePermission } from '../middleware/auth.js';
 import { PERMISSIONS } from '../database/users.js';
 import { getSecretsManager } from '../security/SecretsManager.js';
 

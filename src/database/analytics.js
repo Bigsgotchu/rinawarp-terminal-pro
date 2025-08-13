@@ -108,28 +108,28 @@ const statements = {
     INSERT INTO license_emails (type, to_email, message_id, license_key, license_type, timestamp)
     VALUES (?, ?, ?, ?, ?, ?)
   `),
-  
+
   insertAnalyticsEvent: db.prepare(`
     INSERT INTO analytics_events (session_id, event_name, event_data, timestamp, ip_address, user_agent)
     VALUES (?, ?, ?, ?, ?, ?)
   `),
-  
+
   insertABTestEvent: db.prepare(`
     INSERT INTO ab_test_events (event_type, variant, plan, value, ip_address, user_agent, referrer)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `),
-  
+
   insertLicense: db.prepare(`
     INSERT OR REPLACE INTO licenses 
     (license_key, customer_id, customer_email, license_type, status, subscription_id, price_id)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `),
-  
+
   insertServerMetric: db.prepare(`
     INSERT INTO server_metrics (metric_name, metric_value, metadata)
     VALUES (?, ?, ?)
   `),
-  
+
   getLicenseEmailStats: db.prepare(`
     SELECT 
       type,
@@ -138,19 +138,19 @@ const statements = {
     FROM license_emails 
     GROUP BY type
   `),
-  
+
   getRecentLicenseEmails: db.prepare(`
     SELECT * FROM license_emails 
     ORDER BY timestamp DESC 
     LIMIT ?
   `),
-  
+
   getEmailsToday: db.prepare(`
     SELECT COUNT(*) as count 
     FROM license_emails 
     WHERE DATE(timestamp) = DATE('now')
   `),
-  
+
   getABTestResults: db.prepare(`
     SELECT 
       variant,
@@ -161,7 +161,7 @@ const statements = {
     FROM ab_test_events 
     GROUP BY variant, event_type
   `),
-  
+
   getAnalyticsEventCount: db.prepare(`
     SELECT 
       event_name,
@@ -169,7 +169,7 @@ const statements = {
     FROM analytics_events
     WHERE timestamp > ?
     GROUP BY event_name
-  `)
+  `),
 };
 
 // Analytics Database Functions
@@ -178,7 +178,14 @@ export class AnalyticsDB {
   static logLicenseEmail(type, toEmail, messageId, licenseKey = null, licenseType = null) {
     try {
       const timestamp = new Date().toISOString();
-      statements.insertLicenseEmail.run(type, toEmail, messageId, licenseKey, licenseType, timestamp);
+      statements.insertLicenseEmail.run(
+        type,
+        toEmail,
+        messageId,
+        licenseKey,
+        licenseType,
+        timestamp
+      );
       console.log(`📊 Logged ${type} email to database:`, toEmail);
     } catch (error) {
       console.error('❌ Error logging license email:', error);
@@ -195,14 +202,15 @@ export class AnalyticsDB {
         totalSent: stats.reduce((sum, stat) => sum + stat.count, 0),
         welcomeEmails: stats.find(s => s.type === 'welcome')?.count || 0,
         licenseEmails: stats.find(s => s.type === 'license')?.count || 0,
-        lastSent: stats.length > 0 ? Math.max(...stats.map(s => new Date(s.last_sent).getTime())) : null,
-        emailsToday: todayCount.count
+        lastSent:
+          stats.length > 0 ? Math.max(...stats.map(s => new Date(s.last_sent).getTime())) : null,
+        emailsToday: todayCount.count,
       };
 
       return {
         summary,
         recentEmails,
-        stats
+        stats,
       };
     } catch (error) {
       console.error('❌ Error getting license email stats:', error);
@@ -211,7 +219,14 @@ export class AnalyticsDB {
   }
 
   // Analytics Event Functions
-  static logAnalyticsEvent(sessionId, eventName, eventData, timestamp, ipAddress = null, userAgent = null) {
+  static logAnalyticsEvent(
+    sessionId,
+    eventName,
+    eventData,
+    timestamp,
+    ipAddress = null,
+    userAgent = null
+  ) {
     try {
       statements.insertAnalyticsEvent.run(
         sessionId,
@@ -226,9 +241,25 @@ export class AnalyticsDB {
     }
   }
 
-  static logABTestEvent(eventType, variant, plan = null, value = null, ipAddress = null, userAgent = null, referrer = null) {
+  static logABTestEvent(
+    eventType,
+    variant,
+    plan = null,
+    value = null,
+    ipAddress = null,
+    userAgent = null,
+    referrer = null
+  ) {
     try {
-      statements.insertABTestEvent.run(eventType, variant, plan, value, ipAddress, userAgent, referrer);
+      statements.insertABTestEvent.run(
+        eventType,
+        variant,
+        plan,
+        value,
+        ipAddress,
+        userAgent,
+        referrer
+      );
     } catch (error) {
       console.error('❌ Error logging A/B test event:', error);
     }
@@ -239,7 +270,7 @@ export class AnalyticsDB {
       const results = statements.getABTestResults.all();
       const processed = {
         simple: { views: 0, conversions: 0, conversionRate: 0, revenue: 0, avgRevenue: 0 },
-        complex: { views: 0, conversions: 0, conversionRate: 0, revenue: 0, avgRevenue: 0 }
+        complex: { views: 0, conversions: 0, conversionRate: 0, revenue: 0, avgRevenue: 0 },
       };
 
       results.forEach(result => {
@@ -301,21 +332,22 @@ export class AnalyticsDB {
     try {
       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
       const eventCounts = statements.getAnalyticsEventCount.all(oneDayAgo);
-      
+
       const stats = {
         totalSessions: 0, // Would need session counting logic
         totalEvents: eventCounts.reduce((sum, event) => sum + event.count, 0),
         pageViews: eventCounts.find(e => e.event_name === 'page_view')?.count || 0,
         checkoutInitiated: eventCounts.find(e => e.event_name === 'checkout_initiated')?.count || 0,
-        purchasesCompleted: eventCounts.find(e => e.event_name === 'purchase_completed')?.count || 0,
+        purchasesCompleted:
+          eventCounts.find(e => e.event_name === 'purchase_completed')?.count || 0,
       };
 
-      stats.conversionRate = stats.pageViews > 0 ? 
-        ((stats.purchasesCompleted / stats.pageViews) * 100).toFixed(2) : 0;
+      stats.conversionRate =
+        stats.pageViews > 0 ? ((stats.purchasesCompleted / stats.pageViews) * 100).toFixed(2) : 0;
 
       return {
         stats,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       console.error('❌ Error getting analytics dashboard:', error);
@@ -339,14 +371,17 @@ export class AnalyticsDB {
 }
 
 // Schedule periodic maintenance
-setInterval(() => {
-  AnalyticsDB.logServerMetric('uptime', process.uptime());
-}, 5 * 60 * 1000); // Every 5 minutes
+setInterval(
+  () => {
+    AnalyticsDB.logServerMetric('uptime', process.uptime());
+  },
+  5 * 60 * 1000
+); // Every 5 minutes
 
 // Log startup
-AnalyticsDB.logServerMetric('server_start', 1, { 
+AnalyticsDB.logServerMetric('server_start', 1, {
   timestamp: new Date().toISOString(),
-  version: '1.0.9'
+  version: '1.0.9',
 });
 
 console.log('✅ Analytics database initialized:', dbPath);

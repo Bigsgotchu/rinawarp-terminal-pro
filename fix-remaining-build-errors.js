@@ -6,7 +6,7 @@
  */
 
 import { promises as fs } from 'fs';
-import path from 'path';
+// // import path from 'path'; // Unused import // Unused import
 
 const fixes = [];
 
