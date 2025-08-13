@@ -77,9 +77,13 @@ jobs:
         run: |
           # Handle platform-specific dependencies
           if [ "${{ runner.os }}" = "macOS" ]; then
+            echo "🍎 Installing macOS dependencies with optional packages..."
             npm install
+            # Ensure dmg-license is available for DMG building
+            npm install dmg-license --no-save || echo "dmg-license install failed, continuing..."
           else
             # For non-macOS platforms, use --force to bypass dmg-license platform check
+            echo "🐧🪟 Installing non-macOS dependencies..."
             npm install --force
           fi
           # Verify electron-builder is available
