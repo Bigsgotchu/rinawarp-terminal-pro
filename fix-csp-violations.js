@@ -16,7 +16,7 @@ const scriptHashes = new Set();
 const styleHashes = new Set();
 
 // Common inline scripts that need hashing
-const commonScripts = {
+const _unusedCommonScripts = {
   googleAnalytics: `
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}

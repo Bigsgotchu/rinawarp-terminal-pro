@@ -119,9 +119,7 @@ import nodemailer from 'nodemailer';
 const { default: rateLimit } = await import('express-rate-limit');
 import Stripe from 'stripe';
 import cors from 'cors';
-import helmet from 'helmet';
 import Joi from 'joi';
-import morgan from 'morgan';
 import jwt from 'jsonwebtoken';
 // import { validationResult } from 'express-validator'; // Currently unused
 import errorHandler, { notFoundHandler } from './src/middleware/errorHandler.js';
@@ -139,7 +137,7 @@ import { requireAdmin } from './src/middleware/auth.js';
 import adminRouter from './src/api/admin.js';
 import cspReportRouter from './src/api/csp-report.js';
 // Enhanced Stripe integration with graceful error handling
-import stripeService from './src/services/stripe-service.js';
+// import stripeService from './src/services/stripe-service.js'; // Unused
 import stripeEnhancedRouter from './src/routes/stripe-enhanced.js';
 // import cookieParser from 'cookie-parser'; // Removed for Railway deployment
 // Validate SMTP configuration AFTER dotenv
@@ -309,8 +307,8 @@ app.use((req, res, next) => {
 // Nonce generation removed - we're using external scripts only for CSP compliance
 // CSP Report-Only for testing strict policy with all required script hashes
 app.use((req, res, next) => {
-  // Complete set of script hashes for all inline scripts in HTML files
-  const scriptHashes = [
+  // Complete set of script hashes for all inline scripts in HTML files - used for CSP
+  const _scriptHashes = [
     "'sha256-75UjkgWl1ciiClQcZlt3z6BXga/OTL1hm9z3tozPwKA='", // Analytics verification
     "'sha256-KKraR6z3U0TYXEIFhs9yFznk2lRjBRawwkQ4u2ThztA='", // GA4 tracker initialization
     "'sha256-AsGotMGpy72AfMtuDKwlIvCehG49Z2RXPoNvsL5zf+8='", // Beta download tracking
@@ -343,7 +341,7 @@ app.use((req, res, next) => {
     "'sha256-oI+DsseCcKKYNZbJovA1sy7JvqOKC6b8hRlso+EVMvI='", // CSP test console logger
     "'sha256-872hLtYh89v1MmFad56ii3HkHlWvcX56j7Cpz72gMLQ='", // GA4 test event logging
   ];
-  const strictCSP = [
+  const _strictCSP = [
     "default-src 'self'",
     "script-src 'self' 'sha256-QWooIafSiNlB4iOLb8T7FRgbVAe8AXBjlNmlXaEGKR4=' 'sha256-2DJKYBq47B8ZFiYHJYqt8Cg5G4fI0bFHx4Cm7EO8tZY=' 'sha256-3M/0U7O5DJjvyGlQ0M0N2TZJ4Br8zz8C6V5zTYAyPZE=' 'sha256-4L5BHM7YJ+zG8fR3s4QWAZLkFhVVXKTZO1/7RGqXU1k=' 'sha256-5P6U8vN/N8h3y2fG9M0Q6wXLZf2JYKw0g3Z4bTqV8uY=' 'sha256-6Q7V9oP/O9j4z3gH0N1R7xYMag3KZLx1h4a5cUrW9vZ=' 'sha256-7R8W0pQ/P0k5a4hI1O2S8yZNbh4LbMy2i5b6dVsX0wa=' 'sha256-8S9X1qR/Q1l6b5jJ2P3T9zaOci5McIz3j6c7eWtY1xb=' 'sha256-9T0Y2rS/R2m7c6kK3Q4U0abPdj6NdJA4k7d8fXuZ2yc=' 'sha256-0U1Z3sT/S3n8d7lL4R5V1bcQek7OeKB5l8e9gYvA3zd=' 'sha256-1V2a4tU/T4o9e8mM5S6W2cdRfl8PfLC6m9f0hZwB40e=' 'sha256-2W3b5uV/U5p0f9nN6T7X3deQgm9QgMD7n0g1iawC51f=' 'sha256-3X4c6vW/V6q1g0oO7U8Y4efRhn0RhND8o1h2jbxD62g=' 'sha256-4Y5d7wX/W7r2h1pP8V9Z5fgSio1SiOE9p2i3kcyE73h=' 'sha256-5Z6e8xY/X8s3i2qQ9W0a6ghTjp2TjPF0q3j4ldz2l4i=' 'sha256-6a7f9yZ/Y9t4j3rR0X1b7hiUkq3UkQG1r4k5mea3m5j=' 'sha256-7b8g0za/Z0u5k4sS1Y2c8hjVlr4VlRH2s5l6nfb4n6k=' 'sha256-8c9h1ab/a1v6l5tT2Z3d9ikWms5WmSI3t6m7ogc5o7l=' 'sha256-9d0i2bc/b2w7m6uU3a4e0jlXnt6XnTJ4u7n8phd6p8m=' 'sha256-0e1j3cd/c3x8n7vV4b5f1kmYou7YoUK5v8o9qie7q9n=' 'sha256-1f2k4de/d4y9o8wW5c6g2lnZpv8ZpVL6w9p0rjf8r0o=' 'sha256-2g3l5ef/e5z0p9xX6d7h3moaqw9aqWM7x0q1skg9s1p=' 'sha256-3h4m6fg/f6a1q0yY7e8i4hnpbrwarXN8y1r2tlh0t2q=' 'sha256-4i5n7gh/g7b2r1zZ8f9j5ioqcssXsYO9z2s3umj1u3r=' 'sha256-5j6o8hi/h8c3s20a9g0k6jprdttYtZP0a3t4vnk2v4s=' 'sha256-6k7p9ij/i9d4t31b0h1l7kqseuuZuaQ1b4u5wol3w5t=' 'sha256-7l8q0jk/j0e5u42c1i2m8lrsfvvavbR2c5v6xpm4x6u=' 'sha256-8m9r1kl/k1f6v53d2j3n9mstgwwbwcS3d6w7yqn5y7v=' 'sha256-9n0s2lm/l2g7w64e3k4o0ntuhxxcxdT4e7x8zro6z8w=' 'sha256-0o1t3mn/m3h8x75f4l5p1ouvirrdyeU5f8y9asp7a9x=' 'sha256-1p2u4no/n4i9y86g5m6q2pvwjsseztV6g9z0btq8b0y=' https://js.stripe.com https://checkout.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://cdn.logrocket.io",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -438,14 +436,8 @@ const _optionalJWT = (req, res, next) => {
 import AnalyticsDB from './src/database/analytics.js';
 // Import WebSocket server for real-time admin dashboard
 import AdminWebSocketServer from './src/websocket/admin-websocket.js';
-// License email tracking (initialize early) - now backed by database
-const licenseEmailStats = {
-  totalSent: 0,
-  welcomeEmails: 0,
-  licenseEmails: 0,
-  lastSent: null,
-  emailLog: [],
-};
+// License email tracking moved to database - no longer needed in memory
+// const licenseEmailStats = {...}; // Removed unused variable
 // Enhanced status/health endpoint with integration checks (before status router)
 app.get('/api/status/health', async (req, res) => {
   const memoryUsage = process.memoryUsage();
@@ -569,13 +561,16 @@ const licenseValidationSchema = Joi.object({
     }),
 });
 const checkoutValidationSchema = Joi.object({
-  priceId: Joi.string().required().min(5).max(100),
+  priceId: Joi.string().min(5).max(100).optional(),
+  plan: Joi.string()
+    .valid('starter', 'basic', 'personal', 'pro', 'professional', 'team', 'enterprise')
+    .optional(),
   successUrl: Joi.string().uri().optional(),
   cancelUrl: Joi.string().uri().optional(),
   customerEmail: Joi.string().email().optional(),
   userId: Joi.string().optional(),
   metadata: Joi.object().optional(),
-});
+}).or('priceId', 'plan'); // Require either priceId OR plan
 const emailValidationSchema = Joi.object({
   email: Joi.string().email().required(),
   licenseType: Joi.string()
@@ -1295,10 +1290,16 @@ app.use('/releases', staticPageLimiter, (req, res, _next) => {
   res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
   res.sendFile(safePath);
 });
-// Stripe webhook endpoint
+// Stripe webhook endpoint (with enhanced debugging)
 app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   const sig = req.get('stripe-signature');
   let event;
+
+  // Debug logging
+  console.log('🔔 Webhook received at /webhook');
+  console.log('📝 Signature present:', !!sig);
+  console.log('📏 Body length:', req.body?.length);
+
   try {
     // Verify webhook signature
     if (
@@ -1306,16 +1307,22 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET !== '{{STRIPE_WEBHOOK_SECRET}}'
     ) {
       // Use proper signature verification when webhook secret is configured
-      if (typeof stripe !== 'undefined') {
+      if (stripe && typeof stripe.webhooks !== 'undefined') {
         event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        console.log('✅ Webhook signature verified successfully');
       } else {
-        console.log('⚠️ Stripe not initialized, parsing event without verification');
+        console.log('⚠️ Stripe not properly initialized, parsing event without verification');
         event = JSON.parse(req.body);
       }
     } else {
+      console.log('⚠️ No webhook secret configured, parsing event without verification');
       event = JSON.parse(req.body);
     }
+
+    console.log('📨 Webhook event type:', event?.type);
+    console.log('🆔 Webhook event ID:', event?.id);
   } catch (err) {
+    console.error('❌ Webhook processing error:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
   // Handle the event
@@ -1343,13 +1350,39 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   }
   res.json({ received: true });
 });
-// Alternative webhook endpoint for /api/webhook path
+// Alternative webhook endpoint for /api/webhook path (with enhanced debugging)
 app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
+
+  // Debug logging
+  console.log('🔔 Webhook received at /api/webhook');
+  console.log('📝 Signature present:', !!sig);
+  console.log('📏 Body length:', req.body?.length);
+
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    if (
+      process.env.STRIPE_WEBHOOK_SECRET &&
+      process.env.STRIPE_WEBHOOK_SECRET !== '{{STRIPE_WEBHOOK_SECRET}}'
+    ) {
+      if (stripe && typeof stripe.webhooks !== 'undefined') {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        console.log('✅ API webhook signature verified successfully');
+      } else {
+        console.log(
+          '⚠️ Stripe not properly initialized for API webhook, parsing without verification'
+        );
+        event = JSON.parse(req.body);
+      }
+    } else {
+      console.log('⚠️ No webhook secret configured for API webhook, parsing without verification');
+      event = JSON.parse(req.body);
+    }
+
+    console.log('📨 API webhook event type:', event?.type);
+    console.log('🆔 API webhook event ID:', event?.id);
   } catch (err) {
+    console.error('❌ API webhook processing error:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
   // Handle the event
@@ -1617,9 +1650,7 @@ async function sendWelcomeEmail(customerEmail) {
   }
 }
 async function sendLicenseEmail(customerEmail, licenseKey, licenseType) {
-  const { captureErrorWithContext, trackPerformance, addBreadcrumb } = await import(
-    './src/utils/sentry-helpers.js'
-  );
+  const { addBreadcrumb } = await import('./src/utils/sentry-helpers.js');
 
   try {
     // Add breadcrumb for debugging
@@ -1727,47 +1758,43 @@ function saveLicenseToDatabase(licenseData) {
   console.log('📝 License data saved to database:', licenseData.licenseKey);
 }
 async function handlePaymentSuccess(session) {
-  const { captureErrorWithContext, trackPerformance, addBreadcrumb } = await import(
-    './src/utils/sentry-helpers.js'
-  );
+  const { addBreadcrumb } = await import('./src/utils/sentry-helpers.js');
 
-  return await trackPerformance('payment_success_handling', async () => {
-    try {
-      // Add breadcrumb for debugging
-      addBreadcrumb('Processing payment success', 'payment', 'info', {
-        sessionId: session.id,
-        customerId: session.customer,
-        amount: session.amount_total,
-        currency: session.currency,
-      });
+  try {
+    // Add breadcrumb for debugging
+    addBreadcrumb('Processing payment success', 'payment', 'info', {
+      sessionId: session.id,
+      customerId: session.customer,
+      amount: session.amount_total,
+      currency: session.currency,
+    });
 
-      // For subscription-based licensing, we don't immediately send licenses
-      // Licenses are only sent when the subscription is confirmed as active
-      console.log('💰 Checkout session completed:', session.id);
+    // For subscription-based licensing, we don't immediately send licenses
+    // Licenses are only sent when the subscription is confirmed as active
+    console.log('💰 Checkout session completed:', session.id);
 
-      // Extract customer information for record keeping
-      const customerId = session.customer;
-      let customerEmail = session.customer_details?.email;
-      // If email is not in session, fetch from Stripe customer
-      if (!customerEmail && customerId && stripe) {
-        try {
-          const customer = await stripe.customers.retrieve(customerId);
-          customerEmail = customer.email;
-        } catch (error) {
-          console.error('⚠️ Failed to retrieve customer from Stripe:', error.message);
-        }
+    // Extract customer information for record keeping
+    const customerId = session.customer;
+    let customerEmail = session.customer_details?.email;
+    // If email is not in session, fetch from Stripe customer
+    if (!customerEmail && customerId && stripe) {
+      try {
+        const customer = await stripe.customers.retrieve(customerId);
+        customerEmail = customer.email;
+      } catch (error) {
+        console.error('⚠️ Failed to retrieve customer from Stripe:', error.message);
       }
-      // Send welcome email (without license key)
-      if (customerEmail) {
-        await sendWelcomeEmail(customerEmail);
-        console.log('✅ Welcome email sent to:', customerEmail);
-      }
-      // Log the checkout completion
-      console.log('✅ Checkout completed - waiting for subscription activation');
-    } catch (error) {
-      console.error('❌ Error processing payment success:', error);
     }
-  });
+    // Send welcome email (without license key)
+    if (customerEmail) {
+      await sendWelcomeEmail(customerEmail);
+      console.log('✅ Welcome email sent to:', customerEmail);
+    }
+    // Log the checkout completion
+    console.log('✅ Checkout completed - waiting for subscription activation');
+  } catch (error) {
+    console.error('❌ Error processing payment success:', error);
+  }
 }
 async function handleSubscriptionCreated(subscription) {
   try {
@@ -2364,6 +2391,21 @@ app.get('/api/analytics/dashboard', (req, res) => {
     res.status(500).json({ error: 'Failed to get analytics data' });
   }
 });
+// Helper function to map plan types to price IDs
+function getPriceIdFromPlan(planType) {
+  const planToPriceMap = {
+    // Frontend plan types to Stripe price IDs
+    starter: process.env.STRIPE_PRICE_PERSONAL_MONTHLY || 'price_1RlLBwG2ToGP7ChnhstisPz0',
+    basic: process.env.STRIPE_PRICE_PERSONAL_MONTHLY || 'price_1RlLBwG2ToGP7ChnhstisPz0',
+    personal: process.env.STRIPE_PRICE_PERSONAL_MONTHLY || 'price_1RlLBwG2ToGP7ChnhstisPz0',
+    pro: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || 'price_1RlLC4G2ToGP7ChndbHLotM7',
+    professional: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || 'price_1RlLC4G2ToGP7ChndbHLotM7',
+    team: process.env.STRIPE_PRICE_TEAM_MONTHLY || 'price_1RlLCEG2ToGP7ChnZa5Px0ow',
+    enterprise: process.env.STRIPE_PRICE_TEAM_MONTHLY || 'price_1RlLCEG2ToGP7ChnZa5Px0ow', // Using team for now since no enterprise price exists
+  };
+  return planToPriceMap[planType?.toLowerCase()];
+}
+
 // Stripe checkout session creation endpoint
 app.post(
   '/api/create-checkout-session',
@@ -2375,7 +2417,29 @@ app.post(
 
     return await trackPerformance('checkout_session_creation', async () => {
       try {
-        const { priceId, successUrl, cancelUrl, customerEmail, userId, metadata } = req.body;
+        let { priceId } = req.body;
+        const { plan } = req.body;
+        const { successUrl, cancelUrl, customerEmail, userId, metadata } = req.body;
+
+        // If plan is provided instead of priceId, convert it
+        if (plan && !priceId) {
+          priceId = getPriceIdFromPlan(plan);
+          if (!priceId) {
+            return res.status(400).json({
+              error: 'Invalid plan type',
+              validPlans: [
+                'starter',
+                'basic',
+                'personal',
+                'pro',
+                'professional',
+                'team',
+                'enterprise',
+              ],
+            });
+          }
+          console.log(`🔄 Converted plan '${plan}' to priceId '${priceId}'`);
+        }
 
         // Add breadcrumb for debugging
         addBreadcrumb('Creating checkout session', 'payment', 'info', {
@@ -2622,15 +2686,26 @@ app.use(
   })
 );
 // Serve stripe-csp-test.html specifically
-app.get('/stripe-csp-test.html', staticPageLimiter, (req, res) => {
-  const safePath = validateAndNormalizePath('stripe-csp-test.html', _PUBLIC_DIR);
-  if (!safePath || !fs.existsSync(safePath)) {
-    return res.status(404).json({ error: 'CSP test page not found' });
+// Serve RinaWarp Terminal interface
+app.get('/terminal', (req, res) => {
+  const terminalPath = path.join(__dirname, 'src', 'terminal.html');
+  if (!fs.existsSync(terminalPath)) {
+    return res.status(404).json({ error: 'Terminal interface not found' });
   }
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Cache-Control', 'no-cache'); // Don't cache test page
-  res.sendFile(safePath);
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(terminalPath);
+});
+
+// Default route to marketing page
+app.get('/', (req, res) => {
+  const marketingPath = path.join(_PUBLIC_DIR, 'index.html');
+  if (!fs.existsSync(marketingPath)) {
+    return res.status(404).json({ error: 'Marketing page not found' });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(marketingPath);
 });
 // Note: Removed catch-all static file server to prevent conflicts with API routes
 // Static files are now served via express.static middleware and specific routes

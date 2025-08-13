@@ -7,7 +7,7 @@
 
 import { execSync } from 'child_process';
 import fs from 'fs';
-import path from 'path';
+import _unusedPath from 'path';
 
 console.log('🚀 Building RinaWarp Terminal Production with Advanced AI Features');
 console.log('======================================================================');

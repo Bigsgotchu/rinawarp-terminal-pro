@@ -30,7 +30,7 @@ class StripeClientService {
       }
 
       // Step 2: Fetch configuration from server
-      const configResponse = await fetch('/api/stripe/config', {
+      const configResponse = await fetch('http://localhost:3001/api/stripe/config', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ class StripeClientService {
 
       console.log('🛒 Creating checkout session for:', planType);
 
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      const response = await fetch('http://localhost:3001/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

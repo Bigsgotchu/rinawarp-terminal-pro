@@ -24,10 +24,12 @@ const PORT = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 // Logging
 app.use(morgan('combined'));
@@ -35,7 +37,7 @@ app.use(morgan('combined'));
 // Rate limiting (global)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
 
@@ -46,10 +48,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0'
+    version: process.env.npm_package_version || '1.0.0',
   });
 });
 
@@ -57,11 +59,11 @@ app.get('/health', (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    
+
     if (!email || !password || !name) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    
+
     const result = await AuthManager.register(email, password, name);
     res.status(201).json(result);
   } catch (error) {
@@ -72,11 +74,11 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Missing credentials' });
     }
-    
+
     const result = await AuthManager.login(email, password);
     res.json(result);
   } catch (error) {
@@ -101,7 +103,7 @@ app.post('/api/feature-access', verifySubscription(), (req, res) => {
   try {
     const { featureName, usage = {} } = req.body;
     const userTier = req.user.tier;
-    
+
     const access = FeatureManager.validateFeatureAccess(userTier, featureName, usage);
     res.json(access);
   } catch (error) {
@@ -124,33 +126,33 @@ app.post('/api/ai/chat', verifySubscription('personal'), rateLimitByTier, async 
   try {
     const { prompt, model = 'gpt-3.5-turbo' } = req.body;
     const userTier = req.user.tier;
-    
+
     // Check AI feature access
     const access = FeatureManager.validateFeatureAccess(userTier, 'ai_assistant');
     if (!access.allowed) {
       return res.status(403).json({ error: access.reason });
     }
-    
+
     // Check model access for advanced AI
     if (model !== 'gpt-3.5-turbo') {
       const advancedAccess = FeatureManager.validateFeatureAccess(userTier, 'advanced_ai');
       if (!advancedAccess.allowed) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Advanced AI models require Professional tier or higher',
-          availableModels: ['gpt-3.5-turbo']
+          availableModels: ['gpt-3.5-turbo'],
         });
       }
     }
-    
+
     // Here you would integrate with your actual AI service
     // For now, return a mock response
     const response = {
       message: `AI Response to: ${prompt}`,
       model: model,
       tier: userTier,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
+
     res.json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -162,17 +164,17 @@ app.get('/api/terminal/themes', verifySubscription('personal'), (req, res) => {
   try {
     const userTier = req.user.tier;
     const access = FeatureManager.validateFeatureAccess(userTier, 'custom_themes');
-    
+
     if (!access.allowed) {
       return res.status(403).json({ error: access.reason });
     }
-    
+
     const limits = FeatureManager.getFeatureLimit(userTier, 'custom_themes');
-    
+
     res.json({
       available: true,
       limits: limits,
-      themes: ['default', 'dark', 'light', 'cyberpunk', 'retro'] // Mock themes
+      themes: ['default', 'dark', 'light', 'cyberpunk', 'retro'], // Mock themes
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -184,20 +186,20 @@ app.get('/api/sync/status', verifySubscription('personal'), (req, res) => {
   try {
     const userTier = req.user.tier;
     const access = FeatureManager.validateFeatureAccess(userTier, 'cloud_sync');
-    
+
     if (!access.allowed) {
       return res.status(403).json({ error: access.reason });
     }
-    
+
     const limits = FeatureManager.getFeatureLimit(userTier, 'cloud_sync');
-    
+
     res.json({
       enabled: true,
       limits: limits,
       usage: {
         storage: '0.5GB', // Mock usage
-        lastSync: new Date().toISOString()
-      }
+        lastSync: new Date().toISOString(),
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -209,14 +211,14 @@ app.get('/api/team/members', verifySubscription('team'), (req, res) => {
   try {
     const userTier = req.user.tier;
     const access = FeatureManager.validateFeatureAccess(userTier, 'team_management');
-    
+
     if (!access.allowed) {
       return res.status(403).json({ error: access.reason });
     }
-    
+
     res.json({
       members: [], // Mock team members
-      limits: FeatureManager.getFeatureLimit(userTier, 'team_management')
+      limits: FeatureManager.getFeatureLimit(userTier, 'team_management'),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -230,9 +232,9 @@ app.use('/webhooks', stripeWebhookRouter);
 // Error handling
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
   });
 });
 
@@ -245,14 +247,14 @@ app.use('*', (req, res) => {
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`🚀 RinaWarp Backend Server running on port ${PORT}`);
-    console.log(`🔐 Authentication system active`);
-    console.log(`💳 Stripe webhooks ready`);
-    console.log(`🎯 Feature access controls enabled`);
-    
+    console.log('🔐 Authentication system active');
+    console.log('💳 Stripe webhooks ready');
+    console.log('🎯 Feature access controls enabled');
+
     // Verify environment variables
     const requiredEnvVars = ['STRIPE_SECRET_KEY', 'JWT_SECRET'];
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-    
+
     if (missingVars.length > 0) {
       console.warn(`⚠️ Missing environment variables: ${missingVars.join(', ')}`);
     } else {

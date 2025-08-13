@@ -16,22 +16,21 @@ async function installBackend() {
   try {
     // 1. Install dependencies
     await installDependencies();
-    
+
     // 2. Setup environment
     await setupEnvironment();
-    
+
     // 3. Create start scripts
     await createStartScripts();
-    
+
     // 4. Test installation
     await testInstallation();
-    
+
     console.log('\n✅ Backend installation complete!');
     console.log('🔧 Next steps:');
     console.log('1. Update your .env file with actual API keys');
     console.log('2. Run "npm run start:backend" to start the server');
     console.log('3. Backend will be available at http://localhost:3001');
-    
   } catch (error) {
     console.error('❌ Backend installation failed:', error.message);
     process.exit(1);
@@ -40,14 +39,14 @@ async function installBackend() {
 
 async function installDependencies() {
   console.log('📦 Installing backend dependencies...');
-  
+
   try {
     // Change to backend directory
     process.chdir('src/backend');
-    
+
     // Install dependencies
     execSync('npm install', { stdio: 'inherit' });
-    
+
     console.log('✅ Dependencies installed successfully');
   } catch (error) {
     throw new Error(`Failed to install dependencies: ${error.message}`);
@@ -59,10 +58,10 @@ async function installDependencies() {
 
 async function setupEnvironment() {
   console.log('⚙️ Setting up environment configuration...');
-  
+
   const envPath = 'src/backend/.env';
   const envExamplePath = 'src/backend/.env.example';
-  
+
   try {
     // Check if .env already exists
     try {
@@ -72,25 +71,24 @@ async function setupEnvironment() {
     } catch {
       // File doesn't exist, create it
     }
-    
+
     // Read the example file
     const exampleContent = await fs.readFile(envExamplePath, 'utf8');
-    
+
     // Generate secure secrets
     const jwtSecret = crypto.randomBytes(64).toString('hex');
     const cookieSecret = crypto.randomBytes(32).toString('hex');
-    
+
     // Replace placeholder values
-    let envContent = exampleContent
+    const envContent = exampleContent
       .replace('your-super-secret-jwt-key-change-this-in-production', jwtSecret)
       .replace('your-cookie-secret-key-here', cookieSecret);
-    
+
     // Write the .env file
     await fs.writeFile(envPath, envContent, 'utf8');
-    
+
     console.log('✅ Environment file created with secure secrets');
     console.log('⚠️ Remember to update Stripe keys and other API keys in .env');
-    
   } catch (error) {
     throw new Error(`Failed to setup environment: ${error.message}`);
   }
@@ -98,26 +96,25 @@ async function setupEnvironment() {
 
 async function createStartScripts() {
   console.log('📝 Creating start scripts...');
-  
+
   try {
     // Read current package.json
     const packageJsonPath = 'package.json';
     const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
-    
+
     // Add backend scripts if they don't exist
     if (!packageJson.scripts) {
       packageJson.scripts = {};
     }
-    
+
     packageJson.scripts['start:backend'] = 'cd src/backend && npm start';
     packageJson.scripts['dev:backend'] = 'cd src/backend && npm run dev';
     packageJson.scripts['install:backend'] = 'cd src/backend && npm install';
-    
+
     // Write updated package.json
     await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8');
-    
+
     console.log('✅ Start scripts added to package.json');
-    
   } catch (error) {
     throw new Error(`Failed to create start scripts: ${error.message}`);
   }
@@ -125,7 +122,7 @@ async function createStartScripts() {
 
 async function testInstallation() {
   console.log('🧪 Testing installation...');
-  
+
   try {
     // Test that all files exist
     const requiredFiles = [
@@ -136,19 +133,18 @@ async function testInstallation() {
       'src/backend/middleware/auth.js',
       'src/backend/auth/AuthManager.js',
       'src/backend/features/FeatureManager.js',
-      'src/backend/webhooks/stripe.js'
+      'src/backend/webhooks/stripe.js',
     ];
-    
+
     for (const file of requiredFiles) {
       await fs.access(file);
     }
-    
+
     console.log('✅ All required files are present');
-    
+
     // Test that node_modules exists in backend
     await fs.access('src/backend/node_modules');
     console.log('✅ Backend dependencies are installed');
-    
   } catch (error) {
     throw new Error(`Installation test failed: ${error.message}`);
   }

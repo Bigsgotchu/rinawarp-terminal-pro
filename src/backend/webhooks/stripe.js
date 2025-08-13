@@ -1,4 +1,3 @@
-
 const express = require('express');
 const Stripe = require('stripe');
 const AuthManager = require('../auth/AuthManager');
@@ -10,16 +9,16 @@ const router = express.Router();
 router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  
+
   let event;
-  
+
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
-    console.log(`Webhook signature verification failed.`, err.message);
+    console.log('Webhook signature verification failed.', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  
+
   // Handle the event
   try {
     switch (event.type) {
@@ -27,23 +26,23 @@ router.post('/stripe-webhook', express.raw({ type: 'application/json' }), async 
       case 'customer.subscription.updated':
         await handleSubscriptionChange(event.data.object);
         break;
-        
+
       case 'customer.subscription.deleted':
         await handleSubscriptionCancelled(event.data.object);
         break;
-        
+
       case 'invoice.payment_succeeded':
         await handlePaymentSucceeded(event.data.object);
         break;
-        
+
       case 'invoice.payment_failed':
         await handlePaymentFailed(event.data.object);
         break;
-        
+
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
-    
+
     res.json({ received: true });
   } catch (error) {
     console.error('Webhook processing failed:', error);
@@ -56,7 +55,7 @@ async function handleSubscriptionChange(subscription) {
     const customer = await stripe.customers.retrieve(subscription.customer);
     const priceId = subscription.items.data[0].price.id;
     const tier = getTierFromPrice(priceId);
-    
+
     // Update user subscription in our system
     const userId = customer.metadata.userId;
     if (userId) {
@@ -72,7 +71,7 @@ async function handleSubscriptionCancelled(subscription) {
   try {
     const customer = await stripe.customers.retrieve(subscription.customer);
     const userId = customer.metadata.userId;
-    
+
     if (userId) {
       await AuthManager.updateSubscription(userId, 'free', null);
       console.log(`Downgraded user ${userId} to free tier`);
@@ -102,10 +101,10 @@ async function handlePaymentFailed(invoice) {
 
 function getTierFromPrice(priceId) {
   const priceTierMap = {
-    'price_personal': 'personal',
-    'price_professional': 'professional',
-    'price_team': 'team', 
-    'price_enterprise': 'enterprise'
+    price_personal: 'personal',
+    price_professional: 'professional',
+    price_team: 'team',
+    price_enterprise: 'enterprise',
   };
   return priceTierMap[priceId] || 'free';
 }

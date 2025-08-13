@@ -13,7 +13,6 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
 export class AuthService {
-  
   // Generate JWT token for user
   static generateToken(user, expiresIn = JWT_EXPIRES_IN) {
     const payload = {
@@ -22,27 +21,23 @@ export class AuthService {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
-      permissions: UserManager.getUserPermissions(user.id, user.role)
+      permissions: UserManager.getUserPermissions(user.id, user.role),
     };
 
-    return jwt.sign(payload, JWT_SECRET, { 
+    return jwt.sign(payload, JWT_SECRET, {
       expiresIn,
       issuer: 'rinawarp-terminal',
-      audience: 'rinawarp-users'
+      audience: 'rinawarp-users',
     });
   }
 
   // Generate refresh token
   static generateRefreshToken(userId) {
-    return jwt.sign(
-      { userId, type: 'refresh' },
-      JWT_SECRET,
-      { 
-        expiresIn: JWT_REFRESH_EXPIRES_IN,
-        issuer: 'rinawarp-terminal',
-        audience: 'rinawarp-refresh'
-      }
-    );
+    return jwt.sign({ userId, type: 'refresh' }, JWT_SECRET, {
+      expiresIn: JWT_REFRESH_EXPIRES_IN,
+      issuer: 'rinawarp-terminal',
+      audience: 'rinawarp-refresh',
+    });
   }
 
   // Verify and decode JWT token
@@ -50,7 +45,7 @@ export class AuthService {
     try {
       const decoded = jwt.verify(token, JWT_SECRET, {
         issuer: 'rinawarp-terminal',
-        audience: 'rinawarp-users'
+        audience: 'rinawarp-users',
       });
       return decoded;
     } catch (error) {
@@ -64,13 +59,13 @@ export class AuthService {
     try {
       const decoded = jwt.verify(token, JWT_SECRET, {
         issuer: 'rinawarp-terminal',
-        audience: 'rinawarp-refresh'
+        audience: 'rinawarp-refresh',
       });
-      
+
       if (decoded.type !== 'refresh') {
         throw new Error('Invalid token type');
       }
-      
+
       return decoded;
     } catch (error) {
       console.error('Refresh token verification failed:', error.message);
@@ -83,22 +78,22 @@ export class AuthService {
     try {
       // Authenticate user
       const user = await UserManager.authenticateUser(email, password, ipAddress, userAgent);
-      
+
       // Create session
       const session = UserManager.createSession(user.id, ipAddress, userAgent);
-      
+
       // Generate tokens
       const accessToken = this.generateToken(user);
       const refreshToken = this.generateRefreshToken(user.id);
-      
+
       return {
         user,
         session,
         tokens: {
           accessToken,
           refreshToken,
-          expiresIn: JWT_EXPIRES_IN
-        }
+          expiresIn: JWT_EXPIRES_IN,
+        },
       };
     } catch (error) {
       throw error;
@@ -121,10 +116,10 @@ export class AuthService {
 
       // Generate new access token
       const accessToken = this.generateToken(user);
-      
+
       return {
         accessToken,
-        expiresIn: JWT_EXPIRES_IN
+        expiresIn: JWT_EXPIRES_IN,
       };
     } catch (error) {
       throw error;
@@ -137,17 +132,10 @@ export class AuthService {
       if (sessionToken) {
         UserManager.revokeSession(sessionToken);
       }
-      
+
       // Log audit event
       if (userId) {
-        UserManager.logAuditEvent(
-          userId,
-          'LOGOUT',
-          'authentication',
-          null,
-          null,
-          null
-        );
+        UserManager.logAuditEvent(userId, 'LOGOUT', 'authentication', null, null, null);
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -157,16 +145,12 @@ export class AuthService {
 
 // Authentication middleware
 export function requireAuth(options = {}) {
-  const { 
-    permissions = [], 
-    roles = [],
-    allowApiKey = false 
-  } = options;
+  const { permissions = [], roles = [], allowApiKey = false } = options;
 
   return async (req, res, next) => {
     try {
       let token = null;
-      let authMethod = 'jwt';
+      const authMethod = 'jwt';
 
       // Extract token from various sources
       if (req.headers.authorization) {
@@ -183,53 +167,53 @@ export function requireAuth(options = {}) {
       }
 
       if (!token) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           error: 'Authentication required',
-          code: 'NO_TOKEN'
+          code: 'NO_TOKEN',
         });
       }
 
       // Verify token
       const decoded = AuthService.verifyToken(token);
       if (!decoded) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           error: 'Invalid or expired token',
-          code: 'INVALID_TOKEN'
+          code: 'INVALID_TOKEN',
         });
       }
 
       // Get fresh user data
       const user = UserManager.getUserById(decoded.userId);
       if (!user) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           error: 'User not found',
-          code: 'USER_NOT_FOUND'
+          code: 'USER_NOT_FOUND',
         });
       }
 
       // Check role requirements
       if (roles.length > 0 && !roles.includes(user.role)) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Insufficient role privileges',
           code: 'INSUFFICIENT_ROLE',
           required: roles,
-          current: user.role
+          current: user.role,
         });
       }
 
       // Check permission requirements
       if (permissions.length > 0) {
         const userPermissions = UserManager.getUserPermissions(user.id, user.role);
-        const hasRequiredPermissions = permissions.every(permission => 
+        const hasRequiredPermissions = permissions.every(permission =>
           userPermissions.includes(permission)
         );
 
         if (!hasRequiredPermissions) {
-          return res.status(403).json({ 
+          return res.status(403).json({
             error: 'Insufficient permissions',
             code: 'INSUFFICIENT_PERMISSIONS',
             required: permissions,
-            current: userPermissions
+            current: userPermissions,
           });
         }
       }
@@ -238,17 +222,17 @@ export function requireAuth(options = {}) {
       req.user = {
         ...user,
         permissions: UserManager.getUserPermissions(user.id, user.role),
-        authMethod
+        authMethod,
       };
-      
+
       req.authToken = token;
 
       next();
     } catch (error) {
       console.error('Authentication middleware error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Authentication service error',
-        code: 'AUTH_SERVICE_ERROR'
+        code: 'AUTH_SERVICE_ERROR',
       });
     }
   };
@@ -277,7 +261,7 @@ export function optionalAuth() {
             req.user = {
               ...user,
               permissions: UserManager.getUserPermissions(user.id, user.role),
-              authMethod: 'jwt'
+              authMethod: 'jwt',
             };
             req.authToken = token;
           }
@@ -295,9 +279,9 @@ export function optionalAuth() {
 
 // Admin authentication middleware (requires admin or super admin role)
 export function requireAdmin() {
-  return requireAuth({ 
+  return requireAuth({
     roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN],
-    permissions: ['admin:dashboard']
+    permissions: ['admin:dashboard'],
   });
 }
 
@@ -320,16 +304,16 @@ export function authRateLimit() {
   return (req, res, next) => {
     const key = req.ip || 'unknown';
     const now = Date.now();
-    
+
     // Clean up old attempts
     const userAttempts = attempts.get(key) || [];
     const recentAttempts = userAttempts.filter(time => now - time < WINDOW_MS);
-    
+
     if (recentAttempts.length >= MAX_ATTEMPTS) {
       return res.status(429).json({
         error: 'Too many authentication attempts',
         code: 'RATE_LIMITED',
-        retryAfter: Math.ceil((WINDOW_MS - (now - recentAttempts[0])) / 1000)
+        retryAfter: Math.ceil((WINDOW_MS - (now - recentAttempts[0])) / 1000),
       });
     }
 
@@ -354,7 +338,7 @@ export function authenticateWebSocket(token) {
 
     return {
       ...user,
-      permissions: UserManager.getUserPermissions(user.id, user.role)
+      permissions: UserManager.getUserPermissions(user.id, user.role),
     };
   } catch (error) {
     console.error('WebSocket auth error:', error);
@@ -365,30 +349,30 @@ export function authenticateWebSocket(token) {
 // Password strength validation
 export function validatePasswordStrength(password) {
   const errors = [];
-  
+
   if (password.length < 8) {
     errors.push('Password must be at least 8 characters long');
   }
-  
+
   if (!/[a-z]/.test(password)) {
     errors.push('Password must contain at least one lowercase letter');
   }
-  
+
   if (!/[A-Z]/.test(password)) {
     errors.push('Password must contain at least one uppercase letter');
   }
-  
+
   if (!/\d/.test(password)) {
     errors.push('Password must contain at least one number');
   }
-  
+
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     errors.push('Password must contain at least one special character');
   }
-  
+
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
@@ -426,5 +410,5 @@ export default {
   verifyToken,
   authenticateToken,
   ROLES,
-  PERMISSIONS
+  PERMISSIONS,
 };

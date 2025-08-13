@@ -9,16 +9,16 @@ import AnalyticsDB from '../database/analytics.js';
 
 class AdminWebSocketServer {
   constructor(server) {
-    this.wss = new WebSocketServer({ 
+    this.wss = new WebSocketServer({
       server,
       path: '/api/admin/ws',
-      verifyClient: this.verifyClient.bind(this)
+      verifyClient: this.verifyClient.bind(this),
     });
-    
+
     this.clients = new Map();
     this.analyticsDB = new AnalyticsDB();
     this.metricsInterval = null;
-    
+
     this.setupWebSocketServer();
     this.startMetricsCollection();
   }
@@ -30,13 +30,13 @@ class AdminWebSocketServer {
     try {
       const url = new URL(info.req.url, 'ws://localhost');
       const token = url.searchParams.get('token');
-      
+
       if (!token) {
         return false;
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
-      
+
       // Only allow admin users
       if (decoded.role !== 'ADMIN') {
         return false;
@@ -58,22 +58,22 @@ class AdminWebSocketServer {
     this.wss.on('connection', (ws, req) => {
       const clientId = this.generateClientId();
       const user = req.user;
-      
+
       console.log(`Admin WebSocket connected: ${user.email} (${clientId})`);
-      
+
       // Store client information
       this.clients.set(clientId, {
         ws,
         user,
         connectedAt: new Date(),
-        lastPing: new Date()
+        lastPing: new Date(),
       });
 
       // Send initial data
       this.sendInitialData(ws);
 
       // Handle incoming messages
-      ws.on('message', (message) => {
+      ws.on('message', message => {
         this.handleMessage(clientId, message);
       });
 
@@ -84,7 +84,7 @@ class AdminWebSocketServer {
       });
 
       // Handle errors
-      ws.on('error', (error) => {
+      ws.on('error', error => {
         console.error(`WebSocket error for ${clientId}:`, error);
         this.clients.delete(clientId);
       });
@@ -107,7 +107,7 @@ class AdminWebSocketServer {
     try {
       const data = JSON.parse(message);
       const client = this.clients.get(clientId);
-      
+
       if (!client) return;
 
       switch (data.type) {
@@ -136,11 +136,7 @@ class AdminWebSocketServer {
    * Send initial data to newly connected client
    */
   async sendInitialData(ws) {
-    await Promise.all([
-      this.sendMetrics(ws),
-      this.sendActiveUsers(ws),
-      this.sendSystemStatus(ws)
-    ]);
+    await Promise.all([this.sendMetrics(ws), this.sendActiveUsers(ws), this.sendSystemStatus(ws)]);
   }
 
   /**
@@ -156,17 +152,17 @@ class AdminWebSocketServer {
           totalLicenses: await this.getTotalLicenses(),
           totalEmailsSent: await this.getTotalEmailsSent(),
           conversionRate: await this.getConversionRate(),
-          
+
           // System metrics
           uptime: process.uptime(),
           memoryUsage: process.memoryUsage(),
           cpuUsage: process.cpuUsage(),
-          
+
           // Active connections
-          activeWebSocketConnections: this.clients.size
-        }
+          activeWebSocketConnections: this.clients.size,
+        },
       };
-      
+
       this.sendMessage(ws, metrics);
     } catch (error) {
       console.error('Error sending metrics:', error);
@@ -185,12 +181,12 @@ class AdminWebSocketServer {
           connectedAdmins: Array.from(this.clients.values()).map(client => ({
             email: client.user.email,
             connectedAt: client.connectedAt,
-            lastPing: client.lastPing
+            lastPing: client.lastPing,
           })),
-          totalConnections: this.clients.size
-        }
+          totalConnections: this.clients.size,
+        },
       };
-      
+
       this.sendMessage(ws, activeUsers);
     } catch (error) {
       console.error('Error sending active users:', error);
@@ -211,20 +207,23 @@ class AdminWebSocketServer {
             uptime: process.uptime(),
             version: process.version,
             platform: process.platform,
-            arch: process.arch
+            arch: process.arch,
           },
           database: {
             status: await this.getDatabaseStatus(),
-            lastBackup: await this.getLastBackupTime()
+            lastBackup: await this.getLastBackupTime(),
           },
           memory: {
             used: process.memoryUsage().heapUsed,
             total: process.memoryUsage().heapTotal,
-            percentage: (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal * 100).toFixed(2)
-          }
-        }
+            percentage: (
+              (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) *
+              100
+            ).toFixed(2),
+          },
+        },
       };
-      
+
       this.sendMessage(ws, systemStatus);
     } catch (error) {
       console.error('Error sending system status:', error);
@@ -235,7 +234,7 @@ class AdminWebSocketServer {
    * Broadcast message to all connected admin clients
    */
   broadcast(message) {
-    this.clients.forEach((client) => {
+    this.clients.forEach(client => {
       if (client.ws.readyState === client.ws.OPEN) {
         this.sendMessage(client.ws, message);
       }
@@ -258,7 +257,7 @@ class AdminWebSocketServer {
     // Send metrics every 5 seconds
     this.metricsInterval = setInterval(() => {
       if (this.clients.size > 0) {
-        this.clients.forEach((client) => {
+        this.clients.forEach(client => {
           this.sendMetrics(client.ws);
         });
       }

@@ -15,7 +15,7 @@ async function buildSimple() {
   try {
     await execAsync('rm -rf dist');
     console.log('✅ Cleaned dist directory');
-  } catch (e) {
+  } catch (_error) {
     console.log('⚠️  No dist directory to clean');
   }
 
