@@ -30,6 +30,7 @@
 [![Downloads](https://img.shields.io/github/downloads/Rinawarp-Terminal/rinawarp-terminal/total.svg)](https://github.com/Rinawarp-Terminal/rinawarp-terminal/releases)
 [![CI/CD](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions/workflows/main-pipeline.yml/badge.svg)](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions)
 [![Security](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions/workflows/consolidated-ci.yml/badge.svg)](https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions)
+[![Product Hunt](https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=rinawarp-terminal&theme=dark&period=daily)](https://www.producthunt.com/posts/rinawarp-terminal?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-rinawarp-terminal)
 
 **An advanced commercial terminal emulator with enterprise-grade features, built with Electron.**  
 RinaWarp Terminal provides all the power of modern terminals with AI assistance, cloud sync, session management, and extensive customization for professional developers and enterprise teams.
