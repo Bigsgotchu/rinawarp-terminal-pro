@@ -66,6 +66,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-electron-
 
+      # Install Linux build dependencies
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2 libxkbcommon-dev libgtk-3-dev libxss1 libasound2-dev
+      
       - name: Install dependencies
         run: |
           # Handle platform-specific dependencies
@@ -75,6 +82,8 @@ jobs:
             # For non-macOS platforms, use --force to bypass dmg-license platform check
             npm install --force
           fi
+          # Verify electron-builder is available
+          npx electron-builder --version
         shell: bash
         
       - name: Copy assets
@@ -82,17 +91,32 @@ jobs:
         
       - name: Build for ${{ matrix.platform }}
         run: |
+          echo "🔨 Starting build for ${{ matrix.platform }}"
+          echo "Current directory: $(pwd)"
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          
+          # Clean dist directory first
+          rm -rf dist/
+          mkdir -p dist/
+          
           if [ "${{ matrix.platform }}" = "mac" ]; then
+            echo "Building for macOS..."
             npm run build:mac
           elif [ "${{ matrix.platform }}" = "win" ]; then
+            echo "Building for Windows..."
             npm run build:windows
           else
+            echo "Building for Linux..."
             npm run build:linux
           fi
+          
+          echo "✅ Build completed for ${{ matrix.platform }}"
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: true
+          DEBUG: "electron-builder"
           
       - name: List build outputs
         run: ls -la dist/
