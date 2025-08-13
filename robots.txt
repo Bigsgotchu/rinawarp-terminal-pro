@@ -1,13 +1,33 @@
 User-agent: *
 Allow: /
 
+# Important pages
+Allow: /index.html
+Allow: /docs.html
+Allow: /pricing.html
+Allow: /downloads.html
+Allow: /beta.html
+
+# Disallow admin and test pages
+Disallow: /admin/
+Disallow: /test/
+Disallow: /debug/
+Disallow: /private/
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Disallow temporary files
+Disallow: /*.tmp$
+Disallow: /*.temp$
+Disallow: /*.log$
+
+# Allow CSS and JS
+Allow: /*.css$
+Allow: /*.js$
+
 # Sitemap
 Sitemap: https://www.rinawarptech.com/sitemap.xml
 
-# Disallow crawling of API endpoints
-Disallow: /api/
-
-# Disallow crawling of private files
-Disallow: /private/
-Disallow: /*.json$
-Disallow: /*.config$
+# Crawl-delay for bots (respectful crawling)
+Crawl-delay: 1

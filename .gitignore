@@ -668,3 +668,28 @@ node_modules/.cache/
 .webpack/
 .nyc_output/
 .jest/
+
+# 🚨 SECURITY CRITICAL - SECRETS SCANNING
+secrets-scan-report.json
+secrets-scan-*.json
+scan-report*.json
+*.secrets-report.*
+
+# Never commit these patterns that contain secrets
+*secrets*
+*credentials*
+*api-keys*
+*tokens*
+
+# 🚨 SECURITY - Emergency patterns added by cleanup script
+secrets-scan-report.json
+*secrets-report*
+*credentials*
+*api-keys*
+*.key
+*.secret
+.env.development
+.env.local.dev
+setup-email-service.js
+generate-admin-hash-simple.js
+add-api-key.js
