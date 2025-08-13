@@ -2,6 +2,8 @@
  * 🧜‍♀️ This file has been automatically modernized by RinaWarp Terminal
  * 3 deprecated pattern(s) replaced with modern alternatives
  * Please review and test the changes
+ *
+ * CACHE BUST: 2025-08-13T20:25:00Z - FORCE DEPLOYMENT v1.3.1
  */
 /**
  * RinaWarp Terminal - Advanced Terminal Emulator
