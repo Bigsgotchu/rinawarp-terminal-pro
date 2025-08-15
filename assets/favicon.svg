@@ -1,31 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<svg width="32" height="32" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00FF88;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#FF1493;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8A2BE2;stop-opacity:1" />
+    <!-- Simplified gradient for small sizes -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EC4899;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FB7185;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
     </linearGradient>
+    
+    <!-- Background gradient -->
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" style="stop-color:#1E293B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0F172A;stop-opacity:1" />
+    </radialGradient>
   </defs>
   
   <!-- Background -->
-  <rect width="32" height="32" fill="#1A1A1A" rx="6"/>
+  <rect width="1024" height="1024" fill="url(#bgGradient)"/>
   
-  <!-- Terminal cursor -->
-  <rect x="6" y="8" width="2" height="16" fill="#00FF88" rx="1">
-    <animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite"/>
-  </rect>
-  
-  <!-- Simplified RW -->
-  <path d="M 10 8 L 10 24 M 10 8 L 16 8 Q 18 8 18 12 Q 18 16 16 16 L 10 16 M 14 16 L 18 24" 
-        stroke="url(#faviconGradient)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  
-  <path d="M 20 8 L 22 24 L 24 14 L 26 24 L 28 8" 
-        stroke="url(#faviconGradient)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  
-  <!-- Hot pink energy dot -->
-  <circle cx="26" cy="6" r="1" fill="#FF1493" opacity="0.8">
-    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
-  </circle>
+  <g transform="translate(512, 512)">
+    <!-- Simplified hexagon -->
+    <polygon points="0,-120 104,-60 104,60 0,120 -104,60 -104,-60" 
+             fill="none" 
+             stroke="url(#mainGradient)" 
+             stroke-width="8"/>
+    
+    <!-- Terminal prompt symbol -->
+    <g transform="scale(1.5)">
+      <path d="M -30 -20 L -10 0 L -30 20" 
+            stroke="#E0E7FF" 
+            stroke-width="12" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      <line x1="5" y1="0" x2="30" y2="0" 
+            stroke="#E0E7FF" 
+            stroke-width="12" 
+            stroke-linecap="round"/>
+    </g>
+  </g>
 </svg>
-
