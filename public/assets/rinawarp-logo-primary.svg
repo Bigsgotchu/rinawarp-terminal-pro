@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Vibrant gradient with hot pink, coral, teal, blue -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EC4899;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#F472B6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FB7185;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#14B8A6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Smooth portal gradient -->
+    <radialGradient id="portal" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#F9A8D4;stop-opacity:0.2" />
+      <stop offset="30%" style="stop-color:#FDA4AF;stop-opacity:0.25" />
+      <stop offset="60%" style="stop-color:#5EEAD4;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#22D3EE;stop-opacity:0.4" />
+    </radialGradient>
+    
+    <!-- Enhanced glow effect -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="coloredBlur"/>
+      <feColorMatrix in="coloredBlur" type="matrix" values="1.2 0 0 0 0  0 1.2 0 0 0  0 0 1.8 0 0  0 0 0 1 0"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Soft shadow -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
+      <feFlood flood-color="#EC4899" flood-opacity="0.2"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Background gradient -->
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" style="stop-color:#1E293B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0F172A;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Gradient background -->
+  <rect width="1024" height="1024" fill="url(#bgGradient)"/>
+  
+  <g transform="translate(512, 512)">
+    <!-- Smooth portal rings with blur -->
+    <g opacity="0.6">
+      <circle cx="0" cy="0" r="400" fill="none" stroke="url(#portal)" stroke-width="20" opacity="0.2" filter="url(#glow)"/>
+      <circle cx="0" cy="0" r="350" fill="none" stroke="url(#portal)" stroke-width="30" opacity="0.3" filter="url(#glow)"/>
+      <circle cx="0" cy="0" r="300" fill="none" stroke="url(#portal)" stroke-width="40" opacity="0.4" filter="url(#glow)"/>
+    </g>
+    
+    <!-- RW Monogram - behind everything, hot pink, thin -->
+    <g opacity="0.25">
+      <!-- R -->
+      <path d="M -120 -180 L -120 180 M -120 -180 L 0 -180 Q 80 -180 80 -100 Q 80 -20 0 -20 L -120 -20 M -40 -20 L 80 180" 
+            stroke="#EC4899" 
+            stroke-width="24" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      
+      <!-- W -->
+      <path d="M 100 -180 L 140 180 M 140 180 L 180 -60 M 180 -60 L 220 180 M 220 180 L 260 -180" 
+            stroke="#EC4899" 
+            stroke-width="24" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+    </g>
+    
+    <!-- Warp lines -->
+    <g filter="url(#glow)" opacity="0.6">
+      <path d="M -300 0 Q -150 -50, 0 0 T 300 0" stroke="url(#mainGradient)" stroke-width="4" fill="none"/>
+      <path d="M -300 0 Q -150 50, 0 0 T 300 0" stroke="url(#mainGradient)" stroke-width="4" fill="none"/>
+    </g>
+    
+    <!-- Central hexagon - transparent with just stroke -->
+    <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" 
+             fill="none" 
+             stroke="url(#mainGradient)" 
+             stroke-width="6"
+             filter="url(#shadow)"/>
+    
+    <!-- Terminal prompt symbol -->
+    <g transform="scale(2)" filter="url(#glow)">
+      <path d="M -35 -25 L -10 0 L -35 25" 
+            stroke="#E0E7FF" 
+            stroke-width="8" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      <line x1="5" y1="0" x2="40" y2="0" 
+            stroke="#E0E7FF" 
+            stroke-width="8" 
+            stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>
