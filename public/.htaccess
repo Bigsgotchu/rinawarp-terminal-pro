@@ -1,0 +1,31 @@
+# RinaWarp Terminal - Security Rules
+
+# Prevent access to sensitive files
+<Files "*.js">
+    # Allow JS files in specific directories
+    SetEnvIf Request_URI "^/js/" allow_js
+    SetEnvIf Request_URI "^/public/js/" allow_js
+    
+    # Deny all other JS files (like root directory JS files)
+    Require env allow_js
+</Files>
+
+# Block access to backup and test files
+<FilesMatch "\.(backup|bak|old|tmp|temp|log)$">
+    Require all denied
+</FilesMatch>
+
+# Block access to SearchAtlas test files
+<FilesMatch "searchatlas">
+    Require all denied
+</FilesMatch>
+
+# Block access to script directories
+<DirectoryMatch "scripts-private">
+    Require all denied
+</DirectoryMatch>
+
+# Security headers
+Header always set X-Frame-Options "DENY"
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-XSS-Protection "1; mode=block"
