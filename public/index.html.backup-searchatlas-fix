@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RinaWarp Terminal - AI-powered terminal with voice control, beautiful themes, and enterprise features. See live demos and get started today!">
+    <meta name="keywords" content="terminal emulator, AI assistant, RinaWarp, command line, CLI, developer tools, voice control, productivity">
+    <meta name="author" content="RinaWarp Technologies">
+    <title>RinaWarp Terminal: AI Voice Control for Productivity (2025)</title>
+    <!-- Force deployment trigger: 2025-01-13 20:08 - REMOVED DUPLICATE FILES -->
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/rinawarp-icon-1024.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/mermaid-icons/favicon/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/mermaid-icons/favicon/favicon-16.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Stripe Integration -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- OTTO Pixel - Updated 2025-01-11 -->
+    <script nowprocket nitro-exclude type="text/javascript" id="sa-dynamic-optimization" data-uuid="dc711005-42a9-4a99-a95c-f58610ddb8c9" src="data:text/javascript;base64,dmFyIHNjcmlwdCA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoInNjcmlwdCIpO3NjcmlwdC5zZXRBdHRyaWJ1dGUoIm5vd3Byb2NrZXQiLCAiIik7c2NyaXB0LnNldEF0dHJpYnV0ZSgibml0cm8tZXhjbHVkZSIsICIiKTtzY3JpcHQuc3JjID0gImh0dHBzOi8vZGFzaGJvYXJkLnNlYXJjaGF0bGFzLmNvbS9zY3JpcHRzL2R5bmFtaWNfb3B0aW1pemF0aW9uLmpzIjtzY3JpcHQuZGF0YXNldC51dWlkID0gImRjNzExMDA1LTQyYTktNGE5OS1hOTVjLWY1ODYxMGRkYjhjOSI7c2NyaXB0LmlkID0gInNhLWR5bmFtaWMtb3B0aW1pemF0aW9uLWxvYWRlciI7ZG9jdW1lbnQuaGVhZC5hcHBlbmRDaGlsZChzY3JpcHQpOw=="></script>
+    
+    <!-- Sentry Browser SDK for Error Tracking -->
+    <script
+      src="https://js.sentry-cdn.com/4c22d2c576b2d0ebbeda9941d59fff95.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      // Sentry initialization with User Feedback integration
+      window.sentryOnLoad = function() {
+        if (typeof Sentry !== 'undefined') {
+          Sentry.init({
+            dsn: 'https://4c22d2c576b2d0ebbeda9941d59fff95@o4508607128346624.ingest.us.sentry.io/4508607133655040',
+            environment: window.location.hostname.includes('localhost') ? 'development' : 'production',
+            release: 'rinawarp-terminal@1.0.9',
+            tracesSampleRate: 1.0,
+            replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+            integrations: [
+              new Sentry.BrowserTracing(),
+              new Sentry.Replay({ sessionSampleRate: 0.1, errorSampleRate: 1.0 }),
+            ],
+            beforeSend(event, hint) {
+              const error = hint.originalException;
+              if (error && typeof error.message === 'string') {
+                if (error.message.includes('Extension context invalidated') ||
+                    error.message.includes('chrome-extension://') ||
+                    error.message.includes('moz-extension://')) {
+                  return null;
+                }
+              }
+              return event;
+            }
+          });
+          
+          Sentry.setTag('page_type', 'home');
+          console.log('✅ Sentry browser SDK initialized');
+          
+          // Lazy load User Feedback integration
+          Sentry.lazyLoadIntegration("feedbackIntegration")
+            .then((feedbackIntegration) => {
+              Sentry.addIntegration(feedbackIntegration({
+                // RinaWarp Terminal User Feedback configuration
+                colorScheme: 'dark',
+                showBranding: false,
+                showName: true,
+                showEmail: true,
+                isRequiredName: false,
+                isRequiredEmail: false,
+                formTitle: '🧜‍♀️ Share Your Feedback',
+                submitButtonLabel: 'Send to RinaWarp Team',
+                cancelButtonLabel: 'Cancel',
+                messagePlaceholder: 'Tell us what happened or share your suggestions for RinaWarp Terminal...',
+                nameLabel: 'Your Name (optional)',
+                emailLabel: 'Your Email (optional)',
+                successMessageText: 'Thank you! Your feedback helps us make RinaWarp Terminal better. 🚀',
+                // Custom styling
+                themeLight: {
+                  background: '#ffffff',
+                  backgroundHover: '#f8f9fa',
+                  foreground: '#2b2233',
+                  border: '#d1d5db',
+                  borderRadius: '12px',
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  interactiveFilter: 'brightness(96%)',
+                  submitBackground: 'linear-gradient(45deg, #ff1493, #00ffff)',
+                  submitBackgroundHover: 'linear-gradient(45deg, #e61278, #00e6e6)',
+                  submitForeground: '#ffffff',
+                  cancelBackground: '#6b7280',
+                  cancelBackgroundHover: '#4b5563',
+                  cancelForeground: '#ffffff'
+                },
+                themeDark: {
+                  background: '#1a1a2e',
+                  backgroundHover: '#16213e',
+                  foreground: '#ffffff',
+                  border: '#0f3460',
+                  borderRadius: '12px',
+                  boxShadow: '0 20px 25px -5px rgba(255, 20, 147, 0.3), 0 10px 10px -5px rgba(0, 255, 255, 0.1)',
+                  interactiveFilter: 'brightness(150%)',
+                  submitBackground: 'linear-gradient(45deg, #ff1493, #00ffff)',
+                  submitBackgroundHover: 'linear-gradient(45deg, #ff69b4, #20b2aa)',
+                  submitForeground: '#ffffff',
+                  cancelBackground: '#374151',
+                  cancelBackgroundHover: '#4b5563',
+                  cancelForeground: '#d1d5db'
+                },
+                // Trigger conditions
+                autoInject: false, // We'll manually trigger it
+                showDialog: false,  // Don't auto-show
+                onFormOpen: () => {
+                  console.log('🧜‍♀️ Feedback form opened');
+                  // Track feedback form opening
+                  if (typeof gtag !== 'undefined') {
+                    gtag('event', 'feedback_form_opened', {
+                      event_category: 'user_feedback',
+                      event_label: 'manual_trigger'
+                    });
+                  }
+                },
+                onFormSubmitted: () => {
+                  console.log('🚀 Feedback submitted successfully');
+                  // Track feedback submission
+                  if (typeof gtag !== 'undefined') {
+                    gtag('event', 'feedback_submitted', {
+                      event_category: 'user_feedback',
+                      event_label: 'success'
+                    });
+                  }
+                },
+                onFormClosed: () => {
+                  console.log('👋 Feedback form closed');
+                }
+              }));
+              
+              console.log('✅ Sentry User Feedback integration loaded');
+              
+              // Make feedback function globally available
+              window.openFeedbackDialog = () => {
+                const feedback = Sentry.getFeedback();
+                if (feedback) {
+                  feedback.openDialog();
+                } else {
+                  console.warn('Feedback integration not available');
+                }
+              };
+              
+            })
+            .catch((error) => {
+              console.warn('⚠️ User Feedback integration failed to load:', error);
+            });
+        }
+      };
+      
+      // Call initialization immediately or when Sentry loads
+      if (typeof Sentry !== 'undefined') {
+        window.sentryOnLoad();
+      }
+    </script>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-G424CV5GGT');
+    </script>
+    
+    <!-- RinaWarp Analytics Suite -->
+    <script src="js/analytics/revenue-attribution.js"></script>
+    <script src="js/analytics/conversion-funnel.js"></script>
+    
+    <!-- LogRocket Session Recording -->
+    <script src="https://cdn.logrocket.io/LogRocket.min.js"></script>
+    <script>
+      window.LogRocket && window.LogRocket.init('xljdaq/rinawarp-terminal', {
+        release: '1.0.6',
+        console: {
+          isEnabled: true,
+          shouldAggregateConsoleErrors: true
+        }
+      });
+      
+      // Track page view
+      window.LogRocket && window.LogRocket.track('Page View', {
+        page: window.location.pathname,
+        timestamp: new Date().toISOString()
+      });
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #0a1628;
+            background: linear-gradient(135deg, #ff1493 0%, #00ced1 15%, #1e90ff 30%, #ff69b4 45%, #20b2aa 60%, #ff1493 75%, #00ffff 90%, #ff69b4 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+        
+        /* Header Section */
+        .hero {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+        
+        .logo img {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 4px 12px rgba(255, 20, 147, 0.3));
+            transition: all 0.3s ease;
+        }
+        
+        .logo img:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 8px 20px rgba(255, 20, 147, 0.5));
+        }
+        
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4, #20b2aa);
+            background-size: 200% 200%;
+            animation: textShimmer 3s ease-in-out infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+        
+        @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            color: #e0ffff;
+        }
+        
+        /* Prominent Pricing Section - MOVED TO TOP */
+        .pricing-hero {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 20, 147, 0.1));
+            border-radius: 25px;
+            padding: 50px 30px;
+            margin: 40px 0;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(255, 20, 147, 0.3);
+            border: 3px solid rgba(0, 255, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pricing-hero::before {
+            content: '🧜‍♀️ SPECIAL LAUNCH PRICING';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.5);
+        }
+        
+        .pricing-hero h2 {
+            font-size: 2.5rem;
+            color: #0a1628;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 15px 35px rgba(255, 20, 147, 0.2);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            position: relative;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(255, 20, 147, 0.4);
+            border-color: #ff1493;
+        }
+        
+        .pricing-card.popular {
+            transform: scale(1.05);
+            border-color: #ff1493;
+            border-width: 3px;
+        }
+        
+        .pricing-card.popular::after {
+            content: '🌟 BEST VALUE';
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #ff1493;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0a1628;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff1493;
+            margin-bottom: 5px;
+        }
+        
+        .plan-period {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .plan-features {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+        
+        .plan-features li {
+            padding: 5px 0;
+            color: #444;
+        }
+        
+        .plan-features li::before {
+            content: '✅ ';
+            margin-right: 8px;
+        }
+        
+        .buy-button {
+            width: 100%;
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .buy-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+        }
+        
+        .buy-button:active {
+            transform: scale(0.98);
+        }
+        
+        /* Live Demo Section */
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .demo-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .demo-card {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #00ffff;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-terminal {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            color: #00ff00;
+            min-height: 200px;
+            position: relative;
+        }
+        
+        .demo-terminal::before {
+            content: '🧜‍♀️ RinaWarp Terminal v1.1.0';
+            display: block;
+            color: #ff69b4;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .terminal-line {
+            margin: 5px 0;
+            animation: typewriter 0.1s steps(1, end);
+        }
+        
+        .terminal-input {
+            color: #00ffff;
+        }
+        
+        .terminal-output {
+            color: #ffffff;
+            margin-left: 20px;
+        }
+        
+        .terminal-ai {
+            color: #ff69b4;
+            font-style: italic;
+        }
+        
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        .demo-button {
+            background: linear-gradient(45deg, #00ffff, #ff69b4);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* Progress Testing Section */
+        .testing-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            color: #0a1628;
+        }
+        
+        .testing-section h2 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: #0a1628;
+        }
+        
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        
+        .progress-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #00ffff;
+        }
+        
+        .progress-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #0a1628;
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 12px;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(45deg, #00ffff, #ff69b4);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 2s ease;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Features Grid */
+        .features-section {
+            margin: 60px 0;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 20, 147, 0.5);
+            box-shadow: 0 20px 40px rgba(255, 20, 147, 0.3);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #00ffff;
+        }
+        
+        /* Download Section */
+        .download-section {
+            text-align: center;
+            margin: 60px 0;
+        }
+        
+        .download-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .download-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(255, 20, 147, 0.4);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Feedback Button */
+        .feedback-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .feedback-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255, 20, 147, 0.6);
+            background: linear-gradient(135deg, #ff69b4, #20b2aa);
+        }
+        
+        .feedback-button:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+        
+        .feedback-button .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.2rem; }
+            .pricing-hero { padding: 30px 20px; margin-top: 60px; }
+            .pricing-cards { grid-template-columns: 1fr; }
+            .demo-grid { grid-template-columns: 1fr; }
+            .progress-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            .container { padding: 10px; }
+            
+            .feedback-button {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+  <link rel="stylesheet" href="/styles/clean-mermaid-interface.css">
+
+  <script nowprocket nitro-exclude type="text/javascript" id="sa-dynamic-optimization" data-uuid="dc711005-42a9-4a99-a95c-f58610ddb8c9">
+(function() {
+  var script = document.createElement("script");
+  script.setAttribute("nowprocket", "");
+  script.setAttribute("nitro-exclude", "");
+  script.src = "https://dashboard.searchatlas.com/scripts/dynamic_optimization.js";
+  script.dataset.uuid = "dc711005-42a9-4a99-a95c-f58610ddb8c9";
+  script.id = "sa-dynamic-optimization-loader";
+  document.head.appendChild(script);
+})();
+</script>
+
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "RinaWarp Terminal",
+      "applicationCategory": "DeveloperTools",
+      "operatingSystem": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "description": "AI-powered terminal emulator with voice control, themes, and enterprise features",
+      "url": "https://www.rinawarptech.com",
+      "downloadUrl": "https://www.rinawarptech.com/downloads.html",
+      "softwareVersion": "1.3.0",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "RinaWarp Technologies",
+        "url": "https://www.rinawarptech.com"
+      },
+      "programmingLanguage": [
+        "JavaScript",
+        "Node.js"
+      ],
+      "screenshot": "https://www.rinawarptech.com/assets/screenshots/terminal-main.png",
+      "featureList": [
+        "AI-powered command assistance",
+        "Voice control",
+        "Custom themes",
+        "Session management",
+        "Cross-platform support"
+      ]
+    },
+    {
+      "@type": "Organization",
+      "name": "RinaWarp Technologies",
+      "url": "https://www.rinawarptech.com",
+      "logo": "https://www.rinawarptech.com/assets/logo.svg",
+      "sameAs": [
+        "https://github.com/Bigsgotchu/rinawarp-terminal",
+        "https://linkedin.com/company/rinawarp"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "name": "RinaWarp Terminal",
+      "url": "https://www.rinawarptech.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.rinawarptech.com/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+    </script>
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'index.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="logo">
+                <img src="/assets/rinawarp-icon-final.svg" alt="RinaWarp Terminal" width="120" height="120">
+            </div>
+            <h1>Your Terminal Just Got Superpowers 🚀</h1>
+            <p>AI-powered terminal that learns your workflow, suggests commands, and automates repetitive tasks. Start free, upgrade when you need team features.</p>
+            <div class="version-badge">💰 Start free forever - No credit card required</div>
+        </section>
+
+        <!-- PROMINENT PRICING SECTION - MOVED TO TOP -->
+        <section class="pricing-hero">
+            <h2>🚀 Get Started Today</h2>
+            <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">Start with our free version or upgrade for advanced features</p>
+            
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <div class="plan-name">Free Starter</div>
+                    <div class="plan-price">$0</div>
+                    <div class="plan-period">forever</div>
+                    <ul class="plan-features">
+                        <li>Basic Terminal Features</li>
+                        <li>3 Tabs & Split Panes</li>
+                        <li>6 Beautiful Themes</li>
+                        <li>Basic AI Assistant</li>
+                        <li>1 Device License</li>
+                    </ul>
+                    <button class="buy-button" onclick="window.location.href='/download'">
+                        Start Free
+                    </button>
+                </div>
+
+                <div class="pricing-card popular">
+                    <div class="plan-name">Personal</div>
+                    <div class="plan-price">$15</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li>Everything in Free</li>
+                        <li>Advanced AI Features</li>
+                        <li>Voice Commands & TTS</li>
+                        <li>Cloud Sync</li>
+                        <li>3 Device License</li>
+                        <li>Email Support</li>
+                    </ul>
+                    <button class="buy-button" onclick="purchasePlan('personal')">
+                        Get Personal Plan
+                    </button>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="plan-name">Professional</div>
+                    <div class="plan-price">$29</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li>Everything in Personal</li>
+                        <li>ElevenLabs Voice AI</li>
+                        <li>Team Collaboration</li>
+                        <li>5 Device License</li>
+                        <li>Priority Support</li>
+                        <li>Beta Access</li>
+                    </ul>
+                    <button class="buy-button" onclick="purchasePlan('professional')">
+                        Get Pro Plan
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Demo Section -->
+        <section class="demo-section">
+            <h2>🎬 Live Demos</h2>
+            <p style="text-align: center; color: #e0ffff; margin-bottom: 30px;">See RinaWarp Terminal in action!</p>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3 style="color: #00ffff; margin-bottom: 15px;">🤖 AI Command Assistant</h3>
+                    <div class="demo-terminal" id="ai-demo">
+                        <div class="terminal-line terminal-input">$ rina "show me all JavaScript files in this project"</div>
+                        <div class="terminal-line terminal-ai">🧜‍♀️ Rina: I'll search for JavaScript files in your project...</div>
+                        <div class="terminal-line terminal-output">Found 23 JavaScript files:</div>
+                        <div class="terminal-line terminal-output">📁 src/main.js (2.1KB)</div>
+                        <div class="terminal-line terminal-output">📁 src/renderer.js (15.3KB)</div>
+                        <div class="terminal-line terminal-output">📁 src/ai-client.js (8.7KB)</div>
+                        <div class="terminal-line terminal-output">📁 public/js/terminal.js (12.4KB)</div>
+                        <div class="terminal-line terminal-ai">💡 Would you like me to analyze any specific file?</div>
+                    </div>
+                    <button class="demo-button" onclick="runAIDemo()">🔄 Run Demo</button>
+                </div>
+
+                <div class="demo-card">
+                    <h3 style="color: #ff69b4; margin-bottom: 15px;">🎤 Voice Control</h3>
+                    <div class="demo-terminal" id="voice-demo">
+                        <div class="terminal-line terminal-input">🎤 Voice: "Hey Rina, what's my disk usage?"</div>
+                        <div class="terminal-line terminal-ai">🧜‍♀️ Rina: Checking your disk usage...</div>
+                        <div class="terminal-line terminal-output">$ df -h</div>
+                        <div class="terminal-line terminal-output">Filesystem      Size  Used Avail Use%</div>
+                        <div class="terminal-line terminal-output">/dev/disk1s1   500G  287G  210G  58%</div>
+                        <div class="terminal-line terminal-ai">🗣️ "You're using 287GB out of 500GB. You have 210GB available."</div>
+                    </div>
+                    <button class="demo-button" onclick="runVoiceDemo()">🎤 Try Voice Demo</button>
+                </div>
+
+                <div class="demo-card">
+                    <h3 style="color: #20b2aa; margin-bottom: 15px;">🎨 Theme Magic</h3>
+                    <div class="demo-terminal" id="theme-demo">
+                        <div class="terminal-line terminal-input">$ rina theme mermaid</div>
+                        <div class="terminal-line terminal-ai">🧜‍♀️ Activating mermaid theme...</div>
+                        <div class="terminal-line terminal-output" style="color: #ff69b4;">✨ Theme changed to Mermaid Magic!</div>
+                        <div class="terminal-line terminal-output" style="color: #00ffff;">🌊 Colors: Ocean blues and mermaid pinks</div>
+                        <div class="terminal-line terminal-output" style="color: #ff1493;">🧜‍♀️ Special cursor: Swimming mermaid</div>
+                        <div class="terminal-line terminal-output" style="color: #20b2aa;">🎵 Sound effects: Ocean waves</div>
+                    </div>
+                    <button class="demo-button" onclick="runThemeDemo()">🎨 Change Theme</button>
+                </div>
+
+                <div class="demo-card">
+                    <h3 style="color: #ffd700; margin-bottom: 15px;">⚡ Performance</h3>
+                    <div class="demo-terminal" id="perf-demo">
+                        <div class="terminal-line terminal-input">$ rina benchmark</div>
+                        <div class="terminal-line terminal-output">🚀 Running performance benchmark...</div>
+                        <div class="terminal-line terminal-output">⚡ Command execution: 0.003ms</div>
+                        <div class="terminal-line terminal-output">🧠 AI response time: 245ms</div>
+                        <div class="terminal-line terminal-output">🎨 Theme switching: 12ms</div>
+                        <div class="terminal-line terminal-output">💾 Memory usage: 45MB</div>
+                        <div class="terminal-line terminal-ai">🧜‍♀️ Performance: Excellent! All systems optimal.</div>
+                    </div>
+                    <button class="demo-button" onclick="runPerfDemo()">⚡ Run Benchmark</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testing Progress Section -->
+        <section class="testing-section">
+            <h2>🧪 Development & Testing Progress</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: #666;">Real-time view of our development milestones</p>
+            
+            <div class="progress-grid">
+                <div class="progress-card">
+                    <div class="progress-title">🔧 Core Terminal Features</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Complete</span>
+                        <span>100%</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        ✅ Multi-tab support<br>
+                        ✅ Command history<br>
+                        ✅ Auto-completion<br>
+                        ✅ Cross-platform compatibility
+                    </p>
+                </div>
+
+                <div class="progress-card">
+                    <div class="progress-title">🤖 AI Integration</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 95%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Near Complete</span>
+                        <span>95%</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        ✅ OpenAI integration<br>
+                        ✅ Anthropic Claude<br>
+                        ✅ Google AI support<br>
+                        🔄 Fine-tuning responses
+                    </p>
+                </div>
+
+                <div class="progress-card">
+                    <div class="progress-title">🎤 Voice Features</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 90%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Beta Testing</span>
+                        <span>90%</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        ✅ Speech recognition<br>
+                        ✅ ElevenLabs TTS<br>
+                        ✅ Voice commands<br>
+                        🔄 Accent optimization
+                    </p>
+                </div>
+
+                <div class="progress-card">
+                    <div class="progress-title">🎨 Themes & UI</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 88%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Polish Phase</span>
+                        <span>88%</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        ✅ Mermaid theme<br>
+                        ✅ Dark/Light modes<br>
+                        ✅ Custom colors<br>
+                        🔄 Animation polish
+                    </p>
+                </div>
+
+                <div class="progress-card">
+                    <div class="progress-title">🧪 Testing & QA</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Live Site Tests</span>
+                        <span>100%</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        ✅ 10/10 live site tests passed<br>
+                        ✅ CI/CD pipeline fixed<br>
+                        ✅ Beta testing ready<br>
+                        ✅ Performance optimized
+                    </p>
+                </div>
+
+                <div class="progress-card">
+                    <div class="progress-title">🚀 Deployment</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Production Ready</span>
+                        <span>100%</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        ✅ Live on rinawarptech.com<br>
+                        ✅ Stripe payments configured<br>
+                        ✅ SSL/Security headers<br>
+                        ✅ Global CDN deployment
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <div class="feature-title">AI-Powered Assistant</div>
+                    <p>Chat with Rina, your AI mermaid assistant. Get intelligent command suggestions, error explanations, and coding help.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <div class="feature-title">Voice Control</div>
+                    <p>Control your terminal with natural speech. "Hey Rina, show me my Git status" - and watch the magic happen!</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-title">Beautiful Themes</div>
+                    <p>Gorgeous mermaid-themed interface with customizable colors, animations, and magical visual effects.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-title">Enterprise Security</div>
+                    <p>Bank-level encryption, secure API key management, and enterprise-grade compliance features.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">Lightning Fast</div>
+                    <p>Optimized performance with sub-millisecond command execution and efficient resource usage.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <div class="feature-title">Cross-Platform</div>
+                    <p>Works seamlessly on Windows, macOS, and Linux. One license, all your devices.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Download Section -->
+        <section class="download-section">
+            <h2 style="color: white; margin-bottom: 30px;">Ready to Dive In?</h2>
+            <a href="/releases/RinaWarp-Terminal-macOS.zip" class="download-button">🍎 Download for macOS</a>
+            <a href="/releases/RinaWarp-Terminal-Setup-Windows.exe" class="download-button">🪟 Download for Windows</a>
+            <a href="/releases/RinaWarp-Terminal-Linux.tar.gz" class="download-button">🐧 Download for Linux</a>
+            <p style="color: #e0ffff; margin-top: 20px;">Start free forever • No credit card required • Upgrade anytime</p>
+        </section>
+        
+        <!-- Footer with Copyright -->
+        <footer style="text-align: center; padding: 40px 20px; margin-top: 60px; border-top: 2px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.1); border-radius: 20px;">
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 10px 0;">
+                © 2025 RinaWarp Technologies, LLC. All rights reserved.
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; margin: 5px 0;">
+                Advanced Terminal Emulator • AI-Powered • Enterprise Security
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.8rem; margin: 5px 0;">
+                <a href="/privacy" style="color: #00ffff; text-decoration: none;">Privacy Policy</a> • 
+                <a href="/terms" style="color: #00ffff; text-decoration: none;">Terms of Service</a> • 
+                <a href="mailto:support@rinawarp.com" style="color: #00ffff; text-decoration: none;">Support</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Floating Feedback Button -->
+    <button class="feedback-button" onclick="window.openFeedbackDialog && window.openFeedbackDialog()" title="Share your feedback with the RinaWarp team">
+        <span class="pulse">💬</span>
+        <span>Feedback</span>
+    </button>
+
+    <!-- Sentry Frontend Helpers -->
+    <script src="/js/sentry-frontend.js" defer></script>
+    
+    <!-- Enhanced GA4 Tracking -->
+    <script>
+        // Set GA4 measurement ID for auto-initialization
+        window.GA4_MEASUREMENT_ID = 'G-G424CV5GGT';
+    </script>
+    <script type="module" src="/js/analytics/ga4-enhanced-tracking.js"></script>
+    <script type="module" src="/js/analytics/stripe-ga4-integration.js"></script>
+    
+    <script>
+
+        // Demo functions
+        function runAIDemo() {
+            const demo = document.getElementById('ai-demo');
+            demo.innerHTML = '<div class="terminal-line terminal-input">$ rina "create a new React component called UserProfile"</div>';
+            
+            setTimeout(() => {
+                demo.innerHTML += '<div class="terminal-line terminal-ai">🧜‍♀️ Rina: I\'ll create a React UserProfile component for you...</div>';
+            }, 500);
+            
+            setTimeout(() => {
+                demo.innerHTML += '<div class="terminal-line terminal-output">📁 Created: src/components/UserProfile.jsx</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output">✅ Added TypeScript definitions</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output">🎨 Applied component styling</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-ai">💡 Component ready! Would you like me to add props or state?</div>';
+            }, 1200);
+        }
+
+        function runVoiceDemo() {
+            const demo = document.getElementById('voice-demo');
+            demo.innerHTML = '<div class="terminal-line terminal-input">🎤 Voice: "Hey Rina, show me my Git status"</div>';
+            
+            setTimeout(() => {
+                demo.innerHTML += '<div class="terminal-line terminal-ai">🧜‍♀️ Rina: Checking your Git repository status...</div>';
+            }, 600);
+            
+            setTimeout(() => {
+                demo.innerHTML += '<div class="terminal-line terminal-output">$ git status</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #00ff00;">On branch main</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #ffff00;">Changes not staged for commit:</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output">  modified: src/components/Terminal.jsx</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-ai">🗣️ "You have one modified file that hasn\'t been staged for commit."</div>';
+            }, 1300);
+        }
+
+        function runThemeDemo() {
+            const demo = document.getElementById('theme-demo');
+            demo.style.background = '#0a0a2e';
+            demo.innerHTML = '<div class="terminal-line terminal-input">$ rina theme ocean-deep</div>';
+            
+            setTimeout(() => {
+                demo.style.background = 'linear-gradient(45deg, #1a1a2e, #16213e, #0f3460)';
+                demo.innerHTML += '<div class="terminal-line terminal-ai">🧜‍♀️ Diving deep into ocean theme...</div>';
+            }, 500);
+            
+            setTimeout(() => {
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #4fbdba;">🌊 Theme: Ocean Deep activated!</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #7ec8e3;">💙 Deep blue gradients enabled</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #a8e6cf;">🐟 Marine life cursor animations</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-ai">✨ Your terminal is now an underwater paradise!</div>';
+            }, 1100);
+        }
+
+        function runPerfDemo() {
+            const demo = document.getElementById('perf-demo');
+            demo.innerHTML = '<div class="terminal-line terminal-input">$ rina performance --detailed</div>';
+            
+            setTimeout(() => {
+                demo.innerHTML += '<div class="terminal-line terminal-output">🔄 Analyzing system performance...</div>';
+            }, 300);
+            
+            setTimeout(() => {
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #00ff00;">⚡ Startup time: 0.8s</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #00ff00;">🧠 AI response: 180ms avg</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #00ff00;">💾 Memory: 42MB (efficient)</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-output" style="color: #00ff00;">🎨 Rendering: 60 FPS</div>';
+                demo.innerHTML += '<div class="terminal-line terminal-ai">🧜‍♀️ Performance grade: A+ ✨</div>';
+            }, 1000);
+        }
+
+        // Progress bar animation
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach((bar, index) => {
+                setTimeout(() => {
+                    const targetWidth = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = targetWidth;
+                    }, 100);
+                }, index * 200);
+            });
+        }
+
+        // Initialize everything when page loads
+        window.addEventListener('load', () => {
+            setTimeout(animateProgressBars, 1000);
+        });
+        
+        // Handle cancelled payments
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('cancelled') === 'true') {
+            setTimeout(() => {
+                alert('Payment was cancelled. No charges were made. Feel free to try again anytime!');
+            }, 1000);
+        }
+    </script>
+    
+    <!-- Enhanced Stripe Integration -->
+    <script src="/js/stripe-enhanced-client.js"></script>
+    
+    <!-- Revenue Boost Script -->
+    <script src="/js/revenue-boost.js"></script>
+
+</body>
+</html>
