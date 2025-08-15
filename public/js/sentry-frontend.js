@@ -82,18 +82,22 @@ window.SentryHelpers = {
    * Add a custom breadcrumb with enhanced context
    */
   addBreadcrumb(message, category = 'custom', level = 'info', data = {}) {
-    if (typeof Sentry !== 'undefined' && Sentry.addBreadcrumb) {
-      Sentry.addBreadcrumb({
-        message,
-        category,
-        level,
-        data: {
-          ...data,
-          timestamp: new Date().toISOString(),
-          url: window.location.href,
-          userAgent: navigator.userAgent.substring(0, 100) // Truncate for privacy
-        }
-      });
+    try {
+      if (typeof Sentry !== 'undefined' && Sentry.addBreadcrumb) {
+        Sentry.addBreadcrumb({
+          message: String(message || 'Unknown'),
+          category: String(category || 'custom'),
+          level: String(level || 'info'),
+          data: {
+            ...data,
+            timestamp: new Date().toISOString(),
+            url: window.location?.href || 'unknown',
+            userAgent: navigator?.userAgent?.substring(0, 100) || 'unknown' // Truncate for privacy
+          }
+        });
+      }
+    } catch (e) {
+      // Silently fail to prevent breaking application functionality
     }
   },
   
@@ -402,26 +406,45 @@ if ('PerformanceObserver' in window) {
 // Network request monitoring
 const originalFetch = window.fetch;
 window.fetch = function(...args) {
-  const url = args[0];
-  const startTime = Date.now();
+  let url = 'unknown';
+  let startTime = Date.now();
+  
+  try {
+    // Safely extract URL
+    url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || 'unknown';
+    // Truncate very long URLs for logging
+    if (url.length > 100) {
+      url = url.substring(0, 97) + '...';
+    }
+  } catch (e) {
+    // Ignore URL extraction errors
+  }
   
   return originalFetch.apply(this, args)
     .then(response => {
-      const duration = Date.now() - startTime;
-      window.SentryHelpers.addBreadcrumb(`HTTP ${response.status}: ${url}`, 'http', 'info', {
-        url: url,
-        status: response.status,
-        duration: `${duration}ms`
-      });
+      try {
+        const duration = Date.now() - startTime;
+        window.SentryHelpers.addBreadcrumb(`HTTP ${response.status}: ${url}`, 'http', 'info', {
+          url: url,
+          status: response.status,
+          duration: `${duration}ms`
+        });
+      } catch (e) {
+        // Ignore breadcrumb errors to prevent breaking fetch
+      }
       return response;
     })
     .catch(error => {
-      const duration = Date.now() - startTime;
-      window.SentryHelpers.addBreadcrumb(`HTTP Error: ${url}`, 'http', 'error', {
-        url: url,
-        error: error.message,
-        duration: `${duration}ms`
-      });
+      try {
+        const duration = Date.now() - startTime;
+        window.SentryHelpers.addBreadcrumb(`HTTP Error: ${url}`, 'http', 'error', {
+          url: url,
+          error: error.message || 'Unknown error',
+          duration: `${duration}ms`
+        });
+      } catch (e) {
+        // Ignore breadcrumb errors to prevent masking original error
+      }
       throw error;
     });
 };
