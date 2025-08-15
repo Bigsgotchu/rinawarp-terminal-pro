@@ -356,7 +356,7 @@ app.use((req, res, next) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.stripe.com",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' wss: ws: https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app https://*.logrocket.io",
+    "connect-src 'self' wss: ws: http://localhost:* http://127.0.0.1:* https://api.stripe.com https://checkout.stripe.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.railway.app https://*.logrocket.io",
     "object-src 'none'",
     "base-uri 'self'",
     "frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com",
