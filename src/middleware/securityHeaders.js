@@ -18,7 +18,7 @@ export const securityHeaders = (req, res, next) => {
   // TEMPORARY: More permissive CSP to allow inline handlers while we migrate
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://dashboard.searchatlas.com",
     "script-src-attr 'unsafe-inline'", // Allow inline event handlers temporarily
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
