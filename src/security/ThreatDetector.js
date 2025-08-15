@@ -275,6 +275,20 @@ class ThreatDetector {
       return 0; // Skip threat analysis for legitimate monitoring tools
     }
 
+    // Whitelist legitimate API endpoints
+    const legitimateAPIEndpoints = [
+      '/api/stripe/config',
+      '/api/stripe/create-checkout-session',
+      '/api/health',
+      '/api/status',
+      '/api/ping',
+      '/api/version',
+    ];
+
+    if (legitimateAPIEndpoints.some(endpoint => url === endpoint || url.startsWith(endpoint))) {
+      return 0; // Skip threat analysis for legitimate API endpoints
+    }
+
     // Priority 1: Check Critical Patterns (immediate high threat)
     for (const { pattern, score, category } of this.config.criticalPatterns) {
       if (pattern.test(url)) {
