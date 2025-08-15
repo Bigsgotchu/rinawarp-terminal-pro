@@ -88,4 +88,40 @@ if (fs.existsSync(robotsPath)) {
   console.log('Copied robots.txt to public directory');
 }
 
+// Copy logo assets from /assets/ to /public/assets/
+const assetsPath = path.join(__dirname, '..', 'assets');
+const publicAssetsPath = path.join(publicDir, 'assets');
+
+// Create public/assets directory if it doesn't exist
+if (!fs.existsSync(publicAssetsPath)) {
+  fs.mkdirSync(publicAssetsPath, { recursive: true });
+}
+
+// Define logos to copy for web use
+const logosToSync = [
+  'rinawarp-icon-final.png',
+  'rinawarp-icon-final-2x.png',
+  'rinawarp-logo-primary.svg',
+  'favicon.svg',
+];
+
+logosToSync.forEach(logoFile => {
+  const srcPath = path.join(assetsPath, logoFile);
+  const destPath = path.join(publicAssetsPath, logoFile);
+
+  if (fs.existsSync(srcPath)) {
+    fs.copyFileSync(srcPath, destPath);
+    console.log(`Copied ${logoFile} to public/assets/`);
+  }
+});
+
+// Copy favicon to public root
+const faviconSrc = path.join(assetsPath, 'favicon.svg');
+const faviconDest = path.join(publicDir, 'favicon.svg');
+if (fs.existsSync(faviconSrc)) {
+  fs.copyFileSync(faviconSrc, faviconDest);
+  console.log('Copied favicon.svg to public root');
+}
+
 console.log('Assets copied successfully!');
+console.log('✅ Logo synchronization complete!');
