@@ -5,7 +5,7 @@
  * Provides detailed analysis of GitHub Actions fixes and current status
  */
 
-import { execSync } from 'child_process';
+import { _execSync } from 'child_process';
 import chalk from 'chalk';
 
 console.log(chalk.bold.cyan('\n🧜‍♀️ RinaWarp Terminal - GitHub Actions Status Report\n'));

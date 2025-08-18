@@ -265,7 +265,7 @@ const commands = {
           const firstPost = Object.values(marketingContent[p])[0];
           execSync(`echo "${firstPost.replace(/"/g, '\\"')}" | pbcopy`);
           log.success(`First ${p} post copied to clipboard!`);
-        } catch (e) {
+        } catch (_e) {
           log.warning('Could not copy to clipboard - pbcopy not available');
         }
       }
@@ -306,7 +306,7 @@ const commands = {
         const analyticsResponse = await fetch('https://rinawarptech.com/api/analytics/health');
         const analytics = await analyticsResponse.json();
         log.success(`Analytics: ${analytics.status}`);
-      } catch (e) {
+      } catch (_e) {
         log.warning('Analytics endpoint not responding');
       }
 
@@ -470,7 +470,7 @@ Happy coding!`,
         try {
           execSync(`open "${url}"`);
           log.success(`Opened: ${url}`);
-        } catch (e) {
+        } catch (_e) {
           log.warning(`Could not open: ${url}`);
         }
       }, index * 1000); // Stagger opening by 1 second
@@ -536,7 +536,7 @@ Happy coding!`,
     urls.forEach(url => {
       try {
         execSync(`open "${url}"`);
-      } catch (e) {
+      } catch (_e) {
         log.warning(`Could not open: ${url}`);
       }
     });
@@ -598,7 +598,7 @@ LAUNCH STATUS: ${new Date().toISOString()}
         log.success('Site is healthy and ready for traffic');
         return true;
       }
-    } catch (e) {
+    } catch (_e) {
       log.error('Site health check failed');
       return false;
     }

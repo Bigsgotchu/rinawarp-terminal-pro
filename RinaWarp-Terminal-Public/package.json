@@ -1,0 +1,87 @@
+{
+  "name": "rinawarp-terminal",
+  "version": "1.0.0",
+  "description": "RinaWarp Terminal - AI-Powered Terminal Assistant",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --disable-gpu-sandbox --no-sandbox",
+    "dev": "electron . --debug --disable-gpu-sandbox --no-sandbox",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder -mwl",
+    "build:creator": "electron-builder --publish=never",
+    "build:creator-all": "electron-builder -mwl --publish=never",
+    "create-public": "node scripts/create-public-version.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --publish=never",
+    "publish": "electron-builder --publish=always",
+    "publish:creator": "electron-builder --publish=always",
+    "release": "npm run dist && npm run publish",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": [
+    "terminal",
+    "ai",
+    "assistant",
+    "personal",
+    "rinawarp",
+    "coding",
+    "development"
+  ],
+  "author": "RinaWarp Technologies",
+  "license": "Commercial",
+  "devDependencies": {
+    "electron": "^26.0.0",
+    "electron-builder": "^24.6.3",
+    "fs-extra": "^11.3.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2",
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0",
+    "xterm-addon-search": "^0.13.0",
+    "xterm-addon-web-links": "^0.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kgilley/rinawarp-terminal-personal.git"
+  },
+  "build": {
+    "appId": "com.rinawarp.terminal",
+    "productName": "RinaWarp Terminal",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "rinawarp",
+      "repo": "terminal-public"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "css/**/*",
+      "js/**/*",
+      "assets/**/*",
+      "ai-core/**/*",
+      "config/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png"
+    }
+  }
+}

@@ -315,7 +315,7 @@ export class VoiceAIIntegration {
     await this.processVoiceCommand(command, transcript, confidence);
   }
 
-  async processVoiceCommand(command, originalTranscript, confidence) {
+  async processVoiceCommand(command, _originalTranscript, _confidence) {
     this.updateStatus('🧠 Processing with AI...');
 
     try {

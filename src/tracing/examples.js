@@ -322,7 +322,7 @@ export function createTracedRoute(app) {
 }
 
 // Utility functions (these would be implemented elsewhere)
-async function checkLicenseCache(userId) {
+async function checkLicenseCache(_userId) {
   // Redis cache lookup
   return null; // Cache miss
 }
@@ -342,12 +342,12 @@ async function validateLicenseKey(key) {
   return key && key.startsWith('RINAWARP-');
 }
 
-async function checkUsageLimits(key, userInfo) {
+async function checkUsageLimits(_key, _userInfo) {
   // Usage limit checking logic
   return true;
 }
 
-async function activateLicenseInDB(key, userInfo) {
+async function activateLicenseInDB(_key, _userInfo) {
   // Database activation logic
   return { id: 'activation-123', type: 'professional', activatedAt: new Date() };
 }

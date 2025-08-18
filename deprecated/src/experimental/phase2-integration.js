@@ -176,8 +176,8 @@ class Phase2Integration {
           supported = CSS.supports(feature.test);
         }
       } catch (_e) {
-        // CSS.supports might throw new Error(error for some features
-        supported = false);
+        // CSS.supports might throw error for some features
+        supported = false;
       }
 
       if (supported) {

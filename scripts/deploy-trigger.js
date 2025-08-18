@@ -52,49 +52,17 @@ async function getCommitHash() {
   return result.success ? result.output.trim() : 'unknown';
 }
 
-async function deployToVercel(isProduction = false) {
-  log('📦 Deploying to Vercel...', 'cyan');
+// DEPRECATED: Vercel and Railway deployments disabled - only rinawarptech.com production active
+// These functions are preserved for backup/reference purposes only
 
-  // Build the web version first
-  const buildResult = execCommand('npm run build:web');
-  if (!buildResult.success) {
-    log('❌ Web build failed, skipping Vercel deployment', 'red');
-    return false;
-  }
-
-  // Deploy to Vercel
-  const deployCommand = isProduction ? 'vercel --prod' : 'vercel';
-  const deployResult = execCommand(deployCommand);
-
-  if (deployResult.success) {
-    log('✅ Vercel deployment successful!', 'green');
-    return true;
-  } else {
-    log('❌ Vercel deployment failed', 'red');
-    return false;
-  }
+async function _deployToVercel_DEPRECATED(_isProduction = false) {
+  log('⚠️  Vercel deployment deprecated - theme preserved for RinaWarp UI', 'yellow');
+  return false;
 }
 
-async function deployToRailway(isProduction = false) {
-  log('🚂 Deploying to Railway...', 'cyan');
-
-  // Check if Railway CLI is available
-  const checkResult = execCommand('which railway', { silent: true });
-  if (!checkResult.success) {
-    log('⚠️  Railway CLI not found, skipping Railway deployment', 'yellow');
-    return false;
-  }
-
-  const deployCommand = isProduction ? 'railway up --production' : 'railway up';
-  const deployResult = execCommand(deployCommand);
-
-  if (deployResult.success) {
-    log('✅ Railway deployment successful!', 'green');
-    return true;
-  } else {
-    log('❌ Railway deployment failed', 'red');
-    return false;
-  }
+async function _deployToRailway_DEPRECATED(_isProduction = false) {
+  log('⚠️  Railway deployment deprecated - kept as backup reference only', 'yellow');
+  return false;
 }
 
 async function deployToRender() {
@@ -229,9 +197,11 @@ async function main() {
     log('\n🎯 Production deployment detected!', 'green');
 
     if (!isDryRun) {
-      // Deploy to all platforms
-      deploymentResults.vercel = await deployToVercel(true);
-      deploymentResults.railway = await deployToRailway(true);
+      // Deploy to active platforms only (rinawarptech.com as primary)
+      log('🏠 Primary deployment: rinawarptech.com (manual deployment)', 'green');
+      deploymentResults.primary = true; // Primary server handled separately
+
+      // Secondary platforms
       deploymentResults.render = await deployToRender();
       deploymentResults.firebase = await deployToFirebase();
       deploymentResults.githubPages = await deployToGitHubPages();

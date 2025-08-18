@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - RinaWarp Terminal</title>
+    <meta name="description" content="RinaWarp Terminal's privacy policy covering data collection, AI processing, user rights, and our commitment to protecting your privacy.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a1a2e 0%, #16213e 25%, #0f3460 50%, #e73c7e 75%, #ff6b9d 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(10, 26, 46, 0.9);
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(77, 214, 225, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4dd0e1;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: #b2dfdb;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #ff6b9d;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+            background: rgba(10, 26, 46, 0.3);
+            border-radius: 15px;
+            padding: 50px 40px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #4dd0e1, #ff6b9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 1.2em;
+            color: #b2dfdb;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+        
+        .last-updated {
+            text-align: center;
+            color: #80deea;
+            font-style: italic;
+            margin-bottom: 40px;
+            background: rgba(77, 214, 225, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(77, 214, 225, 0.3);
+        }
+        
+        .toc {
+            background: rgba(10, 26, 46, 0.4);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 50px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+        }
+        
+        .toc h2 {
+            color: #4dd0e1;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .toc ul {
+            list-style: none;
+            column-count: 2;
+            column-gap: 40px;
+        }
+        
+        .toc li {
+            margin-bottom: 10px;
+            break-inside: avoid;
+        }
+        
+        .toc a {
+            color: #b2dfdb;
+            text-decoration: none;
+            padding: 8px 0;
+            display: block;
+            transition: color 0.3s ease;
+        }
+        
+        .toc a:hover {
+            color: #4dd0e1;
+        }
+        
+        .section {
+            background: rgba(10, 26, 46, 0.3);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .section h2 {
+            font-size: 2em;
+            color: #4dd0e1;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section h3 {
+            font-size: 1.4em;
+            color: #80deea;
+            margin: 30px 0 15px 0;
+        }
+        
+        .section p {
+            color: #b2dfdb;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+        
+        .section ul, .section ol {
+            color: #b2dfdb;
+            margin: 20px 0 20px 30px;
+        }
+        
+        .section li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .highlight-box {
+            background: rgba(231, 60, 126, 0.1);
+            border: 2px solid rgba(231, 60, 126, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .highlight-box .title {
+            color: #ff6b9d;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .highlight-box p {
+            color: #b2dfdb;
+            margin-bottom: 15px;
+        }
+        
+        .note-box {
+            background: rgba(77, 214, 225, 0.1);
+            border: 2px solid rgba(77, 214, 225, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .note-box .title {
+            color: #4dd0e1;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .data-table th {
+            background: rgba(77, 214, 225, 0.2);
+            color: #4dd0e1;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(77, 214, 225, 0.1);
+            color: #b2dfdb;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(77, 214, 225, 0.05);
+        }
+        
+        .contact-info {
+            background: rgba(77, 214, 225, 0.1);
+            border: 2px solid rgba(77, 214, 225, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .contact-info h3 {
+            color: #4dd0e1;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .contact-info p {
+            color: #b2dfdb;
+            margin-bottom: 15px;
+        }
+        
+        .contact-info a {
+            color: #4dd0e1;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .contact-info a:hover {
+            color: #ff6b9d;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #80deea;
+            border-top: 2px solid rgba(77, 214, 225, 0.3);
+            margin-top: 60px;
+        }
+        
+        .footer p {
+            margin-bottom: 10px;
+        }
+        
+        .footer a {
+            color: #4dd0e1;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: #ff6b9d;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2em;
+            }
+            
+            .toc ul {
+                column-count: 1;
+            }
+            
+            .section {
+                padding: 25px 20px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .data-table {
+                font-size: 0.9em;
+            }
+            
+            .data-table th, .data-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">RinaWarp Terminal</div>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/documentation.html">Documentation</a>
+                <a href="/faq.html">FAQ</a>
+                <a href="mailto:support@rinawarptech.com">Support</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>🔒 Privacy Policy</h1>
+            <p>Your privacy is fundamental to everything we do. This policy explains how we collect, use, and protect your data when you use RinaWarp Terminal.</p>
+        </div>
+
+        <div class="last-updated">
+            <strong>Last Updated:</strong> December 15, 2024
+        </div>
+
+        <div class="toc">
+            <h2>📋 Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">1. Overview</a></li>
+                <li><a href="#information-we-collect">2. Information We Collect</a></li>
+                <li><a href="#how-we-use-information">3. How We Use Information</a></li>
+                <li><a href="#ai-processing">4. AI Data Processing</a></li>
+                <li><a href="#data-sharing">5. Data Sharing and Disclosure</a></li>
+                <li><a href="#data-storage">6. Data Storage and Security</a></li>
+                <li><a href="#your-rights">7. Your Rights and Choices</a></li>
+                <li><a href="#retention">8. Data Retention</a></li>
+                <li><a href="#international-transfers">9. International Data Transfers</a></li>
+                <li><a href="#cookies">10. Cookies and Tracking</a></li>
+                <li><a href="#third-party-services">11. Third-Party Services</a></li>
+                <li><a href="#children">12. Children's Privacy</a></li>
+                <li><a href="#changes">13. Changes to This Policy</a></li>
+                <li><a href="#contact">14. Contact Us</a></li>
+            </ul>
+        </div>
+
+        <section id="overview" class="section">
+            <h2>🌟 1. Overview</h2>
+            <p>RinaWarp Tech, Inc. ("we," "us," or "our") operates RinaWarp Terminal, an AI-powered development assistant. We are committed to protecting your privacy and being transparent about how we handle your data.</p>
+            
+            <div class="highlight-box">
+                <div class="title">🎯 Our Privacy Principles</div>
+                <ul>
+                    <li><strong>Minimal Data Collection:</strong> We only collect data necessary for providing our services</li>
+                    <li><strong>Your Code Stays Yours:</strong> We never store your source code on our servers</li>
+                    <li><strong>Transparent Processing:</strong> Clear communication about what data is processed and why</li>
+                    <li><strong>User Control:</strong> You have control over your data and privacy settings</li>
+                </ul>
+            </div>
+
+            <p>This policy applies to all users of RinaWarp Terminal, including our website, desktop application, API, and related services.</p>
+        </section>
+
+        <section id="information-we-collect" class="section">
+            <h2>📊 2. Information We Collect</h2>
+            
+            <h3>2.1 Account Information</h3>
+            <p>When you create an account, we collect:</p>
+            <ul>
+                <li>Email address</li>
+                <li>Name (optional)</li>
+                <li>Company/organization (optional)</li>
+                <li>Subscription and billing information</li>
+                <li>Authentication credentials (encrypted)</li>
+            </ul>
+
+            <h3>2.2 Usage Data</h3>
+            <p>To improve our services, we collect:</p>
+            <ul>
+                <li>Command usage patterns and frequency</li>
+                <li>Feature utilization statistics</li>
+                <li>Performance metrics and response times</li>
+                <li>Error reports and crash logs (when you opt-in)</li>
+                <li>AI provider usage and success rates</li>
+            </ul>
+
+            <h3>2.3 Technical Information</h3>
+            <p>We automatically collect certain technical data:</p>
+            <ul>
+                <li>IP address and general location (city/country level)</li>
+                <li>Device and operating system information</li>
+                <li>Browser type and version (for web interface)</li>
+                <li>Application version and configuration</li>
+                <li>Network and connection information</li>
+            </ul>
+
+            <h3>2.4 Code Context (Temporary)</h3>
+            <div class="note-box">
+                <div class="title">🔐 Important: Code Processing</div>
+                <p>We temporarily process minimal code context to provide AI assistance. This includes:</p>
+                <ul>
+                    <li>Relevant code snippets you're working on</li>
+                    <li>Project structure and dependencies</li>
+                    <li>Error messages and stack traces</li>
+                    <li>Configuration files (when relevant)</li>
+                </ul>
+                <p><strong>This data is never stored permanently</strong> and is deleted immediately after processing.</p>
+            </div>
+        </section>
+
+        <section id="how-we-use-information" class="section">
+            <h2>🔄 3. How We Use Information</h2>
+            
+            <h3>3.1 Service Provision</h3>
+            <ul>
+                <li>Authenticate and manage your account</li>
+                <li>Provide AI-powered coding assistance</li>
+                <li>Process billing and subscription management</li>
+                <li>Deliver customer support</li>
+                <li>Send service-related communications</li>
+            </ul>
+
+            <h3>3.2 Service Improvement</h3>
+            <ul>
+                <li>Analyze usage patterns to improve features</li>
+                <li>Train and improve AI models (using anonymized data only)</li>
+                <li>Optimize performance and reliability</li>
+                <li>Develop new features and capabilities</li>
+            </ul>
+
+            <h3>3.3 Security and Compliance</h3>
+            <ul>
+                <li>Detect and prevent security threats</li>
+                <li>Investigate suspected violations of our terms</li>
+                <li>Comply with legal obligations</li>
+                <li>Protect the rights and safety of our users</li>
+            </ul>
+        </section>
+
+        <section id="ai-processing" class="section">
+            <h2>🤖 4. AI Data Processing</h2>
+            
+            <h3>4.1 Third-Party AI Providers</h3>
+            <p>RinaWarp Terminal integrates with external AI providers:</p>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Data Sent</th>
+                        <th>Purpose</th>
+                        <th>Data Handling</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>OpenAI</td>
+                        <td>Code context, prompts</td>
+                        <td>Code generation, debugging</td>
+                        <td>Not stored by provider</td>
+                    </tr>
+                    <tr>
+                        <td>Anthropic</td>
+                        <td>Code context, prompts</td>
+                        <td>Code analysis, assistance</td>
+                        <td>Not used for training</td>
+                    </tr>
+                    <tr>
+                        <td>Groq</td>
+                        <td>Code context, prompts</td>
+                        <td>Fast inference</td>
+                        <td>Temporary processing</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.2 Data Minimization</h3>
+            <p>We implement strict data minimization practices:</p>
+            <ul>
+                <li>Only relevant code context is sent to AI providers</li>
+                <li>Personal information and secrets are filtered out</li>
+                <li>Large files are summarized rather than sent in full</li>
+                <li>Sensitive data (API keys, passwords) is never transmitted</li>
+            </ul>
+
+            <h3>4.3 Local Processing Options</h3>
+            <p>For maximum privacy, we offer local AI processing:</p>
+            <ul>
+                <li>Ollama integration for local models</li>
+                <li>On-premises deployment options</li>
+                <li>Air-gapped environments support</li>
+                <li>Custom model hosting</li>
+            </ul>
+        </section>
+
+        <section id="data-sharing" class="section">
+            <h2>🤝 5. Data Sharing and Disclosure</h2>
+            
+            <h3>5.1 When We Share Data</h3>
+            <p>We may share your information in the following circumstances:</p>
+            
+            <div class="highlight-box">
+                <div class="title">🔒 Limited Sharing</div>
+                <ul>
+                    <li><strong>Service Providers:</strong> Trusted third parties who assist in operating our service</li>
+                    <li><strong>AI Providers:</strong> Only temporary code context for processing (as detailed above)</li>
+                    <li><strong>Legal Requirements:</strong> When required by law or to protect rights and safety</li>
+                    <li><strong>Business Transfers:</strong> In connection with mergers, acquisitions, or asset sales</li>
+                </ul>
+            </div>
+
+            <h3>5.2 What We Don't Share</h3>
+            <p>We never sell, rent, or trade your personal information. We don't share:</p>
+            <ul>
+                <li>Your source code with third parties (except temporary AI processing)</li>
+                <li>Personal information for marketing purposes</li>
+                <li>Individual usage data with other users</li>
+                <li>Data with advertisers or data brokers</li>
+            </ul>
+
+            <h3>5.3 Enterprise Customers</h3>
+            <p>For enterprise deployments, we offer:</p>
+            <ul>
+                <li>Data Processing Agreements (DPAs)</li>
+                <li>Custom data handling arrangements</li>
+                <li>On-premises or private cloud deployment</li>
+                <li>Enhanced compliance certifications</li>
+            </ul>
+        </section>
+
+        <section id="data-storage" class="section">
+            <h2>🛡️ 6. Data Storage and Security</h2>
+            
+            <h3>6.1 Security Measures</h3>
+            <p>We implement industry-standard security practices:</p>
+            <ul>
+                <li>End-to-end encryption for data transmission (TLS 1.3)</li>
+                <li>Encryption at rest for stored data</li>
+                <li>Regular security audits and penetration testing</li>
+                <li>SOC 2 Type II compliance</li>
+                <li>Zero-trust network architecture</li>
+                <li>Multi-factor authentication requirements</li>
+            </ul>
+
+            <h3>6.2 Data Centers</h3>
+            <p>Your data is stored in secure, certified data centers:</p>
+            <ul>
+                <li>Primary: AWS US-East (Virginia) and US-West (Oregon)</li>
+                <li>EU customers: EU-Central (Frankfurt) for GDPR compliance</li>
+                <li>Enterprise: Custom regions available</li>
+                <li>All facilities are ISO 27001 and SOC 2 certified</li>
+            </ul>
+
+            <h3>6.3 Incident Response</h3>
+            <p>In the event of a security incident:</p>
+            <ul>
+                <li>Immediate investigation and containment procedures</li>
+                <li>Notification to affected users within 72 hours</li>
+                <li>Coordination with relevant authorities as required</li>
+                <li>Transparent reporting and remediation</li>
+            </ul>
+        </section>
+
+        <section id="your-rights" class="section">
+            <h2>⚖️ 7. Your Rights and Choices</h2>
+            
+            <h3>7.1 Data Subject Rights (GDPR/CCPA)</h3>
+            <p>You have the following rights regarding your personal data:</p>
+            <ul>
+                <li><strong>Access:</strong> Request a copy of your personal data</li>
+                <li><strong>Correction:</strong> Update or correct inaccurate information</li>
+                <li><strong>Deletion:</strong> Request deletion of your personal data</li>
+                <li><strong>Portability:</strong> Export your data in a machine-readable format</li>
+                <li><strong>Restriction:</strong> Limit how we process your data</li>
+                <li><strong>Objection:</strong> Object to certain processing activities</li>
+            </ul>
+
+            <h3>7.2 Privacy Controls</h3>
+            <p>You can control your privacy through our settings:</p>
+            <ul>
+                <li>Opt out of usage analytics collection</li>
+                <li>Disable error reporting and crash logs</li>
+                <li>Choose your preferred AI provider</li>
+                <li>Configure local-only processing</li>
+                <li>Set data retention preferences</li>
+            </ul>
+
+            <h3>7.3 Account Management</h3>
+            <ul>
+                <li>Update your account information anytime</li>
+                <li>Download your data before account deletion</li>
+                <li>Close your account and delete associated data</li>
+                <li>Transfer data to another service (where technically feasible)</li>
+            </ul>
+        </section>
+
+        <section id="retention" class="section">
+            <h2>⏰ 8. Data Retention</h2>
+            
+            <h3>8.1 Retention Periods</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Data Type</th>
+                        <th>Retention Period</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Account Information</td>
+                        <td>Duration of account + 30 days</td>
+                        <td>Service provision</td>
+                    </tr>
+                    <tr>
+                        <td>Usage Analytics</td>
+                        <td>2 years (anonymized)</td>
+                        <td>Product improvement</td>
+                    </tr>
+                    <tr>
+                        <td>Billing Records</td>
+                        <td>7 years</td>
+                        <td>Legal compliance</td>
+                    </tr>
+                    <tr>
+                        <td>Code Context</td>
+                        <td>Immediately after processing</td>
+                        <td>AI assistance only</td>
+                    </tr>
+                    <tr>
+                        <td>Error Logs</td>
+                        <td>90 days</td>
+                        <td>Debugging and improvement</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>8.2 Automated Deletion</h3>
+            <p>We implement automated systems to ensure data is deleted according to our retention policies:</p>
+            <ul>
+                <li>Code context is automatically purged after each session</li>
+                <li>Temporary processing data is deleted within 24 hours</li>
+                <li>Closed accounts are fully purged after 30 days</li>
+                <li>Regular audits ensure compliance with retention policies</li>
+            </ul>
+        </section>
+
+        <section id="international-transfers" class="section">
+            <h2>🌍 9. International Data Transfers</h2>
+            
+            <h3>9.1 Data Localization</h3>
+            <p>We respect data residency requirements:</p>
+            <ul>
+                <li><strong>EU Users:</strong> Data processed and stored within the EU</li>
+                <li><strong>US Users:</strong> Data processed and stored within the US</li>
+                <li><strong>Other Regions:</strong> Data stored in nearest compliant region</li>
+                <li><strong>Enterprise:</strong> Custom data residency arrangements available</li>
+            </ul>
+
+            <h3>9.2 Transfer Safeguards</h3>
+            <p>When data transfers are necessary, we use appropriate safeguards:</p>
+            <ul>
+                <li>Standard Contractual Clauses (SCCs)</li>
+                <li>Adequacy decisions where applicable</li>
+                <li>Data Processing Agreements</li>
+                <li>Additional security measures</li>
+            </ul>
+        </section>
+
+        <section id="cookies" class="section">
+            <h2>🍪 10. Cookies and Tracking</h2>
+            
+            <h3>10.1 Cookie Usage</h3>
+            <p>We use cookies and similar technologies for:</p>
+            <ul>
+                <li><strong>Essential:</strong> Authentication and security</li>
+                <li><strong>Functional:</strong> Remembering preferences and settings</li>
+                <li><strong>Analytics:</strong> Understanding usage patterns (optional)</li>
+                <li><strong>Performance:</strong> Optimizing application performance</li>
+            </ul>
+
+            <h3>10.2 Cookie Control</h3>
+            <p>You can control cookies through:</p>
+            <ul>
+                <li>Browser settings and preferences</li>
+                <li>Our cookie consent manager</li>
+                <li>Application privacy settings</li>
+                <li>Opt-out links where provided</li>
+            </ul>
+
+            <div class="note-box">
+                <div class="title">ℹ️ Desktop Application</div>
+                <p>The RinaWarp Terminal desktop application does not use web cookies. It stores necessary configuration and authentication data locally on your device.</p>
+            </div>
+        </section>
+
+        <section id="third-party-services" class="section">
+            <h2>🔗 11. Third-Party Services</h2>
+            
+            <h3>11.1 Integrated Services</h3>
+            <p>RinaWarp Terminal integrates with various third-party services:</p>
+            <ul>
+                <li><strong>AI Providers:</strong> OpenAI, Anthropic, Groq (as detailed above)</li>
+                <li><strong>Payment Processing:</strong> Stripe (for billing)</li>
+                <li><strong>Analytics:</strong> PostHog (privacy-focused, can be disabled)</li>
+                <li><strong>Error Monitoring:</strong> Sentry (opt-in only)</li>
+                <li><strong>Support:</strong> Intercom (for customer support)</li>
+            </ul>
+
+            <h3>11.2 Third-Party Privacy</h3>
+            <p>We carefully vet our third-party providers and require them to:</p>
+            <ul>
+                <li>Maintain appropriate security standards</li>
+                <li>Comply with applicable privacy laws</li>
+                <li>Use data only for specified purposes</li>
+                <li>Delete data according to our agreements</li>
+            </ul>
+        </section>
+
+        <section id="children" class="section">
+            <h2>👶 12. Children's Privacy</h2>
+            <p>RinaWarp Terminal is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe we have collected information about your child, please contact us immediately.</p>
+            
+            <p>For children between 13 and 18, we require parental consent where mandated by applicable law.</p>
+        </section>
+
+        <section id="changes" class="section">
+            <h2>📝 13. Changes to This Policy</h2>
+            <p>We may update this privacy policy from time to time. When we make changes:</p>
+            <ul>
+                <li>We'll notify you by email and in-app notification</li>
+                <li>We'll update the "Last Updated" date at the top</li>
+                <li>We'll highlight significant changes clearly</li>
+                <li>We'll provide a 30-day notice period for material changes</li>
+            </ul>
+
+            <p>Continued use of RinaWarp Terminal after policy updates constitutes acceptance of the new terms.</p>
+        </section>
+
+        <section id="contact" class="section">
+            <h2>📞 14. Contact Us</h2>
+            <div class="contact-info">
+                <h3>Privacy Questions?</h3>
+                <p>If you have questions about this privacy policy or our privacy practices:</p>
+                
+                <p><strong>Email:</strong> <a href="mailto:privacy@rinawarptech.com">privacy@rinawarptech.com</a></p>
+                <p><strong>Data Protection Officer:</strong> <a href="mailto:dpo@rinawarptech.com">dpo@rinawarptech.com</a></p>
+                <p><strong>General Support:</strong> <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a></p>
+                
+                <p><strong>Mailing Address:</strong><br>
+                RinaWarp Tech, Inc.<br>
+                Attn: Privacy Team<br>
+                123 Innovation Drive, Suite 456<br>
+                San Francisco, CA 94107<br>
+                United States</p>
+            </div>
+        </section>
+
+        <div class="footer">
+            <p>&copy; 2024 RinaWarp Tech, Inc. All rights reserved.</p>
+            <p>
+                <a href="/privacy-policy.html">Privacy Policy</a> | 
+                <a href="/terms-of-service.html">Terms of Service</a> | 
+                <a href="/security.html">Security</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for table of contents links
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight current section in TOC while scrolling
+        const sections = document.querySelectorAll('.section');
+        const tocLinks = document.querySelectorAll('.toc a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.style.color = '#b2dfdb';
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.style.color = '#4dd0e1';
+                    link.style.fontWeight = '600';
+                } else {
+                    link.style.fontWeight = 'normal';
+                }
+            });
+        });
+
+        console.log('🔒 RinaWarp Privacy Policy Loaded');
+    </script>
+</body>
+</html>

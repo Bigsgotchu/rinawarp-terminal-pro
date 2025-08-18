@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - AI-Powered Development Assistant</title>
+    <meta name="description" content="AI-powered terminal application with natural language processing capabilities for developers.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a1a2e 0%, #16213e 25%, #0f3460 50%, #e73c7e 75%, #ff6b9d 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .urgency-banner {
+            background: linear-gradient(90deg, #e73c7e, #ff6b9d, #ff8a80);
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4);
+            animation: coralWave 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes coralWave {
+            0% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4); }
+            50% { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255, 107, 157, 0.6); }
+            100% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4); }
+        }
+        
+        .countdown-timer {
+            display: inline-block;
+            background: rgba(10, 26, 46, 0.8);
+            padding: 8px 20px;
+            border-radius: 25px;
+            margin-left: 15px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #4dd0e1;
+            color: #4dd0e1;
+            font-weight: bold;
+        }
+        
+        .exit-intent-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 26, 46, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .popup-content {
+            background: linear-gradient(135deg, #e73c7e, #ff6b9d, #ff8a80, #4dd0e1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 20px;
+            position: relative;
+            animation: popupRise 0.5s ease-out;
+            border: 3px solid #4dd0e1;
+            box-shadow: 0 20px 60px rgba(255, 107, 157, 0.3);
+        }
+        
+        @keyframes popupRise {
+            from { 
+                transform: translateY(100px) scale(0.8); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0) scale(1); 
+                opacity: 1; 
+            }
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 28px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .popup-close:hover {
+            color: #4dd0e1;
+            transform: scale(1.2);
+        }
+        
+        .popup-cta {
+            background: linear-gradient(45deg, #0f3460, #16213e);
+            color: #ffffff;
+            padding: 15px 30px;
+            border: 2px solid #4dd0e1;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .popup-cta:hover {
+            background: linear-gradient(45deg, #16213e, #0f3460);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(77, 214, 225, 0.4);
+        }
+        
+        .social-proof {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(10, 26, 46, 0.9), rgba(15, 52, 96, 0.9));
+            color: #4dd0e1;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(77, 214, 225, 0.3);
+            animation: socialFloat 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes socialFloat {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-5px); }
+        }
+        
+        .hero {
+            padding: 100px 20px 60px 20px;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(231, 60, 126, 0.2) 0%, transparent 70%);
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ff6b9d" opacity="0.1"><path d="M0,50 Q250,20 500,50 T1000,50 V100 H0 Z"/></svg>') repeat-x;
+            animation: waveFlow 6s linear infinite;
+        }
+        
+        @keyframes waveFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .hero h1 {
+            font-size: 4em;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d, #4dd0e1, #80deea);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+            animation: titleShimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes titleShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .hero p {
+            font-size: 1.4em;
+            margin-bottom: 50px;
+            color: #b2dfdb;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(10, 26, 46, 0.5);
+        }
+        
+        .cta-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-button {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d, #ff8a80);
+            color: white;
+            padding: 20px 50px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.4s ease;
+            display: inline-block;
+            box-shadow: 0 15px 40px rgba(231, 60, 126, 0.4);
+            border: 2px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(231, 60, 126, 0.6);
+            border-color: #4dd0e1;
+        }
+        
+        .cta-secondary {
+            background: linear-gradient(45deg, rgba(10, 26, 46, 0.8), rgba(15, 52, 96, 0.8));
+            border: 3px solid #4dd0e1;
+            color: #4dd0e1;
+        }
+        
+        .cta-secondary:hover {
+            background: linear-gradient(45deg, rgba(15, 52, 96, 0.9), rgba(22, 33, 62, 0.9));
+            color: #ffffff;
+        }
+        
+        .pricing {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .price-original {
+            text-decoration: line-through;
+            opacity: 0.6;
+            font-size: 1.8em;
+            color: #80deea;
+        }
+        
+        .price-sale {
+            color: #ff6b9d;
+            font-size: 3.5em;
+            font-weight: bold;
+            margin: 0 25px;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+            animation: priceGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes priceGlow {
+            from { text-shadow: 0 0 20px rgba(255, 107, 157, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 107, 157, 0.8), 0 0 40px rgba(77, 214, 225, 0.3); }
+        }
+        
+        .price-savings {
+            color: #4dd0e1;
+            font-size: 1.4em;
+            font-weight: bold;
+            display: inline-block;
+            background: linear-gradient(45deg, rgba(10, 26, 46, 0.8), rgba(15, 52, 96, 0.8));
+            padding: 8px 20px;
+            border-radius: 25px;
+            border: 2px solid #4dd0e1;
+            margin-top: 10px;
+        }
+        
+        .floating-bubbles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle, rgba(231, 60, 126, 0.2), rgba(255, 107, 157, 0.1));
+            border-radius: 50%;
+            animation: bubbleFloat 8s infinite linear;
+        }
+        
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .pearl-accent {
+            background: radial-gradient(circle, #ff6b9d, #4dd0e1);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 5px;
+            animation: pearlShine 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pearlShine {
+            from { opacity: 0.6; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, rgba(10, 26, 46, 0.9), rgba(15, 52, 96, 0.9));
+            color: #b2dfdb;
+            padding: 40px 20px 20px 20px;
+            text-align: center;
+            border-top: 2px solid rgba(77, 214, 225, 0.3);
+            margin-top: 60px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #4dd0e1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: #ff6b9d;
+        }
+        
+        .copyright {
+            font-size: 0.9em;
+            color: #80deea;
+            margin-top: 20px;
+            line-height: 1.8;
+        }
+        
+        .disclaimer {
+            font-size: 0.8em;
+            color: #80deea;
+            margin-top: 15px;
+            opacity: 0.8;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.8em; }
+            .hero p { font-size: 1.2em; }
+            .cta-container { flex-direction: column; align-items: center; }
+            .cta-button { width: 85%; max-width: 320px; }
+            
+            .urgency-banner {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .countdown-timer {
+                display: block;
+                margin: 12px auto 0;
+            }
+            
+            .banner-cta {
+                margin-top: 8px;
+                margin-left: 0;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .social-proof {
+                bottom: 120px;
+            }
+        }
+    </style>
+    
+    <!-- Simple Flash Sale Analytics -->
+    <script src="/flash-sale-analytics.js"></script>
+    <script src="/flash-sale-alerts.js"></script>
+
+</head>
+<body>
+    <!-- Floating bubbles background -->
+    <div class="floating-bubbles" id="bubbles"></div>
+
+    <!-- Flash Sale Banner -->
+    <div class="urgency-banner">
+        💎 LIMITED TIME: 70% OFF RinaWarp Terminal - Development Assistant 
+        <span class="pearl-accent"></span>
+        <span class="countdown-timer" id="countdown">23:59:59</span>
+        <span class="pearl-accent"></span>
+        <a href="#pricing" class="banner-cta" style="color: white; font-weight: bold; text-decoration: underline; margin-left: 15px;">Get Early Access!</a>
+    </div>
+
+    <!-- Exit-Intent Popup -->
+    <div class="exit-intent-popup" id="exitPopup">
+        <div class="popup-content">
+            <button class="popup-close" onclick="closeExitPopup()">&times;</button>
+            <h2>💎 Limited Time Offer - Early Access Pricing</h2>
+            <p style="margin: 20px 0; color: #ffffff;">Join our early access program for RinaWarp Terminal at a special price!</p>
+            <div class="pricing">
+                <span class="price-original">$99</span>
+                <span class="price-sale">$29</span>
+                <span class="price-savings">(Save $70 - Early Access Special)</span>
+            </div>
+            <button class="popup-cta" onclick="window.location.href='#pricing'">Join Early Access Program</button>
+            <p style="font-size: 14px; margin-top: 15px; opacity: 0.8; color: #ffffff;">Limited time offer ends in <span id="popupTimer">23:59:59</span></p>
+        </div>
+    </div>
+
+    <!-- Social Proof Counter -->
+    <div class="social-proof" id="socialProof">
+        ⭐ <span id="downloadCount">247</span> developers interested!
+        <span class="pearl-accent"></span>
+    </div>
+
+    <div class="hero">
+        <h1>RinaWarp Terminal</h1>
+        <p>AI-powered terminal application currently in development. Early access program available for beta testing with natural language processing capabilities and development workflow automation features.</p>
+        
+        <div class="pricing" id="pricing">
+            <span class="price-original">$99</span>
+            <span class="price-sale">$29</span>
+            <div class="price-savings">💎 Early Access Special - 70% OFF</div>
+        </div>
+        
+        <div class="cta-container">
+            <button class="cta-button" onclick="initiateDownload()">Join Early Access - $29</button>
+            <a href="/dashboard.html" class="cta-button cta-secondary" target="_blank">View Development Progress</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="/privacy.html">Privacy Policy</a>
+                <a href="/terms.html">Terms of Service</a>
+                <a href="mailto:support@rinawarptech.com">Contact Support</a>
+                <a href="/about.html">About</a>
+            </div>
+            
+            <div class="copyright">
+                © 2025 RinaWarp Technologies. All rights reserved.<br>
+                RinaWarp Terminal is a trademark of RinaWarp Technologies.
+            </div>
+            
+            <div class="disclaimer">
+                <strong>Important:</strong> RinaWarp Terminal is currently under active development. Early access program provides beta software for testing purposes. Features and pricing subject to change. No guarantee of compatibility with all systems. Beta software may contain bugs and incomplete features. By participating in early access, you acknowledge this is pre-release software and agree to provide feedback to improve the final product.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple analytics tracking
+        function trackEvent(eventName, properties = {}) {
+            if (window.flashSaleAnalytics && window.flashSaleAnalytics.trackEvent) {
+                window.flashSaleAnalytics.trackEvent(eventName, properties);
+            } else {
+                console.log('📊 Event:', eventName, properties);
+            }
+        }
+
+        // Create floating bubbles
+        function createBubbles() {
+            const bubbleContainer = document.getElementById('bubbles');
+            
+            for (let i = 0; i < 12; i++) {
+                setTimeout(() => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.style.left = Math.random() * 100 + '%';
+                    bubble.style.width = bubble.style.height = Math.random() * 60 + 20 + 'px';
+                    bubble.style.animationDuration = (Math.random() * 6 + 4) + 's';
+                    bubble.style.animationDelay = Math.random() * 2 + 's';
+                    
+                    bubbleContainer.appendChild(bubble);
+                    
+                    // Remove bubble after animation
+                    setTimeout(() => {
+                        if (bubble.parentNode) {
+                            bubble.parentNode.removeChild(bubble);
+                        }
+                    }, 10000);
+                }, i * 400);
+            }
+        }
+
+        // Countdown Timer
+        function updateCountdown() {
+            const saleEnd = new Date();
+            saleEnd.setHours(saleEnd.getHours() + 24);
+            
+            function tick() {
+                const now = new Date();
+                const timeLeft = saleEnd - now;
+                
+                if (timeLeft <= 0) {
+                    document.getElementById('countdown').textContent = 'ENDED';
+                    document.getElementById('popupTimer').textContent = 'ENDED';
+                    return;
+                }
+                
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('countdown').textContent = timeString;
+                document.getElementById('popupTimer').textContent = timeString;
+            }
+            
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        // Exit-Intent Detection
+        let exitIntentShown = false;
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY <= 0 && !exitIntentShown) {
+                document.getElementById('exitPopup').style.display = 'flex';
+                exitIntentShown = true;
+                trackEvent('exit_intent_popup_shown');
+            }
+        });
+
+        function closeExitPopup() {
+            document.getElementById('exitPopup').style.display = 'none';
+            trackEvent('exit_intent_popup_closed');
+        }
+
+        // Social Proof Animation - Conservative numbers
+        function animateSocialProof() {
+            let count = 247; // Realistic starting number
+            setInterval(() => {
+                if (Math.random() > 0.8) { // Less frequent updates
+                    count += Math.floor(Math.random() * 2) + 1; // Smaller increments
+                    document.getElementById('downloadCount').textContent = count.toLocaleString();
+                }
+            }, 8000); // Less frequent updates
+        }
+
+        // Download Handler - Honest messaging
+        function initiateDownload() {
+            trackEvent('early_access_button_clicked', {
+                price: '$29',
+                discount: '70%',
+                program: 'early_access',
+                timestamp: new Date().toISOString()
+            });
+            
+            alert('💎 Thank you for your interest in RinaWarp Terminal!\n\nOur early access program is being prepared. You\'ll be notified when it\'s available.\n\nEmail us at support@rinawarptech.com for updates.');
+            
+            trackEvent('early_access_interest_expressed');
+        }
+
+        // Banner click tracking
+        document.querySelector('.banner-cta')?.addEventListener('click', () => {
+            trackEvent('banner_clicked');
+        });
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('💎 RinaWarp Terminal website loaded');
+            
+            updateCountdown();
+            animateSocialProof();
+            createBubbles();
+            
+            // Create new bubbles periodically
+            setInterval(createBubbles, 10000);
+            
+            // Track page view
+            trackEvent('page_view', {
+                version: 'early_access',
+                timestamp: new Date().toISOString()
+            });
+            
+            // Configure flash sale alerts if available
+            setTimeout(() => {
+                if (window.configureFlashSaleAlerts) {
+                    window.configureFlashSaleAlerts({
+                        webhookUrl: null,
+                        customMilestones: {
+                            interest: [50, 100, 250, 500],
+                            signups: [10, 25, 50, 100]
+                        }
+                    });
+                }
+            }, 1000);
+        });
+    </script>
+
+</body>
+</html>

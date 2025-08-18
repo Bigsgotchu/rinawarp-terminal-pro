@@ -97,10 +97,10 @@ try {
   console.log('\n🧪 Testing installation...');
 
   try {
-    const testOutput = execSync('rina version', { encoding: 'utf8', timeout: 5000 });
+    const _testOutput = execSync('rina version', { encoding: 'utf8', timeout: 5000 });
     console.log('✅ Installation test passed!');
     console.log('🧜‍♀️ Rina CLI is ready to use!');
-  } catch (testError) {
+  } catch (_testError) {
     console.log('⚠️  Installation completed but test failed');
     console.log('💡 You may need to restart your terminal or update your PATH');
   }

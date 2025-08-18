@@ -60,7 +60,7 @@ const DOWNLOAD_LINKS = {
 
 // Simplified deployment - same binary for all tiers, license key controls features
 
-function generateLicenseKey(plan, email) {
+function generateLicenseKey(plan, _email) {
   const timestamp = Date.now();
   const random = crypto.randomBytes(4).toString('hex');
   const planCode =

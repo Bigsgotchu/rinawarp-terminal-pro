@@ -270,7 +270,7 @@ export class EnhancedDevelopmentAssistant {
     };
   }
 
-  async debugCode(input, context, specifics) {
+  async debugCode(input, context, _specifics) {
     console.log('🐛 Debugging code issue...');
 
     const debugContext = await this.debuggingEngine.analyzeError(input, context);
@@ -552,50 +552,50 @@ Be specific and actionable in your recommendations.`;
   }
 
   // Additional utility methods would be implemented here
-  extractFocusAreas(input) {
+  extractFocusAreas(_input) {
     return [];
   }
-  detectErrorType(input) {
+  detectErrorType(_input) {
     return 'general';
   }
-  detectSeverity(input) {
+  detectSeverity(_input) {
     return 'medium';
   }
-  detectEnvironment(input) {
+  detectEnvironment(_input) {
     return 'unknown';
   }
-  detectComplexity(input) {
+  detectComplexity(_input) {
     return 'medium';
   }
-  extractFeatureRequests(input) {
+  extractFeatureRequests(_input) {
     return [];
   }
-  extractArchitectureSpecifics(input) {
+  extractArchitectureSpecifics(_input) {
     return {};
   }
-  extractExplanationSpecifics(input) {
+  extractExplanationSpecifics(_input) {
     return {};
   }
-  extractReviewSpecifics(input) {
+  extractReviewSpecifics(_input) {
     return {};
   }
-  extractTestingSpecifics(input) {
+  extractTestingSpecifics(_input) {
     return {};
   }
 
-  async reviewCode(input, context, specifics) {
+  async reviewCode(_input, _context, _specifics) {
     return { response: 'Code review functionality - to be implemented', confidence: 0.5 };
   }
 
-  async refactorCode(input, context, specifics) {
+  async refactorCode(_input, _context, _specifics) {
     return { response: 'Code refactoring functionality - to be implemented', confidence: 0.5 };
   }
 
-  async generateTests(input, context, specifics) {
+  async generateTests(_input, _context, _specifics) {
     return { response: 'Test generation functionality - to be implemented', confidence: 0.5 };
   }
 
-  async handleGeneralDevelopmentQuery(input, context) {
+  async handleGeneralDevelopmentQuery(input, _context) {
     return {
       response: `🧜‍♀️ I understand you have a development question: "${input}". Could you be more specific about what you'd like help with?`,
       confidence: 0.4,

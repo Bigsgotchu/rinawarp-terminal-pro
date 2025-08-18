@@ -6,8 +6,8 @@
  */
 
 import { exec } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import _fs from 'fs';
+import _path from 'path';
 
 console.log('🧜‍♀️ RinaWarp Terminal - Quick Revenue Setup');
 console.log('============================================\n');
@@ -23,7 +23,7 @@ console.log('   ✅ Success page with sparkle effects');
 console.log('\n🚀 Starting local server...');
 
 // Start the checkout page server
-exec('python3 -m http.server 8080', (error, stdout, stderr) => {
+exec('python3 -m http.server 8080', (error, _stdout, _stderr) => {
   if (error) {
     console.log('⚠️  Python server failed, trying Node.js alternative...');
 

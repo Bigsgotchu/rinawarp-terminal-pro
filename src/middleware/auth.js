@@ -5,7 +5,7 @@
 
 import jwt from 'jsonwebtoken';
 import UserManager, { ROLES, PERMISSIONS } from '../database/users.js';
-import logger from '../utilities/logger.js';
+import _logger from '../utilities/logger.js';
 
 // JWT Configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'rinawarp-dev-secret-change-in-production';
@@ -174,7 +174,7 @@ export class AuthService {
 
 // Authentication middleware
 export function requireAuth(options = {}) {
-  const { permissions = [], roles = [], allowApiKey = false } = options;
+  const { permissions = [], roles = [], _allowApiKey = false } = options;
 
   return async (req, res, next) => {
     try {

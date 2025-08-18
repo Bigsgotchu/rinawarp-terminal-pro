@@ -14,9 +14,9 @@
  */
 
 import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { dirname, _resolve } from 'path';
 import process from 'process';
-import fs from 'fs';
+import _fs from 'fs';
 import { aiIntegrationAdapter } from '../src/ai-system/ai-integration-adapter.js';
 
 const __filename = fileURLToPath(import.meta.url);

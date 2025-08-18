@@ -7,7 +7,7 @@
 
 import crypto from 'crypto';
 import fs from 'fs';
-import { execSync } from 'child_process';
+import { _execSync } from 'child_process';
 
 console.log('🔑 RinaWarp Terminal - Missing Keys Generator');
 console.log('==============================================\n');

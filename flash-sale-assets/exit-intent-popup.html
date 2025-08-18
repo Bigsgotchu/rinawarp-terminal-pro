@@ -1,0 +1,143 @@
+
+  <div class="exit-intent-popup" id="exit-intent-popup">
+    <div class="popup-content">
+      <span class="close-button" onclick="closePopup()">&times;</span>
+      <h2>🚀 Wait! Special Launch Offer</h2>
+      <p>Get 50% OFF RinaWarp Terminal for a limited time!</p>
+      <div class="countdown">Limited offer: <span id="countdown">24:00:00</span></div>
+      <p class="benefit">Advanced AI features, deep project intelligence, and more...</p>
+      <a href="/pricing" class="cta-button">GET 50% OFF NOW</a>
+      <p class="disclaimer">First 100 customers only. Regular price: $19.99/month</p>
+    </div>
+  </div>
+  
+  <style>
+  .exit-intent-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 1000;
+    animation: fadeIn 0.3s;
+  }
+  
+  .popup-content {
+    background-color: #fff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #777;
+  }
+  
+  .close-button:hover {
+    color: #333;
+  }
+  
+  h2 {
+    color: #333;
+    margin-top: 0;
+    font-size: 24px;
+  }
+  
+  .countdown {
+    font-size: 20px;
+    font-weight: bold;
+    color: #e74c3c;
+    margin: 15px 0;
+  }
+  
+  .benefit {
+    font-size: 16px;
+    margin: 15px 0;
+    color: #555;
+  }
+  
+  .cta-button {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+    margin: 15px 0;
+    transition: background-color 0.3s;
+  }
+  
+  .cta-button:hover {
+    background-color: #2980b9;
+  }
+  
+  .disclaimer {
+    font-size: 12px;
+    color: #999;
+    margin-top: 15px;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  </style>
+  
+  <script>
+  // Exit intent detection
+  document.addEventListener('mouseleave', (e) => {
+    // Only trigger when mouse leaves through top edge
+    if (e.clientY < 10 && !localStorage.getItem('exitShown')) {
+      document.getElementById('exit-intent-popup').style.display = 'block';
+      localStorage.setItem('exitShown', 'true');
+      
+      // Start countdown
+      startCountdown();
+    }
+  });
+  
+  function closePopup() {
+    document.getElementById('exit-intent-popup').style.display = 'none';
+  }
+  
+  function startCountdown() {
+    let hours = 24;
+    let minutes = 0;
+    let seconds = 0;
+    
+    const interval = setInterval(() => {
+      if (seconds > 0) {
+        seconds--;
+      } else if (minutes > 0) {
+        minutes--;
+        seconds = 59;
+      } else if (hours > 0) {
+        hours--;
+        minutes = 59;
+        seconds = 59;
+      } else {
+        clearInterval(interval);
+      }
+      
+      document.getElementById('countdown').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }, 1000);
+  }
+  </script>
+  

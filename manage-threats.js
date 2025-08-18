@@ -73,7 +73,7 @@ function showStats() {
 
   if (stats.recentActivity.length > 0) {
     stats.recentActivity.forEach((activity, _index) => {
-      const lastSeen = new Date(activity.lastSeen).toLocaleString();
+      const _lastSeen = new Date(activity.lastSeen).toLocaleString();
     });
   }
 }
@@ -100,10 +100,10 @@ function listBlockedIPs() {
   const now = Date.now();
   let activeBlocks = 0;
 
-  for (const [ip, blockInfo] of threatDetector.blockedIPs.entries()) {
+  for (const [_ip, blockInfo] of threatDetector.blockedIPs.entries()) {
     if (blockInfo.expiresAt > now) {
-      const expiresIn = Math.round((blockInfo.expiresAt - now) / (60 * 60 * 1000));
-      const blockedAt = new Date(blockInfo.blockedAt).toLocaleString();
+      const _expiresIn = Math.round((blockInfo.expiresAt - now) / (60 * 60 * 1000));
+      const _blockedAt = new Date(blockInfo.blockedAt).toLocaleString();
 
       activeBlocks++;
     }

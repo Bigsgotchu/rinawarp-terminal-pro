@@ -22,7 +22,7 @@ if command -v python3 &> /dev/null; then
     
     # Open the actual terminal interface
     echo "🌐 Opening RinaWarp Terminal interface..."
-    open "http://localhost:8082/src/terminal-working.html"
+    open "http://localhost:8082/RinaWarp-Production-Final/index.html"
     
     echo ""
     echo "🧜‍♀️ Your RinaWarp Terminal is now open!"
@@ -41,7 +41,7 @@ elif command -v node &> /dev/null; then
     echo "✅ Server started (PID: $SERVER_PID)"
     
     sleep 2
-    open "http://localhost:8082/src/terminal-working.html"
+    open "http://localhost:8082/RinaWarp-Production-Final/index.html"
     
     echo ""
     echo "🧜‍♀️ Your RinaWarp Terminal is now open!"
@@ -54,7 +54,7 @@ elif command -v node &> /dev/null; then
 else
     # Fallback - just open the file directly
     echo "🌐 Opening terminal directly in browser..."
-    open "src/terminal-working.html"
+    open "RinaWarp-Production-Final/index.html"
     echo "✅ RinaWarp Terminal opened!"
     echo "🧜‍♀️ AI capabilities are now active!"
 fi

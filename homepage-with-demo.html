@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - AI-Powered Development Assistant</title>
+    <meta name="description" content="Professional AI-powered terminal application with natural language processing capabilities for enterprise development teams.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a1a2e 0%, #16213e 25%, #0f3460 50%, #e73c7e 75%, #ff6b9d 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .announcement-banner {
+            background: linear-gradient(90deg, #e73c7e, #ff6b9d, #ff8a80);
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4);
+            animation: coralWave 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes coralWave {
+            0% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4); }
+            50% { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255, 107, 157, 0.6); }
+            100% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4); }
+        }
+        
+        .beta-counter {
+            display: inline-block;
+            background: rgba(10, 26, 46, 0.8);
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-left: 15px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #4dd0e1;
+            color: #4dd0e1;
+            font-weight: 600;
+            font-size: 14px;
+            animation: counterPulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes counterPulse {
+            from { box-shadow: 0 0 10px rgba(77, 214, 225, 0.3); }
+            to { box-shadow: 0 0 20px rgba(77, 214, 225, 0.6); }
+        }
+        
+        .feedback-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: feedbackFloat 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes feedbackFloat {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-5px); }
+        }
+        
+        .feedback-button:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 30px rgba(231, 60, 126, 0.6);
+        }
+        
+        .hero {
+            padding: 80px 20px 60px 20px;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(231, 60, 126, 0.15) 0%, transparent 70%);
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ff6b9d" opacity="0.08"><path d="M0,50 Q250,20 500,50 T1000,50 V100 H0 Z"/></svg>') repeat-x;
+            animation: waveFlow 8s linear infinite;
+        }
+        
+        @keyframes waveFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .hero h1 {
+            font-size: 4.2em;
+            margin-bottom: 25px;
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d, #4dd0e1, #80deea);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+            animation: titleShimmer 4s ease-in-out infinite;
+            font-weight: 700;
+        }
+        
+        @keyframes titleShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #4dd0e1;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero p {
+            font-size: 1.2em;
+            margin-bottom: 50px;
+            color: #b2dfdb;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(10, 26, 46, 0.5);
+            line-height: 1.7;
+        }
+        
+        .pricing-section {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 2;
+            background: rgba(10, 26, 46, 0.3);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 40px;
+        }
+        
+        .pricing-title {
+            font-size: 1.4em;
+            color: #4dd0e1;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .beta-slots-remaining {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: slotsGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes slotsGlow {
+            from { box-shadow: 0 0 10px rgba(255, 107, 157, 0.3); }
+            to { box-shadow: 0 0 20px rgba(255, 107, 157, 0.6); }
+        }
+        
+        .price-display {
+            margin-bottom: 20px;
+        }
+        
+        .price-original {
+            text-decoration: line-through;
+            opacity: 0.6;
+            font-size: 1.5em;
+            color: #80deea;
+        }
+        
+        .price-current {
+            color: #ff6b9d;
+            font-size: 3em;
+            font-weight: bold;
+            margin: 0 20px;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+            animation: priceGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes priceGlow {
+            from { text-shadow: 0 0 20px rgba(255, 107, 157, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 107, 157, 0.8), 0 0 40px rgba(77, 214, 225, 0.3); }
+        }
+        
+        .price-note {
+            color: #4dd0e1;
+            font-size: 1.1em;
+            font-weight: 600;
+            display: inline-block;
+            background: linear-gradient(45deg, rgba(10, 26, 46, 0.8), rgba(15, 52, 96, 0.8));
+            padding: 10px 25px;
+            border-radius: 25px;
+            border: 2px solid #4dd0e1;
+            margin-top: 15px;
+        }
+        
+        .cta-container {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-button {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d, #ff8a80);
+            color: white;
+            padding: 20px 45px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            display: inline-block;
+            box-shadow: 0 15px 40px rgba(231, 60, 126, 0.4);
+            border: 2px solid transparent;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(231, 60, 126, 0.6);
+            border-color: #4dd0e1;
+        }
+        
+        .cta-secondary {
+            background: linear-gradient(45deg, rgba(10, 26, 46, 0.9), rgba(15, 52, 96, 0.9));
+            border: 3px solid #4dd0e1;
+            color: #4dd0e1;
+        }
+        
+        .cta-secondary:hover {
+            background: linear-gradient(45deg, rgba(15, 52, 96, 0.95), rgba(22, 33, 62, 0.95));
+            color: #ffffff;
+        }
+        
+        /* PRODUCT DEMO SECTION */
+        .demo-section {
+            background: rgba(10, 26, 46, 0.6);
+            padding: 80px 20px;
+            margin: 60px 0;
+            backdrop-filter: blur(10px);
+            border-top: 2px solid rgba(77, 214, 225, 0.3);
+            border-bottom: 2px solid rgba(77, 214, 225, 0.3);
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .demo-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #4dd0e1, #ff6b9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+        
+        .demo-subtitle {
+            font-size: 1.2em;
+            color: #b2dfdb;
+            margin-bottom: 50px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .demo-video-container {
+            position: relative;
+            background: #000000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 3px solid rgba(77, 214, 225, 0.3);
+        }
+        
+        .demo-video-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-video-placeholder:hover {
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+        }
+        
+        .play-button {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .play-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5);
+        }
+        
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-left: 25px solid #ffffff;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            margin-left: 5px;
+        }
+        
+        .demo-text {
+            font-size: 1.1em;
+            color: #4dd0e1;
+            font-weight: 600;
+        }
+        
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .screenshot-card {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .screenshot-card:hover {
+            border-color: rgba(255, 107, 157, 0.4);
+            transform: translateY(-5px);
+        }
+        
+        .screenshot-placeholder {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #0a1a2e, #16213e);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(77, 214, 225, 0.3);
+        }
+        
+        .terminal-mockup {
+            width: 90%;
+            height: 80%;
+            background: #000000;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #00ff00;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .terminal-header {
+            background: #333333;
+            height: 20px;
+            border-radius: 5px 5px 0 0;
+            margin: -15px -15px 10px -15px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+        
+        .terminal-dots {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27ca3f; }
+        
+        .terminal-content {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .terminal-line {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .prompt { color: #4dd0e1; }
+        .command { color: #ffffff; }
+        .ai-response { color: #ff6b9d; }
+        .success { color: #00ff00; }
+        
+        .cursor {
+            background: #00ff00;
+            width: 8px;
+            height: 15px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .screenshot-title {
+            font-size: 1.2em;
+            color: #4dd0e1;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .screenshot-description {
+            color: #b2dfdb;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .demo-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .feature-highlight {
+            background: rgba(77, 214, 225, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+            text-align: left;
+        }
+        
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+        
+        .feature-title {
+            font-size: 1.2em;
+            color: #4dd0e1;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .feature-description {
+            color: #b2dfdb;
+            line-height: 1.5;
+        }
+        
+        .floating-bubbles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle, rgba(231, 60, 126, 0.15), rgba(255, 107, 157, 0.08));
+            border-radius: 50%;
+            animation: bubbleFloat 10s infinite linear;
+        }
+        
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .accent-dot {
+            background: radial-gradient(circle, #ff6b9d, #4dd0e1);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 8px;
+            animation: dotPulse 2.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes dotPulse {
+            from { opacity: 0.6; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.3); }
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3em; }
+            .hero p { font-size: 1.1em; }
+            .cta-container { flex-direction: column; align-items: center; }
+            .cta-button { width: 85%; max-width: 350px; }
+            
+            .demo-title { font-size: 2em; }
+            .demo-video-placeholder { height: 250px; }
+            .screenshots-grid { grid-template-columns: 1fr; }
+            .demo-features { grid-template-columns: 1fr; }
+            
+            .feedback-button {
+                bottom: 100px;
+                right: 15px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <!-- Floating bubbles background -->
+    <div class="floating-bubbles" id="bubbles"></div>
+
+    <!-- Professional Banner -->
+    <div class="announcement-banner">
+        🚀 RinaWarp Terminal - Professional AI Development Assistant 
+        <span class="accent-dot"></span>
+        <span class="beta-counter" id="betaCounter">73 Beta Slots Remaining</span>
+        <span class="accent-dot"></span>
+        <a href="#pricing" class="banner-cta" style="color: white; font-weight: bold; text-decoration: underline; margin-left: 15px;">Request Access</a>
+    </div>
+
+    <!-- Feedback Button -->
+    <button class="feedback-button" onclick="alert('Thanks for your interest! Send feedback to: feedback@rinawarptech.com')">
+        💬 Feedback
+    </button>
+
+    <div class="hero">
+        <h1>RinaWarp Terminal</h1>
+        <div class="hero-subtitle">Professional AI Development Assistant</div>
+        <p>Advanced terminal application leveraging natural language processing and machine learning to streamline development workflows. Built for professional developers and enterprise teams seeking intelligent automation and enhanced productivity.</p>
+        
+        <div class="pricing-section" id="pricing">
+            <div class="pricing-title">Beta Program Access</div>
+            <div class="beta-slots-remaining" id="heroSlotsRemaining">Only 73 Beta Slots Remaining!</div>
+            <div class="price-display">
+                <span class="price-original">$149</span>
+                <span class="price-current">$49</span>
+            </div>
+            <div class="price-note">Early Access - Limited Beta Slots</div>
+        </div>
+        
+        <div class="cta-container">
+            <button class="cta-button" onclick="requestBetaAccess()">Request Beta Access</button>
+            <a href="/documentation.html" class="cta-button cta-secondary">View Documentation</a>
+        </div>
+    </div>
+
+    <!-- PRODUCT DEMONSTRATION SECTION -->
+    <section class="demo-section">
+        <div class="demo-container">
+            <h2 class="demo-title">See RinaWarp Terminal in Action</h2>
+            <p class="demo-subtitle">Watch how AI transforms your development workflow with natural language commands and intelligent automation</p>
+            
+            <!-- Demo Video -->
+            <div class="demo-video-container">
+                <div class="demo-video-placeholder" onclick="playDemo()">
+                    <div class="play-button">
+                        <div class="play-icon"></div>
+                    </div>
+                    <div class="demo-text">▶️ Watch 2-Minute Demo</div>
+                </div>
+            </div>
+            
+            <!-- Screenshots Grid -->
+            <div class="screenshots-grid">
+                <!-- Natural Language Commands -->
+                <div class="screenshot-card">
+                    <div class="screenshot-placeholder">
+                        <div class="terminal-mockup">
+                            <div class="terminal-header">
+                                <div class="terminal-dots">
+                                    <div class="terminal-dot dot-red"></div>
+                                    <div class="terminal-dot dot-yellow"></div>
+                                    <div class="terminal-dot dot-green"></div>
+                                </div>
+                            </div>
+                            <div class="terminal-content">
+                                <div class="terminal-line">
+                                    <span class="prompt">user@dev:</span>
+                                    <span class="command"> create a React login component</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="ai-response">🤖 Creating React login component...</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="success">✓ Generated LoginForm.jsx</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="success">✓ Added authentication logic</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="success">✓ Included form validation</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="prompt">user@dev:</span>
+                                    <span class="cursor"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="screenshot-title">Natural Language Commands</h3>
+                    <p class="screenshot-description">Simply tell RinaWarp what you want to build. AI understands your intent and generates the code automatically.</p>
+                </div>
+                
+                <!-- Smart Debugging -->
+                <div class="screenshot-card">
+                    <div class="screenshot-placeholder">
+                        <div class="terminal-mockup">
+                            <div class="terminal-header">
+                                <div class="terminal-dots">
+                                    <div class="terminal-dot dot-red"></div>
+                                    <div class="terminal-dot dot-yellow"></div>
+                                    <div class="terminal-dot dot-green"></div>
+                                </div>
+                            </div>
+                            <div class="terminal-content">
+                                <div class="terminal-line">
+                                    <span class="prompt">user@dev:</span>
+                                    <span class="command"> debug the authentication error</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="ai-response">🔍 Analyzing error logs...</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="ai-response">Found: JWT token expired</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="success">✓ Fixed token refresh logic</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="success">✓ Added error handling</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="prompt">user@dev:</span>
+                                    <span class="cursor"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="screenshot-title">Intelligent Debugging</h3>
+                    <p class="screenshot-description">AI analyzes errors, identifies root causes, and suggests fixes. No more hunting through stack traces.</p>
+                </div>
+                
+                <!-- Project Analysis -->
+                <div class="screenshot-card">
+                    <div class="screenshot-placeholder">
+                        <div class="terminal-mockup">
+                            <div class="terminal-header">
+                                <div class="terminal-dots">
+                                    <div class="terminal-dot dot-red"></div>
+                                    <div class="terminal-dot dot-yellow"></div>
+                                    <div class="terminal-dot dot-green"></div>
+                                </div>
+                            </div>
+                            <div class="terminal-content">
+                                <div class="terminal-line">
+                                    <span class="prompt">user@dev:</span>
+                                    <span class="command"> analyze project architecture</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="ai-response">📊 Scanning project structure...</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="ai-response">React + Node.js detected</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="ai-response">23 components, 8 services</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="ai-response">⚠️ 3 security vulnerabilities</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="prompt">user@dev:</span>
+                                    <span class="cursor"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="screenshot-title">Project Intelligence</h3>
+                    <p class="screenshot-description">Get instant insights about your codebase structure, dependencies, and potential improvements.</p>
+                </div>
+            </div>
+            
+            <!-- Key Features -->
+            <div class="demo-features">
+                <div class="feature-highlight">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">AI-Powered Understanding</h3>
+                    <p class="feature-description">Natural language processing that understands developer intent and translates it into precise actions.</p>
+                </div>
+                
+                <div class="feature-highlight">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Instant Code Generation</h3>
+                    <p class="feature-description">Generate components, functions, and entire modules from simple descriptions in seconds.</p>
+                </div>
+                
+                <div class="feature-highlight">
+                    <div class="feature-icon">🔧</div>
+                    <h3 class="feature-title">Smart Automation</h3>
+                    <p class="feature-description">Automate repetitive tasks like testing, deployment, and code reviews with AI-driven workflows.</p>
+                </div>
+                
+                <div class="feature-highlight">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Enterprise Ready</h3>
+                    <p class="feature-description">Built for professional teams with security, compliance, and enterprise integration features.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Beta slots management
+        let betaSlotsRemaining = 73;
+        
+        function updateBetaSlots() {
+            document.getElementById('betaCounter').textContent = `${betaSlotsRemaining} Beta Slots Remaining`;
+            document.getElementById('heroSlotsRemaining').textContent = `Only ${betaSlotsRemaining} Beta Slots Remaining!`;
+        }
+
+        function playDemo() {
+            alert('🎬 Demo Video Coming Soon!\n\nWe\'re preparing a comprehensive video demonstration of RinaWarp Terminal\'s AI capabilities.\n\nJoin the beta program to get early access to live demos and interactive sessions.');
+        }
+
+        function requestBetaAccess() {
+            if (betaSlotsRemaining <= 0) {
+                alert('Sorry, all beta slots have been filled. Join our waitlist to be notified when production is available.');
+                return;
+            }
+            
+            const userEmail = prompt('Enter your email address for beta access notifications:');
+            
+            if (userEmail && userEmail.includes('@')) {
+                betaSlotsRemaining -= 1;
+                updateBetaSlots();
+                
+                alert(`Thank you for your interest in RinaWarp Terminal!\n\nWe've reserved a beta slot for ${userEmail}.\n\nYou'll receive an invitation when beta becomes available.\n\nSlots remaining: ${betaSlotsRemaining}\n\nFor enterprise inquiries: enterprise@rinawarptech.com`);
+            } else if (userEmail) {
+                alert('Please enter a valid email address to join the beta program.');
+            }
+        }
+
+        // Create subtle floating bubbles
+        function createBubbles() {
+            const bubbleContainer = document.getElementById('bubbles');
+            
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.style.left = Math.random() * 100 + '%';
+                    bubble.style.width = bubble.style.height = Math.random() * 80 + 30 + 'px';
+                    bubble.style.animationDuration = (Math.random() * 8 + 6) + 's';
+                    bubble.style.animationDelay = Math.random() * 3 + 's';
+                    
+                    bubbleContainer.appendChild(bubble);
+                    
+                    setTimeout(() => {
+                        if (bubble.parentNode) {
+                            bubble.parentNode.removeChild(bubble);
+                        }
+                    }, 14000);
+                }, i * 600);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateBetaSlots();
+            createBubbles();
+            setInterval(createBubbles, 12000);
+            
+            console.log('🚀 RinaWarp Terminal - Homepage with Demo Loaded');
+        });
+    </script>
+
+</body>
+</html>

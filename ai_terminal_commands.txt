@@ -1,0 +1,29 @@
+
+# RinaWarp AI Assistant - Terminal Commands
+
+# Code Analysis
+rina analyze --file src/components/Button.js
+rina analyze --project . --depth full
+rina analyze --security --performance
+
+# Task Management  
+rina task create "implement user authentication with JWT"
+rina task list --status pending
+rina task complete task_123
+rina task breakdown "build React dashboard"
+
+# Code Generation
+rina generate "React component for user profile display"
+rina generate "Express.js middleware for authentication" 
+rina generate "Python function to process CSV files"
+
+# General Help
+rina help "best practices for React performance"
+rina help "debugging Node.js memory leaks"
+rina help --context current-project "optimize database queries"
+
+# Project Insights
+rina insights --project .
+rina recommendations --focus performance
+rina patterns --learn-from recent-commits
+        

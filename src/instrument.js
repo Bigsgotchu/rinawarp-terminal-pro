@@ -1,4 +1,4 @@
-import logger from './utilities/logger.js';
+import _logger from './utilities/logger.js';
 /**
  * Sentry Performance Monitoring and Tracing Instrumentation
  * This file must be imported at the very top of your application
@@ -8,7 +8,7 @@ import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 // Check if Sentry is properly configured
-const sentryConfigured = process.env.SENTRY_DSN || process.env.NODE_ENV === 'production';
+const _sentryConfigured = process.env.SENTRY_DSN || process.env.NODE_ENV === 'production';
 
 // Initialize Sentry with performance and AI agent monitoring
 Sentry.init({

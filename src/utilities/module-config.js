@@ -4,7 +4,7 @@
  */
 
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, _join } from 'path';
 import { createRequire } from 'module';
 
 // ESM compatibility helpers

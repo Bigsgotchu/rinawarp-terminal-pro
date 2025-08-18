@@ -75,7 +75,7 @@ class RevenueSystemSetup {
 
     // Check test suite
     console.log('🧪 Running quick test suite...');
-    const { stdout } = await execAsync('npm run test:quick', { cwd: this.rootDir });
+    const { _stdout } = await execAsync('npm run test:quick', { cwd: this.rootDir });
     console.log('✅ All tests passing');
   }
 

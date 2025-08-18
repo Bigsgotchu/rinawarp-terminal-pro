@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Stripe = require('stripe');
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const _stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Middleware to verify subscription tokens
 const verifySubscription = (requiredTier = 'free') => {
@@ -59,7 +59,7 @@ const rateLimitByTier = (req, res, next) => {
   };
 
   // Implement rate limiting logic based on tier
-  const limit = limits[tier];
+  const _limit = limits[tier];
   // Add rate limiting implementation here
 
   next();

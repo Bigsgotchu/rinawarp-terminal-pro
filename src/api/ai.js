@@ -55,6 +55,16 @@ class AIProviderManager {
         this.providers.set('anthropic', anthropicProvider);
       } catch (error) {}
 
+      // Try to initialize Groq provider
+      try {
+        const groqProvider = AIProviderFactory.createProvider('groq');
+        await groqProvider.initialize();
+        this.providers.set('groq', groqProvider);
+        console.log('✅ Groq provider initialized successfully');
+      } catch (error) {
+        console.log('⚠️ Groq provider initialization failed:', error.message);
+      }
+
       this.initialized = true;
     } catch (error) {
       console.error('[AI] Provider initialization failed:', error);
@@ -142,7 +152,7 @@ const aiQuerySchema = Joi.object({
     systemInfo: Joi.object().optional(),
     sessionId: Joi.string().optional(),
   }).optional(),
-  provider: Joi.string().valid('local', 'openai', 'anthropic', 'auto').default('auto'),
+  provider: Joi.string().valid('local', 'openai', 'anthropic', 'groq', 'auto').default('auto'),
   personality: Joi.string()
     .valid('mermaid', 'professional', 'friendly', 'expert')
     .default('mermaid'),
@@ -155,7 +165,7 @@ const commandSchema = Joi.object({
 });
 
 const providerConfigSchema = Joi.object({
-  provider: Joi.string().valid('openai', 'anthropic', 'custom').required(),
+  provider: Joi.string().valid('openai', 'anthropic', 'groq', 'custom').required(),
   apiKey: Joi.string().when('provider', {
     is: Joi.string().valid('openai', 'anthropic'),
     then: Joi.string().required().min(10),

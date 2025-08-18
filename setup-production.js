@@ -133,7 +133,7 @@ async function main() {
   console.log('\n📝 Creating .env.production file...');
 
   const envContent = Object.entries(config)
-    .filter(([key, value]) => value && value.trim() !== '')
+    .filter(([_key, value]) => value && value.trim() !== '')
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
 

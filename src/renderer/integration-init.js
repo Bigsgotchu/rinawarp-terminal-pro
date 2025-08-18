@@ -222,8 +222,8 @@ class RinaWarpInitializer {
     logger.debug('✅ Hub Initialized:', status.hub.isInitialized);
 
     if (status.features && Object.keys(status.features).length > 0) {
-      for (const [name, featureStatus] of Object.entries(status.features)) {
-        const icon = featureStatus.isActive ? '🟢' : '🔴';
+      for (const [_name, featureStatus] of Object.entries(status.features)) {
+        const _icon = featureStatus.isActive ? '🟢' : '🔴';
       }
     }
 

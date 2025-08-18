@@ -183,6 +183,125 @@ class LocalAIProvider extends BaseAIProvider {
   }
 }
 
+// Groq Provider
+class GroqProvider extends BaseAIProvider {
+  constructor() {
+    super();
+    this.name = 'groq';
+    this.description = 'Groq-powered AI Assistant';
+    this.capabilities = [
+      'advanced_reasoning',
+      'code_generation',
+      'natural_language_processing',
+      'multilingual_support',
+      'creative_assistance',
+      'ultra_fast_responses',
+    ];
+    this.rateLimits = {
+      requestsPerMinute: 30,
+      requestsPerHour: 1800,
+      requestsPerDay: 14400,
+    };
+    this.client = null;
+    this.models = {
+      'llama3-70b-8192': 'Llama 3 70B (Current)',
+      'llama-3.1-70b-versatile': 'Llama 3.1 70B (Most Advanced)',
+      'mixtral-8x7b-32768': 'Mixtral 8x7B (Best for Code)',
+      'gemma2-9b-it': 'Gemma 2 9B (Fast & Smart)',
+    };
+    this.model = 'llama-3.1-70b-versatile'; // Upgrade to most advanced
+  }
+
+  async initialize() {
+    try {
+      // Check if Groq API key is set
+      const apiKey = process.env.GROQ_API_KEY;
+      if (!apiKey) {
+        throw new Error('Groq API key not set');
+      }
+
+      // Import Groq SDK
+      const { Groq } = await import('groq-sdk');
+      this.client = new Groq({ apiKey });
+
+      this.isInitialized = true;
+      this.lastError = null;
+      console.log('✅ Groq AI Provider initialized successfully');
+    } catch (error) {
+      this.lastError = error;
+      console.error('❌ Failed to initialize Groq AI Provider:', error.message);
+      throw error;
+    }
+  }
+
+  async generateResponse(query, context) {
+    if (!this.isInitialized || !this.client) {
+      throw new Error('Groq AI Provider not initialized');
+    }
+
+    try {
+      // Create system message with context
+      let systemMessage =
+        'You are an AI assistant named RinaWarp, designed to help with terminal commands, code, and technical questions.';
+
+      if (context?.workingDirectory) {
+        systemMessage += ` Current working directory: ${context.workingDirectory}.`;
+      }
+
+      if (context?.personality === 'mermaid') {
+        systemMessage +=
+          ' Respond with a fun, ocean-themed personality with mermaid references, but keep answers technical and accurate.';
+      }
+
+      // Send request to Groq
+      const completion = await this.client.chat.completions.create({
+        model: this.model,
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: query },
+        ],
+        temperature: 0.7,
+      });
+
+      const aiResponse = completion.choices[0].message.content;
+
+      // Format response similar to other providers
+      return {
+        explanation: aiResponse,
+        reasoning: 'Generated using Groq AI with ' + this.model,
+        alternatives: [],
+        educational_content: '',
+        expert_tips: [],
+        safety_analysis: {
+          risk_level: 'low',
+          warnings: [],
+          recommendations: [],
+        },
+        performance_insights: {
+          estimated_time: 'fast',
+          resource_usage: 'low',
+          optimizations: [],
+          bottlenecks: [],
+        },
+        best_practices: [],
+        personality_flavor:
+          context?.personality === 'mermaid'
+            ? '🧜‍♀️ Ocean wisdom flowing...'
+            : 'Technical expertise activated',
+        provider: this.name,
+        model: this.model,
+        timestamp: new Date().toISOString(),
+        confidence: 0.95,
+        processing_time: Date.now(),
+      };
+    } catch (error) {
+      this.lastError = error;
+      console.error('❌ Error generating response with Groq:', error.message);
+      throw error;
+    }
+  }
+}
+
 // OpenAI Provider (placeholder for future implementation)
 class OpenAIProvider extends BaseAIProvider {
   constructor() {
@@ -548,6 +667,8 @@ class AIProviderFactory {
         return new OpenAIProvider();
       case 'anthropic':
         return new AnthropicProvider();
+      case 'groq':
+        return new GroqProvider();
       case 'custom':
         return new CustomAIProvider();
       default:
@@ -599,6 +720,20 @@ class AIProviderFactory {
         ],
       },
       {
+        type: 'groq',
+        name: 'Groq AI',
+        description: 'Ultra-fast Groq-powered AI Assistant',
+        requiresApiKey: true,
+        capabilities: [
+          'advanced_reasoning',
+          'code_generation',
+          'natural_language_processing',
+          'multilingual_support',
+          'creative_assistance',
+          'ultra_fast_responses',
+        ],
+      },
+      {
         type: 'custom',
         name: 'Custom AI',
         description: 'User-configured AI Service',
@@ -614,6 +749,7 @@ export {
   LocalAIProvider,
   OpenAIProvider,
   AnthropicProvider,
+  GroqProvider,
   CustomAIProvider,
   AIProviderFactory,
 };

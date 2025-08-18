@@ -154,7 +154,7 @@ ${context.recentCommands ? `**Recent Commands:** ${context.recentCommands.slice(
 *🧜‍♀️ For advanced debugging with stack trace analysis, please enable full Enhanced AI mode!*`;
   }
 
-  generateProgramResponse(input, context) {
+  generateProgramResponse(input, _context) {
     const language = this.detectLanguage(input);
     return `⚡ **Program Generation (Fallback Mode)**
 
@@ -198,7 +198,7 @@ ${context.gitStatus ? `**Current Project:** Appears to be a ${context.gitStatus.
 *🧜‍♀️ For detailed architecture diagrams and specific recommendations, enable Enhanced AI mode!*`;
   }
 
-  generateExplanationResponse(input, context) {
+  generateExplanationResponse(input, _context) {
     return `📚 **Technical Explanation (Fallback Mode)**
 
 I'd provide a detailed explanation, but I'm in fallback mode. Here's a general overview:
@@ -301,7 +301,7 @@ WHERE condition = 'value';
     return templates[language] || templates.text;
   }
 
-  generateSuggestions(type, input) {
+  generateSuggestions(type, _input) {
     const suggestions = {
       code_analysis: [
         'Run static analysis tools',

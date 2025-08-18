@@ -28,7 +28,7 @@ async function generateHash() {
   }
 
   const saltRounds = 12; // High security
-  const hash = await bcrypt.hash(password, saltRounds);
+  const _hash = await bcrypt.hash(password, saltRounds);
 
   console.log('✅ Generated hash:');
 

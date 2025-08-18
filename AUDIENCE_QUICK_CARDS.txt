@@ -1,0 +1,66 @@
+========================================
+🎯 ENGAGED USERS - COPY TO GA4
+========================================
+Name: Engaged Users
+Description: Users who spent meaningful time on site
+Duration: 30 days
+Logic: AND
+
+Condition 1: Session duration > 30 seconds
+Condition 2: Page views per session >= 2
+
+========================================
+💎 HIGH INTENT USERS - COPY TO GA4  
+========================================
+Name: High Intent Users
+Description: Users who viewed key conversion pages
+Duration: 30 days
+Logic: OR
+
+Condition 1: Page path contains "pricing"
+Condition 2: Page path contains "download"  
+Condition 3: Page path contains "features"
+Condition 4: Page path contains "beta"
+
+========================================
+🔄 RETURNING VISITORS - COPY TO GA4
+========================================
+Name: Returning Visitors
+Description: Users who came back to the site
+Duration: 30 days
+Logic: AND
+
+Condition 1: Sessions >= 2
+Condition 2: First visit date > 1 day ago
+
+========================================
+📱 MOBILE USERS - COPY TO GA4
+========================================
+Name: Mobile Users
+Description: Users primarily on mobile devices
+Duration: 30 days
+Logic: Simple
+
+Condition 1: Device category equals "mobile"
+
+========================================
+🆕 NEW USERS - COPY TO GA4
+========================================
+Name: New Users
+Description: First-time visitors
+Duration: 7 days
+Logic: Simple
+
+Condition 1: Sessions equals 1
+
+========================================
+🔍 ORGANIC TRAFFIC - COPY TO GA4
+========================================
+Name: Organic Traffic
+Description: Users from search engines
+Duration: 30 days
+Logic: Simple
+
+Condition 1: Default channel grouping equals "Organic Search"
+
+========================================

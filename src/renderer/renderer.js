@@ -11,7 +11,7 @@ let aiAssistant = null;
 let terminalManager = null;
 
 // Lazy load AI Assistant
-async function getAIAssistant() {
+async function _getAIAssistant() {
   if (!aiAssistant) {
     perfMonitor.mark('aiLoadStart');
     const { AIAssistant } = await import('../ai-system/terminal-ai-assistant.js');
@@ -22,7 +22,7 @@ async function getAIAssistant() {
 }
 
 // Lazy load Terminal Manager
-async function getTerminalManager() {
+async function _getTerminalManager() {
   if (!terminalManager) {
     const { TerminalManager } = await import('./terminal-manager.js');
     terminalManager = new TerminalManager();
@@ -672,7 +672,7 @@ class CommandHistoryManager {
 }
 
 // Theme Manager
-class ThemeManager {
+class _ThemeManager {
   constructor() {
     this.currentTheme = 'mermaid'; // Set Mermaid as default
     this.themes = {

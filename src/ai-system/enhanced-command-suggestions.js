@@ -356,7 +356,7 @@ export class EnhancedCommandSuggestions {
    * Get command description
    */
   getCommandDescription(command) {
-    const [base, ...args] = command.split(' ');
+    const [base, ..._args] = command.split(' ');
 
     const descriptions = {
       git: 'Version control',
@@ -425,7 +425,7 @@ export class EnhancedCommandSuggestions {
     const mockFiles = [];
 
     // Simulate checking for project files
-    const possibleFiles = [
+    const _possibleFiles = [
       'package.json',
       'Dockerfile',
       'docker-compose.yml',

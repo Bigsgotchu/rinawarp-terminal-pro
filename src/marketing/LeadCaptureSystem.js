@@ -52,7 +52,7 @@ class LeadCaptureSystem {
    * Get lead by email
    */
   getLeadByEmail(email) {
-    for (const [id, lead] of this.leads.entries()) {
+    for (const [_id, lead] of this.leads.entries()) {
       if (lead.email === email) {
         return lead;
       }

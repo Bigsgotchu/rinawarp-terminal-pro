@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to RinaWarp Terminal!</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #00d4ff, #6366f1); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f8fafc; padding: 30px; }
+        .footer { background: #1a1a1b; color: #a0a0a0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background: #00d4ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+        .info-box { background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧜‍♀️ Welcome to RinaWarp Terminal!</h1>
+            <p>Thank you for your purchase, {{customerName}}!</p>
+        </div>
+        
+        <div class="content">
+            <h2>🎉 Purchase Confirmation</h2>
+            <p>Your purchase has been successfully processed. You now have access to the {{planName}} with all its amazing features!</p>
+            
+            <div class="info-box">
+                <h3>📄 License Details</h3>
+                <p><strong>License ID:</strong> {{licenseId}}</p>
+                <p><strong>Plan:</strong> {{planName}}</p>
+                <p><strong>Purchase Date:</strong> {{purchaseDate}}</p>
+                <p><strong>Valid Until:</strong> {{expiryDate}}</p>
+            </div>
+            
+            <h3>🚀 What's Next?</h3>
+            <ol>
+                <li><strong>Download RinaWarp Terminal</strong> for your platform</li>
+                <li><strong>Follow our setup guide</strong> to get started quickly</li>
+                <li><strong>Explore AI features</strong> and boost your productivity</li>
+            </ol>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{downloadLink}}" class="button">📥 Download Now</a>
+            </div>
+            
+            <h3>💡 Getting Started Tips</h3>
+            <ul>
+                <li>Try the <code>ai</code> command for instant coding help</li>
+                <li>Use <code>/</code> prefix for quick AI queries</li>
+                <li>Explore different themes in settings</li>
+                <li>Join our Discord community for tips and tricks</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>Need help? Email us at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            <p>&copy; 2025 RinaWarp Technologies. Made with 🧜‍♀️ by developers, for developers.</p>
+        </div>
+    </div>
+</body>
+</html>
+        

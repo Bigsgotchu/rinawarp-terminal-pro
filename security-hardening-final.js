@@ -17,7 +17,7 @@
  */
 
 import fs from 'fs';
-import path from 'path';
+import _path from 'path';
 
 console.log('🔒 RinaWarp Terminal Final Security Hardening');
 console.log('============================================');
@@ -59,7 +59,7 @@ app.post('/api/auth/generate-test-token',
 );`;
 
 // 2. Enhanced security headers middleware with HSTS
-const enhancedSecurityHeaders = `
+const _enhancedSecurityHeaders = `
 // Enhanced security headers with production-grade HSTS
 export function securityHeaders(req, res, next) {
   // Core security headers
@@ -96,7 +96,7 @@ export function securityHeaders(req, res, next) {
 }`;
 
 // 3. Stricter JWT validation middleware
-const strictJWTValidation = `
+const _strictJWTValidation = `
 // Stricter JWT validation with comprehensive checks
 export function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;

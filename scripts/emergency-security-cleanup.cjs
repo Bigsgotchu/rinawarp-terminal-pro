@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { _exec } = require('child_process');
 
 class EmergencySecurityCleanup {
   constructor() {

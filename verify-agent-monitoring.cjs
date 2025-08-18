@@ -105,12 +105,12 @@ class MockAdvancedAISystem {
     return provider.generateCompletion(prompt, options);
   }
 
-  async explainCommand(command, context = {}) {
+  async explainCommand(command, _context = {}) {
     const prompt = `Explain this command: ${command}`;
     return this.generateCompletion(prompt, { contextType: 'command_explanation' });
   }
 
-  async suggestCommand(description, context = {}) {
+  async suggestCommand(description, _context = {}) {
     const prompt = `Suggest commands for: ${description}`;
     return this.generateCompletion(prompt, { contextType: 'command_suggestion' });
   }
@@ -263,7 +263,7 @@ class AgentMonitoringVerifier {
     try {
       const task = 'Find all JavaScript files modified in the last 24 hours';
 
-      const result = await SentryOpenAIUtils.trackOpenAICall(
+      const _result = await SentryOpenAIUtils.trackOpenAICall(
         'gpt-4',
         'command.suggestion',
         {
@@ -379,7 +379,7 @@ class AgentMonitoringVerifier {
         this.aiSystem.setActiveProvider(provider);
         const prompt = `Test prompt for ${provider} provider`;
 
-        const result = await SentryOpenAIUtils.trackOpenAICall(
+        const _result = await SentryOpenAIUtils.trackOpenAICall(
           provider === 'anthropic' ? 'claude-3-sonnet' : 'gpt-4',
           'provider.test',
           { messages: [{ role: 'user', content: prompt }] },
@@ -505,7 +505,7 @@ class AgentMonitoringVerifier {
     console.log('\n🎯 Testing AI Performance Monitoring...');
 
     try {
-      const performanceTest = await SentryOpenAIUtils.measurePerformance(
+      const _performanceTest = await SentryOpenAIUtils.measurePerformance(
         'ai_agent_response_time',
         async () => {
           return await this.aiSystem.generateCompletion(

@@ -7,7 +7,7 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 const readline = require('readline');
 
 const colors = {
@@ -91,7 +91,7 @@ async function main() {
     try {
       execSync('npm test', { stdio: 'inherit' });
       success('All tests passed');
-    } catch (testErr) {
+    } catch (_testErr) {
       warn('Tests failed, but continuing with release (you may want to fix these)');
     }
 
@@ -100,7 +100,7 @@ async function main() {
     try {
       execSync('npm run build', { stdio: 'inherit' });
       success('Build completed successfully');
-    } catch (buildErr) {
+    } catch (_buildErr) {
       error('Build failed');
       process.exit(1);
     }
@@ -233,7 +233,7 @@ async function createGitHubRelease(version, releaseInfo, commitMessage) {
       `gh release create v${version} ${prerelease} --title "🧜‍♀️ RinaWarp Terminal v${version}" --notes "${releaseNotes}"`
     );
     success('GitHub release created');
-  } catch (releaseErr) {
+  } catch (_releaseErr) {
     warn('GitHub CLI not available or failed to create release');
     log(
       'You can manually create a release at: https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/new'

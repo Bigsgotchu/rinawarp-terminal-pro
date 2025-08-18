@@ -81,7 +81,7 @@ class AuthManager {
   async updateSubscription(userId, tier, subscriptionId) {
     try {
       // Find user and update subscription
-      for (const [email, user] of this.users.entries()) {
+      for (const [_email, user] of this.users.entries()) {
         if (user.id === userId) {
           user.tier = tier;
           user.subscriptionId = subscriptionId;

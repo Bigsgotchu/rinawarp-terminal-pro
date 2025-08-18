@@ -63,7 +63,7 @@ export class EnhancedAIIntegration {
         // Use existing AI systems as fallback if available
         if (window.rinaAI || window.processAICommand) {
           this.basicRina = {
-            processMessage: input => {
+            processMessage: _input => {
               // Delegate to existing AI system
               if (window.processAICommand) {
                 return Promise.resolve({ response: '🧜‍♀️ Processed via existing Rina AI' });
