@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTM Test - RinaWarp Terminal</title>
+    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5LDNPV8Z');</script>
+    <!-- End Google Tag Manager -->
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5LDNPV8Z"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
+    <div class="container">
+        <h1>🧜‍♀️ RinaWarp Terminal - Google Tag Manager Test</h1>
+        
+        <div class="test-section">
+            <h2>📊 GTM Container Status</h2>
+            <div id="gtm-status" class="status warning">Checking GTM container...</div>
+            <div id="datalayer-status" class="status warning">Checking dataLayer...</div>
+            <div id="gtag-status" class="status warning">Checking gtag function...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 Test Event Tracking</h2>
+            <p>Click these buttons to test event tracking:</p>
+            <button onclick="testPageView()">Test Page View</button>
+            <button onclick="testCustomEvent()">Test Custom Event</button>
+            <button onclick="testEcommerce()">Test Ecommerce Event</button>
+            
+            <div id="event-log"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔍 Debug Information</h2>
+            <button onclick="showDebugInfo()">Show Debug Info</button>
+            <div id="debug-info"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📋 dataLayer Contents</h2>
+            <button onclick="showDataLayer()">Show dataLayer</button>
+            <pre id="datalayer-content"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Test functions
+        let eventCount = 0;
+        
+        function checkGTMStatus() {
+            const gtmStatus = document.getElementById('gtm-status');
+            const dataLayerStatus = document.getElementById('datalayer-status');
+            const gtagStatus = document.getElementById('gtag-status');
+            
+            // Check if GTM script loaded
+            const gtmScript = document.querySelector('script[src*="googletagmanager.com/gtm.js"]');
+            if (gtmScript) {
+                gtmStatus.className = 'status success';
+                gtmStatus.textContent = '✅ GTM script found and loaded';
+            } else {
+                gtmStatus.className = 'status error';
+                gtmStatus.textContent = '❌ GTM script not found';
+            }
+            
+            // Check dataLayer
+            if (window.dataLayer && Array.isArray(window.dataLayer)) {
+                dataLayerStatus.className = 'status success';
+                dataLayerStatus.textContent = `✅ dataLayer initialized with ${window.dataLayer.length} items`;
+            } else {
+                dataLayerStatus.className = 'status error';
+                dataLayerStatus.textContent = '❌ dataLayer not found or not array';
+            }
+            
+            // Check gtag function
+            if (typeof window.gtag === 'function') {
+                gtagStatus.className = 'status success';
+                gtagStatus.textContent = '✅ gtag function available';
+            } else {
+                gtagStatus.className = 'status warning';
+                gtagStatus.textContent = '⚠️ gtag function not available (may be normal with GTM)';
+            }
+        }
+        
+        function testPageView() {
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: 'page_view',
+                    page_title: 'GTM Test Page',
+                    page_location: window.location.href,
+                    test_id: ++eventCount
+                });
+                logEvent('page_view', 'Page view event sent');
+            }
+        }
+        
+        function testCustomEvent() {
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: 'custom_test_event',
+                    event_category: 'test',
+                    event_label: 'GTM Test Button',
+                    custom_parameter: 'test_value_' + eventCount,
+                    test_id: ++eventCount
+                });
+                logEvent('custom_test_event', 'Custom test event sent');
+            }
+        }
+        
+        function testEcommerce() {
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: 'begin_checkout',
+                    ecommerce: {
+                        currency: 'USD',
+                        value: 29.00,
+                        items: [{
+                            item_id: 'rinawarp_test',
+                            item_name: 'Test Plan',
+                            item_category: 'subscription',
+                            price: 29.00,
+                            quantity: 1
+                        }]
+                    },
+                    test_id: ++eventCount
+                });
+                logEvent('begin_checkout', 'Ecommerce event sent');
+            }
+        }
+        
+        function logEvent(eventName, message) {
+            const log = document.getElementById('event-log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `<div class="status success">[${timestamp}] ${message} (${eventName})</div>`;
+        }
+        
+        function showDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+            const info = {
+                'User Agent': navigator.userAgent,
+                'Current URL': window.location.href,
+                'Referrer': document.referrer || 'Direct',
+                'Viewport': `${window.innerWidth}x${window.innerHeight}`,
+                'GTM Container': 'GTM-5LDNPV8Z',
+                'dataLayer exists': !!window.dataLayer,
+                'gtag exists': typeof window.gtag === 'function',
+                'dataLayer length': window.dataLayer ? window.dataLayer.length : 'N/A'
+            };
+            
+            let html = '<pre>';
+            for (const [key, value] of Object.entries(info)) {
+                html += `${key}: ${value}\n`;
+            }
+            html += '</pre>';
+            debugDiv.innerHTML = html;
+        }
+        
+        function showDataLayer() {
+            const contentDiv = document.getElementById('datalayer-content');
+            if (window.dataLayer) {
+                contentDiv.textContent = JSON.stringify(window.dataLayer, null, 2);
+            } else {
+                contentDiv.textContent = 'dataLayer not available';
+            }
+        }
+        
+        // Initialize checks when page loads
+        window.addEventListener('load', function() {
+            setTimeout(checkGTMStatus, 1000); // Wait a bit for GTM to load
+        });
+        
+        // Also check immediately
+        setTimeout(checkGTMStatus, 100);
+        
+        console.log('🧜‍♀️ GTM Test page loaded. Container ID: GTM-5LDNPV8Z');
+        console.log('dataLayer:', window.dataLayer);
+        console.log('gtag function:', typeof window.gtag);
+    </script>
+</body>
+</html>
