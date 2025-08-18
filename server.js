@@ -130,8 +130,9 @@ import downloadRouter from './src/api/download.js';
 import authRouter from './src/api/auth.js';
 import securityRouter from './src/api/security.js';
 import marketingRouter from './src/api/marketing.js';
-import analyticsRouter from './src/api/analytics.js';
 import supportRouter from './src/api/support.js';
+import analyticsRouter from './src/api/analytics.js';
+import analyticsEndpointRouter from './src/routes/analytics-endpoint.js';
 import ThreatDetector from './src/security/ThreatDetector.js';
 import AgentChatAPI from './src/api/agent-chat.js';
 import { getSecretsManager } from './src/security/SecretsManager.js';
@@ -526,6 +527,7 @@ app.use('/api/auth', productionAuthRouter); // Add new production auth routes
 app.use('/api/security', securityRouter);
 app.use('/api/marketing', marketingRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/analytics', analyticsEndpointRouter);
 app.use('/api/support', supportRouter);
 app.use('/api/admin', requireAdmin, adminRouter);
 app.use('/api/ai', aiRouter);
