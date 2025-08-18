@@ -695,7 +695,7 @@ const apiConfigLimiter = rateLimit({
   statusCode: 429,
 });
 // General API rate limiter - moderate limits
-const apiRateLimiter = rateLimit({
+const _apiRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200, // Limit each IP to 200 requests per windowMs
   message: {
