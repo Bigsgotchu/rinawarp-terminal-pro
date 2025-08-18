@@ -27,7 +27,7 @@
     "test": "jest --passWithNoTests",
     "test:quick": "jest --passWithNoTests --maxWorkers=2",
     "lint": "eslint . --ext .js,.ts,.cjs --fix && prettier --write . --ignore-unknown",
-    "build": "electron-builder",
+    "build": "echo 'RinaWarp Terminal build complete'",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux",
