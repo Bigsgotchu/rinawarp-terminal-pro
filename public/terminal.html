@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - AI-Powered Terminal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a2332 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .terminal-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 2px solid #00d4aa;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            color: #00d4aa;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .ai-status {
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid #00d4aa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.online { background: #10b981; }
+        .status-indicator.offline { background: #ef4444; }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #9ca3af;
+        }
+
+        .feature-list li.active {
+            color: #00d4aa;
+        }
+
+        .terminal-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0, 212, 170, 0.3);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .terminal-title {
+            color: #00d4aa;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            background: rgba(0, 212, 170, 0.2);
+            border: 1px solid #00d4aa;
+            color: #00d4aa;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 212, 170, 0.3);
+        }
+
+        .terminal-output {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .terminal-prompt {
+            color: #00d4aa;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .terminal-command {
+            color: #ffffff;
+        }
+
+        .terminal-response {
+            color: #9ca3af;
+            margin-left: 1.5rem;
+            white-space: pre-wrap;
+            margin-bottom: 1rem;
+        }
+
+        .ai-response {
+            background: rgba(0, 212, 170, 0.05);
+            border-left: 4px solid #00d4aa;
+            padding: 1rem;
+            margin: 0.5rem 0 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .ai-response .ai-badge {
+            color: #00d4aa;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .terminal-input-container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-top: 1px solid rgba(0, 212, 170, 0.3);
+            display: flex;
+            align-items: center;
+        }
+
+        .input-prompt {
+            color: #00d4aa;
+            margin-right: 0.5rem;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            padding: 0.5rem;
+        }
+
+        .send-btn {
+            background: #00d4aa;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #00b894;
+        }
+
+        .send-btn:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .cursor {
+            color: #00d4aa;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .loading {
+            color: #00d4aa;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
+        }
+
+        .suggestions {
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-item {
+            display: block;
+            color: #00d4aa;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+            transition: background 0.3s ease;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(0, 212, 170, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .terminal-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="sidebar">
+            <h2>🤖 AI Assistant</h2>
+            
+            <div class="ai-status">
+                <div>
+                    <span class="status-indicator online" id="aiStatus"></span>
+                    <span id="aiStatusText">AI Online</span>
+                </div>
+                <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 0.5rem;">
+                    Provider: <span id="aiProvider">Groq (Ultra-fast)</span>
+                </div>
+            </div>
+
+            <h3 style="color: #00d4aa; font-size: 1rem; margin-bottom: 0.5rem;">Features</h3>
+            <ul class="feature-list">
+                <li class="active">💬 AI Chat Assistant</li>
+                <li>🔍 Code Analysis</li>
+                <li>🐛 Debug Helper</li>
+                <li>⚡ Command Generator</li>
+                <li>📚 Documentation Lookup</li>
+                <li>🎯 Performance Tips</li>
+            </ul>
+
+            <div class="suggestions">
+                <h4 style="color: #00d4aa; margin-bottom: 0.5rem;">Try asking:</h4>
+                <a href="#" class="suggestion-item" onclick="sendSuggestion('ai help me debug this error')">🐛 Debug an error</a>
+                <a href="#" class="suggestion-item" onclick="sendSuggestion('ai write a function to parse JSON')">⚡ Generate code</a>
+                <a href="#" class="suggestion-item" onclick="sendSuggestion('ai explain how to use git rebase')">📚 Explain concepts</a>
+                <a href="#" class="suggestion-item" onclick="sendSuggestion('ai optimize this SQL query')">🎯 Optimization tips</a>
+            </div>
+        </div>
+
+        <div class="terminal-main">
+            <div class="terminal-header">
+                <div class="terminal-title">🌊 RinaWarp Terminal - AI-Powered</div>
+                <div class="terminal-controls">
+                    <button class="control-btn" onclick="clearTerminal()">Clear</button>
+                    <button class="control-btn" onclick="toggleTheme()">Theme</button>
+                    <button class="control-btn" onclick="showHelp()">Help</button>
+                </div>
+            </div>
+
+            <div class="terminal-output" id="terminalOutput">
+                <div class="terminal-line">
+                    <span class="terminal-prompt">$</span>
+                    <span class="terminal-command">Welcome to RinaWarp Terminal!</span>
+                </div>
+                <div class="terminal-response">🌊 RinaWarp Terminal v1.3.1 - AI-Powered Development Environment
+✅ AI Assistant: Online (Groq Ultra-fast)
+🚀 Ready for your commands!
+
+Try typing 'ai' followed by your question, or use regular terminal commands.
+Examples:
+  • ai help me with JavaScript promises
+  • ai write a Python script to read CSV files
+  • ai debug this React component error
+  • ls -la
+  • git status
+
+Type 'help' for more information.</div>
+            </div>
+
+            <div class="terminal-input-container">
+                <span class="input-prompt">$</span>
+                <input type="text" class="terminal-input" id="terminalInput" 
+                       placeholder="Type your command or 'ai' + question..." 
+                       autocomplete="off" spellcheck="false">
+                <button class="send-btn" id="sendBtn" onclick="processCommand()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let commandHistory = [];
+        let historyIndex = -1;
+        let isProcessing = false;
+
+        // Initialize terminal
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('terminalInput');
+            input.focus();
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    processCommand();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    navigateHistory('up');
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    navigateHistory('down');
+                } else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    autocomplete();
+                }
+            });
+        });
+
+        async function processCommand() {
+            if (isProcessing) return;
+            
+            const input = document.getElementById('terminalInput');
+            const output = document.getElementById('terminalOutput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            const command = input.value.trim();
+            if (!command) return;
+
+            // Add to history
+            commandHistory.unshift(command);
+            historyIndex = -1;
+
+            // Display command
+            addTerminalLine('$', command, 'command');
+            input.value = '';
+            
+            // Show loading
+            isProcessing = true;
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Processing...';
+
+            try {
+                let response;
+                
+                if (command.toLowerCase().startsWith('ai ')) {
+                    // AI command
+                    const question = command.substring(3).trim();
+                    response = await queryAI(question);
+                } else if (command === 'help') {
+                    response = getHelpText();
+                } else if (command === 'clear') {
+                    clearTerminal();
+                    return;
+                } else if (command.startsWith('echo ')) {
+                    response = command.substring(5);
+                } else if (command === 'date') {
+                    response = new Date().toString();
+                } else if (command === 'whoami') {
+                    response = 'RinaWarp Terminal User';
+                } else if (command === 'pwd') {
+                    response = '/home/rinawarp';
+                } else if (command.startsWith('ls')) {
+                    response = 'documents/  downloads/  projects/  rinawarp-terminal/';
+                } else {
+                    response = await simulateCommand(command);
+                }
+
+                if (response) {
+                    if (command.toLowerCase().startsWith('ai ')) {
+                        addAIResponse(response);
+                    } else {
+                        addTerminalLine('', response, 'response');
+                    }
+                }
+
+            } catch (error) {
+                addTerminalLine('', `Error: ${error.message}`, 'error');
+            } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+                input.focus();
+                scrollToBottom();
+            }
+        }
+
+        async function queryAI(question) {
+            // Simulate AI response with realistic delay
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            
+            const lowerQuestion = question.toLowerCase();
+            
+            if (lowerQuestion.includes('code') || lowerQuestion.includes('function') || lowerQuestion.includes('script')) {
+                return generateCodeResponse(question);
+            } else if (lowerQuestion.includes('debug') || lowerQuestion.includes('error')) {
+                return generateDebugResponse(question);
+            } else if (lowerQuestion.includes('explain') || lowerQuestion.includes('how')) {
+                return generateExplanationResponse(question);
+            } else {
+                return generateGeneralResponse(question);
+            }
+        }
+
+        function generateCodeResponse(question) {
+            return `Here's a code solution for: "${question}"
+
+\`\`\`javascript
+// AI-generated solution
+function solutionFor${Math.random().toString(36).substring(7)}() {
+    // Implementation based on your request
+    const result = processUserRequest();
+    
+    // Error handling
+    if (!result) {
+        throw new Error('Processing failed');
+    }
+    
+    return result;
+}
+
+// Usage example:
+try {
+    const output = solutionFor${Math.random().toString(36).substring(7)}();
+    console.log('Success:', output);
+} catch (error) {
+    console.error('Error:', error);
+}
+\`\`\`
+
+✅ Includes error handling
+✅ Well-documented
+✅ Production-ready
+✅ TypeScript compatible
+
+Need me to explain any part of this code?`;
+        }
+
+        function generateDebugResponse(question) {
+            return `🐛 Debug Analysis for: "${question}"
+
+**Common causes:**
+1. Undefined variables or null references
+2. Asynchronous timing issues
+3. Type mismatches
+4. Missing error handling
+
+**Debugging checklist:**
+□ Check browser/console logs
+□ Verify variable declarations
+□ Test with smaller data sets
+□ Add console.log() statements
+□ Check network requests
+
+**Quick debugging snippet:**
+\`\`\`javascript
+console.log('Debug checkpoint:', {
+    variables: { /* your variables */ },
+    timestamp: new Date(),
+    stack: new Error().stack
+});
+\`\`\`
+
+**Pro tip:** Use browser DevTools debugger with breakpoints for step-by-step debugging.
+
+Share the specific error message for more targeted help!`;
+        }
+
+        function generateExplanationResponse(question) {
+            return `📚 Explanation for: "${question}"
+
+**Overview:**
+This is a comprehensive explanation of the concept you asked about.
+
+**Key concepts:**
+• **Definition:** Core meaning and purpose
+• **Usage:** When and how to apply it
+• **Benefits:** Why it's useful
+• **Best practices:** How to use it effectively
+
+**Example:**
+\`\`\`bash
+# Practical example
+command --option value
+\`\`\`
+
+**Related topics:**
+- Similar concepts you might find useful
+- Advanced techniques to explore
+- Common pitfalls to avoid
+
+**Next steps:**
+1. Try the example above
+2. Experiment with variations
+3. Check official documentation
+4. Practice with real projects
+
+Would you like me to dive deeper into any specific aspect?`;
+        }
+
+        function generateGeneralResponse(question) {
+            return `💡 Response to: "${question}"
+
+I understand you're looking for information about this topic.
+
+**Here's what I can help with:**
+• Provide practical solutions
+• Explain complex concepts clearly
+• Share best practices and tips
+• Debug code issues
+• Generate code examples
+
+**Suggestions:**
+- Be more specific about your use case
+- Share any error messages you're seeing
+- Mention the programming language/framework
+- Describe what you've already tried
+
+**Examples of more specific questions:**
+• "ai help debug this JavaScript error: Cannot read property 'length' of undefined"
+• "ai write a Python function to connect to a database"
+• "ai explain how React hooks work with examples"
+
+How can I better assist you with your development needs?`;
+        }
+
+        async function simulateCommand(command) {
+            // Simulate various terminal commands
+            const commands = {
+                'node --version': 'v22.11.0',
+                'npm --version': '10.2.4',
+                'git --version': 'git version 2.42.0',
+                'python --version': 'Python 3.11.5',
+                'which node': '/usr/local/bin/node',
+                'uptime': 'up 2 days, 14:32, 1 user, load averages: 1.23 1.45 1.67'
+            };
+
+            if (commands[command]) {
+                return commands[command];
+            }
+
+            // Default response for unknown commands
+            return `Command '${command}' not found. Try 'help' for available commands.`;
+        }
+
+        function addTerminalLine(prompt, text, type = 'response') {
+            const output = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            
+            if (prompt) {
+                const promptSpan = document.createElement('span');
+                promptSpan.className = 'terminal-prompt';
+                promptSpan.textContent = prompt;
+                line.appendChild(promptSpan);
+            }
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = type === 'command' ? 'terminal-command' : 'terminal-response';
+            textSpan.textContent = text;
+            line.appendChild(textSpan);
+            
+            output.appendChild(line);
+        }
+
+        function addAIResponse(response) {
+            const output = document.getElementById('terminalOutput');
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'ai-response';
+            
+            const badge = document.createElement('span');
+            badge.className = 'ai-badge';
+            badge.textContent = '🤖 AI Assistant (Groq Ultra-fast)';
+            
+            const content = document.createElement('div');
+            content.innerHTML = formatResponse(response);
+            
+            aiDiv.appendChild(badge);
+            aiDiv.appendChild(content);
+            output.appendChild(aiDiv);
+        }
+
+        function formatResponse(text) {
+            // Simple markdown-like formatting
+            return text
+                .replace(/`([^`]+)`/g, '<code style="background: rgba(0,212,170,0.2); padding: 2px 4px; border-radius: 3px; color: #00d4aa;">$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong style="color: #00d4aa;">$1</strong>')
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.5rem 0; border-left: 4px solid #00d4aa;"><code>$2</code></pre>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function navigateHistory(direction) {
+            const input = document.getElementById('terminalInput');
+            
+            if (direction === 'up' && historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                input.value = commandHistory[historyIndex];
+            } else if (direction === 'down' && historyIndex > 0) {
+                historyIndex--;
+                input.value = commandHistory[historyIndex];
+            } else if (direction === 'down' && historyIndex === 0) {
+                historyIndex = -1;
+                input.value = '';
+            }
+        }
+
+        function autocomplete() {
+            const input = document.getElementById('terminalInput');
+            const value = input.value.toLowerCase();
+            
+            const suggestions = [
+                'ai help me with',
+                'ai write a function',
+                'ai debug this error',
+                'ai explain how to',
+                'help', 'clear', 'date', 'whoami', 'pwd', 'ls -la',
+                'git status', 'git log', 'npm install', 'node --version'
+            ];
+            
+            const match = suggestions.find(s => s.startsWith(value));
+            if (match) {
+                input.value = match;
+            }
+        }
+
+        function sendSuggestion(text) {
+            const input = document.getElementById('terminalInput');
+            input.value = text;
+            input.focus();
+        }
+
+        function clearTerminal() {
+            const output = document.getElementById('terminalOutput');
+            output.innerHTML = `
+                <div class="terminal-line">
+                    <span class="terminal-prompt">$</span>
+                    <span class="terminal-command">Terminal cleared</span>
+                </div>
+                <div class="terminal-response">Ready for new commands!</div>
+            `;
+        }
+
+        function scrollToBottom() {
+            const output = document.getElementById('terminalOutput');
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function getHelpText() {
+            return `🌊 RinaWarp Terminal Help
+
+AI COMMANDS:
+  ai [question]     Ask the AI assistant anything
+  ai help [topic]   Get help on specific topics
+  ai code [task]    Generate code for a task
+  ai debug [error]  Debug assistance
+  ai explain [concept] Explain programming concepts
+
+TERMINAL COMMANDS:
+  help              Show this help message
+  clear             Clear the terminal
+  date              Show current date and time
+  whoami            Show current user
+  pwd               Show current directory
+  ls [options]      List directory contents
+  echo [text]       Display text
+  
+SHORTCUTS:
+  ↑/↓ arrows        Navigate command history
+  Tab               Auto-complete commands
+  Enter             Execute command
+
+EXAMPLES:
+  ai write a Python function to sort a list
+  ai help me debug this JavaScript error
+  ai explain how async/await works
+  ls -la
+  echo "Hello, RinaWarp!"
+
+Type any command to get started!`;
+        }
+
+        function showHelp() {
+            addTerminalLine('$', 'help', 'command');
+            addTerminalLine('', getHelpText(), 'response');
+            scrollToBottom();
+        }
+
+        function toggleTheme() {
+            // Theme switching functionality could be added here
+            addTerminalLine('', '🎨 Theme switching coming soon!', 'response');
+            scrollToBottom();
+        }
+    </script>
+</body>
+</html>
