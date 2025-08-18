@@ -10,6 +10,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
+import { performanceMonitor } from './monitoring/performance-monitor.js';
 
 // Load environment variables
 config();
@@ -54,6 +55,10 @@ const limiter = rateLimit({
   max: 100 // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
+
+// Start performance monitoring
+performanceMonitor.start();
+app.use(performanceMonitor.trackRequest());
 
 // Health check endpoints
 app.get('/health', (req, res) => {
@@ -115,6 +120,20 @@ app.get('/api/analytics/dashboard-data', (req, res) => {
     message: 'Analytics dashboard endpoint working',
     timestamp: new Date().toISOString()
   });
+});
+
+// Performance monitoring endpoints
+app.get('/api/monitoring/metrics', (req, res) => {
+  res.json(performanceMonitor.getMetrics());
+});
+
+app.get('/api/monitoring/analytics', (req, res) => {
+  res.json(performanceMonitor.getAnalytics());
+});
+
+app.get('/api/monitoring/health', (req, res) => {
+  const health = performanceMonitor.getHealthStatus();
+  res.status(health.status === 'critical' ? 503 : 200).json(health);
 });
 
 // Static file serving
