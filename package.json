@@ -20,9 +20,9 @@
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "start": "NODE_OPTIONS=\"--import ./instrument.mjs\" node server.js",
-    "server": "NODE_OPTIONS=\"--import ./instrument.mjs\" node server.js",
-    "prestart": "node scripts/macos-electron-optimize.js 2>/dev/null || true",
+    "start": "node server.js",
+    "server": "node server.js",
+    "prestart": "echo 'Starting RinaWarp Terminal'",
     "dev": "NODE_ENV=development node server.js",
     "test": "jest --passWithNoTests",
     "test:quick": "jest --passWithNoTests --maxWorkers=2",
