@@ -17,7 +17,6 @@ config({ path: '.env.monitoring' });
 config({ path: '.env.local' });
 config({ path: '.env' });
 
-
 const checks = {
   sentry: {
     name: 'Sentry',
@@ -50,10 +49,8 @@ let allGood = true;
 
 // Check each service
 Object.entries(checks).forEach(([_service, config]) => {
-
   if (config.secrets) {
-    config.secrets.forEach(secret => {
-    });
+    config.secrets.forEach(secret => {});
     return;
   }
 
@@ -100,8 +97,7 @@ fetch('http://localhost:8081/health')
     } else {
     }
   })
-  .catch(() => {
-  });
+  .catch(() => {});
 
 // Summary
 if (allGood) {
