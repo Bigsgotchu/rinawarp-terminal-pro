@@ -1,8 +1,0 @@
-#!/bin/bash
-# Audio Denoiser Wrapper Script
-
-# Get the directory where the script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-# Run the Python denoiser script
-python3 "$SCRIPT_DIR/denoise_audio.py" "$@"
