@@ -16,7 +16,8 @@
   'use strict';
 
   const CONFIG = {
-    GA4_MEASUREMENT_ID: 'G-G424CV5GGT',
+    GTM_CONTAINER_ID: 'GTM-5LDNPV8Z',
+    // GA4_MEASUREMENT_ID: 'G-SZK23HMCVP', // Now managed through GTM
     DEBUG: window.location.hostname === 'localhost' || window.location.search.includes('debug=true'),
     RETRY_ATTEMPTS: 3,
     RETRY_DELAY: 2000
@@ -39,20 +40,17 @@
       try {
         this.retryCount++;
         
-        // Load gtag script
-        await this.loadGtagScript();
+        // GTM will handle GA4 initialization, so we just wait for dataLayer to be available
+        await this.waitForGTM();
         
-        // Configure GA4
-        this.configureGA4();
-        
-        // Set up tracking
+        // Set up tracking (GTM handles GA4 configuration)
         this.setupEventListeners();
         this.setupStripeIntegration();
         
         this.initialized = true;
         this.flushEventQueue();
         
-        this.log('✅ Unified Analytics initialized successfully');
+        this.log('✅ Unified Analytics initialized successfully (with GTM)');
         
       } catch (error) {
         this.log('❌ Analytics initialization failed:', error);
@@ -65,33 +63,25 @@
       }
     }
 
-    loadGtagScript() {
+    waitForGTM() {
       return new Promise((resolve, reject) => {
-        // Check if gtag already exists
-        if (window.gtag) {
-          resolve();
-          return;
-        }
-
-        // Initialize dataLayer
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = function() { window.dataLayer.push(arguments); };
-        
-        // Create script element
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${CONFIG.GA4_MEASUREMENT_ID}`;
-        
-        script.onload = () => {
-          gtag('js', new Date());
-          resolve();
-        };
-        
-        script.onerror = reject;
-        document.head.appendChild(script);
+        let attempts = 0;
+        const maxAttempts = 10;
+        const interval = setInterval(() => {
+          if (window.dataLayer && Array.isArray(window.dataLayer) && window.dataLayer.filter(item => item.event === 'gtm.js').length > 0) {
+            clearInterval(interval);
+            resolve();
+          } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            reject(new Error('GTM did not load in time'));
+          }
+          attempts++;
+        }, 500);
       });
     }
 
+    // Deprecate direct GA4 configuration
+    /*
     configureGA4() {
       gtag('config', CONFIG.GA4_MEASUREMENT_ID, {
         // Privacy-first configuration
@@ -121,6 +111,7 @@
 
       this.log('🎯 GA4 configured with ID:', CONFIG.GA4_MEASUREMENT_ID);
     }
+    */
 
     setupEventListeners() {
       // Track page interactions
