@@ -48,8 +48,8 @@ describe('RinaWarpSDK', () => {
       expect(sdk.config.retries).toBe(mockConfig.retries);
     });
 
-    it('should throw new Error(error if no API key provided', () => {
-      expect(() => new RinaWarpSDK({})).toThrow('API key is required'));
+    it('should throw error if no API key provided', () => {
+      expect(() => new RinaWarpSDK({})).toThrow('API key is required');
     });
 
     it('should use default values for optional config', () => {

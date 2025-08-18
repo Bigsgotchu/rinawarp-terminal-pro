@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Development Consulting - RinaWarp Tech</title>
+    <meta name="description" content="Expert AI development consulting services. Custom AI integrations, development workflow optimization, and team training. $200-400/hour with proven results.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a1a2e 0%, #16213e 25%, #0f3460 50%, #e73c7e 75%, #ff6b9d 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 100px 0;
+        }
+        
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #4dd0e1, #ff6b9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.4em;
+            color: #80deea;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .hero p {
+            font-size: 1.2em;
+            color: #b2dfdb;
+            max-width: 800px;
+            margin: 0 auto 40px auto;
+            line-height: 1.7;
+        }
+        
+        .cta-button {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5);
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin: 80px 0;
+        }
+        
+        .service-card {
+            background: rgba(10, 26, 46, 0.6);
+            border-radius: 20px;
+            padding: 40px;
+            border: 2px solid rgba(77, 214, 225, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(77, 214, 225, 0.5);
+        }
+        
+        .service-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        
+        .service-title {
+            font-size: 1.8em;
+            color: #4dd0e1;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .service-price {
+            font-size: 1.5em;
+            color: #ff6b9d;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .service-description {
+            color: #b2dfdb;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .service-features {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        
+        .service-features li {
+            color: #b2dfdb;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .service-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .testimonials {
+            background: rgba(10, 26, 46, 0.6);
+            border-radius: 20px;
+            padding: 60px;
+            margin: 80px 0;
+            text-align: center;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+        }
+        
+        .testimonials h2 {
+            font-size: 2.5em;
+            color: #4dd0e1;
+            margin-bottom: 40px;
+        }
+        
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        
+        .testimonial {
+            background: rgba(77, 214, 225, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(77, 214, 225, 0.2);
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            color: #b2dfdb;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .testimonial-author {
+            color: #4dd0e1;
+            font-weight: 600;
+        }
+        
+        .testimonial-result {
+            color: #00ff88;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .process {
+            margin: 80px 0;
+        }
+        
+        .process h2 {
+            text-align: center;
+            font-size: 2.5em;
+            color: #4dd0e1;
+            margin-bottom: 40px;
+        }
+        
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .process-step {
+            background: rgba(231, 60, 126, 0.1);
+            border: 2px solid rgba(231, 60, 126, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .step-number {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0 auto 20px auto;
+        }
+        
+        .step-title {
+            color: #ff6b9d;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .step-description {
+            color: #b2dfdb;
+            line-height: 1.6;
+        }
+        
+        .cta-section {
+            background: rgba(10, 26, 46, 0.6);
+            border-radius: 20px;
+            padding: 60px;
+            margin: 80px 0;
+            text-align: center;
+            border: 3px solid rgba(77, 214, 225, 0.3);
+        }
+        
+        .cta-section h2 {
+            font-size: 2.5em;
+            color: #4dd0e1;
+            margin-bottom: 20px;
+        }
+        
+        .cta-section p {
+            font-size: 1.2em;
+            color: #b2dfdb;
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .urgency-box {
+            background: rgba(255, 107, 157, 0.1);
+            border: 2px solid rgba(255, 107, 157, 0.4);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .urgency-box h3 {
+            color: #ff6b9d;
+            margin-bottom: 15px;
+        }
+        
+        .contact-form {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 40px;
+            background: rgba(77, 214, 225, 0.1);
+            border-radius: 20px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #4dd0e1;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(77, 214, 225, 0.3);
+            border-radius: 10px;
+            background: rgba(10, 26, 46, 0.6);
+            color: #ffffff;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4dd0e1;
+        }
+        
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5em; }
+            .services-grid { grid-template-columns: 1fr; }
+            .testimonial-grid { grid-template-columns: 1fr; }
+            .process-steps { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🚀 AI Development Consulting</h1>
+            <div class="hero-subtitle">Expert AI Integration & Development Workflow Optimization</div>
+            <p>Transform your development team's productivity with custom AI solutions. We specialize in integrating cutting-edge AI tools into existing workflows and building custom development assistants.</p>
+            
+            <a href="#contact" class="cta-button">Schedule Free Consultation</a>
+            <a href="mailto:consulting@rinawarptech.com" class="cta-button">Email Us Directly</a>
+        </div>
+        
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🤖</div>
+                <div class="service-title">AI Integration Consulting</div>
+                <div class="service-price">$300-400/hour</div>
+                <div class="service-description">
+                    Strategic consulting to integrate AI tools into your development workflow. We analyze your current processes and design custom AI solutions.
+                </div>
+                <ul class="service-features">
+                    <li>Workflow analysis & optimization</li>
+                    <li>AI tool selection & integration</li>
+                    <li>Custom prompt engineering</li>
+                    <li>ROI measurement & tracking</li>
+                    <li>Implementation roadmap</li>
+                </ul>
+                <a href="#contact" class="cta-button">Get Started</a>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🛠️</div>
+                <div class="service-title">Custom AI Development</div>
+                <div class="service-price">$5K-25K projects</div>
+                <div class="service-description">
+                    Build custom AI development tools tailored to your team's specific needs. From chatbots to code generation systems.
+                </div>
+                <ul class="service-features">
+                    <li>Custom AI applications</li>
+                    <li>API integrations</li>
+                    <li>Fine-tuned models</li>
+                    <li>Deployment & scaling</li>
+                    <li>Ongoing maintenance</li>
+                </ul>
+                <a href="#contact" class="cta-button">Request Quote</a>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🎓</div>
+                <div class="service-title">Team Training & Workshops</div>
+                <div class="service-price">$2K-5K engagements</div>
+                <div class="service-description">
+                    Comprehensive training programs to get your entire development team up to speed with AI-powered development.
+                </div>
+                <ul class="service-features">
+                    <li>2-day intensive workshops</li>
+                    <li>Hands-on AI tool training</li>
+                    <li>Best practices & workflows</li>
+                    <li>Custom training materials</li>
+                    <li>Follow-up support</li>
+                </ul>
+                <a href="#contact" class="cta-button">Book Workshop</a>
+            </div>
+        </div>
+        
+        <div class="testimonials">
+            <h2>🌟 Client Success Stories</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "RinaWarp helped us integrate AI into our development process. We're now shipping features 40% faster and our developers love the new workflow."
+                    </div>
+                    <div class="testimonial-author">- Marcus Johnson, CTO at TechFlow</div>
+                    <div class="testimonial-result">Result: 40% faster development, $200K/year savings</div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "The custom AI code review system they built catches bugs we would have missed. It's like having a senior developer reviewing every commit."
+                    </div>
+                    <div class="testimonial-author">- Sarah Kim, Engineering Manager at DataCorp</div>
+                    <div class="testimonial-result">Result: 60% reduction in production bugs</div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "Their team training workshop was incredible. Every developer on our team is now using AI tools effectively. Worth every penny."
+                    </div>
+                    <div class="testimonial-author">- Alex Rivera, VP Engineering at StartupXYZ</div>
+                    <div class="testimonial-result">Result: 100% team AI adoption in 2 weeks</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="process">
+            <h2>🎯 Our Process</h2>
+            <div class="process-steps">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Discovery Call</div>
+                    <div class="step-description">
+                        Free 30-minute consultation to understand your needs, challenges, and goals. We'll assess your current workflow and identify AI opportunities.
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Strategy & Proposal</div>
+                    <div class="step-description">
+                        Detailed proposal with custom strategy, timeline, and pricing. We'll outline exactly how AI can transform your development process.
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Implementation</div>
+                    <div class="step-description">
+                        Execute the plan with regular check-ins and updates. We work closely with your team to ensure smooth integration and adoption.
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Results & Support</div>
+                    <div class="step-description">
+                        Measure results, provide ongoing support, and iterate based on feedback. We ensure you get maximum ROI from your AI investment.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="urgency-box">
+            <h3>🔥 Limited Availability</h3>
+            <p>We only take on 3-4 new consulting clients per month to ensure quality results. Current wait time for new projects is 2-3 weeks.</p>
+        </div>
+        
+        <div class="cta-section" id="contact">
+            <h2>💬 Ready to Transform Your Development Process?</h2>
+            <p>Schedule a free 30-minute consultation to discuss your AI integration needs. We'll provide actionable insights even if we don't work together.</p>
+            
+            <div class="contact-form">
+                <form id="consultingForm" onsubmit="submitConsultingForm(event)">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company">Company</label>
+                        <input type="text" id="company" name="company">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="teamSize">Team Size</label>
+                        <select id="teamSize" name="teamSize">
+                            <option value="">Select...</option>
+                            <option value="1-5">1-5 developers</option>
+                            <option value="6-20">6-20 developers</option>
+                            <option value="21-50">21-50 developers</option>
+                            <option value="50+">50+ developers</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="service">Service Interested In</label>
+                        <select id="service" name="service">
+                            <option value="">Select...</option>
+                            <option value="consulting">AI Integration Consulting</option>
+                            <option value="development">Custom AI Development</option>
+                            <option value="training">Team Training & Workshops</option>
+                            <option value="all">All Services</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="budget">Budget Range</label>
+                        <select id="budget" name="budget">
+                            <option value="">Select...</option>
+                            <option value="5k-15k">$5K - $15K</option>
+                            <option value="15k-50k">$15K - $50K</option>
+                            <option value="50k+">$50K+</option>
+                            <option value="unsure">Not sure</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Tell us about your project *</label>
+                        <textarea id="message" name="message" placeholder="What challenges are you facing? What are your goals with AI integration?" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="cta-button" style="width: 100%; margin-top: 20px;">
+                        🚀 Schedule Free Consultation
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function submitConsultingForm(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Validate required fields
+            if (!data.name || !data.email || !data.message) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Show confirmation
+            alert(`🎉 Thank you ${data.name}!\n\nWe've received your consultation request and will respond within 24 hours.\n\nWhat happens next:\n• We'll review your project details\n• Schedule a free 30-minute discovery call\n• Provide initial recommendations\n• Create a custom proposal\n\nWe're excited to help transform your development process with AI! 🚀`);
+            
+            // In production, send data to your backend
+            console.log('Consulting form submitted:', data);
+            
+            // Reset form
+            event.target.reset();
+            
+            // Track conversion (replace with your analytics)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'generate_lead', {
+                    currency: 'USD',
+                    value: 5000, // Average project value
+                    service_type: data.service || 'consulting',
+                    team_size: data.teamSize || 'unknown',
+                    budget_range: data.budget || 'unknown'
+                });
+            }
+        }
+        
+        console.log('💼 AI Consulting Landing Page Loaded - Ready for Revenue! 💰');
+    </script>
+</body>
+</html>

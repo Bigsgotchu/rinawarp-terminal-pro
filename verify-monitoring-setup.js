@@ -106,8 +106,10 @@ fetch('http://localhost:8081/health')
 // Summary
 if (allGood) {
   console.log('✅ All required configurations are in place!');
+  console.log(
     '1. Add secrets to GitHub: https://github.com/Rinawarp-Terminal/rinawarp-terminal/settings/secrets/actions'
   );
+  console.log(
     '2. Monitor workflow: https://github.com/Rinawarp-Terminal/rinawarp-terminal/actions'
   );
 } else {

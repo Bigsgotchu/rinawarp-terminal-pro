@@ -101,7 +101,7 @@ export class EnhancedRinaAI {
       'critical',
     ];
 
-    const mediumPriority = ['feature', 'improvement', 'optimization', 'performance', 'analytics'];
+    const _mediumPriority = ['feature', 'improvement', 'optimization', 'performance', 'analytics'];
 
     const lowPriority = ['cosmetic', 'style', 'minor', 'later', 'nice to have'];
 
@@ -155,7 +155,7 @@ export class EnhancedRinaAI {
     return 'development-efficiency';
   }
 
-  async generateContextualResponse(query, analysis, context) {
+  async generateContextualResponse(query, analysis, _context) {
     const queryLower = query.toLowerCase();
 
     // Use our learned patterns for specific types of queries
@@ -236,7 +236,7 @@ Let me help you approach this strategically...`;
     return suggestions;
   }
 
-  addPersonalityTouch(response) {
+  addPersonalityTouch(_response) {
     // Add encouraging and action-oriented personality
     const personalityElements = [
       "🎯 Remember: we're focusing on what moves the needle!",

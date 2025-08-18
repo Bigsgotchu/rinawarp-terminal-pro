@@ -69,7 +69,7 @@ global.document = {
     return element;
   }),
   querySelector: jest.fn(() => null), // No dashboard by default
-  createElement: jest.fn(tag => ({
+  createElement: jest.fn(_tag => ({
     id: '',
     innerHTML: '',
     style: { cssText: '' },
@@ -354,7 +354,7 @@ describe('RinaVoiceIntegration', () => {
         throw new Error('Mode switch failed');
       });
 
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const _warnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
       // The error will be thrown and crash the test, so we need to catch it
       expect(() => integration.switchVoiceMode('rina')).toThrow('Mode switch failed');

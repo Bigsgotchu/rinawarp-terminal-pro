@@ -5,10 +5,10 @@
  * Tests all subscription verification endpoints and authentication
  */
 
-const https = require('https');
+const _https = require('https');
 const http = require('http');
 
-const BASE_URL = 'http://localhost:3001';
+const _BASE_URL = 'http://localhost:3001';
 
 // Helper function to make HTTP requests
 function makeRequest(options, data = null) {
@@ -24,7 +24,7 @@ function makeRequest(options, data = null) {
             headers: res.headers,
             body: jsonData,
           });
-        } catch (e) {
+        } catch (_e) {
           resolve({
             statusCode: res.statusCode,
             headers: res.headers,

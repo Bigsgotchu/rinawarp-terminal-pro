@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - AI-Powered Development Assistant</title>
+    <meta name="description" content="Professional AI-powered terminal application with natural language processing capabilities for enterprise development teams.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a1a2e 0%, #16213e 25%, #0f3460 50%, #e73c7e 75%, #ff6b9d 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .announcement-banner {
+            background: linear-gradient(90deg, #e73c7e, #ff6b9d, #ff8a80);
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4);
+            animation: coralWave 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes coralWave {
+            0% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4); }
+            50% { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255, 107, 157, 0.6); }
+            100% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4); }
+        }
+        
+        .beta-counter {
+            display: inline-block;
+            background: rgba(10, 26, 46, 0.8);
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-left: 15px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #4dd0e1;
+            color: #4dd0e1;
+            font-weight: 600;
+            font-size: 14px;
+            animation: counterPulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes counterPulse {
+            from { box-shadow: 0 0 10px rgba(77, 214, 225, 0.3); }
+            to { box-shadow: 0 0 20px rgba(77, 214, 225, 0.6); }
+        }
+        
+        .feedback-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(231, 60, 126, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: feedbackFloat 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes feedbackFloat {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-5px); }
+        }
+        
+        .feedback-button:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 8px 30px rgba(231, 60, 126, 0.6);
+        }
+        
+        .feedback-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 26, 46, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            backdrop-filter: blur(15px);
+        }
+        
+        .feedback-modal-content {
+            background: linear-gradient(135deg, #0f3460, #16213e, #e73c7e);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            margin: 20px;
+            border: 3px solid #4dd0e1;
+            box-shadow: 0 25px 80px rgba(255, 107, 157, 0.3);
+            animation: modalSlide 0.3s ease-out;
+        }
+        
+        @keyframes modalSlide {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .feedback-modal h3 {
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .feedback-modal textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #4dd0e1;
+            border-radius: 10px;
+            background: rgba(10, 26, 46, 0.8);
+            color: #ffffff;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        
+        .feedback-modal textarea:focus {
+            outline: none;
+            border-color: #ff6b9d;
+            box-shadow: 0 0 10px rgba(255, 107, 157, 0.3);
+        }
+        
+        .feedback-modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+        
+        .modal-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-button.primary {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+        }
+        
+        .modal-button.secondary {
+            background: rgba(77, 214, 225, 0.2);
+            color: #4dd0e1;
+            border: 2px solid #4dd0e1;
+        }
+        
+        .modal-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .interest-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 26, 46, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(15px);
+        }
+        
+        .popup-content {
+            background: linear-gradient(135deg, #e73c7e, #ff6b9d, #ff8a80, #4dd0e1);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 550px;
+            margin: 20px;
+            position: relative;
+            animation: popupRise 0.5s ease-out;
+            border: 3px solid #4dd0e1;
+            box-shadow: 0 25px 80px rgba(255, 107, 157, 0.3);
+        }
+        
+        @keyframes popupRise {
+            from { 
+                transform: translateY(100px) scale(0.8); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0) scale(1); 
+                opacity: 1; 
+            }
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 32px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .popup-close:hover {
+            color: #4dd0e1;
+            transform: scale(1.2);
+        }
+        
+        .popup-cta {
+            background: linear-gradient(45deg, #0f3460, #16213e);
+            color: #ffffff;
+            padding: 18px 35px;
+            border: 2px solid #4dd0e1;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            text-transform: none;
+        }
+        
+        .popup-cta:hover {
+            background: linear-gradient(45deg, #16213e, #0f3460);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(77, 214, 225, 0.4);
+        }
+        
+        .development-status {
+            position: fixed;
+            bottom: 120px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(10, 26, 46, 0.95), rgba(15, 52, 96, 0.95));
+            color: #4dd0e1;
+            padding: 18px 25px;
+            border-radius: 15px;
+            font-size: 14px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(77, 214, 225, 0.3);
+            animation: statusFloat 3s ease-in-out infinite alternate;
+            max-width: 280px;
+        }
+        
+        @keyframes statusFloat {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-5px); }
+        }
+        
+        .hero {
+            padding: 120px 20px 80px 20px;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(231, 60, 126, 0.15) 0%, transparent 70%);
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ff6b9d" opacity="0.08"><path d="M0,50 Q250,20 500,50 T1000,50 V100 H0 Z"/></svg>') repeat-x;
+            animation: waveFlow 8s linear infinite;
+        }
+        
+        @keyframes waveFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .hero h1 {
+            font-size: 4.2em;
+            margin-bottom: 25px;
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d, #4dd0e1, #80deea);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+            animation: titleShimmer 4s ease-in-out infinite;
+            font-weight: 700;
+        }
+        
+        @keyframes titleShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #4dd0e1;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero p {
+            font-size: 1.2em;
+            margin-bottom: 50px;
+            color: #b2dfdb;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(10, 26, 46, 0.5);
+            line-height: 1.7;
+        }
+        
+        .cta-container {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-button {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d, #ff8a80);
+            color: white;
+            padding: 20px 45px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            display: inline-block;
+            box-shadow: 0 15px 40px rgba(231, 60, 126, 0.4);
+            border: 2px solid transparent;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(231, 60, 126, 0.6);
+            border-color: #4dd0e1;
+        }
+        
+        .cta-secondary {
+            background: linear-gradient(45deg, rgba(10, 26, 46, 0.9), rgba(15, 52, 96, 0.9));
+            border: 3px solid #4dd0e1;
+            color: #4dd0e1;
+        }
+        
+        .cta-secondary:hover {
+            background: linear-gradient(45deg, rgba(15, 52, 96, 0.95), rgba(22, 33, 62, 0.95));
+            color: #ffffff;
+        }
+        
+        .pricing-section {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 2;
+            background: rgba(10, 26, 46, 0.3);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 60px;
+        }
+        
+        .pricing-title {
+            font-size: 1.4em;
+            color: #4dd0e1;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .beta-slots-remaining {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: slotsGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes slotsGlow {
+            from { box-shadow: 0 0 10px rgba(255, 107, 157, 0.3); }
+            to { box-shadow: 0 0 20px rgba(255, 107, 157, 0.6); }
+        }
+        
+        .price-display {
+            margin-bottom: 20px;
+        }
+        
+        .price-original {
+            text-decoration: line-through;
+            opacity: 0.6;
+            font-size: 1.5em;
+            color: #80deea;
+        }
+        
+        .price-current {
+            color: #ff6b9d;
+            font-size: 3em;
+            font-weight: bold;
+            margin: 0 20px;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+            animation: priceGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes priceGlow {
+            from { text-shadow: 0 0 20px rgba(255, 107, 157, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 107, 157, 0.8), 0 0 40px rgba(77, 214, 225, 0.3); }
+        }
+        
+        .price-note {
+            color: #4dd0e1;
+            font-size: 1.1em;
+            font-weight: 600;
+            display: inline-block;
+            background: linear-gradient(45deg, rgba(10, 26, 46, 0.8), rgba(15, 52, 96, 0.8));
+            padding: 10px 25px;
+            border-radius: 25px;
+            border: 2px solid #4dd0e1;
+            margin-top: 15px;
+        }
+        
+        .floating-bubbles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle, rgba(231, 60, 126, 0.15), rgba(255, 107, 157, 0.08));
+            border-radius: 50%;
+            animation: bubbleFloat 10s infinite linear;
+        }
+        
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .accent-dot {
+            background: radial-gradient(circle, #ff6b9d, #4dd0e1);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 8px;
+            animation: dotPulse 2.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes dotPulse {
+            from { opacity: 0.6; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.3); }
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, rgba(10, 26, 46, 0.95), rgba(15, 52, 96, 0.95));
+            color: #b2dfdb;
+            padding: 50px 20px 30px 20px;
+            text-align: center;
+            border-top: 2px solid rgba(77, 214, 225, 0.3);
+            margin-top: 80px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #4dd0e1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+            font-size: 1.05em;
+        }
+        
+        .footer-links a:hover {
+            color: #ff6b9d;
+        }
+        
+        .copyright {
+            font-size: 1em;
+            color: #80deea;
+            margin-top: 25px;
+            line-height: 1.8;
+            font-weight: 500;
+        }
+        
+        .disclaimer {
+            font-size: 0.9em;
+            color: #80deea;
+            margin-top: 20px;
+            opacity: 0.9;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 3em; }
+            .hero p { font-size: 1.1em; }
+            .cta-container { flex-direction: column; align-items: center; }
+            .cta-button { width: 85%; max-width: 350px; }
+            
+            .announcement-banner {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .beta-counter {
+                display: block;
+                margin: 10px auto 0;
+                width: fit-content;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 25px;
+            }
+            
+            .development-status {
+                bottom: 160px;
+                font-size: 13px;
+            }
+            
+            .pricing-section {
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 30px 20px;
+            }
+            
+            .feedback-button {
+                bottom: 100px;
+                right: 15px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    
+    <!-- Analytics -->
+    <script src="/flash-sale-analytics.js"></script>
+    <script src="/flash-sale-alerts.js"></script>
+
+</head>
+<body>
+    <!-- Floating bubbles background -->
+    <div class="floating-bubbles" id="bubbles"></div>
+
+    <!-- Professional Banner -->
+    <div class="announcement-banner">
+        🚀 RinaWarp Terminal - Professional AI Development Assistant 
+        <span class="accent-dot"></span>
+        <span class="beta-counter" id="betaCounter">73 Beta Slots Remaining</span>
+        <span class="accent-dot"></span>
+        <a href="#pricing" class="banner-cta" style="color: white; font-weight: bold; text-decoration: underline; margin-left: 15px;">Request Access</a>
+    </div>
+
+    <!-- Feedback Button -->
+    <button class="feedback-button" onclick="openFeedbackModal()">
+        💬 Feedback
+    </button>
+
+    <!-- Feedback Modal -->
+    <div class="feedback-modal" id="feedbackModal">
+        <div class="feedback-modal-content">
+            <h3>Share Your Feedback</h3>
+            <textarea id="feedbackText" placeholder="Tell us what you think about RinaWarp Terminal, what features you'd like to see, or any suggestions you have..."></textarea>
+            <div class="feedback-modal-buttons">
+                <button class="modal-button secondary" onclick="closeFeedbackModal()">Cancel</button>
+                <button class="modal-button primary" onclick="submitFeedback()">Send Feedback</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Popup -->
+    <div class="interest-popup" id="interestPopup">
+        <div class="popup-content">
+            <button class="popup-close" onclick="closeInterestPopup()">&times;</button>
+            <h2 style="margin-bottom: 15px; color: #ffffff;">Join the Beta Program</h2>
+            <p style="margin: 20px 0; color: #ffffff; font-size: 1.1em;">Be among the first to experience RinaWarp Terminal's AI-powered development capabilities.</p>
+            <div class="beta-slots-remaining" id="popupBetaSlots">Only 73 Beta Slots Left!</div>
+            <div class="price-display">
+                <span class="price-original">$149</span>
+                <span class="price-current" style="font-size: 2.5em;">$49</span>
+            </div>
+            <div style="color: #ffffff; margin-bottom: 20px;">Early Access Pricing</div>
+            <button class="popup-cta" onclick="window.location.href='#pricing'">Request Beta Access</button>
+            <p style="font-size: 14px; margin-top: 20px; opacity: 0.9; color: #ffffff;">Limited beta slots available</p>
+        </div>
+    </div>
+
+    <!-- Development Status -->
+    <div class="development-status" id="devStatus">
+        <div style="font-weight: 600; margin-bottom: 5px;">Development Status</div>
+        <div>Core AI Engine: Complete ✓</div>
+        <div>Terminal Interface: In Testing</div>
+        <div>Beta Release: Q2 2025</div>
+    </div>
+
+    <div class="hero">
+        <h1>RinaWarp Terminal</h1>
+        <div class="hero-subtitle">Professional AI Development Assistant</div>
+        <p>Advanced terminal application leveraging natural language processing and machine learning to streamline development workflows. Built for professional developers and enterprise teams seeking intelligent automation and enhanced productivity.</p>
+        
+        <div class="pricing-section" id="pricing">
+            <div class="pricing-title">Beta Program Access</div>
+            <div class="beta-slots-remaining" id="heroSlotsRemaining">Only 73 Beta Slots Remaining!</div>
+            <div class="price-display">
+                <span class="price-original">$149</span>
+                <span class="price-current">$49</span>
+            </div>
+            <div class="price-note">Early Access - Limited Beta Slots</div>
+        </div>
+        
+        <div class="cta-container">
+            <button class="cta-button" onclick="requestBetaAccess()">Request Beta Access</button>
+            <a href="/dashboard.html" class="cta-button cta-secondary" target="_blank">View Development Progress</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="/privacy.html">Privacy Policy</a>
+                <a href="/terms.html">Terms of Service</a>
+                <a href="mailto:enterprise@rinawarptech.com">Enterprise Contact</a>
+                <a href="/documentation.html">Documentation</a>
+                <a href="/about.html">About</a>
+            </div>
+            
+            <div class="copyright">
+                © 2025 RinaWarp Technologies LLC. All rights reserved.<br>
+                RinaWarp Terminal is a registered trademark of RinaWarp Technologies LLC.
+            </div>
+            
+            <div class="disclaimer">
+                <strong>Beta Program Notice:</strong> RinaWarp Terminal is currently in active development and beta testing phase. Beta access provides early preview of core features for evaluation and feedback purposes. Production release scheduled for Q2 2025. Features, pricing, and availability subject to change during development cycle. Beta participants will receive priority access to the final release and may be eligible for upgrade pricing.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Beta slots management
+        let betaSlotsRemaining = 73; // Starting with 73 slots
+        
+        function updateBetaSlots() {
+            document.getElementById('betaCounter').textContent = `${betaSlotsRemaining} Beta Slots Remaining`;
+            document.getElementById('heroSlotsRemaining').textContent = `Only ${betaSlotsRemaining} Beta Slots Remaining!`;
+            document.getElementById('popupBetaSlots').textContent = `Only ${betaSlotsRemaining} Beta Slots Left!`;
+            
+            // Change color when slots are getting low
+            const elements = [
+                document.getElementById('heroSlotsRemaining'),
+                document.getElementById('popupBetaSlots')
+            ];
+            
+            elements.forEach(el => {
+                if (betaSlotsRemaining <= 20) {
+                    el.style.background = 'linear-gradient(45deg, #ff4444, #ff6b6b)';
+                    el.style.animation = 'urgentPulse 1s ease-in-out infinite alternate';
+                } else if (betaSlotsRemaining <= 50) {
+                    el.style.background = 'linear-gradient(45deg, #ff8800, #ffaa00)';
+                }
+            });
+        }
+
+        // Simulate beta slot decrease (for demo purposes)
+        function simulateBetaSlotDecrease() {
+            setInterval(() => {
+                if (Math.random() > 0.7 && betaSlotsRemaining > 0) {
+                    betaSlotsRemaining -= Math.floor(Math.random() * 2) + 1;
+                    updateBetaSlots();
+                    trackEvent('beta_slot_taken', { remaining: betaSlotsRemaining });
+                }
+            }, 15000); // Every 15 seconds
+        }
+
+        // Feedback system
+        function openFeedbackModal() {
+            document.getElementById('feedbackModal').style.display = 'flex';
+            trackEvent('feedback_button_clicked');
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').style.display = 'none';
+            document.getElementById('feedbackText').value = '';
+        }
+
+        function submitFeedback() {
+            const feedback = document.getElementById('feedbackText').value.trim();
+            
+            if (feedback) {
+                // Here you would normally send to your backend
+                trackEvent('feedback_submitted', { 
+                    feedback_length: feedback.length,
+                    timestamp: new Date().toISOString()
+                });
+                
+                alert('Thank you for your feedback! We appreciate your input and will use it to improve RinaWarp Terminal.');
+                closeFeedbackModal();
+            } else {
+                alert('Please enter some feedback before submitting.');
+            }
+        }
+
+        // Professional analytics tracking
+        function trackEvent(eventName, properties = {}) {
+            if (window.flashSaleAnalytics && window.flashSaleAnalytics.trackEvent) {
+                window.flashSaleAnalytics.trackEvent(eventName, properties);
+            }
+            console.log('📊 Event:', eventName, properties);
+        }
+
+        // Create subtle floating bubbles
+        function createBubbles() {
+            const bubbleContainer = document.getElementById('bubbles');
+            
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.style.left = Math.random() * 100 + '%';
+                    bubble.style.width = bubble.style.height = Math.random() * 80 + 30 + 'px';
+                    bubble.style.animationDuration = (Math.random() * 8 + 6) + 's';
+                    bubble.style.animationDelay = Math.random() * 3 + 's';
+                    
+                    bubbleContainer.appendChild(bubble);
+                    
+                    setTimeout(() => {
+                        if (bubble.parentNode) {
+                            bubble.parentNode.removeChild(bubble);
+                        }
+                    }, 14000);
+                }, i * 600);
+            }
+        }
+
+        // Professional exit-intent detection
+        let interestPopupShown = false;
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY <= 0 && !interestPopupShown) {
+                document.getElementById('interestPopup').style.display = 'flex';
+                interestPopupShown = true;
+                trackEvent('beta_interest_popup_shown', { slots_remaining: betaSlotsRemaining });
+            }
+        });
+
+        function closeInterestPopup() {
+            document.getElementById('interestPopup').style.display = 'none';
+            trackEvent('beta_interest_popup_closed');
+        }
+
+        // Professional beta access handler
+        function requestBetaAccess() {
+            if (betaSlotsRemaining <= 0) {
+                alert('Sorry, all beta slots have been filled. Join our waitlist to be notified when production is available.');
+                return;
+            }
+
+            trackEvent('beta_access_requested', {
+                price: '$49',
+                program: 'beta_access',
+                slots_remaining: betaSlotsRemaining,
+                timestamp: new Date().toISOString()
+            });
+            
+            const userEmail = prompt('Enter your email address for beta access notifications:');
+            
+            if (userEmail && userEmail.includes('@')) {
+                // Simulate slot reservation
+                betaSlotsRemaining -= 1;
+                updateBetaSlots();
+                
+                alert(`Thank you for your interest in RinaWarp Terminal!\n\nWe've reserved a beta slot for ${userEmail}.\n\nYou'll receive an invitation when beta becomes available.\n\nSlots remaining: ${betaSlotsRemaining}\n\nFor enterprise inquiries: enterprise@rinawarptech.com`);
+                trackEvent('beta_email_collected', { 
+                    email_provided: true, 
+                    slots_remaining: betaSlotsRemaining 
+                });
+            } else if (userEmail) {
+                alert('Please enter a valid email address to join the beta program.');
+            }
+        }
+
+        // Banner click tracking
+        document.querySelector('.banner-cta')?.addEventListener('click', () => {
+            trackEvent('banner_request_access_clicked', { slots_remaining: betaSlotsRemaining });
+        });
+
+        // Initialize professional experience
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 RinaWarp Terminal - Professional Website Loaded');
+            
+            updateBetaSlots();
+            simulateBetaSlotDecrease();
+            createBubbles();
+            setInterval(createBubbles, 12000);
+            
+            trackEvent('page_view', {
+                version: 'professional',
+                slots_remaining: betaSlotsRemaining,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Professional analytics configuration
+            setTimeout(() => {
+                if (window.configureFlashSaleAlerts) {
+                    window.configureFlashSaleAlerts({
+                        webhookUrl: null,
+                        customMilestones: {
+                            beta_requests: [25, 50, 75, 90, 95],
+                            slots_remaining: [50, 25, 10, 5, 1],
+                            enterprise_inquiries: [5, 10, 25, 50]
+                        }
+                    });
+                }
+            }, 1500);
+
+            // Add urgency animation CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes urgentPulse {
+                    from { transform: scale(1); }
+                    to { transform: scale(1.05); }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+
+</body>
+</html>

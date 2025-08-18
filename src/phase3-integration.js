@@ -293,7 +293,7 @@ class Phase3IntegrationManager {
   async scheduleInitialQASession() {
     if (this.components.communityEngagement) {
       try {
-        const session = await this.components.communityEngagement.scheduleQASession({
+        const _session = await this.components.communityEngagement.scheduleQASession({
           title: 'RinaWarp Terminal Phase 3 Launch Q&A',
           topics: ['phase 3 features', 'community feedback', 'roadmap discussion'],
           maxParticipants: 100,

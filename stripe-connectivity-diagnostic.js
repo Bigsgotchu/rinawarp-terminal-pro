@@ -6,7 +6,13 @@
  * Based on the Final Stripe Connectivity Checklist
  */
 
-import logger from './utils/logger.js';
+// Simple logger replacement
+const logger = {
+  info: msg => console.log(`ℹ️  ${msg}`),
+  error: msg => console.log(`❌ ${msg}`),
+  warn: msg => console.log(`⚠️  ${msg}`),
+  success: msg => console.log(`✅ ${msg}`),
+};
 import https from 'https';
 import { Buffer } from 'buffer';
 

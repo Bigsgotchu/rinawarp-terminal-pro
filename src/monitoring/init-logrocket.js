@@ -52,7 +52,7 @@ try {
   });
 
   // Log session URL for debugging
-  LogRocket.getSessionURL(sessionURL => {});
+  LogRocket.getSessionURL(_sessionURL => {});
 
   // Make LogRocket globally available
   window.LogRocket = LogRocket;

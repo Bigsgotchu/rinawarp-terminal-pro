@@ -59,7 +59,7 @@ async function checkRepositoryVisibility() {
 async function setupBranchProtection() {
   try {
     // Try to get existing protection
-    const protection = execSync(
+    const _protection = execSync(
       'gh api repos/Bigsgotchu/rinawarp-terminal-pro/branches/main/protection',
       {
         encoding: 'utf8',
@@ -82,7 +82,7 @@ async function setupBranchProtection() {
         //   stdio: 'pipe'
         // });
         console.log('✅ Branch protection guidance provided');
-      } catch (protectionError) {
+      } catch (_protectionError) {
         console.warn('⚠️ Could not enable branch protection (may require GitHub Pro)');
       }
     }

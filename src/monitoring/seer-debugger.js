@@ -49,7 +49,7 @@ class SeerDebugger {
    * Log AI insights
    */
   logInsights(insights) {
-    insights.forEach(insight => {});
+    insights.forEach(_insight => {});
   }
 
   /**

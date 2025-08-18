@@ -10,7 +10,6 @@ import {
   AuthService,
   requireAuth,
   requireAdmin,
-  authRateLimit,
   validatePasswordStrength,
   validateEmail,
 } from '../middleware/auth.js';
@@ -56,7 +55,7 @@ function getClientInfo(req) {
 router.post('/register', registerLimiter, async (req, res) => {
   try {
     const { email, password, firstName, lastName, role = ROLES.USER } = req.body;
-    const { ipAddress, userAgent } = getClientInfo(req);
+    const { ipAddress, _userAgent } = getClientInfo(req);
 
     // Validation
     if (!email || !password || !firstName || !lastName) {

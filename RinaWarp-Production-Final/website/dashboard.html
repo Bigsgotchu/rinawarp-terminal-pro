@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal Dashboard</title>
+    <meta name="description" content="Manage your RinaWarp Terminal license and downloads">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-brand">
+                <i class="fas fa-terminal"></i>
+                <span>RinaWarp Terminal</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="#account">Account</a>
+                <button class="btn btn-outline" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-menu">
+                <a href="#overview" class="menu-item active" onclick="showSection('overview')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="#downloads" class="menu-item" onclick="showSection('downloads')">
+                    <i class="fas fa-download"></i>
+                    <span>Downloads</span>
+                </a>
+                <a href="#license" class="menu-item" onclick="showSection('license')">
+                    <i class="fas fa-key"></i>
+                    <span>License</span>
+                </a>
+                <a href="#billing" class="menu-item" onclick="showSection('billing')">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing</span>
+                </a>
+                <a href="#support" class="menu-item" onclick="showSection('support')">
+                    <i class="fas fa-life-ring"></i>
+                    <span>Support</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview Section -->
+            <section id="overview-section" class="dashboard-section active">
+                <div class="section-header">
+                    <h1>Dashboard Overview</h1>
+                    <p>Welcome back! Here's your RinaWarp Terminal account status.</p>
+                </div>
+
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="card-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Current Plan</h3>
+                            <p class="plan-name" id="current-plan">Loading...</p>
+                            <small class="plan-status" id="plan-status">Active</small>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Next Billing</h3>
+                            <p class="billing-date" id="next-billing">Loading...</p>
+                            <small class="billing-amount" id="billing-amount">$9.99/month</small>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Downloads</h3>
+                            <p class="download-count">Available</p>
+                            <small>All platforms</small>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>License Status</h3>
+                            <p class="license-status" id="license-status">Valid</p>
+                            <small id="license-expires">Expires: Loading...</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h2>Recent Activity</h2>
+                    <div class="activity-list" id="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Downloaded RinaWarp Terminal for macOS</p>
+                                <small>2 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Payment processed successfully</p>
+                                <small>1 day ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Downloads Section -->
+            <section id="downloads-section" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Downloads</h1>
+                    <p>Download RinaWarp Terminal for your platform</p>
+                </div>
+
+                <div class="download-platforms">
+                    <div class="platform-card">
+                        <div class="platform-icon">
+                            <i class="fab fa-apple"></i>
+                        </div>
+                        <div class="platform-info">
+                            <h3>macOS</h3>
+                            <p>macOS 10.14+ (Intel & Apple Silicon)</p>
+                            <div class="platform-details">
+                                <span class="file-size">~106MB</span>
+                                <span class="file-type">DMG</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="downloadPlatform('mac')" id="download-mac">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                    </div>
+
+                    <div class="platform-card">
+                        <div class="platform-icon">
+                            <i class="fab fa-windows"></i>
+                        </div>
+                        <div class="platform-info">
+                            <h3>Windows</h3>
+                            <p>Windows 10+ (64-bit)</p>
+                            <div class="platform-details">
+                                <span class="file-size">~83MB</span>
+                                <span class="file-type">EXE</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="downloadPlatform('windows')" id="download-windows">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                    </div>
+
+                    <div class="platform-card">
+                        <div class="platform-icon">
+                            <i class="fab fa-linux"></i>
+                        </div>
+                        <div class="platform-info">
+                            <h3>Linux</h3>
+                            <p>Ubuntu 18.04+ / Similar distros</p>
+                            <div class="platform-details">
+                                <span class="file-size">~110MB</span>
+                                <span class="file-type">AppImage</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="downloadPlatform('linux')" id="download-linux">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                    </div>
+                </div>
+
+                <div class="download-history">
+                    <h2>Download History</h2>
+                    <div class="history-list" id="download-history">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- License Section -->
+            <section id="license-section" class="dashboard-section">
+                <div class="section-header">
+                    <h1>License Information</h1>
+                    <p>Your RinaWarp Terminal license details</p>
+                </div>
+
+                <div class="license-card">
+                    <div class="license-header">
+                        <div class="license-icon">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="license-info">
+                            <h3 id="license-plan">Pro Plan</h3>
+                            <p id="license-email">user@example.com</p>
+                        </div>
+                        <div class="license-status-badge" id="license-badge">
+                            <i class="fas fa-check-circle"></i>
+                            Active
+                        </div>
+                    </div>
+
+                    <div class="license-details">
+                        <div class="detail-row">
+                            <span class="detail-label">License ID:</span>
+                            <span class="detail-value" id="license-id">Loading...</span>
+                            <button class="btn btn-outline btn-small" onclick="copyLicenseId()">
+                                <i class="fas fa-copy"></i>
+                                Copy
+                            </button>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Created:</span>
+                            <span class="detail-value" id="license-created">Loading...</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Expires:</span>
+                            <span class="detail-value" id="license-expiry">Loading...</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value" id="license-current-status">Active</span>
+                        </div>
+                    </div>
+
+                    <div class="license-features">
+                        <h4>Plan Features</h4>
+                        <div class="features-grid" id="plan-features">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Billing Section -->
+            <section id="billing-section" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Billing & Subscription</h1>
+                    <p>Manage your subscription and payment methods</p>
+                </div>
+
+                <div class="billing-overview">
+                    <div class="billing-card">
+                        <div class="billing-header">
+                            <h3>Current Subscription</h3>
+                            <div class="subscription-status">
+                                <span class="status-badge active">Active</span>
+                            </div>
+                        </div>
+                        <div class="subscription-details">
+                            <div class="detail-row">
+                                <span>Plan:</span>
+                                <span id="subscription-plan">Pro Plan</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Amount:</span>
+                                <span id="subscription-amount">$9.99/month</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Next billing:</span>
+                                <span id="subscription-next-billing">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="billing-actions">
+                            <button class="btn btn-primary" onclick="manageSubscription()">
+                                <i class="fas fa-cog"></i>
+                                Manage Subscription
+                            </button>
+                            <button class="btn btn-outline" onclick="changePaymentMethod()">
+                                <i class="fas fa-credit-card"></i>
+                                Update Payment Method
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="billing-history">
+                    <h3>Billing History</h3>
+                    <div class="invoices-list" id="invoices-list">
+                        <div class="invoice-item">
+                            <div class="invoice-info">
+                                <span class="invoice-date">Jan 15, 2025</span>
+                                <span class="invoice-amount">$9.99</span>
+                            </div>
+                            <div class="invoice-status">
+                                <span class="status-badge paid">Paid</span>
+                                <button class="btn btn-outline btn-small">
+                                    <i class="fas fa-download"></i>
+                                    PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Support Section -->
+            <section id="support-section" class="dashboard-section">
+                <div class="section-header">
+                    <h1>Support</h1>
+                    <p>Get help with RinaWarp Terminal</p>
+                </div>
+
+                <div class="support-options">
+                    <div class="support-card">
+                        <div class="support-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3>Documentation</h3>
+                        <p>Comprehensive guides and tutorials</p>
+                        <a href="#" class="btn btn-outline">View Docs</a>
+                    </div>
+
+                    <div class="support-card">
+                        <div class="support-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Community</h3>
+                        <p>Join our Discord community</p>
+                        <a href="#" class="btn btn-outline">Join Discord</a>
+                    </div>
+
+                    <div class="support-card">
+                        <div class="support-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h3>Email Support</h3>
+                        <p>Get help from our team</p>
+                        <a href="mailto:support@rinawarptech.com" class="btn btn-outline">Send Email</a>
+                    </div>
+                </div>
+
+                <div class="support-form">
+                    <h3>Contact Support</h3>
+                    <form id="support-form" onsubmit="submitSupportRequest(event)">
+                        <div class="form-group">
+                            <label for="support-subject">Subject</label>
+                            <select id="support-subject" required>
+                                <option value="">Select a topic</option>
+                                <option value="technical">Technical Issue</option>
+                                <option value="billing">Billing Question</option>
+                                <option value="feature">Feature Request</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="support-message">Message</label>
+                            <textarea id="support-message" rows="4" placeholder="Describe your issue or question..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="modal">
+        <div class="modal-content">
+            <div class="loading-spinner"></div>
+            <p id="loading-message">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

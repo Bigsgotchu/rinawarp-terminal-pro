@@ -6,7 +6,7 @@
  */
 
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 async function integrateKnowledge() {
   console.log('🧜‍♀️ RinaWarp AI Knowledge Integration Starting...\n');

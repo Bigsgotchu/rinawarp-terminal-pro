@@ -295,7 +295,7 @@ class ContextualTipsSystem {
     return triggers;
   }
 
-  generateContextualTips(command, analysis, context) {
+  generateContextualTips(command, analysis, _context) {
     const tips = [];
     const categories = analysis.command_type;
     const triggers = analysis.context_triggers;

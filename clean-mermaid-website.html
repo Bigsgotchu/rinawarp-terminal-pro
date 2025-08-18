@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - AI-Powered Development Assistant</title>
+    <meta name="description" content="Revolutionary AI-powered terminal that understands natural language. Speed up development with intelligent code completion and voice commands.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #001a2e 0%, #003d5c 25%, #00796b 50%, #4db6ac 75%, #80cbc4 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .urgency-banner {
+            background: linear-gradient(90deg, #00acc1, #26c6da, #4dd0e1);
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 172, 193, 0.4);
+            animation: oceanWave 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes oceanWave {
+            0% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(0, 172, 193, 0.4); }
+            50% { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(77, 214, 225, 0.6); }
+            100% { transform: translateY(0px); box-shadow: 0 4px 20px rgba(0, 172, 193, 0.4); }
+        }
+        
+        .countdown-timer {
+            display: inline-block;
+            background: rgba(0, 26, 46, 0.8);
+            padding: 8px 20px;
+            border-radius: 25px;
+            margin-left: 15px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #4dd0e1;
+            color: #4dd0e1;
+            font-weight: bold;
+        }
+        
+        .exit-intent-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 26, 46, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .popup-content {
+            background: linear-gradient(135deg, #006064, #00838f, #0097a7, #00acc1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 20px;
+            position: relative;
+            animation: popupRise 0.5s ease-out;
+            border: 3px solid #4dd0e1;
+            box-shadow: 0 20px 60px rgba(77, 214, 225, 0.3);
+        }
+        
+        @keyframes popupRise {
+            from { 
+                transform: translateY(100px) scale(0.8); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0) scale(1); 
+                opacity: 1; 
+            }
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #4dd0e1;
+            font-size: 28px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .popup-close:hover {
+            color: #80cbc4;
+            transform: scale(1.2);
+        }
+        
+        .popup-cta {
+            background: linear-gradient(45deg, #004d40, #00695c);
+            color: #ffffff;
+            padding: 15px 30px;
+            border: 2px solid #4dd0e1;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .popup-cta:hover {
+            background: linear-gradient(45deg, #00695c, #00796b);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(77, 214, 225, 0.4);
+        }
+        
+        .social-proof {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(0, 26, 46, 0.9), rgba(0, 61, 92, 0.9));
+            color: #4dd0e1;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(77, 214, 225, 0.3);
+            animation: socialFloat 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes socialFloat {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-5px); }
+        }
+        
+        .hero {
+            padding: 100px 20px;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(77, 214, 225, 0.2) 0%, transparent 70%);
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%234dd0e1" opacity="0.1"><path d="M0,50 Q250,20 500,50 T1000,50 V100 H0 Z"/></svg>') repeat-x;
+            animation: waveFlow 6s linear infinite;
+        }
+        
+        @keyframes waveFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .hero h1 {
+            font-size: 4em;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #4dd0e1, #80cbc4, #a7ffeb, #4dd0e1);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+            animation: titleShimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes titleShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .hero p {
+            font-size: 1.4em;
+            margin-bottom: 50px;
+            color: #b2dfdb;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(0, 26, 46, 0.5);
+        }
+        
+        .cta-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-button {
+            background: linear-gradient(45deg, #00838f, #00acc1, #26c6da);
+            color: white;
+            padding: 20px 50px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.4s ease;
+            display: inline-block;
+            box-shadow: 0 15px 40px rgba(0, 172, 193, 0.4);
+            border: 2px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(0, 172, 193, 0.6);
+            border-color: #4dd0e1;
+        }
+        
+        .cta-secondary {
+            background: linear-gradient(45deg, rgba(0, 26, 46, 0.8), rgba(0, 61, 92, 0.8));
+            border: 3px solid #4dd0e1;
+            color: #4dd0e1;
+        }
+        
+        .cta-secondary:hover {
+            background: linear-gradient(45deg, rgba(0, 61, 92, 0.9), rgba(0, 121, 107, 0.9));
+            color: #ffffff;
+        }
+        
+        .pricing {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .price-original {
+            text-decoration: line-through;
+            opacity: 0.6;
+            font-size: 1.8em;
+            color: #80cbc4;
+        }
+        
+        .price-sale {
+            color: #a7ffeb;
+            font-size: 3.5em;
+            font-weight: bold;
+            margin: 0 25px;
+            text-shadow: 0 0 20px rgba(167, 255, 235, 0.5);
+            animation: priceGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes priceGlow {
+            from { text-shadow: 0 0 20px rgba(167, 255, 235, 0.5); }
+            to { text-shadow: 0 0 30px rgba(167, 255, 235, 0.8), 0 0 40px rgba(77, 214, 225, 0.3); }
+        }
+        
+        .price-savings {
+            color: #4dd0e1;
+            font-size: 1.4em;
+            font-weight: bold;
+            display: inline-block;
+            background: linear-gradient(45deg, rgba(0, 26, 46, 0.8), rgba(0, 61, 92, 0.8));
+            padding: 8px 20px;
+            border-radius: 25px;
+            border: 2px solid #4dd0e1;
+            margin-top: 10px;
+        }
+        
+        .floating-bubbles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle, rgba(77, 214, 225, 0.2), rgba(128, 203, 196, 0.1));
+            border-radius: 50%;
+            animation: bubbleFloat 8s infinite linear;
+        }
+        
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .pearl-accent {
+            background: radial-gradient(circle, #a7ffeb, #4dd0e1);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 5px;
+            animation: pearlShine 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pearlShine {
+            from { opacity: 0.6; transform: scale(1); }
+            to { opacity: 1; transform: scale(1.2); }
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.8em; }
+            .hero p { font-size: 1.2em; }
+            .cta-container { flex-direction: column; align-items: center; }
+            .cta-button { width: 85%; max-width: 320px; }
+            
+            .urgency-banner {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .countdown-timer {
+                display: block;
+                margin: 12px auto 0;
+            }
+            
+            .banner-cta {
+                margin-top: 8px;
+                margin-left: 0;
+            }
+        }
+    </style>
+    
+    <!-- Simple Flash Sale Analytics -->
+    <script src="/flash-sale-analytics.js"></script>
+    <script src="/flash-sale-alerts.js"></script>
+
+</head>
+<body>
+    <!-- Floating bubbles background -->
+    <div class="floating-bubbles" id="bubbles"></div>
+
+    <!-- Flash Sale Banner -->
+    <div class="urgency-banner">
+        🧜‍♀️ MERMAID FLASH SALE: 70% OFF RinaWarp Terminal - Dive In Now! 
+        <span class="pearl-accent"></span>
+        <span class="countdown-timer" id="countdown">23:59:59</span>
+        <span class="pearl-accent"></span>
+        <a href="#pricing" class="banner-cta" style="color: white; font-weight: bold; text-decoration: underline; margin-left: 15px;">🌊 Catch This Wave!</a>
+    </div>
+
+    <!-- Exit-Intent Popup -->
+    <div class="exit-intent-popup" id="exitPopup">
+        <div class="popup-content">
+            <button class="popup-close" onclick="closeExitPopup()">&times;</button>
+            <h2>🧜‍♀️ Don't Swim Away! Special Mermaid Pricing 🐚</h2>
+            <p style="margin: 20px 0; color: #b2dfdb;">Dive into RinaWarp Terminal for 70% OFF before this tide turns!</p>
+            <div class="pricing">
+                <span class="price-original">$99</span>
+                <span class="price-sale">$29</span>
+                <span class="price-savings">(Save $70 - Treasure Deal!)</span>
+            </div>
+            <button class="popup-cta" onclick="window.location.href='#pricing'">🌊 Claim My Ocean Deal!</button>
+            <p style="font-size: 14px; margin-top: 15px; opacity: 0.8; color: #80cbc4;">This tide turns in <span id="popupTimer">23:59:59</span> - no second chances!</p>
+        </div>
+    </div>
+
+    <!-- Social Proof Counter -->
+    <div class="social-proof" id="socialProof">
+        🧜‍♀️ <span id="downloadCount">1,247</span> developers joined the pod!
+        <span class="pearl-accent"></span>
+    </div>
+
+    <div class="hero">
+        <h1>🧜‍♀️ RinaWarp Terminal</h1>
+        <p>Dive deep into AI-powered development. The first terminal that speaks your language like a mystical sea companion. Transform your coding workflow with the magic of the digital ocean.</p>
+        
+        <div class="pricing" id="pricing">
+            <span class="price-original">$99</span>
+            <span class="price-sale">$29</span>
+            <div class="price-savings">🐚 70% OFF - Mermaid Special! 🐚</div>
+        </div>
+        
+        <div class="cta-container">
+            <button class="cta-button" onclick="initiateDownload()">🌊 Dive In Now - $29</button>
+            <a href="/dashboard.html" class="cta-button cta-secondary" target="_blank">🐙 View Ocean Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        // Simple analytics tracking
+        function trackEvent(eventName, properties = {}) {
+            if (window.flashSaleAnalytics && window.flashSaleAnalytics.trackEvent) {
+                window.flashSaleAnalytics.trackEvent(eventName, properties);
+            } else {
+                console.log('📊 Event:', eventName, properties);
+            }
+        }
+
+        // Create floating bubbles
+        function createBubbles() {
+            const bubbleContainer = document.getElementById('bubbles');
+            
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.style.left = Math.random() * 100 + '%';
+                    bubble.style.width = bubble.style.height = Math.random() * 60 + 20 + 'px';
+                    bubble.style.animationDuration = (Math.random() * 6 + 4) + 's';
+                    bubble.style.animationDelay = Math.random() * 2 + 's';
+                    
+                    bubbleContainer.appendChild(bubble);
+                    
+                    // Remove bubble after animation
+                    setTimeout(() => {
+                        if (bubble.parentNode) {
+                            bubble.parentNode.removeChild(bubble);
+                        }
+                    }, 10000);
+                }, i * 300);
+            }
+        }
+
+        // Countdown Timer
+        function updateCountdown() {
+            const saleEnd = new Date();
+            saleEnd.setHours(saleEnd.getHours() + 24);
+            
+            function tick() {
+                const now = new Date();
+                const timeLeft = saleEnd - now;
+                
+                if (timeLeft <= 0) {
+                    document.getElementById('countdown').textContent = 'TIDE TURNED';
+                    document.getElementById('popupTimer').textContent = 'TIDE TURNED';
+                    return;
+                }
+                
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('countdown').textContent = timeString;
+                document.getElementById('popupTimer').textContent = timeString;
+            }
+            
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        // Exit-Intent Detection
+        let exitIntentShown = false;
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY <= 0 && !exitIntentShown) {
+                document.getElementById('exitPopup').style.display = 'flex';
+                exitIntentShown = true;
+                trackEvent('exit_intent_popup_shown');
+            }
+        });
+
+        function closeExitPopup() {
+            document.getElementById('exitPopup').style.display = 'none';
+            trackEvent('exit_intent_popup_closed');
+        }
+
+        // Social Proof Animation
+        function animateSocialProof() {
+            let count = 1247;
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    count += Math.floor(Math.random() * 3) + 1;
+                    document.getElementById('downloadCount').textContent = count.toLocaleString();
+                }
+            }, 5000);
+        }
+
+        // Download Handler - Simple version without complex Stripe integration
+        function initiateDownload() {
+            trackEvent('mermaid_download_button_clicked', {
+                price: '$29',
+                discount: '70%',
+                theme: 'mermaid',
+                timestamp: new Date().toISOString()
+            });
+            
+            // Show a simple message for now
+            alert('🧜‍♀️ Thank you for your interest! The payment system is being updated. Please check back in a few minutes or contact support.');
+            
+            // Track the interaction
+            trackEvent('download_attempt_made');
+        }
+
+        // Banner click tracking
+        document.querySelector('.banner-cta')?.addEventListener('click', () => {
+            trackEvent('urgency_banner_clicked');
+        });
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧜‍♀️ Clean Mermaid RinaWarp website loaded!');
+            
+            updateCountdown();
+            animateSocialProof();
+            createBubbles();
+            
+            // Create new bubbles periodically
+            setInterval(createBubbles, 8000);
+            
+            // Track page view
+            trackEvent('page_view', {
+                theme: 'mermaid',
+                flash_sale: true,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Configure flash sale alerts if available
+            setTimeout(() => {
+                if (window.configureFlashSaleAlerts) {
+                    window.configureFlashSaleAlerts({
+                        webhookUrl: null,
+                        customMilestones: {
+                            revenue: [100, 300, 750],
+                            conversions: [5, 15, 30]
+                        }
+                    });
+                }
+            }, 1000);
+        });
+    </script>
+
+</body>
+</html>

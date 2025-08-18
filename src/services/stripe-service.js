@@ -220,10 +220,11 @@ class StripeService {
    */
   getPricingConfig() {
     return {
-      basic: {
-        name: 'Basic',
-        price_id: process.env.STRIPE_PRICE_BASIC || 'price_basic_monthly',
-        price: 29.0,
+      // Personal Plan (🐟 Reef Explorer - $15/month)
+      personal: {
+        name: '🐟 Reef Explorer',
+        price_id: process.env.STRIPE_PRICE_PERSONAL_MONTHLY || 'price_1RlLBwG2ToGP7ChnhstisPz0',
+        price: 15.0,
         features: [
           'AI Terminal Assistant',
           'Basic Voice Commands',
@@ -231,12 +232,13 @@ class StripeService {
           'Email Support',
         ],
       },
-      pro: {
-        name: 'Professional',
-        price_id: process.env.STRIPE_PRICE_PRO || 'price_pro_monthly',
-        price: 99.0,
+      // Professional Plan (🧜‍♀️ Mermaid Pro - $25/month) ⭐ POPULAR
+      professional: {
+        name: '🧜‍♀️ Mermaid Pro',
+        price_id: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || 'price_1RlLC4G2ToGP7ChndbHLotM7',
+        price: 25.0,
         features: [
-          'Everything in Basic',
+          'Everything in Personal',
           'Advanced AI Features',
           'Full Voice Control Suite',
           'Unlimited Themes',
@@ -245,18 +247,44 @@ class StripeService {
         ],
         recommended: true,
       },
+      // Team Plan (🌊 Ocean Fleet - $35/month)
+      team: {
+        name: '🌊 Ocean Fleet',
+        price_id: process.env.STRIPE_PRICE_TEAM_MONTHLY || 'price_1RlLCEG2ToGP7ChnZa5Px0ow',
+        price: 35.0,
+        features: [
+          'Everything in Professional',
+          'Team Management',
+          'Advanced Collaboration',
+          'Custom Integrations',
+          'Enhanced Security',
+        ],
+      },
+      // Enterprise Plan
       enterprise: {
         name: 'Enterprise',
-        price_id: process.env.STRIPE_PRICE_ENTERPRISE || 'price_enterprise_monthly',
-        price: 299.0,
+        price_id: process.env.STRIPE_PRICE_ENTERPRISE || 'price_1Rp0a9G2ToGP7ChnKvoEStKW',
+        price: 99.0,
         features: [
-          'Everything in Pro',
-          'Custom Integrations',
+          'Everything in Team',
           'SSO & Advanced Security',
           'Dedicated Account Manager',
           'Custom Training & Onboarding',
           'SLA Guarantee',
         ],
+      },
+      // Legacy aliases for backward compatibility
+      basic: {
+        name: 'Basic (Legacy)',
+        price_id: process.env.STRIPE_PRICE_PERSONAL_MONTHLY || 'price_1RlLBwG2ToGP7ChnhstisPz0',
+        price: 15.0,
+        features: ['Redirects to Personal plan'],
+      },
+      pro: {
+        name: 'Pro (Legacy)',
+        price_id: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || 'price_1RlLC4G2ToGP7ChndbHLotM7',
+        price: 25.0,
+        features: ['Redirects to Professional plan'],
       },
     };
   }

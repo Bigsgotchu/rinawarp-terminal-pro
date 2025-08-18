@@ -193,7 +193,7 @@ function consolidatePricing() {
   // 5. Create pricing summary
   log('\n🧜‍♀️ CONSOLIDATED PRICING STRUCTURE:', 'pink');
   console.log('\n📊 Monthly Subscriptions:');
-  Object.entries(MASTER_PRICING).forEach(([key, plan]) => {
+  Object.entries(MASTER_PRICING).forEach(([_key, plan]) => {
     const popular = plan.popular ? ' (POPULAR)' : '';
     console.log(`   ${plan.name}: ${plan.price}${plan.period}${popular}`);
     if (plan.annual) {
@@ -202,7 +202,7 @@ function consolidatePricing() {
   });
 
   console.log('\n🚀 Beta One-time Purchases:');
-  Object.entries(BETA_PRICING).forEach(([key, plan]) => {
+  Object.entries(BETA_PRICING).forEach(([_key, plan]) => {
     const popular = plan.popular ? ' (POPULAR)' : '';
     console.log(`   ${plan.name}: ${plan.price}${popular}`);
   });

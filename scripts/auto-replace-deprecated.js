@@ -130,7 +130,7 @@ const REPLACEMENT_PATTERNS = [
 
   // 9. Error handling improvements
   {
-    name: 'throw new Error(to proper error',);
+    name: 'throw new Error to proper error',
     find: /throw\s+([^;]+);?$/gm,
     replace: 'throw new Error($1);',
   },

@@ -199,7 +199,7 @@ async function main() {
     const dmgPath = checkDMGFile();
 
     // Ensure it's in the releases directory
-    const releaseDMGPath = ensureDMGInReleases(dmgPath);
+    const _releaseDMGPath = ensureDMGInReleases(dmgPath);
 
     // Update metadata
     updateReleaseMetadata();

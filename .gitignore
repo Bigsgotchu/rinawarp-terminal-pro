@@ -198,6 +198,20 @@ yarn.lock
 *.backup
 *.bak
 phase*-backup/
+*-Backup-*/
+cleanup-archive-*/
+*-Production-Final-Backup-*/
+*-copy-*/
+backup-*/
+*-archive-*/
+
+# Smart file manager reports
+smart-file-manager-report-*.json
+
+# Large temporary files
+*.tar.gz
+*.zip
+*.bundle
 extracted-*-backup/
 
 # Reports and documentation builds

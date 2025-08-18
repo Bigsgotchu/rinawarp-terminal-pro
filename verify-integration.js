@@ -404,10 +404,12 @@ async function runVerification() {
     const emailOk = results.tests.email.success;
     const securityScore = results.tests.security.securityScore;
 
-      `Environment Configuration: ${envScore >= 80 ? colors.green : envScore >= 60 ? colors.yellow : colors.red}${envScore}%${colors.reset}`
+    console.log(
     );
+    console.log(
       `Stripe Configuration: ${stripeOk ? colors.green + '✅ PASS' : colors.red + '❌ FAIL'}${colors.reset}`
     );
+    console.log(
       `Webhook Security: ${webhookOk ? colors.green + '✅ PASS' : colors.red + '❌ FAIL'}${colors.reset}`
     );
       `Email Configuration: ${emailOk ? colors.green + '✅ PASS' : colors.red + '❌ FAIL'}${colors.reset}`

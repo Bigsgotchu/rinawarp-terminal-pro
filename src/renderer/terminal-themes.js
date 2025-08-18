@@ -207,6 +207,45 @@ export class TerminalThemes {
           brightWhite: '#ffffff',
         },
       },
+
+      'vercel-mermaid': {
+        name: 'Vercel Mermaid',
+        description: 'Beautiful gradient theme extracted from Vercel deployment',
+        background:
+          'linear-gradient(135deg, #ff1493 0%, #00ced1 15%, #1e90ff 30%, #ff69b4 45%, #20b2aa 60%, #ff1493 75%, #00ffff 90%, #ff69b4 100%)',
+        terminalBackground: 'rgba(255, 255, 255, 0.95)',
+        terminalBorder: 'rgba(255, 20, 147, 0.4)',
+        foreground: '#2d1b69',
+        cursor: '#ff1493',
+        selection: 'rgba(255, 20, 147, 0.2)',
+        // Enhanced with backdrop blur effect (applied via CSS)
+        backdropFilter: 'blur(15px)',
+        boxShadow: '0 20px 40px rgba(255, 20, 147, 0.3), 0 0 30px rgba(0, 206, 209, 0.2)',
+        colors: {
+          black: '#2d1b69',
+          red: '#ff1493',
+          green: '#20b2aa',
+          yellow: '#ffd700',
+          blue: '#1e90ff',
+          magenta: '#ff69b4',
+          cyan: '#00ffff',
+          white: '#ffffff',
+          brightBlack: '#4a4a69',
+          brightRed: '#ff69b4',
+          brightGreen: '#00ced1',
+          brightYellow: '#ffff00',
+          brightBlue: '#00bfff',
+          brightMagenta: '#da70d6',
+          brightCyan: '#48d1cc',
+          brightWhite: '#ffffff',
+        },
+        // Vercel-specific animations and effects
+        animations: {
+          gradientShift: '8s ease infinite',
+          shimmer: '3s ease-in-out infinite',
+          textShimmer: '3s ease-in-out infinite',
+        },
+      },
     };
 
     this.currentTheme = 'rinawarp';
@@ -250,6 +289,20 @@ export class TerminalThemes {
     const theme = this.themes[themeName];
     this.currentTheme = themeName;
 
+    // Add theme transition class
+    document.body.classList.add('theme-transitioning');
+
+    // Remove previous theme classes
+    document.body.classList.remove('vercel-mermaid-theme');
+
+    // Apply theme-specific enhancements
+    if (themeName === 'vercel-mermaid') {
+      this.loadVercelMermaidEnhancements();
+      document.body.classList.add('vercel-mermaid-theme');
+    } else {
+      this.unloadVercelMermaidEnhancements();
+    }
+
     // Apply to document
     this.applyThemeToDocument(theme);
 
@@ -257,6 +310,11 @@ export class TerminalThemes {
     if (window.terminal) {
       this.applyThemeToTerminal(theme);
     }
+
+    // Remove transition class after animation
+    setTimeout(() => {
+      document.body.classList.remove('theme-transitioning');
+    }, 800);
 
     // Save preference
     this.saveTheme();
@@ -416,6 +474,30 @@ export class TerminalThemes {
     } catch (e) {
       console.error('Failed to import theme:', e);
       return null;
+    }
+  }
+
+  loadVercelMermaidEnhancements() {
+    // Load the enhanced CSS for Vercel Mermaid theme
+    const existingLink = document.getElementById('vercel-mermaid-css');
+    if (existingLink) return; // Already loaded
+
+    const link = document.createElement('link');
+    link.id = 'vercel-mermaid-css';
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = 'src/renderer/vercel-mermaid-theme.css';
+    document.head.appendChild(link);
+
+    console.log('🎨 Vercel Mermaid theme enhancements loaded');
+  }
+
+  unloadVercelMermaidEnhancements() {
+    // Remove the enhanced CSS
+    const existingLink = document.getElementById('vercel-mermaid-css');
+    if (existingLink) {
+      existingLink.remove();
+      console.log('🎨 Vercel Mermaid theme enhancements unloaded');
     }
   }
 }

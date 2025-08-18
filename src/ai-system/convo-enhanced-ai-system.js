@@ -226,7 +226,7 @@ class ConvoEnhancedAISystem {
     if (!this.checkpointer) return;
 
     try {
-      const checkpoint = {
+      const _checkpoint = {
         type,
         timestamp: new Date().toISOString(),
         interactionCount: this.interactionCount,
@@ -797,14 +797,14 @@ class EnhancedAIProvider {
 
 // Placeholder classes for compatibility
 class CommandPredictor {
-  async predict(partialCommand, history = []) {
+  async predict(partialCommand, _history = []) {
     // Implement command prediction logic
     return [];
   }
 }
 
 class ErrorAnalyzer {
-  async analyze(errorOutput, command, context = {}) {
+  async analyze(errorOutput, command, _context = {}) {
     // Implement error analysis logic
     return {
       error: errorOutput,

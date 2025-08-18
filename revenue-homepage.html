@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - AI-Powered Development Assistant</title>
+    <meta name="description" content="Professional AI development assistant that transforms your terminal with natural language processing. Join the beta and revolutionize your coding workflow.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a1a2e 0%, #16213e 25%, #0f3460 50%, #e73c7e 75%, #ff6b9d 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .urgency-banner {
+            background: linear-gradient(45deg, #ff4444, #ff6b6b);
+            padding: 12px 0;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            animation: urgentPulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes urgentPulse {
+            0% { background: linear-gradient(45deg, #ff4444, #ff6b6b); }
+            100% { background: linear-gradient(45deg, #ff6b6b, #ff8888); }
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 100px 0 50px 0;
+            position: relative;
+        }
+        
+        .hero h1 {
+            font-size: 4em;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #4dd0e1, #ff6b9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5em;
+            color: #80deea;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .hero p {
+            font-size: 1.2em;
+            color: #b2dfdb;
+            max-width: 800px;
+            margin: 0 auto 50px auto;
+            line-height: 1.7;
+        }
+        
+        .pricing-hero {
+            background: rgba(10, 26, 46, 0.6);
+            border-radius: 20px;
+            padding: 50px;
+            margin: 50px 0;
+            border: 3px solid rgba(77, 214, 225, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .limited-time {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 25px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 157, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 107, 157, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 157, 0); }
+        }
+        
+        .slots-remaining {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ff6b9d;
+            margin: 20px 0;
+        }
+        
+        .countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .countdown-item {
+            background: rgba(77, 214, 225, 0.2);
+            border-radius: 10px;
+            padding: 15px 20px;
+            text-align: center;
+            border: 2px solid rgba(77, 214, 225, 0.4);
+        }
+        
+        .countdown-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4dd0e1;
+        }
+        
+        .countdown-label {
+            color: #b2dfdb;
+            font-size: 0.9em;
+        }
+        
+        .pricing-tiers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 40px 0;
+        }
+        
+        .pricing-card {
+            background: rgba(10, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(77, 214, 225, 0.3);
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            padding: 8px 25px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+        }
+        
+        .beta-individual {
+            border-color: rgba(231, 60, 126, 0.5);
+            background: rgba(231, 60, 126, 0.1);
+        }
+        
+        .beta-team {
+            border-color: rgba(77, 214, 225, 0.5);
+        }
+        
+        .plan-name {
+            font-size: 1.8em;
+            color: #4dd0e1;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .plan-price {
+            font-size: 3.5em;
+            font-weight: 900;
+            color: #ff6b9d;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price .currency {
+            font-size: 0.5em;
+            color: #b2dfdb;
+        }
+        
+        .original-price {
+            font-size: 1.2em;
+            color: #80deea;
+            text-decoration: line-through;
+            margin-bottom: 20px;
+        }
+        
+        .savings {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+        
+        .features {
+            text-align: left;
+            margin: 30px 0;
+            list-style: none;
+        }
+        
+        .features li {
+            color: #b2dfdb;
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 1.05em;
+        }
+        
+        .features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .cta-button {
+            background: linear-gradient(45deg, #e73c7e, #ff6b9d);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5);
+        }
+        
+        .cta-button.primary {
+            background: linear-gradient(45deg, #4dd0e1, #80deea);
+            font-size: 1.3em;
+            padding: 20px 40px;
+        }
+        
+        .guarantee {
+            text-align: center;
+            color: #80deea;
+            font-size: 1em;
+            margin: 40px 0;
+            padding: 20px;
+            background: rgba(77, 214, 225, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+        }
+        
+        .social-proof {
+            background: rgba(10, 26, 46, 0.6);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 50px 0;
+            text-align: center;
+            border: 2px solid rgba(77, 214, 225, 0.2);
+        }
+        
+        .testimonial {
+            font-size: 1.1em;
+            color: #b2dfdb;
+            font-style: italic;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+        
+        .author {
+            color: #4dd0e1;
+            font-weight: 600;
+        }
+        
+        .urgency-footer {
+            background: rgba(231, 60, 126, 0.2);
+            border: 2px solid rgba(231, 60, 126, 0.5);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 50px 0;
+            text-align: center;
+        }
+        
+        .urgency-footer h3 {
+            color: #ff6b9d;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .footer {
+            background: rgba(10, 26, 46, 0.9);
+            padding: 50px 0;
+            text-align: center;
+            border-top: 2px solid rgba(77, 214, 225, 0.3);
+            margin-top: 100px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #b2dfdb;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: #4dd0e1;
+        }
+        
+        .copyright {
+            color: #80deea;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5em; }
+            .pricing-tiers { grid-template-columns: 1fr; }
+            .countdown-container { flex-direction: column; align-items: center; }
+            .pricing-hero { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="urgency-banner">
+        🚨 EARLY BIRD PRICING ENDS IN <span id="urgencyCountdown">30 DAYS</span> - SAVE $20/MONTH FOREVER! 🚨
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1>🌊 RinaWarp Terminal</h1>
+            <div class="hero-subtitle">AI-Powered Development Assistant</div>
+            <p>Transform your development workflow with natural language commands, intelligent code generation, and seamless AI integration. Built for professional developers who demand the best.</p>
+            
+            <div class="pricing-hero">
+                <div class="limited-time">⚡ LIMITED TIME - EARLY BIRD PRICING</div>
+                
+                <div class="slots-remaining" id="slotsRemaining">73 Beta Slots Remaining</div>
+                
+                <div class="countdown-container">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="days">30</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="hours">0</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="minutes">0</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                </div>
+                
+                <div class="pricing-tiers">
+                    <div class="pricing-card beta-individual">
+                        <div class="popular-badge">🔥 MOST POPULAR</div>
+                        <div class="plan-name">Beta Access</div>
+                        <div class="plan-price">$19<span class="currency">/month</span></div>
+                        <div class="original-price">Regular Price: $39/month</div>
+                        <div class="savings">Save $240/year!</div>
+                        
+                        <ul class="features">
+                            <li>Full AI terminal access</li>
+                            <li>All AI providers (GPT-4, Claude, Groq)</li>
+                            <li>Unlimited AI queries</li>
+                            <li>Priority support & feedback channel</li>
+                            <li>Shape the product roadmap</li>
+                            <li>Lock in early adopter pricing FOREVER</li>
+                            <li>Beta-to-production upgrade guarantee</li>
+                        </ul>
+                        
+                        <button class="cta-button primary" onclick="selectPlan('beta')">
+                            🚀 Secure Beta Spot - $19/mo
+                        </button>
+                    </div>
+                    
+                    <div class="pricing-card beta-team">
+                        <div class="plan-name">Team Beta</div>
+                        <div class="plan-price">$79<span class="currency">/month</span></div>
+                        <div class="original-price">Regular Price: $159/month</div>
+                        <div class="savings">Save $960/year!</div>
+                        
+                        <ul class="features">
+                            <li>Everything in Beta Access</li>
+                            <li>Up to 5 developers included</li>
+                            <li>Team collaboration features</li>
+                            <li>Shared configurations & templates</li>
+                            <li>Dedicated team support channel</li>
+                            <li>Early access to enterprise features</li>
+                            <li>Team usage analytics</li>
+                        </ul>
+                        
+                        <button class="cta-button" onclick="selectPlan('team')">
+                            👥 Reserve Team Spots - $79/mo
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="guarantee">
+                    🛡️ <strong>RISK-FREE:</strong> 7-day money-back guarantee • Cancel anytime • Secure Stripe checkout<br>
+                    🎯 <strong>GUARANTEE:</strong> Beta closes at 100 users • Lock in pricing forever • Priority production access
+                </div>
+            </div>
+        </div>
+        
+        <div class="social-proof">
+            <div class="testimonial">
+                "This is exactly what I've been looking for. The AI understands my codebase context perfectly and saves me hours every day. Game-changer for productivity."
+            </div>
+            <div class="author">- Sarah Chen, Senior Developer at Stripe (Beta User #7)</div>
+        </div>
+        
+        <div class="urgency-footer">
+            <h3>⚠️ Beta Access Closing Soon</h3>
+            <p>Only accepting 100 beta users total. Once we hit capacity, the waiting list opens and pricing goes to regular rates. Don't miss your chance to lock in early bird pricing forever.</p>
+            <button class="cta-button" onclick="selectPlan('beta')" style="margin-top: 20px;">
+                🎯 Reserve My Spot Now - $19/mo
+            </button>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="/about.html">About</a>
+                <a href="/documentation.html">Documentation</a>
+                <a href="/faq.html">FAQ</a>
+                <a href="/privacy-policy.html">Privacy Policy</a>
+                <a href="mailto:support@rinawarptech.com">Support</a>
+            </div>
+            <div class="copyright">
+                © 2025 RinaWarp Tech, Inc. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Plan selection with Stripe integration
+        function selectPlan(planType) {
+            const plans = {
+                beta: {
+                    name: 'Beta Access',
+                    price: '$19/month',
+                    originalPrice: '$39/month',
+                    savings: 'Save $240/year',
+                    description: 'Individual developer access to RinaWarp Terminal beta',
+                    // Real Stripe Payment Link - TEST MODE
+                    stripeUrl: 'https://buy.stripe.com/test_4gMaEXdmTaZBgr59To0kE00'
+                },
+                team: {
+                    name: 'Team Beta',
+                    price: '$79/month',
+                    originalPrice: '$159/month',
+                    savings: 'Save $960/year',
+                    description: 'Team access for up to 5 developers',
+                    // Real Stripe Payment Link - TEST MODE
+                    stripeUrl: 'https://buy.stripe.com/test_5kQeVdeqX2t5gr51mS0kE01'
+                }
+            };
+            
+            const plan = plans[planType];
+            
+            // Confirmation with urgency
+            const confirmed = confirm(`🚀 SECURE YOUR ${plan.name.toUpperCase()} SPOT!\n\n💰 ${plan.price} (${plan.savings})\n📋 ${plan.description}\n\n✅ INCLUDED:\n• 7-day money-back guarantee\n• Cancel anytime, no contracts\n• Secure Stripe checkout\n• Lock in early bird pricing FOREVER\n• Beta closes at 100 users\n• Priority production access\n\n⚠️ URGENT: Only ${document.getElementById('slotsRemaining').textContent} left!\n\nClick OK to proceed to secure payment page`);
+            
+            if (confirmed) {
+                // Analytics tracking
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'begin_checkout', {
+                        currency: 'USD',
+                        value: planType === 'beta' ? 19 : 79,
+                        items: [{
+                            item_id: planType + '_beta',
+                            item_name: plan.name,
+                            category: 'subscription',
+                            quantity: 1,
+                            price: planType === 'beta' ? 19 : 79
+                        }]
+                    });
+                }
+                
+                // Redirect to Stripe Checkout
+                // In production, use actual Stripe Payment Links
+                window.open(plan.stripeUrl, '_blank');
+                
+                // Simulate slot decrease for demo
+                simulateSlotDecrease();
+                
+                // Show success message after short delay
+                setTimeout(() => {
+                    alert('🎉 REDIRECTING TO SECURE CHECKOUT!\n\nYou\'ll receive:\n• Instant beta access credentials\n• Setup guide via email\n• Direct Slack channel invite\n• Early adopter pricing locked in\n\nWelcome to the RinaWarp revolution! 🌊');
+                }, 1000);
+            }
+        }
+        
+        // Simulate slot countdown (for demo purposes)
+        function simulateSlotDecrease() {
+            const slotsElement = document.getElementById('slotsRemaining');
+            let currentSlots = parseInt(slotsElement.textContent);
+            
+            if (currentSlots > 1) {
+                const newSlots = currentSlots - 1;
+                slotsElement.textContent = `${newSlots} Beta Slots Remaining`;
+                
+                // Add urgency styling
+                if (newSlots <= 10) {
+                    slotsElement.style.color = '#ff4444';
+                    slotsElement.style.animation = 'pulse 1s infinite';
+                    slotsElement.style.textShadow = '0 0 20px #ff4444';
+                }
+            }
+        }
+        
+        // Countdown timer
+        function updateCountdown() {
+            const now = new Date();
+            const endDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days
+            const timeLeft = endDate - now;
+            
+            if (timeLeft > 0) {
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('minutes').textContent = minutes;
+                document.getElementById('urgencyCountdown').textContent = `${days}D ${hours}H ${minutes}M`;
+                
+                // Add urgency when time is running out
+                if (days <= 7) {
+                    document.querySelector('.urgency-banner').style.background = 'linear-gradient(45deg, #ff0000, #ff4444)';
+                    document.querySelector('.urgency-banner').style.animation = 'urgentPulse 0.5s ease-in-out infinite alternate';
+                }
+            }
+        }
+        
+        // Update countdown every minute
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+        
+        // Random slot decreases for urgency (demo only)
+        setInterval(() => {
+            if (Math.random() > 0.85) {
+                simulateSlotDecrease();
+            }
+        }, 30000);
+        
+        console.log('💰 RinaWarp Terminal - REVENUE MODE ACTIVATED! 🚀');
+        
+        // Track page views
+        if (typeof gtag !== 'undefined') {
+            gtag('config', 'GA_MEASUREMENT_ID', {
+                page_title: 'Beta Signup - Revenue',
+                page_location: window.location.href
+            });
+        }
+    </script>
+    
+    <!-- Stripe.js for payments -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- Google Analytics (replace with your GA4 ID) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+</body>
+</html>

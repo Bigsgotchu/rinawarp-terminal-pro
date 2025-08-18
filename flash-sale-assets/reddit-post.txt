@@ -1,0 +1,23 @@
+
+Title: [50% OFF Launch] RinaWarp Terminal - AI-powered developer terminal with real-time suggestions
+
+Body:
+Hey r/programming!
+
+I'm excited to share a new developer tool I've been working on: RinaWarp Terminal - an AI-powered terminal that helps developers code faster and smarter.
+
+**What it does:**
+- Real-time AI code suggestions as you type
+- Deep project intelligence (analyzes your entire codebase)
+- Workflow automation with AI detection
+- Advanced code visualization
+- Natural language commands
+
+We just launched, and to celebrate, we're offering **50% off** for the first 100 users (normally $19.99/month, now $9.99/month).
+
+Here's a quick demo: [GIF LINK]
+
+I'd love to hear your feedback if you try it out! What AI features would you want in your terminal?
+
+Website: https://rinawarptech.com
+  

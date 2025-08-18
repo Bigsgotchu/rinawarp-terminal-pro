@@ -5,7 +5,7 @@
  */
 
 import fs from 'fs';
-import { execSync } from 'child_process';
+import { _execSync } from 'child_process';
 
 console.log('📧 Quick Email Service Configuration');
 console.log('=====================================\n');

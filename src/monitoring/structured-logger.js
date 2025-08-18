@@ -307,7 +307,7 @@ class StructuredLogger {
 
     // This is a placeholder - in production, you might query a log aggregation service
     // For now, we'll read from the local log file
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const logFile = path.join(this.logDirectory, 'combined.log');
       fs.promises.readFile(logFile, 'utf8').then(data => {
         const logs = data

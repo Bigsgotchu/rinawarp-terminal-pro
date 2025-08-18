@@ -25,7 +25,7 @@ function success(message) {
   console.log(`${colors.green}✅ ${message}${colors.reset}`);
 }
 
-function warn(message) {
+function _warn(message) {
   console.log(`${colors.yellow}⚠️ ${message}${colors.reset}`);
 }
 

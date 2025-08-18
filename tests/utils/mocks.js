@@ -102,7 +102,7 @@ export const createMockAISystem = () => {
     }),
 
     // Additional AI methods
-    analyzeCode: jest.fn(async code => {
+    analyzeCode: jest.fn(async _code => {
       return {
         suggestions: ['Consider adding error handling', 'This function could be more modular'],
         complexity: 'medium',

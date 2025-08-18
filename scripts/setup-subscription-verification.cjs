@@ -6,7 +6,7 @@
  */
 
 const fs = require('fs').promises;
-const path = require('path');
+const _path = require('path');
 
 console.log('🔐 Setting up Subscription Verification System...\n');
 

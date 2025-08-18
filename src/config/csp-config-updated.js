@@ -1,5 +1,5 @@
 // Updated CSP Configuration with all required hashes
-export const getCSPHeader = nonce => {
+export const getCSPHeader = _nonce => {
   const scriptHashes = [
     'sha256-75UjkgWl1ciiClQcZlt3z6BXga/OTL1hm9z3tozPwKA=',
     'sha256-KKraR6z3U0TYXEIFhs9yFznk2lRjBRawwkQ4u2ThztA=',

@@ -9,7 +9,7 @@
  * - Seamless integration with your current workflow
  */
 
-import { EnhancedDevelopmentAssistant } from './enhanced-development-assistant.js';
+import { _EnhancedDevelopmentAssistant } from './enhanced-development-assistant.js';
 
 export class WarpAgentIntegration {
   constructor(terminalInstance, config = {}) {
@@ -363,7 +363,7 @@ export class WarpAgentIntegration {
     // This is where you'd integrate with your AI provider
     // For now, providing a structured response similar to how I work
 
-    const prompt = this.buildAgentPrompt(query, context);
+    const _prompt = this.buildAgentPrompt(query, context);
 
     // You would replace this with actual AI provider calls
     // For example, using your existing OpenAI integration:
@@ -404,7 +404,7 @@ Please provide a helpful, concise response. If the query requires file operation
     `.trim();
   }
 
-  generateMockIntelligentResponse(query, context) {
+  generateMockIntelligentResponse(query, _context) {
     // This provides intelligent mock responses based on query patterns
     // Replace with actual AI provider integration
 
@@ -598,17 +598,17 @@ What would you like help with today?`;
   }
 
   // Tool implementations (these would integrate with your existing terminal capabilities)
-  async readProjectFiles(filePaths) {
+  async readProjectFiles(_filePaths) {
     // Implementation for reading files
     return { files: [], error: null };
   }
 
-  async searchCodebase(query, options) {
+  async searchCodebase(_query, options) {
     // Implementation for code searching
     return { results: [], error: null };
   }
 
-  async executeCommand(command, options) {
+  async executeCommand(_command, options) {
     // Safe command execution
     return { output: '', error: null };
   }
@@ -618,12 +618,12 @@ What would you like help with today?`;
     return { analysis: '', suggestions: [] };
   }
 
-  async findFiles(patterns, path) {
+  async findFiles(_patterns, _path) {
     // File finding implementation
     return { files: [], error: null };
   }
 
-  async performGitOperation(operation, args) {
+  async performGitOperation(_operation, _args) {
     // Git operations implementation
     return { output: '', error: null };
   }

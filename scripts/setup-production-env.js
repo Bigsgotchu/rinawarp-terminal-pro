@@ -20,7 +20,7 @@ const question = prompt => new Promise(resolve => rl.question(prompt, resolve));
 async function setupProductionEnv() {
   console.log('🚀 RinaWarp Terminal - Production Environment Setup\n');
 
-  const envPath = path.join(__dirname, '../.env.production');
+  const _envPath = path.join(__dirname, '../.env.production');
   const envExamplePath = path.join(__dirname, '../.env.production');
 
   // Read the example env file

@@ -1,0 +1,18 @@
+## ENGAGED USERS - COPY THIS TO GOOGLE ANALYTICS ##
+
+Name: Engaged Users
+Description: Users who spent meaningful time on site  
+Duration: 30 days
+
+CONDITION 1: Session duration > 30 seconds
+CONDITION 2: Page views per session >= 2
+LOGIC: AND (both conditions must be true)
+
+## STEP BY STEP ##
+1. GA4 → Admin → Audiences → Edit 'Untitled audience'  
+2. Fill name and description above
+3. Set duration to 30 days
+4. Add condition: Session duration > 30 seconds
+5. Add condition: Page views per session >= 2  
+6. Make sure logic is AND
+7. Save

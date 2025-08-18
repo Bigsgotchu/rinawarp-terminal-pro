@@ -171,6 +171,8 @@ export default [
         btoa: 'readonly',
         atob: 'readonly',
         CSS: 'readonly',
+        Notification: 'readonly',
+        TextDecoder: 'readonly',
 
         // WebRTC and Media APIs
         RTCPeerConnection: 'readonly',

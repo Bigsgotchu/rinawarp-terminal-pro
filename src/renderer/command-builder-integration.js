@@ -118,7 +118,7 @@ class CommandBuilderIntegration {
       };
 
       // Hook into command submission events
-      this.terminal.onKey(({ key, domEvent }) => {
+      this.terminal.onKey(({ _key, domEvent }) => {
         if (domEvent.key === 'Enter') {
           this.handleCommandSubmission();
         }

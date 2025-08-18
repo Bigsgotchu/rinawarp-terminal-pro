@@ -5,7 +5,7 @@ import logger from '../utilities/logger.js';
  */
 
 // Import module configuration utilities
-import { ModuleLoader, initializeModule, loadModules } from '../utils/module-config.js';
+import { _ModuleLoader, _initializeModule, _loadModules } from '../utils/module-config.js';
 
 // Fix for ES module exports in browser context
 (function () {

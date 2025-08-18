@@ -25,7 +25,7 @@ class ManualSalesProcessor {
     }
   }
 
-  generateLicenseKey(plan, email) {
+  generateLicenseKey(plan, _email) {
     const timestamp = Date.now();
     const random = crypto.randomBytes(4).toString('hex');
     const planCode =

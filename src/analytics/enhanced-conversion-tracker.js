@@ -588,7 +588,7 @@ class EnhancedConversionTracker {
   trackEvent(eventName, data) {
     if (this.isEnabled) {
       // Track event implementation would go here
-      const eventData = {
+      const _eventData = {
         event_name: eventName,
         ...data,
         timestamp: Date.now(),

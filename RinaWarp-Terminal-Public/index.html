@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RinaWarp Terminal Creator Edition - Advanced AI-Integrated Terminal with Creator Features">
+    <meta name="keywords" content="terminal, AI, creator, coding, development, RinaWarp">
+    <meta name="author" content="RinaWarp Development Team">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="RinaWarp Terminal Creator Edition">
+    <meta property="og:description" content="Advanced AI-Integrated Terminal with Creator Features">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/assets/images/og-image.png">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RinaWarp Terminal Creator Edition">
+    <meta name="twitter:description" content="Advanced AI-Integrated Terminal with Creator Features">
+    <meta name="twitter:image" content="/assets/images/twitter-card.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+    <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://api.openai.com">
+    <link rel="preconnect" href="https://api.anthropic.com">
+    
+    <!-- CSS Imports -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <!-- 💰 LIVE REVENUE API Configuration -->
+    <script src="js/config/api.js" type="module"></script>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="js/modules/app.js" as="script" type="module">
+    <link rel="preload" href="js/utils/secureStorage.js" as="script" type="module">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.openai.com https://api.anthropic.com https://api.cohere.ai https://api.mistral.ai wss: ws:;
+        media-src 'self';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+        upgrade-insecure-requests;
+    ">
+    
+    <title>RinaWarp Terminal Creator Edition - Advanced AI-Integrated Terminal</title>
+</head>
+<body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Application Container -->
+    <div class="app-container" id="app">
+        <!-- Creator Badge -->
+        <div class="creator-badge" aria-label="Creator Edition Badge">
+            <span class="sr-only">RinaWarp Terminal </span>Creator Edition
+        </div>
+
+        <!-- Header Section -->
+        <header class="header" role="banner">
+            <h1 class="main-title">
+                <span class="sr-only">RinaWarp Terminal Creator Edition - </span>
+                RinaWarp Terminal Creator Edition
+            </h1>
+            <div class="creator-info">
+                <p>🚀 Advanced AI-Integrated Terminal with Creator-Grade Features</p>
+                <p>Experience the future of terminal computing with intelligent assistance</p>
+            </div>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status" id="status-bar" role="status" aria-live="polite">
+            Ready - AI-Powered Terminal Initialized
+        </div>
+
+        <!-- Main Layout -->
+        <main class="main-layout" id="main-content" role="main">
+            <!-- Features Sidebar -->
+            <aside class="features-sidebar" id="features-sidebar" role="complementary" aria-expanded="false" aria-label="Feature Panel">
+                <!-- Sidebar Toggle -->
+                <button class="sidebar-toggle" 
+                        aria-label="Toggle feature panel" 
+                        aria-expanded="false" 
+                        aria-controls="features-sidebar">
+                    ☰
+                </button>
+
+                <!-- Core AI Features -->
+                <div class="feature-group">
+                    <h3 class="feature-group-title">
+                        <span aria-hidden="true">🤖</span>
+                        <span>AI Assistant</span>
+                    </h3>
+                    <button class="feature-button" 
+                            data-feature="ai-chat" 
+                            aria-describedby="ai-chat-desc">
+                        AI Chat Interface
+                    </button>
+                    <div id="ai-chat-desc" class="sr-only">Open AI chat for intelligent assistance</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="ai-provider" 
+                            aria-describedby="ai-provider-desc">
+                        Configure AI Provider
+                    </button>
+                    <div id="ai-provider-desc" class="sr-only">Configure AI service provider settings</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="code-analysis" 
+                            aria-describedby="code-analysis-desc">
+                        Code Analysis
+                    </button>
+                    <div id="code-analysis-desc" class="sr-only">Analyze code with AI assistance</div>
+                </div>
+
+                <!-- Development Tools -->
+                <div class="feature-group">
+                    <h3 class="feature-group-title">
+                        <span aria-hidden="true">🛠️</span>
+                        <span>Development</span>
+                    </h3>
+                    <button class="feature-button" 
+                            data-feature="project-scan" 
+                            aria-describedby="project-scan-desc">
+                        Project Scanner
+                    </button>
+                    <div id="project-scan-desc" class="sr-only">Scan and analyze project structure</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="auto-complete" 
+                            aria-describedby="auto-complete-desc">
+                        Smart Autocomplete
+                    </button>
+                    <div id="auto-complete-desc" class="sr-only">Enable intelligent command completion</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="syntax-highlight" 
+                            aria-describedby="syntax-highlight-desc">
+                        Syntax Highlighting
+                    </button>
+                    <div id="syntax-highlight-desc" class="sr-only">Enable syntax highlighting for code</div>
+                </div>
+
+                <!-- Deployment & CI/CD -->
+                <div class="feature-group">
+                    <h3 class="feature-group-title">
+                        <span aria-hidden="true">🚀</span>
+                        <span>Deployment</span>
+                    </h3>
+                    <button class="feature-button" 
+                            data-feature="deployment" 
+                            aria-describedby="deployment-desc">
+                        Deploy Project
+                    </button>
+                    <div id="deployment-desc" class="sr-only">Deploy project to various platforms</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="ci-cd" 
+                            aria-describedby="ci-cd-desc">
+                        CI/CD Pipeline
+                    </button>
+                    <div id="ci-cd-desc" class="sr-only">Configure continuous integration and deployment</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="monitoring" 
+                            aria-describedby="monitoring-desc">
+                        Performance Monitor
+                    </button>
+                    <div id="monitoring-desc" class="sr-only">Monitor application performance</div>
+                </div>
+
+                <!-- Collaboration -->
+                <div class="feature-group">
+                    <h3 class="feature-group-title">
+                        <span aria-hidden="true">👥</span>
+                        <span>Collaboration</span>
+                    </h3>
+                    <button class="feature-button" 
+                            data-feature="collaboration" 
+                            aria-describedby="collaboration-desc">
+                        Live Collaboration
+                    </button>
+                    <div id="collaboration-desc" class="sr-only">Start live collaboration session</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="code-review" 
+                            aria-describedby="code-review-desc">
+                        AI Code Review
+                    </button>
+                    <div id="code-review-desc" class="sr-only">Get AI-powered code review</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="pair-programming" 
+                            aria-describedby="pair-programming-desc">
+                        AI Pair Programming
+                    </button>
+                    <div id="pair-programming-desc" class="sr-only">Start AI-assisted pair programming</div>
+                </div>
+
+                <!-- Security -->
+                <div class="feature-group">
+                    <h3 class="feature-group-title">
+                        <span aria-hidden="true">🔒</span>
+                        <span>Security</span>
+                    </h3>
+                    <button class="feature-button" 
+                            data-feature="security-scan" 
+                            aria-describedby="security-scan-desc">
+                        Security Scan
+                    </button>
+                    <div id="security-scan-desc" class="sr-only">Run security vulnerability scan</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="dependency-check" 
+                            aria-describedby="dependency-check-desc">
+                        Dependency Check
+                    </button>
+                    <div id="dependency-check-desc" class="sr-only">Check dependencies for vulnerabilities</div>
+                    
+                    <button class="feature-button" 
+                            data-feature="secure-storage" 
+                            aria-describedby="secure-storage-desc">
+                        Secure Storage
+                    </button>
+                    <div id="secure-storage-desc" class="sr-only">Manage encrypted secure storage</div>
+                </div>
+            </aside>
+
+            <!-- Terminal Area -->
+            <div class="terminal-area" role="main" aria-label="Terminal Interface">
+                <!-- Terminal Header -->
+                <div class="terminal-header-clean">
+                    <div class="terminal-title">
+                        <span aria-hidden="true">💻</span>
+                        <span>RinaWarp Terminal</span>
+                        <span class="terminal-status" id="terminal-status" aria-live="polite">Ready</span>
+                    </div>
+                    <div class="terminal-controls">
+                        <button class="control-btn" 
+                                data-action="clear" 
+                                aria-label="Clear terminal">
+                            Clear
+                        </button>
+                        <button class="control-btn" 
+                                data-action="export" 
+                                aria-label="Export terminal content">
+                            Export
+                        </button>
+                        <button class="control-btn" 
+                                data-action="settings" 
+                                aria-label="Open settings">
+                            Settings
+                        </button>
+                        <button class="control-btn" 
+                                data-action="help" 
+                                aria-label="Open help">
+                            Help
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Terminal Container -->
+                <div class="terminal-container" 
+                     role="log" 
+                     aria-live="polite" 
+                     aria-label="Terminal output">
+                    <div id="terminal"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- About the Creator Section -->
+        <section class="creator-section" id="about-creator" role="region" aria-labelledby="creator-heading">
+            <div class="creator-content">
+                <div class="creator-header">
+                    <h2 id="creator-heading" class="creator-title">
+                        <span class="creator-emoji" aria-hidden="true">🧜‍♀️</span>
+                        About the Creator
+                    </h2>
+                    <p class="creator-tagline">Building the future of terminals, one commit at a time</p>
+                </div>
+                
+                <div class="creator-bio">
+                    <p class="creator-intro">
+                        I'm the creator behind RinaWarp Terminal and founder of <strong>Rinawarp Technologies, LLC</strong>. 
+                        What began as frustration with clunky terminal experiences evolved into building an AI-powered 
+                        terminal that reimagines how developers work.
+                    </p>
+                    
+                    <p class="creator-philosophy">
+                        My background is a blend of code and creativity – I publish music as <strong>Rina Vex</strong> and 
+                        believe the best software comes from understanding both the technical and human sides of problems. 
+                        This philosophy shaped RinaWarp Terminal's approach: powerful AI features wrapped in an interface 
+                        that actually sparks joy.
+                    </p>
+                    
+                    <p class="creator-vision">
+                        RinaWarp Terminal isn't just another terminal – it's a rethinking of how developers interact with 
+                        their machines. Voice commands, natural language processing, intelligent suggestions, and a gorgeous 
+                        mermaid-themed UI that proves developer tools don't have to be ugly.
+                    </p>
+                    
+                    <p class="creator-mission">
+                        As a solo founder, I'm focused on creating products that solve real problems beautifully. Currently 
+                        building and refining the platform while maintaining the craft and attention to detail that makes 
+                        great software.
+                    </p>
+                </div>
+                
+                <div class="creator-details">
+                    <div class="detail-group">
+                        <h3 class="detail-title">
+                            <span aria-hidden="true">⚡</span>
+                            Tech Stack
+                        </h3>
+                        <p class="detail-content">Electron, Node.js, AI/ML integration, cross-platform development</p>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h3 class="detail-title">
+                            <span aria-hidden="true">🎵</span>
+                            Creative Outlet
+                        </h3>
+                        <p class="detail-content">Music production and release as Rina Vex</p>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h3 class="detail-title">
+                            <span aria-hidden="true">🎯</span>
+                            Mission
+                        </h3>
+                        <p class="detail-content">Making developer tools that developers actually love to use</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Version Info -->
+        <div class="version-info" aria-hidden="true">
+            v3.0.0-creator
+        </div>
+    </div>
+
+    <!-- Global Loading Overlay (will be created by LoadingManager) -->
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notification-container" 
+         role="region" 
+         aria-label="Notifications" 
+         aria-live="polite">
+    </div>
+
+    <!-- AI Provider Configuration Panel -->
+    <div class="modal-overlay" id="ai-provider-modal" role="dialog" aria-hidden="true" aria-labelledby="ai-provider-title">
+        <div class="modal-panel ai-provider-panel">
+            <h3 id="ai-provider-title">Configure AI Provider</h3>
+            
+            <div class="provider-options" role="radiogroup" aria-labelledby="ai-provider-title">
+                <div class="provider-option" role="radio" tabindex="0" data-provider="openai" aria-describedby="openai-desc">
+                    <h4>OpenAI (GPT-4)</h4>
+                    <p id="openai-desc">Advanced AI with excellent reasoning capabilities</p>
+                    <input type="password" 
+                           class="key-input" 
+                           placeholder="Enter your OpenAI API key" 
+                           aria-label="OpenAI API Key"
+                           data-provider="openai">
+                </div>
+                
+                <div class="provider-option" role="radio" tabindex="0" data-provider="anthropic" aria-describedby="anthropic-desc">
+                    <h4>Anthropic (Claude)</h4>
+                    <p id="anthropic-desc">Helpful, harmless, and honest AI assistant</p>
+                    <input type="password" 
+                           class="key-input" 
+                           placeholder="Enter your Anthropic API key" 
+                           aria-label="Anthropic API Key"
+                           data-provider="anthropic">
+                </div>
+                
+                <div class="provider-option" role="radio" tabindex="0" data-provider="cohere" aria-describedby="cohere-desc">
+                    <h4>Cohere</h4>
+                    <p id="cohere-desc">Advanced language model for various tasks</p>
+                    <input type="password" 
+                           class="key-input" 
+                           placeholder="Enter your Cohere API key" 
+                           aria-label="Cohere API Key"
+                           data-provider="cohere">
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="control-btn" data-action="save-provider" aria-label="Save AI provider configuration">
+                    Save Configuration
+                </button>
+                <button class="control-btn" data-action="close-provider" aria-label="Close AI provider dialog">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chat Panel -->
+    <div class="ai-chat-overlay" id="ai-chat-overlay" role="dialog" aria-hidden="true" aria-labelledby="ai-chat-title">
+        <div class="ai-chat-panel">
+            <div class="ai-chat-header">
+                <h3 id="ai-chat-title">AI Assistant</h3>
+                <button class="close-btn" aria-label="Close AI chat">×</button>
+            </div>
+            <div class="ai-chat-messages" 
+                 role="log" 
+                 aria-live="polite" 
+                 aria-label="AI chat messages">
+            </div>
+            <div class="ai-chat-input-container">
+                <textarea class="ai-chat-input" 
+                         placeholder="Ask me anything..." 
+                         rows="3"
+                         aria-label="Chat message input"></textarea>
+                <button class="ai-chat-send" 
+                        aria-label="Send message">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Boundary -->
+    <div class="error-boundary" id="error-boundary" style="display: none;" role="alert">
+        <h2>Something went wrong</h2>
+        <p>We're sorry, but something unexpected happened. Please refresh the page to try again.</p>
+        <button class="control-btn" onclick="location.reload()">Refresh Page</button>
+    </div>
+
+    <!-- Service Worker Registration -->
+    <script>
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('SW registered: ', registration);
+                }, function(registrationError) {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+    </script>
+
+    <!-- Main Application Script -->
+    <script type="module">
+        import { app } from './js/modules/app.js';
+        
+        // Initialize application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await app.init();
+                
+                // Add global error handler
+                window.addEventListener('error', (event) => {
+                    console.error('Global error:', event.error);
+                    document.getElementById('error-boundary').style.display = 'block';
+                });
+                
+                window.addEventListener('unhandledrejection', (event) => {
+                    console.error('Unhandled promise rejection:', event.reason);
+                    document.getElementById('error-boundary').style.display = 'block';
+                });
+                
+            } catch (error) {
+                console.error('Failed to initialize application:', error);
+                document.getElementById('error-boundary').style.display = 'block';
+            }
+        });
+
+        // Expose app globally for debugging
+        window.RinaWarpApp = app;
+        
+        // Performance monitoring
+        if (window.performance && window.performance.mark) {
+            window.performance.mark('app-script-loaded');
+        }
+    </script>
+
+    <!-- Analytics and Monitoring (placeholder) -->
+    <script>
+        // Add analytics tracking here if needed
+        // Example: Google Analytics, Mixpanel, etc.
+    </script>
+</body>
+</html>

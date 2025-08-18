@@ -7,7 +7,7 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs').promises;
-const path = require('path');
+const _path = require('path');
 const crypto = require('crypto');
 
 console.log('🚀 Installing RinaWarp Terminal Backend...\n');

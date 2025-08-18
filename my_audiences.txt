@@ -1,0 +1,40 @@
+
+> rinawarp-terminal@1.3.1 audiences
+> node scripts/audience-helper.js config
+
+🔍 RinaWarp Analytics Audience Helper
+
+📄 Audience Configuration Export
+==================================================
+Copy this configuration to your Google Analytics:
+
+## Engaged Users
+Description: Users who spent meaningful time on site
+Conditions: Session duration > 30 seconds AND Page views per session ≥ 2
+Duration: 30 days
+---
+## High Intent Users
+Description: Users who viewed key conversion pages
+Conditions: Page path contains 'pricing' OR Page path contains 'download' OR Page path contains 'features' OR Page path contains 'beta'
+Duration: 30 days
+---
+## Returning Visitors
+Description: Users who came back to the site
+Conditions: Sessions ≥ 2 AND First visit date > 1 day ago
+Duration: 30 days
+---
+## New Users
+Description: First-time visitors
+Conditions: Sessions = 1
+Duration: 7 days
+---
+## Mobile Users
+Description: Users primarily on mobile devices
+Conditions: Device category = mobile
+Duration: 30 days
+---
+## Organic Traffic
+Description: Users from search engines
+Conditions: Default channel grouping = Organic Search
+Duration: 30 days
+---
