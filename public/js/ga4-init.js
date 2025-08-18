@@ -1,3 +1,8 @@
+// DEPRECATED: Google Analytics 4 Direct Initialization
+// This file is now DISABLED because we're using Google Tag Manager (GTM-5LDNPV8Z)
+// GTM will handle GA4 configuration and initialization
+
+/*
 // Google Analytics 4 Initialization - CSP Compliant
 // This file replaces inline gtag initialization scripts
 
@@ -17,7 +22,7 @@ gtag('js', new Date());
 
 // Configure GA4 with your measurement ID
 // This ID should match the one in your gtag script src
-const GA4_MEASUREMENT_ID = 'G-G424CV5GGT';
+const GA4_MEASUREMENT_ID = 'G-SZK23HMCVP';
 gtag('config', GA4_MEASUREMENT_ID, {
     // Enhanced measurement features
     'send_page_view': true,
@@ -35,3 +40,7 @@ window.GA4_MEASUREMENT_ID = GA4_MEASUREMENT_ID;
 
 // Log initialization for debugging
 console.log('✅ GA4 initialized with ID:', GA4_MEASUREMENT_ID);
+*/
+
+// GTM will handle all analytics initialization
+console.log('📊 Analytics handled by GTM container: GTM-5LDNPV8Z');

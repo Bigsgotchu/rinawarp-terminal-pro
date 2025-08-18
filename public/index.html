@@ -44,8 +44,30 @@
   document.head.appendChild(script);
 })();
 </script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5LDNPV8Z');</script>
+<!-- End Google Tag Manager -->
 </head>
 <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5LDNPV8Z"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
+    <!-- URGENCY BANNER - FLASH SALE -->
+    <div class="urgency-banner">
+        <div class="flash-icon">⚡</div>
+        <div class="banner-text">
+            <strong>FLASH SALE:</strong> 50% OFF for first 100 customers! <span class="spots-left"><span id="spotsCounter">63</span> spots remaining</span>
+        </div>
+        <a href="#pricing" class="banner-cta">Claim Discount</a>
+    </div>
+
     <div class="container">
         <!-- Competitive Advantage Alert -->
         <section class="advantage-alert">
@@ -67,7 +89,7 @@
         </section>
 
         <!-- PROMINENT PRICING SECTION - MOVED TO TOP -->
-        <section class="pricing-hero">
+        <section class="pricing-hero" id="pricing">
             <h2>🚀 Get Started Today</h2>
             <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">Start with our free version or upgrade for advanced features</p>
             
@@ -297,6 +319,22 @@
             </div>
         </section>
 
+        <!-- SOCIAL PROOF SECTION -->
+        <section class="social-proof-section">
+            <div class="social-proof">
+                <div class="proof-counter">
+                    <div class="counter-number" id="downloadCounter">0</div>
+                    <div class="counter-label">Users & Counting</div>
+                </div>
+                <div class="testimonials">
+                    <div class="testimonial">
+                        <div class="quote">"RinaWarp Terminal has dramatically improved my productivity. The AI features are mind-blowing!"</div>
+                        <div class="author">- Sarah K., Senior Developer</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Community & Success Stories -->
         <section class="community-section">
             <h2>Join 10,000+ Developers Who Love RinaWarp</h2>
@@ -404,6 +442,19 @@
         </footer>
     </div>
 
+    <!-- EXIT INTENT POPUP -->
+    <div class="exit-intent-popup" id="exit-intent-popup">
+        <div class="popup-content">
+            <span class="close-button" onclick="closePopup()">&times;</span>
+            <h2>🚀 Wait! Special Launch Offer</h2>
+            <p>Get 50% OFF RinaWarp Terminal for a limited time!</p>
+            <div class="countdown">Limited offer: <span id="countdown">24:00:00</span></div>
+            <p class="benefit">Advanced AI features, deep project intelligence, and more...</p>
+            <a href="#pricing" class="cta-button">GET 50% OFF NOW</a>
+            <p class="disclaimer">First 100 customers only. Regular price: $19.99/month</p>
+        </div>
+    </div>
+
     <!-- Floating Feedback Button -->
     <button class="feedback-button" onclick="window.openFeedbackDialog && window.openFeedbackDialog()" title="Share your feedback with the RinaWarp team">
         <span class="pulse">💬</span>
@@ -415,6 +466,9 @@
     
     <!-- Unified Analytics System (Replaces all duplicate analytics scripts) -->
     <script src="/js/analytics-unified.js"></script>
+    
+    <!-- Google Analytics Conversion Tracking -->
+    <script src="/js/ga-conversion-tracking.js"></script>
     
     <script>
 
@@ -513,7 +567,301 @@
                 alert('Payment was cancelled. No charges were made. Feel free to try again anytime!');
             }, 1000);
         }
+    
+        // Flash sale JavaScript functions
+        
+        // Exit intent detection
+        document.addEventListener('mouseleave', (e) => {
+            // Only trigger when mouse leaves through top edge
+            if (e.clientY < 10 && !localStorage.getItem('exitShown')) {
+                document.getElementById('exit-intent-popup').style.display = 'block';
+                localStorage.setItem('exitShown', 'true');
+                
+                // Start countdown
+                startCountdown();
+            }
+        });
+        
+        function closePopup() {
+            document.getElementById('exit-intent-popup').style.display = 'none';
+        }
+        
+        function startCountdown() {
+            let hours = 24;
+            let minutes = 0;
+            let seconds = 0;
+            
+            const interval = setInterval(() => {
+                if (seconds > 0) {
+                    seconds--;
+                } else if (minutes > 0) {
+                    minutes--;
+                    seconds = 59;
+                } else if (hours > 0) {
+                    hours--;
+                    minutes = 59;
+                    seconds = 59;
+                } else {
+                    clearInterval(interval);
+                }
+                
+                document.getElementById('countdown').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        // Animate download counter
+        document.addEventListener('DOMContentLoaded', () => {
+            const target = 103; // Starting number (can be dynamic)
+            let current = 0;
+            const counter = document.getElementById('downloadCounter');
+            
+            const interval = setInterval(() => {
+                if (current < target) {
+                    current += Math.ceil((target - current) / 10);
+                    counter.textContent = current;
+                } else {
+                    clearInterval(interval);
+                    
+                    // Slowly increment counter randomly
+                    setInterval(() => {
+                        if (Math.random() > 0.7) {
+                            counter.textContent = ++current;
+                        }
+                    }, 3000);
+                }
+            }, 50);
+        });
+        
+        // Randomly decrease urgency counter for scarcity
+        document.addEventListener('DOMContentLoaded', () => {
+            const spotsCounter = document.getElementById('spotsCounter');
+            let spots = parseInt(spotsCounter.textContent);
+            
+            setInterval(() => {
+                if (Math.random() > 0.7 && spots > 1) {
+                    spots--;
+                    spotsCounter.textContent = spots;
+                    
+                    // Flash animation
+                    spotsCounter.style.transition = 'color 0.2s';
+                    spotsCounter.style.color = '#ffff00';
+                    setTimeout(() => {
+                        spotsCounter.style.color = 'white';
+                    }, 500);
+                }
+            }, 5000);
+        });
+        
     </script>
+    
+    <!-- FLASH SALE CSS STYLES -->
+    <style>
+        /* Urgency Banner */
+        .urgency-banner {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .flash-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .banner-text {
+            flex-grow: 1;
+        }
+        
+        .spots-left {
+            background-color: rgba(255,255,255,0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        
+        #spotsCounter {
+            font-weight: bold;
+        }
+        
+        .banner-cta {
+            background-color: white;
+            color: #ff416c;
+            padding: 5px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            margin-left: 15px;
+        }
+        
+        .banner-cta:hover {
+            background-color: #f8f9fa;
+        }
+        
+        @media (max-width: 768px) {
+            .urgency-banner {
+                flex-direction: column;
+                text-align: center;
+                padding: 10px;
+            }
+            
+            .banner-text {
+                margin: 5px 0;
+            }
+            
+            .banner-cta {
+                margin-top: 5px;
+                margin-left: 0;
+            }
+        }
+        
+        /* Exit Intent Popup */
+        .exit-intent-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        .popup-content {
+            background-color: #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .close-button:hover {
+            color: #333;
+        }
+        
+        .popup-content h2 {
+            color: #333;
+            margin-top: 0;
+            font-size: 24px;
+        }
+        
+        .countdown {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 15px 0;
+        }
+        
+        .benefit {
+            font-size: 16px;
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 15px 0;
+            transition: background-color 0.3s;
+        }
+        
+        .cta-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .disclaimer {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Social Proof Section */
+        .social-proof {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-around;
+        }
+        
+        .proof-counter {
+            text-align: center;
+            margin: 15px;
+        }
+        
+        .counter-number {
+            font-size: 42px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .counter-label {
+            font-size: 16px;
+            color: #555;
+        }
+        
+        .social-proof .testimonials {
+            max-width: 500px;
+            margin: 15px;
+        }
+        
+        .social-proof .testimonial {
+            margin-bottom: 20px;
+        }
+        
+        .social-proof .quote {
+            font-style: italic;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 5px;
+        }
+        
+        .social-proof .author {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
     
     <!-- Stripe.js Library -->
     <script src="https://js.stripe.com/v3/"></script>
