@@ -32,11 +32,11 @@ Sentry.init({
   integrations: [
     // Automatically instrument Node.js libraries and frameworks
     ...Sentry.getDefaultIntegrations(),
-    // Add OpenAI integration for AI monitoring
-    Sentry.openAIIntegration({
+    // OpenAI integration - only if available
+    ...(Sentry.openAIIntegration ? [Sentry.openAIIntegration({
       recordInputs: true,
       recordOutputs: true,
-    }),
+    })] : []),
   ],
 
   // Configure scope
