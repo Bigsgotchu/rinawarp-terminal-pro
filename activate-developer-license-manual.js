@@ -14,18 +14,24 @@ const timestamp = Date.now().toString(36);
 const random = Math.random().toString(36).substr(2, 9);
 const developerKey = `DEV-ADMIN-${timestamp}-${random}`.toUpperCase();
 
-// Set developer license in localStorage
-localStorage.setItem('rinawarp_license_key', developerKey);
-localStorage.setItem('rinawarp_license_type', 'developer');
-localStorage.setItem('rinawarp_developer_mode', 'true');
-localStorage.setItem('rinawarp_admin_access', 'true');
-localStorage.setItem('rinawarp_debug_mode', 'true');
-localStorage.setItem('rinawarp_unlimited_features', 'true');
-localStorage.setItem('rinawarp_last_validation', Date.now().toString());
-
-// Clear any existing trial limitations
-localStorage.removeItem('rinawarp_trial_start');
-localStorage.removeItem('ai_usage_' + new Date().toDateString());
+// Set developer license in localStorage (browser only)
+if (typeof localStorage !== 'undefined') {
+  localStorage.setItem('rinawarp_license_key', developerKey);
+  localStorage.setItem('rinawarp_license_type', 'developer');
+  localStorage.setItem('rinawarp_developer_mode', 'true');
+  localStorage.setItem('rinawarp_admin_access', 'true');
+  localStorage.setItem('rinawarp_debug_mode', 'true');
+  localStorage.setItem('rinawarp_unlimited_features', 'true');
+  localStorage.setItem('rinawarp_last_validation', Date.now().toString());
+  
+  // Clear any existing trial limitations
+  localStorage.removeItem('rinawarp_trial_start');
+  localStorage.removeItem('ai_usage_' + new Date().toDateString());
+  
+  console.log('✅ Developer license activated:', developerKey);
+} else {
+  console.log('⚠️  This script must be run in a browser environment with localStorage support');
+}
 
 // Try to activate with LicenseManager if available
 if (typeof window !== 'undefined' && window.LicenseManager) {
@@ -33,7 +39,7 @@ if (typeof window !== 'undefined' && window.LicenseManager) {
     const licenseManager = new window.LicenseManager();
     licenseManager.activateLicense(developerKey, 'developer');
     console.log('✅ LicenseManager integration successful');
-  } catch (error) {
+  } catch (_error) {
     console.log('⚠️  LicenseManager not available, using localStorage method');
   }
 }
