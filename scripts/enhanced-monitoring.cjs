@@ -14,7 +14,7 @@ class EnhancedMonitoringSystem {
   constructor() {
     this.urlsToMonitor = [
       { name: 'Firebase', url: 'https://rinawarp-terminal.web.app/', critical: true },
-      { name: 'Vercel', url: 'https://rinawarp-terminal.vercel.app/', critical: true },
+      { name: 'Main Site', url: 'https://rinawarptech.com/', critical: true },
       {
         name: 'GitHub Pages',
         url: 'https://rinawarp-terminal.github.io/rinawarp-terminal/',
@@ -243,7 +243,6 @@ class EnhancedMonitoringSystem {
       'https://google.com',
       'https://github.com',
       'https://npmjs.com',
-      'https://vercel.com',
       'https://firebase.google.com',
     ];
 

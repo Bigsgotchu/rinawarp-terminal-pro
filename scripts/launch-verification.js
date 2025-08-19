@@ -3,7 +3,7 @@
 import fetch from 'node-fetch';
 import kleur from 'kleur';
 
-const DEPLOYMENT_URL = 'https://rinawarp-terminal-fs2boer6v-rinawarp-tech.vercel.app';
+const DEPLOYMENT_URL = 'https://rinawarptech.com';
 
 class LaunchVerification {
   constructor() {
@@ -126,10 +126,9 @@ class LaunchVerification {
       console.log(kleur.red('Main site appears to be down. Check deployment.'));
     }
 
-    console.log('\n🌐 LIVE URLS:');
+    console.log('🌐 LIVE URLS:');
     console.log(`Main Site: ${DEPLOYMENT_URL}`);
     console.log('Stripe Dashboard: https://dashboard.stripe.com');
-    console.log('Vercel Dashboard: https://vercel.com/dashboard');
 
     console.log('='.repeat(80));
   }
