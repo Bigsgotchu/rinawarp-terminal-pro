@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient for elements -->
+    <linearGradient id="combinedGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow effect -->
+    <filter id="shadow">
+      <feDropShadow dx="3" dy="5" stdDeviation="4" flood-color="#000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="#0F172A"/>
+
+  <!-- Merged Hexagon with Warp Lines -->
+  <g transform="translate(512, 512)">
+    <!-- Outer Warp Effect -->
+    <circle cx="0" cy="0" r="340" fill="none" stroke="url(#combinedGradient)" stroke-width="10" opacity="0.2"/>
+    
+    <!-- Inner Hexagon -->
+    <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" 
+             fill="#1E293B" 
+             stroke="url(#combinedGradient)" 
+             stroke-width="5" filter="url(#shadow)"/>
+    
+    <!-- Terminal Prompt and Warp -->
+    <g filter="url(#shadow)">
+      <path d="M -150 -110 L 0 0 L -150 110" 
+            stroke="url(#combinedGradient)" 
+            stroke-width="18" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+
+      <line x1="30" y1="0" x2="150" y2="0" 
+            stroke="url(#combinedGradient)" 
+            stroke-width="18" 
+            stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Decorative RW Monogram -->
+  <g transform="translate(512, 700)" filter="url(#shadow)">
+    <!-- R -->
+    <path d="M -80 -100 L -80 100 M -80 -100 L 40 -100 Q 120 -100 120 -40 Q 120 20 40 20 L -80 20 M 0 20 L 120 100"
+          stroke="url(#combinedGradient)"
+          stroke-width="30"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none" />
+    <!-- W -->
+    <path d="M 140 -100 L 180 100 L 220 -50 L 260 100 L 300 -100"
+          stroke="url(#combinedGradient)"
+          stroke-width="30"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none" />
+  </g>
+</svg>

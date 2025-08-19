@@ -69,7 +69,7 @@ module.exports = {
       user: 'deploy',
       host: 'rinawarptech.com',
       ref: 'origin/main',
-      repo: 'git@github.com:Rinawarp-Terminal/rinawarp-terminal.git',
+      repo: 'https://github.com/Bigsgotchu/rinawarp-terminal-pro.git',
       path: '/var/www/rinawarp-terminal',
       'pre-deploy-local': '',
       'post-deploy':

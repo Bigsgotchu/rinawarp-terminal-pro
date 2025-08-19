@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Performance Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a2332 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #00d4aa;
+            padding-bottom: 1rem;
+        }
+
+        .header h1 {
+            color: #00d4aa;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #9ca3af;
+            font-size: 1.1rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-card h3 {
+            color: #00d4aa;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status.healthy { background: #10b981; color: white; }
+        .status.warning { background: #f59e0b; color: white; }
+        .status.critical { background: #ef4444; color: white; }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .recommendations {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .recommendation {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #00d4aa;
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .recommendation.high { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .recommendation.medium { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+
+        .loading {
+            text-align: center;
+            color: #00d4aa;
+            margin: 2rem 0;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: #00d4aa;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #00b894;
+            transform: translateY(-2px);
+        }
+
+        .auto-refresh {
+            position: fixed;
+            top: 5rem;
+            right: 2rem;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard { padding: 1rem; }
+            .header h1 { font-size: 2rem; }
+            .refresh-btn, .auto-refresh { position: static; margin: 1rem 0; }
+        }
+    </style>
+</head>
+<body>
+    <button class="refresh-btn" onclick="loadMetrics()">🔄 Refresh</button>
+    <div class="auto-refresh" id="autoRefresh">Auto-refresh in <span id="countdown">30</span>s</div>
+
+    <div class="dashboard">
+        <div class="header">
+            <h1>🚀 RinaWarp Terminal Performance Dashboard</h1>
+            <p>Real-time monitoring and analytics</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div>🔍 Loading performance metrics...</div>
+        </div>
+
+        <div id="dashboard-content" style="display: none;">
+            <div class="metrics-grid" id="metricsGrid">
+                <!-- Metrics will be populated by JavaScript -->
+            </div>
+
+            <div class="chart-container">
+                <h3>📊 Response Time Distribution</h3>
+                <div id="responseTimeChart"></div>
+            </div>
+
+            <div class="recommendations" id="recommendations">
+                <h3>💡 Performance Recommendations</h3>
+                <div id="recommendationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let countdownTimer;
+        let refreshInterval;
+        
+        async function loadMetrics() {
+            try {
+                const response = await fetch('/api/monitoring/analytics');
+                const data = await response.json();
+                
+                updateMetrics(data.performance);
+                updateResponseTimeChart(data.responseTimeDistribution);
+                updateRecommendations(data.recommendations);
+                updateHealthStatus(data.healthStatus);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Failed to load metrics:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<div style="color: #ef4444;">❌ Failed to load metrics. Server may be starting up...</div>';
+            }
+        }
+
+        function updateMetrics(metrics) {
+            const grid = document.getElementById('metricsGrid');
+            
+            grid.innerHTML = `
+                <div class="metric-card">
+                    <h3>🎯 Requests</h3>
+                    <div class="metric-value">${metrics.requests.toLocaleString()}</div>
+                    <div class="metric-label">${metrics.requestsPerMinute}/min average</div>
+                </div>
+
+                <div class="metric-card">
+                    <h3>⚡ Response Time</h3>
+                    <div class="metric-value">${Math.round(metrics.averageResponseTime)}ms</div>
+                    <div class="metric-label">Average response time</div>
+                </div>
+
+                <div class="metric-card">
+                    <h3>🛡️ Error Rate</h3>
+                    <div class="metric-value">${metrics.errorRate}</div>
+                    <div class="metric-label">${metrics.errors} errors total</div>
+                </div>
+
+                <div class="metric-card">
+                    <h3>🧠 Memory Usage</h3>
+                    <div class="metric-value">${metrics.memoryUsageMB}MB</div>
+                    <div class="metric-label">Peak: ${metrics.peakMemoryMB}MB</div>
+                </div>
+
+                <div class="metric-card">
+                    <h3>⏱️ Uptime</h3>
+                    <div class="metric-value">${formatUptime(metrics.uptime)}</div>
+                    <div class="metric-label">System load: ${metrics.systemLoad}</div>
+                </div>
+
+                <div class="metric-card">
+                    <h3>💾 System Memory</h3>
+                    <div class="metric-value">${metrics.freeMemoryGB}GB</div>
+                    <div class="metric-label">Free system memory</div>
+                </div>
+            `;
+        }
+
+        function updateResponseTimeChart(distribution) {
+            const chart = document.getElementById('responseTimeChart');
+            
+            if (!distribution.min) {
+                chart.innerHTML = '<p style="color: #9ca3af;">No data available yet</p>';
+                return;
+            }
+            
+            chart.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="text-align: center; padding: 1rem; background: rgba(0,212,170,0.1); border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #00d4aa;">${distribution.min}ms</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Min</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(0,212,170,0.1); border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #00d4aa;">${distribution.median}ms</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Median</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(0,212,170,0.1); border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #00d4aa;">${distribution.p95}ms</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">95th %ile</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(0,212,170,0.1); border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #00d4aa;">${distribution.max}ms</div>
+                        <div style="color: #9ca3af; font-size: 0.9rem;">Max</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateRecommendations(recommendations) {
+            const list = document.getElementById('recommendationsList');
+            
+            if (recommendations.length === 0) {
+                list.innerHTML = '<div style="color: #10b981;">✅ No performance issues detected!</div>';
+                return;
+            }
+            
+            list.innerHTML = recommendations.map(rec => `
+                <div class="recommendation ${rec.priority}">
+                    <strong>${rec.type.toUpperCase()}:</strong> ${rec.message}
+                    <div style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">Priority: ${rec.priority}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateHealthStatus(health) {
+            const header = document.querySelector('.header p');
+            header.innerHTML = `
+                Real-time monitoring and analytics 
+                <span class="status ${health.status}">${health.status}</span>
+            `;
+        }
+
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            
+            if (days > 0) return `${days}d ${hours}h`;
+            if (hours > 0) return `${hours}h ${minutes}m`;
+            return `${minutes}m`;
+        }
+
+        function startCountdown() {
+            let count = 30;
+            const countdownEl = document.getElementById('countdown');
+            
+            countdownTimer = setInterval(() => {
+                count--;
+                countdownEl.textContent = count;
+                
+                if (count <= 0) {
+                    loadMetrics();
+                    count = 30;
+                }
+            }, 1000);
+        }
+
+        // Initialize dashboard
+        window.addEventListener('load', () => {
+            loadMetrics();
+            startCountdown();
+            
+            // Auto-refresh every 30 seconds
+            refreshInterval = setInterval(loadMetrics, 30000);
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(countdownTimer);
+            clearInterval(refreshInterval);
+        });
+    </script>
+</body>
+</html>

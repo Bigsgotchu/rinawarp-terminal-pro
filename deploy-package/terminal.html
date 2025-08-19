@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="index, follow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Web Terminal</title>
+    
+    <!-- xterm.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@xterm/xterm@5.5.0/css/xterm.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            background: #0a0a0a;
+            color: #00ff88;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .terminal-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .logo::before {
+            content: "🦾";
+            font-size: 20px;
+        }
+
+        .tab-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            padding: 6px 16px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            background: rgba(0, 255, 136, 0.05);
+            color: #00ff88;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(0, 255, 136, 0.15);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .tab-btn.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            background: #000;
+            position: relative;
+        }
+
+        .ai-section {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            border-left: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .ai-input-area {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .ai-input-area h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-input-area h3::before {
+            content: "🤖";
+            font-size: 18px;
+        }
+
+        #ai-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #00ff88;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        #ai-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        #ai-input::placeholder {
+            color: rgba(0, 255, 136, 0.5);
+        }
+
+        .ai-response-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .ai-response-area h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-response-area h3::before {
+            content: "💬";
+            font-size: 18px;
+        }
+
+        .response-content {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            color: rgba(0, 255, 136, 0.8);
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 50px;
+        }
+
+        .response-content.loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            gap: 3px;
+        }
+
+        .loading-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: bounce 1.4s infinite;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Terminal specific styles */
+        #terminal {
+            flex: 1;
+            width: 100%;
+        }
+
+        .xterm {
+            font-feature-settings: "liga" 0;
+            position: relative;
+            user-select: none;
+            -ms-user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .xterm.focus,
+        .xterm:focus {
+            outline: none;
+        }
+
+        /* Status bar */
+        .status-bar {
+            padding: 4px 16px;
+            background: rgba(0, 255, 136, 0.05);
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+            font-size: 11px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-left {
+            display: flex;
+            gap: 15px;
+        }
+
+        .status-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Terminal glow effects */
+        .terminal-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 136, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .ai-section {
+                width: 100%;
+                height: 250px;
+                border-left: none;
+                border-top: 1px solid rgba(0, 255, 136, 0.2);
+            }
+            
+            .header {
+                padding: 6px 12px;
+            }
+            
+            .tab-btn {
+                padding: 4px 12px;
+                font-size: 12px;
+            }
+            
+            .terminal-section {
+                padding: 8px;
+            }
+            
+            .ai-input-area,
+            .ai-response-area {
+                padding: 15px;
+            }
+        }
+    </style>
+    <link rel="canonical" href="https://www.rinawarptech.com/html/terminal.html">
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/html/terminal.html',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'html/terminal.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+
+<body>
+    <div class="terminal-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">RinaWarp Web Terminal</div>
+            <div class="tab-controls">
+                <button class="tab-btn active" data-view="terminal">🖥️ Terminal</button>
+                <button class="tab-btn" data-view="ai">🤖 AI Assistant</button>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <!-- Terminal Section -->
+            <div class="terminal-section">
+                <div id="terminal"></div>
+            </div>
+
+            <!-- AI Section -->
+            <div class="ai-section">
+                <!-- AI Input Area -->
+                <div class="ai-input-area">
+                    <h3>AI Command Input</h3>
+                    <input type="text" id="ai-input" placeholder="Type a natural language command..." />
+                </div>
+
+                <!-- AI Response Area -->
+                <div class="ai-response-area">
+                    <h3>AI Response</h3>
+                    <div class="response-content">
+                        Welcome to RinaWarp! Type a command in natural language above and I'll help you execute it.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span>Ready</span>
+                <span>Shell: Web Terminal</span>
+                <span>AI: Active</span>
+            </div>
+            <div class="status-right">
+                <span id="current-time"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- xterm.js and addons -->
+    <script src="https://unpkg.com/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+    <script src="https://unpkg.com/@xterm/addon-web-links@0.11.0/lib/addon-web-links.js"></script>
+
+    <script>
+        class WebTerminalAI {
+            constructor() {
+                this.responseElement = document.querySelector('.response-content');
+            }
+
+            async processCommand(input) {
+                if (!input.trim()) return;
+
+                // Show loading state
+                this.showLoading();
+
+                // Simulate AI processing
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Simple command mapping for demonstration
+                const suggestions = this.getCommandSuggestions(input.toLowerCase());
+                
+                this.showResponse(suggestions);
+            }
+
+            getCommandSuggestions(input) {
+                const patterns = {
+                    'list files': 'ls -la',
+                    'show files': 'ls -la',
+                    'current directory': 'pwd',
+                    'where am i': 'pwd',
+                    'clear screen': 'clear',
+                    'clear terminal': 'clear',
+                    'show history': 'history',
+                    'disk space': 'df -h',
+                    'memory usage': 'free -h',
+                    'running processes': 'ps aux',
+                    'system info': 'uname -a',
+                    'git status': 'git status',
+                    'git log': 'git log --oneline -10'
+                };
+
+                for (const [pattern, command] of Object.entries(patterns)) {
+                    if (input.includes(pattern)) {
+                        return {
+                            command,
+                            explanation: `I suggest running: ${command}`
+                        };
+                    }
+                }
+
+                return {
+                    command: null,
+                    explanation: `I understand you want to: "${input}". Try being more specific or use commands like "list files", "show system info", etc.`
+                };
+            }
+
+            showLoading() {
+                this.responseElement.innerHTML = `
+                    <div class="loading">
+                        <span>Processing</span>
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                `;
+                this.responseElement.classList.add('loading');
+            }
+
+            showResponse(response) {
+                this.responseElement.classList.remove('loading');
+                this.responseElement.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <strong>💡 ${response.explanation}</strong>
+                    </div>
+                    ${response.command ? `
+                        <div style="background: rgba(0,255,136,0.1); padding: 8px; border-radius: 4px; font-family: monospace;">
+                            <code>${response.command}</code>
+                        </div>
+                    ` : ''}
+                `;
+            }
+        }
+
+        class RinaWarpWebTerminal {
+            constructor() {
+                this.terminal = null;
+                this.fitAddon = null;
+                this.ai = new WebTerminalAI();
+                
+                this.init();
+                this.setupEventListeners();
+                this.startStatusUpdates();
+            }
+
+            init() {
+                // Initialize xterm.js
+                this.terminal = new Terminal({
+                    theme: {
+                        background: '#000000',
+                        foreground: '#00ff88',
+                        cursor: '#00ff88',
+                        cursorAccent: '#000000',
+                        selection: 'rgba(0, 255, 136, 0.3)',
+                        black: '#000000',
+                        red: '#ff0066',
+                        green: '#00ff88',
+                        yellow: '#ffaa00',
+                        blue: '#0088ff',
+                        magenta: '#ff00aa',
+                        cyan: '#00aaff',
+                        white: '#ffffff'
+                    },
+                    fontFamily: '"SF Mono", Monaco, "Inconsolata", "Fira Code", monospace',
+                    fontSize: 14,
+                    lineHeight: 1.2,
+                    cursorBlink: true,
+                    cursorStyle: 'block',
+                    scrollback: 1000,
+                    tabStopWidth: 4,
+                    allowTransparency: true
+                });
+
+                // Add fit addon
+                this.fitAddon = new FitAddon.FitAddon();
+                this.terminal.loadAddon(this.fitAddon);
+
+                // Add web links addon
+                this.terminal.loadAddon(new WebLinksAddon.WebLinksAddon());
+
+                // Open terminal in the container
+                this.terminal.open(document.getElementById('terminal'));
+                
+                // Fit terminal to container
+                this.fitAddon.fit();
+
+                // Welcome message
+                this.terminal.writeln('\x1b[32m🦾 RinaWarp Web Terminal v1.0 initialized...\x1b[0m');
+                this.terminal.writeln('\x1b[36m🤖 AI Assistant is ready - use the panel on the right!\x1b[0m');
+                this.terminal.writeln('\x1b[90mType "help" for commands or use natural language in the AI panel\x1b[0m');
+                this.terminal.writeln('');
+                this.terminal.write('\x1b[32m$\x1b[0m ');
+
+                // Handle input
+                let currentInput = '';
+                this.terminal.onData(data => {
+                    if (data === '\r') {
+                        // Enter pressed
+                        this.terminal.writeln('');
+                        this.handleCommand(currentInput.trim());
+                        currentInput = '';
+                        this.terminal.write('\x1b[32m$\x1b[0m ');
+                    } else if (data === '\u007f') {
+                        // Backspace pressed
+                        if (currentInput.length > 0) {
+                            currentInput = currentInput.slice(0, -1);
+                            this.terminal.write('\b \b');
+                        }
+                    } else if (data === '\u0003') {
+                        // Ctrl+C pressed
+                        this.terminal.writeln('^C');
+                        currentInput = '';
+                        this.terminal.write('\x1b[32m$\x1b[0m ');
+                    } else {
+                        // Regular character
+                        currentInput += data;
+                        this.terminal.write(data);
+                    }
+                });
+
+                // Handle resize
+                window.addEventListener('resize', () => {
+                    this.fitAddon.fit();
+                });
+            }
+
+            setupEventListeners() {
+                // AI input handling
+                const aiInput = document.getElementById('ai-input');
+                aiInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const input = aiInput.value.trim();
+                        if (input) {
+                            this.ai.processCommand(input);
+                            aiInput.value = '';
+                        }
+                    }
+                });
+
+                // Tab switching (placeholder for future expansion)
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                    });
+                });
+            }
+
+            handleCommand(command) {
+                const cmd = command.toLowerCase();
+                
+                switch (cmd) {
+                    case 'help':
+                        this.terminal.writeln('Available commands:');
+                        this.terminal.writeln('  help       - Show this help message');
+                        this.terminal.writeln('  clear      - Clear the terminal');
+                        this.terminal.writeln('  status     - Show system status');
+                        this.terminal.writeln('  version    - Show version info');
+                        this.terminal.writeln('  exit       - Close terminal');
+                        this.terminal.writeln('\x1b[36m💡 Use the AI panel for natural language commands!\x1b[0m');
+                        break;
+                        
+                    case 'clear':
+                        this.terminal.clear();
+                        break;
+                        
+                    case 'status':
+                        this.terminal.writeln('\x1b[32mSystem Status:\x1b[0m');
+                        this.terminal.writeln('  Terminal: Active');
+                        this.terminal.writeln('  AI Assistant: Ready');
+                        this.terminal.writeln('  Connection: Online');
+                        break;
+                        
+                    case 'version':
+                        this.terminal.writeln('\x1b[32mRinaWarp Web Terminal v1.0\x1b[0m');
+                        this.terminal.writeln('Built with xterm.js and modern web technologies');
+                        break;
+                        
+                    case 'exit':
+                        this.terminal.writeln('Goodbye! 👋');
+                        break;
+                        
+                    default:
+                        if (command.trim()) {
+                            this.terminal.writeln(`\x1b[31mCommand not found: ${command}\x1b[0m`);
+                            this.terminal.writeln('\x1b[90mType "help" for available commands or use the AI panel\x1b[0m');
+                        }
+                }
+            }
+
+            startStatusUpdates() {
+                // Update current time
+                const updateTime = () => {
+                    const now = new Date();
+                    document.getElementById('current-time').textContent = 
+                        now.toLocaleTimeString();
+                };
+                updateTime();
+                setInterval(updateTime, 1000);
+            }
+        }
+
+        // Initialize the terminal when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new RinaWarpWebTerminal();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Dark mode gradient -->
+    <linearGradient id="darkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F472B6;stop-opacity:1" />
+      <stop offset="33%" style="stop-color:#A78BFA;stop-opacity:1" />
+      <stop offset="66%" style="stop-color:#60A5FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34D399;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Glow for dark mode -->
+    <filter id="darkGlow">
+      <feGaussianBlur stdDeviation="20" result="coloredBlur"/>
+      <feColorMatrix in="coloredBlur" type="matrix" values="1.5 0 0 0 0  0 1.5 0 0 0  0 0 2 0 0  0 0 0 1 0"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Pure black background for dark mode -->
+  <rect width="1024" height="1024" fill="#000000"/>
+  
+  <g transform="translate(512, 512)">
+    <!-- Bright RW for contrast -->
+    <g opacity="0.4">
+      <path d="M -120 -180 L -120 180 M -120 -180 L 0 -180 Q 80 -180 80 -100 Q 80 -20 0 -20 L -120 -20 M -40 -20 L 80 180" 
+            stroke="#F472B6" 
+            stroke-width="28" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"
+            filter="url(#darkGlow)"/>
+      
+      <path d="M 100 -180 L 140 180 M 140 180 L 180 -60 M 180 -60 L 220 180 M 220 180 L 260 -180" 
+            stroke="#F472B6" 
+            stroke-width="28" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"
+            filter="url(#darkGlow)"/>
+    </g>
+    
+    <!-- Hexagon outline -->
+    <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" 
+             fill="none" 
+             stroke="url(#darkGradient)" 
+             stroke-width="8"
+             filter="url(#darkGlow)"/>
+    
+    <!-- Terminal prompt -->
+    <g transform="scale(2)" filter="url(#darkGlow)">
+      <path d="M -35 -25 L -10 0 L -35 25" 
+            stroke="#FFFFFF" 
+            stroke-width="10" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      <line x1="5" y1="0" x2="40" y2="0" 
+            stroke="#FFFFFF" 
+            stroke-width="10" 
+            stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

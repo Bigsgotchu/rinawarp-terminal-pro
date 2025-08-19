@@ -31,7 +31,10 @@
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux",
-    "security:check": "npm audit --audit-level=moderate"
+    "security:check": "npm audit --audit-level=moderate",
+    "deploy": "./deploy-live.sh",
+    "deploy:quick": "cd deploy-package && wrangler pages deploy . --project-name=rinawarptech",
+    "deploy:prep": "rm -rf deploy-package && mkdir -p deploy-package && cp public/index.html deploy-package/ && cp public/*.html deploy-package/ 2>/dev/null || true && cp -r public/assets deploy-package/ 2>/dev/null || true && cp public/*.css deploy-package/ 2>/dev/null || true && cp website-styles.css deploy-package/ 2>/dev/null || true && cp -r assets deploy-package/ 2>/dev/null || true"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",

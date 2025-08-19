@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Radial gradient for portal effect -->
+    <radialGradient id="portal" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#E0E7FF;stop-opacity:1" />
+      <stop offset="20%" style="stop-color:#C7D2FE;stop-opacity:1" />
+      <stop offset="40%" style="stop-color:#A5B4FC;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#818CF8;stop-opacity:1" />
+      <stop offset="80%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Linear gradient for accents -->
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0EA5E9;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Glow effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="12" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Dark background -->
+  <rect width="1024" height="1024" fill="#0F172A"/>
+  
+  <!-- Portal/Warp effect -->
+  <g transform="translate(512, 512)">
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="400" fill="none" stroke="url(#portal)" stroke-width="8" opacity="0.3"/>
+    <circle cx="0" cy="0" r="350" fill="none" stroke="url(#portal)" stroke-width="12" opacity="0.4"/>
+    <circle cx="0" cy="0" r="300" fill="none" stroke="url(#portal)" stroke-width="16" opacity="0.5"/>
+    
+    <!-- Warp lines -->
+    <g filter="url(#glow)">
+      <path d="M -300 0 Q -150 -50, 0 0 T 300 0" stroke="url(#accent)" stroke-width="6" fill="none" opacity="0.8"/>
+      <path d="M -300 0 Q -150 50, 0 0 T 300 0" stroke="url(#accent)" stroke-width="6" fill="none" opacity="0.8"/>
+      <path d="M 0 -300 Q -50 -150, 0 0 T 0 300" stroke="url(#accent)" stroke-width="6" fill="none" opacity="0.8"/>
+      <path d="M 0 -300 Q 50 -150, 0 0 T 0 300" stroke="url(#accent)" stroke-width="6" fill="none" opacity="0.8"/>
+    </g>
+    
+    <!-- Central hexagon -->
+    <polygon points="0,-150 130,-75 130,75 0,150 -130,75 -130,-75" 
+             fill="#1E293B" 
+             stroke="url(#accent)" 
+             stroke-width="4"/>
+    
+    <!-- Terminal prompt symbol -->
+    <g transform="scale(2.5)">
+      <path d="M -30 -20 L -10 0 L -30 20" 
+            stroke="#E0E7FF" 
+            stroke-width="6" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            fill="none"/>
+      <line x1="0" y1="0" x2="30" y2="0" 
+            stroke="#E0E7FF" 
+            stroke-width="6" 
+            stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

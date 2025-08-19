@@ -1,0 +1,103 @@
+/**
+ * RinaWarp Terminal - Logo Styles
+ * Copyright (c) 2025 RinaWarp Technologies, LLC
+ */
+
+/* Logo container styling */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Logo image styling */
+.logo-image {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.logo:hover .logo-image {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+/* Logo text styling */
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  transition: color 0.3s ease;
+}
+
+.logo:hover .logo-text {
+  color: var(--primary-color, #ff1493);
+}
+
+/* Navigation brand styling for production site */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+}
+
+.nav-brand .logo-image {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.nav-brand:hover .logo-image {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+/* Responsive logo adjustments */
+@media (max-width: 768px) {
+  .logo-image,
+  .nav-brand .logo-image {
+    width: 32px;
+    height: 32px;
+  }
+
+  .logo-text,
+  .nav-brand span {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-image,
+  .nav-brand .logo-image {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logo-text,
+  .nav-brand span {
+    font-size: 16px;
+  }
+}
+
+/* Animation effects */
+@keyframes logoGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 20, 147, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(255, 20, 147, 0.6));
+  }
+}
+
+.logo-image:hover,
+.nav-brand .logo-image:hover {
+  animation: logoGlow 2s ease-in-out infinite;
+}
