@@ -103,13 +103,7 @@ function displaySetupInstructions() {
   log('', 'reset');
 
   log('🌐 STEP 4: Deploy with Environment Variables', 'cyan');
-  log('   For Vercel:', 'yellow');
-  log('     vercel env add STRIPE_SECRET_KEY', 'yellow');
-  log('     vercel --prod', 'yellow');
-  log('', 'reset');
-  log('   For Netlify:', 'yellow');
-  log('     netlify env:set STRIPE_SECRET_KEY sk_test_your_key', 'yellow');
-  log('     netlify deploy --prod', 'yellow');
+  log('   Set up your environment variables on your hosting platform', 'yellow');
   log('', 'reset');
 
   log('🧪 STEP 5: Test', 'cyan');
