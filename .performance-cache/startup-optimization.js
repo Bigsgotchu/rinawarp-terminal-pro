@@ -1,9 +1,14 @@
 // RinaWarp Terminal - Optimized Startup Sequence
 (function () {
+  // Only run in browser environment
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return;
+  }
+  
   const startTime = performance.now();
 
-  // Pre-cache critical DOM elements
-  const criticalSelectors = [
+  // Pre-cache critical DOM elements (unused for now)
+  const _criticalSelectors = [
     '#terminal-container',
     '#xterm-viewport',
     '#ai-copilot-panel',
@@ -11,8 +16,8 @@
     '#performance-monitor',
   ];
 
-  // Preload critical stylesheets
-  const criticalStyles = ['styles/main.css', 'styles/terminal.css', 'styles/ai-copilot.css'];
+  // Preload critical stylesheets (unused for now)
+  const _criticalStyles = ['styles/main.css', 'styles/terminal.css', 'styles/ai-copilot.css'];
 
   // Optimize font loading
   const fonts = ['FiraCode-Regular.woff2', 'SF-Mono-Regular.woff2'];
