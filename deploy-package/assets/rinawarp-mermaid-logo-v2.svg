@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!-- New Mermaid-themed RinaWarp Logo -->
+  
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00CED1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF69B4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF1493;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1E90FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00CED1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Mermaid tail icon -->
+  <g id="mermaid-tail">
+    <path d="M 15 30 Q 10 20 15 15 Q 20 10 25 15 Q 30 10 35 15 Q 40 20 35 30 L 30 35 Q 25 40 25 40 Q 25 40 20 35 Z" 
+          fill="url(#waveGradient)" 
+          opacity="0.9"/>
+    
+    <!-- Scales detail -->
+    <circle cx="22" cy="22" r="2" fill="#FFFFFF" opacity="0.7"/>
+    <circle cx="28" cy="22" r="2" fill="#FFFFFF" opacity="0.7"/>
+    <circle cx="25" cy="27" r="2" fill="#FFFFFF" opacity="0.7"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="50" y="35" font-family="'SF Pro Display', -apple-system, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0A1628">
+    RinaWarp
+  </text>
+  
+  <!-- Flowing wave underline -->
+  <path d="M 50 42 Q 60 44 70 42 T 90 42 T 110 42 T 130 42 T 150 42 T 170 42" 
+        stroke="url(#waveGradient)" 
+        stroke-width="2" 
+        fill="none" 
+        opacity="0.8">
+    <animate attributeName="d" 
+             values="M 50 42 Q 60 44 70 42 T 90 42 T 110 42 T 130 42 T 150 42 T 170 42;
+                     M 50 42 Q 60 40 70 42 T 90 42 T 110 42 T 130 42 T 150 42 T 170 42;
+                     M 50 42 Q 60 44 70 42 T 90 42 T 110 42 T 130 42 T 150 42 T 170 42"
+             dur="4s" 
+             repeatCount="indefinite"/>
+  </path>
+  
+  <!-- Sparkle effects -->
+  <circle cx="180" cy="20" r="2" fill="#FF69B4">
+    <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="45" cy="15" r="1.5" fill="#00CED1">
+    <animate attributeName="opacity" values="0;1;0" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="165" cy="35" r="1.5" fill="#FF1493">
+    <animate attributeName="opacity" values="0;1;0" dur="2s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+</svg>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="index, follow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Order - RinaWarp Terminal</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        .checkout-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .checkout-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .checkout-header h1 {
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .checkout-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .cart-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-details h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        
+        .item-details p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .item-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff1493;
+        }
+        
+        .discount-banner {
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .discount-banner h3 {
+            margin: 0 0 5px 0;
+        }
+        
+        .discount-code {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            font-family: monospace;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        
+        .order-total {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #333;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .total-row.discount {
+            color: #00c853;
+        }
+        
+        .total-row.final {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .checkout-form {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .checkout-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .checkout-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .timer-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff1493;
+        }
+        
+        @media (max-width: 768px) {
+            .checkout-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="canonical" href="https://www.rinawarptech.com/checkout.html">
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/checkout.html',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'checkout.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="/" class="logo">RinaWarp Terminal</a>
+            <div class="nav-links">
+                <a href="/pricing">Pricing</a>
+                <a href="/download">Download</a>
+            </div>
+        </nav>
+
+        <!-- Checkout Content -->
+        <div class="checkout-container">
+            <div class="checkout-header">
+                <h1>Complete Your Order</h1>
+                <p>You're just one step away from revolutionizing your terminal experience!</p>
+            </div>
+
+            <div class="timer-warning">
+                <p>⏱️ Your cart is reserved for: <span class="timer" id="countdown">14:59</span></p>
+                <p>Complete your order before time runs out!</p>
+            </div>
+
+            <div class="checkout-content">
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+                    <h2>Order Summary</h2>
+                    
+                    <div class="discount-banner">
+                        <h3>🎁 Special Offer Applied!</h3>
+                        <p>20% OFF with code: <span class="discount-code">COMEBACK20</span></p>
+                    </div>
+
+                    <div class="cart-item">
+                        <div class="item-details">
+                            <h3>Mermaid Pro</h3>
+                            <p>Advanced terminal with AI assistance</p>
+                            <p>✓ Lifetime updates included</p>
+                        </div>
+                        <div class="item-price">$25/mo</div>
+                    </div>
+
+                    <div class="order-total">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span>$25.00</span>
+                        </div>
+                        <div class="total-row discount">
+                            <span>Discount (20% OFF):</span>
+                            <span>-$5.00</span>
+                        </div>
+                        <div class="total-row final">
+                            <span>Total:</span>
+                            <span>$20.00/mo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checkout Form -->
+                <div class="checkout-form">
+                    <h2>Payment Information</h2>
+                    
+                    <form id="checkout-form">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required placeholder="your@email.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required placeholder="John Doe">
+                        </div>
+
+                        <button type="submit" class="checkout-button">
+                            Complete Purchase →
+                        </button>
+                    </form>
+
+                    <div class="security-badges">
+                        <span>🔒 Secure checkout</span>
+                        <span>💳 Powered by Stripe</span>
+                        <span>✓ SSL encrypted</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Countdown timer
+        let timeLeft = 15 * 60; // 15 minutes in seconds
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('countdown').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft > 0) {
+                timeLeft--;
+            } else {
+                alert('Your cart has expired. Please start over.');
+                window.location.href = '/pricing';
+            }
+        }
+        
+        setInterval(updateTimer, 1000);
+        
+        // Get cart ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const cartId = urlParams.get('cart');
+        const discount = urlParams.get('discount');
+        
+        // Apply discount if provided
+        if (discount) {
+            document.querySelector('.discount-code').textContent = discount;
+        }
+        
+        // Handle form submission
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+            
+            try {
+                // Get Stripe config
+                const configResponse = await fetch('/api/stripe-config');
+                const config = await configResponse.json();
+                
+                // Create checkout session
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        priceId: config.prices.professional,
+                        customerEmail: email,
+                        metadata: {
+                            customerName: name,
+                            cartId: cartId,
+                            discount: discount || 'COMEBACK20'
+                        }
+                    })
+                });
+                
+                const session = await response.json();
+                
+                if (session.url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = session.url;
+                } else {
+                    throw new Error('Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('There was an error processing your order. Please try again.');
+            }
+        });
+        
+        // Track page view
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'page_view', {
+                page_title: 'Checkout - Abandoned Cart Recovery',
+                cart_id: cartId,
+                discount_code: discount || 'COMEBACK20'
+            });
+        }
+    </script>
+</body>
+</html>

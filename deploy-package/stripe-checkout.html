@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="index, follow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase RinaWarp Terminal - Secure Checkout</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #1a1a2e; 
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { font-size: 1.1rem; opacity: 0.9; }
+        
+        .checkout-container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .product-card {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            border-color: #3498db;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.2);
+        }
+        
+        .product-card.selected {
+            border-color: #3498db;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.05));
+        }
+        
+        .product-card.popular::before {
+            content: "🧜‍♀️ POPULAR";
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .plan-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .plan-features li {
+            padding: 3px 0;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .plan-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .checkout-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .checkout-button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .checkout-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+        }
+        
+        .checkout-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+        
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        
+        .order-summary {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .summary-total {
+            border-top: 2px solid #3498db;
+            padding-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .checkout-container { padding: 25px; }
+            .header h1 { font-size: 2rem; }
+        }
+    </style>
+    <link rel="canonical" href="https://www.rinawarptech.com/stripe-checkout.html">
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/stripe-checkout.html',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'stripe-checkout.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧜‍♀️ Purchase RinaWarp Terminal</h1>
+            <p>Secure checkout powered by Stripe • Instant download delivery</p>
+        </div>
+        
+        <div class="checkout-container">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">Choose Your Plan</h2>
+            
+            <div class="product-grid">
+                <!-- Personal Plan -->
+                <div class="product-card" data-plan="personal" data-price="2900" data-price-display="$29">
+                    <div class="plan-name">🏠 Personal</div>
+                    <div class="plan-price">$29</div>
+                    <ul class="plan-features">
+                        <li>Enhanced AI Assistant</li>
+                        <li>Voice Control</li>
+                        <li>Code Analysis</li>
+                        <li>Basic Plugins</li>
+                        <li>1 Year Updates</li>
+                        <li>Community Support</li>
+                    </ul>
+                </div>
+                
+                <!-- Professional Plan -->
+                <div class="product-card popular" data-plan="professional" data-price="7900" data-price-display="$79">
+                    <div class="plan-name">💼 Professional</div>
+                    <div class="plan-price">$79</div>
+                    <ul class="plan-features">
+                        <li>Everything in Personal</li>
+                        <li>Advanced Debugging</li>
+                        <li>Program Generation</li>
+                        <li>Performance Analytics</li>
+                        <li>Custom Themes</li>
+                        <li>Priority Support</li>
+                        <li>2 Years Updates</li>
+                        <li>Commercial License</li>
+                    </ul>
+                </div>
+                
+                <!-- Team Plan -->
+                <div class="product-card" data-plan="team" data-price="19900" data-price-display="$199">
+                    <div class="plan-name">👥 Team</div>
+                    <div class="plan-price">$199</div>
+                    <ul class="plan-features">
+                        <li>Everything in Professional</li>
+                        <li>5 Developer Licenses</li>
+                        <li>Team Collaboration</li>
+                        <li>Advanced Security</li>
+                        <li>Custom Integrations</li>
+                        <li>Dedicated Support</li>
+                        <li>3 Years Updates</li>
+                        <li>Volume License</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="checkout-form" id="checkoutForm">
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" required placeholder="your@email.com">
+                    <small style="color: #666;">Your license key and download links will be sent here</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" required placeholder="John Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="company">Company (Optional)</label>
+                    <input type="text" id="company" placeholder="Acme Inc.">
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Plan:</span>
+                        <span id="selectedPlan">Select a plan above</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Price:</span>
+                        <span id="selectedPrice">-</span>
+                    </div>
+                    <div class="summary-row summary-total">
+                        <span>Total:</span>
+                        <span id="totalPrice">-</span>
+                    </div>
+                </div>
+                
+                <button class="checkout-button" id="checkoutButton" disabled>
+                    Select a Plan to Continue
+                </button>
+                
+                <div class="security-badges">
+                    <div class="security-badge">
+                        <span>🔒</span> SSL Secured
+                    </div>
+                    <div class="security-badge">
+                        <span>💳</span> Stripe Protected
+                    </div>
+                    <div class="security-badge">
+                        <span>📧</span> Instant Delivery
+                    </div>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <h3>🚀 Processing your order...</h3>
+                <p>You will be redirected to Stripe for secure payment.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Stripe - Replace with your actual publishable key
+        // Get this from your Stripe Dashboard: https://dashboard.stripe.com/apikeys
+        const stripe = Stripe('{{REDACTED_SECRET}}');
+        
+        let selectedPlan = null;
+        let selectedPrice = null;
+        
+        // Plan selection
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', () => {
+                // Remove previous selection
+                document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+                
+                // Select current card
+                card.classList.add('selected');
+                
+                // Update selection data
+                selectedPlan = card.dataset.plan;
+                selectedPrice = parseInt(card.dataset.price);
+                const priceDisplay = card.dataset.priceDisplay;
+                const planName = card.querySelector('.plan-name').textContent;
+                
+                // Update summary
+                document.getElementById('selectedPlan').textContent = planName;
+                document.getElementById('selectedPrice').textContent = priceDisplay;
+                document.getElementById('totalPrice').textContent = priceDisplay;
+                
+                // Enable checkout button
+                const button = document.getElementById('checkoutButton');
+                button.disabled = false;
+                button.textContent = `Purchase ${planName} for ${priceDisplay}`;
+            });
+        });
+        
+        // Checkout process
+        document.getElementById('checkoutButton').addEventListener('click', async () => {
+            if (!selectedPlan) return;
+            
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+            const company = document.getElementById('company').value;
+            
+            if (!email || !name) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('checkoutButton').disabled = true;
+            
+            try {
+                // Create checkout session
+                const response = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        plan: selectedPlan,
+                        price: selectedPrice,
+                        email: email,
+                        name: name,
+                        company: company
+                    })
+                });
+                
+                const session = await response.json();
+                
+                if (session.error) {
+                    throw new Error(session.error);
+                }
+                
+                // Redirect to Stripe Checkout
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id
+                });
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Something went wrong. Please try again or contact support.');
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('checkoutButton').disabled = false;
+            }
+        });
+        
+        // Auto-select Professional plan (most popular)
+        document.addEventListener('DOMContentLoaded', () => {
+            const popularPlan = document.querySelector('.product-card.popular');
+            if (popularPlan) {
+                popularPlan.click();
+            }
+        });
+    </script>
+</body>
+</html>

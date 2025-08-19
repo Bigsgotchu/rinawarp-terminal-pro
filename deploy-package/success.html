@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="index, follow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You! - RinaWarp Terminal</title>
+    
+    <!-- Google Analytics - CSP Compliant -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
+    <script src="/js/ga4-init.js" defer></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #0a1628;
+            background: linear-gradient(135deg, #ff1493 0%, #00ced1 15%, #1e90ff 30%, #ff69b4 45%, #20b2aa 60%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .success-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 60px 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+        }
+        
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: bounce 1s ease-out;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .order-details {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .next-steps {
+            margin-top: 40px;
+        }
+        
+        .button {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff1493, #00ffff);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .support-info {
+            margin-top: 40px;
+            padding: 20px;
+            background: #e8f4f8;
+            border-radius: 10px;
+        }
+    </style>
+    <link rel="canonical" href="https://www.rinawarptech.com/success.html">
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/success.html',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'success.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+<body>
+    <div class="container">
+        <div class="success-card">
+            <div class="success-icon">🎉</div>
+            <h1>Thank You for Your Purchase!</h1>
+            <p style="font-size: 1.2rem; color: #666; margin-bottom: 30px;">
+                Welcome to the RinaWarp Terminal family! Your subscription is now active.
+            </p>
+            
+            <div class="order-details" id="orderDetails">
+                <h3 style="margin-bottom: 20px;">Order Details</h3>
+                <div class="detail-row">
+                    <span>Product:</span>
+                    <strong id="productName">RinaWarp Terminal</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Plan:</span>
+                    <strong id="planName">Loading...</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Status:</span>
+                    <strong style="color: #00c853;">Active</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Order ID:</span>
+                    <strong id="orderId">Loading...</strong>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3 style="margin-bottom: 20px;">🚀 Next Steps</h3>
+                <a href="/download" class="button">📥 Download RinaWarp Terminal</a>
+                <a href="/docs" class="button">📚 View Documentation</a>
+            </div>
+            
+            <div class="support-info">
+                <h4>Need Help?</h4>
+                <p>Our support team is here to help you get started.</p>
+                <p>Email: <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- External JavaScript for CSP compliance -->
+    <script src="/js/success-page.js" defer></script>
+</body>
+</html>

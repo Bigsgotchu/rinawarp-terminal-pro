@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="index, follow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - RinaWarp Terminal</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 20, 147, 0.3);
+            backdrop-filter: blur(15px);
+        }
+        h1 {
+            color: #ff1493;
+            margin-bottom: 20px;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        a {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        a:hover {
+            transform: scale(1.05);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+    </style>
+    <link rel="canonical" href="https://www.rinawarptech.com/analytics.html">
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/analytics.html',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'analytics.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+<body>
+    <div class="container">
+        <h1>🧜‍♀️ RinaWarp Analytics Hub</h1>
+        <p>Access your analytics dashboards and insights</p>
+        
+        <div class="status">
+            <strong>Status:</strong> <span id="status">Checking...</span>
+        </div>
+        
+        <div class="links">
+            <a href="/analytics-dashboard.html">📊 Main Analytics Dashboard</a>
+            <a href="/ga4-test.html">🧪 GA4 Test Page</a>
+            <a href="/api/analytics/dashboard">📈 Analytics API Data</a>
+            <a href="/ab-test-dashboard">🔬 A/B Test Results</a>
+        </div>
+    </div>
+
+    <script>
+        // Check if the main dashboard is accessible
+        fetch('/analytics-dashboard.html')
+            .then(response => {
+                const statusElement = document.getElementById('status');
+                if (response.ok) {
+                    statusElement.innerHTML = '✅ Analytics Dashboard Online';
+                    statusElement.style.background = 'rgba(0, 255, 0, 0.1)';
+                } else {
+                    statusElement.innerHTML = '⚠️ Dashboard Deploying... (Try again in 30 seconds)';
+                    statusElement.style.background = 'rgba(255, 255, 0, 0.1)';
+                    statusElement.style.borderColor = 'rgba(255, 255, 0, 0.3)';
+                }
+            })
+            .catch(() => {
+                document.getElementById('status').innerHTML = '❌ Connection Issue';
+            });
+    </script>
+</body>
+</html>

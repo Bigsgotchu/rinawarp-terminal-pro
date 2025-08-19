@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="noindex, nofollow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Analytics Dashboard - Revenue & Conversion Tracking</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-G424CV5GGT');
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.2), rgba(0, 206, 209, 0.2));
+            border-radius: 20px;
+            border: 2px solid rgba(255, 20, 147, 0.3);
+            backdrop-filter: blur(15px);
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .dashboard-header p {
+            font-size: 1.2rem;
+            color: #b0c4de;
+            margin-bottom: 20px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #00ff00, #32cd32);
+            border-radius: 20px;
+            color: #000;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 20, 147, 0.05));
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(255, 20, 147, 0.3);
+            backdrop-filter: blur(15px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff1493, #00ffff, #ff69b4);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 20px 40px rgba(255, 20, 147, 0.3);
+        }
+        
+        .metric-card h3 {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff69b4;
+            margin-bottom: 10px;
+        }
+        
+        .metric-change {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .metric-change.positive {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+        
+        .metric-change.negative {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6b6b;
+        }
+        
+        .metric-change.neutral {
+            background: rgba(255, 255, 0, 0.2);
+            color: #ffff00;
+        }
+        
+        .chart-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(0, 206, 209, 0.05));
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(0, 206, 209, 0.3);
+            margin-bottom: 30px;
+            backdrop-filter: blur(15px);
+        }
+        
+        .chart-title {
+            font-size: 1.4rem;
+            color: #00ffff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .funnel-visualization {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 200px;
+            margin: 20px 0;
+            padding: 0 20px;
+        }
+        
+        .funnel-step {
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            border-radius: 10px 10px 0 0;
+            min-width: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .funnel-step:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(255, 20, 147, 0.4);
+        }
+        
+        .funnel-step-label {
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 0 5px;
+        }
+        
+        .funnel-step-value {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .real-time-activity {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(255, 20, 147, 0.1));
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid rgba(255, 69, 180, 0.3);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .activity-item.purchase { border-left-color: #00ff00; }
+        .activity-item.checkout { border-left-color: #ffff00; }
+        .activity-item.pricing { border-left-color: #00ffff; }
+        .activity-item.visit { border-left-color: #ff69b4; }
+        
+        .activity-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        .activity-details h4 {
+            color: #ffffff;
+            margin-bottom: 3px;
+        }
+        
+        .activity-details p {
+            color: #b0c4de;
+            font-size: 0.9rem;
+        }
+        
+        .activity-time {
+            margin-left: auto;
+            color: #888;
+            font-size: 0.8rem;
+        }
+        
+        .controls-panel {
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(0, 255, 255, 0.1));
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid rgba(255, 20, 147, 0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .control-button {
+            background: linear-gradient(135deg, #ff1493, #00ffff);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            margin: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.4);
+        }
+        
+        .control-button.active {
+            background: linear-gradient(135deg, #ff69b4, #20b2aa);
+            box-shadow: 0 0 20px rgba(255, 20, 147, 0.6);
+        }
+        
+        .insights-panel {
+            background: linear-gradient(135deg, rgba(32, 178, 170, 0.1), rgba(255, 105, 180, 0.1));
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(32, 178, 170, 0.3);
+            margin-top: 30px;
+        }
+        
+        .insight-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #00ffff;
+        }
+        
+        .insight-title {
+            color: #00ffff;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .insight-description {
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid { grid-template-columns: 1fr; }
+            .funnel-visualization { flex-direction: column; height: auto; }
+            .funnel-step { margin-bottom: 15px; min-height: 80px; width: 100%; }
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid #00ff00;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .refresh-indicator.active {
+            opacity: 1;
+        }
+    </style>
+    <link rel="canonical" href="https://www.rinawarptech.com/analytics-dashboard.html">
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/analytics-dashboard.html',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'analytics-dashboard.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1>🧜‍♀️ RinaWarp Analytics Dashboard</h1>
+            <p>Real-time Revenue & Conversion Tracking</p>
+            <div class="status-indicator">🟢 Live Data Active</div>
+        </div>
+        
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <h3 style="margin-bottom: 20px; color: #00ffff;">Dashboard Controls</h3>
+            <button class="control-button active" onclick="setTimeRange('today')">Today</button>
+            <button class="control-button" onclick="setTimeRange('week')">7 Days</button>
+            <button class="control-button" onclick="setTimeRange('month')">30 Days</button>
+            <button class="control-button" onclick="refreshData()">🔄 Refresh</button>
+            <button class="control-button" onclick="exportData()">📊 Export</button>
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>💰 Total Revenue</h3>
+                <div class="metric-value" id="total-revenue">$0</div>
+                <div class="metric-change positive" id="revenue-change">+0% vs yesterday</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>🛒 Conversions</h3>
+                <div class="metric-value" id="total-conversions">0</div>
+                <div class="metric-change neutral" id="conversion-change">+0% vs yesterday</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>📊 Conversion Rate</h3>
+                <div class="metric-value" id="conversion-rate">0%</div>
+                <div class="metric-change neutral" id="rate-change">+0% vs yesterday</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>👥 Visitors</h3>
+                <div class="metric-value" id="total-visitors">0</div>
+                <div class="metric-change positive" id="visitor-change">+0% vs yesterday</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>🛍️ Checkout Started</h3>
+                <div class="metric-value" id="checkout-started">0</div>
+                <div class="metric-change neutral" id="checkout-change">+0% vs yesterday</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>💳 Average Order</h3>
+                <div class="metric-value" id="average-order">$0</div>
+                <div class="metric-change neutral" id="order-change">+0% vs yesterday</div>
+            </div>
+        </div>
+
+        <!-- Conversion Funnel Visualization -->
+        <div class="chart-container">
+            <h3 class="chart-title">🎯 Conversion Funnel Analysis</h3>
+            <div class="funnel-visualization">
+                <div class="funnel-step" style="height: 180px;" onclick="showFunnelDetails('visits')">
+                    <div class="funnel-step-label">Homepage Visits</div>
+                    <div class="funnel-step-value" id="funnel-visits">0</div>
+                </div>
+                <div class="funnel-step" style="height: 140px;" onclick="showFunnelDetails('pricing')">
+                    <div class="funnel-step-label">Pricing Views</div>
+                    <div class="funnel-step-value" id="funnel-pricing">0</div>
+                </div>
+                <div class="funnel-step" style="height: 100px;" onclick="showFunnelDetails('selection')">
+                    <div class="funnel-step-label">Plan Selected</div>
+                    <div class="funnel-step-value" id="funnel-selection">0</div>
+                </div>
+                <div class="funnel-step" style="height: 70px;" onclick="showFunnelDetails('checkout')">
+                    <div class="funnel-step-label">Checkout</div>
+                    <div class="funnel-step-value" id="funnel-checkout">0</div>
+                </div>
+                <div class="funnel-step" style="height: 50px;" onclick="showFunnelDetails('purchase')">
+                    <div class="funnel-step-label">Purchase</div>
+                    <div class="funnel-step-value" id="funnel-purchase">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Activity Feed -->
+        <div class="chart-container">
+            <h3 class="chart-title">🔴 Live Activity Feed</h3>
+            <div class="real-time-activity" id="activity-feed">
+                <!-- Real-time activities will be populated here -->
+            </div>
+        </div>
+
+        <!-- AI-Powered Insights -->
+        <div class="insights-panel">
+            <h3 style="color: #00ffff; margin-bottom: 20px; text-align: center;">🤖 AI-Powered Insights</h3>
+            <div id="insights-container">
+                <!-- Insights will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Refresh Indicator -->
+    <div class="refresh-indicator" id="refresh-indicator">
+        🔄 Updating data...
+    </div>
+
+    <script>
+        // Dashboard Configuration
+        const DASHBOARD_CONFIG = {
+            refreshInterval: 30000, // 30 seconds
+            maxActivityItems: 50,
+            chartColors: {
+                primary: '#ff1493',
+                secondary: '#00ffff',
+                success: '#00ff00',
+                warning: '#ffff00',
+                danger: '#ff6b6b'
+            }
+        };
+
+        // Mock data for demonstration (replace with real GA4 API calls)
+        let dashboardData = {
+            revenue: { value: 0, change: 0 },
+            conversions: { value: 0, change: 0 },
+            conversionRate: { value: 0, change: 0 },
+            visitors: { value: 0, change: 0 },
+            checkoutStarted: { value: 0, change: 0 },
+            averageOrder: { value: 0, change: 0 },
+            funnelData: {
+                visits: 0,
+                pricing: 0,
+                selection: 0,
+                checkout: 0,
+                purchase: 0
+            }
+        };
+
+        let activities = [];
+        let currentTimeRange = 'today';
+
+        // Initialize dashboard
+        function initDashboard() {
+            console.log('🧜‍♀️ Initializing RinaWarp Analytics Dashboard...');
+            
+            // Load initial data
+            loadAnalyticsData();
+            
+            // Start real-time updates
+            setInterval(updateRealTimeData, DASHBOARD_CONFIG.refreshInterval);
+            
+            // Generate sample insights
+            generateInsights();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            console.log('✅ Dashboard initialized successfully!');
+        }
+
+        // Load analytics data (replace with real GA4 API calls)
+        async function loadAnalyticsData() {
+            showRefreshIndicator();
+            
+            try {
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Generate realistic sample data based on time range
+                const multiplier = getTimeRangeMultiplier(currentTimeRange);
+                
+                dashboardData = {
+                    revenue: { 
+                        value: Math.floor(Math.random() * 5000 * multiplier), 
+                        change: (Math.random() - 0.5) * 50 
+                    },
+                    conversions: { 
+                        value: Math.floor(Math.random() * 50 * multiplier), 
+                        change: (Math.random() - 0.5) * 30 
+                    },
+                    conversionRate: { 
+                        value: (Math.random() * 5 + 1), 
+                        change: (Math.random() - 0.5) * 2 
+                    },
+                    visitors: { 
+                        value: Math.floor(Math.random() * 1000 * multiplier), 
+                        change: (Math.random() - 0.5) * 100 
+                    },
+                    checkoutStarted: { 
+                        value: Math.floor(Math.random() * 80 * multiplier), 
+                        change: (Math.random() - 0.5) * 20 
+                    },
+                    averageOrder: { 
+                        value: Math.floor(Math.random() * 100 + 25), 
+                        change: (Math.random() - 0.5) * 20 
+                    },
+                    funnelData: {
+                        visits: Math.floor(Math.random() * 1000 * multiplier),
+                        pricing: Math.floor(Math.random() * 300 * multiplier),
+                        selection: Math.floor(Math.random() * 100 * multiplier),
+                        checkout: Math.floor(Math.random() * 80 * multiplier),
+                        purchase: Math.floor(Math.random() * 50 * multiplier)
+                    }
+                };
+                
+                updateDashboardDisplay();
+                
+            } catch (error) {
+                console.error('Error loading analytics data:', error);
+            } finally {
+                hideRefreshIndicator();
+            }
+        }
+
+        // Update dashboard display with current data
+        function updateDashboardDisplay() {
+            // Update metric cards
+            document.getElementById('total-revenue').textContent = `$${dashboardData.revenue.value.toLocaleString()}`;
+            document.getElementById('revenue-change').textContent = `${dashboardData.revenue.change >= 0 ? '+' : ''}${dashboardData.revenue.change.toFixed(1)}% vs yesterday`;
+            document.getElementById('revenue-change').className = `metric-change ${getChangeClass(dashboardData.revenue.change)}`;
+            
+            document.getElementById('total-conversions').textContent = dashboardData.conversions.value;
+            document.getElementById('conversion-change').textContent = `${dashboardData.conversions.change >= 0 ? '+' : ''}${dashboardData.conversions.change.toFixed(1)}% vs yesterday`;
+            document.getElementById('conversion-change').className = `metric-change ${getChangeClass(dashboardData.conversions.change)}`;
+            
+            document.getElementById('conversion-rate').textContent = `${dashboardData.conversionRate.value.toFixed(1)}%`;
+            document.getElementById('rate-change').textContent = `${dashboardData.conversionRate.change >= 0 ? '+' : ''}${dashboardData.conversionRate.change.toFixed(1)}% vs yesterday`;
+            document.getElementById('rate-change').className = `metric-change ${getChangeClass(dashboardData.conversionRate.change)}`;
+            
+            document.getElementById('total-visitors').textContent = dashboardData.visitors.value.toLocaleString();
+            document.getElementById('visitor-change').textContent = `${dashboardData.visitors.change >= 0 ? '+' : ''}${dashboardData.visitors.change.toFixed(0)}% vs yesterday`;
+            document.getElementById('visitor-change').className = `metric-change ${getChangeClass(dashboardData.visitors.change)}`;
+            
+            document.getElementById('checkout-started').textContent = dashboardData.checkoutStarted.value;
+            document.getElementById('checkout-change').textContent = `${dashboardData.checkoutStarted.change >= 0 ? '+' : ''}${dashboardData.checkoutStarted.change.toFixed(1)}% vs yesterday`;
+            document.getElementById('checkout-change').className = `metric-change ${getChangeClass(dashboardData.checkoutStarted.change)}`;
+            
+            document.getElementById('average-order').textContent = `$${dashboardData.averageOrder.value}`;
+            document.getElementById('order-change').textContent = `${dashboardData.averageOrder.change >= 0 ? '+' : ''}${dashboardData.averageOrder.change.toFixed(1)}% vs yesterday`;
+            document.getElementById('order-change').className = `metric-change ${getChangeClass(dashboardData.averageOrder.change)}`;
+            
+            // Update funnel data
+            document.getElementById('funnel-visits').textContent = dashboardData.funnelData.visits;
+            document.getElementById('funnel-pricing').textContent = dashboardData.funnelData.pricing;
+            document.getElementById('funnel-selection').textContent = dashboardData.funnelData.selection;
+            document.getElementById('funnel-checkout').textContent = dashboardData.funnelData.checkout;
+            document.getElementById('funnel-purchase').textContent = dashboardData.funnelData.purchase;
+        }
+
+        // Update real-time activity feed
+        function updateRealTimeData() {
+            // Simulate real-time activities
+            const activityTypes = [
+                { type: 'visit', icon: '👥', title: 'New Visitor', description: 'Someone visited the homepage' },
+                { type: 'pricing', icon: '💰', title: 'Pricing Page View', description: 'User viewed pricing plans' },
+                { type: 'checkout', icon: '🛒', title: 'Checkout Started', description: 'User began checkout process' },
+                { type: 'purchase', icon: '✅', title: 'Purchase Completed', description: 'New customer purchase!' }
+            ];
+            
+            // Add random activity every refresh
+            if (Math.random() > 0.3) {
+                const activity = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+                activities.unshift({
+                    ...activity,
+                    time: new Date(),
+                    id: Date.now()
+                });
+                
+                // Keep only recent activities
+                activities = activities.slice(0, DASHBOARD_CONFIG.maxActivityItems);
+                
+                updateActivityFeed();
+            }
+        }
+
+        // Update activity feed display
+        function updateActivityFeed() {
+            const feedContainer = document.getElementById('activity-feed');
+            
+            feedContainer.innerHTML = activities.map(activity => `
+                <div class="activity-item ${activity.type}">
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-details">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.description}</p>
+                    </div>
+                    <div class="activity-time">${formatTime(activity.time)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Generate AI insights
+        function generateInsights() {
+            const insights = [
+                {
+                    title: "🎯 Conversion Opportunity",
+                    description: "Your pricing page has a 23% higher bounce rate than industry average. Consider A/B testing a simplified layout or adding social proof."
+                },
+                {
+                    title: "📊 Revenue Attribution",
+                    description: "Direct traffic accounts for 67% of your revenue. Focus on SEO and content marketing to improve organic discovery."
+                },
+                {
+                    title: "⚡ Checkout Optimization",
+                    description: "Users who spend >3 minutes on pricing have 4x higher conversion rates. Consider highlighting key features more prominently."
+                },
+                {
+                    title: "🚀 Growth Opportunity",
+                    description: "Mobile users have 15% lower conversion rates. Optimize your checkout flow for mobile devices."
+                }
+            ];
+            
+            const container = document.getElementById('insights-container');
+            container.innerHTML = insights.map(insight => `
+                <div class="insight-item">
+                    <div class="insight-title">${insight.title}</div>
+                    <div class="insight-description">${insight.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // Utility functions
+        function getChangeClass(change) {
+            if (change > 0) return 'positive';
+            if (change < 0) return 'negative';
+            return 'neutral';
+        }
+
+        function getTimeRangeMultiplier(range) {
+            switch (range) {
+                case 'today': return 1;
+                case 'week': return 7;
+                case 'month': return 30;
+                default: return 1;
+            }
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function showRefreshIndicator() {
+            document.getElementById('refresh-indicator').classList.add('active');
+        }
+
+        function hideRefreshIndicator() {
+            document.getElementById('refresh-indicator').classList.remove('active');
+        }
+
+        // Control functions
+        function setTimeRange(range) {
+            currentTimeRange = range;
+            
+            // Update active button
+            document.querySelectorAll('.control-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Reload data
+            loadAnalyticsData();
+        }
+
+        function refreshData() {
+            loadAnalyticsData();
+        }
+
+        function exportData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                timeRange: currentTimeRange,
+                metrics: dashboardData,
+                activities: activities.slice(0, 10)
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rinawarp-analytics-${currentTimeRange}-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showFunnelDetails(step) {
+            const stepData = dashboardData.funnelData[step];
+            alert(`${step.charAt(0).toUpperCase() + step.slice(1)}: ${stepData} users\n\nClick the Export button to get detailed funnel analysis.`);
+        }
+
+        function setupEventListeners() {
+            // Add any additional event listeners here
+            console.log('Event listeners set up');
+        }
+
+        // Initialize dashboard when page loads
+        window.addEventListener('load', initDashboard);
+
+        // Track dashboard usage
+        gtag('event', 'analytics_dashboard_view', {
+            event_category: 'dashboard_usage',
+            dashboard_type: 'revenue_analytics'
+        });
+    </script>
+</body>
+</html>

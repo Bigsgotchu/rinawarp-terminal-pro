@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RinaWarp Terminal - Simple Pricing</title>
+    <meta name="description" content="Choose your RinaWarp Terminal plan. Start free with Personal ($15/month), upgrade to Professional ($25/month), or scale with Team ($35/month).">
+    
+    <!-- Enhanced Analytics & Conversion Tracking -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G424CV5GGT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-G424CV5GGT', {
+            // Enhanced e-commerce configuration
+            send_page_view: true,
+            anonymize_ip: true,
+            allow_google_signals: false,
+            custom_map: {
+                'custom_parameter_1': 'user_journey_step',
+                'custom_parameter_2': 'plan_selected',
+                'custom_parameter_3': 'conversion_source'
+            }
+        });
+    </script>
+    
+    <!-- RinaWarp Conversion Analytics Suite -->
+    <script src="/js/conversion-analytics.js"></script>
+    <script src="/js/analytics/conversion-funnel.js"></script>
+    <script src="/js/analytics/ga4-enhanced-tracking.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+        
+        .header p {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            color: #94a3b8;
+            margin-bottom: 24px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .guarantee {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: clamp(20px, 4vw, 32px);
+            margin-bottom: clamp(40px, 8vw, 60px);
+        }
+        
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: clamp(20px, 5vw, 32px);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .plan-description {
+            color: #94a3b8;
+            margin-bottom: 24px;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            line-height: 1.5;
+        }
+        
+        .price {
+            margin-bottom: 24px;
+        }
+        
+        .price-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .price-period {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+        
+        .features {
+            list-style: none;
+            margin-bottom: auto;
+            flex-grow: 1;
+        }
+        
+        .features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: clamp(0.875rem, 2.5vw, 0.95rem);
+            line-height: 1.4;
+        }
+        
+        .checkmark {
+            color: #22c55e;
+            font-weight: 600;
+        }
+        
+        .cta-button {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: clamp(14px, 3vw, 18px) 24px;
+            border-radius: 8px;
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 48px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .cta-button:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .cta-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .professional-card {
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+        
+        .trust-signals {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+        }
+        
+        .trust-signals h3 {
+            margin-bottom: 24px;
+            font-size: 1.25rem;
+        }
+        
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .trust-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .trust-icon {
+            font-size: 2rem;
+            color: #3b82f6;
+        }
+        
+        .testimonial {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 12px;
+            color: #94a3b8;
+        }
+        
+        .testimonial-author {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        /* Mobile-First Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .header {
+                margin-bottom: 40px;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .pricing-card {
+                padding: 20px;
+                min-height: auto;
+            }
+            
+            .popular-badge {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+            }
+            
+            .price-amount {
+                font-size: 2.5rem;
+            }
+            
+            .trust-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .trust-signals {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 12px;
+            }
+            
+            .pricing-card {
+                padding: 16px;
+            }
+            
+            .trust-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .testimonial {
+                padding: 16px;
+            }
+        }
+        
+        /* Sticky mobile CTA */
+        @media (max-width: 768px) {
+            .mobile-sticky-cta {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(15, 23, 42, 0.95);
+                backdrop-filter: blur(10px);
+                padding: 12px 16px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                z-index: 1000;
+                transform: translateY(100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .mobile-sticky-cta.show {
+                transform: translateY(0);
+            }
+            
+            .mobile-sticky-cta .cta-button {
+                margin: 0;
+                font-weight: 700;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Simple, Transparent Pricing</h1>
+            <p>Choose the perfect plan for your terminal workflow</p>
+            <div class="guarantee">
+                <span>✓</span> 30-day money-back guarantee
+            </div>
+        </div>
+        
+        <!-- Pricing Grid -->
+        <div class="pricing-grid">
+            <!-- Personal Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Personal</div>
+                <div class="plan-description">AI-powered terminal with command assistance and automation tools for individual developers</div>
+                
+                <div class="price">
+                    <span class="price-amount">$15</span>
+                    <span class="price-period">/month</span>
+                </div>
+                
+                <ul class="features">
+                    <li><span class="checkmark">✓</span> Enhanced command execution with autocomplete</li>
+                    <li><span class="checkmark">✓</span> 6 customizable terminal themes</li>
+                    <li><span class="checkmark">✓</span> AI assistant for command suggestions</li>
+                    <li><span class="checkmark">✓</span> Voice command functionality</li>
+                    <li><span class="checkmark">✓</span> Use on up to 3 devices</li>
+                    <li><span class="checkmark">✓</span> Cloud synchronization of settings</li>
+                    <li><span class="checkmark">✓</span> Email support</li>
+                </ul>
+                
+                <button class="cta-button" data-plan="personal">Get Started</button>
+            </div>
+            
+            <!-- Professional Plan -->
+            <div class="pricing-card professional-card">
+                <div class="popular-badge">Most Popular</div>
+                <div class="plan-name">Professional</div>
+                <div class="plan-description">Advanced AI features and team collaboration tools with premium voice integration</div>
+                
+                <div class="price">
+                    <span class="price-amount">$25</span>
+                    <span class="price-period">/month</span>
+                </div>
+                
+                <ul class="features">
+                    <li><span class="checkmark">✓</span> All Personal plan features included</li>
+                    <li><span class="checkmark">✓</span> ElevenLabs voice AI integration</li>
+                    <li><span class="checkmark">✓</span> AI-assisted code analysis</li>
+                    <li><span class="checkmark">✓</span> Terminal session sharing</li>
+                    <li><span class="checkmark">✓</span> Use on up to 5 devices</li>
+                    <li><span class="checkmark">✓</span> Priority email support</li>
+                    <li><span class="checkmark">✓</span> Beta feature access</li>
+                </ul>
+                
+                <button class="cta-button" data-plan="professional">Start Professional</button>
+            </div>
+            
+            <!-- Team Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Team</div>
+                <div class="plan-description">Team management features with enterprise security and dedicated support</div>
+                
+                <div class="price">
+                    <span class="price-amount">$35</span>
+                    <span class="price-period">/month</span>
+                </div>
+                
+                <ul class="features">
+                    <li><span class="checkmark">✓</span> All Professional plan features</li>
+                    <li><span class="checkmark">✓</span> Team administration panel</li>
+                    <li><span class="checkmark">✓</span> Project sharing with access logs</li>
+                    <li><span class="checkmark">✓</span> Up to 10 team member licenses</li>
+                    <li><span class="checkmark">✓</span> API integration support</li>
+                    <li><span class="checkmark">✓</span> Dedicated support contact</li>
+                    <li><span class="checkmark">✓</span> Service level agreement</li>
+                </ul>
+                
+                <button class="cta-button" data-plan="team">Scale with Team</button>
+            </div>
+        </div>
+        
+        <!-- Trust Signals -->
+        <div class="trust-signals">
+            <h3>Secure and Reliable</h3>
+            
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-icon">🔒</div>
+                    <div>256-bit SSL Encryption</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">💳</div>
+                    <div>Secure Stripe Payments</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">↩️</div>
+                    <div>30-Day Money Back</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">📞</div>
+                    <div>Email Support</div>
+                </div>
+            </div>
+            
+            <!-- Customer Testimonials -->
+            <div class="testimonial">
+                <div class="testimonial-text">"The terminal interface is clean and the AI assistance helps with command completion. Good tool for development work."</div>
+                <div class="testimonial-author">— Developer Review</div>
+            </div>
+            
+            <div class="testimonial">
+                <div class="testimonial-text">"Voice control works well and the themes are visually appealing. Makes terminal work more efficient."</div>
+                <div class="testimonial-author">— User Feedback</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load unified checkout system -->
+    <script src="/js/checkout-unified.js"></script>
+    
+    <!-- A/B Testing Framework -->
+    <script src="/js/ab-testing-framework.js"></script>
+    
+    <!-- Smart Exit-Intent System -->
+    <link rel="stylesheet" href="/css/exit-intent-styles.css">
+    <script src="/js/smart-exit-intent.js"></script>
+    
+    <!-- Mobile CTA Optimizer -->
+    <script src="/js/mobile-cta-optimizer.js"></script>
+    
+    <!-- Onboarding System -->
+    <script src="/js/onboarding-system.js"></script>
+    
+    <script>
+        // 🎯 ENHANCED CONVERSION ANALYTICS INITIALIZATION
+        let conversionAnalytics, funnelTracker, ga4Tracker;
+        
+        // Initialize all tracking systems
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Initialize conversion analytics
+                conversionAnalytics = new ConversionAnalytics();
+                
+                // Initialize funnel tracking
+                funnelTracker = new ConversionFunnelTracker();
+                
+                // Initialize enhanced GA4 tracking
+                ga4Tracker = new RinaWarpGA4Tracker('G-G424CV5GGT', {
+                    debug: window.location.hostname === 'localhost',
+                    enabled: true
+                });
+                
+                // Initialize A/B testing framework
+                window.rinaWarpABTesting = new RinaWarpABTesting({
+                    debug: window.location.hostname === 'localhost',
+                    analytics: conversionAnalytics
+                });
+                
+                console.log('🚀 All conversion tracking systems initialized');
+                
+                // Track initial pricing page view with enhanced data
+                trackPricingPageView();
+                
+                // Setup plan-specific tracking
+                setupPlanTracking();
+                
+                // Setup user behavior tracking
+                setupBehaviorTracking();
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize conversion tracking:', error);
+            }
+        });
+        
+        /**
+         * Track pricing page view with comprehensive data
+         */
+        function trackPricingPageView() {
+            // Enhanced page view tracking
+            gtag('event', 'page_view', {
+                page_title: 'Pricing - Simplified',
+                page_location: window.location.href,
+                content_group1: 'pricing',
+                content_group2: 'simplified_pricing',
+                user_journey_step: 'pricing_view',
+                conversion_source: document.referrer || 'direct'
+            });
+            
+            // E-commerce view_item_list event for all plans
+            gtag('event', 'view_item_list', {
+                item_list_id: 'pricing_plans',
+                item_list_name: 'RinaWarp Terminal Pricing Plans',
+                items: [
+                    {
+                        item_id: 'personal_plan',
+                        item_name: 'Personal Plan',
+                        item_category: 'subscription',
+                        price: 15.00,
+                        currency: 'USD',
+                        quantity: 1
+                    },
+                    {
+                        item_id: 'professional_plan',
+                        item_name: 'Professional Plan',
+                        item_category: 'subscription',
+                        price: 25.00,
+                        currency: 'USD',
+                        quantity: 1
+                    },
+                    {
+                        item_id: 'team_plan',
+                        item_name: 'Team Plan',
+                        item_category: 'subscription',
+                        price: 35.00,
+                        currency: 'USD',
+                        quantity: 1
+                    }
+                ]
+            });
+        }
+        
+        /**
+         * Setup plan-specific tracking for user interactions
+         */
+        function setupPlanTracking() {
+            // Track individual plan card views when they enter viewport
+            const planCards = document.querySelectorAll('.pricing-card');
+            
+            planCards.forEach((card, index) => {
+                const planName = card.querySelector('.plan-name').textContent;
+                const planPrice = parseFloat(card.querySelector('.price-amount').textContent.replace('$', ''));
+                
+                // Intersection observer for plan card views
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            gtag('event', 'view_item', {
+                                currency: 'USD',
+                                value: planPrice,
+                                items: [{
+                                    item_id: planName.toLowerCase().replace(/\s+/g, '_') + '_plan',
+                                    item_name: planName + ' Plan',
+                                    item_category: 'subscription',
+                                    price: planPrice,
+                                    currency: 'USD',
+                                    quantity: 1
+                                }],
+                                plan_position: index + 1,
+                                total_plans: planCards.length
+                            });
+                            
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.5 });
+                
+                observer.observe(card);
+                
+                // Track CTA button clicks
+                const ctaButton = card.querySelector('.cta-button');
+                if (ctaButton) {
+                    ctaButton.addEventListener('click', () => {
+                        // Track plan selection
+                        gtag('event', 'select_item', {
+                            currency: 'USD',
+                            value: planPrice,
+                            items: [{
+                                item_id: planName.toLowerCase().replace(/\s+/g, '_') + '_plan',
+                                item_name: planName + ' Plan',
+                                item_category: 'subscription',
+                                price: planPrice,
+                                currency: 'USD',
+                                quantity: 1
+                            }],
+                            plan_selected: planName,
+                            selection_method: 'cta_button',
+                            time_on_page: Math.round((Date.now() - window.performance.timing.loadEventEnd) / 1000)
+                        });
+                        
+                        // Track in conversion analytics
+                        if (conversionAnalytics) {
+                            conversionAnalytics.trackEvent('plan_selection', {
+                                plan: planName,
+                                price: planPrice,
+                                category: 'conversion',
+                                value: planPrice
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        
+        /**
+         * Setup comprehensive user behavior tracking
+         */
+        function setupBehaviorTracking() {
+            let pageStartTime = Date.now();
+            let maxScrollDepth = 0;
+            
+            // Enhanced scroll depth tracking
+            window.addEventListener('scroll', () => {
+                const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+                
+                if (scrollPercent > maxScrollDepth && scrollPercent % 25 === 0) {
+                    maxScrollDepth = scrollPercent;
+                    
+                    gtag('event', 'scroll', {
+                        event_category: 'engagement',
+                        event_label: 'pricing_page_scroll',
+                        value: scrollPercent,
+                        scroll_depth: scrollPercent,
+                        time_to_scroll: Math.round((Date.now() - pageStartTime) / 1000)
+                    });
+                }
+            });
+            
+            // Track time on page milestones
+            const timeIntervals = [30, 60, 120, 300]; // 30s, 1m, 2m, 5m
+            timeIntervals.forEach(seconds => {
+                setTimeout(() => {
+                    gtag('event', 'time_on_page', {
+                        event_category: 'engagement',
+                        event_label: 'pricing_page_time',
+                        value: seconds,
+                        time_milestone: seconds + '_seconds'
+                    });
+                }, seconds * 1000);
+            });
+            
+            // Track trust signal interactions
+            document.querySelectorAll('.trust-item').forEach(trustItem => {
+                trustItem.addEventListener('click', () => {
+                    const trustType = trustItem.textContent.trim();
+                    gtag('event', 'trust_signal_click', {
+                        event_category: 'engagement',
+                        trust_signal: trustType,
+                        conversion_stage: 'consideration'
+                    });
+                });
+            });
+            
+            // Track testimonial interactions
+            document.querySelectorAll('.testimonial').forEach((testimonial, index) => {
+                testimonial.addEventListener('click', () => {
+                    gtag('event', 'testimonial_click', {
+                        event_category: 'engagement',
+                        testimonial_index: index + 1,
+                        conversion_stage: 'consideration'
+                    });
+                });
+            });
+            
+            // Track page exit intent
+            document.addEventListener('mouseout', (e) => {
+                if (e.clientY <= 0) {
+                    gtag('event', 'exit_intent', {
+                        event_category: 'behavior',
+                        page_type: 'pricing',
+                        time_on_page: Math.round((Date.now() - pageStartTime) / 1000),
+                        max_scroll_depth: maxScrollDepth
+                    });
+                }
+            });
+        }
+        
+        // Enhanced page unload tracking
+        window.addEventListener('beforeunload', () => {
+            const timeOnPage = Math.round((Date.now() - window.performance.timing.loadEventEnd) / 1000);
+            
+            gtag('event', 'page_unload', {
+                event_category: 'behavior',
+                time_on_page: timeOnPage,
+                max_scroll_depth: maxScrollDepth,
+                page_type: 'pricing'
+            });
+        });
+    </script>
+</body>
+</html>

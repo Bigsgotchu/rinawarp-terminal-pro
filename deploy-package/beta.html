@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="index, follow, noarchive">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧜‍♀️ RinaWarp Terminal - Beta Testing Program</title>
+    <style>
+        :root {
+            --mermaid-teal: #008B8B;
+            --mermaid-hotpink: #FF1493;
+            --mermaid-blue: #00AAFF;
+            --mermaid-pearl: #F8F8FF;
+            --mermaid-seafoam: #00FF88;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, var(--mermaid-teal) 0%, var(--mermaid-hotpink) 50%, var(--mermaid-blue) 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            background: rgba(0, 139, 139, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 20, 147, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--mermaid-hotpink), var(--mermaid-blue), #8A2BE2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav { display: flex; justify-content: center; gap: 20px; margin: 40px 0; flex-wrap: wrap; }
+        .nav a { 
+            background: rgba(255, 20, 147, 0.2); 
+            color: white; 
+            padding: 15px 30px; 
+            border-radius: 25px; 
+            text-decoration: none; 
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 20, 147, 0.3);
+        }
+        .nav a:hover { 
+            background: rgba(255, 20, 147, 0.3); 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+        }
+        
+        .content { 
+            background: rgba(255, 20, 147, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 20, 147, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 30px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(255, 20, 147, 0.3);
+        }
+        
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .download-card {
+            background: rgba(0, 139, 139, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 139, 139, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .download-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--mermaid-hotpink);
+            box-shadow: 0 10px 25px rgba(255, 20, 147, 0.3);
+        }
+        
+        .download-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-download {
+            background: linear-gradient(45deg, var(--mermaid-seafoam), var(--mermaid-teal));
+            color: white;
+            padding: 20px 40px;
+            font-size: 1.2rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(255, 20, 147, 0.4);
+        }
+        
+        .beta-benefits {
+            list-style: none;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .beta-benefits li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 20, 147, 0.2);
+        }
+        
+        .beta-benefits li:before {
+            content: "🌊 ";
+            margin-right: 10px;
+        }
+        
+        .status-badge {
+            background: linear-gradient(45deg, var(--mermaid-seafoam), var(--mermaid-teal));
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+        }
+    </style>
+    <script src="js/csp-handlers-beta.js"></script>
+    <link rel="canonical" href="https://www.rinawarptech.com/beta.html">
+
+    <!-- OTTO SEO Pixel -->
+    <script type="text/javascript">
+      !function(o,t,t,o){
+        o.OttoSeoObject=t,o[t]=o[t]||function(){
+          (o[t].q=o[t].q||[]).push(arguments)
+        },o[t].l=1*new Date();
+        var e=document.createElement("script"),
+        n=document.getElementsByTagName("script")[0];
+        e.async=1,
+        e.src="https://pixel.otto-seo.com/pixel.js",
+        n.parentNode.insertBefore(e,n)
+      }(window,document,"ottoseo","script");
+      
+      // Initialize OTTO with your pixel ID
+      ottoseo('init', '145-919');
+      
+      // Track page view
+      ottoseo('track', 'PageView', {
+        page_url: 'https://www.rinawarptech.com/beta.html',
+        page_title: document.title,
+        site_name: 'RinaWarp Terminal',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Track SEO modifications
+      ottoseo('track', 'SEOPageLoad', {
+        meta_title: document.querySelector('title') ? document.querySelector('title').textContent : '',
+        meta_description: document.querySelector('meta[name="description"]') ? document.querySelector('meta[name="description"]').content : '',
+        canonical_url: document.querySelector('link[rel="canonical"]') ? document.querySelector('link[rel="canonical"]').href : '',
+        page_path: 'beta.html'
+      });
+    </script>
+    <!-- End OTTO SEO Pixel -->
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧜‍♀️ RinaWarp Terminal Beta</h1>
+            <p>🌊 Join the Underwater Coding Revolution! 🌊</p>
+            <div class="status-badge">✨ Beta Program Active</div>
+        </div>
+        
+        <div class="nav">
+            <a href="/">🏠 Home</a>
+            <a href="/pricing.html">💰 Pricing</a>
+            <a href="/beta.html">🧜‍♀️ Beta</a>
+            <a href="/success.html">✅ Success</a>
+        </div>
+        
+        <div class="content">
+            <h2>🐚 Welcome to the Beta Testing Program</h2>
+            <p>Dive into the future of terminal development! As a beta tester, you'll get early access to our magical mermaid-themed AI terminal and help shape its evolution.</p>
+            
+            <ul class="beta-benefits">
+                <li><strong>Free Beta Access</strong> - Full access to all premium features</li>
+                <li><strong>AI Mermaid Assistant</strong> - Get intelligent coding suggestions</li>
+                <li><strong>Oceanic Themes</strong> - Beautiful underwater visual experience</li>
+                <li><strong>Wave-Speed Performance</strong> - Optimized for maximum productivity</li>
+                <li><strong>Direct Feedback Channel</strong> - Your input shapes the product</li>
+                <li><strong>Early Bird Pricing</strong> - Special discounts when we launch</li>
+            </ul>
+        </div>
+        
+        <div class="content">
+            <h2>📥 Download Beta Versions</h2>
+            <p>Choose your platform and start your underwater coding adventure:</p>
+            
+            <div class="download-grid">
+                <div class="download-card">
+                    <div class="download-icon">🏰</div>
+                    <h3>Windows</h3>
+                    <p>Full installer with all mermaid features</p>
+                    <a href="/releases/RinaWarp-Terminal-Setup-Windows.exe" class="btn btn-download">
+                        🏰 Download Windows Beta
+                    </a>
+                    <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                        Version 1.0.7 • ~108 MB
+                    </div>
+                </div>
+                
+                <div class="download-card">
+                    <div class="download-icon">🐧</div>
+                    <h3>Linux</h3>
+                    <p>Debian package for Ubuntu/Debian</p>
+                    <a href="/releases/RinaWarp-Terminal-Linux.deb" class="btn btn-download">
+                        🐧 Download Linux Beta
+                    </a>
+                    <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                        Version 1.0.7 • ~98 MB
+                    </div>
+                </div>
+                
+                <div class="download-card">
+                    <div class="download-icon">🍎</div>
+                    <h3>macOS</h3>
+                    <p>Coming soon with mermaid magic</p>
+                    <button class="btn btn-download" data-onclick="alert(" class="csp-event-handler"macOS mermaid magic coming soon! 🧜‍♀️')" style="opacity: 0.6;">
+                        🍎 macOS (Soon)
+                    </button>
+                    <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                        In development
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h2>🧜‍♀️ How to Get Started</h2>
+            <ol style="margin-left: 20px; line-height: 1.8; text-align: left;">
+                <li><strong>Download</strong> the appropriate version for your platform</li>
+                <li><strong>Install</strong> following the platform-specific instructions</li>
+                <li><strong>Launch</strong> RinaWarp Terminal and experience the magic</li>
+                <li><strong>Explore</strong> the AI assistant and oceanic themes</li>
+                <li><strong>Provide Feedback</strong> on features and performance</li>
+                <li><strong>Join</strong> our underwater community for support</li>
+            </ol>
+        </div>
+        
+        <div class="content">
+            <h2>💬 Beta Feedback & Support</h2>
+            <p>Your feedback is invaluable! Help us make RinaWarp Terminal the best it can be:</p>
+            <ul style="margin-left: 20px; line-height: 1.8; text-align: left;">
+                <li>🐛 <strong>Bug Reports:</strong> Found an issue? Let us know!</li>
+                <li>💡 <strong>Feature Requests:</strong> What magical features would you like?</li>
+                <li>⭐ <strong>General Feedback:</strong> Share your overall experience</li>
+                <li>🌊 <strong>Community:</strong> Connect with other beta testers</li>
+            </ul>
+            
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="mailto:rinawarptechnologies25@gmail.com" class="btn btn-download">📧 Send Beta Feedback</a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px; opacity: 0.8;">
+            <p>🧜‍♀️ Thank you for joining our underwater coding adventure! 🌊</p>
+            <p style="margin-top: 10px;">
+                <a href="/" style="color: var(--mermaid-blue); text-decoration: none;">← Back to Main Site</a>
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Track beta downloads
+        document.querySelectorAll('a[href*="/releases/"]').forEach(link => {
+            link.addEventListener('click', function() {
+                console.log('Beta download started:', this.href);
+                // Analytics tracking can be added here
+            });
+        });
+    </script>
+</body>
+</html>
