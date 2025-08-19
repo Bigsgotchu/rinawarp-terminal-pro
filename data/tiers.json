@@ -1,0 +1,260 @@
+{
+  "tiers": {
+    "free": {
+      "name": "Personal (Free)",
+      "price": "Free",
+      "description": "Perfect for students and casual developers",
+      "features": {
+        "included": [
+          "Basic terminal functionality",
+          "Standard themes (3 included)",
+          "Community support",
+          "Single user license",
+          "Basic customization options",
+          "Standard performance",
+          "Manual updates"
+        ],
+        "restricted": [
+          "AI command suggestions",
+          "Advanced themes and plugins",
+          "Team collaboration features",
+          "Priority support",
+          "Advanced security features",
+          "Performance analytics",
+          "SSO integration",
+          "Plugin development tools",
+          "Voice control features",
+          "Advanced Git integration"
+        ]
+      },
+      "downloads": {
+        "windows": {
+          "installer": {
+            "url": "releases/RinaWarp-Terminal-Setup-Windows.zip",
+            "size": "124MB",
+            "requirements": "Windows 10 or later"
+          }
+        },
+        "macos": {
+          "dmg": {
+            "url": "releases/RinaWarp-Terminal-macOS.dmg",
+            "size": "107MB", 
+            "requirements": "macOS 10.14 or later"
+          }
+        },
+        "linux": {
+          "tar": {
+            "url": "releases/RinaWarp-Terminal-Linux.tar.gz",
+            "size": "114MB",
+            "requirements": "Ubuntu 18.04+ / Similar"
+          }
+        }
+      },
+      "limitations": {
+        "ai_suggestions": false,
+        "max_themes": 3,
+        "plugin_development": false,
+        "team_features": false,
+        "voice_control": false,
+        "advanced_security": false,
+        "priority_support": false,
+        "performance_analytics": false
+      }
+    },
+    "professional": {
+      "name": "Professional", 
+      "price": "$29/month",
+      "description": "For professional developers and small teams",
+      "features": {
+        "included": [
+          "All terminal features",
+          "Unlimited themes & plugins", 
+          "AI command suggestions",
+          "Voice control system",
+          "Advanced Git integration",
+          "Performance analytics",
+          "Team collaboration tools",
+          "Plugin development kit",
+          "Priority email support",
+          "Advanced security features",
+          "Custom themes and layouts",
+          "Automated updates"
+        ],
+        "restricted": [
+          "SSO integration", 
+          "On-premise deployment",
+          "Dedicated support manager",
+          "Custom integrations",
+          "Enterprise compliance features"
+        ]
+      },
+      "downloads": {
+        "windows": {
+          "installer": {
+            "url": "releases/professional/RinaWarp-Terminal-Pro-Setup-Windows.zip",
+            "size": "126MB",
+            "requirements": "Windows 10 or later"
+          },
+          "portable": {
+            "url": "releases/professional/RinaWarp-Terminal-Pro-Windows-Portable.zip", 
+            "size": "128MB",
+            "requirements": "Windows 10 or later"
+          }
+        },
+        "macos": {
+          "dmg": {
+            "url": "releases/professional/RinaWarp-Terminal-Pro-macOS.dmg",
+            "size": "109MB",
+            "requirements": "macOS 10.14 or later" 
+          }
+        },
+        "linux": {
+          "appimage": {
+            "url": "releases/professional/RinaWarp-Terminal-Pro-Linux.AppImage",
+            "size": "116MB",
+            "requirements": "Ubuntu 18.04+ / Similar"
+          },
+          "tar": {
+            "url": "releases/professional/RinaWarp-Terminal-Pro-Linux.tar.gz", 
+            "size": "116MB",
+            "requirements": "Ubuntu 18.04+ / Similar"
+          }
+        }
+      },
+      "limitations": {
+        "ai_suggestions": true,
+        "max_themes": "unlimited",
+        "plugin_development": true,
+        "team_features": true,
+        "voice_control": true,
+        "advanced_security": true,
+        "priority_support": "email",
+        "performance_analytics": true,
+        "sso_integration": false,
+        "on_premise": false
+      },
+      "purchase_url": "https://checkout.rinawarptech.com/professional",
+      "trial_days": 14
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Custom pricing", 
+      "description": "For large organizations with advanced requirements",
+      "features": {
+        "included": [
+          "Everything in Professional",
+          "SSO integration (SAML, OAuth, LDAP)",
+          "On-premise deployment options",
+          "Dedicated customer success manager", 
+          "Custom integrations and plugins",
+          "Enterprise compliance (SOC2, GDPR)",
+          "Advanced audit logging",
+          "Multi-tenant support",
+          "White-label options",
+          "24/7 phone and chat support",
+          "Service level agreements (SLA)",
+          "Training and onboarding"
+        ],
+        "restricted": []
+      },
+      "downloads": {
+        "note": "Enterprise downloads are provided through dedicated customer portal after contract signing"
+      },
+      "limitations": {
+        "ai_suggestions": true,
+        "max_themes": "unlimited",
+        "plugin_development": true,
+        "team_features": true,
+        "voice_control": true,
+        "advanced_security": true,
+        "priority_support": "dedicated",
+        "performance_analytics": true,
+        "sso_integration": true,
+        "on_premise": true,
+        "custom_integrations": true,
+        "compliance_features": true
+      },
+      "contact_url": "mailto:enterprise@rinawarptech.com",
+      "minimum_seats": 50
+    }
+  },
+  "feature_matrix": {
+    "basic_terminal": {
+      "free": true,
+      "professional": true, 
+      "enterprise": true
+    },
+    "ai_suggestions": {
+      "free": false,
+      "professional": true,
+      "enterprise": true
+    },
+    "voice_control": {
+      "free": false,
+      "professional": true,
+      "enterprise": true
+    },
+    "themes": {
+      "free": "limited (3)",
+      "professional": "unlimited",
+      "enterprise": "unlimited + custom"
+    },
+    "plugins": {
+      "free": false,
+      "professional": true,
+      "enterprise": true
+    },
+    "team_collaboration": {
+      "free": false,
+      "professional": true,
+      "enterprise": true
+    },
+    "support": {
+      "free": "community",
+      "professional": "email priority",
+      "enterprise": "dedicated + SLA"
+    },
+    "security": {
+      "free": "basic",
+      "professional": "advanced",
+      "enterprise": "enterprise-grade"
+    },
+    "deployment": {
+      "free": "cloud only",
+      "professional": "cloud only",
+      "enterprise": "cloud + on-premise"
+    },
+    "integrations": {
+      "free": "basic Git",
+      "professional": "advanced Git + APIs",
+      "enterprise": "custom + SSO"
+    }
+  },
+  "upgrade_paths": {
+    "free_to_professional": {
+      "discount": "20% first month",
+      "migration": "automatic",
+      "data_transfer": true
+    },
+    "professional_to_enterprise": {
+      "discount": "negotiable",
+      "migration": "assisted",
+      "data_transfer": true,
+      "onboarding": true
+    }
+  },
+  "regional_pricing": {
+    "usd": {
+      "professional": 29,
+      "currency_symbol": "$"
+    },
+    "eur": {
+      "professional": 25,
+      "currency_symbol": "€"
+    },
+    "gbp": {
+      "professional": 23,
+      "currency_symbol": "£"
+    }
+  }
+}
