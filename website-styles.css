@@ -14,7 +14,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
     color: #ffffff;
-    background: linear-gradient(135deg, #0a0a2e 0%, #16213e 50%, #0f3460 100%);
+    background: linear-gradient(135deg, #1976d2 0%, #26c6da 25%, #ff69b4 50%, #ff5722 75%, #2196f3 100%);
     background-attachment: fixed;
     min-height: 100vh;
 }
@@ -120,11 +120,12 @@ body {
     font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, #00ffff, #ff69b4, #00ffff);
+    background: linear-gradient(135deg, #26c6da, #ff69b4, #ff5722, #2196f3);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    animation: shimmer 3s ease-in-out infinite;
 }
 
 .hero p {
@@ -139,13 +140,13 @@ body {
 
 .version-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #00ff88, #00cc6a);
-    color: #000;
+    background: linear-gradient(135deg, #ff69b4, #ff5722);
+    color: #ffffff;
     padding: 12px 24px;
     border-radius: 25px;
     font-weight: 600;
     font-size: 1.1rem;
-    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
     transform: translateY(0);
     transition: transform 0.3s ease;
 }
