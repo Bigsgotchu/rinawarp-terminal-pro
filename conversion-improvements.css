@@ -1,0 +1,414 @@
+/* Conversion Optimization CSS */
+
+/* Hero section improvements */
+.hero-benefits {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: 2px solid rgba(255, 20, 147, 0.3);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.benefit-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.benefit-icon {
+    font-size: 1.2rem;
+}
+
+.benefit-text {
+    color: white;
+    font-size: 0.95rem;
+}
+
+.social-proof-compact {
+    margin-top: 20px;
+}
+
+.trust-indicator {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Pricing section improvements */
+.pricing-toggle {
+    text-align: center;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.pricing-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.pricing-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #ccc, #aaa);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background: linear-gradient(135deg, #ff1493, #ff69b4);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.toggle-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.discount-badge {
+    background: linear-gradient(135deg, #ff1493, #ff69b4);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.plan-badge {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff1493, #ff69b4);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 2;
+}
+
+.price-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.roi-indicator {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 0.9rem;
+    color: #333;
+    border-left: 4px solid #ff1493;
+}
+
+.guarantee {
+    font-size: 0.85rem;
+    color: #28a745;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* Feature comparison table */
+.feature-comparison {
+    background: #f8f9fa;
+    padding: 80px 0;
+}
+
+.comparison-subtitle {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 40px;
+}
+
+.comparison-table-wrapper {
+    overflow-x: auto;
+    margin: 40px 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+}
+
+.comparison-table {
+    width: 100%;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.feature-header {
+    background: linear-gradient(135deg, #1976d2, #26c6da);
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+    width: 40%;
+}
+
+.plan-header {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
+    width: 20%;
+}
+
+.plan-header.personal {
+    background: linear-gradient(135deg, #e3f2fd, #f0f4ff);
+    color: #1976d2;
+}
+
+.plan-header.professional {
+    background: linear-gradient(135deg, #ff1493, #ff69b4);
+    color: white;
+}
+
+.plan-header.enterprise {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: white;
+}
+
+.plan-price {
+    font-size: 0.9rem;
+    font-weight: normal;
+    opacity: 0.9;
+}
+
+.category-row {
+    background: #f8f9fa;
+}
+
+.category-title {
+    font-weight: bold;
+    color: #333;
+    font-size: 1rem;
+    padding: 20px;
+}
+
+.feature-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.feature-check {
+    text-align: center;
+    color: #28a745;
+    font-weight: bold;
+}
+
+.feature-limited {
+    text-align: center;
+    color: #ffc107;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.feature-no {
+    text-align: center;
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.comparison-cta {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.comparison-cta h3 {
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.comparison-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #ff1493;
+    color: #ff1493;
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+    background: #ff1493;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Annual pricing toggle functionality */
+.annual-price, .annual-subtitle, .annual-cta {
+    display: none;
+}
+
+#annual-toggle:checked ~ .pricing-grid .monthly-price,
+#annual-toggle:checked ~ .pricing-grid .monthly-subtitle,
+#annual-toggle:checked ~ .pricing-grid .monthly-cta {
+    display: none;
+}
+
+#annual-toggle:checked ~ .pricing-grid .annual-price,
+#annual-toggle:checked ~ .pricing-grid .annual-subtitle,
+#annual-toggle:checked ~ .pricing-grid .annual-cta {
+    display: inline;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .hero-benefits {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .benefit-item {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .pricing-toggle {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .feature-header {
+        width: 50%;
+    }
+    
+    .plan-header {
+        width: 16.67%;
+    }
+    
+    .comparison-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .comparison-buttons .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .comparison-table-wrapper {
+        margin: 20px -20px;
+        border-radius: 0;
+    }
+    
+    .comparison-table {
+        border-radius: 0;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .category-title {
+        padding: 15px 10px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Additional urgency and trust elements */
+.urgency-banner {
+    background: linear-gradient(135deg, #ff6b7d, #ff5722);
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+.trust-signals {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.trust-icon {
+    color: #28a745;
+    font-size: 1.1rem;
+}
