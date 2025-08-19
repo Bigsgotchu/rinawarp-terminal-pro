@@ -360,25 +360,29 @@
     </footer>
 
     <!-- A/B Testing System -->
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- A/B Testing System -->
     <script src="js/ab-testing.js"></script>
     
     <script>
-        // Stripe configuration - Load from server
+        // Stripe configuration - Static site version
         let stripe = null;
         let stripeConfig = null;
         
-        // Load Stripe configuration
-        fetch('/api/payments/config')
+        // Load Stripe configuration from static file
+        fetch('/api/payments/config.json')
           .then(response => response.json())
           .then(config => {
             stripeConfig = config;
-            stripe = Stripe(config.publishableKey);
-            console.log('Stripe initialized with config:', config.pricing);
+            stripe = Stripe(config.stripe.publishableKey);
+            console.log('Stripe initialized with config:', config.prices);
           })
           .catch(error => {
             console.error('Failed to load payment config:', error);
-            // Fallback to test key
-            stripe = Stripe('pk_test_51234567890abcdef');
+            // For demo purposes, disable Stripe functionality
+            console.warn('Stripe functionality disabled for static site demo');
           });
         
         // Smooth scrolling for navigation links
@@ -405,7 +409,7 @@
             }
         });
         
-        // Enhanced Stripe checkout functions with analytics
+        // Enhanced Stripe checkout functions with analytics - Static site version
         async function buyProfessional() {
             try {
                 // Track conversion intent
@@ -415,22 +419,6 @@
                         source: 'pricing_page'
                     });
                 }
-                
-                const response = await fetch('/api/payments/create-checkout-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        platform: 'web'
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                
-                const session = await response.json();
                 
                 // Track checkout initiation
                 if (typeof gtag !== 'undefined') {
@@ -447,20 +435,17 @@
                     });
                 }
                 
-                // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.sessionId
-                });
+                // For static site demo - show contact message
+                alert('Thank you for your interest in RinaWarp Terminal Professional!\n\nPlease contact us at sales@rinawarptech.com to complete your purchase.\n\nYou can also email us for a free trial or demo.');
                 
-                if (result.error) {
-                    // Track checkout error
-                    if (window.abTesting) {
-                        window.abTesting.trackGoal('checkout_error', {
-                            error: result.error.message
-                        });
-                    }
-                    alert(result.error.message);
+                // Track goal completion
+                if (window.abTesting) {
+                    window.abTesting.trackGoal('contact_initiated', {
+                        tier: 'professional',
+                        source: 'buy_button'
+                    });
                 }
+                
             } catch (error) {
                 console.error('Error:', error);
                 if (window.abTesting) {
@@ -468,7 +453,7 @@
                         error: error.message
                     });
                 }
-                alert('Sorry, there was an error processing your request. Please try again or contact support.');
+                alert('Please contact sales@rinawarptech.com for purchasing information.');
             }
         }
         

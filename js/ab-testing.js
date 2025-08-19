@@ -445,21 +445,21 @@ class ABTestingManager {
         });
       }
 
-      // Custom analytics endpoint
-      if (typeof fetch !== 'undefined') {
-        fetch('/api/analytics/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            event: eventName,
-            data: eventData,
-            user_id: this.userId,
-            timestamp: Date.now(),
-          }),
-        }).catch(error => {
-          console.warn('Analytics tracking failed:', error);
-        });
-      }
+      // Custom analytics endpoint - commented out for static site
+      // if (typeof fetch !== 'undefined') {
+      //   fetch('/api/analytics/track', {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify({
+      //       event: eventName,
+      //       data: eventData,
+      //       user_id: this.userId,
+      //       timestamp: Date.now(),
+      //     }),
+      //   }).catch(error => {
+      //     console.warn('Analytics tracking failed:', error);
+      //   });
+      // }
 
       console.log(`A/B Test Event: ${eventName}`, eventData);
     } catch (error) {
@@ -472,9 +472,11 @@ class ABTestingManager {
    */
   async getTestResults(testName) {
     try {
-      // This would typically fetch from your analytics API
-      const response = await fetch(`/api/ab-tests/${testName}/results`);
-      return await response.json();
+      // This would typically fetch from your analytics API - static site fallback
+      // const response = await fetch(`/api/ab-tests/${testName}/results`);
+      // return await response.json();
+      console.warn("getTestResults is not available on a static site");
+      return null;
     } catch (error) {
       console.error('Failed to get test results:', error);
       return null;
