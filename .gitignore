@@ -264,6 +264,8 @@ secrets/
 !.versionrc.json
 !.prettierrc.json
 !monitoring/*.json
+!data/*.json
+!api/**/*.json
 
 # Monitoring environment files
 .env.monitoring

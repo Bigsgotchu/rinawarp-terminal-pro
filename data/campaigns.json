@@ -1,0 +1,28 @@
+{
+  "welcome_series": {
+    "name": "Welcome Series",
+    "emails": [
+      {
+        "delay": 0,
+        "subject": "Welcome to RinaWarp Terminal! 🚀",
+        "template": "welcome"
+      },
+      {
+        "delay": 86400000,
+        "subject": "Quick Start Guide - Get Up and Running in 5 Minutes",
+        "template": "quickstart"
+      },
+      {
+        "delay": 259200000,
+        "subject": "Advanced Features You'll Love ⚡",
+        "template": "features"
+      },
+      {
+        "delay": 604800000,
+        "subject": "Special Launch Offer - 30% Off Pro Plans",
+        "template": "discount"
+      }
+    ]
+  },
+  "_copyright": "RinaWarp Terminal - Copyright (c) 2025 Rinawarp Technologies, LLC. This file is proprietary and confidential. Unauthorized copying is strictly prohibited."
+}
