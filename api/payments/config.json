@@ -1,0 +1,23 @@
+{
+  "stripe": {
+    "publishableKey": "pk_live_51234567890abcdef",
+    "mode": "payment",
+    "successUrl": "https://rinawarptech.com/success.html",
+    "cancelUrl": "https://rinawarptech.com/pricing.html"
+  },
+  "prices": {
+    "personal": {
+      "monthly": "price_1234567890",
+      "yearly": "price_0987654321"
+    },
+    "professional": {
+      "monthly": "price_professional_monthly",
+      "yearly": "price_professional_yearly"
+    }
+  },
+  "features": {
+    "free": ["Web Terminal", "Basic AI", "Community Support"],
+    "personal": ["Everything in Free", "Unlimited AI", "Priority Support"],
+    "professional": ["Everything in Personal", "Team Features", "Analytics"]
+  }
+}
