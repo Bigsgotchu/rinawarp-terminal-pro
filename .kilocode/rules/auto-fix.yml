@@ -1,0 +1,61 @@
+# ======================================================
+#  Kilo Code Auto-Fix Rules
+#  Location: .kilocode/rules/auto-fix.yml
+#  Purpose: Automatically detect, analyze, and fix code errors
+# ======================================================
+
+version: 1
+rules:
+  - name: Smart Error Diagnosis
+    trigger: command_failed
+    actions:
+      - read_logs: true
+      - parse_output: |
+          Extract root cause patterns from error logs (stack traces, syntax errors, dependency issues, missing imports).
+      - propose_fixes: |
+          Generate targeted fixes based on context:
+          - For syntax errors → rewrite affected file segment.
+          - For dependency errors → install or update missing packages.
+          - For test failures → locate failing test, analyze expected vs actual, and correct logic.
+          - For type errors → align function signatures or variable types.
+          - For runtime exceptions → add proper guards or error handling.
+
+  - name: Auto-Apply Fix
+    trigger: fix_proposed
+    actions:
+      - confirm_if_high_risk: true
+      - apply_fix: true
+      - run: "npm test || pytest || go test ./... || cargo test"
+      - if_failed:
+          - rollback_last_fix
+          - summarize_issue
+          - escalate_with_context
+
+  - name: Context-Aware Rollback
+    trigger: fix_failed
+    actions:
+      - rollback_to_last_commit
+      - log: "Reverted to last stable state after failed fix attempt."
+      - summarize_failure_cause
+
+  - name: Continuous Improvement
+    trigger: successful_fix
+    actions:
+      - log: "✅ Issue auto-fixed successfully by Kilo Code."
+      - document_fix: true
+      - commit_fix:
+          message: "🤖 Auto-fix applied by Kilo Code: Resolved detected issue."
+      - notify_user: "Auto-fix completed and verified by test suite."
+
+# ======================================================
+#  Safety & Boundaries
+# ======================================================
+
+safety:
+  - confirm_before_deploy: true
+  - confirm_before_database_change: true
+  - prevent_external_file_modifications: true
+  - prevent_mass_delete: true
+  - max_retry_attempts: 3
+  - log_all_actions: true
+  - maintain_audit_trail: true

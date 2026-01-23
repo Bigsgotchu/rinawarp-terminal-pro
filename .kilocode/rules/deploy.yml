@@ -1,0 +1,68 @@
+# ======================================================
+#  Kilo Code Smart Deployment Rules
+#  Location: .kilocode/rules/deploy.yml
+#  Purpose: Zero-downtime deployment with health checks & auto-rollback
+# ======================================================
+
+version: 1
+rules:
+  - name: Safe Deployment
+    trigger: user_confirmed_deploy
+    actions:
+      - log: "🚀 Initiating deployment sequence..."
+      - run_prechecks: |
+          Verify:
+          - Tests pass successfully.
+          - Required environment variables are set.
+          - No unresolved merge conflicts.
+          - Docker images or build artifacts exist.
+      - if_failed:
+          - log: "❌ Prechecks failed. Aborting deployment."
+          - stop_pipeline: true
+
+      - run: |
+          # Try standard deploy scripts
+          npm run deploy || yarn deploy || docker compose up -d || ./deploy.sh
+      - log: "⚙️ Deployment script executed."
+
+      - run_postchecks: |
+          Perform health check using:
+          - curl $DEPLOY_URL/health
+          - docker ps or kubectl get pods
+          - Check application logs for runtime errors
+      - if_failed:
+          - log: "❗ Health check failed. Rolling back deployment..."
+          - trigger: rollback_deployment
+
+  - name: Rollback Deployment
+    trigger: rollback_deployment
+    actions:
+      - run: |
+          npm run rollback || docker compose down && docker compose up previous || ./rollback.sh
+      - log: "🌀 Deployment rolled back to previous stable version."
+      - notify_user: "Deployment rollback completed successfully."
+
+  - name: Post-Deployment Verification
+    trigger: deploy_successful
+    actions:
+      - log: "✅ Deployment successful. Running post-verification tests..."
+      - run: "npm run smoke-test || pytest tests/smoke || ./scripts/verify.sh"
+      - if_failed:
+          - log: "⚠️ Post-verification failed. Initiating rollback."
+          - trigger: rollback_deployment
+      - notify_user: "Deployment verified and stable."
+
+# ======================================================
+#  Safety Controls
+# ======================================================
+
+safety:
+  - confirm_before_deploy: true
+  - confirm_before_rollback: true
+  - prevent_concurrent_deployments: true
+  - verify_env_variables: true
+  - check_disk_space_before_build: true
+  - require_tests_pass_before_deploy: true
+  - max_rollback_attempts: 1
+  - log_all_actions: true
+  - maintain_audit_trail: true

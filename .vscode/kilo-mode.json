@@ -1,0 +1,9 @@
+{
+  "modeName": "Autopilot",
+  "description": "Automatically writes suggested code to files",
+  "role": "Kilo Code",
+  "autoApply": true,
+  "saveAfterApply": true,
+  "allowedFiles": ["**/*.ts", "**/*.js", "**/*.py", "**/*.sh"],
+  "previewBeforeApply": false
+}
