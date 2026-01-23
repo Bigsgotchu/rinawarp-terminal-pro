@@ -1,0 +1,20 @@
+{
+  "name": "autopilot-project",
+  "version": "1.0.0",
+  "description": "Autopilot development with Kilo Code",
+  "main": "autopilot.js",
+  "scripts": {
+    "start": "node autopilot.js",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "nodemon autopilot.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "nodemon": "^3.0.0"
+  }
+}
