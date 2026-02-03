@@ -369,32 +369,52 @@
 
     <section class="pricing-section">
         <div class="container">
+            <h2>Free</h2>
+            <p>Intelligence is never gated. Only execution is.</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">$0<span class="muted">/mo</span></div>
+                    <ul class="pricing-features">
+                        <li>Chat with Rina</li>
+                        <li>Read-only diagnostics</li>
+                        <li>Inspection plans</li>
+                        <li>See what's wrong — safely</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="window.location.href='download.html'">Download Free</button>
+                    <div class="fineprint">No credit card required</div>
+                </div>
+            </div>
+
             <h2>Subscriptions (Monthly)</h2>
             <p>Flexible access with automatic updates.</p>
             
             <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>Starter (Pro)</h3>
+                <div class="pricing-card featured">
+                    <h3>Pro</h3>
                     <div class="price">$29<span class="muted">/mo</span></div>
                     <ul class="pricing-features">
-                        <li>Read-only + safe-write tools</li>
-                        <li>Planning & explanations</li>
-                        <li>Nothing executes without your approval</li>
+                        <li>Execute fixes</li>
+                        <li>High-impact actions (typed YES)</li>
+                        <li>Streaming execution</li>
+                        <li>Verification & audit exports</li>
+                        <li>Priority System Doctor workflows</li>
                     </ul>
-                    <button class="btn btn-secondary" onclick="startCheckout('price_1Sdxl7GZrRdZy3W9INQvidPf')">Get Starter — $29/mo</button>
-                    <div class="fineprint">Stripe Price ID: price_1Sdxl7GZrRdZy3W9INQvidPf</div>
+                    <button class="btn btn-primary featured" onclick="startCheckout('price_1Sdxl7GZrRdZy3W9INQvidPf')">Get Pro — $29/mo</button>
+                    <div class="fineprint">Cancel anytime</div>
                 </div>
 
-                <div class="pricing-card featured">
+                <div class="pricing-card">
                     <h3>Creator</h3>
                     <div class="price">$69<span class="muted">/mo</span></div>
                     <ul class="pricing-features">
-                        <li>Everything in Starter</li>
+                        <li>Everything in Pro</li>
                         <li>Advanced workflows</li>
                         <li>More execution context</li>
                     </ul>
-                    <button class="btn btn-primary featured" onclick="startCheckout('price_1SdxlKGZrRdZy3W9TvaLugc7')">Get Creator — $69/mo</button>
-                    <div class="fineprint">Stripe Price ID: price_1SdxlKGZrRdZy3W9TvaLugc7</div>
+                    <button class="btn btn-secondary" onclick="startCheckout('price_1SdxlKGZrRdZy3W9TvaLugc7')">Get Creator — $69/mo</button>
+                    <div class="fineprint">Power users</div>
                 </div>
 
                 <div class="pricing-card">
@@ -406,7 +426,7 @@
                         <li>Priority support</li>
                     </ul>
                     <button class="btn btn-secondary" onclick="startCheckout('price_1SdxlXGZrRdZy3W9Wr1XLBIe')">Get Team — $99/mo</button>
-                    <div class="fineprint">Stripe Price ID: price_1SdxlXGZrRdZy3W9Wr1XLBIe</div>
+                    <div class="fineprint">Organizations</div>
                 </div>
             </div>
 
@@ -415,19 +435,19 @@
             
             <div class="pricing-grid">
                 <div class="pricing-card featured">
-                    <h3>Founder (Pro Lifetime)</h3>
+                    <h3>Founder</h3>
                     <div class="price">$699<span class="muted"> one-time</span></div>
                     <ul class="pricing-features">
-                        <li>Lifetime access</li>
-                        <li>All Pro capabilities</li>
-                        <li>Pay once, own it forever</li>
+                        <li>Lifetime access to Pro</li>
+                        <li>All future Pro features</li>
+                        <li>Founder badge</li>
                     </ul>
                     <button class="btn btn-primary featured" onclick="startCheckout('price_1SdxlmGZrRdZy3W9ncwPfgFr')">Buy Founder — $699</button>
-                    <div class="fineprint">Stripe Price ID: price_1SdxlmGZrRdZy3W9ncwPfgFr</div>
+                    <div class="fineprint">Early supporter pricing</div>
                 </div>
 
                 <div class="pricing-card">
-                    <h3>Pioneer (Lifetime)</h3>
+                    <h3>Pioneer</h3>
                     <div class="price">$800<span class="muted"> one-time</span></div>
                     <ul class="pricing-features">
                         <li>Lifetime access</li>
@@ -435,11 +455,11 @@
                         <li>Long-term support tier</li>
                     </ul>
                     <button class="btn btn-secondary" onclick="startCheckout('price_1Sdxm2GZrRdZy3W9C5tQcWiW')">Buy Pioneer — $800</button>
-                    <div class="fineprint">Stripe Price ID: price_1Sdxm2GZrRdZy3W9C5tQcWiW</div>
+                    <div class="fineprint">Power users</div>
                 </div>
 
                 <div class="pricing-card">
-                    <h3>Team (Lifetime)</h3>
+                    <h3>Team</h3>
                     <div class="price">$999<span class="muted"> one-time</span></div>
                     <ul class="pricing-features">
                         <li>Lifetime access</li>
@@ -447,7 +467,47 @@
                         <li>Best for organizations</li>
                     </ul>
                     <button class="btn btn-secondary" onclick="startCheckout('price_1SdxmFGZrRdZy3W9skXi3jvE')">Buy Team — $999</button>
-                    <div class="fineprint">Stripe Price ID: price_1SdxmFGZrRdZy3W9skXi3jvE</div>
+                    <div class="fineprint">Organizations</div>
+                </div>
+            </div>
+                    <h3>Pro Yearly</h3>
+                    <div class="price">$149<span class="muted">/yr</span></div>
+                    <ul class="pricing-features">
+                        <li>Everything in Pro monthly</li>
+                        <li>2 months free (save $79)</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="startCheckout('price_PRO_YEARLY')">Get Pro Yearly — $149/yr</button>
+                    <div class="fineprint">Best value</div>
+                </div>
+            </div>
+
+            <h2>Lifetime Licenses (One-Time)</h2>
+            <p>Pay once. Own it forever. Intelligence is never gated. Only execution is.</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Founder</h3>
+                    <div class="price">$699<span class="muted"> one-time</span></div>
+                    <ul class="pricing-features">
+                        <li>Lifetime access to Pro</li>
+                        <li>All future Pro features</li>
+                        <li>Founder badge</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="startCheckout('price_FOUNDER_LIFETIME')">Buy Founder — $699</button>
+                    <div class="fineprint">Early supporter pricing</div>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h3>Founder+</h3>
+                    <div class="price">$999<span class="muted"> one-time</span></div>
+                    <ul class="pricing-features">
+                        <li>Everything in Founder</li>
+                        <li>Lifetime priority support</li>
+                        <li>Direct access to founder</li>
+                    </ul>
+                    <button class="btn btn-primary featured" onclick="startCheckout('price_FOUNDER_PLUS_LIFETIME')">Buy Founder+ — $999</button>
+                    <div class="fineprint">Best for power users</div>
                 </div>
             </div>
 
