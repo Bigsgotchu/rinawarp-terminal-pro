@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Download RinaWarp Terminal Pro - Available for macOS, Linux, and Windows. The First AI You Can Trust to Actually Fix Things.">
+    <title>Download - RinaWarp Terminal Pro</title>
+    <style>
+        :root {
+            --hot-pink: #ff3366;
+            --hot-pink-dark: #cc0033;
+            --teal: #14b8a6;
+            --coral: #ff6b6b;
+            --baby-blue: #7dd3fc;
+            --black: #0a0a0f;
+            --darker: #050508;
+            --light: #f5f5f7;
+            --gray: #8e8e93;
+            --success: #34c759;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--black);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(10, 10, 15, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--light);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--hot-pink);
+        }
+
+        nav ul {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        nav a:hover, nav a.active {
+            opacity: 1;
+            color: var(--baby-blue);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 140px 0 60px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--darker) 0%, var(--black) 100%);
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 4vw, 56px);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        /* Live Example Section */
+        .live-example {
+            padding: 80px 0;
+            background: var(--darker);
+        }
+
+        .live-example h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .live-example .section-sub {
+            text-align: center;
+            color: var(--gray);
+            font-size: 18px;
+            margin-bottom: 48px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .example-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--black);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .example-header {
+            background: rgba(255,51,102,0.1);
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .example-header h3 {
+            color: var(--hot-pink);
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .example-header p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .example-content {
+            padding: 24px;
+        }
+
+        .example-row {
+            margin-bottom: 20px;
+        }
+
+        .example-label {
+            font-size: 12px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .example-message {
+            background: rgba(20, 184, 166, 0.1);
+            border-left: 3px solid var(--teal);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            font-size: 16px;
+        }
+
+        .example-message.user {
+            background: rgba(125, 211, 252, 0.1);
+            border-left-color: var(--baby-blue);
+        }
+
+        .example-steps {
+            list-style: none;
+        }
+
+        .example-steps li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .example-steps li::before {
+            content: "→";
+            color: var(--teal);
+        }
+
+        .example-confirm {
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-top: 20px;
+        }
+
+        .example-confirm p {
+            color: var(--success);
+            font-size: 14px;
+        }
+
+        .trust-badge {
+            text-align: center;
+            margin-top: 32px;
+            padding: 16px;
+            background: rgba(52, 199, 89, 0.1);
+            border-radius: 8px;
+        }
+
+        .trust-badge p {
+            color: var(--success);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Download Cards */
+        .download-section {
+            padding: 80px 0;
+        }
+
+        .download-section h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .download-section .section-sub {
+            text-align: center;
+            color: var(--gray);
+            font-size: 18px;
+            margin-bottom: 48px;
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .download-card {
+            background: rgba(20, 184, 166, 0.05);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .download-card:hover {
+            background: rgba(20, 184, 166, 0.1);
+            transform: translateY(-4px);
+            border-color: var(--teal);
+        }
+
+        .platform-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 51, 102, 0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 36px;
+        }
+
+        .download-card h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .download-card .version {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .download-btn {
+            display: block;
+            padding: 16px 32px;
+            background: var(--hot-pink);
+            color: white;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+
+        .download-btn:hover {
+            background: var(--hot-pink-dark);
+            transform: scale(1.02);
+        }
+
+        .download-btn.secondary {
+            background: rgba(125, 211, 252, 0.1);
+            color: var(--baby-blue);
+        }
+
+        .download-btn.secondary:hover {
+            background: rgba(125, 211, 252, 0.2);
+        }
+
+        .download-card .notes {
+            color: var(--gray);
+            font-size: 12px;
+            margin-top: 16px;
+        }
+
+        /* Requirements */
+        .requirements {
+            padding: 80px 0;
+            background: var(--darker);
+        }
+
+        .requirements h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .req-card {
+            background: rgba(125, 211, 252, 0.05);
+            border: 1px solid rgba(125, 211, 252, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .req-card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--baby-blue);
+        }
+
+        .req-card p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* CTA */
+        .cta {
+            background: linear-gradient(135deg, var(--hot-pink) 0%, var(--coral) 100%);
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .cta h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--hot-pink);
+        }
+
+        .btn-white:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker);
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer .container {
+            text-align: center;
+        }
+
+        footer p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        footer .footer-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        footer a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        footer a:hover {
+            color: var(--baby-blue);
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+            .hero {
+                padding: 120px 0 60px;
+            }
+            .download-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="logo">Rina<span>Warp</span></a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="features.html">Features</a></li>
+                <li><a href="pricing.html">Pricing</a></li>
+                <li><a href="download.html" class="active">Download</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Download RinaWarp</h1>
+            <p>The First AI You Can Trust to Actually Fix Things.<br>Available on macOS, Linux, and Windows.</p>
+        </div>
+    </section>
+
+    <section class="live-example">
+        <div class="container">
+            <h2>See Rina in Action</h2>
+            <p class="section-sub">Example: "My computer is running hot"</p>
+            
+            <div class="example-container">
+                <div class="example-header">
+                    <h3>💬 Conversation</h3>
+                    <p>Describe the problem in natural language</p>
+                </div>
+                <div class="example-content">
+                    <div class="example-row">
+                        <div class="example-label">You</div>
+                        <div class="example-message user">My computer is running hot</div>
+                    </div>
+                    
+                    <div class="example-row">
+                        <div class="example-label">Rina Responds</div>
+                        <ul class="example-steps">
+                            <li>Runs safe diagnostics (CPU, processes, temperature)</li>
+                            <li>Shows what's causing the issue</li>
+                            <li>Explains why it matters</li>
+                            <li>Proposes the safest fix</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="example-confirm">
+                        <p>"If you want me to apply this fix, reply: run it<br>For high-impact actions, type YES."</p>
+                    </div>
+                    
+                    <div class="example-row">
+                        <div class="example-label">After Execution</div>
+                        <ul class="example-steps">
+                            <li>Output streams live</li>
+                            <li>Results are verified</li>
+                            <li>A full audit report is saved</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="trust-badge">
+                        <p>✓ This is what trust looks like.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="download-section">
+        <div class="container">
+            <h2>Choose Your Platform</h2>
+            <p class="section-sub">Install RinaWarp Terminal Pro on your system</p>
+            
+            <div class="download-grid">
+                <div class="download-card">
+                    <div class="platform-icon">🍎</div>
+                    <h3>macOS</h3>
+                    <p class="version">Version 1.0.0 • Universal (Intel & Apple Silicon)</p>
+                    <a href="#" class="download-btn">Download for macOS</a>
+                    <a href="#" class="download-btn secondary">View Checksum</a>
+                    <p class="notes">Requires macOS 11.0 or later</p>
+                </div>
+                <div class="download-card">
+                    <div class="platform-icon">🐧</div>
+                    <h3>Linux</h3>
+                    <p class="version">Version 1.0.0 • .deb, .rpm, and AppImage</p>
+                    <a href="#" class="download-btn">Download for Linux</a>
+                    <a href="#" class="download-btn secondary">View Checksum</a>
+                    <p class="notes">Ubuntu 20.04+, Fedora 35+, or similar</p>
+                </div>
+                <div class="download-card">
+                    <div class="platform-icon">🪟</div>
+                    <h3>Windows</h3>
+                    <p class="version">Version 1.0.0 • 64-bit Installer</p>
+                    <a href="#" class="download-btn">Download for Windows</a>
+                    <a href="#" class="download-btn secondary">View Checksum</a>
+                    <p class="notes">Windows 10 or Windows 11</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="requirements">
+        <div class="container">
+            <h2>System Requirements</h2>
+            <div class="requirements-grid">
+                <div class="req-card">
+                    <h3>💻 Processor</h3>
+                    <p>Modern x86-64 or ARM64 CPU<br>(Intel, Apple Silicon, or AMD)</p>
+                </div>
+                <div class="req-card">
+                    <h3>🧠 Memory</h3>
+                    <p>4GB RAM minimum<br>8GB recommended</p>
+                </div>
+                <div class="req-card">
+                    <h3>💾 Storage</h3>
+                    <p>200MB free space<br>SSD recommended</p>
+                </div>
+                <div class="req-card">
+                    <h3>🌐 Internet</h3>
+                    <p>Required for AI features<br>Local models optional</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Stop guessing. Start fixing things safely.</h2>
+            <p>Download RinaWarp Terminal Pro today.</p>
+            <a href="#" class="btn btn-white">Download Now</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com</p>
+            <div class="footer-links">
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="refunds.html">Refunds</a>
+                <a href="eula.html">EULA</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

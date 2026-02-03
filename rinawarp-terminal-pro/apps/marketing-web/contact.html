@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contact RinaWarp - Get support, ask questions, or reach out to our team.">
+    <title>Contact - RinaWarp Terminal Pro</title>
+    <style>
+        :root {
+            --hot-pink: #ff3366;
+            --hot-pink-dark: #cc0033;
+            --teal: #14b8a6;
+            --coral: #ff6b6b;
+            --baby-blue: #7dd3fc;
+            --black: #0a0a0f;
+            --darker: #050508;
+            --light: #f5f5f7;
+            --gray: #8e8e93;
+            --success: #34c759;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--black);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(10, 10, 15, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--light);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--hot-pink);
+        }
+
+        nav ul {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        nav a:hover, nav a.active {
+            opacity: 1;
+            color: var(--baby-blue);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 140px 0 60px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 4vw, 56px);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Contact Grid */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin: 60px 0;
+        }
+
+        .contact-card {
+            background: rgba(255, 51, 102, 0.05);
+            border: 1px solid rgba(255, 51, 102, 0.2);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            background: rgba(255, 51, 102, 0.1);
+            transform: translateY(-4px);
+            border-color: var(--hot-pink);
+        }
+
+        .contact-card.teal:hover {
+            border-color: var(--teal);
+        }
+
+        .contact-card.baby-blue:hover {
+            border-color: var(--baby-blue);
+        }
+
+        .contact-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--hot-pink) 0%, var(--coral) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+        }
+
+        .contact-card.teal .contact-icon {
+            background: linear-gradient(135deg, var(--teal) 0%, #2dd4bf 100%);
+        }
+
+        .contact-card.baby-blue .contact-icon {
+            background: linear-gradient(135deg, var(--baby-blue) 0%, #93c5fd 100%);
+        }
+
+        .contact-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .contact-card p {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .contact-card a {
+            color: var(--hot-pink);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-card.teal a {
+            color: var(--teal);
+        }
+
+        .contact-card.baby-blue a {
+            color: var(--baby-blue);
+        }
+
+        .contact-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* FAQ */
+        .faq {
+            padding: 60px 0;
+            background: var(--darker);
+        }
+
+        .faq h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        .faq-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 24px;
+        }
+
+        .faq-item h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--light);
+        }
+
+        .faq-item p {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        /* Response Times */
+        .response {
+            padding: 60px 0;
+        }
+
+        .response h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        .response-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .response-card {
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .response-card h3 {
+            font-size: 32px;
+            color: var(--teal);
+            margin-bottom: 8px;
+        }
+
+        .response-card p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* CTA */
+        .cta {
+            background: linear-gradient(135deg, var(--hot-pink) 0%, var(--coral) 100%);
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .cta h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--hot-pink);
+        }
+
+        .btn-white:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker);
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer .container {
+            text-align: center;
+        }
+
+        footer p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        footer .footer-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        footer a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        footer a:hover {
+            color: var(--light);
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+            .hero {
+                padding: 120px 0 60px;
+            }
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="logo">Rina<span>Warp</span></a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="features.html">Features</a></li>
+                <li><a href="pricing.html">Pricing</a></li>
+                <li><a href="download.html">Download</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html" class="active">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Get in Touch</h1>
+            <p>Questions? Issues? Just want to say hi? We're here to help.</p>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">💬</div>
+                    <h3>Support</h3>
+                    <p>Need help with RinaWarp? Our support team is ready to assist.</p>
+                    <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>
+                </div>
+                <div class="contact-card teal">
+                    <div class="contact-icon">💰</div>
+                    <h3>Sales</h3>
+                    <p>Questions about pricing, enterprise, or team licenses?</p>
+                    <a href="mailto:sales@rinawarptech.com">sales@rinawarptech.com</a>
+                </div>
+                <div class="contact-card baby-blue">
+                    <div class="contact-icon">🐛</div>
+                    <h3>Bugs</h3>
+                    <p>Found an issue? Report bugs and help us improve.</p>
+                    <a href="mailto:bugs@rinawarptech.com">bugs@rinawarptech.com</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">💡</div>
+                    <h3>General</h3>
+                    <p>Everything else? Say hello to the team.</p>
+                    <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="response">
+        <div class="container">
+            <h2>Response Times</h2>
+            <div class="response-grid">
+                <div class="response-card">
+                    <h3>~2h</h3>
+                    <p>Critical bugs</p>
+                </div>
+                <div class="response-card">
+                    <h3>~8h</h3>
+                    <p>General support</p>
+                </div>
+                <div class="response-card">
+                    <h3>~24h</h3>
+                    <p>Sales inquiries</p>
+                </div>
+                <div class="response-card">
+                    <h3>~48h</h3>
+                    <p>Feature requests</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq">
+        <div class="container">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <h3>Is RinaWarp really free to try?</h3>
+                    <p>Yes! The Free tier gives you full chat functionality, read-only diagnostics, and inspection plans. You can see exactly what's wrong with your system without any risk. Upgrade to Pro or lifetime licenses to actually execute fixes.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Is my data sent to the cloud?</h3>
+                    <p>No. RinaWarp operates locally on your machine. Your system data, diagnostics, and fix plans never leave your computer. This is our core differentiator — privacy and security by design.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>What happens if a fix doesn't work?</h3>
+                    <p>Every session includes full audit logs. If something doesn't work as expected, you can review exactly what Rina did, compare before/after states, and our support team can help troubleshoot based on the session transcript.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Can I use RinaWarp in production?</h3>
+                    <p>Absolutely. The Pro tier and lifetime licenses include production-safe execution with high-impact confirmations. Rina will never run dangerous commands without your explicit "YES" approval.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Do you offer refunds?</h3>
+                    <p>Yes. If you're not satisfied within 30 days of purchase, contact support@rinawarptech.com for a full refund. No questions asked.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Get Started?</h2>
+            <p>Download RinaWarp and start fixing things smarter today.</p>
+            <a href="download.html" class="btn btn-white">Download Free</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com</p>
+            <div class="footer-links">
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="refunds.html">Refunds</a>
+                <a href="eula.html">EULA</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

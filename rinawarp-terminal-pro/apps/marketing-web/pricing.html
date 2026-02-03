@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RinaWarp Pricing - Simple, transparent pricing. One installer, capabilities unlock by license.">
+    <title>Pricing - RinaWarp Terminal Pro</title>
+    <style>
+        :root {
+            --hot-pink: #ff3366;
+            --hot-pink-dark: #cc0033;
+            --teal: #14b8a6;
+            --coral: #ff6b6b;
+            --baby-blue: #7dd3fc;
+            --black: #0a0a0f;
+            --darker: #050508;
+            --light: #f5f5f7;
+            --gray: #8e8e93;
+            --success: #34c759;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--black);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(10, 10, 15, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--light);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--hot-pink);
+        }
+
+        nav ul {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        nav a:hover, nav a.active {
+            opacity: 1;
+            color: var(--baby-blue);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 140px 0 60px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 4vw, 56px);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 40px 0 80px;
+        }
+
+        .pricing-section h2 {
+            font-size: clamp(28px, 3vw, 36px);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .pricing-section > .container > p {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 48px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto 48px;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .pricing-card.featured {
+            background: rgba(255, 51, 102, 0.1);
+            border-color: var(--hot-pink);
+        }
+
+        .pricing-card.featured:hover {
+            border-color: var(--hot-pink-dark);
+        }
+
+        .pricing-card h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .price {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 24px 0;
+            color: var(--baby-blue);
+        }
+
+        .pricing-card .price .muted {
+            font-size: 18px;
+            color: var(--gray);
+            font-weight: 400;
+        }
+
+        .pricing-card .description {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 24px;
+            min-height: 40px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 32px 0;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pricing-features li::before {
+            content: "✓";
+            color: var(--teal);
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--hot-pink);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--hot-pink-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(255, 51, 102, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(125, 211, 252, 0.1);
+            color: var(--baby-blue);
+            border: 1px solid rgba(125, 211, 252, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(125, 211, 252, 0.2);
+        }
+
+        .btn.featured {
+            background: var(--hot-pink);
+        }
+
+        .btn.featured:hover {
+            background: var(--hot-pink-dark);
+        }
+
+        .fineprint {
+            font-size: 11px;
+            color: var(--gray);
+            margin-top: 16px;
+            font-family: monospace;
+        }
+
+        /* Trust Note */
+        .trust-note {
+            max-width: 600px;
+            margin: 48px auto 0;
+            padding: 24px;
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .trust-note p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .trust-note strong {
+            color: var(--success);
+        }
+
+        /* CTA */
+        .cta {
+            background: linear-gradient(135deg, var(--hot-pink) 0%, var(--coral) 100%);
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .cta h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .cta .btn {
+            background: white;
+            color: var(--hot-pink);
+            font-size: 18px;
+            padding: 20px 48px;
+            width: auto;
+        }
+
+        .cta .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker);
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer .container {
+            text-align: center;
+        }
+
+        footer p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        footer .footer-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        footer a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        footer a:hover {
+            color: var(--baby-blue);
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+            .hero {
+                padding: 120px 0 60px;
+            }
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="logo">Rina<span>Warp</span></a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="features.html">Features</a></li>
+                <li><a href="pricing.html" class="active">Pricing</a></li>
+                <li><a href="download.html">Download</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Pricing</h1>
+            <p>One installer. Capabilities unlock by license.</p>
+        </div>
+    </section>
+
+    <section class="pricing-section">
+        <div class="container">
+            <h2>Subscriptions (Monthly)</h2>
+            <p>Flexible access with automatic updates.</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Starter (Pro)</h3>
+                    <div class="price">$29<span class="muted">/mo</span></div>
+                    <ul class="pricing-features">
+                        <li>Read-only + safe-write tools</li>
+                        <li>Planning & explanations</li>
+                        <li>Nothing executes without your approval</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="startCheckout('price_1Sdxl7GZrRdZy3W9INQvidPf')">Get Starter — $29/mo</button>
+                    <div class="fineprint">Stripe Price ID: price_1Sdxl7GZrRdZy3W9INQvidPf</div>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h3>Creator</h3>
+                    <div class="price">$69<span class="muted">/mo</span></div>
+                    <ul class="pricing-features">
+                        <li>Everything in Starter</li>
+                        <li>Advanced workflows</li>
+                        <li>More execution context</li>
+                    </ul>
+                    <button class="btn btn-primary featured" onclick="startCheckout('price_1SdxlKGZrRdZy3W9TvaLugc7')">Get Creator — $69/mo</button>
+                    <div class="fineprint">Stripe Price ID: price_1SdxlKGZrRdZy3W9TvaLugc7</div>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Team</h3>
+                    <div class="price">$99<span class="muted">/mo</span></div>
+                    <ul class="pricing-features">
+                        <li>Everything in Creator</li>
+                        <li>Team-ready workflows</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="startCheckout('price_1SdxlXGZrRdZy3W9Wr1XLBIe')">Get Team — $99/mo</button>
+                    <div class="fineprint">Stripe Price ID: price_1SdxlXGZrRdZy3W9Wr1XLBIe</div>
+                </div>
+            </div>
+
+            <h2>Lifetime Licenses (One-Time)</h2>
+            <p>Pay once. Own it forever.</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card featured">
+                    <h3>Founder (Pro Lifetime)</h3>
+                    <div class="price">$699<span class="muted"> one-time</span></div>
+                    <ul class="pricing-features">
+                        <li>Lifetime access</li>
+                        <li>All Pro capabilities</li>
+                        <li>Pay once, own it forever</li>
+                    </ul>
+                    <button class="btn btn-primary featured" onclick="startCheckout('price_1SdxlmGZrRdZy3W9ncwPfgFr')">Buy Founder — $699</button>
+                    <div class="fineprint">Stripe Price ID: price_1SdxlmGZrRdZy3W9ncwPfgFr</div>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Pioneer (Lifetime)</h3>
+                    <div class="price">$800<span class="muted"> one-time</span></div>
+                    <ul class="pricing-features">
+                        <li>Lifetime access</li>
+                        <li>Priority feature access</li>
+                        <li>Long-term support tier</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="startCheckout('price_1Sdxm2GZrRdZy3W9C5tQcWiW')">Buy Pioneer — $800</button>
+                    <div class="fineprint">Stripe Price ID: price_1Sdxm2GZrRdZy3W9C5tQcWiW</div>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Team (Lifetime)</h3>
+                    <div class="price">$999<span class="muted"> one-time</span></div>
+                    <ul class="pricing-features">
+                        <li>Lifetime access</li>
+                        <li>Highest tier support</li>
+                        <li>Best for organizations</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="startCheckout('price_1SdxmFGZrRdZy3W9skXi3jvE')">Buy Team — $999</button>
+                    <div class="fineprint">Stripe Price ID: price_1SdxmFGZrRdZy3W9skXi3jvE</div>
+                </div>
+            </div>
+
+            <div class="trust-note">
+                <p><strong>Intelligence is never gated. Only execution is.</strong><br />All tiers use the same RinaWarp agent. Nothing executes without your approval.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Get Started?</h2>
+            <p>Download RinaWarp and start fixing things smarter today.</p>
+            <a href="download.html" class="btn">Download Free</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com</p>
+            <div class="footer-links">
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
+                <a href="refunds.html">Refunds</a>
+                <a href="eula.html">EULA</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        async function startCheckout(priceId) {
+            const res = await fetch("https://api.rinawarptech.com/api/stripe/checkout", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ price_id: priceId })
+            });
+
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+                return;
+            }
+
+            alert("Checkout failed: " + (data.error || "unknown_error"));
+        }
+    </script>
+</body>
+</html>
