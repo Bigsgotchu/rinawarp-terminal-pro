@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RinaWarp Features - The First AI You Can Trust to Actually Fix Things. Explore all capabilities of RinaWarp Terminal Pro.">
+    <title>Features - RinaWarp Terminal Pro</title>
+    <style>
+        :root {
+            --hot-pink: #ff3366;
+            --hot-pink-dark: #cc0033;
+            --teal: #14b8a6;
+            --coral: #ff6b6b;
+            --baby-blue: #7dd3fc;
+            --black: #0a0a0f;
+            --darker: #050508;
+            --light: #f5f5f7;
+            --gray: #8e8e93;
+            --success: #34c759;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--black);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(10, 10, 15, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--light);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--hot-pink);
+        }
+
+        nav ul {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        nav a:hover, nav a.active {
+            opacity: 1;
+            color: var(--baby-blue);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 140px 0 80px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--darker) 0%, var(--black) 100%);
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 4vw, 56px);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Section */
+        section {
+            padding: 80px 0;
+        }
+
+        section h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        section .section-sub {
+            text-align: center;
+            color: var(--gray);
+            font-size: 18px;
+            margin-bottom: 48px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Feature Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: rgba(20, 184, 166, 0.05);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(20, 184, 166, 0.1);
+            transform: translateY(-4px);
+            border-color: var(--teal);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 51, 102, 0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            background: var(--darker);
+        }
+
+        .steps {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 40px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--hot-pink);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .step-content p {
+            color: var(--gray);
+        }
+
+        /* Trust Section */
+        .trust {
+            background: var(--black);
+        }
+
+        .trust-promise {
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .trust-promise h3 {
+            color: var(--success);
+            font-size: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .trust-item {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .trust-item-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 20px;
+        }
+
+        .trust-item h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .trust-item p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* CTA */
+        .cta {
+            background: linear-gradient(135deg, var(--hot-pink) 0%, var(--coral) 100%);
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .cta h2 {
+            font-size: clamp(28px, 3vw, 42px);
+            margin-bottom: 16px;
+        }
+
+        .cta p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--hot-pink);
+        }
+
+        .btn-white:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker);
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer .container {
+            text-align: center;
+        }
+
+        footer p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        footer .footer-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        footer a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        footer a:hover {
+            color: var(--baby-blue);
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+            .hero {
+                padding: 120px 0 60px;
+            }
+            section {
+                padding: 60px 0;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="index.html" class="logo">Rina<span>Warp</span></a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="features.html" class="active">Features</a></li>
+                <li><a href="pricing.html">Pricing</a></li>
+                <li><a href="download.html">Download</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Powerful Features.<br>Trusted Execution.</h1>
+            <p>Everything you need to safely fix, automate, and manage your systems with AI.</p>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <h2>Core Capabilities</h2>
+            <p class="section-sub">Built for developers, power users, and system administrators</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Natural Language Interface</h3>
+                    <p>Describe problems in plain English. Rina understands intent and translates it into safe commands.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>System Inspection</h3>
+                    <p>Read-only diagnostics that reveal what's really happening under the hood. CPU, memory, processes, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3>Plan Before Execute</h3>
+                    <p>See every step before it runs. Review commands, understand risks, and approve only what you want.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Safety First</h3>
+                    <p>High-impact actions require explicit "YES" confirmation. Nothing runs without your knowledge.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📺</div>
+                    <h3>Live Output Streaming</h3>
+                    <p>Watch commands execute in real-time. Full visibility into what's happening on your system.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>Verification & Audit</h3>
+                    <p>Every session is logged. Export transcripts, verify results, and maintain compliance records.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏠</div>
+                    <h3>Local Execution</h3>
+                    <p>Your system stays on your machine. No cloud dependencies, no data leaving your control.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Playbook System</h3>
+                    <p>Pre-built diagnostics for common issues: running hot, disk full, port conflicts, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI-Powered Diagnosis</h3>
+                    <p>Intelligent interpretation of system data. Rina connects symptoms to root causes automatically.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <p class="section-sub">Four simple steps from problem to solution</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Describe the Problem</h3>
+                        <p>Tell Rina what's wrong in natural language. "My computer is running hot" or "Docker containers are failing to start."</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Review the Plan</h3>
+                        <p>Rina creates a step-by-step plan. You see every command before it runs, with risk levels and explanations.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Approve & Execute</h3>
+                        <p>Type "run it" to proceed. For risky actions, type "YES" to confirm. Watch execution live in the terminal.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Verify Results</h3>
+                        <p>Rina confirms the fix worked and provides a full audit log. Everything is documented for your records.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust">
+        <div class="container">
+            <h2>Trust & Safety</h2>
+            <p class="section-sub">Your system, your rules</p>
+            <div class="trust-promise">
+                <h3>Rina will NEVER:</h3>
+                <p style="text-align: center; color: var(--gray);">Run destructive commands without approval • Hide outputs • Modify silently • Lock you into cloud</p>
+            </div>
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-item-icon">👁️</div>
+                    <h3>Full Visibility</h3>
+                    <p>See every command before it runs</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-item-icon">🛑</div>
+                    <h3>Cancel Anytime</h3>
+                    <p>Stop execution instantly</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-item-icon">📋</div>
+                    <h3>Audit Logs</h3>
+                    <p>Exportable session records</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-item-icon">🔒</div>
+                    <h3>Local Only</h3>
+                    <p>Your data stays on your machine</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Fix Things Smarter?</h2>
+            <p>Download RinaWarp Terminal Pro and start solving problems today.</p>
+            <a href="download.html" class="btn btn-white">Download Free</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support.com All rights reserved.</p>
+            <div class="footer-links">
+                <a href="features.html">Features</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="download.html">Download</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="terms/index.html">Terms</a>
+                <a href="privacy/index.html">Privacy</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

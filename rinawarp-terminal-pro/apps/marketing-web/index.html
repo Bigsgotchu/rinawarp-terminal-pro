@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RinaWarp Terminal Pro - The First AI You Can Trust to Actually Fix Things. Talk to Rina like ChatGPT. She inspects your system, proves what's wrong, asks before making changes, fixes it safely, and shows you exactly what happened.">
+    <title>RinaWarp Terminal Pro - The First AI You Can Trust to Actually Fix Things</title>
+    <style>
+        :root {
+            --hot-pink: #ff3366;
+            --hot-pink-dark: #cc0033;
+            --teal: #14b8a6;
+            --coral: #ff6b6b;
+            --baby-blue: #7dd3fc;
+            --black: #0a0a0f;
+            --darker: #050508;
+            --light: #f5f5f7;
+            --gray: #8e8e93;
+            --success: #34c759;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--black);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        a {
+            color: var(--baby-blue);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--hot-pink);
+        }
+
+        /* Header */
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .logo span {
+            color: var(--hot-pink);
+        }
+
+        nav a {
+            margin-left: 32px;
+            color: var(--light);
+            opacity: 0.8;
+        }
+
+        nav a:hover {
+            opacity: 1;
+            color: var(--baby-blue);
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 120px 40px 80px;
+            background: linear-gradient(180deg, var(--darker) 0%, var(--black) 100%);
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--hot-pink);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--hot-pink-dark);
+        }
+
+        .btn-secondary {
+            background: rgba(125, 211, 252, 0.1);
+            color: var(--baby-blue);
+            border: 1px solid rgba(125, 211, 252, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(125, 211, 252, 0.2);
+        }
+
+        /* Problem Statement */
+        .problem {
+            padding: 80px 40px;
+            text-align: center;
+            background: var(--darker);
+        }
+
+        .problem h2 {
+            font-size: 36px;
+            margin-bottom: 32px;
+        }
+
+        .problem-statement {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .problem-statement h3 {
+            font-size: 24px;
+            color: var(--hot-pink);
+            margin-bottom: 24px;
+        }
+
+        .problem-statement p {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 24px;
+        }
+
+        .problem-list {
+            text-align: left;
+            max-width: 500px;
+            margin: 32px auto;
+        }
+
+        .problem-list li {
+            padding: 12px 0;
+            font-size: 16px;
+            color: var(--light);
+            list-style: none;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .problem-list li::before {
+            content: "• ";
+            color: var(--hot-pink);
+        }
+
+        /* Value Props */
+        .value-props {
+            padding: 80px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .value-props h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 48px;
+        }
+
+        .props-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .prop-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .prop-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--baby-blue);
+        }
+
+        .prop-card p {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        /* What RinaWarp Replaces */
+        .replaces {
+            padding: 80px 40px;
+            background: var(--darker);
+        }
+
+        .replaces h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 48px;
+        }
+
+        .replaces-table {
+            max-width: 800px;
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+
+        .replaces-table th,
+        .replaces-table td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .replaces-table th {
+            color: var(--gray);
+            font-weight: normal;
+            width: 40%;
+        }
+
+        .replaces-table td {
+            color: var(--teal);
+        }
+
+        /* Who It's For */
+        .who-for {
+            padding: 80px 40px;
+        }
+
+        .who-for h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 32px;
+        }
+
+        .who-for p {
+            text-align: center;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto 48px;
+        }
+
+        .who-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .who-card {
+            background: rgba(255,51,102,0.1);
+            border: 1px solid rgba(255,51,102,0.3);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .who-card h3 {
+            color: var(--hot-pink);
+            font-size: 18px;
+        }
+
+        /* Trust Banner */
+        .trust-banner {
+            background: rgba(52, 199, 89, 0.1);
+            border-top: 1px solid rgba(52, 199, 89, 0.3);
+            border-bottom: 1px solid rgba(52, 199, 89, 0.3);
+            padding: 24px 40px;
+            text-align: center;
+        }
+
+        .trust-banner p {
+            color: var(--success);
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        footer p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--baby-blue);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">Rina<span>Warp</span></a>
+        <nav>
+            <a href="features.html">Features</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="download.html">Download</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>The First AI You Can Trust<br>to Actually Fix Things</h1>
+        <p>Talk to Rina like ChatGPT. She inspects your system, proves what's wrong, asks before making changes, fixes it safely, and shows you exactly what happened.</p>
+        <div class="cta-group">
+            <a href="download.html" class="btn btn-primary">Download RinaWarp Terminal Pro</a>
+            <a href="features.html" class="btn btn-secondary">Watch a live fix (2 min)</a>
+        </div>
+    </section>
+
+    <section class="problem">
+        <div class="problem-statement">
+            <h2>Most AI tools talk.<br>Most terminals execute.</h2>
+            <p>Neither are safe enough to do both.</p>
+            <p>Developers and power users are stuck bouncing between tools, scripts, terminals, and guesswork.</p>
+            <ul class="problem-list">
+                <li>ChatGPT explains but can't act</li>
+                <li>Automation tools act but can't be trusted</li>
+                <li>One mistake can destroy a system</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="value-props">
+        <h2>What RinaWarp Replaces</h2>
+        <table class="replaces-table">
+            <tr>
+                <th>ChatGPT</th>
+                <td>→ Natural conversation</td>
+            </tr>
+            <tr>
+                <th>Warp</th>
+                <td>→ Terminal fluency</td>
+            </tr>
+            <tr>
+                <th>Copilot</th>
+                <td>→ Contextual awareness</td>
+            </tr>
+            <tr>
+                <th>Automation tools</th>
+                <td>→ Real execution with safety</td>
+            </tr>
+        </table>
+        <p style="text-align: center; margin-top: 32px; color: var(--success);">Plus safety, confirmation, and verification built in.</p>
+    </section>
+
+    <section class="who-for">
+        <h2>Built for You</h2>
+        <p>Developers, indie founders, power users, and anyone who manages their own system.</p>
+        <div class="who-grid">
+            <div class="who-card">
+                <h3>Debug broken environments</h3>
+            </div>
+            <div class="who-card">
+                <h3>Manage Docker, builds, or servers</h3>
+            </div>
+            <div class="who-card">
+                <h3>Hate reinstalling OSs</h3>
+            </div>
+            <div class="who-card">
+                <h3>Want automation without losing control</h3>
+            </div>
+        </div>
+    </section>
+
+    <section class="value-props">
+        <h2>Why RinaWarp?</h2>
+        <div class="props-grid">
+            <div class="prop-card">
+                <h3>Natural Conversation</h3>
+                <p>Describe problems in plain English. Rina understands context and provides clear explanations.</p>
+            </div>
+            <div class="prop-card">
+                <h3>Safe Execution</h3>
+                <p>Every action is explained before execution. High-impact commands require explicit approval.</p>
+            </div>
+            <div class="prop-card">
+                <h3>Full Transparency</h3>
+                <p>Watch every command as it runs. Complete audit logs show exactly what was done.</p>
+            </div>
+            <div class="prop-card">
+                <h3>Local-First</h3>
+                <p>Your system data never leaves your machine. No cloud dependencies, no privacy concerns.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-banner">
+        <p>✓ RinaWarp operates locally • Your system stays yours • You're always in control</p>
+    </section>
+
+    <footer>
+        <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com <a href="privacy.html">Privacy</a> | <a href="terms.html">Terms</a> | <a href="refunds.html">Refunds</a> | <a href="eula.html">EULA</a></p>
+    </footer>
+</body>
+</html>
