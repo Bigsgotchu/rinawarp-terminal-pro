@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="RinaWarp Pricing - Simple, transparent pricing. One installer, capabilities unlock by license.">
     <title>Pricing - RinaWarp Terminal Pro</title>
+    <link rel="canonical" href="https://www.rinawarptech.com/pricing/" />
+    <meta name="robots" content="index,follow" />
     <style>
         :root {
             --hot-pink: #ff3366;
@@ -151,6 +153,17 @@
 
         .pricing-card.featured:hover {
             border-color: var(--hot-pink-dark);
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--hot-pink);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
         }
 
         .pricing-card h3 {
@@ -348,14 +361,14 @@
 <body>
     <nav>
         <div class="container">
-            <a href="index.html" class="logo">Rina<span>Warp</span></a>
+            <a href="/" class="logo">Rina<span>Warp</span></a>
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="features.html">Features</a></li>
-                <li><a href="pricing.html" class="active">Pricing</a></li>
-                <li><a href="download.html">Download</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/features">Features</a></li>
+                <li><a href="/pricing/" class="active">Pricing</a></li>
+                <li><a href="/download/">Download</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
             </ul>
         </div>
     </nav>
@@ -382,7 +395,7 @@
                         <li>Inspection plans</li>
                         <li>See what's wrong — safely</li>
                     </ul>
-                    <button class="btn btn-secondary" onclick="window.location.href='download.html'">Download Free</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/download/'">Download Free</button>
                     <div class="fineprint">No credit card required</div>
                 </div>
             </div>
@@ -430,85 +443,23 @@
                 </div>
             </div>
 
-            <h2>Lifetime Licenses (One-Time)</h2>
-            <p>Pay once. Own it forever.</p>
+            <h2>Lifetime (Limited)</h2>
+            <p>
+                Pay once. Own it forever.<br>
+                <strong>When this tier sells out, the next lifetime tier unlocks at a higher price.</strong>
+            </p>
             
-            <div class="pricing-grid">
-                <div class="pricing-card featured">
-                    <h3>Founder</h3>
-                    <div class="price">$699<span class="muted"> one-time</span></div>
-                    <ul class="pricing-features">
-                        <li>Lifetime access to Pro</li>
-                        <li>All future Pro features</li>
-                        <li>Founder badge</li>
-                    </ul>
-                    <button class="btn btn-primary featured" onclick="startCheckout('price_1SdxlmGZrRdZy3W9ncwPfgFr')">Buy Founder — $699</button>
-                    <div class="fineprint">Early supporter pricing</div>
-                </div>
+            <div id="lifetime-card" class="pricing-grid"></div>
 
-                <div class="pricing-card">
-                    <h3>Pioneer</h3>
-                    <div class="price">$800<span class="muted"> one-time</span></div>
-                    <ul class="pricing-features">
-                        <li>Lifetime access</li>
-                        <li>Priority feature access</li>
-                        <li>Long-term support tier</li>
-                    </ul>
-                    <button class="btn btn-secondary" onclick="startCheckout('price_1Sdxm2GZrRdZy3W9C5tQcWiW')">Buy Pioneer — $800</button>
-                    <div class="fineprint">Power users</div>
-                </div>
+            <script src="/assets/lifetime-promo.js" defer></script>
 
-                <div class="pricing-card">
-                    <h3>Team</h3>
-                    <div class="price">$999<span class="muted"> one-time</span></div>
-                    <ul class="pricing-features">
-                        <li>Lifetime access</li>
-                        <li>Highest tier support</li>
-                        <li>Best for organizations</li>
-                    </ul>
-                    <button class="btn btn-secondary" onclick="startCheckout('price_1SdxmFGZrRdZy3W9skXi3jvE')">Buy Team — $999</button>
-                    <div class="fineprint">Organizations</div>
-                </div>
-            </div>
-                    <h3>Pro Yearly</h3>
-                    <div class="price">$149<span class="muted">/yr</span></div>
-                    <ul class="pricing-features">
-                        <li>Everything in Pro monthly</li>
-                        <li>2 months free (save $79)</li>
-                        <li>Priority support</li>
-                    </ul>
-                    <button class="btn btn-secondary" onclick="startCheckout('price_PRO_YEARLY')">Get Pro Yearly — $149/yr</button>
-                    <div class="fineprint">Best value</div>
-                </div>
-            </div>
-
-            <h2>Lifetime Licenses (One-Time)</h2>
-            <p>Pay once. Own it forever. Intelligence is never gated. Only execution is.</p>
-            
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>Founder</h3>
-                    <div class="price">$699<span class="muted"> one-time</span></div>
-                    <ul class="pricing-features">
-                        <li>Lifetime access to Pro</li>
-                        <li>All future Pro features</li>
-                        <li>Founder badge</li>
-                    </ul>
-                    <button class="btn btn-secondary" onclick="startCheckout('price_FOUNDER_LIFETIME')">Buy Founder — $699</button>
-                    <div class="fineprint">Early supporter pricing</div>
-                </div>
-
-                <div class="pricing-card featured">
-                    <h3>Founder+</h3>
-                    <div class="price">$999<span class="muted"> one-time</span></div>
-                    <ul class="pricing-features">
-                        <li>Everything in Founder</li>
-                        <li>Lifetime priority support</li>
-                        <li>Direct access to founder</li>
-                    </ul>
-                    <button class="btn btn-primary featured" onclick="startCheckout('price_FOUNDER_PLUS_LIFETIME')">Buy Founder+ — $999</button>
-                    <div class="fineprint">Best for power users</div>
-                </div>
+            <div style="text-align:center; margin-top:32px;">
+                <p style="color: var(--gray); font-size:14px;">
+                    Already purchased?
+                    <a href="/login/" style="color: var(--baby-blue); text-decoration:none;">
+                        Sign in to your account
+                    </a>
+                </p>
             </div>
 
             <div class="trust-note">
@@ -521,7 +472,7 @@
         <div class="container">
             <h2>Ready to Get Started?</h2>
             <p>Download RinaWarp and start fixing things smarter today.</p>
-            <a href="download.html" class="btn">Download Free</a>
+            <a href="/download/" class="btn">Download Free</a>
         </div>
     </section>
 
@@ -529,29 +480,39 @@
         <div class="container">
             <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com</p>
             <div class="footer-links">
-                <a href="privacy.html">Privacy</a>
-                <a href="terms.html">Terms</a>
-                <a href="refunds.html">Refunds</a>
-                <a href="eula.html">EULA</a>
+                <a href="privacy/">Privacy</a>
+                <a href="terms/">Terms</a>
+                <a href="refunds/">Refunds</a>
+                <a href="eula/">EULA</a>
             </div>
         </div>
     </footer>
 
     <script>
         async function startCheckout(priceId) {
-            const res = await fetch("https://api.rinawarptech.com/api/stripe/checkout", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ price_id: priceId })
-            });
+            try {
+                const res = await fetch("https://api.rinawarptech.com/api/stripe/checkout", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ price_id: priceId })
+                });
 
-            const data = await res.json();
-            if (data.url) {
-                window.location.href = data.url;
-                return;
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    alert("Checkout failed: " + (data.error || ("http_" + res.status)));
+                    return;
+                }
+
+                if (data.url) {
+                    window.location.href = data.url;
+                    return;
+                }
+
+                alert("Checkout failed: missing_checkout_url");
+            } catch (err) {
+                alert("Checkout failed: network_error");
             }
-
-            alert("Checkout failed: " + (data.error || "unknown_error"));
         }
     </script>
 </body>

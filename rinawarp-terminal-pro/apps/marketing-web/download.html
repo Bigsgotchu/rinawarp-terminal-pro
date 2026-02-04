@@ -437,31 +437,32 @@
         footer a:hover {
             color: var(--baby-blue);
         }
-
-        @media (max-width: 768px) {
-            nav ul {
-                display: none;
-            }
-            .hero {
-                padding: 120px 0 60px;
-            }
-            .download-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
+    <script>
+        function toggleChecksum(platform) {
+            const el = document.getElementById('checksum-' + platform);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+        function showMacInfo() {
+            alert('macOS Early Access:\\n\\nThe macOS build requires Apple Developer Program membership ($99/year) for proper code signing and notarization.\\n\\nOnce enrolled, users will experience seamless installation without Gatekeeper warnings.\\n\\nEstimated timeline: Once we have our first paid customers, we will purchase the Apple Developer Program.');
+        }
+        function showWinInfo() {
+            alert('Windows Coming Soon:\\n\\nWindows builds are planned after establishing initial revenue. Options include:\\n\\n1. Microsoft Store distribution (lower friction, ~$19 one-time fee)\\n2. Direct download with code signing certificate (best for direct sales)\\n\\nBoth provide better SmartScreen trust than unsigned installers.');
+        }
+    </script>
 </head>
 <body>
     <nav>
         <div class="container">
-            <a href="index.html" class="logo">Rina<span>Warp</span></a>
+            <a href="/" class="logo">Rina<span>Warp</span></a>
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="features.html">Features</a></li>
-                <li><a href="pricing.html">Pricing</a></li>
-                <li><a href="download.html" class="active">Download</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/features">Features</a></li>
+                <li><a href="/pricing/">Pricing</a></li>
+                <li><a href="/download/" class="active">Download</a></li>
+                <li><a href="/login/">Login</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
             </ul>
         </div>
     </nav>
@@ -469,7 +470,7 @@
     <section class="hero">
         <div class="container">
             <h1>Download RinaWarp</h1>
-            <p>The First AI You Can Trust to Actually Fix Things.<br>Available on macOS, Linux, and Windows.</p>
+            <p>The First AI You Can Trust to Actually Fix Things.<br>Available now on Linux. macOS & Windows coming soon.</p>
         </div>
     </section>
 
@@ -530,24 +531,33 @@
                     <div class="platform-icon">🍎</div>
                     <h3>macOS</h3>
                     <p class="version">Version 1.0.0 • Universal (Intel & Apple Silicon)</p>
-                    <a href="#" class="download-btn">Download for macOS</a>
-                    <a href="#" class="download-btn secondary">View Checksum</a>
+                    <p style="color: var(--baby-blue); font-size: 14px; margin-bottom: 16px;">
+                        <span style="display: inline-block; background: rgba(125, 211, 252, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">EARLY ACCESS</span>
+                        <br>Requires Apple Developer Program for full signing
+                    </p>
+                    <a href="#macos-info" class="download-btn secondary" onclick="showMacInfo(); return false;">Learn More</a>
                     <p class="notes">Requires macOS 11.0 or later</p>
                 </div>
                 <div class="download-card">
                     <div class="platform-icon">🐧</div>
                     <h3>Linux</h3>
-                    <p class="version">Version 1.0.0 • .deb, .rpm, and AppImage</p>
-                    <a href="#" class="download-btn">Download for Linux</a>
-                    <a href="#" class="download-btn secondary">View Checksum</a>
+                    <p class="version">Version 1.0.0 • AppImage & .deb</p>
+                    <a href="/login/" class="download-btn">Sign In to Download</a>
+                    <p style="color: var(--gray); font-size: 12px; margin-top: 12px;">
+                        Downloads are gated by purchase to prevent redistribution.<br>
+                        After checkout, sign in to access your secure download link.
+                    </p>
                     <p class="notes">Ubuntu 20.04+, Fedora 35+, or similar</p>
                 </div>
                 <div class="download-card">
                     <div class="platform-icon">🪟</div>
                     <h3>Windows</h3>
                     <p class="version">Version 1.0.0 • 64-bit Installer</p>
-                    <a href="#" class="download-btn">Download for Windows</a>
-                    <a href="#" class="download-btn secondary">View Checksum</a>
+                    <p style="color: var(--baby-blue); font-size: 14px; margin-bottom: 16px;">
+                        <span style="display: inline-block; background: rgba(125, 211, 252, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">COMING SOON</span>
+                        <br>Microsoft Store or signed installer coming
+                    </p>
+                    <a href="#win-info" class="download-btn secondary" onclick="showWinInfo(); return false;">Learn More</a>
                     <p class="notes">Windows 10 or Windows 11</p>
                 </div>
             </div>
@@ -581,8 +591,8 @@
     <section class="cta">
         <div class="container">
             <h2>Stop guessing. Start fixing things safely.</h2>
-            <p>Download RinaWarp Terminal Pro today.</p>
-            <a href="#" class="btn btn-white">Download Now</a>
+            <p>Sign in to download RinaWarp Terminal Pro for Linux.</p>
+            <a href="/login/" class="btn btn-white">Sign In to Download</a>
         </div>
     </section>
 
@@ -590,10 +600,10 @@
         <div class="container">
             <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com</p>
             <div class="footer-links">
-                <a href="privacy.html">Privacy</a>
-                <a href="terms.html">Terms</a>
-                <a href="refunds.html">Refunds</a>
-                <a href="eula.html">EULA</a>
+                <a href="privacy/">Privacy</a>
+                <a href="terms/">Terms</a>
+                <a href="refunds/">Refunds</a>
+                <a href="eula/">EULA</a>
             </div>
         </div>
     </footer>
