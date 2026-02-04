@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Your RinaWarp account: entitlement status, downloads, billing portal." />
+  <title>Account — RinaWarp</title>
+
+  <style>
+    :root{
+      --hot-pink:#ff3366; --hot-pink-dark:#cc0033;
+      --baby-blue:#7dd3fc; --teal:#14b8a6; --gray:#8e8e93;
+      --black:#0a0a0f; --darker:#050508; --light:#f5f5f7;
+      --card: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.1);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;background:var(--black);color:var(--light);line-height:1.6}
+    a{color:var(--baby-blue);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:980px;margin:0 auto;padding:0 20px}
+
+    nav{
+      position:sticky;top:0;z-index:10;
+      background:rgba(10,10,15,.95);backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--border);
+      padding:16px 0;
+    }
+    .nav-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{font-size:20px;font-weight:800;color:var(--light)}
+    .logo span{color:var(--hot-pink)}
+    .nav-links{display:flex;gap:16px;align-items:center;font-size:14px;opacity:.9}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.02);font-size:12px;color:var(--gray)}
+
+    header{padding:48px 0 18px}
+    h1{font-size:34px;letter-spacing:-.02em;margin-bottom:10px}
+    .sub{color:var(--gray);max-width:720px}
+
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;padding:20px 0 56px}
+    @media (min-width: 880px){ .grid{grid-template-columns: 1.2fr .8fr;} }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+    }
+    .card h2{font-size:18px;margin-bottom:10px}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+    .kv{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-top:12px}
+    .k{color:var(--gray);font-size:13px}
+    .v{font-size:14px}
+    .tag{
+      display:inline-block;
+      padding:6px 10px;border-radius:999px;
+      font-size:12px;font-weight:700;
+      border:1px solid var(--border);
+      background:rgba(125,211,252,.08);
+      color:var(--baby-blue);
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .tag.ok{background:rgba(20,184,166,.10);color:var(--teal);border-color:rgba(20,184,166,.35)}
+    .tag.bad{background:rgba(255,51,102,.10);color:var(--hot-pink);border-color:rgba(255,51,102,.35)}
+
+    .btn{
+      appearance:none;border:0;cursor:pointer;
+      padding:12px 14px;border-radius:12px;
+      font-weight:800;font-size:14px;
+      transition:.15s transform ease,.2s background ease,.2s box-shadow ease;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      width:100%;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:var(--hot-pink);color:white}
+    .btn.primary:hover{background:var(--hot-pink-dark);box-shadow:0 10px 30px rgba(255,51,102,.25)}
+    .btn.secondary{
+      background:rgba(125,211,252,.10);
+      color:var(--baby-blue);
+      border:1px solid rgba(125,211,252,.25);
+    }
+    .btn.secondary:hover{background:rgba(125,211,252,.16)}
+    .btn.ghost{
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--gray);
+    }
+    .btn.ghost:hover{border-color:rgba(255,255,255,.18);color:var(--light)}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .btn-row .btn{width:auto;flex:1;min-width:160px}
+
+    .muted{color:var(--gray);font-size:13px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+    .hr{height:1px;background:var(--border);margin:14px 0}
+
+    .error{
+      border:1px solid rgba(255,51,102,.35);
+      background:rgba(255,51,102,.08);
+      color:#ffd0dc;
+      padding:12px;border-radius:12px;
+      font-size:13px;
+    }
+    .ok{
+      border:1px solid rgba(20,184,166,.35);
+      background:rgba(20,184,166,.08);
+      color:#c8fff6;
+      padding:12px;border-radius:12px;
+      font-size:13px;
+    }
+
+    footer{
+      border-top:1px solid var(--border);
+      background:var(--darker);
+      padding:24px 0;
+      color:var(--gray);
+      font-size:13px;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div class="container">
+      <div class="nav-row">
+        <a class="logo" href="/"><span>Rina</span>Warp</a>
+        <div class="nav-links">
+          <a href="/pricing/">Pricing</a>
+          <a href="/download/">Download</a>
+          <a href="/login/" id="loginLink">Login</a>
+          <span class="pill" id="sessionPill" style="display:none;">
+            <span>Session</span> <span class="mono" id="sessionShort"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header>
+    <div class="container">
+      <h1>Your account</h1>
+      <p class="sub">This is your single source of truth: license status, secure downloads, and billing. If you're not signed in, we'll send you back to login.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <!-- Left: Entitlement + Downloads -->
+      <section class="card">
+        <div class="row">
+          <h2>Status</h2>
+          <span id="statusTag" class="tag">Loading…</span>
+        </div>
+
+        <div class="kv">
+          <div class="k">Email</div><div class="v" id="emailVal">—</div>
+          <div class="k">Customer ID</div><div class="v mono" id="customerVal">—</div>
+          <div class="k">Tier</div><div class="v" id="tierVal">—</div>
+          <div class="k">Entitlement</div><div class="v" id="entVal">—</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>Linux downloads</h2>
+        <p class="muted">Downloads are gated by purchase to prevent redistribution. We generate a short-lived token just for you.</p>
+
+        <div id="downloadBox" style="margin-top:12px;"></div>
+
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn secondary" id="btnMint">Generate secure download links</button>
+          <button class="btn ghost" id="btnRefresh">Refresh status</button>
+        </div>
+
+        <div id="msg" style="margin-top:12px;"></div>
+      </section>
+
+      <!-- Right: Billing + Actions -->
+      <aside class="card">
+        <h2>Billing</h2>
+        <p class="muted">Manage your subscription or view invoices using Stripe's customer portal.</p>
+
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn primary" id="btnPortal">Open billing portal</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>Account actions</h2>
+        <p class="muted">If something looks wrong, refresh first. Logging out clears the session on this device.</p>
+
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn ghost" id="btnLogout">Log out</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>Platform roadmap</h2>
+        <p class="muted">
+          macOS + Windows are coming next. Linux is live today.
+          We'll enable signed installers after the first revenue milestone.
+        </p>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com
+  </footer>
+
+  <script>
+    // ---- CONFIG ----
+    const API_BASE = "https://api.rinawarptech.com";
+    const WORKER_ORIGIN = "https://rinawarp-downloads.rinawarptech.workers.dev";
+    const VER = "1.0.0";
+    const FILES = [
+      `RinaWarp-Terminal-Pro-${VER}.AppImage`,
+      `RinaWarp-Terminal-Pro-${VER}.amd64.deb`,
+    ];
+
+    // ---- SESSION STORAGE ----
+    const getSession = () => localStorage.getItem("rw_session") || "";
+    const setMsg = (html) => document.getElementById("msg").innerHTML = html;
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'''}[c]));
+
+    function showSessionPill(token) {
+      const pill = document.getElementById("sessionPill");
+      const short = document.getElementById("sessionShort");
+      if (!token) { pill.style.display = "none"; return; }
+      pill.style.display = "inline-flex";
+      short.textContent = token.slice(0, 8) + "…";
+      document.getElementById("loginLink").style.display = "none";
+    }
+
+    async function apiMe() {
+      const token = getSession();
+      if (!token) return { ok:false, error:"no_session" };
+
+      const res = await fetch(`${API_BASE}/api/me`, {
+        headers: { "authorization": `Bearer ${token}` }
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok:false, error: data.error || `http_${res.status}` };
+      return { ok:true, data };
+    }
+
+    function renderStatus(me) {
+      const tag = document.getElementById("statusTag");
+      const email = me.customer_email || me.email || "—";
+      const customerId = me.customer_id || "—";
+      const tier = me.tier || "—";
+      const status = me.status || me.entitlement_status || "—";
+
+      document.getElementById("emailVal").textContent = email;
+      document.getElementById("customerVal").textContent = customerId;
+      document.getElementById("tierVal").textContent = tier;
+      document.getElementById("entVal").textContent = status;
+
+      const active = String(status).toLowerCase() === "active";
+      tag.textContent = active ? "Active" : "Not active";
+      tag.className = "tag " + (active ? "ok" : "bad");
+
+      return { active, customerId, email, tier, status };
+    }
+
+    async function mintDownloadToken(customerId) {
+      const res = await fetch(`${WORKER_ORIGIN}/api/download-token?customer_id=${encodeURIComponent(customerId)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `http_${res.status}`);
+      return data.token;
+    }
+
+    function renderDownloadLinks(token) {
+      const box = document.getElementById("downloadBox");
+      const links = FILES.map(f => {
+        const url = `https://www.rinawarptech.com/downloads/${encodeURIComponent(f)}?token=${encodeURIComponent(token)}`;
+        return `<div style="margin:10px 0;">
+          <div class="mono" style="font-size:13px;opacity:.9;">${escapeHtml(f)}</div>
+          <a class="btn secondary" style="margin-top:8px;display:inline-flex;" href="${url}">Download</a>
+        </div>`;
+      }).join("");
+
+      box.innerHTML = links;
+    }
+
+    async function refresh() {
+      setMsg("");
+      const session = getSession();
+      showSessionPill(session);
+
+      if (!session) {
+        window.location.href = "/login/?next=/account/";
+        return;
+      }
+
+      const me = await apiMe();
+      if (!me.ok) {
+        setMsg(`<div class="error">Session invalid or expired (${escapeHtml(me.error)}). Sending you to login…</div>`);
+        setTimeout(() => window.location.href = "/login/?next=/account/", 800);
+        return;
+      }
+
+      const info = renderStatus(me.data);
+
+      if (!info.active) {
+        setMsg(`<div class="error">
+          Your entitlement is not active. If you just purchased, wait ~30 seconds and click "Refresh status".
+          If you need help, email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.
+        </div>`);
+        document.getElementById("downloadBox").innerHTML = "";
+        return;
+      }
+
+      setMsg(`<div class="ok">You're good to go. Click "Generate secure download links" to download Linux installers.</div>`);
+    }
+
+    async function openPortal() {
+      setMsg("");
+      const token = getSession();
+      if (!token) { window.location.href = "/login/?next=/account/"; return; }
+
+      const me = await apiMe();
+      if (me.ok && me.data && me.data.portal_url) {
+        window.location.href = me.data.portal_url;
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/api/portal`, {
+        method: "POST",
+        headers: { "authorization": `Bearer ${token}` }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) {
+        setMsg(`<div class="error">Could not open billing portal (${escapeHtml(data.error || `http_${res.status}`)}).</div>`);
+        return;
+      }
+      window.location.href = data.url;
+    }
+
+    async function generateLinks() {
+      setMsg("");
+      const me = await apiMe();
+      if (!me.ok) { window.location.href = "/login/?next=/account/"; return; }
+
+      const info = renderStatus(me.data);
+      if (!info.active) {
+        setMsg(`<div class="error">No active entitlement. Please purchase or wait for webhook sync, then refresh.</div>`);
+        return;
+      }
+
+      try {
+        const token = await mintDownloadToken(info.customerId);
+        renderDownloadLinks(token);
+        setMsg(`<div class="ok">Secure links generated. They expire automatically.</div>`);
+      } catch (err) {
+        setMsg(`<div class="error">Could not mint download token (${escapeHtml(err.message || "unknown_error")}).</div>`);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("rw_session");
+      window.location.href = "/login/?logged_out=1";
+    }
+
+    document.getElementById("btnRefresh").addEventListener("click", refresh);
+    document.getElementById("btnMint").addEventListener("click", generateLinks);
+    document.getElementById("btnPortal").addEventListener("click", openPortal);
+    document.getElementById("btnLogout").addEventListener("click", logout);
+
+    refresh();
+  </script>
+</body>
+</html>

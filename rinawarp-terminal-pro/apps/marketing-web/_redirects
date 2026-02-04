@@ -1,5 +1,27 @@
-/terms    /terms/index.html    200
-/privacy  /privacy/index.html  200
-/refunds  /refunds/index.html  200
-/eula     /eula/index.html     200
-/*        /index.html          200
+# Legacy URL redirects for moved pages
+/privacy.html /privacy/ 301
+/terms.html /terms/ 301
+/refunds.html /refunds/ 301
+/eula.html /eula/ 301
+/pricing.html /pricing/ 308
+/download.html /download/ 308
+/index.html / 308
+
+# Canonical trailing slash redirects
+/refunds /refunds/ 308
+/eula /eula/ 308
+/account /account/ 308
+
+# API routes - use 307 to preserve HTTP method (especially for POST webhooks)
+/api/* https://api.rinawarptech.com/:splat 307
+
+# IMPORTANT: Do NOT use _redirects for /downloads/*
+# Configure a Workers route instead: www.rinawarptech.com/downloads/* → downloads worker
+# See deploy/launch-readiness.md for proper Workers route setup
+
+# Cleanup stray 404s (if any)
+/qzje/*  /  302
+/qzje    /  302
+
+/account  /account/  308
+/account/  /account/  200
