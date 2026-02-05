@@ -404,6 +404,124 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
+        /* Platform sections */
+        .platform-section {
+            background: rgba(20, 184, 166, 0.03);
+            border: 1px solid rgba(20, 184, 166, 0.15);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        
+        .platform-section h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .platform-section .version {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .platform-section .download-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        
+        .platform-section .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--hot-pink);
+            color: white;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .platform-section .btn:hover {
+            background: var(--hot-pink-dark);
+            transform: translateY(-2px);
+        }
+        
+        .platform-section .badge {
+            display: inline-block;
+            background: rgba(125, 211, 252, 0.2);
+            color: var(--baby-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .platform-section details {
+            margin-top: 16px;
+            cursor: pointer;
+        }
+        
+        .platform-section summary {
+            font-weight: 600;
+            color: var(--light);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .platform-section pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 12px 0;
+        }
+        
+        .platform-section code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        
+        .platform-section a {
+            color: var(--baby-blue);
+            text-decoration: none;
+        }
+        
+        .platform-section a:hover {
+            text-decoration: underline;
+        }
+        
+        .platform-section .note {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 3px solid var(--coral);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+            color: var(--light);
+            margin-top: 12px;
+        }
+        
+        .fingerprint {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+        }
+
         /* Footer */
         footer {
             background: var(--darker);
@@ -460,7 +578,9 @@
                 <li><a href="/features">Features</a></li>
                 <li><a href="/pricing/">Pricing</a></li>
                 <li><a href="/download/" class="active">Download</a></li>
+                <li><a href="/signup/">Sign up</a></li>
                 <li><a href="/login/">Login</a></li>
+                <li><a href="/account/">Account</a></li>
                 <li><a href="/about">About</a></li>
                 <li><a href="/contact">Contact</a></li>
             </ul>
@@ -469,8 +589,33 @@
 
     <section class="hero">
         <div class="container">
-            <h1>Download RinaWarp</h1>
-            <p>The First AI You Can Trust to Actually Fix Things.<br>Available now on Linux. macOS & Windows coming soon.</p>
+            <h1 style="font-size: clamp(36px, 5vw, 64px); margin-bottom: 24px;">RinaWarp Terminal Pro</h1>
+            <p style="font-size: 20px; color: var(--gray); max-width: 700px; margin: 0 auto 40px; line-height: 1.7;">
+                A Warp-style terminal with an agent that can <strong>plan</strong> and <strong>run real steps</strong> — safely.<br>
+                You type intent in plain language. Rina proposes a plan. You approve. Rina executes with full visibility.
+            </p>
+            <ul style="line-height:1.7;color:rgba(234,234,240,.82);text-align:left;max-width:600px;margin:0 auto 40px;list-style:none;">
+                <li><strong>Agent Mode:</strong> intent → plan preview → run steps (with streaming output)</li>
+                <li><strong>Terminal Mode:</strong> run raw commands as blocks (same secure engine)</li>
+                <li><strong>Safety-first:</strong> high-impact actions require typed <code>YES</code></li>
+                <li><strong>Transparency:</strong> every step shows the exact command and output</li>
+                <li><strong>Auditability:</strong> download an execution report (JSON) per run</li>
+                <li><strong>Workflows:</strong> save and re-run common plans</li>
+                <li><strong>Command Palette:</strong> ⌘K / Ctrl+K for fast actions, workflows, and history</li>
+            </ul>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px;">
+                <a href="/download/" class="btn btn-white" style="padding: 18px 36px; font-size: 18px;">Download for Linux</a>
+                <a href="/download/" class="btn" style="padding: 18px 36px; font-size: 18px; background: rgba(255, 107, 107, 0.2); border: 1px solid var(--coral); color: var(--coral);">Download for Windows (BETA)</a>
+            </div>
+            <div style="margin-top:18px;padding:12px 14px;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.03);display:inline-block;">
+                <strong>Coming next:</strong>
+                <span style="color:rgba(234,234,240,.78)">
+                    System Doctor playbooks, macOS build, auto-updates.
+                </span>
+            </div>
+            <p style="color:rgba(234,234,240,.72);margin-top:24px;font-size:15px;">
+                Downloads require an account (magic-link login). Your installer links are tokened and time-limited.
+            </p>
         </div>
     </section>
 
@@ -521,45 +666,152 @@
         </div>
     </section>
 
+    <!-- Features -->
+    <section style="padding: 80px 0; background: var(--darker);">
+        <div class="container" style="max-width: 900px;">
+            <h2 style="text-align: center; font-size: clamp(28px, 3vw, 42px); margin-bottom: 48px;">Available Now (v1.0.0) ✅</h2>
+            <div style="display: grid; gap: 24px;">
+                <div style="background: rgba(20, 184, 166, 0.05); border: 1px solid rgba(20, 184, 166, 0.15); border-radius: 12px; padding: 24px;">
+                    <h3 style="color: var(--teal); margin-bottom: 12px;">🤖 Agent Mode</h3>
+                    <p style="color: var(--light);">Describe what you want in natural language. Rina generates a step-by-step plan before running anything. Review and approve each step.</p>
+                </div>
+                <div style="background: rgba(20, 184, 166, 0.05); border: 1px solid rgba(20, 184, 166, 0.15); border-radius: 12px; padding: 24px;">
+                    <h3 style="color: var(--teal); margin-bottom: 12px;">💻 Terminal Mode</h3>
+                    <p style="color: var(--light);">Run raw commands in the same timeline. Output streams into blocks, not a messy scrollback.</p>
+                </div>
+                <div style="background: rgba(20, 184, 166, 0.05); border: 1px solid rgba(20, 184, 166, 0.15); border-radius: 12px; padding: 24px;">
+                    <h3 style="color: var(--teal); margin-bottom: 12px;">🛡️ Safety-First</h3>
+                    <p style="color: var(--light);">High-impact actions require an explicit YES. Tool allowlist + license gating enforced. Execution reports downloadable as JSON.</p>
+                </div>
+                <div style="background: rgba(20, 184, 166, 0.05); border: 1px solid rgba(20, 184, 166, 0.15); border-radius: 12px; padding: 24px;">
+                    <h3 style="color: var(--teal); margin-bottom: 12px;">📁 Workflows + Sessions</h3>
+                    <p style="color: var(--light);">Save plans as reusable workflows. Sessions restore automatically per workspace. ⌘K / Ctrl+K command palette for fast actions.</p>
+                </div>
+            </div>
+            
+            <h2 style="text-align: center; font-size: clamp(28px, 3vw, 42px); margin: 48px 0 24px; color: var(--gray);">Coming Next 🚧</h2>
+            <div style="display: grid; gap: 24px;">
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 24px; opacity: 0.7;">
+                    <h3 style="color: var(--baby-blue); margin-bottom: 12px;">🩺 System Doctor</h3>
+                    <p style="color: var(--gray);">Diagnose "computer running hot" with evidence-first checks. Coming in next release.</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 24px; opacity: 0.7;">
+                    <h3 style="color: var(--baby-blue); margin-bottom: 12px;">🍎 macOS Build</h3>
+                    <p style="color: var(--gray);">Signed and notarized builds for macOS. Coming once enrolled in Apple Developer Program.</p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 24px; opacity: 0.7;">
+                    <h3 style="color: var(--baby-blue); margin-bottom: 12px;">🔄 Auto-Updates</h3>
+                    <p style="color: var(--gray);">Automatic updates for all platforms. Coming soon.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="download-section">
         <div class="container">
-            <h2>Choose Your Platform</h2>
-            <p class="section-sub">Install RinaWarp Terminal Pro on your system</p>
+            <h2>Download RinaWarp</h2>
+            <p class="section-sub">Sign in to access secure downloads</p>
             
-            <div class="download-grid">
-                <div class="download-card">
-                    <div class="platform-icon">🍎</div>
-                    <h3>macOS</h3>
-                    <p class="version">Version 1.0.0 • Universal (Intel & Apple Silicon)</p>
-                    <p style="color: var(--baby-blue); font-size: 14px; margin-bottom: 16px;">
-                        <span style="display: inline-block; background: rgba(125, 211, 252, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">EARLY ACCESS</span>
-                        <br>Requires Apple Developer Program for full signing
-                    </p>
-                    <a href="#macos-info" class="download-btn secondary" onclick="showMacInfo(); return false;">Learn More</a>
-                    <p class="notes">Requires macOS 11.0 or later</p>
+            <!-- Linux -->
+            <div class="platform-section">
+                <h3>🐧 Linux</h3>
+                <p class="version"><strong>Version 1.0.0</strong> • AppImage & .deb</p>
+                <div class="download-buttons">
+                    <a class="btn" href="/login/">Download AppImage</a>
+                    <a class="btn" href="/login/">Download .deb</a>
                 </div>
-                <div class="download-card">
-                    <div class="platform-icon">🐧</div>
-                    <h3>Linux</h3>
-                    <p class="version">Version 1.0.0 • AppImage & .deb</p>
-                    <a href="/login/" class="download-btn">Sign In to Download</a>
-                    <p style="color: var(--gray); font-size: 12px; margin-top: 12px;">
-                        Downloads are gated by purchase to prevent redistribution.<br>
-                        After checkout, sign in to access your secure download link.
+                <p style="color: var(--gray); font-size: 13px;">Ubuntu 20.04+, Fedora 35+, or similar</p>
+                <p style="color: var(--teal); font-size: 13px; margin-top: 8px;"><strong>Linux downloads are GPG-signed.</strong> Verify with fingerprint BFC6 4346 F392 57B4 9A37 DBA6 9655 B53A 0B3E 6FA4.</p>
+                <details>
+                    <summary><strong>Verify downloads (GPG + SHA256)</strong></summary>
+                    <p style="margin-top: 12px;"><strong>Signing fingerprint:</strong></p>
+                    <p class="fingerprint">BFC6 4346 F392 57B4 9A37 DBA6 9655 B53A 0B3E 6FA4</p>
+                    <p style="margin-top: 12px;">
+                        <a href="/downloads/v1.0.0/SHASUMS256.txt">SHASUMS256.txt</a> •
+                        <a href="/downloads/v1.0.0/SHASUMS256.txt.asc">SHASUMS256.txt.asc</a> •
+                        <a href="/downloads/v1.0.0/RINAWARP_GPG_PUBLIC_KEY.asc">RINAWARP_GPG_PUBLIC_KEY.asc</a>
                     </p>
-                    <p class="notes">Ubuntu 20.04+, Fedora 35+, or similar</p>
+                    <pre><code>gpg --import RINAWARP_GPG_PUBLIC_KEY.asc
+gpg --verify SHASUMS256.txt.asc SHASUMS256.txt
+sha256sum -c SHASUMS256.txt</code></pre>
+                </details>
+            </div>
+            
+            <!-- Windows -->
+            <div class="platform-section">
+                <h3>🪟 Windows <span class="badge">BETA</span></h3>
+                <p class="version"><strong>Version 1.0.0</strong> • 64-bit Installer</p>
+                <div class="download-buttons">
+                    <a class="btn" href="/login/">Download for Windows</a>
                 </div>
-                <div class="download-card">
-                    <div class="platform-icon">🪟</div>
-                    <h3>Windows</h3>
-                    <p class="version">Version 1.0.0 • 64-bit Installer</p>
-                    <p style="color: var(--baby-blue); font-size: 14px; margin-bottom: 16px;">
-                        <span style="display: inline-block; background: rgba(125, 211, 252, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">COMING SOON</span>
-                        <br>Microsoft Store or signed installer coming
-                    </p>
-                    <a href="#win-info" class="download-btn secondary" onclick="showWinInfo(); return false;">Learn More</a>
-                    <p class="notes">Windows 10 or Windows 11</p>
-                </div>
+                <p class="note"><strong>Note:</strong> This Windows build is currently <strong>unsigned</strong>. SmartScreen warnings are expected. We recommend verifying the SHA256 after download.</p>
+                <details>
+                    <summary><strong>Verify SHA256 (Windows)</strong></summary>
+                    <pre><code>PowerShell:
+Get-FileHash .\RinaWarp-Terminal-Pro-1.0.0.exe -Algorithm SHA256</code></pre>
+                    <p><strong>SHA256 (EXE):</strong> <code>b7a4cf901a5c85c3093b8692d64cd250e50ca6cfb14cb02538282750070bc829</code></p>
+                </details>
+            </div>
+            
+            <!-- macOS -->
+            <div class="platform-section">
+                <h3>🍎 macOS</h3>
+                <p class="version"><strong>Coming Soon</strong> • Requires Apple Developer Program</p>
+                <p style="color: var(--gray); font-size: 14px;">We're working on proper code signing and notarization. macOS builds will be available once enrolled in the Apple Developer Program.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- GPG Verification Section -->
+    <section style="padding: 60px 0; background: rgba(20, 184, 166, 0.05);">
+        <div class="container" style="max-width: 900px;">
+            <h2 style="text-align: center; font-size: clamp(24px, 3vw, 32px); margin-bottom: 16px;">🔐 Verify Your Download</h2>
+            <p style="text-align: center; color: var(--gray); margin-bottom: 32px;">
+                All RinaWarp downloads are cryptographically signed. Verify the signature before running.
+            </p>
+            <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(20, 184, 166, 0.2); border-radius: 12px; padding: 24px; font-family: monospace; font-size: 14px;">
+                <p style="color: var(--teal); margin-bottom: 16px;"><strong>GPG Key Fingerprint (for verification):</strong></p>
+                <p style="color: var(--light); word-break: break-all; letter-spacing: 1px; margin-bottom: 24px;">
+                    BFC6 4346 F392 57B4 9A37 DBA6 9655 B53A 0B3E 6FA4
+                </p>
+                <p style="color: var(--gray); margin-bottom: 8px;"><strong>Verification steps:</strong></p>
+                <ol style="color: var(--light); padding-left: 20px; line-height: 1.8;">
+                    <li>Download the installer files</li>
+                    <li>Download <code>SHASUMS256.txt</code>, <code>SHASUMS256.txt.asc</code>, and <code>RINAWARP_GPG_PUBLIC_KEY.asc</code></li>
+                    <li>Run: <code style="color: var(--baby-blue);">gpg --import RINAWARP_GPG_PUBLIC_KEY.asc</code></li>
+                    <li>Run: <code style="color: var(--baby-blue);">gpg --verify SHASUMS256.txt.asc SHASUMS256.txt</code></li>
+                    <li>Run: <code style="color: var(--baby-blue);">sha256sum -c SHASUMS256.txt</code></li>
+                </ol>
+            </div>
+            <p style="text-align: center; color: var(--gray); font-size: 12px; margin-top: 20px;">
+                Cross-reference this fingerprint with official RinaWarp channels if needed.
+            </p>
+        </div>
+    </section>
+
+    <!-- Release Notes v1.0.0 -->
+    <section style="padding: 60px 0;">
+        <div class="container" style="max-width: 900px;">
+            <h2 style="text-align: center; font-size: clamp(24px, 3vw, 32px); margin-bottom: 16px;">📦 Release Notes v1.0.0</h2>
+            <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 32px;">
+                <h3 style="color: var(--teal); margin-bottom: 16px;">What's New</h3>
+                <ul style="color: var(--light); padding-left: 20px; line-height: 1.8; margin-bottom: 24px;">
+                    <li>First stable release of RinaWarp Terminal Pro</li>
+                    <li>AI-powered terminal assistant for fixing computer issues</li>
+                    <li>Dual-mode: Agent (natural language) & Terminal (command execution)</li>
+                    <li>Workspaces for multi-project management</li>
+                    <li>Command palette (⌘K) for quick actions</li>
+                    <li>Full audit trail of all actions</li>
+                </ul>
+                <h3 style="color: var(--coral); margin-bottom: 16px;">Known Issues</h3>
+                <ul style="color: var(--light); padding-left: 20px; line-height: 1.8; margin-bottom: 24px;">
+                    <li><strong>Windows:</strong> Unsigned installer - SmartScreen may warn. Click "More info" → "Run anyway" to install.</li>
+                    <li><strong>macOS:</strong> Coming soon (requires Apple Developer Program for code signing)</li>
+                </ul>
+                <h3 style="color: var(--baby-blue); margin-bottom: 16px;">Support</h3>
+                <p style="color: var(--gray); font-size: 14px;">
+                    Questions or issues? Contact <a href="mailto:support@rinawarptech.com" style="color: var(--baby-blue);">support@rinawarptech.com</a>
+                </p>
             </div>
         </div>
     </section>
@@ -591,7 +843,7 @@
     <section class="cta">
         <div class="container">
             <h2>Stop guessing. Start fixing things safely.</h2>
-            <p>Sign in to download RinaWarp Terminal Pro for Linux.</p>
+            <p>Sign in to download RinaWarp Terminal Pro for Linux or Windows.</p>
             <a href="/login/" class="btn btn-white">Sign In to Download</a>
         </div>
     </section>
