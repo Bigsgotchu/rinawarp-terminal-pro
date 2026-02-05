@@ -1,0 +1,26 @@
+{
+  "name": "@rinawarp/api-client",
+  "version": "1.0.0",
+  "description": "RinaWarp API client with TypeScript types for auth + account endpoints",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "rinawarp",
+    "api",
+    "auth",
+    "typescript"
+  ],
+  "author": "RinaWarp",
+  "license": "MIT"
+}
