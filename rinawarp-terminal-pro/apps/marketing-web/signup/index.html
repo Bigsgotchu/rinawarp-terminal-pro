@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create account — RinaWarp</title>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src https://api.rinawarptech.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';" />
+  <style>
+    body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:#0b0b10; color:#eaeaf0; }
+    .wrap { max-width: 520px; margin: 0 auto; padding: 48px 20px; }
+    .card { border:1px solid rgba(255,255,255,.10); border-radius:16px; background: rgba(255,255,255,.03); padding: 18px; }
+    h1 { font-size: 22px; margin: 0 0 12px; }
+    p { opacity:.85; line-height:1.45; }
+    .row { display:flex; gap:10px; margin-top: 14px; }
+    input { flex:1; padding:12px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:#0f0f14; color:#eaeaf0; }
+    button { padding:12px 14px; border-radius:10px; border:0; cursor:pointer; font-weight:600; color:#0b0b10; background: linear-gradient(90deg,#19d3c5,#6ad7ff); }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .hint { margin-top:10px; font-size: 13px; opacity:.75; }
+    .links { margin-top: 14px; display:flex; gap:12px; font-size: 13px; }
+    a { color:#6ad7ff; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .toast { margin-top: 12px; font-size: 13px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.10); background: rgba(25,211,197,.10); }
+    .toast.err { background: rgba(255,107,107,.12); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Create your RinaWarp account</h1>
+      <p>Enter your email. We'll send a secure magic link to verify and create your account.</p>
+
+      <div class="row">
+        <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
+        <button id="btn" onclick="startAuth()">Send link</button>
+      </div>
+
+      <div id="msg"></div>
+
+      <div class="hint">
+        By continuing, you agree to our <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy</a>.
+      </div>
+
+      <div class="links">
+        <span>Already have an account?</span>
+        <a href="/login/">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API = "https://api.rinawarptech.com";
+
+  function toast(text, isErr=false) {
+    const el = document.getElementById("msg");
+    el.innerHTML = `<div class="toast ${isErr ? "err" : ""}">${escapeHtml(text)}</div>`;
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement("div");
+    d.textContent = String(s ?? "");
+    return d.innerHTML;
+  }
+
+  async function startAuth() {
+    const btn = document.getElementById("btn");
+    const email = document.getElementById("email").value.trim();
+    if (!email) return toast("Please enter your email.", true);
+
+    btn.disabled = true;
+    toast("Sending magic link…");
+
+    try {
+      const res = await fetch(`${API}/api/auth/start`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, mode: "signup" })
+      });
+
+      if (!res.ok) {
+        const t = await res.text().catch(()=> "");
+        throw new Error(`Auth start failed (${res.status}): ${t || res.statusText}`);
+      }
+
+      const data = await res.json();
+      if (data?.next) {
+        // If backend returns a redirect URL, follow it.
+        window.location.href = data.next;
+        return;
+      }
+
+      toast("Check your inbox for the sign-in link.");
+    } catch (e) {
+      toast(e?.message || "Failed to start sign-in.", true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById("email").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") startAuth();
+  });
+</script>
+</body>
+</html>
