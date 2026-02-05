@@ -22,6 +22,7 @@
 
 import Stripe from "stripe";
 import { handleCheckout } from "./checkout";
+import { authStart, authVerify, requireSession, authLogout } from "./auth";
 
 type Tier = "pro" | "creator" | "pioneer" | "team";
 
@@ -52,9 +53,13 @@ function tierRank(tier: Tier): number {
   }
 }
 
+/**
+ * Generate cryptographically secure license key
+ */
 function generateLicenseKey(): string {
-  const hex = () => Math.floor(Math.random() * 16).toString(16);
-  return `LIC-${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}-${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}`.toUpperCase();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+  return `LIC-${hex.slice(0, 8).toUpperCase()}-${hex.slice(8, 16).toUpperCase()}-${hex.slice(16, 24).toUpperCase()}-${hex.slice(24, 32).toUpperCase()}`;
 }
 
 function json(obj: unknown, status = 200): Response {
@@ -90,6 +95,35 @@ function b64url(bytes: Uint8Array): string {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // Health check endpoint
+    if (url.pathname === "/api/health" && request.method === "GET") {
+      return new Response(JSON.stringify({
+        ok: true,
+        service: "rinawarp-stripe-webhook",
+        time: Date.now()
+      }), {
+        headers: { "content-type": "application/json" }
+      });
+    }
+
+    // CORS preflight handler for auth endpoints
+    if (request.method === "OPTIONS" && (
+      url.pathname === "/api/auth/start" || 
+      url.pathname === "/api/auth/verify" ||
+      url.pathname === "/api/auth/logout"
+    )) {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "access-control-allow-origin": "https://www.rinawarptech.com",
+          "access-control-allow-methods": "POST, OPTIONS",
+          "access-control-allow-headers": "content-type, authorization",
+          "access-control-allow-credentials": "true",
+          "access-control-max-age": "86400",
+        },
+      });
+    }
 
     // License verification endpoint for the desktop app
     if (url.pathname === "/api/license/verify" && request.method === "POST") {
@@ -139,6 +173,78 @@ export default {
       });
     }
 
+    // Auth endpoints
+    if (url.pathname === "/api/auth/start" && request.method === "POST") {
+      if (!env.AUTH_TOKEN_SECRET) return new Response("Missing AUTH_TOKEN_SECRET", { status: 500 });
+      return authStart(request, env);
+    }
+
+    if (url.pathname === "/api/auth/verify" && request.method === "POST") {
+      if (!env.AUTH_TOKEN_SECRET) return new Response("Missing AUTH_TOKEN_SECRET", { status: 500 });
+      return authVerify(request, env);
+    }
+
+    // Logout endpoint
+    if (url.pathname === "/api/auth/logout" && request.method === "POST") {
+      return authLogout(request, env);
+    }
+
+    // /api/me - requires session
+    if (url.pathname === "/api/me" && request.method === "GET") {
+      const s = await requireSession(request, env as any);
+      if (!s.ok) return Response.json({ ok: false, error: s.error }, { status: s.status });
+      
+      // Look up entitlement
+      const ent = await env.DB.prepare(
+        "SELECT tier, status, customer_email, subscription_id, updated_at FROM entitlements WHERE customer_id = ?"
+      ).bind(s.customer_id).first();
+
+      // Generate portal URL if available
+      let portal_url: string | null = null;
+      if (env.STRIPE_SECRET_KEY && env.PORTAL_RETURN_URL) {
+        try {
+          const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" as any });
+          const portal = await stripe.billingPortal.sessions.create({
+            customer: s.customer_id,
+            return_url: env.PORTAL_RETURN_URL,
+          });
+          portal_url = portal.url;
+        } catch (e) {
+          console.log("portal error", e);
+        }
+      }
+
+      return Response.json({ 
+        ok: true, 
+        email: s.email, 
+        customer_id: s.customer_id, 
+        entitlement: ent ?? null,
+        portal_url,
+      });
+    }
+
+    // Stripe Customer Portal endpoint (requires session)
+    if (url.pathname === "/api/portal" && request.method === "POST") {
+      if (!env.STRIPE_SECRET_KEY) return new Response("Missing STRIPE_SECRET_KEY", { status: 500 });
+      if (!env.PORTAL_RETURN_URL) return new Response("Missing PORTAL_RETURN_URL", { status: 500 });
+      
+      const s = await requireSession(request, env as any);
+      if (!s.ok) return Response.json({ ok: false, error: s.error }, { status: s.status });
+
+      const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" as any });
+
+      try {
+        const session = await stripe.billingPortal.sessions.create({
+          customer: s.customer_id,
+          return_url: env.PORTAL_RETURN_URL,
+        });
+        return Response.json({ url: session.url });
+      } catch (err: any) {
+        console.error("Portal session failed:", err.message);
+        return Response.json({ error: "portal_failed", details: err.message }, { status: 500 });
+      }
+    }
+
     // Download token minting endpoint
     if (url.pathname === "/api/download-token" && request.method === "GET") {
       const customerId = url.searchParams.get("customer_id");
@@ -168,14 +274,30 @@ export default {
     }
 
     // Stripe Checkout Session endpoint for pricing page
-    if (url.pathname === "/api/stripe/checkout" && request.method === "POST") {
-      if (!env.STRIPE_SECRET_KEY) {
-        return new Response("Missing STRIPE_SECRET_KEY", { status: 500 });
+    if (url.pathname === "/api/stripe/checkout") {
+      // Handle CORS preflight
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "POST, OPTIONS",
+            "access-control-allow-headers": "content-type",
+          },
+        });
       }
-      if (!env.CHECKOUT_SUCCESS_URL || !env.CHECKOUT_CANCEL_URL) {
-        return new Response("Missing CHECKOUT_SUCCESS_URL or CHECKOUT_CANCEL_URL", { status: 500 });
+
+      if (request.method === "POST") {
+        if (!env.STRIPE_SECRET_KEY) {
+          return new Response("Missing STRIPE_SECRET_KEY", { status: 500 });
+        }
+        if (!env.CHECKOUT_SUCCESS_URL || !env.CHECKOUT_CANCEL_URL) {
+          return new Response("Missing CHECKOUT_SUCCESS_URL or CHECKOUT_CANCEL_URL", { status: 500 });
+        }
+        return handleCheckout(request, env);
       }
-      return handleCheckout(request, env);
+
+      return new Response("Method Not Allowed", { status: 405 });
     }
 
     // Stripe webhook endpoint
@@ -205,7 +327,7 @@ export default {
     const rawBody = await request.text();
 
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-06-20",
+      apiVersion: "2025-02-24.acacia" as any,
     });
 
     let event: Stripe.Event;
@@ -266,6 +388,9 @@ export default {
             subscription_id: isRecurring ? (session.subscription as string) : null,
           });
           console.log(`Entitlement granted: ${normalizedEmail} (${tier})`);
+
+          // Also upsert user mapping for passwordless login
+          await upsertUserByEmail(env, normalizedEmail, customerId);
 
           if (!isRecurring) {
             const licenseKey = generateLicenseKey();
@@ -333,6 +458,33 @@ export default {
 
     return new Response("ok", { status: 200 });
   },
+
+  // Cron: hourly cleanup of old auth challenges
+  async scheduled(controller: ScheduledController, env: Env) {
+    try {
+      // Delete expired challenges (>24h)
+      await env.DB.prepare(`
+        DELETE FROM auth_challenges
+        WHERE expires_at < (strftime('%s','now') - 24*60*60)
+      `).run();
+      
+      // Delete used challenges (>1h)
+      await env.DB.prepare(`
+        DELETE FROM auth_challenges
+        WHERE used = 1 AND expires_at < (strftime('%s','now') - 60*60)
+      `).run();
+      
+      // Delete expired sessions (>7 days)
+      await env.DB.prepare(`
+        DELETE FROM sessions
+        WHERE expires_at < (strftime('%s','now') - 7*24*60*60)
+      `).run();
+      
+      console.log("Cron cleanup completed");
+    } catch (err) {
+      console.error("Cron cleanup failed:", err);
+    }
+  },
 };
 
 interface Env {
@@ -355,6 +507,13 @@ interface Env {
 
   // Token secret for HMAC signing
   DOWNLOAD_TOKEN_SECRET: string;
+
+  // Auth secrets
+  AUTH_TOKEN_SECRET?: string;
+  RESEND_API_KEY?: string;
+
+  // Portal URL
+  PORTAL_RETURN_URL?: string;
 
   // Database
   DB: D1Database;
@@ -394,5 +553,16 @@ async function upsertEntitlement(env: Env, row: {
       row.subscription_id,
       Date.now(),
     )
+    .run();
+}
+
+async function upsertUserByEmail(env: Env, email: string, customerId: string) {
+  const e = email.trim().toLowerCase();
+  const t = Date.now();
+  await env.DB.prepare(
+    `INSERT OR REPLACE INTO users (email, customer_id, created_at, updated_at)
+     VALUES (?, ?, COALESCE((SELECT created_at FROM users WHERE email=?), ?), ?)`
+  )
+    .bind(e, customerId, e, t, t)
     .run();
 }

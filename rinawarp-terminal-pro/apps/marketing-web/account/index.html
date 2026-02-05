@@ -107,7 +107,7 @@
 <script type="module">
   import { createApiClient } from "/assets/api-client.js";
 
-  const api = createApiClient({ baseUrl: "https://api.rinawarptech.com" });
+  const api = createApiClient({ baseUrl: "https://api.rinawarptech.com", credentials: "include" });
 
   const els = {
     profile: document.getElementById("profile"),
@@ -233,8 +233,9 @@
   };
 
   window.logout = async () => {
-    // v1: if using cookie sessions, implement /api/auth/logout later.
-    // For now, best-effort: redirect to login and let session expire.
+    try {
+      await api.logout();
+    } catch {}
     window.location.href = "/login/";
   };
 
