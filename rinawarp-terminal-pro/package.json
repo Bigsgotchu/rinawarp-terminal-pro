@@ -12,6 +12,7 @@
     "dev:terminal-pro": "cd apps/terminal-pro && npm run dev",
     "test:lockdown": "node scripts/no-bypass.mjs",
     "verify:site": "node scripts/verify-pages-routes.mjs apps/marketing-web",
+    "smoke:web": "bash scripts/smoke-web.sh",
     "pretest": "npm run test:lockdown",
     "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'"
   },
