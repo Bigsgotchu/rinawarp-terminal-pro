@@ -12,7 +12,7 @@
           frame-ancestors 'none';
           img-src 'self' data:;
           style-src 'self' 'unsafe-inline';
-          script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com;
+          script-src 'self' https://static.cloudflareinsights.com;
           connect-src 'self' https://api.rinawarptech.com https://cloudflareinsights.com;
         " />
   <style>
@@ -54,109 +54,79 @@
     </div>
   </div>
 
-<script>
-const API = "https://api.rinawarptech.com";
+  <script type="module">
+    import { normalizeTokenToQuery, safeNext } from "/assets/auth-pages.js";
 
-// Sanitize redirect target to prevent open redirect vulnerabilities
-function safeNext(rawNext) {
-  if (!rawNext) return "/account/";
-  // Reject absolute URLs and protocol-relative URLs
-  if (rawNext.startsWith("http://") || rawNext.startsWith("https://") || rawNext.startsWith("//")) {
-    return "/account/";
-  }
-  // Must start with "/"
-  if (!rawNext.startsWith("/")) return "/account/";
-  // Allowlist supported routes
-  const allowedPrefixes = ["/account", "/download", "/success", "/login"];
-  if (!allowedPrefixes.some((p) => rawNext.startsWith(p))) return "/account/";
-  return rawNext;
-}
+    const API = "https://api.rinawarptech.com";
 
-// Extract token from URL path (e.g., /login/qzje/ → token=qzje)
-function getTokenFromPath() {
-  const path = window.location.pathname;
-  // Match /login/<token>/ or /login/<token>
-  const match = path.match(/^\/login\/([^\/]+)\/?$/);
-  if (match && match[1] && match[1] !== "") {
-    return match[1];
-  }
-  return "";
-}
+    // Normalize /login/<token> to /login/?token=<token>
+    normalizeTokenToQuery();
 
-// Strip trailing slashes from token params
-function cleanToken(token) {
-  return (token || "").replace(/\/+$/, "");
-}
+    let challengeId = null;
 
-let challengeId = null;
+    // Strip trailing slashes from token params
+    function cleanToken(token) {
+      return (token || "").replace(/\/+$/, "");
+    }
 
-// Check for token in path (legacy format) and redirect to clean URL
-(function normalizeUrl() {
-  const tokenFromPath = getTokenFromPath();
-  if (tokenFromPath && window.location.search.indexOf("token=") === -1) {
-    // Token found in path but not in query - redirect to clean URL
-    window.history.replaceState(null, "", `/login/?token=${encodeURIComponent(tokenFromPath)}`);
-  }
-})();
+    // Get token from query param
+    function getTokenFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return cleanToken(params.get("token") || "");
+    }
 
-// Get token from query param
-function getTokenFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return cleanToken(params.get("token") || "");
-}
+    document.getElementById("start").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const msg = document.getElementById("startMsg");
+      msg.textContent = "Sending…";
 
-document.getElementById("start").onclick = async () => {
-  const email = document.getElementById("email").value.trim();
-  const msg = document.getElementById("startMsg");
-  msg.textContent = "Sending…";
+      const res = await fetch(`${API}/api/auth/start`, {
+        method: "POST",
+        headers: {"content-type":"application/json"},
+        body: JSON.stringify({ email })
+      });
 
-  const res = await fetch(`${API}/api/auth/start`, {
-    method: "POST",
-    headers: {"content-type":"application/json"},
-    body: JSON.stringify({ email })
-  });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) {
+        msg.textContent = data.message || data.error || "Failed";
+        return;
+      }
 
-  const data = await res.json().catch(()=>({}));
-  if (!res.ok) {
-    msg.textContent = data.message || data.error || "Failed";
-    return;
-  }
+      challengeId = data.challenge_id;
+      msg.textContent = "Code sent. (If you don't see it, check spam.)";
 
-  challengeId = data.challenge_id;
-  msg.textContent = "Code sent. (If you don't see it, check spam.)";
+      document.getElementById("step2").style.display = "block";
+    });
 
-  document.getElementById("step2").style.display = "block";
-};
+    document.getElementById("verify").addEventListener("click", async () => {
+      const code = document.getElementById("code").value.trim();
+      const msg = document.getElementById("verifyMsg");
+      msg.textContent = "Verifying…";
 
-document.getElementById("verify").onclick = async () => {
-  const code = document.getElementById("code").value.trim();
-  const msg = document.getElementById("verifyMsg");
-  msg.textContent = "Verifying…";
+      const res = await fetch(`${API}/api/auth/verify`, {
+        method: "POST",
+        headers: {"content-type":"application/json"},
+        body: JSON.stringify({ challenge_id: challengeId, code })
+      });
 
-  const res = await fetch(`${API}/api/auth/verify`, {
-    method: "POST",
-    headers: {"content-type":"application/json"},
-    body: JSON.stringify({ challenge_id: challengeId, code })
-  });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) {
+        msg.textContent = data.error || "Invalid code";
+        return;
+      }
 
-  const data = await res.json().catch(()=>({}));
-  if (!res.ok) {
-    msg.textContent = data.error || "Invalid code";
-    return;
-  }
-
-  localStorage.setItem("rw_session", data.session_token);
-  document.getElementById("step1").style.display = "none";
-  document.getElementById("step2").style.display = "none";
-  document.getElementById("step3").style.display = "block";
-  
-  // Auto-redirect to next or account page
-  setTimeout(() => {
-    const params = new URLSearchParams(window.location.search);
-    const next = safeNext(params.get("next") || "/account/");
-    window.location.href = next;
-  }, 1500);
-};
-</script>
+      localStorage.setItem("rw_session", data.session_token);
+      document.getElementById("step1").style.display = "none";
+      document.getElementById("step2").style.display = "none";
+      document.getElementById("step3").style.display = "block";
+      
+      // Auto-redirect to next or account page
+      setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        const next = safeNext(params.get("next") || "/account/");
+        window.location.href = next;
+      }, 1500);
+    });
+  </script>
 </body>
 </html>
