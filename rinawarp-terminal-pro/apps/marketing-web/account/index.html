@@ -1,373 +1,245 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Your RinaWarp account: entitlement status, downloads, billing portal." />
   <title>Account — RinaWarp</title>
-
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 connect-src https://api.rinawarptech.com;
+                 style-src 'self' 'unsafe-inline';
+                 script-src 'self' 'unsafe-inline';
+                 img-src 'self' data:;" />
   <style>
     :root{
-      --hot-pink:#ff3366; --hot-pink-dark:#cc0033;
-      --baby-blue:#7dd3fc; --teal:#14b8a6; --gray:#8e8e93;
-      --black:#0a0a0f; --darker:#050508; --light:#f5f5f7;
-      --card: rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.1);
+      --bg:#0b0b10;
+      --panel:rgba(255,255,255,.03);
+      --border:rgba(255,255,255,.10);
+      --text:#eaeaf0;
+      --muted:rgba(234,234,240,.75);
+      --pink:#ff3ea5;
+      --coral:#ff6b6b;
+      --teal:#19d3c5;
+      --blue:#6ad7ff;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;background:var(--black);color:var(--light);line-height:1.6}
-    a{color:var(--baby-blue);text-decoration:none}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+    a{color:var(--blue);text-decoration:none}
     a:hover{text-decoration:underline}
-    .container{max-width:980px;margin:0 auto;padding:0 20px}
-
-    nav{
-      position:sticky;top:0;z-index:10;
-      background:rgba(10,10,15,.95);backdrop-filter:blur(10px);
-      border-bottom:1px solid var(--border);
-      padding:16px 0;
-    }
-    .nav-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .logo{font-size:20px;font-weight:800;color:var(--light)}
-    .logo span{color:var(--hot-pink)}
-    .nav-links{display:flex;gap:16px;align-items:center;font-size:14px;opacity:.9}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.02);font-size:12px;color:var(--gray)}
-
-    header{padding:48px 0 18px}
-    h1{font-size:34px;letter-spacing:-.02em;margin-bottom:10px}
-    .sub{color:var(--gray);max-width:720px}
-
-    .grid{display:grid;grid-template-columns:1fr;gap:16px;padding:20px 0 56px}
-    @media (min-width: 880px){ .grid{grid-template-columns: 1.2fr .8fr;} }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:18px;
-    }
-    .card h2{font-size:18px;margin-bottom:10px}
-    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-    .kv{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-top:12px}
-    .k{color:var(--gray);font-size:13px}
-    .v{font-size:14px}
-    .tag{
-      display:inline-block;
-      padding:6px 10px;border-radius:999px;
-      font-size:12px;font-weight:700;
-      border:1px solid var(--border);
-      background:rgba(125,211,252,.08);
-      color:var(--baby-blue);
-      text-transform:uppercase;
-      letter-spacing:.06em;
-    }
-    .tag.ok{background:rgba(20,184,166,.10);color:var(--teal);border-color:rgba(20,184,166,.35)}
-    .tag.bad{background:rgba(255,51,102,.10);color:var(--hot-pink);border-color:rgba(255,51,102,.35)}
-
-    .btn{
-      appearance:none;border:0;cursor:pointer;
-      padding:12px 14px;border-radius:12px;
-      font-weight:800;font-size:14px;
-      transition:.15s transform ease,.2s background ease,.2s box-shadow ease;
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      width:100%;
-    }
-    .btn:active{transform:translateY(1px)}
-    .btn.primary{background:var(--hot-pink);color:white}
-    .btn.primary:hover{background:var(--hot-pink-dark);box-shadow:0 10px 30px rgba(255,51,102,.25)}
-    .btn.secondary{
-      background:rgba(125,211,252,.10);
-      color:var(--baby-blue);
-      border:1px solid rgba(125,211,252,.25);
-    }
-    .btn.secondary:hover{background:rgba(125,211,252,.16)}
-    .btn.ghost{
-      background:transparent;
-      border:1px solid var(--border);
-      color:var(--gray);
-    }
-    .btn.ghost:hover{border-color:rgba(255,255,255,.18);color:var(--light)}
-    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .btn-row .btn{width:auto;flex:1;min-width:160px}
-
-    .muted{color:var(--gray);font-size:13px}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-    .hr{height:1px;background:var(--border);margin:14px 0}
-
-    .error{
-      border:1px solid rgba(255,51,102,.35);
-      background:rgba(255,51,102,.08);
-      color:#ffd0dc;
-      padding:12px;border-radius:12px;
-      font-size:13px;
-    }
-    .ok{
-      border:1px solid rgba(20,184,166,.35);
-      background:rgba(20,184,166,.08);
-      color:#c8fff6;
-      padding:12px;border-radius:12px;
-      font-size:13px;
-    }
-
-    footer{
-      border-top:1px solid var(--border);
-      background:var(--darker);
-      padding:24px 0;
-      color:var(--gray);
-      font-size:13px;
-      text-align:center;
-    }
+    .wrap{max-width:920px;margin:0 auto;padding:22px 18px 60px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:34px;height:34px;border-radius:10px;
+      background:linear-gradient(135deg,var(--pink),var(--teal));
+      display:flex;align-items:center;justify-content:center;font-weight:800;color:#0b0b10}
+    .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{border:1px solid var(--border);border-radius:16px;background:var(--panel);padding:16px}
+    h1{font-size:20px;margin:0}
+    h2{font-size:14px;margin:0 0 10px;color:var(--muted);font-weight:650;letter-spacing:.2px}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .btn{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--text);cursor:pointer;font-weight:650}
+    .btn.primary{border:0;color:#0b0b10;background:linear-gradient(90deg,var(--teal),var(--blue))}
+    .btn.danger{border:0;color:#0b0b10;background:linear-gradient(90deg,var(--coral),var(--pink))}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .kv{display:grid;grid-template-columns:140px 1fr;gap:10px;margin-top:10px}
+    .k{color:var(--muted);font-size:13px}
+    .v{font-size:13px}
+    .notice{margin-top:12px;font-size:13px;padding:10px 12px;border-radius:12px;border:1px solid var(--border)}
+    .notice.ok{background:rgba(25,211,197,.10)}
+    .notice.err{background:rgba(255,107,107,.12)}
+    .downloads{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+    .dl{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.02)}
+    .dl strong{font-size:13px}
+    .dl span{font-size:12px;color:var(--muted)}
+    .foot{margin-top:18px;color:var(--muted);font-size:12px}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
   </style>
 </head>
-
 <body>
-  <nav>
-    <div class="container">
-      <div class="nav-row">
-        <a class="logo" href="/"><span>Rina</span>Warp</a>
-        <div class="nav-links">
-          <a href="/pricing/">Pricing</a>
-          <a href="/download/">Download</a>
-          <a href="/login/" id="loginLink">Login</a>
-          <span class="pill" id="sessionPill" style="display:none;">
-            <span>Session</span> <span class="mono" id="sessionShort"></span>
-          </span>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div>
+          <h1>Account</h1>
+          <div class="pill" id="buildPill">RinaWarp Terminal Pro • v1.0.0</div>
+        </div>
+      </div>
+      <div class="row">
+        <a class="pill" href="/download/">Downloads</a>
+        <a class="pill" href="/support/">Support</a>
+        <button class="btn danger" id="logoutBtn" onclick="logout()">Log out</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Your profile</h2>
+        <div id="profile"></div>
+        <div id="profileMsg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Downloads (tokened)</h2>
+        <div class="downloads" id="downloads"></div>
+        <div class="foot">
+          Tokens expire automatically. If a download fails, click "Generate link" again.
         </div>
       </div>
     </div>
-  </nav>
 
-  <header>
-    <div class="container">
-      <h1>Your account</h1>
-      <p class="sub">This is your single source of truth: license status, secure downloads, and billing. If you're not signed in, we'll send you back to login.</p>
+    <div class="card" style="margin-top:14px">
+      <h2>Billing</h2>
+      <div class="row">
+        <button class="btn primary" id="portalBtn" onclick="openPortal()">Open billing portal</button>
+        <span class="pill">Secure redirect</span>
+      </div>
+      <div id="portalMsg"></div>
     </div>
-  </header>
 
-  <main class="container">
-    <div class="grid">
-      <!-- Left: Entitlement + Downloads -->
-      <section class="card">
-        <div class="row">
-          <h2>Status</h2>
-          <span id="statusTag" class="tag">Loading…</span>
-        </div>
+    <div class="foot">
+      Having trouble? Verify you're on <code>https://www.rinawarptech.com</code> and try again.
+    </div>
+  </div>
 
+<script type="module">
+  import { createApiClient } from "/assets/api-client.js";
+
+  const api = createApiClient({ baseUrl: "https://api.rinawarptech.com" });
+
+  const els = {
+    profile: document.getElementById("profile"),
+    profileMsg: document.getElementById("profileMsg"),
+    downloads: document.getElementById("downloads"),
+    portalMsg: document.getElementById("portalMsg"),
+    portalBtn: document.getElementById("portalBtn"),
+    logoutBtn: document.getElementById("logoutBtn")
+  };
+
+  function escapeHtml(s) {
+    const d = document.createElement("div");
+    d.textContent = String(s ?? "");
+    return d.innerHTML;
+  }
+
+  function notice(targetEl, text, kind="ok") {
+    targetEl.innerHTML = `<div class="notice ${kind}">${escapeHtml(text)}</div>`;
+  }
+
+  function requireAuthedOrBounce() {
+    // If you use cookie session auth, /api/me will succeed when logged in.
+    // If bearer tokens are used, wire storage later. v1 website: cookie is simplest.
+  }
+
+  async function loadMe() {
+    els.profile.innerHTML = `<div class="pill">Loading…</div>`;
+    els.downloads.innerHTML = `<div class="pill">Loading…</div>`;
+
+    try {
+      const me = await api.me();
+
+      if (!me?.ok) {
+        notice(els.profileMsg, `Not signed in (${me?.error || "unauthorized"}). Redirecting to login…`, "err");
+        setTimeout(() => window.location.href = "/login/", 900);
+        return;
+      }
+
+      const { user, license } = me;
+
+      els.profile.innerHTML = `
         <div class="kv">
-          <div class="k">Email</div><div class="v" id="emailVal">—</div>
-          <div class="k">Customer ID</div><div class="v mono" id="customerVal">—</div>
-          <div class="k">Tier</div><div class="v" id="tierVal">—</div>
-          <div class="k">Entitlement</div><div class="v" id="entVal">—</div>
+          <div class="k">Email</div><div class="v">${escapeHtml(user.email)}</div>
+          <div class="k">User ID</div><div class="v"><code>${escapeHtml(user.id)}</code></div>
+          <div class="k">Tier</div><div class="v"><span class="pill" style="border-color:rgba(25,211,197,.35);color:var(--teal)">${escapeHtml(license.tier)}</span></div>
+          <div class="k">Status</div><div class="v">${escapeHtml(license.status)}</div>
+          <div class="k">Expires</div><div class="v">${license.expiresAt ? escapeHtml(license.expiresAt) : "—"}</div>
         </div>
+      `;
 
-        <div class="hr"></div>
+      renderDownloadCards(license.tier);
+      notice(els.profileMsg, "Signed in successfully.", "ok");
+    } catch (e) {
+      notice(els.profileMsg, e?.message || "Failed to load account.", "err");
+      els.profile.innerHTML = "";
+      els.downloads.innerHTML = "";
+    }
+  }
 
-        <h2>Linux downloads</h2>
-        <p class="muted">Downloads are gated by purchase to prevent redistribution. We generate a short-lived token just for you.</p>
-
-        <div id="downloadBox" style="margin-top:12px;"></div>
-
-        <div class="btn-row" style="margin-top:12px;">
-          <button class="btn secondary" id="btnMint">Generate secure download links</button>
-          <button class="btn ghost" id="btnRefresh">Refresh status</button>
-        </div>
-
-        <div id="msg" style="margin-top:12px;"></div>
-      </section>
-
-      <!-- Right: Billing + Actions -->
-      <aside class="card">
-        <h2>Billing</h2>
-        <p class="muted">Manage your subscription or view invoices using Stripe's customer portal.</p>
-
-        <div class="btn-row" style="margin-top:12px;">
-          <button class="btn primary" id="btnPortal">Open billing portal</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <h2>Account actions</h2>
-        <p class="muted">If something looks wrong, refresh first. Logging out clears the session on this device.</p>
-
-        <div class="btn-row" style="margin-top:12px;">
-          <button class="btn ghost" id="btnLogout">Log out</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <h2>Platform roadmap</h2>
-        <p class="muted">
-          macOS + Windows are coming next. Linux is live today.
-          We'll enable signed installers after the first revenue milestone.
-        </p>
-      </aside>
-    </div>
-  </main>
-
-  <footer>
-    © 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com
-  </footer>
-
-  <script>
-    // ---- CONFIG ----
-    const API_BASE = "https://api.rinawarptech.com";
-    const WORKER_ORIGIN = "https://rinawarp-downloads.rinawarptech.workers.dev";
-    const VER = "1.0.0";
-    const FILES = [
-      `RinaWarp-Terminal-Pro-${VER}.AppImage`,
-      `RinaWarp-Terminal-Pro-${VER}.amd64.deb`,
+  function renderDownloadCards(_tier) {
+    const items = [
+      { platform: "windows", label: "Windows (.exe)", version: "1.0.0" },
+      { platform: "linux-appimage", label: "Linux (AppImage)", version: "1.0.0" },
+      { platform: "linux-deb", label: "Linux (Debian/Ubuntu .deb)", version: "1.0.0" }
     ];
 
-    // ---- SESSION STORAGE ----
-    const getSession = () => localStorage.getItem("rw_session") || "";
-    const setMsg = (html) => document.getElementById("msg").innerHTML = html;
-    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'''}[c]));
+    els.downloads.innerHTML = items.map(x => `
+      <div class="dl">
+        <div>
+          <strong>${escapeHtml(x.label)}</strong><br/>
+          <span>RinaWarp Terminal Pro ${escapeHtml(x.version)}</span>
+        </div>
+        <button class="btn primary" onclick="window.__genDL('${x.platform}','${x.version}')">Generate link</button>
+      </div>
+    `).join("");
+  }
 
-    function showSessionPill(token) {
-      const pill = document.getElementById("sessionPill");
-      const short = document.getElementById("sessionShort");
-      if (!token) { pill.style.display = "none"; return; }
-      pill.style.display = "inline-flex";
-      short.textContent = token.slice(0, 8) + "…";
-      document.getElementById("loginLink").style.display = "none";
-    }
-
-    async function apiMe() {
-      const token = getSession();
-      if (!token) return { ok:false, error:"no_session" };
-
-      const res = await fetch(`${API_BASE}/api/me`, {
-        headers: { "authorization": `Bearer ${token}` }
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) return { ok:false, error: data.error || `http_${res.status}` };
-      return { ok:true, data };
-    }
-
-    function renderStatus(me) {
-      const tag = document.getElementById("statusTag");
-      const email = me.customer_email || me.email || "—";
-      const customerId = me.customer_id || "—";
-      const tier = me.tier || "—";
-      const status = me.status || me.entitlement_status || "—";
-
-      document.getElementById("emailVal").textContent = email;
-      document.getElementById("customerVal").textContent = customerId;
-      document.getElementById("tierVal").textContent = tier;
-      document.getElementById("entVal").textContent = status;
-
-      const active = String(status).toLowerCase() === "active";
-      tag.textContent = active ? "Active" : "Not active";
-      tag.className = "tag " + (active ? "ok" : "bad");
-
-      return { active, customerId, email, tier, status };
-    }
-
-    async function mintDownloadToken(customerId) {
-      const res = await fetch(`${WORKER_ORIGIN}/api/download-token?customer_id=${encodeURIComponent(customerId)}`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `http_${res.status}`);
-      return data.token;
-    }
-
-    function renderDownloadLinks(token) {
-      const box = document.getElementById("downloadBox");
-      const links = FILES.map(f => {
-        const url = `https://www.rinawarptech.com/downloads/${encodeURIComponent(f)}?token=${encodeURIComponent(token)}`;
-        return `<div style="margin:10px 0;">
-          <div class="mono" style="font-size:13px;opacity:.9;">${escapeHtml(f)}</div>
-          <a class="btn secondary" style="margin-top:8px;display:inline-flex;" href="${url}">Download</a>
-        </div>`;
-      }).join("");
-
-      box.innerHTML = links;
-    }
-
-    async function refresh() {
-      setMsg("");
-      const session = getSession();
-      showSessionPill(session);
-
-      if (!session) {
-        window.location.href = "/login/?next=/account/";
-        return;
-      }
-
-      const me = await apiMe();
-      if (!me.ok) {
-        setMsg(`<div class="error">Session invalid or expired (${escapeHtml(me.error)}). Sending you to login…</div>`);
-        setTimeout(() => window.location.href = "/login/?next=/account/", 800);
-        return;
-      }
-
-      const info = renderStatus(me.data);
-
-      if (!info.active) {
-        setMsg(`<div class="error">
-          Your entitlement is not active. If you just purchased, wait ~30 seconds and click "Refresh status".
-          If you need help, email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.
-        </div>`);
-        document.getElementById("downloadBox").innerHTML = "";
-        return;
-      }
-
-      setMsg(`<div class="ok">You're good to go. Click "Generate secure download links" to download Linux installers.</div>`);
-    }
-
-    async function openPortal() {
-      setMsg("");
-      const token = getSession();
-      if (!token) { window.location.href = "/login/?next=/account/"; return; }
-
-      const me = await apiMe();
-      if (me.ok && me.data && me.data.portal_url) {
-        window.location.href = me.data.portal_url;
-        return;
-      }
-
-      const res = await fetch(`${API_BASE}/api/portal`, {
+  window.__genDL = async (platform, version) => {
+    try {
+      notice(els.portalMsg, "", "ok");
+      const res = await fetch("https://api.rinawarptech.com/api/download-token", {
         method: "POST",
-        headers: { "authorization": `Bearer ${token}` }
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.url) {
-        setMsg(`<div class="error">Could not open billing portal (${escapeHtml(data.error || `http_${res.status}`)}).</div>`);
-        return;
-      }
-      window.location.href = data.url;
-    }
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ product: "terminal-pro", version, platform })
+      }).then(r => r.json());
 
-    async function generateLinks() {
-      setMsg("");
-      const me = await apiMe();
-      if (!me.ok) { window.location.href = "/login/?next=/account/"; return; }
-
-      const info = renderStatus(me.data);
-      if (!info.active) {
-        setMsg(`<div class="error">No active entitlement. Please purchase or wait for webhook sync, then refresh.</div>`);
+      if (!res?.ok) {
+        notice(els.portalMsg, `Download token error: ${res?.error || "unknown"}`, "err");
         return;
       }
 
-      try {
-        const token = await mintDownloadToken(info.customerId);
-        renderDownloadLinks(token);
-        setMsg(`<div class="ok">Secure links generated. They expire automatically.</div>`);
-      } catch (err) {
-        setMsg(`<div class="error">Could not mint download token (${escapeHtml(err.message || "unknown_error")}).</div>`);
+      const url = res.urls?.[platform];
+      if (!url) {
+        notice(els.portalMsg, "Token created, but no URL returned for that platform.", "err");
+        return;
       }
+
+      window.location.href = url;
+    } catch (e) {
+      notice(els.portalMsg, e?.message || "Failed to generate download link.", "err");
     }
+  };
 
-    function logout() {
-      localStorage.removeItem("rw_session");
-      window.location.href = "/login/?logged_out=1";
+  window.openPortal = async () => {
+    els.portalBtn.disabled = true;
+    try {
+      const res = await fetch("https://api.rinawarptech.com/api/portal", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({})
+      }).then(r => r.json());
+
+      if (!res?.ok || !res?.url) {
+        notice(els.portalMsg, `Portal error: ${res?.error || "unknown"}`, "err");
+        return;
+      }
+      window.location.href = res.url;
+    } catch (e) {
+      notice(els.portalMsg, e?.message || "Failed to open portal.", "err");
+    } finally {
+      els.portalBtn.disabled = false;
     }
+  };
 
-    document.getElementById("btnRefresh").addEventListener("click", refresh);
-    document.getElementById("btnMint").addEventListener("click", generateLinks);
-    document.getElementById("btnPortal").addEventListener("click", openPortal);
-    document.getElementById("btnLogout").addEventListener("click", logout);
+  window.logout = async () => {
+    // v1: if using cookie sessions, implement /api/auth/logout later.
+    // For now, best-effort: redirect to login and let session expire.
+    window.location.href = "/login/";
+  };
 
-    refresh();
-  </script>
+  requireAuthedOrBounce();
+  await loadMe();
+</script>
 </body>
 </html>
