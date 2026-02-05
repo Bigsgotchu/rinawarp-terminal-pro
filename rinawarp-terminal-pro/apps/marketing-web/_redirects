@@ -21,4 +21,6 @@
 # Configure a Workers route instead: www.rinawarptech.com/downloads/* → downloads worker
 # See deploy/launch-readiness.md for proper Workers route setup
 
+/qzje  /qzje/  308
+
 # NOTE: /qzje/* is handled by login/index.html which extracts token and redirects to /login/?token=

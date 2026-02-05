@@ -1,0 +1,75 @@
+name = "rinawarp-stripe-webhook"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Cron: cleanup old auth challenges hourly
+[triggers]
+crons = ["0 * * * *"]
+
+# Price IDs for tier resolution (live mode)
+[vars]
+# Checkout URLs
+CHECKOUT_SUCCESS_URL = "https://www.rinawarptech.com/success/"
+CHECKOUT_CANCEL_URL = "https://www.rinawarptech.com/pricing"
+
+# Lifetime
+PRICE_ID_TEAM_LIFETIME     = "price_1SdxmFGZrRdZy3W9skXi3jvE"  # $999 lifetime
+PRICE_ID_PIONEER_LIFETIME  = "price_1Sdxm2GZrRdZy3W9C5tQcWiW"  # $800 lifetime
+PRICE_ID_PRO_LIFETIME      = "price_1SdxlmGZrRdZy3W9ncwPfgFr"  # $699 lifetime
+
+# Subscriptions
+PRICE_ID_TEAM_MONTHLY      = "price_1SdxlXGZrRdZy3W9Wr1XLBIe"  # $99/mo
+PRICE_ID_CREATOR_MONTHLY   = "price_1SdxlKGZrRdZy3W9TvaLugc7"  # $69/mo
+PRICE_ID_PRO_MONTHLY       = "price_1Sdxl7GZrRdZy3W9INQvidPf"  # $29/mo
+
+# D1 Database for idempotency and entitlements
+# Created with: npx wrangler d1 create rinawarp-prod
+[[d1_databases]]
+binding = "DB"
+database_name = "rinawarp-prod"
+database_id = "b16cb0bb-8f31-4b7a-bd16-df228f1534b1"
+
+# KV for rate limiting
+[[kv_namespaces]]
+binding = "AUTH_RATE_LIMIT"
+id = "f567276b8d8845a4baec7e0e8b8077ab"
+preview_id = "3402cabca1f248f2a2777a4254dfffb0"
+
+# Auth routes for passwordless login
+[[routes]]
+pattern = "api.rinawarptech.com/api/auth/start"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/auth/logout"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/auth/verify"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/me"
+zone_name = "rinawarptech.com"
+
+# Customer Portal route
+[[routes]]
+pattern = "api.rinawarptech.com/api/portal"
+zone_name = "rinawarptech.com"
+
+# Routes configuration for api.rinawarptech.com
+[[routes]]
+pattern = "api.rinawarptech.com/api/stripe/webhook"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/stripe/checkout"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/download-token*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/license/verify"
+zone_name = "rinawarptech.com"
