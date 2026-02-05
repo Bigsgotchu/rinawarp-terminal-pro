@@ -1,0 +1,33 @@
+{
+  "name": "rinawarp-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RinaWarp - Persistent Agent Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:all": "npm run build --workspaces",
+    "dev:terminal-pro": "cd apps/terminal-pro && npm run dev",
+    "test:lockdown": "node scripts/no-bypass.mjs",
+    "verify:site": "node scripts/verify-pages-routes.mjs apps/marketing-web",
+    "pretest": "npm run test:lockdown",
+    "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'"
+  },
+  "keywords": [
+    "rinawarp",
+    "agent",
+    "ai",
+    "terminal",
+    "electron"
+  ],
+  "author": "RinaWarp Team",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "28.3.0"
+  },
+  "engines": {
+    "node": ">=18.19.0"
+  }
+}
