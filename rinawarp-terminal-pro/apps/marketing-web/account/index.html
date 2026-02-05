@@ -191,6 +191,7 @@
       const res = await fetch("https://api.rinawarptech.com/api/download-token", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ product: "terminal-pro", version, platform })
       }).then(r => r.json());
 
@@ -217,6 +218,7 @@
       const res = await fetch("https://api.rinawarptech.com/api/portal", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({})
       }).then(r => r.json());
 
