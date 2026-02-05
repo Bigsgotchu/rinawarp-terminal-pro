@@ -4,17 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Create account — RinaWarp</title>
-  <meta http-equiv="Content-Security-Policy"
-        content="
-          default-src 'self';
-          base-uri 'self';
-          object-src 'none';
-          frame-ancestors 'none';
-          img-src 'self' data:;
-          style-src 'self' 'unsafe-inline';
-          script-src 'self' https://static.cloudflareinsights.com;
-          connect-src 'self' https://api.rinawarptech.com https://cloudflareinsights.com;
-        " />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://api.rinawarptech.com https://cloudflareinsights.com;" />
   <style>
     body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:#0b0b10; color:#eaeaf0; }
     .wrap { max-width: 520px; margin: 0 auto; padding: 48px 20px; }
@@ -57,55 +47,6 @@
     </div>
   </div>
 
-  <script type="module">
-    import { escapeHtml } from "/assets/auth-pages.js";
-
-    const API = "https://api.rinawarptech.com";
-
-    function toast(text, isErr=false) {
-      const el = document.getElementById("msg");
-      el.innerHTML = `<div class="toast ${isErr ? "err" : ""}">${escapeHtml(text)}</div>`;
-    }
-
-    async function startAuth() {
-      const btn = document.getElementById("btn");
-      const email = document.getElementById("email").value.trim();
-      if (!email) return toast("Please enter your email.", true);
-
-      btn.disabled = true;
-      toast("Sending magic link…");
-
-      try {
-        const res = await fetch(`${API}/api/auth/start`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email, mode: "signup" })
-        });
-
-        if (!res.ok) {
-          const t = await res.text().catch(()=> "");
-          throw new Error(`Auth start failed (${res.status}): ${t || res.statusText}`);
-        }
-
-        const data = await res.json();
-        if (data?.next) {
-          // If backend returns a redirect URL, follow it.
-          window.location.href = data.next;
-          return;
-        }
-
-        toast("Check your inbox for the sign-in link.");
-      } catch (e) {
-        toast(e?.message || "Failed to start sign-in.", true);
-      } finally {
-        btn.disabled = false;
-      }
-    }
-
-    document.getElementById("btn").addEventListener("click", startAuth);
-    document.getElementById("email").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") startAuth();
-    });
-  </script>
+  <script type="module" src="/assets/signup.js"></script>
 </body>
 </html>
