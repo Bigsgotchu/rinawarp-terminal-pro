@@ -1,20 +1,34 @@
 {
-  "name": "autopilot-project",
+  "name": "rinawarp-monorepo",
   "version": "1.0.0",
-  "description": "Autopilot development with Kilo Code",
-  "main": "autopilot.js",
+  "private": true,
+  "description": "RinaWarp - Persistent Agent Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "start": "node autopilot.js",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon autopilot.js"
+    "build:all": "npm run build --workspaces",
+    "dev:terminal-pro": "cd apps/terminal-pro && npm run dev",
+    "test:lockdown": "node scripts/no-bypass.mjs",
+    "verify:site": "node scripts/verify-pages-routes.mjs apps/marketing-web",
+    "smoke:web": "bash scripts/smoke-web.sh",
+    "pretest": "npm run test:lockdown",
+    "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0",
-    "nodemon": "^3.0.0"
+  "keywords": [
+    "rinawarp",
+    "agent",
+    "ai",
+    "terminal",
+    "electron"
+  ],
+  "author": "RinaWarp Team",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "28.3.0"
+  },
+  "engines": {
+    "node": ">=18.19.0"
   }
 }
