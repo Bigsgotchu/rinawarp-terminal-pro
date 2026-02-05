@@ -37,12 +37,62 @@
       <p class="muted">Redirecting to your account…</p>
       <p><a href="/account/" style="color:#7dd3fc">Click here if you're not redirected</a></p>
     </div>
+
+    <div style="margin-top:14px;font-size:13px;opacity:.85;">
+      <span>New here?</span> <a href="/signup/" style="color:#6ad7ff;text-decoration:none;">Create an account</a>
+    </div>
   </div>
 
 <script>
 const API = "https://api.rinawarptech.com";
 
+// Sanitize redirect target to prevent open redirect vulnerabilities
+function safeNext(rawNext) {
+  if (!rawNext) return "/account/";
+  // Reject absolute URLs and protocol-relative URLs
+  if (rawNext.startsWith("http://") || rawNext.startsWith("https://") || rawNext.startsWith("//")) {
+    return "/account/";
+  }
+  // Must start with "/"
+  if (!rawNext.startsWith("/")) return "/account/";
+  // Allowlist supported routes
+  const allowedPrefixes = ["/account", "/download", "/success", "/login"];
+  if (!allowedPrefixes.some((p) => rawNext.startsWith(p))) return "/account/";
+  return rawNext;
+}
+
+// Extract token from URL path (e.g., /login/qzje/ → token=qzje)
+function getTokenFromPath() {
+  const path = window.location.pathname;
+  // Match /login/<token>/ or /login/<token>
+  const match = path.match(/^\/login\/([^\/]+)\/?$/);
+  if (match && match[1] && match[1] !== "") {
+    return match[1];
+  }
+  return "";
+}
+
+// Strip trailing slashes from token params
+function cleanToken(token) {
+  return (token || "").replace(/\/+$/, "");
+}
+
 let challengeId = null;
+
+// Check for token in path (legacy format) and redirect to clean URL
+(function normalizeUrl() {
+  const tokenFromPath = getTokenFromPath();
+  if (tokenFromPath && window.location.search.indexOf("token=") === -1) {
+    // Token found in path but not in query - redirect to clean URL
+    window.history.replaceState(null, "", `/login/?token=${encodeURIComponent(tokenFromPath)}`);
+  }
+})();
+
+// Get token from query param
+function getTokenFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return cleanToken(params.get("token") || "");
+}
 
 document.getElementById("start").onclick = async () => {
   const email = document.getElementById("email").value.trim();
@@ -92,7 +142,7 @@ document.getElementById("verify").onclick = async () => {
   // Auto-redirect to next or account page
   setTimeout(() => {
     const params = new URLSearchParams(window.location.search);
-    const next = params.get("next") || "/account/";
+    const next = safeNext(params.get("next") || "/account/");
     window.location.href = next;
   }, 1500);
 };

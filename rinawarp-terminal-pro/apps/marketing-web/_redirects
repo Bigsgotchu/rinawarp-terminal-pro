@@ -11,6 +11,8 @@
 /refunds /refunds/ 308
 /eula /eula/ 308
 /account /account/ 308
+/signup /signup/ 308
+/login /login/ 308
 
 # API routes - use 307 to preserve HTTP method (especially for POST webhooks)
 /api/* https://api.rinawarptech.com/:splat 307
@@ -19,9 +21,4 @@
 # Configure a Workers route instead: www.rinawarptech.com/downloads/* → downloads worker
 # See deploy/launch-readiness.md for proper Workers route setup
 
-# Cleanup stray 404s (if any)
-/qzje/*  /  302
-/qzje    /  302
-
-/account  /account/  308
-/account/  /account/  200
+# NOTE: /qzje/* is handled by login/index.html which extracts token and redirects to /login/?token=
