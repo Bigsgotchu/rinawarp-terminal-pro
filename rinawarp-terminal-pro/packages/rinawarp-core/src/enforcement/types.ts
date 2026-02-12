@@ -12,6 +12,13 @@ export type ToolResult =
 	| { success: true; output: string; meta?: Record<string, unknown> }
 	| { success: false; error: string; output?: string; meta?: Record<string, unknown> };
 
+export type FailureClass =
+	| "permission_denied"
+	| "tool_unavailable"
+	| "command_error"
+	| "timeout"
+	| "partial_execution";
+
 export interface ExecutionContext {
 	projectRoot: string;
 	license: LicenseTier;
@@ -53,12 +60,20 @@ export interface ExecutionReport {
 		| "unknown_tool"
 		| "license_block"
 		| "confirmation_required"
-		| "verification_failed";
+		| "verification_failed"
+		| FailureClass;
 	steps: Array<{
 		step: PlanStep;
 		startedAt: number;
 		finishedAt: number;
 		result: ToolResult;
+		failure_class?: FailureClass;
+		audit: {
+			tool: string;
+			input_redacted: unknown;
+			risk_level?: "low" | "medium" | "high";
+			requires_confirmation?: boolean;
+		};
 		verification?: Array<{ tool: string; result: ToolResult }>;
 	}>;
 }
