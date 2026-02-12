@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Download RinaWarp Terminal Pro v1.0.0 - Available for Linux & Windows. The First AI You Can Trust to Actually Fix Things.">
+    <title>Download - RinaWarp Terminal Pro v1.0.0</title>
+    <style>
+        :root {
+            --hot-pink: #ff3366;
+            --hot-pink-dark: #cc0033;
+            --teal: #14b8a6;
+            --coral: #ff6b6b;
+            --baby-blue: #7dd3fc;
+            --black: #0a0a0f;
+            --darker: #050508;
+            --light: #f5f5f7;
+            --gray: #8e8e93;
+            --success: #34c759;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--black);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+        nav {
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+
+        .logo { font-size: 24px; font-weight: 700; color: var(--light); text-decoration: none; }
+        .logo span { color: var(--hot-pink); }
+
+        nav ul { display: flex; gap: 24px; list-style: none; }
+        nav a { color: var(--light); text-decoration: none; font-size: 14px; opacity: 0.8; }
+        nav a:hover, nav a.active { opacity: 1; color: var(--baby-blue); }
+
+        .hero {
+            padding: 140px 0 60px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--darker) 0%, var(--black) 100%);
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 5vw, 56px);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--gray);
+            max-width: 650px;
+            margin: 0 auto 40px;
+        }
+
+        .features-list {
+            text-align: left;
+            max-width: 550px;
+            margin: 0 auto 32px;
+            list-style: none;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            padding-left: 28px;
+            position: relative;
+            color: rgba(234, 234, 240, 0.9);
+        }
+
+        .features-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--teal);
+            font-weight: bold;
+        }
+
+        .features-list li strong { color: var(--baby-blue); }
+
+        /* Download Section */
+        .download-section { padding: 60px 0; }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .download-card {
+            background: rgba(20, 184, 166, 0.05);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .download-card:hover {
+            background: rgba(20, 184, 166, 0.1);
+            border-color: var(--teal);
+        }
+
+        .platform-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 51, 102, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 28px;
+        }
+
+        .download-card h3 { font-size: 20px; margin-bottom: 4px; }
+        .download-card .version { color: var(--gray); font-size: 13px; margin-bottom: 16px; }
+
+        .download-btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--hot-pink);
+            color: white;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+
+        .download-btn:hover { background: var(--hot-pink-dark); }
+
+        /* Verify Section */
+        .verify-section {
+            padding: 50px 0;
+            background: rgba(20, 184, 166, 0.05);
+        }
+
+        .verify-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .verify-box h3 { color: var(--teal); margin-bottom: 16px; font-size: 18px; }
+
+        .fingerprint {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            color: var(--baby-blue);
+        }
+
+        .verify-links { margin: 16px 0; }
+        .verify-links a {
+            color: var(--baby-blue);
+            text-decoration: none;
+            margin-right: 16px;
+        }
+        .verify-links a:hover { text-decoration: underline; }
+
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 14px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 12px 0;
+            text-align: left;
+        }
+
+        code { color: var(--baby-blue); }
+
+        .warning-box {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 3px solid var(--coral);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        /* Coming Next */
+        .coming-soon {
+            padding: 50px 0;
+            background: var(--darker);
+        }
+
+        .coming-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .coming-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        .coming-card h4 { color: var(--baby-blue); margin-bottom: 8px; }
+        .coming-card p { color: var(--gray); font-size: 14px; }
+
+        footer {
+            background: var(--darker);
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        footer p { color: var(--gray); font-size: 14px; }
+        footer a { color: var(--gray); text-decoration: none; }
+        footer a:hover { color: var(--baby-blue); }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">Rina<span>Warp</span></a>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/download/" class="active">Download</a></li>
+                <li><a href="/login/">Sign In</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>RinaWarp Terminal Pro v1.0.0</h1>
+            <p>The first AI terminal you can trust. Describe what you want, review the plan, watch it execute safely.</p>
+            
+            <ul class="features-list">
+                <li><strong>Agent Mode:</strong> Intent → plan preview → run steps (streaming output)</li>
+                <li><strong>Terminal Mode:</strong> Raw commands in visual blocks</li>
+                <li><strong>Safety gates:</strong> High-impact actions need typed YES</li>
+                <li><strong>Stop anytime:</strong> Soft cancel (planning) + cancel step (execution)</li>
+                <li><strong>Download reports:</strong> JSON audit trail per run</li>
+                <li><strong>Workflows:</strong> Save plans, re-run later (local storage)</li>
+                <li><strong>Command palette:</strong> ⌘K / Ctrl+K for fast actions</li>
+            </ul>
+
+            <p style="font-size: 14px; color: var(--gray);">
+                Downloads require an account (free to sign up).
+            </p>
+        </div>
+    </section>
+
+    <section class="download-section">
+        <div class="container">
+            <div class="download-grid">
+                <!-- Linux AppImage -->
+                <div class="download-card">
+                    <div class="platform-icon">🐧</div>
+                    <h3>Linux</h3>
+                    <p class="version">AppImage • 64-bit</p>
+                    <a class="download-btn" href="/login/">Download AppImage</a>
+                    <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">
+                        RinaWarp-Terminal-Pro-1.0.0.AppImage
+                    </p>
+                </div>
+
+                <!-- Linux DEB -->
+                <div class="download-card">
+                    <div class="platform-icon">🐧</div>
+                    <h3>Linux</h3>
+                    <p class="version">DEB Package • 64-bit</p>
+                    <a class="download-btn" href="/login/">Download .deb</a>
+                    <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">
+                        RinaWarp-Terminal-Pro-1.0.0.amd64.deb
+                    </p>
+                </div>
+
+                <!-- Windows -->
+                <div class="download-card">
+                    <div class="platform-icon">🪟</div>
+                    <h3>Windows</h3>
+                    <p class="version">Installer • 64-bit</p>
+                    <a class="download-btn" href="/login/">Download .exe</a>
+                    <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">
+                        RinaWarp-Terminal-Pro-1.0.0.exe
+                    </p>
+                    <div class="warning-box">
+                        <strong>Unsigned:</strong> Windows SmartScreen may warn. Click "More info" → "Run anyway".
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="verify-section">
+        <div class="container">
+            <div class="verify-box">
+                <h3>🔐 Verify Your Download (Linux)</h3>
+                <p style="color: var(--gray); font-size: 14px; margin-bottom: 12px;">
+                    All Linux downloads are GPG-signed. Verify before running.
+                </p>
+                
+                <p><strong>Signing key fingerprint:</strong></p>
+                <div class="fingerprint">BFC6 4346 F392 57B4 9A37 DBA6 9655 B53A 0B3E 6FA4</div>
+                
+                <div class="verify-links">
+                    <a href="/verify/SHASUMS256.txt">SHASUMS256.txt</a>
+                    <a href="/verify/SHASUMS256.txt.asc">SHASUMS256.txt.asc</a>
+                    <a href="/verify/RINAWARP_GPG_PUBLIC_KEY.asc">RINAWARP_GPG_PUBLIC_KEY.asc</a>
+                </div>
+                
+                <pre><code>gpg --import RINAWARP_GPG_PUBLIC_KEY.asc
+gpg --verify SHASUMS256.txt.asc SHASUMS256.txt
+sha256sum -c SHASUMS256.txt</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <section class="coming-soon">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 32px; font-size: 28px;">Coming Soon</h2>
+            <div class="coming-grid">
+                <div class="coming-card">
+                    <h4>🍎 macOS Build</h4>
+                    <p>Signed and notarized builds for Mac. Requires Apple Developer Program enrollment.</p>
+                </div>
+                <div class="coming-card">
+                    <h4>🩺 System Doctor</h4>
+                    <p>Diagnose "computer running hot" with evidence-first checks and fix recommendations.</p>
+                </div>
+                <div class="coming-card">
+                    <h4>🔄 Auto-Updates</h4>
+                    <p>Automatic background updates for all platforms.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 RinaWarp Technologies LLC • support@rinawarptech.com</p>
+            <p style="margin-top: 12px;">
+                <a href="/privacy/">Privacy</a> • 
+                <a href="/terms/">Terms</a> • 
+                <a href="/refunds/">Refunds</a> • 
+                <a href="/eula/">EULA</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

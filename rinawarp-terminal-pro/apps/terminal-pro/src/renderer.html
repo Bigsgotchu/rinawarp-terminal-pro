@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline';
+                 style-src 'self' 'unsafe-inline';
+                 img-src 'self' data:;" />
+  <title>RinaWarp Terminal Pro</title>
+
+  <style>
+    :root {
+      --rw-black: #0b0b12;
+      --rw-ink: #0f0f18;
+      --rw-surface: #141424;
+      --rw-surface-2: #181834;
+
+      --rw-border: rgba(255,255,255,0.08);
+      --rw-border-2: rgba(255,255,255,0.12);
+
+      --rw-text: #f2f2fb;
+      --rw-muted: rgba(242,242,251,0.72);
+
+      --rw-hot-pink: #ff3ea5;
+      --rw-coral: #ff6b6b;
+      --rw-teal: #19d3c5;
+      --rw-baby-blue: #6ad7ff;
+
+      --rw-glow-pink: rgba(255, 62, 165, 0.35);
+      --rw-glow-teal: rgba(25, 211, 197, 0.30);
+      --rw-glow-blue: rgba(106, 215, 255, 0.28);
+      --rw-glow-coral: rgba(255, 107, 107, 0.30);
+
+      --rw-radius: 14px;
+      --rw-radius-sm: 10px;
+      --rw-shadow: 0 10px 30px rgba(0,0,0,0.35);
+
+      --rw-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --rw-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--rw-sans);
+      color: var(--rw-text);
+      background:
+        radial-gradient(1000px 800px at 20% 0%, rgba(25,211,197,0.10), transparent 60%),
+        radial-gradient(900px 700px at 80% 10%, rgba(255,62,165,0.10), transparent 60%),
+        radial-gradient(900px 700px at 55% 90%, rgba(106,215,255,0.08), transparent 60%),
+        var(--rw-black);
+      overflow: hidden;
+    }
+
+    /* App layout */
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: 56px 1fr 72px;
+      grid-template-areas:
+        "sidebar topbar"
+        "sidebar main"
+        "sidebar input";
+    }
+
+    /* Sidebar */
+    .sidebar {
+      grid-area: sidebar;
+      border-right: 1px solid var(--rw-border);
+      background: rgba(11,11,18,0.86);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+      border-radius: var(--rw-radius);
+      border: 1px solid var(--rw-border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      color: var(--rw-black);
+      background: linear-gradient(135deg, var(--rw-hot-pink), var(--rw-teal));
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 10px 26px rgba(0,0,0,0.35);
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      min-width: 0;
+    }
+    .brand-title .name {
+      font-weight: 750;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand-title .sub {
+      font-size: 12px;
+      color: var(--rw-muted);
+      margin-top: 2px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--rw-border);
+      background: rgba(255,255,255,0.02);
+      cursor: pointer;
+      color: var(--rw-text);
+      font-size: 13px;
+    }
+    .nav-btn:hover {
+      border-color: var(--rw-border-2);
+      background: rgba(255,255,255,0.03);
+    }
+    .nav-btn.active {
+      border-color: rgba(25,211,197,0.35);
+      box-shadow: 0 0 0 3px rgba(25,211,197,0.10) inset;
+      background: linear-gradient(135deg, rgba(25,211,197,0.10), rgba(255,255,255,0.02));
+    }
+
+    .pane {
+      flex: 1;
+      min-height: 0;
+      border: 1px solid var(--rw-border);
+      border-radius: var(--rw-radius);
+      background: rgba(255,255,255,0.02);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pane-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--rw-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pane-header .title {
+      font-size: 12px;
+      color: var(--rw-muted);
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .pane-body {
+      padding: 10px 12px;
+      overflow-y: auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item {
+      border: 1px solid var(--rw-border);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(0,0,0,0.12);
+      font-size: 13px;
+      color: rgba(242,242,251,0.86);
+    }
+    .item .small {
+      font-size: 12px;
+      color: var(--rw-muted);
+      margin-top: 4px;
+    }
+
+    /* Top bar */
+    .topbar {
+      grid-area: topbar;
+      border-bottom: 1px solid var(--rw-border);
+      background: rgba(11,11,18,0.78);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      gap: 12px;
+    }
+
+    .workspace {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 6px 10px;
+      border: 1px solid var(--rw-border);
+      border-radius: 999px;
+      color: var(--rw-muted);
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
+    }
+
+    .ws-path {
+      font-family: var(--rw-mono);
+      font-size: 12px;
+      color: rgba(242,242,251,0.80);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+      max-width: 520px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 6px;
+      border: 1px solid var(--rw-border);
+      background: rgba(255,255,255,0.02);
+      padding: 4px;
+      border-radius: 999px;
+    }
+
+    .mode-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      color: rgba(242,242,251,0.85);
+      padding: 7px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .mode-btn.active.agent {
+      background: linear-gradient(135deg, rgba(25,211,197,0.20), rgba(106,215,255,0.10));
+      border-color: rgba(25,211,197,0.35);
+      box-shadow: 0 0 16px var(--rw-glow-teal);
+    }
+    .mode-btn.active.terminal {
+      background: linear-gradient(135deg, rgba(255,62,165,0.16), rgba(255,255,255,0.04));
+      border-color: rgba(255,62,165,0.35);
+      box-shadow: 0 0 16px var(--rw-glow-pink);
+    }
+
+    .top-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Main timeline */
+    .main {
+      grid-area: main;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .timeline {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Blocks */
+    .block {
+      border: 1px solid var(--rw-border);
+      border-radius: var(--rw-radius);
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25), var(--rw-shadow);
+    }
+
+    .block.user {
+      background: linear-gradient(180deg, rgba(106,215,255,0.10), rgba(255,255,255,0.02));
+      border-color: rgba(106,215,255,0.22);
+    }
+    .block.plan {
+      background: linear-gradient(180deg, rgba(25,211,197,0.10), rgba(255,255,255,0.02));
+      border-color: rgba(25,211,197,0.22);
+    }
+    .block.step {
+      background: linear-gradient(180deg, rgba(255,62,165,0.08), rgba(255,255,255,0.02));
+      border-color: rgba(255,62,165,0.20);
+    }
+    .block.assistant {
+      background: linear-gradient(180deg, rgba(255,107,107,0.08), rgba(255,255,255,0.02));
+      border-color: rgba(255,107,107,0.20);
+    }
+
+    .block-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .block-title {
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 550;
+      border: 1px solid var(--rw-border);
+      color: var(--rw-muted);
+      background: rgba(255,255,255,0.03);
+    }
+    .status-badge.ok { background: rgba(25,211,197,0.18); border: 1px solid rgba(25,211,197,0.25); }
+    .status-badge.failed { background: rgba(255,107,107,0.18); border: 1px solid rgba(255,107,107,0.25); }
+    .status-badge.running { background: rgba(255,62,165,0.16); border: 1px solid rgba(255,62,165,0.25); }
+    .status-badge.cancelled { background: rgba(106,215,255,0.14); border: 1px solid rgba(106,215,255,0.22); }
+    .status-badge.queued, .status-badge.planning { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+    .command {
+      font-family: var(--rw-mono);
+      background: rgba(11,11,18,0.55);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 6px 10px;
+      border-radius: 10px;
+      margin-top: 8px;
+      display: inline-block;
+      color: rgba(242,242,251,0.85);
+    }
+
+    /* Buttons */
+    .button-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--rw-border);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--rw-text);
+      background: rgba(255,255,255,0.03);
+      transition: transform 0.12s ease, opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--rw-border-2);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.06) inset;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-run {
+      border-color: rgba(25,211,197,0.35);
+      background: linear-gradient(135deg, rgba(25,211,197,0.22), rgba(106,215,255,0.16));
+      box-shadow: 0 0 18px var(--rw-glow-teal);
+    }
+    .btn-rerun {
+      border-color: rgba(106,215,255,0.35);
+      background: linear-gradient(135deg, rgba(106,215,255,0.18), rgba(255,255,255,0.04));
+      box-shadow: 0 0 16px var(--rw-glow-blue);
+    }
+    .btn-copy {
+      border-color: rgba(242,242,251,0.16);
+      background: rgba(255,255,255,0.03);
+    }
+    .btn-cancel {
+      border-color: rgba(255,107,107,0.38);
+      background: linear-gradient(135deg, rgba(255,107,107,0.16), rgba(255,62,165,0.10));
+      box-shadow: 0 0 18px var(--rw-glow-coral);
+    }
+    .btn-save {
+      border-color: rgba(255,62,165,0.35);
+      background: linear-gradient(135deg, rgba(255,62,165,0.16), rgba(255,255,255,0.04));
+      box-shadow: 0 0 18px var(--rw-glow-pink);
+    }
+    .btn-stop {
+      border-color: rgba(255,107,107,0.38);
+      background: linear-gradient(135deg, rgba(255,107,107,0.16), rgba(255,255,255,0.04));
+      box-shadow: 0 0 18px var(--rw-glow-coral);
+    }
+    .btn-download {
+      border-color: rgba(25,211,197,0.35);
+      background: linear-gradient(135deg, rgba(25,211,197,0.16), rgba(106,215,255,0.10));
+      box-shadow: 0 0 16px var(--rw-glow-teal);
+    }
+
+    /* Output */
+    .output {
+      margin-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 12px;
+    }
+    .stdout, .stderr {
+      white-space: pre-wrap;
+      font-size: 12px;
+      font-family: var(--rw-mono);
+      line-height: 1.45;
+    }
+    .stdout { color: rgba(242,242,251,0.72); }
+    .stderr { color: rgba(255,107,107,0.90); }
+
+    .markdown {
+      white-space: pre-wrap;
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: rgba(242,242,251);
+    }
+
+    /* Input */
+    .input-area {
+      grid-area: input;
+      border-top: 1px solid var(--rw-border);
+      padding: 14px 18px;
+      display: flex;
+      gap: 10px;
+      background: rgba(11,11,18,0.78);
+      backdrop-filter: blur(10px);
+    }
+
+    .input-project, .input-intent {
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+      color: var(--rw-text);
+      font-size: 13px;
+    }
+    .input-project { width: 320px; }
+    .input-intent { flex: 1; font-size: 14px; }
+
+    .input-intent:focus, .input-project:focus {
+      outline: none;
+      border-color: rgba(25,211,197,0.45);
+      box-shadow: 0 0 0 4px rgba(25,211,197,0.14);
+    }
+
+    .btn-send {
+      padding: 11px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,62,165,0.42);
+      background: linear-gradient(135deg, var(--rw-hot-pink), var(--rw-teal));
+      color: #0b0b12;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      box-shadow: 0 0 22px rgba(255,62,165,0.18), 0 0 22px rgba(25,211,197,0.12);
+    }
+    .btn-send:hover { opacity: 0.92; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 86px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(11,11,18,0.92);
+      color: var(--rw-text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: var(--rw-shadow);
+      z-index: 9999;
+      font-size: 13px;
+    }
+    .toast::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 10px;
+      background: linear-gradient(135deg, var(--rw-hot-pink), var(--rw-teal));
+      box-shadow: 0 0 18px rgba(255,62,165,0.35), 0 0 18px rgba(25,211,197,0.30);
+      vertical-align: middle;
+    }
+
+    /* Command Palette */
+    .palette-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      padding-top: 15vh;
+    }
+    .palette {
+      width: 600px;
+      max-width: 90vw;
+      background: var(--rw-surface);
+      border: 1px solid var(--rw-border);
+      border-radius: var(--rw-radius);
+      box-shadow: var(--rw-shadow), 0 0 60px rgba(25,211,197,0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 70vh;
+    }
+    .palette-input-wrap {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--rw-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .palette-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--rw-text);
+      font-size: 15px;
+      outline: none;
+    }
+    .palette-input::placeholder { color: var(--rw-muted); }
+    .palette-shortcut {
+      font-size: 12px;
+      color: var(--rw-muted);
+      background: rgba(255,255,255,0.08);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: var(--rw-mono);
+    }
+    .palette-results {
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .palette-section {
+      margin-bottom: 12px;
+    }
+    .palette-section-title {
+      font-size: 11px;
+      color: var(--rw-muted);
+      padding: 6px 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 650;
+    }
+    .palette-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .palette-item:hover, .palette-item.selected {
+      background: rgba(106,215,255,0.12);
+    }
+    .palette-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .palette-item-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+    }
+    .palette-item-icon.agent { background: linear-gradient(135deg, rgba(25,211,197,0.20), rgba(106,215,255,0.10)); }
+    .palette-item-icon.terminal { background: linear-gradient(135deg, rgba(255,62,165,0.20), rgba(255,255,255,0.10)); }
+    .palette-item-icon.history { background: rgba(255,255,255,0.08); }
+    .palette-item-icon.workflow { background: linear-gradient(135deg, rgba(106,215,255,0.20), rgba(25,211,197,0.10)); }
+    .palette-item-icon.settings { background: rgba(255,255,255,0.08); }
+    .palette-item-label {
+      font-size: 14px;
+      color: var(--rw-text);
+    }
+    .palette-item-meta {
+      font-size: 11px;
+      color: var(--rw-muted);
+      font-family: var(--rw-mono);
+    }
+    .palette-empty {
+      padding: 30px;
+      text-align: center;
+      color: var(--rw-muted);
+      font-size: 14px;
+    }
+
+    /* Spinner for loading */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--rw-border);
+      border-top-color: var(--rw-teal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div class="brand-title">
+          <div class="name">RinaWarp Terminal Pro</div>
+          <div class="sub">Warp-like blocks • Agent + Terminal</div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="nav-btn active" id="navSessions" onclick="setSidebarTab('sessions')">
+          <span>Sessions</span><span class="pill">v1</span>
+        </button>
+        <button class="nav-btn" id="navWorkflows" onclick="setSidebarTab('workflows')">
+          <span>Workflows</span><span class="pill">local</span>
+        </button>
+        <button class="nav-btn" id="navSettings" onclick="setSidebarTab('settings')">
+          <span>Settings</span><span class="pill">safe</span>
+        </button>
+        <button class="nav-btn" id="navAbout" onclick="setSidebarTab('about')">
+          <span>About</span><span class="pill">info</span>
+        </button>
+      </div>
+
+      <section class="pane">
+        <div class="pane-header">
+          <div class="title" id="paneTitle">Sessions</div>
+          <div class="pill" id="paneMeta">0</div>
+        </div>
+        <div class="pane-body" id="paneBody"></div>
+      </section>
+    </aside>
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="workspace">
+        <div class="pill">Workspace</div>
+        <button class="pill" id="wsPath" onclick="pickWorkspace()" style="cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <span id="wsPathText">(not set)</span>
+          <span style="opacity:0.6">⌄</span>
+        </button>
+      </div>
+
+      <div class="mode-toggle">
+        <button class="mode-btn agent active" id="modeAgent" onclick="setMode('agent')">Agent Mode</button>
+        <button class="mode-btn terminal" id="modeTerminal" onclick="setMode('terminal')">Terminal Mode</button>
+        <button class="mode-btn" style="border-left:1px solid var(--rw-border)" onclick="runDoctor()">🩺 Doctor</button>
+      </div>
+
+      <div class="top-right">
+        <div class="pill">Engine</div>
+        <div class="pill" id="pillLicense">starter</div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+      <div id="timeline" class="timeline"></div>
+    </main>
+
+    <!-- Input -->
+    <div class="input-area">
+      <input id="projectRoot" class="input-project" placeholder="projectRoot (workspace folder)" />
+      <input id="intent" class="input-intent" placeholder="Ask Rina… (Agent) or type a command… (Terminal)" />
+      <button class="btn-send" onclick="submitInput()">Send</button>
+    </div>
+  </div>
+
+  <!-- Command Palette (hidden by default) -->
+  <div id="paletteOverlay" class="palette-overlay" style="display:none" onclick="closePalette(event)">
+    <div class="palette" onclick="event.stopPropagation()">
+      <div class="palette-input-wrap">
+        <span style="color:var(--rw-muted)">›</span>
+        <input id="paletteInput" class="palette-input" placeholder="Type a command or search…" autocomplete="off" />
+        <span class="palette-shortcut">ESC</span>
+      </div>
+      <div id="paletteResults" class="palette-results"></div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // State
+    // -----------------------------
+    let blocks = [];
+    let streamToBlock = {};
+    let planRunToPlanBlock = {};
+    let mode = "agent"; // "agent" | "terminal"
+    let currentPlanByBlockId = {};
+    let sessions = [];
+    let paletteHistory = [];
+    let _lastRender = 0;
+    const RENDER_THROTTLE = 50; // ms between renders
+
+    // -----------------------------
+    // Helpers
+    // -----------------------------
+    function newId(prefix) {
+      return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
+
+    function escapeHtml(text) {
+      if (text == null) return "";
+      const div = document.createElement("div");
+      div.textContent = String(text);
+      return div.innerHTML;
+    }
+
+    function truncateOutput(text, maxLen = 200_000) {
+      if (!text || text.length <= maxLen) return text;
+      const kept = text.slice(0, maxLen);
+      const cut = text.length - maxLen;
+      return `${kept}\n… (${cut} more bytes hidden. Download report for full output.)`;
+    }
+
+    // Throttled render
+    function renderBlocks() {
+      const now = Date.now();
+      if (now - _lastRender < RENDER_THROTTLE) {
+        requestAnimationFrame(renderBlocks);
+        return;
+      }
+      _lastRender = now;
+      _renderBlocksImpl();
+    }
+
+    function _renderBlocksImpl() {
+      const timeline = document.getElementById("timeline");
+      timeline.innerHTML = blocks.map(block => `
+        <div class="block ${escapeHtml(block.type)}" data-id="${escapeHtml(block.id)}">
+          <div class="block-header">
+            <div>
+              <div class="block-title">
+                ${escapeHtml(block.title || block.type.toUpperCase())}
+                <span class="status-badge ${escapeHtml(block.status)}">${escapeHtml(block.status)}</span>
+              </div>
+              ${block.command ? `<div class="command">$ ${escapeHtml(block.command)}</div>` : ""}
+            </div>
+
+            <div class="button-row">
+              ${block.type === "plan" ? `
+                <button class="btn-run" onclick="runPlan('${escapeHtml(block.id)}')" ${block.status === "running" ? "disabled" : ""}>Run plan</button>
+                <button class="btn-stop" onclick="stopPlan('${escapeHtml(block.id)}')" ${block.status !== "running" ? "disabled" : ""}>Stop</button>
+                <button class="btn-download" onclick="downloadReport('${escapeHtml(block.id)}')">Report</button>
+                <button class="btn-save" onclick="saveWorkflowFromPlanBlock('${escapeHtml(block.id)}')">Save</button>
+              ` : ""}
+
+              ${block.type === "step" ? `
+                <button class="btn-run" onclick="runStep('${escapeHtml(block.id)}')" ${block.status === "running" ? "disabled" : ""}>Run</button>
+                <button class="btn-rerun" onclick="rerunStep('${escapeHtml(block.id)}')" ${block.status === "running" ? "disabled" : ""}>Re-run</button>
+                ${block.command ? `<button class="btn-copy" onclick="copyCommand('${escapeHtml(block.id)}')">Copy</button>` : ""}
+                ${block.streamId && block.status === "running" ? `<button class="btn-cancel" onclick="cancelStream('${escapeHtml(block.streamId)}')">Cancel</button>` : ""}
+              ` : ""}
+            </div>
+          </div>
+
+          ${block.markdown ? `<div class="markdown">${escapeHtml(block.markdown)}</div>` : ""}
+
+          ${(block.stdout || block.stderr) ? `
+            <div class="output">
+              ${block.stdout ? `<div class="stdout">${escapeHtml(truncateOutput(block.stdout))}</div>` : ""}
+              ${block.stderr ? `<div class="stderr">${escapeHtml(truncateOutput(block.stderr))}</div>` : ""}
+            </div>
+          ` : ""}
+        </div>
+      `).join("");
+
+      timeline.scrollTop = timeline.scrollHeight;
+    }
+
+    function addBlock(block) {
+      blocks.push(block);
+      renderBlocks();
+    }
+
+    function updateBlock(id, updates) {
+      const idx = blocks.findIndex(b => b.id === id);
+      if (idx !== -1) {
+        blocks[idx] = { ...blocks[idx], ...updates };
+        renderBlocks();
+      }
+    }
+
+    // -----------------------------
+    // Sidebar
+    // -----------------------------
+    function setSidebarTab(tab) {
+      for (const [btnId, t] of [["navSessions","sessions"],["navWorkflows","workflows"],["navSettings","settings"],["navAbout","about"]]) {
+        const el = document.getElementById(btnId);
+        if (!el) continue;
+        el.classList.toggle("active", t === tab);
+      }
+
+      const title = document.getElementById("paneTitle");
+      const meta = document.getElementById("paneMeta");
+      const body = document.getElementById("paneBody");
+
+      if (!title || !meta || !body) return;
+
+      if (tab === "sessions") {
+        title.textContent = "Sessions";
+        meta.textContent = String(sessions.length);
+        body.innerHTML = sessions.length
+          ? sessions.map((s, i) => `
+              <div class="item" style="cursor:pointer" onclick="loadSession(${i})">
+                <div><b>${escapeHtml(s.name)}</b></div>
+                <div class="small">${escapeHtml(s.when)}</div>
+              </div>
+            `).join("")
+          : `<div class="item"><div><b>No sessions yet</b></div><div class="small">Run an intent or a command to create one.</div></div>`;
+        return;
+      }
+
+      if (tab === "workflows") {
+        const wfs = listWorkflows();
+        title.textContent = "Workflows";
+        meta.textContent = String(wfs.length);
+        body.innerHTML = wfs.length
+          ? wfs.map(w => `
+              <div class="item" style="cursor:pointer" onclick="runWorkflow('${escapeHtml(w.key)}')">
+                <div><b>${escapeHtml(w.plan?.intent ?? "workflow")}</b></div>
+                <div class="small">${escapeHtml(w.key)}</div>
+              </div>
+            `).join("")
+          : `<div class="item"><div><b>No workflows saved</b></div><div class="small">Save a plan from a Plan block.</div></div>`;
+        return;
+      }
+
+      // settings
+      title.textContent = "Settings";
+      meta.textContent = "v1";
+      body.innerHTML = `
+        <div class="item">
+          <div><b>Mode</b></div>
+          <div class="small">Agent Mode = intent → plan → approve → execute. Terminal Mode = raw commands (engine enforced).</div>
+        </div>
+        <div class="item">
+          <div><b>Safety</b></div>
+          <div class="small">High-impact steps require typed YES and scope-bound confirmation.</div>
+        </div>
+        <div class="item">
+          <div><b>Command Palette</b></div>
+          <div class="small">Press <kbd style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px">⌘K</kbd> or <kbd style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px">Ctrl+K</kbd> to open.</div>
+        </div>
+      `;
+    }
+
+      // about
+      if (tab === "about") {
+        title.textContent = "About";
+        meta.textContent = "RinaWarp";
+        body.innerHTML = `
+          <div class="item" style="text-align:center;padding:20px;">
+            <div style="font-size:48px;margin-bottom:12px;">🌸</div>
+            <div style="font-size:20px;font-weight:750;margin-bottom:4px;">RinaWarp Terminal Pro</div>
+            <div class="small" style="margin-bottom:16px;">AI-Powered System Diagnostic Agent</div>
+            <div class="pill" style="display:inline-block;">Version 1.0.0</div>
+          </div>
+          <div class="item">
+            <div><b>Links</b></div>
+            <div class="small" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+              <a href="https://rinawarptech.com" target="_blank" style="color:var(--rw-teal);text-decoration:none;">🌐 Website</a>
+              <a href="https://rinawarptech.com/privacy" target="_blank" style="color:var(--rw-teal);text-decoration:none;">🔒 Privacy Policy</a>
+              <a href="https://rinawarptech.com/terms" target="_blank" style="color:var(--rw-teal);text-decoration:none;">📋 Terms of Service</a>
+              <a href="https://rinawarptech.com/support" target="_blank" style="color:var(--rw-teal);text-decoration:none;">💬 Support</a>
+            </div>
+          </div>
+          <div class="item">
+            <div><b>Build</b></div>
+            <div class="small">Electron ${navigator.userAgentData?.platform || navigator.platform || 'Unknown'}</div>
+          </div>
+        `;
+        return;
+      }
+
+    // -----------------------------
+    // Mode toggle
+    // -----------------------------
+    function setMode(next) {
+      mode = next;
+      document.getElementById("modeAgent").classList.toggle("active", next === "agent");
+      document.getElementById("modeTerminal").classList.toggle("active", next === "terminal");
+
+      const input = document.getElementById("intent");
+      if (next === "agent") {
+        input.placeholder = "Ask Rina… (e.g., fix my broken build)";
+        toast("Agent Mode — intent → plan → approve → execute");
+      } else {
+        input.placeholder = "Type a terminal command… (engine enforced)";
+        toast("Terminal Mode — commands run as blocks");
+      }
+    }
+
+    // -----------------------------
+    // Workspace picker
+    // -----------------------------
+    async function pickWorkspace() {
+      const result = await window.rina?.openDirectory?.();
+      if (result?.path) {
+        document.getElementById("projectRoot").value = result.path;
+        document.getElementById("wsPathText").textContent = result.path;
+        saveWorkspaceToHistory(result.path);
+        loadWorkspaceHistory();
+      }
+    }
+
+    function saveWorkspaceToHistory(path) {
+      if (!path) return;
+      let hist = JSON.parse(localStorage.getItem("rinawarp:ws_history") || "[]");
+      hist = hist.filter(p => p !== path);
+      hist.unshift(path);
+      if (hist.length > 10) hist.pop();
+      localStorage.setItem("rinawarp:ws_history", JSON.stringify(hist));
+    }
+
+    function loadWorkspaceHistory() {
+      const hist = JSON.parse(localStorage.getItem("rinawarp:ws_history") || "[]");
+      if (hist.length > 0) {
+        const last = hist[0];
+        document.getElementById("projectRoot").value = last;
+        document.getElementById("wsPathText").textContent = last;
+      }
+    }
+
+    // -----------------------------
+    // Command Palette
+    // -----------------------------
+    function openPalette() {
+      const overlay = document.getElementById("paletteOverlay");
+      const input = document.getElementById("paletteInput");
+      const results = document.getElementById("paletteResults");
+      overlay.style.display = "flex";
+      input.value = "";
+      input.focus();
+      results.innerHTML = renderPaletteResults("");
+      paletteHistory = JSON.parse(localStorage.getItem("rinawarp:palette_history") || "[]");
+    }
+
+    function closePalette(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById("paletteOverlay").style.display = "none";
+    }
+
+    function renderPaletteResults(query) {
+      const q = query.toLowerCase().trim();
+      const items = [];
+      const hist = paletteHistory || [];
+
+      // Recent commands
+      const recent = hist.slice(0, 5);
+      if (recent.length > 0 && !q) {
+        items.push({ type: "section", title: "Recent Commands" });
+        recent.forEach(cmd => {
+          items.push({ type: "item", icon: "history", label: cmd, meta: "history", action: () => runPaletteCommand(cmd) });
+        });
+      }
+
+      // Commands that match query
+      const allCommands = [
+        { label: "Clear timeline", icon: "terminal", action: () => { blocks = []; renderBlocks(); } },
+        { label: "Switch to Agent Mode", icon: "agent", action: () => setMode("agent") },
+        { label: "Switch to Terminal Mode", icon: "terminal", action: () => setMode("terminal") },
+        { label: "Pick workspace folder", icon: "settings", action: () => pickWorkspace() },
+        { label: "Download full report", icon: "workflow", action: () => downloadFullReport() },
+      ];
+
+      const matched = q
+        ? allCommands.filter(c => c.label.toLowerCase().includes(q))
+        : allCommands;
+
+      if (matched.length > 0) {
+        items.push({ type: "section", title: q ? "Commands" : "All Commands" });
+        matched.forEach(c => {
+          items.push({ type: "item", icon: c.icon, label: c.label, meta: "action", action: c.action });
+        });
+      }
+
+      // Workflows
+      const wfs = listWorkflows();
+      const wfMatched = q
+        ? wfs.filter(w => (w.plan?.intent || "").toLowerCase().includes(q))
+        : wfs.slice(0, 3);
+      if (wfMatched.length > 0) {
+        items.push({ type: "section", title: q ? "Workflows" : "Saved Workflows" });
+        wfMatched.forEach(w => {
+          items.push({ type: "item", icon: "workflow", label: w.plan?.intent || "workflow", meta: "workflow", action: () => runWorkflow(w.key) });
+        });
+      }
+
+      if (items.length === 0) {
+        return `<div class="palette-empty">No results for "${escapeHtml(q)}"</div>`;
+      }
+
+      return items.map((it, idx) => {
+        if (it.type === "section") {
+          return `<div class="palette-section"><div class="palette-section-title">${escapeHtml(it.title)}</div></div>`;
+        }
+        return `
+          <div class="palette-item ${idx === 0 ? "selected" : ""}" data-idx="${idx}" onclick="executePaletteItem(${idx})">
+            <div class="palette-item-left">
+              <div class="palette-item-icon ${escapeHtml(it.icon)}">${it.icon === "agent" ? "🤖" : it.icon === "terminal" ? "⬡" : it.icon === "workflow" ? "⚡" : it.icon === "settings" ? "⚙" : "⌘"}</div>
+              <span class="palette-item-label">${escapeHtml(it.label)}</span>
+            </div>
+            <span class="palette-item-meta">${escapeHtml(it.meta)}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    let paletteItems = [];
+    let paletteActions = [];
+
+    function refreshPaletteResults() {
+      const input = document.getElementById("paletteInput");
+      const results = document.getElementById("paletteResults");
+      const q = input.value.toLowerCase().trim();
+
+      const hist = paletteHistory || [];
+      const items = [];
+
+      const recent = hist.slice(0, 5);
+      if (recent.length > 0 && !q) {
+        items.push({ type: "section", title: "Recent Commands" });
+        recent.forEach(cmd => {
+          items.push({ type: "item", icon: "history", label: cmd, meta: "history", action: () => runPaletteCommand(cmd) });
+        });
+      }
+
+      const allCommands = [
+        { label: "Clear timeline", icon: "terminal", action: () => { blocks = []; renderBlocks(); } },
+        { label: "Switch to Agent Mode", icon: "agent", action: () => setMode("agent") },
+        { label: "Switch to Terminal Mode", icon: "terminal", action: () => setMode("terminal") },
+        { label: "Pick workspace folder", icon: "settings", action: () => pickWorkspace() },
+        { label: "Download full report", icon: "workflow", action: () => downloadFullReport() },
+      ];
+
+      const matched = q
+        ? allCommands.filter(c => c.label.toLowerCase().includes(q))
+        : allCommands;
+
+      if (matched.length > 0) {
+        items.push({ type: "section", title: q ? "Commands" : "All Commands" });
+        matched.forEach(c => {
+          items.push({ type: "item", icon: c.icon, label: c.label, meta: "action", action: c.action });
+        });
+      }
+
+      const wfs = listWorkflows();
+      const wfMatched = q
+        ? wfs.filter(w => (w.plan?.intent || "").toLowerCase().includes(q))
+        : wfs.slice(0, 3);
+      if (wfMatched.length > 0) {
+        items.push({ type: "section", title: q ? "Workflows" : "Saved Workflows" });
+        wfMatched.forEach(w => {
+          items.push({ type: "item", icon: "workflow", label: w.plan?.intent || "workflow", meta: "workflow", action: () => runWorkflow(w.key) });
+        });
+      }
+
+      // Flatten for selection
+      paletteActions = [];
+      paletteItems = items.filter(it => it.type === "item").map(it => it.action);
+
+      results.innerHTML = items.map((it, idx) => {
+        if (it.type === "section") {
+          return `<div class="palette-section"><div class="palette-section-title">${escapeHtml(it.title)}</div></div>`;
+        }
+        return `
+          <div class="palette-item ${idx === 0 ? "selected" : ""}" data-idx="${idx}" onclick="executePaletteItem(${idx})">
+            <div class="palette-item-left">
+              <div class="palette-item-icon ${escapeHtml(it.icon)}">${it.icon === "agent" ? "🤖" : it.icon === "terminal" ? "⬡" : it.icon === "workflow" ? "⚡" : it.icon === "settings" ? "⚙" : "⌘"}</div>
+              <span class="palette-item-label">${escapeHtml(it.label)}</span>
+            </div>
+            <span class="palette-item-meta">${escapeHtml(it.meta)}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function executePaletteItem(idx) {
+      const action = paletteItems[idx];
+      if (action) {
+        action();
+        closePalette();
+      }
+    }
+
+    function runPaletteCommand(cmd) {
+      const input = document.getElementById("intent");
+      input.value = cmd;
+      input.focus();
+      closePalette();
+    }
+
+    // -----------------------------
+    // Streaming handlers
+    // -----------------------------
+    window.rina.onPlanStepStart((p) => {
+      const blockId = newId("step");
+      const step = p.step;
+      const cmd = (step?.input?.command) ?? "(unknown)";
+
+      const block = {
+        id: blockId,
+        type: "step",
+        status: "running",
+        createdAt: Date.now(),
+        title: step.stepId ?? "step",
+        streamId: p.streamId,
+        stepId: step.stepId,
+        tool: step.tool,
+        command: cmd,
+        risk: step.confirmationScope ? "high-impact" : "safe-write",
+        stdout: "",
+        stderr: ""
+      };
+
+      blocks.push(block);
+      streamToBlock[p.streamId] = blockId;
+      renderBlocks();
+    });
+
+    window.rina.onStreamChunk((p) => {
+      const blockId = streamToBlock[p.streamId];
+      if (!blockId) return;
+      const block = blocks.find(b => b.id === blockId);
+      if (!block) return;
+
+      if (p.stream === "stdout" || p.stream === "meta") {
+        block.stdout = (block.stdout || "") + p.data;
+      } else if (p.stream === "stderr") {
+        block.stderr = (block.stderr || "") + p.data;
+      }
+      renderBlocks();
+    });
+
+    window.rina.onStreamEnd((p) => {
+      const blockId = streamToBlock[p.streamId];
+      if (!blockId) return;
+      const block = blocks.find(b => b.id === blockId);
+      if (!block) return;
+
+      block.status = p.cancelled ? "cancelled" : (p.ok ? "ok" : "failed");
+      block.report = p.report;
+      renderBlocks();
+    });
+
+    window.rina.onPlanRunStart?.((p) => {
+      const blockId = newId("plan");
+      const plan = p.plan;
+      addBlock({
+        id: blockId,
+        type: "plan",
+        status: "planning",
+        createdAt: Date.now(),
+        title: "Rina — Planning…",
+        markdown: "",
+        plan
+      });
+      planRunToPlanBlock[p.planRunId] = blockId;
+    });
+
+    window.rina.onPlanRunEnd?.((p) => {
+      const planBlockId = planRunToPlanBlock[p.planRunId];
+      if (planBlockId) {
+        const block = blocks.find(b => b.id === planBlockId);
+        if (block) {
+          const plan = p.plan;
+          block.status = p.haltedBecause ? "cancelled" : (p.ok ? "queued" : "failed");
+          block.title = "Rina — Plan";
+          block.markdown = `${plan?.reasoning || ""}\n\nSteps:\n${(plan?.steps || []).map(s =>
+            `- ${s.stepId ?? ""} \`${(s.input?.command ?? "").replaceAll("`","")}\``
+          ).join("\n")}`;
+          block.plan = plan;
+        }
+        delete planRunToPlanBlock[p.planRunId];
+        renderBlocks();
+      }
+      if (p.ok) {
+        toast("Plan ready");
+      } else if (p.haltedBecause) {
+        toast(`Plan stopped (${p.haltedBecause})`);
+      } else {
+        toast("Planning failed");
+      }
+    });
+
+    window.rina.onCustomEvent("rina:add:block", (data) => {
+      const allowed = new Set(["queued","running","ok","failed","cancelled","planning"]);
+      const safeStatus = allowed.has(data.status) ? data.status : "ok";
+
+      addBlock({
+        id: newId("assistant"),
+        type: data.type || "assistant",
+        status: safeStatus,
+        createdAt: Date.now(),
+        title: data.title || "Rina",
+        markdown: data.markdown || ""
+      });
+    });
+
+    // -----------------------------
+    // Input submission (Agent or Terminal)
+    // -----------------------------
+    async function submitInput() {
+      const intentEl = document.getElementById("intent");
+      const projectRootEl = document.getElementById("projectRoot");
+
+      const text = (intentEl.value || "").trim();
+      const projectRoot = (projectRootEl.value || "").trim();
+      if (!text) return;
+
+      // persist workspace display
+      document.getElementById("wsPathText").textContent = projectRoot || "(not set)";
+
+      // add to palette history
+      if (text) {
+        let hist = JSON.parse(localStorage.getItem("rinawarp:palette_history") || "[]");
+        hist = hist.filter(c => c !== text);
+        hist.unshift(text);
+        if (hist.length > 20) hist.pop();
+        localStorage.setItem("rinawarp:palette_history", JSON.stringify(hist));
+      }
+
+      // Create a session record
+      sessions.unshift({
+        name: mode === "agent" ? `Agent: ${text.slice(0, 40)}` : `Cmd: ${text.slice(0, 40)}`,
+        when: new Date().toLocaleString(),
+        blocks: JSON.parse(JSON.stringify(blocks))
+      });
+      saveSession();
+      setSidebarTab("sessions");
+
+      // user block
+      addBlock({
+        id: newId("user"),
+        type: "user",
+        status: "ok",
+        createdAt: Date.now(),
+        title: "You",
+        markdown: mode === "agent" ? text : `$ ${text}`
+      });
+
+      intentEl.value = "";
+
+      if (mode === "terminal") {
+        await runTerminalCommand(text, projectRoot);
+        return;
+      }
+
+      // Agent Mode: plan
+      const plan = await window.rina.agentPlan({ intentText: text, projectRoot });
+
+      const planBlockId = newId("plan");
+      currentPlanByBlockId[planBlockId] = plan;
+
+      addBlock({
+        id: planBlockId,
+        type: "plan",
+        status: "queued",
+        createdAt: Date.now(),
+        title: "Rina — Plan",
+        markdown: `${plan.reasoning}\n\nSteps:\n${plan.steps.map(s =>
+          `- ${s.stepId ?? ""} \`${(s.input?.command ?? "").replaceAll("`","")}\``
+        ).join("\n")}`,
+        plan
+      });
+    }
+
+    async function runTerminalCommand(command, projectRoot) {
+      // Create a step block immediately (single-step execution)
+      const stepBlockId = newId("step");
+      addBlock({
+        id: stepBlockId,
+        type: "step",
+        status: "queued",
+        createdAt: Date.now(),
+        title: "terminal",
+        command,
+        risk: "safe-write",
+        stdout: "",
+        stderr: ""
+      });
+
+      // basic high-impact heuristic for terminal mode (UI-side only)
+      // Actual safety still enforced by engine/tools.
+      const looksHighImpact = /\b(rm\s+-rf|mkfs|shutdown|reboot|dd\s+if=|docker\s+system\s+prune)\b/i.test(command);
+      let confirmed = true;
+      let confirmationText = "";
+      if (looksHighImpact) {
+        confirmationText = prompt('High-impact command detected. Type "YES" to confirm') ?? "";
+        confirmed = confirmationText === "YES";
+        if (!confirmed) {
+          updateBlock(stepBlockId, { status: "cancelled", stderr: "Cancelled before execution.\n" });
+          return;
+        }
+      }
+
+      // Execute via engine-backed step stream
+      const step = {
+        id: `terminal_${stepBlockId}`,
+        tool: "terminal",
+        command,
+        risk: looksHighImpact ? "high-impact" : "safe-write"
+      };
+
+      const { streamId } = await window.rina.executeStepStream({
+        step,
+        projectRoot,
+        confirmed,
+        confirmationText
+      });
+
+      updateBlock(stepBlockId, { status: "running", streamId, stdout: "", stderr: "" });
+      streamToBlock[streamId] = stepBlockId;
+      renderBlocks();
+    }
+
+    // -----------------------------
+    // Doctor v1: Read-only evidence collection
+    // -----------------------------
+    async function runDoctor() {
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+      if (!projectRoot) {
+        toast("Pick a workspace first");
+        return;
+      }
+
+      const symptom = (document.getElementById("intent").value || "").trim() || "computer running hot";
+      addBlock({
+        id: newId("user"),
+        type: "user",
+        status: "ok",
+        createdAt: Date.now(),
+        title: "You",
+        markdown: `🩺 ${symptom}`,
+      });
+
+      const plan = await window.rina.doctorPlan({ projectRoot, symptom });
+
+      const planBlockId = newId("plan");
+      addBlock({
+        id: planBlockId,
+        type: "plan",
+        status: "queued",
+        createdAt: Date.now(),
+        title: "Rina — Doctor Plan",
+        markdown: `${plan.reasoning}\n\nSteps:\n${plan.steps.map(s =>
+          `- ${s.stepId} \`${(s.input?.command ?? "").replaceAll("`","")}\``
+        ).join("\n")}`,
+        plan: { ...plan, steps: plan.steps },
+      });
+
+      // Auto-run (read-only doctor is safe)
+      await runPlan(planBlockId);
+    }
+
+    // -----------------------------
+    // Plan execution
+    // -----------------------------
+    async function runPlan(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block?.plan) return;
+
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+      const needsYes = block.plan.steps.some(s => !!s.confirmationScope);
+
+      let confirmed = true;
+      let confirmationText = "";
+      if (needsYes) {
+        confirmationText = prompt('Type "YES" to confirm high-impact actions') ?? "";
+        confirmed = confirmationText === "YES";
+        if (!confirmed) return;
+      }
+
+      updateBlock(blockId, { status: "running" });
+
+      const { planRunId } = await window.rina.executePlanStream({
+        plan: block.plan.steps,
+        projectRoot,
+        confirmed,
+        confirmationText
+      });
+
+      planRunToPlanBlock[planRunId] = blockId;
+    }
+
+    async function stopPlan(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block?.plan) return;
+      await window.rina?.stopPlan?.(block.plan.id);
+      updateBlock(blockId, { status: "cancelled" });
+      toast("Stopping plan…");
+    }
+
+    async function runStep(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block?.command) return;
+
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+      const step = {
+        id: block.stepId ?? `step_${blockId}`,
+        tool: "terminal",
+        command: block.command,
+        risk: block.risk ?? "safe-write"
+      };
+
+      let confirmed = true;
+      let confirmationText = "";
+      if (step.risk === "high-impact") {
+        confirmationText = prompt('Type "YES" to confirm') ?? "";
+        confirmed = confirmationText === "YES";
+        if (!confirmed) return;
+      }
+
+      const { streamId } = await window.rina.executeStepStream({
+        step,
+        projectRoot,
+        confirmed,
+        confirmationText
+      });
+
+      updateBlock(blockId, { status: "running", streamId, stdout: "", stderr: "" });
+      streamToBlock[streamId] = blockId;
+      renderBlocks();
+    }
+
+    function rerunStep(blockId) { runStep(blockId); }
+    function copyCommand(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (block?.command) navigator.clipboard.writeText(block.command);
+    }
+    async function cancelStream(streamId) { await window.rina.cancelStream(streamId); }
+
+    // -----------------------------
+    // Workflows
+    // -----------------------------
+    function persistWorkflow(plan) {
+      const id = plan.id || crypto.randomUUID();
+      const name = (plan.intent || "workflow").slice(0, 80);
+      const key = `rinawarp:workflow:${name}:${id}`;
+      localStorage.setItem(key, JSON.stringify(plan));
+      return { key, name, id };
+    }
+
+    function listWorkflows() {
+      const out = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || !k.startsWith("rinawarp:workflow:")) continue;
+        try { out.push({ key: k, plan: JSON.parse(localStorage.getItem(k) || "null") }); } catch {}
+      }
+      return out;
+    }
+
+    function saveWorkflowFromPlanBlock(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block?.plan) return;
+      const saved = persistWorkflow(block.plan);
+      toast(`Saved workflow: ${saved.name}`);
+      setSidebarTab("workflows");
+    }
+
+    function runWorkflow(key) {
+      const plan = JSON.parse(localStorage.getItem(key) || "null");
+      if (!plan) {
+        toast("Workflow not found");
+        return;
+      }
+      const blockId = newId("plan");
+      addBlock({
+        id: blockId,
+        type: "plan",
+        status: "queued",
+        createdAt: Date.now(),
+        title: `Workflow: ${plan.intent || "saved"}`,
+        markdown: `${plan.reasoning || ""}\n\nSteps:\n${(plan.steps || []).map(s =>
+          `- ${s.stepId ?? ""} \`${(s.input?.command ?? "").replaceAll("`","")}\``
+        ).join("\n")}`,
+        plan
+      });
+      toast("Workflow loaded as plan");
+    }
+
+    // -----------------------------
+    // Reports
+    // -----------------------------
+    function downloadReport(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block) return;
+      const report = {
+        id: block.id,
+        title: block.title,
+        type: block.type,
+        status: block.status,
+        command: block.command,
+        stdout: block.stdout,
+        stderr: block.stderr,
+        report: block.report,
+        createdAt: new Date(block.createdAt).toISOString()
+      };
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rina-report-${block.id.slice(0, 8)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("Report downloaded");
+    }
+
+    function downloadFullReport() {
+      const report = {
+        exportedAt: new Date().toISOString(),
+        mode,
+        blocks: blocks.map(b => ({
+          id: b.id,
+          type: b.type,
+          title: b.title,
+          status: b.status,
+          command: b.command,
+          stdout: b.stdout,
+          stderr: b.stderr,
+          report: b.report,
+          createdAt: new Date(b.createdAt).toISOString()
+        }))
+      };
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rina-report-full-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("Full report downloaded");
+    }
+
+    // -----------------------------
+    // Session persistence per workspace
+    // -----------------------------
+    function workspaceKey() {
+      const ws = (document.getElementById("projectRoot").value || "").trim() || "(default)";
+      return `rinawarp:session:${ws}`;
+    }
+
+    function saveSession() {
+      const key = workspaceKey();
+      const session = {
+        name: mode === "agent" ? `Agent session` : "Terminal session",
+        when: new Date().toLocaleString(),
+        mode,
+        blocks: JSON.parse(JSON.stringify(blocks))
+      };
+      localStorage.setItem(key, JSON.stringify(session));
+    }
+
+    function loadSession(idx) {
+      const s = sessions[idx];
+      if (!s) return;
+      blocks = JSON.parse(JSON.stringify(s.blocks || []));
+      if (s.mode) setMode(s.mode);
+      renderBlocks();
+      toast("Session restored");
+    }
+
+    // -----------------------------
+    // Toast + init
+    // -----------------------------
+    function toast(msg) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2400);
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      // Command palette
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        openPalette();
+        return;
+      }
+      // Escape closes palette
+      if (e.key === "Escape") {
+        const overlay = document.getElementById("paletteOverlay");
+        if (overlay.style.display !== "none") {
+          overlay.style.display = "none";
+          return;
+        }
+      }
+    });
+
+    // Palette input listener
+    document.getElementById("paletteInput")?.addEventListener("input", refreshPaletteResults);
+
+    // Enter submits input area
+    document.getElementById("intent").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        submitInput();
+      }
+    });
+
+    // Palette keyboard nav
+    document.getElementById("paletteOverlay")?.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const items = document.querySelectorAll(".palette-item");
+        const sel = document.querySelector(".palette-item.selected");
+        const idx = sel ? Array.from(items).indexOf(sel) : -1;
+        items.forEach(i => i.classList.remove("selected"));
+        const next = items[idx + 1] || items[0];
+        if (next) next.classList.add("selected");
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const items = document.querySelectorAll(".palette-item");
+        const sel = document.querySelector(".palette-item.selected");
+        const idx = sel ? Array.from(items).indexOf(sel) : 0;
+        items.forEach(i => i.classList.remove("selected"));
+        const prev = items[idx - 1] || items[items.length - 1];
+        if (prev) prev.classList.add("selected");
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const sel = document.querySelector(".palette-item.selected");
+        if (sel) sel.click();
+      }
+    });
+
+    // Load workspace history on start
+    loadWorkspaceHistory();
+    // Initial sidebar tab
+    setSidebarTab("sessions");
+  </script>
+</body>
+</html>

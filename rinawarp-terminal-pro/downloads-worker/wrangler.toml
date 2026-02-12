@@ -1,0 +1,20 @@
+name = "rinawarp-downloads"
+main = "src/index.ts"
+compatibility_date = "2024-07-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rinawarp-prod"
+database_id = "b16cb0bb-8f31-4b7a-bd16-df228f1534b1"
+
+[[r2_buckets]]
+binding = "INSTALLERS"
+bucket_name = "rinawarp-installers"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "f5b32dcd0f8f4247b562c191122924a0"
+preview_id = "291079af35e74f5c929ebe17c67ea877"
+
+[vars]
+DOWNLOAD_TOKEN_EXPIRY_HOURS = 24

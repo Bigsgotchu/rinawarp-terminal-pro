@@ -1,0 +1,36 @@
+{
+  "name": "@rinawarp/tools",
+  "version": "1.0.0",
+  "description": "Tool execution adapters for RinaWarp agent",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./terminal": {
+      "types": "./dist/terminal.d.ts",
+      "import": "./dist/terminal.js"
+    },
+    "./terminal-internals": {
+      "types": "./dist/terminal-internals.d.ts",
+      "import": "./dist/terminal-internals.js"
+    },
+    "./filesystem": {
+      "types": "./dist/filesystem.d.ts",
+      "import": "./dist/filesystem.js"
+    },
+    "./git": {
+      "types": "./dist/git.d.ts",
+      "import": "./dist/git.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["rinawarp", "tools", "agent", "terminal", "filesystem"],
+  "license": "MIT"
+}

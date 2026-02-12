@@ -1,0 +1,16 @@
+{
+  "name": "rinawarp-stripe-webhook",
+  "version": "1.0.0",
+  "description": "Stripe webhook handler for RinaWarp Terminal Pro",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "stripe": "^17.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "wrangler": "^4.64.0"
+  }
+}

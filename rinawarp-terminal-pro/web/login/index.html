@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Login • RinaWarp</title>
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          base-uri 'self';
+          object-src 'none';
+          frame-ancestors 'none';
+          img-src 'self' data:;
+          style-src 'self' 'unsafe-inline';
+          script-src 'self' https://static.cloudflareinsights.com 'sha256-ap5jbHk9SigAxpnWrbVyhL20ngGeJVn84Cjzf2gjLNk=' 'sha256-bGSVHoMEJKsgXk/66rgtBJc6YaOnmGNN54yqJW2tBjA=';
+          connect-src 'self' https://api.rinawarptech.com https://cloudflareinsights.com;
+        " />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0a0a0f; color:#fff; padding:24px; }
+    .card { max-width:520px; margin:0 auto; background:#11121a; padding:20px; border-radius:16px; }
+    input { width:100%; padding:12px; border-radius:10px; border:1px solid #2a2c3a; background:#0a0a0f; color:#fff; margin:8px 0; }
+    button { width:100%; padding:12px; border-radius:10px; border:0; background:#ff3366; color:#fff; font-weight:700; cursor:pointer; }
+    .muted { color:#b6b7c2; font-size:14px; }
+    code { background:#0a0a0f; padding:2px 6px; border-radius:6px; }
+    h1 { margin:0 0 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Login</h1>
+    <p class="muted">Log in to manage your license, regenerate download tokens, and verify your entitlement.</p>
+
+    <div id="step1">
+      <input id="email" placeholder="you@example.com" autocomplete="email"/>
+      <button id="start">Send code</button>
+      <p class="muted" id="startMsg"></p>
+    </div>
+
+    <div id="step2" style="display:none">
+      <p class="muted">Check your email for the 6-digit code.</p>
+      <input id="code" placeholder="123456" inputmode="numeric" maxlength="6"/>
+      <button id="verify">Verify</button>
+      <p class="muted" id="verifyMsg"></p>
+    </div>
+
+    <div id="step3" style="display:none">
+      <h2>You're in ✅</h2>
+      <p class="muted">Redirecting to your account…</p>
+      <p><a href="/account/" style="color:#7dd3fc">Click here if you're not redirected</a></p>
+    </div>
+
+    <div style="margin-top:14px;font-size:13px;opacity:.85;">
+      <span>New here?</span> <a href="/signup/" style="color:#6ad7ff;text-decoration:none;">Create an account</a>
+    </div>
+  </div>
+
+  <script type="module" src="/assets/login.js"></script>
+</body>
+</html>
