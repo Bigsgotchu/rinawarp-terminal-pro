@@ -2,13 +2,15 @@ name: KPI Revenue Monitor
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 jobs:
   snapshot:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: rinawarp-terminal-pro
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,9 +18,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: package-lock.json
+          node-version: 20
 
       - name: Install deps
         run: npm ci
@@ -32,11 +32,12 @@ jobs:
           cat .kpi/latest.json
 
       - name: Run Revenue E2E Smoke
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         run: npm run e2e:revenue
 
       - name: Upload KPI artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kpi-revenue-snapshot
-          path: .kpi/
-          if-no-files-found: error
+          name: kpi-snapshot
+          path: rinawarp-terminal-pro/.kpi/*.json
