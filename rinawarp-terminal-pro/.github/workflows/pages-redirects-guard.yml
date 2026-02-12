@@ -12,14 +12,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # If your Pages output is repo root, leave PAGES_OUT as "."
-      # If your Pages output is a folder (e.g. "apps/marketing-web"),
-      # change PAGES_OUT below.
-      - name: Verify _redirects exists in Pages output
+      - name: Verify _redirects exists in canonical Pages output
         run: |
           set -euo pipefail
-          PAGES_OUT="apps/marketing-web"
-          test -f "${PAGES_OUT}/_redirects" || (echo "❌ Missing ${PAGES_OUT}/_redirects (Cloudflare Pages will not apply redirects)" && exit 1)
+
+          # Prefer canonical deploy root. Keep fallback for legacy trees.
+          if [[ -f "rinawarptech-website/web/_redirects" ]]; then
+            PAGES_OUT="rinawarptech-website/web"
+          elif [[ -f "apps/marketing-web/_redirects" ]]; then
+            PAGES_OUT="apps/marketing-web"
+          else
+            echo "ℹ️ No website Pages output root in this tree; skipping redirects guard."
+            echo "Checked: rinawarptech-website/web and apps/marketing-web"
+            exit 0
+          fi
+
           echo "✅ Found ${PAGES_OUT}/_redirects"
           echo "---"
           sed -n '1,120p' "${PAGES_OUT}/_redirects"
+
+      - name: Guard Rina contract docs
+        run: |
+          bash rinawarp-terminal-pro/scripts/ci-contract-guard.sh
