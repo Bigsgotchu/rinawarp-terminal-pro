@@ -9,12 +9,21 @@
   ],
   "scripts": {
     "build:all": "npm run build --workspaces",
+    "deploy:pages": "bash scripts/deploy-pages-prod.sh",
     "dev:terminal-pro": "cd apps/terminal-pro && npm run dev",
+    "guard:contracts": "bash scripts/ci-contract-guard.sh",
+    "smoke:pages": "bash scripts/smoke-pages.sh",
     "test:lockdown": "node scripts/no-bypass.mjs",
-    "verify:site": "node scripts/verify-pages-routes.mjs apps/marketing-web",
+    "verify:site": "node scripts/verify-pages-routes.mjs rinawarptech-website/web",
     "smoke:web": "bash scripts/smoke-web.sh",
-    "pretest": "npm run test:lockdown",
-    "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'"
+    "pretest": "npm run test:lockdown && npm run guard:contracts",
+    "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'",
+    "smoke:prod": "bash scripts/smoke-prod.sh https://www.rinawarptech.com",
+    "audit:prod": "bash scripts/audit-site.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt",
+    "audit:compare": "bash scripts/audit-prod.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev",
+    "smoke:stripe": "bash scripts/smoke-stripe.sh https://api.rinawarptech.com https://www.rinawarptech.com",
+    "release:desktop": "bash deploy/release-runner.sh",
+    "release:bump": "bash deploy/bump-release-version.sh"
   },
   "keywords": [
     "rinawarp",

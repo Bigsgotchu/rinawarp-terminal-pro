@@ -1,0 +1,40 @@
+{
+  "name": "rinawarp-terminal-pro",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "description": "RinaWarp Terminal Pro - AI-powered system diagnostic agent",
+  "author": "RinaWarp Team <team@rinawarptech.com>",
+  "homepage": "https://www.rinawarptech.com",
+  "bugs": {
+    "url": "https://github.com/rinawarp/terminal-pro/issues"
+  },
+  "scripts": {
+    "build:electron": "tsc -p tsconfig.json && node scripts/copy-static.mjs",
+    "dev": "unset ELECTRON_RUN_AS_NODE && npm run build:electron && npx electron .",
+    "start": "npx electron .",
+    "build": "npm run build:electron",
+    "build:all": "npm run build:electron && npm run package:linux && npm run package:win",
+    "package:linux": "bash ../../deploy/package-linux.sh",
+    "package:win": "electron-builder --win --publish never",
+    "dist:mac": "npm run build:electron && electron-builder --mac",
+    "dist:win": "npm run build:electron && electron-builder --win",
+    "dist:linux": "npm run build:electron && electron-builder --linux",
+    "dist:all": "npm run build:electron && electron-builder -mwl"
+  },
+  "dependencies": {
+    "@rinawarp/agent": "*",
+    "@rinawarp/core": "*",
+    "@rinawarp/doctor": "*",
+    "@rinawarp/safety": "*",
+    "@rinawarp/tools": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
