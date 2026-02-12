@@ -1,10 +1,21 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { createServer } from "../dist/server.js";
 
 let server;
 let baseUrl;
+
+async function waitForReport(planRunId, attempts = 20) {
+	for (let i = 0; i < attempts; i++) {
+		const resp = await fetch(`${baseUrl}/v1/report?planRunId=${encodeURIComponent(planRunId)}`);
+		if (resp.status === 200) return resp.json();
+		await new Promise((r) => setTimeout(r, 100));
+	}
+	throw new Error(`report not ready for planRunId=${planRunId}`);
+}
 
 function b64url(input) {
 	return Buffer.from(input)
@@ -115,6 +126,12 @@ test("POST /v1/execute-plan accepts valid step contract", async () => {
 	assert.equal(body.ok, true);
 	assert.ok(typeof body.planRunId === "string");
 	assert.ok(body.planRunId.length > 0);
+	const reportPayload = await waitForReport(body.planRunId);
+	assert.equal(reportPayload.ok, true);
+	assert.equal(reportPayload.report.planRunId, body.planRunId);
+	assert.ok(Array.isArray(reportPayload.report.steps));
+	const reportFile = path.join(process.cwd(), ".rinawarp", "reports", `${body.planRunId}.json`);
+	assert.equal(fs.existsSync(reportFile), true);
 	delete process.env.RINAWARP_AGENTD_LICENSE;
 });
 
@@ -229,4 +246,22 @@ test("POST /v1/execute-plan accepts valid signed entitlement token in production
 	assert.ok(typeof body.planRunId === "string");
 	delete process.env.NODE_ENV;
 	delete process.env.RINAWARP_AGENTD_ENTITLEMENT_SECRET;
+});
+
+test("GET /v1/report returns 404 for unknown planRunId", async () => {
+	const resp = await fetch(`${baseUrl}/v1/report?planRunId=unknown-id`);
+	assert.equal(resp.status, 404);
+	const body = await resp.json();
+	assert.equal(body.ok, false);
+	assert.match(body.error, /report not found/i);
+});
+
+test("GET /v1/metrics returns runtime counters", async () => {
+	const resp = await fetch(`${baseUrl}/v1/metrics`);
+	assert.equal(resp.status, 200);
+	const body = await resp.json();
+	assert.equal(body.ok, true);
+	assert.ok(typeof body.metrics.runs_total === "number");
+	assert.ok(typeof body.metrics.completion_rate === "number");
+	assert.ok(typeof body.metrics.mttr_unblock_ms === "number");
 });

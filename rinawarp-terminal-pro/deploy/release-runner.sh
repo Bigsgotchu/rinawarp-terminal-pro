@@ -27,6 +27,9 @@ export VER DIST_DIR
 echo "== 2) Update release metadata =="
 ./deploy/update-hashes.sh
 
+echo "== 2.02) Verify website download links and manifest =="
+npm run verify:downloads
+
 if [[ "$SIGN_RELEASE" == "1" ]]; then
   echo "== 2.05) Sign release checksums =="
   ./deploy/sign-release.sh
@@ -57,6 +60,9 @@ fi
 
 echo "== 3) Preflight =="
 ./deploy/preflight-release.sh
+
+echo "== 3.5) Local installer smoke checks =="
+./deploy/installer-smoke.sh
 
 echo "== 4) Upload to R2 (remote) =="
 FILES=(

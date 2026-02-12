@@ -25,6 +25,8 @@ To avoid duplication drift, new contract docs should be added here instead of cr
   - `docs/SAFETY_SPEC_V1.md`
 - Execution backlog for v1 delivery:
   - `docs/IMPLEMENTATION_BACKLOG_V1.md`
+- Incident response and emergency controls:
+  - `docs/INCIDENT_RUNBOOK_V1.md`
 - This canonical index:
   - `docs/RINA_CONTRACT_INDEX.md`
 
