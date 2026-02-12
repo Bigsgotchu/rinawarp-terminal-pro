@@ -4,13 +4,13 @@
  * Fails CI if any required route directory is missing index.html.
  *
  * Usage:
- *   node scripts/verify-pages-routes.mjs apps/marketing-web
+ *   node scripts/verify-pages-routes.mjs rinawarptech-website/web
  */
 
 import fs from "node:fs";
 import path from "node:path";
 
-const root = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve("apps/marketing-web");
+const root = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve("rinawarptech-website/web");
 
 const REQUIRED_ROUTES = [
   "login",
@@ -22,6 +22,7 @@ const REQUIRED_ROUTES = [
 
 const REQUIRED_FILES = [
   "_redirects",
+  "releases/v1.0.0.json",
 ];
 
 function existsFile(p) {
@@ -55,7 +56,21 @@ if (!existsDir(root)) {
 for (const f of REQUIRED_FILES) {
   const fp = path.join(root, f);
   if (!existsFile(fp)) fail(`Missing required file: ${fp}`);
-  else console.log(`✅ Found: ${f}`);
+  else {
+    if (f === "releases/v1.0.0.json") {
+      try {
+        const json = JSON.parse(fs.readFileSync(fp, "utf8"));
+        if (!json.version || !json.downloads) {
+          fail(`Invalid release manifest keys in ${fp}`);
+          continue;
+        }
+      } catch {
+        fail(`Invalid JSON in release manifest: ${fp}`);
+        continue;
+      }
+    }
+    console.log(`✅ Found: ${f}`);
+  }
 }
 
 for (const r of REQUIRED_ROUTES) {
