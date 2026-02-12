@@ -8,9 +8,6 @@ on:
 jobs:
   snapshot:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: rinawarp-terminal-pro
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,23 +18,30 @@ jobs:
           node-version: 20
 
       - name: Install deps
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
-      - name: Run KPI snapshot
+      - name: Route smoke check
+        run: |
+          set -euo pipefail
+          for p in / /download/ /login/ /signup/ /account/ /qzje/; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "https://www.rinawarptech.com${p}")
+            echo "${p} -> ${code}"
+            test "${code}" = "200"
+          done
+
+      - name: Revenue/KPI snapshot
         run: |
           set -euo pipefail
           mkdir -p .kpi
-          OUT=".kpi/kpi-$(date -u +%Y%m%dT%H%M%SZ).json" npm run kpi:snapshot
-          cp .kpi/kpi-*.json .kpi/latest.json
-          cat .kpi/latest.json
-
-      - name: Run Revenue E2E Smoke
-        env:
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-        run: npm run e2e:revenue
+          node scripts/revenue-monitoring.cjs > .kpi/revenue-monitor.log
+          node scripts/monitor-ga4-revenue.cjs > .kpi/ga4-monitor.log
+          {
+            echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "source=main-workflow"
+          } > .kpi/latest.txt
 
       - name: Upload KPI artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kpi-snapshot
-          path: rinawarp-terminal-pro/.kpi/*.json
+          path: .kpi/*
