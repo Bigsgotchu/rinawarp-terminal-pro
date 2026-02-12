@@ -1,0 +1,56 @@
+{
+	"name": "@rinawarp/core",
+	"version": "1.0.0",
+	"description": "RinaWarp enforcement spine - ToolRegistry, LicensePolicy, ExecutionEngine, and presentation lens",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./enforcement/index.js": {
+			"import": "./dist/enforcement/index.js",
+			"types": "./dist/enforcement/index.d.ts"
+		},
+		"./enforcement/types.js": {
+			"import": "./dist/enforcement/types.js",
+			"types": "./dist/enforcement/types.d.ts"
+		},
+		"./enforcement/engine-cap.js": {
+			"import": "./dist/enforcement/engine-cap.js",
+			"types": "./dist/enforcement/engine-cap.d.ts"
+		},
+		"./presentation/lens.js": {
+			"import": "./dist/presentation/lens.js",
+			"types": "./dist/presentation/lens.d.ts"
+		},
+		"./tools/registry.js": {
+			"import": "./dist/tools/registry.js",
+			"types": "./dist/tools/registry.d.ts"
+		},
+		"./adapters/unify-execution.js": {
+			"import": "./dist/adapters/unify-execution.js",
+			"types": "./dist/adapters/unify-execution.d.ts"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"test": "node --test",
+		"test:never-do": "tsx --test test/never-do.test.ts",
+		"ci:guard": "bash scripts/ci-guard.sh",
+		"ci:all": "npm run build && npm run test:never-do && npm run ci:guard"
+	},
+	"keywords": [
+		"rinawarp",
+		"tool-registry",
+		"execution-engine",
+		"license-policy",
+		"safety"
+	],
+	"license": "MIT",
+	"devDependencies": {
+		"tsx": "^4.21.0"
+	}
+}

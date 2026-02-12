@@ -1,7 +1,7 @@
 # Secrets and sensitive files
 **/*.secrets
 **/.env*
-!**/.env.example
+ !**/.env.example
 **/.wf_secrets
 **/wrangler/state/
 **/.wrangler/state/
@@ -35,3 +35,15 @@ npm-debug.log*
 
 # Miniflare/CF state
 .miniflare/
+
+# ============================================================
+# KiloCode Security Protection
+# ============================================================
+# Prevent CI bypass attacks by excluding .kilocode from version control
+.kilocode/
+.kilocode/**/
+**/.kilocode/
+**/.kilocode/**/
+
+# Also exclude node_modules in .kilocode directories
+.kilocode/**/node_modules/

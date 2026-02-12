@@ -1,0 +1,35 @@
+{
+  "name": "@rinawarp/agent",
+  "version": "1.0.0",
+  "description": "Agent runtime and skills for RinaWarp",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./skills/hot-computer": {
+      "types": "./dist/skills/hot-computer.d.ts",
+      "import": "./dist/skills/hot-computer.js"
+    },
+    "./skills/*": {
+      "types": "./dist/skills/*.d.ts",
+      "import": "./dist/skills/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["rinawarp", "agent", "skills", "runtime"],
+  "license": "MIT",
+  "dependencies": {
+    "@rinawarp/safety": "*",
+    "@rinawarp/tools": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

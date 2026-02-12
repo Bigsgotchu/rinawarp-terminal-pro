@@ -18,8 +18,12 @@ jobs:
       - name: Verify _redirects exists in Pages output
         run: |
           set -euo pipefail
-          PAGES_OUT="apps/marketing-web"
+          PAGES_OUT="rinawarptech-website/web"
           test -f "${PAGES_OUT}/_redirects" || (echo "❌ Missing ${PAGES_OUT}/_redirects (Cloudflare Pages will not apply redirects)" && exit 1)
           echo "✅ Found ${PAGES_OUT}/_redirects"
           echo "---"
           sed -n '1,120p' "${PAGES_OUT}/_redirects"
+
+      - name: Guard Rina contract docs
+        run: |
+          bash scripts/ci-contract-guard.sh

@@ -1,0 +1,20 @@
+{
+  "name": "@rinawarp/safety",
+  "version": "1.0.0",
+  "description": "Risk classification and safety policy for RinaWarp agent",
+  "main": "dist/policy.js",
+  "types": "dist/policy.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/policy.d.ts",
+      "import": "./dist/policy.js",
+      "require": "./dist/policy.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["rinawarp", "safety", "risk", "agent"],
+  "license": "MIT"
+}

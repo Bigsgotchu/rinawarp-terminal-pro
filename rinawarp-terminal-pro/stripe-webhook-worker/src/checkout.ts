@@ -80,7 +80,7 @@ export async function handleCheckout(request: Request, env: Env): Promise<Respon
   }
 
   // Initialize Stripe
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" as any });
 
   // Determine mode: subscription vs one-time payment
   const mode: Stripe.Checkout.SessionCreateParams.Mode = SUBSCRIPTION_PRICES.has(price_id)

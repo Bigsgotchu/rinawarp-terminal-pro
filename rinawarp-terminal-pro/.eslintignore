@@ -1,0 +1,10 @@
+# ============================================================
+# KiloCode Security Protection
+# ============================================================
+# Exclude .kilocode from linting to prevent bypass attempts
+.kilocode/
+.kilocode/**/
+
+# Standard exclusions
+node_modules/
+**/node_modules/
