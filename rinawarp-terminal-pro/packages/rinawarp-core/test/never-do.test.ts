@@ -77,6 +77,7 @@ function step(input: PlanStep): PlanStep {
 	const safety = safetyByTool[input.tool] ?? { risk_level: "low", requires_confirmation: false };
 	return {
 		...input,
+		description: input.description ?? `Execute ${input.tool}`,
 		risk_level: safety.risk_level,
 		requires_confirmation: safety.requires_confirmation,
 		verification_plan: input.verification_plan ?? { steps: [] },

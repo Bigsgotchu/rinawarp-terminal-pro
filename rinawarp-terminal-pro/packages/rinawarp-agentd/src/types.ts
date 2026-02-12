@@ -6,6 +6,7 @@ export type RiskLevel = "low" | "medium" | "high";
 export type PlanStep = {
   stepId: string;
   tool: "terminal.write";
+  description: string;
   input: {
     command: string;
     cwd?: string;

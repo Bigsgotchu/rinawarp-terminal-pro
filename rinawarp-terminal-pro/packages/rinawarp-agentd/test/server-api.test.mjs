@@ -98,6 +98,7 @@ test("POST /v1/execute-plan accepts valid step contract", async () => {
 			plan: [
 				{
 					stepId: "ok-1",
+					description: "Echo success",
 					tool: "terminal.write",
 					input: { command: "echo ok" },
 					risk: "inspect",
@@ -131,6 +132,7 @@ test("POST /v1/execute-plan rejects invalid x-rinawarp-license", async () => {
 			plan: [
 				{
 					stepId: "ok-2",
+					description: "Echo success",
 					tool: "terminal.write",
 					input: { command: "echo ok" },
 					risk: "inspect",
@@ -165,6 +167,7 @@ test("POST /v1/execute-plan requires signed entitlement token in production", as
 			plan: [
 				{
 					stepId: "prod-missing-token",
+					description: "Echo failure case",
 					tool: "terminal.write",
 					input: { command: "echo nope" },
 					risk: "inspect",
@@ -208,6 +211,7 @@ test("POST /v1/execute-plan accepts valid signed entitlement token in production
 			plan: [
 				{
 					stepId: "prod-token-ok",
+					description: "Echo success",
 					tool: "terminal.write",
 					input: { command: "echo ok" },
 					risk: "inspect",

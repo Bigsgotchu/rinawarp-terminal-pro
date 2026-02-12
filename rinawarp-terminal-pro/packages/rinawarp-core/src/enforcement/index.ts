@@ -259,6 +259,10 @@ function validateSafetyFields(step: PlanStep, tool: Tool): string[] {
 	const expectedRiskLevel = getExpectedRiskLevel(tool.category);
 	const expectedRequiresConfirmation = ConfirmationPolicy.needsExplicitConfirmation(tool);
 
+	if (!step.description || step.description.trim().length === 0) {
+		errors.push("description is required");
+	}
+
 	if (!step.risk_level) {
 		errors.push("risk_level is required");
 	} else if (!allowedRiskLevels.has(step.risk_level)) {
