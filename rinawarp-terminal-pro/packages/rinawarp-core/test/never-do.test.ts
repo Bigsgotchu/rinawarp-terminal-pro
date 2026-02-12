@@ -219,6 +219,47 @@ test("step audit should include redacted sensitive inputs", async () => {
 	});
 });
 
+test("emergency read-only mode blocks non-read tools", async () => {
+	process.env.RINAWARP_EMERGENCY_READ_ONLY = "1";
+	try {
+		const engine = makeEngine();
+		const report = await engine.execute([step({ tool: "format.run", input: {} })], { projectRoot: ".", license: "starter" });
+		assert.equal(report.ok, false);
+		assert.equal(report.haltedBecause, "permission_denied");
+		assert.match(report.steps[0].result.success ? "" : report.steps[0].result.error, /read-only/i);
+	} finally {
+		delete process.env.RINAWARP_EMERGENCY_READ_ONLY;
+	}
+});
+
+test("emergency high-impact block denies deploy.prod even for pro", async () => {
+	process.env.RINAWARP_DISABLE_HIGH_IMPACT = "1";
+	try {
+		const engine = makeEngine();
+		const report = await engine.execute([step({ tool: "deploy.prod", input: { target: "prod" }, confirmationScope: "deploy prod" })], {
+			projectRoot: ".",
+			license: "pro",
+			confirmationToken: { kind: "explicit", approved: true, scope: "deploy prod" },
+		});
+		assert.equal(report.ok, false);
+		assert.equal(report.haltedBecause, "permission_denied");
+	} finally {
+		delete process.env.RINAWARP_DISABLE_HIGH_IMPACT;
+	}
+});
+
+test("emergency tool block list disables specific tools", async () => {
+	process.env.RINAWARP_BLOCK_TOOLS = "logs.read,verify.health";
+	try {
+		const engine = makeEngine();
+		const report = await engine.execute([step({ tool: "logs.read", input: { msg: "test" } })], { projectRoot: ".", license: "starter" });
+		assert.equal(report.ok, false);
+		assert.equal(report.haltedBecause, "tool_unavailable");
+	} finally {
+		delete process.env.RINAWARP_BLOCK_TOOLS;
+	}
+});
+
 // ToolRegistry tests
 test("ToolRegistry: duplicate registration throws", () => {
 	const reg = new ToolRegistry();

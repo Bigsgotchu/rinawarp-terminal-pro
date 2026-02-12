@@ -15,6 +15,7 @@
     "smoke:pages": "bash scripts/smoke-pages.sh",
     "test:lockdown": "node scripts/no-bypass.mjs",
     "verify:site": "node scripts/verify-pages-routes.mjs rinawarptech-website/web",
+    "verify:downloads": "node scripts/verify-download-links.mjs",
     "smoke:web": "bash scripts/smoke-web.sh",
     "pretest": "npm run test:lockdown && npm run guard:contracts",
     "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'",

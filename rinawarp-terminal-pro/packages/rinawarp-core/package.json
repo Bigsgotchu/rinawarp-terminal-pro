@@ -39,8 +39,9 @@
 		"build": "tsc",
 		"test": "node --test",
 		"test:never-do": "tsx --test test/never-do.test.ts",
+		"test:scenarios": "tsx --test test/scenarios.test.ts",
 		"ci:guard": "bash scripts/ci-guard.sh",
-		"ci:all": "npm run build && npm run test:never-do && npm run ci:guard"
+		"ci:all": "npm run build && npm run test:never-do && npm run test:scenarios && npm run ci:guard"
 	},
 	"keywords": [
 		"rinawarp",

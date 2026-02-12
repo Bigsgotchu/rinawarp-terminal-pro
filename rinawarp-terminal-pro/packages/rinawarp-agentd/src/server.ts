@@ -4,6 +4,8 @@
 import http from "node:http";
 import { randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { ExecutionEngine } from "@rinawarp/core/enforcement/index.js";
 import { createStandardRegistry } from "@rinawarp/core/tools/registry.js";
 import { executeViaEngine } from "@rinawarp/core/adapters/unify-execution.js";
@@ -114,6 +116,19 @@ function makePlan(intentText: string, projectRoot: string): AgentPlan {
 // --- runtime state
 const runningStreams = new Map<string, { cancelled: boolean }>();
 const runningPlans = new Map<string, { cancelled: boolean; currentStreamId?: string }>();
+const completedReports = new Map<string, unknown>();
+const metrics = {
+  runs_total: 0,
+  runs_completed: 0,
+  runs_failed: 0,
+  runs_cancelled: 0,
+  interventions_total: 0,
+  confirmation_denied_total: 0,
+  failure_classes: {} as Record<string, number>,
+  duration_ms_total: 0,
+  unblock_runs: 0,
+  unblock_duration_ms_total: 0
+};
 
 async function readJson(req: http.IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -127,6 +142,27 @@ function sendJson(res: http.ServerResponse, status: number, body: unknown) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(body));
+}
+
+async function persistRunReport(projectRoot: string, planRunId: string, report: unknown): Promise<string> {
+  const reportDir = path.join(projectRoot, ".rinawarp", "reports");
+  await mkdir(reportDir, { recursive: true });
+  const reportPath = path.join(reportDir, `${planRunId}.json`);
+  await writeFile(reportPath, JSON.stringify(report, null, 2), "utf8");
+  return reportPath;
+}
+
+async function appendMetricEvent(projectRoot: string, event: Record<string, unknown>): Promise<void> {
+  const metricDir = path.join(projectRoot, ".rinawarp", "metrics");
+  await mkdir(metricDir, { recursive: true });
+  const file = path.join(metricDir, "events.ndjson");
+  const line = `${JSON.stringify({ ts: Date.now(), ...event })}\n`;
+  await writeFile(file, line, { encoding: "utf8", flag: "a" });
+}
+
+function incFailureClass(name: string | undefined): void {
+  if (!name) return;
+  metrics.failure_classes[name] = (metrics.failure_classes[name] ?? 0) + 1;
 }
 
 export function createServer(opts: { port: number }) {
@@ -199,6 +235,8 @@ export function createServer(opts: { port: number }) {
 
         const planRunId = randomUUID();
         runningPlans.set(planRunId, { cancelled: false });
+        const runStartedAt = Date.now();
+        metrics.runs_total += 1;
 
         // respond immediately (client can open /v1/stream?planRunId=...)
         sendJson(res, 200, { ok: true, planRunId });
@@ -213,13 +251,34 @@ export function createServer(opts: { port: number }) {
         };
 
         sse("plan_run_start", { planRunId, license });
+        const stepReports: Array<{ stepId: string; report: ExecutionReport }> = [];
+        let runSuccessful = true;
+        let devFixerSignal = false;
 
         for (const step of body.plan) {
           if (planState.cancelled) break;
+          if (
+            /build|fix|deps|unblock/i.test(step.stepId ?? "") ||
+            /build|fix|dependency|unblock/i.test(step.description ?? "")
+          ) {
+            devFixerSignal = true;
+          }
+
+          if (step.requires_confirmation) {
+            metrics.interventions_total += 1;
+          }
 
           // confirmation gate if needed
           if (step.requires_confirmation) {
             if (!body.confirmed || body.confirmationText !== "YES") {
+              metrics.confirmation_denied_total += 1;
+              runSuccessful = false;
+              await appendMetricEvent(projectRoot, {
+                type: "confirmation_denied",
+                planRunId,
+                stepId: step.stepId,
+                tool: step.tool
+              });
               sse("plan_halt", { planRunId, reason: "confirmation_required" });
               break;
             }
@@ -273,6 +332,17 @@ export function createServer(opts: { port: number }) {
           const last = report.steps.at(-1)?.result;
           const ok = report.ok && (last?.success ?? false);
           const lastError = last && !last.success ? last.error : undefined;
+          stepReports.push({ stepId: step.stepId, report });
+          if (!ok) {
+            runSuccessful = false;
+            incFailureClass(report.haltedBecause);
+            await appendMetricEvent(projectRoot, {
+              type: "step_failure",
+              planRunId,
+              stepId: step.stepId,
+              haltedBecause: report.haltedBecause ?? "unknown"
+            });
+          }
 
           sse("plan_step_end", {
             planRunId,
@@ -291,6 +361,42 @@ export function createServer(opts: { port: number }) {
         }
 
         const cancelled = runningPlans.get(planRunId)?.cancelled ?? false;
+        const runEndedAt = Date.now();
+        const runDurationMs = runEndedAt - runStartedAt;
+        metrics.duration_ms_total += runDurationMs;
+        if (cancelled) metrics.runs_cancelled += 1;
+        else if (runSuccessful) metrics.runs_completed += 1;
+        else metrics.runs_failed += 1;
+        if (!cancelled && runSuccessful && devFixerSignal) {
+          metrics.unblock_runs += 1;
+          metrics.unblock_duration_ms_total += runDurationMs;
+        }
+
+        const finalReport = {
+          planRunId,
+          projectRoot,
+          license,
+          cancelled,
+          startedAt: runStartedAt,
+          finishedAt: runEndedAt,
+          durationMs: runEndedAt - runStartedAt,
+          steps: stepReports
+        };
+        completedReports.set(planRunId, finalReport);
+        await appendMetricEvent(projectRoot, {
+          type: "run_end",
+          planRunId,
+          cancelled,
+          ok: runSuccessful && !cancelled,
+          durationMs: runEndedAt - runStartedAt,
+          license
+        });
+        try {
+          const reportPath = await persistRunReport(projectRoot, planRunId, finalReport);
+          sse("plan_report", { planRunId, reportPath });
+        } catch (err: any) {
+          sse("plan_report_error", { planRunId, error: err?.message ?? "failed to persist report" });
+        }
         sse("plan_run_end", { planRunId, cancelled });
 
         // close SSE if open
@@ -299,6 +405,32 @@ export function createServer(opts: { port: number }) {
 
         runningPlans.delete(planRunId);
         return;
+      }
+
+      // --- GET MACHINE REPORT
+      if (req.method === "GET" && url.pathname === "/v1/report") {
+        const planRunId = url.searchParams.get("planRunId");
+        if (!planRunId) return sendJson(res, 400, { ok: false, error: "planRunId required" });
+        const report = completedReports.get(planRunId);
+        if (!report) return sendJson(res, 404, { ok: false, error: "report not found" });
+        return sendJson(res, 200, { ok: true, report });
+      }
+
+      // --- METRICS SUMMARY
+      if (req.method === "GET" && url.pathname === "/v1/metrics") {
+        const completedOrFailed = metrics.runs_completed + metrics.runs_failed;
+        const completionRate = completedOrFailed === 0 ? 0 : metrics.runs_completed / completedOrFailed;
+        const avgDurationMs = metrics.runs_total === 0 ? 0 : Math.round(metrics.duration_ms_total / metrics.runs_total);
+        const mttrUnblockMs = metrics.unblock_runs === 0 ? 0 : Math.round(metrics.unblock_duration_ms_total / metrics.unblock_runs);
+        return sendJson(res, 200, {
+          ok: true,
+          metrics: {
+            ...metrics,
+            completion_rate: completionRate,
+            avg_duration_ms: avgDurationMs,
+            mttr_unblock_ms: mttrUnblockMs
+          }
+        });
       }
 
       // --- CANCEL (plan or stream)

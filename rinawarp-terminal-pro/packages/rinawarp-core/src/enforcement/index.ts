@@ -160,6 +160,22 @@ export class ExecutionEngine {
 				break;
 			}
 
+			// 2.5. Emergency controls
+			const emergencyBlock = getEmergencyBlockReason(tool);
+			if (emergencyBlock) {
+				report.ok = false;
+				report.haltedBecause = emergencyBlock.haltedBecause;
+				report.steps.push({
+					step,
+					startedAt: Date.now(),
+					finishedAt: Date.now(),
+					result: { success: false, error: emergencyBlock.error },
+					failure_class: emergencyBlock.failureClass,
+					audit: buildAudit(step),
+				});
+				break;
+			}
+
 			// 3. License gating
 			if (!LicensePolicy.canUseTool(ctx.license, tool)) {
 				report.ok = false;
@@ -340,6 +356,40 @@ function isSensitiveKey(key: string): boolean {
 		k.includes("api_key") ||
 		k === "authorization"
 	);
+}
+
+function getEmergencyBlockReason(
+	tool: Tool,
+): { haltedBecause: FailureClass; failureClass: FailureClass; error: string } | undefined {
+	const readOnlyMode = process.env.RINAWARP_EMERGENCY_READ_ONLY === "1";
+	const disableHighImpact = process.env.RINAWARP_DISABLE_HIGH_IMPACT === "1";
+	const disabledToolList = (process.env.RINAWARP_BLOCK_TOOLS ?? "")
+		.split(",")
+		.map((x) => x.trim())
+		.filter(Boolean);
+
+	if (readOnlyMode && tool.category !== "read") {
+		return {
+			haltedBecause: "permission_denied",
+			failureClass: "permission_denied",
+			error: `Emergency read-only mode blocks tool: ${tool.name}`,
+		};
+	}
+	if (disableHighImpact && tool.category === "high-impact") {
+		return {
+			haltedBecause: "permission_denied",
+			failureClass: "permission_denied",
+			error: `Emergency high-impact block enabled for tool: ${tool.name}`,
+		};
+	}
+	if (disabledToolList.includes(tool.name)) {
+		return {
+			haltedBecause: "tool_unavailable",
+			failureClass: "tool_unavailable",
+			error: `Tool blocked by emergency policy: ${tool.name}`,
+		};
+	}
+	return undefined;
 }
 
 function validateSafetyFields(step: PlanStep, tool: Tool): string[] {
