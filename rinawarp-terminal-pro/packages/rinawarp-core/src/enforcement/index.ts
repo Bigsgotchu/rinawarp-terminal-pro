@@ -15,7 +15,17 @@ export * from "./types.js";
 export * from "./engine-cap.js";
 
 import { createEngineCap, type EngineCap } from "./engine-cap.js";
-import type { Tool, ToolCategory, LicenseTier, ConfirmationToken, PlanStep, ExecutionReport, ExecutionContext, ToolResult } from "./types.js";
+import type {
+	Tool,
+	ToolCategory,
+	LicenseTier,
+	ConfirmationToken,
+	PlanStep,
+	ExecutionReport,
+	ExecutionContext,
+	ToolResult,
+	FailureClass,
+} from "./types.js";
 
 /**
  * ToolRegistry: single authoritative allowlist for all tools.
@@ -144,6 +154,8 @@ export class ExecutionEngine {
 					startedAt: Date.now(),
 					finishedAt: Date.now(),
 					result: { success: false, error: `Unknown tool: ${step.tool}` },
+					failure_class: "tool_unavailable",
+					audit: buildAudit(step),
 				});
 				break;
 			}
@@ -157,6 +169,8 @@ export class ExecutionEngine {
 					startedAt: Date.now(),
 					finishedAt: Date.now(),
 					result: { success: false, error: `Blocked by license (${ctx.license}): ${tool.name}` },
+					failure_class: "command_error",
+					audit: buildAudit(step),
 				});
 				break;
 			}
@@ -171,6 +185,8 @@ export class ExecutionEngine {
 					startedAt: Date.now(),
 					finishedAt: Date.now(),
 					result: { success: false, error: `Invalid step safety fields: ${safetyErrors.join("; ")}` },
+					failure_class: "command_error",
+					audit: buildAudit(step),
 				});
 				break;
 			}
@@ -181,14 +197,16 @@ export class ExecutionEngine {
 				if (!ok) {
 					report.ok = false;
 					report.haltedBecause = "confirmation_required";
-					report.steps.push({
-						step,
-						startedAt: Date.now(),
-						finishedAt: Date.now(),
-						result: { success: false, error: `Explicit confirmation required: ${tool.name}` },
-					});
-					break;
-				}
+				report.steps.push({
+					step,
+					startedAt: Date.now(),
+					finishedAt: Date.now(),
+					result: { success: false, error: `Explicit confirmation required: ${tool.name}` },
+					failure_class: "command_error",
+					audit: buildAudit(step),
+				});
+				break;
+			}
 			}
 
 			// 6. Tool execution
@@ -206,11 +224,19 @@ export class ExecutionEngine {
 					startedAt,
 					finishedAt,
 					result: { success: false, error: "Tool claimed success without surfaced output" },
+					failure_class: "command_error",
+					audit: buildAudit(step),
 				});
 				break;
 			}
 
-			const entry: ExecutionReport["steps"][number] = { step, startedAt, finishedAt, result };
+			const entry: ExecutionReport["steps"][number] = {
+				step,
+				startedAt,
+				finishedAt,
+				result,
+				audit: buildAudit(step),
+			};
 
 			// 8. Verification enforcement
 			const verificationSteps = step.verification_plan?.steps ?? step.verify ?? [];
@@ -232,6 +258,7 @@ export class ExecutionEngine {
 					entry.verification.push({ tool: v.tool, result: vres });
 
 					if (!vres.success) {
+						entry.failure_class = classifyFailure(vres.error);
 						report.ok = false;
 						report.haltedBecause = "verification_failed";
 						break;
@@ -244,13 +271,75 @@ export class ExecutionEngine {
 			// Early exit on failure
 			if (!report.ok) break;
 			if (!result.success) {
+				const failureClass = classifyFailure(result.error);
+				entry.failure_class = failureClass;
 				report.ok = false;
+				report.haltedBecause = failureClass;
 				break;
 			}
 		}
 
 		return report;
 	}
+}
+
+function buildAudit(step: PlanStep): ExecutionReport["steps"][number]["audit"] {
+	return {
+		tool: step.tool,
+		input_redacted: redactInput(step.input),
+		risk_level: step.risk_level,
+		requires_confirmation: step.requires_confirmation,
+	};
+}
+
+function classifyFailure(error: string): FailureClass {
+	const msg = error.toLowerCase();
+	if (msg.includes("permission denied") || msg.includes("eacces") || msg.includes("eperm")) {
+		return "permission_denied";
+	}
+	if (
+		msg.includes("not found") ||
+		msg.includes("unknown tool") ||
+		msg.includes("unavailable") ||
+		msg.includes("enoent")
+	) {
+		return "tool_unavailable";
+	}
+	if (msg.includes("timeout") || msg.includes("timed out")) {
+		return "timeout";
+	}
+	if (msg.includes("partial")) {
+		return "partial_execution";
+	}
+	return "command_error";
+}
+
+function redactInput(input: unknown): unknown {
+	if (input === null || input === undefined) return input;
+	if (Array.isArray(input)) return input.map(redactInput);
+	if (typeof input !== "object") return input;
+	const obj = input as Record<string, unknown>;
+	const out: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(obj)) {
+		if (isSensitiveKey(key)) {
+			out[key] = "[REDACTED]";
+			continue;
+		}
+		out[key] = redactInput(value);
+	}
+	return out;
+}
+
+function isSensitiveKey(key: string): boolean {
+	const k = key.toLowerCase();
+	return (
+		k.includes("token") ||
+		k.includes("secret") ||
+		k.includes("password") ||
+		k.includes("passwd") ||
+		k.includes("api_key") ||
+		k === "authorization"
+	);
 }
 
 function validateSafetyFields(step: PlanStep, tool: Tool): string[] {

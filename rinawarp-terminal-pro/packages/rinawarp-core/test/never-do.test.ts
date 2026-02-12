@@ -52,6 +52,20 @@ class VerifyFailTool implements Tool<{ target: string }> {
 	async run(input: { target: string }) { return { success: false, error: `HEALTH_BAD:${input.target}`, output: `HEALTH_BAD:${input.target}` }; }
 }
 
+class PermissionFailTool implements Tool {
+	name = "fs.protected_write";
+	category: ToolCategory = "safe-write";
+	requiresConfirmation = false;
+	async run() { return { success: false, error: "EACCES: permission denied" }; }
+}
+
+class TimeoutFailTool implements Tool {
+	name = "build.timeout";
+	category: ToolCategory = "safe-write";
+	requiresConfirmation = false;
+	async run() { return { success: false, error: "command timed out after 60000ms" }; }
+}
+
 function makeRegistry(): ToolRegistry {
 	const reg = new ToolRegistry();
 	reg.register(new ReadTool());
@@ -59,6 +73,8 @@ function makeRegistry(): ToolRegistry {
 	reg.register(new DeployTool());
 	reg.register(new BadSilentSuccessTool());
 	reg.register(new VerifyFailTool());
+	reg.register(new PermissionFailTool());
+	reg.register(new TimeoutFailTool());
 	return reg;
 }
 
@@ -71,6 +87,8 @@ function step(input: PlanStep): PlanStep {
 		"logs.read": { risk_level: "low", requires_confirmation: false },
 		"verify.health": { risk_level: "low", requires_confirmation: false },
 		"format.run": { risk_level: "medium", requires_confirmation: false },
+		"fs.protected_write": { risk_level: "medium", requires_confirmation: false },
+		"build.timeout": { risk_level: "medium", requires_confirmation: false },
 		"fs.delete": { risk_level: "high", requires_confirmation: true },
 		"deploy.prod": { risk_level: "high", requires_confirmation: true },
 	};
@@ -167,6 +185,38 @@ test("missing safety fields must be rejected before execution", async () => {
 	const report = await engine.execute([{ tool: "logs.read", input: { msg: "test" } }], { projectRoot: ".", license: "starter" });
 	assert.equal(report.ok, false);
 	assert.equal(report.haltedBecause, "invalid_plan");
+});
+
+test("failed step should map permission errors to permission_denied", async () => {
+	const engine = makeEngine();
+	const report = await engine.execute([step({ tool: "fs.protected_write", input: {} })], { projectRoot: ".", license: "starter" });
+	assert.equal(report.ok, false);
+	assert.equal(report.haltedBecause, "permission_denied");
+	assert.equal(report.steps[0].failure_class, "permission_denied");
+});
+
+test("failed step should map timeout errors to timeout", async () => {
+	const engine = makeEngine();
+	const report = await engine.execute([step({ tool: "build.timeout", input: {} })], { projectRoot: ".", license: "starter" });
+	assert.equal(report.ok, false);
+	assert.equal(report.haltedBecause, "timeout");
+	assert.equal(report.steps[0].failure_class, "timeout");
+});
+
+test("step audit should include redacted sensitive inputs", async () => {
+	const engine = makeEngine();
+	const report = await engine.execute([
+		step({
+			tool: "logs.read",
+			input: { msg: "hello", token: "abc", nested: { password: "p1", keep: "ok" } },
+		}),
+	], { projectRoot: ".", license: "starter" });
+	assert.equal(report.ok, true);
+	assert.deepEqual(report.steps[0].audit.input_redacted, {
+		msg: "hello",
+		token: "[REDACTED]",
+		nested: { password: "[REDACTED]", keep: "ok" },
+	});
 });
 
 // ToolRegistry tests
