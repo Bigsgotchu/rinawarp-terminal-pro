@@ -24,7 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           for p in / /download/ /login/ /signup/ /account/ /qzje/; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "https://www.rinawarptech.com${p}")
+            code=$(curl -s -L -o /dev/null -w "%{http_code}" "https://www.rinawarptech.com${p}")
             echo "${p} -> ${code}"
             test "${code}" = "200"
           done
