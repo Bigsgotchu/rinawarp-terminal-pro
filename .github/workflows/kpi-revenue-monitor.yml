@@ -12,32 +12,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install deps
-        run: npm install --no-audit --no-fund
-
-      - name: Route smoke check
-        run: |
-          set -euo pipefail
-          for p in / /download/ /login/ /signup/ /account/ /qzje/; do
-            code=$(curl -s -L -o /dev/null -w "%{http_code}" "https://www.rinawarptech.com${p}")
-            echo "${p} -> ${code}"
-            test "${code}" = "200"
-          done
-
-      - name: Revenue/KPI snapshot
+      - name: Route smoke + KPI snapshot
         run: |
           set -euo pipefail
           mkdir -p .kpi
-          node scripts/revenue-monitoring.cjs > .kpi/revenue-monitor.log
-          node scripts/monitor-ga4-revenue.cjs > .kpi/ga4-monitor.log
+
           {
             echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "source=main-workflow"
+            for p in / /download/ /login/ /signup/ /account/ /qzje/; do
+              code=$(curl -s -L -o /dev/null -w "%{http_code}" "https://www.rinawarptech.com${p}")
+              echo "route:${p}=${code}"
+              test "${code}" = "200"
+            done
           } > .kpi/latest.txt
 
       - name: Upload KPI artifacts
