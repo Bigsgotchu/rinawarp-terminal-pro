@@ -1,0 +1,34 @@
+name: KPI Revenue Monitor
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Route smoke + KPI snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p .kpi
+
+          {
+            echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "source=main-workflow"
+            for p in / /download/ /login/ /signup/ /account/ /qzje/; do
+              code=$(curl -s -L -o /dev/null -w "%{http_code}" "https://www.rinawarptech.com${p}")
+              echo "route:${p}=${code}"
+              test "${code}" = "200"
+            done
+          } > .kpi/latest.txt
+
+      - name: Upload KPI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpi-snapshot
+          path: .kpi/*
