@@ -40,6 +40,9 @@ function validatePlanStep(step: PlanStep, index: number): string[] {
   if (!step.stepId?.trim()) {
     errors.push(`${prefix}.stepId is required`);
   }
+  if (!step.description?.trim()) {
+    errors.push(`${prefix}.description is required`);
+  }
   if (step.tool !== "terminal.write") {
     errors.push(`${prefix}.tool must be terminal.write`);
   }
@@ -79,6 +82,7 @@ function makePlan(intentText: string, projectRoot: string): AgentPlan {
   const steps: PlanStep[] = [
     {
       stepId: "inspect:git",
+      description: "Inspect git working tree state",
       tool: "terminal.write",
       input: { command: "git status", cwd: projectRoot, timeoutMs: 60_000, stepId: "inspect:git" },
       risk: "inspect",
@@ -88,6 +92,7 @@ function makePlan(intentText: string, projectRoot: string): AgentPlan {
     },
     {
       stepId: "build",
+      description: "Run project build command",
       tool: "terminal.write",
       input: { command: "npm -v && npm run build", cwd: projectRoot, timeoutMs: 60_000, stepId: "build" },
       risk: "safe-write",
@@ -239,6 +244,7 @@ export function createServer(opts: { port: number }) {
                   cwd: step.input.cwd ?? projectRoot,
                   stepId: step.stepId
                 },
+                description: step.description,
                 stepId: step.stepId,
                 ...(step.confirmationScope ? { confirmationScope: step.confirmationScope } : {})
               }

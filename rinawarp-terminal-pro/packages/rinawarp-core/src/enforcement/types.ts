@@ -34,6 +34,7 @@ export interface ConfirmationToken {
 export interface PlanStep {
 	tool: string;
 	input: unknown;
+	description?: string;
 	stepId?: string;
 	risk_level?: "low" | "medium" | "high";
 	requires_confirmation?: boolean;
