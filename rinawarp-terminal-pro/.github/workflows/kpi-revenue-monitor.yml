@@ -1,0 +1,42 @@
+name: KPI Revenue Monitor
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run KPI snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p .kpi
+          OUT=".kpi/kpi-$(date -u +%Y%m%dT%H%M%SZ).json" npm run kpi:snapshot
+          cp .kpi/kpi-*.json .kpi/latest.json
+          cat .kpi/latest.json
+
+      - name: Run Revenue E2E Smoke
+        run: npm run e2e:revenue
+
+      - name: Upload KPI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpi-revenue-snapshot
+          path: .kpi/
+          if-no-files-found: error

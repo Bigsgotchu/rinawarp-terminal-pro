@@ -21,6 +21,8 @@
     "pretest": "npm run test:lockdown && npm run guard:contracts && npm run verify:branding",
     "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'",
     "smoke:prod": "bash scripts/smoke-prod.sh https://www.rinawarptech.com",
+    "e2e:revenue": "bash scripts/e2e-revenue-smoke.sh https://www.rinawarptech.com https://api.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
+    "kpi:snapshot": "bash scripts/kpi-snapshot.sh https://www.rinawarptech.com https://api.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
     "audit:prod": "bash scripts/audit-site.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt",
     "audit:compare": "bash scripts/audit-prod.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev",
     "smoke:stripe": "bash scripts/smoke-stripe.sh https://api.rinawarptech.com https://www.rinawarptech.com",
