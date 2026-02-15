@@ -4,6 +4,7 @@ export interface Env {
   INSTALLERS: any;
   DOWNLOAD_TOKEN_EXPIRY_HOURS: string;
   RATE_LIMIT: KVNamespace;
+  RELEASE_VERSION?: string;
 }
 
 // Rate limiting helper
@@ -26,7 +27,11 @@ async function rateLimit(
   if (current >= limit) {
     return new Response(JSON.stringify({ ok: false, error: "rate_limited" }), {
       status: 429,
-      headers: { "content-type": "application/json", "retry-after": String(windowSec) },
+      headers: {
+        "content-type": "application/json",
+        "retry-after": String(windowSec),
+        ...getCorsHeaders(request),
+      },
     });
   }
 
@@ -144,27 +149,27 @@ async function authorizeDownload(request: Request, env: Env): Promise<Response |
   return null;
 }
 
-function getInstallerName(filename: string): string {
+function getInstallerName(filename: string, releaseVersion: string): string {
   if (filename.includes("macOS") || filename.includes("mac")) {
-    return `RinaWarp-Terminal-Pro-1.0.0-macOS.zip`;
+    return `RinaWarp-Terminal-Pro-${releaseVersion}-macOS.zip`;
   }
   if (filename.includes("win32") || filename.includes("Windows")) {
-    return `RinaWarp-Terminal-Pro-1.0.0-win32.zip`;
+    return `RinaWarp-Terminal-Pro-${releaseVersion}-win32.zip`;
   }
   if (filename.endsWith(".dmg")) {
-    return `RinaWarp-Terminal-Pro-1.0.0.dmg`;
+    return `RinaWarp-Terminal-Pro-${releaseVersion}.dmg`;
   }
   if (filename.endsWith(".exe")) {
-    return `RinaWarp-Terminal-Pro-1.0.0.exe`;
+    return `RinaWarp-Terminal-Pro-${releaseVersion}.exe`;
   }
   if (filename.endsWith(".AppImage")) {
-    return `RinaWarp-Terminal-Pro-1.0.0.AppImage`;
+    return `RinaWarp-Terminal-Pro-${releaseVersion}.AppImage`;
   }
   if (filename.endsWith(".deb") || filename.includes("amd64")) {
-    return `RinaWarp-Terminal-Pro-1.0.0.amd64.deb`;
+    return `RinaWarp-Terminal-Pro-${releaseVersion}.amd64.deb`;
   }
   if (filename.endsWith(".rpm") || filename.includes("x86_64")) {
-    return `RinaWarp-Terminal-Pro-1.0.0.x86_64.rpm`;
+    return `RinaWarp-Terminal-Pro-${releaseVersion}.x86_64.rpm`;
   }
   return filename;
 }
@@ -227,7 +232,8 @@ export default {
       const authResp = await authorizeDownload(request, env);
       if (authResp) return authResp;
 
-      const objectKey = getInstallerName(filename);
+      const releaseVersion = env.RELEASE_VERSION || "1.0.1";
+      const objectKey = getInstallerName(filename, releaseVersion);
 
       try {
         const object = await env.INSTALLERS.get(objectKey);
@@ -258,7 +264,7 @@ export default {
       if (!customerId) {
         return new Response(JSON.stringify({ ok: false, error: "missing_customer_id" }), {
           status: 400,
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", ...getCorsHeaders(request) },
         });
       }
 
@@ -266,7 +272,7 @@ export default {
       if (!/^cus_[a-zA-Z0-9]+$/.test(customerId)) {
         return new Response(JSON.stringify({ ok: false, error: "invalid_customer_id_format" }), {
           status: 400,
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", ...getCorsHeaders(request) },
         });
       }
 
@@ -282,7 +288,7 @@ export default {
         if (!ent || ent.status !== "active") {
           return new Response(JSON.stringify({ ok: false, error: "not_entitled" }), {
             status: 403,
-            headers: { "content-type": "application/json" },
+            headers: { "content-type": "application/json", ...getCorsHeaders(request) },
           });
         }
 
@@ -317,14 +323,14 @@ export default {
         console.error("Token generation error:", err);
         return new Response(JSON.stringify({ ok: false, error: "server_error" }), {
           status: 500,
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", ...getCorsHeaders(request) },
         });
       }
     }
 
     return new Response(JSON.stringify({ ok: false, error: "not_found" }), {
       status: 404,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...getCorsHeaders(request) },
     });
   },
 };

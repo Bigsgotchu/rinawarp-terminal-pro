@@ -69,6 +69,16 @@ function json(obj: unknown, status = 200): Response {
   });
 }
 
+function cors(origin: string) {
+  return {
+    "access-control-allow-origin": origin,
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-headers": "content-type, authorization",
+    "access-control-allow-credentials": "true",
+    "access-control-max-age": "86400",
+  };
+}
+
 /**
  * Sign a payload with HMAC-SHA256 using the secret key
  */
@@ -107,22 +117,77 @@ export default {
       });
     }
 
-    // CORS preflight handler for auth endpoints
+    const requestOrigin = request.headers.get("origin") || "https://www.rinawarptech.com";
+    const ALLOWED_ORIGINS = new Set([
+      "https://www.rinawarptech.com",
+      "https://rinawarptech.com",
+    ]);
+    const allowOrigin = ALLOWED_ORIGINS.has(requestOrigin) ? requestOrigin : "https://www.rinawarptech.com";
+
+    // CORS preflight handler for website-called endpoints
     if (request.method === "OPTIONS" && (
       url.pathname === "/api/auth/start" || 
       url.pathname === "/api/auth/verify" ||
-      url.pathname === "/api/auth/logout"
+      url.pathname === "/api/auth/logout" ||
+      url.pathname === "/api/events" ||
+      url.pathname === "/api/me" ||
+      url.pathname === "/api/portal" ||
+      url.pathname.startsWith("/api/download-token")
     )) {
       return new Response(null, {
         status: 204,
-        headers: {
-          "access-control-allow-origin": "https://www.rinawarptech.com",
-          "access-control-allow-methods": "POST, OPTIONS",
-          "access-control-allow-headers": "content-type, authorization",
-          "access-control-allow-credentials": "true",
-          "access-control-max-age": "86400",
-        },
+        headers: cors(allowOrigin),
       });
+    }
+
+    // First-party funnel event ingest (best-effort; never blocks UX)
+    if (url.pathname === "/api/events" && request.method === "POST") {
+      try {
+        const body: any = await request.json().catch(() => ({}));
+        const event = typeof body?.event === "string" ? body.event.trim().toLowerCase() : "";
+        if (!event || !/^[a-z0-9_:. -]{2,80}$/.test(event)) {
+          return new Response(JSON.stringify({ ok: false, error: "invalid_event" }), {
+            status: 400,
+            headers: { "content-type": "application/json", ...cors(allowOrigin) },
+          });
+        }
+
+        const now = Date.now();
+        const row = {
+          event,
+          path: typeof body?.path === "string" ? body.path.slice(0, 255) : null,
+          href: typeof body?.href === "string" ? body.href.slice(0, 500) : null,
+          referrer: typeof body?.referrer === "string" ? body.referrer.slice(0, 500) : null,
+          anon_id: typeof body?.anon_id === "string" ? body.anon_id.slice(0, 80) : null,
+          session_id: typeof body?.session_id === "string" ? body.session_id.slice(0, 80) : null,
+          user_id: typeof body?.user_id === "string" ? body.user_id.slice(0, 120) : null,
+          ip: request.headers.get("cf-connecting-ip"),
+          ua: request.headers.get("user-agent"),
+          country: request.headers.get("cf-ipcountry"),
+          props: JSON.stringify(body?.properties || {}),
+          utm: JSON.stringify(body?.utm || {}),
+        };
+
+        await env.DB.prepare(
+          `INSERT INTO funnel_events
+           (event, path, href, referrer, anon_id, session_id, user_id, ip, ua, country, properties_json, utm_json, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          row.event, row.path, row.href, row.referrer, row.anon_id, row.session_id, row.user_id,
+          row.ip, row.ua, row.country, row.props, row.utm, now
+        ).run();
+
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "content-type": "application/json", ...cors(allowOrigin) },
+        });
+      } catch (err: any) {
+        console.log("events ingest error", err?.message || err);
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "content-type": "application/json", ...cors(allowOrigin) },
+        });
+      }
     }
 
     // License verification endpoint for the desktop app
@@ -192,16 +257,26 @@ export default {
     // /api/me - requires session
     if (url.pathname === "/api/me" && request.method === "GET") {
       const s = await requireSession(request, env as any);
-      if (!s.ok) return Response.json({ ok: false, error: s.error }, { status: s.status });
+      if (!s.ok) {
+        return Response.json(
+          { ok: false, error: s.error },
+          { status: s.status, headers: { ...cors(allowOrigin) } }
+        );
+      }
       
       // Look up entitlement
       const ent = await env.DB.prepare(
         "SELECT tier, status, customer_email, subscription_id, updated_at FROM entitlements WHERE customer_id = ?"
       ).bind(s.customer_id).first();
 
+      // Optional local profile (for email/password accounts)
+      const local = await env.DB.prepare(
+        "SELECT name FROM auth_local_accounts WHERE email = ? LIMIT 1"
+      ).bind(s.email).first<{ name: string | null }>();
+
       // Generate portal URL if available
       let portal_url: string | null = null;
-      if (env.STRIPE_SECRET_KEY && env.PORTAL_RETURN_URL) {
+      if (env.STRIPE_SECRET_KEY && env.PORTAL_RETURN_URL && s.customer_id.startsWith("cus_")) {
         try {
           const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" as any });
           const portal = await stripe.billingPortal.sessions.create({
@@ -214,13 +289,25 @@ export default {
         }
       }
 
+      const license = {
+        tier: (ent as any)?.tier ?? "free",
+        status: (ent as any)?.status ?? "inactive",
+        expiresAt: null as string | null,
+      };
+
       return Response.json({ 
         ok: true, 
         email: s.email, 
         customer_id: s.customer_id, 
+        user: {
+          id: s.customer_id,
+          email: s.email,
+          name: local?.name ?? null,
+        },
+        license,
         entitlement: ent ?? null,
         portal_url,
-      });
+      }, { headers: { ...cors(allowOrigin) } });
     }
 
     // Stripe Customer Portal endpoint (requires session)
@@ -229,7 +316,12 @@ export default {
       if (!env.PORTAL_RETURN_URL) return new Response("Missing PORTAL_RETURN_URL", { status: 500 });
       
       const s = await requireSession(request, env as any);
-      if (!s.ok) return Response.json({ ok: false, error: s.error }, { status: s.status });
+      if (!s.ok) {
+        return Response.json(
+          { ok: false, error: s.error },
+          { status: s.status, headers: { ...cors(allowOrigin) } }
+        );
+      }
 
       const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" as any });
 
@@ -238,10 +330,13 @@ export default {
           customer: s.customer_id,
           return_url: env.PORTAL_RETURN_URL,
         });
-        return Response.json({ url: session.url });
+        return Response.json({ url: session.url }, { headers: { ...cors(allowOrigin) } });
       } catch (err: any) {
         console.error("Portal session failed:", err.message);
-        return Response.json({ error: "portal_failed", details: err.message }, { status: 500 });
+        return Response.json(
+          { error: "portal_failed", details: err.message },
+          { status: 500, headers: { ...cors(allowOrigin) } }
+        );
       }
     }
 

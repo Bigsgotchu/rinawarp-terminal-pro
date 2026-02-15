@@ -548,6 +548,77 @@ type StreamInfo = {
 
 const running = new Map<string, StreamInfo>();
 
+type PtyProcess = {
+  write(data: string): void;
+  resize(cols: number, rows: number): void;
+  kill(): void;
+  onData(listener: (data: string) => void): void;
+  onExit(listener: (event: { exitCode: number; signal?: number }) => void): void;
+};
+
+type PtyModule = {
+  spawn(
+    file: string,
+    args: string[],
+    options: {
+      name: string;
+      cols: number;
+      rows: number;
+      cwd: string;
+      env: NodeJS.ProcessEnv;
+    },
+  ): PtyProcess;
+};
+
+type PtySession = {
+  proc: PtyProcess;
+  cols: number;
+  rows: number;
+  cwd: string;
+  shell: string;
+};
+
+const ptySessions = new Map<number, PtySession>();
+let ptyModulePromise: Promise<PtyModule | null> | null = null;
+
+function getPtyModule(): Promise<PtyModule | null> {
+  if (!ptyModulePromise) {
+    ptyModulePromise = import("node-pty")
+      .then((mod) => mod as unknown as PtyModule)
+      .catch(() => null);
+  }
+  return ptyModulePromise;
+}
+
+function getDefaultShell(): string {
+  if (process.platform === "win32") return process.env.COMSPEC || "cmd.exe";
+  return process.env.SHELL || "/bin/bash";
+}
+
+function getDefaultPtyCwd(): string {
+  return process.env.HOME || process.cwd();
+}
+
+function resolvePtyCwd(input?: string): string {
+  if (!input || !input.trim()) return getDefaultPtyCwd();
+  try {
+    return normalizeProjectRoot(input);
+  } catch {
+    return getDefaultPtyCwd();
+  }
+}
+
+function closePtyForWebContents(webContentsId: number): void {
+  const session = ptySessions.get(webContentsId);
+  if (!session) return;
+  try {
+    session.proc.kill();
+  } catch {
+    // no-op
+  }
+  ptySessions.delete(webContentsId);
+}
+
 function createStreamId(): string {
   return `st_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
@@ -753,6 +824,9 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, "renderer.html"));
+  win.on("closed", () => {
+    closePtyForWebContents(win.webContents.id);
+  });
 
   // Disable devtools in production for security
   if (app.isPackaged) {
@@ -985,6 +1059,69 @@ ipcMain.handle("rina:workspace:pick", async () => {
   }
   
   return { ok: true, path: result.filePaths[0] };
+});
+
+ipcMain.handle("rina:pty:start", async (event, args?: { cols?: number; rows?: number; cwd?: string }) => {
+  const webContentsId = event.sender.id;
+  const existing = ptySessions.get(webContentsId);
+  if (existing) {
+    return { ok: true, shell: existing.shell, cwd: existing.cwd, cols: existing.cols, rows: existing.rows };
+  }
+
+  const ptyModule = await getPtyModule();
+  if (!ptyModule) {
+    return { ok: false, error: "node-pty is not installed. Run npm install to enable terminal mode." };
+  }
+
+  const cols = Math.max(40, Math.min(400, Number(args?.cols || 120)));
+  const rows = Math.max(10, Math.min(200, Number(args?.rows || 30)));
+  const cwd = resolvePtyCwd(args?.cwd);
+  const shell = getDefaultShell();
+
+  const proc = ptyModule.spawn(shell, [], {
+    name: "xterm-color",
+    cols,
+    rows,
+    cwd,
+    env: safeEnv(process.env),
+  });
+
+  ptySessions.set(webContentsId, { proc, cols, rows, cwd, shell });
+
+  proc.onData((data: string) => {
+    event.sender.send("rina:pty:data", data);
+  });
+
+  proc.onExit(({ exitCode, signal }: { exitCode: number; signal?: number }) => {
+    ptySessions.delete(webContentsId);
+    event.sender.send("rina:pty:exit", { exitCode, signal });
+  });
+
+  return { ok: true, shell, cwd, cols, rows };
+});
+
+ipcMain.handle("rina:pty:write", async (event, data: string) => {
+  const session = ptySessions.get(event.sender.id);
+  if (!session) return { ok: false, error: "PTY not started" };
+  session.proc.write(String(data ?? ""));
+  return { ok: true };
+});
+
+ipcMain.handle("rina:pty:resize", async (event, cols: number, rows: number) => {
+  const session = ptySessions.get(event.sender.id);
+  if (!session) return { ok: false, error: "PTY not started" };
+  const safeCols = Math.max(40, Math.min(400, Number(cols || session.cols)));
+  const safeRows = Math.max(10, Math.min(200, Number(rows || session.rows)));
+  session.cols = safeCols;
+  session.rows = safeRows;
+  session.proc.resize(safeCols, safeRows);
+  return { ok: true };
+});
+
+ipcMain.handle("rina:pty:stop", async (event) => {
+  const webContentsId = event.sender.id;
+  closePtyForWebContents(webContentsId);
+  return { ok: true };
 });
 
 ipcMain.handle("rina:ping", async () => {
@@ -1797,6 +1934,12 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+});
+
+app.on("before-quit", () => {
+  for (const id of ptySessions.keys()) {
+    closePtyForWebContents(id);
+  }
 });
 
 app.on("window-all-closed", () => {

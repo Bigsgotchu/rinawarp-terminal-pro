@@ -8,9 +8,20 @@ contextBridge.exposeInMainWorld("rina", {
 
   // Directory picker
   showDirectoryPicker: () => ipcRenderer.invoke("rina:pickDirectory"),
+  openDirectory: () => ipcRenderer.invoke("rina:workspace:pick"),
 
   // Workspace picker (returns { ok, path })
   pickWorkspace: () => ipcRenderer.invoke("rina:workspace:pick"),
+
+  // Interactive PTY terminal
+  ptyStart: (args?: { cols?: number; rows?: number; cwd?: string }) =>
+    ipcRenderer.invoke("rina:pty:start", args),
+  ptyWrite: (data: string) => ipcRenderer.invoke("rina:pty:write", data),
+  ptyResize: (cols: number, rows: number) => ipcRenderer.invoke("rina:pty:resize", cols, rows),
+  ptyStop: () => ipcRenderer.invoke("rina:pty:stop"),
+  onPtyData: (cb: (data: string) => void) => ipcRenderer.on("rina:pty:data", (_e, data) => cb(data)),
+  onPtyExit: (cb: (evt: { exitCode: number; signal: number }) => void) =>
+    ipcRenderer.on("rina:pty:exit", (_e, payload) => cb(payload)),
 
   // Warp-like block APIs
   agentPlan: (args: { intentText: string; projectRoot: string }) =>

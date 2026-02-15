@@ -112,7 +112,9 @@
 <script type="module">
   import { createApiClient } from "/assets/api-client.js";
 
-  const api = createApiClient({ baseUrl: "https://api.rinawarptech.com", credentials: "include" });
+  const api = createApiClient({ baseUrl: "https://api.rinawarptech.com" });
+  const DOWNLOADS_BASE = "https://rinawarp-downloads.rinawarptech.workers.dev";
+  let customerId = null;
 
   const els = {
     profile: document.getElementById("profile"),
@@ -134,8 +136,12 @@
   }
 
   function requireAuthedOrBounce() {
-    // If you use cookie session auth, /api/me will succeed when logged in.
-    // If bearer tokens are used, wire storage later. v1 website: cookie is simplest.
+    const token = (() => {
+      try { return localStorage.getItem("rw_session") || ""; } catch { return ""; }
+    })();
+    if (!token) {
+      window.location.href = "/login/";
+    }
   }
 
   async function loadMe() {
@@ -151,6 +157,7 @@
         return;
       }
 
+      customerId = me.customer_id;
       const { user, license } = me;
 
       els.profile.innerHTML = `
@@ -166,7 +173,13 @@
       renderDownloadCards(license.tier);
       notice(els.profileMsg, "Signed in successfully.", "ok");
     } catch (e) {
-      notice(els.profileMsg, e?.message || "Failed to load account.", "err");
+      const status = e?.status || e?.data?.status;
+      if (status === 401) {
+        notice(els.profileMsg, "Not signed in. Redirecting to login…", "err");
+        setTimeout(() => window.location.href = "/login/", 900);
+        return;
+      }
+      notice(els.profileMsg, e?.data?.error || e?.message || "Failed to load account.", "err");
       els.profile.innerHTML = "";
       els.downloads.innerHTML = "";
     }
@@ -193,24 +206,33 @@
   window.__genDL = async (platform, version) => {
     try {
       notice(els.portalMsg, "", "ok");
-      const res = await fetch("https://api.rinawarptech.com/api/download-token", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ product: "terminal-pro", version, platform })
-      }).then(r => r.json());
-
-      if (!res?.ok) {
-        notice(els.portalMsg, `Download token error: ${res?.error || "unknown"}`, "err");
+      if (!customerId) {
+        notice(els.portalMsg, "Missing customer id. Reload the page and try again.", "err");
         return;
       }
 
-      const url = res.urls?.[platform];
-      if (!url) {
-        notice(els.portalMsg, "Token created, but no URL returned for that platform.", "err");
+      const tokenRes = await fetch(`${DOWNLOADS_BASE}/api/download-token?customer_id=${encodeURIComponent(customerId)}`)
+        .then((r) => r.json())
+        .catch(() => ({}));
+
+      if (!tokenRes?.ok || !tokenRes?.token) {
+        notice(els.portalMsg, `Download token error: ${tokenRes?.error || "unknown"}`, "err");
         return;
       }
 
+      const filenameByPlatform = {
+        "windows": `RinaWarp-Terminal-Pro-${version}.exe`,
+        "linux-appimage": `RinaWarp-Terminal-Pro-${version}.AppImage`,
+        "linux-deb": `RinaWarp-Terminal-Pro-${version}.amd64.deb`,
+      };
+
+      const filename = filenameByPlatform[platform];
+      if (!filename) {
+        notice(els.portalMsg, "Unknown platform.", "err");
+        return;
+      }
+
+      const url = `${DOWNLOADS_BASE}/downloads/${encodeURIComponent(filename)}?token=${encodeURIComponent(tokenRes.token)}`;
       window.location.href = url;
     } catch (e) {
       notice(els.portalMsg, e?.message || "Failed to generate download link.", "err");
@@ -220,14 +242,9 @@
   window.openPortal = async () => {
     els.portalBtn.disabled = true;
     try {
-      const res = await fetch("https://api.rinawarptech.com/api/portal", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({})
-      }).then(r => r.json());
+      const res = await api.portal();
 
-      if (!res?.ok || !res?.url) {
+      if (!res?.url) {
         notice(els.portalMsg, `Portal error: ${res?.error || "unknown"}`, "err");
         return;
       }
@@ -243,6 +260,7 @@
     try {
       await api.logout();
     } catch {}
+    try { localStorage.removeItem("rw_session"); } catch {}
     window.location.href = "/login/";
   };
 

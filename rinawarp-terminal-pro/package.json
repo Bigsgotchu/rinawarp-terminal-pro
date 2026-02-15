@@ -27,7 +27,11 @@
     "audit:compare": "bash scripts/audit-prod.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev",
     "smoke:stripe": "bash scripts/smoke-stripe.sh https://api.rinawarptech.com https://www.rinawarptech.com",
     "release:desktop": "bash deploy/release-runner.sh",
-    "release:bump": "bash deploy/bump-release-version.sh"
+    "release:bump": "bash deploy/bump-release-version.sh",
+    "migrate:auth-local": "bash scripts/migrate-auth-local.sh",
+    "migrate:funnel-events": "bash scripts/migrate-funnel-events.sh",
+    "e2e:auth-local": "bash scripts/e2e-auth-local.sh https://www.rinawarptech.com https://api.rinawarptech.com",
+    "e2e:project": "bash scripts/e2e-project.sh"
   },
   "keywords": [
     "rinawarp",

@@ -15,9 +15,18 @@ declare global {
 
       // Directory picker
       showDirectoryPicker(): Promise<string | null>;
+      openDirectory(): Promise<{ ok: boolean; path?: string }>;
 
       // Workspace picker (returns path)
       pickWorkspace(): Promise<{ ok: boolean; path?: string }>;
+
+      // Interactive PTY terminal
+      ptyStart(args?: { cols?: number; rows?: number; cwd?: string }): Promise<any>;
+      ptyWrite(data: string): Promise<any>;
+      ptyResize(cols: number, rows: number): Promise<any>;
+      ptyStop(): Promise<any>;
+      onPtyData(cb: (data: string) => void): void;
+      onPtyExit(cb: (p: { exitCode: number; signal: number }) => void): void;
 
       // Warp-like block APIs
       agentPlan(args: { intentText: string; projectRoot: string }): Promise<any>;
