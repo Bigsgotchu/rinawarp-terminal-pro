@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "commonjs",
-    "lib": ["es2021"],
+    "lib": ["es2021", "dom", "webworker"],
     "types": ["@cloudflare/workers-types"],
     "strict": true,
     "esModuleInterop": true,

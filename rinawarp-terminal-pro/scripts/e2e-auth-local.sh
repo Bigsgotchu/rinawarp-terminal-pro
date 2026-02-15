@@ -62,6 +62,7 @@ cleanup() {
   echo "== Cleanup =="
   (cd "$WORKER_DIR" && npx wrangler d1 execute "$DB_NAME" --remote --command "$SQL_CLEAN") >/dev/null 2>&1 || true
 }
+
 trap cleanup EXIT
 
 echo "== 1) Seed verified local account =="

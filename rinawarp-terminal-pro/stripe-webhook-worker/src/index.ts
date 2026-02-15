@@ -106,6 +106,13 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    const requestOrigin = request.headers.get("origin") || "https://www.rinawarptech.com";
+    const ALLOWED_ORIGINS = new Set([
+      "https://www.rinawarptech.com",
+      "https://rinawarptech.com",
+    ]);
+    const allowOrigin = ALLOWED_ORIGINS.has(requestOrigin) ? requestOrigin : "https://www.rinawarptech.com";
+
     // Health check endpoint
     if (url.pathname === "/api/health" && request.method === "GET") {
       return new Response(JSON.stringify({
@@ -113,16 +120,9 @@ export default {
         service: "rinawarp-stripe-webhook",
         time: Date.now()
       }), {
-        headers: { "content-type": "application/json" }
+        headers: { "content-type": "application/json", ...cors(allowOrigin) }
       });
     }
-
-    const requestOrigin = request.headers.get("origin") || "https://www.rinawarptech.com";
-    const ALLOWED_ORIGINS = new Set([
-      "https://www.rinawarptech.com",
-      "https://rinawarptech.com",
-    ]);
-    const allowOrigin = ALLOWED_ORIGINS.has(requestOrigin) ? requestOrigin : "https://www.rinawarptech.com";
 
     // CORS preflight handler for website-called endpoints
     if (request.method === "OPTIONS" && (
@@ -256,7 +256,7 @@ export default {
 
     // /api/me - requires session
     if (url.pathname === "/api/me" && request.method === "GET") {
-      const s = await requireSession(request, env as any);
+      const s = await requireSession(request, env);
       if (!s.ok) {
         return Response.json(
           { ok: false, error: s.error },
@@ -267,7 +267,9 @@ export default {
       // Look up entitlement
       const ent = await env.DB.prepare(
         "SELECT tier, status, customer_email, subscription_id, updated_at FROM entitlements WHERE customer_id = ?"
-      ).bind(s.customer_id).first();
+      )
+        .bind(s.customer_id)
+        .first<{ tier: Tier; status: string; customer_email: string | null; subscription_id: string | null; updated_at: number }>();
 
       // Optional local profile (for email/password accounts)
       const local = await env.DB.prepare(
@@ -290,8 +292,8 @@ export default {
       }
 
       const license = {
-        tier: (ent as any)?.tier ?? "free",
-        status: (ent as any)?.status ?? "inactive",
+        tier: ent?.tier ?? "free",
+        status: ent?.status ?? "inactive",
         expiresAt: null as string | null,
       };
 
@@ -315,7 +317,7 @@ export default {
       if (!env.STRIPE_SECRET_KEY) return new Response("Missing STRIPE_SECRET_KEY", { status: 500 });
       if (!env.PORTAL_RETURN_URL) return new Response("Missing PORTAL_RETURN_URL", { status: 500 });
       
-      const s = await requireSession(request, env as any);
+      const s = await requireSession(request, env);
       if (!s.ok) {
         return Response.json(
           { ok: false, error: s.error },
