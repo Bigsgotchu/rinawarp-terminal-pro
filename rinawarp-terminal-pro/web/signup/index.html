@@ -27,14 +27,28 @@
   <div class="wrap">
     <div class="card">
       <h1>Create your RinaWarp account</h1>
-      <p>Enter your email. We'll send a secure magic link to verify and create your account.</p>
+      <p>Enter your email. We'll send a 6-digit code to verify and create your account.</p>
 
-      <div class="row">
-        <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
-        <button id="btn">Send link</button>
+      <div id="step1">
+        <div class="row">
+          <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
+          <button id="btn">Send code</button>
+        </div>
       </div>
 
-      <div id="msg"></div>
+      <div id="step2" style="display:none">
+        <p class="hint" style="margin-top:12px">Enter the 6-digit code we emailed you.</p>
+        <div class="row">
+          <input id="code" type="text" placeholder="123456" inputmode="numeric" maxlength="6" />
+          <button id="verify">Verify</button>
+        </div>
+      </div>
+
+      <div id="step3" style="display:none">
+        <p class="hint" style="margin-top:12px">Verified. Redirecting…</p>
+      </div>
+
+      <div id="msg" class="toast" style="display:none"></div>
 
       <div class="hint">
         By continuing, you agree to our <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy</a>.

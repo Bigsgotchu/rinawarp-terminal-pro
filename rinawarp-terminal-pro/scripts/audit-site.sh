@@ -4,11 +4,18 @@ set -euo pipefail
 BASE="${1:-https://www.rinawarptech.com}"
 PAGES="${2:-https://rinawarptech-website.pages.dev}"
 DL_VERIFY="${3:-https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt}"
+DOWNLOAD_HTML="$(curl -fsSL "$BASE/download" || true)"
+RELEASE_VER="$(printf '%s' "$DOWNLOAD_HTML" | grep -oE 'RinaWarp-Terminal-Pro-[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | sed -E 's/^RinaWarp-Terminal-Pro-//' || true)"
+if [[ -z "$RELEASE_VER" ]]; then
+  RELEASE_VER="1.0.0"
+fi
+MANIFEST_URL="$BASE/releases/v${RELEASE_VER}.json"
 
 echo "== Audit"
 echo "BASE : $BASE"
 echo "PAGES: $PAGES"
 echo "VERIFY: $DL_VERIFY"
+echo "RELEASE: $RELEASE_VER"
 echo
 
 check() {
@@ -38,12 +45,12 @@ check "$PAGES/qzje/" 200 || FAILED=1
 check "$BASE/qzje/" 200 || FAILED=1
 
 # Release manifest + shasums
-check "$BASE/releases/v1.0.0.json" 200 || FAILED=1
+check "$MANIFEST_URL" 200 || FAILED=1
 check "$DL_VERIFY" 200 || FAILED=1
 
 echo
 echo "== Manifest JSON validation"
-MANIFEST_BODY="$(curl -fsS "$BASE/releases/v1.0.0.json" || true)"
+MANIFEST_BODY="$(curl -fsS "$MANIFEST_URL" || true)"
 if [[ -z "$MANIFEST_BODY" ]]; then
   echo "❌ manifest body empty"
   FAILED=1
@@ -58,7 +65,7 @@ fi
 
 echo
 echo "== Quick content sanity (manifest + shasums)"
-curl -fsS "$BASE/releases/v1.0.0.json" | head -c 300 || true; echo; echo
+curl -fsS "$MANIFEST_URL" | head -c 300 || true; echo; echo
 curl -fsS "$DL_VERIFY" | sed 's/  */ /g' || true; echo
 
 echo

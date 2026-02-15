@@ -22,7 +22,6 @@ const REQUIRED_ROUTES = [
 
 const REQUIRED_FILES = [
   "_redirects",
-  "releases/v1.0.0.json",
 ];
 
 function existsFile(p) {
@@ -56,20 +55,33 @@ if (!existsDir(root)) {
 for (const f of REQUIRED_FILES) {
   const fp = path.join(root, f);
   if (!existsFile(fp)) fail(`Missing required file: ${fp}`);
-  else {
-    if (f === "releases/v1.0.0.json") {
-      try {
-        const json = JSON.parse(fs.readFileSync(fp, "utf8"));
-        if (!json.version || !json.downloads) {
-          fail(`Invalid release manifest keys in ${fp}`);
-          continue;
-        }
-      } catch {
-        fail(`Invalid JSON in release manifest: ${fp}`);
-        continue;
+  else console.log(`✅ Found: ${f}`);
+}
+
+const releasesDir = path.join(root, "releases");
+if (!existsDir(releasesDir)) {
+  fail(`Missing releases directory: ${releasesDir}`);
+} else {
+  const manifestNames = fs
+    .readdirSync(releasesDir)
+    .filter((name) => /^v\d+\.\d+\.\d+\.json$/.test(name))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+  if (manifestNames.length === 0) {
+    fail(`No versioned release manifest found in ${releasesDir}`);
+  } else {
+    const latestManifest = manifestNames[manifestNames.length - 1];
+    const latestPath = path.join(releasesDir, latestManifest);
+    try {
+      const json = JSON.parse(fs.readFileSync(latestPath, "utf8"));
+      if (!json.version || !json.downloads) {
+        fail(`Invalid release manifest keys in ${latestPath}`);
+      } else {
+        console.log(`✅ Found latest release manifest: releases/${latestManifest}`);
       }
+    } catch {
+      fail(`Invalid JSON in release manifest: ${latestPath}`);
     }
-    console.log(`✅ Found: ${f}`);
   }
 }
 

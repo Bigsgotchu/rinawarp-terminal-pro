@@ -43,7 +43,7 @@ document.getElementById("start").addEventListener("click", async () => {
   msg.textContent = "Sending...";
 
   try {
-    const data = await postJson("/auth/start", { email });
+    const data = await postJson("/auth/start", { email, mode: "login" });
     challengeId = data.challenge_id;
     msg.textContent = "Code sent. (If you don't see it, check spam.)";
     document.getElementById("step2").style.display = "block";
@@ -53,12 +53,13 @@ document.getElementById("start").addEventListener("click", async () => {
 });
 
 document.getElementById("verify").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
   const code = document.getElementById("code").value.trim();
   const msg = document.getElementById("verifyMsg");
   msg.textContent = "Verifying...";
 
   try {
-    const data = await postJson("/auth/verify", { challenge_id: challengeId, code });
+    const data = await postJson("/auth/verify", { email, challenge_id: challengeId, code, mode: "login" });
 
     localStorage.setItem("rw_session", data.session_token);
     document.getElementById("step1").style.display = "none";

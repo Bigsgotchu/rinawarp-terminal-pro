@@ -8,6 +8,7 @@
                  style-src 'self' 'unsafe-inline';
                  img-src 'self' data:;" />
   <title>RinaWarp Terminal Pro</title>
+  <link rel="stylesheet" href="./vendor/xterm.css" />
 
   <style>
     :root {
@@ -92,12 +93,7 @@
       width: 34px;
       height: 34px;
       border-radius: 10px;
-      display: grid;
-      place-items: center;
-      font-weight: 900;
-      letter-spacing: 0.2px;
-      color: var(--rw-black);
-      background: linear-gradient(135deg, var(--rw-hot-pink), var(--rw-teal));
+      object-fit: contain;
       box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 10px 26px rgba(0,0,0,0.35);
       flex: 0 0 auto;
     }
@@ -293,6 +289,51 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    .terminal-pane {
+      flex: 1;
+      min-height: 0;
+      margin: 16px;
+      border: 1px solid var(--rw-border);
+      border-radius: var(--rw-radius);
+      background: rgba(0, 0, 0, 0.24);
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25), var(--rw-shadow);
+    }
+
+    .terminal-pane.active {
+      display: flex;
+    }
+
+    .terminal-pane-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--rw-border);
+      background: rgba(255,255,255,0.03);
+      font-size: 12px;
+      color: var(--rw-muted);
+    }
+
+    #ptyTerminal {
+      flex: 1;
+      min-height: 0;
+      padding: 8px;
+    }
+
+    .terminal-fallback {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      font-family: var(--rw-mono);
+      font-size: 12px;
+      white-space: pre-wrap;
+      padding: 10px;
+      color: #d8e6ff;
     }
 
     /* Blocks */
@@ -640,7 +681,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="brand">
-        <div class="logo">R</div>
+        <img class="logo" src="./assets/rinawarp-logo.png" alt="RinaWarp logo" />
         <div class="brand-title">
           <div class="name">RinaWarp Terminal Pro</div>
           <div class="sub">Warp-like blocks • Agent + Terminal</div>
@@ -696,6 +737,13 @@
     <!-- Main -->
     <main class="main">
       <div id="timeline" class="timeline"></div>
+      <div id="ptyPane" class="terminal-pane">
+        <div class="terminal-pane-head">
+          <span>Live Terminal Session</span>
+          <span id="ptyStatus">disconnected</span>
+        </div>
+        <div id="ptyTerminal"></div>
+      </div>
     </main>
 
     <!-- Input -->
@@ -718,6 +766,9 @@
     </div>
   </div>
 
+  <script src="./vendor/xterm.js"></script>
+  <script src="./vendor/xterm-addon-fit.js"></script>
+
   <script>
     // -----------------------------
     // State
@@ -726,6 +777,10 @@
     let streamToBlock = {};
     let planRunToPlanBlock = {};
     let mode = "agent"; // "agent" | "terminal"
+    let ptyConnected = false;
+    let ptyTerm = null;
+    let ptyFit = null;
+    let ptyFallbackBuffer = "";
     let currentPlanByBlockId = {};
     let sessions = [];
     let paletteHistory = [];
@@ -751,6 +806,50 @@
       const kept = text.slice(0, maxLen);
       const cut = text.length - maxLen;
       return `${kept}\n… (${cut} more bytes hidden. Download report for full output.)`;
+    }
+
+    async function ensurePty() {
+      if (ptyConnected) return true;
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+
+      if (!ptyTerm && window.Terminal) {
+        const termEl = document.getElementById("ptyTerminal");
+        ptyTerm = new window.Terminal({
+          cursorBlink: true,
+          fontSize: 13,
+          scrollback: 5000,
+          theme: { background: "#0b0f17", foreground: "#e6e6e6" }
+        });
+        ptyFit = window.FitAddon ? new window.FitAddon.FitAddon() : null;
+        if (ptyFit) ptyTerm.loadAddon(ptyFit);
+        ptyTerm.open(termEl);
+        if (ptyFit) ptyFit.fit();
+        ptyTerm.focus();
+        ptyTerm.onData((data) => {
+          window.rina.ptyWrite?.(data);
+        });
+      } else if (!window.Terminal) {
+        const termEl = document.getElementById("ptyTerminal");
+        if (!termEl.querySelector(".terminal-fallback")) {
+          const pre = document.createElement("pre");
+          pre.className = "terminal-fallback";
+          pre.textContent = "xterm.js unavailable. Using fallback PTY view.\n";
+          termEl.appendChild(pre);
+        }
+      }
+
+      const cols = ptyTerm?.cols ?? 120;
+      const rows = ptyTerm?.rows ?? 30;
+      const res = await window.rina.ptyStart?.({ cols, rows, cwd: projectRoot || undefined });
+      if (!res?.ok) {
+        toast(`PTY start failed: ${res?.error || "unknown error"}`);
+        return false;
+      }
+      ptyConnected = true;
+      document.getElementById("ptyStatus").textContent = `connected (${res.shell || "shell"})`;
+      if (ptyFit) ptyFit.fit();
+      if (ptyTerm) window.rina.ptyResize?.(ptyTerm.cols, ptyTerm.rows);
+      return true;
     }
 
     // Throttled render
@@ -920,14 +1019,17 @@
       mode = next;
       document.getElementById("modeAgent").classList.toggle("active", next === "agent");
       document.getElementById("modeTerminal").classList.toggle("active", next === "terminal");
+      document.getElementById("timeline").style.display = next === "terminal" ? "none" : "flex";
+      document.getElementById("ptyPane").classList.toggle("active", next === "terminal");
 
       const input = document.getElementById("intent");
       if (next === "agent") {
         input.placeholder = "Ask Rina… (e.g., fix my broken build)";
         toast("Agent Mode — intent → plan → approve → execute");
       } else {
-        input.placeholder = "Type a terminal command… (engine enforced)";
-        toast("Terminal Mode — commands run as blocks");
+        input.placeholder = "Type here to send to live PTY shell…";
+        ensurePty().catch((e) => toast(`PTY error: ${String(e)}`));
+        toast("Terminal Mode — live PTY session");
       }
     }
 
@@ -1283,7 +1385,13 @@
       intentEl.value = "";
 
       if (mode === "terminal") {
-        await runTerminalCommand(text, projectRoot);
+        if (ptyConnected) {
+          await window.rina.ptyWrite?.(`${text}\n`);
+        } else {
+          const ok = await ensurePty();
+          if (ok) await window.rina.ptyWrite?.(`${text}\n`);
+          else await runTerminalCommand(text, projectRoot);
+        }
         return;
       }
 
@@ -1629,6 +1737,29 @@
           return;
         }
       }
+    });
+
+    // PTY output listeners
+    window.rina.onPtyData?.((data) => {
+      if (ptyTerm) {
+        ptyTerm.write(data);
+      } else {
+        ptyFallbackBuffer += data;
+        const pre = document.querySelector("#ptyTerminal .terminal-fallback");
+        if (pre) pre.textContent = ptyFallbackBuffer.slice(-200_000);
+      }
+    });
+
+    window.rina.onPtyExit?.((payload) => {
+      ptyConnected = false;
+      document.getElementById("ptyStatus").textContent = `exited (${payload?.exitCode ?? "?"})`;
+      toast(`PTY exited (${payload?.exitCode ?? "?"})`);
+    });
+
+    window.addEventListener("resize", () => {
+      if (!ptyConnected) return;
+      if (ptyFit) ptyFit.fit();
+      if (ptyTerm) window.rina.ptyResize?.(ptyTerm.cols, ptyTerm.rows);
     });
 
     // Palette input listener

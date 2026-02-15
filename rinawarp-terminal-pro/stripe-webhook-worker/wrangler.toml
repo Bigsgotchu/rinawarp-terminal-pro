@@ -52,6 +52,10 @@ zone_name = "rinawarptech.com"
 pattern = "api.rinawarptech.com/api/me"
 zone_name = "rinawarptech.com"
 
+[[routes]]
+pattern = "api.rinawarptech.com/api/events"
+zone_name = "rinawarptech.com"
+
 # Customer Portal route
 [[routes]]
 pattern = "api.rinawarptech.com/api/portal"
