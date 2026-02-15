@@ -314,8 +314,12 @@ export default {
 
     // Stripe Customer Portal endpoint (requires session)
     if (url.pathname === "/api/portal" && request.method === "POST") {
-      if (!env.STRIPE_SECRET_KEY) return new Response("Missing STRIPE_SECRET_KEY", { status: 500 });
-      if (!env.PORTAL_RETURN_URL) return new Response("Missing PORTAL_RETURN_URL", { status: 500 });
+      if (!env.STRIPE_SECRET_KEY) {
+        return new Response("Missing STRIPE_SECRET_KEY", { status: 500, headers: { ...cors(allowOrigin) } });
+      }
+      if (!env.PORTAL_RETURN_URL) {
+        return new Response("Missing PORTAL_RETURN_URL", { status: 500, headers: { ...cors(allowOrigin) } });
+      }
       
       const s = await requireSession(request, env);
       if (!s.ok) {
