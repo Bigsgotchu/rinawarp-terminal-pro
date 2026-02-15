@@ -1,10 +1,74 @@
+/// <reference lib="dom" />
+/// <reference lib="webworker" />
+/// <reference types="@cloudflare/workers-types" />
+
 export interface Env {
   DOWNLOAD_TOKEN_SECRET: string;
-  DB: any;
-  INSTALLERS: any;
+  DB: D1Database;
+  INSTALLERS: R2Bucket;
   DOWNLOAD_TOKEN_EXPIRY_HOURS: string;
   RATE_LIMIT: KVNamespace;
   RELEASE_VERSION?: string;
+}
+
+/**
+ * Allowed origins for CORS (prevents token minting from random sites)
+ */
+const ALLOWED_ORIGINS = new Set([
+  "https://www.rinawarptech.com",
+  "https://rinawarptech.com",
+]);
+
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("origin") ?? "";
+  if (!origin) return {};
+  if (!ALLOWED_ORIGINS.has(origin)) return {};
+  return {
+    "access-control-allow-origin": origin,
+    "vary": "Origin",
+  };
+}
+
+function preflightHeaders(request: Request): Record<string, string> {
+  const cors = corsHeaders(request);
+  if (!cors["access-control-allow-origin"]) return {};
+  return {
+    ...cors,
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-headers": "content-type, authorization",
+    "access-control-max-age": "86400",
+  };
+}
+
+function jsonResponse(
+  request: Request,
+  body: unknown,
+  status = 200,
+  extraHeaders: Record<string, string> = {},
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      ...corsHeaders(request),
+      ...extraHeaders,
+    },
+  });
+}
+
+function textResponse(
+  request: Request,
+  text: string,
+  status = 200,
+  extraHeaders: Record<string, string> = {},
+): Response {
+  return new Response(text, {
+    status,
+    headers: {
+      ...corsHeaders(request),
+      ...extraHeaders,
+    },
+  });
 }
 
 // Rate limiting helper
@@ -25,14 +89,12 @@ async function rateLimit(
 
   const current = Number((await env.RATE_LIMIT.get(key)) || "0");
   if (current >= limit) {
-    return new Response(JSON.stringify({ ok: false, error: "rate_limited" }), {
-      status: 429,
-      headers: {
-        "content-type": "application/json",
-        "retry-after": String(windowSec),
-        ...getCorsHeaders(request),
-      },
-    });
+    return jsonResponse(
+      request,
+      { ok: false, error: "rate_limited" },
+      429,
+      { "retry-after": String(windowSec) },
+    );
   }
 
   // increment
@@ -48,27 +110,32 @@ function b64urlToBytes(b64url: string): Uint8Array {
   return out;
 }
 
-/**
- * Allowed origins for CORS (prevents token minting from random sites)
- */
-const ALLOWED_ORIGINS = new Set([
-  "https://www.rinawarptech.com",
-  "https://rinawarptech.com"
-]);
-
-function getCorsHeaders(request: Request): Record<string, string> {
-  const origin = request.headers.get("origin") ?? "";
-  return ALLOWED_ORIGINS.has(origin)
-    ? { "access-control-allow-origin": origin }
-    : {};
-}
-
 function bytesToB64url(bytes: Uint8Array): string {
-  const b64 = btoa(String.fromCharCode(...bytes));
-  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  // Avoid spreading large arrays. (Payload/signature are small, but this is cheap.)
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-async function verifyToken(secret: string, token: string): Promise<{ customer_id: string; exp: number } | null> {
+type TokenClaims = { customer_id: string; exp: number };
+
+function parseClaims(payloadBytes: Uint8Array): TokenClaims | null {
+  try {
+    const raw = JSON.parse(new TextDecoder().decode(payloadBytes)) as Partial<TokenClaims>;
+    if (typeof raw.customer_id !== "string" || raw.customer_id.length < 4) return null;
+    if (typeof raw.exp !== "number" || !Number.isFinite(raw.exp)) return null;
+    // exp is expected to be ms epoch; reject seconds-epoch and nonsense.
+    if (raw.exp < 1_000_000_000_000) return null;
+    return { customer_id: raw.customer_id, exp: raw.exp };
+  } catch {
+    return null;
+  }
+}
+
+async function verifyToken(secret: string, token: string): Promise<TokenClaims | null> {
   const parts = token.split(".");
   if (parts.length !== 2) return null;
   const [payloadB64, sigB64] = parts;
@@ -84,66 +151,47 @@ async function verifyToken(secret: string, token: string): Promise<{ customer_id
     ["verify"]
   );
 
-  const ok = await crypto.subtle.verify("HMAC", key, sigBytes as unknown as BufferSource, payloadBytes as unknown as BufferSource);
+  const ok = await crypto.subtle.verify(
+    "HMAC",
+    key,
+    sigBytes as unknown as BufferSource,
+    payloadBytes as unknown as BufferSource,
+  );
   if (!ok) return null;
 
-  try {
-    const claims = JSON.parse(new TextDecoder().decode(payloadBytes));
-    return { customer_id: claims.customer_id, exp: claims.exp };
-  } catch {
-    return null;
-  }
+  return parseClaims(payloadBytes);
 }
 
 async function authorizeDownload(request: Request, env: Env): Promise<Response | null> {
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
-  if (!token) {
-    return new Response(JSON.stringify({ ok: false, error: "missing_token" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
-  }
+  if (!token) return jsonResponse(request, { ok: false, error: "missing_token" }, 401);
 
   const claims = await verifyToken(env.DOWNLOAD_TOKEN_SECRET, token);
-  if (!claims) {
-    return new Response(JSON.stringify({ ok: false, error: "invalid_token" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
-  }
+  if (!claims) return jsonResponse(request, { ok: false, error: "invalid_token" }, 401);
 
-  if (typeof claims.exp !== "number" || Date.now() > claims.exp) {
-    return new Response(JSON.stringify({ ok: false, error: "token_expired" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  if (!claims.customer_id) {
-    return new Response(JSON.stringify({ ok: false, error: "invalid_claims" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
-  }
+  if (Date.now() > claims.exp) return jsonResponse(request, { ok: false, error: "token_expired" }, 401);
 
   try {
     const ent = await env.DB.prepare(
       "SELECT status FROM entitlements WHERE customer_id = ? LIMIT 1"
-    ).bind(claims.customer_id).first();
+    )
+      .bind(claims.customer_id)
+      .first<{ status: string }>();
 
+    // Free tier: allow download if the customer_id exists in users (signup), even without a paid entitlement.
     if (!ent || ent.status !== "active") {
-      return new Response(JSON.stringify({ ok: false, error: "not_entitled" }), {
-        status: 403,
-        headers: { "content-type": "application/json" },
-      });
+      const user = await env.DB.prepare(
+        "SELECT customer_id FROM users WHERE customer_id = ? LIMIT 1"
+      ).bind(claims.customer_id).first();
+
+      if (!user) {
+        return jsonResponse(request, { ok: false, error: "no_account" }, 403);
+      }
     }
   } catch (err) {
     console.error("DB error checking entitlement:", err);
-    return new Response(JSON.stringify({ ok: false, error: "server_error" }), {
-      status: 500,
-      headers: { "content-type": "application/json" },
-    });
+    return jsonResponse(request, { ok: false, error: "server_error" }, 500);
   }
 
   return null;
@@ -174,59 +222,66 @@ function getInstallerName(filename: string, releaseVersion: string): string {
   return filename;
 }
 
+async function readJsonBody<T>(request: Request): Promise<T | null> {
+  const ct = request.headers.get("content-type") ?? "";
+  if (!ct.includes("application/json")) return null;
+  try {
+    return (await request.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
-    // Handle CORS preflight
+    // Handle CORS preflight (only for allowed origins)
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-methods": "POST, OPTIONS",
-          "access-control-allow-headers": "content-type, authorization",
-        },
-      });
+      const headers = preflightHeaders(request);
+      if (!Object.keys(headers).length) {
+        // No origin or not allowlisted. Browsers won't make credentialed calls anyway.
+        return new Response(null, { status: 204 });
+      }
+      return new Response(null, { status: 204, headers });
     }
 
     // Public verification files (no token required)
     if (pathname.startsWith("/verify/")) {
       const filename = pathname.slice("/verify/".length);
       if (!filename || filename.includes("..")) {
-        return new Response("Invalid path", { status: 400 });
+        return textResponse(request, "Invalid path", 400);
       }
 
       try {
         const object = await env.INSTALLERS.get(filename);
         if (!object) {
-          return new Response("Not found", { status: 404 });
+          return textResponse(request, "Not found", 404);
         }
 
         const headers = new Headers();
         if (filename.endsWith(".asc")) {
           headers.set("content-type", "application/pgp-keys");
         } else if (filename.endsWith(".txt")) {
-          headers.set("content-type", "text/plain");
+          headers.set("content-type", "text/plain; charset=utf-8");
         } else {
           headers.set("content-type", "application/octet-stream");
         }
         headers.set("cache-control", "public, max-age=3600");
+        for (const [k, v] of Object.entries(corsHeaders(request))) headers.set(k, v);
 
         return new Response(object.body, { headers });
       } catch (err) {
         console.error("R2 error:", err);
-        return new Response("Server error", { status: 500 });
+        return textResponse(request, "Server error", 500);
       }
     }
 
     if (pathname.startsWith("/downloads/")) {
       const filename = pathname.slice("/downloads/".length);
       if (!filename) {
-        return new Response(JSON.stringify({ ok: false, error: "missing_filename" }), {
-          status: 400,
-          headers: { "content-type": "application/json" },
-        });
+        return jsonResponse(request, { ok: false, error: "missing_filename" }, 400);
       }
 
       const authResp = await authorizeDownload(request, env);
@@ -238,42 +293,38 @@ export default {
       try {
         const object = await env.INSTALLERS.get(objectKey);
         if (!object) {
-          return new Response(JSON.stringify({ ok: false, error: "not_found" }), {
-            status: 404,
-            headers: { "content-type": "application/json" },
-          });
+          return jsonResponse(request, { ok: false, error: "not_found" }, 404);
         }
 
         const headers = new Headers();
         headers.set("content-type", object.httpMetadata?.contentType || "application/octet-stream");
         headers.set("content-disposition", `attachment; filename="${objectKey}"`);
         headers.set("content-length", object.size.toString());
+        headers.set("cache-control", "no-store");
+        for (const [k, v] of Object.entries(corsHeaders(request))) headers.set(k, v);
 
         return new Response(object.body, { headers });
       } catch (err) {
         console.error("R2 error:", err);
-        return new Response(JSON.stringify({ ok: false, error: "server_error" }), {
-          status: 500,
-          headers: { "content-type": "application/json" },
-        });
+        return jsonResponse(request, { ok: false, error: "server_error" }, 500);
       }
     }
 
     if (pathname === "/api/download-token") {
-      const customerId = url.searchParams.get("customer_id");
-      if (!customerId) {
-        return new Response(JSON.stringify({ ok: false, error: "missing_customer_id" }), {
-          status: 400,
-          headers: { "content-type": "application/json", ...getCorsHeaders(request) },
-        });
+      if (request.method !== "GET" && request.method !== "POST") {
+        return jsonResponse(request, { ok: false, error: "method_not_allowed" }, 405);
       }
 
-      // Validate customer_id format (cus_ alphanumeric)
-      if (!/^cus_[a-zA-Z0-9]+$/.test(customerId)) {
-        return new Response(JSON.stringify({ ok: false, error: "invalid_customer_id_format" }), {
-          status: 400,
-          headers: { "content-type": "application/json", ...getCorsHeaders(request) },
-        });
+      // Back-compat: allow GET with query param, also accept POST JSON body.
+      const body = await readJsonBody<{ customer_id?: string }>(request);
+      const customerId = body?.customer_id ?? url.searchParams.get("customer_id");
+      if (!customerId) {
+        return jsonResponse(request, { ok: false, error: "missing_customer_id" }, 400);
+      }
+
+      // Validate customer_id format (cus_ or local_ alphanumeric)
+      if (!/^(cus|local)_[a-zA-Z0-9_]+$/.test(customerId)) {
+        return jsonResponse(request, { ok: false, error: "invalid_customer_id_format" }, 400);
       }
 
       // Rate limit: 30 requests per minute per IP
@@ -283,19 +334,27 @@ export default {
       try {
         const ent = await env.DB.prepare(
           "SELECT status, tier FROM entitlements WHERE customer_id = ? LIMIT 1"
-        ).bind(customerId).first();
+        )
+          .bind(customerId)
+          .first<{ status: string; tier: string | null }>();
 
-        if (!ent || ent.status !== "active") {
-          return new Response(JSON.stringify({ ok: false, error: "not_entitled" }), {
-            status: 403,
-            headers: { "content-type": "application/json", ...getCorsHeaders(request) },
-          });
+        // Free tier: allow token minting for any existing user (signup), even without a paid entitlement.
+        let tier = "free";
+        if (ent && ent.status === "active") {
+          tier = ent.tier || "free";
+        } else {
+          const user = await env.DB.prepare(
+            "SELECT customer_id FROM users WHERE customer_id = ? LIMIT 1"
+          ).bind(customerId).first();
+
+          if (!user) {
+            return jsonResponse(request, { ok: false, error: "no_account" }, 403);
+          }
         }
 
-        const expiryHours = parseInt(env.DOWNLOAD_TOKEN_EXPIRY_HOURS) || 24;
+        const expiryHours = parseInt(env.DOWNLOAD_TOKEN_EXPIRY_HOURS, 10) || 24;
         const exp = Date.now() + expiryHours * 60 * 60 * 1000;
-        const payload = JSON.stringify({ customer_id: customerId, exp });
-        const payloadBytes = new TextEncoder().encode(payload);
+        const payloadBytes = new TextEncoder().encode(JSON.stringify({ customer_id: customerId, exp }));
         const payloadB64 = bytesToB64url(payloadBytes);
 
         const key = await crypto.subtle.importKey(
@@ -311,26 +370,18 @@ export default {
 
         const token = `${payloadB64}.${sigB64}`;
 
-        return new Response(JSON.stringify({
+        return jsonResponse(request, {
           ok: true,
           token,
           expires_at: new Date(exp).toISOString(),
-          tier: ent.tier
-        }), {
-          headers: { "content-type": "application/json", ...getCorsHeaders(request) },
+          tier,
         });
       } catch (err) {
         console.error("Token generation error:", err);
-        return new Response(JSON.stringify({ ok: false, error: "server_error" }), {
-          status: 500,
-          headers: { "content-type": "application/json", ...getCorsHeaders(request) },
-        });
+        return jsonResponse(request, { ok: false, error: "server_error" }, 500);
       }
     }
 
-    return new Response(JSON.stringify({ ok: false, error: "not_found" }), {
-      status: 404,
-      headers: { "content-type": "application/json", ...getCorsHeaders(request) },
-    });
+    return jsonResponse(request, { ok: false, error: "not_found" }, 404);
   },
 };
