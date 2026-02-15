@@ -11,6 +11,7 @@ crons = ["0 * * * *"]
 # Checkout URLs
 CHECKOUT_SUCCESS_URL = "https://www.rinawarptech.com/success/"
 CHECKOUT_CANCEL_URL = "https://www.rinawarptech.com/pricing"
+PORTAL_RETURN_URL = "https://www.rinawarptech.com/account/"
 
 # Lifetime
 PRICE_ID_TEAM_LIFETIME     = "price_1SdxmFGZrRdZy3W9skXi3jvE"  # $999 lifetime
