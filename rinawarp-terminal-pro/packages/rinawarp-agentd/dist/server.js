@@ -703,6 +703,81 @@ export function createServer(opts) {
                 });
                 return sendJson(res, 200, saved);
             }
+            if (req.method === "POST" && url.pathname === "/v1/orchestrator/github/event") {
+                const body = (await readJson(req));
+                const event = body?.event;
+                const workflowId = String(body?.workflowId || "").trim();
+                if (!workflowId)
+                    return sendJson(res, 400, { ok: false, error: "workflowId is required" });
+                if (!event || !["pull_request", "ci", "review_comment"].includes(event)) {
+                    return sendJson(res, 400, { ok: false, error: "event must be pull_request|ci|review_comment" });
+                }
+                if (event === "pull_request") {
+                    const action = String(body?.action || "").trim().toLowerCase();
+                    let status = "opened";
+                    if (action === "closed" && body?.merged === true)
+                        status = "merged";
+                    else if (action === "closed")
+                        status = "closed";
+                    else if (action === "failed")
+                        status = "failed";
+                    else if (action === "planned")
+                        status = "planned";
+                    const saved = recordPullRequestStatus({
+                        workflowId,
+                        status,
+                        issueId: body?.issueId ? String(body.issueId) : undefined,
+                        branchName: body?.branchName ? String(body.branchName) : undefined,
+                        repoSlug: body?.repoSlug ? String(body.repoSlug) : undefined,
+                        mode: body?.mode,
+                        number: typeof body?.number === "number" ? body.number : null,
+                        url: body?.url ? String(body.url) : null,
+                        error: body?.error ? String(body.error) : null,
+                    });
+                    return sendJson(res, 200, { event, mapped: "pr_status", ...saved });
+                }
+                if (event === "ci") {
+                    const raw = String(body?.ciStatus || "").trim().toLowerCase();
+                    let status = "running";
+                    if (["queued", "pending", "requested", "waiting"].includes(raw))
+                        status = "queued";
+                    else if (["running", "in_progress"].includes(raw))
+                        status = "running";
+                    else if (["passed", "success", "completed_success", "neutral", "skipped"].includes(raw))
+                        status = "passed";
+                    else if (["failed", "failure", "timed_out", "cancelled", "completed_failure"].includes(raw))
+                        status = "failed";
+                    const saved = recordCiStatus({
+                        workflowId,
+                        provider: String(body?.ciProvider || "github-actions"),
+                        status,
+                        url: body?.url ? String(body.url) : undefined,
+                    });
+                    return sendJson(res, 200, { event, mapped: "ci_status", ...saved });
+                }
+                const comment = String(body?.comment || "").trim();
+                const repoPath = String(body?.repoPath || "").trim();
+                const issueId = String(body?.issueId || "").trim();
+                const branchName = String(body?.branchName || "").trim();
+                if (!comment || !repoPath || !issueId || !branchName) {
+                    return sendJson(res, 400, {
+                        ok: false,
+                        error: "review_comment event requires comment, repoPath, issueId, and branchName",
+                    });
+                }
+                const queued = queueRevisionFromReview({
+                    workflowId,
+                    repoPath,
+                    issueId,
+                    branchName,
+                    comment,
+                    command: body?.command,
+                    repoSlug: body?.repoSlug,
+                    baseBranch: body?.baseBranch,
+                    prDryRun: body?.prDryRun !== false,
+                });
+                return sendJson(res, 200, { event, mapped: "review_revision", ...queued });
+            }
             // --- CANCEL (plan or stream)
             if (req.method === "POST" && url.pathname === "/v1/cancel") {
                 const body = (await readJson(req));

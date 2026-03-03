@@ -839,3 +839,85 @@ test("POST /v1/orchestrator/github/pr-status merged marks workflow completed", a
 	assert.ok(wfNode);
 	assert.equal(wfNode.data.state, "completed");
 });
+
+test("POST /v1/orchestrator/github/event maps pull_request closed+merged to completed workflow", async () => {
+	const start = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			issueId: "262",
+			repoPath: process.cwd(),
+			command: "echo webhook-pr-seed",
+		}),
+	});
+	assert.equal(start.status, 200);
+	const startBody = await start.json();
+	assert.equal(startBody.ok, true);
+
+	const eventResp = await fetch(`${baseUrl}/v1/orchestrator/github/event`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			event: "pull_request",
+			workflowId: startBody.workflowId,
+			action: "closed",
+			merged: true,
+			repoSlug: "owner/repo",
+			branchName: "rina/fix-262",
+			number: 262,
+			url: "https://github.com/owner/repo/pull/262",
+			mode: "live",
+		}),
+	});
+	assert.equal(eventResp.status, 200);
+	const eventBody = await eventResp.json();
+	assert.equal(eventBody.ok, true);
+	assert.equal(eventBody.mapped, "pr_status");
+
+	const graphResp = await fetch(`${baseUrl}/v1/orchestrator/workspace-graph`);
+	assert.equal(graphResp.status, 200);
+	const graphBody = await graphResp.json();
+	assert.equal(graphBody.ok, true);
+	const wfNode = graphBody.graph.nodes.find((n) => n.id === `workflow_${startBody.workflowId}`);
+	assert.ok(wfNode);
+	assert.equal(wfNode.data.state, "completed");
+});
+
+test("POST /v1/orchestrator/github/event maps ci failure to blocked state", async () => {
+	const start = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			issueId: "263",
+			repoPath: process.cwd(),
+			command: "echo webhook-ci-seed",
+		}),
+	});
+	assert.equal(start.status, 200);
+	const startBody = await start.json();
+	assert.equal(startBody.ok, true);
+
+	const eventResp = await fetch(`${baseUrl}/v1/orchestrator/github/event`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			event: "ci",
+			workflowId: startBody.workflowId,
+			ciProvider: "github-actions",
+			ciStatus: "failure",
+			url: "https://ci.example/runs/263",
+		}),
+	});
+	assert.equal(eventResp.status, 200);
+	const eventBody = await eventResp.json();
+	assert.equal(eventBody.ok, true);
+	assert.equal(eventBody.mapped, "ci_status");
+
+	const graphResp = await fetch(`${baseUrl}/v1/orchestrator/workspace-graph`);
+	assert.equal(graphResp.status, 200);
+	const graphBody = await graphResp.json();
+	assert.equal(graphBody.ok, true);
+	const wfNode = graphBody.graph.nodes.find((n) => n.id === `workflow_${startBody.workflowId}`);
+	assert.ok(wfNode);
+	assert.equal(wfNode.data.state, "blocked");
+});
