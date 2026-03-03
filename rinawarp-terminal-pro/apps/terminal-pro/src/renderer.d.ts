@@ -28,6 +28,16 @@ declare global {
         commitMessage?: string;
       }) => Promise<any>;
       orchestratorGraph?: () => Promise<any>;
+      orchestratorPrepareBranch?: (args: { repoPath: string; issueId?: string; branchName?: string }) => Promise<any>;
+      orchestratorCreatePr?: (args: {
+        repoSlug: string;
+        head: string;
+        base?: string;
+        title: string;
+        body?: string;
+        draft?: boolean;
+        dryRun?: boolean;
+      }) => Promise<any>;
       codeListFiles?: (args: { projectRoot: string; limit?: number }) => Promise<{ ok: boolean; files?: string[]; error?: string }>;
       codeReadFile?: (args: { projectRoot: string; relativePath: string; maxBytes?: number }) => Promise<{ ok: boolean; content?: string; truncated?: boolean; error?: string }>;
     };

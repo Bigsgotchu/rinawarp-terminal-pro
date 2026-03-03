@@ -5779,6 +5779,11 @@
               <div class="small">Task: ${escapeHtml(String(t.id || "—"))}</div>
               <div class="small">Branch: ${escapeHtml(branch)} • PR: ${escapeHtml(prMode)}</div>
               <div class="small">Command: <code>${escapeHtml(String(t?.payload?.command || "—"))}</code></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                <button onclick="openWorkflowBranch('${escapeHtml(String(t.id || ''))}')">Open branch</button>
+                <button onclick="retryWorkflowTask('${escapeHtml(String(t.id || ''))}')">Retry failed</button>
+                <button onclick="createPrForWorkflow('${escapeHtml(String(t.id || ''))}')">Create PR now</button>
+              </div>
             </div>
           `;
         })
@@ -5809,6 +5814,119 @@
         if (activeSidebarTab !== "workflows") return;
         void refreshWorkflowPanel();
       }, 3000);
+    }
+
+    function findWorkflowTask(taskId) {
+      const tasks = Array.isArray(workflowTasksCache) ? workflowTasksCache : [];
+      return tasks.find((t) => String(t?.id || "") === String(taskId || "")) || null;
+    }
+
+    async function openWorkflowBranch(taskId) {
+      try {
+        const task = findWorkflowTask(taskId);
+        if (!task) {
+          toast("Workflow task not found");
+          return;
+        }
+        const payload = task.payload || {};
+        if (!window.rina?.orchestratorPrepareBranch) {
+          toast("Branch API unavailable");
+          return;
+        }
+        const res = await window.rina.orchestratorPrepareBranch({
+          repoPath: String(payload.cwd || ""),
+          issueId: String(payload.issueId || ""),
+          branchName: String(payload.branchName || ""),
+        });
+        if (!res?.ok) {
+          toast(`Open branch failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast(`Checked out ${res.after || payload.branchName || "branch"}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`Open branch failed: ${msg}`);
+      }
+    }
+
+    async function retryWorkflowTask(taskId) {
+      try {
+        const task = findWorkflowTask(taskId);
+        if (!task) {
+          toast("Workflow task not found");
+          return;
+        }
+        const payload = task.payload || {};
+        if (!window.rina?.orchestratorIssueToPr) {
+          toast("Orchestrator API unavailable");
+          return;
+        }
+        const res = await window.rina.orchestratorIssueToPr({
+          issueId: String(payload.issueId || ""),
+          repoPath: String(payload.cwd || ""),
+          branchName: payload.branchName ? String(payload.branchName) : undefined,
+          command: payload.command ? String(payload.command) : undefined,
+          repoSlug: payload.repoSlug ? String(payload.repoSlug) : undefined,
+          push: payload.push === true,
+          prDryRun: payload.prDryRun !== false,
+          baseBranch: payload.baseBranch ? String(payload.baseBranch) : undefined,
+          prTitle: payload.prTitle ? String(payload.prTitle) : undefined,
+          prBody: payload.prBody ? String(payload.prBody) : undefined,
+          commitMessage: payload.commitMessage ? String(payload.commitMessage) : undefined,
+        });
+        if (!res?.ok) {
+          toast(`Retry failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast(`Retry queued: ${res.taskId}`);
+        await refreshWorkflowPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`Retry failed: ${msg}`);
+      }
+    }
+
+    async function createPrForWorkflow(taskId) {
+      try {
+        const task = findWorkflowTask(taskId);
+        if (!task) {
+          toast("Workflow task not found");
+          return;
+        }
+        const payload = task.payload || {};
+        if (!window.rina?.orchestratorCreatePr) {
+          toast("PR API unavailable");
+          return;
+        }
+        const repoSlug = String(payload.repoSlug || "").trim();
+        const branchName = String(payload.branchName || "").trim();
+        if (!repoSlug || !branchName) {
+          toast("Missing repo slug or branch name");
+          return;
+        }
+        const live = confirm("Create live PR now? Cancel = dry-run preview.");
+        const res = await window.rina.orchestratorCreatePr({
+          repoSlug,
+          head: branchName,
+          base: String(payload.baseBranch || "main"),
+          title: String(payload.prTitle || `Fix issue ${String(payload.issueId || "")}`),
+          body: String(payload.prBody || ""),
+          draft: false,
+          dryRun: !live,
+        });
+        if (!res?.ok) {
+          toast(`Create PR failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        if (res.mode === "dry_run") {
+          toast("PR dry-run payload generated");
+          return;
+        }
+        toast(`PR created: #${res.number}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`Create PR failed: ${msg}`);
+      }
     }
 
     function persistWorkflow(plan) {

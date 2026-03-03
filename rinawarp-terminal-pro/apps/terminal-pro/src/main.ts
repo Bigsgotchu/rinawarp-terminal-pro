@@ -913,6 +913,48 @@ async function orchestratorGraphForIpc(): Promise<any> {
   }
 }
 
+async function orchestratorPrepareBranchForIpc(args: {
+  repoPath: string;
+  issueId?: string;
+  branchName?: string;
+}): Promise<any> {
+  try {
+    return await agentdJson("/v1/orchestrator/git/prepare-branch", {
+      method: "POST",
+      body: args,
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function orchestratorCreatePrForIpc(args: {
+  repoSlug: string;
+  head: string;
+  base?: string;
+  title: string;
+  body?: string;
+  draft?: boolean;
+  dryRun?: boolean;
+}): Promise<any> {
+  try {
+    return await agentdJson("/v1/orchestrator/github/create-pr", {
+      method: "POST",
+      body: args,
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 type Risk = "read" | "safe-write" | "high-impact";
 
 function gateProfileCommand(args: {
@@ -3696,6 +3738,23 @@ ipcMain.handle(
 ipcMain.handle("rina:orchestrator:workspace-graph", async () => {
   return await orchestratorGraphForIpc();
 });
+
+ipcMain.handle(
+  "rina:orchestrator:git:prepare-branch",
+  async (_event, args: { repoPath: string; issueId?: string; branchName?: string }) => {
+    return await orchestratorPrepareBranchForIpc(args);
+  },
+);
+
+ipcMain.handle(
+  "rina:orchestrator:github:create-pr",
+  async (
+    _event,
+    args: { repoSlug: string; head: string; base?: string; title: string; body?: string; draft?: boolean; dryRun?: boolean },
+  ) => {
+    return await orchestratorCreatePrForIpc(args);
+  },
+);
 
 // ============================================================
 // Warp-like Block Handlers

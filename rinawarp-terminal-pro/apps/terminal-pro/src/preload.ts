@@ -94,6 +94,17 @@ contextBridge.exposeInMainWorld("rina", {
     commitMessage?: string;
   }) => ipcRenderer.invoke("rina:orchestrator:issue-to-pr", args),
   orchestratorGraph: () => ipcRenderer.invoke("rina:orchestrator:workspace-graph"),
+  orchestratorPrepareBranch: (args: { repoPath: string; issueId?: string; branchName?: string }) =>
+    ipcRenderer.invoke("rina:orchestrator:git:prepare-branch", args),
+  orchestratorCreatePr: (args: {
+    repoSlug: string;
+    head: string;
+    base?: string;
+    title: string;
+    body?: string;
+    draft?: boolean;
+    dryRun?: boolean;
+  }) => ipcRenderer.invoke("rina:orchestrator:github:create-pr", args),
   importShellHistory: (limit?: number) => ipcRenderer.invoke("rina:history:import", limit),
   reportRendererError: (payload: { kind?: string; message?: string; extra?: string }) =>
     ipcRenderer.invoke("rina:renderer:error", payload),
