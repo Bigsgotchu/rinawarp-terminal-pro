@@ -15,6 +15,7 @@ import { registerUpdatesIpc } from "./registerUpdatesIpc.js";
 import { registerAgentIpc } from "./registerAgentIpc.js";
 import { registerAgentPlanningIpc } from "./registerAgentPlanningIpc.js";
 import { registerAgentExecutionIpc } from "./registerAgentExecutionIpc.js";
+import { registerOrchestratorIpc } from "./registerOrchestratorIpc.js";
 
 // Runtime guard to prevent double-registration (e.g., during hot reload)
 declare global {
@@ -137,6 +138,55 @@ export function registerAllIpc(args: {
     projectRoot: string;
   }) => Promise<unknown>;
   haltReasonFromFallbackStep: (result: any) => string | null;
+  orchestratorIssueToPrForIpc: (args: {
+    issueId: string;
+    repoPath: string;
+    branchName?: string;
+    command?: string;
+    repoSlug?: string;
+    push?: boolean;
+    prDryRun?: boolean;
+    baseBranch?: string;
+    prTitle?: string;
+    prBody?: string;
+    commitMessage?: string;
+  }) => Promise<any>;
+  orchestratorGraphForIpc: () => Promise<any>;
+  orchestratorPrepareBranchForIpc: (args: { repoPath: string; issueId?: string; branchName?: string }) => Promise<any>;
+  orchestratorCreatePrForIpc: (args: {
+    repoSlug: string;
+    head: string;
+    base?: string;
+    title: string;
+    body?: string;
+    draft?: boolean;
+    dryRun?: boolean;
+  }) => Promise<any>;
+  orchestratorCiStatusForIpc: (args: {
+    workflowId: string;
+    provider: string;
+    status: "queued" | "running" | "passed" | "failed";
+    url?: string;
+    autoRetry?: boolean;
+    repoPath?: string;
+    issueId?: string;
+    branchName?: string;
+    command?: string;
+    repoSlug?: string;
+    baseBranch?: string;
+    prDryRun?: boolean;
+  }) => Promise<any>;
+  orchestratorReviewCommentForIpc: (args: {
+    workflowId: string;
+    repoPath: string;
+    issueId: string;
+    branchName: string;
+    comment: string;
+    command?: string;
+    repoSlug?: string;
+    baseBranch?: string;
+    prDryRun?: boolean;
+  }) => Promise<any>;
 }) {
   // Runtime guard: prevent double-registration during hot reload
   if (globalThis.__rinaIpcRegistered) {
@@ -273,5 +323,15 @@ export function registerAllIpc(args: {
     createStreamId: args.createStreamId,
     startStreamingStepViaEngine: args.startStreamingStepViaEngine,
     haltReasonFromFallbackStep: args.haltReasonFromFallbackStep,
+  });
+
+  registerOrchestratorIpc({
+    ipcMain: args.ipcMain,
+    issueToPr: args.orchestratorIssueToPrForIpc,
+    workspaceGraph: args.orchestratorGraphForIpc,
+    prepareBranch: args.orchestratorPrepareBranchForIpc,
+    createPr: args.orchestratorCreatePrForIpc,
+    ciStatus: args.orchestratorCiStatusForIpc,
+    reviewComment: args.orchestratorReviewCommentForIpc,
   });
 }

@@ -3766,92 +3766,6 @@ ipcMain.handle("rina:chat:export", async () => {
   return doctorExportTranscript("text");
 });
 
-ipcMain.handle(
-  "rina:orchestrator:issue-to-pr",
-  async (
-    _event,
-    args: {
-      issueId: string;
-      repoPath: string;
-      branchName?: string;
-      command?: string;
-      repoSlug?: string;
-      push?: boolean;
-      prDryRun?: boolean;
-      baseBranch?: string;
-      prTitle?: string;
-      prBody?: string;
-      commitMessage?: string;
-    },
-  ) => {
-    return await orchestratorIssueToPrForIpc(args);
-  },
-);
-
-ipcMain.handle("rina:orchestrator:workspace-graph", async () => {
-  return await orchestratorGraphForIpc();
-});
-
-ipcMain.handle(
-  "rina:orchestrator:git:prepare-branch",
-  async (_event, args: { repoPath: string; issueId?: string; branchName?: string }) => {
-    return await orchestratorPrepareBranchForIpc(args);
-  },
-);
-
-ipcMain.handle(
-  "rina:orchestrator:github:create-pr",
-  async (
-    _event,
-    args: { repoSlug: string; head: string; base?: string; title: string; body?: string; draft?: boolean; dryRun?: boolean },
-  ) => {
-    return await orchestratorCreatePrForIpc(args);
-  },
-);
-
-ipcMain.handle(
-  "rina:orchestrator:ci:status",
-  async (
-    _event,
-    args: {
-      workflowId: string;
-      provider: string;
-      status: "queued" | "running" | "passed" | "failed";
-      url?: string;
-      autoRetry?: boolean;
-      repoPath?: string;
-      issueId?: string;
-      branchName?: string;
-      command?: string;
-      repoSlug?: string;
-      baseBranch?: string;
-      prDryRun?: boolean;
-    },
-  ) => {
-    return await orchestratorCiStatusForIpc(args);
-  },
-);
-
-ipcMain.handle(
-  "rina:orchestrator:review:comment",
-  async (
-    _event,
-    args: {
-      workflowId: string;
-      repoPath: string;
-      issueId: string;
-      branchName: string;
-      comment: string;
-      command?: string;
-      repoSlug?: string;
-      baseBranch?: string;
-      prDryRun?: boolean;
-    },
-  ) => {
-    return await orchestratorReviewCommentForIpc(args);
-  },
-);
-
 // ============================================================
 // Warp-like Block Handlers
 // ============================================================
@@ -3983,6 +3897,12 @@ app.whenReady().then(() => {
     createStreamId,
     startStreamingStepViaEngine,
     haltReasonFromFallbackStep,
+    orchestratorIssueToPrForIpc,
+    orchestratorGraphForIpc,
+    orchestratorPrepareBranchForIpc,
+    orchestratorCreatePrForIpc,
+    orchestratorCiStatusForIpc,
+    orchestratorReviewCommentForIpc,
   });
   createWindow();
   app.on("activate", () => {
