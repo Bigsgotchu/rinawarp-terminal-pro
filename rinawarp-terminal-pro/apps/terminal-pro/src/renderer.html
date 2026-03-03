@@ -2778,6 +2778,7 @@
             </div>
             <div id="workflowMonitorSummary" class="small" style="margin-top:10px;">Loading monitor…</div>
             <div id="workflowMonitorList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+            <div id="workflowMonitorAuditList" style="display:flex;flex-direction:column;gap:6px;margin-top:10px;"></div>
           </div>
           <div class="item">
             <div><b>Saved Local Workflows</b></div>
@@ -5754,7 +5755,8 @@
     function renderWorkflowMonitorPanel() {
       const summaryEl = document.getElementById("workflowMonitorSummary");
       const listEl = document.getElementById("workflowMonitorList");
-      if (!summaryEl || !listEl) return;
+      const auditEl = document.getElementById("workflowMonitorAuditList");
+      if (!summaryEl || !listEl || !auditEl) return;
 
       const nodes = Array.isArray(workflowGraphCache?.nodes) ? workflowGraphCache.nodes : [];
       const edges = Array.isArray(workflowGraphCache?.edges) ? workflowGraphCache.edges : [];
@@ -5780,55 +5782,79 @@
 
       if (issueTasks.length === 0) {
         listEl.innerHTML = `<div class="small">No issue workflows yet.</div>`;
-        return;
+      } else {
+        listEl.innerHTML = issueTasks
+          .slice(0, 12)
+          .map((t) => {
+            const issueId = String(t?.payload?.issueId || "unknown");
+            const branch = String(t?.payload?.branchName || "—");
+            const status = String(t?.status || "unknown");
+            const workflowId = String(t?.payload?.workflowId || "").trim();
+            const wfNode = workflowId
+              ? nodes.find((n) => String(n?.id || "") === `workflow_${workflowId}`)
+              : null;
+            const wfState = String(wfNode?.data?.state || "unknown");
+            const prNode = workflowId
+              ? nodes.find((n) => String(n?.id || "") === `pr_${workflowId}`)
+              : null;
+            const prState = String(prNode?.data?.status || (t?.payload?.prDryRun === false ? "live_pending" : "dry_run_pending"));
+            const badgeClass =
+              status === "completed"
+                ? "diag-badge ok"
+                : status === "failed"
+                  ? "diag-badge warn"
+                  : "pill";
+            const prMode = t?.payload?.prDryRun === false ? "live" : "dry-run";
+            return `
+              <div class="item">
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                  <div><b>Issue ${escapeHtml(issueId)}</b></div>
+                  <span class="${badgeClass}">${escapeHtml(status)}</span>
+                </div>
+                <div class="small">Task: ${escapeHtml(String(t.id || "—"))}</div>
+                <div class="small">Workflow: ${escapeHtml(workflowId || "—")} • State: ${escapeHtml(wfState)}</div>
+                <div class="small">Branch: ${escapeHtml(branch)} • PR mode: ${escapeHtml(prMode)} • PR state: ${escapeHtml(prState)}</div>
+                <div class="small">Command: <code>${escapeHtml(String(t?.payload?.command || "—"))}</code></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                  <button onclick="openWorkflowBranch('${escapeHtml(String(t.id || ''))}')">Open branch</button>
+                  <button onclick="retryWorkflowTask('${escapeHtml(String(t.id || ''))}')">Retry failed</button>
+                  <button onclick="createPrForWorkflow('${escapeHtml(String(t.id || ''))}')">Create PR now</button>
+                  <button onclick="markWorkflowCiPassed('${escapeHtml(String(t.id || ''))}')">CI passed</button>
+                  <button onclick="markWorkflowCiFailed('${escapeHtml(String(t.id || ''))}')">CI failed + auto-retry</button>
+                  <button onclick="addWorkflowReviewComment('${escapeHtml(String(t.id || ''))}')">Add review feedback</button>
+                  <button onclick="markWorkflowPrMerged('${escapeHtml(String(t.id || ''))}')">PR merged</button>
+                  <button onclick="markWorkflowPrClosed('${escapeHtml(String(t.id || ''))}')">PR closed</button>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
       }
 
-      listEl.innerHTML = issueTasks
-        .slice(0, 12)
-        .map((t) => {
-          const issueId = String(t?.payload?.issueId || "unknown");
-          const branch = String(t?.payload?.branchName || "—");
-          const status = String(t?.status || "unknown");
-          const workflowId = String(t?.payload?.workflowId || "").trim();
-          const wfNode = workflowId
-            ? nodes.find((n) => String(n?.id || "") === `workflow_${workflowId}`)
-            : null;
-          const wfState = String(wfNode?.data?.state || "unknown");
-          const prNode = workflowId
-            ? nodes.find((n) => String(n?.id || "") === `pr_${workflowId}`)
-            : null;
-          const prState = String(prNode?.data?.status || (t?.payload?.prDryRun === false ? "live_pending" : "dry_run_pending"));
-          const badgeClass =
-            status === "completed"
-              ? "diag-badge ok"
-              : status === "failed"
-                ? "diag-badge warn"
-                : "pill";
-          const prMode = t?.payload?.prDryRun === false ? "live" : "dry-run";
+      if (!audit.length) {
+        auditEl.innerHTML = `<div class="small">No webhook audit events yet.</div>`;
+        return;
+      }
+      auditEl.innerHTML = `
+        <div class="small"><b>Recent Webhook Events</b></div>
+        ${audit.slice(0, 10).map((e) => {
+          const outcome = String(e?.outcome || "unknown");
+          const mapped = String(e?.mapped || e?.reason || "n/a");
+          const eventName = String(e?.eventName || e?.event || "unknown");
+          const workflowId = String(e?.workflowId || "—");
+          const ts = String(e?.ts || "").slice(11, 19) || "—";
+          const cls = outcome === "accepted" ? "diag-badge ok" : outcome === "rejected" ? "diag-badge warn" : "pill";
           return `
-            <div class="item">
-              <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
-                <div><b>Issue ${escapeHtml(issueId)}</b></div>
-                <span class="${badgeClass}">${escapeHtml(status)}</span>
+            <div class="item" style="padding:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <div class="small"><b>${escapeHtml(eventName)}</b> • ${escapeHtml(mapped)}</div>
+                <span class="${cls}">${escapeHtml(outcome)}</span>
               </div>
-              <div class="small">Task: ${escapeHtml(String(t.id || "—"))}</div>
-              <div class="small">Workflow: ${escapeHtml(workflowId || "—")} • State: ${escapeHtml(wfState)}</div>
-              <div class="small">Branch: ${escapeHtml(branch)} • PR mode: ${escapeHtml(prMode)} • PR state: ${escapeHtml(prState)}</div>
-              <div class="small">Command: <code>${escapeHtml(String(t?.payload?.command || "—"))}</code></div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                <button onclick="openWorkflowBranch('${escapeHtml(String(t.id || ''))}')">Open branch</button>
-                <button onclick="retryWorkflowTask('${escapeHtml(String(t.id || ''))}')">Retry failed</button>
-                <button onclick="createPrForWorkflow('${escapeHtml(String(t.id || ''))}')">Create PR now</button>
-                <button onclick="markWorkflowCiPassed('${escapeHtml(String(t.id || ''))}')">CI passed</button>
-                <button onclick="markWorkflowCiFailed('${escapeHtml(String(t.id || ''))}')">CI failed + auto-retry</button>
-                <button onclick="addWorkflowReviewComment('${escapeHtml(String(t.id || ''))}')">Add review feedback</button>
-                <button onclick="markWorkflowPrMerged('${escapeHtml(String(t.id || ''))}')">PR merged</button>
-                <button onclick="markWorkflowPrClosed('${escapeHtml(String(t.id || ''))}')">PR closed</button>
-              </div>
+              <div class="small">workflow: ${escapeHtml(workflowId)} • ${escapeHtml(ts)} UTC</div>
             </div>
           `;
-        })
-        .join("");
+        }).join("")}
+      `;
     }
 
     async function refreshWorkflowPanel() {
