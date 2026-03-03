@@ -1814,9 +1814,16 @@ test("health probes config/status/run endpoints work", async () => {
 			enabled: true,
 			auto_failover: true,
 			timeout_ms: 250,
-			endpoints: {
-				"us-east-1": [],
+			probes: {
+				"us-east-1": [{ url: "http://127.0.0.1:9/health", class: "app", weight: 1 }],
 				"eu-west-1": [],
+			},
+			policy: {
+				consecutive_failures_for_degraded: 1,
+				consecutive_failures_for_down: 1,
+				consecutive_successes_for_healthy: 1,
+				failover_cooldown_sec: 0,
+				per_class_min_ratio: { app: 1, db: 1, queue: 0.5, "control-plane": 1 },
 			},
 		}),
 	});
@@ -1847,4 +1854,8 @@ test("health probes config/status/run endpoints work", async () => {
 	assert.equal(out.ok, true);
 	assert.ok(out.regions?.["us-east-1"]);
 	assert.ok(out.regions?.["eu-west-1"]);
+	assert.ok(["healthy", "degraded", "down"].includes(out.regions?.["us-east-1"]?.status));
+	if (out.traffic_reconcile) {
+		assert.equal(typeof out.traffic_reconcile.ok, "boolean");
+	}
 });

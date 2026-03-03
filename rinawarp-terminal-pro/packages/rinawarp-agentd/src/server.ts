@@ -696,6 +696,14 @@ export function createServer(opts: { port: number }) {
           auto_failover?: boolean;
           timeout_ms?: number;
           endpoints?: Partial<Record<"us-east-1" | "eu-west-1", string[]>>;
+          probes?: Partial<Record<"us-east-1" | "eu-west-1", Array<string | { url: string; class?: "app" | "db" | "queue" | "control-plane"; weight?: number }>>>;
+          policy?: {
+            per_class_min_ratio?: Partial<Record<"app" | "db" | "queue" | "control-plane", number>>;
+            consecutive_failures_for_degraded?: number;
+            consecutive_failures_for_down?: number;
+            consecutive_successes_for_healthy?: number;
+            failover_cooldown_sec?: number;
+          };
         } | null;
         const cfg = configureHealthProbes(body || {});
         logSoc2({
@@ -712,13 +720,23 @@ export function createServer(opts: { port: number }) {
       if (req.method === "POST" && url.pathname === "/v1/platform/health-probes/run") {
         const body = (await readJson(req)) as { force?: boolean } | null;
         const out = await runHealthProbes(body?.force === true);
+        let trafficReconcile: { ok: boolean; changed?: boolean; error?: string } | undefined;
+        if (out.ok && out.failover?.changed === true) {
+          trafficReconcile = await reconcileTrafficManager(false);
+        }
         logSoc2({
           req,
           action: "health_probes_run",
           result: out.ok ? "ok" : "error",
-          details: out as unknown as Record<string, unknown>,
+          details: {
+            ...(out as unknown as Record<string, unknown>),
+            ...(trafficReconcile ? { traffic_reconcile: trafficReconcile } : {}),
+          },
         });
-        return sendJson(res, out.ok ? 200 : 400, out);
+        return sendJson(res, out.ok ? 200 : 400, {
+          ...out,
+          ...(trafficReconcile ? { traffic_reconcile: trafficReconcile } : {}),
+        });
       }
       if (req.method === "PUT" && url.pathname === "/v1/platform/traffic/config") {
         const body = (await readJson(req)) as {

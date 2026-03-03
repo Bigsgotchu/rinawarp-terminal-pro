@@ -12,15 +12,16 @@ Date: 2026-03-03
   - `POST /v1/platform/health-probes/run`
 - [x] Kubernetes cron surface:
   - `deploy/k8s/rinawarp-health-probes-cronjob.yaml`
-- [ ] Replace static endpoint lists with service discovery + weighted probes.
-- [ ] Add hysteresis/cooldown policy state machine for failover rollback safety.
+- [x] Weighted probe classes + thresholds (`app/db/queue/control-plane`).
+- [x] Hysteresis/cooldown failover policy state machine.
+- [ ] Replace static endpoint lists with service discovery-backed probe discovery.
 
 ## Block 2: Active-Active Data Plane
 
 - [x] Region assignment + manual failover controls.
 - [ ] Conflict-safe multi-region write protocol (version vectors/CRDT/event reconciliation policy).
 - [ ] Cross-region data replication validation and replay drills.
-- [ ] Automated Route53/traffic reconciliation from probe outcomes with policy guardrails.
+- [x] Automated traffic reconciliation after health-driven failover decisions.
 
 ## Block 3: SOC2 External Verifier
 

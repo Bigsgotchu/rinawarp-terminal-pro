@@ -74,7 +74,9 @@ This is the current server-backed team surface implemented in `packages/rinawarp
   - Durable consumer replay checkpoint persisted at `eventbus-jetstream-state.json`
   - Explicit ack + dead-letter publishing (`workspace.{id}.dlq`) for invalid event payloads
 - Region health model is tracked and failover can switch the default region when primary health is degraded/down.
-- Health-probe runner can evaluate per-region endpoint sets and apply auto-failover policy.
+- Health-probe runner supports weighted probe classes (`app`, `db`, `queue`, `control-plane`) and policy thresholds.
+- Hysteresis/cooldown controls are included (`consecutive_*` thresholds and `failover_cooldown_sec`).
+- When a health-driven failover changes active region, traffic reconciliation is triggered automatically.
 - Route53 traffic reconciliation surface is available for active/passive DNS failover record management.
 - Invite tokens are generated randomly and stored hashed (`sha256` with rotating salt+key version).
 - Invite accept is single-use (`pending` -> `accepted`) with expiry handling.

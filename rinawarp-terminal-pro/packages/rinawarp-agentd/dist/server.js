@@ -629,13 +629,23 @@ export function createServer(opts) {
             if (req.method === "POST" && url.pathname === "/v1/platform/health-probes/run") {
                 const body = (await readJson(req));
                 const out = await runHealthProbes(body?.force === true);
+                let trafficReconcile;
+                if (out.ok && out.failover?.changed === true) {
+                    trafficReconcile = await reconcileTrafficManager(false);
+                }
                 logSoc2({
                     req,
                     action: "health_probes_run",
                     result: out.ok ? "ok" : "error",
-                    details: out,
+                    details: {
+                        ...out,
+                        ...(trafficReconcile ? { traffic_reconcile: trafficReconcile } : {}),
+                    },
                 });
-                return sendJson(res, out.ok ? 200 : 400, out);
+                return sendJson(res, out.ok ? 200 : 400, {
+                    ...out,
+                    ...(trafficReconcile ? { traffic_reconcile: trafficReconcile } : {}),
+                });
             }
             if (req.method === "PUT" && url.pathname === "/v1/platform/traffic/config") {
                 const body = (await readJson(req));
