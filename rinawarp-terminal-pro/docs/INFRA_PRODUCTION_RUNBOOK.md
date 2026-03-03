@@ -68,6 +68,15 @@ Date: 2026-03-03
 - Verifier cron reads attestation object via:
   - `RINAWARP_VERIFIER_INPUT_S3_URI=s3://rinawarp-attestation-verifier/attestations/<key>.json`
 
+### One-Pass Cutover Script
+
+1. Copy env template:
+   - `cp deploy/aws/scripts/cross-account-attestation.env.example deploy/aws/scripts/cross-account-attestation.env`
+2. Fill real account IDs, cluster, OIDC, and independent alert webhook.
+3. Run:
+   - `source deploy/aws/scripts/cross-account-attestation.env`
+   - `bash deploy/aws/scripts/cross-account-attestation-cutover.sh`
+
 ## Leader Election
 
 - Enabled by default in controller manifest:
