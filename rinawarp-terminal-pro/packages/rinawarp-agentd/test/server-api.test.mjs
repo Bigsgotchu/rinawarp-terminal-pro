@@ -1518,3 +1518,110 @@ test("workspace creation honors idempotency-key replay", async () => {
 	const secondBody = await second.json();
 	assert.equal(secondBody.workspace_id, firstBody.workspace_id);
 });
+
+test("vault store/retrieve/rotate flow works", async () => {
+	const create = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner5",
+			"x-rina-actor-email": "owner5@example.com",
+			"idempotency-key": `idem-ws-5-${Date.now()}`,
+		},
+		body: JSON.stringify({ name: "vault-flow", region: "us-east-1" }),
+	});
+	const created = await create.json();
+	const workspaceId = created.workspace_id;
+	assert.ok(workspaceId);
+
+	const store = await fetch(`${baseUrl}/v1/vault/store`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner5",
+			"x-rina-actor-email": "owner5@example.com",
+		},
+		body: JSON.stringify({ workspace_id: workspaceId, token: "ghp_test_token" }),
+	});
+	assert.equal(store.status, 200);
+	const stored = await store.json();
+	assert.equal(stored.ok, true);
+	assert.ok(stored.id);
+
+	const retrieve = await fetch(
+		`${baseUrl}/v1/vault/retrieve?id=${encodeURIComponent(stored.id)}&workspace_id=${encodeURIComponent(workspaceId)}`,
+		{
+			headers: {
+				"x-rina-actor-id": "usr_owner5",
+				"x-rina-actor-email": "owner5@example.com",
+			},
+		},
+	);
+	assert.equal(retrieve.status, 200);
+	const recovered = await retrieve.json();
+	assert.equal(recovered.ok, true);
+	assert.equal(recovered.token, "ghp_test_token");
+
+	const rotate = await fetch(`${baseUrl}/v1/vault/rotate`, {
+		method: "POST",
+		headers: {
+			"x-rina-actor-id": "usr_owner5",
+			"x-rina-actor-email": "owner5@example.com",
+		},
+	});
+	assert.equal(rotate.status, 200);
+	const rot = await rotate.json();
+	assert.equal(rot.ok, true);
+	assert.ok(rot.key_version >= 2);
+});
+
+test("runtime task enforces cross-region policy", async () => {
+	const create = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner6",
+			"x-rina-actor-email": "owner6@example.com",
+			"idempotency-key": `idem-ws-6-${Date.now()}`,
+		},
+		body: JSON.stringify({ name: "runtime-region-flow", region: "us-east-1" }),
+	});
+	const created = await create.json();
+	const workspaceId = created.workspace_id;
+	assert.ok(workspaceId);
+
+	const blocked = await fetch(`${baseUrl}/v1/runtime/tasks`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner6",
+			"x-rina-actor-email": "owner6@example.com",
+		},
+		body: JSON.stringify({
+			workspace_id: workspaceId,
+			command: "echo hi",
+			requested_region: "eu-west-1",
+			allow_cross_region: false,
+		}),
+	});
+	assert.equal(blocked.status, 403);
+
+	const allowed = await fetch(`${baseUrl}/v1/runtime/tasks`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner6",
+			"x-rina-actor-email": "owner6@example.com",
+		},
+		body: JSON.stringify({
+			workspace_id: workspaceId,
+			command: "echo hi",
+			requested_region: "eu-west-1",
+			allow_cross_region: true,
+		}),
+	});
+	assert.equal(allowed.status, 200);
+	const scheduled = await allowed.json();
+	assert.equal(scheduled.ok, true);
+	assert.ok(scheduled.task?.id);
+});

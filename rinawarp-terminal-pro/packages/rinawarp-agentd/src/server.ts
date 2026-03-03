@@ -55,6 +55,10 @@ import {
 import { enqueueEmail, getMaskedEmailConfig, setEmailConfig, startEmailWorker } from "./workspace/email.js";
 import { getIdempotentReplay, storeIdempotentResponse } from "./workspace/idempotency.js";
 import { enforceInviteAcceptCooldown, enforceInviteCreateRate, recordInviteAcceptFailure } from "./workspace/securityStore.js";
+import { appendSoc2Event } from "./platform/soc2Log.js";
+import { assignWorkspaceRegion, getRegionMap, getWorkspaceRegion } from "./platform/regions.js";
+import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform/runtime.js";
+import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -441,6 +445,31 @@ function requireIdempotency(req: http.IncomingMessage): string {
   return key;
 }
 
+function requestId(req: http.IncomingMessage): string {
+  const id = String(req.headers["x-request-id"] || "").trim();
+  return id || randomUUID();
+}
+
+function logSoc2(args: {
+  req: http.IncomingMessage;
+  workspaceId?: string;
+  action: string;
+  result: string;
+  details?: Record<string, unknown>;
+}): void {
+  const actor = actorFromRequest(args.req);
+  appendSoc2Event({
+    request_id: requestId(args.req),
+    user_id: actor.actorId,
+    workspace_id: String(args.workspaceId || "system"),
+    ip: webhookClientIp(args.req),
+    action: args.action,
+    result: args.result,
+    timestamp: new Date().toISOString(),
+    details: args.details,
+  });
+}
+
 function daemonRunnerPath(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
   return path.join(here, "daemon", "runner.js");
@@ -624,6 +653,44 @@ export function createServer(opts: { port: number }) {
 
       if (req.method === "GET" && url.pathname === "/v1/account/plan") {
         return sendJson(res, 200, accountPlanFromEnv());
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/platform/regions") {
+        return sendJson(res, 200, getRegionMap());
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/vault/store") {
+        const body = (await readJson(req)) as { id?: string; workspace_id?: string; token?: string } | null;
+        const workspaceId = String(body?.workspace_id || "").trim();
+        const token = String(body?.token || "");
+        if (!workspaceId || !token) return sendJson(res, 400, { ok: false, error: "workspace_id and token are required" });
+        const actor = ensureWorkspaceRole(req, workspaceId, "admin");
+        const stored = vaultStore({ id: body?.id, workspace_id: workspaceId, token });
+        logSoc2({
+          req,
+          workspaceId,
+          action: "vault_store",
+          result: "ok",
+          details: { vault_id: stored.id, key_version: stored.key_version, actor_role: actor.role },
+        });
+        return sendJson(res, 200, { ok: true, id: stored.id, key_version: stored.key_version });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/vault/retrieve") {
+        const id = String(url.searchParams.get("id") || "").trim();
+        const workspaceId = String(url.searchParams.get("workspace_id") || "").trim();
+        if (!id || !workspaceId) return sendJson(res, 400, { ok: false, error: "id and workspace_id are required" });
+        ensureWorkspaceRole(req, workspaceId, "admin");
+        const rec = vaultRetrieve(id);
+        if (!rec) return sendJson(res, 404, { ok: false, error: "not_found" });
+        logSoc2({ req, workspaceId, action: "vault_retrieve", result: "ok", details: { vault_id: id } });
+        return sendJson(res, 200, { ok: true, id: rec.id, token: rec.token, key_version: rec.key_version });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/vault/rotate") {
+        const rotated = vaultRotate();
+        logSoc2({ req, action: "vault_rotate", result: "ok", details: rotated });
+        return sendJson(res, 200, { ok: true, ...rotated });
       }
 
       // --- SSE stream for a plan run
@@ -972,7 +1039,15 @@ export function createServer(opts: { port: number }) {
           ownerId: actorId,
           ownerEmail: actorEmail,
         });
+        assignWorkspaceRegion(created.id, created.region);
         const response = { workspace_id: created.id, owner_id: created.owner_id };
+        logSoc2({
+          req,
+          workspaceId: created.id,
+          action: "workspace_create",
+          result: "ok",
+          details: { region: created.region },
+        });
         storeIdempotentResponse({
           key: idempotencyKey,
           userId: actorId,
@@ -990,6 +1065,17 @@ export function createServer(opts: { port: number }) {
         const ws = getWorkspace(workspaceId);
         if (!ws) return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
         return sendJson(res, 200, ws);
+      }
+
+      const workspaceRegionMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/region$/);
+      if (req.method === "PUT" && workspaceRegionMatch) {
+        const workspaceId = decodeURIComponent(workspaceRegionMatch[1] || "");
+        ensureWorkspaceRole(req, workspaceId, "owner");
+        const body = (await readJson(req)) as { region?: string } | null;
+        const assigned = assignWorkspaceRegion(workspaceId, String(body?.region || ""));
+        if (!assigned) return sendJson(res, 400, { ok: false, error: "invalid_region" });
+        logSoc2({ req, workspaceId, action: "workspace_region_set", result: "ok", details: { region: assigned } });
+        return sendJson(res, 200, { ok: true, workspace_id: workspaceId, region: assigned });
       }
 
       const workspaceInviteCreateMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/invites$/);
@@ -1060,6 +1146,13 @@ export function createServer(opts: { port: number }) {
             status: 200,
             response,
           });
+          logSoc2({
+            req,
+            workspaceId,
+            action: "invite_create",
+            result: "ok",
+            details: { invite_id: created.invite_id, role, send_email: body?.send_email === true },
+          });
           return sendJson(res, 200, response);
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -1100,6 +1193,13 @@ export function createServer(opts: { port: number }) {
           }
           return sendJson(res, accepted.statusCode || 400, { ok: false, error: accepted.error || "invite_accept_failed" });
         }
+        logSoc2({
+          req,
+          workspaceId: accepted.workspace_id,
+          action: "invite_accept",
+          result: "ok",
+          details: { role: accepted.role },
+        });
         return sendJson(res, 200, {
           workspace_id: accepted.workspace_id,
           role: accepted.role,
@@ -1310,6 +1410,63 @@ export function createServer(opts: { port: number }) {
           if (message === "workspace_locked") return sendJson(res, 423, { ok: false, error: "workspace_locked" });
           return sendJson(res, 400, { ok: false, error: message });
         }
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/runtime/tasks") {
+        const body = (await readJson(req)) as {
+          workspace_id?: string;
+          command?: string;
+          requested_region?: string;
+          allow_cross_region?: boolean;
+        } | null;
+        const workspaceId = String(body?.workspace_id || "").trim();
+        const command = String(body?.command || "").trim();
+        if (!workspaceId || !command) return sendJson(res, 400, { ok: false, error: "workspace_id and command are required" });
+        ensureWorkspaceRole(req, workspaceId, "member");
+        const homeRegion = getWorkspaceRegion(workspaceId);
+        const requestedRegion = String(body?.requested_region || homeRegion).trim() || homeRegion;
+        const allowCrossRegion = body?.allow_cross_region === true;
+        if (requestedRegion !== homeRegion && !allowCrossRegion) {
+          return sendJson(res, 403, { ok: false, error: "cross_region_execution_disabled", workspace_region: homeRegion, requested_region: requestedRegion });
+        }
+        const task = enqueueRuntimeTask({
+          workspace_id: workspaceId,
+          workspace_region: homeRegion,
+          requested_region: requestedRegion,
+          command,
+        });
+        logSoc2({
+          req,
+          workspaceId,
+          action: "runtime_task_enqueue",
+          result: "ok",
+          details: { task_id: task.id, workspace_region: homeRegion, requested_region: requestedRegion },
+        });
+        return sendJson(res, 200, { ok: true, task });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/runtime/tasks") {
+        const workspaceId = String(url.searchParams.get("workspace_id") || "").trim();
+        if (workspaceId) ensureWorkspaceRole(req, workspaceId, "member");
+        const tasks = listRuntimeTasks(workspaceId || undefined);
+        return sendJson(res, 200, { ok: true, tasks });
+      }
+
+      const runtimeTaskMatch = url.pathname.match(/^\/v1\/runtime\/tasks\/([^/]+)$/);
+      if (req.method === "GET" && runtimeTaskMatch) {
+        const id = decodeURIComponent(runtimeTaskMatch[1] || "");
+        const task = getRuntimeTask(id);
+        if (!task) return sendJson(res, 404, { ok: false, error: "not_found" });
+        ensureWorkspaceRole(req, task.workspace_id, "member");
+        return sendJson(res, 200, { ok: true, task });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/ws") {
+        return sendJson(res, 501, {
+          ok: false,
+          error: "websocket_gateway_not_implemented",
+          hint: "Use /v1/workspaces/{id}/sync/pull + /sync/push until NATS/WebSocket gateway is enabled.",
+        });
       }
 
       // --- ORCHESTRATOR ISSUE -> PR (MVP)

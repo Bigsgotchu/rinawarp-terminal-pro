@@ -9,8 +9,10 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - `POST /v1/auth/login`
 - `POST /v1/auth/refresh`
 - `GET /v1/account/plan`
+- `GET /v1/platform/regions`
 - `POST /v1/workspaces`
 - `GET /v1/workspaces/{workspace_id}`
+- `PUT /v1/workspaces/{workspace_id}/region`
 - `POST /v1/workspaces/{workspace_id}/invites`
 - `GET /v1/workspaces/{workspace_id}/invites`
 - `POST /v1/invites/accept`
@@ -21,6 +23,9 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - `GET /v1/workspaces/{workspace_id}/audit`
 - `PUT /v1/admin/security/invites`
 - `POST /v1/admin/security/invites/rotate-keys`
+- `POST /v1/vault/store`
+- `GET /v1/vault/retrieve`
+- `POST /v1/vault/rotate`
 - `PUT /v1/admin/email/config`
 - `GET /v1/admin/email/config`
 - `POST /v1/admin/email/test`
@@ -30,6 +35,9 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - `GET /v1/workspaces/{workspace_id}/sync/state`
 - `POST /v1/workspaces/{workspace_id}/sync/pull`
 - `POST /v1/workspaces/{workspace_id}/sync/push`
+- `POST /v1/runtime/tasks`
+- `GET /v1/runtime/tasks`
+- `GET /v1/runtime/tasks/{task_id}`
 
 ## Storage
 
@@ -40,12 +48,15 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 ## Security/Behavior Included
 
 - Optional signed access/refresh tokens (`RINAWARP_AGENTD_AUTH_SECRET`).
+- SOC2-style append-only hash-chained logs are written to `soc2-audit.ndjson`.
+- Vault service stores encrypted tokens with envelope encryption and key rotation support.
 - Invite tokens are generated randomly and stored hashed (`sha256` with rotating salt+key version).
 - Invite accept is single-use (`pending` -> `accepted`) with expiry handling.
 - Brute-force protection for invite token attempts (`423 locked` after threshold).
 - Workspace lock blocks invite creation and sync push mutations.
 - All workspace/invite/security/billing/sync mutations append immutable audit entries.
 - Invite email dispatch supports provider config with `sendmail`/`log` fallback and outbox trace (`email-outbox.ndjson`).
+- Invite create/accept security can use Redis REST (`RINAWARP_REDIS_REST_URL`, `RINAWARP_REDIS_REST_TOKEN`) with local fallback.
 
 ## Known Gaps To Reach Full Production Contract
 
