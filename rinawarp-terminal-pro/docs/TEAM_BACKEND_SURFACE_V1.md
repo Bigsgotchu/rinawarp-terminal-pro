@@ -10,6 +10,9 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - `POST /v1/auth/refresh`
 - `GET /v1/account/plan`
 - `GET /v1/platform/regions`
+- `PUT /v1/platform/archive/config`
+- `GET /v1/platform/archive/status`
+- `POST /v1/platform/archive/run`
 - `POST /v1/workspaces`
 - `GET /v1/workspaces/{workspace_id}`
 - `PUT /v1/workspaces/{workspace_id}/region`
@@ -38,6 +41,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - `POST /v1/runtime/tasks`
 - `GET /v1/runtime/tasks`
 - `GET /v1/runtime/tasks/{task_id}`
+- `GET /v1/ws` (HTTP response `426`; WebSocket upgrade path is active on same URL)
 
 ## Storage
 
@@ -50,6 +54,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - Optional signed access/refresh tokens (`RINAWARP_AGENTD_AUTH_SECRET`).
 - SOC2-style append-only hash-chained logs are written to `soc2-audit.ndjson`.
 - Vault service stores encrypted tokens with envelope encryption and key rotation support.
+- WebSocket gateway is active for workspace event streaming; NATS publish bridge is enabled when `RINAWARP_NATS_URL` is configured.
 - Invite tokens are generated randomly and stored hashed (`sha256` with rotating salt+key version).
 - Invite accept is single-use (`pending` -> `accepted`) with expiry handling.
 - Brute-force protection for invite token attempts (`423 locked` after threshold).
@@ -57,15 +62,15 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - All workspace/invite/security/billing/sync mutations append immutable audit entries.
 - Invite email dispatch supports provider config with `sendmail`/`log` fallback and outbox trace (`email-outbox.ndjson`).
 - Invite create/accept security can use Redis REST (`RINAWARP_REDIS_REST_URL`, `RINAWARP_REDIS_REST_TOKEN`) with local fallback.
+- Redis is mandatory in `NODE_ENV=production` for invite security endpoints.
 
 ## Known Gaps To Reach Full Production Contract
 
 - SMTP provider credentials are stored but delivery currently uses local `sendmail` path (no direct SMTP handshake client yet).
 - JWT-like signed tokens exist, but no full account identity provider integration (passwordless/email-code/MFA/session revocation).
 - No seat counting against paid plan from billing provider.
-- Invite security counters/rate limits are local file-state, not Redis-distributed.
-- No S3 archive writer (retention config is stored; cleanup is local).
-- No NATS/WebSocket live fan-out for realtime sync stream.
+- S3 archive uploader depends on AWS CLI runtime configuration; object-lock/lifecycle policy is not auto-provisioned by agentd.
+- NATS cross-region subscription fan-in is not enabled yet (current bridge publishes; local bus powers active WS clients).
 - Idempotency enforcement is active for key mutation routes, but not yet universal across all mutating endpoints.
 
 ## CLI Surface (Current)

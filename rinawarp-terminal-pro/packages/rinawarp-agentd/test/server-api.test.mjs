@@ -1625,3 +1625,40 @@ test("runtime task enforces cross-region policy", async () => {
 	assert.equal(scheduled.ok, true);
 	assert.ok(scheduled.task?.id);
 });
+
+test("archive config/status/run endpoints work", async () => {
+	const cfg = await fetch(`${baseUrl}/v1/platform/archive/config`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner7",
+			"x-rina-actor-email": "owner7@example.com",
+		},
+		body: JSON.stringify({ enabled: true }),
+	});
+	assert.equal(cfg.status, 200);
+
+	const status = await fetch(`${baseUrl}/v1/platform/archive/status`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner7",
+			"x-rina-actor-email": "owner7@example.com",
+		},
+	});
+	assert.equal(status.status, 200);
+	const state = await status.json();
+	assert.equal(state.ok, true);
+	assert.equal(state.config.enabled, true);
+
+	const run = await fetch(`${baseUrl}/v1/platform/archive/run`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner7",
+			"x-rina-actor-email": "owner7@example.com",
+		},
+		body: JSON.stringify({ force: true }),
+	});
+	const out = await run.json();
+	assert.equal(out.ok, true);
+	assert.ok(out.archived_file || out.error);
+});

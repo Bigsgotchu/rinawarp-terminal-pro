@@ -59,6 +59,9 @@ import { appendSoc2Event } from "./platform/soc2Log.js";
 import { assignWorkspaceRegion, getRegionMap, getWorkspaceRegion } from "./platform/regions.js";
 import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform/runtime.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
+import { configureArchive, getArchiveState, runArchiveJob } from "./platform/archive.js";
+import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
+import { attachWorkspaceWebSocketServer } from "./platform/websocket.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -556,6 +559,9 @@ function incFailureClass(name: string | undefined): void {
 export function createServer(opts: { port: number }) {
   const { port } = opts;
   startEmailWorker();
+  initEventBus().catch(() => {
+    // non-fatal for local mode
+  });
 
   const server = http.createServer(async (req, res) => {
     try {
@@ -691,6 +697,35 @@ export function createServer(opts: { port: number }) {
         const rotated = vaultRotate();
         logSoc2({ req, action: "vault_rotate", result: "ok", details: rotated });
         return sendJson(res, 200, { ok: true, ...rotated });
+      }
+
+      if (req.method === "PUT" && url.pathname === "/v1/platform/archive/config") {
+        const body = (await readJson(req)) as {
+          enabled?: boolean;
+          bucket?: string;
+          region?: string;
+          object_lock_mode?: "GOVERNANCE" | "COMPLIANCE";
+          object_lock_days?: number;
+        } | null;
+        const cfg = configureArchive(body || {});
+        logSoc2({ req, action: "archive_config_update", result: "ok", details: cfg as unknown as Record<string, unknown> });
+        return sendJson(res, 200, { ok: true, config: cfg });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/platform/archive/status") {
+        return sendJson(res, 200, { ok: true, config: getArchiveState() });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/platform/archive/run") {
+        const body = (await readJson(req)) as { force?: boolean } | null;
+        const out = await runArchiveJob(body?.force === true);
+        logSoc2({
+          req,
+          action: "archive_run",
+          result: out.ok ? "ok" : "error",
+          details: out as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, out.ok ? 200 : 400, out);
       }
 
       // --- SSE stream for a plan run
@@ -1097,10 +1132,19 @@ export function createServer(opts: { port: number }) {
         if (!["owner", "admin", "member"].includes(role)) {
           return sendJson(res, 400, { ok: false, error: "role must be owner|admin|member" });
         }
-        const inviteRate = await enforceInviteCreateRate({
-          email,
-          maxPerMinute: Number(process.env.RINAWARP_INVITE_CREATE_RATE_LIMIT_PER_MIN || 5),
-        });
+        let inviteRate: { ok: true } | { ok: false; retryAfterSec: number };
+        try {
+          inviteRate = await enforceInviteCreateRate({
+            email,
+            maxPerMinute: Number(process.env.RINAWARP_INVITE_CREATE_RATE_LIMIT_PER_MIN || 5),
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (message === "redis_required_in_production") {
+            return sendJson(res, 503, { ok: false, error: "redis_required_in_production" });
+          }
+          throw error;
+        }
         if (!inviteRate.ok) {
           res.setHeader("Retry-After", String(inviteRate.retryAfterSec));
           return sendJson(res, 429, { ok: false, error: "rate_limited", retry_after_sec: inviteRate.retryAfterSec });
@@ -1153,6 +1197,11 @@ export function createServer(opts: { port: number }) {
             result: "ok",
             details: { invite_id: created.invite_id, role, send_email: body?.send_email === true },
           });
+          await publishWorkspaceEvent({
+            workspace_id: workspaceId,
+            type: "invite_created",
+            payload: { invite_id: created.invite_id, role, email },
+          });
           return sendJson(res, 200, response);
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -1177,7 +1226,16 @@ export function createServer(opts: { port: number }) {
         if (!token) return sendJson(res, 400, { ok: false, error: "token is required" });
         const { actorId, actorEmail } = actorFromRequest(req);
         const ip = webhookClientIp(req);
-        const cooldown = await enforceInviteAcceptCooldown({ ip });
+        let cooldown: { ok: true } | { ok: false; retryAfterSec: number };
+        try {
+          cooldown = await enforceInviteAcceptCooldown({ ip });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (message === "redis_required_in_production") {
+            return sendJson(res, 503, { ok: false, error: "redis_required_in_production" });
+          }
+          throw error;
+        }
         if (!cooldown.ok) {
           res.setHeader("Retry-After", String(cooldown.retryAfterSec));
           return sendJson(res, 423, { ok: false, error: "locked", retry_after_sec: cooldown.retryAfterSec });
@@ -1185,11 +1243,15 @@ export function createServer(opts: { port: number }) {
         const accepted = acceptInvite({ token, actorId, actorEmail });
         if (!accepted.ok) {
           if (accepted.statusCode === 401) {
-            await recordInviteAcceptFailure({
-              ip,
-              threshold: Number(process.env.RINAWARP_INVITE_BRUTE_FORCE_THRESHOLD || 10),
-              cooldownMinutes: Number(process.env.RINAWARP_INVITE_COOLDOWN_MINUTES || 30),
-            });
+            try {
+              await recordInviteAcceptFailure({
+                ip,
+                threshold: Number(process.env.RINAWARP_INVITE_BRUTE_FORCE_THRESHOLD || 10),
+                cooldownMinutes: Number(process.env.RINAWARP_INVITE_COOLDOWN_MINUTES || 30),
+              });
+            } catch {
+              // do not fail response path if counter update fails
+            }
           }
           return sendJson(res, accepted.statusCode || 400, { ok: false, error: accepted.error || "invite_accept_failed" });
         }
@@ -1199,6 +1261,11 @@ export function createServer(opts: { port: number }) {
           action: "invite_accept",
           result: "ok",
           details: { role: accepted.role },
+        });
+        await publishWorkspaceEvent({
+          workspace_id: String(accepted.workspace_id),
+          type: "invite_accepted",
+          payload: { role: accepted.role, actor_id: actorId },
         });
         return sendJson(res, 200, {
           workspace_id: accepted.workspace_id,
@@ -1404,6 +1471,12 @@ export function createServer(opts: { port: number }) {
           });
           if (!pushed) return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
           if (!pushed.ok) return sendJson(res, 409, pushed);
+          await publishWorkspaceEvent({
+            workspace_id: workspaceId,
+            type: "sync_pushed",
+            payload: { new_version: pushed.new_version, event_count: Array.isArray(body?.events) ? body.events.length : 0 },
+            version: pushed.new_version,
+          });
           return sendJson(res, 200, pushed);
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -1442,6 +1515,11 @@ export function createServer(opts: { port: number }) {
           result: "ok",
           details: { task_id: task.id, workspace_region: homeRegion, requested_region: requestedRegion },
         });
+        await publishWorkspaceEvent({
+          workspace_id: workspaceId,
+          type: "runtime_task_enqueued",
+          payload: { task_id: task.id, requested_region: requestedRegion, workspace_region: homeRegion },
+        });
         return sendJson(res, 200, { ok: true, task });
       }
 
@@ -1462,10 +1540,10 @@ export function createServer(opts: { port: number }) {
       }
 
       if (req.method === "GET" && url.pathname === "/v1/ws") {
-        return sendJson(res, 501, {
+        return sendJson(res, 426, {
           ok: false,
-          error: "websocket_gateway_not_implemented",
-          hint: "Use /v1/workspaces/{id}/sync/pull + /sync/push until NATS/WebSocket gateway is enabled.",
+          error: "upgrade_required",
+          hint: "Connect with WebSocket upgrade on /v1/ws?workspace_id=...&access_token=...",
         });
       }
 
@@ -1995,6 +2073,16 @@ export function createServer(opts: { port: number }) {
       const code = e?.statusCode ?? 500;
       return sendJson(res, code, { ok: false, error: e?.message ?? "Server error" });
     }
+  });
+
+  attachWorkspaceWebSocketServer({
+    server,
+    authorize: (token: string) => {
+      const secret = String(process.env.RINAWARP_AGENTD_AUTH_SECRET || "").trim();
+      if (secret) return !!verifySignedAuthToken(token, secret);
+      const staticToken = String(process.env.RINAWARP_AGENTD_TOKEN || "").trim();
+      return !!staticToken && token === staticToken;
+    },
   });
 
   return {
