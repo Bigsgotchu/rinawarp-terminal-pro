@@ -59,7 +59,7 @@ import { appendSoc2Event } from "./platform/soc2Log.js";
 import { assignWorkspaceRegion, getRegionMap, getWorkspaceRegion } from "./platform/regions.js";
 import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform/runtime.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
-import { configureArchive, getArchiveState, runArchiveJob } from "./platform/archive.js";
+import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
 import { attachWorkspaceWebSocketServer } from "./platform/websocket.js";
 
@@ -722,6 +722,30 @@ export function createServer(opts: { port: number }) {
         logSoc2({
           req,
           action: "archive_run",
+          result: out.ok ? "ok" : "error",
+          details: out as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, out.ok ? 200 : 400, out);
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/platform/archive/provision") {
+        const body = (await readJson(req)) as {
+          bucket?: string;
+          region?: string;
+          object_lock_mode?: "GOVERNANCE" | "COMPLIANCE";
+          retention_days?: number;
+        } | null;
+        const bucket = String(body?.bucket || "").trim();
+        if (!bucket) return sendJson(res, 400, { ok: false, error: "bucket is required" });
+        const out = await provisionArchiveBucket({
+          bucket,
+          region: body?.region,
+          objectLockMode: body?.object_lock_mode,
+          retentionDays: Number(body?.retention_days || 90),
+        });
+        logSoc2({
+          req,
+          action: "archive_provision_bucket",
           result: out.ok ? "ok" : "error",
           details: out as unknown as Record<string, unknown>,
         });
