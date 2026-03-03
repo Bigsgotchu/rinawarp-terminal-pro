@@ -1139,3 +1139,38 @@ test("POST /v1/orchestrator/github/webhook requires secret in production", async
 		else process.env.NODE_ENV = originalNodeEnv;
 	}
 });
+
+test("POST /v1/orchestrator/github/webhook rejects delivery id persisted on disk", async () => {
+	const delivery = `delivery-persisted-${Date.now()}`;
+	const registryPath = path.join(agentHome, "webhook-deliveries.json");
+	fs.writeFileSync(
+		registryPath,
+		`${JSON.stringify(
+			{
+				version: 1,
+				deliveries: { [delivery]: Date.now() },
+				updatedAt: new Date().toISOString(),
+			},
+			null,
+			2,
+		)}\n`,
+		"utf8",
+	);
+
+	const resp = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-github-event": "workflow_run",
+			"x-github-delivery": delivery,
+		},
+		body: JSON.stringify({
+			workflowId: "wf_persisted_delivery",
+			workflow_run: { status: "completed", conclusion: "success" },
+		}),
+	});
+	assert.equal(resp.status, 409);
+	const body = await resp.json();
+	assert.equal(body.ok, false);
+	assert.match(body.error, /duplicate delivery id/i);
+});

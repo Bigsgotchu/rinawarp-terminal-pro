@@ -6,6 +6,7 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { mkdir, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ExecutionEngine } from "@rinawarp/core/enforcement/index.js";
@@ -127,18 +128,74 @@ const metrics = {
 };
 const webhookDeliveryCache = new Map();
 const WEBHOOK_DELIVERY_TTL_MS = 24 * 60 * 60 * 1000;
+let webhookDeliveriesLoaded = false;
+function webhookDeliveryFile() {
+    return path.join(paths().baseDir, "webhook-deliveries.json");
+}
+function readWebhookDeliveryRegistry() {
+    const fp = webhookDeliveryFile();
+    if (!fs.existsSync(fp)) {
+        return { version: 1, deliveries: {}, updatedAt: new Date().toISOString() };
+    }
+    try {
+        const raw = fs.readFileSync(fp, "utf8");
+        const parsed = JSON.parse(raw);
+        if (!parsed || parsed.version !== 1 || typeof parsed.deliveries !== "object") {
+            return { version: 1, deliveries: {}, updatedAt: new Date().toISOString() };
+        }
+        return parsed;
+    }
+    catch {
+        return { version: 1, deliveries: {}, updatedAt: new Date().toISOString() };
+    }
+}
+function writeWebhookDeliveryRegistry(registry) {
+    const fp = webhookDeliveryFile();
+    fs.mkdirSync(path.dirname(fp), { recursive: true });
+    fs.writeFileSync(fp, `${JSON.stringify(registry, null, 2)}\n`, "utf8");
+}
+function loadWebhookDeliveriesIntoCache() {
+    if (webhookDeliveriesLoaded)
+        return;
+    const stored = readWebhookDeliveryRegistry();
+    for (const [id, ts] of Object.entries(stored.deliveries || {})) {
+        if (Number.isFinite(ts))
+            webhookDeliveryCache.set(id, Number(ts));
+    }
+    webhookDeliveriesLoaded = true;
+}
 function pruneWebhookDeliveries(now = Date.now()) {
+    loadWebhookDeliveriesIntoCache();
     for (const [id, ts] of webhookDeliveryCache.entries()) {
         if (now - ts > WEBHOOK_DELIVERY_TTL_MS)
             webhookDeliveryCache.delete(id);
     }
+    const deliveries = Object.fromEntries(webhookDeliveryCache.entries());
+    writeWebhookDeliveryRegistry({
+        version: 1,
+        deliveries,
+        updatedAt: new Date(now).toISOString(),
+    });
 }
 function rememberWebhookDelivery(deliveryId, now = Date.now()) {
+    loadWebhookDeliveriesIntoCache();
+    // Merge on-disk state to catch deliveries recorded by another process.
+    const stored = readWebhookDeliveryRegistry();
+    for (const [id, ts] of Object.entries(stored.deliveries || {})) {
+        if (Number.isFinite(ts) && !webhookDeliveryCache.has(id))
+            webhookDeliveryCache.set(id, Number(ts));
+    }
     pruneWebhookDeliveries(now);
     if (webhookDeliveryCache.has(deliveryId)) {
         return { ok: false, error: "duplicate delivery id" };
     }
     webhookDeliveryCache.set(deliveryId, now);
+    const deliveries = Object.fromEntries(webhookDeliveryCache.entries());
+    writeWebhookDeliveryRegistry({
+        version: 1,
+        deliveries,
+        updatedAt: new Date(now).toISOString(),
+    });
     return { ok: true };
 }
 async function readJson(req) {
