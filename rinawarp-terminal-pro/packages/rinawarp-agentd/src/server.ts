@@ -20,7 +20,13 @@ import { resolveRequestLicense } from "./license.js";
 import type { AgentPlanRequest, ExecutePlanRequest, CancelRequest, AgentPlan, PlanStep, Risk } from "./types.js";
 import { addTask, clearPid, clearState, isPidAlive, paths, readPid, readState, readTaskRegistry, writePid, writeState } from "./daemon/state.js";
 import { validateTaskPayload } from "./daemon/task-contracts.js";
-import { createIssueToPrWorkflow, queueRevisionFromReview, readWorkspaceGraph, recordCiStatus } from "./orchestrator/workspaceGraph.js";
+import {
+  createIssueToPrWorkflow,
+  queueRevisionFromReview,
+  readWorkspaceGraph,
+  recordCiStatus,
+  recordPullRequestStatus,
+} from "./orchestrator/workspaceGraph.js";
 import { createPullRequest } from "./orchestrator/githubAdapter.js";
 import { createOrSwitchBranch, currentBranch, ensureGitRepo } from "./orchestrator/gitProvider.js";
 
@@ -727,6 +733,9 @@ export function createServer(opts: { port: number }) {
           body?: string;
           draft?: boolean;
           dryRun?: boolean;
+          workflowId?: string;
+          issueId?: string;
+          branchName?: string;
         } | null;
         const repoSlug = String(body?.repoSlug || "").trim();
         const head = String(body?.head || "").trim();
@@ -747,7 +756,52 @@ export function createServer(opts: { port: number }) {
           { dryRun: body?.dryRun !== false },
         );
         if (!result.ok) return sendJson(res, 400, result);
+        const workflowId = String(body?.workflowId || "").trim();
+        if (workflowId) {
+          recordPullRequestStatus({
+            workflowId,
+            issueId: body?.issueId ? String(body.issueId) : undefined,
+            branchName: body?.branchName ? String(body.branchName) : head,
+            repoSlug,
+            status: result.mode === "live" ? "opened" : "planned",
+            mode: result.mode,
+            number: result.mode === "live" ? result.number : null,
+            url: result.mode === "live" ? result.url : null,
+          });
+        }
         return sendJson(res, 200, result);
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/orchestrator/github/pr-status") {
+        const body = (await readJson(req)) as {
+          workflowId?: string;
+          status?: "planned" | "opened" | "merged" | "closed" | "failed";
+          issueId?: string;
+          branchName?: string;
+          repoSlug?: string;
+          mode?: "dry_run" | "live";
+          number?: number;
+          url?: string;
+          error?: string;
+        } | null;
+        const workflowId = String(body?.workflowId || "").trim();
+        const status = body?.status;
+        if (!workflowId) return sendJson(res, 400, { ok: false, error: "workflowId is required" });
+        if (!status || !["planned", "opened", "merged", "closed", "failed"].includes(status)) {
+          return sendJson(res, 400, { ok: false, error: "status must be planned|opened|merged|closed|failed" });
+        }
+        const saved = recordPullRequestStatus({
+          workflowId,
+          status,
+          issueId: body?.issueId ? String(body.issueId) : undefined,
+          branchName: body?.branchName ? String(body.branchName) : undefined,
+          repoSlug: body?.repoSlug ? String(body.repoSlug) : undefined,
+          mode: body?.mode,
+          number: typeof body?.number === "number" ? body.number : null,
+          url: body?.url ? String(body.url) : null,
+          error: body?.error ? String(body.error) : null,
+        });
+        return sendJson(res, 200, saved);
       }
 
       // --- CANCEL (plan or stream)

@@ -419,6 +419,50 @@ test("POST /v1/orchestrator/github/create-pr returns dry-run payload", async () 
 	assert.equal(body.payload.title, "Fix issue 144");
 });
 
+test("POST /v1/orchestrator/github/create-pr records PR planned status when workflowId is provided", async () => {
+	const start = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			issueId: "170",
+			repoPath: process.cwd(),
+			branchName: "rina/fix-170",
+			command: "echo pr-plan-seed",
+		}),
+	});
+	assert.equal(start.status, 200);
+	const startBody = await start.json();
+	assert.equal(startBody.ok, true);
+
+	const resp = await fetch(`${baseUrl}/v1/orchestrator/github/create-pr`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			repoSlug: "owner/repo",
+			head: "rina/fix-170",
+			base: "main",
+			title: "Fix issue 170",
+			dryRun: true,
+			workflowId: startBody.workflowId,
+			issueId: "170",
+			branchName: "rina/fix-170",
+		}),
+	});
+	assert.equal(resp.status, 200);
+	const body = await resp.json();
+	assert.equal(body.ok, true);
+	assert.equal(body.mode, "dry_run");
+
+	const graphResp = await fetch(`${baseUrl}/v1/orchestrator/workspace-graph`);
+	assert.equal(graphResp.status, 200);
+	const graphBody = await graphResp.json();
+	assert.equal(graphBody.ok, true);
+	const prNode = graphBody.graph.nodes.find((n) => n.id === `pr_${startBody.workflowId}`);
+	assert.ok(prNode);
+	assert.equal(prNode.type, "pull_request");
+	assert.equal(prNode.data.status, "planned");
+});
+
 test("daemon run_command issue_to_pr mode creates commit on branch (dry-run PR)", async () => {
 	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "rinawarp-agentd-flow-"));
 	try {
@@ -737,4 +781,61 @@ test("workflow state machine rejects invalid CI transition regression", async ()
 	assert.ok(wfNode.data.lastTransitionRejected);
 	assert.equal(wfNode.data.lastTransitionRejected.from, "verified");
 	assert.equal(wfNode.data.lastTransitionRejected.to, "active");
+});
+
+test("POST /v1/orchestrator/github/pr-status merged marks workflow completed", async () => {
+	const start = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			issueId: "261",
+			repoPath: process.cwd(),
+			command: "echo merge-seed",
+		}),
+	});
+	assert.equal(start.status, 200);
+	const startBody = await start.json();
+	assert.equal(startBody.ok, true);
+
+	const opened = await fetch(`${baseUrl}/v1/orchestrator/github/pr-status`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			workflowId: startBody.workflowId,
+			status: "opened",
+			repoSlug: "owner/repo",
+			branchName: "rina/fix-261",
+			number: 261,
+			url: "https://github.com/owner/repo/pull/261",
+			mode: "live",
+		}),
+	});
+	assert.equal(opened.status, 200);
+	const openedBody = await opened.json();
+	assert.equal(openedBody.ok, true);
+
+	const merged = await fetch(`${baseUrl}/v1/orchestrator/github/pr-status`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			workflowId: startBody.workflowId,
+			status: "merged",
+			repoSlug: "owner/repo",
+			branchName: "rina/fix-261",
+			number: 261,
+			url: "https://github.com/owner/repo/pull/261",
+			mode: "live",
+		}),
+	});
+	assert.equal(merged.status, 200);
+	const mergedBody = await merged.json();
+	assert.equal(mergedBody.ok, true);
+
+	const graphResp = await fetch(`${baseUrl}/v1/orchestrator/workspace-graph`);
+	assert.equal(graphResp.status, 200);
+	const graphBody = await graphResp.json();
+	assert.equal(graphBody.ok, true);
+	const wfNode = graphBody.graph.nodes.find((n) => n.id === `workflow_${startBody.workflowId}`);
+	assert.ok(wfNode);
+	assert.equal(wfNode.data.state, "completed");
 });
