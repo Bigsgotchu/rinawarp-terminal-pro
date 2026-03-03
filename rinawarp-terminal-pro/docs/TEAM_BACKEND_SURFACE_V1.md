@@ -52,7 +52,19 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - SMTP provider credentials are stored but delivery currently uses local `sendmail` path (no direct SMTP handshake client yet).
 - JWT-like signed tokens exist, but no full account identity provider integration (passwordless/email-code/MFA/session revocation).
 - No seat counting against paid plan from billing provider.
-- No Redis-backed distributed rate limiting/counters.
+- Invite security counters/rate limits are local file-state, not Redis-distributed.
 - No S3 archive writer (retention config is stored; cleanup is local).
 - No NATS/WebSocket live fan-out for realtime sync stream.
-- No idempotency key enforcement headers on POST routes yet.
+- Idempotency enforcement is active for key mutation routes, but not yet universal across all mutating endpoints.
+
+## CLI Surface (Current)
+
+Implemented in `packages/rinawarp-agentd/src/cli/rinawarp.ts`:
+
+- `rinawarp login --email ... [--password ...]`
+- `rinawarp account plan`
+- `rinawarp workspace init --name ... [--region ...]`
+- `rinawarp team invite create --email ... [--role ...] [--workspace-id ...]`
+- `rinawarp team invite accept --token ...`
+- `rinawarp audit query --workspace-id ... [--type ...]`
+- `rinawarp sync status --workspace-id ...`

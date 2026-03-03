@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "rinawarp-agent": "dist/daemon/cli.js"
+    "rinawarp-agent": "dist/daemon/cli.js",
+    "rinawarp": "dist/cli/rinawarp.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
