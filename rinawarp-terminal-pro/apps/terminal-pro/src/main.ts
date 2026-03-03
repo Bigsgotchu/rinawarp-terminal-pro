@@ -1,8 +1,34 @@
-import { app, BrowserWindow, ipcMain, type WebContents, dialog } from "electron";
+import { app, BrowserWindow, ipcMain, type WebContents, dialog, shell } from "electron";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
+import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { verifyLicense, type LicenseVerifyResponse } from "./license.js";
+import { featureFlags } from "./feature-flags.js";
+import { StructuredSessionStore } from "./structured-session.js";
+import { PersonalityStore } from "./personality.js";
+import { redactText } from "@rinawarp/safety/redaction";
+import { type ShellKind, detectCommandBoundaries } from "./prompt-boundary.js";
+import { defaultProfileForProject, gateCommandRun, summarizeProfile } from "./agent-profile.js";
+import { loadProjectRules, rulesToSystemBlock } from "./rules-loader.js";
+import { scoreTextMatch } from "./search-ranking.js";
+import { riskFromPlanStep } from "./plan-risk.js";
+import { haltReasonFromFallbackStep } from "./plan-fallback.js";
+import type { AppContext } from "./main/context.js";
+import { registerAllIpc } from "./main/ipc/registerAllIpc.js";
+import { resolveResourcePath as resolveMainResourcePath } from "./main/resources.js";
+import {
+  canonicalizePath,
+  isWithinRoot,
+  normalizeProjectRoot as normalizeProjectRootFromSecurity,
+  resolveProjectRootSafe as resolveProjectRootSafeFromSecurity,
+} from "./security/projectRoot.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const APP_PROJECT_ROOT = path.resolve(__dirname, "..");
+const REPO_ROOT = path.resolve(APP_PROJECT_ROOT, "..", "..");
 
 // ============================================================
 // SECURITY: Project Root Validation
@@ -10,33 +36,19 @@ import { verifyLicense, type LicenseVerifyResponse } from "./license.js";
 // Allowed workspace roots - constrain execution to these directories
 const ALLOWED_WORKSPACE_ROOTS: string[] = [];
 
-/**
- * Check if resolved path is within root using proper path boundaries.
- * Prevents /allowed/root2 bypass attacks.
- */
-function isWithinRoot(resolved: string, root: string): boolean {
-  const rel = path.relative(root, resolved);
-  return !!rel && !rel.startsWith("..") && !path.isAbsolute(rel);
+function normalizeProjectRoot(input: string, workspaceRoot?: string): string {
+  return normalizeProjectRootFromSecurity({
+    input,
+    workspaceRoot,
+    allowedWorkspaceRoots: ALLOWED_WORKSPACE_ROOTS,
+  });
 }
 
-/**
- * Normalize and validate projectRoot from renderer.
- * Prevents path traversal attacks and arbitrary directory execution.
- */
-function normalizeProjectRoot(input: string, workspaceRoot?: string): string {
-  const resolved = path.resolve(input);
-  const stat = fs.existsSync(resolved) ? fs.statSync(resolved) : null;
-  
-  if (!stat || !stat.isDirectory()) {
-    throw new Error(`Invalid projectRoot: "${input}" is not a valid directory`);
-  }
-  
-  // If workspace root is defined, ensure resolved is within it using proper boundaries
-  if (workspaceRoot && !isWithinRoot(resolved, workspaceRoot)) {
-    throw new Error(`Invalid projectRoot: "${input}" is outside allowed workspace`);
-  }
-  
-  return resolved;
+function resolveProjectRootSafe(input?: string): string {
+  return resolveProjectRootSafeFromSecurity({
+    input,
+    allowedWorkspaceRoots: ALLOWED_WORKSPACE_ROOTS,
+  });
 }
 
 // ============================================================
@@ -53,6 +65,29 @@ import { buildExecutionContext, executeViaEngine } from "@rinawarp/core/adapters
 // Create engine instance once
 const registry = createStandardRegistry();
 const engine = new ExecutionEngine(registry);
+let structuredSessionStore: StructuredSessionStore | null = null;
+const personalityStore = new PersonalityStore();
+const ctx: AppContext = {
+  structuredSessionStore: null,
+  lastLoadedThemePath: null,
+  lastLoadedPolicyPath: null,
+};
+
+type ThemeSpec = {
+  id: string;
+  name: string;
+  group?: string;
+  vars: Record<string, string>;
+  terminal?: {
+    background: string;
+    foreground: string;
+    cursor?: string;
+    selection?: string;
+    ansi: string[];
+  };
+};
+
+type ThemeRegistry = { themes: ThemeSpec[] };
 
 // Runtime entitlement state (authoritative for local execution gating)
 let currentLicenseTier: LicenseTier = "starter";
@@ -61,7 +96,590 @@ let currentLicenseExpiresAt: number | null = null;
 let currentLicenseCustomerId: string | null = null;
 const AGENTD_BASE_URL = process.env.RINAWARP_AGENTD_URL || "http://127.0.0.1:5055";
 const AGENTD_AUTH_TOKEN = process.env.RINAWARP_AGENTD_TOKEN || "";
-const ALLOW_LOCAL_ENGINE_FALLBACK = /^(1|true|yes)$/i.test(process.env.RINAWARP_USE_LOCAL_ENGINE_FALLBACK || "");
+const IS_E2E = process.env.RINAWARP_E2E === "1";
+if (app.isPackaged && process.env.ELECTRON_DISABLE_SANDBOX === "1") {
+  console.warn("[security] Ignoring ELECTRON_DISABLE_SANDBOX in packaged builds.");
+  delete process.env.ELECTRON_DISABLE_SANDBOX;
+}
+const fallbackEnv = process.env.RINAWARP_USE_LOCAL_ENGINE_FALLBACK;
+const ALLOW_LOCAL_ENGINE_FALLBACK =
+  fallbackEnv == null || fallbackEnv === ""
+    ? true
+    : /^(1|true|yes)$/i.test(fallbackEnv);
+const TOP_CPU_CMD_SAFE =
+  "ps -eo pid,pcpu,pmem,comm --sort=-pcpu 2>/dev/null | head -15 || ps aux 2>/dev/null | sort -nrk3 | head -15 || ps aux | head -15";
+const TOP_MEM_CMD_SAFE =
+  "ps -eo pid,pcpu,pmem,comm --sort=-pmem 2>/dev/null | head -15 || ps aux 2>/dev/null | sort -nrk4 | head -15 || ps aux | head -15";
+const TOP_CPU_CMD_SAFE_SHORT =
+  "ps -eo pid,pcpu,pmem,comm --sort=-pcpu 2>/dev/null | head -10 || ps aux 2>/dev/null | sort -nrk3 | head -10 || ps aux | head -10";
+
+type PolicyEnv = "dev" | "staging" | "prod";
+type PolicyAction = "allow" | "deny" | "require_approval" | "require_two_step";
+type PolicyApproval = "none" | "click" | "typed_yes" | "typed_phrase";
+type PolicyRule = {
+  id: string;
+  action: PolicyAction;
+  approval?: PolicyApproval;
+  typedPhrase?: string;
+  message?: string;
+  envAny?: string[];
+  regexes: RegExp[];
+};
+type ParsedPolicy = {
+  rules: PolicyRule[];
+  fallback: {
+    action: PolicyAction;
+    approval?: PolicyApproval;
+    typedPhrase?: string;
+    message?: string;
+  };
+};
+
+let cachedPolicy: ParsedPolicy | null | undefined;
+const THEME_SELECTION_FILE = () => path.join(app.getPath("userData"), "theme.json");
+const CUSTOM_THEMES_FILE = () => path.join(app.getPath("userData"), "themes.custom.json");
+const ALLOWED_THEME_VAR_KEYS = new Set([
+  "--rw-bg",
+  "--rw-panel",
+  "--rw-border",
+  "--rw-text",
+  "--rw-muted",
+  "--rw-accent",
+  "--rw-accent2",
+  "--rw-danger",
+  "--rw-success",
+]);
+
+function resolveResourcePath(relPath: string, devBase: "repo" | "app"): string {
+  return resolveMainResourcePath({
+    relPath,
+    devBase,
+    repoRoot: REPO_ROOT,
+    appProjectRoot: APP_PROJECT_ROOT,
+    dirname: __dirname,
+  });
+}
+
+function warnIfUnexpectedPackagedResource(resourceName: string, resolvedPath: string): void {
+  if (!app.isPackaged) return;
+  const target = canonicalizePath(resolvedPath);
+  const allowedBases = [app.getAppPath(), process.resourcesPath].map((p) => canonicalizePath(p));
+  const allowed = allowedBases.some((base) => isWithinRoot(target, base));
+  if (!allowed) {
+    console.warn(`[security] Unexpected packaged ${resourceName} path outside app/resources: ${target}`);
+  }
+}
+
+function crc32(buf: Buffer): number {
+  let crc = 0xffffffff;
+  for (const b of buf) {
+    crc ^= b;
+    for (let i = 0; i < 8; i += 1) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function zipFiles(files: Array<{ name: string; data: Buffer }>): Buffer {
+  const localHeaders: Buffer[] = [];
+  const centralHeaders: Buffer[] = [];
+  let offset = 0;
+
+  for (const f of files) {
+    const nameBuf = Buffer.from(f.name, "utf8");
+    const dataBuf = f.data;
+    const checksum = crc32(dataBuf);
+
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0, 6);
+    local.writeUInt16LE(0, 8);
+    local.writeUInt16LE(0, 10);
+    local.writeUInt16LE(0, 12);
+    local.writeUInt32LE(checksum, 14);
+    local.writeUInt32LE(dataBuf.length, 18);
+    local.writeUInt32LE(dataBuf.length, 22);
+    local.writeUInt16LE(nameBuf.length, 26);
+    local.writeUInt16LE(0, 28);
+
+    const localEntry = Buffer.concat([local, nameBuf, dataBuf]);
+    localHeaders.push(localEntry);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0, 8);
+    central.writeUInt16LE(0, 10);
+    central.writeUInt16LE(0, 12);
+    central.writeUInt16LE(0, 14);
+    central.writeUInt32LE(checksum, 16);
+    central.writeUInt32LE(dataBuf.length, 20);
+    central.writeUInt32LE(dataBuf.length, 24);
+    central.writeUInt16LE(nameBuf.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE(0, 38);
+    central.writeUInt32LE(offset, 42);
+    centralHeaders.push(Buffer.concat([central, nameBuf]));
+
+    offset += localEntry.length;
+  }
+
+  const centralStart = offset;
+  const centralBlob = Buffer.concat(centralHeaders);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(files.length, 8);
+  eocd.writeUInt16LE(files.length, 10);
+  eocd.writeUInt32LE(centralBlob.length, 12);
+  eocd.writeUInt32LE(centralStart, 16);
+  eocd.writeUInt16LE(0, 20);
+
+  return Buffer.concat([...localHeaders, centralBlob, eocd]);
+}
+
+function readTailLines(filePath: string, maxLines: number): string {
+  try {
+    if (!fs.existsSync(filePath)) return "";
+    const raw = fs.readFileSync(filePath, "utf8");
+    const lines = raw.split(/\r?\n/);
+    const start = Math.max(0, lines.length - Math.max(1, maxLines));
+    return lines.slice(start).join("\n");
+  } catch {
+    return "";
+  }
+}
+
+async function showSaveDialogForBundle(defaultPath: string) {
+  if (IS_E2E) {
+    return {
+      canceled: false,
+      filePath: path.join(
+        app.getPath("temp"),
+        `rinawarp-support-bundle-e2e-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.zip`,
+      ),
+    };
+  }
+  return dialog.showSaveDialog({
+    title: "Save Support Bundle",
+    defaultPath,
+    filters: [{ name: "Zip", extensions: ["zip"] }],
+  });
+}
+
+function readJsonIfExists<T>(p: string): T | null {
+  try {
+    if (!fs.existsSync(p)) return null;
+    return JSON.parse(fs.readFileSync(p, "utf-8")) as T;
+  } catch {
+    return null;
+  }
+}
+
+function writeJsonFile(p: string, value: unknown) {
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(value, null, 2), "utf-8");
+}
+
+function loadSharesDb(): SharesDb {
+  const parsed = readJsonIfExists<SharesDb>(SHARES_FILE()) ?? { shares: [] };
+  const normalized = (parsed.shares || []).map((s) => {
+    const createdAt = s.createdAt || new Date().toISOString();
+    const expiresAt = s.expiresAt || new Date(Date.parse(createdAt) + 7 * 24 * 60 * 60 * 1000).toISOString();
+    return {
+      id: s.id,
+      createdAt,
+      createdBy: s.createdBy || "owner@local",
+      title: s.title,
+      content: s.content || "",
+      revoked: !!s.revoked,
+      expiresAt,
+      requiredRole: s.requiredRole || "viewer",
+    } as ShareRecord;
+  });
+  return { shares: normalized };
+}
+
+function saveSharesDb(db: SharesDb) {
+  writeJsonFile(SHARES_FILE(), db);
+}
+
+function loadTeamDb(): TeamDb {
+  return readJsonIfExists<TeamDb>(TEAM_FILE()) ?? {
+    currentUser: "owner@local",
+    members: [{ email: "owner@local", role: "owner" }],
+  };
+}
+
+function saveTeamDb(db: TeamDb) {
+  writeJsonFile(TEAM_FILE(), db);
+}
+
+function getCurrentRole(): Role {
+  const team = loadTeamDb();
+  const user = team.currentUser || "owner@local";
+  const role = team.members.find((m) => m.email === user)?.role;
+  return role || "owner";
+}
+
+function getCurrentUserEmail(): string {
+  const team = loadTeamDb();
+  return team.currentUser || "owner@local";
+}
+
+function roleRank(role: Role): number {
+  if (role === "owner") return 3;
+  if (role === "operator") return 2;
+  return 1;
+}
+
+function hasRoleAtLeast(current: Role, required: Role): boolean {
+  return roleRank(current) >= roleRank(required);
+}
+
+function safeSend(target: WebContents | null | undefined, channel: string, payload?: unknown): boolean {
+  if (!target) return false;
+  try {
+    if (target.isDestroyed()) return false;
+    target.send(channel, payload);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function importShellHistory(limit = 300): { imported: number; commands: string[] } {
+  const home = process.env.HOME || os.homedir();
+  const files = [
+    path.join(home, ".bash_history"),
+    path.join(home, ".zsh_history"),
+    path.join(home, ".local", "share", "fish", "fish_history"),
+  ];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const file of files) {
+    if (!fs.existsSync(file)) continue;
+    let raw = "";
+    try {
+      raw = fs.readFileSync(file, "utf-8");
+    } catch {
+      continue;
+    }
+    for (const line of raw.split(/\r?\n/)) {
+      let cmd = String(line || "").trim();
+      if (!cmd) continue;
+      if (cmd.startsWith(": ")) {
+        const idx = cmd.indexOf(";");
+        if (idx > -1) cmd = cmd.slice(idx + 1).trim();
+      }
+      if (cmd.includes("- cmd:")) continue;
+      if (cmd.startsWith("- cmd:")) cmd = cmd.replace(/^- cmd:\s*/, "").trim();
+      if (!cmd || cmd.length < 2) continue;
+      if (!seen.has(cmd)) {
+        seen.add(cmd);
+        out.push(cmd);
+      }
+    }
+  }
+  const picked = out.slice(-Math.max(10, Math.min(limit, 2000)));
+  return { imported: picked.length, commands: picked };
+}
+
+function fallbackThemeRegistry(): ThemeRegistry {
+  return {
+    themes: [
+      {
+        id: "mermaid-teal",
+        name: "Mermaid - Teal",
+        group: "Mermaid",
+        vars: {
+          "--rw-bg": "#061013",
+          "--rw-panel": "rgba(255,255,255,0.03)",
+          "--rw-border": "rgba(255,255,255,0.10)",
+          "--rw-text": "rgba(255,255,255,0.92)",
+          "--rw-muted": "rgba(255,255,255,0.68)",
+          "--rw-accent": "#2de2e6",
+          "--rw-accent2": "#7af3f5",
+          "--rw-danger": "#ff4d6d",
+          "--rw-success": "#3cffb5",
+        },
+        terminal: {
+          background: "#061013",
+          foreground: "#eaffff",
+          cursor: "#2de2e6",
+          selection: "rgba(45, 226, 230, 0.18)",
+          ansi: [
+            "#07161a",
+            "#ff4d6d",
+            "#3cffb5",
+            "#ffd166",
+            "#61a0ff",
+            "#b57bff",
+            "#2de2e6",
+            "#eaffff",
+            "#23454f",
+            "#ff7aa2",
+            "#7bffd9",
+            "#ffe199",
+            "#92c0ff",
+            "#d3a8ff",
+            "#7af3f5",
+            "#ffffff",
+          ],
+        },
+      },
+      {
+        id: "unicorn",
+        name: "Unicorn",
+        group: "Fantasy",
+        vars: {
+          "--rw-bg": "#070614",
+          "--rw-panel": "rgba(255,255,255,0.035)",
+          "--rw-border": "rgba(255,255,255,0.11)",
+          "--rw-text": "rgba(255,255,255,0.93)",
+          "--rw-muted": "rgba(255,255,255,0.70)",
+          "--rw-accent": "#b57bff",
+          "--rw-accent2": "#ff3bbf",
+          "--rw-danger": "#ff4d6d",
+          "--rw-success": "#3cffb5",
+        },
+        terminal: {
+          background: "#070614",
+          foreground: "#f7e9ff",
+          cursor: "#ff3bbf",
+          selection: "rgba(181, 123, 255, 0.20)",
+          ansi: [
+            "#12102a",
+            "#ff4d6d",
+            "#3cffb5",
+            "#ffd166",
+            "#61a0ff",
+            "#b57bff",
+            "#ff3bbf",
+            "#f7e9ff",
+            "#3b2a4a",
+            "#ff7aa2",
+            "#7bffd9",
+            "#ffe199",
+            "#92c0ff",
+            "#d3a8ff",
+            "#ff7ad9",
+            "#ffffff",
+          ],
+        },
+      },
+    ],
+  };
+}
+
+function loadBaseThemeRegistry(): ThemeRegistry {
+  const file = resolveResourcePath("themes/themes.json", "app");
+  warnIfUnexpectedPackagedResource("theme registry", file);
+  const parsed = readJsonIfExists<ThemeRegistry>(file);
+  if (parsed?.themes?.length) {
+    ctx.lastLoadedThemePath = file;
+    return parsed;
+  }
+  ctx.lastLoadedThemePath = null;
+  return fallbackThemeRegistry();
+}
+
+function loadCustomThemeRegistry(): ThemeRegistry {
+  return readJsonIfExists<ThemeRegistry>(CUSTOM_THEMES_FILE()) ?? { themes: [] };
+}
+
+function loadThemeRegistryMerged(): ThemeRegistry {
+  const base = loadBaseThemeRegistry();
+  const custom = loadCustomThemeRegistry();
+  const map = new Map<string, ThemeSpec>();
+  for (const t of base.themes || []) map.set(t.id, t);
+  for (const t of custom.themes || []) map.set(t.id, t);
+  return { themes: Array.from(map.values()) };
+}
+
+function loadSelectedThemeId(): string {
+  const data = readJsonIfExists<{ id?: string }>(THEME_SELECTION_FILE());
+  return data?.id || "mermaid-teal";
+}
+
+function saveSelectedThemeId(id: string) {
+  writeJsonFile(THEME_SELECTION_FILE(), { id });
+}
+
+function validateTheme(theme: ThemeSpec): { ok: boolean; error?: string } {
+  if (!theme?.id || !/^[a-z0-9-]{3,64}$/i.test(theme.id)) return { ok: false, error: "Invalid id" };
+  if (!theme?.name || theme.name.length < 2) return { ok: false, error: "Invalid name" };
+  if (!theme?.vars || typeof theme.vars !== "object") return { ok: false, error: "Missing vars" };
+  for (const key of Object.keys(theme.vars)) {
+    if (!ALLOWED_THEME_VAR_KEYS.has(key)) return { ok: false, error: `Disallowed var: ${key}` };
+    if (typeof theme.vars[key] !== "string") return { ok: false, error: `Var not string: ${key}` };
+  }
+  if (theme.terminal) {
+    if (!theme.terminal.background || !theme.terminal.foreground) {
+      return { ok: false, error: "Terminal bg/fg required" };
+    }
+    if (!Array.isArray(theme.terminal.ansi) || theme.terminal.ansi.length !== 16) {
+      return { ok: false, error: "Terminal ansi must have 16 colors" };
+    }
+  }
+  return { ok: true };
+}
+
+function currentPolicyEnv(): PolicyEnv {
+  const raw = (process.env.RINAWARP_ENV || process.env.NODE_ENV || "dev").toLowerCase();
+  if (raw.includes("prod")) return "prod";
+  if (raw.includes("stag")) return "staging";
+  return "dev";
+}
+
+function parseRuleBlock(block: string): PolicyRule | null {
+  const id = block.match(/-\s+id:\s*([^\n]+)/)?.[1]?.trim();
+  const action = block.match(/\naction:\s*([a-z_]+)/)?.[1]?.trim() as PolicyAction | undefined;
+  if (!id || !action) return null;
+  const approval = block.match(/\napproval:\s*([a-z_]+)/)?.[1]?.trim() as PolicyApproval | undefined;
+  const typedPhrase = block.match(/\ntyped_phrase:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+  const message = block.match(/\nmessage:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+
+  const regexes: RegExp[] = [];
+  for (const m of block.matchAll(/-\s*'([^']+)'/g)) {
+    try {
+      regexes.push(new RegExp(m[1], "i"));
+    } catch {
+      // ignore invalid regex
+    }
+  }
+
+  let envAny: string[] | undefined;
+  const envBlock = block.match(/when:\s*[\s\S]*?env:\s*[\s\S]*?any:\s*((?:\n\s*-\s*[^\n]+)+)/);
+  if (envBlock?.[1]) {
+    envAny = Array.from(envBlock[1].matchAll(/\n\s*-\s*([^\n]+)/g)).map((x) => x[1].trim());
+  }
+
+  return { id, action, approval, typedPhrase, message, envAny, regexes };
+}
+
+function loadPolicy(): ParsedPolicy {
+  if (cachedPolicy !== undefined) return cachedPolicy || {
+    rules: [],
+    fallback: { action: "require_approval", approval: "click", message: "Unclassified command requires approval." },
+  };
+
+  let text = "";
+  const policyPath = resolveResourcePath("policy/rinawarp-policy.yaml", "repo");
+  warnIfUnexpectedPackagedResource("policy yaml", policyPath);
+  if (fs.existsSync(policyPath)) {
+    text = fs.readFileSync(policyPath, "utf8");
+    ctx.lastLoadedPolicyPath = policyPath;
+  } else {
+    ctx.lastLoadedPolicyPath = null;
+  }
+  if (!text) {
+    cachedPolicy = null;
+    return loadPolicy();
+  }
+
+  const rulesSection = text.match(/\nrules:\s*\n([\s\S]*?)\nfallback:\s*\n/)?.[1] || "";
+  const fallbackSection = text.split(/\nfallback:\s*\n/)[1] || "";
+  const blocks: string[] = [];
+  const starts = Array.from(rulesSection.matchAll(/(^|\n)\s*-\s+id:\s*[^\n]+/g)).map((m) => m.index ?? 0);
+  for (let i = 0; i < starts.length; i += 1) {
+    const s = starts[i];
+    const e = i + 1 < starts.length ? starts[i + 1] : rulesSection.length;
+    blocks.push(rulesSection.slice(s, e));
+  }
+
+  const rules = blocks.map(parseRuleBlock).filter((x): x is PolicyRule => !!x);
+  const fallbackAction = (fallbackSection.match(/\naction:\s*([a-z_]+)/)?.[1]?.trim() as PolicyAction | undefined) || "require_approval";
+  const fallbackApproval = fallbackSection.match(/\napproval:\s*([a-z_]+)/)?.[1]?.trim() as PolicyApproval | undefined;
+  const fallbackPhrase = fallbackSection.match(/\ntyped_phrase:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+  const fallbackMessage = fallbackSection.match(/\nmessage:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+
+  cachedPolicy = {
+    rules,
+    fallback: {
+      action: fallbackAction,
+      approval: fallbackApproval,
+      typedPhrase: fallbackPhrase,
+      message: fallbackMessage,
+    },
+  };
+  return cachedPolicy;
+}
+
+function hasRecentCommand(regex: RegExp, n: number): boolean {
+  const recent = sessionState.entries
+    .filter((e) => e.type === "execution_start")
+    .slice(-Math.max(1, n));
+  return recent.some((e) => regex.test((e as Extract<TranscriptEntry, { type: "execution_start" }>).command));
+}
+
+function evaluatePolicyGate(command: string, confirmed: boolean, confirmationText: string): { ok: boolean; message?: string } {
+  const policy = loadPolicy();
+  const env = currentPolicyEnv();
+  const match = policy.rules.find((rule) => {
+    if (rule.envAny && !rule.envAny.includes(env)) return false;
+    return rule.regexes.some((r) => r.test(command));
+  });
+
+  const action = match?.action || policy.fallback.action;
+  const approval = match?.approval || policy.fallback.approval || "click";
+  const typedPhrase = match?.typedPhrase || policy.fallback.typedPhrase || "YES";
+  const message = match?.message || policy.fallback.message || "Policy blocked this command.";
+
+  if (action === "deny") return { ok: false, message };
+  if (action === "allow") return { ok: true };
+
+  if (currentPolicyEnv() === "prod" && /high-impact|rm\s+-rf|terraform\s+apply|kubectl/i.test(command)) {
+    const role = getCurrentRole();
+    if (role !== "owner") {
+      return { ok: false, message: "Policy: only owner can execute high-impact commands in prod." };
+    }
+  }
+
+  if (/terraform\s+apply/i.test(command) && !hasRecentCommand(/\bterraform\s+plan\b/i, 5)) {
+    return { ok: false, message: "Policy: terraform apply requires a recent terraform plan." };
+  }
+
+  if (!confirmed) return { ok: false, message: `${message} Confirmation required.` };
+  if (approval === "typed_yes" && confirmationText !== "YES") {
+    return { ok: false, message: 'Policy: typed confirmation must be exactly "YES".' };
+  }
+  if (approval === "typed_phrase" && confirmationText !== typedPhrase) {
+    return { ok: false, message: `Policy: typed phrase must be exactly "${typedPhrase}".` };
+  }
+  return { ok: true };
+}
+
+function explainPolicy(command: string): {
+  env: PolicyEnv;
+  action: PolicyAction;
+  approval: PolicyApproval;
+  message: string;
+  typedPhrase?: string;
+  matchedRuleId?: string;
+} {
+  const policy = loadPolicy();
+  const env = currentPolicyEnv();
+  const match = policy.rules.find((rule) => {
+    if (rule.envAny && !rule.envAny.includes(env)) return false;
+    return rule.regexes.some((r) => r.test(command));
+  });
+  return {
+    env,
+    action: match?.action || policy.fallback.action,
+    approval: match?.approval || policy.fallback.approval || "click",
+    message: match?.message || policy.fallback.message || "Unclassified command requires approval.",
+    typedPhrase: match?.typedPhrase || policy.fallback.typedPhrase,
+    matchedRuleId: match?.id,
+  };
+}
 
 function mapApiTierToLicenseTier(apiTier: string): LicenseTier {
   const t = apiTier.trim().toLowerCase();
@@ -81,6 +699,7 @@ function applyVerifiedLicense(data: LicenseVerifyResponse): LicenseTier {
   currentLicenseToken = data.license_token ?? null;
   currentLicenseExpiresAt = Number.isFinite(data.expires_at) ? data.expires_at : null;
   currentLicenseCustomerId = data.customer_id ?? null;
+  currentLicenseStatus = data.status ?? "active";
   return tier;
 }
 
@@ -89,6 +708,20 @@ function resetLicenseToStarter() {
   currentLicenseToken = null;
   currentLicenseExpiresAt = null;
   currentLicenseCustomerId = null;
+}
+
+function getLicenseState() {
+  return {
+    tier: currentLicenseTier,
+    has_token: !!currentLicenseToken,
+    expires_at: currentLicenseExpiresAt,
+    customer_id: currentLicenseCustomerId,
+    status: currentLicenseStatus,
+  };
+}
+
+function getCurrentLicenseCustomerId(): string | null {
+  return currentLicenseCustomerId;
 }
 
 function buildAgentdHeaders(opts?: { includeLicenseToken?: boolean }): Record<string, string> {
@@ -131,6 +764,27 @@ async function agentdJson<T>(
 }
 
 type Risk = "read" | "safe-write" | "high-impact";
+
+function gateProfileCommand(args: {
+  projectRoot: string;
+  command: string;
+  risk: Risk;
+  confirmed: boolean;
+  confirmationText: string;
+}): { ok: true } | { ok: false; message: string } {
+  const profile = defaultProfileForProject(args.projectRoot);
+  const result = gateCommandRun({
+    profile,
+    command: args.command,
+    risk: args.risk,
+    confirmed: args.confirmed,
+    confirmationText: args.confirmationText,
+  });
+  if (!result.ok) {
+    return { ok: false, message: `[profile] ${result.message}` };
+  }
+  return { ok: true };
+}
 
 type ToolStep = {
   id: string;
@@ -184,7 +838,7 @@ const PLAYBOOKS: Playbook[] = [
     gatherCommands: [
       { command: "uptime", description: "System load average", timeout: 5000 },
       { command: "cat /proc/loadavg", description: "Detailed load stats", timeout: 5000 },
-      { command: "ps -eo pid,pcpu,pmem,comm --sort=-pcpu | head -20", description: "Top CPU processes", timeout: 8000 },
+      { command: TOP_CPU_CMD_SAFE.replaceAll("head -15", "head -20"), description: "Top CPU processes", timeout: 8000 },
       { command: "free -h", description: "Memory usage", timeout: 5000 },
       { command: "sensors 2>/dev/null || echo 'No sensors available'", description: "Temperature sensors", timeout: 8000 }
     ],
@@ -193,7 +847,7 @@ const PLAYBOOKS: Playbook[] = [
         name: "Identify CPU hogs",
         description: "Find and analyze processes consuming excessive CPU",
         risk: "read",
-        commands: ["ps -eo pid,pcpu,pmem,comm,etime --sort=-pcpu | head -15"],
+        commands: [TOP_CPU_CMD_SAFE],
         verification: "Process list shows CPU consumers"
       },
       {
@@ -319,7 +973,7 @@ const PLAYBOOKS: Playbook[] = [
     gatherCommands: [
       { command: "uptime", description: "Load average", timeout: 5000 },
       { command: "free -h", description: "Memory usage", timeout: 5000 },
-      { command: "ps -eo pid,pcpu,pmem,comm --sort=-pcpu | head -15", description: "Top processes", timeout: 8000 },
+      { command: TOP_CPU_CMD_SAFE, description: "Top processes", timeout: 8000 },
       { command: "cat /proc/loadavg", description: "Detailed load", timeout: 5000 },
       { command: "systemctl status 2>/dev/null | head -20", description: "Systemd status", timeout: 10000 }
     ],
@@ -328,7 +982,7 @@ const PLAYBOOKS: Playbook[] = [
         name: "Check for memory hogs",
         description: "Find processes using most memory",
         risk: "read",
-        commands: ["ps -eo pid,pcpu,pmem,comm --sort=-pmem | head -15"],
+        commands: [TOP_MEM_CMD_SAFE],
         verification: "Memory hogs identified"
       },
       {
@@ -425,8 +1079,43 @@ const sessionState = {
   playbookResults: new Map<string, { before: string; after: string }>()
 };
 
+function withStructuredSessionWrite(fn: () => void): void {
+  if (!structuredSessionStore) return;
+  try {
+    fn();
+  } catch {
+    // Shadow-write path must never break runtime execution.
+  }
+}
+
+function ensureStructuredSession(args: { source: string; projectRoot?: string; preferredId?: string }): string | null {
+  if (!structuredSessionStore) return null;
+  try {
+    return structuredSessionStore.startSession(args);
+  } catch {
+    return null;
+  }
+}
+
+function sanitizeForPersistence<T>(value: T): T {
+  if (typeof value === "string") {
+    return redactText(value).redactedText as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => sanitizeForPersistence(v)) as T;
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = sanitizeForPersistence(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
 function addTranscriptEntry(entry: TranscriptEntry) {
-  sessionState.entries.push(entry);
+  sessionState.entries.push(sanitizeForPersistence(entry));
 }
 
 function getSessionTranscript() {
@@ -443,7 +1132,7 @@ function exportTranscript(format: "json" | "text"): string {
   const transcript = getSessionTranscript();
   
   if (format === "json") {
-    return JSON.stringify(transcript, null, 2);
+    return redactText(JSON.stringify(transcript, null, 2)).redactedText;
   }
   
   let text = `RinaWarp Session Report\n`;
@@ -502,7 +1191,175 @@ function exportTranscript(format: "json" | "text"): string {
     }
   }
   
-  return text;
+  return redactText(text).redactedText;
+}
+
+type UnifiedSearchSource = "structured" | "transcript" | "share";
+type UnifiedSearchHit = {
+  id: string;
+  source: UnifiedSearchSource;
+  label: string;
+  meta: string;
+  snippet?: string;
+  command?: string;
+  shareId?: string;
+  createdAt: string;
+  score: number;
+};
+
+function recencyBoost(iso: string): number {
+  const ts = Date.parse(String(iso || ""));
+  if (!Number.isFinite(ts)) return 0;
+  const ageHours = Math.max(0, (Date.now() - ts) / (1000 * 60 * 60));
+  if (ageHours <= 1) return 2;
+  if (ageHours <= 24) return 1;
+  if (ageHours <= 24 * 7) return 0.5;
+  return 0;
+}
+
+function searchTranscriptEntries(query: string, limit: number): UnifiedSearchHit[] {
+  const out: UnifiedSearchHit[] = [];
+  const q = String(query || "").trim();
+  const entries = sessionState.entries.slice(-500).reverse();
+  for (const entry of entries) {
+    let label = "";
+    let meta = `transcript • ${entry.type}`;
+    let haystack = "";
+    let command: string | undefined;
+
+    if (entry.type === "execution_start") {
+      label = entry.command;
+      command = entry.command;
+      meta = `transcript • command • ${entry.stepId}`;
+      haystack = `${entry.command} ${entry.stepId}`;
+    } else if (entry.type === "intent") {
+      label = entry.intent;
+      haystack = entry.intent;
+      meta = "transcript • intent";
+    } else if (entry.type === "signal") {
+      label = entry.signal;
+      haystack = `${entry.signal} ${entry.interpretation}`;
+      meta = "transcript • signal";
+    } else if (entry.type === "verification") {
+      label = `${entry.check}: ${entry.status}`;
+      haystack = `${entry.check} ${entry.result} ${entry.status}`;
+      meta = "transcript • verification";
+    } else if (entry.type === "outcome") {
+      label = `Outcome: ${entry.rootCause}`;
+      haystack = `${entry.rootCause} ${entry.changes.join(" ")} ${entry.evidenceBefore} ${entry.evidenceAfter}`;
+      meta = `transcript • outcome • ${entry.confidence}`;
+    } else if (entry.type === "playbook") {
+      label = entry.playbookName;
+      haystack = `${entry.playbookName} ${entry.playbookId}`;
+      meta = "transcript • playbook";
+    } else if (entry.type === "approval") {
+      label = entry.command;
+      command = entry.command;
+      haystack = `${entry.command} ${entry.risk} ${entry.approved ? "approved" : "denied"}`;
+      meta = `transcript • approval • ${entry.risk}`;
+    } else if (entry.type === "memory") {
+      label = `${entry.category}: ${entry.key}`;
+      haystack = `${entry.category} ${entry.key} ${entry.value}`;
+      meta = "transcript • memory";
+    } else if (entry.type === "execution_end") {
+      label = entry.ok ? "Execution success" : `Execution failed: ${entry.error || "unknown"}`;
+      haystack = `${entry.error || ""} ${entry.ok ? "success" : "failed"}`;
+      meta = "transcript • execution end";
+    } else if (entry.type === "plan") {
+      label = entry.plan.intent || entry.plan.reasoning;
+      haystack = `${entry.plan.intent} ${entry.plan.reasoning} ${(entry.plan.steps || []).map((s) => s.command).join(" ")}`;
+      meta = "transcript • plan";
+    }
+
+    if (!label) continue;
+    const score = scoreTextMatch(q, haystack);
+    if (q && score < 0) continue;
+    const total = (score > 0 ? score : 0.05) + recencyBoost(entry.timestamp);
+    out.push({
+      id: `transcript:${entry.timestamp}:${entry.type}:${out.length}`,
+      source: "transcript",
+      label,
+      meta,
+      snippet: haystack.slice(0, 220),
+      command,
+      createdAt: entry.timestamp,
+      score: Number(total.toFixed(4)),
+    });
+    if (out.length >= Math.max(5, limit * 2)) break;
+  }
+  return out;
+}
+
+function searchShareRecords(query: string, limit: number): UnifiedSearchHit[] {
+  const out: UnifiedSearchHit[] = [];
+  const q = String(query || "").trim();
+  const role = getCurrentRole();
+  const shares = loadSharesDb().shares
+    .filter((s) => hasRoleAtLeast(role, s.requiredRole))
+    .slice(0, 250);
+  for (const s of shares) {
+    const label = s.title || `Share ${s.id}`;
+    const summary = `${label}\n${s.content || ""}`;
+    const score = scoreTextMatch(q, summary);
+    if (q && score < 0) continue;
+    const status = s.revoked ? "revoked" : (Date.now() > Date.parse(s.expiresAt) ? "expired" : "active");
+    const total = (score > 0 ? score : 0.05) + recencyBoost(s.createdAt);
+    out.push({
+      id: `share:${s.id}`,
+      source: "share",
+      label,
+      meta: `share • ${status} • ${s.requiredRole}`,
+      snippet: String(s.content || "").slice(0, 220),
+      shareId: s.id,
+      createdAt: s.createdAt,
+      score: Number(total.toFixed(4)),
+    });
+    if (out.length >= Math.max(5, limit * 2)) break;
+  }
+  return out;
+}
+
+function searchStructuredRecords(query: string, limit: number): UnifiedSearchHit[] {
+  if (!structuredSessionStore) return [];
+  const hits = structuredSessionStore.searchCommands(String(query || ""), Math.max(10, limit * 2));
+  return hits.map((h) => {
+    const status = h.ok === true ? "ok" : h.ok === false ? "failed" : "unknown";
+    const meta = `structured • ${status} • ${h.risk || "read"} • ${h.cwd || "(default)"}`;
+    const total = Number((h.score + recencyBoost(h.startedAt)).toFixed(4));
+    return {
+      id: `structured:${h.commandId}`,
+      source: "structured",
+      label: h.command,
+      meta,
+      snippet: h.snippet,
+      command: h.command,
+      createdAt: h.startedAt,
+      score: total,
+    } as UnifiedSearchHit;
+  });
+}
+
+function runUnifiedSearch(query: string, limit = 20): UnifiedSearchHit[] {
+  const safeLimit = Math.max(1, Math.min(Number(limit || 20), 100));
+  const sourceBoost: Record<UnifiedSearchSource, number> = {
+    structured: 0.9,
+    transcript: 0.45,
+    share: 0.25,
+  };
+  const all = [
+    ...searchStructuredRecords(query, safeLimit),
+    ...searchTranscriptEntries(query, safeLimit),
+    ...searchShareRecords(query, safeLimit),
+  ].map((h) => ({
+    ...h,
+    score: Number((h.score + (sourceBoost[h.source] || 0)).toFixed(4)),
+  }));
+  return all
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+    })
+    .slice(0, safeLimit);
 }
 
 /**
@@ -547,6 +1404,7 @@ type StreamInfo = {
 };
 
 const running = new Map<string, StreamInfo>();
+const ptyStreamOwners = new Map<string, number>();
 
 type PtyProcess = {
   write(data: string): void;
@@ -576,10 +1434,129 @@ type PtySession = {
   rows: number;
   cwd: string;
   shell: string;
+  shellKind: ShellKind;
+  transcriptBuffer: string;
+  finalizedBoundaryCount: number;
+  pendingInput: string;
+  metrics: {
+    startedAt: string;
+    bytesIn: number;
+    bytesOut: number;
+    resizeCount: number;
+    blockedCommands: number;
+  };
 };
 
 const ptySessions = new Map<number, PtySession>();
+const ptyResizeTimers = new Map<number, NodeJS.Timeout>();
 let ptyModulePromise: Promise<PtyModule | null> | null = null;
+const SHARES_FILE = () => path.join(app.getPath("userData"), "shares.json");
+const TEAM_FILE = () => path.join(app.getPath("userData"), "team-workspace.json");
+const RENDERER_ERRORS_FILE = () => path.join(app.getPath("userData"), "renderer-errors.ndjson");
+
+type Role = "owner" | "operator" | "viewer";
+type ShareRecord = {
+  id: string;
+  createdAt: string;
+  createdBy: string;
+  title?: string;
+  content: string;
+  revoked: boolean;
+  expiresAt: string;
+  requiredRole: Role;
+};
+type SharesDb = { shares: ShareRecord[] };
+type TeamDb = {
+  currentUser?: string;
+  members: Array<{ email: string; role: Role }>;
+};
+type SharePreviewRecord = {
+  id: string;
+  createdAtMs: number;
+  expiresAtMs: number;
+  createdBy: string;
+  redactedContent: string;
+  redactionCount: number;
+  contentHash: string;
+};
+type ExportPreviewKind = "runbook_markdown" | "audit_json";
+type ExportPreviewRecord = {
+  id: string;
+  kind: ExportPreviewKind;
+  createdAtMs: number;
+  expiresAtMs: number;
+  createdBy: string;
+  payload: string;
+  mime: string;
+  fileName: string;
+  redactionCount: number;
+  contentHash: string;
+};
+
+const sharePreviewTokens = new Map<string, SharePreviewRecord>();
+const SHARE_PREVIEW_TTL_MS = 15 * 60 * 1000;
+const exportPreviewTokens = new Map<string, ExportPreviewRecord>();
+const EXPORT_PREVIEW_TTL_MS = 15 * 60 * 1000;
+const REDACT_BEFORE_PERSIST = true;
+const REDACT_BEFORE_MODEL = true;
+
+function hashText(text: string): string {
+  return crypto.createHash("sha256").update(text, "utf8").digest("hex");
+}
+
+function newSharePreviewId(): string {
+  return `shp_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
+}
+
+function newExportPreviewId(): string {
+  return `exp_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
+}
+
+function pruneSharePreviewTokens(now = Date.now()) {
+  for (const [id, rec] of sharePreviewTokens.entries()) {
+    if (rec.expiresAtMs <= now) sharePreviewTokens.delete(id);
+  }
+}
+
+function pruneExportPreviewTokens(now = Date.now()) {
+  for (const [id, rec] of exportPreviewTokens.entries()) {
+    if (rec.expiresAtMs <= now) exportPreviewTokens.delete(id);
+  }
+}
+
+function buildAuditExportText(): string {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    policyEnv: currentPolicyEnv(),
+    role: getCurrentRole(),
+    transcript: getSessionTranscript(),
+    shares: loadSharesDb().shares.map((s) => ({
+      id: s.id,
+      createdAt: s.createdAt,
+      createdBy: s.createdBy,
+      title: s.title,
+      revoked: s.revoked,
+      expiresAt: s.expiresAt,
+      requiredRole: s.requiredRole,
+    })),
+    team: loadTeamDb(),
+  };
+  return redactText(JSON.stringify(payload, null, 2)).redactedText;
+}
+
+function redactChunkIfNeeded(text: string): string {
+  if (!REDACT_BEFORE_PERSIST) return String(text ?? "");
+  return redactText(String(text ?? "")).redactedText;
+}
+
+function forRendererDisplay(text: string): string {
+  return String(text ?? "");
+}
+
+function redactForModel(text: string): string {
+  if (!REDACT_BEFORE_MODEL) return String(text ?? "");
+  return redactText(String(text ?? "")).redactedText;
+}
 
 function getPtyModule(): Promise<PtyModule | null> {
   if (!ptyModulePromise) {
@@ -608,7 +1585,154 @@ function resolvePtyCwd(input?: string): string {
   }
 }
 
+const CODE_EXPLORER_SKIP_DIRS = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "dist-electron",
+  ".next",
+  ".turbo",
+  ".cache",
+  "coverage",
+]);
+
+function listProjectFilesSafe(projectRoot: string, limit = 800): string[] {
+  const safeRoot = normalizeProjectRoot(projectRoot);
+  const out: string[] = [];
+  const max = Math.max(50, Math.min(Number(limit || 800), 5000));
+  const stack: string[] = [safeRoot];
+
+  while (stack.length > 0 && out.length < max) {
+    const dir = stack.pop() as string;
+    let entries: fs.Dirent[] = [];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const ent of entries) {
+      if (ent.name.startsWith(".")) {
+        if (![".env.example", ".env.local.example"].includes(ent.name)) continue;
+      }
+      const full = path.join(dir, ent.name);
+      if (!isWithinRoot(full, safeRoot)) continue;
+      if (ent.isDirectory()) {
+        if (CODE_EXPLORER_SKIP_DIRS.has(ent.name)) continue;
+        stack.push(full);
+        continue;
+      }
+      if (!ent.isFile()) continue;
+      out.push(path.relative(safeRoot, full));
+      if (out.length >= max) break;
+    }
+  }
+
+  out.sort((a, b) => a.localeCompare(b));
+  return out;
+}
+
+function readProjectFileSafe(args: { projectRoot: string; relativePath: string; maxBytes?: number }): {
+  ok: boolean;
+  content?: string;
+  truncated?: boolean;
+  error?: string;
+} {
+  const safeRoot = normalizeProjectRoot(args.projectRoot);
+  const rel = String(args.relativePath || "").replace(/\\/g, "/").trim();
+  if (!rel || rel.includes("\0")) return { ok: false, error: "Invalid file path" };
+  const full = canonicalizePath(path.resolve(safeRoot, rel));
+  if (!isWithinRoot(full, safeRoot)) return { ok: false, error: "File is outside workspace root" };
+  if (!fs.existsSync(full) || !fs.statSync(full).isFile()) return { ok: false, error: "File not found" };
+
+  const max = Math.max(1024, Math.min(Number(args.maxBytes || 120_000), 2_000_000));
+  const buf = fs.readFileSync(full);
+  const raw = buf.subarray(0, max);
+  const content = raw.toString("utf8");
+  const looksBinary = content.includes("\u0000");
+  if (looksBinary) {
+    return {
+      ok: true,
+      content: "[binary file preview not available]",
+      truncated: buf.length > max,
+    };
+  }
+  return {
+    ok: true,
+    content,
+    truncated: buf.length > max,
+  };
+}
+
+function shellToKind(shell: string): ShellKind {
+  const s = path.basename(String(shell || "")).toLowerCase();
+  if (s.includes("pwsh") || s.includes("powershell")) return "pwsh";
+  if (s.includes("fish")) return "fish";
+  if (s.includes("zsh")) return "zsh";
+  if (s.includes("bash")) return "bash";
+  return "unknown";
+}
+
+function finalizePtyBoundaries(webContents: Electron.WebContents, session: PtySession, flushAll = false) {
+  const boundaries = detectCommandBoundaries(session.transcriptBuffer, session.shellKind);
+  if (!boundaries.length) return;
+  const limit = flushAll ? boundaries.length : Math.max(0, boundaries.length - 1);
+  if (session.finalizedBoundaryCount >= limit) return;
+  for (let i = session.finalizedBoundaryCount; i < limit; i += 1) {
+    const b = boundaries[i];
+    const command = String(b.command || "").trim();
+    if (!command) continue;
+    const streamId = createStableBoundaryStreamId(webContents.id, i);
+    ptyStreamOwners.set(streamId, webContents.id);
+    const sid = ensureStructuredSession({ source: "pty_live_capture", projectRoot: session.cwd });
+    withStructuredSessionWrite(() => {
+      structuredSessionStore?.beginCommand({
+        sessionId: sid || undefined,
+        streamId,
+        command,
+        cwd: session.cwd,
+        risk: "read",
+        source: "pty_live_capture",
+      });
+      structuredSessionStore?.appendChunk(streamId, "meta", redactChunkIfNeeded(`$ ${command}\n`));
+      if (b.output) structuredSessionStore?.appendChunk(streamId, "stdout", redactChunkIfNeeded(b.output));
+      structuredSessionStore?.endCommand({
+        streamId,
+        ok: true,
+        code: null,
+        cancelled: false,
+      });
+    });
+    addTranscriptEntry({
+      type: "execution_start",
+      timestamp: new Date().toISOString(),
+      streamId,
+      stepId: `pty_${i + 1}`,
+      command,
+    });
+    addTranscriptEntry({
+      type: "execution_end",
+      timestamp: new Date().toISOString(),
+      streamId,
+      ok: true,
+    });
+  }
+  session.finalizedBoundaryCount = limit;
+  if (session.transcriptBuffer.length > 500_000) {
+    session.transcriptBuffer = session.transcriptBuffer.slice(-300_000);
+    session.finalizedBoundaryCount = 0;
+  }
+  safeSend(webContents, "rina:pty:boundaryStats", {
+    captured: session.finalizedBoundaryCount,
+    shell: session.shellKind,
+  });
+}
+
 function closePtyForWebContents(webContentsId: number): void {
+  const timer = ptyResizeTimers.get(webContentsId);
+  if (timer) {
+    clearTimeout(timer);
+    ptyResizeTimers.delete(webContentsId);
+  }
   const session = ptySessions.get(webContentsId);
   if (!session) return;
   try {
@@ -616,11 +1740,18 @@ function closePtyForWebContents(webContentsId: number): void {
   } catch {
     // no-op
   }
+  for (const [streamId, ownerId] of ptyStreamOwners.entries()) {
+    if (ownerId === webContentsId) ptyStreamOwners.delete(streamId);
+  }
   ptySessions.delete(webContentsId);
 }
 
 function createStreamId(): string {
   return `st_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function createStableBoundaryStreamId(webContentsId: number, index: number): string {
+  return `pty_${webContentsId}_${index}_${Math.random().toString(16).slice(2, 10)}`;
 }
 
 async function diagnoseHotLinux(): Promise<{
@@ -638,7 +1769,7 @@ async function diagnoseHotLinux(): Promise<{
   const freeMem = os.freemem();
 
   const topProcesses = await runCommandOnce(
-    "ps -eo pid,pcpu,pmem,comm --sort=-pcpu | head -n 15",
+    TOP_CPU_CMD_SAFE.replace("head -15", "head -n 15"),
     8000
   ).catch((e) => `Unable to read processes: ${String(e)}`);
 
@@ -672,6 +1803,10 @@ async function runCommandOnceViaEngine(command: string, timeoutMs: number): Prom
         stepId: "diagnostic",
       },
       stepId: "diagnostic",
+      description: `Diagnostic command: ${command}`,
+      risk_level: "low" as const,
+      requires_confirmation: false,
+      verification_plan: { steps: [] as Array<{ tool: string; input: unknown }> },
     },
   ];
 
@@ -754,7 +1889,7 @@ function makePlan(intentRaw: string, projectRoot?: string): AgentPlan {
     steps: [
       { id: "s1", tool: "terminal", command: "uptime", risk: "read" },
       { id: "s2", tool: "terminal", command: "free -h", risk: "read" },
-      { id: "s3", tool: "terminal", command: "ps -eo pid,pcpu,pmem,comm --sort=-pcpu | head -10", risk: "read" }
+      { id: "s3", tool: "terminal", command: TOP_CPU_CMD_SAFE_SHORT, risk: "read" }
     ]
   };
 }
@@ -816,25 +1951,49 @@ function createWindow() {
     width: 1400,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
     }
   });
 
+  const webContentsId = win.webContents.id;
   win.loadFile(path.join(__dirname, "renderer.html"));
-  win.on("closed", () => {
-    closePtyForWebContents(win.webContents.id);
+  win.once("closed", () => {
+    try {
+      closePtyForWebContents(webContentsId);
+    } catch {
+      // Ignore teardown races during window shutdown.
+    }
   });
 
-  // Disable devtools in production for security
+  // Keep DevTools closed by default in packaged builds unless explicitly toggled.
   if (app.isPackaged) {
-    win.webContents.on('devtools-opened', () => {
-      win.webContents.closeDevTools();
-    });
+    try {
+      if (!win.webContents.isDestroyed()) {
+        win.webContents.closeDevTools();
+      }
+    } catch {
+      // Ignore if webContents is already gone while closing.
+    }
   }
 }
+
+ipcMain.handle("rina:devtools:toggle", async (event) => {
+  const wc = event.sender;
+  if (wc.isDestroyed()) return { ok: false, error: "window destroyed" };
+  try {
+    if (wc.isDevToolsOpened()) {
+      wc.closeDevTools();
+      return { ok: true, open: false };
+    }
+    wc.openDevTools({ mode: "detach" });
+    return { ok: true, open: true };
+  } catch (err) {
+    return { ok: false, error: (err && (err as Error).message) ? (err as Error).message : "failed to toggle devtools" };
+  }
+});
 
 /**
  * Create confirmation scope for high-impact steps.
@@ -856,7 +2015,7 @@ async function startStreamingStepViaEngine(args: {
   confirmed: boolean;
   confirmationText: string;
   projectRoot: string;
-}) {
+}): Promise<{ ok: boolean; cancelled: boolean; error?: string | null }> {
   const { webContents, streamId, step, confirmed, confirmationText, projectRoot: rawProjectRoot } = args;
   
   // SECURITY: Validate and normalize projectRoot
@@ -864,27 +2023,71 @@ async function startStreamingStepViaEngine(args: {
   
   // Source-of-truth risk (avoid drift from classifier vs step.risk)
   const risk = step.risk;
+  const profileGate = gateProfileCommand({
+    projectRoot,
+    command: step.command,
+    risk,
+    confirmed,
+    confirmationText,
+  });
+  if (!profileGate.ok) {
+    const error = profileGate.message;
+    safeSend(webContents, "rina:stream:end", {
+      streamId,
+      ok: false,
+      code: null,
+      error,
+    });
+    return { ok: false, cancelled: false, error };
+  }
+  const sessionId = ensureStructuredSession({
+    source: "engine_step_stream",
+    projectRoot,
+  });
+  withStructuredSessionWrite(() => {
+    structuredSessionStore?.beginCommand({
+      sessionId: sessionId || undefined,
+      streamId,
+      command: step.command,
+      cwd: projectRoot,
+      risk,
+      source: "engine_step_stream",
+    });
+  });
+
+  const policyGate = evaluatePolicyGate(step.command, confirmed, confirmationText);
+  if (!policyGate.ok) {
+    const error = policyGate.message || "Blocked by policy.";
+    safeSend(webContents, "rina:stream:end", {
+      streamId,
+      ok: false,
+      code: null,
+      error,
+    });
+    withStructuredSessionWrite(() => {
+      structuredSessionStore?.endCommand({
+        streamId,
+        ok: false,
+        code: null,
+        cancelled: false,
+        error,
+      });
+    });
+    return { ok: false, cancelled: false, error };
+  }
 
   // 1) High-impact confirmation gate (keeps your UX contract)
   let confirmationToken: ConfirmationToken | undefined;
   if (risk === "high-impact") {
     if (!confirmed) {
-      webContents.send("rina:stream:end", {
+      const error = "Confirmation required for high-impact step.";
+      safeSend(webContents, "rina:stream:end", {
         streamId,
         ok: false,
         code: null,
-        error: "Confirmation required for high-impact step.",
+        error,
       });
-      return;
-    }
-    if (confirmationText !== "YES") {
-      webContents.send("rina:stream:end", {
-        streamId,
-        ok: false,
-        code: null,
-        error: 'Typed confirmation must be exactly "YES".',
-      });
-      return;
+      return { ok: false, cancelled: false, error };
     }
 
     const scope = createConfirmationScope(step);
@@ -892,10 +2095,13 @@ async function startStreamingStepViaEngine(args: {
   }
 
   // 2) Send command meta (unchanged)
-  webContents.send("rina:stream:chunk", {
+  safeSend(webContents, "rina:stream:chunk", {
     streamId,
     stream: "meta",
     data: `$ ${step.command}\n`,
+  });
+  withStructuredSessionWrite(() => {
+    structuredSessionStore?.appendChunk(streamId, "meta", redactChunkIfNeeded(`$ ${step.command}\n`));
   });
 
   // 3) Track stream
@@ -916,6 +2122,10 @@ async function startStreamingStepViaEngine(args: {
         stepId: step.id,
       },
       stepId: step.id,
+      description: step.description ?? `Execute command: ${step.command}`,
+      risk_level: toRiskLevel(risk),
+      requires_confirmation: risk === "high-impact",
+      verification_plan: { steps: [] as Array<{ tool: string; input: unknown }> },
       ...(risk === "high-impact" ? { confirmationScope: createConfirmationScope(step) } : {}),
     },
   ];
@@ -935,10 +2145,14 @@ async function startStreamingStepViaEngine(args: {
       if (info.cancelled) return;
 
       if (evt.type === "chunk") {
-        webContents.send("rina:stream:chunk", {
+        safeSend(webContents, "rina:stream:chunk", {
           streamId,
           stream: evt.stream,
-          data: evt.data,
+          data: forRendererDisplay(evt.data),
+        });
+        withStructuredSessionWrite(() => {
+          const mapped = evt.stream === "stderr" ? "stderr" : "stdout";
+          structuredSessionStore?.appendChunk(streamId, mapped, redactChunkIfNeeded(String(evt.data || "")));
         });
       }
     },
@@ -963,7 +2177,7 @@ async function startStreamingStepViaEngine(args: {
           ? (lastResult.error ?? "Execution failed")
           : (report.haltedBecause ?? "Execution failed"));
 
-  webContents.send("rina:stream:end", {
+  safeSend(webContents, "rina:stream:end", {
     streamId,
     ok: cancelled ? false : report.ok,
     code: exitCode,
@@ -971,6 +2185,20 @@ async function startStreamingStepViaEngine(args: {
     error,
     report,
   });
+  withStructuredSessionWrite(() => {
+    structuredSessionStore?.endCommand({
+      streamId,
+      ok: cancelled ? false : report.ok,
+      code: typeof exitCode === "number" ? exitCode : null,
+      cancelled,
+      error,
+    });
+  });
+  return {
+    ok: cancelled ? false : report.ok,
+    cancelled,
+    error,
+  };
 }
 
 /**
@@ -978,14 +2206,18 @@ async function startStreamingStepViaEngine(args: {
  * NOTE: We do NOT kill processes here in v1 unless you define a high-impact process.kill tool.
  */
 async function cancelStream(streamId: string): Promise<{ ok: boolean; message: string }> {
-  const mappedPlanRunId = streamToPlanRun.get(streamId);
+  const id = String(streamId || "").trim();
+  if (!id) return { ok: false, message: "Missing streamId." };
+
+  const mappedPlanRunId = streamToPlanRun.get(id);
   if (mappedPlanRunId) {
     const st = runningPlanRuns.get(mappedPlanRunId);
+    if (st) st.stopped = true;
     if (st?.agentdPlanRunId) {
       try {
         await agentdJson("/v1/cancel", {
           method: "POST",
-          body: { planRunId: st.agentdPlanRunId, streamId, reason: "soft" },
+          body: { planRunId: st.agentdPlanRunId, streamId: id, reason: "soft" },
           includeLicenseToken: true,
         });
         return { ok: true, message: "Cancellation requested." };
@@ -993,9 +2225,12 @@ async function cancelStream(streamId: string): Promise<{ ok: boolean; message: s
         return { ok: false, message: error instanceof Error ? error.message : "Cancellation failed" };
       }
     }
+
+    // Cancellation can race plan-run registration; acknowledge and let stop flag halt continuation.
+    return { ok: true, message: "Cancellation queued." };
   }
 
-  const entry = running.get(streamId);
+  const entry = running.get(id);
   if (!entry) return { ok: false, message: "No running process for that streamId." };
 
   entry.cancelled = true;
@@ -1003,33 +2238,170 @@ async function cancelStream(streamId: string): Promise<{ ok: boolean; message: s
   return { ok: true, message: "Cancellation requested." };
 }
 
+async function hardKillStream(streamId: string): Promise<{ ok: boolean; message: string }> {
+  const id = String(streamId || "").trim();
+  if (!id) return { ok: false, message: "Missing streamId." };
+
+  const ownerId = ptyStreamOwners.get(id);
+  if (typeof ownerId === "number") {
+    closePtyForWebContents(ownerId);
+    return { ok: true, message: "PTY killed." };
+  }
+
+  const mappedPlanRunId = streamToPlanRun.get(id);
+  if (mappedPlanRunId) {
+    const st = runningPlanRuns.get(mappedPlanRunId);
+    if (st) st.stopped = true;
+    if (st?.agentdPlanRunId) {
+      try {
+        await agentdJson("/v1/cancel", {
+          method: "POST",
+          body: { planRunId: st.agentdPlanRunId, streamId: id, reason: "hard" },
+          includeLicenseToken: true,
+        });
+      } catch (error) {
+        return { ok: false, message: error instanceof Error ? error.message : "Hard cancel failed" };
+      }
+    }
+
+    return { ok: true, message: "Hard cancellation queued." };
+  }
+
+  const entry = running.get(id);
+  if (entry) {
+    entry.cancelled = true;
+    return { ok: true, message: "Marked cancelled." };
+  }
+
+  return { ok: false, message: "No running process for that streamId." };
+}
+
 // IPC Handlers
 
-// License verification handler
-ipcMain.handle("license:verify", async (_event, customerId: string) => {
-  try {
-    const data = await verifyLicense(customerId);
-    if (!data?.ok) {
-      resetLicenseToStarter();
-      throw new Error("license verification returned non-ok response");
-    }
-    const effectiveTier = applyVerifiedLicense(data);
-    return { ...data, effective_tier: effectiveTier };
-  } catch (error) {
-    resetLicenseToStarter();
-    throw error;
-  }
-});
+// ============================================================
+// Entitlement Persistence
+// ============================================================
+const ENTITLEMENT_FILE = () => path.join(app.getPath("userData"), "license-entitlement.json");
 
-// Runtime license state for diagnostics/debug UI (no secret mutation)
-ipcMain.handle("license:state", async () => {
-  return {
-    tier: currentLicenseTier,
-    has_token: !!currentLicenseToken,
-    expires_at: currentLicenseExpiresAt,
-    customer_id: currentLicenseCustomerId,
-  };
-});
+type EntitlementData = {
+  tier: LicenseTier;
+  token: string | null;
+  expiresAt: number | null;
+  customerId: string | null;
+  verifiedAt: string;
+  lastVerifiedAt: string; // ISO timestamp of last successful verification
+  status: string; // active, trialing, canceled, expired, etc.
+};
+
+// Current license status (runtime state)
+let currentLicenseStatus: string = "unknown";
+
+/**
+ * Tiers that represent lifetime/paid-once licenses (no expiry required)
+ */
+const LIFETIME_TIERS: ReadonlySet<LicenseTier> = new Set(["founder", "pioneer"] as const);
+
+/**
+ * Validate entitlement expiry with explicit lifetime handling.
+ * - Subscription tiers MUST have a finite, future expiresAt
+ * - Lifetime tiers (founder, pioneer) MAY have null expiresAt
+ * - Rejects missing, non-finite, or past timestamps
+ */
+function validateEntitlementExpiry(data: EntitlementData): { ok: boolean; reason?: string } {
+  const { tier, expiresAt } = data;
+  
+  // Lifetime tiers: null expiresAt is valid
+  if (LIFETIME_TIERS.has(tier)) {
+    if (expiresAt === null) return { ok: true };
+    // If lifetime has an expiry, it must be finite and future
+    if (!Number.isFinite(expiresAt)) {
+      return { ok: false, reason: "Lifetime tier has non-finite expiresAt" };
+    }
+    if (Date.now() > expiresAt * 1000) {
+      return { ok: false, reason: "Lifetime tier has expired" };
+    }
+    return { ok: true };
+  }
+  
+  // Subscription tiers: expiresAt is required and must be future
+  if (expiresAt === null) {
+    return { ok: false, reason: "Subscription tier missing expiresAt" };
+  }
+  if (!Number.isFinite(expiresAt)) {
+    return { ok: false, reason: "Subscription tier has non-finite expiresAt" };
+  }
+  if (Date.now() > expiresAt * 1000) {
+    return { ok: false, reason: "Subscription has expired" };
+  }
+  
+  return { ok: true };
+}
+
+/**
+ * Check if entitlement needs soft refresh (stale > 24h)
+ */
+function isEntitlementStale(data: EntitlementData): boolean {
+  if (!data.lastVerifiedAt) return true;
+  const lastVerified = Date.parse(data.lastVerifiedAt);
+  if (!Number.isFinite(lastVerified)) return true;
+  const hoursSinceVerify = (Date.now() - lastVerified) / (1000 * 60 * 60);
+  return hoursSinceVerify > 24;
+}
+
+function saveEntitlements(): void {
+  try {
+    const data: EntitlementData = {
+      tier: currentLicenseTier,
+      token: currentLicenseToken,
+      expiresAt: currentLicenseExpiresAt,
+      customerId: currentLicenseCustomerId,
+      verifiedAt: new Date().toISOString(),
+      lastVerifiedAt: new Date().toISOString(),
+      status: currentLicenseStatus,
+    };
+    writeJsonFile(ENTITLEMENT_FILE(), data);
+    // Sanitized log - no token/customer_id in production
+    if (app.isPackaged) {
+      console.log("[license] Entitlement saved for tier:", currentLicenseTier);
+    } else {
+      console.log("[license] Entitlement saved:", { tier: currentLicenseTier, status: currentLicenseStatus });
+    }
+  } catch (err) {
+    console.warn("[license] Failed to save entitlements:", err);
+  }
+}
+
+function loadEntitlements(): EntitlementData | null {
+  try {
+    const data = readJsonIfExists<EntitlementData>(ENTITLEMENT_FILE());
+    if (!data) return null;
+    
+    // Validate expiry with explicit lifetime handling
+    const validation = validateEntitlementExpiry(data);
+    if (!validation.ok) {
+      console.log("[license] Stored entitlement invalid:", validation.reason);
+      try {
+        fs.unlinkSync(ENTITLEMENT_FILE());
+      } catch {
+        // ignore
+      }
+      return null;
+    }
+    
+    return data;
+  } catch (err) {
+    console.warn("[license] Failed to load entitlements:", err);
+    return null;
+  }
+}
+
+function applyStoredEntitlement(data: EntitlementData): void {
+  currentLicenseTier = data.tier;
+  currentLicenseToken = data.token;
+  currentLicenseExpiresAt = data.expiresAt;
+  currentLicenseCustomerId = data.customerId;
+  currentLicenseStatus = data.status || "unknown";
+}
 
 // Directory picker handler
 ipcMain.handle("rina:pickDirectory", async (event) => {
@@ -1061,71 +2433,49 @@ ipcMain.handle("rina:workspace:pick", async () => {
   return { ok: true, path: result.filePaths[0] };
 });
 
-ipcMain.handle("rina:pty:start", async (event, args?: { cols?: number; rows?: number; cwd?: string }) => {
-  const webContentsId = event.sender.id;
-  const existing = ptySessions.get(webContentsId);
-  if (existing) {
-    return { ok: true, shell: existing.shell, cwd: existing.cwd, cols: existing.cols, rows: existing.rows };
+ipcMain.handle("rina:workspace:default", async (event) => {
+  const existing = ptySessions.get(event.sender.id);
+  const path = existing?.cwd || getDefaultPtyCwd();
+  return { ok: true, path };
+});
+
+ipcMain.handle("rina:code:listFiles", async (_event, args?: { projectRoot?: string; limit?: number }) => {
+  try {
+    const projectRoot = resolveProjectRootSafe(args?.projectRoot);
+    const files = listProjectFilesSafe(projectRoot, args?.limit);
+    return { ok: true, files };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
+});
 
-  const ptyModule = await getPtyModule();
-  if (!ptyModule) {
-    return { ok: false, error: "node-pty is not installed. Run npm install to enable terminal mode." };
+ipcMain.handle("rina:code:readFile", async (
+  _event,
+  args?: { projectRoot?: string; relativePath?: string; maxBytes?: number },
+) => {
+  try {
+    const projectRoot = resolveProjectRootSafe(args?.projectRoot);
+    return readProjectFileSafe({
+      projectRoot,
+      relativePath: String(args?.relativePath || ""),
+      maxBytes: args?.maxBytes,
+    });
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
-
-  const cols = Math.max(40, Math.min(400, Number(args?.cols || 120)));
-  const rows = Math.max(10, Math.min(200, Number(args?.rows || 30)));
-  const cwd = resolvePtyCwd(args?.cwd);
-  const shell = getDefaultShell();
-
-  const proc = ptyModule.spawn(shell, [], {
-    name: "xterm-color",
-    cols,
-    rows,
-    cwd,
-    env: safeEnv(process.env),
-  });
-
-  ptySessions.set(webContentsId, { proc, cols, rows, cwd, shell });
-
-  proc.onData((data: string) => {
-    event.sender.send("rina:pty:data", data);
-  });
-
-  proc.onExit(({ exitCode, signal }: { exitCode: number; signal?: number }) => {
-    ptySessions.delete(webContentsId);
-    event.sender.send("rina:pty:exit", { exitCode, signal });
-  });
-
-  return { ok: true, shell, cwd, cols, rows };
-});
-
-ipcMain.handle("rina:pty:write", async (event, data: string) => {
-  const session = ptySessions.get(event.sender.id);
-  if (!session) return { ok: false, error: "PTY not started" };
-  session.proc.write(String(data ?? ""));
-  return { ok: true };
-});
-
-ipcMain.handle("rina:pty:resize", async (event, cols: number, rows: number) => {
-  const session = ptySessions.get(event.sender.id);
-  if (!session) return { ok: false, error: "PTY not started" };
-  const safeCols = Math.max(40, Math.min(400, Number(cols || session.cols)));
-  const safeRows = Math.max(10, Math.min(200, Number(rows || session.rows)));
-  session.cols = safeCols;
-  session.rows = safeRows;
-  session.proc.resize(safeCols, safeRows);
-  return { ok: true };
-});
-
-ipcMain.handle("rina:pty:stop", async (event) => {
-  const webContentsId = event.sender.id;
-  closePtyForWebContents(webContentsId);
-  return { ok: true };
 });
 
 ipcMain.handle("rina:ping", async () => {
   return { pong: true, timestamp: new Date().toISOString() };
+});
+
+ipcMain.handle("rina:history:import", async (_event, limit?: number) => {
+  try {
+    const data = importShellHistory(Number(limit || 300));
+    return { ok: true, ...data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
 });
 
 ipcMain.handle("rina:diagnoseHot", async () => {
@@ -1177,18 +2527,328 @@ ipcMain.handle("rina:playbook:execute", async (_event, playbookId: string, fixIn
   };
 });
 
-ipcMain.handle("rina:transcript:get", async () => getSessionTranscript());
-ipcMain.handle("rina:transcript:export", async (_event, format: "json" | "text") => exportTranscript(format));
-ipcMain.handle("rina:transcript:add", async (_event, entry: any) => addTranscriptEntry({ ...entry, timestamp: new Date().toISOString() }));
-
-ipcMain.handle("rina:memory:get", async (_event, category: string) => operationalMemory.getRecent(category));
-ipcMain.handle("rina:memory:set", async (_event, category: string, key: string, value: string) => {
-  operationalMemory.set(category, key, value);
-  addTranscriptEntry({ type: "memory", timestamp: new Date().toISOString(), category, key, value });
+ipcMain.handle("rina:redaction:preview", async (_event, text: string) => {
+  const out = redactText(String(text || ""));
+  return {
+    redactedText: out.redactedText,
+    hits: out.hits,
+    redactionCount: out.hits.length,
+  };
 });
+ipcMain.handle("rina:export:preview", async (
+  _event,
+  args: { kind: ExportPreviewKind; sessionId?: string },
+) => {
+  const kind = String(args?.kind || "") as ExportPreviewKind;
+  let payload = "";
+  let redactionCount = 0;
+  let hits: Array<{ start: number; end: number; kind: string; level: string; preview: string }> = [];
+  let mime = "text/plain";
+  let fileName = `rina-export-${Date.now()}.txt`;
 
+  if (kind === "runbook_markdown") {
+    const markdown = structuredSessionStore
+      ? structuredSessionStore.exportRunbookMarkdown(args?.sessionId)
+      : "# RinaWarp Runbook\n\nStructured session store is disabled.\n";
+    const redacted = redactText(markdown);
+    payload = redacted.redactedText;
+    redactionCount = redacted.hits.length;
+    hits = redacted.hits;
+    mime = "text/markdown";
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    fileName = `rina-structured-runbook-${stamp}.md`;
+  } else if (kind === "audit_json") {
+    payload = buildAuditExportText();
+    redactionCount = (payload.match(/\[REDACTED\]/g) || []).length;
+    hits = [];
+    mime = "application/json";
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    fileName = `rina-audit-${stamp}.json`;
+  } else {
+    return { ok: false, error: "Unsupported export kind" };
+  }
+
+  if (!payload.trim()) return { ok: false, error: "Empty export payload" };
+
+  const now = Date.now();
+  pruneExportPreviewTokens(now);
+  const previewId = newExportPreviewId();
+  const rec: ExportPreviewRecord = {
+    id: previewId,
+    kind,
+    createdAtMs: now,
+    expiresAtMs: now + EXPORT_PREVIEW_TTL_MS,
+    createdBy: getCurrentUserEmail(),
+    payload,
+    mime,
+    fileName,
+    redactionCount,
+    contentHash: hashText(payload),
+  };
+  exportPreviewTokens.set(previewId, rec);
+  return {
+    ok: true,
+    previewId,
+    kind,
+    redactedText: payload,
+    redactionCount,
+    hits,
+    mime,
+    fileName,
+    contentHash: rec.contentHash,
+    expiresAt: new Date(rec.expiresAtMs).toISOString(),
+  };
+});
+ipcMain.handle("rina:export:publish", async (
+  _event,
+  args: { previewId?: string; typedConfirm?: string; expectedHash?: string },
+) => {
+  const previewId = String(args?.previewId || "").trim();
+  if (!previewId) return { ok: false, error: "Export publish requires previewId." };
+  if (String(args?.typedConfirm || "") !== "PUBLISH") {
+    return { ok: false, error: 'Export publish requires typed confirmation "PUBLISH".' };
+  }
+
+  pruneExportPreviewTokens();
+  const rec = exportPreviewTokens.get(previewId);
+  if (!rec) return { ok: false, error: "Export preview expired. Generate a new preview before publish." };
+  if (rec.createdBy !== getCurrentUserEmail()) {
+    return { ok: false, error: "Export preview is not valid for the active user." };
+  }
+  if (rec.expiresAtMs <= Date.now()) {
+    exportPreviewTokens.delete(previewId);
+    return { ok: false, error: "Export preview expired. Generate a new preview before publish." };
+  }
+  if (args?.expectedHash && String(args.expectedHash) !== rec.contentHash) {
+    return { ok: false, error: "Export payload changed since preview; regenerate preview." };
+  }
+
+  exportPreviewTokens.delete(previewId);
+  return {
+    ok: true,
+    kind: rec.kind,
+    content: rec.payload,
+    mime: rec.mime,
+    fileName: rec.fileName,
+    redactionCount: rec.redactionCount,
+  };
+});
+ipcMain.handle("rina:share:preview", async (
+  _event,
+  args: { content: string },
+) => {
+  const actorRole = getCurrentRole();
+  if (!hasRoleAtLeast(actorRole, "operator")) {
+    return { ok: false, error: "Only owner/operator can preview published shares." };
+  }
+  const content = String(args?.content || "");
+  if (!content.trim()) return { ok: false, error: "Empty share content" };
+  const redacted = redactText(content);
+  const now = Date.now();
+  pruneSharePreviewTokens(now);
+  const previewId = newSharePreviewId();
+  const rec: SharePreviewRecord = {
+    id: previewId,
+    createdAtMs: now,
+    expiresAtMs: now + SHARE_PREVIEW_TTL_MS,
+    createdBy: getCurrentUserEmail(),
+    redactedContent: redacted.redactedText,
+    redactionCount: redacted.hits.length,
+    contentHash: hashText(redacted.redactedText),
+  };
+  sharePreviewTokens.set(previewId, rec);
+  return {
+    ok: true,
+    previewId,
+    redactedText: rec.redactedContent,
+    hits: redacted.hits,
+    redactionCount: rec.redactionCount,
+    expiresAt: new Date(rec.expiresAtMs).toISOString(),
+  };
+});
+ipcMain.handle("rina:share:create", async (
+  _event,
+  args: { title?: string; content?: string; expiresDays?: number; requiredRole?: Role; previewId?: string },
+) => {
+  const actorRole = getCurrentRole();
+  if (!hasRoleAtLeast(actorRole, "operator")) {
+    return { ok: false, error: "Only owner/operator can publish shares." };
+  }
+  const previewId = String(args?.previewId || "").trim();
+  if (!previewId) return { ok: false, error: "Publish requires a redaction preview confirmation." };
+  pruneSharePreviewTokens();
+  const preview = sharePreviewTokens.get(previewId);
+  if (!preview) return { ok: false, error: "Share preview expired. Generate a new preview before publish." };
+  if (preview.createdBy !== getCurrentUserEmail()) {
+    return { ok: false, error: "Share preview is not valid for the active user." };
+  }
+  if (preview.expiresAtMs <= Date.now()) {
+    sharePreviewTokens.delete(previewId);
+    return { ok: false, error: "Share preview expired. Generate a new preview before publish." };
+  }
+  if (args?.content && String(args.content).trim()) {
+    const supplied = redactText(String(args.content)).redactedText;
+    if (hashText(supplied) !== preview.contentHash) {
+      return { ok: false, error: "Publish payload does not match the approved preview." };
+    }
+  }
+  const expiresDays = Math.max(1, Math.min(90, Number(args?.expiresDays || 7)));
+  const expiresAt = new Date(Date.now() + expiresDays * 24 * 60 * 60 * 1000).toISOString();
+  const requiredRole =
+    args?.requiredRole && ["owner", "operator", "viewer"].includes(args.requiredRole)
+      ? args.requiredRole
+      : "viewer";
+  const db = loadSharesDb();
+  const rec: ShareRecord = {
+    id: `shr_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+    createdBy: getCurrentUserEmail(),
+    title: args?.title ? String(args.title).slice(0, 120) : undefined,
+    content: preview.redactedContent,
+    revoked: false,
+    expiresAt,
+    requiredRole,
+  };
+  db.shares.unshift(rec);
+  db.shares = db.shares.slice(0, 500);
+  saveSharesDb(db);
+  sharePreviewTokens.delete(previewId);
+  return { ok: true, share: rec };
+});
+ipcMain.handle("rina:share:list", async () => {
+  const db = loadSharesDb();
+  const role = getCurrentRole();
+  return db.shares
+    .filter((s) => hasRoleAtLeast(role, s.requiredRole))
+    .map((s) => ({
+      id: s.id,
+      createdAt: s.createdAt,
+      createdBy: s.createdBy,
+      title: s.title,
+      revoked: s.revoked,
+      expiresAt: s.expiresAt,
+      requiredRole: s.requiredRole,
+    }));
+});
+ipcMain.handle("rina:share:get", async (_event, id: string) => {
+  const db = loadSharesDb();
+  const found = db.shares.find((s) => s.id === id);
+  if (!found) return { ok: false, error: "Share not found" };
+  if (found.revoked) return { ok: false, error: "Share revoked" };
+  if (Date.now() > Date.parse(found.expiresAt)) return { ok: false, error: "Share expired" };
+  const role = getCurrentRole();
+  if (!hasRoleAtLeast(role, found.requiredRole)) return { ok: false, error: "Insufficient role for share" };
+  return { ok: true, share: found };
+});
+ipcMain.handle("rina:share:revoke", async (_event, id: string) => {
+  const role = getCurrentRole();
+  if (!hasRoleAtLeast(role, "operator")) {
+    return { ok: false, error: "Only owner/operator can revoke shares." };
+  }
+  const db = loadSharesDb();
+  const idx = db.shares.findIndex((s) => s.id === id);
+  if (idx === -1) return { ok: false, error: "Share not found" };
+  db.shares[idx] = { ...db.shares[idx], revoked: true };
+  saveSharesDb(db);
+  return { ok: true };
+});
+ipcMain.handle("rina:team:get", async () => loadTeamDb());
+ipcMain.handle("rina:team:setCurrentUser", async (_event, email: string) => {
+  const team = loadTeamDb();
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!normalized) return { ok: false, error: "Email required" };
+  if (!team.members.some((m) => m.email === normalized)) {
+    team.members.push({ email: normalized, role: "viewer" });
+  }
+  team.currentUser = normalized;
+  saveTeamDb(team);
+  return { ok: true, role: team.members.find((m) => m.email === normalized)?.role || "viewer" };
+});
+ipcMain.handle("rina:team:upsertMember", async (_event, member: { email: string; role: Role }) => {
+  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can change team roles" };
+  const team = loadTeamDb();
+  const email = String(member?.email || "").trim().toLowerCase();
+  const role = member?.role;
+  if (!email) return { ok: false, error: "Email required" };
+  if (!["owner", "operator", "viewer"].includes(role)) return { ok: false, error: "Invalid role" };
+  const idx = team.members.findIndex((m) => m.email === email);
+  if (idx >= 0) team.members[idx] = { email, role };
+  else team.members.push({ email, role });
+  saveTeamDb(team);
+  return { ok: true };
+});
+ipcMain.handle("rina:team:removeMember", async (_event, emailRaw: string) => {
+  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can remove team members" };
+  const team = loadTeamDb();
+  const email = String(emailRaw || "").trim().toLowerCase();
+  if (!email) return { ok: false, error: "Email required" };
+  const target = team.members.find((m) => m.email === email);
+  if (!target) return { ok: false, error: "Member not found" };
+  if (target.role === "owner") {
+    const ownerCount = team.members.filter((m) => m.role === "owner").length;
+    if (ownerCount <= 1) return { ok: false, error: "Cannot remove last owner" };
+  }
+  team.members = team.members.filter((m) => m.email !== email);
+  if (team.currentUser === email) {
+    team.currentUser = team.members[0]?.email || "owner@local";
+    if (!team.members.some((m) => m.email === team.currentUser)) {
+      team.members.unshift({ email: team.currentUser, role: "owner" });
+    }
+  }
+  saveTeamDb(team);
+  return { ok: true };
+});
+ipcMain.handle("rina:audit:export", async () => {
+  return buildAuditExportText();
+});
 ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed: boolean, confirmationText: string, projectRoot: string) => {
   const streamId = createStreamId();
+  const normalizedRoot = resolveProjectRootSafe(projectRoot);
+  const profileGate = gateProfileCommand({
+    projectRoot: normalizedRoot,
+    command: step.command,
+    risk: step.risk,
+    confirmed,
+    confirmationText,
+  });
+  if (!profileGate.ok) {
+    safeSend(event.sender, "rina:stream:end", {
+      streamId,
+      ok: false,
+      code: null,
+      cancelled: false,
+      error: profileGate.message,
+      report: { ok: false, haltedBecause: "profile_blocked", steps: [] },
+    });
+    return { streamId };
+  }
+  const policyGate = evaluatePolicyGate(step.command, confirmed, confirmationText);
+  if (!policyGate.ok) {
+    safeSend(event.sender, "rina:stream:end", {
+      streamId,
+      ok: false,
+      code: null,
+      cancelled: false,
+      error: policyGate.message || "Blocked by policy.",
+      report: { ok: false, haltedBecause: "policy_blocked", steps: [] },
+    });
+    return { streamId };
+  }
+
+  const sessionId = ensureStructuredSession({
+    source: "execute_step_stream",
+    projectRoot: normalizedRoot,
+  });
+  withStructuredSessionWrite(() => {
+    structuredSessionStore?.beginCommand({
+      sessionId: sessionId || undefined,
+      streamId,
+      command: step.command,
+      cwd: normalizedRoot,
+      risk: step.risk,
+      source: "execute_step_stream",
+    });
+  });
   
   addTranscriptEntry({
     type: "approval",
@@ -1214,7 +2874,6 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
   // Fire and forget; UI listens to stream events via emitted callbacks
   void (async () => {
     try {
-      const normalizedRoot = normalizeProjectRoot(projectRoot);
       try {
         const execResp = await agentdJson<{ ok: true; planRunId: string }>("/v1/execute-plan", {
           method: "POST",
@@ -1265,10 +2924,14 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
             const payload = payloadText ? JSON.parse(payloadText) : {};
 
             if (eventName === "chunk") {
-              event.sender.send("rina:stream:chunk", {
+              safeSend(event.sender, "rina:stream:chunk", {
                 streamId,
                 stream: payload.stream,
-                data: payload.data,
+                data: forRendererDisplay(payload.data),
+              });
+              withStructuredSessionWrite(() => {
+                const mapped = payload.stream === "stderr" ? "stderr" : payload.stream === "meta" ? "meta" : "stdout";
+                structuredSessionStore?.appendChunk(streamId, mapped, redactChunkIfNeeded(String(payload.data || "")));
               });
               continue;
             }
@@ -1279,13 +2942,22 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
               const exitCode = lastResult?.meta?.exitCode ?? null;
               const error = payload.ok ? null : (report?.haltedBecause || lastResult?.error || "Execution failed");
               stepEndSent = true;
-              event.sender.send("rina:stream:end", {
+              safeSend(event.sender, "rina:stream:end", {
                 streamId,
                 ok: !!payload.ok,
                 code: exitCode,
                 cancelled: false,
                 error,
                 report,
+              });
+              withStructuredSessionWrite(() => {
+                structuredSessionStore?.endCommand({
+                  streamId,
+                  ok: !!payload.ok,
+                  code: typeof exitCode === "number" ? exitCode : null,
+                  cancelled: false,
+                  error,
+                });
               });
               continue;
             }
@@ -1296,13 +2968,22 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
             }
 
             if (eventName === "plan_run_end" && haltedBecause && !stepEndSent) {
-              event.sender.send("rina:stream:end", {
+              safeSend(event.sender, "rina:stream:end", {
                 streamId,
                 ok: false,
                 code: null,
                 cancelled: false,
                 error: haltedBecause,
                 report: { ok: false, haltedBecause, steps: [] },
+              });
+              withStructuredSessionWrite(() => {
+                structuredSessionStore?.endCommand({
+                  streamId,
+                  ok: false,
+                  code: null,
+                  cancelled: false,
+                  error: haltedBecause,
+                });
               });
             }
           }
@@ -1319,13 +3000,22 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
         });
       }
     } catch (error) {
-      event.sender.send("rina:stream:end", {
+      safeSend(event.sender, "rina:stream:end", {
         streamId,
         ok: false,
         code: null,
         cancelled: false,
         error: error instanceof Error ? error.message : "Execution failed",
         report: { ok: false, haltedBecause: "execution_failed", steps: [] },
+      });
+      withStructuredSessionWrite(() => {
+        structuredSessionStore?.endCommand({
+          streamId,
+          ok: false,
+          code: null,
+          cancelled: false,
+          error: error instanceof Error ? error.message : "Execution failed",
+        });
       });
     } finally {
       streamToPlanRun.delete(streamId);
@@ -1337,6 +3027,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
 });
 
 ipcMain.handle("rina:stream:cancel", async (_event, streamId: string) => cancelStream(streamId));
+ipcMain.handle("rina:stream:kill", async (_event, streamId: string) => hardKillStream(streamId));
 
 // ============================================================
 // Plan Run Tracking (for stop functionality)
@@ -1431,8 +3122,19 @@ async function pipeAgentdSseToRenderer(args: {
           const streamId = payload.streamId;
           if (typeof streamId === "string") {
             streamToPlanRun.set(streamId, localPlanRunId);
+            withStructuredSessionWrite(() => {
+              const command = String(payload?.step?.input?.command || "");
+              const cwd = String(payload?.step?.input?.cwd || "");
+              structuredSessionStore?.beginCommand({
+                streamId,
+                command,
+                cwd: cwd || undefined,
+                risk: payload?.step?.risk_level || payload?.step?.risk,
+                source: "plan_stream_agentd",
+              });
+            });
           }
-          eventSender.send("rina:plan:stepStart", {
+          safeSend(eventSender, "rina:plan:stepStart", {
             planRunId: localPlanRunId,
             runId,
             streamId: payload.streamId,
@@ -1446,11 +3148,17 @@ async function pipeAgentdSseToRenderer(args: {
         }
 
         if (eventName === "chunk") {
-          eventSender.send("rina:stream:chunk", {
+          safeSend(eventSender, "rina:stream:chunk", {
             streamId: payload.streamId,
             stream: payload.stream,
-            data: payload.data,
+            data: forRendererDisplay(payload.data),
           });
+          if (typeof payload.streamId === "string") {
+            withStructuredSessionWrite(() => {
+              const mapped = payload.stream === "stderr" ? "stderr" : payload.stream === "meta" ? "meta" : "stdout";
+              structuredSessionStore?.appendChunk(payload.streamId, mapped, redactChunkIfNeeded(String(payload.data || "")));
+            });
+          }
           continue;
         }
 
@@ -1462,7 +3170,7 @@ async function pipeAgentdSseToRenderer(args: {
           if (typeof payload.streamId === "string") {
             streamToPlanRun.delete(payload.streamId);
           }
-          eventSender.send("rina:stream:end", {
+          safeSend(eventSender, "rina:stream:end", {
             streamId: payload.streamId,
             ok: !!payload.ok,
             code: exitCode,
@@ -1470,6 +3178,17 @@ async function pipeAgentdSseToRenderer(args: {
             error,
             report,
           });
+          if (typeof payload.streamId === "string") {
+            withStructuredSessionWrite(() => {
+              structuredSessionStore?.endCommand({
+                streamId: payload.streamId,
+                ok: !!payload.ok,
+                code: typeof exitCode === "number" ? exitCode : null,
+                cancelled: false,
+                error,
+              });
+            });
+          }
           continue;
         }
 
@@ -1542,6 +3261,14 @@ ipcMain.handle("rina:doctor:inspect", async (_event, intent: string) => {
 });
 
 ipcMain.handle("rina:doctor:collect", async (_event, steps: any[], streamCallback: any) => {
+  for (const step of Array.isArray(steps) ? steps : []) {
+    const cmd = step?.input?.command;
+    if (typeof cmd !== "string" || !cmd.trim()) continue;
+    const gate = evaluatePolicyGate(cmd, false, "");
+    if (!gate.ok) {
+      throw new Error(gate.message || `Blocked by policy: ${cmd}`);
+    }
+  }
   // Create a stream callback for IPC
   const wrappedCallback = (chunk: string, stream: "stdout" | "stderr") => {
     if (streamCallback) {
@@ -1554,20 +3281,61 @@ ipcMain.handle("rina:doctor:collect", async (_event, steps: any[], streamCallbac
 ipcMain.handle(
   "rina:doctor:interpret",
   async (_event, payload: { intent: string; evidence: any }) => {
-    return await doctorInterpret(payload);
+    const safePayload = {
+      ...payload,
+      intent: redactForModel(payload.intent),
+      evidence: sanitizeForPersistence(payload.evidence),
+    };
+    return await doctorInterpret(safePayload);
   }
 );
 
 ipcMain.handle(
   "rina:doctor:verify",
   async (_event, payload: { intent: string; before: any; after: any; diagnosis?: any }) => {
-    return await doctorVerify(payload);
+    const safePayload = {
+      ...payload,
+      intent: redactForModel(payload.intent),
+      before: sanitizeForPersistence(payload.before),
+      after: sanitizeForPersistence(payload.after),
+      diagnosis: sanitizeForPersistence(payload.diagnosis),
+    };
+    return await doctorVerify(safePayload);
   }
 );
 
 ipcMain.handle(
   "rina:doctor:executeFix",
   async (_event, plan: any, confirmed: boolean, confirmationText: string) => {
+    const steps = Array.isArray(plan?.steps) ? plan.steps : [];
+    const projectRoot = resolveProjectRootSafe(process.cwd());
+    for (const s of steps) {
+      const cmd = s?.input?.command;
+      if (typeof cmd !== "string" || !cmd.trim()) continue;
+      const stepRisk: Risk = s?.risk === "high-impact" ? "high-impact" : s?.risk === "read" ? "read" : "safe-write";
+      const profileGate = gateProfileCommand({
+        projectRoot,
+        command: cmd,
+        risk: stepRisk,
+        confirmed,
+        confirmationText: confirmationText ?? "",
+      });
+      if (!profileGate.ok) {
+        return {
+          ok: false,
+          haltedBecause: profileGate.message,
+          steps: [],
+        };
+      }
+      const gate = evaluatePolicyGate(cmd, confirmed, confirmationText ?? "");
+      if (!gate.ok) {
+        return {
+          ok: false,
+          haltedBecause: gate.message || "Blocked by policy.",
+          steps: [],
+        };
+      }
+    }
     return await doctorExecuteFix(plan, confirmed, confirmationText);
   }
 );
@@ -1735,8 +3503,17 @@ function formatOutcomeForChat(outcome: any, verification: any): string {
 }
 
 // Core chat handler - now uses chat-router.ts
-ipcMain.handle("rina:chat:send", async (_event, text: string) => {
-  return await chatRouter.handle(text);
+ipcMain.handle("rina:chat:send", async (_event, text: string, projectRoot?: string) => {
+  const safeText = redactText(String(text || "")).redactedText;
+  const root = resolveProjectRootSafe(projectRoot || getDefaultPtyCwd());
+  const profile = defaultProfileForProject(root);
+  const rules = loadProjectRules(root, { parentLevels: 2 });
+  return await chatRouter.handle(safeText, {
+    projectRoot: root,
+    rulesBlock: rulesToSystemBlock(rules),
+    rulesWarnings: rules.warnings,
+    profileSummary: summarizeProfile(profile),
+  });
 });
 
 // Export transcript handler
@@ -1756,10 +3533,11 @@ ipcMain.handle("agent:plan", async (_event, intent: string) => {
 
 ipcMain.handle("rina:agent:plan", async (_event, args: { intentText: string; projectRoot: string }) => {
   const { intentText, projectRoot } = args;
+  const safeIntentText = redactText(String(intentText || "")).redactedText;
   try {
     const resp = await agentdJson<{ ok: true; plan: any }>("/v1/plan", {
       method: "POST",
-      body: { intentText, projectRoot },
+      body: { intentText: safeIntentText, projectRoot },
       includeLicenseToken: false,
     });
     return resp.plan;
@@ -1767,7 +3545,7 @@ ipcMain.handle("rina:agent:plan", async (_event, args: { intentText: string; pro
     if (!ALLOW_LOCAL_ENGINE_FALLBACK) throw error;
 
     // Explicit dev fallback only
-    const plan = makePlan(intentText, projectRoot);
+    const plan = makePlan(safeIntentText, projectRoot);
     const steps = plan.steps.map((s: any) => ({
       tool: "terminal.write",
       stepId: s.id,
@@ -1779,7 +3557,7 @@ ipcMain.handle("rina:agent:plan", async (_event, args: { intentText: string; pro
     }));
     return {
       id: plan.id,
-      intent: intentText,
+      intent: safeIntentText,
       reasoning: plan.reasoning,
       steps,
     };
@@ -1794,13 +3572,62 @@ ipcMain.handle("rina:executePlanStream", async (event, args: {
 }) => {
   const planRunId = newPlanRunId();
   const runId = `run_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  const projectRoot = args.projectRoot || process.cwd();
+  const projectRoot = resolveProjectRootSafe(args.projectRoot || process.cwd());
+  ensureStructuredSession({
+    source: "execute_plan_stream",
+    projectRoot,
+    preferredId: planRunId,
+  });
 
   // Track this plan run for stop functionality
   runningPlanRuns.set(planRunId, { stopped: false });
 
   // Notify renderer that plan started
-  event.sender.send("rina:plan:run:start", { planRunId });
+  safeSend(event.sender, "rina:plan:run:start", { planRunId });
+
+  for (const rawStep of args.plan || []) {
+    const cmd = (rawStep?.input as any)?.command;
+    if (typeof cmd !== "string") continue;
+    const risk = riskFromPlanStep(rawStep);
+    const profileGate = gateProfileCommand({
+      projectRoot,
+      command: cmd,
+      risk,
+      confirmed: args.confirmed,
+      confirmationText: args.confirmationText ?? "",
+    });
+    if (!profileGate.ok) {
+      const haltReason = profileGate.message;
+      safeSend(event.sender, "rina:plan:run:end", {
+        planRunId,
+        ok: false,
+        haltedBecause: haltReason,
+      });
+      runningPlanRuns.delete(planRunId);
+      return {
+        runId,
+        planRunId,
+        haltedStepId: rawStep?.stepId ?? null,
+        haltReason,
+      };
+    }
+    const gate = evaluatePolicyGate(cmd, args.confirmed, args.confirmationText ?? "");
+    if (!gate.ok) {
+      const haltReason = gate.message || "Blocked by policy.";
+      safeSend(event.sender, "rina:plan:run:end", {
+        planRunId,
+        ok: false,
+        haltedBecause: haltReason,
+      });
+      runningPlanRuns.delete(planRunId);
+      return {
+        runId,
+        planRunId,
+        haltedStepId: rawStep?.stepId ?? null,
+        haltReason,
+      };
+    }
+  }
 
   let haltedStepId: string | null = null;
   let haltReason = "";
@@ -1841,7 +3668,7 @@ ipcMain.handle("rina:executePlanStream", async (event, args: {
         state.currentStreamId = streamId;
         const command = (step.input as any)?.command;
         if (typeof command !== "string") {
-          event.sender.send("rina:stream:end", {
+          safeSend(event.sender, "rina:stream:end", {
             streamId,
             ok: false,
             code: null,
@@ -1853,7 +3680,7 @@ ipcMain.handle("rina:executePlanStream", async (event, args: {
           haltReason = "Invalid step input";
           break;
         }
-        event.sender.send("rina:plan:stepStart", {
+        safeSend(event.sender, "rina:plan:stepStart", {
           planRunId,
           runId,
           streamId,
@@ -1867,9 +3694,9 @@ ipcMain.handle("rina:executePlanStream", async (event, args: {
           id: step.stepId ?? `step_${streamId}`,
           tool: "terminal" as const,
           command,
-          risk: (step.confirmationScope ? "high-impact" : "safe-write") as "read" | "safe-write" | "high-impact",
+          risk: riskFromPlanStep(step),
         };
-        await startStreamingStepViaEngine({
+        const stepResult = await startStreamingStepViaEngine({
           webContents: event.sender,
           streamId,
           step: toolStep,
@@ -1878,11 +3705,17 @@ ipcMain.handle("rina:executePlanStream", async (event, args: {
           projectRoot,
         });
         state.currentStreamId = undefined;
+        const stepHalt = haltReasonFromFallbackStep(stepResult);
+        if (stepHalt) {
+          haltedStepId = step.stepId ?? toolStep.id;
+          haltReason = stepHalt;
+          break;
+        }
       }
     }
   } finally {
     // Notify renderer that plan ended
-    event.sender.send("rina:plan:run:end", {
+    safeSend(event.sender, "rina:plan:run:end", {
       planRunId,
       ok: !haltReason,
       haltedBecause: haltReason || undefined,
@@ -1930,6 +3763,84 @@ ipcMain.handle("agent:execute", async (_event) => {
 });
 
 app.whenReady().then(() => {
+  if (featureFlags.structuredSessionV1) {
+    const rootDir = path.join(app.getPath("userData"), "structured-session-v1");
+    structuredSessionStore = new StructuredSessionStore(rootDir, true);
+    ctx.structuredSessionStore = structuredSessionStore;
+    withStructuredSessionWrite(() => structuredSessionStore?.init());
+  }
+  // Load persisted entitlements on startup
+  const storedEntitlement = loadEntitlements();
+  if (storedEntitlement) {
+    applyStoredEntitlement(storedEntitlement);
+    console.log(`[license] Restored ${storedEntitlement.tier} tier from persisted entitlement`);
+    
+    // Soft refresh: re-verify if stale (>24h) and network available
+    if (isEntitlementStale(storedEntitlement) && storedEntitlement.customerId) {
+      console.log("[license] Entitlement stale (>24h), attempting soft refresh...");
+      verifyLicense(storedEntitlement.customerId)
+        .then((data) => {
+          if (data?.ok) {
+            applyVerifiedLicense(data);
+            saveEntitlements();
+            console.log(`[license] Soft refresh successful: ${currentLicenseTier}`);
+          }
+        })
+        .catch((err) => {
+          // Soft failure - keep existing entitlement
+          console.warn("[license] Soft refresh failed (offline?):", err instanceof Error ? err.message : String(err));
+        });
+    }
+  }
+  registerAllIpc({
+    ipcMain,
+    app,
+    ctx,
+    mainPath: __filename,
+    repoRoot: REPO_ROOT,
+    appProjectRoot: APP_PROJECT_ROOT,
+    dirname: __dirname,
+    loadThemeRegistryMerged,
+    loadSelectedThemeId,
+    saveSelectedThemeId,
+    loadCustomThemeRegistry,
+    validateTheme,
+    writeJsonFile,
+    customThemesFile: CUSTOM_THEMES_FILE,
+    operationalMemory,
+    addTranscriptEntry,
+    personalityStore,
+    verifyLicense,
+    applyVerifiedLicense,
+    resetLicenseToStarter,
+    saveEntitlements,
+    shell,
+    getLicenseState,
+    getCurrentLicenseCustomerId,
+    currentPolicyEnv,
+    getCurrentRole,
+    explainPolicy,
+    readTailLines,
+    rendererErrorsFile: RENDERER_ERRORS_FILE,
+    getSessionTranscript,
+    exportTranscript,
+    zipFiles,
+    showSaveDialogForBundle,
+    runUnifiedSearch,
+    detectCommandBoundaries,
+    ptySessions,
+    ptyResizeTimers,
+    getPtyModule,
+    getDefaultShell,
+    resolvePtyCwd,
+    safeEnv,
+    shellToKind,
+    finalizePtyBoundaries,
+    closePtyForWebContents,
+    safeSend,
+    forRendererDisplay,
+    isE2E: IS_E2E,
+  });
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
