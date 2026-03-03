@@ -1008,3 +1008,57 @@ test("POST /v1/orchestrator/github/webhook maps workflow_run failure to blocked"
 	assert.ok(wfNode);
 	assert.equal(wfNode.data.state, "blocked");
 });
+
+test("POST /v1/orchestrator/github/webhook rejects invalid signature when secret is configured", async () => {
+	process.env.GITHUB_WEBHOOK_SECRET = "test_webhook_secret";
+	try {
+		const resp = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-github-event": "workflow_run",
+				"x-hub-signature-256": "sha256=0000000000000000000000000000000000000000000000000000000000000000",
+			},
+			body: JSON.stringify({
+				workflowId: "wf_sig_invalid",
+				workflow_run: { status: "completed", conclusion: "success" },
+			}),
+		});
+		assert.equal(resp.status, 401);
+		const body = await resp.json();
+		assert.equal(body.ok, false);
+		assert.match(body.error, /invalid webhook signature/i);
+	} finally {
+		delete process.env.GITHUB_WEBHOOK_SECRET;
+	}
+});
+
+test("POST /v1/orchestrator/github/webhook accepts valid signature when secret is configured", async () => {
+	process.env.GITHUB_WEBHOOK_SECRET = "test_webhook_secret";
+	try {
+		const payload = JSON.stringify({
+			workflowId: "wf_sig_valid",
+			workflow_run: {
+				status: "completed",
+				conclusion: "failure",
+				html_url: "https://github.com/owner/repo/actions/runs/777",
+			},
+		});
+		const sig = createHmac("sha256", process.env.GITHUB_WEBHOOK_SECRET).update(payload).digest("hex");
+		const resp = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-github-event": "workflow_run",
+				"x-hub-signature-256": `sha256=${sig}`,
+			},
+			body: payload,
+		});
+		assert.equal(resp.status, 200);
+		const body = await resp.json();
+		assert.equal(body.ok, true);
+		assert.equal(body.mapped, "ci_status");
+	} finally {
+		delete process.env.GITHUB_WEBHOOK_SECRET;
+	}
+});

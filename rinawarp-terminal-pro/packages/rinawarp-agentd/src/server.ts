@@ -2,7 +2,7 @@
  * This is the core: plan endpoint, execute endpoint, cancel, stream.
  */
 import http from "node:http";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { mkdir, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
@@ -149,6 +149,27 @@ async function readJson(req: http.IncomingMessage) {
   const raw = Buffer.concat(chunks).toString("utf8");
   if (!raw) return null;
   return JSON.parse(raw);
+}
+
+async function readRawJson(req: http.IncomingMessage): Promise<{ raw: string; json: any | null }> {
+  const chunks: Buffer[] = [];
+  for await (const c of req) chunks.push(Buffer.from(c));
+  const raw = Buffer.concat(chunks).toString("utf8");
+  if (!raw) return { raw: "", json: null };
+  return { raw, json: JSON.parse(raw) };
+}
+
+function verifyGithubSignature(rawBody: string, signatureHeader: string | undefined, secret: string): boolean {
+  if (!secret) return true;
+  const header = String(signatureHeader || "").trim();
+  if (!header.startsWith("sha256=")) return false;
+  const receivedHex = header.slice("sha256=".length).trim();
+  if (!/^[a-fA-F0-9]{64}$/.test(receivedHex)) return false;
+  const expectedHex = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
+  const expected = Buffer.from(expectedHex, "hex");
+  const received = Buffer.from(receivedHex, "hex");
+  if (expected.length !== received.length) return false;
+  return timingSafeEqual(expected, received);
 }
 
 function sendJson(res: http.ServerResponse, status: number, body: unknown) {
@@ -894,8 +915,17 @@ export function createServer(opts: { port: number }) {
       }
 
       if (req.method === "POST" && url.pathname === "/v1/orchestrator/github/webhook") {
+        const secret = String(process.env.GITHUB_WEBHOOK_SECRET || "").trim();
+        const { raw, json } = await readRawJson(req);
         const eventName = String(req.headers["x-github-event"] || "").trim().toLowerCase();
-        const body = (await readJson(req)) as Record<string, any> | null;
+        if (secret) {
+          const signature = String(req.headers["x-hub-signature-256"] || "");
+          const verified = verifyGithubSignature(raw, signature, secret);
+          if (!verified) {
+            return sendJson(res, 401, { ok: false, error: "invalid webhook signature" });
+          }
+        }
+        const body = json as Record<string, any> | null;
         if (!eventName) {
           return sendJson(res, 400, { ok: false, error: "x-github-event header is required" });
         }
