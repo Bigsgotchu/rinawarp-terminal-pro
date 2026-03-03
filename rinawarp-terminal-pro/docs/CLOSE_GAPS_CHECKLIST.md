@@ -30,6 +30,7 @@ Date: 2026-03-03
 - [x] Verification endpoint + alert webhook trigger:
   - `POST /v1/platform/attestation/verify`
 - [x] Independent verifier process surface (`rinawarp-attestation-verifier`) + isolated cron template.
+- [x] Separate-account IAM/S3 policy templates committed for verifier trust boundary.
 - [ ] Deploy verifier in separate account/trust boundary with independent credential chain.
 - [ ] Immutable evidence export pipeline + alert routing integration.
 

@@ -23,8 +23,11 @@ spec:
               image: ghcr.io/rinawarptech/rinawarp-agentd:latest
               command: ["node", "dist/platform/attestation-verifier.js"]
               env:
-                - name: RINAWARP_VERIFIER_INPUT
-                  value: "/data/soc2-attestations.ndjson"
+                - name: RINAWARP_VERIFIER_INPUT_S3_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: rinawarp-verifier-secrets
+                      key: input_s3_uri
                 - name: RINAWARP_VERIFIER_STRICT
                   value: "true"
                 - name: RINAWARP_VERIFIER_ALERT_WEBHOOK
@@ -32,10 +35,6 @@ spec:
                     secretKeyRef:
                       name: rinawarp-verifier-secrets
                       key: alert_webhook
-              volumeMounts:
-                - name: attestation-data
-                  mountPath: /data
-                  readOnly: true
               resources:
                 requests:
                   cpu: 100m
@@ -43,7 +42,3 @@ spec:
                 limits:
                   cpu: 500m
                   memory: 512Mi
-          volumes:
-            - name: attestation-data
-              persistentVolumeClaim:
-                claimName: rinawarp-attestation-mirror

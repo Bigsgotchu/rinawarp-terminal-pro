@@ -57,6 +57,17 @@ Date: 2026-03-03
 - Use `deploy/aws/iam/rinawarp-agentd-trust-policy.json` as role trust.
 - Ensure S3 bucket has Object Lock enabled at creation.
 
+## External Verifier Trust Boundary
+
+- Verifier should run in a separate AWS account and namespace.
+- Baseline templates:
+  - `deploy/aws/verifier-account/iam/rinawarp-verifier-policy.json`
+  - `deploy/aws/verifier-account/iam/rinawarp-verifier-trust-policy.json`
+  - `deploy/aws/verifier-account/s3/attestation-target-bucket-policy.json`
+  - `deploy/aws/producer-account/s3/attestation-replication-policy.json`
+- Verifier cron reads attestation object via:
+  - `RINAWARP_VERIFIER_INPUT_S3_URI=s3://rinawarp-attestation-verifier/attestations/<key>.json`
+
 ## Leader Election
 
 - Enabled by default in controller manifest:
