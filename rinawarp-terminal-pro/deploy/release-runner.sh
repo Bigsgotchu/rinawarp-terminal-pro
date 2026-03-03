@@ -64,6 +64,13 @@ echo "== 3) Preflight =="
 echo "== 3.5) Local installer smoke checks =="
 ./deploy/installer-smoke.sh
 
+if [[ "${SKIP_AGENT_GATES:-0}" == "1" ]]; then
+  echo "== 3.6) Agent parity gates (skipped) =="
+else
+  echo "== 3.6) Agent parity gates =="
+  bash deploy/agent-parity-gates.sh
+fi
+
 echo "== 4) Upload to R2 (remote) =="
 FILES=(
   "RinaWarp-Terminal-Pro-$VER.exe"
