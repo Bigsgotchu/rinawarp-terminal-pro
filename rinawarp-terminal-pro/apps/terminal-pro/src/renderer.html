@@ -1747,7 +1747,7 @@
     <!-- Input -->
     <div class="input-area">
       <input id="projectRoot" class="input-project" placeholder="projectRoot (workspace folder)" />
-      <div class="input-stack">
+      <div id="composerStack" class="input-stack">
         <textarea id="intent" class="input-intent" rows="1" placeholder="Type here to send to live PTY shell…"></textarea>
         <div class="chat-hints">
           <button class="hint-chip" onclick="applyIntentHint('Fix this project errors and explain what changed')">Fix this codebase</button>
@@ -1755,7 +1755,10 @@
           <button class="hint-chip" onclick="applyIntentHint('Refactor this module for clarity and keep behavior identical')">Safe refactor</button>
         </div>
       </div>
-      <button class="btn-send" onclick="submitInput()" data-testid="run-command">Send</button>
+      <div id="terminalCommandHint" class="small" style="display:none;min-width:240px;">
+        Type commands directly in the terminal above.
+      </div>
+      <button id="sendBtn" class="btn-send" onclick="submitInput()" data-testid="run-command">Send</button>
     </div>
   </div>
 
@@ -2932,7 +2935,7 @@
             <div style="font-size:48px;margin-bottom:12px;">🌸</div>
             <div style="font-size:20px;font-weight:750;margin-bottom:4px;">RinaWarp Terminal Pro</div>
             <div class="small" style="margin-bottom:16px;">Terminal-first coding and ops assistant</div>
-            <div class="pill" style="display:inline-block;">Version 1.0.1</div>
+            <div class="pill" style="display:inline-block;">Version 1.0.3</div>
           </div>
           <div class="item">
             <div><b>Links</b></div>
@@ -3336,14 +3339,23 @@
       document.getElementById("modeTerminal").classList.toggle("active", next === "terminal");
       document.getElementById("timeline").style.display = next === "terminal" ? "none" : "flex";
       document.getElementById("ptyPane").classList.toggle("active", next === "terminal");
+      const composerStack = document.getElementById("composerStack");
+      const sendBtn = document.getElementById("sendBtn");
+      const terminalHint = document.getElementById("terminalCommandHint");
       applySidePanelsVisibility();
 
       const input = document.getElementById("intent");
       if (next === "code" || next === "agent") {
+        if (composerStack) composerStack.style.display = "";
+        if (sendBtn) sendBtn.style.display = "";
+        if (terminalHint) terminalHint.style.display = "none";
         input.placeholder = "Describe a coding outcome… (e.g., fix build errors and explain the patch)";
         refreshCodeWorkspace().catch(() => {});
         toast(next === "agent" ? "Agent Mode — plan → review → run" : "Code Mode — plan → review → run");
       } else {
+        if (composerStack) composerStack.style.display = "none";
+        if (sendBtn) sendBtn.style.display = "none";
+        if (terminalHint) terminalHint.style.display = "block";
         input.placeholder = "Type here to send to live PTY shell…";
         ensurePty().catch((e) => toast(`PTY error: ${String(e)}`));
         toast("Terminal Mode — PTY first");
@@ -4629,7 +4641,7 @@
       reportRuntimeError(
         "Preload Error",
         "window.rina bridge is unavailable.",
-        "Reopen from /home/karina/Applications/RinaWarp-Terminal-Pro-1.0.1.AppImage",
+        "Reopen from /home/karina/Applications/RinaWarp-Terminal-Pro-1.0.3.AppImage",
       );
     }
 
