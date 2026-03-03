@@ -671,7 +671,7 @@ export function createServer(opts: { port: number }) {
         const token = String(body?.token || "");
         if (!workspaceId || !token) return sendJson(res, 400, { ok: false, error: "workspace_id and token are required" });
         const actor = ensureWorkspaceRole(req, workspaceId, "admin");
-        const stored = vaultStore({ id: body?.id, workspace_id: workspaceId, token });
+        const stored = await vaultStore({ id: body?.id, workspace_id: workspaceId, token });
         logSoc2({
           req,
           workspaceId,
@@ -687,14 +687,14 @@ export function createServer(opts: { port: number }) {
         const workspaceId = String(url.searchParams.get("workspace_id") || "").trim();
         if (!id || !workspaceId) return sendJson(res, 400, { ok: false, error: "id and workspace_id are required" });
         ensureWorkspaceRole(req, workspaceId, "admin");
-        const rec = vaultRetrieve(id);
+        const rec = await vaultRetrieve(id);
         if (!rec) return sendJson(res, 404, { ok: false, error: "not_found" });
         logSoc2({ req, workspaceId, action: "vault_retrieve", result: "ok", details: { vault_id: id } });
         return sendJson(res, 200, { ok: true, id: rec.id, token: rec.token, key_version: rec.key_version });
       }
 
       if (req.method === "POST" && url.pathname === "/v1/vault/rotate") {
-        const rotated = vaultRotate();
+        const rotated = await vaultRotate();
         logSoc2({ req, action: "vault_rotate", result: "ok", details: rotated });
         return sendJson(res, 200, { ok: true, ...rotated });
       }
