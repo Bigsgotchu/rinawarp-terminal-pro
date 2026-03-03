@@ -778,6 +778,108 @@ export function createServer(opts) {
                 });
                 return sendJson(res, 200, { event, mapped: "review_revision", ...queued });
             }
+            if (req.method === "POST" && url.pathname === "/v1/orchestrator/github/webhook") {
+                const eventName = String(req.headers["x-github-event"] || "").trim().toLowerCase();
+                const body = (await readJson(req));
+                if (!eventName) {
+                    return sendJson(res, 400, { ok: false, error: "x-github-event header is required" });
+                }
+                const payload = body || {};
+                const repoSlug = typeof payload?.repository?.full_name === "string" ? String(payload.repository.full_name).trim() : undefined;
+                const workflowId = String(payload?.workflowId || payload?.workflow_id || payload?.external_id || "").trim();
+                if (!workflowId) {
+                    return sendJson(res, 400, {
+                        ok: false,
+                        error: "workflowId is required in webhook payload (workflowId|workflow_id|external_id)",
+                    });
+                }
+                if (eventName === "pull_request") {
+                    const action = String(payload?.action || "").toLowerCase();
+                    const pr = payload?.pull_request || {};
+                    const merged = Boolean(pr?.merged);
+                    let status = "opened";
+                    if (action === "closed" && merged)
+                        status = "merged";
+                    else if (action === "closed")
+                        status = "closed";
+                    else if (action === "opened" || action === "reopened" || action === "synchronize")
+                        status = "opened";
+                    const saved = recordPullRequestStatus({
+                        workflowId,
+                        status,
+                        issueId: payload?.issue?.number ? String(payload.issue.number) : undefined,
+                        branchName: typeof pr?.head?.ref === "string" ? String(pr.head.ref) : undefined,
+                        repoSlug,
+                        mode: "live",
+                        number: typeof pr?.number === "number" ? pr.number : null,
+                        url: typeof pr?.html_url === "string" ? String(pr.html_url) : null,
+                    });
+                    return sendJson(res, 200, { event: "pull_request", mapped: "pr_status", ...saved });
+                }
+                if (eventName === "workflow_run" || eventName === "check_run" || eventName === "check_suite" || eventName === "status") {
+                    let raw = "";
+                    let url = "";
+                    if (eventName === "workflow_run") {
+                        raw = String(payload?.workflow_run?.conclusion || payload?.workflow_run?.status || "").toLowerCase();
+                        url = String(payload?.workflow_run?.html_url || "");
+                    }
+                    else if (eventName === "check_run") {
+                        raw = String(payload?.check_run?.conclusion || payload?.check_run?.status || "").toLowerCase();
+                        url = String(payload?.check_run?.html_url || payload?.check_run?.details_url || "");
+                    }
+                    else if (eventName === "check_suite") {
+                        raw = String(payload?.check_suite?.conclusion || payload?.check_suite?.status || "").toLowerCase();
+                        url = String(payload?.check_suite?.url || "");
+                    }
+                    else {
+                        raw = String(payload?.state || "").toLowerCase();
+                        url = String(payload?.target_url || "");
+                    }
+                    let status = "running";
+                    if (["queued", "pending", "requested", "waiting"].includes(raw))
+                        status = "queued";
+                    else if (["running", "in_progress"].includes(raw))
+                        status = "running";
+                    else if (["success", "passed", "completed_success", "neutral", "skipped"].includes(raw))
+                        status = "passed";
+                    else if (["failed", "failure", "timed_out", "cancelled", "completed_failure", "error"].includes(raw))
+                        status = "failed";
+                    const saved = recordCiStatus({
+                        workflowId,
+                        provider: eventName,
+                        status,
+                        url: url || undefined,
+                    });
+                    return sendJson(res, 200, { event: eventName, mapped: "ci_status", ...saved });
+                }
+                if (eventName === "pull_request_review" || eventName === "pull_request_review_comment") {
+                    const reviewBody = typeof payload?.review?.body === "string"
+                        ? String(payload.review.body).trim()
+                        : typeof payload?.comment?.body === "string"
+                            ? String(payload.comment.body).trim()
+                            : "";
+                    const branchName = typeof payload?.pull_request?.head?.ref === "string" ? String(payload.pull_request.head.ref).trim() : "";
+                    const issueId = payload?.pull_request?.number != null ? String(payload.pull_request.number).trim() : "";
+                    const repoPath = String(payload?.repoPath || "").trim();
+                    if (!reviewBody || !branchName || !issueId || !repoPath) {
+                        return sendJson(res, 400, {
+                            ok: false,
+                            error: "review webhook requires review/comment body, pull_request head.ref, pull_request number, and repoPath",
+                        });
+                    }
+                    const queued = queueRevisionFromReview({
+                        workflowId,
+                        repoPath,
+                        issueId,
+                        branchName,
+                        comment: reviewBody,
+                        repoSlug,
+                        prDryRun: true,
+                    });
+                    return sendJson(res, 200, { event: eventName, mapped: "review_revision", ...queued });
+                }
+                return sendJson(res, 400, { ok: false, error: `unsupported github webhook event: ${eventName}` });
+            }
             // --- CANCEL (plan or stream)
             if (req.method === "POST" && url.pathname === "/v1/cancel") {
                 const body = (await readJson(req));
