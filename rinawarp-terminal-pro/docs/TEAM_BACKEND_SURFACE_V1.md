@@ -102,6 +102,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
   - Upload verification fields (`upload_etag`, `upload_version_id`)
 - SOC2 digest attestation can produce hourly records and optional S3/webhook anchoring.
 - Attestation verification endpoint validates recorded hash integrity and can send alert webhooks on verification failure.
+- External verifier process is available: `rinawarp-attestation-verifier` (runs out-of-process against attestation export files).
 
 ## Known Gaps To Reach Full Production Contract
 

@@ -8,7 +8,8 @@
   "bin": {
     "rinawarp-agent": "dist/daemon/cli.js",
     "rinawarp": "dist/cli/rinawarp.js",
-    "rinawarp-runtime-controller": "dist/platform/runtime-controller.js"
+    "rinawarp-runtime-controller": "dist/platform/runtime-controller.js",
+    "rinawarp-attestation-verifier": "dist/platform/attestation-verifier.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -20,6 +21,7 @@
     "daemon:task:list": "node dist/daemon/cli.js task list",
     "daemon:task:dlq": "node dist/daemon/cli.js task dlq",
     "runtime:controller": "node dist/platform/runtime-controller.js",
+    "attestation:verify": "node dist/platform/attestation-verifier.js",
     "test": "npm run build && node --test test/*.test.mjs"
   },
   "dependencies": {

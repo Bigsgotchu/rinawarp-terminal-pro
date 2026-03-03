@@ -29,7 +29,8 @@ Date: 2026-03-03
 - [x] Attestation record generation + optional S3/webhook anchor.
 - [x] Verification endpoint + alert webhook trigger:
   - `POST /v1/platform/attestation/verify`
-- [ ] Independent verifier service in separate account/trust boundary.
+- [x] Independent verifier process surface (`rinawarp-attestation-verifier`) + isolated cron template.
+- [ ] Deploy verifier in separate account/trust boundary with independent credential chain.
 - [ ] Immutable evidence export pipeline + alert routing integration.
 
 ## Block 4: Operator Reconciliation Maturity

@@ -11,6 +11,7 @@ Date: 2026-03-03
 - SOC2 attestation cron schedule: `deploy/k8s/rinawarp-attestation-cronjob.yaml`
 - Traffic reconciliation cron schedule: `deploy/k8s/rinawarp-traffic-reconcile-cronjob.yaml`
 - Health probe cron schedule: `deploy/k8s/rinawarp-health-probes-cronjob.yaml`
+- External attestation verifier cron: `deploy/k8s/rinawarp-attestation-verifier-cronjob.yaml`
 - IAM policy + trust templates for KMS/S3 object-lock path:
   - `deploy/aws/iam/rinawarp-agentd-policy.json`
   - `deploy/aws/iam/rinawarp-agentd-trust-policy.json`
@@ -47,6 +48,7 @@ Date: 2026-03-03
 6. `kubectl apply -f deploy/k8s/rinawarp-attestation-cronjob.yaml`
 7. `kubectl apply -f deploy/k8s/rinawarp-traffic-reconcile-cronjob.yaml`
 8. `kubectl apply -f deploy/k8s/rinawarp-health-probes-cronjob.yaml`
+9. `kubectl apply -f deploy/k8s/rinawarp-attestation-verifier-cronjob.yaml`
 
 ## AWS IAM Notes
 

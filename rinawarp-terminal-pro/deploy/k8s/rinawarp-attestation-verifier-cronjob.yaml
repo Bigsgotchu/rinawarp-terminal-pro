@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rinawarp-verifier
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rinawarp-attestation-verifier
+  namespace: rinawarp-verifier
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: verifier
+              image: ghcr.io/rinawarptech/rinawarp-agentd:latest
+              command: ["node", "dist/platform/attestation-verifier.js"]
+              env:
+                - name: RINAWARP_VERIFIER_INPUT
+                  value: "/data/soc2-attestations.ndjson"
+                - name: RINAWARP_VERIFIER_STRICT
+                  value: "true"
+                - name: RINAWARP_VERIFIER_ALERT_WEBHOOK
+                  valueFrom:
+                    secretKeyRef:
+                      name: rinawarp-verifier-secrets
+                      key: alert_webhook
+              volumeMounts:
+                - name: attestation-data
+                  mountPath: /data
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+          volumes:
+            - name: attestation-data
+              persistentVolumeClaim:
+                claimName: rinawarp-attestation-mirror
