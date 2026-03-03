@@ -64,6 +64,7 @@ import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
 import { attachWorkspaceWebSocketServer } from "./platform/websocket.js";
 import { configureAttestation, getAttestationState, runAttestation, verifyAttestationChain } from "./platform/attestation.js";
 import { configureTrafficManager, getTrafficManagerState, reconcileTrafficManager } from "./platform/trafficManager.js";
+import { configureHealthProbes, getHealthProbesState, runHealthProbes } from "./platform/healthProbes.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -688,6 +689,36 @@ export function createServer(opts: { port: number }) {
         const out = failoverDefaultRegion();
         logSoc2({ req, action: "region_failover", result: "ok", details: out as unknown as Record<string, unknown> });
         return sendJson(res, 200, { ok: true, ...out });
+      }
+      if (req.method === "PUT" && url.pathname === "/v1/platform/health-probes/config") {
+        const body = (await readJson(req)) as {
+          enabled?: boolean;
+          auto_failover?: boolean;
+          timeout_ms?: number;
+          endpoints?: Partial<Record<"us-east-1" | "eu-west-1", string[]>>;
+        } | null;
+        const cfg = configureHealthProbes(body || {});
+        logSoc2({
+          req,
+          action: "health_probes_config_update",
+          result: "ok",
+          details: cfg as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, 200, { ok: true, config: cfg });
+      }
+      if (req.method === "GET" && url.pathname === "/v1/platform/health-probes/status") {
+        return sendJson(res, 200, { ok: true, config: getHealthProbesState() });
+      }
+      if (req.method === "POST" && url.pathname === "/v1/platform/health-probes/run") {
+        const body = (await readJson(req)) as { force?: boolean } | null;
+        const out = await runHealthProbes(body?.force === true);
+        logSoc2({
+          req,
+          action: "health_probes_run",
+          result: out.ok ? "ok" : "error",
+          details: out as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, out.ok ? 200 : 400, out);
       }
       if (req.method === "PUT" && url.pathname === "/v1/platform/traffic/config") {
         const body = (await readJson(req)) as {

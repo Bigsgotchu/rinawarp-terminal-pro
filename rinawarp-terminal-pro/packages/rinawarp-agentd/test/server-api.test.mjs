@@ -1801,3 +1801,50 @@ test("traffic manager config/status/reconcile endpoints work", async () => {
 	const out = await reconcile.json();
 	assert.equal(out.ok, false);
 });
+
+test("health probes config/status/run endpoints work", async () => {
+	const cfg = await fetch(`${baseUrl}/v1/platform/health-probes/config`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner11",
+			"x-rina-actor-email": "owner11@example.com",
+		},
+		body: JSON.stringify({
+			enabled: true,
+			auto_failover: true,
+			timeout_ms: 250,
+			endpoints: {
+				"us-east-1": [],
+				"eu-west-1": [],
+			},
+		}),
+	});
+	assert.equal(cfg.status, 200);
+
+	const status = await fetch(`${baseUrl}/v1/platform/health-probes/status`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner11",
+			"x-rina-actor-email": "owner11@example.com",
+		},
+	});
+	assert.equal(status.status, 200);
+	const st = await status.json();
+	assert.equal(st.ok, true);
+	assert.equal(st.config.enabled, true);
+
+	const run = await fetch(`${baseUrl}/v1/platform/health-probes/run`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner11",
+			"x-rina-actor-email": "owner11@example.com",
+		},
+		body: JSON.stringify({ force: false }),
+	});
+	assert.equal(run.status, 200);
+	const out = await run.json();
+	assert.equal(out.ok, true);
+	assert.ok(out.regions?.["us-east-1"]);
+	assert.ok(out.regions?.["eu-west-1"]);
+});
