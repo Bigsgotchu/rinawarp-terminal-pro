@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rinawarp-runtime-controller
+  namespace: rinawarp-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rinawarp-runtime-controller
+  template:
+    metadata:
+      labels:
+        app: rinawarp-runtime-controller
+    spec:
+      serviceAccountName: rinawarp-agentd
+      containers:
+        - name: controller
+          image: ghcr.io/rinawarptech/rinawarp-agentd:latest
+          command: ["node", "dist/platform/runtime-controller.js"]
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: RINAWARP_RUNTIME_EXECUTION_MODE
+              value: "external"
+            - name: RINAWARP_RUNTIME_BACKEND
+              value: "k8s"
+            - name: RINAWARP_RUNTIME_CONTROLLER_POLL_MS
+              value: "1500"
+            - name: RINAWARP_RUNTIME_CONTROLLER_BATCH
+              value: "3"
+            - name: RINAWARP_NATS_MODE
+              value: "jetstream"
+            - name: RINAWARP_NATS_URL
+              value: "nats://nats.rinawarp-system.svc.cluster.local:4222"
+            - name: AWS_REGION
+              value: "us-east-1"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true

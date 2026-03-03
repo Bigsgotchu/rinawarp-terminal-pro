@@ -69,6 +69,9 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - Invite create/accept security can use Redis REST (`RINAWARP_REDIS_REST_URL`, `RINAWARP_REDIS_REST_TOKEN`) with local fallback.
 - Redis is mandatory in `NODE_ENV=production` for invite security endpoints.
 - Runtime backend can run as `local` or `k8s` (`RINAWARP_RUNTIME_BACKEND=k8s`) with Kubernetes job submission.
+- Runtime execution modes:
+  - `RINAWARP_RUNTIME_EXECUTION_MODE=inline` (API process executes tasks)
+  - `RINAWARP_RUNTIME_EXECUTION_MODE=external` (`rinawarp-runtime-controller` executes queued tasks)
 - K8s runtime includes:
   - Watch-based pod lifecycle tracking
   - Exponential retry policy (`max_attempts`, `initial_delay_sec`)
@@ -84,7 +87,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - JWT-like signed tokens exist, but no full account identity provider integration (passwordless/email-code/MFA/session revocation).
 - No seat counting against paid plan from billing provider.
 - NATS clustering/replica topology is external infra; agentd does not bootstrap NATS cluster nodes.
-- Full Kubernetes controller reconciliation loop is not yet split into a dedicated control-plane process (current lifecycle runs in-process).
+- Runtime controller is available as a separate process, but leader election/lease-based coordination is not yet implemented.
 - Idempotency enforcement is active for key mutation routes, but not yet universal across all mutating endpoints.
 
 ## CLI Surface (Current)
