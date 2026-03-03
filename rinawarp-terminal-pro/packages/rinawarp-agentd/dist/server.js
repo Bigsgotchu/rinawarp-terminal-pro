@@ -128,7 +128,20 @@ const metrics = {
 };
 const webhookDeliveryCache = new Map();
 const WEBHOOK_DELIVERY_TTL_MS = 24 * 60 * 60 * 1000;
+const webhookRateCounters = new Map();
 let webhookDeliveriesLoaded = false;
+function webhookRateWindowMs() {
+    const raw = Number(process.env.RINAWARP_WEBHOOK_RATE_WINDOW_MS || 60_000);
+    return Number.isFinite(raw) ? Math.max(1_000, raw) : 60_000;
+}
+function webhookRateLimitPerWindow() {
+    const raw = Number(process.env.RINAWARP_WEBHOOK_RATE_LIMIT_PER_WINDOW || process.env.RINAWARP_WEBHOOK_RATE_LIMIT_PER_MIN || 120);
+    return Number.isFinite(raw) ? Math.max(1, raw) : 120;
+}
+function webhookMaxBytes() {
+    const raw = Number(process.env.RINAWARP_WEBHOOK_MAX_BYTES || 262_144);
+    return Number.isFinite(raw) ? Math.max(1024, raw) : 262_144;
+}
 function webhookDeliveryFile() {
     return path.join(paths().baseDir, "webhook-deliveries.json");
 }
@@ -199,22 +212,52 @@ function rememberWebhookDelivery(deliveryId, now = Date.now()) {
     return { ok: true };
 }
 async function readJson(req) {
-    const chunks = [];
-    for await (const c of req)
-        chunks.push(Buffer.from(c));
-    const raw = Buffer.concat(chunks).toString("utf8");
-    if (!raw)
-        return null;
-    return JSON.parse(raw);
+    const parsed = await readRawJson(req);
+    return parsed.json;
 }
-async function readRawJson(req) {
+async function readRawJson(req, opts) {
     const chunks = [];
-    for await (const c of req)
-        chunks.push(Buffer.from(c));
+    const maxBytes = Number.isFinite(opts?.maxBytes) ? Number(opts?.maxBytes) : Number.POSITIVE_INFINITY;
+    let total = 0;
+    for await (const c of req) {
+        const chunk = Buffer.from(c);
+        total += chunk.length;
+        if (total > maxBytes) {
+            const error = new Error(`payload too large (max ${maxBytes} bytes)`);
+            error.statusCode = 413;
+            throw error;
+        }
+        chunks.push(chunk);
+    }
     const raw = Buffer.concat(chunks).toString("utf8");
     if (!raw)
         return { raw: "", json: null };
     return { raw, json: JSON.parse(raw) };
+}
+function webhookClientIp(req) {
+    const forwarded = String(req.headers["x-forwarded-for"] || "").trim();
+    if (forwarded) {
+        const first = forwarded.split(",")[0]?.trim();
+        if (first)
+            return first;
+    }
+    return req.socket.remoteAddress || "unknown";
+}
+function checkWebhookRateLimit(clientIp, now = Date.now()) {
+    const windowMs = webhookRateWindowMs();
+    const maxCount = webhookRateLimitPerWindow();
+    const current = webhookRateCounters.get(clientIp);
+    if (!current || now - current.windowStartMs >= windowMs) {
+        webhookRateCounters.set(clientIp, { windowStartMs: now, count: 1 });
+        return { ok: true };
+    }
+    if (current.count >= maxCount) {
+        const retryAfterMs = windowMs - (now - current.windowStartMs);
+        return { ok: false, retryAfterSec: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+    }
+    current.count += 1;
+    webhookRateCounters.set(clientIp, current);
+    return { ok: true };
 }
 function verifyGithubSignature(rawBody, signatureHeader, secret) {
     if (!secret)
@@ -878,7 +921,12 @@ export function createServer(opts) {
             }
             if (req.method === "POST" && url.pathname === "/v1/orchestrator/github/webhook") {
                 const secret = String(process.env.GITHUB_WEBHOOK_SECRET || "").trim();
-                const { raw, json } = await readRawJson(req);
+                const limiter = checkWebhookRateLimit(webhookClientIp(req));
+                if (!limiter.ok) {
+                    res.setHeader("Retry-After", String(limiter.retryAfterSec));
+                    return sendJson(res, 429, { ok: false, error: "webhook rate limit exceeded" });
+                }
+                const { raw, json } = await readRawJson(req, { maxBytes: webhookMaxBytes() });
                 const eventName = String(req.headers["x-github-event"] || "").trim().toLowerCase();
                 const deliveryId = String(req.headers["x-github-delivery"] || "").trim();
                 if (!deliveryId) {

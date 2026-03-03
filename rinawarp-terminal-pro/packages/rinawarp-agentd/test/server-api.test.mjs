@@ -1174,3 +1174,73 @@ test("POST /v1/orchestrator/github/webhook rejects delivery id persisted on disk
 	assert.equal(body.ok, false);
 	assert.match(body.error, /duplicate delivery id/i);
 });
+
+test("POST /v1/orchestrator/github/webhook enforces payload size cap", async () => {
+	process.env.RINAWARP_WEBHOOK_MAX_BYTES = "2048";
+	try {
+		const largeComment = "x".repeat(5000);
+		const resp = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-github-event": "workflow_run",
+				"x-github-delivery": `delivery-large-${Date.now()}`,
+			},
+			body: JSON.stringify({
+				workflowId: "wf_large_payload",
+				workflow_run: { status: "completed", conclusion: "success" },
+				blob: largeComment,
+			}),
+		});
+		assert.equal(resp.status, 413);
+		const body = await resp.json();
+		assert.equal(body.ok, false);
+		assert.match(body.error, /payload too large/i);
+	} finally {
+		delete process.env.RINAWARP_WEBHOOK_MAX_BYTES;
+	}
+});
+
+test("POST /v1/orchestrator/github/webhook enforces rate limit per client", async () => {
+	process.env.RINAWARP_WEBHOOK_RATE_LIMIT_PER_WINDOW = "1";
+	process.env.RINAWARP_WEBHOOK_RATE_WINDOW_MS = "60000";
+	try {
+		const ip = "203.0.113.10";
+		const first = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-forwarded-for": ip,
+				"x-github-event": "workflow_run",
+				"x-github-delivery": `delivery-rate-1-${Date.now()}`,
+			},
+			body: JSON.stringify({
+				workflowId: "wf_rate_limit",
+				workflow_run: { status: "completed", conclusion: "success" },
+			}),
+		});
+		assert.equal(first.status, 200);
+
+		const second = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-forwarded-for": ip,
+				"x-github-event": "workflow_run",
+				"x-github-delivery": `delivery-rate-2-${Date.now()}`,
+			},
+			body: JSON.stringify({
+				workflowId: "wf_rate_limit",
+				workflow_run: { status: "completed", conclusion: "success" },
+			}),
+		});
+		assert.equal(second.status, 429);
+		const body = await second.json();
+		assert.equal(body.ok, false);
+		assert.match(body.error, /rate limit/i);
+		assert.ok(second.headers.get("retry-after"));
+	} finally {
+		delete process.env.RINAWARP_WEBHOOK_RATE_LIMIT_PER_WINDOW;
+		delete process.env.RINAWARP_WEBHOOK_RATE_WINDOW_MS;
+	}
+});
