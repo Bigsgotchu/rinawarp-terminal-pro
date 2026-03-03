@@ -80,6 +80,13 @@ contextBridge.exposeInMainWorld("rina", {
     ipcRenderer.invoke("rina:daemon:tasks", args || {}),
   daemonTaskAdd: (args: { type: string; payload?: Record<string, unknown>; maxAttempts?: number }) =>
     ipcRenderer.invoke("rina:daemon:task:add", args),
+  orchestratorIssueToPr: (args: {
+    issueId: string;
+    repoPath: string;
+    branchName?: string;
+    command?: string;
+  }) => ipcRenderer.invoke("rina:orchestrator:issue-to-pr", args),
+  orchestratorGraph: () => ipcRenderer.invoke("rina:orchestrator:workspace-graph"),
   importShellHistory: (limit?: number) => ipcRenderer.invoke("rina:history:import", limit),
   reportRendererError: (payload: { kind?: string; message?: string; extra?: string }) =>
     ipcRenderer.invoke("rina:renderer:error", payload),

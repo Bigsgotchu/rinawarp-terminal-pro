@@ -871,6 +871,41 @@ async function executeRemotePlanForIpc(payload: {
   });
 }
 
+async function orchestratorIssueToPrForIpc(args: {
+  issueId: string;
+  repoPath: string;
+  branchName?: string;
+  command?: string;
+}): Promise<any> {
+  try {
+    return await agentdJson("/v1/orchestrator/issue-to-pr", {
+      method: "POST",
+      body: args,
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function orchestratorGraphForIpc(): Promise<any> {
+  try {
+    return await agentdJson("/v1/orchestrator/workspace-graph", {
+      method: "GET",
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      graph: { nodes: [], edges: [] },
+    };
+  }
+}
+
 type Risk = "read" | "safe-write" | "high-impact";
 
 function gateProfileCommand(args: {
@@ -3627,6 +3662,17 @@ ipcMain.handle("rina:chat:send", async (_event, text: string, projectRoot?: stri
 // Export transcript handler
 ipcMain.handle("rina:chat:export", async () => {
   return doctorExportTranscript("text");
+});
+
+ipcMain.handle(
+  "rina:orchestrator:issue-to-pr",
+  async (_event, args: { issueId: string; repoPath: string; branchName?: string; command?: string }) => {
+    return await orchestratorIssueToPrForIpc(args);
+  },
+);
+
+ipcMain.handle("rina:orchestrator:workspace-graph", async () => {
+  return await orchestratorGraphForIpc();
 });
 
 // ============================================================

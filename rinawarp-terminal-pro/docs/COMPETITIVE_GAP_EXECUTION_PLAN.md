@@ -73,6 +73,11 @@ Incremental progress shipped:
   - `POST /v1/orchestrator/issue-to-pr`
   - `GET /v1/orchestrator/workspace-graph`
 - These create a workflow record, graph nodes/edges, and queue an execution task.
+- Added git and PR prep endpoints:
+  - `POST /v1/orchestrator/git/prepare-branch`
+  - `POST /v1/orchestrator/github/create-pr` (dry-run/live mode)
+- Added workflow execution mode in daemon:
+  - `run_command` with `mode: issue_to_pr` now performs branch creation, command run, stage/commit, optional push, optional PR create.
 
 ## Step 5 - UX Clarity and Onboarding
 

@@ -5103,6 +5103,57 @@
           return;
         }
 
+        const fixIssueMatch = text.match(/^\/?fix\s+issue\s+([a-zA-Z0-9._-]+)\s*$/i);
+        if (fixIssueMatch) {
+          const issueId = String(fixIssueMatch[1] || "").trim();
+          if (!window.rina?.orchestratorIssueToPr) {
+            toast("Orchestrator API unavailable");
+            return;
+          }
+          const started = await window.rina.orchestratorIssueToPr({
+            issueId,
+            repoPath: projectRoot,
+            command: "npm test",
+          });
+          if (!started?.ok) {
+            const msg = started?.error || "Failed to start issue workflow";
+            addBlock({
+              id: newId("assistant"),
+              type: "assistant",
+              status: "failed",
+              createdAt: Date.now(),
+              title: "Rina — Orchestrator",
+              markdown: `Could not start issue workflow.\n\n${msg}`,
+            });
+            toast(`Orchestrator error: ${msg}`);
+            return;
+          }
+
+          let graphSummary = "";
+          if (window.rina?.orchestratorGraph) {
+            const graphRes = await window.rina.orchestratorGraph();
+            if (graphRes?.ok) {
+              const nodes = Array.isArray(graphRes?.graph?.nodes) ? graphRes.graph.nodes.length : 0;
+              const edges = Array.isArray(graphRes?.graph?.edges) ? graphRes.graph.edges.length : 0;
+              graphSummary = `\n\nWorkspace graph: ${nodes} node(s), ${edges} edge(s).`;
+            }
+          }
+
+          addBlock({
+            id: newId("assistant"),
+            type: "assistant",
+            status: "ok",
+            createdAt: Date.now(),
+            title: "Rina — Orchestrator",
+            markdown:
+              `Started issue workflow \`${started.workflowId}\` for issue \`${issueId}\`.\n` +
+              `Queued task: \`${started.taskId}\`.\n` +
+              `Use Diagnostics > Agent Daemon to monitor status.${graphSummary}`,
+          });
+          toast(`Workflow started for issue ${issueId}`);
+          return;
+        }
+
         const prefersChat = /^chat[:\s]/i.test(text) || /\?$/.test(text);
         if (!isWorkIntent(text) || prefersChat) {
           await sendChatRoute(text.replace(/^chat[:\s]*/i, "").trim() || text);
