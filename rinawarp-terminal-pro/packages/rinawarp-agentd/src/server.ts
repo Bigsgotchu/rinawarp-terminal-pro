@@ -560,7 +560,12 @@ export function createServer(opts: { port: number }) {
   const { port } = opts;
   startEmailWorker();
   initEventBus().catch(() => {
-    // non-fatal for local mode
+    const required =
+      String(process.env.RINAWARP_NATS_REQUIRED || "").trim().toLowerCase() === "true" ||
+      (process.env.NODE_ENV === "production" && String(process.env.RINAWARP_NATS_MODE || "").trim().toLowerCase() === "jetstream");
+    if (required) {
+      throw new Error("event_bus_init_failed");
+    }
   });
 
   const server = http.createServer(async (req, res) => {
@@ -1515,6 +1520,9 @@ export function createServer(opts: { port: number }) {
           command?: string;
           requested_region?: string;
           allow_cross_region?: boolean;
+          max_attempts?: number;
+          initial_delay_sec?: number;
+          timeout_sec?: number;
         } | null;
         const workspaceId = String(body?.workspace_id || "").trim();
         const command = String(body?.command || "").trim();
@@ -1531,6 +1539,9 @@ export function createServer(opts: { port: number }) {
           workspace_region: homeRegion,
           requested_region: requestedRegion,
           command,
+          max_attempts: Number(body?.max_attempts || 0) || undefined,
+          initial_delay_sec: Number(body?.initial_delay_sec || 0) || undefined,
+          timeout_sec: Number(body?.timeout_sec || 0) || undefined,
         });
         logSoc2({
           req,
