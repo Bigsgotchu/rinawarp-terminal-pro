@@ -29,6 +29,18 @@ spec:
               value: "1500"
             - name: RINAWARP_RUNTIME_CONTROLLER_BATCH
               value: "3"
+            - name: RINAWARP_RUNTIME_CONTROLLER_LEADER_ELECTION
+              value: "true"
+            - name: RINAWARP_RUNTIME_LEASE_NAME
+              value: "rinawarp-runtime-controller"
+            - name: RINAWARP_RUNTIME_LEASE_DURATION_SEC
+              value: "15"
+            - name: RINAWARP_RUNTIME_RETRY_PERIOD_MS
+              value: "1500"
+            - name: RINAWARP_RUNTIME_CONTROLLER_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: RINAWARP_NATS_MODE
               value: "jetstream"
             - name: RINAWARP_NATS_URL

@@ -38,8 +38,9 @@ Date: 2026-03-03
 
 1. `kubectl apply -f deploy/k8s/nats-jetstream.yaml`
 2. `kubectl apply -f deploy/k8s/rinawarp-serviceaccount.yaml`
-3. `kubectl apply -f deploy/k8s/networkpolicy-rinawarp.yaml`
-4. `kubectl apply -f deploy/k8s/rinawarp-runtime-controller.yaml`
+3. `kubectl apply -f deploy/k8s/rinawarp-runtime-rbac.yaml`
+4. `kubectl apply -f deploy/k8s/networkpolicy-rinawarp.yaml`
+5. `kubectl apply -f deploy/k8s/rinawarp-runtime-controller.yaml`
 
 ## AWS IAM Notes
 
@@ -47,6 +48,16 @@ Date: 2026-03-03
 - Attach `deploy/aws/iam/rinawarp-agentd-policy.json` to role `rinawarp-agentd`.
 - Use `deploy/aws/iam/rinawarp-agentd-trust-policy.json` as role trust.
 - Ensure S3 bucket has Object Lock enabled at creation.
+
+## Leader Election
+
+- Enabled by default in controller manifest:
+  - `RINAWARP_RUNTIME_CONTROLLER_LEADER_ELECTION=true`
+- Lease object:
+  - `RINAWARP_RUNTIME_LEASE_NAME=rinawarp-runtime-controller`
+  - `RINAWARP_RUNTIME_LEASE_DURATION_SEC=15`
+- RBAC for leases is defined in:
+  - `deploy/k8s/rinawarp-runtime-rbac.yaml`
 
 ## Remaining Hard Gaps
 

@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rinawarp-runtime-controller
+  namespace: rinawarp-system
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rinawarp-runtime-controller
+  namespace: rinawarp-system
+subjects:
+  - kind: ServiceAccount
+    name: rinawarp-agentd
+    namespace: rinawarp-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rinawarp-runtime-controller

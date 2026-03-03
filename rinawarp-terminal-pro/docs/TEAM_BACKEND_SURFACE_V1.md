@@ -72,6 +72,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - Runtime execution modes:
   - `RINAWARP_RUNTIME_EXECUTION_MODE=inline` (API process executes tasks)
   - `RINAWARP_RUNTIME_EXECUTION_MODE=external` (`rinawarp-runtime-controller` executes queued tasks)
+  - External controller supports Kubernetes Lease-based leader election (`RINAWARP_RUNTIME_CONTROLLER_LEADER_ELECTION=true`).
 - K8s runtime includes:
   - Watch-based pod lifecycle tracking
   - Exponential retry policy (`max_attempts`, `initial_delay_sec`)
@@ -87,7 +88,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - JWT-like signed tokens exist, but no full account identity provider integration (passwordless/email-code/MFA/session revocation).
 - No seat counting against paid plan from billing provider.
 - NATS clustering/replica topology is external infra; agentd does not bootstrap NATS cluster nodes.
-- Runtime controller is available as a separate process, but leader election/lease-based coordination is not yet implemented.
+- Runtime controller is available as a separate process with Kubernetes Lease coordination; full operator reconciliation semantics are still pending.
 - Idempotency enforcement is active for key mutation routes, but not yet universal across all mutating endpoints.
 
 ## CLI Surface (Current)
