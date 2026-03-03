@@ -1846,6 +1846,7 @@
     let workflowGraphCache = { nodes: [], edges: [] };
     let workflowTasksCache = [];
     let workflowWebhookAuditCache = [];
+    let workflowWebhookAuditError = "";
     let workflowWebhookOutcomeFilter = "";
     let workflowWebhookMappedFilter = "";
     let workflowLoading = false;
@@ -2938,12 +2939,35 @@
                     </select>
                     <button onclick="upsertTeamMember()">Save</button>
                   </div>
+                  <div class="settings-row" style="gap:8px;">
+                    <span>Create invite</span>
+                    <input id="teamInviteEmailInput" type="email" placeholder="invitee@company.com" />
+                    <select id="teamInviteRoleInput">
+                      <option value="viewer">viewer</option>
+                      <option value="operator">operator</option>
+                      <option value="owner">owner</option>
+                    </select>
+                    <button onclick="createTeamInvite()">Create invite</button>
+                  </div>
                   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
                     <button onclick="refreshTeamSummary()">Refresh team</button>
+                    <button onclick="refreshTeamActivity()">Refresh activity</button>
+                    <button onclick="refreshTeamInvites()">Refresh invites</button>
                     <button onclick="switchTeamUser(true)">Switch via prompt</button>
                     <button onclick="upsertTeamMember(true)">Add/update via prompt</button>
+                    <button onclick="acceptTeamInvitePrompt()">Accept invite code</button>
                   </div>
                   <div id="teamMembersList" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;"></div>
+                </div>
+                <div class="settings-card">
+                  <div class="settings-card-title">Pending Invites</div>
+                  <div id="teamInvitesSummary" class="small">Loading invites…</div>
+                  <div id="teamInvitesList" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;"></div>
+                </div>
+                <div class="settings-card">
+                  <div class="settings-card-title">Team Activity</div>
+                  <div id="teamActivitySummary" class="small">Loading activity…</div>
+                  <div id="teamActivityList" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;"></div>
                 </div>
               </div>
               <div class="stpanel" data-stpanel="onboarding" style="display:none;">
@@ -3065,6 +3089,8 @@
         refreshSharesPanel();
       } else if (tab === "team") {
         refreshTeamSummary();
+        refreshTeamInvites();
+        refreshTeamActivity();
       } else if (tab === "diagnostics") {
         applyDiagnosticsAutoRefreshButton();
         applyDiagnosticsPollIntervalSelect();
@@ -4360,6 +4386,143 @@
       }
     }
 
+    async function refreshTeamInvites() {
+      const summary = document.getElementById("teamInvitesSummary");
+      const list = document.getElementById("teamInvitesList");
+      if (!summary || !list) return;
+      try {
+        const res = await window.rina?.teamListInvites?.();
+        if (!res?.ok) {
+          summary.textContent = res?.error || "Invite API unavailable";
+          list.innerHTML = "";
+          return;
+        }
+        const invites = Array.isArray(res.invites) ? res.invites : [];
+        if (!invites.length) {
+          summary.textContent = "No invites";
+          list.innerHTML = "";
+          return;
+        }
+        const pending = invites.filter((inv) => inv.status === "pending").length;
+        summary.textContent = `Total: ${invites.length} • Pending: ${pending}`;
+        list.innerHTML = invites.slice(0, 40).map((inv) => `
+          <div class="item">
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div>
+                <div><b>${escapeHtml(inv.email || "unknown")}</b> <span class="pill">${escapeHtml(inv.role || "viewer")}</span></div>
+                <div class="small">status: ${escapeHtml(inv.status || "pending")} • expires: ${escapeHtml(inv.expiresAt || "")}</div>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button onclick="copyInviteCodePrompt('${escapeHtml(inv.id)}')">Copy code</button>
+                <button ${inv.status !== "pending" ? "disabled" : ""} onclick="revokeTeamInvite('${escapeHtml(inv.id)}')">Revoke</button>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      } catch {
+        summary.textContent = "Invite load failed";
+        list.innerHTML = "";
+      }
+    }
+
+    async function createTeamInvite() {
+      const email = (document.getElementById("teamInviteEmailInput")?.value || "").trim().toLowerCase();
+      const role = (document.getElementById("teamInviteRoleInput")?.value || "viewer").trim().toLowerCase();
+      if (!email) {
+        toast("Invite email required");
+        return;
+      }
+      if (!["viewer", "operator", "owner"].includes(role)) {
+        toast("Invalid invite role");
+        return;
+      }
+      const res = await window.rina?.teamCreateInvite?.({ email, role, expiresHours: 72 });
+      if (!res?.ok) {
+        toast(res?.error || "Failed to create invite");
+        return;
+      }
+      const code = res?.invite?.inviteCode || "";
+      if (code) await navigator.clipboard.writeText(code).catch(() => {});
+      toast(code ? `Invite created (code copied)` : "Invite created");
+      const inviteEmailInput = document.getElementById("teamInviteEmailInput");
+      if (inviteEmailInput) inviteEmailInput.value = "";
+      refreshTeamInvites();
+      refreshTeamActivity();
+    }
+
+    async function acceptTeamInvitePrompt() {
+      const inviteCode = (prompt("Paste invite code:", "") || "").trim();
+      if (!inviteCode) return;
+      const res = await window.rina?.teamAcceptInvite?.({ inviteCode });
+      if (!res?.ok) {
+        toast(res?.error || "Invite accept failed");
+        return;
+      }
+      toast(`Invite accepted. Role: ${res.role || "viewer"}`);
+      refreshPolicyStatus();
+      refreshTeamSummary();
+      refreshTeamInvites();
+      refreshTeamActivity();
+    }
+
+    async function revokeTeamInvite(id) {
+      const ok = confirm(`Revoke invite ${id}?`);
+      if (!ok) return;
+      const res = await window.rina?.teamRevokeInvite?.(id);
+      if (!res?.ok) {
+        toast(res?.error || "Failed to revoke invite");
+        return;
+      }
+      toast("Invite revoked");
+      refreshTeamInvites();
+      refreshTeamActivity();
+    }
+
+    async function copyInviteCodePrompt(id) {
+      const res = await window.rina?.teamListInvites?.({ includeSecrets: true });
+      if (!res?.ok) {
+        toast(res?.error || "Cannot load invite code");
+        return;
+      }
+      const target = (res.invites || []).find((inv) => inv.id === id);
+      const code = target?.inviteCode || "";
+      if (!code) {
+        toast("Invite code unavailable for your role");
+        return;
+      }
+      await navigator.clipboard.writeText(code).catch(() => {});
+      toast("Invite code copied");
+    }
+
+    async function refreshTeamActivity() {
+      const summary = document.getElementById("teamActivitySummary");
+      const list = document.getElementById("teamActivityList");
+      if (!summary || !list) return;
+      try {
+        const res = await window.rina?.teamActivity?.({ limit: 40 });
+        if (!res?.ok) {
+          summary.textContent = res?.error || "Activity unavailable";
+          list.innerHTML = "";
+          return;
+        }
+        const events = Array.isArray(res.events) ? res.events : [];
+        summary.textContent = events.length ? `Recent events: ${events.length}` : "No activity yet";
+        list.innerHTML = events.map((evt) => `
+          <div class="item">
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div>
+                <div><b>${escapeHtml(evt.action || "event")}</b> • ${escapeHtml(evt.target || "")}</div>
+                <div class="small">${escapeHtml(evt.timestamp || "")} • ${escapeHtml(evt.actor || "unknown")} (${escapeHtml(evt.actorRole || "viewer")})</div>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      } catch {
+        summary.textContent = "Activity load failed";
+        list.innerHTML = "";
+      }
+    }
+
     async function setTeamMemberRole(email) {
       const safe = String(email || "").replace(/[^a-z0-9]/gi, "_");
       const sel = document.getElementById(`teamRole_${safe}`);
@@ -4372,6 +4535,7 @@
       }
       toast(`Role updated: ${email} -> ${role}`);
       refreshTeamSummary();
+      refreshTeamActivity();
     }
 
     async function removeTeamMember(email) {
@@ -4384,6 +4548,7 @@
       }
       toast(`Removed ${email}`);
       refreshTeamSummary();
+      refreshTeamActivity();
       refreshPolicyStatus();
     }
 
@@ -4399,6 +4564,7 @@
       toast(`Current user: ${email} (${res.role || "viewer"})`);
       refreshPolicyStatus();
       refreshTeamSummary();
+      refreshTeamActivity();
     }
 
     async function upsertTeamMember(forcePrompt = false) {
@@ -4422,6 +4588,7 @@
       const memberEmailInput = document.getElementById("teamMemberEmailInput");
       if (memberEmailInput) memberEmailInput.value = "";
       refreshTeamSummary();
+      refreshTeamActivity();
     }
 
     async function importShellHistory() {
@@ -5773,12 +5940,13 @@
       const latestWebhookMeta = latestWebhook
         ? ` • latest webhook: ${String(latestWebhook.eventName || latestWebhook.event || "unknown")} (${String(latestWebhook.outcome || "unknown")})`
         : "";
+      const auditErrorMeta = workflowWebhookAuditError ? ` • webhook audit: ${workflowWebhookAuditError}` : "";
 
       summaryEl.textContent =
         `Graph: ${nodes.length} node(s), ${edges.length} edge(s) • ` +
         `Issue workflows: ${issueTasks.length} • ` +
         `queued ${queued}, running ${running}, completed ${completed}, failed ${failed} • ` +
-        `webhooks accepted ${acceptedWebhook}, rejected ${rejectedWebhook}${latestWebhookMeta}`;
+        `webhooks accepted ${acceptedWebhook}, rejected ${rejectedWebhook}${latestWebhookMeta}${auditErrorMeta}`;
 
       if (issueTasks.length === 0) {
         listEl.innerHTML = `<div class="small">No issue workflows yet.</div>`;
@@ -5831,6 +5999,10 @@
           .join("");
       }
 
+      if (workflowWebhookAuditError) {
+        auditEl.innerHTML = `<div class="small">${escapeHtml(workflowWebhookAuditError)}</div>`;
+        return;
+      }
       if (!audit.length) {
         auditEl.innerHTML = `<div class="small">No webhook audit events yet.</div>`;
         return;
@@ -5875,8 +6047,10 @@
             })
           : { ok: false, entries: [] };
         workflowWebhookAuditCache = Array.isArray(auditRes?.entries) ? auditRes.entries : [];
+        workflowWebhookAuditError = auditRes?.ok ? "" : String(auditRes?.error || "Webhook audit unavailable.");
       } catch {
         // keep previous cache on transient fetch errors
+        workflowWebhookAuditError = "Webhook audit unavailable.";
       } finally {
         workflowLoading = false;
       }

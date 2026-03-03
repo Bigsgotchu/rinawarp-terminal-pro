@@ -261,6 +261,15 @@ export function registerAllIpc(args: {
   shareGetForIpc: (id: string) => Promise<unknown>;
   shareRevokeForIpc: (id: string) => Promise<unknown>;
   teamGetForIpc: () => Promise<unknown>;
+  teamActivityForIpc: (args?: { limit?: number }) => Promise<unknown>;
+  teamCreateInviteForIpc: (args: {
+    email?: string;
+    role?: "owner" | "operator" | "viewer";
+    expiresHours?: number;
+  }) => Promise<unknown>;
+  teamListInvitesForIpc: (args?: { includeSecrets?: boolean }) => Promise<unknown>;
+  teamAcceptInviteForIpc: (args: { inviteCode?: string }) => Promise<unknown>;
+  teamRevokeInviteForIpc: (id: string) => Promise<unknown>;
   teamSetCurrentUserForIpc: (email: string) => Promise<unknown>;
   teamUpsertMemberForIpc: (member: { email: string; role: "owner" | "operator" | "viewer" }) => Promise<unknown>;
   teamRemoveMemberForIpc: (email: string) => Promise<unknown>;
@@ -476,6 +485,11 @@ export function registerAllIpc(args: {
   registerTeamIpc({
     ipcMain: args.ipcMain,
     getTeam: args.teamGetForIpc,
+    getActivity: args.teamActivityForIpc,
+    createInvite: args.teamCreateInviteForIpc,
+    listInvites: args.teamListInvitesForIpc,
+    acceptInvite: args.teamAcceptInviteForIpc,
+    revokeInvite: args.teamRevokeInviteForIpc,
     setCurrentUser: args.teamSetCurrentUserForIpc,
     upsertMember: args.teamUpsertMemberForIpc,
     removeMember: args.teamRemoveMemberForIpc,

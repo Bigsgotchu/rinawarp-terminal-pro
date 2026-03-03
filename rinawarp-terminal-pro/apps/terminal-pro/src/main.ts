@@ -322,6 +322,76 @@ function saveTeamDb(db: TeamDb) {
   writeJsonFile(TEAM_FILE(), db);
 }
 
+function loadTeamInvitesDb(): TeamInvitesDb {
+  const parsed = readJsonIfExists<TeamInvitesDb>(TEAM_INVITES_FILE()) ?? { invites: [] };
+  const nowMs = Date.now();
+  const normalized = (parsed.invites || []).map((inv) => {
+    const expiresAt = inv.expiresAt || new Date(nowMs + 72 * 60 * 60 * 1000).toISOString();
+    const expired = Date.parse(expiresAt) <= nowMs;
+    const status = inv.status === "accepted" || inv.status === "revoked" ? inv.status : expired ? "expired" : "pending";
+    return {
+      id: inv.id || `inv_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+      token: inv.token || "",
+      email: String(inv.email || "").trim().toLowerCase(),
+      role: inv.role && ["owner", "operator", "viewer"].includes(inv.role) ? inv.role : "viewer",
+      createdAt: inv.createdAt || new Date().toISOString(),
+      createdBy: inv.createdBy || "owner@local",
+      expiresAt,
+      status,
+      acceptedAt: inv.acceptedAt,
+      acceptedBy: inv.acceptedBy,
+    } as TeamInviteRecord;
+  });
+  return { invites: normalized };
+}
+
+function saveTeamInvitesDb(db: TeamInvitesDb) {
+  writeJsonFile(TEAM_INVITES_FILE(), db);
+}
+
+function loadTeamActivity(limit = 200): TeamActivityRecord[] {
+  try {
+    const p = TEAM_ACTIVITY_FILE();
+    if (!fs.existsSync(p)) return [];
+    const raw = fs.readFileSync(p, "utf-8");
+    const lines = raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const parsed: TeamActivityRecord[] = [];
+    for (const line of lines) {
+      try {
+        const rec = JSON.parse(line) as TeamActivityRecord;
+        if (!rec || !rec.id || !rec.timestamp || !rec.actor || !rec.action || !rec.target) continue;
+        parsed.push(rec);
+      } catch {
+        // skip malformed line
+      }
+    }
+    return parsed.slice(-Math.max(1, Math.floor(limit))).reverse();
+  } catch {
+    return [];
+  }
+}
+
+function appendTeamActivity(action: TeamActivityAction, target: string, details?: TeamActivityRecord["details"]) {
+  try {
+    const rec: TeamActivityRecord = {
+      id: `evt_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+      timestamp: new Date().toISOString(),
+      actor: getCurrentUserEmail(),
+      actorRole: getCurrentRole(),
+      action,
+      target: String(target || "unknown"),
+      details,
+    };
+    fs.mkdirSync(path.dirname(TEAM_ACTIVITY_FILE()), { recursive: true });
+    fs.appendFileSync(TEAM_ACTIVITY_FILE(), `${JSON.stringify(rec)}\n`, "utf-8");
+  } catch {
+    // swallow activity log write failures
+  }
+}
+
 function getCurrentRole(): Role {
   const team = loadTeamDb();
   const user = team.currentUser || "owner@local";
@@ -989,6 +1059,15 @@ async function orchestratorWebhookAuditForIpc(args?: {
   mapped?: "pr_status" | "ci_status" | "review_revision";
 }): Promise<any> {
   try {
+    const role = getCurrentRole();
+    if (!hasRoleAtLeast(role, "operator")) {
+      return {
+        ok: false,
+        error: "Only owner/operator can access webhook audit events.",
+        entries: [],
+        count: 0,
+      };
+    }
     const params = new URLSearchParams();
     if (typeof args?.limit === "number" && Number.isFinite(args.limit)) params.set("limit", String(args.limit));
     if (args?.outcome) params.set("outcome", args.outcome);
@@ -1751,6 +1830,8 @@ const ptyResizeTimers = new Map<number, NodeJS.Timeout>();
 let ptyModulePromise: Promise<PtyModule | null> | null = null;
 const SHARES_FILE = () => path.join(app.getPath("userData"), "shares.json");
 const TEAM_FILE = () => path.join(app.getPath("userData"), "team-workspace.json");
+const TEAM_INVITES_FILE = () => path.join(app.getPath("userData"), "team-invites.json");
+const TEAM_ACTIVITY_FILE = () => path.join(app.getPath("userData"), "team-activity.ndjson");
 const RENDERER_ERRORS_FILE = () => path.join(app.getPath("userData"), "renderer-errors.ndjson");
 
 type Role = "owner" | "operator" | "viewer";
@@ -1768,6 +1849,41 @@ type SharesDb = { shares: ShareRecord[] };
 type TeamDb = {
   currentUser?: string;
   members: Array<{ email: string; role: Role }>;
+};
+type TeamActivityAction =
+  | "share_created"
+  | "share_revoked"
+  | "share_accessed"
+  | "share_access_denied"
+  | "invite_created"
+  | "invite_revoked"
+  | "invite_accepted"
+  | "member_upserted"
+  | "member_removed"
+  | "current_user_changed";
+type TeamActivityRecord = {
+  id: string;
+  timestamp: string;
+  actor: string;
+  actorRole: Role;
+  action: TeamActivityAction;
+  target: string;
+  details?: Record<string, string | number | boolean | null>;
+};
+type TeamInviteRecord = {
+  id: string;
+  token: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+  createdBy: string;
+  expiresAt: string;
+  status: "pending" | "accepted" | "revoked" | "expired";
+  acceptedAt?: string;
+  acceptedBy?: string;
+};
+type TeamInvitesDb = {
+  invites: TeamInviteRecord[];
 };
 type SharePreviewRecord = {
   id: string;
@@ -1839,6 +1955,18 @@ function buildAuditExportText(): string {
       requiredRole: s.requiredRole,
     })),
     team: loadTeamDb(),
+    teamInvites: loadTeamInvitesDb().invites.map((inv) => ({
+      id: inv.id,
+      email: inv.email,
+      role: inv.role,
+      createdAt: inv.createdAt,
+      createdBy: inv.createdBy,
+      expiresAt: inv.expiresAt,
+      status: inv.status,
+      acceptedAt: inv.acceptedAt || null,
+      acceptedBy: inv.acceptedBy || null,
+    })),
+    teamActivity: loadTeamActivity(1000),
   };
   return redactText(JSON.stringify(payload, null, 2)).redactedText;
 }
@@ -3002,6 +3130,11 @@ async function shareCreateForIpc(args: {
   db.shares = db.shares.slice(0, 500);
   saveSharesDb(db);
   sharePreviewTokens.delete(previewId);
+  appendTeamActivity("share_created", rec.id, {
+    requiredRole: rec.requiredRole,
+    expiresAt: rec.expiresAt,
+    title: rec.title || null,
+  });
   return { ok: true, share: rec };
 }
 
@@ -3028,7 +3161,16 @@ async function shareGetForIpc(id: string) {
   if (found.revoked) return { ok: false, error: "Share revoked" };
   if (Date.now() > Date.parse(found.expiresAt)) return { ok: false, error: "Share expired" };
   const role = getCurrentRole();
-  if (!hasRoleAtLeast(role, found.requiredRole)) return { ok: false, error: "Insufficient role for share" };
+  if (!hasRoleAtLeast(role, found.requiredRole)) {
+    appendTeamActivity("share_access_denied", found.id, {
+      requiredRole: found.requiredRole,
+      actorRole: role,
+    });
+    return { ok: false, error: "Insufficient role for share" };
+  }
+  appendTeamActivity("share_accessed", found.id, {
+    requiredRole: found.requiredRole,
+  });
   return { ok: true, share: found };
 }
 
@@ -3042,10 +3184,115 @@ async function shareRevokeForIpc(id: string) {
   if (idx === -1) return { ok: false, error: "Share not found" };
   db.shares[idx] = { ...db.shares[idx], revoked: true };
   saveSharesDb(db);
+  appendTeamActivity("share_revoked", id);
   return { ok: true };
 }
 async function teamGetForIpc() {
   return loadTeamDb();
+}
+
+async function teamCreateInviteForIpc(args: { email?: string; role?: Role; expiresHours?: number }) {
+  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can create invites" };
+  const email = String(args?.email || "").trim().toLowerCase();
+  if (!email) return { ok: false, error: "Email required" };
+  const role = args?.role;
+  if (!role || !["owner", "operator", "viewer"].includes(role)) return { ok: false, error: "Invalid role" };
+  const expiresHours = Math.max(1, Math.min(24 * 14, Number(args?.expiresHours || 72)));
+  const invites = loadTeamInvitesDb();
+  const token = `rwi_${crypto.randomBytes(18).toString("hex")}`;
+  const rec: TeamInviteRecord = {
+    id: `inv_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+    token,
+    email,
+    role,
+    createdAt: new Date().toISOString(),
+    createdBy: getCurrentUserEmail(),
+    expiresAt: new Date(Date.now() + expiresHours * 60 * 60 * 1000).toISOString(),
+    status: "pending",
+  };
+  invites.invites.unshift(rec);
+  invites.invites = invites.invites.slice(0, 1000);
+  saveTeamInvitesDb(invites);
+  appendTeamActivity("invite_created", rec.id, { email: rec.email, role: rec.role, expiresAt: rec.expiresAt });
+  return {
+    ok: true,
+    invite: {
+      ...rec,
+      inviteCode: `${rec.id}.${rec.token}`,
+    },
+  };
+}
+
+async function teamListInvitesForIpc(args?: { includeSecrets?: boolean }) {
+  if (!hasRoleAtLeast(getCurrentRole(), "operator")) {
+    return { ok: false, error: "Only owner/operator can list invites." };
+  }
+  const includeSecrets = !!args?.includeSecrets && getCurrentRole() === "owner";
+  const invites = loadTeamInvitesDb().invites.map((inv) => ({
+    id: inv.id,
+    email: inv.email,
+    role: inv.role,
+    createdAt: inv.createdAt,
+    createdBy: inv.createdBy,
+    expiresAt: inv.expiresAt,
+    status: inv.status,
+    acceptedAt: inv.acceptedAt || null,
+    acceptedBy: inv.acceptedBy || null,
+    ...(includeSecrets ? { inviteCode: `${inv.id}.${inv.token}` } : {}),
+  }));
+  return { ok: true, invites };
+}
+
+async function teamAcceptInviteForIpc(args: { inviteCode?: string }) {
+  const inviteCode = String(args?.inviteCode || "").trim();
+  if (!inviteCode.includes(".")) return { ok: false, error: "Invalid invite code format" };
+  const [id, token] = inviteCode.split(".", 2);
+  const invites = loadTeamInvitesDb();
+  const idx = invites.invites.findIndex((inv) => inv.id === id);
+  if (idx === -1) return { ok: false, error: "Invite not found" };
+  const target = invites.invites[idx];
+  if (target.status !== "pending") return { ok: false, error: `Invite is ${target.status}` };
+  if (target.token !== token) return { ok: false, error: "Invite code mismatch" };
+  if (Date.parse(target.expiresAt) <= Date.now()) {
+    invites.invites[idx] = { ...target, status: "expired" };
+    saveTeamInvitesDb(invites);
+    return { ok: false, error: "Invite expired" };
+  }
+  const currentUser = getCurrentUserEmail();
+  if (currentUser !== target.email) {
+    return { ok: false, error: `Invite is for ${target.email}; switch current user first.` };
+  }
+  const team = loadTeamDb();
+  const memberIdx = team.members.findIndex((m) => m.email === currentUser);
+  if (memberIdx >= 0) {
+    team.members[memberIdx] = { email: currentUser, role: target.role };
+  } else {
+    team.members.push({ email: currentUser, role: target.role });
+  }
+  saveTeamDb(team);
+  invites.invites[idx] = {
+    ...target,
+    status: "accepted",
+    acceptedAt: new Date().toISOString(),
+    acceptedBy: currentUser,
+  };
+  saveTeamInvitesDb(invites);
+  appendTeamActivity("invite_accepted", target.id, { email: currentUser, role: target.role });
+  return { ok: true, role: target.role };
+}
+
+async function teamRevokeInviteForIpc(idRaw: string) {
+  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can revoke invites" };
+  const id = String(idRaw || "").trim();
+  if (!id) return { ok: false, error: "Invite id required" };
+  const invites = loadTeamInvitesDb();
+  const idx = invites.invites.findIndex((inv) => inv.id === id);
+  if (idx === -1) return { ok: false, error: "Invite not found" };
+  if (invites.invites[idx].status === "accepted") return { ok: false, error: "Accepted invite cannot be revoked" };
+  invites.invites[idx] = { ...invites.invites[idx], status: "revoked" };
+  saveTeamInvitesDb(invites);
+  appendTeamActivity("invite_revoked", id);
+  return { ok: true };
 }
 
 async function teamSetCurrentUserForIpc(email: string) {
@@ -3055,8 +3302,10 @@ async function teamSetCurrentUserForIpc(email: string) {
   if (!team.members.some((m) => m.email === normalized)) {
     team.members.push({ email: normalized, role: "viewer" });
   }
+  const previousUser = team.currentUser || null;
   team.currentUser = normalized;
   saveTeamDb(team);
+  appendTeamActivity("current_user_changed", normalized, { previousUser });
   return { ok: true, role: team.members.find((m) => m.email === normalized)?.role || "viewer" };
 }
 
@@ -3071,6 +3320,7 @@ async function teamUpsertMemberForIpc(member: { email: string; role: Role }) {
   if (idx >= 0) team.members[idx] = { email, role };
   else team.members.push({ email, role });
   saveTeamDb(team);
+  appendTeamActivity("member_upserted", email, { role });
   return { ok: true };
 }
 
@@ -3093,10 +3343,22 @@ async function teamRemoveMemberForIpc(emailRaw: string) {
     }
   }
   saveTeamDb(team);
+  appendTeamActivity("member_removed", email);
   return { ok: true };
 }
 
+async function teamActivityForIpc(args?: { limit?: number }) {
+  if (!hasRoleAtLeast(getCurrentRole(), "operator")) {
+    return { ok: false, error: "Only owner/operator can access team activity." };
+  }
+  const limit = Math.max(1, Math.min(500, Number(args?.limit || 100)));
+  return { ok: true, events: loadTeamActivity(limit) };
+}
+
 async function auditExportForIpc() {
+  if (!hasRoleAtLeast(getCurrentRole(), "operator")) {
+    return { ok: false, error: "Only owner/operator can export audit logs." };
+  }
   return buildAuditExportText();
 }
 async function executeStepStreamForIpc(args: {
@@ -3973,6 +4235,11 @@ app.whenReady().then(() => {
     shareGetForIpc,
     shareRevokeForIpc,
     teamGetForIpc,
+    teamActivityForIpc,
+    teamCreateInviteForIpc,
+    teamListInvitesForIpc,
+    teamAcceptInviteForIpc,
+    teamRevokeInviteForIpc,
     teamSetCurrentUserForIpc,
     teamUpsertMemberForIpc,
     teamRemoveMemberForIpc,

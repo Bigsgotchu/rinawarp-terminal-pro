@@ -1292,3 +1292,126 @@ test("GET /v1/orchestrator/github/webhook-audit returns recent entries", async (
 	assert.ok(typeof body.count === "number");
 	assert.ok(body.entries.length <= 5);
 });
+
+test("workspace API creates workspace and returns summary", async () => {
+	const createdResp = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner",
+			"x-rina-actor-email": "owner@example.com",
+		},
+		body: JSON.stringify({ name: "backend-core", region: "us-east-1" }),
+	});
+	assert.equal(createdResp.status, 200);
+	const created = await createdResp.json();
+	assert.ok(created.workspace_id);
+
+	const getResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(created.workspace_id)}`);
+	assert.equal(getResp.status, 200);
+	const ws = await getResp.json();
+	assert.equal(ws.id, created.workspace_id);
+	assert.equal(ws.name, "backend-core");
+	assert.equal(ws.members, 1);
+});
+
+test("workspace invite create + accept adds member", async () => {
+	const createdResp = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner2",
+			"x-rina-actor-email": "owner2@example.com",
+		},
+		body: JSON.stringify({ name: "invite-flow", region: "us-east-1" }),
+	});
+	const created = await createdResp.json();
+	const workspaceId = created.workspace_id;
+	assert.ok(workspaceId);
+
+	const inviteResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/invites`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner2",
+			"x-rina-actor-email": "owner2@example.com",
+		},
+		body: JSON.stringify({
+			email: "dev@example.com",
+			role: "member",
+			expires_in_hours: 72,
+			send_email: false,
+		}),
+	});
+	assert.equal(inviteResp.status, 200);
+	const invite = await inviteResp.json();
+	assert.ok(invite.invite_token);
+
+	const acceptResp = await fetch(`${baseUrl}/v1/invites/accept`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_dev",
+			"x-rina-actor-email": "dev@example.com",
+		},
+		body: JSON.stringify({ token: invite.invite_token }),
+	});
+	assert.equal(acceptResp.status, 200);
+	const accepted = await acceptResp.json();
+	assert.equal(accepted.workspace_id, workspaceId);
+	assert.equal(accepted.role, "member");
+
+	const wsResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}`);
+	const ws = await wsResp.json();
+	assert.equal(ws.members, 2);
+});
+
+test("sync push detects version conflict", async () => {
+	const createdResp = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner3",
+			"x-rina-actor-email": "owner3@example.com",
+		},
+		body: JSON.stringify({ name: "sync-flow", region: "us-east-1" }),
+	});
+	const created = await createdResp.json();
+	const workspaceId = created.workspace_id;
+	assert.ok(workspaceId);
+
+	const okPush = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/sync/push`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner3",
+			"x-rina-actor-email": "owner3@example.com",
+		},
+		body: JSON.stringify({
+			base_version: 0,
+			events: [{ type: "local_setting_changed", payload: { key: "theme", value: "nova" } }],
+		}),
+	});
+	assert.equal(okPush.status, 409);
+
+	const stateResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/sync/state`);
+	assert.equal(stateResp.status, 200);
+	const state = await stateResp.json();
+
+	const validPush = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/sync/push`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner3",
+			"x-rina-actor-email": "owner3@example.com",
+		},
+		body: JSON.stringify({
+			base_version: state.version,
+			events: [{ type: "local_setting_changed", payload: { key: "font", value: "mono" } }],
+		}),
+	});
+	assert.equal(validPush.status, 200);
+	const pushed = await validPush.json();
+	assert.equal(pushed.ok, true);
+	assert.ok(typeof pushed.new_version === "number");
+});

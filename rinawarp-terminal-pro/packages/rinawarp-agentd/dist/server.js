@@ -22,6 +22,7 @@ import { validateTaskPayload } from "./daemon/task-contracts.js";
 import { createIssueToPrWorkflow, queueRevisionFromReview, readWorkspaceGraph, recordCiStatus, recordPullRequestStatus, } from "./orchestrator/workspaceGraph.js";
 import { createPullRequest } from "./orchestrator/githubAdapter.js";
 import { createOrSwitchBranch, currentBranch, ensureGitRepo } from "./orchestrator/gitProvider.js";
+import { acceptInvite, createInvite, createWorkspace, getAuditRetentionConfig, getSyncState, getWorkspace, listInvites, lockWorkspace, queryAudit, revokeInvite, rotateInviteSecurityKeys, runAuditCleanup, setAuditRetentionConfig, setBillingEnforcement, syncPull, syncPush, unlockWorkspace, updateInviteSecurityConfig, } from "./workspace/state.js";
 const engine = new ExecutionEngine(createStandardRegistry());
 function expectedSafety(risk) {
     if (risk === "high-impact") {
@@ -316,6 +317,11 @@ function sendJson(res, status, body) {
     res.statusCode = status;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.end(JSON.stringify(body));
+}
+function actorFromRequest(req) {
+    const actorId = String(req.headers["x-rina-actor-id"] || "usr_local").trim() || "usr_local";
+    const actorEmail = String(req.headers["x-rina-actor-email"] || "owner@local").trim().toLowerCase() || "owner@local";
+    return { actorId, actorEmail };
 }
 function daemonRunnerPath() {
     const here = path.dirname(fileURLToPath(import.meta.url));
@@ -722,6 +728,215 @@ export function createServer(opts) {
                 }
                 const task = addTask({ type, payload, maxAttempts });
                 return sendJson(res, 200, { ok: true, task });
+            }
+            // --- WORKSPACE / TEAM BACKEND SURFACE (v1)
+            if (req.method === "POST" && url.pathname === "/v1/workspaces") {
+                const body = (await readJson(req));
+                const name = String(body?.name || "").trim();
+                if (!name)
+                    return sendJson(res, 400, { ok: false, error: "name is required" });
+                const { actorId, actorEmail } = actorFromRequest(req);
+                const created = createWorkspace({
+                    name,
+                    region: body?.region,
+                    ownerId: actorId,
+                    ownerEmail: actorEmail,
+                });
+                return sendJson(res, 200, { workspace_id: created.id, owner_id: created.owner_id });
+            }
+            const workspaceGetMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)$/);
+            if (req.method === "GET" && workspaceGetMatch) {
+                const workspaceId = decodeURIComponent(workspaceGetMatch[1] || "");
+                const ws = getWorkspace(workspaceId);
+                if (!ws)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, ws);
+            }
+            const workspaceInviteCreateMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/invites$/);
+            if (req.method === "POST" && workspaceInviteCreateMatch) {
+                const workspaceId = decodeURIComponent(workspaceInviteCreateMatch[1] || "");
+                const body = (await readJson(req));
+                const email = String(body?.email || "").trim().toLowerCase();
+                const role = String(body?.role || "member").trim().toLowerCase();
+                if (!email)
+                    return sendJson(res, 400, { ok: false, error: "email is required" });
+                if (!["owner", "admin", "member"].includes(role)) {
+                    return sendJson(res, 400, { ok: false, error: "role must be owner|admin|member" });
+                }
+                const { actorId } = actorFromRequest(req);
+                try {
+                    const created = createInvite({
+                        workspaceId,
+                        email,
+                        role,
+                        expiresInHours: Number(body?.expires_in_hours || 72),
+                        sendEmail: body?.send_email === true,
+                        actorId,
+                    });
+                    if (!created)
+                        return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                    return sendJson(res, 200, {
+                        invite_id: created.invite_id,
+                        expires_at: created.expires_at,
+                        // For local agentd only, return token to allow manual testing.
+                        invite_token: created.invite_token || undefined,
+                    });
+                }
+                catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    if (message === "workspace_locked")
+                        return sendJson(res, 423, { ok: false, error: "workspace_locked" });
+                    return sendJson(res, 400, { ok: false, error: message });
+                }
+            }
+            const workspaceInviteListMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/invites$/);
+            if (req.method === "GET" && workspaceInviteListMatch) {
+                const workspaceId = decodeURIComponent(workspaceInviteListMatch[1] || "");
+                const ws = getWorkspace(workspaceId);
+                if (!ws)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, { invites: listInvites(workspaceId) });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/invites/accept") {
+                const body = (await readJson(req));
+                const token = String(body?.token || "").trim();
+                if (!token)
+                    return sendJson(res, 400, { ok: false, error: "token is required" });
+                const { actorId, actorEmail } = actorFromRequest(req);
+                const accepted = acceptInvite({ token, actorId, actorEmail });
+                if (!accepted.ok) {
+                    return sendJson(res, accepted.statusCode || 400, { ok: false, error: accepted.error || "invite_accept_failed" });
+                }
+                return sendJson(res, 200, {
+                    workspace_id: accepted.workspace_id,
+                    role: accepted.role,
+                });
+            }
+            const inviteRevokeMatch = url.pathname.match(/^\/v1\/invites\/([^/]+)\/revoke$/);
+            if (req.method === "POST" && inviteRevokeMatch) {
+                const inviteId = decodeURIComponent(inviteRevokeMatch[1] || "");
+                const { actorId } = actorFromRequest(req);
+                const ok = revokeInvite({ inviteId, actorId });
+                if (!ok)
+                    return sendJson(res, 404, { ok: false, error: "invite_not_found_or_not_revokeable" });
+                return sendJson(res, 200, { ok: true });
+            }
+            const billingEnforceMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/billing\/enforce$/);
+            if (req.method === "PUT" && billingEnforceMatch) {
+                const workspaceId = decodeURIComponent(billingEnforceMatch[1] || "");
+                const body = (await readJson(req));
+                const { actorId } = actorFromRequest(req);
+                const updated = setBillingEnforcement({
+                    workspaceId,
+                    actorId,
+                    requireActivePlan: !!body?.require_active_plan,
+                });
+                if (!updated)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, { ok: true, workspace: updated });
+            }
+            const workspaceLockMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/lock$/);
+            if (req.method === "POST" && workspaceLockMatch) {
+                const workspaceId = decodeURIComponent(workspaceLockMatch[1] || "");
+                const body = (await readJson(req));
+                const { actorId } = actorFromRequest(req);
+                const updated = lockWorkspace({
+                    workspaceId,
+                    actorId,
+                    reason: String(body?.reason || "manual_lock"),
+                });
+                if (!updated)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, { ok: true, workspace: updated });
+            }
+            const workspaceUnlockMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/unlock$/);
+            if (req.method === "POST" && workspaceUnlockMatch) {
+                const workspaceId = decodeURIComponent(workspaceUnlockMatch[1] || "");
+                const { actorId } = actorFromRequest(req);
+                const updated = unlockWorkspace({ workspaceId, actorId });
+                if (!updated)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, { ok: true, workspace: updated });
+            }
+            const workspaceAuditMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/audit$/);
+            if (req.method === "GET" && workspaceAuditMatch) {
+                const workspaceId = decodeURIComponent(workspaceAuditMatch[1] || "");
+                const type = String(url.searchParams.get("type") || "");
+                const from = String(url.searchParams.get("from") || "");
+                const to = String(url.searchParams.get("to") || "");
+                const limit = Number(url.searchParams.get("limit") || 100);
+                const entries = queryAudit({ workspaceId, type: type || undefined, from: from || undefined, to: to || undefined, limit });
+                return sendJson(res, 200, { entries });
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/admin/security/invites") {
+                const body = (await readJson(req));
+                const { actorId } = actorFromRequest(req);
+                const config = updateInviteSecurityConfig({ actorId, ...(body || {}) });
+                return sendJson(res, 200, { status: "updated", config });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/admin/security/invites/rotate-keys") {
+                const { actorId } = actorFromRequest(req);
+                const config = rotateInviteSecurityKeys(actorId);
+                return sendJson(res, 200, { status: "rotated", key_version: config.key_version });
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/admin/audit/retention") {
+                const body = (await readJson(req));
+                const { actorId } = actorFromRequest(req);
+                const config = setAuditRetentionConfig({ actorId, ...(body || {}) });
+                return sendJson(res, 200, { status: "updated", config });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/admin/audit/status") {
+                const config = getAuditRetentionConfig();
+                return sendJson(res, 200, { status: "ok", config });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/admin/audit/cleanup") {
+                const body = (await readJson(req));
+                const result = runAuditCleanup(body?.force === true);
+                return sendJson(res, 200, { status: "ok", ...result });
+            }
+            const syncStateMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/sync\/state$/);
+            if (req.method === "GET" && syncStateMatch) {
+                const workspaceId = decodeURIComponent(syncStateMatch[1] || "");
+                const state = getSyncState(workspaceId);
+                if (!state)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, state);
+            }
+            const syncPullMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/sync\/pull$/);
+            if (req.method === "POST" && syncPullMatch) {
+                const workspaceId = decodeURIComponent(syncPullMatch[1] || "");
+                const body = (await readJson(req));
+                const pulled = syncPull({ workspaceId, sinceVersion: Number(body?.since_version || 0) });
+                if (!pulled)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, pulled);
+            }
+            const syncPushMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/sync\/push$/);
+            if (req.method === "POST" && syncPushMatch) {
+                const workspaceId = decodeURIComponent(syncPushMatch[1] || "");
+                const body = (await readJson(req));
+                const { actorId } = actorFromRequest(req);
+                try {
+                    const pushed = syncPush({
+                        workspaceId,
+                        baseVersion: Number(body?.base_version || 0),
+                        events: Array.isArray(body?.events)
+                            ? body.events.map((evt) => ({ type: String(evt?.type || "client_event"), payload: evt?.payload || {} }))
+                            : [],
+                        actorId,
+                    });
+                    if (!pushed)
+                        return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                    if (!pushed.ok)
+                        return sendJson(res, 409, pushed);
+                    return sendJson(res, 200, pushed);
+                }
+                catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    if (message === "workspace_locked")
+                        return sendJson(res, 423, { ok: false, error: "workspace_locked" });
+                    return sendJson(res, 400, { ok: false, error: message });
+                }
             }
             // --- ORCHESTRATOR ISSUE -> PR (MVP)
             if (req.method === "POST" && url.pathname === "/v1/orchestrator/issue-to-pr") {

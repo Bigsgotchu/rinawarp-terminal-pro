@@ -158,6 +158,12 @@ contextBridge.exposeInMainWorld("rina", {
   getShare: (id: string) => ipcRenderer.invoke("rina:share:get", id),
   revokeShare: (id: string) => ipcRenderer.invoke("rina:share:revoke", id),
   teamGet: () => ipcRenderer.invoke("rina:team:get"),
+  teamActivity: (args?: { limit?: number }) => ipcRenderer.invoke("rina:team:activity", args || {}),
+  teamCreateInvite: (args: { email?: string; role?: "owner" | "operator" | "viewer"; expiresHours?: number }) =>
+    ipcRenderer.invoke("rina:team:createInvite", args),
+  teamListInvites: (args?: { includeSecrets?: boolean }) => ipcRenderer.invoke("rina:team:listInvites", args || {}),
+  teamAcceptInvite: (args: { inviteCode?: string }) => ipcRenderer.invoke("rina:team:acceptInvite", args),
+  teamRevokeInvite: (id: string) => ipcRenderer.invoke("rina:team:revokeInvite", id),
   teamSetCurrentUser: (email: string) => ipcRenderer.invoke("rina:team:setCurrentUser", email),
   teamUpsertMember: (member: { email: string; role: "owner" | "operator" | "viewer" }) =>
     ipcRenderer.invoke("rina:team:upsertMember", member),

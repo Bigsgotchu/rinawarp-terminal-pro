@@ -82,6 +82,26 @@ declare global {
         baseBranch?: string;
         prDryRun?: boolean;
       }) => Promise<any>;
+      teamGet?: () => Promise<any>;
+      teamActivity?: (args?: { limit?: number }) => Promise<any>;
+      teamCreateInvite?: (args: { email?: string; role?: "owner" | "operator" | "viewer"; expiresHours?: number }) => Promise<any>;
+      teamListInvites?: (args?: { includeSecrets?: boolean }) => Promise<any>;
+      teamAcceptInvite?: (args: { inviteCode?: string }) => Promise<any>;
+      teamRevokeInvite?: (id: string) => Promise<any>;
+      teamSetCurrentUser?: (email: string) => Promise<any>;
+      teamUpsertMember?: (member: { email: string; role: "owner" | "operator" | "viewer" }) => Promise<any>;
+      teamRemoveMember?: (email: string) => Promise<any>;
+      listShares?: () => Promise<any>;
+      getShare?: (id: string) => Promise<any>;
+      revokeShare?: (id: string) => Promise<any>;
+      createShare?: (args: {
+        title?: string;
+        content?: string;
+        expiresDays?: number;
+        requiredRole?: "owner" | "operator" | "viewer";
+        previewId: string;
+      }) => Promise<any>;
+      auditExport?: () => Promise<any>;
       codeListFiles?: (args: { projectRoot: string; limit?: number }) => Promise<{ ok: boolean; files?: string[]; error?: string }>;
       codeReadFile?: (args: { projectRoot: string; relativePath: string; maxBytes?: number }) => Promise<{ ok: boolean; content?: string; truncated?: boolean; error?: string }>;
     };
