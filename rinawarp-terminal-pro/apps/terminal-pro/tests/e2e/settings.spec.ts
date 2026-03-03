@@ -34,7 +34,8 @@ test("settings: ArrowDown switches tab and updates localStorage", async () => {
     // Verify only one active tab
     await expect(page.locator(".rw-tab-active")).toHaveCount(1);
 
-    // Get initial active tab using aria-selected (more robust)
+    // Force known start tab
+    await page.locator('#rw-settings [data-settings-tab="general"]').click();
     const activeTab = page.locator('#rw-settings [role="tab"][aria-selected="true"]');
     await expect(activeTab).toHaveAttribute("data-settings-tab", "general");
 

@@ -9,6 +9,8 @@ type SettingsTabId = "general" | "license" | "themes" | "diagnostics" | "about";
 
 declare global {
   interface Window {
+    addBlock?: (block: any) => void;
+    newId?: (prefix: string) => string;
     __rinaSettings?: {
       open: (tabId?: SettingsTabId) => void;
       close: () => void;
@@ -21,6 +23,20 @@ type ThemeSpec = { id: string; name: string; group?: string };
 
 function safeRina(): Window["rina"] | null {
   return (window as any).rina ?? null;
+}
+
+function emitInfoBlock(title: string, markdown: string): void {
+  const add = (window as any).addBlock;
+  const newId = (window as any).newId;
+  if (typeof add !== "function" || typeof newId !== "function") return;
+  add({
+    id: newId("assistant"),
+    type: "assistant",
+    status: "ok",
+    createdAt: Date.now(),
+    title,
+    markdown,
+  });
 }
 
 function openSettings(tabId?: SettingsTabId): void {
@@ -42,6 +58,54 @@ async function setTheme(id: string): Promise<void> {
   const rina = safeRina();
   if (!rina?.themesSet) return;
   await rina.themesSet(id);
+}
+
+function buildOpsCommands(): PaletteCommand[] {
+  return [
+    {
+      id: "ops.importHistory",
+      title: "Import Shell History",
+      subtitle: "Load recent shell commands into local history",
+      icon: "🧾",
+      keywords: ["history", "shell", "commands", "import"],
+      run: async () => {
+        const rina = safeRina();
+        if (!rina?.importShellHistory) return;
+        const res = await rina.importShellHistory(500);
+        const imported = Number(res?.imported || (Array.isArray(res?.commands) ? res.commands.length : 0));
+        emitInfoBlock("Rina — Shell History Import", `Imported ${imported} command(s).`);
+      },
+    },
+    {
+      id: "ops.teamSnapshot",
+      title: "Team Snapshot",
+      subtitle: "Summarize current team roles",
+      icon: "👥",
+      keywords: ["team", "roles", "members"],
+      run: async () => {
+        const rina = safeRina();
+        if (!rina?.teamGet) return;
+        const res = await rina.teamGet();
+        const members = Array.isArray(res?.members) ? res.members : [];
+        const lines = members.map((m: any) => `- ${m.email || "unknown"} (${m.role || "viewer"})`);
+        emitInfoBlock(
+          "Rina — Team Snapshot",
+          lines.length ? lines.join("\n") : "No team members configured.",
+        );
+      },
+    },
+    {
+      id: "ops.agentEvalExport",
+      title: "Export Agent Eval Report",
+      subtitle: "Download local reliability metrics",
+      icon: "📈",
+      keywords: ["eval", "metrics", "success rate", "reliability"],
+      run: async () => {
+        const fn = (window as any).downloadAgentEvalReport;
+        if (typeof fn === "function") fn();
+      },
+    },
+  ];
 }
 
 function buildBaseCommands(): PaletteCommand[] {
@@ -86,6 +150,7 @@ function buildBaseCommands(): PaletteCommand[] {
         if (rina?.supportBundle) await rina.supportBundle();
       },
     },
+    ...buildOpsCommands(),
     {
       id: "devtools.toggle",
       title: "Toggle DevTools",
