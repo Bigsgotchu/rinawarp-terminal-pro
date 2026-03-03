@@ -574,3 +574,54 @@ test("POST /v1/orchestrator/review/comment queues revision task", async () => {
 		fs.rmSync(tmp, { recursive: true, force: true });
 	}
 });
+
+test("POST /v1/orchestrator/ci/status with autoRetry queues revision task on failure", async () => {
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "rinawarp-agentd-ci-auto-"));
+	try {
+		execSync("git init", { cwd: tmp, stdio: "ignore" });
+		execSync('git config user.email "test@example.com"', { cwd: tmp, stdio: "ignore" });
+		execSync('git config user.name "RinaWarp Test"', { cwd: tmp, stdio: "ignore" });
+		fs.writeFileSync(path.join(tmp, "README.md"), "# ci auto\n", "utf8");
+		execSync("git add README.md", { cwd: tmp, stdio: "ignore" });
+		execSync('git commit -m "init"', { cwd: tmp, stdio: "ignore" });
+
+		const start = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({
+				issueId: "152",
+				repoPath: tmp,
+				branchName: "rina/fix-152",
+				command: "printf 'seed\\n' >> README.md",
+			}),
+		});
+		assert.equal(start.status, 200);
+		const startBody = await start.json();
+		assert.equal(startBody.ok, true);
+
+		const ci = await fetch(`${baseUrl}/v1/orchestrator/ci/status`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({
+				workflowId: startBody.workflowId,
+				provider: "github-actions",
+				status: "failed",
+				url: "https://ci.example/run/152",
+				autoRetry: true,
+				repoPath: tmp,
+				issueId: "152",
+				branchName: "rina/fix-152",
+				command: "printf 'ci retry\\n' >> README.md",
+				prDryRun: true,
+			}),
+		});
+		assert.equal(ci.status, 200);
+		const ciBody = await ci.json();
+		assert.equal(ciBody.ok, true);
+		assert.ok(ciBody.autoRevision);
+		assert.equal(ciBody.autoRevision.ok, true);
+		assert.ok(typeof ciBody.autoRevision.taskId === "string");
+	} finally {
+		fs.rmSync(tmp, { recursive: true, force: true });
+	}
+});

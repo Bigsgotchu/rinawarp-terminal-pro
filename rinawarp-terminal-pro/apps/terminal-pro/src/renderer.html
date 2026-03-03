@@ -5783,6 +5783,8 @@
                 <button onclick="openWorkflowBranch('${escapeHtml(String(t.id || ''))}')">Open branch</button>
                 <button onclick="retryWorkflowTask('${escapeHtml(String(t.id || ''))}')">Retry failed</button>
                 <button onclick="createPrForWorkflow('${escapeHtml(String(t.id || ''))}')">Create PR now</button>
+                <button onclick="markWorkflowCiFailed('${escapeHtml(String(t.id || ''))}')">CI failed + auto-retry</button>
+                <button onclick="addWorkflowReviewComment('${escapeHtml(String(t.id || ''))}')">Add review feedback</button>
               </div>
             </div>
           `;
@@ -5926,6 +5928,94 @@
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err || "failed");
         toast(`Create PR failed: ${msg}`);
+      }
+    }
+
+    async function markWorkflowCiFailed(taskId) {
+      try {
+        const task = findWorkflowTask(taskId);
+        if (!task) {
+          toast("Workflow task not found");
+          return;
+        }
+        if (!window.rina?.orchestratorCiStatus) {
+          toast("CI status API unavailable");
+          return;
+        }
+        const payload = task.payload || {};
+        const workflowId = String(payload.workflowId || "").trim();
+        if (!workflowId) {
+          toast("Task missing workflowId");
+          return;
+        }
+        const res = await window.rina.orchestratorCiStatus({
+          workflowId,
+          provider: "manual",
+          status: "failed",
+          url: "",
+          autoRetry: true,
+          repoPath: String(payload.cwd || ""),
+          issueId: String(payload.issueId || ""),
+          branchName: String(payload.branchName || ""),
+          command: String(payload.command || "npm test"),
+          repoSlug: payload.repoSlug ? String(payload.repoSlug) : undefined,
+          baseBranch: payload.baseBranch ? String(payload.baseBranch) : "main",
+          prDryRun: payload.prDryRun !== false,
+        });
+        if (!res?.ok) {
+          toast(`CI status update failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        if (res?.autoRevision?.taskId) {
+          toast(`Auto-retry queued: ${res.autoRevision.taskId}`);
+        } else {
+          toast("CI failure recorded");
+        }
+        await refreshWorkflowPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`CI update failed: ${msg}`);
+      }
+    }
+
+    async function addWorkflowReviewComment(taskId) {
+      try {
+        const task = findWorkflowTask(taskId);
+        if (!task) {
+          toast("Workflow task not found");
+          return;
+        }
+        if (!window.rina?.orchestratorReviewComment) {
+          toast("Review API unavailable");
+          return;
+        }
+        const payload = task.payload || {};
+        const workflowId = String(payload.workflowId || "").trim();
+        const comment = (prompt("Review feedback to apply:", "Please adjust implementation based on review notes.") || "").trim();
+        if (!comment) {
+          toast("Review feedback cancelled");
+          return;
+        }
+        const res = await window.rina.orchestratorReviewComment({
+          workflowId,
+          repoPath: String(payload.cwd || ""),
+          issueId: String(payload.issueId || ""),
+          branchName: String(payload.branchName || ""),
+          comment,
+          command: String(payload.command || "npm test"),
+          repoSlug: payload.repoSlug ? String(payload.repoSlug) : undefined,
+          baseBranch: payload.baseBranch ? String(payload.baseBranch) : "main",
+          prDryRun: payload.prDryRun !== false,
+        });
+        if (!res?.ok) {
+          toast(`Review queue failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast(`Review revision queued: ${res.taskId}`);
+        await refreshWorkflowPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`Review queue failed: ${msg}`);
       }
     }
 

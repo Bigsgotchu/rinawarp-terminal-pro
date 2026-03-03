@@ -584,7 +584,26 @@ export function createServer(opts) {
                     return sendJson(res, 400, { ok: false, error: "status must be queued|running|passed|failed" });
                 }
                 const saved = recordCiStatus({ workflowId, provider, status, url: body?.url });
-                return sendJson(res, 200, saved);
+                let autoRevision = null;
+                if (status === "failed" && body?.autoRetry === true) {
+                    const repoPath = String(body?.repoPath || "").trim();
+                    const issueId = String(body?.issueId || "").trim();
+                    const branchName = String(body?.branchName || "").trim();
+                    if (repoPath && issueId && branchName) {
+                        autoRevision = queueRevisionFromReview({
+                            workflowId,
+                            repoPath,
+                            issueId,
+                            branchName,
+                            comment: `CI failure detected from ${provider}${body?.url ? ` (${body.url})` : ""}`,
+                            command: body?.command,
+                            repoSlug: body?.repoSlug,
+                            baseBranch: body?.baseBranch,
+                            prDryRun: body?.prDryRun !== false,
+                        });
+                    }
+                }
+                return sendJson(res, 200, { ...saved, autoRevision });
             }
             if (req.method === "POST" && url.pathname === "/v1/orchestrator/review/comment") {
                 const body = (await readJson(req));

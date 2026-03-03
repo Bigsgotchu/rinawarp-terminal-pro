@@ -38,6 +38,31 @@ declare global {
         draft?: boolean;
         dryRun?: boolean;
       }) => Promise<any>;
+      orchestratorCiStatus?: (args: {
+        workflowId: string;
+        provider: string;
+        status: "queued" | "running" | "passed" | "failed";
+        url?: string;
+        autoRetry?: boolean;
+        repoPath?: string;
+        issueId?: string;
+        branchName?: string;
+        command?: string;
+        repoSlug?: string;
+        baseBranch?: string;
+        prDryRun?: boolean;
+      }) => Promise<any>;
+      orchestratorReviewComment?: (args: {
+        workflowId: string;
+        repoPath: string;
+        issueId: string;
+        branchName: string;
+        comment: string;
+        command?: string;
+        repoSlug?: string;
+        baseBranch?: string;
+        prDryRun?: boolean;
+      }) => Promise<any>;
       codeListFiles?: (args: { projectRoot: string; limit?: number }) => Promise<{ ok: boolean; files?: string[]; error?: string }>;
       codeReadFile?: (args: { projectRoot: string; relativePath: string; maxBytes?: number }) => Promise<{ ok: boolean; content?: string; truncated?: boolean; error?: string }>;
     };

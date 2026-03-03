@@ -105,6 +105,31 @@ contextBridge.exposeInMainWorld("rina", {
     draft?: boolean;
     dryRun?: boolean;
   }) => ipcRenderer.invoke("rina:orchestrator:github:create-pr", args),
+  orchestratorCiStatus: (args: {
+    workflowId: string;
+    provider: string;
+    status: "queued" | "running" | "passed" | "failed";
+    url?: string;
+    autoRetry?: boolean;
+    repoPath?: string;
+    issueId?: string;
+    branchName?: string;
+    command?: string;
+    repoSlug?: string;
+    baseBranch?: string;
+    prDryRun?: boolean;
+  }) => ipcRenderer.invoke("rina:orchestrator:ci:status", args),
+  orchestratorReviewComment: (args: {
+    workflowId: string;
+    repoPath: string;
+    issueId: string;
+    branchName: string;
+    comment: string;
+    command?: string;
+    repoSlug?: string;
+    baseBranch?: string;
+    prDryRun?: boolean;
+  }) => ipcRenderer.invoke("rina:orchestrator:review:comment", args),
   importShellHistory: (limit?: number) => ipcRenderer.invoke("rina:history:import", limit),
   reportRendererError: (payload: { kind?: string; message?: string; extra?: string }) =>
     ipcRenderer.invoke("rina:renderer:error", payload),

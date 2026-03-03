@@ -955,6 +955,59 @@ async function orchestratorCreatePrForIpc(args: {
   }
 }
 
+async function orchestratorCiStatusForIpc(args: {
+  workflowId: string;
+  provider: string;
+  status: "queued" | "running" | "passed" | "failed";
+  url?: string;
+  autoRetry?: boolean;
+  repoPath?: string;
+  issueId?: string;
+  branchName?: string;
+  command?: string;
+  repoSlug?: string;
+  baseBranch?: string;
+  prDryRun?: boolean;
+}): Promise<any> {
+  try {
+    return await agentdJson("/v1/orchestrator/ci/status", {
+      method: "POST",
+      body: args,
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function orchestratorReviewCommentForIpc(args: {
+  workflowId: string;
+  repoPath: string;
+  issueId: string;
+  branchName: string;
+  comment: string;
+  command?: string;
+  repoSlug?: string;
+  baseBranch?: string;
+  prDryRun?: boolean;
+}): Promise<any> {
+  try {
+    return await agentdJson("/v1/orchestrator/review/comment", {
+      method: "POST",
+      body: args,
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 type Risk = "read" | "safe-write" | "high-impact";
 
 function gateProfileCommand(args: {
@@ -3753,6 +3806,49 @@ ipcMain.handle(
     args: { repoSlug: string; head: string; base?: string; title: string; body?: string; draft?: boolean; dryRun?: boolean },
   ) => {
     return await orchestratorCreatePrForIpc(args);
+  },
+);
+
+ipcMain.handle(
+  "rina:orchestrator:ci:status",
+  async (
+    _event,
+    args: {
+      workflowId: string;
+      provider: string;
+      status: "queued" | "running" | "passed" | "failed";
+      url?: string;
+      autoRetry?: boolean;
+      repoPath?: string;
+      issueId?: string;
+      branchName?: string;
+      command?: string;
+      repoSlug?: string;
+      baseBranch?: string;
+      prDryRun?: boolean;
+    },
+  ) => {
+    return await orchestratorCiStatusForIpc(args);
+  },
+);
+
+ipcMain.handle(
+  "rina:orchestrator:review:comment",
+  async (
+    _event,
+    args: {
+      workflowId: string;
+      repoPath: string;
+      issueId: string;
+      branchName: string;
+      comment: string;
+      command?: string;
+      repoSlug?: string;
+      baseBranch?: string;
+      prDryRun?: boolean;
+    },
+  ) => {
+    return await orchestratorReviewCommentForIpc(args);
   },
 );
 
