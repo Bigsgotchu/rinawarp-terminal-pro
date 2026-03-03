@@ -2,12 +2,19 @@
 
 ## Current State
 
-The `main.ts` file currently contains **77 IPC handlers** that need to be extracted into modular files under `src/main/`. This document outlines the extraction strategy and progress.
+The extraction is now actively in progress with shared registration centralized in `src/main/ipc/registerAllIpc.ts`.
 
-Recent progress:
-- `rina:daemon:*` handlers extracted to `src/main/ipc/registerAgentIpc.ts`
+Recent completed extraction:
+- `rina:license:*` extracted to `src/main/ipc/registerLicenseIpc.ts`
+- `rina:themes:*` extracted to `src/main/ipc/registerThemesIpc.ts`
+- `rina:memory:*` extracted to `src/main/ipc/registerMemoryIpc.ts`
+- `rina:personality:*` extracted to `src/main/ipc/registerPersonalityIpc.ts`
+- `rina:policy:*` extracted to `src/main/ipc/registerPolicyIpc.ts`
+- `rina:pty:*` extracted to `src/main/ipc/registerPtyIpc.ts`
+- `rina:daemon:*` extracted to `src/main/ipc/registerAgentIpc.ts`
 - `agent:plan` and `rina:agent:plan` extracted to `src/main/ipc/registerAgentPlanningIpc.ts`
 - `rina:executePlanStream` and `agent:execute` extracted to `src/main/ipc/registerAgentExecutionIpc.ts`
+- `rina:orchestrator:*` extracted to `src/main/ipc/registerOrchestratorIpc.ts`
 
 ## Guardrails in Place
 
@@ -68,26 +75,26 @@ export function registerAllIpc(args: { ... }) {
 
 | Module | Handlers | Channels | Status |
 |--------|----------|----------|--------|
-| License | 4 | `license:verify`, `license:state`, `license:portal`, `license:lookup` | Pending |
-| Themes | 5 | `rina:themes:*` | Pending |
-| Memory | 2 | `rina:memory:*` | Pending |
-| Personality | 2 | `rina:personality:*` | Pending |
+| License | 4 | `license:verify`, `license:state`, `license:portal`, `license:lookup` | Completed |
+| Themes | 5 | `rina:themes:*` | Completed |
+| Memory | 2 | `rina:memory:*` | Completed |
+| Personality | 2 | `rina:personality:*` | Completed |
 
 ### Phase 2: Core Features (Medium Risk)
 
 | Module | Handlers | Channels | Status |
 |--------|----------|----------|--------|
-| PTY | 6 | `rina:pty:*` | Pending |
-| Policy | 3 | `rina:policy:*`, `rina:redaction:*` | Pending |
-| Transcript | 5 | `rina:transcript:*`, `rina:structured:*` | Pending |
-| Search | 2 | `rina:search:*`, `rina:structured:search` | Pending |
+| PTY | 6 | `rina:pty:*` | Completed |
+| Policy | 3 | `rina:policy:*`, `rina:redaction:*` | Completed |
+| Transcript | 5 | `rina:transcript:*`, `rina:structured:*` | Completed (`registerSessionIpc.ts`) |
+| Search | 2 | `rina:search:*`, `rina:structured:search` | Completed (`registerSessionIpc.ts`) |
 
 ### Phase 3: Complex Features (Higher Risk)
 
 | Module | Handlers | Channels | Status |
 |--------|----------|----------|--------|
 | Doctor | 6 | `rina:doctor:*` | Pending |
-| Plan/Execute | 4 | `rina:plan:*`, `rina:execute*` | Pending |
+| Plan/Execute | 4 | `rina:plan:*`, `rina:execute*` | In Progress (`registerAgentExecutionIpc.ts`) |
 | Stream | 4 | `rina:stream:*` | Pending |
 | Share | 5 | `rina:share:*` | Pending |
 | Team | 4 | `rina:team:*` | Pending |
@@ -101,7 +108,8 @@ export function registerAllIpc(args: { ... }) {
 | Code Explorer | 2 | `rina:code:*` | Pending |
 | History | 1 | `rina:history:*` | Pending |
 | Chat | 2 | `rina:chat:*` | Pending |
-| Agent | 8 | `agent:*`, `rina:agent:*`, `rina:daemon:*` | In Progress |
+| Agent | 8 | `agent:*`, `rina:agent:*`, `rina:daemon:*` | Completed |
+| Orchestrator | 6 | `rina:orchestrator:*` | Completed |
 | Misc | ~12 | Various single handlers | Pending |
 
 ## Handler Inventory (from main.ts)
@@ -195,7 +203,7 @@ Line 4162: agent:execute
 
 ## Next Steps
 
-1. Continue Agent extraction by moving `rina:executePlanStream` and `agent:execute` into `registerAgentIpc.ts`
-2. Verify CI passes after each extraction
-3. Update this document as each module is completed
-4. Enable `check-no-ipc-in-main.sh` in CI after all extractions complete
+1. Extract `chat`, `doctor`, `share`, `team`, and `export` handlers from `main.ts`
+2. Extract `workspace`, `code`, and `history` handlers from `main.ts`
+3. Add a CI job step to run `./scripts/check-no-ipc-in-main.sh` once extraction is complete
+4. Keep duplicate-channel checks (`scripts/check-duplicate-ipc.js`) mandatory in CI

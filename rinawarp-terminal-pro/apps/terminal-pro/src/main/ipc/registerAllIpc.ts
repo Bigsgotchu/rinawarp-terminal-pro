@@ -16,6 +16,8 @@ import { registerAgentIpc } from "./registerAgentIpc.js";
 import { registerAgentPlanningIpc } from "./registerAgentPlanningIpc.js";
 import { registerAgentExecutionIpc } from "./registerAgentExecutionIpc.js";
 import { registerOrchestratorIpc } from "./registerOrchestratorIpc.js";
+import { registerChatIpc } from "./registerChatIpc.js";
+import { registerDoctorIpc } from "./registerDoctorIpc.js";
 
 // Runtime guard to prevent double-registration (e.g., during hot reload)
 declare global {
@@ -187,6 +189,15 @@ export function registerAllIpc(args: {
     baseBranch?: string;
     prDryRun?: boolean;
   }) => Promise<any>;
+  chatSendForIpc: (text: string, projectRoot?: string) => Promise<unknown>;
+  chatExportForIpc: () => Promise<string>;
+  doctorInspectForIpc: (intent: string) => Promise<unknown>;
+  doctorCollectForIpc: (steps: any[], streamCallback?: unknown) => Promise<unknown>;
+  doctorInterpretForIpc: (payload: { intent: string; evidence: any }) => Promise<unknown>;
+  doctorVerifyForIpc: (payload: { intent: string; before: any; after: any; diagnosis?: any }) => Promise<unknown>;
+  doctorExecuteFixForIpc: (plan: any, confirmed: boolean, confirmationText: string) => Promise<unknown>;
+  doctorTranscriptGetForIpc: () => Promise<unknown>;
+  doctorTranscriptExportForIpc: (format: "json" | "text") => Promise<unknown>;
 }) {
   // Runtime guard: prevent double-registration during hot reload
   if (globalThis.__rinaIpcRegistered) {
@@ -333,5 +344,22 @@ export function registerAllIpc(args: {
     createPr: args.orchestratorCreatePrForIpc,
     ciStatus: args.orchestratorCiStatusForIpc,
     reviewComment: args.orchestratorReviewCommentForIpc,
+  });
+
+  registerChatIpc({
+    ipcMain: args.ipcMain,
+    sendChat: args.chatSendForIpc,
+    exportChatTranscript: args.chatExportForIpc,
+  });
+
+  registerDoctorIpc({
+    ipcMain: args.ipcMain,
+    inspect: args.doctorInspectForIpc,
+    collect: args.doctorCollectForIpc,
+    interpret: args.doctorInterpretForIpc,
+    verify: args.doctorVerifyForIpc,
+    executeFix: args.doctorExecuteFixForIpc,
+    transcriptGet: args.doctorTranscriptGetForIpc,
+    transcriptExport: args.doctorTranscriptExportForIpc,
   });
 }

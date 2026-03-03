@@ -3501,95 +3501,74 @@ import {
 
 import { chatRouter } from "./chat-router.js";
 
-ipcMain.handle("rina:doctor:inspect", async (_event, intent: string) => {
+async function doctorInspectForIpc(intent: string) {
   return await doctorInspect(intent);
-});
+}
 
-ipcMain.handle("rina:doctor:collect", async (_event, steps: any[], streamCallback: any) => {
+async function doctorCollectForIpc(steps: any[], _streamCallback?: unknown) {
   for (const step of Array.isArray(steps) ? steps : []) {
-    const cmd = step?.input?.command;
-    if (typeof cmd !== "string" || !cmd.trim()) continue;
-    const gate = evaluatePolicyGate(cmd, false, "");
+    const command = step?.input?.command;
+    if (typeof command !== "string" || !command.trim()) continue;
+    const gate = evaluatePolicyGate(command, false, "");
     if (!gate.ok) {
-      throw new Error(gate.message || `Blocked by policy: ${cmd}`);
+      throw new Error(gate.message || `Blocked by policy: ${command}`);
     }
   }
-  // Create a stream callback for IPC
-  const wrappedCallback = (chunk: string, stream: "stdout" | "stderr") => {
-    if (streamCallback) {
-      // This won't work directly - need to use webContents.send
-    }
-  };
   return await doctorCollect(steps, undefined);
-});
+}
 
-ipcMain.handle(
-  "rina:doctor:interpret",
-  async (_event, payload: { intent: string; evidence: any }) => {
-    const safePayload = {
-      ...payload,
-      intent: redactForModel(payload.intent),
-      evidence: sanitizeForPersistence(payload.evidence),
-    };
-    return await doctorInterpret(safePayload);
-  }
-);
+async function doctorInterpretForIpc(payload: { intent: string; evidence: any }) {
+  const safePayload = {
+    ...payload,
+    intent: redactForModel(payload.intent),
+    evidence: sanitizeForPersistence(payload.evidence),
+  };
+  return await doctorInterpret(safePayload);
+}
 
-ipcMain.handle(
-  "rina:doctor:verify",
-  async (_event, payload: { intent: string; before: any; after: any; diagnosis?: any }) => {
-    const safePayload = {
-      ...payload,
-      intent: redactForModel(payload.intent),
-      before: sanitizeForPersistence(payload.before),
-      after: sanitizeForPersistence(payload.after),
-      diagnosis: sanitizeForPersistence(payload.diagnosis),
-    };
-    return await doctorVerify(safePayload);
-  }
-);
+async function doctorVerifyForIpc(payload: { intent: string; before: any; after: any; diagnosis?: any }) {
+  const safePayload = {
+    ...payload,
+    intent: redactForModel(payload.intent),
+    before: sanitizeForPersistence(payload.before),
+    after: sanitizeForPersistence(payload.after),
+    diagnosis: sanitizeForPersistence(payload.diagnosis),
+  };
+  return await doctorVerify(safePayload);
+}
 
-ipcMain.handle(
-  "rina:doctor:executeFix",
-  async (_event, plan: any, confirmed: boolean, confirmationText: string) => {
-    const steps = Array.isArray(plan?.steps) ? plan.steps : [];
-    const projectRoot = resolveProjectRootSafe(process.cwd());
-    for (const s of steps) {
-      const cmd = s?.input?.command;
-      if (typeof cmd !== "string" || !cmd.trim()) continue;
-      const stepRisk: Risk = s?.risk === "high-impact" ? "high-impact" : s?.risk === "read" ? "read" : "safe-write";
-      const profileGate = gateProfileCommand({
-        projectRoot,
-        command: cmd,
-        risk: stepRisk,
-        confirmed,
-        confirmationText: confirmationText ?? "",
-      });
-      if (!profileGate.ok) {
-        return {
-          ok: false,
-          haltedBecause: profileGate.message,
-          steps: [],
-        };
-      }
-      const gate = evaluatePolicyGate(cmd, confirmed, confirmationText ?? "");
-      if (!gate.ok) {
-        return {
-          ok: false,
-          haltedBecause: gate.message || "Blocked by policy.",
-          steps: [],
-        };
-      }
+async function doctorExecuteFixForIpc(plan: any, confirmed: boolean, confirmationText: string) {
+  const steps = Array.isArray(plan?.steps) ? plan.steps : [];
+  const projectRoot = resolveProjectRootSafe(process.cwd());
+  for (const step of steps) {
+    const command = step?.input?.command;
+    if (typeof command !== "string" || !command.trim()) continue;
+    const stepRisk: Risk = step?.risk === "high-impact" ? "high-impact" : step?.risk === "read" ? "read" : "safe-write";
+    const profileGate = gateProfileCommand({
+      projectRoot,
+      command,
+      risk: stepRisk,
+      confirmed,
+      confirmationText: confirmationText ?? "",
+    });
+    if (!profileGate.ok) {
+      return { ok: false, haltedBecause: profileGate.message, steps: [] };
     }
-    return await doctorExecuteFix(plan, confirmed, confirmationText);
+    const gate = evaluatePolicyGate(command, confirmed, confirmationText ?? "");
+    if (!gate.ok) {
+      return { ok: false, haltedBecause: gate.message || "Blocked by policy.", steps: [] };
+    }
   }
-);
+  return await doctorExecuteFix(plan, confirmed, confirmationText);
+}
 
-ipcMain.handle("rina:doctor:transcript:get", async () => doctorGetTranscript());
+async function doctorTranscriptGetForIpc() {
+  return doctorGetTranscript();
+}
 
-ipcMain.handle("rina:doctor:transcript:export", async (_event, format: "json" | "text") =>
-  doctorExportTranscript(format)
-);
+async function doctorTranscriptExportForIpc(format: "json" | "text") {
+  return doctorExportTranscript(format);
+}
 
 // ============================================================
 // Chat-Only Control Protocol - Conversation Orchestrator
@@ -3747,8 +3726,7 @@ function formatOutcomeForChat(outcome: any, verification: any): string {
   return msg;
 }
 
-// Core chat handler - now uses chat-router.ts
-ipcMain.handle("rina:chat:send", async (_event, text: string, projectRoot?: string) => {
+async function chatSendForIpc(text: string, projectRoot?: string) {
   const safeText = redactText(String(text || "")).redactedText;
   const root = resolveProjectRootSafe(projectRoot || getDefaultPtyCwd());
   const profile = defaultProfileForProject(root);
@@ -3759,12 +3737,11 @@ ipcMain.handle("rina:chat:send", async (_event, text: string, projectRoot?: stri
     rulesWarnings: rules.warnings,
     profileSummary: summarizeProfile(profile),
   });
-});
+}
 
-// Export transcript handler
-ipcMain.handle("rina:chat:export", async () => {
+async function chatExportForIpc() {
   return doctorExportTranscript("text");
-});
+}
 
 // ============================================================
 // Warp-like Block Handlers
@@ -3903,6 +3880,15 @@ app.whenReady().then(() => {
     orchestratorCreatePrForIpc,
     orchestratorCiStatusForIpc,
     orchestratorReviewCommentForIpc,
+    chatSendForIpc,
+    chatExportForIpc,
+    doctorInspectForIpc,
+    doctorCollectForIpc,
+    doctorInterpretForIpc,
+    doctorVerifyForIpc,
+    doctorExecuteFixForIpc,
+    doctorTranscriptGetForIpc,
+    doctorTranscriptExportForIpc,
   });
   createWindow();
   app.on("activate", () => {
