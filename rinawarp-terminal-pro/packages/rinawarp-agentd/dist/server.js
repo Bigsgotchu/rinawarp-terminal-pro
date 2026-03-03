@@ -22,8 +22,9 @@ import { validateTaskPayload } from "./daemon/task-contracts.js";
 import { createIssueToPrWorkflow, queueRevisionFromReview, readWorkspaceGraph, recordCiStatus, recordPullRequestStatus, } from "./orchestrator/workspaceGraph.js";
 import { createPullRequest } from "./orchestrator/githubAdapter.js";
 import { createOrSwitchBranch, currentBranch, ensureGitRepo } from "./orchestrator/gitProvider.js";
-import { acceptInvite, createInvite, createWorkspace, getAuditRetentionConfig, getSyncState, getWorkspace, listInvites, lockWorkspace, queryAudit, revokeInvite, rotateInviteSecurityKeys, runAuditCleanup, setAuditRetentionConfig, setBillingEnforcement, syncPull, syncPush, unlockWorkspace, updateInviteSecurityConfig, } from "./workspace/state.js";
-import { getMaskedEmailConfig, sendEmail, setEmailConfig } from "./workspace/email.js";
+import { acceptInvite, applyStripeWebhookEvent, createInvite, createWorkspace, getAuditRetentionConfig, getWorkspaceActorRole, getSyncState, getWorkspace, listInvites, lockWorkspace, queryAudit, revokeInvite, rotateInviteSecurityKeys, runAuditCleanup, setAuditRetentionConfig, setBillingEnforcement, syncPull, syncPush, unlockWorkspace, updateInviteSecurityConfig, } from "./workspace/state.js";
+import { enqueueEmail, getMaskedEmailConfig, setEmailConfig, startEmailWorker } from "./workspace/email.js";
+import { getIdempotentReplay, storeIdempotentResponse } from "./workspace/idempotency.js";
 const engine = new ExecutionEngine(createStandardRegistry());
 function expectedSafety(risk) {
     if (risk === "high-impact") {
@@ -345,6 +346,41 @@ function accountPlanFromEnv() {
         renews_at: renewsAt,
     };
 }
+function roleRank(role) {
+    if (role === "owner")
+        return 3;
+    if (role === "admin")
+        return 2;
+    return 1;
+}
+function ensureWorkspaceRole(req, workspaceId, minRole) {
+    const actor = actorFromRequest(req);
+    const role = getWorkspaceActorRole({
+        workspaceId,
+        actorId: actor.actorId,
+        actorEmail: actor.actorEmail,
+    });
+    if (!role) {
+        const e = new Error("forbidden");
+        e.statusCode = 403;
+        throw e;
+    }
+    if (roleRank(role) < roleRank(minRole)) {
+        const e = new Error("forbidden");
+        e.statusCode = 403;
+        throw e;
+    }
+    return { ...actor, role };
+}
+function requireIdempotency(req) {
+    const key = String(req.headers["idempotency-key"] || "").trim();
+    if (!key) {
+        const e = new Error("idempotency_key_required");
+        e.statusCode = 400;
+        throw e;
+    }
+    return key;
+}
 function daemonRunnerPath() {
     const here = path.dirname(fileURLToPath(import.meta.url));
     return path.join(here, "daemon", "runner.js");
@@ -426,6 +462,7 @@ function incFailureClass(name) {
 }
 export function createServer(opts) {
     const { port } = opts;
+    startEmailWorker();
     const server = http.createServer(async (req, res) => {
         try {
             setCors(req, res);
@@ -496,6 +533,21 @@ export function createServer(opts) {
                     access_token: accessToken,
                     expires_in: 3600,
                 });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/webhooks/stripe") {
+                const payload = await readJson(req);
+                const type = String(payload?.type || "").trim();
+                const workspaceId = String(payload?.data?.object?.metadata?.workspace_id || payload?.workspace_id || "").trim();
+                if (!type || !workspaceId)
+                    return sendJson(res, 400, { ok: false, error: "type and workspace_id are required" });
+                const updated = applyStripeWebhookEvent({
+                    workspaceId,
+                    type,
+                    seatsAllowed: Number(payload?.data?.object?.seats_allowed ?? payload?.seats_allowed),
+                });
+                if (!updated)
+                    return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                return sendJson(res, 200, { ok: true, workspace: updated });
             }
             // auth for protected routes
             requireAuth(req);
@@ -820,22 +872,35 @@ export function createServer(opts) {
             }
             // --- WORKSPACE / TEAM BACKEND SURFACE (v1)
             if (req.method === "POST" && url.pathname === "/v1/workspaces") {
+                const idempotencyKey = requireIdempotency(req);
                 const body = (await readJson(req));
                 const name = String(body?.name || "").trim();
                 if (!name)
                     return sendJson(res, 400, { ok: false, error: "name is required" });
                 const { actorId, actorEmail } = actorFromRequest(req);
+                const replay = getIdempotentReplay({ key: idempotencyKey, userId: actorId, route: "POST:/v1/workspaces" });
+                if (replay)
+                    return sendJson(res, replay.status, replay.response);
                 const created = createWorkspace({
                     name,
                     region: body?.region,
                     ownerId: actorId,
                     ownerEmail: actorEmail,
                 });
-                return sendJson(res, 200, { workspace_id: created.id, owner_id: created.owner_id });
+                const response = { workspace_id: created.id, owner_id: created.owner_id };
+                storeIdempotentResponse({
+                    key: idempotencyKey,
+                    userId: actorId,
+                    route: "POST:/v1/workspaces",
+                    status: 200,
+                    response,
+                });
+                return sendJson(res, 200, response);
             }
             const workspaceGetMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)$/);
             if (req.method === "GET" && workspaceGetMatch) {
                 const workspaceId = decodeURIComponent(workspaceGetMatch[1] || "");
+                ensureWorkspaceRole(req, workspaceId, "member");
                 const ws = getWorkspace(workspaceId);
                 if (!ws)
                     return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
@@ -844,6 +909,11 @@ export function createServer(opts) {
             const workspaceInviteCreateMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/invites$/);
             if (req.method === "POST" && workspaceInviteCreateMatch) {
                 const workspaceId = decodeURIComponent(workspaceInviteCreateMatch[1] || "");
+                const actor = ensureWorkspaceRole(req, workspaceId, "admin");
+                const idempotencyKey = requireIdempotency(req);
+                const replay = getIdempotentReplay({ key: idempotencyKey, userId: actor.actorId, route: `POST:/v1/workspaces/${workspaceId}/invites` });
+                if (replay)
+                    return sendJson(res, replay.status, replay.response);
                 const body = (await readJson(req));
                 const email = String(body?.email || "").trim().toLowerCase();
                 const role = String(body?.role || "member").trim().toLowerCase();
@@ -852,7 +922,6 @@ export function createServer(opts) {
                 if (!["owner", "admin", "member"].includes(role)) {
                     return sendJson(res, 400, { ok: false, error: "role must be owner|admin|member" });
                 }
-                const { actorId } = actorFromRequest(req);
                 try {
                     const created = createInvite({
                         workspaceId,
@@ -860,14 +929,14 @@ export function createServer(opts) {
                         role,
                         expiresInHours: Number(body?.expires_in_hours || 72),
                         sendEmail: body?.send_email === true,
-                        actorId,
+                        actorId: actor.actorId,
                     });
                     if (!created)
                         return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
                     let emailDelivery;
                     if (body?.send_email === true && created.invite_token) {
                         const acceptUrl = `https://www.rinawarptech.com/login/?invite_token=${encodeURIComponent(created.invite_token)}`;
-                        emailDelivery = await sendEmail({
+                        const queued = enqueueEmail({
                             to: email,
                             subject: "Your RinaWarp workspace invite",
                             text: [
@@ -879,25 +948,37 @@ export function createServer(opts) {
                                 "If you did not expect this invite, ignore this message.",
                             ].join("\n"),
                         });
+                        emailDelivery = { queued: true, job_id: queued.job_id };
                     }
-                    return sendJson(res, 200, {
+                    const response = {
                         invite_id: created.invite_id,
                         expires_at: created.expires_at,
                         // For local agentd only, return token to allow manual testing.
                         invite_token: created.invite_token || undefined,
                         email: emailDelivery || undefined,
+                    };
+                    storeIdempotentResponse({
+                        key: idempotencyKey,
+                        userId: actor.actorId,
+                        route: `POST:/v1/workspaces/${workspaceId}/invites`,
+                        status: 200,
+                        response,
                     });
+                    return sendJson(res, 200, response);
                 }
                 catch (error) {
                     const message = error instanceof Error ? error.message : String(error);
                     if (message === "workspace_locked")
                         return sendJson(res, 423, { ok: false, error: "workspace_locked" });
+                    if (message === "seat_limit_reached")
+                        return sendJson(res, 402, { ok: false, error: "payment_required" });
                     return sendJson(res, 400, { ok: false, error: message });
                 }
             }
             const workspaceInviteListMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/invites$/);
             if (req.method === "GET" && workspaceInviteListMatch) {
                 const workspaceId = decodeURIComponent(workspaceInviteListMatch[1] || "");
+                ensureWorkspaceRole(req, workspaceId, "admin");
                 const ws = getWorkspace(workspaceId);
                 if (!ws)
                     return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
@@ -930,11 +1011,11 @@ export function createServer(opts) {
             const billingEnforceMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/billing\/enforce$/);
             if (req.method === "PUT" && billingEnforceMatch) {
                 const workspaceId = decodeURIComponent(billingEnforceMatch[1] || "");
+                const actor = ensureWorkspaceRole(req, workspaceId, "owner");
                 const body = (await readJson(req));
-                const { actorId } = actorFromRequest(req);
                 const updated = setBillingEnforcement({
                     workspaceId,
-                    actorId,
+                    actorId: actor.actorId,
                     requireActivePlan: !!body?.require_active_plan,
                 });
                 if (!updated)
@@ -944,29 +1025,54 @@ export function createServer(opts) {
             const workspaceLockMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/lock$/);
             if (req.method === "POST" && workspaceLockMatch) {
                 const workspaceId = decodeURIComponent(workspaceLockMatch[1] || "");
+                const actor = ensureWorkspaceRole(req, workspaceId, "owner");
+                const idempotencyKey = requireIdempotency(req);
+                const replay = getIdempotentReplay({ key: idempotencyKey, userId: actor.actorId, route: `POST:/v1/workspaces/${workspaceId}/lock` });
+                if (replay)
+                    return sendJson(res, replay.status, replay.response);
                 const body = (await readJson(req));
-                const { actorId } = actorFromRequest(req);
                 const updated = lockWorkspace({
                     workspaceId,
-                    actorId,
+                    actorId: actor.actorId,
                     reason: String(body?.reason || "manual_lock"),
                 });
                 if (!updated)
                     return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
-                return sendJson(res, 200, { ok: true, workspace: updated });
+                const response = { ok: true, workspace: updated };
+                storeIdempotentResponse({
+                    key: idempotencyKey,
+                    userId: actor.actorId,
+                    route: `POST:/v1/workspaces/${workspaceId}/lock`,
+                    status: 200,
+                    response,
+                });
+                return sendJson(res, 200, response);
             }
             const workspaceUnlockMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/unlock$/);
             if (req.method === "POST" && workspaceUnlockMatch) {
                 const workspaceId = decodeURIComponent(workspaceUnlockMatch[1] || "");
-                const { actorId } = actorFromRequest(req);
-                const updated = unlockWorkspace({ workspaceId, actorId });
+                const actor = ensureWorkspaceRole(req, workspaceId, "owner");
+                const idempotencyKey = requireIdempotency(req);
+                const replay = getIdempotentReplay({ key: idempotencyKey, userId: actor.actorId, route: `POST:/v1/workspaces/${workspaceId}/unlock` });
+                if (replay)
+                    return sendJson(res, replay.status, replay.response);
+                const updated = unlockWorkspace({ workspaceId, actorId: actor.actorId });
                 if (!updated)
                     return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
-                return sendJson(res, 200, { ok: true, workspace: updated });
+                const response = { ok: true, workspace: updated };
+                storeIdempotentResponse({
+                    key: idempotencyKey,
+                    userId: actor.actorId,
+                    route: `POST:/v1/workspaces/${workspaceId}/unlock`,
+                    status: 200,
+                    response,
+                });
+                return sendJson(res, 200, response);
             }
             const workspaceAuditMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/audit$/);
             if (req.method === "GET" && workspaceAuditMatch) {
                 const workspaceId = decodeURIComponent(workspaceAuditMatch[1] || "");
+                ensureWorkspaceRole(req, workspaceId, "admin");
                 const type = String(url.searchParams.get("type") || "");
                 const from = String(url.searchParams.get("from") || "");
                 const to = String(url.searchParams.get("to") || "");
@@ -994,14 +1100,12 @@ export function createServer(opts) {
                 const to = String(body?.to || "").trim().toLowerCase();
                 if (!to)
                     return sendJson(res, 400, { ok: false, error: "to is required" });
-                const result = await sendEmail({
+                const queued = enqueueEmail({
                     to,
                     subject: "RinaWarp email test",
                     text: `RinaWarp email test sent at ${new Date().toISOString()}`,
                 });
-                if (!result.ok)
-                    return sendJson(res, 502, { ok: false, error: result.error || "email_send_failed", provider: result.provider });
-                return sendJson(res, 200, { ok: true, provider: result.provider });
+                return sendJson(res, 200, { ok: true, queued: true, job_id: queued.job_id });
             }
             if (req.method === "PUT" && url.pathname === "/v1/admin/security/invites") {
                 const body = (await readJson(req));
@@ -1032,6 +1136,7 @@ export function createServer(opts) {
             const syncStateMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/sync\/state$/);
             if (req.method === "GET" && syncStateMatch) {
                 const workspaceId = decodeURIComponent(syncStateMatch[1] || "");
+                ensureWorkspaceRole(req, workspaceId, "member");
                 const state = getSyncState(workspaceId);
                 if (!state)
                     return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
@@ -1040,6 +1145,7 @@ export function createServer(opts) {
             const syncPullMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/sync\/pull$/);
             if (req.method === "POST" && syncPullMatch) {
                 const workspaceId = decodeURIComponent(syncPullMatch[1] || "");
+                ensureWorkspaceRole(req, workspaceId, "member");
                 const body = (await readJson(req));
                 const pulled = syncPull({ workspaceId, sinceVersion: Number(body?.since_version || 0) });
                 if (!pulled)
@@ -1049,8 +1155,8 @@ export function createServer(opts) {
             const syncPushMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)\/sync\/push$/);
             if (req.method === "POST" && syncPushMatch) {
                 const workspaceId = decodeURIComponent(syncPushMatch[1] || "");
+                const actor = ensureWorkspaceRole(req, workspaceId, "member");
                 const body = (await readJson(req));
-                const { actorId } = actorFromRequest(req);
                 try {
                     const pushed = syncPush({
                         workspaceId,
@@ -1058,7 +1164,7 @@ export function createServer(opts) {
                         events: Array.isArray(body?.events)
                             ? body.events.map((evt) => ({ type: String(evt?.type || "client_event"), payload: evt?.payload || {} }))
                             : [],
-                        actorId,
+                        actorId: actor.actorId,
                     });
                     if (!pushed)
                         return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
