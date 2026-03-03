@@ -8,6 +8,11 @@ set -euo pipefail
 
 INSTALLER_DIR="${1:-./dist}"
 PLATFORM="${2:-auto}"
+APP_PACKAGE="${APP_PACKAGE:-apps/terminal-pro/package.json}"
+VER="${VER:-}"
+if [[ -z "$VER" && -f "$APP_PACKAGE" ]]; then
+  VER="$(node -p "require('./$APP_PACKAGE').version" 2>/dev/null || true)"
+fi
 
 echo "=============================================="
 echo "RinaWarp Terminal Pro - Code Signing Check"
@@ -120,9 +125,17 @@ verify_linux() {
   echo "== Linux Code Signing Verification =="
   echo ""
 
-  appimage=$(find "$INSTALLER_DIR" -name "*.AppImage" -type f 2>/dev/null | head -1)
-  deb_file=$(find "$INSTALLER_DIR" -name "*.deb" -type f 2>/dev/null | head -1)
-  rpm_file=$(find "$INSTALLER_DIR" -name "*.rpm" -type f 2>/dev/null | head -1)
+  appimage=""
+  deb_file=""
+  rpm_file=""
+  if [[ -n "$VER" ]]; then
+    appimage="$(find "$INSTALLER_DIR" -name "*$VER*.AppImage" -type f 2>/dev/null | head -1 || true)"
+    deb_file="$(find "$INSTALLER_DIR" -name "*$VER*.deb" -type f 2>/dev/null | head -1 || true)"
+    rpm_file="$(find "$INSTALLER_DIR" -name "*$VER*.rpm" -type f 2>/dev/null | head -1 || true)"
+  fi
+  if [[ -z "$appimage" ]]; then appimage="$(find "$INSTALLER_DIR" -name "*.AppImage" -type f 2>/dev/null | head -1 || true)"; fi
+  if [[ -z "$deb_file" ]]; then deb_file="$(find "$INSTALLER_DIR" -name "*.deb" -type f 2>/dev/null | head -1 || true)"; fi
+  if [[ -z "$rpm_file" ]]; then rpm_file="$(find "$INSTALLER_DIR" -name "*.rpm" -type f 2>/dev/null | head -1 || true)"; fi
 
   if [[ -n "$appimage" ]]; then
     echo "AppImage: $appimage"

@@ -55,3 +55,4 @@ export type ErrorResponse = {
     error: string;
 };
 export type JsonResponse<T> = T | ErrorResponse;
+//# sourceMappingURL=types.d.ts.map

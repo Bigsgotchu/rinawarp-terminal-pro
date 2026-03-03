@@ -5,7 +5,9 @@ import http from "node:http";
 import { randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { mkdir, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { ExecutionEngine } from "@rinawarp/core/enforcement/index.js";
 import { createStandardRegistry } from "@rinawarp/core/tools/registry.js";
 import { executeViaEngine } from "@rinawarp/core/adapters/unify-execution.js";
@@ -16,6 +18,11 @@ import { handlePreflight, setCors } from "./cors.js";
 import { sseInit, sseSend } from "./streaming.js";
 import { resolveRequestLicense } from "./license.js";
 import type { AgentPlanRequest, ExecutePlanRequest, CancelRequest, AgentPlan, PlanStep, Risk } from "./types.js";
+import { addTask, clearPid, clearState, isPidAlive, paths, readPid, readState, readTaskRegistry, writePid, writeState } from "./daemon/state.js";
+import { validateTaskPayload } from "./daemon/task-contracts.js";
+import { createIssueToPrWorkflow, readWorkspaceGraph } from "./orchestrator/workspaceGraph.js";
+import { createPullRequest } from "./orchestrator/githubAdapter.js";
+import { createOrSwitchBranch, currentBranch, ensureGitRepo } from "./orchestrator/gitProvider.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -142,6 +149,68 @@ function sendJson(res: http.ServerResponse, status: number, body: unknown) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(body));
+}
+
+function daemonRunnerPath(): string {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  return path.join(here, "daemon", "runner.js");
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function startDaemonProcess(): Promise<{ ok: boolean; alreadyRunning?: boolean; pid?: number; error?: string }> {
+  const existingPid = readPid();
+  if (existingPid && isPidAlive(existingPid)) {
+    return { ok: true, alreadyRunning: true, pid: existingPid };
+  }
+  const child = spawn(process.execPath, [daemonRunnerPath()], {
+    detached: true,
+    stdio: "ignore",
+    env: {
+      ...process.env,
+      RINAWARP_AGENT_MODE: "daemon",
+    },
+  });
+  child.unref();
+  if (typeof child.pid !== "number") {
+    return { ok: false, error: "failed to spawn daemon process" };
+  }
+  await sleep(250);
+  if (!isPidAlive(child.pid)) {
+    return { ok: false, error: "daemon process exited immediately" };
+  }
+  const now = new Date().toISOString();
+  writePid(child.pid);
+  writeState({
+    version: 1,
+    pid: child.pid,
+    port: Number(process.env.RINAWARP_AGENTD_PORT || 5055),
+    mode: "local",
+    startedAt: now,
+    updatedAt: now,
+  });
+  return { ok: true, alreadyRunning: false, pid: child.pid };
+}
+
+function stopDaemonProcess(): { ok: boolean; pid?: number; stale?: boolean; error?: string } {
+  const pid = readPid();
+  if (!pid) return { ok: true, stale: true };
+  if (!isPidAlive(pid)) {
+    clearPid();
+    clearState();
+    return { ok: true, stale: true, pid };
+  }
+  try {
+    process.kill(pid, "SIGTERM");
+    clearPid();
+    clearState();
+    return { ok: true, pid };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, pid, error: message };
+  }
 }
 
 async function persistRunReport(projectRoot: string, planRunId: string, report: unknown): Promise<string> {
@@ -431,6 +500,158 @@ export function createServer(opts: { port: number }) {
             mttr_unblock_ms: mttrUnblockMs
           }
         });
+      }
+
+      // --- DAEMON STATUS
+      if (req.method === "GET" && url.pathname === "/v1/daemon/status") {
+        const state = readState();
+        const pid = readPid();
+        const running = !!(pid && isPidAlive(pid));
+        const registry = readTaskRegistry();
+        const counts = registry.tasks.reduce<Record<string, number>>((acc, task) => {
+          acc[task.status] = (acc[task.status] ?? 0) + 1;
+          if (task.deadLetter) acc.dead_letter = (acc.dead_letter ?? 0) + 1;
+          return acc;
+        }, {});
+        return sendJson(res, 200, {
+          ok: true,
+          daemon: {
+            running,
+            pid: running ? pid : null,
+            startedAt: state?.startedAt ?? null,
+            updatedAt: state?.updatedAt ?? null,
+            storeDir: paths().baseDir,
+          },
+          tasks: {
+            total: registry.tasks.length,
+            counts,
+          },
+        });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/daemon/start") {
+        const start = await startDaemonProcess();
+        if (!start.ok) return sendJson(res, 500, { ok: false, error: start.error || "failed to start daemon" });
+        return sendJson(res, 200, {
+          ok: true,
+          started: !start.alreadyRunning,
+          alreadyRunning: !!start.alreadyRunning,
+          pid: start.pid ?? null,
+        });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/daemon/stop") {
+        const stop = stopDaemonProcess();
+        if (!stop.ok) return sendJson(res, 500, { ok: false, error: stop.error || "failed to stop daemon" });
+        return sendJson(res, 200, {
+          ok: true,
+          stopped: !stop.stale,
+          stale: !!stop.stale,
+          pid: stop.pid ?? null,
+        });
+      }
+
+      // --- DAEMON TASK LIST
+      if (req.method === "GET" && url.pathname === "/v1/daemon/tasks") {
+        const status = url.searchParams.get("status");
+        const deadOnly = url.searchParams.get("deadLetter") === "1";
+        const registry = readTaskRegistry();
+        const tasks = registry.tasks.filter((task) => {
+          if (status && task.status !== status) return false;
+          if (deadOnly && task.deadLetter !== true) return false;
+          return true;
+        });
+        return sendJson(res, 200, { ok: true, tasks, updatedAt: registry.updatedAt });
+      }
+
+      // --- DAEMON TASK REGISTER
+      if (req.method === "POST" && url.pathname === "/v1/daemon/tasks") {
+        const body = (await readJson(req)) as { type?: string; payload?: Record<string, unknown>; maxAttempts?: number } | null;
+        const type = String(body?.type || "").trim();
+        const payload = (body?.payload && typeof body.payload === "object" ? body.payload : {}) as Record<string, unknown>;
+        if (!type) return sendJson(res, 400, { ok: false, error: "type is required" });
+        const validationError = validateTaskPayload(type, payload);
+        if (validationError) return sendJson(res, 400, { ok: false, error: validationError });
+        const maxAttempts = body?.maxAttempts;
+        if (maxAttempts !== undefined && (!Number.isFinite(maxAttempts) || maxAttempts < 1)) {
+          return sendJson(res, 400, { ok: false, error: "maxAttempts must be >= 1 when provided" });
+        }
+        const task = addTask({ type, payload, maxAttempts });
+        return sendJson(res, 200, { ok: true, task });
+      }
+
+      // --- ORCHESTRATOR ISSUE -> PR (MVP)
+      if (req.method === "POST" && url.pathname === "/v1/orchestrator/issue-to-pr") {
+        const body = (await readJson(req)) as {
+          issueId?: string;
+          repoPath?: string;
+          branchName?: string;
+          command?: string;
+        } | null;
+        const issueId = String(body?.issueId || "").trim();
+        const repoPath = String(body?.repoPath || "").trim();
+        if (!issueId) return sendJson(res, 400, { ok: false, error: "issueId is required" });
+        if (!repoPath) return sendJson(res, 400, { ok: false, error: "repoPath is required" });
+        const created = createIssueToPrWorkflow({
+          issueId,
+          repoPath,
+          branchName: body?.branchName,
+          command: body?.command,
+        });
+        return sendJson(res, 200, created);
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/orchestrator/workspace-graph") {
+        const graph = readWorkspaceGraph();
+        return sendJson(res, 200, { ok: true, graph });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/orchestrator/git/prepare-branch") {
+        const body = (await readJson(req)) as { repoPath?: string; issueId?: string; branchName?: string } | null;
+        const repoPath = String(body?.repoPath || "").trim();
+        const issueId = String(body?.issueId || "").trim();
+        if (!repoPath) return sendJson(res, 400, { ok: false, error: "repoPath is required" });
+        if (!issueId && !body?.branchName) {
+          return sendJson(res, 400, { ok: false, error: "issueId or branchName is required" });
+        }
+        const branchName = String(body?.branchName || `rina/fix-${issueId}`).replace(/[^\w./-]+/g, "-");
+        await ensureGitRepo(repoPath);
+        const before = await currentBranch(repoPath);
+        await createOrSwitchBranch(repoPath, branchName);
+        const after = await currentBranch(repoPath);
+        return sendJson(res, 200, { ok: true, before, after, branchName });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/orchestrator/github/create-pr") {
+        const body = (await readJson(req)) as {
+          repoSlug?: string;
+          head?: string;
+          base?: string;
+          title?: string;
+          body?: string;
+          draft?: boolean;
+          dryRun?: boolean;
+        } | null;
+        const repoSlug = String(body?.repoSlug || "").trim();
+        const head = String(body?.head || "").trim();
+        const base = String(body?.base || "main").trim();
+        const title = String(body?.title || "").trim();
+        if (!repoSlug || !head || !title) {
+          return sendJson(res, 400, { ok: false, error: "repoSlug, head, and title are required" });
+        }
+        const result = await createPullRequest(
+          {
+            repoSlug,
+            head,
+            base,
+            title,
+            body: body?.body,
+            draft: !!body?.draft,
+          },
+          { dryRun: body?.dryRun !== false },
+        );
+        if (!result.ok) return sendJson(res, 400, result);
+        return sendJson(res, 200, result);
       }
 
       // --- CANCEL (plan or stream)

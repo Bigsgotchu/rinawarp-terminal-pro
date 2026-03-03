@@ -8,22 +8,46 @@ trap 'echo "❌ Failed at line $LINENO"; exit 1' ERR
 # ============================================================
 
 # Configuration
-export VER="${VER:-1.0.0}"
+APP_PACKAGE="${APP_PACKAGE:-apps/terminal-pro/package.json}"
+if [[ -z "${VER:-}" && -f "$APP_PACKAGE" ]]; then
+  VER="$(node -p "require('./$APP_PACKAGE').version" 2>/dev/null || true)"
+fi
+if [[ -z "${VER:-}" ]]; then
+  VER="$(ls -1 rinawarptech-website/web/releases/v*.json 2>/dev/null | sed -E 's#.*v([0-9]+\.[0-9]+\.[0-9]+)\.json#\1#' | sort -V | tail -n1 || true)"
+fi
+if [[ -z "${VER:-}" ]]; then
+  echo "❌ Could not resolve release version. Set VER=<semver> and retry."
+  exit 1
+fi
+export VER
 export BUCKET="${BUCKET:-rinawarp-installers}"
-export DIST_DIR="${DIST_DIR:-./dist}"
+export DIST_DIR="${DIST_DIR:-apps/terminal-pro/dist}"
 export DL_BASE="${DL_BASE:-https://rinawarptech.com/downloads}"
 export API_BASE="${API_BASE:-https://api.rinawarptech.com}"
 
-# All artifacts that should be in R2
-FILES=(
-  "RinaWarp-Terminal-Pro-$VER.dmg"
-  "RinaWarp-Terminal-Pro-$VER.exe"
-  "RinaWarp-Terminal-Pro-$VER.AppImage"
-  "RinaWarp-Terminal-Pro-$VER.amd64.deb"
-  "RinaWarp-Terminal-Pro-$VER.x86_64.rpm"
-  "RinaWarp-Terminal-Pro-$VER-macOS.zip"
-  "RinaWarp-Terminal-Pro-$VER-win32.zip"
-)
+# All artifacts that should be in R2 for the current release
+if [[ -n "${FILES_CSV:-}" ]]; then
+  IFS=',' read -r -a FILES <<< "$FILES_CSV"
+else
+  CANDIDATES=(
+    "RinaWarp-Terminal-Pro-$VER.dmg"
+    "RinaWarp-Terminal-Pro-$VER.exe"
+    "RinaWarp-Terminal-Pro-$VER.AppImage"
+    "RinaWarp-Terminal-Pro-$VER.amd64.deb"
+    "RinaWarp-Terminal-Pro-$VER.x86_64.rpm"
+    "RinaWarp-Terminal-Pro-$VER-macOS.zip"
+    "RinaWarp-Terminal-Pro-$VER-win32.zip"
+  )
+  FILES=()
+  for f in "${CANDIDATES[@]}"; do
+    [[ -f "$DIST_DIR/$f" ]] && FILES+=("$f")
+  done
+fi
+
+if (( ${#FILES[@]} == 0 )); then
+  echo "❌ No release artifacts found in $DIST_DIR for version $VER"
+  exit 1
+fi
 
 # ============================================================
 # STEP 0: Pre-Flight Checks (Routing, TTL, Webhook)
@@ -57,7 +81,10 @@ fi
 echo ""
 echo "== B) Verify token TTL (should be 24h) =="
 TOKEN_TTL_JSON=$(curl -sS "https://rinawarp-downloads.rinawarptech.workers.dev/api/download-token?customer_id=cus_TEST" 2>/dev/null || echo '{"error":"failed"}')
-echo "$TOKEN_TTL_JSON" | python3 -c "import sys, json, time; d=json.load(sys.stdin); exp=d.get('expires_at') or d.get('exp'); print('expires_at:', exp); print('hours:', round((exp - int(time.time()*1000))/3600000, 2) if exp else 'N/A')" 2>/dev/null || echo "⚠ Could not verify TTL"
+echo "$TOKEN_TTL_JSON" | python3 -c "import sys, json, time, datetime; d=json.load(sys.stdin); exp=d.get('expires_at') or d.get('exp'); print('expires_at:', exp); ms=None; \
+ms = exp if isinstance(exp, (int, float)) else None; \
+ms = int(datetime.datetime.fromisoformat(exp.replace('Z', '+00:00')).timestamp()*1000) if isinstance(exp, str) and exp else ms; \
+print('hours:', round((ms - int(time.time()*1000))/3600000, 2) if ms else 'N/A')" 2>/dev/null || echo "⚠ Could not verify TTL"
 
 echo ""
 echo "== C) Verify Stripe webhook is reachable =="
@@ -100,6 +127,10 @@ echo ""
 echo "=============================================="
 echo "STEP 2: Upload to R2"
 echo "=============================================="
+echo "Version: $VER"
+echo "Dist dir: $DIST_DIR"
+echo "Artifacts selected: ${#FILES[@]}"
+printf ' - %s\n' "${FILES[@]}"
 
 # Check that all files exist before attempting upload (fail-fast)
 echo "== Checking dist files exist =="
@@ -109,6 +140,16 @@ for f in "${FILES[@]}"; do
     exit 1
   fi
   echo "✅ Found: $DIST_DIR/$f"
+done
+
+REQUIRED_FILES_CSV="${REQUIRED_FILES_CSV:-RinaWarp-Terminal-Pro-$VER.exe,RinaWarp-Terminal-Pro-$VER.AppImage,RinaWarp-Terminal-Pro-$VER.amd64.deb}"
+IFS=',' read -r -a REQUIRED_FILES <<< "$REQUIRED_FILES_CSV"
+for f in "${REQUIRED_FILES[@]}"; do
+  if [[ ! -f "$DIST_DIR/$f" ]]; then
+    echo "❌ Missing required artifact: $DIST_DIR/$f"
+    echo "   Set REQUIRED_FILES_CSV to override for an intentional different release matrix."
+    exit 1
+  fi
 done
 
 # Show file sizes (local + R2 verification)
@@ -124,13 +165,20 @@ echo ""
 echo "== Uploading to R2 bucket: $BUCKET =="
 for f in "${FILES[@]}"; do
   echo "-> $f"
-  npx wrangler r2 object put "$BUCKET/$f" --file "$DIST_DIR/$f"
+  npx wrangler r2 object put "$BUCKET/$f" --file "$DIST_DIR/$f" --remote
 done
 
 # Confirm objects exist in R2
 echo ""
 echo "== Confirm objects exist in R2 =="
-npx wrangler r2 object list "$BUCKET" | grep -E "$VER|RinaWarp-Terminal-Pro" || echo "(no objects found)"
+for f in "${FILES[@]}"; do
+  if npx wrangler r2 object get "$BUCKET/$f" --remote --pipe >/dev/null 2>&1; then
+    echo "✅ R2 object present: $f"
+  else
+    echo "❌ R2 object missing: $f"
+    exit 1
+  fi
+done
 
 # ============================================================
 # STEP 3: Verify downloads work (token succeeds, no-token fails)
@@ -145,6 +193,7 @@ echo "== A) Seeding test entitlement =="
 npx wrangler d1 execute rinawarp-prod --command \
   "INSERT OR REPLACE INTO entitlements (customer_id, tier, status, customer_email, subscription_id, updated_at)
    VALUES ('cus_TEST', 'team', 'active', 'test@rinawarptech.com', NULL, strftime('%s','now')*1000);" \
+  --remote \
   2>/dev/null || echo "(wrangler not available or D1 error - continuing)"
 
 # B) Mint a 24h token (redacted output)
@@ -224,6 +273,7 @@ echo "=============================================="
 echo "== A) Revoke test entitlement =="
 npx wrangler d1 execute rinawarp-prod --command \
   "UPDATE entitlements SET status='canceled', updated_at=strftime('%s','now')*1000 WHERE customer_id='cus_TEST';" \
+  --remote \
   2>/dev/null || echo "(wrangler not available)"
 
 echo ""
@@ -251,6 +301,7 @@ echo ""
 echo "== D) Restore test entitlement =="
 npx wrangler d1 execute rinawarp-prod --command \
   "UPDATE entitlements SET status='active', updated_at=strftime('%s','now')*1000 WHERE customer_id='cus_TEST';" \
+  --remote \
   2>/dev/null || echo "(wrangler not available)"
 
 # ============================================================
@@ -285,8 +336,7 @@ echo "STEP 6: Post-Launch Confidence Checks"
 echo "=============================================="
 
 echo "== A) Download token endpoint reachable =="
-TOKEN_ENDPOINT="${API_BASE/https:\/\//https://rinawarp-downloads.rinawarptech.workers.dev/}"
-TOKEN_ENDPOINT="${TOKEN_ENDPOINT/api/download-token}/api/download-token"
+TOKEN_ENDPOINT="${TOKEN_ENDPOINT:-https://rinawarp-downloads.rinawarptech.workers.dev/api/download-token}"
 curl -sS "$TOKEN_ENDPOINT?customer_id=cus_TEST" 2>/dev/null | python3 -m json.tool >/dev/null 2>&1 && echo "✅ Token endpoint responding" || echo "⚠ Token endpoint check skipped"
 
 echo ""

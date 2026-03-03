@@ -1,1 +1,0 @@
-This folder contains the built output assets for the worker "rinawarp-stripe-webhook" generated at 2026-02-12T08:57:01.184Z.

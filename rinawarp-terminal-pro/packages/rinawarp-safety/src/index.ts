@@ -11,3 +11,11 @@ export {
   getRiskDescription,
   analyzeCommand 
 } from "./policy";
+
+export type {
+  RedactionHit,
+  RedactionLevel,
+  RedactionOptions,
+  RedactionResult,
+} from "./redaction";
+export { redactText, shannonEntropyBitsPerChar } from "./redaction";

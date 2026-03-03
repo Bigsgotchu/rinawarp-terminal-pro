@@ -15,3 +15,4 @@ export declare function splitCommand(cmd: string): {
  * Secure environment filtering - prevents credential bleed into agent execution
  */
 export declare function safeEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv;
+//# sourceMappingURL=terminal-internals.d.ts.map

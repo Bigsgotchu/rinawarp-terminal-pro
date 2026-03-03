@@ -17,3 +17,4 @@ import type { LicenseTier } from "@rinawarp/core/enforcement/types.js";
  * 4) fallback: `starter` (safe default)
  */
 export declare function resolveRequestLicense(req: IncomingMessage): LicenseTier;
+//# sourceMappingURL=license.d.ts.map

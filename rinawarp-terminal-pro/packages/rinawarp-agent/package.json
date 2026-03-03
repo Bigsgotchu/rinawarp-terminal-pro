@@ -26,8 +26,8 @@
   "keywords": ["rinawarp", "agent", "skills", "runtime"],
   "license": "MIT",
   "dependencies": {
-    "@rinawarp/safety": "*",
-    "@rinawarp/tools": "*"
+    "@rinawarp/safety": "workspace:*",
+    "@rinawarp/tools": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

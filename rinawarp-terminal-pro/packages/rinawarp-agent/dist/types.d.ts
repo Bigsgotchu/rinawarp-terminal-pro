@@ -111,3 +111,4 @@ export interface WorkspaceContext {
     /** Project type if detectable */
     projectType?: "node" | "rust" | "python" | "go" | "unknown";
 }
+//# sourceMappingURL=types.d.ts.map

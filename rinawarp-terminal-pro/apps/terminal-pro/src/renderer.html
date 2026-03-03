@@ -1838,6 +1838,11 @@
     };
     let diagnosticsCache = null;
     let diagnosticsLoading = false;
+    let daemonDiagnosticsCache = null;
+    let daemonTasksCache = [];
+    let diagnosticsPollTimer = null;
+    let diagnosticsAutoRefreshEnabled = true;
+    let diagnosticsPollIntervalMs = 3000;
     let paletteHistory = [];
     let blockCollapsed = {};
     let structuredSearchQuery = "";
@@ -1853,6 +1858,8 @@
     const ONBOARD_DONE_KEY = "rinawarp:onboard_done:v1";
     const ACTIVATION_STATE_KEY = "rinawarp:activation:v1";
     const AGENT_EVAL_KEY = "rinawarp:agent_eval:v1";
+    const DIAGNOSTICS_AUTO_REFRESH_KEY = "rinawarp:diagnostics:auto_refresh:v1";
+    const DIAGNOSTICS_POLL_INTERVAL_KEY = "rinawarp:diagnostics:poll_interval_ms:v1";
     const ACTIVATION_EVENT_API = "https://api.rinawarptech.com/api/events";
     const THEME_VAR_KEYS = {
       bg: "--rw-bg",
@@ -2920,7 +2927,16 @@
                   <div class="small">Shows the exact files and hashes currently loaded by the app.</div>
                   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
                     <button onclick="refreshDiagnosticsPanel()">${diagnosticsLoading ? "Refreshing..." : "Refresh"}</button>
+                    <button id="diagnosticsAutoRefreshBtn" onclick="toggleDiagnosticsAutoRefresh()">Auto-refresh: On</button>
+                    <select id="diagnosticsPollIntervalSelect" onchange="setDiagnosticsPollInterval(this.value)">
+                      <option value="2000">2s</option>
+                      <option value="5000">5s</option>
+                      <option value="10000">10s</option>
+                    </select>
+                    <button onclick="startDaemonFromUi()">Start Agent Daemon</button>
+                    <button onclick="stopDaemonFromUi()">Stop Agent Daemon</button>
                     <button onclick="copyDiagnosticsPanel()" ${diagnosticsCache ? "" : "disabled"}>Copy JSON</button>
+                    <button onclick="enqueueDaemonSmokeTask()">Queue Agent Smoke Task</button>
                     <button onclick="saveSupportBundle()">Support Bundle</button>
                   </div>
                 </div>
@@ -2930,6 +2946,9 @@
                 </div>
                 <div id="diagnosticsRuntime" class="settings-card">
                   <div class="small">Loading diagnostics…</div>
+                </div>
+                <div id="diagnosticsAgent" class="settings-card">
+                  <div class="small">Loading agent daemon status…</div>
                 </div>
                 <div id="diagnosticsFiles" class="diag-grid"></div>
                 <div id="diagnosticsNotesWrap" class="settings-card" style="display:none;">
@@ -2998,6 +3017,8 @@
       } else if (tab === "team") {
         refreshTeamSummary();
       } else if (tab === "diagnostics") {
+        applyDiagnosticsAutoRefreshButton();
+        applyDiagnosticsPollIntervalSelect();
         refreshDiagnosticsPanel();
       }
     }
@@ -3031,12 +3052,13 @@
 
     function renderDiagnosticsPanel() {
       const runtimeNode = document.getElementById("diagnosticsRuntime");
+      const agentNode = document.getElementById("diagnosticsAgent");
       const filesNode = document.getElementById("diagnosticsFiles");
       const warningsWrap = document.getElementById("diagnosticsWarningsWrap");
       const warningsNode = document.getElementById("diagnosticsWarnings");
       const notesWrap = document.getElementById("diagnosticsNotesWrap");
       const notesNode = document.getElementById("diagnosticsNotes");
-      if (!runtimeNode || !filesNode || !warningsWrap || !warningsNode || !notesWrap || !notesNode) return;
+      if (!runtimeNode || !agentNode || !filesNode || !warningsWrap || !warningsNode || !notesWrap || !notesNode) return;
 
       if (!diagnosticsCache) {
         runtimeNode.innerHTML = `<div class="small">${diagnosticsLoading ? "Loading diagnostics…" : "Diagnostics not loaded yet."}</div>`;
@@ -3076,6 +3098,53 @@
         <div class="settings-row"><span>Active policy</span><span style="font-family:var(--rw-mono);font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(d.active?.policyYamlPath || "—")}</span></div>
       `;
 
+      if (!daemonDiagnosticsCache || !daemonDiagnosticsCache.ok) {
+        const daemonError = daemonDiagnosticsCache?.error
+          ? `Agent daemon diagnostics unavailable: ${escapeHtml(String(daemonDiagnosticsCache.error))}`
+          : "Agent daemon diagnostics unavailable.";
+        agentNode.innerHTML = `
+          <div class="settings-card-title">Agent Daemon</div>
+          <div class="small">${daemonError}</div>
+        `;
+      } else {
+        const daemon = daemonDiagnosticsCache.daemon || {};
+        const taskInfo = daemonDiagnosticsCache.tasks || {};
+        const counts = taskInfo.counts || {};
+        const running = !!daemon.running;
+        const statusClass = running ? "diag-badge ok" : "diag-badge warn";
+        const statusText = running ? "Running" : "Stopped";
+        const recentTasks = Array.isArray(daemonTasksCache) ? daemonTasksCache.slice(0, 5) : [];
+        const recentTaskRows = recentTasks.length
+          ? recentTasks
+              .map((t) => {
+                const cls =
+                  t.status === "completed"
+                    ? "diag-badge ok"
+                    : t.status === "failed" || t.deadLetter
+                      ? "diag-badge warn"
+                      : "pill";
+                return `
+                  <div class="settings-row">
+                    <span style="font-family:var(--rw-mono);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(String(t.type || "task"))}</span>
+                    <span class="${cls}">${escapeHtml(String(t.status || "unknown"))}</span>
+                  </div>
+                `;
+              })
+              .join("")
+          : `<div class="small">No queued/running/recent tasks yet.</div>`;
+        agentNode.innerHTML = `
+          <div class="settings-card-title">Agent Daemon</div>
+          <div class="settings-row"><span>Status</span><span class="${statusClass}">${statusText}</span></div>
+          <div class="settings-row"><span>PID</span><span class="pill">${escapeHtml(String(daemon.pid || "—"))}</span></div>
+          <div class="settings-row"><span>Store</span><span style="font-family:var(--rw-mono);font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(String(daemon.storeDir || "—"))}</span></div>
+          <div class="settings-row"><span>Tasks total</span><span class="pill">${escapeHtml(String(taskInfo.total ?? 0))}</span></div>
+          <div class="settings-row"><span>Queued / Running</span><span class="pill">${escapeHtml(String(counts.queued || 0))} / ${escapeHtml(String(counts.running || 0))}</span></div>
+          <div class="settings-row"><span>Failed / Dead-letter</span><span class="pill">${escapeHtml(String(counts.failed || 0))} / ${escapeHtml(String(counts.dead_letter || 0))}</span></div>
+          <div class="small" style="margin-top:8px;">Recent tasks</div>
+          ${recentTaskRows}
+        `;
+      }
+
       filesNode.innerHTML = [
         diagnosticsFileCard("Main", resolved.main),
         diagnosticsFileCard("Preload", resolved.preload),
@@ -3090,18 +3159,36 @@
     }
 
     async function refreshDiagnosticsPanel() {
+      if (diagnosticsLoading) return;
       const runtimeNode = document.getElementById("diagnosticsRuntime");
+      const agentNode = document.getElementById("diagnosticsAgent");
       diagnosticsLoading = true;
       if (runtimeNode && !diagnosticsCache) {
         runtimeNode.innerHTML = `<div class="small">Loading diagnostics…</div>`;
+      }
+      if (agentNode && !daemonDiagnosticsCache) {
+        agentNode.innerHTML = `<div class="small">Loading agent daemon status…</div>`;
       }
       try {
         if (!window.rina?.diagnosticsPaths) {
           throw new Error("diagnostics API unavailable");
         }
-        diagnosticsCache = await window.rina.diagnosticsPaths();
+        const [diag, daemon] = await Promise.all([
+          window.rina.diagnosticsPaths(),
+          window.rina?.daemonStatus ? window.rina.daemonStatus() : Promise.resolve({ ok: false, error: "daemon API unavailable" }),
+        ]);
+        diagnosticsCache = diag;
+        daemonDiagnosticsCache = daemon;
+        if (window.rina?.daemonTasks) {
+          const taskResp = await window.rina.daemonTasks();
+          daemonTasksCache = Array.isArray(taskResp?.tasks) ? taskResp.tasks : [];
+        } else {
+          daemonTasksCache = [];
+        }
       } catch (err) {
         diagnosticsCache = null;
+        daemonDiagnosticsCache = null;
+        daemonTasksCache = [];
         const msg = (err && err.message) ? err.message : String(err || "failed");
         if (runtimeNode) {
           runtimeNode.innerHTML = `<div class="small" style="color:#fca5a5;">Diagnostics failed: ${escapeHtml(msg)}</div>`;
@@ -3113,16 +3200,169 @@
       }
     }
 
+    function isDiagnosticsTabVisible() {
+      if (activeSidebarTab !== "settings") return false;
+      const activeSettingsTab = document.querySelector(".sttab.active");
+      return activeSettingsTab?.getAttribute("data-st") === "diagnostics";
+    }
+
+    function startDiagnosticsPolling() {
+      if (diagnosticsPollTimer) clearInterval(diagnosticsPollTimer);
+      diagnosticsPollTimer = setInterval(() => {
+        if (!diagnosticsAutoRefreshEnabled) return;
+        if (!isDiagnosticsTabVisible()) return;
+        void refreshDiagnosticsPanel();
+      }, diagnosticsPollIntervalMs);
+    }
+
+    function applyDiagnosticsAutoRefreshButton() {
+      const btn = document.getElementById("diagnosticsAutoRefreshBtn");
+      if (!btn) return;
+      btn.textContent = `Auto-refresh: ${diagnosticsAutoRefreshEnabled ? "On" : "Off"}`;
+    }
+
+    function loadDiagnosticsAutoRefresh() {
+      try {
+        const raw = localStorage.getItem(DIAGNOSTICS_AUTO_REFRESH_KEY);
+        diagnosticsAutoRefreshEnabled = raw == null ? true : raw !== "0";
+      } catch {
+        diagnosticsAutoRefreshEnabled = true;
+      }
+    }
+
+    function loadDiagnosticsPollInterval() {
+      try {
+        const raw = localStorage.getItem(DIAGNOSTICS_POLL_INTERVAL_KEY);
+        const parsed = Number(raw);
+        if (parsed === 2000 || parsed === 5000 || parsed === 10000) {
+          diagnosticsPollIntervalMs = parsed;
+          return;
+        }
+        diagnosticsPollIntervalMs = 3000;
+      } catch {
+        diagnosticsPollIntervalMs = 3000;
+      }
+    }
+
+    function persistDiagnosticsAutoRefresh() {
+      try {
+        localStorage.setItem(DIAGNOSTICS_AUTO_REFRESH_KEY, diagnosticsAutoRefreshEnabled ? "1" : "0");
+      } catch {
+        // ignore storage issues
+      }
+    }
+
+    function toggleDiagnosticsAutoRefresh() {
+      diagnosticsAutoRefreshEnabled = !diagnosticsAutoRefreshEnabled;
+      persistDiagnosticsAutoRefresh();
+      applyDiagnosticsAutoRefreshButton();
+      toast(`Diagnostics auto-refresh ${diagnosticsAutoRefreshEnabled ? "enabled" : "disabled"}`);
+    }
+
+    function applyDiagnosticsPollIntervalSelect() {
+      const el = document.getElementById("diagnosticsPollIntervalSelect");
+      if (!el) return;
+      const val = String(diagnosticsPollIntervalMs);
+      if (el.value !== val) el.value = val;
+    }
+
+    function setDiagnosticsPollInterval(raw) {
+      const parsed = Number(raw);
+      if (!(parsed === 2000 || parsed === 5000 || parsed === 10000)) {
+        toast("Invalid diagnostics interval");
+        return;
+      }
+      diagnosticsPollIntervalMs = parsed;
+      try {
+        localStorage.setItem(DIAGNOSTICS_POLL_INTERVAL_KEY, String(parsed));
+      } catch {
+        // ignore storage issues
+      }
+      startDiagnosticsPolling();
+      toast(`Diagnostics interval set to ${Math.round(parsed / 1000)}s`);
+    }
+
     async function copyDiagnosticsPanel() {
-      if (!diagnosticsCache) {
+      if (!diagnosticsCache && !daemonDiagnosticsCache) {
         toast("No diagnostics loaded yet");
         return;
       }
       try {
-        await navigator.clipboard.writeText(JSON.stringify(diagnosticsCache, null, 2));
+        await navigator.clipboard.writeText(
+          JSON.stringify(
+            {
+              runtime: diagnosticsCache,
+              agentDaemon: daemonDiagnosticsCache,
+              agentTasks: daemonTasksCache,
+            },
+            null,
+            2,
+          ),
+        );
         toast("Diagnostics copied");
       } catch {
         toast("Copy failed");
+      }
+    }
+
+    async function enqueueDaemonSmokeTask() {
+      try {
+        if (!window.rina?.daemonTaskAdd) {
+          toast("Daemon task API unavailable");
+          return;
+        }
+        const res = await window.rina.daemonTaskAdd({
+          type: "run_command",
+          payload: { command: "echo rinawarp-agent-smoke" },
+          maxAttempts: 2,
+        });
+        if (!res?.ok) {
+          toast(`Queue failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast("Agent smoke task queued");
+        await refreshDiagnosticsPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`Queue failed: ${msg}`);
+      }
+    }
+
+    async function startDaemonFromUi() {
+      try {
+        if (!window.rina?.daemonStart) {
+          toast("Daemon control API unavailable");
+          return;
+        }
+        const res = await window.rina.daemonStart();
+        if (!res?.ok) {
+          toast(`Start failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast(res.alreadyRunning ? "Agent daemon already running" : "Agent daemon started");
+        await refreshDiagnosticsPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`Start failed: ${msg}`);
+      }
+    }
+
+    async function stopDaemonFromUi() {
+      try {
+        if (!window.rina?.daemonStop) {
+          toast("Daemon control API unavailable");
+          return;
+        }
+        const res = await window.rina.daemonStop();
+        if (!res?.ok) {
+          toast(`Stop failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast(res.stale ? "Agent daemon already stopped" : "Agent daemon stopped");
+        await refreshDiagnosticsPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`Stop failed: ${msg}`);
       }
     }
 
@@ -5690,6 +5930,8 @@
     loadWorkspaceHistory();
     ensureWorkspaceRoot().catch(() => {});
     loadSavedSearches();
+    loadDiagnosticsAutoRefresh();
+    loadDiagnosticsPollInterval();
     restoreUiSnapshot();
     loadThemeState()
       .then(() => {
@@ -5708,8 +5950,10 @@
     applySidePanelsVisibility();
     // Initial sidebar tab
     setSidebarTab("sessions");
+    startDiagnosticsPolling();
 
     window.addEventListener("beforeunload", () => {
+      if (diagnosticsPollTimer) clearInterval(diagnosticsPollTimer);
       persistUiSnapshot();
     });
   </script>

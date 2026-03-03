@@ -49,3 +49,4 @@ export declare function validatePlan(plan: AgentPlan): string[];
  * @returns The highest risk level in the plan
  */
 export declare function estimatePlanRisk(plan: AgentPlan): RiskLevel;
+//# sourceMappingURL=runtime.d.ts.map

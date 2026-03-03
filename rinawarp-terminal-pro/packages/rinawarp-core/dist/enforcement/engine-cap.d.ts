@@ -16,3 +16,4 @@ export declare function createEngineCap(): EngineCap;
  * Type guard to validate EngineCap at runtime
  */
 export declare function isEngineCap(value: unknown): value is EngineCap;
+//# sourceMappingURL=engine-cap.d.ts.map

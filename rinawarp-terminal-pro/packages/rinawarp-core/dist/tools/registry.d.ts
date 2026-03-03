@@ -155,3 +155,4 @@ export declare function createReadOnlyRegistry(): ToolRegistry;
  */
 export declare function createDoctorRegistry(): ToolRegistry;
 export { FileReadTool, FileWriteTool, FileDeleteTool, FileExistsTool, FileListTool, GitStatusTool, GitLogTool, GitCommitTool, GitStageTool, DoctorSensorsTool, DoctorDfTool, DoctorUptimeTool, DoctorPsTool, DoctorFreeTool, DeployProdTool, DockerPruneTool, };
+//# sourceMappingURL=registry.d.ts.map

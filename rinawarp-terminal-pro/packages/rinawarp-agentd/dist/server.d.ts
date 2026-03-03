@@ -4,3 +4,4 @@ export declare function createServer(opts: {
     listen(): Promise<number>;
     close(): Promise<void>;
 };
+//# sourceMappingURL=server.d.ts.map

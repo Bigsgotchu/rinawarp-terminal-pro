@@ -14,6 +14,16 @@ node_modules/
 # Build outputs (keep dist, only ignore secrets in build dirs)
 **/build/
 
+# Terminal Pro build artifacts
+apps/terminal-pro/dist/
+apps/terminal-pro/dist-electron/
+apps/terminal-pro/out/
+apps/terminal-pro/.vite/
+apps/terminal-pro/test-results/
+apps/terminal-pro/playwright-report/
+apps/terminal-pro/.playwright/
+apps/terminal-pro/.cache/
+
 # OS files
 .DS_Store
 Thumbs.db

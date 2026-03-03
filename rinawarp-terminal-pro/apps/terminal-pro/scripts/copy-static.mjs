@@ -45,6 +45,14 @@ copyDir(
   path.join(projectRoot, "src", "assets"),
   path.join(outDir, "assets")
 );
+copyDir(
+  path.join(projectRoot, "themes"),
+  path.join(outDir, "themes")
+);
+copyDir(
+  path.join(repoRoot, "policy"),
+  path.join(outDir, "policy")
+);
 
 function copyOptional(src, dest) {
   if (!fs.existsSync(src)) {

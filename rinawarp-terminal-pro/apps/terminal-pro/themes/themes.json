@@ -1,0 +1,484 @@
+{
+  "themes": [
+    {
+      "id": "mermaid-teal",
+      "name": "Mermaid - Teal",
+      "group": "Mermaid",
+      "vars": {
+        "--rw-bg": "#061013",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#2de2e6",
+        "--rw-accent2": "#7af3f5",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#061013",
+        "foreground": "#eaffff",
+        "cursor": "#2de2e6",
+        "selection": "rgba(45, 226, 230, 0.18)",
+        "ansi": [
+          "#07161a",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#b57bff",
+          "#2de2e6",
+          "#eaffff",
+          "#23454f",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#d3a8ff",
+          "#7af3f5",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "unicorn",
+      "name": "Unicorn",
+      "group": "Fantasy",
+      "vars": {
+        "--rw-bg": "#070614",
+        "--rw-panel": "rgba(255,255,255,0.035)",
+        "--rw-border": "rgba(255,255,255,0.11)",
+        "--rw-text": "rgba(255,255,255,0.93)",
+        "--rw-muted": "rgba(255,255,255,0.70)",
+        "--rw-accent": "#b57bff",
+        "--rw-accent2": "#ff3bbf",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#070614",
+        "foreground": "#f7e9ff",
+        "cursor": "#ff3bbf",
+        "selection": "rgba(181, 123, 255, 0.20)",
+        "ansi": [
+          "#12102a",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#b57bff",
+          "#ff3bbf",
+          "#f7e9ff",
+          "#3b2a4a",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#d3a8ff",
+          "#ff7ad9",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "cyberpunk-neon",
+      "name": "Cyberpunk - Neon",
+      "group": "Neon",
+      "vars": {
+        "--rw-bg": "#07050f",
+        "--rw-panel": "rgba(255,255,255,0.035)",
+        "--rw-border": "rgba(255,255,255,0.11)",
+        "--rw-text": "rgba(255,255,255,0.93)",
+        "--rw-muted": "rgba(255,255,255,0.70)",
+        "--rw-accent": "#ff3bbf",
+        "--rw-accent2": "#2de2e6",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#07050f",
+        "foreground": "#f7e9ff",
+        "cursor": "#2de2e6",
+        "selection": "rgba(45, 226, 230, 0.18)",
+        "ansi": [
+          "#0f0b18",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#ff3bbf",
+          "#2de2e6",
+          "#f7e9ff",
+          "#34264a",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#ff7ad9",
+          "#7af3f5",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "sunset-coral",
+      "name": "Sunset - Coral Glow",
+      "group": "Warm",
+      "vars": {
+        "--rw-bg": "#0b0708",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#ff6f61",
+        "--rw-accent2": "#ffd166",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#0b0708",
+        "foreground": "#fff7f2",
+        "cursor": "#ff6f61",
+        "selection": "rgba(255, 111, 97, 0.20)",
+        "ansi": [
+          "#140c0f",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#6ea8fe",
+          "#ff6f61",
+          "#2de2e6",
+          "#fff7f2",
+          "#3a232a",
+          "#ff8b82",
+          "#7bffd9",
+          "#ffe199",
+          "#9ac1ff",
+          "#ffb199",
+          "#7af3f5",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "aurora-teal",
+      "name": "Aurora - Teal Violet",
+      "group": "Cool",
+      "vars": {
+        "--rw-bg": "#061013",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#2de2e6",
+        "--rw-accent2": "#b57bff",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#061013",
+        "foreground": "#eaffff",
+        "cursor": "#b57bff",
+        "selection": "rgba(181, 123, 255, 0.18)",
+        "ansi": [
+          "#07161a",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#b57bff",
+          "#2de2e6",
+          "#eaffff",
+          "#23454f",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#d3a8ff",
+          "#7af3f5",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "dracula-plus",
+      "name": "Dracula+",
+      "group": "Classic",
+      "vars": {
+        "--rw-bg": "#0f1021",
+        "--rw-panel": "rgba(255,255,255,0.035)",
+        "--rw-border": "rgba(255,255,255,0.11)",
+        "--rw-text": "rgba(255,255,255,0.93)",
+        "--rw-muted": "rgba(255,255,255,0.70)",
+        "--rw-accent": "#bd93f9",
+        "--rw-accent2": "#ff79c6",
+        "--rw-danger": "#ff5555",
+        "--rw-success": "#50fa7b"
+      },
+      "terminal": {
+        "background": "#0f1021",
+        "foreground": "#f8f8f2",
+        "cursor": "#bd93f9",
+        "selection": "rgba(189, 147, 249, 0.22)",
+        "ansi": [
+          "#21222c",
+          "#ff5555",
+          "#50fa7b",
+          "#f1fa8c",
+          "#6272a4",
+          "#ff79c6",
+          "#8be9fd",
+          "#f8f8f2",
+          "#44475a",
+          "#ff6e6e",
+          "#69ff94",
+          "#ffffa5",
+          "#7aa2f7",
+          "#ff92df",
+          "#a4ffff",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "forest-emerald",
+      "name": "Forest - Emerald",
+      "group": "Nature",
+      "vars": {
+        "--rw-bg": "#07110b",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#3cffb5",
+        "--rw-accent2": "#2de2e6",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#07110b",
+        "foreground": "#eefdf6",
+        "cursor": "#3cffb5",
+        "selection": "rgba(60, 255, 181, 0.18)",
+        "ansi": [
+          "#0b1a12",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#b57bff",
+          "#2de2e6",
+          "#eefdf6",
+          "#2b4a3a",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#d3a8ff",
+          "#7af3f5",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "ocean-babyblue",
+      "name": "Ocean - Baby Blue",
+      "group": "Cool",
+      "vars": {
+        "--rw-bg": "#060b14",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#8ecbff",
+        "--rw-accent2": "#2de2e6",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#060b14",
+        "foreground": "#f4fbff",
+        "cursor": "#8ecbff",
+        "selection": "rgba(142, 203, 255, 0.20)",
+        "ansi": [
+          "#0b1324",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#b57bff",
+          "#8ecbff",
+          "#f4fbff",
+          "#2b3858",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#d3a8ff",
+          "#c9e9ff",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "obsidian-black",
+      "name": "Obsidian - Black",
+      "group": "Minimal",
+      "vars": {
+        "--rw-bg": "#050506",
+        "--rw-panel": "rgba(255,255,255,0.025)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.66)",
+        "--rw-accent": "#2de2e6",
+        "--rw-accent2": "#b57bff",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#050506",
+        "foreground": "#f2f2f2",
+        "cursor": "#2de2e6",
+        "selection": "rgba(45, 226, 230, 0.16)",
+        "ansi": [
+          "#101014",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#b57bff",
+          "#2de2e6",
+          "#f2f2f2",
+          "#2a2a33",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#d3a8ff",
+          "#7af3f5",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "mint-choco",
+      "name": "Mint Choco",
+      "group": "Fun",
+      "vars": {
+        "--rw-bg": "#070f0b",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#3cffb5",
+        "--rw-accent2": "#8ecbff",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#070f0b",
+        "foreground": "#f3fff9",
+        "cursor": "#8ecbff",
+        "selection": "rgba(142, 203, 255, 0.18)",
+        "ansi": [
+          "#0c1712",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#b57bff",
+          "#2de2e6",
+          "#f3fff9",
+          "#2c4a3a",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#d3a8ff",
+          "#c9e9ff",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "rose-gold",
+      "name": "Rose Gold",
+      "group": "Warm",
+      "vars": {
+        "--rw-bg": "#0d080b",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#ff7ad9",
+        "--rw-accent2": "#ffb199",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#0d080b",
+        "foreground": "#fff2fb",
+        "cursor": "#ff7ad9",
+        "selection": "rgba(255, 122, 217, 0.18)",
+        "ansi": [
+          "#1a0f15",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#ff7ad9",
+          "#2de2e6",
+          "#fff2fb",
+          "#4a2a3a",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#ffb199",
+          "#7af3f5",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "lavender-mist",
+      "name": "Lavender Mist",
+      "group": "Soft",
+      "vars": {
+        "--rw-bg": "#070818",
+        "--rw-panel": "rgba(255,255,255,0.03)",
+        "--rw-border": "rgba(255,255,255,0.10)",
+        "--rw-text": "rgba(255,255,255,0.92)",
+        "--rw-muted": "rgba(255,255,255,0.68)",
+        "--rw-accent": "#d3a8ff",
+        "--rw-accent2": "#c9e9ff",
+        "--rw-danger": "#ff4d6d",
+        "--rw-success": "#3cffb5"
+      },
+      "terminal": {
+        "background": "#070818",
+        "foreground": "#f7f2ff",
+        "cursor": "#d3a8ff",
+        "selection": "rgba(211, 168, 255, 0.18)",
+        "ansi": [
+          "#12122a",
+          "#ff4d6d",
+          "#3cffb5",
+          "#ffd166",
+          "#61a0ff",
+          "#d3a8ff",
+          "#2de2e6",
+          "#f7f2ff",
+          "#3b2a4a",
+          "#ff7aa2",
+          "#7bffd9",
+          "#ffe199",
+          "#92c0ff",
+          "#ff7ad9",
+          "#c9e9ff",
+          "#ffffff"
+        ]
+      }
+    }
+  ]
+}

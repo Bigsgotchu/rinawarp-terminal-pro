@@ -67,3 +67,4 @@ export declare function removeFile(filePath: string): Promise<void>;
  * @returns Promise resolving to file info
  */
 export declare function getFileInfo(filePath: string): Promise<FileInfo>;
+//# sourceMappingURL=filesystem.d.ts.map

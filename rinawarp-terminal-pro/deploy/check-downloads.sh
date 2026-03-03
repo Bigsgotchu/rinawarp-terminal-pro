@@ -11,16 +11,40 @@ trap 'echo "❌ Failed at line $LINENO"; exit 1' ERR
 BASE="${1:-https://rinawarptech.com/downloads}"
 TOKEN="${2:-}"
 VERIFY_NO_TOKEN="${3:-}"
+APP_PACKAGE="${APP_PACKAGE:-apps/terminal-pro/package.json}"
+VER="${VER:-}"
+if [[ -z "$VER" && -f "$APP_PACKAGE" ]]; then
+  VER="$(node -p "require('./$APP_PACKAGE').version" 2>/dev/null || true)"
+fi
+if [[ -z "$VER" ]]; then
+  VER="$(ls -1 rinawarptech-website/web/releases/v*.json 2>/dev/null | sed -E 's#.*v([0-9]+\.[0-9]+\.[0-9]+)\.json#\1#' | sort -V | tail -n1 || true)"
+fi
+if [[ -z "$VER" ]]; then
+  echo "❌ Could not resolve release version. Set VER=<semver> and retry."
+  exit 1
+fi
 
-FILES=(
-  "RinaWarp-Terminal-Pro-1.0.0.dmg"
-  "RinaWarp-Terminal-Pro-1.0.0.exe"
-  "RinaWarp-Terminal-Pro-1.0.0.AppImage"
-  "RinaWarp-Terminal-Pro-1.0.0.amd64.deb"
-  "RinaWarp-Terminal-Pro-1.0.0.x86_64.rpm"
-  "RinaWarp-Terminal-Pro-1.0.0-macOS.zip"
-  "RinaWarp-Terminal-Pro-1.0.0-win32.zip"
-)
+MANIFEST_URL="${MANIFEST_URL:-https://www.rinawarptech.com/releases/v${VER}.json}"
+MANIFEST_JSON="$(curl -fsS "$MANIFEST_URL" 2>/dev/null || true)"
+FILES=()
+if [[ -n "$MANIFEST_JSON" ]]; then
+  mapfile -t FILES < <(printf "%s" "$MANIFEST_JSON" | node -e '
+    const fs = require("fs");
+    const text = fs.readFileSync(0, "utf8");
+    const j = JSON.parse(text);
+    const files = Object.values(j.downloads || {})
+      .map(v => v && v.file)
+      .filter(Boolean);
+    process.stdout.write(files.join("\n"));
+  ' 2>/dev/null || true)
+fi
+if (( ${#FILES[@]} == 0 )); then
+  FILES=(
+    "RinaWarp-Terminal-Pro-$VER.exe"
+    "RinaWarp-Terminal-Pro-$VER.AppImage"
+    "RinaWarp-Terminal-Pro-$VER.amd64.deb"
+  )
+fi
 
 fail=0
 
@@ -28,6 +52,7 @@ echo "=============================================="
 echo "RinaWarp Terminal Pro - Download Verification"
 echo "=============================================="
 echo "Base URL: $BASE"
+echo "Version: $VER"
 if [[ -n "$TOKEN" ]]; then
   echo "Token: ${TOKEN:0:8}...(redacted)"
 else
@@ -119,12 +144,21 @@ echo "Download Verification Summary"
 echo "=============================================="
 echo "Files checked: ${#FILES[@]}"
 echo "Failures: $fail"
+if [[ -n "$TOKEN" ]]; then
+  echo "Authenticated checks: executed"
+else
+  echo "Authenticated checks: skipped (no token)"
+fi
 echo ""
 
-if (( fail == 0 )); then
-  echo "✅ All authenticated download checks passed!"
-  echo "   All artifacts return HTTP 200 + binary content-type"
-  echo "   All have Content-Disposition: attachment"
+if (( fail == 0 )) && [[ -n "$TOKEN" ]]; then
+  echo "✅ All authenticated download checks passed."
+  echo "   All artifacts return HTTP 200 + binary content-type."
+  echo "   All have Content-Disposition: attachment."
+  exit 0
+elif [[ -z "$TOKEN" ]]; then
+  echo "⚠ No token provided, so authenticated download verification was not run."
+  echo "   Re-run with token to validate gated binaries end-to-end."
   exit 0
 else
   echo "❌ Some checks failed!"

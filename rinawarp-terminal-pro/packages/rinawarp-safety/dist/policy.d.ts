@@ -38,3 +38,4 @@ export declare function analyzeCommand(command: string): {
     requiresConfirm: boolean;
     description: string | null;
 };
+//# sourceMappingURL=policy.d.ts.map

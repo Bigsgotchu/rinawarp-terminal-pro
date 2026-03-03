@@ -12,6 +12,9 @@ import { registerPolicyIpc } from "./registerPolicyIpc.js";
 import { registerSessionIpc } from "./registerSessionIpc.js";
 import { registerThemesIpc, type ThemeSpec } from "./registerThemesIpc.js";
 import { registerUpdatesIpc } from "./registerUpdatesIpc.js";
+import { registerAgentIpc } from "./registerAgentIpc.js";
+import { registerAgentPlanningIpc } from "./registerAgentPlanningIpc.js";
+import { registerAgentExecutionIpc } from "./registerAgentExecutionIpc.js";
 
 // Runtime guard to prevent double-registration (e.g., during hot reload)
 declare global {
@@ -83,6 +86,57 @@ export function registerAllIpc(args: {
   safeSend: (target: Electron.WebContents | null | undefined, channel: string, payload?: unknown) => boolean;
   forRendererDisplay: (text: string) => string;
   isE2E: boolean;
+  daemonStatus: () => Promise<any>;
+  daemonTasks: (args?: {
+    status?: "queued" | "running" | "completed" | "failed" | "canceled";
+    deadLetter?: boolean;
+  }) => Promise<any>;
+  daemonTaskAdd: (args: {
+    type: string;
+    payload?: Record<string, unknown>;
+    maxAttempts?: number;
+  }) => Promise<any>;
+  daemonStart: () => Promise<any>;
+  daemonStop: () => Promise<any>;
+  makePlan: (intent: string, projectRoot?: string) => any;
+  redactTextForPlan: (text: string) => { redactedText: string };
+  fetchRemotePlan: (payload: { intentText: string; projectRoot: string }) => Promise<any>;
+  allowLocalEngineFallback: boolean;
+  newPlanRunId: () => string;
+  resolveProjectRootSafe: (input?: string) => string;
+  ensureStructuredSession: (args: { source: string; projectRoot: string; preferredId?: string }) => void;
+  runningPlanRuns: Map<string, { stopped: boolean; currentStreamId?: string; agentdPlanRunId?: string }>;
+  riskFromPlanStep: (step: any) => "read" | "safe-write" | "high-impact";
+  gateProfileCommand: (args: {
+    projectRoot: string;
+    command: string;
+    risk: "read" | "safe-write" | "high-impact";
+    confirmed: boolean;
+    confirmationText: string;
+  }) => { ok: true } | { ok: false; message: string };
+  evaluatePolicyGate: (command: string, confirmed: boolean, confirmationText: string) => { ok: boolean; message?: string };
+  executeRemotePlan: (payload: {
+    plan: any[];
+    projectRoot: string;
+    confirmed: boolean;
+    confirmationText: string;
+  }) => Promise<{ ok: true; planRunId: string }>;
+  pipeAgentdSseToRenderer: (args: {
+    eventSender: Electron.WebContents;
+    localPlanRunId: string;
+    agentdPlanRunId: string;
+    runId: string;
+  }) => Promise<string | undefined>;
+  createStreamId: () => string;
+  startStreamingStepViaEngine: (args: {
+    webContents: Electron.WebContents;
+    streamId: string;
+    step: { id: string; tool: "terminal"; command: string; risk: "read" | "safe-write" | "high-impact" };
+    confirmed: boolean;
+    confirmationText: string;
+    projectRoot: string;
+  }) => Promise<unknown>;
+  haltReasonFromFallbackStep: (result: any) => string | null;
 }) {
   // Runtime guard: prevent double-registration during hot reload
   if (globalThis.__rinaIpcRegistered) {
@@ -184,5 +238,40 @@ export function registerAllIpc(args: {
     app: args.app,
     shell: args.shell,
     isE2E: args.isE2E,
+  });
+
+  registerAgentIpc({
+    ipcMain: args.ipcMain,
+    daemonStatus: args.daemonStatus,
+    daemonTasks: args.daemonTasks,
+    daemonTaskAdd: args.daemonTaskAdd,
+    daemonStart: args.daemonStart,
+    daemonStop: args.daemonStop,
+  });
+
+  registerAgentPlanningIpc({
+    ipcMain: args.ipcMain,
+    makePlan: args.makePlan,
+    redactText: args.redactTextForPlan,
+    fetchRemotePlan: args.fetchRemotePlan,
+    allowLocalEngineFallback: args.allowLocalEngineFallback,
+  });
+
+  registerAgentExecutionIpc({
+    ipcMain: args.ipcMain,
+    newPlanRunId: args.newPlanRunId,
+    resolveProjectRootSafe: args.resolveProjectRootSafe,
+    ensureStructuredSession: args.ensureStructuredSession,
+    runningPlanRuns: args.runningPlanRuns,
+    safeSend: args.safeSend,
+    riskFromPlanStep: args.riskFromPlanStep,
+    gateProfileCommand: args.gateProfileCommand,
+    evaluatePolicyGate: args.evaluatePolicyGate,
+    executeRemotePlan: args.executeRemotePlan,
+    pipeAgentdSseToRenderer: args.pipeAgentdSseToRenderer,
+    allowLocalEngineFallback: args.allowLocalEngineFallback,
+    createStreamId: args.createStreamId,
+    startStreamingStepViaEngine: args.startStreamingStepViaEngine,
+    haltReasonFromFallbackStep: args.haltReasonFromFallbackStep,
   });
 }

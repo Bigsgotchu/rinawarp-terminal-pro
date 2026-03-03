@@ -1,4 +1,4 @@
-# RinaWarp API Contract — Auth + Account (v1.0.0)
+# RinaWarp API Contract — Auth + Account (v1)
 
 This document is the **single source of truth** for how the website and desktop app interact with the API for:
 - login / signup (magic link)
@@ -206,7 +206,7 @@ Mint a short-lived download token used for installer URLs.
 ```json
 {
   "product": "terminal-pro",
-  "version": "1.0.0",
+  "version": "<VERSION>",
   "platform": "windows"
 }
 ```
@@ -223,7 +223,7 @@ Mint a short-lived download token used for installer URLs.
   "token": "dl_abc123",
   "expiresAt": "2026-02-05T11:00:00Z",
   "urls": {
-    "windows": "https://www.rinawarptech.com/downloads/RinaWarp-Terminal-Pro-1.0.0.exe?token=dl_abc123"
+    "windows": "https://www.rinawarptech.com/downloads/RinaWarp-Terminal-Pro-<VERSION>.exe?token=dl_abc123"
   }
 }
 ```
@@ -361,7 +361,7 @@ Electron can call the same endpoints. If using cookies, ensure the Electron sess
 
 ## 7) Versioning
 
-This contract is for v1.0.0
+This contract is for v1
 
 Any breaking change requires:
 1. updating this doc

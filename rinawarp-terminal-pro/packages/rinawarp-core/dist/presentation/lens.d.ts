@@ -41,3 +41,4 @@ export declare function detectUserState(message: string): UserState;
  * Map risk level to user state for presentation purposes.
  */
 export declare function riskToUserState(risk: Risk): UserState;
+//# sourceMappingURL=lens.d.ts.map

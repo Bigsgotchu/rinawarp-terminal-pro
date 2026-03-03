@@ -30,6 +30,16 @@ jobs:
           cache-dependency-path: rinawarp-terminal-pro/package-lock.json
       - name: Install
         run: npm ci
+      - name: Check no JS twins in src
+        run: ./scripts/check-no-src-js.sh
+      - name: Check for duplicate IPC channels
+        run: node scripts/check-duplicate-ipc.js
+      - name: Lint (ESLint)
+        run: npm --workspace apps/terminal-pro run lint -- --format json --output-file /tmp/eslint.json || true
+      - name: Enforce warning budget
+        run: node scripts/eslint-warning-budget.js --max 0 /tmp/eslint.json
+      - name: Clean
+        run: npm run clean
       - name: Build Electron
         run: npm --workspace apps/terminal-pro run build:electron
       - name: Package Linux
@@ -52,6 +62,17 @@ jobs:
           cache-dependency-path: rinawarp-terminal-pro/package-lock.json
       - name: Install
         run: npm ci
+      - name: Check no JS twins in src
+        shell: bash
+        run: ./scripts/check-no-src-js.sh
+      - name: Check for duplicate IPC channels
+        run: node scripts/check-duplicate-ipc.js
+      - name: Lint (ESLint)
+        run: npm --workspace apps/terminal-pro run lint -- --format json --output-file C:\Temp\eslint.json || true
+      - name: Enforce warning budget
+        run: node scripts/eslint-warning-budget.js --max 0 C:\Temp\eslint.json
+      - name: Clean
+        run: npm run clean
       - name: Build Electron
         run: npm --workspace apps/terminal-pro run build:electron
       - name: Package Windows

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="RinaWarp Pricing - Simple, transparent pricing. One installer, capabilities unlock by license.">
-    <title>Pricing - RinaWarp Terminal Pro</title>
+    <meta name="description" content="RinaWarp pricing for developers and operators. Start free for diagnostics, then unlock safe execution with audit logs and approval controls.">
+    <title>Pricing - RinaWarp Terminal Pro for Developers & Operators</title>
     <link rel="canonical" href="https://www.rinawarptech.com/pricing/" />
     <meta name="robots" content="index,follow" />
     <style>
@@ -280,6 +280,28 @@
             color: var(--success);
         }
 
+        .proof-block {
+            max-width: 900px;
+            margin: 28px auto 0;
+            padding: 20px;
+            border: 1px solid rgba(125, 211, 252, 0.35);
+            background: rgba(125, 211, 252, 0.08);
+            border-radius: 14px;
+            text-align: left;
+        }
+
+        .proof-block h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--baby-blue);
+        }
+
+        .proof-block ul {
+            margin-left: 18px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
         /* CTA */
         .cta {
             background: linear-gradient(135deg, var(--hot-pink) 0%, var(--coral) 100%);
@@ -376,14 +398,14 @@
     <section class="hero">
         <div class="container">
             <h1>Pricing</h1>
-            <p>One installer. Capabilities unlock by license.</p>
+            <p>Start free to diagnose. Upgrade when you want safe execution with approval controls and audit logs.</p>
         </div>
     </section>
 
     <section class="pricing-section">
         <div class="container">
             <h2>Free</h2>
-            <p>Intelligence is never gated. Only execution is.</p>
+            <p>Use this to validate issues before paying. No card required.</p>
             
             <div class="pricing-grid">
                 <div class="pricing-card">
@@ -395,13 +417,13 @@
                         <li>Inspection plans</li>
                         <li>See what's wrong — safely</li>
                     </ul>
-                    <button class="btn btn-secondary" onclick="window.location.href='/download/'">Download Free</button>
+                    <button class="btn btn-secondary" data-track="pricing_download_free_click" onclick="window.location.href='/download/'">Download Free</button>
                     <div class="fineprint">No credit card required</div>
                 </div>
             </div>
 
             <h2>Subscriptions (Monthly)</h2>
-            <p>Flexible access with automatic updates.</p>
+            <p>Unlock execution workflows for production-grade fixes.</p>
             
             <div class="pricing-grid">
                 <div class="pricing-card featured">
@@ -414,8 +436,8 @@
                         <li>Verification & audit exports</li>
                         <li>Priority System Doctor workflows</li>
                     </ul>
-                    <button class="btn btn-primary featured" onclick="startCheckout('price_1Sdxl7GZrRdZy3W9INQvidPf')">Get Pro — $29/mo</button>
-                    <div class="fineprint">Cancel anytime</div>
+                    <button class="btn btn-primary featured" data-track="pricing_checkout_click" onclick="startCheckout('price_1Sdxl7GZrRdZy3W9INQvidPf')">Get Pro — $29/mo</button>
+                    <div class="fineprint">Cancel anytime • 30-day money-back guarantee</div>
                 </div>
 
                 <div class="pricing-card">
@@ -426,7 +448,7 @@
                         <li>Advanced workflows</li>
                         <li>More execution context</li>
                     </ul>
-                    <button class="btn btn-secondary" onclick="startCheckout('price_1SdxlKGZrRdZy3W9TvaLugc7')">Get Creator — $69/mo</button>
+                    <button class="btn btn-secondary" data-track="pricing_checkout_click" onclick="startCheckout('price_1SdxlKGZrRdZy3W9TvaLugc7')">Get Creator — $69/mo</button>
                     <div class="fineprint">Power users</div>
                 </div>
 
@@ -438,7 +460,7 @@
                         <li>Team-ready workflows</li>
                         <li>Priority support</li>
                     </ul>
-                    <button class="btn btn-secondary" onclick="startCheckout('price_1SdxlXGZrRdZy3W9Wr1XLBIe')">Get Team — $99/mo</button>
+                    <button class="btn btn-secondary" data-track="pricing_checkout_click" onclick="startCheckout('price_1SdxlXGZrRdZy3W9Wr1XLBIe')">Get Team — $99/mo</button>
                     <div class="fineprint">Organizations</div>
                 </div>
             </div>
@@ -463,7 +485,16 @@
             </div>
 
             <div class="trust-note">
-                <p><strong>Intelligence is never gated. Only execution is.</strong><br />All tiers use the same RinaWarp agent. Nothing executes without your approval.</p>
+                <p><strong>Every paid action is accountable.</strong><br />All tiers use the same RinaWarp agent. High-impact execution requires explicit approval and is recorded in session logs.</p>
+            </div>
+
+            <div class="proof-block">
+                <h3>What happens after checkout</h3>
+                <ul>
+                    <li>Payment completes on Stripe-hosted checkout.</li>
+                    <li>Webhook creates your entitlement in production.</li>
+                    <li>Sign in on <a href="/account/" style="color: var(--baby-blue); text-decoration:none;">/account/</a> to manage your plan and access.</li>
+                </ul>
             </div>
         </div>
     </section>
@@ -471,8 +502,8 @@
     <section class="cta">
         <div class="container">
             <h2>Ready to Get Started?</h2>
-            <p>Download RinaWarp and start fixing things smarter today.</p>
-            <a href="/download/" class="btn">Download Free</a>
+            <p>Start free in minutes. Upgrade only when you need execution.</p>
+            <a href="/download/" class="btn" data-track="pricing_download_free_click">Download Free</a>
         </div>
     </section>
 
@@ -480,16 +511,22 @@
         <div class="container">
             <p>© 2026 RinaWarp Technologies LLC • Delaware, USA • support@rinawarptech.com</p>
             <div class="footer-links">
-                <a href="privacy/">Privacy</a>
-                <a href="terms/">Terms</a>
-                <a href="refunds/">Refunds</a>
-                <a href="eula/">EULA</a>
+                <a href="/privacy/">Privacy</a>
+                <a href="/terms/">Terms</a>
+                <a href="/refunds/">Refunds</a>
+                <a href="/eula/">EULA</a>
+                <a href="/security/">Security</a>
+                <a href="/data-boundary/">Data Boundary</a>
             </div>
         </div>
     </footer>
 
+    <script src="/assets/analytics.js" defer></script>
     <script>
         async function startCheckout(priceId) {
+            if (window.rwTrack) {
+                window.rwTrack("pricing_checkout_click", { price_id: priceId }).catch(() => {});
+            }
             try {
                 const res = await fetch("https://api.rinawarptech.com/api/stripe/checkout", {
                     method: "POST",
@@ -500,17 +537,29 @@
                 const data = await res.json().catch(() => ({}));
 
                 if (!res.ok) {
+                    if (window.rwTrack) {
+                        window.rwTrack("pricing_checkout_error", { price_id: priceId, status: res.status, error: data.error || null }).catch(() => {});
+                    }
                     alert("Checkout failed: " + (data.error || ("http_" + res.status)));
                     return;
                 }
 
                 if (data.url) {
+                    if (window.rwTrack) {
+                        window.rwTrack("pricing_checkout_redirect", { price_id: priceId }).catch(() => {});
+                    }
                     window.location.href = data.url;
                     return;
                 }
 
+                if (window.rwTrack) {
+                    window.rwTrack("pricing_checkout_error", { price_id: priceId, error: "missing_checkout_url" }).catch(() => {});
+                }
                 alert("Checkout failed: missing_checkout_url");
             } catch (err) {
+                if (window.rwTrack) {
+                    window.rwTrack("pricing_checkout_error", { price_id: priceId, error: "network_error" }).catch(() => {});
+                }
                 alert("Checkout failed: network_error");
             }
         }

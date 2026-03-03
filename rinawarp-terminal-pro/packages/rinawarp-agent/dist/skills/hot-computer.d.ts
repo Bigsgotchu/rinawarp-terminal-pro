@@ -33,3 +33,4 @@ export declare function parseDiagnostics(results: Array<{
     command: string;
     output: string;
 }>): DiagnosticResult;
+//# sourceMappingURL=hot-computer.d.ts.map

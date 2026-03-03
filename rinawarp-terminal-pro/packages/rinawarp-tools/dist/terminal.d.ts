@@ -68,3 +68,4 @@ export declare const platform: {
         getCpuUsage: string;
     };
 };
+//# sourceMappingURL=terminal.d.ts.map

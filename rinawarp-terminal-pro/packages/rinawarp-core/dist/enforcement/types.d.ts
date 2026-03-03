@@ -94,3 +94,4 @@ export interface Tool<Input = unknown> {
     requiresConfirmation: boolean;
     run(input: Input, ctx: ExecutionContext, cap: unknown): Promise<ToolResult>;
 }
+//# sourceMappingURL=types.d.ts.map

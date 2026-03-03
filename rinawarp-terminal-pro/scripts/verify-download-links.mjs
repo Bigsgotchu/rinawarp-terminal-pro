@@ -41,9 +41,15 @@ for (const f of expectedFiles) {
   ok(`download.html references ${f}`);
 }
 
-for (const verifyPath of ["/verify/SHASUMS256.txt", "/verify/SHASUMS256.txt.asc", "/verify/RINAWARP_GPG_PUBLIC_KEY.asc"]) {
-  if (!html.includes(verifyPath)) fail(`download.html is missing verify link: ${verifyPath}`);
-  ok(`download.html has verify link ${verifyPath}`);
+const verifyLinkOptions = [
+  ["/verify/SHASUMS256.txt", "https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt"],
+  ["/verify/SHASUMS256.txt.asc", "https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt.asc"],
+  ["/verify/RINAWARP_GPG_PUBLIC_KEY.asc", "https://rinawarp-downloads.rinawarptech.workers.dev/verify/RINAWARP_GPG_PUBLIC_KEY.asc"],
+];
+for (const variants of verifyLinkOptions) {
+  const match = variants.find((v) => html.includes(v));
+  if (!match) fail(`download.html is missing verify link: ${variants[0]}`);
+  ok(`download.html has verify link ${match}`);
 }
 
 const manifestFiles = [

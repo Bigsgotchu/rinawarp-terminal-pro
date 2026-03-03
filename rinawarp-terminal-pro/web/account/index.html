@@ -69,7 +69,7 @@
         <div class="logo">R</div>
         <div>
           <h1>Account</h1>
-          <div class="pill" id="buildPill">RinaWarp Terminal Pro • v1.0.0</div>
+          <div class="pill" id="buildPill">RinaWarp Terminal Pro • v1.0.2</div>
         </div>
       </div>
       <div class="row">
@@ -109,6 +109,7 @@
     </div>
   </div>
 
+<script src="/assets/analytics.js" defer></script>
 <script type="module">
   import { createApiClient } from "/assets/api-client.js";
 
@@ -187,9 +188,9 @@
 
   function renderDownloadCards(_tier) {
     const items = [
-      { platform: "windows", label: "Windows (.exe)", version: "1.0.0" },
-      { platform: "linux-appimage", label: "Linux (AppImage)", version: "1.0.0" },
-      { platform: "linux-deb", label: "Linux (Debian/Ubuntu .deb)", version: "1.0.0" }
+      { platform: "windows", label: "Windows (.exe)", version: "1.0.2" },
+      { platform: "linux-appimage", label: "Linux (AppImage)", version: "1.0.2" },
+      { platform: "linux-deb", label: "Linux (Debian/Ubuntu .deb)", version: "1.0.2" }
     ];
 
     els.downloads.innerHTML = items.map(x => `
@@ -204,6 +205,9 @@
   }
 
   window.__genDL = async (platform, version) => {
+    if (window.rwTrack) {
+      window.rwTrack("account_download_generate_click", { platform, version }).catch(() => {});
+    }
     try {
       notice(els.portalMsg, "", "ok");
       if (!customerId) {
@@ -233,6 +237,9 @@
       }
 
       const url = `${DOWNLOADS_BASE}/downloads/${encodeURIComponent(filename)}?token=${encodeURIComponent(tokenRes.token)}`;
+      if (window.rwTrack) {
+        window.rwTrack("account_download_redirect", { platform, version, filename }).catch(() => {});
+      }
       window.location.href = url;
     } catch (e) {
       notice(els.portalMsg, e?.message || "Failed to generate download link.", "err");
@@ -240,6 +247,9 @@
   };
 
   window.openPortal = async () => {
+    if (window.rwTrack) {
+      window.rwTrack("account_billing_portal_click").catch(() => {});
+    }
     els.portalBtn.disabled = true;
     try {
       const res = await api.portal();
@@ -247,6 +257,9 @@
       if (!res?.url) {
         notice(els.portalMsg, `Portal error: ${res?.error || "unknown"}`, "err");
         return;
+      }
+      if (window.rwTrack) {
+        window.rwTrack("account_billing_portal_redirect").catch(() => {});
       }
       window.location.href = res.url;
     } catch (e) {
@@ -257,6 +270,9 @@
   };
 
   window.logout = async () => {
+    if (window.rwTrack) {
+      window.rwTrack("account_logout_click").catch(() => {});
+    }
     try {
       await api.logout();
     } catch {}

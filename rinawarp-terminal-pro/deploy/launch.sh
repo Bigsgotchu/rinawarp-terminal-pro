@@ -4,15 +4,26 @@ trap 'echo "❌ Failed at line $LINENO"; exit 1' ERR
 
 # ===== Config (edit once) =====
 # Path to the desktop app package that produces ./dist
-APP_DIR="${APP_DIR:-terminal-pro}"     # Desktop app directory with package.json
+APP_DIR="${APP_DIR:-apps/terminal-pro}"     # Desktop app directory with package.json
 BUILD_CMD="${BUILD_CMD:-npm run build:all}"  # Build command to create installers
 
 # Path to the script that uploads + verifies artifacts (already in your repo)
 UPLOAD_VERIFY_SCRIPT="${UPLOAD_VERIFY_SCRIPT:-./deploy/upload-and-verify.sh}"
 
 # Version + output dist folder used by upload script
-export VER="${VER:-1.0.0}"
-export DIST_DIR="${DIST_DIR:-terminal-pro/dist}"
+DEFAULT_VER="$(node -p "require('./${APP_DIR}/package.json').version" 2>/dev/null || true)"
+if [[ -z "${VER:-}" ]]; then
+  if [[ -n "$DEFAULT_VER" ]]; then
+    export VER="$DEFAULT_VER"
+  else
+    export VER="$(ls -1 rinawarptech-website/web/releases/v*.json 2>/dev/null | sed -E 's#.*v([0-9]+\.[0-9]+\.[0-9]+)\.json#\1#' | sort -V | tail -n1 || true)"
+  fi
+fi
+if [[ -z "${VER:-}" ]]; then
+  echo "❌ Could not resolve release version. Set VER=<semver> and retry."
+  exit 1
+fi
+export DIST_DIR="${DIST_DIR:-${APP_DIR}/dist}"
 
 # Post-launch sanity URLs
 WEBHOOK_URL="${WEBHOOK_URL:-https://api.rinawarptech.com/api/stripe/webhook}"

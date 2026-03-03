@@ -73,6 +73,13 @@ contextBridge.exposeInMainWorld("rina", {
   policyExplain: (command: string) => ipcRenderer.invoke("rina:policy:explain", command),
   diagnosticsPaths: () => ipcRenderer.invoke("rina:diagnostics:paths"),
   supportBundle: () => ipcRenderer.invoke("rina:support:bundle"),
+  daemonStatus: () => ipcRenderer.invoke("rina:daemon:status"),
+  daemonStart: () => ipcRenderer.invoke("rina:daemon:start"),
+  daemonStop: () => ipcRenderer.invoke("rina:daemon:stop"),
+  daemonTasks: (args?: { status?: "queued" | "running" | "completed" | "failed" | "canceled"; deadLetter?: boolean }) =>
+    ipcRenderer.invoke("rina:daemon:tasks", args || {}),
+  daemonTaskAdd: (args: { type: string; payload?: Record<string, unknown>; maxAttempts?: number }) =>
+    ipcRenderer.invoke("rina:daemon:task:add", args),
   importShellHistory: (limit?: number) => ipcRenderer.invoke("rina:history:import", limit),
   reportRendererError: (payload: { kind?: string; message?: string; extra?: string }) =>
     ipcRenderer.invoke("rina:renderer:error", payload),

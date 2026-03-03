@@ -47,9 +47,15 @@ async function startSignup() {
 
   btn.disabled = true;
   toast("Sending code...");
+  if (window.rwTrack) {
+    window.rwTrack("signup_code_request_click").catch(() => {});
+  }
   try {
     const data = await postJson("/auth/start", { email, mode: "signup" });
     challengeId = data.challenge_id;
+    if (window.rwTrack) {
+      window.rwTrack("signup_code_sent").catch(() => {});
+    }
     document.getElementById("step1").style.display = "none";
     document.getElementById("step2").style.display = "block";
     toast("Code sent. If you don't see it, check spam.");
@@ -70,9 +76,15 @@ async function verifySignup() {
 
   btn.disabled = true;
   toast("Verifying...");
+  if (window.rwTrack) {
+    window.rwTrack("signup_verify_click").catch(() => {});
+  }
   try {
     const data = await postJson("/auth/verify", { email, challenge_id: challengeId, code, mode: "signup" });
     localStorage.setItem("rw_session", data.session_token);
+    if (window.rwTrack) {
+      window.rwTrack("signup_success").catch(() => {});
+    }
     document.getElementById("step2").style.display = "none";
     document.getElementById("step3").style.display = "block";
 
@@ -82,6 +94,9 @@ async function verifySignup() {
       window.location.href = next;
     }, 800);
   } catch (e) {
+    if (window.rwTrack) {
+      window.rwTrack("signup_verify_error").catch(() => {});
+    }
     toast(e?.message || "Invalid code.", true);
   } finally {
     btn.disabled = false;

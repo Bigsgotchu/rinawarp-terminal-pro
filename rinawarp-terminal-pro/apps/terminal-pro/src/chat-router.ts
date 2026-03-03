@@ -11,6 +11,7 @@ import {
   doctorVerify,
   doctorGetTranscript
 } from "./doctor-bridge.js";
+import { redactText } from "@rinawarp/safety/redaction";
 
 // State types
 interface AwaitingFixState {
@@ -48,11 +49,31 @@ interface ExecutingFixState {
 
 let state: State = { mode: "idle" };
 
+type ChatContext = {
+  projectRoot?: string;
+  rulesBlock?: string;
+  rulesWarnings?: string[];
+  profileSummary?: string;
+};
+
+function deepRedact(value: unknown): unknown {
+  if (typeof value === "string") return redactText(value).redactedText;
+  if (Array.isArray(value)) return value.map((v) => deepRedact(v));
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = deepRedact(v);
+    }
+    return out;
+  }
+  return value;
+}
+
 export const chatRouter = {
   /**
    * Main chat handler - routes messages to appropriate handlers
    */
-  async handle(text: string, emit?: (event: any) => void): Promise<{ role: "rina"; text: string }[]> {
+  async handle(text: string, context?: ChatContext, emit?: (event: any) => void): Promise<{ role: "rina"; text: string }[]> {
     const msg = text.trim();
 
     // Cancel anytime
@@ -79,7 +100,7 @@ export const chatRouter = {
 
     // New intent → System Doctor
     if (looksLikeSystemIssue(msg)) {
-      return await handleSystemDoctor(msg);
+      return await handleSystemDoctor(msg, context);
     }
 
     // Default: normal chat response
@@ -134,17 +155,45 @@ async function handleFixConfirmation(msg: string): Promise<{ role: "rina"; text:
 }
 
 /**
+ * Build system context for model from rules and profile
+ */
+function buildSystemContext(context?: ChatContext): string {
+  const rulesBlock = String(context?.rulesBlock || "").trim();
+  const profileSummary = String(context?.profileSummary || "").trim();
+  return [
+    profileSummary ? `## Agent Profile\n${profileSummary}` : "",
+    rulesBlock,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+/**
+ * Run the doctor pipeline: inspect → collect → interpret
+ */
+async function runDoctorPipeline(intentForModel: string): Promise<{
+  evidence: any;
+  safeEvidence: any;
+  interpreted: any;
+}> {
+  const inspect = await doctorInspect(intentForModel);
+  const evidence = await doctorCollect(inspect.inspectPlan.steps);
+  const safeEvidence = deepRedact(evidence) as typeof evidence;
+  const interpreted = await doctorInterpret({ intent: intentForModel, evidence: safeEvidence });
+  return { evidence, safeEvidence, interpreted };
+}
+
+/**
  * Handle System Doctor flow: inspect → collect → interpret → propose fix
  */
-async function handleSystemDoctor(intent: string): Promise<{ role: "rina"; text: string }[]> {
-  // Step 1: Inspect - build the inspection plan
-  const inspect = await doctorInspect(intent);
-  
-  // Step 2: Collect - execute inspection steps
-  const evidence = await doctorCollect(inspect.inspectPlan.steps);
-  
-  // Step 3: Interpret - analyze evidence and generate diagnosis
-  const interpreted = await doctorInterpret({ intent, evidence });
+async function handleSystemDoctor(intent: string, context?: ChatContext): Promise<{ role: "rina"; text: string }[]> {
+  const safeIntent = redactText(String(intent || "")).redactedText;
+  const systemContext = buildSystemContext(context);
+  const intentForModel = systemContext
+    ? `${systemContext}\n\n## User Intent\n${safeIntent}`
+    : safeIntent;
+
+  const { safeEvidence, interpreted } = await runDoctorPipeline(intentForModel);
 
   // Select the safest fix option (first one by default)
   const safest = interpreted.fixOptions?.[0];
@@ -156,8 +205,8 @@ async function handleSystemDoctor(intent: string): Promise<{ role: "rina"; text:
     selected: safest,
     risk: safest?.risk,
     context: {
-      intent,
-      before: evidence,
+      intent: safeIntent,
+      before: safeEvidence,
       diagnosis: interpreted.diagnosis
     }
   };

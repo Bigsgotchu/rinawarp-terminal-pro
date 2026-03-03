@@ -63,3 +63,4 @@ export declare function getBranch(repoPath: string): Promise<string>;
  * @returns Promise resolving to true if git repo
  */
 export declare function isRepo(path: string): Promise<boolean>;
+//# sourceMappingURL=git.d.ts.map

@@ -3,13 +3,25 @@ set -euo pipefail
 
 API_BASE="${API_BASE:-https://api.rinawarptech.com}"
 DL_BASE="${DL_BASE:-https://rinawarptech.com/downloads}"
+APP_PACKAGE="${APP_PACKAGE:-apps/terminal-pro/package.json}"
+VER="${VER:-}"
+if [[ -z "$VER" && -f "$APP_PACKAGE" ]]; then
+  VER="$(node -p "require('./$APP_PACKAGE').version" 2>/dev/null || true)"
+fi
+if [[ -z "$VER" ]]; then
+  VER="$(ls -1 rinawarptech-website/web/releases/v*.json 2>/dev/null | sed -E 's#.*v([0-9]+\.[0-9]+\.[0-9]+)\.json#\1#' | sort -V | tail -n1 || true)"
+fi
+if [[ -z "$VER" ]]; then
+  echo "❌ Could not resolve release version. Set VER=<semver> and retry."
+  exit 1
+fi
 
 CUSTOMER_ID="${1:-}"
-FILE="${2:-RinaWarp-Terminal-Pro-1.0.0.dmg}"
+FILE="${2:-RinaWarp-Terminal-Pro-${VER}.exe}"
 
 if [[ -z "$CUSTOMER_ID" ]]; then
   echo "Usage: $0 cus_XXXXXXXX [filename]"
-  echo "Example: $0 cus_123 RinaWarp-Terminal-Pro-1.0.0.dmg"
+  echo "Example: $0 cus_123 RinaWarp-Terminal-Pro-${VER}.exe"
   exit 1
 fi
 

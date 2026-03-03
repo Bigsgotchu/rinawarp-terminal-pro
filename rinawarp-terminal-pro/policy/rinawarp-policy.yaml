@@ -1,0 +1,172 @@
+version: 1
+
+defaults:
+  mode: read_only
+  require_plan_first: true
+  require_reason: true
+  approval:
+    default: click
+    typed_phrase: "YES"
+  logging:
+    record_keystrokes: false
+    record_env_vars: false
+    record_sensitive_output: false
+  redaction:
+    enabled: true
+    enforce_before_persist: true
+    enforce_before_share: true
+    enforce_before_sync: true
+
+environments:
+  dev:
+    inherits: defaults
+    mode: execute_with_approval
+    approval:
+      default: click
+      typed_phrase: "YES"
+    guards:
+      require_explicit_cwd: false
+      require_git_clean_for_apply: false
+
+  staging:
+    inherits: defaults
+    mode: execute_with_approval
+    approval:
+      default: typed_yes
+      typed_phrase: "YES"
+    guards:
+      require_explicit_cwd: true
+      require_git_clean_for_apply: true
+
+  prod:
+    inherits: defaults
+    mode: execute_with_approval
+    approval:
+      default: typed_phrase
+      typed_phrase: "TYPE YES TO EXECUTE IN PROD"
+    guards:
+      require_explicit_cwd: true
+      require_git_clean_for_apply: true
+      require_two_step_for_destructive: true
+      require_human_owner: true
+
+rules:
+  - id: block-shell-pipes
+    description: "Block pipe-to-shell patterns"
+    match:
+      any_regex:
+        - 'curl\s+.*\|\s*(sh|bash|zsh)'
+        - 'wget\s+.*\|\s*(sh|bash|zsh)'
+    action: deny
+    message: "Blocked: pipe-to-shell. Download and inspect scripts manually."
+
+  - id: block-disk-destructive
+    description: "Block disk/FS destructive utilities"
+    match:
+      any_regex:
+        - '\bmkfs(\.| )'
+        - '\bdd(\s|$)'
+        - '\bparted(\s|$)'
+        - '\bfdisk(\s|$)'
+        - '\bshred(\s|$)'
+    action: deny
+    message: "Blocked: destructive disk command."
+
+  - id: block-sudo-by-default
+    description: "Sudo requires explicit user confirmation"
+    match:
+      any_regex:
+        - '^\s*sudo(\s|$)'
+    action: require_approval
+    approval: typed_yes
+    message: "Sudo requires typed confirmation."
+
+  - id: dangerous-rm
+    description: "rm -rf and similar"
+    match:
+      any_regex:
+        - '\brm\s+-rf\b'
+        - '\brm\s+-fr\b'
+        - '\brm\s+--recursive\b'
+    action: require_approval
+    approval: typed_phrase
+    typed_phrase: "YES I KNOW WHAT I'M DOING"
+    show_context:
+      - cwd
+      - resolved_paths
+      - env_summary
+    message: "Destructive remove: typed phrase required."
+
+  - id: dangerous-terraform-apply
+    description: "terraform apply must follow terraform plan"
+    match:
+      any_regex:
+        - '\bterraform\s+apply\b'
+    action: require_two_step
+    precondition:
+      must_have_run_last_n:
+        regex: '\bterraform\s+plan\b'
+        n: 5
+    approval: typed_yes
+    message: "terraform apply requires a recent terraform plan."
+
+  - id: dangerous-kubectl-prod
+    description: "kubectl against prod context is stricter"
+    match:
+      any_regex:
+        - '\bkubectl\b'
+    when:
+      env:
+        any:
+          - prod
+    action: require_approval
+    approval: typed_phrase
+    typed_phrase: "EXECUTE KUBECTL IN PROD"
+    show_context:
+      - kube_context
+      - namespace
+      - cluster
+    message: "kubectl in prod requires typed phrase."
+
+  - id: dangerous-git-push-force
+    description: "git push --force requires typed approval"
+    match:
+      any_regex:
+        - '\bgit\s+push\b.*--force'
+        - '\bgit\s+push\b.*-f\b'
+    action: require_approval
+    approval: typed_yes
+    message: "Force push requires typed confirmation."
+
+  - id: package-install
+    description: "Installs are allowed but require click approval in staging/prod"
+    match:
+      any_regex:
+        - '\bnpm\s+i(nstall)?\b'
+        - '\byarn\s+add\b'
+        - '\bpip\s+install\b'
+        - '\bapt(-get)?\s+install\b'
+        - '\bbrew\s+install\b'
+    action: require_approval
+    approval: click
+    message: "Package install requires approval."
+
+  - id: safe-readonly
+    description: "Read-only commands: always allowed"
+    match:
+      any_regex:
+        - '^\s*ls(\s|$)'
+        - '^\s*cat(\s|$)'
+        - '^\s*pwd(\s|$)'
+        - '^\s*whoami(\s|$)'
+        - '^\s*git\s+status\b'
+        - '^\s*git\s+diff\b'
+        - '^\s*kubectl\s+(get|describe)\b'
+        - '^\s*terraform\s+plan\b'
+    action: allow
+    message: "Allowed."
+
+fallback:
+  action: require_approval
+  approval: click
+  message: "Unclassified command requires approval."

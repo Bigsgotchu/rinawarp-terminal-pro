@@ -41,10 +41,16 @@ document.getElementById("start").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const msg = document.getElementById("startMsg");
   msg.textContent = "Sending...";
+  if (window.rwTrack) {
+    window.rwTrack("login_code_request_click").catch(() => {});
+  }
 
   try {
     const data = await postJson("/auth/start", { email, mode: "login" });
     challengeId = data.challenge_id;
+    if (window.rwTrack) {
+      window.rwTrack("login_code_sent").catch(() => {});
+    }
     msg.textContent = "Code sent. (If you don't see it, check spam.)";
     document.getElementById("step2").style.display = "block";
   } catch (err) {
@@ -57,11 +63,17 @@ document.getElementById("verify").addEventListener("click", async () => {
   const code = document.getElementById("code").value.trim();
   const msg = document.getElementById("verifyMsg");
   msg.textContent = "Verifying...";
+  if (window.rwTrack) {
+    window.rwTrack("login_verify_click").catch(() => {});
+  }
 
   try {
     const data = await postJson("/auth/verify", { email, challenge_id: challengeId, code, mode: "login" });
 
     localStorage.setItem("rw_session", data.session_token);
+    if (window.rwTrack) {
+      window.rwTrack("login_success").catch(() => {});
+    }
     document.getElementById("step1").style.display = "none";
     document.getElementById("step2").style.display = "none";
     document.getElementById("step3").style.display = "block";
@@ -73,6 +85,9 @@ document.getElementById("verify").addEventListener("click", async () => {
       window.location.href = next;
     }, 1500);
   } catch (err) {
+    if (window.rwTrack) {
+      window.rwTrack("login_verify_error").catch(() => {});
+    }
     msg.textContent = err?.message || "Invalid code";
   }
 });

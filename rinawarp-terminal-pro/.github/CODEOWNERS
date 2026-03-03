@@ -1,0 +1,16 @@
+# Security-critical code - requires review for changes
+/apps/terminal-pro/src/security/ @rinawarp/core
+/apps/terminal-pro/src/main/ @rinawarp/core
+/apps/terminal-pro/src/structured-session.ts @rinawarp/core
+/apps/terminal-pro/src/personality.ts @rinawarp/core
+/apps/terminal-pro/src/prompt-boundary.ts @rinawarp/core
+/scripts/policy-audit.sh @rinawarp/core
+/scripts/no-bypass.mjs @rinawarp/core
+
+# IPC handlers - architectural boundary
+/apps/terminal-pro/src/main/ipc/ @rinawarp/core
+
+# Build and packaging
+/apps/terminal-pro/package.json @rinawarp/core
+/apps/terminal-pro/electron-builder.yml @rinawarp/core
+/.github/workflows/ @rinawarp/core

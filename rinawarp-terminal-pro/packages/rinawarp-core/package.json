@@ -51,6 +51,9 @@
 		"safety"
 	],
 	"license": "MIT",
+	"dependencies": {
+		"@rinawarp/tools": "workspace:*"
+	},
 	"devDependencies": {
 		"tsx": "^4.21.0"
 	}

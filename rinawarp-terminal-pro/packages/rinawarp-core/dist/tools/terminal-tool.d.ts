@@ -25,3 +25,4 @@ export declare class TerminalWriteTool implements Tool<TerminalInput> {
     requiresConfirmation: boolean;
     run(input: TerminalInput, ctx: ExecutionContext, cap: EngineCap): Promise<ToolResult>;
 }
+//# sourceMappingURL=terminal-tool.d.ts.map

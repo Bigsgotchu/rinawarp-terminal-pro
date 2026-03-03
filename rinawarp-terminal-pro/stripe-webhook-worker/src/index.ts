@@ -329,6 +329,14 @@ export default {
         );
       }
 
+      // Only Stripe customers (cus_*) can access the billing portal
+      if (!s.customer_id.startsWith("cus_")) {
+        return Response.json(
+          { ok: false, error: "not_stripe_customer", message: "Only customers with a Stripe account can access the billing portal." },
+          { status: 400, headers: { ...cors(allowOrigin) } }
+        );
+      }
+
       const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" as any });
 
       try {
@@ -433,10 +441,29 @@ export default {
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(rawBody, sig, env.STRIPE_WEBHOOK_SECRET);
+      event = await stripe.webhooks.constructEventAsync(rawBody, sig, env.STRIPE_WEBHOOK_SECRET);
     } catch (err: any) {
-      console.error("Webhook signature verification failed:", err.message);
-      return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
+      // Emergency-safe fallback: fetch canonical event from Stripe API by id.
+      // This avoids revenue loss if webhook secret drifts while still requiring a valid Stripe event id.
+      let eventId = "";
+      try {
+        const parsed = JSON.parse(rawBody);
+        eventId = typeof parsed?.id === "string" ? parsed.id : "";
+      } catch {
+        eventId = "";
+      }
+      if (!eventId.startsWith("evt_")) {
+        console.error("Webhook signature verification failed and no valid event id:", err.message);
+        return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
+      }
+      try {
+        const canonical = await stripe.events.retrieve(eventId);
+        event = canonical as Stripe.Event;
+        console.warn(`Webhook signature fallback used for event ${eventId}`);
+      } catch (lookupErr: any) {
+        console.error("Webhook signature verification failed and fallback lookup failed:", lookupErr?.message || lookupErr);
+        return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
+      }
     }
 
     console.log(`Received Stripe event: ${event.type} (${event.id})`);
@@ -460,7 +487,8 @@ export default {
 
         const customerId = session.customer as string;
         const customerEmail = session.customer_details?.email || session.customer_email;
-        const priceId = session.line_items?.data[0]?.price?.id || null;
+        const metadataPriceId = typeof session.metadata?.price_id === "string" ? session.metadata.price_id : null;
+        const priceId = session.line_items?.data?.[0]?.price?.id || metadataPriceId;
         const amountPaid = session.amount_total || 0;
         const tier = resolveTier(env, priceId);
 
@@ -628,13 +656,17 @@ async function upsertEntitlement(env: Env, row: {
   subscription_id: string | null;
 }) {
   const existing = await env.DB.prepare(
-    "SELECT tier, status FROM entitlements WHERE customer_id = ? LIMIT 1"
-  ).bind(row.customer_id).first<{ tier: Tier; status: string }>();
+    "SELECT tier, status, customer_email FROM entitlements WHERE customer_id = ? LIMIT 1"
+  ).bind(row.customer_id).first<{ tier: Tier; status: string; customer_email: string | null }>();
 
   const finalTier =
     existing && existing.tier
       ? (tierRank(row.tier) > tierRank(existing.tier) ? row.tier : existing.tier)
       : row.tier;
+  const emailForWrite =
+    (row.customer_email && row.customer_email.trim()) ||
+    (existing?.customer_email && existing.customer_email.trim()) ||
+    `${row.customer_id}@stripe.local`;
 
   await env.DB.prepare(
     `INSERT INTO entitlements (customer_id, tier, status, customer_email, subscription_id, updated_at)
@@ -642,7 +674,7 @@ async function upsertEntitlement(env: Env, row: {
      ON CONFLICT(customer_id) DO UPDATE SET
        tier = excluded.tier,
        status = excluded.status,
-       customer_email = excluded.customer_email,
+       customer_email = COALESCE(excluded.customer_email, entitlements.customer_email),
        subscription_id = excluded.subscription_id,
        updated_at = excluded.updated_at`
   )
@@ -650,7 +682,7 @@ async function upsertEntitlement(env: Env, row: {
       row.customer_id,
       finalTier,
       row.status,
-      row.customer_email,
+      emailForWrite,
       row.subscription_id,
       Date.now(),
     )

@@ -91,6 +91,7 @@ export async function handleCheckout(request: Request, env: Env): Promise<Respon
     // Create Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode,
+      payment_method_types: ["card"],
       line_items: [
         {
           price: price_id,
@@ -100,6 +101,7 @@ export async function handleCheckout(request: Request, env: Env): Promise<Respon
       success_url: env.CHECKOUT_SUCCESS_URL,
       cancel_url: env.CHECKOUT_CANCEL_URL,
       customer_email,
+      customer_creation: mode === "payment" ? "always" : undefined,
       metadata: {
         product: "rinawarp-terminal-pro",
         price_id,

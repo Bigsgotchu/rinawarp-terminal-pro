@@ -763,6 +763,114 @@ async function agentdJson<T>(
   return data as T;
 }
 
+type DaemonTaskStatus = "queued" | "running" | "completed" | "failed" | "canceled";
+
+async function daemonStatus(): Promise<any> {
+  try {
+    return await agentdJson<{ ok: boolean; daemon?: any; tasks?: any }>("/v1/daemon/status", {
+      method: "GET",
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      daemon: { running: false, pid: null, storeDir: null },
+      tasks: { total: 0, counts: {} },
+    };
+  }
+}
+
+async function daemonTasks(args?: { status?: DaemonTaskStatus; deadLetter?: boolean }): Promise<any> {
+  const q = new URLSearchParams();
+  if (args?.status) q.set("status", args.status);
+  if (args?.deadLetter) q.set("deadLetter", "1");
+  const suffix = q.size > 0 ? `?${q.toString()}` : "";
+  try {
+    return await agentdJson<{ ok: boolean; tasks?: any[]; updatedAt?: string }>(`/v1/daemon/tasks${suffix}`, {
+      method: "GET",
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      tasks: [],
+    };
+  }
+}
+
+async function daemonTaskAdd(args: { type: string; payload?: Record<string, unknown>; maxAttempts?: number }): Promise<any> {
+  try {
+    return await agentdJson<{ ok: boolean; task?: any }>("/v1/daemon/tasks", {
+      method: "POST",
+      body: {
+        type: args?.type,
+        payload: args?.payload ?? {},
+        maxAttempts: args?.maxAttempts,
+      },
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function daemonStart(): Promise<any> {
+  try {
+    return await agentdJson<{ ok: boolean; started?: boolean; alreadyRunning?: boolean; pid?: number }>("/v1/daemon/start", {
+      method: "POST",
+      body: {},
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function daemonStop(): Promise<any> {
+  try {
+    return await agentdJson<{ ok: boolean; stopped?: boolean; stale?: boolean; pid?: number }>("/v1/daemon/stop", {
+      method: "POST",
+      body: {},
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function fetchRemotePlanForIpc(payload: { intentText: string; projectRoot: string }): Promise<any> {
+  const resp = await agentdJson<{ ok: true; plan: any }>("/v1/plan", {
+    method: "POST",
+    body: payload,
+    includeLicenseToken: false,
+  });
+  return resp.plan;
+}
+
+async function executeRemotePlanForIpc(payload: {
+  plan: any[];
+  projectRoot: string;
+  confirmed: boolean;
+  confirmationText: string;
+}): Promise<{ ok: true; planRunId: string }> {
+  return await agentdJson<{ ok: true; planRunId: string }>("/v1/execute-plan", {
+    method: "POST",
+    body: payload,
+    includeLicenseToken: true,
+  });
+}
+
 type Risk = "read" | "safe-write" | "high-impact";
 
 function gateProfileCommand(args: {
@@ -3521,211 +3629,9 @@ ipcMain.handle("rina:chat:export", async () => {
   return doctorExportTranscript("text");
 });
 
-// Agent IPC handlers (for minimal UI)
-ipcMain.handle("agent:plan", async (_event, intent: string) => {
-  const plan = makePlan(intent);
-  return plan;
-});
-
 // ============================================================
 // Warp-like Block Handlers
 // ============================================================
-
-ipcMain.handle("rina:agent:plan", async (_event, args: { intentText: string; projectRoot: string }) => {
-  const { intentText, projectRoot } = args;
-  const safeIntentText = redactText(String(intentText || "")).redactedText;
-  try {
-    const resp = await agentdJson<{ ok: true; plan: any }>("/v1/plan", {
-      method: "POST",
-      body: { intentText: safeIntentText, projectRoot },
-      includeLicenseToken: false,
-    });
-    return resp.plan;
-  } catch (error) {
-    if (!ALLOW_LOCAL_ENGINE_FALLBACK) throw error;
-
-    // Explicit dev fallback only
-    const plan = makePlan(safeIntentText, projectRoot);
-    const steps = plan.steps.map((s: any) => ({
-      tool: "terminal.write",
-      stepId: s.id,
-      input: {
-        command: s.command,
-        cwd: projectRoot || process.cwd(),
-        timeoutMs: 300_000,
-      },
-    }));
-    return {
-      id: plan.id,
-      intent: safeIntentText,
-      reasoning: plan.reasoning,
-      steps,
-    };
-  }
-});
-
-ipcMain.handle("rina:executePlanStream", async (event, args: {
-  plan: any[];
-  projectRoot: string;
-  confirmed: boolean;
-  confirmationText: string;
-}) => {
-  const planRunId = newPlanRunId();
-  const runId = `run_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  const projectRoot = resolveProjectRootSafe(args.projectRoot || process.cwd());
-  ensureStructuredSession({
-    source: "execute_plan_stream",
-    projectRoot,
-    preferredId: planRunId,
-  });
-
-  // Track this plan run for stop functionality
-  runningPlanRuns.set(planRunId, { stopped: false });
-
-  // Notify renderer that plan started
-  safeSend(event.sender, "rina:plan:run:start", { planRunId });
-
-  for (const rawStep of args.plan || []) {
-    const cmd = (rawStep?.input as any)?.command;
-    if (typeof cmd !== "string") continue;
-    const risk = riskFromPlanStep(rawStep);
-    const profileGate = gateProfileCommand({
-      projectRoot,
-      command: cmd,
-      risk,
-      confirmed: args.confirmed,
-      confirmationText: args.confirmationText ?? "",
-    });
-    if (!profileGate.ok) {
-      const haltReason = profileGate.message;
-      safeSend(event.sender, "rina:plan:run:end", {
-        planRunId,
-        ok: false,
-        haltedBecause: haltReason,
-      });
-      runningPlanRuns.delete(planRunId);
-      return {
-        runId,
-        planRunId,
-        haltedStepId: rawStep?.stepId ?? null,
-        haltReason,
-      };
-    }
-    const gate = evaluatePolicyGate(cmd, args.confirmed, args.confirmationText ?? "");
-    if (!gate.ok) {
-      const haltReason = gate.message || "Blocked by policy.";
-      safeSend(event.sender, "rina:plan:run:end", {
-        planRunId,
-        ok: false,
-        haltedBecause: haltReason,
-      });
-      runningPlanRuns.delete(planRunId);
-      return {
-        runId,
-        planRunId,
-        haltedStepId: rawStep?.stepId ?? null,
-        haltReason,
-      };
-    }
-  }
-
-  let haltedStepId: string | null = null;
-  let haltReason = "";
-
-  try {
-    const execResp = await agentdJson<{ ok: true; planRunId: string }>("/v1/execute-plan", {
-      method: "POST",
-      body: {
-        plan: args.plan,
-        projectRoot,
-        confirmed: args.confirmed,
-        confirmationText: args.confirmationText ?? "",
-      },
-      includeLicenseToken: true,
-    });
-    const state = runningPlanRuns.get(planRunId);
-    if (state) state.agentdPlanRunId = execResp.planRunId;
-
-    haltReason = (await pipeAgentdSseToRenderer({
-      eventSender: event.sender,
-      localPlanRunId: planRunId,
-      agentdPlanRunId: execResp.planRunId,
-      runId,
-    })) || "";
-  } catch (error) {
-    if (!ALLOW_LOCAL_ENGINE_FALLBACK) {
-      haltedStepId = args.plan[0]?.stepId ?? null;
-      haltReason = error instanceof Error ? error.message : String(error);
-    } else {
-      for (const step of args.plan) {
-        const state = runningPlanRuns.get(planRunId);
-        if (!state || state.stopped) {
-          haltedStepId = step.stepId;
-          haltReason = "stop_requested";
-          break;
-        }
-        const streamId = createStreamId();
-        state.currentStreamId = streamId;
-        const command = (step.input as any)?.command;
-        if (typeof command !== "string") {
-          safeSend(event.sender, "rina:stream:end", {
-            streamId,
-            ok: false,
-            code: null,
-            cancelled: false,
-            error: "Invalid step input: missing command",
-            report: { ok: false, haltedBecause: "unknown_tool", steps: [] },
-          });
-          haltedStepId = step.stepId;
-          haltReason = "Invalid step input";
-          break;
-        }
-        safeSend(event.sender, "rina:plan:stepStart", {
-          planRunId,
-          runId,
-          streamId,
-          step: {
-            stepId: step.stepId,
-            tool: "terminal",
-            input: step.input,
-          },
-        });
-        const toolStep = {
-          id: step.stepId ?? `step_${streamId}`,
-          tool: "terminal" as const,
-          command,
-          risk: riskFromPlanStep(step),
-        };
-        const stepResult = await startStreamingStepViaEngine({
-          webContents: event.sender,
-          streamId,
-          step: toolStep,
-          confirmed: args.confirmed,
-          confirmationText: args.confirmationText ?? "",
-          projectRoot,
-        });
-        state.currentStreamId = undefined;
-        const stepHalt = haltReasonFromFallbackStep(stepResult);
-        if (stepHalt) {
-          haltedStepId = step.stepId ?? toolStep.id;
-          haltReason = stepHalt;
-          break;
-        }
-      }
-    }
-  } finally {
-    // Notify renderer that plan ended
-    safeSend(event.sender, "rina:plan:run:end", {
-      planRunId,
-      ok: !haltReason,
-      haltedBecause: haltReason || undefined,
-    });
-
-    runningPlanRuns.delete(planRunId);
-  }
-
-  return { runId, planRunId, haltedStepId, haltReason };
-});
 
 // Doctor v1: Read-only evidence collection for diagnosing system issues
 type DoctorPlanStep = {
@@ -3753,13 +3659,6 @@ ipcMain.handle("rina:doctor:plan", async (_event, args: { projectRoot: string; s
     steps,
     playbookId: "doctor.running_hot.v1",
   };
-});
-
-ipcMain.handle("agent:execute", async (_event) => {
-  // Execute all steps in the current plan
-  const results: { output: string; error?: string }[] = [];
-  // This is a placeholder - full implementation would need plan state
-  return results;
 });
 
 app.whenReady().then(() => {
@@ -3840,6 +3739,27 @@ app.whenReady().then(() => {
     safeSend,
     forRendererDisplay,
     isE2E: IS_E2E,
+    daemonStatus,
+    daemonTasks,
+    daemonTaskAdd,
+    daemonStart,
+    daemonStop,
+    makePlan,
+    redactTextForPlan: redactText,
+    fetchRemotePlan: fetchRemotePlanForIpc,
+    allowLocalEngineFallback: ALLOW_LOCAL_ENGINE_FALLBACK,
+    newPlanRunId,
+    resolveProjectRootSafe,
+    ensureStructuredSession,
+    runningPlanRuns,
+    riskFromPlanStep,
+    gateProfileCommand,
+    evaluatePolicyGate,
+    executeRemotePlan: executeRemotePlanForIpc,
+    pipeAgentdSseToRenderer,
+    createStreamId,
+    startStreamingStepViaEngine,
+    haltReasonFromFallbackStep,
   });
   createWindow();
   app.on("activate", () => {

@@ -9,11 +9,17 @@
       "types": "./dist/policy.d.ts",
       "import": "./dist/policy.js",
       "require": "./dist/policy.js"
+    },
+    "./redaction": {
+      "types": "./dist/redaction.d.ts",
+      "import": "./dist/redaction.js",
+      "require": "./dist/redaction.js"
     }
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "npm run build && node --test test/*.test.cjs"
   },
   "keywords": ["rinawarp", "safety", "risk", "agent"],
   "license": "MIT"

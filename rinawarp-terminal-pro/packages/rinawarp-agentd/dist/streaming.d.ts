@@ -8,3 +8,4 @@ export type SSEClient = {
 };
 export declare function sseInit(res: ServerResponse): void;
 export declare function sseSend(res: ServerResponse, event: string, data: unknown): void;
+//# sourceMappingURL=streaming.d.ts.map
