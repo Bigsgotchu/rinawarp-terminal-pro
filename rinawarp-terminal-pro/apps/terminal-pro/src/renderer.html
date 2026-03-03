@@ -1846,6 +1846,8 @@
     let workflowGraphCache = { nodes: [], edges: [] };
     let workflowTasksCache = [];
     let workflowWebhookAuditCache = [];
+    let workflowWebhookOutcomeFilter = "";
+    let workflowWebhookMappedFilter = "";
     let workflowLoading = false;
     let workflowPollTimer = null;
     let paletteHistory = [];
@@ -2758,6 +2760,21 @@
             <div class="small">Use \`fix issue 145 --repo owner/repo --push --live-pr\` in the composer to start.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
               <button onclick="refreshWorkflowPanel()">${workflowLoading ? "Refreshing..." : "Refresh monitor"}</button>
+              <label class="small">Outcome
+                <select id="workflowWebhookOutcomeFilter" onchange="onWorkflowWebhookFilterChange()" style="margin-left:6px;">
+                  <option value="" ${workflowWebhookOutcomeFilter === "" ? "selected" : ""}>all</option>
+                  <option value="accepted" ${workflowWebhookOutcomeFilter === "accepted" ? "selected" : ""}>accepted</option>
+                  <option value="rejected" ${workflowWebhookOutcomeFilter === "rejected" ? "selected" : ""}>rejected</option>
+                </select>
+              </label>
+              <label class="small">Mapped
+                <select id="workflowWebhookMappedFilter" onchange="onWorkflowWebhookFilterChange()" style="margin-left:6px;">
+                  <option value="" ${workflowWebhookMappedFilter === "" ? "selected" : ""}>all</option>
+                  <option value="ci_status" ${workflowWebhookMappedFilter === "ci_status" ? "selected" : ""}>ci_status</option>
+                  <option value="pr_status" ${workflowWebhookMappedFilter === "pr_status" ? "selected" : ""}>pr_status</option>
+                  <option value="review_revision" ${workflowWebhookMappedFilter === "review_revision" ? "selected" : ""}>review_revision</option>
+                </select>
+              </label>
             </div>
             <div id="workflowMonitorSummary" class="small" style="margin-top:10px;">Loading monitor…</div>
             <div id="workflowMonitorList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
@@ -5825,7 +5842,11 @@
         const tasksRes = window.rina?.daemonTasks ? await window.rina.daemonTasks() : { ok: false, tasks: [] };
         workflowTasksCache = Array.isArray(tasksRes?.tasks) ? tasksRes.tasks : [];
         const auditRes = window.rina?.orchestratorWebhookAudit
-          ? await window.rina.orchestratorWebhookAudit({ limit: 30 })
+          ? await window.rina.orchestratorWebhookAudit({
+              limit: 30,
+              outcome: workflowWebhookOutcomeFilter || undefined,
+              mapped: workflowWebhookMappedFilter || undefined,
+            })
           : { ok: false, entries: [] };
         workflowWebhookAuditCache = Array.isArray(auditRes?.entries) ? auditRes.entries : [];
       } catch {
@@ -5834,6 +5855,14 @@
         workflowLoading = false;
       }
       renderWorkflowMonitorPanel();
+    }
+
+    async function onWorkflowWebhookFilterChange() {
+      const outcome = document.getElementById("workflowWebhookOutcomeFilter");
+      const mapped = document.getElementById("workflowWebhookMappedFilter");
+      workflowWebhookOutcomeFilter = outcome ? String(outcome.value || "") : "";
+      workflowWebhookMappedFilter = mapped ? String(mapped.value || "") : "";
+      await refreshWorkflowPanel();
     }
 
     function startWorkflowPolling() {
