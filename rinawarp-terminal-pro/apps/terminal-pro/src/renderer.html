@@ -5307,6 +5307,7 @@
 
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
+      if (e.defaultPrevented) return;
       if (e.altKey) {
         if (e.key === "1") { e.preventDefault(); setSidebarTab("sessions"); return; }
         if (e.key === "2") { e.preventDefault(); setSidebarTab("structured"); return; }
@@ -5463,7 +5464,7 @@
   </script>
 
   <!-- Settings host (Warp-style vertical tabs) -->
-  <div id="rw-settings" style="display:none" aria-hidden="true"></div>
+  <div id="rw-settings"></div>
 
   <!-- Command Palette host (modular) -->
   <div id="rw-palette-backdrop" class="rw-palette-backdrop" style="display:none" aria-hidden="true">
@@ -5473,10 +5474,15 @@
   <script type="module">
     import { initSettingsUi } from "./renderer/settings/bootstrap.js";
     import { bootstrapPalette } from "./renderer/palette/bootstrap.js";
-    window.addEventListener("DOMContentLoaded", () => {
+    const initUiShell = () => {
       try { initSettingsUi(); } catch (e) { console.warn("settings init failed", e); }
       try { bootstrapPalette(); } catch (e) { console.warn("palette init failed", e); }
-    });
+    };
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", initUiShell, { once: true });
+    } else {
+      initUiShell();
+    }
   </script>
 </body>
 </html>
