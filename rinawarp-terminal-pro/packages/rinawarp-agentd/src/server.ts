@@ -587,6 +587,13 @@ export function createServer(opts: { port: number }) {
           repoPath?: string;
           branchName?: string;
           command?: string;
+          repoSlug?: string;
+          push?: boolean;
+          prDryRun?: boolean;
+          baseBranch?: string;
+          prTitle?: string;
+          prBody?: string;
+          commitMessage?: string;
         } | null;
         const issueId = String(body?.issueId || "").trim();
         const repoPath = String(body?.repoPath || "").trim();
@@ -597,6 +604,13 @@ export function createServer(opts: { port: number }) {
           repoPath,
           branchName: body?.branchName,
           command: body?.command,
+          repoSlug: body?.repoSlug,
+          push: body?.push === true,
+          prDryRun: body?.prDryRun !== false,
+          baseBranch: body?.baseBranch,
+          prTitle: body?.prTitle,
+          prBody: body?.prBody,
+          commitMessage: body?.commitMessage,
         });
         return sendJson(res, 200, created);
       }

@@ -85,6 +85,13 @@ contextBridge.exposeInMainWorld("rina", {
     repoPath: string;
     branchName?: string;
     command?: string;
+    repoSlug?: string;
+    push?: boolean;
+    prDryRun?: boolean;
+    baseBranch?: string;
+    prTitle?: string;
+    prBody?: string;
+    commitMessage?: string;
   }) => ipcRenderer.invoke("rina:orchestrator:issue-to-pr", args),
   orchestratorGraph: () => ipcRenderer.invoke("rina:orchestrator:workspace-graph"),
   importShellHistory: (limit?: number) => ipcRenderer.invoke("rina:history:import", limit),

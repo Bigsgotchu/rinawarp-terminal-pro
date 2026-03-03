@@ -876,6 +876,13 @@ async function orchestratorIssueToPrForIpc(args: {
   repoPath: string;
   branchName?: string;
   command?: string;
+  repoSlug?: string;
+  push?: boolean;
+  prDryRun?: boolean;
+  baseBranch?: string;
+  prTitle?: string;
+  prBody?: string;
+  commitMessage?: string;
 }): Promise<any> {
   try {
     return await agentdJson("/v1/orchestrator/issue-to-pr", {
@@ -3666,7 +3673,22 @@ ipcMain.handle("rina:chat:export", async () => {
 
 ipcMain.handle(
   "rina:orchestrator:issue-to-pr",
-  async (_event, args: { issueId: string; repoPath: string; branchName?: string; command?: string }) => {
+  async (
+    _event,
+    args: {
+      issueId: string;
+      repoPath: string;
+      branchName?: string;
+      command?: string;
+      repoSlug?: string;
+      push?: boolean;
+      prDryRun?: boolean;
+      baseBranch?: string;
+      prTitle?: string;
+      prBody?: string;
+      commitMessage?: string;
+    },
+  ) => {
     return await orchestratorIssueToPrForIpc(args);
   },
 );

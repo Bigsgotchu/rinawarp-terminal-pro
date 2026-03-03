@@ -5029,6 +5029,68 @@
     // -----------------------------
     // Input submission (Code or Terminal)
     // -----------------------------
+    function tokenizeCommand(raw) {
+      const tokens = [];
+      const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+      let m;
+      while ((m = re.exec(String(raw || ""))) !== null) {
+        tokens.push(m[1] ?? m[2] ?? m[3] ?? "");
+      }
+      return tokens;
+    }
+
+    function parseFixIssueCommand(text) {
+      const tokens = tokenizeCommand(text);
+      if (tokens.length < 3) return null;
+      const first = String(tokens[0] || "").toLowerCase();
+      const second = String(tokens[1] || "").toLowerCase();
+      if (!((first === "/fix" || first === "fix") && second === "issue")) return null;
+
+      const issueId = String(tokens[2] || "").trim();
+      if (!issueId) return null;
+      const out = {
+        issueId,
+        branchName: undefined,
+        repoSlug: undefined,
+        push: false,
+        prDryRun: true,
+        baseBranch: "main",
+        command: "npm test",
+      };
+      for (let i = 3; i < tokens.length; i++) {
+        const t = String(tokens[i] || "");
+        if (t === "--push") {
+          out.push = true;
+          continue;
+        }
+        if (t === "--live-pr") {
+          out.prDryRun = false;
+          continue;
+        }
+        if (t === "--dry-pr") {
+          out.prDryRun = true;
+          continue;
+        }
+        if ((t === "--branch" || t === "-b") && i + 1 < tokens.length) {
+          out.branchName = String(tokens[++i] || "").trim() || undefined;
+          continue;
+        }
+        if ((t === "--repo" || t === "-r") && i + 1 < tokens.length) {
+          out.repoSlug = String(tokens[++i] || "").trim() || undefined;
+          continue;
+        }
+        if (t === "--base" && i + 1 < tokens.length) {
+          out.baseBranch = String(tokens[++i] || "").trim() || "main";
+          continue;
+        }
+        if (t === "--cmd" && i + 1 < tokens.length) {
+          out.command = String(tokens[++i] || "").trim() || "npm test";
+          continue;
+        }
+      }
+      return out;
+    }
+
     async function submitInput() {
       try {
         const intentEl = document.getElementById("intent");
@@ -5103,9 +5165,9 @@
           return;
         }
 
-        const fixIssueMatch = text.match(/^\/?fix\s+issue\s+([a-zA-Z0-9._-]+)\s*$/i);
-        if (fixIssueMatch) {
-          const issueId = String(fixIssueMatch[1] || "").trim();
+        const issueCmd = parseFixIssueCommand(text);
+        if (issueCmd) {
+          const issueId = issueCmd.issueId;
           if (!window.rina?.orchestratorIssueToPr) {
             toast("Orchestrator API unavailable");
             return;
@@ -5113,7 +5175,12 @@
           const started = await window.rina.orchestratorIssueToPr({
             issueId,
             repoPath: projectRoot,
-            command: "npm test",
+            branchName: issueCmd.branchName,
+            command: issueCmd.command,
+            repoSlug: issueCmd.repoSlug,
+            push: issueCmd.push,
+            prDryRun: issueCmd.prDryRun,
+            baseBranch: issueCmd.baseBranch,
           });
           if (!started?.ok) {
             const msg = started?.error || "Failed to start issue workflow";
@@ -5148,6 +5215,8 @@
             markdown:
               `Started issue workflow \`${started.workflowId}\` for issue \`${issueId}\`.\n` +
               `Queued task: \`${started.taskId}\`.\n` +
+              `Branch: \`${issueCmd.branchName || `rina/fix-${issueId}`}\`.\n` +
+              `PR mode: \`${issueCmd.prDryRun ? "dry-run" : "live"}\`.\n` +
               `Use Diagnostics > Agent Daemon to monitor status.${graphSummary}`,
           });
           toast(`Workflow started for issue ${issueId}`);

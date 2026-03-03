@@ -559,6 +559,13 @@ export function createServer(opts) {
                     repoPath,
                     branchName: body?.branchName,
                     command: body?.command,
+                    repoSlug: body?.repoSlug,
+                    push: body?.push === true,
+                    prDryRun: body?.prDryRun !== false,
+                    baseBranch: body?.baseBranch,
+                    prTitle: body?.prTitle,
+                    prBody: body?.prBody,
+                    commitMessage: body?.commitMessage,
                 });
                 return sendJson(res, 200, created);
             }
