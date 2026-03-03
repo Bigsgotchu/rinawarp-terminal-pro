@@ -93,21 +93,21 @@ export function registerAllIpc(args: { ... }) {
 
 | Module | Handlers | Channels | Status |
 |--------|----------|----------|--------|
-| Doctor | 6 | `rina:doctor:*` | Pending |
+| Doctor | 6 | `rina:doctor:*` | In Progress (`registerDoctorIpc.ts`; `rina:doctor:plan` still in `main.ts`) |
 | Plan/Execute | 4 | `rina:plan:*`, `rina:execute*` | In Progress (`registerAgentExecutionIpc.ts`) |
 | Stream | 4 | `rina:stream:*` | Pending |
-| Share | 5 | `rina:share:*` | Pending |
-| Team | 4 | `rina:team:*` | Pending |
-| Export | 3 | `rina:export:*` | Pending |
+| Share | 5 | `rina:share:*` | Completed (`registerShareIpc.ts`) |
+| Team | 4 | `rina:team:*` | Completed (`registerTeamIpc.ts`) |
+| Export | 3 | `rina:export:*` | Completed (`registerExportIpc.ts`) |
 
 ### Phase 4: Remaining Handlers
 
 | Module | Handlers | Channels | Status |
 |--------|----------|----------|--------|
-| Workspace | 3 | `rina:workspace:*`, `rina:pickDirectory` | Pending |
-| Code Explorer | 2 | `rina:code:*` | Pending |
-| History | 1 | `rina:history:*` | Pending |
-| Chat | 2 | `rina:chat:*` | Pending |
+| Workspace | 3 | `rina:workspace:*`, `rina:pickDirectory` | Completed (`registerWorkspaceIpc.ts`) |
+| Code Explorer | 2 | `rina:code:*` | Completed (`registerCodeIpc.ts`) |
+| History | 1 | `rina:history:*` | Completed (`registerHistoryIpc.ts`) |
+| Chat | 2 | `rina:chat:*` | Completed (`registerChatIpc.ts`) |
 | Agent | 8 | `agent:*`, `rina:agent:*`, `rina:daemon:*` | Completed |
 | Orchestrator | 6 | `rina:orchestrator:*` | Completed |
 | Misc | ~12 | Various single handlers | Pending |

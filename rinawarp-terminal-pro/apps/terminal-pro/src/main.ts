@@ -2648,8 +2648,7 @@ function applyStoredEntitlement(data: EntitlementData): void {
   currentLicenseStatus = data.status || "unknown";
 }
 
-// Directory picker handler
-ipcMain.handle("rina:pickDirectory", async (event) => {
+async function workspacePickDirectoryForIpc() {
   const result = await dialog.showOpenDialog({
     properties: ["openDirectory"],
     title: "Select Project Root",
@@ -2661,10 +2660,9 @@ ipcMain.handle("rina:pickDirectory", async (event) => {
   }
   
   return result.filePaths[0];
-});
+}
 
-// Workspace picker handler (returns structured result)
-ipcMain.handle("rina:workspace:pick", async () => {
+async function workspacePickForIpc() {
   const result = await dialog.showOpenDialog({
     properties: ["openDirectory"],
     title: "Select Workspace Folder",
@@ -2676,15 +2674,15 @@ ipcMain.handle("rina:workspace:pick", async () => {
   }
   
   return { ok: true, path: result.filePaths[0] };
-});
+}
 
-ipcMain.handle("rina:workspace:default", async (event) => {
-  const existing = ptySessions.get(event.sender.id);
+async function workspaceDefaultForIpc(senderId: number) {
+  const existing = ptySessions.get(senderId);
   const path = existing?.cwd || getDefaultPtyCwd();
   return { ok: true, path };
-});
+}
 
-ipcMain.handle("rina:code:listFiles", async (_event, args?: { projectRoot?: string; limit?: number }) => {
+async function codeListFilesForIpc(args?: { projectRoot?: string; limit?: number }) {
   try {
     const projectRoot = resolveProjectRootSafe(args?.projectRoot);
     const files = listProjectFilesSafe(projectRoot, args?.limit);
@@ -2692,12 +2690,9 @@ ipcMain.handle("rina:code:listFiles", async (_event, args?: { projectRoot?: stri
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
-});
+}
 
-ipcMain.handle("rina:code:readFile", async (
-  _event,
-  args?: { projectRoot?: string; relativePath?: string; maxBytes?: number },
-) => {
+async function codeReadFileForIpc(args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) {
   try {
     const projectRoot = resolveProjectRootSafe(args?.projectRoot);
     return readProjectFileSafe({
@@ -2708,20 +2703,20 @@ ipcMain.handle("rina:code:readFile", async (
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
-});
+}
 
 ipcMain.handle("rina:ping", async () => {
   return { pong: true, timestamp: new Date().toISOString() };
 });
 
-ipcMain.handle("rina:history:import", async (_event, limit?: number) => {
+async function historyImportForIpc(limit?: number) {
   try {
     const data = importShellHistory(Number(limit || 300));
     return { ok: true, ...data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
-});
+}
 
 ipcMain.handle("rina:diagnoseHot", async () => {
   if (process.platform === "linux") return await diagnoseHotLinux();
@@ -2780,10 +2775,7 @@ ipcMain.handle("rina:redaction:preview", async (_event, text: string) => {
     redactionCount: out.hits.length,
   };
 });
-ipcMain.handle("rina:export:preview", async (
-  _event,
-  args: { kind: ExportPreviewKind; sessionId?: string },
-) => {
+async function exportPreviewForIpc(args: { kind: ExportPreviewKind; sessionId?: string }) {
   const kind = String(args?.kind || "") as ExportPreviewKind;
   let payload = "";
   let redactionCount = 0;
@@ -2843,11 +2835,9 @@ ipcMain.handle("rina:export:preview", async (
     contentHash: rec.contentHash,
     expiresAt: new Date(rec.expiresAtMs).toISOString(),
   };
-});
-ipcMain.handle("rina:export:publish", async (
-  _event,
-  args: { previewId?: string; typedConfirm?: string; expectedHash?: string },
-) => {
+}
+
+async function exportPublishForIpc(args: { previewId?: string; typedConfirm?: string; expectedHash?: string }) {
   const previewId = String(args?.previewId || "").trim();
   if (!previewId) return { ok: false, error: "Export publish requires previewId." };
   if (String(args?.typedConfirm || "") !== "PUBLISH") {
@@ -2877,11 +2867,8 @@ ipcMain.handle("rina:export:publish", async (
     fileName: rec.fileName,
     redactionCount: rec.redactionCount,
   };
-});
-ipcMain.handle("rina:share:preview", async (
-  _event,
-  args: { content: string },
-) => {
+}
+async function sharePreviewForIpc(args: { content: string }) {
   const actorRole = getCurrentRole();
   if (!hasRoleAtLeast(actorRole, "operator")) {
     return { ok: false, error: "Only owner/operator can preview published shares." };
@@ -2910,11 +2897,15 @@ ipcMain.handle("rina:share:preview", async (
     redactionCount: rec.redactionCount,
     expiresAt: new Date(rec.expiresAtMs).toISOString(),
   };
-});
-ipcMain.handle("rina:share:create", async (
-  _event,
-  args: { title?: string; content?: string; expiresDays?: number; requiredRole?: Role; previewId?: string },
-) => {
+}
+
+async function shareCreateForIpc(args: {
+  title?: string;
+  content?: string;
+  expiresDays?: number;
+  requiredRole?: Role;
+  previewId?: string;
+}) {
   const actorRole = getCurrentRole();
   if (!hasRoleAtLeast(actorRole, "operator")) {
     return { ok: false, error: "Only owner/operator can publish shares." };
@@ -2959,8 +2950,9 @@ ipcMain.handle("rina:share:create", async (
   saveSharesDb(db);
   sharePreviewTokens.delete(previewId);
   return { ok: true, share: rec };
-});
-ipcMain.handle("rina:share:list", async () => {
+}
+
+async function shareListForIpc() {
   const db = loadSharesDb();
   const role = getCurrentRole();
   return db.shares
@@ -2974,8 +2966,9 @@ ipcMain.handle("rina:share:list", async () => {
       expiresAt: s.expiresAt,
       requiredRole: s.requiredRole,
     }));
-});
-ipcMain.handle("rina:share:get", async (_event, id: string) => {
+}
+
+async function shareGetForIpc(id: string) {
   const db = loadSharesDb();
   const found = db.shares.find((s) => s.id === id);
   if (!found) return { ok: false, error: "Share not found" };
@@ -2984,8 +2977,9 @@ ipcMain.handle("rina:share:get", async (_event, id: string) => {
   const role = getCurrentRole();
   if (!hasRoleAtLeast(role, found.requiredRole)) return { ok: false, error: "Insufficient role for share" };
   return { ok: true, share: found };
-});
-ipcMain.handle("rina:share:revoke", async (_event, id: string) => {
+}
+
+async function shareRevokeForIpc(id: string) {
   const role = getCurrentRole();
   if (!hasRoleAtLeast(role, "operator")) {
     return { ok: false, error: "Only owner/operator can revoke shares." };
@@ -2996,9 +2990,12 @@ ipcMain.handle("rina:share:revoke", async (_event, id: string) => {
   db.shares[idx] = { ...db.shares[idx], revoked: true };
   saveSharesDb(db);
   return { ok: true };
-});
-ipcMain.handle("rina:team:get", async () => loadTeamDb());
-ipcMain.handle("rina:team:setCurrentUser", async (_event, email: string) => {
+}
+async function teamGetForIpc() {
+  return loadTeamDb();
+}
+
+async function teamSetCurrentUserForIpc(email: string) {
   const team = loadTeamDb();
   const normalized = String(email || "").trim().toLowerCase();
   if (!normalized) return { ok: false, error: "Email required" };
@@ -3008,8 +3005,9 @@ ipcMain.handle("rina:team:setCurrentUser", async (_event, email: string) => {
   team.currentUser = normalized;
   saveTeamDb(team);
   return { ok: true, role: team.members.find((m) => m.email === normalized)?.role || "viewer" };
-});
-ipcMain.handle("rina:team:upsertMember", async (_event, member: { email: string; role: Role }) => {
+}
+
+async function teamUpsertMemberForIpc(member: { email: string; role: Role }) {
   if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can change team roles" };
   const team = loadTeamDb();
   const email = String(member?.email || "").trim().toLowerCase();
@@ -3021,8 +3019,9 @@ ipcMain.handle("rina:team:upsertMember", async (_event, member: { email: string;
   else team.members.push({ email, role });
   saveTeamDb(team);
   return { ok: true };
-});
-ipcMain.handle("rina:team:removeMember", async (_event, emailRaw: string) => {
+}
+
+async function teamRemoveMemberForIpc(emailRaw: string) {
   if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can remove team members" };
   const team = loadTeamDb();
   const email = String(emailRaw || "").trim().toLowerCase();
@@ -3042,10 +3041,11 @@ ipcMain.handle("rina:team:removeMember", async (_event, emailRaw: string) => {
   }
   saveTeamDb(team);
   return { ok: true };
-});
-ipcMain.handle("rina:audit:export", async () => {
+}
+
+async function auditExportForIpc() {
   return buildAuditExportText();
-});
+}
 ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed: boolean, confirmationText: string, projectRoot: string) => {
   const streamId = createStreamId();
   const normalizedRoot = resolveProjectRootSafe(projectRoot);
@@ -3889,6 +3889,24 @@ app.whenReady().then(() => {
     doctorExecuteFixForIpc,
     doctorTranscriptGetForIpc,
     doctorTranscriptExportForIpc,
+    workspacePickDirectoryForIpc,
+    workspacePickForIpc,
+    workspaceDefaultForIpc,
+    codeListFilesForIpc,
+    codeReadFileForIpc,
+    historyImportForIpc,
+    sharePreviewForIpc,
+    shareCreateForIpc,
+    shareListForIpc,
+    shareGetForIpc,
+    shareRevokeForIpc,
+    teamGetForIpc,
+    teamSetCurrentUserForIpc,
+    teamUpsertMemberForIpc,
+    teamRemoveMemberForIpc,
+    exportPreviewForIpc,
+    exportPublishForIpc,
+    auditExportForIpc,
   });
   createWindow();
   app.on("activate", () => {

@@ -18,6 +18,12 @@ import { registerAgentExecutionIpc } from "./registerAgentExecutionIpc.js";
 import { registerOrchestratorIpc } from "./registerOrchestratorIpc.js";
 import { registerChatIpc } from "./registerChatIpc.js";
 import { registerDoctorIpc } from "./registerDoctorIpc.js";
+import { registerWorkspaceIpc } from "./registerWorkspaceIpc.js";
+import { registerCodeIpc } from "./registerCodeIpc.js";
+import { registerHistoryIpc } from "./registerHistoryIpc.js";
+import { registerShareIpc } from "./registerShareIpc.js";
+import { registerTeamIpc } from "./registerTeamIpc.js";
+import { registerExportIpc } from "./registerExportIpc.js";
 
 // Runtime guard to prevent double-registration (e.g., during hot reload)
 declare global {
@@ -198,6 +204,38 @@ export function registerAllIpc(args: {
   doctorExecuteFixForIpc: (plan: any, confirmed: boolean, confirmationText: string) => Promise<unknown>;
   doctorTranscriptGetForIpc: () => Promise<unknown>;
   doctorTranscriptExportForIpc: (format: "json" | "text") => Promise<unknown>;
+  workspacePickDirectoryForIpc: () => Promise<string | null>;
+  workspacePickForIpc: () => Promise<{ ok: boolean; path?: string }>;
+  workspaceDefaultForIpc: (senderId: number) => Promise<{ ok: boolean; path: string }>;
+  codeListFilesForIpc: (payload?: { projectRoot?: string; limit?: number }) => Promise<{
+    ok: boolean;
+    files?: string[];
+    error?: string;
+  }>;
+  codeReadFileForIpc: (payload?: {
+    projectRoot?: string;
+    relativePath?: string;
+    maxBytes?: number;
+  }) => Promise<{ ok: boolean; content?: string; relativePath?: string; truncated?: boolean; error?: string }>;
+  historyImportForIpc: (limit?: number) => Promise<unknown>;
+  sharePreviewForIpc: (payload: { content: string }) => Promise<unknown>;
+  shareCreateForIpc: (payload: {
+    title?: string;
+    content?: string;
+    expiresDays?: number;
+    requiredRole?: "owner" | "operator" | "viewer";
+    previewId?: string;
+  }) => Promise<unknown>;
+  shareListForIpc: () => Promise<unknown>;
+  shareGetForIpc: (id: string) => Promise<unknown>;
+  shareRevokeForIpc: (id: string) => Promise<unknown>;
+  teamGetForIpc: () => Promise<unknown>;
+  teamSetCurrentUserForIpc: (email: string) => Promise<unknown>;
+  teamUpsertMemberForIpc: (member: { email: string; role: "owner" | "operator" | "viewer" }) => Promise<unknown>;
+  teamRemoveMemberForIpc: (email: string) => Promise<unknown>;
+  exportPreviewForIpc: (payload: { kind: "runbook_markdown" | "audit_json"; sessionId?: string }) => Promise<unknown>;
+  exportPublishForIpc: (payload: { previewId?: string; typedConfirm?: string; expectedHash?: string }) => Promise<unknown>;
+  auditExportForIpc: () => Promise<unknown>;
 }) {
   // Runtime guard: prevent double-registration during hot reload
   if (globalThis.__rinaIpcRegistered) {
@@ -361,5 +399,47 @@ export function registerAllIpc(args: {
     executeFix: args.doctorExecuteFixForIpc,
     transcriptGet: args.doctorTranscriptGetForIpc,
     transcriptExport: args.doctorTranscriptExportForIpc,
+  });
+
+  registerWorkspaceIpc({
+    ipcMain: args.ipcMain,
+    pickDirectory: args.workspacePickDirectoryForIpc,
+    pickWorkspace: args.workspacePickForIpc,
+    defaultWorkspace: args.workspaceDefaultForIpc,
+  });
+
+  registerCodeIpc({
+    ipcMain: args.ipcMain,
+    listFiles: args.codeListFilesForIpc,
+    readFile: args.codeReadFileForIpc,
+  });
+
+  registerHistoryIpc({
+    ipcMain: args.ipcMain,
+    importHistory: args.historyImportForIpc,
+  });
+
+  registerShareIpc({
+    ipcMain: args.ipcMain,
+    preview: args.sharePreviewForIpc,
+    create: args.shareCreateForIpc,
+    list: args.shareListForIpc,
+    get: args.shareGetForIpc,
+    revoke: args.shareRevokeForIpc,
+  });
+
+  registerTeamIpc({
+    ipcMain: args.ipcMain,
+    getTeam: args.teamGetForIpc,
+    setCurrentUser: args.teamSetCurrentUserForIpc,
+    upsertMember: args.teamUpsertMemberForIpc,
+    removeMember: args.teamRemoveMemberForIpc,
+  });
+
+  registerExportIpc({
+    ipcMain: args.ipcMain,
+    preview: args.exportPreviewForIpc,
+    publish: args.exportPublishForIpc,
+    auditExport: args.auditExportForIpc,
   });
 }
