@@ -146,6 +146,16 @@ export function registerAllIpc(args: {
     projectRoot: string;
   }) => Promise<unknown>;
   haltReasonFromFallbackStep: (result: any) => string | null;
+  executeStepStreamForIpc: (args: {
+    eventSender: Electron.WebContents;
+    step: any;
+    confirmed: boolean;
+    confirmationText: string;
+    projectRoot: string;
+  }) => Promise<{ streamId: string }>;
+  streamCancelForIpc: (streamId: string) => Promise<unknown>;
+  streamKillForIpc: (streamId: string) => Promise<unknown>;
+  planStopForIpc: (planRunId: string) => Promise<unknown>;
   orchestratorIssueToPrForIpc: (args: {
     issueId: string;
     repoPath: string;
@@ -372,6 +382,10 @@ export function registerAllIpc(args: {
     createStreamId: args.createStreamId,
     startStreamingStepViaEngine: args.startStreamingStepViaEngine,
     haltReasonFromFallbackStep: args.haltReasonFromFallbackStep,
+    executeStepStream: args.executeStepStreamForIpc,
+    streamCancel: args.streamCancelForIpc,
+    streamKill: args.streamKillForIpc,
+    planStop: args.planStopForIpc,
   });
 
   registerOrchestratorIpc({

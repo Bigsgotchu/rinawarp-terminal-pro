@@ -3046,7 +3046,14 @@ async function teamRemoveMemberForIpc(emailRaw: string) {
 async function auditExportForIpc() {
   return buildAuditExportText();
 }
-ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed: boolean, confirmationText: string, projectRoot: string) => {
+async function executeStepStreamForIpc(args: {
+  eventSender: Electron.WebContents;
+  step: ToolStep;
+  confirmed: boolean;
+  confirmationText: string;
+  projectRoot: string;
+}) {
+  const { eventSender, step, confirmed, confirmationText, projectRoot } = args;
   const streamId = createStreamId();
   const normalizedRoot = resolveProjectRootSafe(projectRoot);
   const profileGate = gateProfileCommand({
@@ -3057,7 +3064,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
     confirmationText,
   });
   if (!profileGate.ok) {
-    safeSend(event.sender, "rina:stream:end", {
+    safeSend(eventSender, "rina:stream:end", {
       streamId,
       ok: false,
       code: null,
@@ -3069,7 +3076,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
   }
   const policyGate = evaluatePolicyGate(step.command, confirmed, confirmationText);
   if (!policyGate.ok) {
-    safeSend(event.sender, "rina:stream:end", {
+    safeSend(eventSender, "rina:stream:end", {
       streamId,
       ok: false,
       code: null,
@@ -3169,7 +3176,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
             const payload = payloadText ? JSON.parse(payloadText) : {};
 
             if (eventName === "chunk") {
-              safeSend(event.sender, "rina:stream:chunk", {
+              safeSend(eventSender, "rina:stream:chunk", {
                 streamId,
                 stream: payload.stream,
                 data: forRendererDisplay(payload.data),
@@ -3187,7 +3194,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
               const exitCode = lastResult?.meta?.exitCode ?? null;
               const error = payload.ok ? null : (report?.haltedBecause || lastResult?.error || "Execution failed");
               stepEndSent = true;
-              safeSend(event.sender, "rina:stream:end", {
+              safeSend(eventSender, "rina:stream:end", {
                 streamId,
                 ok: !!payload.ok,
                 code: exitCode,
@@ -3213,7 +3220,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
             }
 
             if (eventName === "plan_run_end" && haltedBecause && !stepEndSent) {
-              safeSend(event.sender, "rina:stream:end", {
+              safeSend(eventSender, "rina:stream:end", {
                 streamId,
                 ok: false,
                 code: null,
@@ -3236,7 +3243,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
       } catch (error) {
         if (!ALLOW_LOCAL_ENGINE_FALLBACK) throw error;
         await startStreamingStepViaEngine({
-          webContents: event.sender,
+          webContents: eventSender,
           streamId,
           step,
           confirmed,
@@ -3245,7 +3252,7 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
         });
       }
     } catch (error) {
-      safeSend(event.sender, "rina:stream:end", {
+      safeSend(eventSender, "rina:stream:end", {
         streamId,
         ok: false,
         code: null,
@@ -3269,10 +3276,15 @@ ipcMain.handle("rina:executeStepStream", async (event, step: ToolStep, confirmed
   })();
 
   return { streamId };
-});
+}
 
-ipcMain.handle("rina:stream:cancel", async (_event, streamId: string) => cancelStream(streamId));
-ipcMain.handle("rina:stream:kill", async (_event, streamId: string) => hardKillStream(streamId));
+async function streamCancelForIpc(streamId: string) {
+  return cancelStream(streamId);
+}
+
+async function streamKillForIpc(streamId: string) {
+  return hardKillStream(streamId);
+}
 
 // ============================================================
 // Plan Run Tracking (for stop functionality)
@@ -3457,7 +3469,7 @@ async function pipeAgentdSseToRenderer(args: {
 }
 
 // Stop plan: halts future steps + cancels current stream (soft cancel)
-ipcMain.handle("rina:plan:stop", async (_event, planRunId: string) => {
+async function planStopForIpc(planRunId: string) {
   const state = runningPlanRuns.get(planRunId);
   if (!state) {
     return { ok: false, message: "No running plan for that planRunId." };
@@ -3486,7 +3498,7 @@ ipcMain.handle("rina:plan:stop", async (_event, planRunId: string) => {
   }
 
   return { ok: true };
-});
+}
 
 // --- System Doctor IPC ---
 import {
@@ -3874,6 +3886,10 @@ app.whenReady().then(() => {
     createStreamId,
     startStreamingStepViaEngine,
     haltReasonFromFallbackStep,
+    executeStepStreamForIpc,
+    streamCancelForIpc,
+    streamKillForIpc,
+    planStopForIpc,
     orchestratorIssueToPrForIpc,
     orchestratorGraphForIpc,
     orchestratorPrepareBranchForIpc,
