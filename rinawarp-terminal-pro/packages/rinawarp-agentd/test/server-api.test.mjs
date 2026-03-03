@@ -941,6 +941,7 @@ test("POST /v1/orchestrator/github/webhook maps pull_request merged event", asyn
 		headers: {
 			"content-type": "application/json",
 			"x-github-event": "pull_request",
+			"x-github-delivery": `delivery-pr-${Date.now()}`,
 		},
 		body: JSON.stringify({
 			workflowId: startBody.workflowId,
@@ -986,6 +987,7 @@ test("POST /v1/orchestrator/github/webhook maps workflow_run failure to blocked"
 		headers: {
 			"content-type": "application/json",
 			"x-github-event": "workflow_run",
+			"x-github-delivery": `delivery-ci-${Date.now()}`,
 		},
 		body: JSON.stringify({
 			workflowId: startBody.workflowId,
@@ -1017,6 +1019,7 @@ test("POST /v1/orchestrator/github/webhook rejects invalid signature when secret
 			headers: {
 				"content-type": "application/json",
 				"x-github-event": "workflow_run",
+				"x-github-delivery": `delivery-sig-bad-${Date.now()}`,
 				"x-hub-signature-256": "sha256=0000000000000000000000000000000000000000000000000000000000000000",
 			},
 			body: JSON.stringify({
@@ -1050,6 +1053,7 @@ test("POST /v1/orchestrator/github/webhook accepts valid signature when secret i
 			headers: {
 				"content-type": "application/json",
 				"x-github-event": "workflow_run",
+				"x-github-delivery": `delivery-sig-good-${Date.now()}`,
 				"x-hub-signature-256": `sha256=${sig}`,
 			},
 			body: payload,
@@ -1060,5 +1064,78 @@ test("POST /v1/orchestrator/github/webhook accepts valid signature when secret i
 		assert.equal(body.mapped, "ci_status");
 	} finally {
 		delete process.env.GITHUB_WEBHOOK_SECRET;
+	}
+});
+
+test("POST /v1/orchestrator/github/webhook requires delivery id header", async () => {
+	const resp = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-github-event": "workflow_run",
+		},
+		body: JSON.stringify({
+			workflowId: "wf_missing_delivery",
+			workflow_run: { status: "completed", conclusion: "success" },
+		}),
+	});
+	assert.equal(resp.status, 400);
+	const body = await resp.json();
+	assert.equal(body.ok, false);
+	assert.match(body.error, /x-github-delivery/i);
+});
+
+test("POST /v1/orchestrator/github/webhook rejects duplicate delivery id", async () => {
+	const delivery = `delivery-dup-${Date.now()}`;
+	const headers = {
+		"content-type": "application/json",
+		"x-github-event": "workflow_run",
+		"x-github-delivery": delivery,
+	};
+	const payload = JSON.stringify({
+		workflowId: "wf_dup_delivery",
+		workflow_run: { status: "completed", conclusion: "success" },
+	});
+	const first = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+		method: "POST",
+		headers,
+		body: payload,
+	});
+	assert.equal(first.status, 200);
+	const second = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+		method: "POST",
+		headers,
+		body: payload,
+	});
+	assert.equal(second.status, 409);
+	const secondBody = await second.json();
+	assert.equal(secondBody.ok, false);
+	assert.match(secondBody.error, /duplicate delivery id/i);
+});
+
+test("POST /v1/orchestrator/github/webhook requires secret in production", async () => {
+	const originalNodeEnv = process.env.NODE_ENV;
+	delete process.env.GITHUB_WEBHOOK_SECRET;
+	process.env.NODE_ENV = "production";
+	try {
+		const resp = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-github-event": "workflow_run",
+				"x-github-delivery": `delivery-prod-secret-${Date.now()}`,
+			},
+			body: JSON.stringify({
+				workflowId: "wf_prod_missing_secret",
+				workflow_run: { status: "completed", conclusion: "success" },
+			}),
+		});
+		assert.equal(resp.status, 503);
+		const body = await resp.json();
+		assert.equal(body.ok, false);
+		assert.match(body.error, /GITHUB_WEBHOOK_SECRET/i);
+	} finally {
+		if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+		else process.env.NODE_ENV = originalNodeEnv;
 	}
 });

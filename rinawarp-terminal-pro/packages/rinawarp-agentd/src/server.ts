@@ -142,6 +142,23 @@ const metrics = {
   unblock_runs: 0,
   unblock_duration_ms_total: 0
 };
+const webhookDeliveryCache = new Map<string, number>();
+const WEBHOOK_DELIVERY_TTL_MS = 24 * 60 * 60 * 1000;
+
+function pruneWebhookDeliveries(now = Date.now()): void {
+  for (const [id, ts] of webhookDeliveryCache.entries()) {
+    if (now - ts > WEBHOOK_DELIVERY_TTL_MS) webhookDeliveryCache.delete(id);
+  }
+}
+
+function rememberWebhookDelivery(deliveryId: string, now = Date.now()): { ok: true } | { ok: false; error: string } {
+  pruneWebhookDeliveries(now);
+  if (webhookDeliveryCache.has(deliveryId)) {
+    return { ok: false, error: "duplicate delivery id" };
+  }
+  webhookDeliveryCache.set(deliveryId, now);
+  return { ok: true };
+}
 
 async function readJson(req: http.IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -918,6 +935,17 @@ export function createServer(opts: { port: number }) {
         const secret = String(process.env.GITHUB_WEBHOOK_SECRET || "").trim();
         const { raw, json } = await readRawJson(req);
         const eventName = String(req.headers["x-github-event"] || "").trim().toLowerCase();
+        const deliveryId = String(req.headers["x-github-delivery"] || "").trim();
+        if (!deliveryId) {
+          return sendJson(res, 400, { ok: false, error: "x-github-delivery header is required" });
+        }
+        const remembered = rememberWebhookDelivery(deliveryId);
+        if (!remembered.ok) {
+          return sendJson(res, 409, { ok: false, error: remembered.error });
+        }
+        if (process.env.NODE_ENV === "production" && !secret) {
+          return sendJson(res, 503, { ok: false, error: "GITHUB_WEBHOOK_SECRET is required in production" });
+        }
         if (secret) {
           const signature = String(req.headers["x-hub-signature-256"] || "");
           const verified = verifyGithubSignature(raw, signature, secret);
