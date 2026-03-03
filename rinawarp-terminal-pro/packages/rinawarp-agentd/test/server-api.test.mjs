@@ -690,3 +690,51 @@ test("POST /v1/orchestrator/review/comment reconciles missing workflow state", a
 		fs.rmSync(tmp, { recursive: true, force: true });
 	}
 });
+
+test("workflow state machine rejects invalid CI transition regression", async () => {
+	const start = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			issueId: "260",
+			repoPath: process.cwd(),
+			command: "echo transition-seed",
+		}),
+	});
+	assert.equal(start.status, 200);
+	const startBody = await start.json();
+	assert.equal(startBody.ok, true);
+
+	const passed = await fetch(`${baseUrl}/v1/orchestrator/ci/status`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			workflowId: startBody.workflowId,
+			provider: "github-actions",
+			status: "passed",
+		}),
+	});
+	assert.equal(passed.status, 200);
+
+	const queued = await fetch(`${baseUrl}/v1/orchestrator/ci/status`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			workflowId: startBody.workflowId,
+			provider: "github-actions",
+			status: "queued",
+		}),
+	});
+	assert.equal(queued.status, 200);
+
+	const graphResp = await fetch(`${baseUrl}/v1/orchestrator/workspace-graph`);
+	assert.equal(graphResp.status, 200);
+	const graphBody = await graphResp.json();
+	assert.equal(graphBody.ok, true);
+	const wfNode = graphBody.graph.nodes.find((n) => n.id === `workflow_${startBody.workflowId}`);
+	assert.ok(wfNode);
+	assert.equal(wfNode.data.state, "verified");
+	assert.ok(wfNode.data.lastTransitionRejected);
+	assert.equal(wfNode.data.lastTransitionRejected.from, "verified");
+	assert.equal(wfNode.data.lastTransitionRejected.to, "active");
+});
