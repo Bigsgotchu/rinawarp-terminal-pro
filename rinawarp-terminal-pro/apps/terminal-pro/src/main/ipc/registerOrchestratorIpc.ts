@@ -45,6 +45,12 @@ type PrStatusArgs = {
   error?: string;
 };
 
+type WebhookAuditArgs = {
+  limit?: number;
+  outcome?: "accepted" | "rejected";
+  mapped?: "pr_status" | "ci_status" | "review_revision";
+};
+
 type CiStatusArgs = {
   workflowId: string;
   provider: string;
@@ -79,6 +85,7 @@ export function registerOrchestratorIpc(args: {
   prepareBranch: (args: PrepareBranchArgs) => Promise<any>;
   createPr: (args: CreatePrArgs) => Promise<any>;
   prStatus: (args: PrStatusArgs) => Promise<any>;
+  webhookAudit: (args?: WebhookAuditArgs) => Promise<any>;
   ciStatus: (args: CiStatusArgs) => Promise<any>;
   reviewComment: (args: ReviewCommentArgs) => Promise<any>;
 }) {
@@ -91,6 +98,9 @@ export function registerOrchestratorIpc(args: {
   );
   ipcMain.handle("rina:orchestrator:github:create-pr", async (_event, payload: CreatePrArgs) => args.createPr(payload));
   ipcMain.handle("rina:orchestrator:github:pr-status", async (_event, payload: PrStatusArgs) => args.prStatus(payload));
+  ipcMain.handle("rina:orchestrator:github:webhook-audit", async (_event, payload?: WebhookAuditArgs) =>
+    args.webhookAudit(payload),
+  );
   ipcMain.handle("rina:orchestrator:ci:status", async (_event, payload: CiStatusArgs) => args.ciStatus(payload));
   ipcMain.handle("rina:orchestrator:review:comment", async (_event, payload: ReviewCommentArgs) =>
     args.reviewComment(payload),

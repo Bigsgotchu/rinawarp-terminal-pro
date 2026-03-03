@@ -1845,6 +1845,7 @@
     let diagnosticsPollIntervalMs = 3000;
     let workflowGraphCache = { nodes: [], edges: [] };
     let workflowTasksCache = [];
+    let workflowWebhookAuditCache = [];
     let workflowLoading = false;
     let workflowPollTimer = null;
     let paletteHistory = [];
@@ -5741,16 +5742,24 @@
       const nodes = Array.isArray(workflowGraphCache?.nodes) ? workflowGraphCache.nodes : [];
       const edges = Array.isArray(workflowGraphCache?.edges) ? workflowGraphCache.edges : [];
       const tasks = Array.isArray(workflowTasksCache) ? workflowTasksCache : [];
+      const audit = Array.isArray(workflowWebhookAuditCache) ? workflowWebhookAuditCache : [];
       const issueTasks = tasks.filter((t) => String(t?.payload?.mode || "") === "issue_to_pr");
       const queued = issueTasks.filter((t) => t.status === "queued").length;
       const running = issueTasks.filter((t) => t.status === "running").length;
       const failed = issueTasks.filter((t) => t.status === "failed").length;
       const completed = issueTasks.filter((t) => t.status === "completed").length;
+      const acceptedWebhook = audit.filter((e) => String(e?.outcome || "") === "accepted").length;
+      const rejectedWebhook = audit.filter((e) => String(e?.outcome || "") === "rejected").length;
+      const latestWebhook = audit[0] || null;
+      const latestWebhookMeta = latestWebhook
+        ? ` • latest webhook: ${String(latestWebhook.eventName || latestWebhook.event || "unknown")} (${String(latestWebhook.outcome || "unknown")})`
+        : "";
 
       summaryEl.textContent =
         `Graph: ${nodes.length} node(s), ${edges.length} edge(s) • ` +
         `Issue workflows: ${issueTasks.length} • ` +
-        `queued ${queued}, running ${running}, completed ${completed}, failed ${failed}`;
+        `queued ${queued}, running ${running}, completed ${completed}, failed ${failed} • ` +
+        `webhooks accepted ${acceptedWebhook}, rejected ${rejectedWebhook}${latestWebhookMeta}`;
 
       if (issueTasks.length === 0) {
         listEl.innerHTML = `<div class="small">No issue workflows yet.</div>`;
@@ -5815,6 +5824,10 @@
         }
         const tasksRes = window.rina?.daemonTasks ? await window.rina.daemonTasks() : { ok: false, tasks: [] };
         workflowTasksCache = Array.isArray(tasksRes?.tasks) ? tasksRes.tasks : [];
+        const auditRes = window.rina?.orchestratorWebhookAudit
+          ? await window.rina.orchestratorWebhookAudit({ limit: 30 })
+          : { ok: false, entries: [] };
+        workflowWebhookAuditCache = Array.isArray(auditRes?.entries) ? auditRes.entries : [];
       } catch {
         // keep previous cache on transient fetch errors
       } finally {

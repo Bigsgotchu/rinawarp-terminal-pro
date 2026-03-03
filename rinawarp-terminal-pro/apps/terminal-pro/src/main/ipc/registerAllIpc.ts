@@ -195,6 +195,11 @@ export function registerAllIpc(args: {
     url?: string;
     error?: string;
   }) => Promise<any>;
+  orchestratorWebhookAuditForIpc: (args?: {
+    limit?: number;
+    outcome?: "accepted" | "rejected";
+    mapped?: "pr_status" | "ci_status" | "review_revision";
+  }) => Promise<any>;
   orchestratorCiStatusForIpc: (args: {
     workflowId: string;
     provider: string;
@@ -418,6 +423,7 @@ export function registerAllIpc(args: {
     prepareBranch: args.orchestratorPrepareBranchForIpc,
     createPr: args.orchestratorCreatePrForIpc,
     prStatus: args.orchestratorPrStatusForIpc,
+    webhookAudit: args.orchestratorWebhookAuditForIpc,
     ciStatus: args.orchestratorCiStatusForIpc,
     reviewComment: args.orchestratorReviewCommentForIpc,
   });

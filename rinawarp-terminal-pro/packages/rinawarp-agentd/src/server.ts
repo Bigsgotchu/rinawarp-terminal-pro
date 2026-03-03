@@ -283,6 +283,35 @@ async function appendWebhookAudit(event: Record<string, unknown>): Promise<void>
   await appendFile(fp, line, "utf8");
 }
 
+function readWebhookAudit(args?: {
+  limit?: number;
+  outcome?: string;
+  mapped?: string;
+}): Array<Record<string, unknown>> {
+  const fp = webhookAuditFile();
+  if (!fs.existsSync(fp)) return [];
+  const raw = fs.readFileSync(fp, "utf8");
+  const lines = raw.split(/\r?\n/).filter((line) => line.trim().length > 0);
+  const parsed = lines
+    .map((line) => {
+      try {
+        return JSON.parse(line) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    })
+    .filter((entry): entry is Record<string, unknown> => entry !== null);
+  const outcome = (args?.outcome || "").trim();
+  const mapped = (args?.mapped || "").trim();
+  const filtered = parsed.filter((entry) => {
+    if (outcome && String(entry.outcome || "") !== outcome) return false;
+    if (mapped && String(entry.mapped || "") !== mapped) return false;
+    return true;
+  });
+  const limit = Number.isFinite(args?.limit) ? Math.max(1, Math.min(500, Number(args?.limit))) : 100;
+  return filtered.slice(-limit).reverse();
+}
+
 function checkWebhookRateLimit(clientIp: string, now = Date.now()): { ok: true } | { ok: false; retryAfterSec: number } {
   const windowMs = webhookRateWindowMs();
   const maxCount = webhookRateLimitPerWindow();
@@ -1244,6 +1273,14 @@ export function createServer(opts: { port: number }) {
           clientIp,
         });
         return sendJson(res, 400, { ok: false, error: `unsupported github webhook event: ${eventName}` });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/orchestrator/github/webhook-audit") {
+        const limitRaw = Number(url.searchParams.get("limit") || 100);
+        const outcome = String(url.searchParams.get("outcome") || "");
+        const mapped = String(url.searchParams.get("mapped") || "");
+        const entries = readWebhookAudit({ limit: limitRaw, outcome, mapped });
+        return sendJson(res, 200, { ok: true, entries, count: entries.length });
       }
 
       // --- CANCEL (plan or stream)

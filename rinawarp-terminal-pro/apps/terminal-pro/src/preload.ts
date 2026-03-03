@@ -119,6 +119,11 @@ contextBridge.exposeInMainWorld("rina", {
     url?: string;
     error?: string;
   }) => ipcRenderer.invoke("rina:orchestrator:github:pr-status", args),
+  orchestratorWebhookAudit: (args?: {
+    limit?: number;
+    outcome?: "accepted" | "rejected";
+    mapped?: "pr_status" | "ci_status" | "review_revision";
+  }) => ipcRenderer.invoke("rina:orchestrator:github:webhook-audit", args || {}),
   orchestratorCiStatus: (args: {
     workflowId: string;
     provider: string;

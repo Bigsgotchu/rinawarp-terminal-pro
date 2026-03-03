@@ -1282,3 +1282,13 @@ test("POST /v1/orchestrator/github/webhook writes audit trail entries", async ()
 	assert.ok(tail.some((e) => e.outcome === "accepted" && e.mapped === "ci_status"));
 	assert.ok(tail.some((e) => e.outcome === "rejected" && e.reason === "missing_workflow_id"));
 });
+
+test("GET /v1/orchestrator/github/webhook-audit returns recent entries", async () => {
+	const resp = await fetch(`${baseUrl}/v1/orchestrator/github/webhook-audit?limit=5`);
+	assert.equal(resp.status, 200);
+	const body = await resp.json();
+	assert.equal(body.ok, true);
+	assert.ok(Array.isArray(body.entries));
+	assert.ok(typeof body.count === "number");
+	assert.ok(body.entries.length <= 5);
+});

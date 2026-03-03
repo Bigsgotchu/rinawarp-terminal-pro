@@ -983,6 +983,32 @@ async function orchestratorPrStatusForIpc(args: {
   }
 }
 
+async function orchestratorWebhookAuditForIpc(args?: {
+  limit?: number;
+  outcome?: "accepted" | "rejected";
+  mapped?: "pr_status" | "ci_status" | "review_revision";
+}): Promise<any> {
+  try {
+    const params = new URLSearchParams();
+    if (typeof args?.limit === "number" && Number.isFinite(args.limit)) params.set("limit", String(args.limit));
+    if (args?.outcome) params.set("outcome", args.outcome);
+    if (args?.mapped) params.set("mapped", args.mapped);
+    const qs = params.toString();
+    const path = qs ? `/v1/orchestrator/github/webhook-audit?${qs}` : "/v1/orchestrator/github/webhook-audit";
+    return await agentdJson(path, {
+      method: "GET",
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      entries: [],
+      count: 0,
+    };
+  }
+}
+
 async function orchestratorCiStatusForIpc(args: {
   workflowId: string;
   provider: string;
@@ -3922,6 +3948,7 @@ app.whenReady().then(() => {
     orchestratorPrepareBranchForIpc,
     orchestratorCreatePrForIpc,
     orchestratorPrStatusForIpc,
+    orchestratorWebhookAuditForIpc,
     orchestratorCiStatusForIpc,
     orchestratorReviewCommentForIpc,
     chatSendForIpc,

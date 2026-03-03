@@ -52,6 +52,11 @@ declare global {
         url?: string;
         error?: string;
       }) => Promise<any>;
+      orchestratorWebhookAudit?: (args?: {
+        limit?: number;
+        outcome?: "accepted" | "rejected";
+        mapped?: "pr_status" | "ci_status" | "review_revision";
+      }) => Promise<any>;
       orchestratorCiStatus?: (args: {
         workflowId: string;
         provider: string;
