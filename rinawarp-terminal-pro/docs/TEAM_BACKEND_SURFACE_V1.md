@@ -55,7 +55,11 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - SOC2-style append-only hash-chained logs are written to `soc2-audit.ndjson`.
 - Vault service stores encrypted tokens with envelope encryption and key rotation support.
 - Vault provider modes: `local` and `aws-kms` (`RINAWARP_VAULT_PROVIDER=aws-kms`, `RINAWARP_AWS_KMS_KEY_ID`).
-- WebSocket gateway is active for workspace event streaming; NATS publish+subscribe bridge is enabled when `RINAWARP_NATS_URL` is configured.
+- WebSocket gateway is active for workspace event streaming.
+- NATS bridge supports `core` and `jetstream` modes (`RINAWARP_NATS_MODE=jetstream`):
+  - JetStream stream auto-provision (`WORKSPACE_EVENTS`)
+  - Durable consumer replay checkpoint persisted at `eventbus-jetstream-state.json`
+  - Explicit ack + dead-letter publishing (`workspace.{id}.dlq`) for invalid event payloads
 - Invite tokens are generated randomly and stored hashed (`sha256` with rotating salt+key version).
 - Invite accept is single-use (`pending` -> `accepted`) with expiry handling.
 - Brute-force protection for invite token attempts (`423 locked` after threshold).
@@ -65,14 +69,22 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - Invite create/accept security can use Redis REST (`RINAWARP_REDIS_REST_URL`, `RINAWARP_REDIS_REST_TOKEN`) with local fallback.
 - Redis is mandatory in `NODE_ENV=production` for invite security endpoints.
 - Runtime backend can run as `local` or `k8s` (`RINAWARP_RUNTIME_BACKEND=k8s`) with Kubernetes job submission.
+- K8s runtime includes:
+  - Watch-based pod lifecycle tracking
+  - Exponential retry policy (`max_attempts`, `initial_delay_sec`)
+  - Streamed pod logs via workspace events
+  - TTL retention policy controls for succeeded/failed jobs
+- Archive S3 path uses native AWS SDK APIs (no shelling out) and supports:
+  - Bucket provisioning with Object Lock + versioning + lifecycle + public access block
+  - Upload verification fields (`upload_etag`, `upload_version_id`)
 
 ## Known Gaps To Reach Full Production Contract
 
 - SMTP provider credentials are stored but delivery currently uses local `sendmail` path (no direct SMTP handshake client yet).
 - JWT-like signed tokens exist, but no full account identity provider integration (passwordless/email-code/MFA/session revocation).
 - No seat counting against paid plan from billing provider.
-- S3 archive uploader depends on AWS CLI runtime configuration; object-lock/lifecycle policy is not auto-provisioned by agentd.
-- NATS cross-region replay/durable consumer management is not implemented yet (current bridge uses live publish+subscribe).
+- NATS clustering/replica topology is external infra; agentd does not bootstrap NATS cluster nodes.
+- Full Kubernetes controller reconciliation loop is not yet split into a dedicated control-plane process (current lifecycle runs in-process).
 - Idempotency enforcement is active for key mutation routes, but not yet universal across all mutating endpoints.
 
 ## CLI Surface (Current)

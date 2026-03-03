@@ -1624,6 +1624,11 @@ test("runtime task enforces cross-region policy", async () => {
 	const scheduled = await allowed.json();
 	assert.equal(scheduled.ok, true);
 	assert.ok(scheduled.task?.id);
+	assert.equal(scheduled.task?.max_attempts, 3);
+	assert.equal(scheduled.task?.initial_delay_sec, 10);
+	assert.equal(scheduled.task?.timeout_sec, 1200);
+	assert.ok(Array.isArray(scheduled.task?.transitions));
+	assert.equal(scheduled.task?.transitions?.[0]?.status, "queued");
 });
 
 test("archive config/status/run endpoints work", async () => {
