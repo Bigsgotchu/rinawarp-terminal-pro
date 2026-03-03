@@ -1304,6 +1304,7 @@ test("workspace API creates workspace and returns summary", async () => {
 			"content-type": "application/json",
 			"x-rina-actor-id": "usr_owner",
 			"x-rina-actor-email": "owner@example.com",
+			"idempotency-key": `idem-ws-1-${Date.now()}`,
 		},
 		body: JSON.stringify({ name: "backend-core", region: "us-east-1" }),
 	});
@@ -1326,6 +1327,7 @@ test("workspace invite create + accept adds member", async () => {
 			"content-type": "application/json",
 			"x-rina-actor-id": "usr_owner2",
 			"x-rina-actor-email": "owner2@example.com",
+			"idempotency-key": `idem-ws-2-${Date.now()}`,
 		},
 		body: JSON.stringify({ name: "invite-flow", region: "us-east-1" }),
 	});
@@ -1339,6 +1341,7 @@ test("workspace invite create + accept adds member", async () => {
 			"content-type": "application/json",
 			"x-rina-actor-id": "usr_owner2",
 			"x-rina-actor-email": "owner2@example.com",
+			"idempotency-key": `idem-invite-${Date.now()}`,
 		},
 		body: JSON.stringify({
 			email: "dev@example.com",
@@ -1377,6 +1380,7 @@ test("sync push detects version conflict", async () => {
 			"content-type": "application/json",
 			"x-rina-actor-id": "usr_owner3",
 			"x-rina-actor-email": "owner3@example.com",
+			"idempotency-key": `idem-ws-3-${Date.now()}`,
 		},
 		body: JSON.stringify({ name: "sync-flow", region: "us-east-1" }),
 	});
@@ -1469,5 +1473,33 @@ test("admin email config + test endpoint works in log provider mode", async () =
 	assert.equal(testResp.status, 200);
 	const body = await testResp.json();
 	assert.equal(body.ok, true);
-	assert.equal(body.provider, "log");
+	assert.equal(body.queued, true);
+	assert.ok(body.job_id);
+});
+
+test("workspace creation honors idempotency-key replay", async () => {
+	const key = `idem-replay-${Date.now()}`;
+	const headers = {
+		"content-type": "application/json",
+		"x-rina-actor-id": "usr_owner4",
+		"x-rina-actor-email": "owner4@example.com",
+		"idempotency-key": key,
+	};
+	const first = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers,
+		body: JSON.stringify({ name: "idem-workspace", region: "us-east-1" }),
+	});
+	assert.equal(first.status, 200);
+	const firstBody = await first.json();
+	assert.ok(firstBody.workspace_id);
+
+	const second = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers,
+		body: JSON.stringify({ name: "idem-workspace", region: "us-east-1" }),
+	});
+	assert.equal(second.status, 200);
+	const secondBody = await second.json();
+	assert.equal(secondBody.workspace_id, firstBody.workspace_id);
 });
