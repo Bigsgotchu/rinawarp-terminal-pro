@@ -37,6 +37,20 @@ declare global {
         body?: string;
         draft?: boolean;
         dryRun?: boolean;
+        workflowId?: string;
+        issueId?: string;
+        branchName?: string;
+      }) => Promise<any>;
+      orchestratorPrStatus?: (args: {
+        workflowId: string;
+        status: "planned" | "opened" | "merged" | "closed" | "failed";
+        issueId?: string;
+        branchName?: string;
+        repoSlug?: string;
+        mode?: "dry_run" | "live";
+        number?: number;
+        url?: string;
+        error?: string;
       }) => Promise<any>;
       orchestratorCiStatus?: (args: {
         workflowId: string;

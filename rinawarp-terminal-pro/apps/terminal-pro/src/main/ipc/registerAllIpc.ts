@@ -180,6 +180,20 @@ export function registerAllIpc(args: {
     body?: string;
     draft?: boolean;
     dryRun?: boolean;
+    workflowId?: string;
+    issueId?: string;
+    branchName?: string;
+  }) => Promise<any>;
+  orchestratorPrStatusForIpc: (args: {
+    workflowId: string;
+    status: "planned" | "opened" | "merged" | "closed" | "failed";
+    issueId?: string;
+    branchName?: string;
+    repoSlug?: string;
+    mode?: "dry_run" | "live";
+    number?: number;
+    url?: string;
+    error?: string;
   }) => Promise<any>;
   orchestratorCiStatusForIpc: (args: {
     workflowId: string;
@@ -403,6 +417,7 @@ export function registerAllIpc(args: {
     workspaceGraph: args.orchestratorGraphForIpc,
     prepareBranch: args.orchestratorPrepareBranchForIpc,
     createPr: args.orchestratorCreatePrForIpc,
+    prStatus: args.orchestratorPrStatusForIpc,
     ciStatus: args.orchestratorCiStatusForIpc,
     reviewComment: args.orchestratorReviewCommentForIpc,
   });

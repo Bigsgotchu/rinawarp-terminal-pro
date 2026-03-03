@@ -104,7 +104,21 @@ contextBridge.exposeInMainWorld("rina", {
     body?: string;
     draft?: boolean;
     dryRun?: boolean;
+    workflowId?: string;
+    issueId?: string;
+    branchName?: string;
   }) => ipcRenderer.invoke("rina:orchestrator:github:create-pr", args),
+  orchestratorPrStatus: (args: {
+    workflowId: string;
+    status: "planned" | "opened" | "merged" | "closed" | "failed";
+    issueId?: string;
+    branchName?: string;
+    repoSlug?: string;
+    mode?: "dry_run" | "live";
+    number?: number;
+    url?: string;
+    error?: string;
+  }) => ipcRenderer.invoke("rina:orchestrator:github:pr-status", args),
   orchestratorCiStatus: (args: {
     workflowId: string;
     provider: string;

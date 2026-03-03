@@ -5763,6 +5763,15 @@
           const issueId = String(t?.payload?.issueId || "unknown");
           const branch = String(t?.payload?.branchName || "—");
           const status = String(t?.status || "unknown");
+          const workflowId = String(t?.payload?.workflowId || "").trim();
+          const wfNode = workflowId
+            ? nodes.find((n) => String(n?.id || "") === `workflow_${workflowId}`)
+            : null;
+          const wfState = String(wfNode?.data?.state || "unknown");
+          const prNode = workflowId
+            ? nodes.find((n) => String(n?.id || "") === `pr_${workflowId}`)
+            : null;
+          const prState = String(prNode?.data?.status || (t?.payload?.prDryRun === false ? "live_pending" : "dry_run_pending"));
           const badgeClass =
             status === "completed"
               ? "diag-badge ok"
@@ -5777,14 +5786,18 @@
                 <span class="${badgeClass}">${escapeHtml(status)}</span>
               </div>
               <div class="small">Task: ${escapeHtml(String(t.id || "—"))}</div>
-              <div class="small">Branch: ${escapeHtml(branch)} • PR: ${escapeHtml(prMode)}</div>
+              <div class="small">Workflow: ${escapeHtml(workflowId || "—")} • State: ${escapeHtml(wfState)}</div>
+              <div class="small">Branch: ${escapeHtml(branch)} • PR mode: ${escapeHtml(prMode)} • PR state: ${escapeHtml(prState)}</div>
               <div class="small">Command: <code>${escapeHtml(String(t?.payload?.command || "—"))}</code></div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
                 <button onclick="openWorkflowBranch('${escapeHtml(String(t.id || ''))}')">Open branch</button>
                 <button onclick="retryWorkflowTask('${escapeHtml(String(t.id || ''))}')">Retry failed</button>
                 <button onclick="createPrForWorkflow('${escapeHtml(String(t.id || ''))}')">Create PR now</button>
+                <button onclick="markWorkflowCiPassed('${escapeHtml(String(t.id || ''))}')">CI passed</button>
                 <button onclick="markWorkflowCiFailed('${escapeHtml(String(t.id || ''))}')">CI failed + auto-retry</button>
                 <button onclick="addWorkflowReviewComment('${escapeHtml(String(t.id || ''))}')">Add review feedback</button>
+                <button onclick="markWorkflowPrMerged('${escapeHtml(String(t.id || ''))}')">PR merged</button>
+                <button onclick="markWorkflowPrClosed('${escapeHtml(String(t.id || ''))}')">PR closed</button>
               </div>
             </div>
           `;
@@ -5915,6 +5928,9 @@
           body: String(payload.prBody || ""),
           draft: false,
           dryRun: !live,
+          workflowId: String(payload.workflowId || ""),
+          issueId: String(payload.issueId || ""),
+          branchName,
         });
         if (!res?.ok) {
           toast(`Create PR failed: ${res?.error || "unknown error"}`);
@@ -5922,12 +5938,49 @@
         }
         if (res.mode === "dry_run") {
           toast("PR dry-run payload generated");
+          await refreshWorkflowPanel();
           return;
         }
         toast(`PR created: #${res.number}`);
+        await refreshWorkflowPanel();
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err || "failed");
         toast(`Create PR failed: ${msg}`);
+      }
+    }
+
+    async function markWorkflowCiPassed(taskId) {
+      try {
+        const task = findWorkflowTask(taskId);
+        if (!task) {
+          toast("Workflow task not found");
+          return;
+        }
+        if (!window.rina?.orchestratorCiStatus) {
+          toast("CI status API unavailable");
+          return;
+        }
+        const payload = task.payload || {};
+        const workflowId = String(payload.workflowId || "").trim();
+        if (!workflowId) {
+          toast("Task missing workflowId");
+          return;
+        }
+        const res = await window.rina.orchestratorCiStatus({
+          workflowId,
+          provider: "manual",
+          status: "passed",
+          url: "",
+        });
+        if (!res?.ok) {
+          toast(`CI status update failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast("CI pass recorded");
+        await refreshWorkflowPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`CI update failed: ${msg}`);
       }
     }
 
@@ -6017,6 +6070,50 @@
         const msg = err instanceof Error ? err.message : String(err || "failed");
         toast(`Review queue failed: ${msg}`);
       }
+    }
+
+    async function markWorkflowPrStatus(taskId, status) {
+      try {
+        const task = findWorkflowTask(taskId);
+        if (!task) {
+          toast("Workflow task not found");
+          return;
+        }
+        if (!window.rina?.orchestratorPrStatus) {
+          toast("PR status API unavailable");
+          return;
+        }
+        const payload = task.payload || {};
+        const workflowId = String(payload.workflowId || "").trim();
+        if (!workflowId) {
+          toast("Task missing workflowId");
+          return;
+        }
+        const res = await window.rina.orchestratorPrStatus({
+          workflowId,
+          status,
+          issueId: String(payload.issueId || ""),
+          branchName: String(payload.branchName || ""),
+          repoSlug: payload.repoSlug ? String(payload.repoSlug) : undefined,
+        });
+        if (!res?.ok) {
+          toast(`PR status update failed: ${res?.error || "unknown error"}`);
+          return;
+        }
+        toast(`PR status set to ${status}`);
+        await refreshWorkflowPanel();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err || "failed");
+        toast(`PR status update failed: ${msg}`);
+      }
+    }
+
+    async function markWorkflowPrMerged(taskId) {
+      return markWorkflowPrStatus(taskId, "merged");
+    }
+
+    async function markWorkflowPrClosed(taskId) {
+      return markWorkflowPrStatus(taskId, "closed");
     }
 
     function persistWorkflow(plan) {

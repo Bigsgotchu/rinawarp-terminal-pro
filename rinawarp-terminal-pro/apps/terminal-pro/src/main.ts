@@ -940,9 +940,37 @@ async function orchestratorCreatePrForIpc(args: {
   body?: string;
   draft?: boolean;
   dryRun?: boolean;
+  workflowId?: string;
+  issueId?: string;
+  branchName?: string;
 }): Promise<any> {
   try {
     return await agentdJson("/v1/orchestrator/github/create-pr", {
+      method: "POST",
+      body: args,
+      includeLicenseToken: false,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function orchestratorPrStatusForIpc(args: {
+  workflowId: string;
+  status: "planned" | "opened" | "merged" | "closed" | "failed";
+  issueId?: string;
+  branchName?: string;
+  repoSlug?: string;
+  mode?: "dry_run" | "live";
+  number?: number;
+  url?: string;
+  error?: string;
+}): Promise<any> {
+  try {
+    return await agentdJson("/v1/orchestrator/github/pr-status", {
       method: "POST",
       body: args,
       includeLicenseToken: false,
@@ -3893,6 +3921,7 @@ app.whenReady().then(() => {
     orchestratorGraphForIpc,
     orchestratorPrepareBranchForIpc,
     orchestratorCreatePrForIpc,
+    orchestratorPrStatusForIpc,
     orchestratorCiStatusForIpc,
     orchestratorReviewCommentForIpc,
     chatSendForIpc,

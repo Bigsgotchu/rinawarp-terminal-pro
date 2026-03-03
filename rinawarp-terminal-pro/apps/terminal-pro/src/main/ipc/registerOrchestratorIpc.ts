@@ -28,6 +28,21 @@ type CreatePrArgs = {
   body?: string;
   draft?: boolean;
   dryRun?: boolean;
+  workflowId?: string;
+  issueId?: string;
+  branchName?: string;
+};
+
+type PrStatusArgs = {
+  workflowId: string;
+  status: "planned" | "opened" | "merged" | "closed" | "failed";
+  issueId?: string;
+  branchName?: string;
+  repoSlug?: string;
+  mode?: "dry_run" | "live";
+  number?: number;
+  url?: string;
+  error?: string;
 };
 
 type CiStatusArgs = {
@@ -63,6 +78,7 @@ export function registerOrchestratorIpc(args: {
   workspaceGraph: () => Promise<any>;
   prepareBranch: (args: PrepareBranchArgs) => Promise<any>;
   createPr: (args: CreatePrArgs) => Promise<any>;
+  prStatus: (args: PrStatusArgs) => Promise<any>;
   ciStatus: (args: CiStatusArgs) => Promise<any>;
   reviewComment: (args: ReviewCommentArgs) => Promise<any>;
 }) {
@@ -74,6 +90,7 @@ export function registerOrchestratorIpc(args: {
     args.prepareBranch(payload),
   );
   ipcMain.handle("rina:orchestrator:github:create-pr", async (_event, payload: CreatePrArgs) => args.createPr(payload));
+  ipcMain.handle("rina:orchestrator:github:pr-status", async (_event, payload: PrStatusArgs) => args.prStatus(payload));
   ipcMain.handle("rina:orchestrator:ci:status", async (_event, payload: CiStatusArgs) => args.ciStatus(payload));
   ipcMain.handle("rina:orchestrator:review:comment", async (_event, payload: ReviewCommentArgs) =>
     args.reviewComment(payload),
