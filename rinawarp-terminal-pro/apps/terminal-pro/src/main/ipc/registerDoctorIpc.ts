@@ -2,6 +2,7 @@ import type { IpcMain } from "electron";
 
 export function registerDoctorIpc(args: {
   ipcMain: IpcMain;
+  plan: (args: { projectRoot: string; symptom: string }) => Promise<unknown>;
   inspect: (intent: string) => Promise<unknown>;
   collect: (steps: any[], streamCallback?: unknown) => Promise<unknown>;
   interpret: (payload: { intent: string; evidence: any }) => Promise<unknown>;
@@ -12,6 +13,9 @@ export function registerDoctorIpc(args: {
 }) {
   const { ipcMain } = args;
 
+  ipcMain.handle("rina:doctor:plan", async (_event, payload: { projectRoot: string; symptom: string }) =>
+    args.plan(payload),
+  );
   ipcMain.handle("rina:doctor:inspect", async (_event, intent: string) => args.inspect(intent));
   ipcMain.handle("rina:doctor:collect", async (_event, steps: any[], streamCallback?: unknown) =>
     args.collect(steps, streamCallback),

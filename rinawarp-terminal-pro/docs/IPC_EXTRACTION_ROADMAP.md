@@ -94,8 +94,8 @@ export function registerAllIpc(args: { ... }) {
 | Module | Handlers | Channels | Status |
 |--------|----------|----------|--------|
 | Doctor | 6 | `rina:doctor:*` | In Progress (`registerDoctorIpc.ts`; `rina:doctor:plan` still in `main.ts`) |
-| Plan/Execute | 4 | `rina:plan:*`, `rina:execute*` | In Progress (`registerAgentExecutionIpc.ts`) |
-| Stream | 4 | `rina:stream:*` | Pending |
+| Plan/Execute | 4 | `rina:plan:*`, `rina:execute*` | In Progress (`registerAgentExecutionIpc.ts`; `rina:plan` still in `main.ts`) |
+| Stream | 4 | `rina:stream:*` | In Progress (`registerAgentExecutionIpc.ts`; stream control extracted) |
 | Share | 5 | `rina:share:*` | Completed (`registerShareIpc.ts`) |
 | Team | 4 | `rina:team:*` | Completed (`registerTeamIpc.ts`) |
 | Export | 3 | `rina:export:*` | Completed (`registerExportIpc.ts`) |

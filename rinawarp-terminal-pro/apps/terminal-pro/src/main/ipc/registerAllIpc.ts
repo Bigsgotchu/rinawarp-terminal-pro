@@ -24,6 +24,7 @@ import { registerHistoryIpc } from "./registerHistoryIpc.js";
 import { registerShareIpc } from "./registerShareIpc.js";
 import { registerTeamIpc } from "./registerTeamIpc.js";
 import { registerExportIpc } from "./registerExportIpc.js";
+import { registerUtilityIpc } from "./registerUtilityIpc.js";
 
 // Runtime guard to prevent double-registration (e.g., during hot reload)
 declare global {
@@ -207,6 +208,7 @@ export function registerAllIpc(args: {
   }) => Promise<any>;
   chatSendForIpc: (text: string, projectRoot?: string) => Promise<unknown>;
   chatExportForIpc: () => Promise<string>;
+  doctorPlanForIpc: (args: { projectRoot: string; symptom: string }) => Promise<unknown>;
   doctorInspectForIpc: (intent: string) => Promise<unknown>;
   doctorCollectForIpc: (steps: any[], streamCallback?: unknown) => Promise<unknown>;
   doctorInterpretForIpc: (payload: { intent: string; evidence: any }) => Promise<unknown>;
@@ -246,6 +248,13 @@ export function registerAllIpc(args: {
   exportPreviewForIpc: (payload: { kind: "runbook_markdown" | "audit_json"; sessionId?: string }) => Promise<unknown>;
   exportPublishForIpc: (payload: { previewId?: string; typedConfirm?: string; expectedHash?: string }) => Promise<unknown>;
   auditExportForIpc: () => Promise<unknown>;
+  devtoolsToggleForIpc: (sender: Electron.WebContents) => Promise<unknown>;
+  pingForIpc: () => Promise<unknown>;
+  diagnoseHotForIpc: () => Promise<unknown>;
+  planForIpc: (intent: string) => Promise<unknown>;
+  playbooksGetForIpc: () => Promise<unknown>;
+  playbookExecuteForIpc: (playbookId: string, fixIndex: number) => Promise<unknown>;
+  redactionPreviewForIpc: (text: string) => Promise<unknown>;
 }) {
   // Runtime guard: prevent double-registration during hot reload
   if (globalThis.__rinaIpcRegistered) {
@@ -406,6 +415,7 @@ export function registerAllIpc(args: {
 
   registerDoctorIpc({
     ipcMain: args.ipcMain,
+    plan: args.doctorPlanForIpc,
     inspect: args.doctorInspectForIpc,
     collect: args.doctorCollectForIpc,
     interpret: args.doctorInterpretForIpc,
@@ -455,5 +465,16 @@ export function registerAllIpc(args: {
     preview: args.exportPreviewForIpc,
     publish: args.exportPublishForIpc,
     auditExport: args.auditExportForIpc,
+  });
+
+  registerUtilityIpc({
+    ipcMain: args.ipcMain,
+    devtoolsToggle: args.devtoolsToggleForIpc,
+    ping: args.pingForIpc,
+    diagnoseHot: args.diagnoseHotForIpc,
+    plan: args.planForIpc,
+    playbooksGet: args.playbooksGetForIpc,
+    playbookExecute: args.playbookExecuteForIpc,
+    redactionPreview: args.redactionPreviewForIpc,
   });
 }

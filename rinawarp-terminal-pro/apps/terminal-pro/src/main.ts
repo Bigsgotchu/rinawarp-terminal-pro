@@ -2225,8 +2225,7 @@ function createWindow() {
   }
 }
 
-ipcMain.handle("rina:devtools:toggle", async (event) => {
-  const wc = event.sender;
+async function devtoolsToggleForIpc(wc: WebContents) {
   if (wc.isDestroyed()) return { ok: false, error: "window destroyed" };
   try {
     if (wc.isDevToolsOpened()) {
@@ -2238,7 +2237,7 @@ ipcMain.handle("rina:devtools:toggle", async (event) => {
   } catch (err) {
     return { ok: false, error: (err && (err as Error).message) ? (err as Error).message : "failed to toggle devtools" };
   }
-});
+}
 
 /**
  * Create confirmation scope for high-impact steps.
@@ -2705,9 +2704,9 @@ async function codeReadFileForIpc(args?: { projectRoot?: string; relativePath?: 
   }
 }
 
-ipcMain.handle("rina:ping", async () => {
+async function pingForIpc() {
   return { pong: true, timestamp: new Date().toISOString() };
-});
+}
 
 async function historyImportForIpc(limit?: number) {
   try {
@@ -2718,19 +2717,19 @@ async function historyImportForIpc(limit?: number) {
   }
 }
 
-ipcMain.handle("rina:diagnoseHot", async () => {
+async function diagnoseHotForIpc() {
   if (process.platform === "linux") return await diagnoseHotLinux();
   return { platform: process.platform, message: "Tuned for Kali/Linux." };
-});
+}
 
-ipcMain.handle("rina:plan", async (_event, intent: string) => {
+async function planForIpc(intent: string) {
   addTranscriptEntry({ type: "intent", timestamp: new Date().toISOString(), intent });
   const plan = makePlan(intent);
   addTranscriptEntry({ type: "plan", timestamp: new Date().toISOString(), plan });
   return plan;
-});
+}
 
-ipcMain.handle("rina:playbooks:get", async () => {
+async function playbooksGetForIpc() {
   return PLAYBOOKS.map(p => ({
     id: p.id,
     name: p.name,
@@ -2743,9 +2742,9 @@ ipcMain.handle("rina:playbooks:get", async () => {
       risk: f.risk
     }))
   }));
-});
+}
 
-ipcMain.handle("rina:playbook:execute", async (_event, playbookId: string, fixIndex: number) => {
+async function playbookExecuteForIpc(playbookId: string, fixIndex: number) {
   const playbook = PLAYBOOKS.find(p => p.id === playbookId);
   if (!playbook) throw new Error("Playbook not found");
 
@@ -2765,16 +2764,16 @@ ipcMain.handle("rina:playbook:execute", async (_event, playbookId: string, fixIn
       description: fix.verification
     }))
   };
-});
+}
 
-ipcMain.handle("rina:redaction:preview", async (_event, text: string) => {
+async function redactionPreviewForIpc(text: string) {
   const out = redactText(String(text || ""));
   return {
     redactedText: out.redactedText,
     hits: out.hits,
     redactionCount: out.hits.length,
   };
-});
+}
 async function exportPreviewForIpc(args: { kind: ExportPreviewKind; sessionId?: string }) {
   const kind = String(args?.kind || "") as ExportPreviewKind;
   let payload = "";
@@ -3767,7 +3766,7 @@ type DoctorPlanStep = {
   confirmationScope?: string;
 };
 
-ipcMain.handle("rina:doctor:plan", async (_event, args: { projectRoot: string; symptom: string }) => {
+async function doctorPlanForIpc(args: { projectRoot: string; symptom: string }) {
   // Read-only evidence collection only (safe, no confirmation needed)
   const steps: DoctorPlanStep[] = [
     { stepId: "uptime", tool: "terminal.write", input: { command: "uptime", cwd: args.projectRoot } },
@@ -3785,7 +3784,7 @@ ipcMain.handle("rina:doctor:plan", async (_event, args: { projectRoot: string; s
     steps,
     playbookId: "doctor.running_hot.v1",
   };
-});
+}
 
 app.whenReady().then(() => {
   if (featureFlags.structuredSessionV1) {
@@ -3898,6 +3897,7 @@ app.whenReady().then(() => {
     orchestratorReviewCommentForIpc,
     chatSendForIpc,
     chatExportForIpc,
+    doctorPlanForIpc,
     doctorInspectForIpc,
     doctorCollectForIpc,
     doctorInterpretForIpc,
@@ -3923,6 +3923,13 @@ app.whenReady().then(() => {
     exportPreviewForIpc,
     exportPublishForIpc,
     auditExportForIpc,
+    devtoolsToggleForIpc,
+    pingForIpc,
+    diagnoseHotForIpc,
+    planForIpc,
+    playbooksGetForIpc,
+    playbookExecuteForIpc,
+    redactionPreviewForIpc,
   });
   createWindow();
   app.on("activate", () => {
