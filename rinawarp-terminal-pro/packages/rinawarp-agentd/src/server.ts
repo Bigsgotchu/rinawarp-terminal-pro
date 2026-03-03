@@ -20,7 +20,7 @@ import { resolveRequestLicense } from "./license.js";
 import type { AgentPlanRequest, ExecutePlanRequest, CancelRequest, AgentPlan, PlanStep, Risk } from "./types.js";
 import { addTask, clearPid, clearState, isPidAlive, paths, readPid, readState, readTaskRegistry, writePid, writeState } from "./daemon/state.js";
 import { validateTaskPayload } from "./daemon/task-contracts.js";
-import { createIssueToPrWorkflow, readWorkspaceGraph } from "./orchestrator/workspaceGraph.js";
+import { createIssueToPrWorkflow, queueRevisionFromReview, readWorkspaceGraph, recordCiStatus } from "./orchestrator/workspaceGraph.js";
 import { createPullRequest } from "./orchestrator/githubAdapter.js";
 import { createOrSwitchBranch, currentBranch, ensureGitRepo } from "./orchestrator/gitProvider.js";
 
@@ -618,6 +618,61 @@ export function createServer(opts: { port: number }) {
       if (req.method === "GET" && url.pathname === "/v1/orchestrator/workspace-graph") {
         const graph = readWorkspaceGraph();
         return sendJson(res, 200, { ok: true, graph });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/orchestrator/ci/status") {
+        const body = (await readJson(req)) as {
+          workflowId?: string;
+          provider?: string;
+          status?: "queued" | "running" | "passed" | "failed";
+          url?: string;
+        } | null;
+        const workflowId = String(body?.workflowId || "").trim();
+        const provider = String(body?.provider || "ci").trim();
+        const status = body?.status;
+        if (!workflowId) return sendJson(res, 400, { ok: false, error: "workflowId is required" });
+        if (!status || !["queued", "running", "passed", "failed"].includes(status)) {
+          return sendJson(res, 400, { ok: false, error: "status must be queued|running|passed|failed" });
+        }
+        const saved = recordCiStatus({ workflowId, provider, status, url: body?.url });
+        return sendJson(res, 200, saved);
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/orchestrator/review/comment") {
+        const body = (await readJson(req)) as {
+          workflowId?: string;
+          repoPath?: string;
+          issueId?: string;
+          branchName?: string;
+          comment?: string;
+          command?: string;
+          repoSlug?: string;
+          baseBranch?: string;
+          prDryRun?: boolean;
+        } | null;
+        const workflowId = String(body?.workflowId || "").trim();
+        const repoPath = String(body?.repoPath || "").trim();
+        const issueId = String(body?.issueId || "").trim();
+        const branchName = String(body?.branchName || "").trim();
+        const comment = String(body?.comment || "").trim();
+        if (!workflowId || !repoPath || !issueId || !branchName || !comment) {
+          return sendJson(res, 400, {
+            ok: false,
+            error: "workflowId, repoPath, issueId, branchName, and comment are required",
+          });
+        }
+        const queued = queueRevisionFromReview({
+          workflowId,
+          repoPath,
+          issueId,
+          branchName,
+          comment,
+          command: body?.command,
+          repoSlug: body?.repoSlug,
+          baseBranch: body?.baseBranch,
+          prDryRun: body?.prDryRun !== false,
+        });
+        return sendJson(res, 200, queued);
       }
 
       if (req.method === "POST" && url.pathname === "/v1/orchestrator/git/prepare-branch") {

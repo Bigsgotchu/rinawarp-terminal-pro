@@ -497,3 +497,80 @@ test("daemon run_command issue_to_pr mode creates commit on branch (dry-run PR)"
 		fs.rmSync(tmp, { recursive: true, force: true });
 	}
 });
+
+test("POST /v1/orchestrator/ci/status records CI node in workspace graph", async () => {
+	const createResp = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			issueId: "150",
+			repoPath: process.cwd(),
+			command: "echo ci-seed",
+		}),
+	});
+	assert.equal(createResp.status, 200);
+	const createBody = await createResp.json();
+	assert.equal(createBody.ok, true);
+
+	const ciResp = await fetch(`${baseUrl}/v1/orchestrator/ci/status`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			workflowId: createBody.workflowId,
+			provider: "github-actions",
+			status: "failed",
+			url: "https://ci.example/run/1",
+		}),
+	});
+	assert.equal(ciResp.status, 200);
+	const ciBody = await ciResp.json();
+	assert.equal(ciBody.ok, true);
+	assert.ok(typeof ciBody.ciNodeId === "string");
+});
+
+test("POST /v1/orchestrator/review/comment queues revision task", async () => {
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "rinawarp-agentd-review-"));
+	try {
+		execSync("git init", { cwd: tmp, stdio: "ignore" });
+		execSync('git config user.email "test@example.com"', { cwd: tmp, stdio: "ignore" });
+		execSync('git config user.name "RinaWarp Test"', { cwd: tmp, stdio: "ignore" });
+		fs.writeFileSync(path.join(tmp, "README.md"), "# review\n", "utf8");
+		execSync("git add README.md", { cwd: tmp, stdio: "ignore" });
+		execSync('git commit -m "init"', { cwd: tmp, stdio: "ignore" });
+
+		const start = await fetch(`${baseUrl}/v1/orchestrator/issue-to-pr`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({
+				issueId: "151",
+				repoPath: tmp,
+				branchName: "rina/fix-151",
+				command: "printf 'seed\\n' >> README.md",
+			}),
+		});
+		assert.equal(start.status, 200);
+		const startBody = await start.json();
+		assert.equal(startBody.ok, true);
+
+		const reviewResp = await fetch(`${baseUrl}/v1/orchestrator/review/comment`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({
+				workflowId: startBody.workflowId,
+				repoPath: tmp,
+				issueId: "151",
+				branchName: "rina/fix-151",
+				comment: "Please update README wording",
+				command: "printf 'review update\\n' >> README.md",
+				prDryRun: true,
+			}),
+		});
+		assert.equal(reviewResp.status, 200);
+		const reviewBody = await reviewResp.json();
+		assert.equal(reviewBody.ok, true);
+		assert.ok(typeof reviewBody.taskId === "string");
+		assert.ok(typeof reviewBody.reviewNodeId === "string");
+	} finally {
+		fs.rmSync(tmp, { recursive: true, force: true });
+	}
+});
