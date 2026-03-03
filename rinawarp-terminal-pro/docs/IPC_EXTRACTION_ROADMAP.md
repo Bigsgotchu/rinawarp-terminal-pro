@@ -2,7 +2,7 @@
 
 ## Current State
 
-The extraction is now actively in progress with shared registration centralized in `src/main/ipc/registerAllIpc.ts`.
+IPC extraction from `main.ts` is complete. Registration is centralized in `src/main/ipc/registerAllIpc.ts`.
 
 Recent completed extraction:
 - `rina:license:*` extracted to `src/main/ipc/registerLicenseIpc.ts`
@@ -93,9 +93,9 @@ export function registerAllIpc(args: { ... }) {
 
 | Module | Handlers | Channels | Status |
 |--------|----------|----------|--------|
-| Doctor | 6 | `rina:doctor:*` | In Progress (`registerDoctorIpc.ts`; `rina:doctor:plan` still in `main.ts`) |
-| Plan/Execute | 4 | `rina:plan:*`, `rina:execute*` | In Progress (`registerAgentExecutionIpc.ts`; `rina:plan` still in `main.ts`) |
-| Stream | 4 | `rina:stream:*` | In Progress (`registerAgentExecutionIpc.ts`; stream control extracted) |
+| Doctor | 6 | `rina:doctor:*` | Completed (`registerDoctorIpc.ts`) |
+| Plan/Execute | 4 | `rina:plan:*`, `rina:execute*` | Completed (`registerAgentExecutionIpc.ts`, `registerUtilityIpc.ts`) |
+| Stream | 4 | `rina:stream:*` | Completed (`registerAgentExecutionIpc.ts`) |
 | Share | 5 | `rina:share:*` | Completed (`registerShareIpc.ts`) |
 | Team | 4 | `rina:team:*` | Completed (`registerTeamIpc.ts`) |
 | Export | 3 | `rina:export:*` | Completed (`registerExportIpc.ts`) |
@@ -203,7 +203,6 @@ Line 4162: agent:execute
 
 ## Next Steps
 
-1. Extract `chat`, `doctor`, `share`, `team`, and `export` handlers from `main.ts`
-2. Extract `workspace`, `code`, and `history` handlers from `main.ts`
-3. Add a CI job step to run `./scripts/check-no-ipc-in-main.sh` once extraction is complete
-4. Keep duplicate-channel checks (`scripts/check-duplicate-ipc.js`) mandatory in CI
+1. Enable `./scripts/check-no-ipc-in-main.sh` in CI (now unblocked)
+2. Keep `scripts/check-duplicate-ipc.js` mandatory in CI
+3. Add tests for each IPC registrar module (unit-level registration coverage)

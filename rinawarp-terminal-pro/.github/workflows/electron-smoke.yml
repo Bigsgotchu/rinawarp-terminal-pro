@@ -44,6 +44,12 @@ jobs:
       - name: Check no JS twins in src
         run: ./scripts/check-no-src-js.sh
 
+      - name: Check duplicate IPC channels
+        run: node scripts/check-duplicate-ipc.js
+
+      - name: Check no IPC handlers in main.ts
+        run: ./scripts/check-no-ipc-in-main.sh
+
       - name: Lint (ESLint)
         run: npm --workspace apps/terminal-pro run lint -- --format json --output-file /tmp/eslint.json || true
 

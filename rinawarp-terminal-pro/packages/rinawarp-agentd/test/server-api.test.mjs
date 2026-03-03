@@ -625,3 +625,68 @@ test("POST /v1/orchestrator/ci/status with autoRetry queues revision task on fai
 		fs.rmSync(tmp, { recursive: true, force: true });
 	}
 });
+
+test("POST /v1/orchestrator/ci/status reconciles missing workflow node", async () => {
+	const workflowId = `wf_missing_${Date.now()}`;
+	const ciResp = await fetch(`${baseUrl}/v1/orchestrator/ci/status`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			workflowId,
+			provider: "github-actions",
+			status: "queued",
+		}),
+	});
+	assert.equal(ciResp.status, 200);
+	const ciBody = await ciResp.json();
+	assert.equal(ciBody.ok, true);
+
+	const graphResp = await fetch(`${baseUrl}/v1/orchestrator/workspace-graph`);
+	assert.equal(graphResp.status, 200);
+	const graphBody = await graphResp.json();
+	assert.equal(graphBody.ok, true);
+	const workflowNode = graphBody.graph.nodes.find((n) => n.id === `workflow_${workflowId}`);
+	assert.ok(workflowNode);
+	assert.equal(workflowNode.type, "workflow");
+});
+
+test("POST /v1/orchestrator/review/comment reconciles missing workflow state", async () => {
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "rinawarp-agentd-review-reconcile-"));
+	try {
+		execSync("git init", { cwd: tmp, stdio: "ignore" });
+		execSync('git config user.email "test@example.com"', { cwd: tmp, stdio: "ignore" });
+		execSync('git config user.name "RinaWarp Test"', { cwd: tmp, stdio: "ignore" });
+		fs.writeFileSync(path.join(tmp, "README.md"), "# reconcile\n", "utf8");
+		execSync("git add README.md", { cwd: tmp, stdio: "ignore" });
+		execSync('git commit -m "init"', { cwd: tmp, stdio: "ignore" });
+
+		const workflowId = `wf_review_missing_${Date.now()}`;
+		const reviewResp = await fetch(`${baseUrl}/v1/orchestrator/review/comment`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({
+				workflowId,
+				repoPath: tmp,
+				issueId: "199",
+				branchName: "rina/fix-199",
+				comment: "adjust wording",
+				command: "printf 'reconcile\\n' >> README.md",
+				prDryRun: true,
+			}),
+		});
+		assert.equal(reviewResp.status, 200);
+		const reviewBody = await reviewResp.json();
+		assert.equal(reviewBody.ok, true);
+
+		const graphResp = await fetch(`${baseUrl}/v1/orchestrator/workspace-graph`);
+		assert.equal(graphResp.status, 200);
+		const graphBody = await graphResp.json();
+		assert.equal(graphBody.ok, true);
+		const workflowNode = graphBody.graph.nodes.find((n) => n.id === `workflow_${workflowId}`);
+		assert.ok(workflowNode);
+		assert.equal(workflowNode.type, "workflow");
+		assert.equal(workflowNode.data.state, "needs_revision");
+	} finally {
+		fs.rmSync(tmp, { recursive: true, force: true });
+	}
+});
