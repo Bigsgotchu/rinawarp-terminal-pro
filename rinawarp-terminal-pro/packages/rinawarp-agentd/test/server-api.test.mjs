@@ -1244,3 +1244,41 @@ test("POST /v1/orchestrator/github/webhook enforces rate limit per client", asyn
 		delete process.env.RINAWARP_WEBHOOK_RATE_WINDOW_MS;
 	}
 });
+
+test("POST /v1/orchestrator/github/webhook writes audit trail entries", async () => {
+	const auditPath = path.join(agentHome, "webhook-audit.ndjson");
+	const before = fs.existsSync(auditPath) ? fs.readFileSync(auditPath, "utf8").trim().split("\n").filter(Boolean).length : 0;
+
+	const accepted = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-github-event": "workflow_run",
+			"x-github-delivery": `delivery-audit-ok-${Date.now()}`,
+		},
+		body: JSON.stringify({
+			workflowId: "wf_audit_ok",
+			workflow_run: { status: "completed", conclusion: "success" },
+		}),
+	});
+	assert.equal(accepted.status, 200);
+
+	const rejected = await fetch(`${baseUrl}/v1/orchestrator/github/webhook`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-github-event": "workflow_run",
+			"x-github-delivery": `delivery-audit-bad-${Date.now()}`,
+		},
+		body: JSON.stringify({
+			workflow_run: { status: "completed", conclusion: "success" },
+		}),
+	});
+	assert.equal(rejected.status, 400);
+
+	const afterLines = fs.readFileSync(auditPath, "utf8").trim().split("\n").filter(Boolean);
+	assert.ok(afterLines.length >= before + 2);
+	const tail = afterLines.slice(-4).map((l) => JSON.parse(l));
+	assert.ok(tail.some((e) => e.outcome === "accepted" && e.mapped === "ci_status"));
+	assert.ok(tail.some((e) => e.outcome === "rejected" && e.reason === "missing_workflow_id"));
+});

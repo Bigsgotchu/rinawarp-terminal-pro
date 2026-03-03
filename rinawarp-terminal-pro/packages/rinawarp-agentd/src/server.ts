@@ -4,7 +4,7 @@
 import http from "node:http";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
-import { mkdir, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -270,6 +270,17 @@ function webhookClientIp(req: http.IncomingMessage): string {
     if (first) return first;
   }
   return req.socket.remoteAddress || "unknown";
+}
+
+function webhookAuditFile(): string {
+  return path.join(paths().baseDir, "webhook-audit.ndjson");
+}
+
+async function appendWebhookAudit(event: Record<string, unknown>): Promise<void> {
+  const line = `${JSON.stringify({ ts: new Date().toISOString(), ...event })}\n`;
+  const fp = webhookAuditFile();
+  await mkdir(path.dirname(fp), { recursive: true });
+  await appendFile(fp, line, "utf8");
 }
 
 function checkWebhookRateLimit(clientIp: string, now = Date.now()): { ok: true } | { ok: false; retryAfterSec: number } {
@@ -1046,33 +1057,51 @@ export function createServer(opts: { port: number }) {
 
       if (req.method === "POST" && url.pathname === "/v1/orchestrator/github/webhook") {
         const secret = String(process.env.GITHUB_WEBHOOK_SECRET || "").trim();
-        const limiter = checkWebhookRateLimit(webhookClientIp(req));
+        const clientIp = webhookClientIp(req);
+        const limiter = checkWebhookRateLimit(clientIp);
         if (!limiter.ok) {
           res.setHeader("Retry-After", String(limiter.retryAfterSec));
+          await appendWebhookAudit({ outcome: "rejected", reason: "rate_limited", retryAfterSec: limiter.retryAfterSec, clientIp });
           return sendJson(res, 429, { ok: false, error: "webhook rate limit exceeded" });
         }
-        const { raw, json } = await readRawJson(req, { maxBytes: webhookMaxBytes() });
+        let raw = "";
+        let json: any = null;
+        try {
+          const parsed = await readRawJson(req, { maxBytes: webhookMaxBytes() });
+          raw = parsed.raw;
+          json = parsed.json;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          await appendWebhookAudit({ outcome: "rejected", reason: "payload_too_large", error: message, clientIp });
+          const statusCode = (error as { statusCode?: number })?.statusCode || 400;
+          return sendJson(res, statusCode, { ok: false, error: message });
+        }
         const eventName = String(req.headers["x-github-event"] || "").trim().toLowerCase();
         const deliveryId = String(req.headers["x-github-delivery"] || "").trim();
         if (!deliveryId) {
+          await appendWebhookAudit({ outcome: "rejected", reason: "missing_delivery_id", eventName, clientIp });
           return sendJson(res, 400, { ok: false, error: "x-github-delivery header is required" });
         }
         const remembered = rememberWebhookDelivery(deliveryId);
         if (!remembered.ok) {
+          await appendWebhookAudit({ outcome: "rejected", reason: "duplicate_delivery_id", eventName, deliveryId, clientIp });
           return sendJson(res, 409, { ok: false, error: remembered.error });
         }
         if (process.env.NODE_ENV === "production" && !secret) {
+          await appendWebhookAudit({ outcome: "rejected", reason: "missing_secret_production", eventName, deliveryId, clientIp });
           return sendJson(res, 503, { ok: false, error: "GITHUB_WEBHOOK_SECRET is required in production" });
         }
         if (secret) {
           const signature = String(req.headers["x-hub-signature-256"] || "");
           const verified = verifyGithubSignature(raw, signature, secret);
           if (!verified) {
+            await appendWebhookAudit({ outcome: "rejected", reason: "invalid_signature", eventName, deliveryId, clientIp });
             return sendJson(res, 401, { ok: false, error: "invalid webhook signature" });
           }
         }
         const body = json as Record<string, any> | null;
         if (!eventName) {
+          await appendWebhookAudit({ outcome: "rejected", reason: "missing_event_name", deliveryId, clientIp });
           return sendJson(res, 400, { ok: false, error: "x-github-event header is required" });
         }
         const payload = body || {};
@@ -1080,6 +1109,7 @@ export function createServer(opts: { port: number }) {
           typeof payload?.repository?.full_name === "string" ? String(payload.repository.full_name).trim() : undefined;
         const workflowId = String(payload?.workflowId || payload?.workflow_id || payload?.external_id || "").trim();
         if (!workflowId) {
+          await appendWebhookAudit({ outcome: "rejected", reason: "missing_workflow_id", eventName, deliveryId, clientIp });
           return sendJson(res, 400, {
             ok: false,
             error: "workflowId is required in webhook payload (workflowId|workflow_id|external_id)",
@@ -1104,6 +1134,15 @@ export function createServer(opts: { port: number }) {
             mode: "live",
             number: typeof pr?.number === "number" ? pr.number : null,
             url: typeof pr?.html_url === "string" ? String(pr.html_url) : null,
+          });
+          await appendWebhookAudit({
+            outcome: "accepted",
+            mapped: "pr_status",
+            eventName,
+            deliveryId,
+            workflowId,
+            status,
+            clientIp,
           });
           return sendJson(res, 200, { event: "pull_request", mapped: "pr_status", ...saved });
         }
@@ -1136,6 +1175,15 @@ export function createServer(opts: { port: number }) {
             status,
             url: url || undefined,
           });
+          await appendWebhookAudit({
+            outcome: "accepted",
+            mapped: "ci_status",
+            eventName,
+            deliveryId,
+            workflowId,
+            status,
+            clientIp,
+          });
           return sendJson(res, 200, { event: eventName, mapped: "ci_status", ...saved });
         }
 
@@ -1151,12 +1199,20 @@ export function createServer(opts: { port: number }) {
           const issueId =
             payload?.pull_request?.number != null ? String(payload.pull_request.number).trim() : "";
           const repoPath = String(payload?.repoPath || "").trim();
-          if (!reviewBody || !branchName || !issueId || !repoPath) {
-            return sendJson(res, 400, {
-              ok: false,
-              error: "review webhook requires review/comment body, pull_request head.ref, pull_request number, and repoPath",
-            });
-          }
+        if (!reviewBody || !branchName || !issueId || !repoPath) {
+          await appendWebhookAudit({
+            outcome: "rejected",
+            reason: "missing_review_fields",
+            eventName,
+            deliveryId,
+            workflowId,
+            clientIp,
+          });
+          return sendJson(res, 400, {
+            ok: false,
+            error: "review webhook requires review/comment body, pull_request head.ref, pull_request number, and repoPath",
+          });
+        }
           const queued = queueRevisionFromReview({
             workflowId,
             repoPath,
@@ -1166,9 +1222,27 @@ export function createServer(opts: { port: number }) {
             repoSlug,
             prDryRun: true,
           });
+          await appendWebhookAudit({
+            outcome: "accepted",
+            mapped: "review_revision",
+            eventName,
+            deliveryId,
+            workflowId,
+            issueId,
+            branchName,
+            clientIp,
+          });
           return sendJson(res, 200, { event: eventName, mapped: "review_revision", ...queued });
         }
 
+        await appendWebhookAudit({
+          outcome: "rejected",
+          reason: "unsupported_event",
+          eventName,
+          deliveryId,
+          workflowId,
+          clientIp,
+        });
         return sendJson(res, 400, { ok: false, error: `unsupported github webhook event: ${eventName}` });
       }
 
