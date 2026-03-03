@@ -1312,7 +1312,12 @@ test("workspace API creates workspace and returns summary", async () => {
 	const created = await createdResp.json();
 	assert.ok(created.workspace_id);
 
-	const getResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(created.workspace_id)}`);
+	const getResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(created.workspace_id)}`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner",
+			"x-rina-actor-email": "owner@example.com",
+		},
+	});
 	assert.equal(getResp.status, 200);
 	const ws = await getResp.json();
 	assert.equal(ws.id, created.workspace_id);
@@ -1368,7 +1373,12 @@ test("workspace invite create + accept adds member", async () => {
 	assert.equal(accepted.workspace_id, workspaceId);
 	assert.equal(accepted.role, "member");
 
-	const wsResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}`);
+	const wsResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}`, {
+		headers: {
+			"x-rina-actor-id": "usr_dev",
+			"x-rina-actor-email": "dev@example.com",
+		},
+	});
 	const ws = await wsResp.json();
 	assert.equal(ws.members, 2);
 });
@@ -1402,7 +1412,12 @@ test("sync push detects version conflict", async () => {
 	});
 	assert.equal(okPush.status, 409);
 
-	const stateResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/sync/state`);
+	const stateResp = await fetch(`${baseUrl}/v1/workspaces/${encodeURIComponent(workspaceId)}/sync/state`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner3",
+			"x-rina-actor-email": "owner3@example.com",
+		},
+	});
 	assert.equal(stateResp.status, 200);
 	const state = await stateResp.json();
 
