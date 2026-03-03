@@ -1843,6 +1843,10 @@
     let diagnosticsPollTimer = null;
     let diagnosticsAutoRefreshEnabled = true;
     let diagnosticsPollIntervalMs = 3000;
+    let workflowGraphCache = { nodes: [], edges: [] };
+    let workflowTasksCache = [];
+    let workflowLoading = false;
+    let workflowPollTimer = null;
     let paletteHistory = [];
     let blockCollapsed = {};
     let structuredSearchQuery = "";
@@ -2743,15 +2747,41 @@
       if (tab === "workflows") {
         const wfs = listWorkflows();
         title.textContent = "Workflows";
-        meta.textContent = String(wfs.length);
-        body.innerHTML = wfs.length
-          ? wfs.map(w => `
-              <div class="item" style="cursor:pointer" onclick="runWorkflow('${escapeHtml(w.key)}')">
-                <div><b>${escapeHtml(w.plan?.intent ?? "workflow")}</b></div>
-                <div class="small">${escapeHtml(w.key)}</div>
-              </div>
-            `).join("")
-          : `<div class="item"><div><b>No workflows saved</b></div><div class="small">Save a plan from a Plan block.</div></div>`;
+        const monitorCount = Array.isArray(workflowTasksCache)
+          ? workflowTasksCache.filter((t) => String(t?.payload?.mode || "") === "issue_to_pr").length
+          : 0;
+        meta.textContent = `${wfs.length} saved • ${monitorCount} active`;
+        body.innerHTML = `
+          <div class="item">
+            <div><b>Issue → PR Monitor</b></div>
+            <div class="small">Use \`fix issue 145 --repo owner/repo --push --live-pr\` in the composer to start.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button onclick="refreshWorkflowPanel()">${workflowLoading ? "Refreshing..." : "Refresh monitor"}</button>
+            </div>
+            <div id="workflowMonitorSummary" class="small" style="margin-top:10px;">Loading monitor…</div>
+            <div id="workflowMonitorList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+          </div>
+          <div class="item">
+            <div><b>Saved Local Workflows</b></div>
+            <div id="savedWorkflowList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+              ${
+                wfs.length
+                  ? wfs
+                      .map(
+                        (w) => `
+                  <div class="item" style="cursor:pointer" onclick="runWorkflow('${escapeHtml(w.key)}')">
+                    <div><b>${escapeHtml(w.plan?.intent ?? "workflow")}</b></div>
+                    <div class="small">${escapeHtml(w.key)}</div>
+                  </div>
+                `,
+                      )
+                      .join("")
+                  : `<div class="small">No workflows saved. Save a plan from a Plan block.</div>`
+              }
+            </div>
+          </div>
+        `;
+        refreshWorkflowPanel();
         return;
       }
 
@@ -5703,6 +5733,84 @@
     // -----------------------------
     // Workflows
     // -----------------------------
+    function renderWorkflowMonitorPanel() {
+      const summaryEl = document.getElementById("workflowMonitorSummary");
+      const listEl = document.getElementById("workflowMonitorList");
+      if (!summaryEl || !listEl) return;
+
+      const nodes = Array.isArray(workflowGraphCache?.nodes) ? workflowGraphCache.nodes : [];
+      const edges = Array.isArray(workflowGraphCache?.edges) ? workflowGraphCache.edges : [];
+      const tasks = Array.isArray(workflowTasksCache) ? workflowTasksCache : [];
+      const issueTasks = tasks.filter((t) => String(t?.payload?.mode || "") === "issue_to_pr");
+      const queued = issueTasks.filter((t) => t.status === "queued").length;
+      const running = issueTasks.filter((t) => t.status === "running").length;
+      const failed = issueTasks.filter((t) => t.status === "failed").length;
+      const completed = issueTasks.filter((t) => t.status === "completed").length;
+
+      summaryEl.textContent =
+        `Graph: ${nodes.length} node(s), ${edges.length} edge(s) • ` +
+        `Issue workflows: ${issueTasks.length} • ` +
+        `queued ${queued}, running ${running}, completed ${completed}, failed ${failed}`;
+
+      if (issueTasks.length === 0) {
+        listEl.innerHTML = `<div class="small">No issue workflows yet.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = issueTasks
+        .slice(0, 12)
+        .map((t) => {
+          const issueId = String(t?.payload?.issueId || "unknown");
+          const branch = String(t?.payload?.branchName || "—");
+          const status = String(t?.status || "unknown");
+          const badgeClass =
+            status === "completed"
+              ? "diag-badge ok"
+              : status === "failed"
+                ? "diag-badge warn"
+                : "pill";
+          const prMode = t?.payload?.prDryRun === false ? "live" : "dry-run";
+          return `
+            <div class="item">
+              <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                <div><b>Issue ${escapeHtml(issueId)}</b></div>
+                <span class="${badgeClass}">${escapeHtml(status)}</span>
+              </div>
+              <div class="small">Task: ${escapeHtml(String(t.id || "—"))}</div>
+              <div class="small">Branch: ${escapeHtml(branch)} • PR: ${escapeHtml(prMode)}</div>
+              <div class="small">Command: <code>${escapeHtml(String(t?.payload?.command || "—"))}</code></div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    async function refreshWorkflowPanel() {
+      if (workflowLoading) return;
+      workflowLoading = true;
+      try {
+        const graphRes = window.rina?.orchestratorGraph ? await window.rina.orchestratorGraph() : { ok: false };
+        if (graphRes?.ok) {
+          workflowGraphCache = graphRes.graph || { nodes: [], edges: [] };
+        }
+        const tasksRes = window.rina?.daemonTasks ? await window.rina.daemonTasks() : { ok: false, tasks: [] };
+        workflowTasksCache = Array.isArray(tasksRes?.tasks) ? tasksRes.tasks : [];
+      } catch {
+        // keep previous cache on transient fetch errors
+      } finally {
+        workflowLoading = false;
+      }
+      renderWorkflowMonitorPanel();
+    }
+
+    function startWorkflowPolling() {
+      if (workflowPollTimer) clearInterval(workflowPollTimer);
+      workflowPollTimer = setInterval(() => {
+        if (activeSidebarTab !== "workflows") return;
+        void refreshWorkflowPanel();
+      }, 3000);
+    }
+
     function persistWorkflow(plan) {
       const id = plan.id || crypto.randomUUID();
       const name = (plan.intent || "workflow").slice(0, 80);
@@ -6071,9 +6179,11 @@
     // Initial sidebar tab
     setSidebarTab("sessions");
     startDiagnosticsPolling();
+    startWorkflowPolling();
 
     window.addEventListener("beforeunload", () => {
       if (diagnosticsPollTimer) clearInterval(diagnosticsPollTimer);
+      if (workflowPollTimer) clearInterval(workflowPollTimer);
       persistUiSnapshot();
     });
   </script>
