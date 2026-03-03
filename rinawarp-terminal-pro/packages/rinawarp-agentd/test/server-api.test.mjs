@@ -1825,6 +1825,14 @@ test("health probes config/status/run endpoints work", async () => {
 				failover_cooldown_sec: 0,
 				per_class_min_ratio: { app: 1, db: 1, queue: 0.5, "control-plane": 1 },
 			},
+			discovery: {
+				enabled: true,
+				source: "k8s-services",
+				regions: {
+					"us-east-1": [{ namespace: "default", label_selector: "app=rinawarp", path: "/health", class: "app", weight: 1 }],
+					"eu-west-1": [],
+				},
+			},
 		}),
 	});
 	assert.equal(cfg.status, 200);
@@ -1839,6 +1847,7 @@ test("health probes config/status/run endpoints work", async () => {
 	const st = await status.json();
 	assert.equal(st.ok, true);
 	assert.equal(st.config.enabled, true);
+	assert.equal(st.config.discovery.enabled, true);
 
 	const run = await fetch(`${baseUrl}/v1/platform/health-probes/run`, {
 		method: "POST",

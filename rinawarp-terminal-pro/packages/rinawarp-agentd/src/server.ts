@@ -704,6 +704,24 @@ export function createServer(opts: { port: number }) {
             consecutive_successes_for_healthy?: number;
             failover_cooldown_sec?: number;
           };
+          discovery?: {
+            enabled?: boolean;
+            source?: "k8s-services";
+            regions?: Partial<
+              Record<
+                "us-east-1" | "eu-west-1",
+                Array<{
+                  namespace: string;
+                  label_selector?: string;
+                  path?: string;
+                  scheme?: "http" | "https";
+                  port_name?: string;
+                  class?: "app" | "db" | "queue" | "control-plane";
+                  weight?: number;
+                }>
+              >
+            >;
+          };
         } | null;
         const cfg = configureHealthProbes(body || {});
         logSoc2({

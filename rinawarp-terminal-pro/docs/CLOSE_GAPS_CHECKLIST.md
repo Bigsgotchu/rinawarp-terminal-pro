@@ -14,7 +14,7 @@ Date: 2026-03-03
   - `deploy/k8s/rinawarp-health-probes-cronjob.yaml`
 - [x] Weighted probe classes + thresholds (`app/db/queue/control-plane`).
 - [x] Hysteresis/cooldown failover policy state machine.
-- [ ] Replace static endpoint lists with service discovery-backed probe discovery.
+- [x] Replace static endpoint lists with service discovery-backed probe discovery (`k8s-services` mode).
 
 ## Block 2: Active-Active Data Plane
 
