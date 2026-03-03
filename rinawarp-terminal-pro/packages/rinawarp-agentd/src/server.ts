@@ -56,12 +56,13 @@ import { enqueueEmail, getMaskedEmailConfig, setEmailConfig, startEmailWorker } 
 import { getIdempotentReplay, storeIdempotentResponse } from "./workspace/idempotency.js";
 import { enforceInviteAcceptCooldown, enforceInviteCreateRate, recordInviteAcceptFailure } from "./workspace/securityStore.js";
 import { appendSoc2Event } from "./platform/soc2Log.js";
-import { assignWorkspaceRegion, getRegionMap, getWorkspaceRegion } from "./platform/regions.js";
+import { assignWorkspaceRegion, failoverDefaultRegion, getRegionHealth, getRegionMap, getWorkspaceRegion, setRegionHealth } from "./platform/regions.js";
 import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform/runtime.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
 import { attachWorkspaceWebSocketServer } from "./platform/websocket.js";
+import { configureAttestation, getAttestationState, runAttestation } from "./platform/attestation.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -669,6 +670,24 @@ export function createServer(opts: { port: number }) {
       if (req.method === "GET" && url.pathname === "/v1/platform/regions") {
         return sendJson(res, 200, getRegionMap());
       }
+      if (req.method === "GET" && url.pathname === "/v1/platform/regions/health") {
+        return sendJson(res, 200, { ok: true, health: getRegionHealth() });
+      }
+      if (req.method === "PUT" && url.pathname === "/v1/platform/regions/health") {
+        const body = (await readJson(req)) as { region?: string; status?: "healthy" | "degraded" | "down" } | null;
+        const region = String(body?.region || "").trim();
+        const status = body?.status;
+        if (!region || !status) return sendJson(res, 400, { ok: false, error: "region and status are required" });
+        const updated = setRegionHealth(region, status);
+        if (!updated) return sendJson(res, 400, { ok: false, error: "invalid_region" });
+        logSoc2({ req, action: "region_health_set", result: "ok", details: updated as unknown as Record<string, unknown> });
+        return sendJson(res, 200, { ok: true, ...updated });
+      }
+      if (req.method === "POST" && url.pathname === "/v1/platform/regions/failover") {
+        const out = failoverDefaultRegion();
+        logSoc2({ req, action: "region_failover", result: "ok", details: out as unknown as Record<string, unknown> });
+        return sendJson(res, 200, { ok: true, ...out });
+      }
 
       if (req.method === "POST" && url.pathname === "/v1/vault/store") {
         const body = (await readJson(req)) as { id?: string; workspace_id?: string; token?: string } | null;
@@ -719,6 +738,39 @@ export function createServer(opts: { port: number }) {
 
       if (req.method === "GET" && url.pathname === "/v1/platform/archive/status") {
         return sendJson(res, 200, { ok: true, config: getArchiveState() });
+      }
+
+      if (req.method === "PUT" && url.pathname === "/v1/platform/attestation/config") {
+        const body = (await readJson(req)) as {
+          enabled?: boolean;
+          bucket?: string;
+          region?: string;
+          webhook_url?: string;
+        } | null;
+        const cfg = configureAttestation(body || {});
+        logSoc2({
+          req,
+          action: "attestation_config_update",
+          result: "ok",
+          details: cfg as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, 200, { ok: true, config: cfg });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/platform/attestation/status") {
+        return sendJson(res, 200, { ok: true, config: getAttestationState() });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/platform/attestation/run") {
+        const body = (await readJson(req)) as { force?: boolean } | null;
+        const out = await runAttestation(body?.force === true);
+        logSoc2({
+          req,
+          action: "attestation_run",
+          result: out.ok ? "ok" : "error",
+          details: out as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, out.ok ? 200 : 400, out);
       }
 
       if (req.method === "POST" && url.pathname === "/v1/platform/archive/run") {

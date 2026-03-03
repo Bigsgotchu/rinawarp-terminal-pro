@@ -1667,3 +1667,82 @@ test("archive config/status/run endpoints work", async () => {
 	assert.equal(out.ok, true);
 	assert.ok(out.archived_file || out.error);
 });
+
+test("region health + failover endpoints work", async () => {
+	const setDegraded = await fetch(`${baseUrl}/v1/platform/regions/health`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner8",
+			"x-rina-actor-email": "owner8@example.com",
+		},
+		body: JSON.stringify({ region: "us-east-1", status: "degraded" }),
+	});
+	assert.equal(setDegraded.status, 200);
+	const out = await setDegraded.json();
+	assert.equal(out.ok, true);
+	assert.equal(out.region, "us-east-1");
+	assert.equal(out.status, "degraded");
+
+	const failover = await fetch(`${baseUrl}/v1/platform/regions/failover`, {
+		method: "POST",
+		headers: {
+			"x-rina-actor-id": "usr_owner8",
+			"x-rina-actor-email": "owner8@example.com",
+		},
+	});
+	assert.equal(failover.status, 200);
+	const moved = await failover.json();
+	assert.equal(moved.ok, true);
+	assert.equal(typeof moved.changed, "boolean");
+
+	const health = await fetch(`${baseUrl}/v1/platform/regions/health`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner8",
+			"x-rina-actor-email": "owner8@example.com",
+		},
+	});
+	assert.equal(health.status, 200);
+	const healthBody = await health.json();
+	assert.equal(healthBody.ok, true);
+	assert.ok(healthBody.health?.["us-east-1"]);
+	assert.ok(healthBody.health?.["eu-west-1"]);
+});
+
+test("attestation config/status/run endpoints work", async () => {
+	const cfg = await fetch(`${baseUrl}/v1/platform/attestation/config`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner9",
+			"x-rina-actor-email": "owner9@example.com",
+		},
+		body: JSON.stringify({ enabled: true }),
+	});
+	assert.equal(cfg.status, 200);
+
+	const status = await fetch(`${baseUrl}/v1/platform/attestation/status`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner9",
+			"x-rina-actor-email": "owner9@example.com",
+		},
+	});
+	assert.equal(status.status, 200);
+	const state = await status.json();
+	assert.equal(state.ok, true);
+	assert.equal(state.config.enabled, true);
+
+	const run = await fetch(`${baseUrl}/v1/platform/attestation/run`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner9",
+			"x-rina-actor-email": "owner9@example.com",
+		},
+		body: JSON.stringify({ force: true }),
+	});
+	assert.equal(run.status, 200);
+	const out = await run.json();
+	assert.equal(out.ok, true);
+	assert.ok(out.record_hash);
+});

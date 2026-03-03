@@ -8,6 +8,7 @@ Date: 2026-03-03
 - Runtime controller deployment split from API process: `deploy/k8s/rinawarp-runtime-controller.yaml`
 - IRSA service account template: `deploy/k8s/rinawarp-serviceaccount.yaml`
 - Network policies for NATS/controller traffic: `deploy/k8s/networkpolicy-rinawarp.yaml`
+- SOC2 attestation cron schedule: `deploy/k8s/rinawarp-attestation-cronjob.yaml`
 - IAM policy + trust templates for KMS/S3 object-lock path:
   - `deploy/aws/iam/rinawarp-agentd-policy.json`
   - `deploy/aws/iam/rinawarp-agentd-trust-policy.json`
@@ -41,6 +42,7 @@ Date: 2026-03-03
 3. `kubectl apply -f deploy/k8s/rinawarp-runtime-rbac.yaml`
 4. `kubectl apply -f deploy/k8s/networkpolicy-rinawarp.yaml`
 5. `kubectl apply -f deploy/k8s/rinawarp-runtime-controller.yaml`
+6. `kubectl apply -f deploy/k8s/rinawarp-attestation-cronjob.yaml`
 
 ## AWS IAM Notes
 
@@ -61,6 +63,6 @@ Date: 2026-03-03
 
 ## Remaining Hard Gaps
 
-- Multi-region active-active control/data-plane split (routing + failover automation).
-- Formal SOC2 immutable log attestation pipeline (external digest anchoring + alerting).
+- Multi-region active-active control/data-plane split (routing + failover automation beyond manual API-triggered failover).
+- Formal SOC2 immutable log attestation pipeline with independent verifier and alerting destination.
 - Full K8s controller/operator reconciliation with leases and optimistic locking.
