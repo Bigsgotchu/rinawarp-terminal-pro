@@ -54,6 +54,7 @@ import {
 } from "./workspace/state.js";
 import { enqueueEmail, getMaskedEmailConfig, setEmailConfig, startEmailWorker } from "./workspace/email.js";
 import { getIdempotentReplay, storeIdempotentResponse } from "./workspace/idempotency.js";
+import { enforceInviteAcceptCooldown, enforceInviteCreateRate, recordInviteAcceptFailure } from "./workspace/securityStore.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -1010,6 +1011,14 @@ export function createServer(opts: { port: number }) {
         if (!["owner", "admin", "member"].includes(role)) {
           return sendJson(res, 400, { ok: false, error: "role must be owner|admin|member" });
         }
+        const inviteRate = await enforceInviteCreateRate({
+          email,
+          maxPerMinute: Number(process.env.RINAWARP_INVITE_CREATE_RATE_LIMIT_PER_MIN || 5),
+        });
+        if (!inviteRate.ok) {
+          res.setHeader("Retry-After", String(inviteRate.retryAfterSec));
+          return sendJson(res, 429, { ok: false, error: "rate_limited", retry_after_sec: inviteRate.retryAfterSec });
+        }
         try {
           const created = createInvite({
             workspaceId,
@@ -1074,8 +1083,21 @@ export function createServer(opts: { port: number }) {
         const token = String(body?.token || "").trim();
         if (!token) return sendJson(res, 400, { ok: false, error: "token is required" });
         const { actorId, actorEmail } = actorFromRequest(req);
+        const ip = webhookClientIp(req);
+        const cooldown = await enforceInviteAcceptCooldown({ ip });
+        if (!cooldown.ok) {
+          res.setHeader("Retry-After", String(cooldown.retryAfterSec));
+          return sendJson(res, 423, { ok: false, error: "locked", retry_after_sec: cooldown.retryAfterSec });
+        }
         const accepted = acceptInvite({ token, actorId, actorEmail });
         if (!accepted.ok) {
+          if (accepted.statusCode === 401) {
+            await recordInviteAcceptFailure({
+              ip,
+              threshold: Number(process.env.RINAWARP_INVITE_BRUTE_FORCE_THRESHOLD || 10),
+              cooldownMinutes: Number(process.env.RINAWARP_INVITE_COOLDOWN_MINUTES || 30),
+            });
+          }
           return sendJson(res, accepted.statusCode || 400, { ok: false, error: accepted.error || "invite_accept_failed" });
         }
         return sendJson(res, 200, {
