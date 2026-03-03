@@ -6,16 +6,21 @@
 
 ## Pre-Flight (Before Release)
 
-- [ ] All artifacts built for target platforms (DMG, EXE, AppImage, DEB)
-- [ ] Artifacts signed and notarized (macOS, Windows)
+- [ ] All artifacts built for current target platforms (EXE, AppImage, DEB)
+- [ ] Release signatures verified (`SHASUMS256.txt` + `.asc` + pubkey)
 - [ ] Artifact filenames normalized to canonical format:
-  - `RinaWarp-Terminal-Pro-{VERSION}.dmg`
   - `RinaWarp-Terminal-Pro-{VERSION}.exe`
   - `RinaWarp-Terminal-Pro-{VERSION}.AppImage`
   - `RinaWarp-Terminal-Pro-{VERSION}.amd64.deb`
 - [ ] Cross-platform artifacts collected in `apps/terminal-pro/dist/`
 - [ ] Wrangler authenticated (`npx wrangler whoami`)
 - [ ] D1 database `rinawarp-prod` exists and has schema
+- [ ] `downloads-worker/wrangler.toml` has `RELEASE_VERSION="{VERSION}"`
+- [ ] Website hardcoded version strings updated:
+  - `web/download.html`
+  - `web/account/index.html`
+  - `rinawarptech-website/web/download.html`
+  - `rinawarptech-website/web/account/index.html`
 
 ---
 
@@ -24,7 +29,7 @@
 ### 1. Set Version
 
 ```bash
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 ```
 
 ### 2. Run Preflight
@@ -38,21 +43,34 @@ export VER="1.0.0"
 - [ ] Required artifacts exist
 - [ ] Wrangler auth works
 - [ ] Website pages return 200
+- [ ] Required artifacts in `apps/terminal-pro/dist` exist
+- [ ] Agent parity gates pass (`bash deploy/agent-parity-gates.sh`)
 
-### 3. Generate SHA256 Hashes
+### 3. Generate Metadata + Signatures
 
 ```bash
+npm run verify:downloads
 ./deploy/update-hashes.sh
+./deploy/sign-release.sh
+./deploy/verify-release-signatures.sh
 ```
 
 **This updates:**
-- `rinawarptech-website/web/download/index.html` with SHA256 hashes
+- `rinawarptech-website/web/releases/v{VERSION}.json`
+- `rinawarptech-website/releases/v{VERSION}.json`
+- `release/v{VERSION}/SHASUMS256.txt` (+ signature + pubkey)
 
-### 4. Commit Hash Updates
+### 4. Optional Commit Metadata
 
 ```bash
-git add rinawarptech-website/web/download/index.html
-git commit -m "Release v$VER: update download SHA256 hashes"
+git add \
+  apps/terminal-pro/package.json \
+  rinawarptech-website/web/releases/v$VER.json \
+  rinawarptech-website/releases/v$VER.json \
+  release/v$VER/SHASUMS256.txt \
+  release/v$VER/SHASUMS256.txt.asc \
+  release/v$VER/RINAWARP_GPG_PUBLIC_KEY.asc
+git commit -m "Release v$VER: metadata and signatures"
 git push
 ```
 
@@ -67,10 +85,10 @@ git push
 - [ ] No 404s on file list
 - [ ] Fail-fast passed
 
-### 6. Smoke Test
+### 6. Smoke Test + Audit
 
 ```bash
-./deploy/release-runner.sh  # runs smoke test automatically
+./deploy/release-runner.sh  # runs installer smoke + agent parity gates + production audit
 ```
 
 **Or manual smoke test:**
@@ -90,17 +108,19 @@ TOKEN="$(curl -sS "https://rinawarp-downloads.rinawarptech.workers.dev/api/downl
 - [ ] Token generation works
 - [ ] Gated download returns 200 + attachment header
 - [ ] No-token download returns 401/403
+- [ ] `content-disposition` filename matches current version
+- [ ] `npm run audit:prod` passes
 
 ---
 
 ## Post-Release Verification
 
+- [ ] `npm run deploy:pages`
 - [ ] Visit https://www.rinawarptech.com/download
-- [ ] Verify all 4 download buttons visible
+- [ ] Verify current version appears on download page and account page
 - [ ] Verify SHA256 hashes match artifacts
-- [ ] Test one purchase flow (Stripe test mode)
-- [ ] Verify webhook receives event
-- [ ] Verify entitlement created in D1
+- [ ] Verify `/releases/v{VERSION}.json` hash values match worker `/verify/SHASUMS256.txt`
+- [ ] Test one purchase/login/download flow
 
 ---
 
@@ -115,5 +135,5 @@ If issues are detected:
 
 ---
 
-*Last Updated: 2026-02-03*
+*Last Updated: 2026-03-03*
 *See also: [launch-readiness.md](launch-readiness.md), [release-runner.sh](release-runner.sh)*

@@ -4,7 +4,22 @@ This document provides a comprehensive pre-launch checklist for the RinaWarp Ter
 
 ---
 
-## Current Status (Last Updated: 2026-02-03)
+## Current Status (Last Updated: 2026-03-03)
+
+> Snapshot note: this section is historical. Treat Stripe price IDs and status items here as examples, and verify live values in Stripe Dashboard before launch actions.
+>
+> Canonical release flow is now:
+> 1. `bash deploy/bump-release-version.sh <x.y.z>`
+> 2. `npm_config_ignore_scripts=true npm run release:desktop`
+> 3. `npm run deploy:pages`
+> 4. `bash deploy/agent-parity-gates.sh`
+> 5. `npm run smoke:prod && npm run smoke:stripe && npm run audit:prod`
+>
+> Critical parity checks:
+> - `downloads-worker/wrangler.toml` `RELEASE_VERSION` must match the release.
+> - Download/account pages must show the same version as `apps/terminal-pro/package.json`.
+> - `https://www.rinawarptech.com/releases/v{x.y.z}.json` hashes must match
+>   `https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt`.
 
 ### ✅ Working
 - **Marketing Pages**: All legal pages deployed
@@ -16,15 +31,15 @@ This document provides a comprehensive pre-launch checklist for the RinaWarp Ter
   - Entitlement writes ✓
   - License key generation ✓
 - **Stripe Products**:
-  - Pro Monthly: $29.99/mo (`price_1SOjFPGZrRdZy3W9IIm6ueBj`)
-  - Pro Founder Lifetime: $699 (`price_1SOjEcGZrRdZy3W9PAbnoQ1p`)
-  - Team Monthly: $49.99/mo (`price_1SOjFXGZrRdZy3W9bNz4HpfN`)
-  - Team Pioneer Lifetime: $800 (`price_1SOjEdGZrRdZy3W9ll2FuOTW`)
+  - Pro Monthly: $29.99/mo (`price_<verify_in_stripe_dashboard>`)
+  - Pro Founder Lifetime: $699 (`price_<verify_in_stripe_dashboard>`)
+  - Team Monthly: $49.99/mo (`price_<verify_in_stripe_dashboard>`)
+  - Team Pioneer Lifetime: $800 (`price_<verify_in_stripe_dashboard>`)
 
 ### ❌ Needs Attention
-- **Downloads**: AppImage, DEB, RPM, ZIP files missing in R2
-- **Code Signing**: Verify all platforms are signed
-- **Download Access**: Wire entitlement check to downloads
+- **Auto-update UX**: not fully shipped for desktop clients
+- **Windows signing trust**: reduce SmartScreen friction
+- **Team/admin UX**: seat and org management still lightweight
 
 ---
 
@@ -53,11 +68,11 @@ Upload these files to the `rinawarp-installers` R2 bucket:
 
 | File | Status | Action |
 |------|--------|--------|
-| `RinaWarp-Terminal-Pro-1.0.0.AppImage` | ❌ Missing | Build and upload |
-| `RinaWarp-Terminal-Pro-1.0.0.amd64.deb` | ❌ Missing | Build and upload |
-| `RinaWarp-Terminal-Pro-1.0.0.x86_64.rpm` | ❌ Missing | Build and upload |
-| `RinaWarp-Terminal-Pro-1.0.0-macOS.zip` | ❌ Missing | Build and upload |
-| `RinaWarp-Terminal-Pro-1.0.0-win32.zip` | ❌ Missing | Build and upload |
+| `RinaWarp-Terminal-Pro-$VER.AppImage` | ❌ Missing | Build and upload |
+| `RinaWarp-Terminal-Pro-$VER.amd64.deb` | ❌ Missing | Build and upload |
+| `RinaWarp-Terminal-Pro-$VER.x86_64.rpm` | ❌ Missing | Build and upload |
+| `RinaWarp-Terminal-Pro-$VER-macOS.zip` | ❌ Missing | Build and upload |
+| `RinaWarp-Terminal-Pro-$VER-win32.zip` | ❌ Missing | Build and upload |
 
 ### Build Command
 
@@ -77,7 +92,7 @@ npm run build:linux   # .AppImage, .deb, .rpm
 ```bash
 # Upload to R2
 cd /home/karina/Documents/rinawarp-terminal-pro
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 export BUCKET="rinawarp-installers"
 export DIST_DIR="apps/terminal-pro/dist"
 
@@ -135,7 +150,7 @@ Two scripts automate the release workflow:
 ### 1) Preflight Check (sanity before release)
 
 ```bash
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 ./deploy/preflight-release.sh
 ```
 
@@ -148,7 +163,7 @@ This checks:
 ### 2) Full Release Runner (end-to-end)
 
 ```bash
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 ./deploy/release-runner.sh
 ```
 
@@ -169,7 +184,7 @@ This runs:
 chmod +x deploy/*.sh
 
 # REQUIRED: set release version
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 
 # Option 1 — Comprehensive Upload & Verify (recommended during iteration)
 ./deploy/upload-and-verify.sh
@@ -221,13 +236,13 @@ Check that each installer file:
 
 | File | Expected Size | Expected Content-Type |
 |------|--------------|----------------------|
-| `RinaWarp-Terminal-Pro-1.0.0.dmg` | ≥ 100MB | `application/x-apple-diskimage` |
-| `RinaWarp-Terminal-Pro-1.0.0.exe` | ≥ 100MB | `application/octet-stream` |
-| `RinaWarp-Terminal-Pro-1.0.0.AppImage` | ≥ 100MB | `application/octet-stream` |
-| `RinaWarp-Terminal-Pro-1.0.0.amd64.deb` | ≥ 100MB | `application/vnd.debian.binary-package` |
-| `RinaWarp-Terminal-Pro-1.0.0.x86_64.rpm` | ≥ 100MB | `application/x-rpm` |
-| `RinaWarp-Terminal-Pro-1.0.0-macOS.zip` | ≥ 100MB | `application/zip` |
-| `RinaWarp-Terminal-Pro-1.0.0-win32.zip` | ≥ 100MB | `application/zip` |
+| `RinaWarp-Terminal-Pro-$VER.dmg` | ≥ 100MB | `application/x-apple-diskimage` |
+| `RinaWarp-Terminal-Pro-$VER.exe` | ≥ 100MB | `application/octet-stream` |
+| `RinaWarp-Terminal-Pro-$VER.AppImage` | ≥ 100MB | `application/octet-stream` |
+| `RinaWarp-Terminal-Pro-$VER.amd64.deb` | ≥ 100MB | `application/vnd.debian.binary-package` |
+| `RinaWarp-Terminal-Pro-$VER.x86_64.rpm` | ≥ 100MB | `application/x-rpm` |
+| `RinaWarp-Terminal-Pro-$VER-macOS.zip` | ≥ 100MB | `application/zip` |
+| `RinaWarp-Terminal-Pro-$VER-win32.zip` | ≥ 100MB | `application/zip` |
 
 ### Must-Pass Criteria
 
@@ -268,10 +283,10 @@ A dedicated Worker has been created at `stripe-webhook-worker/` with full Stripe
 
 | Tier | Product | Price ID | Amount |
 |------|---------|----------|--------|
-| Pro | RinaWarp Pro (monthly) | `price_1SOjFPGZrRdZy3W9IIm6ueBj` | $29.99/mo |
-| Pro | RinaWarp Founder (lifetime) | `price_1SOjEcGZrRdZy3W9PAbnoQ1p` | $699 one-time |
-| Team | RinaWarp Team (monthly) | `price_1SOjFXGZrRdZy3W9bNz4HpfN` | $49.99/mo |
-| Team | RinaWarp Pioneer (lifetime) | `price_1SOjEdGZrRdZy3W9ll2FuOTW` | $800 one-time |
+| Pro | RinaWarp Pro (monthly) | `price_<verify_in_stripe_dashboard>` | $29.99/mo |
+| Pro | RinaWarp Founder (lifetime) | `price_<verify_in_stripe_dashboard>` | $699 one-time |
+| Team | RinaWarp Team (monthly) | `price_<verify_in_stripe_dashboard>` | $49.99/mo |
+| Team | RinaWarp Pioneer (lifetime) | `price_<verify_in_stripe_dashboard>` | $800 one-time |
 
 ### Deploy Stripe Webhook Worker
 
@@ -375,10 +390,10 @@ npx wrangler d1 execute rinawarp-prod --command \
 
 | Product | Price | Recurring | Price ID |
 |---------|-------|-----------|----------|
-| RinaWarp Pro (monthly) | $29.99/mo | ✅ | `price_1SOjFPGZrRdZy3W9IIm6ueBj` |
-| RinaWarp Founder (lifetime) | $699 | ❌ | `price_1SOjEcGZrRdZy3W9PAbnoQ1p` |
-| RinaWarp Team (monthly) | $49.99/mo | ✅ | `price_1SOjFXGZrRdZy3W9bNz4HpfN` |
-| RinaWarp Pioneer (lifetime) | $800 | ❌ | `price_1SOjEdGZrRdZy3W9ll2FuOTW` |
+| RinaWarp Pro (monthly) | $29.99/mo | ✅ | `price_<verify_in_stripe_dashboard>` |
+| RinaWarp Founder (lifetime) | $699 | ❌ | `price_<verify_in_stripe_dashboard>` |
+| RinaWarp Team (monthly) | $49.99/mo | ✅ | `price_<verify_in_stripe_dashboard>` |
+| RinaWarp Pioneer (lifetime) | $800 | ❌ | `price_<verify_in_stripe_dashboard>` |
 
 **Tiers:**
 - **Pro**: $29.99/mo or $699 lifetime
@@ -470,7 +485,7 @@ codesign -dv --verbose=4 "RinaWarp Terminal Pro.app"
 spctl --assess --type execute --verbose "RinaWarp Terminal Pro.app"
 
 # Verify DMG
-spctl --assess --type open --verbose "RinaWarp-Terminal-Pro-1.0.0.dmg"
+spctl --assess --type open --verbose "RinaWarp-Terminal-Pro-$VER.dmg"
 ```
 
 #### Must-Pass Criteria
@@ -490,10 +505,10 @@ spctl --assess --type open --verbose "RinaWarp-Terminal-Pro-1.0.0.dmg"
 
 ```powershell
 # PowerShell
-Get-AuthenticodeSignature .\RinaWarp-Terminal-Pro-1.0.0.exe | Format-List
+Get-AuthenticodeSignature .\RinaWarp-Terminal-Pro-$VER.exe | Format-List
 
 # SignTool (Windows SDK)
-signtool verify /pa .\RinaWarp-Terminal-Pro-1.0.0.exe
+signtool verify /pa .\RinaWarp-Terminal-Pro-$VER.exe
 ```
 
 #### Must-Pass Criteria
@@ -508,10 +523,10 @@ signtool verify /pa .\RinaWarp-Terminal-Pro-1.0.0.exe
 
 ```bash
 # Generate signature
-gpg --armor --detach-sign RinaWarp-Terminal-Pro-1.0.0.AppImage
+gpg --armor --detach-sign RinaWarp-Terminal-Pro-$VER.AppImage
 
 # Verify signature
-gpg --verify RinaWarp-Terminal-Pro-1.0.0.AppImage.asc RinaWarp-Terminal-Pro-1.0.0.AppImage
+gpg --verify RinaWarp-Terminal-Pro-$VER.AppImage.asc RinaWarp-Terminal-Pro-$VER.AppImage
 ```
 
 ---
@@ -620,7 +635,7 @@ npx wrangler d1 execute rinawarp-prod --command \
 TOKEN="$(curl -sS "https://rinawarp-downloads.rinawarptech.workers.dev/api/download-token?customer_id=cus_TEST" \
   | python -c "import sys,json; print(json.load(sys.stdin).get('token',''))")"
 
-curl -sSI "https://rinawarptech.com/downloads/RinaWarp-Terminal-Pro-1.0.0.dmg?token=$TOKEN" | head -n 5
+curl -sSI "https://rinawarptech.com/downloads/RinaWarp-Terminal-Pro-$VER.dmg?token=$TOKEN" | head -n 5
 # Should return 401 or 403 (not 200)
 
 # Restore entitlement
@@ -634,7 +649,7 @@ git log -p -n 20 | rg -n "whsec_|sk_live_|Authorization: Bearer" || true
 
 ---
 
-## Cross-Platform Release Commands (v1.0.0)
+## Cross-Platform Release Commands (Versioned)
 
 These commands cover building, signing, normalizing, hashing, uploading, and smoke testing.
 
@@ -642,7 +657,7 @@ These commands cover building, signing, normalizing, hashing, uploading, and smo
 
 ```bash
 cd /home/karina/Documents/rinawarp-terminal-pro
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 ```
 
 ### 1) macOS (run on Mac)
@@ -686,7 +701,7 @@ APP_PATH="apps/terminal-pro/dist/mac/RinaWarp Terminal Pro.app"
 
 ```powershell
 cd C:\path\to\rinawarp-terminal-pro
-$ver="1.0.0"
+$ver=(node -p "require('./apps/terminal-pro/package.json').version")
 
 cd apps\terminal-pro
 Remove-Item -Recurse -Force dist, dist-electron, node_modules -ErrorAction SilentlyContinue
@@ -707,7 +722,7 @@ Sign the EXE:
 cd C:\path\to\rinawarp-terminal-pro
 
 powershell -ExecutionPolicy Bypass -File deploy\windows-sign.ps1 `
-  -FilePath "apps\terminal-pro\dist\RinaWarp-Terminal-Pro-1.0.0.exe" `
+  -FilePath "apps\terminal-pro\dist\RinaWarp-Terminal-Pro-$ver.exe" `
   -PfxPath "C:\path\to\cert.pfx" `
   -PfxPassword "PASSWORD"
 ```
@@ -720,7 +735,7 @@ npm ci
 npm run dist:linux
 cd ../..
 
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 OUT="apps/terminal-pro/dist"
 
 if ls "$OUT"/*.rpm >/dev/null 2>&1; then
@@ -736,8 +751,8 @@ If DMG/EXE were built on Mac/Windows, copy them into Linux release folder:
 
 ```bash
 # From Linux machine (repo root)
-# scp user@mac:/path/to/rinawarp-terminal-pro/apps/terminal-pro/dist/RinaWarp-Terminal-Pro-1.0.0.dmg apps/terminal-pro/dist/
-# scp user@win:/path/to/rinawarp-terminal-pro/apps/terminal-pro/dist/RinaWarp-Terminal-Pro-1.0.0.exe apps/terminal-pro/dist/
+# scp user@mac:/path/to/rinawarp-terminal-pro/apps/terminal-pro/dist/RinaWarp-Terminal-Pro-$VER.dmg apps/terminal-pro/dist/
+# scp user@win:/path/to/rinawarp-terminal-pro/apps/terminal-pro/dist/RinaWarp-Terminal-Pro-$VER.exe apps/terminal-pro/dist/
 ```
 
 ### 5) Generate SHA256 + update downloads page
@@ -746,7 +761,7 @@ If DMG/EXE were built on Mac/Windows, copy them into Linux release folder:
 
 ```bash
 cd /home/karina/Documents/rinawarp-terminal-pro
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 export DIST_DIR="apps/terminal-pro/dist"
 
 ./deploy/update-hashes.sh
@@ -760,7 +775,7 @@ git push
 
 ```bash
 cd /home/karina/Documents/rinawarp-terminal-pro
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 export BUCKET="rinawarp-installers"
 export DIST_DIR="apps/terminal-pro/dist"
 
@@ -807,7 +822,7 @@ echo "TOKEN=${TOKEN:0:8}... (redacted)"
 Verify gated download works:
 
 ```bash
-export VER="1.0.0"
+export VER="$(node -p "require('./apps/terminal-pro/package.json').version")"
 curl -sSI "https://www.rinawarptech.com/downloads/RinaWarp-Terminal-Pro-$VER.AppImage?token=$TOKEN" \
   | egrep -i "HTTP/|content-type:|content-disposition:"
 ```
@@ -934,4 +949,4 @@ If it exits 0, you're live! 🚀
 ---
 
 *Last Updated: 2026-02-03*
-*Version: 1.0.0*
+*Version: dynamic ($VER from apps/terminal-pro/package.json)*
