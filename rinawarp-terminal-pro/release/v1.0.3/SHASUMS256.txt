@@ -1,0 +1,3 @@
+8c6b8c6ea546e81254590c8d8ba03055220de39d7a12fbf3587a263097a643a6  RinaWarp-Terminal-Pro-1.0.3.AppImage
+a9465e8d54e872c3ea6e82a4e131495960535520978970a87c97c6bd0ace2548  RinaWarp-Terminal-Pro-1.0.3.amd64.deb
+f9f48be0d041fb81630da1fcb7ec37dc0849c1e163bf68f934a08930e9f92f27  RinaWarp-Terminal-Pro-1.0.3.exe
