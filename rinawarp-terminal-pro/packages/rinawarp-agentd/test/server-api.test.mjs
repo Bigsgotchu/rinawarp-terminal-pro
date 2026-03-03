@@ -1745,4 +1745,59 @@ test("attestation config/status/run endpoints work", async () => {
 	const out = await run.json();
 	assert.equal(out.ok, true);
 	assert.ok(out.record_hash);
+
+	const verify = await fetch(`${baseUrl}/v1/platform/attestation/verify`, {
+		method: "POST",
+		headers: {
+			"x-rina-actor-id": "usr_owner9",
+			"x-rina-actor-email": "owner9@example.com",
+		},
+	});
+	assert.equal(verify.status, 200);
+	const checked = await verify.json();
+	assert.equal(checked.ok, true);
+});
+
+test("traffic manager config/status/reconcile endpoints work", async () => {
+	const cfg = await fetch(`${baseUrl}/v1/platform/traffic/config`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner10",
+			"x-rina-actor-email": "owner10@example.com",
+		},
+		body: JSON.stringify({
+			enabled: false,
+			hosted_zone_id: "Z123",
+			record_name: "app.example.com",
+			primary_dns: "app-use1.example.com",
+			secondary_dns: "app-euw1.example.com",
+			ttl: 30,
+		}),
+	});
+	assert.equal(cfg.status, 200);
+
+	const status = await fetch(`${baseUrl}/v1/platform/traffic/status`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner10",
+			"x-rina-actor-email": "owner10@example.com",
+		},
+	});
+	assert.equal(status.status, 200);
+	const st = await status.json();
+	assert.equal(st.ok, true);
+	assert.equal(st.config.record_name, "app.example.com");
+
+	const reconcile = await fetch(`${baseUrl}/v1/platform/traffic/reconcile`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner10",
+			"x-rina-actor-email": "owner10@example.com",
+		},
+		body: JSON.stringify({ force: false }),
+	});
+	assert.equal(reconcile.status, 400);
+	const out = await reconcile.json();
+	assert.equal(out.ok, false);
 });

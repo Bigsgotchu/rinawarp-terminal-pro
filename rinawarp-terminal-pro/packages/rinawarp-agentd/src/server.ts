@@ -62,7 +62,8 @@ import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
 import { attachWorkspaceWebSocketServer } from "./platform/websocket.js";
-import { configureAttestation, getAttestationState, runAttestation } from "./platform/attestation.js";
+import { configureAttestation, getAttestationState, runAttestation, verifyAttestationChain } from "./platform/attestation.js";
+import { configureTrafficManager, getTrafficManagerState, reconcileTrafficManager } from "./platform/trafficManager.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -688,6 +689,39 @@ export function createServer(opts: { port: number }) {
         logSoc2({ req, action: "region_failover", result: "ok", details: out as unknown as Record<string, unknown> });
         return sendJson(res, 200, { ok: true, ...out });
       }
+      if (req.method === "PUT" && url.pathname === "/v1/platform/traffic/config") {
+        const body = (await readJson(req)) as {
+          enabled?: boolean;
+          hosted_zone_id?: string;
+          record_name?: string;
+          primary_dns?: string;
+          secondary_dns?: string;
+          ttl?: number;
+          region_primary?: "us-east-1" | "eu-west-1";
+        } | null;
+        const cfg = configureTrafficManager(body || {});
+        logSoc2({
+          req,
+          action: "traffic_manager_config_update",
+          result: "ok",
+          details: cfg as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, 200, { ok: true, config: cfg });
+      }
+      if (req.method === "GET" && url.pathname === "/v1/platform/traffic/status") {
+        return sendJson(res, 200, { ok: true, config: getTrafficManagerState() });
+      }
+      if (req.method === "POST" && url.pathname === "/v1/platform/traffic/reconcile") {
+        const body = (await readJson(req)) as { force?: boolean } | null;
+        const out = await reconcileTrafficManager(body?.force === true);
+        logSoc2({
+          req,
+          action: "traffic_manager_reconcile",
+          result: out.ok ? "ok" : "error",
+          details: out as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, out.ok ? 200 : 400, out);
+      }
 
       if (req.method === "POST" && url.pathname === "/v1/vault/store") {
         const body = (await readJson(req)) as { id?: string; workspace_id?: string; token?: string } | null;
@@ -771,6 +805,16 @@ export function createServer(opts: { port: number }) {
           details: out as unknown as Record<string, unknown>,
         });
         return sendJson(res, out.ok ? 200 : 400, out);
+      }
+      if (req.method === "POST" && url.pathname === "/v1/platform/attestation/verify") {
+        const out = await verifyAttestationChain();
+        logSoc2({
+          req,
+          action: "attestation_verify",
+          result: out.ok ? "ok" : "error",
+          details: out as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, out.ok ? 200 : 409, out);
       }
 
       if (req.method === "POST" && url.pathname === "/v1/platform/archive/run") {

@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rinawarp-traffic-reconcile
+  namespace: rinawarp-system
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: rinawarp-agentd
+          restartPolicy: Never
+          containers:
+            - name: traffic-reconcile
+              image: ghcr.io/rinawarptech/rinawarp-agentd:latest
+              command: ["/bin/sh", "-lc"]
+              args:
+                - >
+                  curl -fsS -X POST http://rinawarp-agentd.rinawarp-system.svc.cluster.local:5055/v1/platform/traffic/reconcile
+                  -H "Authorization: Bearer ${RINAWARP_TRAFFIC_TOKEN}"
+                  -H "Content-Type: application/json"
+                  -d '{"force":false}'
+              env:
+                - name: RINAWARP_TRAFFIC_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: rinawarp-secrets
+                      key: traffic_token
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi

@@ -13,12 +13,16 @@ This is the current server-backed team surface implemented in `packages/rinawarp
 - `GET /v1/platform/regions/health`
 - `PUT /v1/platform/regions/health`
 - `POST /v1/platform/regions/failover`
+- `PUT /v1/platform/traffic/config`
+- `GET /v1/platform/traffic/status`
+- `POST /v1/platform/traffic/reconcile`
 - `PUT /v1/platform/archive/config`
 - `GET /v1/platform/archive/status`
 - `POST /v1/platform/archive/run`
 - `PUT /v1/platform/attestation/config`
 - `GET /v1/platform/attestation/status`
 - `POST /v1/platform/attestation/run`
+- `POST /v1/platform/attestation/verify`
 - `POST /v1/workspaces`
 - `GET /v1/workspaces/{workspace_id}`
 - `PUT /v1/workspaces/{workspace_id}/region`
@@ -67,6 +71,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
   - Durable consumer replay checkpoint persisted at `eventbus-jetstream-state.json`
   - Explicit ack + dead-letter publishing (`workspace.{id}.dlq`) for invalid event payloads
 - Region health model is tracked and failover can switch the default region when primary health is degraded/down.
+- Route53 traffic reconciliation surface is available for active/passive DNS failover record management.
 - Invite tokens are generated randomly and stored hashed (`sha256` with rotating salt+key version).
 - Invite accept is single-use (`pending` -> `accepted`) with expiry handling.
 - Brute-force protection for invite token attempts (`423 locked` after threshold).
@@ -89,6 +94,7 @@ This is the current server-backed team surface implemented in `packages/rinawarp
   - Bucket provisioning with Object Lock + versioning + lifecycle + public access block
   - Upload verification fields (`upload_etag`, `upload_version_id`)
 - SOC2 digest attestation can produce hourly records and optional S3/webhook anchoring.
+- Attestation verification endpoint validates recorded hash integrity and can send alert webhooks on verification failure.
 
 ## Known Gaps To Reach Full Production Contract
 
