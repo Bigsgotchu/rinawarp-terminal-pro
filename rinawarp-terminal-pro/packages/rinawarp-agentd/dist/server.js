@@ -13,7 +13,7 @@ import { ExecutionEngine } from "@rinawarp/core/enforcement/index.js";
 import { createStandardRegistry } from "@rinawarp/core/tools/registry.js";
 import { executeViaEngine } from "@rinawarp/core/adapters/unify-execution.js";
 import { normalizeProjectRoot } from "./projectRoot.js";
-import { requireAuth } from "./auth.js";
+import { createSignedAuthToken, parseAuthClaims, requireAuth, verifySignedAuthToken } from "./auth.js";
 import { handlePreflight, setCors } from "./cors.js";
 import { sseInit, sseSend } from "./streaming.js";
 import { resolveRequestLicense } from "./license.js";
@@ -23,6 +23,7 @@ import { createIssueToPrWorkflow, queueRevisionFromReview, readWorkspaceGraph, r
 import { createPullRequest } from "./orchestrator/githubAdapter.js";
 import { createOrSwitchBranch, currentBranch, ensureGitRepo } from "./orchestrator/gitProvider.js";
 import { acceptInvite, createInvite, createWorkspace, getAuditRetentionConfig, getSyncState, getWorkspace, listInvites, lockWorkspace, queryAudit, revokeInvite, rotateInviteSecurityKeys, runAuditCleanup, setAuditRetentionConfig, setBillingEnforcement, syncPull, syncPush, unlockWorkspace, updateInviteSecurityConfig, } from "./workspace/state.js";
+import { getMaskedEmailConfig, sendEmail, setEmailConfig } from "./workspace/email.js";
 const engine = new ExecutionEngine(createStandardRegistry());
 function expectedSafety(risk) {
     if (risk === "high-impact") {
@@ -319,9 +320,30 @@ function sendJson(res, status, body) {
     res.end(JSON.stringify(body));
 }
 function actorFromRequest(req) {
+    const claims = parseAuthClaims(req);
+    if (claims) {
+        return {
+            actorId: claims.sub,
+            actorEmail: claims.email,
+        };
+    }
     const actorId = String(req.headers["x-rina-actor-id"] || "usr_local").trim() || "usr_local";
     const actorEmail = String(req.headers["x-rina-actor-email"] || "owner@local").trim().toLowerCase() || "owner@local";
     return { actorId, actorEmail };
+}
+function accountPlanFromEnv() {
+    const plan = String(process.env.RINAWARP_ACCOUNT_PLAN || "pro").trim();
+    const status = String(process.env.RINAWARP_ACCOUNT_STATUS || "active").trim();
+    const seatsAllowed = Number(process.env.RINAWARP_ACCOUNT_SEATS_ALLOWED || 10);
+    const seatsUsed = Number(process.env.RINAWARP_ACCOUNT_SEATS_USED || 1);
+    const renewsAt = String(process.env.RINAWARP_ACCOUNT_RENEWS_AT || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
+    return {
+        plan,
+        status,
+        seats_allowed: Number.isFinite(seatsAllowed) ? seatsAllowed : 10,
+        seats_used: Number.isFinite(seatsUsed) ? seatsUsed : 1,
+        renews_at: renewsAt,
+    };
 }
 function daemonRunnerPath() {
     const here = path.dirname(fileURLToPath(import.meta.url));
@@ -411,8 +433,75 @@ export function createServer(opts) {
                 return handlePreflight(req, res);
             // simple routing
             const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
-            // auth
+            // --- AUTH ROUTES (anonymous)
+            if (req.method === "POST" && url.pathname === "/v1/auth/login") {
+                const body = (await readJson(req));
+                const email = String(body?.email || "").trim().toLowerCase();
+                const password = String(body?.password || "");
+                if (!email)
+                    return sendJson(res, 400, { ok: false, error: "email is required" });
+                const requiredPassword = String(process.env.RINAWARP_AGENTD_ADMIN_PASSWORD || "").trim();
+                if (requiredPassword && password !== requiredPassword) {
+                    return sendJson(res, 401, { ok: false, error: "invalid_credentials" });
+                }
+                const secret = String(process.env.RINAWARP_AGENTD_AUTH_SECRET || "").trim();
+                if (!secret) {
+                    return sendJson(res, 503, { ok: false, error: "auth_secret_not_configured" });
+                }
+                const sub = `usr_${Buffer.from(email).toString("hex").slice(0, 12)}`;
+                const role = email.startsWith("owner@") || email.endsWith("@rinawarptech.com") ? "owner" : "member";
+                const accessToken = createSignedAuthToken({
+                    sub,
+                    email,
+                    role,
+                    kind: "access",
+                    ttlSec: 60 * 60,
+                    secret,
+                });
+                const refreshToken = createSignedAuthToken({
+                    sub,
+                    email,
+                    role,
+                    kind: "refresh",
+                    ttlSec: 7 * 24 * 60 * 60,
+                    secret,
+                });
+                return sendJson(res, 200, {
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                    expires_in: 3600,
+                });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/auth/refresh") {
+                const body = (await readJson(req));
+                const refreshToken = String(body?.refresh_token || "").trim();
+                if (!refreshToken)
+                    return sendJson(res, 400, { ok: false, error: "refresh_token is required" });
+                const secret = String(process.env.RINAWARP_AGENTD_AUTH_SECRET || "").trim();
+                if (!secret)
+                    return sendJson(res, 503, { ok: false, error: "auth_secret_not_configured" });
+                const claims = verifySignedAuthToken(refreshToken, secret);
+                if (!claims || claims.kind !== "refresh") {
+                    return sendJson(res, 401, { ok: false, error: "invalid_refresh_token" });
+                }
+                const accessToken = createSignedAuthToken({
+                    sub: claims.sub,
+                    email: claims.email,
+                    role: claims.role,
+                    kind: "access",
+                    ttlSec: 60 * 60,
+                    secret,
+                });
+                return sendJson(res, 200, {
+                    access_token: accessToken,
+                    expires_in: 3600,
+                });
+            }
+            // auth for protected routes
             requireAuth(req);
+            if (req.method === "GET" && url.pathname === "/v1/account/plan") {
+                return sendJson(res, 200, accountPlanFromEnv());
+            }
             // --- SSE stream for a plan run
             if (req.method === "GET" && url.pathname === "/v1/stream") {
                 const planRunId = url.searchParams.get("planRunId");
@@ -775,11 +864,28 @@ export function createServer(opts) {
                     });
                     if (!created)
                         return sendJson(res, 404, { ok: false, error: "workspace_not_found" });
+                    let emailDelivery;
+                    if (body?.send_email === true && created.invite_token) {
+                        const acceptUrl = `https://www.rinawarptech.com/login/?invite_token=${encodeURIComponent(created.invite_token)}`;
+                        emailDelivery = await sendEmail({
+                            to: email,
+                            subject: "Your RinaWarp workspace invite",
+                            text: [
+                                `You were invited to workspace ${workspaceId} as ${role}.`,
+                                "",
+                                `Invite ID: ${created.invite_id}`,
+                                `Accept URL: ${acceptUrl}`,
+                                "",
+                                "If you did not expect this invite, ignore this message.",
+                            ].join("\n"),
+                        });
+                    }
                     return sendJson(res, 200, {
                         invite_id: created.invite_id,
                         expires_at: created.expires_at,
                         // For local agentd only, return token to allow manual testing.
                         invite_token: created.invite_token || undefined,
+                        email: emailDelivery || undefined,
                     });
                 }
                 catch (error) {
@@ -867,6 +973,35 @@ export function createServer(opts) {
                 const limit = Number(url.searchParams.get("limit") || 100);
                 const entries = queryAudit({ workspaceId, type: type || undefined, from: from || undefined, to: to || undefined, limit });
                 return sendJson(res, 200, { entries });
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/admin/email/config") {
+                const body = (await readJson(req));
+                const cfg = setEmailConfig({
+                    provider: body?.provider,
+                    host: body?.host,
+                    port: body?.port,
+                    username: body?.username,
+                    password: body?.password,
+                    from: body?.from,
+                });
+                return sendJson(res, 200, { status: "updated", config: { ...cfg, password: cfg.password ? "***" : null } });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/admin/email/config") {
+                return sendJson(res, 200, { config: getMaskedEmailConfig() });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/admin/email/test") {
+                const body = (await readJson(req));
+                const to = String(body?.to || "").trim().toLowerCase();
+                if (!to)
+                    return sendJson(res, 400, { ok: false, error: "to is required" });
+                const result = await sendEmail({
+                    to,
+                    subject: "RinaWarp email test",
+                    text: `RinaWarp email test sent at ${new Date().toISOString()}`,
+                });
+                if (!result.ok)
+                    return sendJson(res, 502, { ok: false, error: result.error || "email_send_failed", provider: result.provider });
+                return sendJson(res, 200, { ok: true, provider: result.provider });
             }
             if (req.method === "PUT" && url.pathname === "/v1/admin/security/invites") {
                 const body = (await readJson(req));

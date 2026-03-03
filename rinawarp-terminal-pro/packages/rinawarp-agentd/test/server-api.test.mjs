@@ -49,6 +49,8 @@ function signLicenseToken(payload, secret) {
 
 before(async () => {
 	delete process.env.RINAWARP_AGENTD_TOKEN;
+	delete process.env.RINAWARP_AGENTD_AUTH_SECRET;
+	delete process.env.RINAWARP_AGENTD_ADMIN_PASSWORD;
 	delete process.env.RINAWARP_AGENTD_LICENSE;
 	delete process.env.RINAWARP_AGENTD_ALLOW_LICENSE_HEADER;
 	process.env.RINAWARP_AGENT_HOME = agentHome;
@@ -64,6 +66,8 @@ after(async () => {
 	}
 	fs.rmSync(agentHome, { recursive: true, force: true });
 	delete process.env.RINAWARP_AGENT_HOME;
+	delete process.env.RINAWARP_AGENTD_AUTH_SECRET;
+	delete process.env.RINAWARP_AGENTD_ADMIN_PASSWORD;
 });
 
 test("POST /v1/plan returns steps with required safety metadata", async () => {
@@ -1414,4 +1418,56 @@ test("sync push detects version conflict", async () => {
 	const pushed = await validPush.json();
 	assert.equal(pushed.ok, true);
 	assert.ok(typeof pushed.new_version === "number");
+});
+
+test("auth login + refresh returns signed tokens when auth secret is configured", async () => {
+	process.env.RINAWARP_AGENTD_AUTH_SECRET = "auth-secret-test";
+	process.env.RINAWARP_AGENTD_ADMIN_PASSWORD = "pw123";
+	try {
+		const loginResp = await fetch(`${baseUrl}/v1/auth/login`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ email: "owner@example.com", password: "pw123" }),
+		});
+		assert.equal(loginResp.status, 200);
+		const login = await loginResp.json();
+		assert.ok(login.access_token);
+		assert.ok(login.refresh_token);
+		assert.equal(login.expires_in, 3600);
+
+		const refreshResp = await fetch(`${baseUrl}/v1/auth/refresh`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ refresh_token: login.refresh_token }),
+		});
+		assert.equal(refreshResp.status, 200);
+		const refreshed = await refreshResp.json();
+		assert.ok(refreshed.access_token);
+		assert.equal(refreshed.expires_in, 3600);
+	} finally {
+		delete process.env.RINAWARP_AGENTD_AUTH_SECRET;
+		delete process.env.RINAWARP_AGENTD_ADMIN_PASSWORD;
+	}
+});
+
+test("admin email config + test endpoint works in log provider mode", async () => {
+	const cfgResp = await fetch(`${baseUrl}/v1/admin/email/config`, {
+		method: "PUT",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			provider: "log",
+			from: "RinaWarp <noreply@rinawarptech.com>",
+		}),
+	});
+	assert.equal(cfgResp.status, 200);
+
+	const testResp = await fetch(`${baseUrl}/v1/admin/email/test`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({ to: "dev@example.com" }),
+	});
+	assert.equal(testResp.status, 200);
+	const body = await testResp.json();
+	assert.equal(body.ok, true);
+	assert.equal(body.provider, "log");
 });
