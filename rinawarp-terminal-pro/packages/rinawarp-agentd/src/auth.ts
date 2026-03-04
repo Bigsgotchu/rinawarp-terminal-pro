@@ -8,6 +8,7 @@ export type AuthClaims = {
   email: string;
   role: "owner" | "admin" | "member";
   kind: TokenKind;
+  jti?: string;
   iat: number;
   exp: number;
 };
@@ -42,6 +43,7 @@ export function createSignedAuthToken(input: {
   email: string;
   role?: "owner" | "admin" | "member";
   kind: TokenKind;
+  jti?: string;
   ttlSec: number;
   secret: string;
 }): string {
@@ -51,6 +53,7 @@ export function createSignedAuthToken(input: {
     email: input.email.toLowerCase(),
     role: input.role || "owner",
     kind: input.kind,
+    ...(input.jti ? { jti: input.jti } : {}),
     iat: now,
     exp: now + Math.max(60, Math.floor(input.ttlSec)),
   };

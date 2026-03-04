@@ -1462,7 +1462,15 @@ test("auth login + refresh returns signed tokens when auth secret is configured"
 		assert.equal(refreshResp.status, 200);
 		const refreshed = await refreshResp.json();
 		assert.ok(refreshed.access_token);
+		assert.ok(refreshed.refresh_token);
 		assert.equal(refreshed.expires_in, 3600);
+
+		const reuseResp = await fetch(`${baseUrl}/v1/auth/refresh`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ refresh_token: login.refresh_token }),
+		});
+		assert.equal(reuseResp.status, 401);
 	} finally {
 		delete process.env.RINAWARP_AGENTD_AUTH_SECRET;
 		delete process.env.RINAWARP_AGENTD_ADMIN_PASSWORD;
@@ -1867,4 +1875,106 @@ test("health probes config/status/run endpoints work", async () => {
 	if (out.traffic_reconcile) {
 		assert.equal(typeof out.traffic_reconcile.ok, "boolean");
 	}
+});
+
+test("active-active write enforces vector conflict and replay drill surfaces drift status", async () => {
+	const h = {
+		"content-type": "application/json",
+		"x-rina-actor-id": "usr_owner12",
+		"x-rina-actor-email": "owner12@example.com",
+	};
+	const wsResp = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: h,
+		body: JSON.stringify({ name: "aa-ws", region: "us-east-1" }),
+	});
+	assert.equal(wsResp.status, 200);
+	const ws = await wsResp.json();
+	const workspaceId = ws.workspace_id;
+
+	const first = await fetch(`${baseUrl}/v1/platform/active-active/write`, {
+		method: "POST",
+		headers: h,
+		body: JSON.stringify({
+			workspace_id: workspaceId,
+			region: "us-east-1",
+			base_vector: { "us-east-1": 0, "eu-west-1": 0 },
+			mutations: [{ type: "task_created", entity: "task:1" }],
+		}),
+	});
+	assert.equal(first.status, 200);
+	const firstBody = await first.json();
+	assert.equal(firstBody.ok, true);
+
+	const second = await fetch(`${baseUrl}/v1/platform/active-active/write`, {
+		method: "POST",
+		headers: h,
+		body: JSON.stringify({
+			workspace_id: workspaceId,
+			region: "eu-west-1",
+			base_vector: { "us-east-1": 0, "eu-west-1": 0 },
+			mutations: [{ type: "task_created", entity: "task:2" }],
+		}),
+	});
+	assert.equal(second.status, 409);
+	const secondBody = await second.json();
+	assert.equal(secondBody.ok, false);
+	assert.equal(secondBody.error, "conflict");
+
+	const drill = await fetch(`${baseUrl}/v1/platform/active-active/replication/drill`, {
+		method: "POST",
+		headers: h,
+		body: JSON.stringify({ workspace_id: workspaceId }),
+	});
+	assert.equal(drill.status, 200);
+	const drillBody = await drill.json();
+	assert.equal(drillBody.ok, true);
+	assert.equal(drillBody.checked, 1);
+});
+
+test("reconciler/security control endpoints run and return evidence summary", async () => {
+	const h = {
+		"content-type": "application/json",
+		"x-rina-actor-id": "usr_owner13",
+		"x-rina-actor-email": "owner13@example.com",
+	};
+	const cfg = await fetch(`${baseUrl}/v1/platform/reconciler/config`, {
+		method: "PUT",
+		headers: h,
+		body: JSON.stringify({
+			enabled: true,
+			runtime_queue_stuck_after_sec: 60,
+			runtime_running_stuck_grace_sec: 30,
+			runtime_auto_remediate: true,
+			max_runtime_remediations: 5,
+			archive_interval_sec: 60,
+		}),
+	});
+	assert.equal(cfg.status, 200);
+	const run = await fetch(`${baseUrl}/v1/platform/reconciler/run`, {
+		method: "POST",
+		headers: h,
+		body: JSON.stringify({ force: false }),
+	});
+	assert.ok([200, 409].includes(run.status));
+	const runBody = await run.json();
+	assert.equal(typeof runBody.runtime?.scanned, "number");
+	assert.equal(typeof runBody.traffic?.ok, "boolean");
+
+	const secCfg = await fetch(`${baseUrl}/v1/platform/security/controls/config`, {
+		method: "PUT",
+		headers: h,
+		body: JSON.stringify({ mtls_mode: "strict", mesh_provider: "istio", evidence_interval_sec: 60 }),
+	});
+	assert.equal(secCfg.status, 200);
+	const drill = await fetch(`${baseUrl}/v1/platform/security/controls/drill`, {
+		method: "POST",
+		headers: h,
+		body: JSON.stringify({ force: true }),
+	});
+	assert.ok([200, 409].includes(drill.status));
+	const drillBody = await drill.json();
+	assert.equal(typeof drillBody.mtls?.ok, "boolean");
+	assert.equal(typeof drillBody.replication?.ok, "boolean");
+	assert.equal(typeof drillBody.token_lifecycle?.ok, "boolean");
 });

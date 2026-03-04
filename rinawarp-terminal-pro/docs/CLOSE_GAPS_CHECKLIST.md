@@ -1,6 +1,17 @@
 # RinaWarp Close-Gaps Checklist
 
-Date: 2026-03-03
+Date: 2026-03-04
+
+## Latest Verification Snapshot (2026-03-04)
+
+- `packages/rinawarp-agentd` tests: `67/67` passing.
+- Cross-account S3 replication: configured (`rinawarp-audit-archive` -> `rinawarp-attestation-verifier`, `attestations/` prefix).
+- Verifier cron + hardening resources: applied in `rinawarp-verifier` namespace.
+- **External runtime proof: ✅ CLOSED**
+  - IRSA trust policy fixed (was: `default` SA, now: `rinawarp-attestation-verifier` SA).
+  - Manual verifier job `verify-now-1772602874` completed successfully.
+  - S3 read access confirmed.
+  - Attestation validation working against `s3://rinawarp-attestation-verifier/attestations/latest.ndjson` (`ok:true`, `invalid:0`).
 
 ## Block 1: Automated Health + Failover Policy
 
@@ -31,8 +42,8 @@ Date: 2026-03-03
   - `POST /v1/platform/attestation/verify`
 - [x] Independent verifier process surface (`rinawarp-attestation-verifier`) + isolated cron template.
 - [x] Separate-account IAM/S3 policy templates committed for verifier trust boundary.
-- [ ] Deploy verifier in separate account/trust boundary with independent credential chain.
-- [ ] Immutable evidence export pipeline + alert routing integration.
+- [x] Deploy verifier in separate account/trust boundary with independent credential chain.
+- [x] Immutable evidence export pipeline + alert routing integration.
 
 ## Block 4: Operator Reconciliation Maturity
 

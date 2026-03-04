@@ -5,6 +5,7 @@ export type AuthClaims = {
     email: string;
     role: "owner" | "admin" | "member";
     kind: TokenKind;
+    jti?: string;
     iat: number;
     exp: number;
 };
@@ -13,6 +14,7 @@ export declare function createSignedAuthToken(input: {
     email: string;
     role?: "owner" | "admin" | "member";
     kind: TokenKind;
+    jti?: string;
     ttlSec: number;
     secret: string;
 }): string;

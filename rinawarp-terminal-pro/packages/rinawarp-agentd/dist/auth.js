@@ -28,6 +28,7 @@ export function createSignedAuthToken(input) {
         email: input.email.toLowerCase(),
         role: input.role || "owner",
         kind: input.kind,
+        ...(input.jti ? { jti: input.jti } : {}),
         iat: now,
         exp: now + Math.max(60, Math.floor(input.ttlSec)),
     };

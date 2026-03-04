@@ -36,6 +36,10 @@ import { attachWorkspaceWebSocketServer } from "./platform/websocket.js";
 import { configureAttestation, getAttestationState, runAttestation, verifyAttestationChain } from "./platform/attestation.js";
 import { configureTrafficManager, getTrafficManagerState, reconcileTrafficManager } from "./platform/trafficManager.js";
 import { configureHealthProbes, getHealthProbesState, runHealthProbes } from "./platform/healthProbes.js";
+import { activeActiveWrite, configureActiveActive, getActiveActiveState, replayWorkspaceEvents, runReplicationDrill } from "./platform/activeActive.js";
+import { configureReconciler, getReconcilerState, runFullReconcile } from "./platform/reconciler.js";
+import { configureTokenLifecycle, getTokenLifecycleStatus, registerRefreshSession, revokeRefreshSession, rotateRefreshSession, validateRefreshSession } from "./workspace/tokenLifecycle.js";
+import { configureSecurityControls, getSecurityControlsState, runControlEvidenceDrill } from "./platform/securityControls.js";
 const engine = new ExecutionEngine(createStandardRegistry());
 function expectedSafety(risk) {
     if (risk === "high-impact") {
@@ -527,17 +531,31 @@ export function createServer(opts) {
                     email,
                     role,
                     kind: "access",
+                    jti: randomUUID(),
                     ttlSec: 60 * 60,
                     secret,
                 });
+                const refreshJti = randomUUID();
                 const refreshToken = createSignedAuthToken({
                     sub,
                     email,
                     role,
                     kind: "refresh",
+                    jti: refreshJti,
                     ttlSec: 7 * 24 * 60 * 60,
                     secret,
                 });
+                const refreshClaims = verifySignedAuthToken(refreshToken, secret);
+                if (refreshClaims?.jti) {
+                    registerRefreshSession({
+                        jti: refreshClaims.jti,
+                        token: refreshToken,
+                        user_id: sub,
+                        email,
+                        issued_at: refreshClaims.iat,
+                        expires_at: refreshClaims.exp,
+                    });
+                }
                 return sendJson(res, 200, {
                     access_token: accessToken,
                     refresh_token: refreshToken,
@@ -553,21 +571,68 @@ export function createServer(opts) {
                 if (!secret)
                     return sendJson(res, 503, { ok: false, error: "auth_secret_not_configured" });
                 const claims = verifySignedAuthToken(refreshToken, secret);
-                if (!claims || claims.kind !== "refresh") {
+                if (!claims || claims.kind !== "refresh" || !claims.jti) {
                     return sendJson(res, 401, { ok: false, error: "invalid_refresh_token" });
                 }
+                const sessionCheck = validateRefreshSession({
+                    jti: claims.jti,
+                    token: refreshToken,
+                    user_id: claims.sub,
+                });
+                if (!sessionCheck.ok) {
+                    return sendJson(res, 401, { ok: false, error: sessionCheck.error });
+                }
+                const newRefreshJti = randomUUID();
                 const accessToken = createSignedAuthToken({
                     sub: claims.sub,
                     email: claims.email,
                     role: claims.role,
                     kind: "access",
+                    jti: randomUUID(),
                     ttlSec: 60 * 60,
                     secret,
                 });
+                const nextRefreshToken = createSignedAuthToken({
+                    sub: claims.sub,
+                    email: claims.email,
+                    role: claims.role,
+                    kind: "refresh",
+                    jti: newRefreshJti,
+                    ttlSec: 7 * 24 * 60 * 60,
+                    secret,
+                });
+                const nextRefreshClaims = verifySignedAuthToken(nextRefreshToken, secret);
+                if (nextRefreshClaims?.jti) {
+                    rotateRefreshSession({
+                        old_jti: claims.jti,
+                        new_jti: nextRefreshClaims.jti,
+                        new_token: nextRefreshToken,
+                        user_id: claims.sub,
+                        email: claims.email,
+                        issued_at: nextRefreshClaims.iat,
+                        expires_at: nextRefreshClaims.exp,
+                    });
+                }
                 return sendJson(res, 200, {
                     access_token: accessToken,
+                    refresh_token: nextRefreshToken,
                     expires_in: 3600,
                 });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/auth/revoke") {
+                const body = (await readJson(req));
+                const refreshToken = String(body?.refresh_token || "").trim();
+                if (!refreshToken)
+                    return sendJson(res, 400, { ok: false, error: "refresh_token is required" });
+                const secret = String(process.env.RINAWARP_AGENTD_AUTH_SECRET || "").trim();
+                if (!secret)
+                    return sendJson(res, 503, { ok: false, error: "auth_secret_not_configured" });
+                const claims = verifySignedAuthToken(refreshToken, secret);
+                if (!claims || claims.kind !== "refresh" || !claims.jti) {
+                    return sendJson(res, 401, { ok: false, error: "invalid_refresh_token" });
+                }
+                const out = revokeRefreshSession({ jti: claims.jti, reason: String(body?.reason || "manual_revoke").trim() || "manual_revoke" });
+                return sendJson(res, out.ok ? 200 : 404, { ok: out.ok, ...(out.ok ? {} : { error: "refresh_session_not_found" }) });
             }
             if (req.method === "POST" && url.pathname === "/v1/webhooks/stripe") {
                 const payload = await readJson(req);
@@ -671,6 +736,125 @@ export function createServer(opts) {
                     details: out,
                 });
                 return sendJson(res, out.ok ? 200 : 400, out);
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/platform/active-active/config") {
+                const body = (await readJson(req));
+                const cfg = configureActiveActive(body || {});
+                logSoc2({
+                    req,
+                    action: "active_active_config_update",
+                    result: "ok",
+                    details: cfg,
+                });
+                return sendJson(res, 200, { ok: true, config: cfg });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/platform/active-active/status") {
+                return sendJson(res, 200, { ok: true, config: getActiveActiveState() });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/platform/active-active/write") {
+                const body = (await readJson(req));
+                const workspaceId = String(body?.workspace_id || "").trim();
+                const region = String(body?.region || "").trim();
+                if (!workspaceId || !region)
+                    return sendJson(res, 400, { ok: false, error: "workspace_id and region are required" });
+                const out = activeActiveWrite({
+                    workspace_id: workspaceId,
+                    region,
+                    base_vector: body?.base_vector,
+                    event_id: body?.event_id,
+                    mutations: (body?.mutations || []).map((m) => ({
+                        type: String(m?.type || "mutation"),
+                        ...(m?.entity ? { entity: m.entity } : {}),
+                        ...(m?.payload ? { payload: m.payload } : {}),
+                    })),
+                });
+                logSoc2({
+                    req,
+                    workspaceId,
+                    action: "active_active_write",
+                    result: out.ok ? "ok" : "error",
+                    details: out,
+                });
+                return sendJson(res, out.ok ? 200 : out.error === "conflict" ? 409 : 400, out);
+            }
+            if (req.method === "POST" && url.pathname === "/v1/platform/active-active/replication/drill") {
+                const body = (await readJson(req));
+                const out = runReplicationDrill({ workspace_id: String(body?.workspace_id || "").trim() || undefined });
+                logSoc2({
+                    req,
+                    action: "active_active_replication_drill",
+                    result: out.ok ? "ok" : "error",
+                    details: out,
+                });
+                return sendJson(res, out.ok ? 200 : 409, out);
+            }
+            if (req.method === "POST" && url.pathname === "/v1/platform/active-active/replay") {
+                const body = (await readJson(req));
+                const workspaceId = String(body?.workspace_id || "").trim();
+                if (!workspaceId)
+                    return sendJson(res, 400, { ok: false, error: "workspace_id is required" });
+                const out = replayWorkspaceEvents({
+                    workspace_id: workspaceId,
+                    ...(body?.from_event_id ? { from_event_id: String(body.from_event_id) } : {}),
+                });
+                logSoc2({
+                    req,
+                    workspaceId,
+                    action: "active_active_replay",
+                    result: "ok",
+                    details: out,
+                });
+                return sendJson(res, 200, out);
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/platform/reconciler/config") {
+                const body = (await readJson(req));
+                const cfg = configureReconciler(body || {});
+                logSoc2({
+                    req,
+                    action: "reconciler_config_update",
+                    result: "ok",
+                    details: cfg,
+                });
+                return sendJson(res, 200, { ok: true, config: cfg });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/platform/reconciler/status") {
+                return sendJson(res, 200, { ok: true, config: getReconcilerState() });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/platform/reconciler/run") {
+                const body = (await readJson(req));
+                const out = await runFullReconcile(body?.force === true);
+                logSoc2({
+                    req,
+                    action: "reconciler_run",
+                    result: out.ok ? "ok" : "error",
+                    details: out,
+                });
+                return sendJson(res, out.ok ? 200 : 409, out);
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/platform/security/controls/config") {
+                const body = (await readJson(req));
+                const cfg = configureSecurityControls(body || {});
+                logSoc2({
+                    req,
+                    action: "security_controls_config_update",
+                    result: "ok",
+                    details: cfg,
+                });
+                return sendJson(res, 200, { ok: true, config: cfg });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/platform/security/controls/status") {
+                return sendJson(res, 200, { ok: true, config: getSecurityControlsState() });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/platform/security/controls/drill") {
+                const body = (await readJson(req));
+                const out = await runControlEvidenceDrill(body?.force === true);
+                logSoc2({
+                    req,
+                    action: "security_controls_drill",
+                    result: out.ok ? "ok" : "error",
+                    details: out,
+                });
+                return sendJson(res, out.ok ? 200 : 409, out);
             }
             if (req.method === "POST" && url.pathname === "/v1/vault/store") {
                 const body = (await readJson(req));
@@ -1432,6 +1616,21 @@ export function createServer(opts) {
                 const { actorId } = actorFromRequest(req);
                 const config = rotateInviteSecurityKeys(actorId);
                 return sendJson(res, 200, { status: "rotated", key_version: config.key_version });
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/admin/security/tokens/config") {
+                const body = (await readJson(req));
+                const cfg = configureTokenLifecycle(body || {});
+                logSoc2({
+                    req,
+                    action: "token_lifecycle_config_update",
+                    result: "ok",
+                    details: cfg,
+                });
+                return sendJson(res, 200, { status: "updated", config: cfg });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/admin/security/tokens/status") {
+                const status = getTokenLifecycleStatus();
+                return sendJson(res, 200, { status: "ok", config: status });
             }
             if (req.method === "PUT" && url.pathname === "/v1/admin/audit/retention") {
                 const body = (await readJson(req));
