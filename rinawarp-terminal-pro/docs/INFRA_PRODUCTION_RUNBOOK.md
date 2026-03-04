@@ -12,6 +12,7 @@ Date: 2026-03-03
 - Traffic reconciliation cron schedule: `deploy/k8s/rinawarp-traffic-reconcile-cronjob.yaml`
 - Health probe cron schedule: `deploy/k8s/rinawarp-health-probes-cronjob.yaml`
 - External attestation verifier cron: `deploy/k8s/rinawarp-attestation-verifier-cronjob.yaml`
+- Verifier namespace hardening policies: `deploy/k8s/rinawarp-verifier-hardening.yaml`
 - IAM policy + trust templates for KMS/S3 object-lock path:
   - `deploy/aws/iam/rinawarp-agentd-policy.json`
   - `deploy/aws/iam/rinawarp-agentd-trust-policy.json`
@@ -49,6 +50,7 @@ Date: 2026-03-03
 7. `kubectl apply -f deploy/k8s/rinawarp-traffic-reconcile-cronjob.yaml`
 8. `kubectl apply -f deploy/k8s/rinawarp-health-probes-cronjob.yaml`
 9. `kubectl apply -f deploy/k8s/rinawarp-attestation-verifier-cronjob.yaml`
+10. `kubectl apply -f deploy/k8s/rinawarp-verifier-hardening.yaml`
 
 ## AWS IAM Notes
 
@@ -70,6 +72,11 @@ Date: 2026-03-03
 
 ### One-Pass Cutover Script
 
+0. Bootstrap AWS profiles (non-interactive optional path):
+   - `cp deploy/aws/scripts/bootstrap-aws-profiles.env.example deploy/aws/scripts/bootstrap-aws-profiles.env`
+   - fill values, then:
+   - `source deploy/aws/scripts/bootstrap-aws-profiles.env`
+   - `bash deploy/aws/scripts/bootstrap-aws-profiles.sh`
 1. Copy env template:
    - `cp deploy/aws/scripts/cross-account-attestation.env.example deploy/aws/scripts/cross-account-attestation.env`
 2. Fill real account IDs, cluster, OIDC, and independent alert webhook.

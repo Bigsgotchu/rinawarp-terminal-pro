@@ -44,6 +44,7 @@ Date: 2026-03-03
 ## Block 5: Security + Compliance Hardening
 
 - [x] IRSA templates, object lock path, Redis prod requirement.
+- [x] Verifier namespace baseline hardening (Pod Security labels, NetworkPolicy, ResourceQuota, LimitRange).
 - [ ] End-to-end mTLS service mesh policy.
 - [ ] Token lifecycle hardening (revocation windows, key custody audits).
 - [ ] Continuous control evidence and runbook validation drills.
