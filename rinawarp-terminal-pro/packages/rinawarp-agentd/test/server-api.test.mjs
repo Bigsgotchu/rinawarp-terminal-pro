@@ -1885,7 +1885,10 @@ test("active-active write enforces vector conflict and replay drill surfaces dri
 	};
 	const wsResp = await fetch(`${baseUrl}/v1/workspaces`, {
 		method: "POST",
-		headers: h,
+		headers: {
+			...h,
+			"idempotency-key": `aa-${Date.now()}`,
+		},
 		body: JSON.stringify({ name: "aa-ws", region: "us-east-1" }),
 	});
 	assert.equal(wsResp.status, 200);
