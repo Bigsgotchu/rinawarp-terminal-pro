@@ -59,6 +59,7 @@ import { appendSoc2Event } from "./platform/soc2Log.js";
 import { assignWorkspaceRegion, failoverDefaultRegion, getRegionHealth, getRegionMap, getWorkspaceRegion, setRegionHealth } from "./platform/regions.js";
 import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform/runtime.js";
 import { appendRemoteRunLog, cancelRemoteRun, createRemoteRun, getRemoteRun, listRemoteRuns, resumeRemoteRun } from "./platform/remoteRuns.js";
+import { createWorkspaceObject, getWorkspaceObject, listWorkspaceObjects, updateWorkspaceObject } from "./platform/workspaceObjects.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
@@ -1978,6 +1979,97 @@ export function createServer(opts: { port: number }) {
         const run = appendRemoteRunLog(runId, String(body?.line || ""));
         if (!run) return sendJson(res, 404, { ok: false, error: "not_found" });
         return sendJson(res, 200, { ok: true, run });
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/workspace/objects") {
+        const body = (await readJson(req)) as {
+          workspace_id?: string;
+          type?: "prompt" | "workflow" | "snippet";
+          name?: string;
+          content?: Record<string, unknown>;
+        } | null;
+        const workspaceId = String(body?.workspace_id || "").trim();
+        if (!workspaceId) return sendJson(res, 400, { ok: false, error: "workspace_id is required" });
+        const actor = ensureWorkspaceRole(req, workspaceId, "member");
+        const obj = createWorkspaceObject({
+          workspace_id: workspaceId,
+          type: body?.type,
+          name: String(body?.name || "").trim(),
+          content: body?.content || {},
+          actor_id: actor.actorId,
+        });
+        logSoc2({
+          req,
+          workspaceId,
+          action: "workspace_object_create",
+          result: "ok",
+          details: { object_id: obj.id, object_type: obj.type },
+        });
+        await publishWorkspaceEvent({
+          workspace_id: workspaceId,
+          type: "workspace_object_created",
+          payload: { object_id: obj.id, object_type: obj.type },
+        });
+        return sendJson(res, 200, { ok: true, object: obj });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/workspace/objects") {
+        const workspaceId = String(url.searchParams.get("workspace_id") || "").trim();
+        if (!workspaceId) return sendJson(res, 400, { ok: false, error: "workspace_id is required" });
+        ensureWorkspaceRole(req, workspaceId, "member");
+        const type = String(url.searchParams.get("type") || "").trim();
+        const archivedParam = String(url.searchParams.get("archived") || "").trim();
+        const archived = archivedParam ? archivedParam === "true" : undefined;
+        const limit = Number(url.searchParams.get("limit") || 200);
+        const objects = listWorkspaceObjects({
+          workspace_id: workspaceId,
+          ...(type ? { type } : {}),
+          ...(typeof archived === "boolean" ? { archived } : {}),
+          ...(Number.isFinite(limit) ? { limit } : {}),
+        });
+        return sendJson(res, 200, { ok: true, objects });
+      }
+
+      const workspaceObjectMatch = url.pathname.match(/^\/v1\/workspace\/objects\/([^/]+)$/);
+      if (req.method === "GET" && workspaceObjectMatch) {
+        const objectId = decodeURIComponent(workspaceObjectMatch[1] || "");
+        const obj = getWorkspaceObject(objectId);
+        if (!obj) return sendJson(res, 404, { ok: false, error: "not_found" });
+        ensureWorkspaceRole(req, obj.workspace_id, "member");
+        return sendJson(res, 200, { ok: true, object: obj });
+      }
+
+      if (req.method === "PUT" && workspaceObjectMatch) {
+        const objectId = decodeURIComponent(workspaceObjectMatch[1] || "");
+        const existing = getWorkspaceObject(objectId);
+        if (!existing) return sendJson(res, 404, { ok: false, error: "not_found" });
+        const actor = ensureWorkspaceRole(req, existing.workspace_id, "member");
+        const body = (await readJson(req)) as {
+          name?: string;
+          content?: Record<string, unknown>;
+          archived?: boolean;
+        } | null;
+        const updated = updateWorkspaceObject({
+          id: objectId,
+          actor_id: actor.actorId,
+          ...(body?.name ? { name: body.name } : {}),
+          ...(body?.content ? { content: body.content } : {}),
+          ...(typeof body?.archived === "boolean" ? { archived: body.archived } : {}),
+        });
+        if (!updated) return sendJson(res, 404, { ok: false, error: "not_found" });
+        logSoc2({
+          req,
+          workspaceId: updated.workspace_id,
+          action: "workspace_object_update",
+          result: "ok",
+          details: { object_id: updated.id, version: updated.version, archived: updated.archived },
+        });
+        await publishWorkspaceEvent({
+          workspace_id: updated.workspace_id,
+          type: "workspace_object_updated",
+          payload: { object_id: updated.id, version: updated.version, archived: updated.archived },
+        });
+        return sendJson(res, 200, { ok: true, object: updated });
       }
 
       if (req.method === "POST" && url.pathname === "/v1/runtime/tasks") {

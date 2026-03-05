@@ -1439,6 +1439,86 @@ test("sync push detects version conflict", async () => {
 	assert.ok(typeof pushed.new_version === "number");
 });
 
+test("workspace objects API supports create/list/get/update", async () => {
+	const createWs = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_obj",
+			"x-rina-actor-email": "owner-obj@example.com",
+			"idempotency-key": `idem-objects-${Date.now()}`,
+		},
+		body: JSON.stringify({ name: "workspace-objects", region: "us-east-1" }),
+	});
+	assert.equal(createWs.status, 200);
+	const wsBody = await createWs.json();
+	assert.ok(wsBody.workspace_id);
+	const workspaceId = wsBody.workspace_id;
+
+	const createObj = await fetch(`${baseUrl}/v1/workspace/objects`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_obj",
+			"x-rina-actor-email": "owner-obj@example.com",
+		},
+		body: JSON.stringify({
+			workspace_id: workspaceId,
+			type: "prompt",
+			name: "Fix Bug Prompt",
+			content: { system: "You are precise", prompt: "Fix issue 123" },
+		}),
+	});
+	assert.equal(createObj.status, 200);
+	const createObjBody = await createObj.json();
+	assert.equal(createObjBody.ok, true);
+	assert.ok(createObjBody.object.id);
+	assert.equal(createObjBody.object.type, "prompt");
+
+	const objectId = createObjBody.object.id;
+
+	const listObj = await fetch(`${baseUrl}/v1/workspace/objects?workspace_id=${encodeURIComponent(workspaceId)}`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner_obj",
+			"x-rina-actor-email": "owner-obj@example.com",
+		},
+	});
+	assert.equal(listObj.status, 200);
+	const listObjBody = await listObj.json();
+	assert.equal(listObjBody.ok, true);
+	assert.ok(Array.isArray(listObjBody.objects));
+	assert.ok(listObjBody.objects.some((o) => o.id === objectId));
+
+	const getObj = await fetch(`${baseUrl}/v1/workspace/objects/${encodeURIComponent(objectId)}`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner_obj",
+			"x-rina-actor-email": "owner-obj@example.com",
+		},
+	});
+	assert.equal(getObj.status, 200);
+	const getObjBody = await getObj.json();
+	assert.equal(getObjBody.ok, true);
+	assert.equal(getObjBody.object.id, objectId);
+
+	const updateObj = await fetch(`${baseUrl}/v1/workspace/objects/${encodeURIComponent(objectId)}`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_obj",
+			"x-rina-actor-email": "owner-obj@example.com",
+		},
+		body: JSON.stringify({
+			name: "Fix Bug Prompt v2",
+			content: { system: "You are very precise", prompt: "Fix issue 123 quickly" },
+		}),
+	});
+	assert.equal(updateObj.status, 200);
+	const updateObjBody = await updateObj.json();
+	assert.equal(updateObjBody.ok, true);
+	assert.equal(updateObjBody.object.name, "Fix Bug Prompt v2");
+	assert.ok(Number(updateObjBody.object.version) >= 2);
+});
+
 test("auth login + refresh returns signed tokens when auth secret is configured", async () => {
 	process.env.RINAWARP_AGENTD_AUTH_SECRET = "auth-secret-test";
 	process.env.RINAWARP_AGENTD_ADMIN_PASSWORD = "pw123";
