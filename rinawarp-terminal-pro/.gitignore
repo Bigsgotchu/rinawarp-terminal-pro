@@ -57,3 +57,6 @@ npm-debug.log*
 
 # Also exclude node_modules in .kilocode directories
 .kilocode/**/node_modules/
+
+# local secrets
+deploy/aws/scripts/cross-account-attestation.env
