@@ -1,12 +1,31 @@
 # RinaWarp Close-Gaps Checklist
 
-Date: 2026-03-04
+Date: 2026-03-05
 
-## Latest Verification Snapshot (2026-03-04)
+## Latest Verification Snapshot (2026-03-05)
 
-- `packages/rinawarp-agentd` tests: `67/67` passing.
+- `packages/rinawarp-agentd` tests: `69/69` passing.
 - Cross-account S3 replication: configured (`rinawarp-audit-archive` -> `rinawarp-attestation-verifier`, `attestations/` prefix).
 - Verifier cron + hardening resources: applied in `rinawarp-verifier` namespace.
+- Traffic manager:
+  - Provider set to Cloudflare for `api.rinawarptech.com`.
+  - Manual reconcile succeeded and status reports `last_result: ok`.
+  - `rinawarp-traffic-reconcile` cron currently paused (`suspend=true`) to prevent overwriting public worker API DNS.
+  - Cloudflare DNS audit confirms live proxied `CNAME`:
+    - `api.rinawarptech.com` -> `rinawarp-downloads.rinawarptech.workers.dev` (`comment=rinawarp-worker-api`)
+  - Agent image deployed in cluster: `498378078411.dkr.ecr.us-east-1.amazonaws.com/rinawarp-agentd:20260305-cf-failover`.
+  - Public API recovery: `api.rinawarptech.com` restored to proxied Cloudflare `CNAME` -> `rinawarp-downloads.rinawarptech.workers.dev`.
+  - Separate failover hostname created on Cloudflare (free DNS): `failover-api.rinawarptech.com`.
+  - Traffic manager ownership moved to `failover-api.rinawarptech.com` and kept disabled for safe live API operation.
+  - Public checks:
+    - `GET /api/download-token?customer_id=cus_TEST` returns token payload.
+    - `GET /api/stripe/webhook` returns `405` (expected method guard for webhook route).
+    - `GET /` on `api.rinawarptech.com` now returns `200` JSON health payload (no Cloudflare 530 root fallback).
+    - `GET /` and `/api/download-token` on `failover-api.rinawarptech.com` return `200`.
+- Website release/publish:
+  - `rinawarptech-website` changes pushed to `master` (`9003694`).
+  - Cloudflare Pages deploy completed (`deploy=2026-03-05T04:42:31Z`).
+  - `smoke:pages`, `smoke:prod`, and `audit:prod` pass against live domains.
 - **External runtime proof: ✅ CLOSED**
   - IRSA trust policy fixed (was: `default` SA, now: `rinawarp-attestation-verifier` SA).
   - Manual verifier job `verify-now-1772602874` completed successfully.

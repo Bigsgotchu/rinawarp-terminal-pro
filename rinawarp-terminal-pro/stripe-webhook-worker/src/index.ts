@@ -113,6 +113,18 @@ export default {
     ]);
     const allowOrigin = ALLOWED_ORIGINS.has(requestOrigin) ? requestOrigin : "https://www.rinawarptech.com";
 
+    // Root endpoint to avoid Cloudflare edge 5xx on unmatched host routes.
+    if (url.pathname === "/" && request.method === "GET") {
+      return new Response(JSON.stringify({
+        ok: true,
+        service: "rinawarp-api",
+        health: "/api/health",
+        time: Date.now(),
+      }), {
+        headers: { "content-type": "application/json", ...cors(allowOrigin) },
+      });
+    }
+
     // Health check endpoint
     if (url.pathname === "/api/health" && request.method === "GET") {
       return new Response(JSON.stringify({

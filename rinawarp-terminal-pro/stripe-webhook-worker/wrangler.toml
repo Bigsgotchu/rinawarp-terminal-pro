@@ -82,3 +82,12 @@ zone_name = "rinawarptech.com"
 [[routes]]
 pattern = "api.rinawarptech.com/api/license/verify"
 zone_name = "rinawarptech.com"
+
+# Root route keeps api host root deterministic.
+[[routes]]
+pattern = "api.rinawarptech.com/"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "failover-api.rinawarptech.com/*"
+zone_name = "rinawarptech.com"
