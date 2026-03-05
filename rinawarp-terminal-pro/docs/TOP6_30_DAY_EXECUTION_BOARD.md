@@ -129,7 +129,7 @@ Definition of done:
     - `GET /v1/workspace/objects/:id`
     - `PUT /v1/workspace/objects/:id`
 - Validation:
-  - `packages/rinawarp-agentd` test suite passes (`72/72`).
+  - `packages/rinawarp-agentd` test suite passes (`74/74`).
 - Workstream 3 skeleton shipped:
   - Added versioned workflow template store and run surface:
     - `POST /v1/workflows/templates`
@@ -138,3 +138,13 @@ Definition of done:
     - `PUT /v1/workflows/templates/:id`
     - `POST /v1/workflows/templates/:id/run`
   - Template run performs parameter validation/interpolation and enqueues a remote run payload.
+- Workstream 4 skeleton shipped:
+  - Added retrieval config/status/benchmark API:
+    - `PUT /v1/platform/retrieval/config`
+    - `GET /v1/platform/retrieval/status`
+    - `POST /v1/platform/retrieval/benchmark`
+- Workstream 5 skeleton shipped:
+  - Added research policy + fetch API with allowlist/time/size guardrails and citation bundle output:
+    - `PUT /v1/platform/research/config`
+    - `GET /v1/platform/research/status`
+    - `POST /v1/platform/research/fetch`

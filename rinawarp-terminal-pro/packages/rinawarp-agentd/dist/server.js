@@ -33,6 +33,7 @@ import { appendRemoteRunLog, cancelRemoteRun, createRemoteRun, getRemoteRun, lis
 import { createWorkspaceObject, getWorkspaceObject, listWorkspaceObjects, updateWorkspaceObject } from "./platform/workspaceObjects.js";
 import { createWorkflowTemplate, getWorkflowTemplate, listWorkflowTemplates, runWorkflowTemplate, updateWorkflowTemplate } from "./platform/workflowTemplates.js";
 import { configureRetrieval, getRetrievalState, runRetrievalBenchmark } from "./platform/retrieval.js";
+import { configureResearch, getResearchState, runResearchFetch } from "./platform/research.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
@@ -743,6 +744,31 @@ export function createServer(opts) {
                 logSoc2({
                     req,
                     action: "retrieval_benchmark_run",
+                    result: out.ok ? "ok" : "error",
+                    details: out,
+                });
+                return sendJson(res, out.ok ? 200 : 400, out);
+            }
+            if (req.method === "PUT" && url.pathname === "/v1/platform/research/config") {
+                const body = (await readJson(req));
+                const cfg = configureResearch(body || {});
+                logSoc2({
+                    req,
+                    action: "research_config_update",
+                    result: "ok",
+                    details: cfg,
+                });
+                return sendJson(res, 200, { ok: true, config: cfg });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/platform/research/status") {
+                return sendJson(res, 200, { ok: true, config: getResearchState() });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/platform/research/fetch") {
+                const body = (await readJson(req));
+                const out = await runResearchFetch({ url: String(body?.url || "") });
+                logSoc2({
+                    req,
+                    action: "research_fetch",
                     result: out.ok ? "ok" : "error",
                     details: out,
                 });

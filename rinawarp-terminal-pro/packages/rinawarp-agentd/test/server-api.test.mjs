@@ -1,6 +1,7 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
+import { createServer as createHttpServer } from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -2140,6 +2141,129 @@ test("health probes config/status/run endpoints work", async () => {
 	assert.ok(["healthy", "degraded", "down"].includes(out.regions?.["us-east-1"]?.status));
 	if (out.traffic_reconcile) {
 		assert.equal(typeof out.traffic_reconcile.ok, "boolean");
+	}
+});
+
+test("retrieval config/status/benchmark endpoints work", async () => {
+	const cfg = await fetch(`${baseUrl}/v1/platform/retrieval/config`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner12",
+			"x-rina-actor-email": "owner12@example.com",
+		},
+		body: JSON.stringify({ mode: "index" }),
+	});
+	assert.equal(cfg.status, 200);
+
+	const status = await fetch(`${baseUrl}/v1/platform/retrieval/status`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner12",
+			"x-rina-actor-email": "owner12@example.com",
+		},
+	});
+	assert.equal(status.status, 200);
+	const st = await status.json();
+	assert.equal(st.ok, true);
+	assert.equal(st.config.mode, "index");
+
+	const benchmark = await fetch(`${baseUrl}/v1/platform/retrieval/benchmark`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner12",
+			"x-rina-actor-email": "owner12@example.com",
+		},
+		body: JSON.stringify({
+			query: "createServer",
+			repo_path: process.cwd(),
+			limit: 3,
+		}),
+	});
+	assert.equal(benchmark.status, 200);
+	const out = await benchmark.json();
+	assert.equal(out.ok, true);
+	assert.equal(out.mode, "index");
+	assert.ok(Number.isFinite(out.latency_ms));
+	assert.ok(Array.isArray(out.sample));
+});
+
+test("research config/status/fetch endpoints enforce allowlist and return citation bundle", async () => {
+	const docsServer = createHttpServer((req, res) => {
+		if (req.url === "/docs") {
+			res.statusCode = 200;
+			res.setHeader("content-type", "text/html; charset=utf-8");
+			res.end("<html><head><title>RinaWarp Docs</title></head><body><h1>Setup</h1><p>Install and run tests.</p></body></html>");
+			return;
+		}
+		res.statusCode = 404;
+		res.end("not found");
+	});
+	await new Promise((resolve) => docsServer.listen(0, "127.0.0.1", resolve));
+	const addr = docsServer.address();
+	const docsUrl = `http://127.0.0.1:${addr.port}/docs`;
+
+	try {
+		const cfg = await fetch(`${baseUrl}/v1/platform/research/config`, {
+			method: "PUT",
+			headers: {
+				"content-type": "application/json",
+				"x-rina-actor-id": "usr_owner13",
+				"x-rina-actor-email": "owner13@example.com",
+			},
+			body: JSON.stringify({
+				enabled: true,
+				allowed_domains: ["127.0.0.1"],
+				timeout_ms: 2000,
+				max_bytes: 2048,
+				max_excerpt_chars: 120,
+			}),
+		});
+		assert.equal(cfg.status, 200);
+
+		const status = await fetch(`${baseUrl}/v1/platform/research/status`, {
+			headers: {
+				"x-rina-actor-id": "usr_owner13",
+				"x-rina-actor-email": "owner13@example.com",
+			},
+		});
+		assert.equal(status.status, 200);
+		const st = await status.json();
+		assert.equal(st.ok, true);
+		assert.equal(st.config.enabled, true);
+		assert.deepEqual(st.config.allowed_domains, ["127.0.0.1"]);
+
+		const blocked = await fetch(`${baseUrl}/v1/platform/research/fetch`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-rina-actor-id": "usr_owner13",
+				"x-rina-actor-email": "owner13@example.com",
+			},
+			body: JSON.stringify({ url: "https://example.com/docs" }),
+		});
+		assert.equal(blocked.status, 400);
+
+		const ok = await fetch(`${baseUrl}/v1/platform/research/fetch`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				"x-rina-actor-id": "usr_owner13",
+				"x-rina-actor-email": "owner13@example.com",
+			},
+			body: JSON.stringify({ url: docsUrl }),
+		});
+		assert.equal(ok.status, 200);
+		const out = await ok.json();
+		assert.equal(out.ok, true);
+		assert.equal(out.status_code, 200);
+		assert.equal(typeof out.url, "string");
+		assert.equal(Array.isArray(out.citations), true);
+		assert.equal(out.citations.length, 1);
+		assert.equal(out.citations[0].title, "RinaWarp Docs");
+		assert.ok(out.citations[0].excerpt.includes("Install and run tests"));
+	} finally {
+		await new Promise((resolve) => docsServer.close(resolve));
 	}
 });
 
