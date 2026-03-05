@@ -4,7 +4,7 @@ Date: 2026-03-05
 
 ## Latest Verification Snapshot (2026-03-05)
 
-- `packages/rinawarp-agentd` tests: `69/69` passing.
+- `packages/rinawarp-agentd` tests: `74/74` passing.
 - Cross-account S3 replication: configured (`rinawarp-audit-archive` -> `rinawarp-attestation-verifier`, `attestations/` prefix).
 - Verifier cron + hardening resources: applied in `rinawarp-verifier` namespace.
 - Traffic manager:
@@ -26,6 +26,11 @@ Date: 2026-03-05
   - `rinawarptech-website` changes pushed to `master` (`9003694`).
   - Cloudflare Pages deploy completed (`deploy=2026-03-05T04:42:31Z`).
   - `smoke:pages`, `smoke:prod`, and `audit:prod` pass against live domains.
+- Desktop trust/update release checks:
+  - `deploy/preflight-release.sh` passes for `v1.0.4`.
+  - Dry-run release pipeline (`SKIP_BUILD=1 DRY_RUN=1 AUTO_COMMIT=0 VER=1.0.4 bash deploy/release-runner.sh`) passes.
+  - `verify:downloads` passes and confirms release-link alignment for `v1.0.4`.
+  - GPG signing + verification pass for release checksum artifacts in `release/v1.0.4/`.
 - Revenue-path verification:
   - `smoke:stripe` passes (API root + CORS preflight endpoints).
   - `e2e:revenue` passes end-to-end (token mint + gated AppImage download HEAD `200`).
