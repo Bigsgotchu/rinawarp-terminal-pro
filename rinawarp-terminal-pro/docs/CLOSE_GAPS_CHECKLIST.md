@@ -26,6 +26,9 @@ Date: 2026-03-05
   - `rinawarptech-website` changes pushed to `master` (`9003694`).
   - Cloudflare Pages deploy completed (`deploy=2026-03-05T04:42:31Z`).
   - `smoke:pages`, `smoke:prod`, and `audit:prod` pass against live domains.
+- Revenue-path verification:
+  - `smoke:stripe` passes (API root + CORS preflight endpoints).
+  - `e2e:revenue` passes end-to-end (token mint + gated AppImage download HEAD `200`).
 - **External runtime proof: ✅ CLOSED**
   - IRSA trust policy fixed (was: `default` SA, now: `rinawarp-attestation-verifier` SA).
   - Manual verifier job `verify-now-1772602874` completed successfully.
