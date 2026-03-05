@@ -30,8 +30,8 @@ Date: 2026-03-04
 ## Block 2: Active-Active Data Plane
 
 - [x] Region assignment + manual failover controls.
-- [ ] Conflict-safe multi-region write protocol (version vectors/CRDT/event reconciliation policy).
-- [ ] Cross-region data replication validation and replay drills.
+- [x] Conflict-safe multi-region write protocol (version vectors/CRDT/event reconciliation policy).
+- [x] Cross-region data replication validation and replay drills.
 - [x] Automated traffic reconciliation after health-driven failover decisions.
 
 ## Block 3: SOC2 External Verifier
@@ -49,13 +49,38 @@ Date: 2026-03-04
 
 - [x] Runtime controller process split.
 - [x] Lease-based leader election.
-- [ ] Full reconcile loops per resource type (runtime, traffic, attestation, archive).
-- [ ] Drift correction and stuck-resource remediation policies.
+- [x] Full reconcile loops per resource type (runtime, traffic, attestation, archive).
+- [x] Drift correction and stuck-resource remediation policies.
 
 ## Block 5: Security + Compliance Hardening
 
 - [x] IRSA templates, object lock path, Redis prod requirement.
 - [x] Verifier namespace baseline hardening (Pod Security labels, NetworkPolicy, ResourceQuota, LimitRange).
-- [ ] End-to-end mTLS service mesh policy.
-- [ ] Token lifecycle hardening (revocation windows, key custody audits).
-- [ ] Continuous control evidence and runbook validation drills.
+- [x] End-to-end mTLS service mesh policy.
+- [x] Token lifecycle hardening (revocation windows, key custody audits).
+- [x] Continuous control evidence and runbook validation drills.
+
+## Completion Notes (2026-03-04)
+
+- Active-active safety implemented with version-vector writes and conflict detection:
+  - `POST /v1/platform/active-active/write`
+  - `POST /v1/platform/active-active/replication/drill`
+  - `POST /v1/platform/active-active/replay`
+- Full reconcile + remediation loop implemented:
+  - `PUT /v1/platform/reconciler/config`
+  - `POST /v1/platform/reconciler/run`
+  - Runtime stuck-task remediation in `src/platform/runtime.ts` (`reconcileRuntimeTasks`).
+- Security/compliance controls implemented:
+  - mTLS mesh policy applied in cluster:
+    - `peerauthentication.security.istio.io/rinawarp-strict-mtls`
+    - `destinationrule.networking.istio.io/rinawarp-istio-mtls`
+  - Enable script: `deploy/k8s/enable-mtls-policy.sh`
+  - Runtime enforcement smoke test passed:
+    - injected pod (`rinawarp`) -> `mtls-ok`
+    - non-mesh pod (`default`) -> `connection reset by peer` (curl exit `56`)
+  - Token lifecycle controls:
+    - `PUT /v1/admin/security/tokens/config`
+    - `GET /v1/admin/security/tokens/status`
+    - refresh token rotation + revoke support in auth flow.
+  - Continuous control evidence drill:
+    - `POST /v1/platform/security/controls/drill`

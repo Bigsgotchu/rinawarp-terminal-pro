@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rinawarp-agentd
+  namespace: rinawarp-system
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: rinawarp-agentd
+  template:
+    metadata:
+      labels:
+        app: rinawarp-agentd
+    spec:
+      serviceAccountName: rinawarp-agentd
+      containers:
+        - name: agentd
+          image: 498378078411.dkr.ecr.us-east-1.amazonaws.com/rinawarp-agentd:20260305-032147
+          command: ["node", "dist/index.js"]
+          ports:
+            - containerPort: 5055
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: RINAWARP_AGENTD_PORT
+              value: "5055"
+            - name: RINAWARP_AGENTD_BIND_HOST
+              value: "0.0.0.0"
+            - name: RINAWARP_AGENT_HOME
+              value: "/data"
+            - name: RINAWARP_RUNTIME_EXECUTION_MODE
+              value: "external"
+            - name: RINAWARP_RUNTIME_BACKEND
+              value: "k8s"
+            - name: RINAWARP_NATS_MODE
+              value: "jetstream"
+            - name: RINAWARP_NATS_URL
+              value: "nats://nats.rinawarp-system.svc.cluster.local:4222"
+          readinessProbe:
+            tcpSocket:
+              port: 5055
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5055
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: "250m"
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: rinawarp-data
+              mountPath: /data
+      volumes:
+        - name: rinawarp-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rinawarp-agentd
+  namespace: rinawarp-system
+spec:
+  selector:
+    app: rinawarp-agentd
+  ports:
+    - name: http
+      port: 5055
+      targetPort: 5055

@@ -565,6 +565,7 @@ function incFailureClass(name: string | undefined): void {
 
 export function createServer(opts: { port: number }) {
   const { port } = opts;
+  const bindHost = String(process.env.RINAWARP_AGENTD_BIND_HOST || "127.0.0.1").trim() || "127.0.0.1";
   startEmailWorker();
   initEventBus().catch(() => {
     const required =
@@ -823,12 +824,15 @@ export function createServer(opts: { port: number }) {
       if (req.method === "PUT" && url.pathname === "/v1/platform/traffic/config") {
         const body = (await readJson(req)) as {
           enabled?: boolean;
+          provider?: "route53" | "cloudflare";
           hosted_zone_id?: string;
           record_name?: string;
           primary_dns?: string;
           secondary_dns?: string;
           ttl?: number;
           region_primary?: "us-east-1" | "eu-west-1";
+          cloudflare_api_token?: string;
+          cloudflare_zone_id?: string;
         } | null;
         const cfg = configureTrafficManager(body || {});
         logSoc2({
@@ -2504,11 +2508,11 @@ export function createServer(opts: { port: number }) {
   return {
     listen(): Promise<number> {
       return new Promise((resolve) => {
-        server.listen(port, "127.0.0.1", () => {
+        server.listen(port, bindHost, () => {
           const addr = server.address();
           const boundPort = typeof addr === "object" && addr ? addr.port : port;
           // eslint-disable-next-line no-console
-          console.log(`[agentd] listening on http://127.0.0.1:${boundPort}`);
+          console.log(`[agentd] listening on http://${bindHost}:${boundPort}`);
           resolve(boundPort);
         });
       });

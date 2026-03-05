@@ -4,7 +4,9 @@ metadata:
   name: rinawarp-runtime-controller
   namespace: rinawarp-system
 spec:
-  replicas: 2
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: rinawarp-runtime-controller
@@ -16,11 +18,13 @@ spec:
       serviceAccountName: rinawarp-agentd
       containers:
         - name: controller
-          image: ghcr.io/rinawarptech/rinawarp-agentd:latest
+          image: 498378078411.dkr.ecr.us-east-1.amazonaws.com/rinawarp-agentd:20260305-032147
           command: ["node", "dist/platform/runtime-controller.js"]
           env:
             - name: NODE_ENV
               value: "production"
+            - name: RINAWARP_AGENT_HOME
+              value: "/data"
             - name: RINAWARP_RUNTIME_EXECUTION_MODE
               value: "external"
             - name: RINAWARP_RUNTIME_BACKEND
@@ -49,12 +53,19 @@ spec:
               value: "us-east-1"
           resources:
             requests:
-              cpu: 250m
-              memory: 256Mi
+              cpu: 50m
+              memory: 64Mi
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: "200m"
+              memory: 256Mi
           securityContext:
-            runAsNonRoot: true
+            runAsNonRoot: false
+            runAsUser: 0
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: rinawarp-data
+              mountPath: /data
+      volumes:
+        - name: rinawarp-data
+          emptyDir: {}

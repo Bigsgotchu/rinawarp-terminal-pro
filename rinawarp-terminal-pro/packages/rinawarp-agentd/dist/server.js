@@ -494,6 +494,7 @@ function incFailureClass(name) {
 }
 export function createServer(opts) {
     const { port } = opts;
+    const bindHost = String(process.env.RINAWARP_AGENTD_BIND_HOST || "127.0.0.1").trim() || "127.0.0.1";
     startEmailWorker();
     initEventBus().catch(() => {
         const required = String(process.env.RINAWARP_NATS_REQUIRED || "").trim().toLowerCase() === "true" ||
@@ -2224,11 +2225,11 @@ export function createServer(opts) {
     return {
         listen() {
             return new Promise((resolve) => {
-                server.listen(port, "127.0.0.1", () => {
+                server.listen(port, bindHost, () => {
                     const addr = server.address();
                     const boundPort = typeof addr === "object" && addr ? addr.port : port;
                     // eslint-disable-next-line no-console
-                    console.log(`[agentd] listening on http://127.0.0.1:${boundPort}`);
+                    console.log(`[agentd] listening on http://${bindHost}:${boundPort}`);
                     resolve(boundPort);
                 });
             });
