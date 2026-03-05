@@ -31,6 +31,12 @@ Date: 2026-03-05
   - `e2e:revenue` passes end-to-end (token mint + gated AppImage download HEAD `200`).
   - `live-purchase-check.sh` executed for `kandi_dollface@yahoo.com` and returned pass on existing active `pro` entitlement.
   - Note: no new Stripe event was observed during this run (`stripe_events` count unchanged), so this is not a net-new payment capture proof.
+  - Net-new checkout initiated for `kandi_dollface+rw1772691659@yahoo.com`; payment completion still required to close net-new capture proof.
+
+- Repository publish hardening:
+  - Branch `rina/fix-170` push unblocked.
+  - Large release binaries migrated to Git LFS.
+  - Secret-scanning block resolved by removing `deploy/aws/scripts/cross-account-attestation.env` from history and tracking only example/ignored local env.
 - **External runtime proof: ✅ CLOSED**
   - IRSA trust policy fixed (was: `default` SA, now: `rinawarp-attestation-verifier` SA).
   - Manual verifier job `verify-now-1772602874` completed successfully.
