@@ -129,4 +129,12 @@ Definition of done:
     - `GET /v1/workspace/objects/:id`
     - `PUT /v1/workspace/objects/:id`
 - Validation:
-  - `packages/rinawarp-agentd` test suite passes (`71/71`).
+  - `packages/rinawarp-agentd` test suite passes (`72/72`).
+- Workstream 3 skeleton shipped:
+  - Added versioned workflow template store and run surface:
+    - `POST /v1/workflows/templates`
+    - `GET /v1/workflows/templates`
+    - `GET /v1/workflows/templates/:id`
+    - `PUT /v1/workflows/templates/:id`
+    - `POST /v1/workflows/templates/:id/run`
+  - Template run performs parameter validation/interpolation and enqueues a remote run payload.

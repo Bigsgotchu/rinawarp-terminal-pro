@@ -61,6 +61,7 @@ import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform
 import { appendRemoteRunLog, cancelRemoteRun, createRemoteRun, getRemoteRun, listRemoteRuns, resumeRemoteRun } from "./platform/remoteRuns.js";
 import { createWorkspaceObject, getWorkspaceObject, listWorkspaceObjects, updateWorkspaceObject } from "./platform/workspaceObjects.js";
 import { createWorkflowTemplate, getWorkflowTemplate, listWorkflowTemplates, runWorkflowTemplate, updateWorkflowTemplate } from "./platform/workflowTemplates.js";
+import { configureRetrieval, getRetrievalState, runRetrievalBenchmark } from "./platform/retrieval.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
@@ -823,6 +824,37 @@ export function createServer(opts: { port: number }) {
           ...out,
           ...(trafficReconcile ? { traffic_reconcile: trafficReconcile } : {}),
         });
+      }
+      if (req.method === "PUT" && url.pathname === "/v1/platform/retrieval/config") {
+        const body = (await readJson(req)) as { mode?: "index" | "grep" } | null;
+        const cfg = configureRetrieval({
+          ...(body?.mode ? { mode: body.mode } : {}),
+        });
+        logSoc2({
+          req,
+          action: "retrieval_config_update",
+          result: "ok",
+          details: cfg as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, 200, { ok: true, config: cfg });
+      }
+      if (req.method === "GET" && url.pathname === "/v1/platform/retrieval/status") {
+        return sendJson(res, 200, { ok: true, config: getRetrievalState() });
+      }
+      if (req.method === "POST" && url.pathname === "/v1/platform/retrieval/benchmark") {
+        const body = (await readJson(req)) as { query?: string; repo_path?: string; limit?: number } | null;
+        const out = runRetrievalBenchmark({
+          query: String(body?.query || ""),
+          repo_path: String(body?.repo_path || ""),
+          ...(Number.isFinite(body?.limit) ? { limit: Number(body?.limit) } : {}),
+        });
+        logSoc2({
+          req,
+          action: "retrieval_benchmark_run",
+          result: out.ok ? "ok" : "error",
+          details: out as unknown as Record<string, unknown>,
+        });
+        return sendJson(res, out.ok ? 200 : 400, out);
       }
       if (req.method === "PUT" && url.pathname === "/v1/platform/traffic/config") {
         const body = (await readJson(req)) as {

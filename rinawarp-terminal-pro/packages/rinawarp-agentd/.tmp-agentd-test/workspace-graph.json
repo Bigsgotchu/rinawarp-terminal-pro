@@ -2,28 +2,28 @@
   "version": 1,
   "nodes": [
     {
-      "id": "workflow_wf_mmd3fe6p_4fexvc",
+      "id": "workflow_wf_mmd3igjf_8bu310",
       "type": "workflow",
-      "label": "Issue->PR wf_mmd3fe6p_4fexvc",
+      "label": "Issue->PR wf_mmd3igjf_8bu310",
       "data": {
-        "workflowId": "wf_mmd3fe6p_4fexvc",
+        "workflowId": "wf_mmd3igjf_8bu310",
         "issueId": "143",
         "branchName": "rina/fix-143",
-        "latestTaskId": "task_mmd3fe6p_28gjss",
+        "latestTaskId": "task_mmd3igjf_r3hzad",
         "repoPath": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
         "state": "active",
         "stateHistory": [
           {
-            "at": "2026-03-05T06:37:18.865Z",
+            "at": "2026-03-05T06:39:41.883Z",
             "from": "planned",
             "to": "active",
             "accepted": true
           }
         ],
-        "lastUpdatedAt": "2026-03-05T06:37:18.865Z",
+        "lastUpdatedAt": "2026-03-05T06:39:41.883Z",
         "lastTransitionRejected": null
       },
-      "createdAt": "2026-03-05T06:37:18.865Z"
+      "createdAt": "2026-03-05T06:39:41.883Z"
     },
     {
       "id": "issue_143",
@@ -32,7 +32,7 @@
       "data": {
         "issueId": "143"
       },
-      "createdAt": "2026-03-05T06:37:18.865Z"
+      "createdAt": "2026-03-05T06:39:41.883Z"
     },
     {
       "id": "branch_rina/fix-143",
@@ -41,58 +41,58 @@
       "data": {
         "branchName": "rina/fix-143"
       },
-      "createdAt": "2026-03-05T06:37:18.865Z"
+      "createdAt": "2026-03-05T06:39:41.883Z"
     },
     {
-      "id": "task_task_mmd3fe6p_28gjss",
+      "id": "task_task_mmd3igjf_r3hzad",
       "type": "task",
       "label": "echo orchestrator-smoke",
       "data": {
-        "taskId": "task_mmd3fe6p_28gjss"
+        "taskId": "task_mmd3igjf_r3hzad"
       },
-      "createdAt": "2026-03-05T06:37:18.865Z"
+      "createdAt": "2026-03-05T06:39:41.883Z"
     },
     {
-      "id": "pr_wf_mmd3fe6p_4fexvc",
+      "id": "pr_wf_mmd3igjf_8bu310",
       "type": "pull_request",
       "label": "PR for 143",
       "data": {
         "status": "planned"
       },
-      "createdAt": "2026-03-05T06:37:18.865Z"
+      "createdAt": "2026-03-05T06:39:41.883Z"
     },
     {
-      "id": "workflow_wf_mmd3fe90_xu3qod",
+      "id": "workflow_wf_mmd3iglx_h0vvdf",
       "type": "workflow",
-      "label": "Issue->PR wf_mmd3fe90_xu3qod",
+      "label": "Issue->PR wf_mmd3iglx_h0vvdf",
       "data": {
-        "workflowId": "wf_mmd3fe90_xu3qod",
+        "workflowId": "wf_mmd3iglx_h0vvdf",
         "issueId": "170",
         "branchName": "rina/fix-170",
-        "latestTaskId": "task_mmd3fe90_nzfk2j",
+        "latestTaskId": "task_mmd3iglx_9jha6c",
         "repoPath": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
         "state": "active",
         "stateHistory": [
           {
-            "at": "2026-03-05T06:37:18.948Z",
+            "at": "2026-03-05T06:39:41.973Z",
             "from": "planned",
             "to": "active",
             "accepted": true
           },
           {
-            "at": "2026-03-05T06:37:18.953Z",
+            "at": "2026-03-05T06:39:41.977Z",
             "from": "active",
             "to": "active",
             "accepted": true
           },
           {
-            "at": "2026-03-05T06:37:19.137Z",
+            "at": "2026-03-05T06:39:42.164Z",
             "from": "active",
             "to": "active",
             "accepted": true
           }
         ],
-        "lastUpdatedAt": "2026-03-05T06:37:19.137Z",
+        "lastUpdatedAt": "2026-03-05T06:39:42.164Z",
         "lastTransitionRejected": null,
         "reconciled": true,
         "prStatus": "planned",
@@ -102,7 +102,7 @@
         "lastTaskStatus": "running",
         "taskError": null
       },
-      "createdAt": "2026-03-05T06:37:18.948Z"
+      "createdAt": "2026-03-05T06:39:41.973Z"
     },
     {
       "id": "issue_170",
@@ -111,7 +111,7 @@
       "data": {
         "issueId": "170"
       },
-      "createdAt": "2026-03-05T06:37:18.948Z"
+      "createdAt": "2026-03-05T06:39:41.973Z"
     },
     {
       "id": "branch_rina/fix-170",
@@ -120,30 +120,30 @@
       "data": {
         "branchName": "rina/fix-170"
       },
-      "createdAt": "2026-03-05T06:37:18.948Z"
+      "createdAt": "2026-03-05T06:39:41.973Z"
     },
     {
-      "id": "task_task_mmd3fe90_nzfk2j",
+      "id": "task_task_mmd3iglx_9jha6c",
       "type": "task",
       "label": "echo pr-plan-seed",
       "data": {
-        "taskId": "task_mmd3fe90_nzfk2j",
+        "taskId": "task_mmd3iglx_9jha6c",
         "command": "echo pr-plan-seed",
         "repoPath": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
-        "workflowId": "wf_mmd3fe90_xu3qod",
+        "workflowId": "wf_mmd3iglx_h0vvdf",
         "status": "running",
         "error": null,
-        "updatedAt": "2026-03-05T06:37:19.137Z"
+        "updatedAt": "2026-03-05T06:39:42.164Z"
       },
-      "createdAt": "2026-03-05T06:37:18.948Z"
+      "createdAt": "2026-03-05T06:39:41.973Z"
     },
     {
-      "id": "pr_wf_mmd3fe90_xu3qod",
+      "id": "pr_wf_mmd3iglx_h0vvdf",
       "type": "pull_request",
       "label": "PR for 170",
       "data": {
         "status": "planned",
-        "workflowId": "wf_mmd3fe90_xu3qod",
+        "workflowId": "wf_mmd3iglx_h0vvdf",
         "issueId": "170",
         "branchName": "rina/fix-170",
         "repoSlug": "owner/repo",
@@ -151,103 +151,103 @@
         "number": null,
         "url": null,
         "error": null,
-        "updatedAt": "2026-03-05T06:37:18.953Z"
+        "updatedAt": "2026-03-05T06:39:41.977Z"
       },
-      "createdAt": "2026-03-05T06:37:18.948Z"
+      "createdAt": "2026-03-05T06:39:41.973Z"
     }
   ],
   "edges": [
     {
-      "id": "edge_mmd3fe6q_8wgi9d",
-      "createdAt": "2026-03-05T06:37:18.867Z",
+      "id": "edge_mmd3igjg_l299ga",
+      "createdAt": "2026-03-05T06:39:41.884Z",
       "from": "issue_143",
-      "to": "workflow_wf_mmd3fe6p_4fexvc",
+      "to": "workflow_wf_mmd3igjf_8bu310",
       "type": "based_on"
     },
     {
-      "id": "edge_mmd3fe6r_vlsp42",
-      "createdAt": "2026-03-05T06:37:18.867Z",
-      "from": "workflow_wf_mmd3fe6p_4fexvc",
-      "to": "task_task_mmd3fe6p_28gjss",
+      "id": "edge_mmd3igjg_qmdauv",
+      "createdAt": "2026-03-05T06:39:41.884Z",
+      "from": "workflow_wf_mmd3igjf_8bu310",
+      "to": "task_task_mmd3igjf_r3hzad",
       "type": "generated_by"
     },
     {
-      "id": "edge_mmd3fe6r_4p8n6k",
-      "createdAt": "2026-03-05T06:37:18.867Z",
-      "from": "task_task_mmd3fe6p_28gjss",
+      "id": "edge_mmd3igjg_6irn67",
+      "createdAt": "2026-03-05T06:39:41.884Z",
+      "from": "task_task_mmd3igjf_r3hzad",
       "to": "branch_rina/fix-143",
       "type": "generated_by"
     },
     {
-      "id": "edge_mmd3fe6r_t441v8",
-      "createdAt": "2026-03-05T06:37:18.867Z",
+      "id": "edge_mmd3igjg_94zh1w",
+      "createdAt": "2026-03-05T06:39:41.884Z",
       "from": "branch_rina/fix-143",
-      "to": "pr_wf_mmd3fe6p_4fexvc",
+      "to": "pr_wf_mmd3igjf_8bu310",
       "type": "generated_by"
     },
     {
-      "id": "edge_mmd3fe6r_jotyzw",
-      "createdAt": "2026-03-05T06:37:18.867Z",
-      "from": "pr_wf_mmd3fe6p_4fexvc",
+      "id": "edge_mmd3igjg_pz7j6t",
+      "createdAt": "2026-03-05T06:39:41.884Z",
+      "from": "pr_wf_mmd3igjf_8bu310",
       "to": "issue_143",
       "type": "resolves"
     },
     {
-      "id": "edge_mmd3fe91_ia2ywq",
-      "createdAt": "2026-03-05T06:37:18.949Z",
+      "id": "edge_mmd3igly_vyogy8",
+      "createdAt": "2026-03-05T06:39:41.974Z",
       "from": "issue_170",
-      "to": "workflow_wf_mmd3fe90_xu3qod",
+      "to": "workflow_wf_mmd3iglx_h0vvdf",
       "type": "based_on"
     },
     {
-      "id": "edge_mmd3fe91_2okztl",
-      "createdAt": "2026-03-05T06:37:18.949Z",
-      "from": "workflow_wf_mmd3fe90_xu3qod",
-      "to": "task_task_mmd3fe90_nzfk2j",
+      "id": "edge_mmd3igly_jys9ax",
+      "createdAt": "2026-03-05T06:39:41.974Z",
+      "from": "workflow_wf_mmd3iglx_h0vvdf",
+      "to": "task_task_mmd3iglx_9jha6c",
       "type": "generated_by"
     },
     {
-      "id": "edge_mmd3fe91_usxltf",
-      "createdAt": "2026-03-05T06:37:18.949Z",
-      "from": "task_task_mmd3fe90_nzfk2j",
+      "id": "edge_mmd3igly_h9biez",
+      "createdAt": "2026-03-05T06:39:41.974Z",
+      "from": "task_task_mmd3iglx_9jha6c",
       "to": "branch_rina/fix-170",
       "type": "generated_by"
     },
     {
-      "id": "edge_mmd3fe91_hxfl6v",
-      "createdAt": "2026-03-05T06:37:18.949Z",
+      "id": "edge_mmd3igly_xt6q7a",
+      "createdAt": "2026-03-05T06:39:41.974Z",
       "from": "branch_rina/fix-170",
-      "to": "pr_wf_mmd3fe90_xu3qod",
+      "to": "pr_wf_mmd3iglx_h0vvdf",
       "type": "generated_by"
     },
     {
-      "id": "edge_mmd3fe91_x9zi6q",
-      "createdAt": "2026-03-05T06:37:18.949Z",
-      "from": "pr_wf_mmd3fe90_xu3qod",
+      "id": "edge_mmd3igly_w4fevb",
+      "createdAt": "2026-03-05T06:39:41.974Z",
+      "from": "pr_wf_mmd3iglx_h0vvdf",
       "to": "issue_170",
       "type": "resolves"
     },
     {
-      "id": "edge_mmd3fe95_rl8qip",
-      "createdAt": "2026-03-05T06:37:18.953Z",
-      "from": "workflow_wf_mmd3fe90_xu3qod",
-      "to": "pr_wf_mmd3fe90_xu3qod",
+      "id": "edge_mmd3igm1_c7342s",
+      "createdAt": "2026-03-05T06:39:41.977Z",
+      "from": "workflow_wf_mmd3iglx_h0vvdf",
+      "to": "pr_wf_mmd3iglx_h0vvdf",
       "type": "updates"
     },
     {
-      "id": "edge_mmd3feea_wbfl4y",
-      "createdAt": "2026-03-05T06:37:19.138Z",
-      "from": "workflow_wf_mmd3fe90_xu3qod",
-      "to": "task_task_mmd3fe90_nzfk2j",
+      "id": "edge_mmd3igr9_0p250g",
+      "createdAt": "2026-03-05T06:39:42.165Z",
+      "from": "workflow_wf_mmd3iglx_h0vvdf",
+      "to": "task_task_mmd3iglx_9jha6c",
       "type": "updates"
     },
     {
-      "id": "edge_mmd3feea_u8twf7",
-      "createdAt": "2026-03-05T06:37:19.138Z",
-      "from": "task_task_mmd3fe90_nzfk2j",
+      "id": "edge_mmd3igr9_buxpkd",
+      "createdAt": "2026-03-05T06:39:42.165Z",
+      "from": "task_task_mmd3iglx_9jha6c",
       "to": "branch_rina/fix-170",
       "type": "updates"
     }
   ],
-  "updatedAt": "2026-03-05T06:37:19.137Z"
+  "updatedAt": "2026-03-05T06:39:42.164Z"
 }
