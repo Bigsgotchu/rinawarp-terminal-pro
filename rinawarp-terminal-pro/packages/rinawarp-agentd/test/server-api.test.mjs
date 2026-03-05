@@ -1519,6 +1519,128 @@ test("workspace objects API supports create/list/get/update", async () => {
 	assert.ok(Number(updateObjBody.object.version) >= 2);
 });
 
+test("workflow templates API supports create/list/get/update/run", async () => {
+	const createWs = await fetch(`${baseUrl}/v1/workspaces`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_tpl",
+			"x-rina-actor-email": "owner-tpl@example.com",
+			"idempotency-key": `idem-templates-${Date.now()}`,
+		},
+		body: JSON.stringify({ name: "workflow-templates", region: "us-east-1" }),
+	});
+	assert.equal(createWs.status, 200);
+	const wsBody = await createWs.json();
+	const workspaceId = wsBody.workspace_id;
+	assert.ok(workspaceId);
+
+	const createTpl = await fetch(`${baseUrl}/v1/workflows/templates`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_tpl",
+			"x-rina-actor-email": "owner-tpl@example.com",
+		},
+		body: JSON.stringify({
+			workspace_id: workspaceId,
+			name: "Fix Issue Template",
+			description: "Reusable issue fix flow",
+			parameters: [
+				{ name: "issue_id", required: true },
+				{ name: "repo_path", required: true },
+			],
+			steps: [
+				{ id: "s1", command: "cd {{repo_path}} && git checkout -b rina/fix-{{issue_id}}" },
+				{ id: "s2", command: "echo fixing {{issue_id}}" },
+			],
+		}),
+	});
+	assert.equal(createTpl.status, 200);
+	const createTplBody = await createTpl.json();
+	assert.equal(createTplBody.ok, true);
+	assert.ok(createTplBody.template.id);
+
+	const templateId = createTplBody.template.id;
+
+	const listTpl = await fetch(`${baseUrl}/v1/workflows/templates?workspace_id=${encodeURIComponent(workspaceId)}`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner_tpl",
+			"x-rina-actor-email": "owner-tpl@example.com",
+		},
+	});
+	assert.equal(listTpl.status, 200);
+	const listTplBody = await listTpl.json();
+	assert.equal(listTplBody.ok, true);
+	assert.ok(Array.isArray(listTplBody.templates));
+	assert.ok(listTplBody.templates.some((t) => t.id === templateId));
+
+	const getTpl = await fetch(`${baseUrl}/v1/workflows/templates/${encodeURIComponent(templateId)}`, {
+		headers: {
+			"x-rina-actor-id": "usr_owner_tpl",
+			"x-rina-actor-email": "owner-tpl@example.com",
+		},
+	});
+	assert.equal(getTpl.status, 200);
+	const getTplBody = await getTpl.json();
+	assert.equal(getTplBody.ok, true);
+	assert.equal(getTplBody.template.id, templateId);
+
+	const updateTpl = await fetch(`${baseUrl}/v1/workflows/templates/${encodeURIComponent(templateId)}`, {
+		method: "PUT",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_tpl",
+			"x-rina-actor-email": "owner-tpl@example.com",
+		},
+		body: JSON.stringify({
+			name: "Fix Issue Template v2",
+			description: "Reusable issue fix flow updated",
+		}),
+	});
+	assert.equal(updateTpl.status, 200);
+	const updateTplBody = await updateTpl.json();
+	assert.equal(updateTplBody.ok, true);
+	assert.equal(updateTplBody.template.name, "Fix Issue Template v2");
+	assert.ok(Number(updateTplBody.template.version) >= 2);
+
+	const runMissing = await fetch(`${baseUrl}/v1/workflows/templates/${encodeURIComponent(templateId)}/run`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_tpl",
+			"x-rina-actor-email": "owner-tpl@example.com",
+		},
+		body: JSON.stringify({ parameters: { issue_id: "170" } }),
+	});
+	assert.equal(runMissing.status, 400);
+	const runMissingBody = await runMissing.json();
+	assert.equal(runMissingBody.ok, false);
+	assert.equal(runMissingBody.error, "missing_required_parameters");
+
+	const runOk = await fetch(`${baseUrl}/v1/workflows/templates/${encodeURIComponent(templateId)}/run`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			"x-rina-actor-id": "usr_owner_tpl",
+			"x-rina-actor-email": "owner-tpl@example.com",
+		},
+		body: JSON.stringify({
+			parameters: {
+				issue_id: "170",
+				repo_path: "/tmp/repo-170",
+			},
+		}),
+	});
+	assert.equal(runOk.status, 200);
+	const runOkBody = await runOk.json();
+	assert.equal(runOkBody.ok, true);
+	assert.ok(Array.isArray(runOkBody.resolved_steps));
+	assert.ok(runOkBody.resolved_steps[0].command.includes("rina/fix-170"));
+	assert.ok(typeof runOkBody.remote_run.id === "string");
+	assert.equal(runOkBody.remote_run.type, "workflow_template_run");
+});
+
 test("auth login + refresh returns signed tokens when auth secret is configured", async () => {
 	process.env.RINAWARP_AGENTD_AUTH_SECRET = "auth-secret-test";
 	process.env.RINAWARP_AGENTD_ADMIN_PASSWORD = "pw123";

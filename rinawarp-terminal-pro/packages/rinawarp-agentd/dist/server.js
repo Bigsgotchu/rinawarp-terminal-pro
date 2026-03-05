@@ -31,6 +31,7 @@ import { assignWorkspaceRegion, failoverDefaultRegion, getRegionHealth, getRegio
 import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform/runtime.js";
 import { appendRemoteRunLog, cancelRemoteRun, createRemoteRun, getRemoteRun, listRemoteRuns, resumeRemoteRun } from "./platform/remoteRuns.js";
 import { createWorkspaceObject, getWorkspaceObject, listWorkspaceObjects, updateWorkspaceObject } from "./platform/workspaceObjects.js";
+import { createWorkflowTemplate, getWorkflowTemplate, listWorkflowTemplates, runWorkflowTemplate, updateWorkflowTemplate } from "./platform/workflowTemplates.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
@@ -1858,6 +1859,128 @@ export function createServer(opts) {
                     payload: { object_id: updated.id, version: updated.version, archived: updated.archived },
                 });
                 return sendJson(res, 200, { ok: true, object: updated });
+            }
+            if (req.method === "POST" && url.pathname === "/v1/workflows/templates") {
+                const body = (await readJson(req));
+                const workspaceId = String(body?.workspace_id || "").trim();
+                const name = String(body?.name || "").trim();
+                if (!workspaceId)
+                    return sendJson(res, 400, { ok: false, error: "workspace_id is required" });
+                if (!name)
+                    return sendJson(res, 400, { ok: false, error: "name is required" });
+                const actor = ensureWorkspaceRole(req, workspaceId, "member");
+                const tpl = createWorkflowTemplate({
+                    workspace_id: workspaceId,
+                    name,
+                    ...(body?.description ? { description: String(body.description) } : {}),
+                    ...(Array.isArray(body?.parameters) ? { parameters: body.parameters } : {}),
+                    ...(Array.isArray(body?.steps) ? { steps: body.steps } : {}),
+                    actor_id: actor.actorId,
+                });
+                logSoc2({
+                    req,
+                    workspaceId,
+                    action: "workflow_template_create",
+                    result: "ok",
+                    details: { template_id: tpl.id, version: tpl.version },
+                });
+                await publishWorkspaceEvent({
+                    workspace_id: workspaceId,
+                    type: "workflow_template_created",
+                    payload: { template_id: tpl.id, version: tpl.version },
+                });
+                return sendJson(res, 200, { ok: true, template: tpl });
+            }
+            if (req.method === "GET" && url.pathname === "/v1/workflows/templates") {
+                const workspaceId = String(url.searchParams.get("workspace_id") || "").trim();
+                if (!workspaceId)
+                    return sendJson(res, 400, { ok: false, error: "workspace_id is required" });
+                ensureWorkspaceRole(req, workspaceId, "member");
+                const archivedParam = String(url.searchParams.get("archived") || "").trim();
+                const archived = archivedParam ? archivedParam === "true" : undefined;
+                const limit = Number(url.searchParams.get("limit") || 200);
+                const templates = listWorkflowTemplates({
+                    workspace_id: workspaceId,
+                    ...(typeof archived === "boolean" ? { archived } : {}),
+                    ...(Number.isFinite(limit) ? { limit } : {}),
+                });
+                return sendJson(res, 200, { ok: true, templates });
+            }
+            const workflowTemplateMatch = url.pathname.match(/^\/v1\/workflows\/templates\/([^/]+)$/);
+            if (req.method === "GET" && workflowTemplateMatch) {
+                const templateId = decodeURIComponent(workflowTemplateMatch[1] || "");
+                const tpl = getWorkflowTemplate(templateId);
+                if (!tpl)
+                    return sendJson(res, 404, { ok: false, error: "not_found" });
+                ensureWorkspaceRole(req, tpl.workspace_id, "member");
+                return sendJson(res, 200, { ok: true, template: tpl });
+            }
+            if (req.method === "PUT" && workflowTemplateMatch) {
+                const templateId = decodeURIComponent(workflowTemplateMatch[1] || "");
+                const existing = getWorkflowTemplate(templateId);
+                if (!existing)
+                    return sendJson(res, 404, { ok: false, error: "not_found" });
+                const actor = ensureWorkspaceRole(req, existing.workspace_id, "member");
+                const body = (await readJson(req));
+                const updated = updateWorkflowTemplate({
+                    id: templateId,
+                    actor_id: actor.actorId,
+                    ...(body?.name ? { name: body.name } : {}),
+                    ...(body?.description ? { description: body.description } : {}),
+                    ...(Array.isArray(body?.parameters) ? { parameters: body.parameters } : {}),
+                    ...(Array.isArray(body?.steps) ? { steps: body.steps } : {}),
+                    ...(typeof body?.archived === "boolean" ? { archived: body.archived } : {}),
+                });
+                if (!updated)
+                    return sendJson(res, 404, { ok: false, error: "not_found" });
+                logSoc2({
+                    req,
+                    workspaceId: updated.workspace_id,
+                    action: "workflow_template_update",
+                    result: "ok",
+                    details: { template_id: updated.id, version: updated.version, archived: updated.archived },
+                });
+                await publishWorkspaceEvent({
+                    workspace_id: updated.workspace_id,
+                    type: "workflow_template_updated",
+                    payload: { template_id: updated.id, version: updated.version, archived: updated.archived },
+                });
+                return sendJson(res, 200, { ok: true, template: updated });
+            }
+            const workflowTemplateRunMatch = url.pathname.match(/^\/v1\/workflows\/templates\/([^/]+)\/run$/);
+            if (req.method === "POST" && workflowTemplateRunMatch) {
+                const templateId = decodeURIComponent(workflowTemplateRunMatch[1] || "");
+                const body = (await readJson(req));
+                const run = runWorkflowTemplate({
+                    id: templateId,
+                    parameters: body?.parameters || {},
+                });
+                if (!run.ok) {
+                    return sendJson(res, run.error === "template_not_found" ? 404 : run.error === "template_archived" ? 409 : 400, run);
+                }
+                ensureWorkspaceRole(req, run.template.workspace_id, "member");
+                const remote = createRemoteRun({
+                    workspace_id: run.template.workspace_id,
+                    type: "workflow_template_run",
+                    payload: {
+                        template_id: run.template.id,
+                        template_version: run.template.version,
+                        resolved_steps: run.resolved_steps,
+                    },
+                });
+                logSoc2({
+                    req,
+                    workspaceId: run.template.workspace_id,
+                    action: "workflow_template_run",
+                    result: "ok",
+                    details: { template_id: run.template.id, remote_run_id: remote.id, resolved_steps: run.resolved_steps.length },
+                });
+                await publishWorkspaceEvent({
+                    workspace_id: run.template.workspace_id,
+                    type: "workflow_template_run_enqueued",
+                    payload: { template_id: run.template.id, remote_run_id: remote.id },
+                });
+                return sendJson(res, 200, { ok: true, template: run.template, resolved_steps: run.resolved_steps, remote_run: remote });
             }
             if (req.method === "POST" && url.pathname === "/v1/runtime/tasks") {
                 const body = (await readJson(req));

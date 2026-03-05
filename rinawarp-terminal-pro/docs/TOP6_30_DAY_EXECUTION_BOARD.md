@@ -112,3 +112,21 @@ Definition of done:
 1. Implement Workstream 1 API skeleton + persistence.
 2. Implement Workstream 2 object store + RBAC checks.
 3. Add benchmark harness for Workstream 4 retrieval latency.
+
+## Progress Update (2026-03-05)
+- Workstream 1 skeleton shipped:
+  - Added persisted remote runs store and APIs:
+    - `POST /v1/remote-runs`
+    - `GET /v1/remote-runs`
+    - `GET /v1/remote-runs/:id`
+    - `POST /v1/remote-runs/:id/cancel`
+    - `POST /v1/remote-runs/:id/resume`
+    - `POST /v1/remote-runs/:id/logs`
+- Workstream 2 skeleton shipped:
+  - Added workspace object store + RBAC-backed APIs:
+    - `POST /v1/workspace/objects`
+    - `GET /v1/workspace/objects`
+    - `GET /v1/workspace/objects/:id`
+    - `PUT /v1/workspace/objects/:id`
+- Validation:
+  - `packages/rinawarp-agentd` test suite passes (`71/71`).
