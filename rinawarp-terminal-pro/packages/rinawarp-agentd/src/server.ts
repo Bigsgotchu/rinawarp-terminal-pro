@@ -58,6 +58,7 @@ import { enforceInviteAcceptCooldown, enforceInviteCreateRate, recordInviteAccep
 import { appendSoc2Event } from "./platform/soc2Log.js";
 import { assignWorkspaceRegion, failoverDefaultRegion, getRegionHealth, getRegionMap, getWorkspaceRegion, setRegionHealth } from "./platform/regions.js";
 import { enqueueRuntimeTask, getRuntimeTask, listRuntimeTasks } from "./platform/runtime.js";
+import { appendRemoteRunLog, cancelRemoteRun, createRemoteRun, getRemoteRun, listRemoteRuns, resumeRemoteRun } from "./platform/remoteRuns.js";
 import { vaultRetrieve, vaultRotate, vaultStore } from "./platform/vault.js";
 import { configureArchive, getArchiveState, provisionArchiveBucket, runArchiveJob } from "./platform/archive.js";
 import { initEventBus, publishWorkspaceEvent } from "./platform/eventBus.js";
@@ -1897,6 +1898,86 @@ export function createServer(opts: { port: number }) {
           if (message === "workspace_locked") return sendJson(res, 423, { ok: false, error: "workspace_locked" });
           return sendJson(res, 400, { ok: false, error: message });
         }
+      }
+
+      if (req.method === "POST" && url.pathname === "/v1/remote-runs") {
+        const body = (await readJson(req)) as {
+          workspace_id?: string;
+          type?: string;
+          payload?: Record<string, unknown>;
+        } | null;
+        const run = createRemoteRun({
+          workspace_id: body?.workspace_id,
+          type: String(body?.type || "generic"),
+          payload: body?.payload || {},
+        });
+        logSoc2({
+          req,
+          workspaceId: run.workspace_id,
+          action: "remote_run_create",
+          result: "ok",
+          details: { run_id: run.id, type: run.type },
+        });
+        return sendJson(res, 200, { ok: true, run });
+      }
+
+      if (req.method === "GET" && url.pathname === "/v1/remote-runs") {
+        const workspaceId = String(url.searchParams.get("workspace_id") || "").trim();
+        const status = String(url.searchParams.get("status") || "").trim() as "queued" | "running" | "completed" | "failed" | "canceled";
+        const limit = Number(url.searchParams.get("limit") || 100);
+        const runs = listRemoteRuns({
+          ...(workspaceId ? { workspace_id: workspaceId } : {}),
+          ...(status ? { status } : {}),
+          ...(Number.isFinite(limit) ? { limit } : {}),
+        });
+        return sendJson(res, 200, { ok: true, runs });
+      }
+
+      const remoteRunMatch = url.pathname.match(/^\/v1\/remote-runs\/([^/]+)$/);
+      if (req.method === "GET" && remoteRunMatch) {
+        const runId = decodeURIComponent(remoteRunMatch[1] || "");
+        const run = getRemoteRun(runId);
+        if (!run) return sendJson(res, 404, { ok: false, error: "not_found" });
+        return sendJson(res, 200, { ok: true, run });
+      }
+
+      const remoteRunCancelMatch = url.pathname.match(/^\/v1\/remote-runs\/([^/]+)\/cancel$/);
+      if (req.method === "POST" && remoteRunCancelMatch) {
+        const runId = decodeURIComponent(remoteRunCancelMatch[1] || "");
+        const run = cancelRemoteRun(runId);
+        if (!run) return sendJson(res, 404, { ok: false, error: "not_found" });
+        logSoc2({
+          req,
+          workspaceId: run.workspace_id,
+          action: "remote_run_cancel",
+          result: "ok",
+          details: { run_id: run.id },
+        });
+        return sendJson(res, 200, { ok: true, run });
+      }
+
+      const remoteRunResumeMatch = url.pathname.match(/^\/v1\/remote-runs\/([^/]+)\/resume$/);
+      if (req.method === "POST" && remoteRunResumeMatch) {
+        const runId = decodeURIComponent(remoteRunResumeMatch[1] || "");
+        const run = resumeRemoteRun(runId);
+        if (!run) return sendJson(res, 404, { ok: false, error: "not_found" });
+        logSoc2({
+          req,
+          workspaceId: run.workspace_id,
+          action: "remote_run_resume",
+          result: "ok",
+          details: { run_id: run.id, attempts: run.attempts },
+        });
+        return sendJson(res, 200, { ok: true, run });
+      }
+
+      const remoteRunLogsMatch = url.pathname.match(/^\/v1\/remote-runs\/([^/]+)\/logs$/);
+      if (req.method === "POST" && remoteRunLogsMatch) {
+        const runId = decodeURIComponent(remoteRunLogsMatch[1] || "");
+        const body = (await readJson(req)) as { line?: string } | null;
+        const run = appendRemoteRunLog(runId, String(body?.line || ""));
+        if (!run) return sendJson(res, 404, { ok: false, error: "not_found" });
+        return sendJson(res, 200, { ok: true, run });
       }
 
       if (req.method === "POST" && url.pathname === "/v1/runtime/tasks") {

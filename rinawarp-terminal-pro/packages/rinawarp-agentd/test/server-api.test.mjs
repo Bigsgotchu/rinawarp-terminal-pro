@@ -1583,6 +1583,70 @@ test("vault store/retrieve/rotate flow works", async () => {
 	assert.ok(rot.key_version >= 2);
 });
 
+test("remote-runs API supports create/list/get/log/cancel/resume", async () => {
+	const createResp = await fetch(`${baseUrl}/v1/remote-runs`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			workspace_id: "ws_remote_test",
+			type: "repo_watch",
+			payload: { repo: process.cwd() },
+		}),
+	});
+	assert.equal(createResp.status, 200);
+	const createBody = await createResp.json();
+	assert.equal(createBody.ok, true);
+	assert.ok(typeof createBody.run.id === "string");
+	assert.equal(createBody.run.status, "queued");
+
+	const runId = createBody.run.id;
+
+	const listResp = await fetch(`${baseUrl}/v1/remote-runs?workspace_id=ws_remote_test`);
+	assert.equal(listResp.status, 200);
+	const listBody = await listResp.json();
+	assert.equal(listBody.ok, true);
+	assert.ok(Array.isArray(listBody.runs));
+	assert.ok(listBody.runs.some((r) => r.id === runId));
+
+	const getResp = await fetch(`${baseUrl}/v1/remote-runs/${encodeURIComponent(runId)}`);
+	assert.equal(getResp.status, 200);
+	const getBody = await getResp.json();
+	assert.equal(getBody.ok, true);
+	assert.equal(getBody.run.id, runId);
+
+	const logResp = await fetch(`${baseUrl}/v1/remote-runs/${encodeURIComponent(runId)}/logs`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({ line: "attached log line" }),
+	});
+	assert.equal(logResp.status, 200);
+	const logBody = await logResp.json();
+	assert.equal(logBody.ok, true);
+	assert.ok(Array.isArray(logBody.run.logs));
+	assert.ok(logBody.run.logs.includes("attached log line"));
+
+	const cancelResp = await fetch(`${baseUrl}/v1/remote-runs/${encodeURIComponent(runId)}/cancel`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: "{}",
+	});
+	assert.equal(cancelResp.status, 200);
+	const cancelBody = await cancelResp.json();
+	assert.equal(cancelBody.ok, true);
+	assert.equal(cancelBody.run.status, "canceled");
+
+	const resumeResp = await fetch(`${baseUrl}/v1/remote-runs/${encodeURIComponent(runId)}/resume`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: "{}",
+	});
+	assert.equal(resumeResp.status, 200);
+	const resumeBody = await resumeResp.json();
+	assert.equal(resumeBody.ok, true);
+	assert.equal(resumeBody.run.status, "queued");
+	assert.ok(Number(resumeBody.run.attempts) >= 1);
+});
+
 test("runtime task enforces cross-region policy", async () => {
 	const create = await fetch(`${baseUrl}/v1/workspaces`, {
 		method: "POST",

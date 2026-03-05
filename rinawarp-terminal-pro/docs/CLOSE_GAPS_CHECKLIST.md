@@ -114,3 +114,14 @@ Date: 2026-03-05
     - refresh token rotation + revoke support in auth flow.
   - Continuous control evidence drill:
     - `POST /v1/platform/security/controls/drill`
+
+## Competitive Program (2026-03-05)
+
+- Execution board created: `docs/TOP6_30_DAY_EXECUTION_BOARD.md`
+- Program started for six product gaps:
+  - remote background runs
+  - team shared objects
+  - workflow templates
+  - fast retrieval path
+  - web/docs grounding
+  - desktop trust + auto-update
