@@ -2,12 +2,12 @@
   "version": 1,
   "tasks": [
     {
-      "id": "task_mmeh8um9_v97rr5",
+      "id": "task_mmehgs71_ibndaq",
       "type": "run_command",
       "payload": {
         "command": "echo pr-plan-seed",
         "cwd": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
-        "workflowId": "wf_mmeh8um9_dhg9ip",
+        "workflowId": "wf_mmehgs71_9bebs2",
         "issueId": "170",
         "branchName": "rina/fix-170",
         "mode": "issue_to_pr",
@@ -18,20 +18,20 @@
         "prBody": "Automated fix for issue 170.",
         "commitMessage": "fix: issue 170"
       },
-      "createdAt": "2026-03-06T05:51:54.369Z",
+      "createdAt": "2026-03-06T05:58:04.477Z",
       "attempts": 1,
       "maxAttempts": 2,
       "status": "running",
-      "updatedAt": "2026-03-06T05:51:54.450Z",
-      "startedAt": "2026-03-06T05:51:54.450Z"
+      "updatedAt": "2026-03-06T05:58:04.562Z",
+      "startedAt": "2026-03-06T05:58:04.562Z"
     },
     {
-      "id": "task_mmeh8ujv_mpaf8x",
+      "id": "task_mmehgs4e_34wtjp",
       "type": "run_command",
       "payload": {
         "command": "echo orchestrator-smoke",
         "cwd": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
-        "workflowId": "wf_mmeh8ujv_p5qlon",
+        "workflowId": "wf_mmehgs4e_fljhmk",
         "issueId": "143",
         "branchName": "rina/fix-143",
         "mode": "issue_to_pr",
@@ -42,31 +42,31 @@
         "prBody": "Automated fix for issue 143.",
         "commitMessage": "fix: issue 143"
       },
-      "createdAt": "2026-03-06T05:51:54.283Z",
+      "createdAt": "2026-03-06T05:58:04.382Z",
       "attempts": 0,
       "maxAttempts": 2,
       "status": "queued"
     },
     {
-      "id": "task_mmeh8uca_w9bmc6",
+      "id": "task_mmehgrwl_z1zuvs",
       "type": "run_command",
       "payload": {
         "command": "echo from-server-api-test"
       },
-      "createdAt": "2026-03-06T05:51:54.010Z",
+      "createdAt": "2026-03-06T05:58:04.101Z",
       "attempts": 1,
       "maxAttempts": 2,
       "status": "completed",
-      "updatedAt": "2026-03-06T05:51:54.074Z",
-      "startedAt": "2026-03-06T05:51:54.065Z",
+      "updatedAt": "2026-03-06T05:58:04.164Z",
+      "startedAt": "2026-03-06T05:58:04.155Z",
       "result": {
         "stdout": "from-server-api-test\n",
         "stderr": "",
         "cwd": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
         "command": "echo from-server-api-test"
       },
-      "completedAt": "2026-03-06T05:51:54.074Z"
+      "completedAt": "2026-03-06T05:58:04.164Z"
     }
   ],
-  "updatedAt": "2026-03-06T05:51:54.450Z"
+  "updatedAt": "2026-03-06T05:58:04.562Z"
 }
