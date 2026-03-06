@@ -148,3 +148,83 @@ export async function safeExecuteFlow(
   
   return { proceed: true, result: validation };
 }
+
+/**
+ * Dry-run result
+ */
+export interface DryRunResult {
+  command: string;
+  action: "execute" | "skip" | "block";
+  message: string;
+  validation: ValidationResult;
+}
+
+/**
+ * Dry-run mode - shows what would happen without executing
+ * 
+ * Critical for building developer trust.
+ * 
+ * Usage:
+ *   rinawarp --dry-run "rm -rf build"
+ * 
+ * Output:
+ *   Would execute: rm -rf build
+ *   Risk: HIGH
+ *   No action taken.
+ */
+export function dryRun(command: string, policyType: PolicyType = "strict"): DryRunResult {
+  const validation = validateCommand(command, policyType);
+  
+  if (!validation.ok) {
+    return {
+      command,
+      action: "block",
+      message: `BLOCKED: ${validation.reason} - command not executed`,
+      validation,
+    };
+  }
+  
+  if (validation.requiresConfirmation) {
+    return {
+      command,
+      action: "skip",
+      message: `REQUIRES CONFIRMATION: ${validation.reason}\n\nDry-run: no action taken`,
+      validation,
+    };
+  }
+  
+  return {
+    command,
+    action: "execute",
+    message: `Would execute: ${command}\n\nRisk: ${validation.risk}\nDry-run: no action taken`,
+    validation,
+  };
+}
+
+/**
+ * Format dry-run result for display
+ */
+export function formatDryRun(result: DryRunResult): string {
+  let output = "\n═══════════════════════════════════════\n";
+  output += "              DRY-RUN MODE\n";
+  output += "═══════════════════════════════════════\n\n";
+  
+  switch (result.action) {
+    case "block":
+      output += "⛔ COMMAND BLOCKED\n\n";
+      break;
+    case "skip":
+      output += "⚠️  REQUIRES CONFIRMATION\n\n";
+      break;
+    case "execute":
+      output += "✅ WOULD EXECUTE\n\n";
+      break;
+  }
+  
+  output += `Command:\n  ${result.command}\n\n`;
+  output += `Risk Level: ${result.validation.risk.toUpperCase()}\n\n`;
+  output += `${result.message}\n\n`;
+  output += "═══════════════════════════════════════";
+  
+  return output;
+}
