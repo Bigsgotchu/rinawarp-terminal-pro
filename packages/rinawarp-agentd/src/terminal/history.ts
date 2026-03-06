@@ -1,7 +1,7 @@
 /**
  * Command History
  * 
- * Manages command execution history.
+ * Manages command execution history with undo, replay, and search.
  */
 
 export interface HistoryEntry {
@@ -58,11 +58,17 @@ export class History {
   }
 
   /**
-   * Search history
+   * Search history - supports regex patterns
    */
   search(pattern: string): HistoryEntry[] {
-    const regex = new RegExp(pattern, "i");
-    return this.entries.filter((e) => regex.test(e.command));
+    try {
+      const regex = new RegExp(pattern, "i");
+      return this.entries.filter((e) => regex.test(e.command));
+    } catch {
+      // Fallback to simple contains if regex is invalid
+      const lower = pattern.toLowerCase();
+      return this.entries.filter((e) => e.command.toLowerCase().includes(lower));
+    }
   }
 
   /**
@@ -87,7 +93,7 @@ export class History {
   }
 
   /**
-   * Get failed commands
+   * Get failed commands - useful for debugging
    */
   failed(): HistoryEntry[] {
     return this.entries.filter((e) => !e.success);
@@ -98,6 +104,42 @@ export class History {
    */
   successful(): HistoryEntry[] {
     return this.entries.filter((e) => e.success);
+  }
+
+  /**
+   * Undo last command - returns the command for re-execution
+   */
+  undo(): HistoryEntry | undefined {
+    if (this.entries.length === 0) return undefined;
+    const last = this.entries.pop();
+    return last;
+  }
+
+  /**
+   * Replay a command by ID - returns command for re-execution
+   */
+  replay(id: number): string | undefined {
+    const entry = this.get(id);
+    return entry?.command;
+  }
+
+  /**
+   * Get commands from this session
+   */
+  session(): HistoryEntry[] {
+    const sessionStart = Date.now() - 24 * 60 * 60 * 1000; // Last 24 hours
+    return this.entries.filter((e) => e.timestamp.getTime() > sessionStart);
+  }
+
+  /**
+   * Statistics
+   */
+  stats(): { total: number; success: number; failed: number } {
+    return {
+      total: this.entries.length,
+      success: this.entries.filter((e) => e.success).length,
+      failed: this.entries.filter((e) => !e.success).length,
+    };
   }
 }
 
