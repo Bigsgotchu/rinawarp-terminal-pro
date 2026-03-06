@@ -60,3 +60,10 @@ npm-debug.log*
 
 # local secrets
 deploy/aws/scripts/cross-account-attestation.env
+release/
+dist/
+*.exe
+*.AppImage
+*.deb
+*.dmg
+*.tsbuildinfo
