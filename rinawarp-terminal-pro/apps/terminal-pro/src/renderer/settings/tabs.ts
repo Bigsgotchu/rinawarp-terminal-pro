@@ -3,7 +3,7 @@
  * Hardened: IME-safe, editable-aware, single global listener, Cmd+, toggle.
  */
 
-export type SettingsTabId = "general" | "license" | "themes" | "diagnostics" | "about";
+export type SettingsTabId = "general" | "license" | "themes" | "diagnostics" | "about" | "retrieval" | "research" | "updates";
 
 export type SettingsTab = {
   id: SettingsTabId;
@@ -62,7 +62,7 @@ function readStoredTab(storageKey: string): SettingsTabId | null {
   try {
     const raw = localStorage.getItem(storageKey);
     if (!raw) return null;
-    if (raw === "general" || raw === "license" || raw === "themes" || raw === "diagnostics" || raw === "about") return raw;
+    if (raw === "general" || raw === "license" || raw === "themes" || raw === "diagnostics" || raw === "about" || raw === "retrieval" || raw === "research" || raw === "updates") return raw;
     return null;
   } catch {
     return null;

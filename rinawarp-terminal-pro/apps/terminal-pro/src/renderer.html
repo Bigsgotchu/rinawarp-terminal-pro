@@ -499,6 +499,48 @@
       min-width: 0;
     }
 
+    .top-center {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .run-status {
+      width: min(620px, 100%);
+      border: 1px solid var(--rw-border);
+      background: #121a24;
+      border-radius: 9px;
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .run-status-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .run-phase {
+      font-size: 12px;
+      color: var(--rw-text);
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .run-summary {
+      min-width: 0;
+      font-size: 12px;
+      color: var(--rw-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .pill {
       font-size: 12px;
       padding: 6px 10px;
@@ -1668,20 +1710,24 @@
                 onclick="setSidebarTab('sessions')" aria-label="Sessions" title="Sessions (Alt+1)" data-testid="tab-sessions">
           <span class="tab-ico">⚡</span>
         </button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="runs" id="navRuns"
+                onclick="setSidebarTab('runs')" aria-label="Runs" title="Runs (Alt+2)" data-testid="tab-runs">
+          <span class="tab-ico">⏱</span>
+        </button>
         <button class="tab" role="tab" aria-selected="false" data-tab="structured" id="navStructured"
-                onclick="setSidebarTab('structured')" aria-label="Structured" title="Structured (Alt+2)" data-testid="tab-structured">
+                onclick="setSidebarTab('structured')" aria-label="Structured" title="Structured (Alt+3)" data-testid="tab-structured">
           <span class="tab-ico">🧱</span>
         </button>
         <button class="tab" role="tab" aria-selected="false" data-tab="workflows" id="navWorkflows"
-                onclick="setSidebarTab('workflows')" aria-label="Workflows" title="Workflows (Alt+3)" data-testid="tab-workflows">
+                onclick="setSidebarTab('workflows')" aria-label="Workflows" title="Workflows (Alt+4)" data-testid="tab-workflows">
           <span class="tab-ico">🪄</span>
         </button>
         <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="navSettings"
-                onclick="setSidebarTab('settings')" aria-label="Settings" title="Settings (Alt+4)" data-testid="tab-settings">
+                onclick="setSidebarTab('settings')" aria-label="Settings" title="Settings (Alt+5)" data-testid="tab-settings">
           <span class="tab-ico">⚙️</span>
         </button>
         <button class="tab" role="tab" aria-selected="false" data-tab="about" id="navAbout"
-                onclick="setSidebarTab('about')" aria-label="About" title="About (Alt+5)" data-testid="tab-about">
+                onclick="setSidebarTab('about')" aria-label="About" title="About (Alt+6)" data-testid="tab-about">
           <span class="tab-ico">ⓘ</span>
         </button>
       </div>
@@ -1706,16 +1752,20 @@
       </div>
 
       <div class="mode-toggle">
-        <button class="mode-btn terminal active" id="modeTerminal" onclick="setMode('terminal')">Terminal Mode</button>
-        <button class="mode-btn agent" id="modeAgent" onclick="setMode('agent')">Agent Mode</button>
-        <button class="mode-btn code" id="modeCode" onclick="setMode('code')">Code Mode</button>
+        <button class="mode-btn terminal active" id="modeTerminal" onclick="setMode('terminal')">Shell</button>
+        <button class="mode-btn agent" id="modeAgent" onclick="setMode('agent')">Agent</button>
+        <button class="mode-btn code" id="modeCode" onclick="setMode('code')">Code</button>
         <button class="mode-btn" style="border-left:1px solid var(--rw-border)" onclick="runDoctor()">🩺 Doctor</button>
       </div>
 
-      <div class="top-right" id="runtimePills" style="display:none;" aria-hidden="true">
-        <div class="pill">Engine</div>
-        <div class="pill" id="pillPolicy">policy:dev</div>
-        <div class="pill" id="pillLicense">starter</div>
+      <div class="top-center">
+        <div class="run-status" aria-live="polite">
+          <div class="run-status-main">
+            <span class="pill" id="runPhasePill">Agent idle</span>
+            <span class="run-summary" id="runSummary">Pick a workspace, describe an outcome, and run.</span>
+          </div>
+          <span class="run-phase" id="runPhaseLabel">Ready</span>
+        </div>
       </div>
     </header>
 
@@ -1851,6 +1901,10 @@
     let workflowWebhookMappedFilter = "";
     let workflowLoading = false;
     let workflowPollTimer = null;
+    let sharedObjectsCache = [];
+    let workflowTemplatesCache = [];
+    let runtimeTasksCache = [];
+    let runtimeTasksLoading = false;
     let paletteHistory = [];
     let blockCollapsed = {};
     let structuredSearchQuery = "";
@@ -2494,6 +2548,7 @@
       }
       ptyConnected = true;
       document.getElementById("ptyStatus").textContent = `connected (${res.shell || "shell"})`;
+      updatePrimaryRunStatus();
       if (ptyFit) ptyFit.fit();
       if (ptyTerm) window.rina.ptyResize?.(ptyTerm.cols, ptyTerm.rows);
       return true;
@@ -2566,6 +2621,7 @@
 
       timeline.scrollTop = timeline.scrollHeight;
       renderChatThread();
+      updatePrimaryRunStatus();
     }
 
     function addBlock(block) {
@@ -2663,6 +2719,28 @@
     // -----------------------------
     // Sidebar
     // -----------------------------
+    function summarizePlanRuns() {
+      const plans = blocks
+        .filter((b) => b.type === "plan")
+        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+      const running = plans.filter((p) => p.status === "running");
+      const failed = plans.filter((p) => p.status === "failed");
+      const completed = plans.filter((p) => p.status === "done");
+      return { plans, running, failed, completed };
+    }
+
+    function focusBlock(blockId) {
+      if (!blockId) return;
+      const el = document.querySelector(`.block[data-id="${blockId}"]`);
+      if (!el) {
+        toast("Run block not found in timeline");
+        return;
+      }
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("pulse");
+      setTimeout(() => el.classList.remove("pulse"), 900);
+    }
+
     function setSidebarTab(tab) {
       activeSidebarTab = tab;
       const tabs = document.querySelectorAll(".tabbar .tab");
@@ -2691,6 +2769,64 @@
               </div>
             `).join("")
           : `<div class="item"><div><b>No sessions yet</b></div><div class="small">Run an intent or a command to create one.</div></div>`;
+        return;
+      }
+
+      if (tab === "runs") {
+        void refreshRuntimeTasks();
+        const run = summarizePlanRuns();
+        const rt = runtimeTasksCache || [];
+        const rtRunning = rt.filter((t) => t.status === "running" || t.status === "pending").length;
+        title.textContent = "Runs";
+        meta.textContent = `${run.running.length} active / ${rtRunning} background`;
+        body.innerHTML = `
+          <div class="item">
+            <div><b>Run Overview</b></div>
+            <div class="small">Total: <b>${run.plans.length}</b> • Running: <b>${run.running.length}</b> • Failed: <b>${run.failed.length}</b> • Completed: <b>${run.completed.length}</b></div>
+          </div>
+          <div class="item">
+            <div><b>Recent Agent Runs</b></div>
+            <div class="small">Click any run to jump to its timeline block.</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+              ${
+                run.plans.length
+                  ? run.plans
+                      .slice(0, 10)
+                      .map((p) => `
+                        <div class="item" style="cursor:pointer" onclick="focusBlock('${escapeHtml(p.id)}')">
+                          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                            <b>${escapeHtml(p.title || p.plan?.intent || "Plan run")}</b>
+                            <span class="status-badge ${escapeHtml(p.status || "queued")}">${escapeHtml(p.status || "queued")}</span>
+                          </div>
+                          <div class="small">${escapeHtml(new Date(Number(p.createdAt || Date.now())).toLocaleString())}</div>
+                        </div>
+                      `)
+                      .join("")
+                  : `<div class="small">No plan runs yet. Switch to Agent mode and run your first task.</div>`
+              }
+            </div>
+          </div>
+          <div class="item">
+            <div><b>Background Runs (Remote)</b></div>
+            <div class="small">Tasks queued for background execution on the agent backend.</div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button onclick="refreshRuntimeTasks();renderRuntimeTasksPanel();">Refresh</button>
+            </div>
+            <div id="runtimeTasksList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+              ${runtimeTasksLoading ? `<div class="small">Loading...</div>` : runtimeTasksCache && runtimeTasksCache.length ? runtimeTasksCache.map(t => `
+                <div class="item">
+                  <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                    <b>${escapeHtml(t.id || "task")}</b>
+                    <span class="status-badge ${escapeHtml(t.status || "pending")}">${escapeHtml(t.status || "pending")}</span>
+                  </div>
+                  <div class="small">Workspace: ${escapeHtml(t.workspace_id || "-")} • Region: ${escapeHtml(t.requested_region || t.workspace_region || "-")}</div>
+                  <div class="small">Created: ${escapeHtml(t.created_at ? new Date(t.created_at).toLocaleString() : "-")}</div>
+                  ${t.error ? `<div class="small" style="color:#ff6b6b">Error: ${escapeHtml(t.error)}</div>` : ""}
+                </div>
+              `).join("") : `<div class="small">No background tasks.</div>`}
+            </div>
+          </div>
+        `;
         return;
       }
 
@@ -2749,12 +2885,14 @@
       }
 
       if (tab === "workflows") {
+        void refreshSharedObjects();
         const wfs = listWorkflows();
+        const sharedObjects = listSharedObjects();
         title.textContent = "Workflows";
         const monitorCount = Array.isArray(workflowTasksCache)
           ? workflowTasksCache.filter((t) => String(t?.payload?.mode || "") === "issue_to_pr").length
           : 0;
-        meta.textContent = `${wfs.length} saved • ${monitorCount} active`;
+        meta.textContent = `${wfs.length} templates • ${sharedObjects.length} objects`;
         body.innerHTML = `
           <div class="item">
             <div><b>Issue → PR Monitor</b></div>
@@ -2797,6 +2935,46 @@
                       )
                       .join("")
                   : `<div class="small">No workflows saved. Save a plan from a Plan block.</div>`
+              }
+            </div>
+          </div>
+          <div class="item">
+            <div><b>Shared Objects</b></div>
+            <div class="small">Reusable prompts/snippets for faster runs.</div>
+            <div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-top:8px;">
+              <input id="sharedObjectName" placeholder="Object name (e.g. PR reviewer)" />
+              <select id="sharedObjectKind">
+                <option value="prompt">prompt</option>
+                <option value="snippet">snippet</option>
+                <option value="workflow-note">workflow-note</option>
+              </select>
+            </div>
+            <textarea id="sharedObjectBody" rows="4" placeholder="Object content..." style="width:100%;margin-top:8px;border:1px solid var(--rw-border);background:#111821;color:var(--rw-text);border-radius:8px;padding:8px;font-family:var(--rw-mono);font-size:12px;"></textarea>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button onclick="saveSharedObjectFromInputs()">Save object</button>
+              <button onclick="saveSharedObjectFromComposer()">Use composer text</button>
+            </div>
+            <div id="sharedObjectList" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+              ${
+                sharedObjects.length
+                  ? sharedObjects
+                      .map(
+                        (o) => `
+                  <div class="item">
+                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                      <b>${escapeHtml(o.name || "object")}</b>
+                      <span class="pill">${escapeHtml(o.kind || "snippet")}</span>
+                    </div>
+                    <div class="small">${escapeHtml((o.body || "").slice(0, 140))}${(o.body || "").length > 140 ? "…" : ""}</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                      <button onclick="insertSharedObjectInComposer('${escapeHtml(o.id)}')">Insert in composer</button>
+                      <button onclick="deleteSharedObject('${escapeHtml(o.id)}')">Delete</button>
+                    </div>
+                  </div>
+                `,
+                      )
+                      .join("")
+                  : `<div class="small">No shared objects yet.</div>`
               }
             </div>
           </div>
@@ -2990,7 +3168,7 @@
                 <div class="settings-card">
                   <div class="settings-card-title">Shortcuts</div>
                   <div class="settings-row"><span>Command palette</span><span class="pill">Ctrl/⌘ + K</span></div>
-                  <div class="settings-row"><span>Switch sidebar tabs</span><span class="pill">Alt + 1..5</span></div>
+                  <div class="settings-row"><span>Switch sidebar tabs</span><span class="pill">Alt + 1..6</span></div>
                   <div class="settings-row"><span>Submit input</span><span class="pill">Enter</span></div>
                 </div>
               </div>
@@ -3698,6 +3876,53 @@
         ensurePty().catch((e) => toast(`PTY error: ${String(e)}`));
         toast("Terminal Mode — PTY first");
       }
+      updatePrimaryRunStatus();
+    }
+
+    function updatePrimaryRunStatus() {
+      const pill = document.getElementById("runPhasePill");
+      const label = document.getElementById("runPhaseLabel");
+      const summary = document.getElementById("runSummary");
+      if (!pill || !label || !summary) return;
+
+      const runningPlans = blocks.filter((b) => b.type === "plan" && b.status === "running").length;
+      const runningSteps = blocks.filter((b) => b.type === "step" && b.status === "running").length;
+      const failedBlocks = blocks.filter((b) => b.status === "failed").length;
+      const completedPlans = blocks.filter((b) => b.type === "plan" && b.status === "done").length;
+
+      if (mode === "terminal") {
+        pill.textContent = "Shell mode";
+        label.textContent = ptyConnected ? "Connected" : "Waiting";
+        summary.textContent = ptyConnected
+          ? "Direct terminal control is active."
+          : "Start typing commands in the terminal pane.";
+        return;
+      }
+
+      if (runningPlans > 0 || runningSteps > 0) {
+        pill.textContent = "Agent running";
+        label.textContent = "In progress";
+        summary.textContent = `${runningPlans} plan(s), ${runningSteps} step(s) executing.`;
+        return;
+      }
+
+      if (failedBlocks > 0) {
+        pill.textContent = "Review needed";
+        label.textContent = "Action required";
+        summary.textContent = `${failedBlocks} failed block(s). Use Edit in composer to refine and re-run.`;
+        return;
+      }
+
+      if (completedPlans > 0) {
+        pill.textContent = "Agent ready";
+        label.textContent = "Completed";
+        summary.textContent = `${completedPlans} plan run(s) completed. Describe the next outcome to run.`;
+        return;
+      }
+
+      pill.textContent = mode === "code" ? "Code mode" : "Agent idle";
+      label.textContent = "Ready";
+      summary.textContent = `Policy ${runtimePolicyEnv}. Describe an outcome and press Send.`;
     }
 
     // -----------------------------
@@ -3801,14 +4026,10 @@
       try {
         const st = await window.rina?.policyEnv?.();
         runtimePolicyEnv = st?.env || "dev";
-        const pill = document.getElementById("pillPolicy");
-        if (pill) {
-          pill.textContent = `policy:${st?.env || "dev"} • ${st?.role || "owner"}`;
-        }
+        updatePrimaryRunStatus();
       } catch {
         runtimePolicyEnv = "dev";
-        const pill = document.getElementById("pillPolicy");
-        if (pill) pill.textContent = "policy:unknown";
+        updatePrimaryRunStatus();
       }
     }
 
@@ -6143,6 +6364,172 @@
       }
     }
 
+    // --- Shared Objects & Workflow Templates ---
+    function listWorkflows() {
+      return workflowTemplatesCache || [];
+    }
+
+    function listSharedObjects() {
+      return sharedObjectsCache || [];
+    }
+
+    async function refreshSharedObjects() {
+      try {
+        // Load from localStorage as temporary storage
+        const stored = localStorage.getItem("rinawarp_shared_objects");
+        sharedObjectsCache = stored ? JSON.parse(stored) : [];
+        const storedWorkflows = localStorage.getItem("rinawarp_workflow_templates");
+        workflowTemplatesCache = storedWorkflows ? JSON.parse(storedWorkflows) : [];
+      } catch {
+        sharedObjectsCache = [];
+        workflowTemplatesCache = [];
+      }
+    }
+
+    function saveSharedObjectFromInputs() {
+      const name = document.getElementById("sharedObjectName");
+      const kind = document.getElementById("sharedObjectKind");
+      const body = document.getElementById("sharedObjectBody");
+      const objName = name ? String(name.value || "").trim() : "";
+      const objKind = kind ? String(kind.value || "prompt") : "prompt";
+      const objBody = body ? String(body.value || "").trim() : "";
+      if (!objName || !objBody) {
+        toast("Name and body are required");
+        return;
+      }
+      const obj = { id: "obj_" + Date.now(), name: objName, kind: objKind, body: objBody, createdAt: new Date().toISOString() };
+      sharedObjectsCache = [...(sharedObjectsCache || []), obj];
+      localStorage.setItem("rinawarp_shared_objects", JSON.stringify(sharedObjectsCache));
+      toast("Object saved");
+      if (name) name.value = "";
+      if (body) body.value = "";
+      // Refresh the panel
+      const tabBtn = document.querySelector('.sidebar-tab[data-tab="workflows"]');
+      if (tabBtn) tabBtn.click();
+    }
+
+    function saveSharedObjectFromComposer() {
+      const nameInput = document.getElementById("sharedObjectName");
+      const kind = document.getElementById("sharedObjectKind");
+      const objName = nameInput ? String(nameInput.value || "").trim() : "";
+      const objKind = kind ? String(kind.value || "prompt") : "prompt";
+      const composer = document.getElementById("composerInput");
+      const composerText = composer ? String(composer.value || "").trim() : "";
+      if (!objName) {
+        toast("Name is required");
+        return;
+      }
+      if (!composerText) {
+        toast("Composer is empty");
+        return;
+      }
+      const obj = { id: "obj_" + Date.now(), name: objName, kind: objKind, body: composerText, createdAt: new Date().toISOString() };
+      sharedObjectsCache = [...(sharedObjectsCache || []), obj];
+      localStorage.setItem("rinawarp_shared_objects", JSON.stringify(sharedObjectsCache));
+      toast("Object saved from composer");
+      if (nameInput) nameInput.value = "";
+      // Refresh the panel
+      const tabBtn = document.querySelector('.sidebar-tab[data-tab="workflows"]');
+      if (tabBtn) tabBtn.click();
+    }
+
+    function insertSharedObjectInComposer(objId) {
+      const obj = (sharedObjectsCache || []).find((o) => String(o.id) === String(objId));
+      if (!obj) {
+        toast("Object not found");
+        return;
+      }
+      const composer = document.getElementById("composerInput");
+      if (!composer) {
+        toast("Composer not available");
+        return;
+      }
+      const existing = String(composer.value || "");
+      composer.value = existing + (existing ? "\n" : "") + (obj.body || "");
+      composer.focus();
+      toast("Object inserted in composer");
+    }
+
+    function deleteSharedObject(objId) {
+      if (!confirm("Delete this object?")) return;
+      sharedObjectsCache = (sharedObjectsCache || []).filter((o) => String(o.id) !== String(objId));
+      localStorage.setItem("rinawarp_shared_objects", JSON.stringify(sharedObjectsCache));
+      toast("Object deleted");
+      // Refresh the panel
+      const tabBtn = document.querySelector('.sidebar-tab[data-tab="workflows"]');
+      if (tabBtn) tabBtn.click();
+    }
+
+    function runWorkflow(key) {
+      const wf = (workflowTemplatesCache || []).find((w) => String(w.key) === String(key));
+      if (!wf) {
+        toast("Workflow not found");
+        return;
+      }
+      // Load workflow into composer
+      const composer = document.getElementById("composerInput");
+      if (composer && wf.plan && wf.plan.intent) {
+        composer.value = wf.plan.intent;
+        composer.focus();
+        toast("Workflow loaded in composer");
+      } else {
+        toast("Could not load workflow");
+      }
+    }
+
+    // Initialize shared objects on load
+    void refreshSharedObjects();
+
+    // --- Runtime Tasks (Background Runs) ---
+    async function refreshRuntimeTasks() {
+      if (runtimeTasksLoading) return;
+      runtimeTasksLoading = true;
+      try {
+        if (!window.rina?.runtimeTasks) {
+          runtimeTasksCache = [];
+          return;
+        }
+        const res = await window.rina.runtimeTasks();
+        runtimeTasksCache = Array.isArray(res?.tasks) ? res.tasks : [];
+      } catch {
+        runtimeTasksCache = [];
+      } finally {
+        runtimeTasksLoading = false;
+      }
+    }
+
+    function renderRuntimeTasksPanel() {
+      const container = document.getElementById("runtimeTasksList");
+      if (!container) return;
+      if (runtimeTasksLoading) {
+        container.innerHTML = `<div class="small">Loading...</div>`;
+        return;
+      }
+      if (!runtimeTasksCache.length) {
+        container.innerHTML = `<div class="small">No background tasks. Use the API to queue background work.</div>`;
+        return;
+      }
+      container.innerHTML = runtimeTasksCache
+        .map(
+          (t) => `
+          <div class="item">
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+              <b>${escapeHtml(t.id || "task")}</b>
+              <span class="status-badge ${escapeHtml(t.status || "pending")}">${escapeHtml(t.status || "pending")}</span>
+            </div>
+            <div class="small">
+              Workspace: ${escapeHtml(t.workspace_id || "-")} • Region: ${escapeHtml(t.requested_region || t.workspace_region || "-")}
+            </div>
+            <div class="small">
+              Created: ${escapeHtml(t.created_at ? new Date(t.created_at).toLocaleString() : "-")}
+            </div>
+            ${t.error ? `<div class="small" style="color:#ff6b6b">Error: ${escapeHtml(t.error)}</div>` : ""}
+          </div>
+        `
+        )
+        .join("");
+    }
+
     async function createPrForWorkflow(taskId) {
       try {
         const task = findWorkflowTask(taskId);
@@ -6576,10 +6963,11 @@
       if (e.defaultPrevented) return;
       if (e.altKey) {
         if (e.key === "1") { e.preventDefault(); setSidebarTab("sessions"); return; }
-        if (e.key === "2") { e.preventDefault(); setSidebarTab("structured"); return; }
-        if (e.key === "3") { e.preventDefault(); setSidebarTab("workflows"); return; }
-        if (e.key === "4") { e.preventDefault(); setSidebarTab("settings"); return; }
-        if (e.key === "5") { e.preventDefault(); setSidebarTab("about"); return; }
+        if (e.key === "2") { e.preventDefault(); setSidebarTab("runs"); return; }
+        if (e.key === "3") { e.preventDefault(); setSidebarTab("structured"); return; }
+        if (e.key === "4") { e.preventDefault(); setSidebarTab("workflows"); return; }
+        if (e.key === "5") { e.preventDefault(); setSidebarTab("settings"); return; }
+        if (e.key === "6") { e.preventDefault(); setSidebarTab("about"); return; }
       }
       // Command palette
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -6625,6 +7013,7 @@
     window.rina.onPtyExit?.((payload) => {
       ptyConnected = false;
       document.getElementById("ptyStatus").textContent = `exited (${payload?.exitCode ?? "?"})`;
+      updatePrimaryRunStatus();
       toast(`PTY exited (${payload?.exitCode ?? "?"})`);
     });
 

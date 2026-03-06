@@ -5,7 +5,7 @@
 import type { PaletteCommand } from "./model.js";
 
 // Re-export SettingsTabId to avoid circular dependency
-type SettingsTabId = "general" | "license" | "themes" | "diagnostics" | "about";
+type SettingsTabId = "general" | "license" | "themes" | "diagnostics" | "about" | "retrieval" | "research" | "updates";
 
 declare global {
   interface Window {
@@ -113,7 +113,7 @@ function buildBaseCommands(): PaletteCommand[] {
     {
       id: "settings.open",
       title: "Open Settings",
-      subtitle: "General / License / Themes / Diagnostics / About",
+      subtitle: "General / Themes / Retrieval / License / Diagnostics / About",
       icon: "⚙️",
       keywords: ["preferences", "settings", "options"],
       run: async () => openSettings(),
@@ -138,6 +138,27 @@ function buildBaseCommands(): PaletteCommand[] {
       icon: "🧪",
       keywords: ["diagnostics", "paths", "support"],
       run: async () => openSettings("diagnostics"),
+    },
+    {
+      id: "settings.open.retrieval",
+      title: "Open Settings → Retrieval",
+      icon: "🔍",
+      keywords: ["retrieval", "index", "search", "context"],
+      run: async () => openSettings("retrieval"),
+    },
+    {
+      id: "settings.open.research",
+      title: "Open Settings → Research",
+      icon: "🌐",
+      keywords: ["research", "web", "docs", "grounding", "fetch"],
+      run: async () => openSettings("research"),
+    },
+    {
+      id: "settings.open.updates",
+      title: "Open Settings → Updates",
+      icon: "🔄",
+      keywords: ["updates", "upgrade", "auto-update", "trust", "verification"],
+      run: async () => openSettings("updates"),
     },
     {
       id: "support.bundle",

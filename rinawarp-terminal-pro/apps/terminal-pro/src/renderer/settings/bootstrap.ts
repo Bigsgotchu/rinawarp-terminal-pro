@@ -4,6 +4,9 @@ import { mountThemesPanel } from "./panels/themes.js";
 import { mountDiagnosticsPanel } from "./panels/diagnostics.js";
 import { mountAboutPanel } from "./panels/about.js";
 import { mountLicensePanel } from "./panels/license.js";
+import { mountRetrievalPanel } from "./panels/retrieval.js";
+import { mountResearchPanel } from "./panels/research.js";
+import { mountUpdatesPanel } from "./panels/updates.js";
 
 declare global {
   interface Window {
@@ -84,6 +87,9 @@ export function initSettingsUi(): void {
     [
       { id: "general", label: "General", icon: "⚡", mount: (el: HTMLElement) => mountGeneralPanel(el) },
       { id: "themes", label: "Themes", icon: "🎨", mount: (el: HTMLElement) => void mountThemesPanel(el) },
+      { id: "retrieval", label: "Retrieval", icon: "🔍", mount: (el: HTMLElement) => void mountRetrievalPanel(el) },
+      { id: "research", label: "Research", icon: "🌐", mount: (el: HTMLElement) => void mountResearchPanel(el) },
+      { id: "updates", label: "Updates", icon: "🔄", mount: (el: HTMLElement) => void mountUpdatesPanel(el) },
       { id: "license", label: "License", icon: "🔑", mount: (el: HTMLElement) => void mountLicensePanel(el) },
       { id: "diagnostics", label: "Diagnostics", icon: "🧪", mount: (el: HTMLElement) => void mountDiagnosticsPanel(el) },
       { id: "about", label: "About", icon: "ℹ️", mount: (el: HTMLElement) => void mountAboutPanel(el) },
