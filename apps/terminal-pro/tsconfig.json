@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist-electron",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["src/**/*.tsx", "dist", "node_modules"],
+  "references": [
+    { "path": "../../packages/rinawarp-tools" },
+    { "path": "../../packages/rinawarp-safety" },
+    { "path": "../../packages/rinawarp-core" },
+    { "path": "../../packages/rina-doctor" },
+    { "path": "../../packages/rinawarp-agent" }
+  ]
+}

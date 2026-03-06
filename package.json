@@ -1,0 +1,70 @@
+{
+  "name": "rinawarp-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RinaWarp - Persistent Agent Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "clean": "bash scripts/clean-builds.sh",
+    "build": "npm --workspace apps/terminal-pro run build:electron",
+    "build:all": "npm run build --workspaces",
+    "agent:daemon:start": "npm --workspace packages/rinawarp-agentd run daemon:start",
+    "agent:daemon:stop": "npm --workspace packages/rinawarp-agentd run daemon:stop",
+    "agent:daemon:status": "npm --workspace packages/rinawarp-agentd run daemon:status",
+    "agent:daemon:tasks": "npm --workspace packages/rinawarp-agentd run daemon:task:list",
+    "agent:daemon:dlq": "npm --workspace packages/rinawarp-agentd run daemon:task:dlq",
+    "deploy:pages": "bash scripts/deploy-pages-prod.sh",
+    "dev:terminal-pro": "cd apps/terminal-pro && npm run dev",
+    "dev:terminal": "npm run dev:terminal-pro",
+    "pack:terminal": "npm --workspace apps/terminal-pro run build:all",
+    "e2e:smoke": "npm --workspace apps/terminal-pro run e2e:smoke",
+    "guard:contracts": "bash scripts/ci-contract-guard.sh",
+    "verify:branding": "bash scripts/verify-branding.sh",
+    "smoke:pages": "bash scripts/smoke-pages.sh",
+    "test:lockdown": "node scripts/no-bypass.mjs",
+    "verify:site": "node scripts/verify-pages-routes.mjs rinawarptech-website/web",
+    "verify:downloads": "node scripts/verify-download-links.mjs",
+    "smoke:web": "bash scripts/smoke-web.sh",
+    "pretest": "npm run test:lockdown && npm run guard:contracts && npm run verify:branding",
+    "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'",
+    "smoke:prod": "bash scripts/smoke-prod.sh https://www.rinawarptech.com",
+    "e2e:revenue": "bash scripts/e2e-revenue-smoke.sh https://www.rinawarptech.com https://api.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
+    "kpi:snapshot": "bash scripts/kpi-snapshot.sh https://www.rinawarptech.com https://api.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
+    "watchdog:prod": "bash scripts/prod-watchdog.sh",
+    "watchdog:prod:once": "ONCE=1 bash scripts/prod-watchdog.sh",
+    "audit:prod": "bash scripts/audit-site.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt",
+    "audit:compare": "bash scripts/audit-prod.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev",
+    "smoke:stripe": "bash scripts/smoke-stripe.sh https://api.rinawarptech.com https://www.rinawarptech.com",
+    "audit:stripe-success": "bash scripts/stripe-success-audit.sh",
+    "report:revenue-daily": "bash scripts/revenue-daily-report.sh",
+    "revenue:diagnose": "bash scripts/revenue-diagnose.sh",
+    "marketing:utm": "bash scripts/utm-links.sh",
+    "final:mile": "bash scripts/final-mile.sh",
+    "scan:app": "bash scripts/app-deep-scan.sh",
+    "verify:appimage:ci": "bash deploy/verify-appimage-ci.sh",
+    "release:desktop": "bash deploy/release-runner.sh",
+    "release:bump": "bash deploy/bump-release-version.sh",
+    "migrate:auth-local": "bash scripts/migrate-auth-local.sh",
+    "migrate:funnel-events": "bash scripts/migrate-funnel-events.sh",
+    "e2e:auth-local": "bash scripts/e2e-auth-local.sh https://www.rinawarptech.com https://api.rinawarptech.com",
+    "e2e:project": "bash scripts/e2e-project.sh"
+  },
+  "keywords": [
+    "rinawarp",
+    "agent",
+    "ai",
+    "terminal",
+    "electron"
+  ],
+  "author": "RinaWarp Team",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "28.3.0"
+  },
+  "engines": {
+    "node": ">=18.19.0"
+  }
+}

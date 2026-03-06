@@ -1,0 +1,100 @@
+name: Electron Smoke (Ubuntu)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "rinawarp-terminal-pro/apps/terminal-pro/**"
+      - "rinawarp-terminal-pro/deploy/**"
+      - "rinawarp-terminal-pro/.github/workflows/electron-smoke.yml"
+      - "rinawarp-terminal-pro/package.json"
+      - "rinawarp-terminal-pro/package-lock.json"
+  pull_request:
+    paths:
+      - "rinawarp-terminal-pro/apps/terminal-pro/**"
+      - "rinawarp-terminal-pro/deploy/**"
+      - "rinawarp-terminal-pro/.github/workflows/electron-smoke.yml"
+      - "rinawarp-terminal-pro/package.json"
+      - "rinawarp-terminal-pro/package-lock.json"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: rinawarp-terminal-pro
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: rinawarp-terminal-pro/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Check no JS twins in src
+        run: ./scripts/check-no-src-js.sh
+
+      - name: Check duplicate IPC channels
+        run: node scripts/check-duplicate-ipc.js
+
+      - name: Check no IPC handlers in main.ts
+        run: ./scripts/check-no-ipc-in-main.sh
+
+      - name: Lint (ESLint)
+        run: npm --workspace apps/terminal-pro run lint -- --format json --output-file /tmp/eslint.json || true
+
+      - name: Enforce warning budget
+        run: node scripts/eslint-warning-budget.js --max 0 /tmp/eslint.json
+
+      - name: Clean build outputs
+        run: npm run clean
+
+      - name: Build Electron app
+        run: npm --workspace apps/terminal-pro run build:electron
+
+      - name: Check repo hygiene
+        run: ./scripts/check-repo-hygiene.sh
+
+      - name: Enforce shared E2E launch helper
+        run: ./scripts/check-e2e-launch.sh
+
+      - name: Run Playwright smoke under Xvfb (CI sandbox disabled)
+        env:
+          CI: "1"
+          RINAWARP_E2E: "1"
+          ELECTRON_DISABLE_SANDBOX: "1"
+        run: xvfb-run -a npm --workspace apps/terminal-pro run e2e:smoke
+
+      - name: Build CI failure bundle
+        if: failure()
+        env:
+          CI: "1"
+          RINAWARP_E2E: "1"
+          ELECTRON_DISABLE_SANDBOX: "1"
+        run: |
+          xvfb-run -a node scripts/collect-ci-support-artifacts.mjs artifacts || true
+          ./scripts/create-ci-failure-bundle.sh
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-smoke-artifacts
+          path: |
+            rinawarp-terminal-pro/artifacts/*.tgz
+            rinawarp-terminal-pro/artifacts/diagnostics.json
+            rinawarp-terminal-pro/artifacts/support-bundle-result.json
+            rinawarp-terminal-pro/artifacts/support-bundle.zip
+            rinawarp-terminal-pro/apps/terminal-pro/test-results
+            rinawarp-terminal-pro/apps/terminal-pro/playwright-report
+          if-no-files-found: ignore

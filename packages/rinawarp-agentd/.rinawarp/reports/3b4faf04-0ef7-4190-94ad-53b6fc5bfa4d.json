@@ -1,0 +1,54 @@
+{
+  "planRunId": "3b4faf04-0ef7-4190-94ad-53b6fc5bfa4d",
+  "projectRoot": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
+  "license": "pro",
+  "cancelled": false,
+  "startedAt": 1772692901629,
+  "finishedAt": 1772692901640,
+  "durationMs": 11,
+  "steps": [
+    {
+      "stepId": "prod-token-ok",
+      "report": {
+        "ok": false,
+        "steps": [
+          {
+            "step": {
+              "tool": "terminal.write",
+              "risk_level": "low",
+              "requires_confirmation": false,
+              "verification_plan": {
+                "steps": []
+              },
+              "input": {
+                "command": "echo ok",
+                "cwd": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
+                "stepId": "prod-token-ok"
+              },
+              "description": "Echo success",
+              "stepId": "prod-token-ok"
+            },
+            "startedAt": 1772692901630,
+            "finishedAt": 1772692901630,
+            "result": {
+              "success": false,
+              "error": "Invalid step safety fields: risk_level mismatch (expected medium, got low)"
+            },
+            "failure_class": "command_error",
+            "audit": {
+              "tool": "terminal.write",
+              "input_redacted": {
+                "command": "echo ok",
+                "cwd": "/home/karina/Documents/rinawarp-terminal-pro/packages/rinawarp-agentd",
+                "stepId": "prod-token-ok"
+              },
+              "risk_level": "low",
+              "requires_confirmation": false
+            }
+          }
+        ],
+        "haltedBecause": "invalid_plan"
+      }
+    }
+  ]
+}

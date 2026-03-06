@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/rinawarp-tools" },
+    { "path": "./packages/rinawarp-safety" },
+    { "path": "./packages/rinawarp-core" },
+    { "path": "./packages/rina-doctor" },
+    { "path": "./packages/rinawarp-agent" },
+    { "path": "./packages/rinawarp-agentd" },
+    { "path": "./apps/terminal-pro" }
+  ]
+}

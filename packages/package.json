@@ -1,0 +1,19 @@
+{
+  "name": "@rinawarp/packages",
+  "version": "1.0.0",
+  "description": "RinaWarp package workspace",
+  "private": true,
+  "workspaces": [
+    "rinawarp-agent",
+    "rinawarp-tools",
+    "rinawarp-safety"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "test": "npm run test --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

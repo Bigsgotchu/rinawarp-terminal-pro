@@ -1,0 +1,69 @@
+# Secrets and sensitive files
+**/*.secrets
+**/.env*
+ !**/.env.example
+**/.wf_secrets
+**/wrangler/state/
+**/.wrangler/state/
+
+# Dependency directories
+node_modules/
+.pnp/
+.pnp.js/
+
+# Build outputs (keep dist, only ignore secrets in build dirs)
+**/build/
+
+# Terminal Pro build artifacts
+apps/terminal-pro/dist/
+apps/terminal-pro/dist-electron/
+apps/terminal-pro/out/
+apps/terminal-pro/.vite/
+apps/terminal-pro/test-results/
+apps/terminal-pro/playwright-report/
+apps/terminal-pro/.playwright/
+apps/terminal-pro/.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# SQLite databases
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Miniflare/CF state
+.miniflare/
+
+# ============================================================
+# KiloCode Security Protection
+# ============================================================
+# Prevent CI bypass attacks by excluding .kilocode from version control
+.kilocode/
+.kilocode/**/
+**/.kilocode/
+**/.kilocode/**/
+
+# Also exclude node_modules in .kilocode directories
+.kilocode/**/node_modules/
+
+# local secrets
+deploy/aws/scripts/cross-account-attestation.env
+release/*.exe
+release/*.AppImage
+release/*.deb
+release/*.dmg
+data/
+dist/
+*.tsbuildinfo
