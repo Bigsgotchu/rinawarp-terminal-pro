@@ -1,0 +1,23 @@
+{
+  "runs_total": 2,
+  "runs_completed": 0,
+  "runs_failed": 2,
+  "runs_cancelled": 0,
+  "interventions_total": 0,
+  "confirmation_denied_total": 0,
+  "failure_classes": {
+    "invalid_plan": 2
+  },
+  "duration_ms_total": 0,
+  "unblock_runs": 0,
+  "unblock_duration_ms_total": 0,
+  "daily": {
+    "2026-03-11": {
+      "runs": 2,
+      "completed": 0,
+      "failed": 2,
+      "revenue_events": 0,
+      "new_users": 0
+    }
+  }
+}

@@ -92,6 +92,7 @@ function saveMetrics(metrics: PersistentMetrics): void {
 
 // Current metrics (persisted)
 let metrics = loadMetrics();
+let metricsFlushTimer: NodeJS.Timeout | null = null;
 
 // PostHog instance (optional at runtime)
 let posthog: any | null = null;
@@ -398,6 +399,10 @@ export async function flushAnalytics(): Promise<void> {
  * Shutdown analytics
  */
 export async function shutdownAnalytics(): Promise<void> {
+  if (metricsFlushTimer) {
+    clearInterval(metricsFlushTimer);
+    metricsFlushTimer = null;
+  }
   await flushAnalytics();
   
   const ph = getPostHog();
@@ -416,9 +421,13 @@ export function initAnalytics(): void {
   }
   
   // Periodic flush
-  setInterval(() => {
+  if (metricsFlushTimer) {
+    clearInterval(metricsFlushTimer);
+  }
+  metricsFlushTimer = setInterval(() => {
     saveMetrics(metrics);
   }, METRICS_FLUSH_INTERVAL_MS);
+  if (metricsFlushTimer.unref) metricsFlushTimer.unref();
   
   // Track daemon start
   trackServerEvent('daemon_started', {

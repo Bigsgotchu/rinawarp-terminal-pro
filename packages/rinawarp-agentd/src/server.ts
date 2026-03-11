@@ -2897,8 +2897,8 @@ export function createServer(opts: { port: number }) {
         });
       });
     },
-    close(): Promise<void> {
-      return new Promise((resolve, reject) => {
+    async close(): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
         server.close((err) => {
           if (err) {
             reject(err);
@@ -2907,6 +2907,7 @@ export function createServer(opts: { port: number }) {
           resolve();
         });
       });
+      await shutdownAnalytics();
     }
   };
 }

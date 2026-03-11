@@ -1,0 +1,4 @@
+{"ts":1773214652340,"type":"step_failure","planRunId":"30e11c92-d205-4de9-8ae3-af560a5c1462","stepId":"ok-1","haltedBecause":"invalid_plan"}
+{"ts":1773214652341,"type":"run_end","planRunId":"30e11c92-d205-4de9-8ae3-af560a5c1462","cancelled":false,"ok":false,"durationMs":7,"license":"pro"}
+{"ts":1773214652461,"type":"step_failure","planRunId":"b76325d7-8a8a-4491-a6ec-f0b15fce68f2","stepId":"prod-token-ok","haltedBecause":"invalid_plan"}
+{"ts":1773214652472,"type":"run_end","planRunId":"b76325d7-8a8a-4491-a6ec-f0b15fce68f2","cancelled":false,"ok":false,"durationMs":13,"license":"pro"}
