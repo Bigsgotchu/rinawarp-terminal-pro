@@ -4,7 +4,7 @@
 # https://rinawarptech.com
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/Bigsgotchu/rinawarp-terminal-pro/main/install.sh | bash
+#   curl -fsSL https://rinawarptech.com/install | bash
 #
 
 set -e

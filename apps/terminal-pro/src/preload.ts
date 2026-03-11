@@ -210,4 +210,18 @@ contextBridge.exposeInMainWorld("rina", {
 
   // Generic custom event handler
   onCustomEvent: (eventName: string, cb: (evt: any) => void) => ipcRenderer.on(eventName, (_e, payload) => cb(payload)),
+
+  // Analytics - conversion funnel tracking
+  trackFunnelStep: (step: string, properties?: Record<string, unknown>) =>
+    ipcRenderer.invoke("rina:analytics:funnel", step, properties),
+
+  // Analytics - Usage tracking
+  getUsageStatus: () => ipcRenderer.invoke("analytics:getUsageStatus"),
+  isUsageTrackingEnabled: () => ipcRenderer.invoke("analytics:isUsageTrackingEnabled"),
+  enableUsageTracking: () => ipcRenderer.invoke("analytics:enableUsageTracking"),
+  disableUsageTracking: () => ipcRenderer.invoke("analytics:disableUsageTracking"),
+  trackCommandExecuted: () => ipcRenderer.invoke("analytics:trackCommandExecuted"),
+  trackAISuggestionUsed: () => ipcRenderer.invoke("analytics:trackAISuggestionUsed"),
+  trackSelfHealingRun: () => ipcRenderer.invoke("analytics:trackSelfHealingRun"),
+  trackTerminalSessionStart: () => ipcRenderer.invoke("analytics:trackTerminalSessionStart"),
 });

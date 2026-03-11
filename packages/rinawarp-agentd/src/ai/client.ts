@@ -2,6 +2,7 @@
  * AI Client
  * 
  * LLM integration - follows Rust architecture.
+ * Supports both streaming and non-streaming requests.
  */
 
 import type { 
@@ -159,4 +160,295 @@ export async function explainError(
 
   const response = await chat(config, messages);
   return parseErrorExplanation(response);
+}
+
+// ===== Streaming Support =====
+
+/**
+ * Stream chunk from LLM
+ */
+export interface StreamChunk {
+  /** Content delta */
+  delta: string;
+  /** Whether this is the final chunk */
+  done: boolean;
+  /** Optional: full content so far (for done chunk) */
+  content?: string;
+}
+
+/**
+ * Streaming chat callback
+ */
+export type StreamCallback = (chunk: StreamChunk) => void | Promise<void>;
+
+/**
+ * Send streaming request to LLM
+ * 
+ * Usage:
+ * ```typescript
+ * await streamChat(config, messages, (chunk) => {
+ *   process.stdout.write(chunk.delta);
+ * });
+ * ```
+ */
+export async function streamChat(
+  config: AiConfig,
+  messages: AiMessage[],
+  onChunk: StreamCallback
+): Promise<AiResponse> {
+  const url = `${config.baseUrl}/chat/completions`;
+  
+  const body: Record<string, unknown> = {
+    model: config.model,
+    messages,
+    temperature: 0.7,
+    max_tokens: 1024,
+    stream: true,
+    response_format: { type: "json_object" },
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${config.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI streaming request failed: ${response.status}`);
+  }
+
+  if (!response.body) {
+    throw new Error("Response has no body");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullContent = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        // Process any remaining buffer
+        if (buffer.trim()) {
+          const chunks = parseSSELines(buffer);
+          for (const chunk of chunks) {
+            if (chunk.delta) {
+              fullContent += chunk.delta;
+              await onChunk({ delta: chunk.delta, done: false });
+            }
+          }
+        }
+        
+        // Send final chunk
+        await onChunk({ delta: "", done: true, content: fullContent });
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      
+      // Process complete SSE lines
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        const parsed = parseSSELine(line);
+        if (parsed) {
+          if (parsed.delta) {
+            fullContent += parsed.delta;
+            await onChunk({ delta: parsed.delta, done: false });
+          }
+          if (parsed.done) {
+            await onChunk({ delta: "", done: true, content: fullContent });
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  // Parse the final content as JSON
+  let content: Record<string, unknown> = {};
+  try {
+    content = JSON.parse(fullContent);
+  } catch {
+    // If not valid JSON, wrap it
+    content = { text: fullContent };
+  }
+
+  return {
+    content,
+    model: config.model,
+    usage: undefined, // Usage not available in streaming
+  };
+}
+
+/**
+ * Parse a single SSE line
+ */
+function parseSSELine(line: string): { delta: string; done: boolean } | null {
+  if (!line.startsWith("data: ")) {
+    return null;
+  }
+
+  const data = line.slice(6).trim();
+  
+  if (data === "[DONE]") {
+    return { delta: "", done: true };
+  }
+
+  try {
+    const parsed = JSON.parse(data);
+    const delta = parsed.choices?.[0]?.delta?.content || "";
+    return { delta, done: false };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parse multiple SSE lines from a string
+ */
+function parseSSELines(text: string): Array<{ delta: string; done: boolean }> {
+  const lines = text.split("\n").filter(l => l.trim());
+  return lines.map(parseSSELine).filter(Boolean) as Array<{ delta: string; done: boolean }>;
+}
+
+/**
+ * Stream command generation
+ * 
+ * Usage:
+ * ```typescript
+ * await streamGenerateCommand(config, intent, context, (chunk) => {
+ *   process.stdout.write(chunk.delta);
+ * });
+ * ```
+ */
+export async function streamGenerateCommand(
+  config: AiConfig,
+  intent: string,
+  context: string,
+  onChunk: StreamCallback
+): Promise<CommandPlan> {
+  const systemPrompt = `You are a Unix shell expert. Output JSON only.`;
+  const userPrompt = `Generate commands for: ${intent}\nContext: ${context}`;
+
+  const messages: AiMessage[] = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
+  ];
+
+  const response = await streamChat(config, messages, onChunk);
+  return parseCommandPlan(response);
+}
+
+/**
+ * Stream error explanation
+ * 
+ * Usage:
+ * ```typescript
+ * await streamExplainError(config, error, context, (chunk) => {
+ *   process.stdout.write(chunk.delta);
+ * });
+ * ```
+ */
+export async function streamExplainError(
+  config: AiConfig,
+  error: string,
+  context: string,
+  onChunk: StreamCallback
+): Promise<ErrorExplanation> {
+  const systemPrompt = `You are a Unix expert. Output JSON only.`;
+  const userPrompt = `Explain this error:\n${error}\nContext: ${context}`;
+
+  const messages: AiMessage[] = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
+  ];
+
+  const response = await streamChat(config, messages, onChunk);
+  return parseErrorExplanation(response);
+}
+
+/**
+ * Create a readable stream from async iterator
+ * Useful for integrating with other streaming systems
+ */
+export async function* createStreamGenerator(
+  config: AiConfig,
+  messages: AiMessage[]
+): AsyncGenerator<StreamChunk> {
+  const url = `${config.baseUrl}/chat/completions`;
+  
+  const body: Record<string, unknown> = {
+    model: config.model,
+    messages,
+    temperature: 0.7,
+    max_tokens: 1024,
+    stream: true,
+    response_format: { type: "json_object" },
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${config.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error(`AI streaming request failed: ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullContent = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        if (buffer.trim()) {
+          const chunks = parseSSELines(buffer);
+          for (const chunk of chunks) {
+            if (chunk.delta) {
+              fullContent += chunk.delta;
+              yield { delta: chunk.delta, done: false };
+            }
+          }
+        }
+        yield { delta: "", done: true, content: fullContent };
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        const parsed = parseSSELine(line);
+        if (parsed) {
+          if (parsed.delta) {
+            fullContent += parsed.delta;
+            yield { delta: parsed.delta, done: false };
+          }
+          if (parsed.done) {
+            yield { delta: "", done: true, content: fullContent };
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }

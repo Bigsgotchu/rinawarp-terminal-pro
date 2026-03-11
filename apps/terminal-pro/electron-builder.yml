@@ -1,6 +1,8 @@
 appId: com.rinawarptech.terminalpro
 productName: RinaWarp Terminal Pro
 
+npmRebuild: false
+
 directories:
   output: dist
   buildResources: build

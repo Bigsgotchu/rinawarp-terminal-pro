@@ -25,6 +25,7 @@ import { registerShareIpc } from "./registerShareIpc.js";
 import { registerTeamIpc } from "./registerTeamIpc.js";
 import { registerExportIpc } from "./registerExportIpc.js";
 import { registerUtilityIpc } from "./registerUtilityIpc.js";
+import { registerAnalyticsIpc } from "./registerAnalyticsIpc.js";
 
 // Runtime guard to prevent double-registration (e.g., during hot reload)
 declare global {
@@ -512,4 +513,6 @@ export function registerAllIpc(args: {
     playbookExecute: args.playbookExecuteForIpc,
     redactionPreview: args.redactionPreviewForIpc,
   });
+
+  registerAnalyticsIpc();
 }

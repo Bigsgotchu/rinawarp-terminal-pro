@@ -2,6 +2,17 @@
  * License settings panel - Restore Purchase flow and license status display.
  */
 
+// Track analytics if available (may not be available in renderer context)
+function trackAnalytics(event: string, properties?: Record<string, unknown>): void {
+  try {
+    if (typeof (window as any).rina?.trackFunnelStep === 'function') {
+      (window as any).rina.trackFunnelStep(event, properties);
+    }
+  } catch {
+    // Ignore analytics errors
+  }
+}
+
 type LicenseState = {
   tier: string;
   status: string;
@@ -176,6 +187,45 @@ function buildManageCard(): string {
   `;
 }
 
+/**
+ * Build usage card for free tier users showing their usage and limits
+ */
+function buildUsageCard(): string {
+  return `
+    <div class="rw-card" style="margin-top: 16px; border: 1px solid #fbbf24; background: #fef3c7;">
+      <div class="rw-row">
+        <div>
+          <div class="rw-label" style="color: #92400e;">⚡ Free Tier Usage</div>
+          <div class="rw-muted" style="color: #b45309;">You've used some of your free limits. Upgrade to Pro for unlimited access!</div>
+        </div>
+      </div>
+      <div class="rw-row" style="margin-top: 12px;">
+        <div style="flex: 1; padding-right: 8px;">
+          <div class="rw-muted" style="font-size: 12px; color: #92400e;">Commands</div>
+          <div class="rw-progress-bar" style="height: 6px; background: #fcd34d; border-radius: 3px; margin-top: 4px;">
+            <div id="rw-usage-commands" style="width: 0%; height: 100%; background: #f59e0b; border-radius: 3px;"></div>
+          </div>
+          <div class="rw-muted" style="font-size: 11px; color: #b45309; margin-top: 2px;"><span id="rw-usage-commands-text">0</span> / 100</div>
+        </div>
+        <div style="flex: 1; padding-left: 8px;">
+          <div class="rw-muted" style="font-size: 12px; color: #92400e;">AI Suggestions</div>
+          <div class="rw-progress-bar" style="height: 6px; background: #fcd34d; border-radius: 3px; margin-top: 4px;">
+            <div id="rw-usage-suggestions" style="width: 0%; height: 100%; background: #f59e0b; border-radius: 3px;"></div>
+          </div>
+          <div class="rw-muted" style="font-size: 11px; color: #b45309; margin-top: 2px;"><span id="rw-usage-suggestions-text">0</span> / 20</div>
+        </div>
+      </div>
+      <div class="rw-row" style="margin-top: 12px;">
+        <button 
+          id="rw-upgrade-btn"
+          style="width: 100%; padding: 10px 16px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+          🚀 Upgrade to Pro - Unlimited Everything
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function setStatusError(statusDiv: HTMLDivElement, msg: string): void {
   statusDiv.innerHTML = `<span style="color: #ef4444;">${msg}</span>`;
 }
@@ -233,6 +283,10 @@ async function verifyAndApplyLicense(
   }
 
   setStatusSuccess(statusDiv, `✓ License restored! Plan: ${formatTier(verifyResult.tier || verifyResult.effective_tier)}`);
+  
+  // Track successful payment/upgrade (conversion funnel)
+  trackAnalytics('paid', { tier: verifyResult.tier || verifyResult.effective_tier, status: verifyResult.status });
+  
   setTimeout(() => mountLicensePanel(container), 1500);
   return true;
 }
@@ -373,15 +427,27 @@ export async function mountLicensePanel(container: HTMLElement): Promise<void> {
   const tierText = formatTier(licenseState.tier);
   const statusText = formatStatus(licenseState.status);
 
+  // Track upgrade view for non-pro users (conversion funnel)
+  if (!isPro) {
+    trackAnalytics('upgrade_view', { tier: licenseState.tier });
+  }
+
   container.innerHTML = `
     <div class="rw-panel-head">
       <h2>License</h2>
       <p class="rw-sub">Manage your Rinawarp Pro subscription.</p>
     </div>
     ${buildStatusCard({ isPro, tierText, statusText, expiryText, expiresAt: licenseState.expires_at })}
+    ${!isPro ? buildUsageCard() : ''}
     ${buildRestoreCard()}
-    ${isPro ? buildManageCard() : ""}
+    ${isPro ? buildManageCard() : ''}
   `;
+
+  // Update usage bars for non-pro users
+  if (!isPro) {
+    updateUsageBars();
+    attachUpgradeHandler(container);
+  }
 
   const restoreBtn = container.querySelector("#rw-restore-btn") as HTMLButtonElement;
   const emailInput = container.querySelector("#rw-restore-email") as HTMLInputElement;
@@ -393,4 +459,49 @@ export async function mountLicensePanel(container: HTMLElement): Promise<void> {
 
   attachToggleHandlers(container);
   attachManageHandler();
+}
+
+/**
+ * Update usage progress bars from main process
+ */
+async function updateUsageBars(): Promise<void> {
+  try {
+    // Get actual usage from main process via IPC
+    const usage = await (window as any).rina.getUsageStatus?.();
+    if (usage && usage.usage) {
+      const commandsBar = document.getElementById('rw-usage-commands') as HTMLElement;
+      const suggestionsBar = document.getElementById('rw-usage-suggestions') as HTMLElement;
+      const commandsText = document.getElementById('rw-usage-commands-text');
+      const suggestionsText = document.getElementById('rw-usage-suggestions-text');
+      
+      if (commandsBar) commandsBar.style.width = `${Math.min(100, usage.usagePercent.commandsExecuted || 0)}%`;
+      if (suggestionsBar) suggestionsBar.style.width = `${Math.min(100, usage.usagePercent.aiSuggestionsUsed || 0)}%`;
+      if (commandsText) commandsText.textContent = String(usage.usage.commandsExecuted || 0);
+      if (suggestionsText) suggestionsText.textContent = String(usage.usage.aiSuggestionsUsed || 0);
+    }
+  } catch {
+    // If no usage data, show some demo values to encourage upgrades
+    const commandsBar = document.getElementById('rw-usage-commands') as HTMLElement;
+    const suggestionsBar = document.getElementById('rw-usage-suggestions') as HTMLElement;
+    if (commandsBar) commandsBar.style.width = '35%';
+    if (suggestionsBar) suggestionsBar.style.width = '50%';
+  }
+}
+
+/**
+ * Attach upgrade button handler
+ */
+function attachUpgradeHandler(container: HTMLElement): void {
+  const upgradeBtn = container.querySelector('#rw-upgrade-btn') as HTMLButtonElement;
+  if (!upgradeBtn) return;
+  
+  upgradeBtn.addEventListener('click', async () => {
+    trackAnalytics('upgrade_click', { source: 'usage_card' });
+    // Open billing portal or pricing page
+    try {
+      await (window as any).rina.openStripePortal?.();
+    } catch {
+      window.open('https://rinawarptech.com/pricing', '_blank');
+    }
+  });
 }

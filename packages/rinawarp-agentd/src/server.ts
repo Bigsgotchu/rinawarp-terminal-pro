@@ -74,6 +74,7 @@ import { activeActiveWrite, configureActiveActive, getActiveActiveState, replayW
 import { configureReconciler, getReconcilerState, runFullReconcile } from "./platform/reconciler.js";
 import { configureTokenLifecycle, getTokenLifecycleStatus, registerRefreshSession, revokeRefreshSession, rotateRefreshSession, validateRefreshSession } from "./workspace/tokenLifecycle.js";
 import { configureSecurityControls, getSecurityControlsState, runControlEvidenceDrill } from "./platform/securityControls.js";
+import { initAnalytics, trackServerEvent, getMetrics, getDailyMetrics, shutdownAnalytics } from "./analytics.js";
 
 const engine = new ExecutionEngine(createStandardRegistry());
 
@@ -175,18 +176,6 @@ function makePlan(intentText: string, projectRoot: string): AgentPlan {
 const runningStreams = new Map<string, { cancelled: boolean }>();
 const runningPlans = new Map<string, { cancelled: boolean; currentStreamId?: string }>();
 const completedReports = new Map<string, unknown>();
-const metrics = {
-  runs_total: 0,
-  runs_completed: 0,
-  runs_failed: 0,
-  runs_cancelled: 0,
-  interventions_total: 0,
-  confirmation_denied_total: 0,
-  failure_classes: {} as Record<string, number>,
-  duration_ms_total: 0,
-  unblock_runs: 0,
-  unblock_duration_ms_total: 0
-};
 const webhookDeliveryCache = new Map<string, number>();
 const WEBHOOK_DELIVERY_TTL_MS = 24 * 60 * 60 * 1000;
 const webhookRateCounters = new Map<string, { windowStartMs: number; count: number }>();
@@ -565,12 +554,17 @@ async function appendMetricEvent(projectRoot: string, event: Record<string, unkn
 
 function incFailureClass(name: string | undefined): void {
   if (!name) return;
-  metrics.failure_classes[name] = (metrics.failure_classes[name] ?? 0) + 1;
+  // Track failure class in analytics
+  trackServerEvent('step_failed', { failure_class: name });
 }
 
 export function createServer(opts: { port: number }) {
   const { port } = opts;
   const bindHost = String(process.env.RINAWARP_AGENTD_BIND_HOST || "127.0.0.1").trim() || "127.0.0.1";
+  
+  // Initialize analytics
+  initAnalytics();
+  
   startEmailWorker();
   initEventBus().catch(() => {
     const required =
@@ -1245,7 +1239,8 @@ export function createServer(opts: { port: number }) {
         const planRunId = randomUUID();
         runningPlans.set(planRunId, { cancelled: false });
         const runStartedAt = Date.now();
-        metrics.runs_total += 1;
+        // Track execution start in analytics
+        trackServerEvent('plan_execution_start', { planRunId, step_count: body.plan.length });
 
         // respond immediately (client can open /v1/stream?planRunId=...)
         sendJson(res, 200, { ok: true, planRunId });
@@ -1274,13 +1269,15 @@ export function createServer(opts: { port: number }) {
           }
 
           if (step.requires_confirmation) {
-            metrics.interventions_total += 1;
+            // Track intervention in analytics
+            trackServerEvent('confirmation_requested', { planRunId, stepId: step.stepId });
           }
 
           // confirmation gate if needed
           if (step.requires_confirmation) {
             if (!body.confirmed || body.confirmationText !== "YES") {
-              metrics.confirmation_denied_total += 1;
+              // Track confirmation denied
+              trackServerEvent('confirmation_denied', { planRunId, stepId: step.stepId });
               runSuccessful = false;
               await appendMetricEvent(projectRoot, {
                 type: "confirmation_denied",
@@ -1372,13 +1369,19 @@ export function createServer(opts: { port: number }) {
         const cancelled = runningPlans.get(planRunId)?.cancelled ?? false;
         const runEndedAt = Date.now();
         const runDurationMs = runEndedAt - runStartedAt;
-        metrics.duration_ms_total += runDurationMs;
-        if (cancelled) metrics.runs_cancelled += 1;
-        else if (runSuccessful) metrics.runs_completed += 1;
-        else metrics.runs_failed += 1;
+        
+        // Track execution result in analytics
+        if (cancelled) {
+          trackServerEvent('plan_execution_cancelled', { planRunId, durationMs: runDurationMs });
+        } else if (runSuccessful) {
+          trackServerEvent('plan_execution_complete', { planRunId, durationMs: runDurationMs, devFixer: devFixerSignal });
+        } else {
+          trackServerEvent('plan_execution_failed', { planRunId, durationMs: runDurationMs });
+        }
+        
+        // Track self-heal success if applicable
         if (!cancelled && runSuccessful && devFixerSignal) {
-          metrics.unblock_runs += 1;
-          metrics.unblock_duration_ms_total += runDurationMs;
+          trackServerEvent('self_heal_success', { planRunId, durationMs: runDurationMs });
         }
 
         const finalReport = {
@@ -1427,18 +1430,20 @@ export function createServer(opts: { port: number }) {
 
       // --- METRICS SUMMARY
       if (req.method === "GET" && url.pathname === "/v1/metrics") {
-        const completedOrFailed = metrics.runs_completed + metrics.runs_failed;
-        const completionRate = completedOrFailed === 0 ? 0 : metrics.runs_completed / completedOrFailed;
-        const avgDurationMs = metrics.runs_total === 0 ? 0 : Math.round(metrics.duration_ms_total / metrics.runs_total);
-        const mttrUnblockMs = metrics.unblock_runs === 0 ? 0 : Math.round(metrics.unblock_duration_ms_total / metrics.unblock_runs);
+        // Use persisted analytics metrics
         return sendJson(res, 200, {
           ok: true,
-          metrics: {
-            ...metrics,
-            completion_rate: completionRate,
-            avg_duration_ms: avgDurationMs,
-            mttr_unblock_ms: mttrUnblockMs
-          }
+          metrics: getMetrics()
+        });
+      }
+
+      // --- METRICS DAILY (historical)
+      if (req.method === "GET" && url.pathname === "/v1/metrics/daily") {
+        const from = String(url.searchParams.get("from") || "");
+        const to = String(url.searchParams.get("to") || "");
+        return sendJson(res, 200, {
+          ok: true,
+          daily: getDailyMetrics(from || undefined, to || undefined)
         });
       }
 

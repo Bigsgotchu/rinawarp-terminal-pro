@@ -1,5 +1,6 @@
 import type { IpcMain } from "electron";
 import type { AppContext } from "../context.js";
+import { trackFunnelStep, trackEvent } from "../../analytics.js";
 
 type PtySessionRecord = {
   proc: {
@@ -106,6 +107,10 @@ export function registerPtyIpc(args: {
       },
     });
 
+    // Track first terminal session for conversion funnel
+    trackFunnelStep('first_run', { shell, cwd });
+    trackEvent('terminal_session_start', { shell, cwd });
+
     proc.onData((data: string) => {
       const session = args.ptySessions.get(webContentsId);
       if (session) {
@@ -159,6 +164,9 @@ export function registerPtyIpc(args: {
             `\n[policy] blocked interactive command: ${cmd}\n[policy] ${ex.message}\n` +
               "[policy] Use Run/Plan execution so approvals can be recorded.\n",
           );
+          // Track first block for conversion funnel
+          trackFunnelStep('first_block', { command: cmd, reason: ex.message });
+          trackEvent('command_blocked', { command: cmd, reason: ex.message });
           return { ok: false, error: ex.message || "Blocked by policy." };
         }
         session.proc.write(`${line}\n`);

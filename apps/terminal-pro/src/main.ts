@@ -18,6 +18,7 @@ import { haltReasonFromFallbackStep } from "./plan-fallback.js";
 import type { AppContext } from "./main/context.js";
 import { registerAllIpc } from "./main/ipc/registerAllIpc.js";
 import { resolveResourcePath as resolveMainResourcePath } from "./main/resources.js";
+import { initAnalytics, trackEvent, trackFunnelStep } from "./analytics.js";
 import {
   canonicalizePath,
   isWithinRoot,
@@ -4103,6 +4104,9 @@ async function doctorPlanForIpc(args: { projectRoot: string; symptom: string }) 
 }
 
 app.whenReady().then(() => {
+  // Initialize analytics
+  initAnalytics();
+  
   if (featureFlags.structuredSessionV1) {
     const rootDir = path.join(app.getPath("userData"), "structured-session-v1");
     structuredSessionStore = new StructuredSessionStore(rootDir, true);
@@ -4255,6 +4259,18 @@ app.whenReady().then(() => {
     redactionPreviewForIpc,
   });
   createWindow();
+  
+  // Analytics IPC handler for renderer -> main process funnel tracking
+  ipcMain.handle("rina:analytics:funnel", async (_event, step: string, properties?: Record<string, unknown>) => {
+    try {
+      trackFunnelStep(step as any, properties);
+      return { ok: true };
+    } catch (error) {
+      console.error("[Analytics] Failed to track funnel step:", error);
+      return { ok: false, error: String(error) };
+    }
+  });
+  
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
