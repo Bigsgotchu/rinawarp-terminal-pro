@@ -214,6 +214,8 @@ contextBridge.exposeInMainWorld("rina", {
   // Analytics - conversion funnel tracking
   trackFunnelStep: (step: string, properties?: Record<string, unknown>) =>
     ipcRenderer.invoke("rina:analytics:funnel", step, properties),
+  trackEvent: (event: string, properties?: Record<string, unknown>) =>
+    ipcRenderer.invoke("analytics:trackEvent", event, properties),
 
   // Analytics - Usage tracking
   getUsageStatus: () => ipcRenderer.invoke("analytics:getUsageStatus"),

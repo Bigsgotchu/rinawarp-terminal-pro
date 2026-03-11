@@ -5,8 +5,13 @@
 // Track analytics if available (may not be available in renderer context)
 function trackAnalytics(event: string, properties?: Record<string, unknown>): void {
   try {
-    if (typeof (window as any).rina?.trackFunnelStep === 'function') {
+    const funnelSteps = ['signup', 'first_run', 'first_block', 'upgrade_view', 'paid'];
+    if (funnelSteps.includes(event) && typeof (window as any).rina?.trackFunnelStep === 'function') {
       (window as any).rina.trackFunnelStep(event, properties);
+      return;
+    }
+    if (typeof (window as any).rina?.trackEvent === 'function') {
+      (window as any).rina.trackEvent(event, properties);
     }
   } catch {
     // Ignore analytics errors

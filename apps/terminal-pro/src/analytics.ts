@@ -25,6 +25,41 @@ const POSTHOG_API_KEY = process.env.RINAWARP_POSTHOG_KEY || process.env.POSTHOG_
 const POSTHOG_HOST = process.env.RINAWARP_POSTHOG_HOST || process.env.POSTHOG_HOST || 'https://app.posthog.com';
 const ANALYTICS_DISABLED = process.env.RINAWARP_ANALYTICS_DISABLED === 'true' || process.env.RINAWARP_ANALYTICS_DISABLED === '1' || !POSTHOG_API_KEY;
 
+type FunnelMeta = {
+  lastAppStartAt?: number;
+  firstRunAt?: number;
+  firstBlockAt?: number;
+};
+
+function funnelMetaPath(): string {
+  const userDataPath = app?.getPath?.('userData') || '.';
+  return path.join(userDataPath, 'analytics-funnel.json');
+}
+
+function loadFunnelMeta(): FunnelMeta {
+  try {
+    const fp = funnelMetaPath();
+    if (!fs.existsSync(fp)) return {};
+    const raw = fs.readFileSync(fp, 'utf8');
+    const parsed = JSON.parse(raw) as FunnelMeta;
+    return parsed || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveFunnelMeta(meta: FunnelMeta): void {
+  try {
+    const fp = funnelMetaPath();
+    fs.mkdirSync(path.dirname(fp), { recursive: true });
+    fs.writeFileSync(fp, JSON.stringify(meta, null, 2), 'utf8');
+  } catch {
+    // ignore
+  }
+}
+
+let funnelMeta: FunnelMeta = loadFunnelMeta();
+
 // Device ID storage
 function getDeviceId(): string {
   const userDataPath = app?.getPath?.('userData') || '.';
@@ -270,11 +305,34 @@ export function trackFunnelStep(
   // Mark as tracked
   funnelState[stateKey] = true;
   
-  // Track the event
-  trackEvent(eventMap[step], {
+  const now = Date.now();
+  const enriched: Record<string, unknown> = {
     ...properties,
     funnel_step: step,
     funnel_order: ['signup', 'first_run', 'first_block', 'upgrade_view', 'paid'].indexOf(step) + 1,
+  };
+
+  if (step === 'first_run') {
+    if (!funnelMeta.firstRunAt) funnelMeta.firstRunAt = now;
+    const base = funnelMeta.lastAppStartAt || now;
+    const delta = Math.max(0, now - base);
+    enriched.time_to_first_run_ms = delta;
+    enriched.first_run_within_10m = delta <= 10 * 60 * 1000;
+  }
+
+  if (step === 'first_block') {
+    if (!funnelMeta.firstBlockAt) funnelMeta.firstBlockAt = now;
+    const base = funnelMeta.lastAppStartAt || now;
+    const delta = Math.max(0, now - base);
+    enriched.time_to_first_block_ms = delta;
+    enriched.first_block_within_10m = delta <= 10 * 60 * 1000;
+  }
+
+  saveFunnelMeta(funnelMeta);
+
+  // Track the event
+  trackEvent(eventMap[step], {
+    ...enriched,
   });
 }
 
@@ -297,7 +355,10 @@ export function initAnalytics(): void {
     console.log('[Analytics] Analytics disabled (no POSTHOG_API_KEY set)');
     return;
   }
-  
+
+  funnelMeta.lastAppStartAt = Date.now();
+  saveFunnelMeta(funnelMeta);
+
   console.log('[Analytics] Initialized with device ID:', getDeviceId().slice(0, 8) + '...');
   
   setSuperProperties({
