@@ -1,21 +1,21 @@
 {
-  "runs_total": 4,
+  "runs_total": 6,
   "runs_completed": 0,
-  "runs_failed": 4,
+  "runs_failed": 6,
   "runs_cancelled": 0,
   "interventions_total": 0,
   "confirmation_denied_total": 0,
   "failure_classes": {
-    "invalid_plan": 4
+    "invalid_plan": 6
   },
   "duration_ms_total": 0,
   "unblock_runs": 0,
   "unblock_duration_ms_total": 0,
   "daily": {
     "2026-03-11": {
-      "runs": 4,
+      "runs": 6,
       "completed": 0,
-      "failed": 4,
+      "failed": 6,
       "revenue_events": 0,
       "new_users": 0
     }
