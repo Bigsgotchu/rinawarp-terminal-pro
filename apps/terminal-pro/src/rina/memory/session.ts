@@ -128,3 +128,13 @@ export function getMemoryStats(): {
     newestEntry: sessionMemory[sessionMemory.length - 1]?.timestamp ?? null
   };
 }
+
+/**
+ * Search memory for keyword
+ */
+export function searchMemory(keyword: string): readonly MemoryEntry[] {
+  const lower = keyword.toLowerCase();
+  return sessionMemory.filter(entry => 
+    entry.message.toLowerCase().includes(lower)
+  );
+}
