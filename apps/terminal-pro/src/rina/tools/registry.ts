@@ -71,6 +71,8 @@ export interface ValidationResult {
 import { terminalTool } from "./terminal.js";
 import { filesystemTool } from "./filesystem.js";
 import { systemTool } from "./system.js";
+import { gitTool, gitTools } from "./git.js";
+import { dockerTool, dockerTools } from "./docker.js";
 
 /**
  * Tool registry
@@ -79,8 +81,9 @@ export const RinaTools: Record<string, RinaTool> = {
   terminal: terminalTool,
   filesystem: filesystemTool,
   system: systemTool,
-  search: createSearchTool(),
-  git: createGitTool()
+  git: gitTool,
+  docker: dockerTool,
+  search: createSearchTool()
 };
 
 /**
@@ -99,28 +102,6 @@ function createSearchTool(): RinaTool {
         output: {
           message: "Search tool ready. Connect to workspace for full search functionality.",
           query: task.input.query
-        }
-      };
-    }
-  };
-}
-
-/**
- * Create a git tool (placeholder for full implementation)
- */
-function createGitTool(): RinaTool {
-  return {
-    name: "git",
-    description: "Execute git operations",
-    canHandle(task: RinaTask) {
-      return task.tool === "git";
-    },
-    async execute(task: RinaTask) {
-      return {
-        ok: true,
-        output: {
-          message: "Git tool ready. Use terminal for git commands.",
-          command: task.input.command
         }
       };
     }
