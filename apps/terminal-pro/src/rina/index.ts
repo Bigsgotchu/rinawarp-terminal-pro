@@ -7,8 +7,8 @@
  * Additive architecture - does not modify existing core functionality.
  */
 
-import { rinaController, type RinaResponse } from "./rina-controller.js";
-import { rinaPersona, type RinaPersonaContext } from "./personality.js";
+import { rinaController } from "./rina-controller.js";
+import { rinaPersona, type RinaPersonaContext, type RinaMood } from "./personality.js";
 
 // Brain - Intent interpretation
 export { rinaBrain, type RinaTask, type ExecutionMode } from "./brain.js";
@@ -84,9 +84,10 @@ export { filesystemTool } from "./tools/filesystem.js";
 // System tool
 export { systemTool } from "./tools/system.js";
 
-// Main controller
+// Main controller - re-export from rina-controller
 export { 
   rinaController, 
+  handleRinaMessage, 
   executeConfirmedCommand,
   type RinaController,
   type RinaResponse 
@@ -99,20 +100,23 @@ export {
   type ReflectionResult
 } from "./reflection.js";
 
-// Personality
+// Personality - re-export from personality module
 export {
   rinaPersona,
-  type RinaPersonaContext
+  type RinaPersonaContext,
+  type RinaMood
 } from "./personality.js";
 
 /**
  * Handle a message from the user - main entry point
  * Combines personality, chat responses, and agent execution
+ * 
+ * @deprecated Use handleRinaMessage from rina-controller instead
  */
-export async function handleRinaMessage(
+export async function handleRinaMessageWithPersonality(
   message: string, 
   context?: RinaPersonaContext
-): Promise<RinaResponse> {
+): Promise<import("./rina-controller.js").RinaResponse> {
   // Use provided context or get from persona
   context = context || rinaPersona.getContext();
   
@@ -157,10 +161,10 @@ export async function handleRinaMessage(
 /**
  * Generate a chat reply based on mood
  */
-function getChatReply(message: string, context: RinaPersonaContext): string {
+function getChatReply(message: string, ctx: RinaPersonaContext): string {
   const lowerMessage = message.toLowerCase();
   
-  switch (context.mood) {
+  switch (ctx.mood) {
     case "playful":
       return `Haha! I see you said: "${message}". 😄 What else can I help you with?`;
     case "curious":
