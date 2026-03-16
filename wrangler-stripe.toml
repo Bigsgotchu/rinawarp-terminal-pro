@@ -1,0 +1,13 @@
+name = "rinawarp-stripe-webhook"
+main = "combined-worker.js"
+compatibility_date = "2024-01-01"
+account_id = "ba2f14cefa19dbdc42ff88d772410689"
+
+routes = ["api.rinawarptech.com/api/stripe/webhook"]
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = false
+invocation_logs = true

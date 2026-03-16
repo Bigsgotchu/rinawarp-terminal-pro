@@ -11,56 +11,56 @@
  */
 
 // Re-export pure types - tools import from types.js to avoid cycles
-export * from "./types.js";
-export * from "./engine-cap.js";
+export * from './types.js'
+export * from './engine-cap.js'
 
-import { createEngineCap, type EngineCap } from "./engine-cap.js";
+import { createEngineCap, type EngineCap } from './engine-cap.js'
 import type {
-	Tool,
-	ToolCategory,
-	LicenseTier,
-	ConfirmationToken,
-	PlanStep,
-	ExecutionReport,
-	ExecutionContext,
-	ToolResult,
-	FailureClass,
-} from "./types.js";
+  Tool,
+  ToolCategory,
+  LicenseTier,
+  ConfirmationToken,
+  PlanStep,
+  ExecutionReport,
+  ExecutionContext,
+  ToolResult,
+  FailureClass,
+} from './types.js'
 
 /**
  * ToolRegistry: single authoritative allowlist for all tools.
  * Unknown tools are hard-blocked at execution time.
  */
 export class ToolRegistry {
-	private readonly tools = new Map<string, Tool>();
+  private readonly tools = new Map<string, Tool>()
 
-	register(tool: Tool): void {
-		if (this.tools.has(tool.name)) {
-			throw new Error(`Duplicate tool registration: ${tool.name}`);
-		}
-		this.tools.set(tool.name, tool);
-	}
+  register(tool: Tool): void {
+    if (this.tools.has(tool.name)) {
+      throw new Error(`Duplicate tool registration: ${tool.name}`)
+    }
+    this.tools.set(tool.name, tool)
+  }
 
-	get(name: string): Tool | undefined {
-		return this.tools.get(name);
-	}
+  get(name: string): Tool | undefined {
+    return this.tools.get(name)
+  }
 
-	has(name: string): boolean {
-		return this.tools.has(name);
-	}
+  has(name: string): boolean {
+    return this.tools.has(name)
+  }
 
-	list(): string[] {
-		return [...this.tools.keys()].sort();
-	}
+  list(): string[] {
+    return [...this.tools.keys()].sort()
+  }
 
-	/**
-	 * Register multiple tools at once (batch operation)
-	 */
-	registerMany(tools: Tool[]): void {
-		for (const tool of tools) {
-			this.register(tool);
-		}
-	}
+  /**
+   * Register multiple tools at once (batch operation)
+   */
+  registerMany(tools: Tool[]): void {
+    for (const tool of tools) {
+      this.register(tool)
+    }
+  }
 }
 
 /**
@@ -70,54 +70,54 @@ export class ToolRegistry {
  * - founder/enterprise: all tools
  */
 export class LicensePolicy {
-	static canUseTool(license: LicenseTier, tool: Tool): boolean {
-		if (tool.category !== "high-impact") return true;
+  static canUseTool(license: LicenseTier, tool: Tool): boolean {
+    if (tool.category !== 'high-impact') return true
 
-		// High-impact tools are gated by license tier
-		if (license === "starter" || license === "creator") {
-			return false;
-		}
+    // High-impact tools are gated by license tier
+    if (license === 'starter' || license === 'creator') {
+      return false
+    }
 
-		// pro/pioneer: allow only deploy.prod
-		if (license === "pro" || license === "pioneer") {
-			return tool.name === "deploy.prod";
-		}
+    // pro/pioneer: allow only deploy.prod
+    if (license === 'pro' || license === 'pioneer') {
+      return tool.name === 'deploy.prod'
+    }
 
-		// founder/enterprise: allow all high-impact tools
-		return true;
-	}
+    // founder/enterprise: allow all high-impact tools
+    return true
+  }
 
-	static getAllowedCategories(license: LicenseTier): ToolCategory[] {
-		const allCategories: ToolCategory[] = ["read", "safe-write", "planning"];
+  static getAllowedCategories(license: LicenseTier): ToolCategory[] {
+    const allCategories: ToolCategory[] = ['read', 'safe-write', 'planning']
 
-		if (license === "starter" || license === "creator") {
-			return allCategories;
-		}
+    if (license === 'starter' || license === 'creator') {
+      return allCategories
+    }
 
-		// pro+ can use all categories
-		return [...allCategories, "high-impact"];
-	}
+    // pro+ can use all categories
+    return [...allCategories, 'high-impact']
+  }
 }
 
 /**
  * ConfirmationPolicy: determines when explicit user confirmation is required.
  */
 export class ConfirmationPolicy {
-	static needsExplicitConfirmation(tool: Tool): boolean {
-		return tool.category === "high-impact" || tool.requiresConfirmation;
-	}
+  static needsExplicitConfirmation(tool: Tool): boolean {
+    return tool.category === 'high-impact' || tool.requiresConfirmation
+  }
 
-	static isTokenValidForStep(token: ConfirmationToken | undefined, step: PlanStep): boolean {
-		if (!step.confirmationScope) return false;
-		if (!token) return false;
-		if (token.kind !== "explicit") return false;
-		if (!token.approved) return false;
-		return token.scope === step.confirmationScope;
-	}
+  static isTokenValidForStep(token: ConfirmationToken | undefined, step: PlanStep): boolean {
+    if (!step.confirmationScope) return false
+    if (!token) return false
+    if (token.kind !== 'explicit') return false
+    if (!token.approved) return false
+    return token.scope === step.confirmationScope
+  }
 
-	static generateScope(action: string, target: string): string {
-		return `${action} ${target}`;
-	}
+  static generateScope(action: string, target: string): string {
+    return `${action} ${target}`
+  }
 }
 
 /**
@@ -131,308 +131,308 @@ export class ConfirmationPolicy {
  * 5. Verification step enforcement
  */
 export class ExecutionEngine {
-	constructor(private readonly registry: ToolRegistry) {}
+  constructor(private readonly registry: ToolRegistry) {}
 
-	async execute(plan: PlanStep[], ctx: ExecutionContext): Promise<ExecutionReport> {
-		const report: ExecutionReport = { ok: true, steps: [] };
+  async execute(plan: PlanStep[], ctx: ExecutionContext): Promise<ExecutionReport> {
+    const report: ExecutionReport = { ok: true, steps: [] }
 
-		for (const step of plan) {
-			// 1. Stop requested check
-			if (ctx.stopRequested) {
-				report.ok = false;
-				report.haltedBecause = "stop_requested";
-				break;
-			}
+    for (const step of plan) {
+      // 1. Stop requested check
+      if (ctx.stopRequested) {
+        report.ok = false
+        report.haltedBecause = 'stop_requested'
+        break
+      }
 
-			// 2. Registry allowlist check
-			const tool = this.registry.get(step.tool);
-			if (!tool) {
-				report.ok = false;
-				report.haltedBecause = "unknown_tool";
-				report.steps.push({
-					step,
-					startedAt: Date.now(),
-					finishedAt: Date.now(),
-					result: { success: false, error: `Unknown tool: ${step.tool}` },
-					failure_class: "tool_unavailable",
-					audit: buildAudit(step),
-				});
-				break;
-			}
+      // 2. Registry allowlist check
+      const tool = this.registry.get(step.tool)
+      if (!tool) {
+        report.ok = false
+        report.haltedBecause = 'unknown_tool'
+        report.steps.push({
+          step,
+          startedAt: Date.now(),
+          finishedAt: Date.now(),
+          result: { success: false, error: `Unknown tool: ${step.tool}` },
+          failure_class: 'tool_unavailable',
+          audit: buildAudit(step),
+        })
+        break
+      }
 
-			// 2.5. Emergency controls
-			const emergencyBlock = getEmergencyBlockReason(tool);
-			if (emergencyBlock) {
-				report.ok = false;
-				report.haltedBecause = emergencyBlock.haltedBecause;
-				report.steps.push({
-					step,
-					startedAt: Date.now(),
-					finishedAt: Date.now(),
-					result: { success: false, error: emergencyBlock.error },
-					failure_class: emergencyBlock.failureClass,
-					audit: buildAudit(step),
-				});
-				break;
-			}
+      // 2.5. Emergency controls
+      const emergencyBlock = getEmergencyBlockReason(tool)
+      if (emergencyBlock) {
+        report.ok = false
+        report.haltedBecause = emergencyBlock.haltedBecause
+        report.steps.push({
+          step,
+          startedAt: Date.now(),
+          finishedAt: Date.now(),
+          result: { success: false, error: emergencyBlock.error },
+          failure_class: emergencyBlock.failureClass,
+          audit: buildAudit(step),
+        })
+        break
+      }
 
-			// 3. License gating
-			if (!LicensePolicy.canUseTool(ctx.license, tool)) {
-				report.ok = false;
-				report.haltedBecause = "license_block";
-				report.steps.push({
-					step,
-					startedAt: Date.now(),
-					finishedAt: Date.now(),
-					result: { success: false, error: `Blocked by license (${ctx.license}): ${tool.name}` },
-					failure_class: "command_error",
-					audit: buildAudit(step),
-				});
-				break;
-			}
+      // 3. License gating
+      if (!LicensePolicy.canUseTool(ctx.license, tool)) {
+        report.ok = false
+        report.haltedBecause = 'license_block'
+        report.steps.push({
+          step,
+          startedAt: Date.now(),
+          finishedAt: Date.now(),
+          result: { success: false, error: `Blocked by license (${ctx.license}): ${tool.name}` },
+          failure_class: 'command_error',
+          audit: buildAudit(step),
+        })
+        break
+      }
 
-			// 4. Plan safety contract enforcement
-			const safetyErrors = validateSafetyFields(step, tool);
-			if (safetyErrors.length > 0) {
-				report.ok = false;
-				report.haltedBecause = "invalid_plan";
-				report.steps.push({
-					step,
-					startedAt: Date.now(),
-					finishedAt: Date.now(),
-					result: { success: false, error: `Invalid step safety fields: ${safetyErrors.join("; ")}` },
-					failure_class: "command_error",
-					audit: buildAudit(step),
-				});
-				break;
-			}
+      // 4. Plan safety contract enforcement
+      const safetyErrors = validateSafetyFields(step, tool)
+      if (safetyErrors.length > 0) {
+        report.ok = false
+        report.haltedBecause = 'invalid_plan'
+        report.steps.push({
+          step,
+          startedAt: Date.now(),
+          finishedAt: Date.now(),
+          result: { success: false, error: `Invalid step safety fields: ${safetyErrors.join('; ')}` },
+          failure_class: 'command_error',
+          audit: buildAudit(step),
+        })
+        break
+      }
 
-			// 5. Scoped explicit confirmation
-			if (step.requires_confirmation) {
-				const ok = ConfirmationPolicy.isTokenValidForStep(ctx.confirmationToken, step);
-				if (!ok) {
-					report.ok = false;
-					report.haltedBecause = "confirmation_required";
-				report.steps.push({
-					step,
-					startedAt: Date.now(),
-					finishedAt: Date.now(),
-					result: { success: false, error: `Explicit confirmation required: ${tool.name}` },
-					failure_class: "command_error",
-					audit: buildAudit(step),
-				});
-				break;
-			}
-			}
+      // 5. Scoped explicit confirmation
+      if (step.requires_confirmation) {
+        const ok = ConfirmationPolicy.isTokenValidForStep(ctx.confirmationToken, step)
+        if (!ok) {
+          report.ok = false
+          report.haltedBecause = 'confirmation_required'
+          report.steps.push({
+            step,
+            startedAt: Date.now(),
+            finishedAt: Date.now(),
+            result: { success: false, error: `Explicit confirmation required: ${tool.name}` },
+            failure_class: 'command_error',
+            audit: buildAudit(step),
+          })
+          break
+        }
+      }
 
-			// 6. Tool execution
-			const startedAt = Date.now();
-			const cap = createEngineCap();
-			const result = await tool.run(step.input, ctx, cap);
-			const finishedAt = Date.now();
+      // 6. Tool execution
+      const startedAt = Date.now()
+      const cap = createEngineCap()
+      const result = await tool.run(step.input, ctx, cap)
+      const finishedAt = Date.now()
 
-			// 7. Output surfacing (Never-Do: silent success)
-			if (result.success && (!result.output || result.output.trim().length === 0)) {
-				report.ok = false;
-				report.haltedBecause = "verification_failed";
-				report.steps.push({
-					step,
-					startedAt,
-					finishedAt,
-					result: { success: false, error: "Tool claimed success without surfaced output" },
-					failure_class: "command_error",
-					audit: buildAudit(step),
-				});
-				break;
-			}
+      // 7. Output surfacing (Never-Do: silent success)
+      if (result.success && (!result.output || result.output.trim().length === 0)) {
+        report.ok = false
+        report.haltedBecause = 'verification_failed'
+        report.steps.push({
+          step,
+          startedAt,
+          finishedAt,
+          result: { success: false, error: 'Tool claimed success without surfaced output' },
+          failure_class: 'command_error',
+          audit: buildAudit(step),
+        })
+        break
+      }
 
-			const entry: ExecutionReport["steps"][number] = {
-				step,
-				startedAt,
-				finishedAt,
-				result,
-				audit: buildAudit(step),
-			};
+      const entry: ExecutionReport['steps'][number] = {
+        step,
+        startedAt,
+        finishedAt,
+        result,
+        audit: buildAudit(step),
+      }
 
-			// 8. Verification enforcement
-			const verificationSteps = step.verification_plan?.steps ?? step.verify ?? [];
-			if (result.success && verificationSteps.length) {
-				entry.verification = [];
-				for (const v of verificationSteps) {
-					const vtool = this.registry.get(v.tool);
-					if (!vtool) {
-						report.ok = false;
-						report.haltedBecause = "unknown_tool";
-						entry.verification.push({
-							tool: v.tool,
-							result: { success: false, error: `Unknown verification tool: ${v.tool}` },
-						});
-						break;
-					}
+      // 8. Verification enforcement
+      const verificationSteps = step.verification_plan?.steps ?? step.verify ?? []
+      if (result.success && verificationSteps.length) {
+        entry.verification = []
+        for (const v of verificationSteps) {
+          const vtool = this.registry.get(v.tool)
+          if (!vtool) {
+            report.ok = false
+            report.haltedBecause = 'unknown_tool'
+            entry.verification.push({
+              tool: v.tool,
+              result: { success: false, error: `Unknown verification tool: ${v.tool}` },
+            })
+            break
+          }
 
-					const vres = await vtool.run(v.input, ctx, cap);
-					entry.verification.push({ tool: v.tool, result: vres });
+          const vres = await vtool.run(v.input, ctx, cap)
+          entry.verification.push({ tool: v.tool, result: vres })
 
-					if (!vres.success) {
-						entry.failure_class = classifyFailure(vres.error);
-						report.ok = false;
-						report.haltedBecause = "verification_failed";
-						break;
-					}
-				}
-			}
+          if (!vres.success) {
+            entry.failure_class = classifyFailure(vres.error)
+            report.ok = false
+            report.haltedBecause = 'verification_failed'
+            break
+          }
+        }
+      }
 
-			report.steps.push(entry);
+      report.steps.push(entry)
 
-			// Early exit on failure
-			if (!report.ok) break;
-			if (!result.success) {
-				const failureClass = classifyFailure(result.error);
-				entry.failure_class = failureClass;
-				report.ok = false;
-				report.haltedBecause = failureClass;
-				break;
-			}
-		}
+      // Early exit on failure
+      if (!report.ok) break
+      if (!result.success) {
+        const failureClass = classifyFailure(result.error)
+        entry.failure_class = failureClass
+        report.ok = false
+        report.haltedBecause = failureClass
+        break
+      }
+    }
 
-		return report;
-	}
+    return report
+  }
 }
 
-function buildAudit(step: PlanStep): ExecutionReport["steps"][number]["audit"] {
-	return {
-		tool: step.tool,
-		input_redacted: redactInput(step.input),
-		risk_level: step.risk_level,
-		requires_confirmation: step.requires_confirmation,
-	};
+function buildAudit(step: PlanStep): ExecutionReport['steps'][number]['audit'] {
+  return {
+    tool: step.tool,
+    input_redacted: redactInput(step.input),
+    risk_level: step.risk_level,
+    requires_confirmation: step.requires_confirmation,
+  }
 }
 
 function classifyFailure(error: string): FailureClass {
-	const msg = error.toLowerCase();
-	if (msg.includes("permission denied") || msg.includes("eacces") || msg.includes("eperm")) {
-		return "permission_denied";
-	}
-	if (
-		msg.includes("not found") ||
-		msg.includes("unknown tool") ||
-		msg.includes("unavailable") ||
-		msg.includes("enoent")
-	) {
-		return "tool_unavailable";
-	}
-	if (msg.includes("timeout") || msg.includes("timed out")) {
-		return "timeout";
-	}
-	if (msg.includes("partial")) {
-		return "partial_execution";
-	}
-	return "command_error";
+  const msg = error.toLowerCase()
+  if (msg.includes('permission denied') || msg.includes('eacces') || msg.includes('eperm')) {
+    return 'permission_denied'
+  }
+  if (
+    msg.includes('not found') ||
+    msg.includes('unknown tool') ||
+    msg.includes('unavailable') ||
+    msg.includes('enoent')
+  ) {
+    return 'tool_unavailable'
+  }
+  if (msg.includes('timeout') || msg.includes('timed out')) {
+    return 'timeout'
+  }
+  if (msg.includes('partial')) {
+    return 'partial_execution'
+  }
+  return 'command_error'
 }
 
 function redactInput(input: unknown): unknown {
-	if (input === null || input === undefined) return input;
-	if (Array.isArray(input)) return input.map(redactInput);
-	if (typeof input !== "object") return input;
-	const obj = input as Record<string, unknown>;
-	const out: Record<string, unknown> = {};
-	for (const [key, value] of Object.entries(obj)) {
-		if (isSensitiveKey(key)) {
-			out[key] = "[REDACTED]";
-			continue;
-		}
-		out[key] = redactInput(value);
-	}
-	return out;
+  if (input === null || input === undefined) return input
+  if (Array.isArray(input)) return input.map(redactInput)
+  if (typeof input !== 'object') return input
+  const obj = input as Record<string, unknown>
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (isSensitiveKey(key)) {
+      out[key] = '[REDACTED]'
+      continue
+    }
+    out[key] = redactInput(value)
+  }
+  return out
 }
 
 function isSensitiveKey(key: string): boolean {
-	const k = key.toLowerCase();
-	return (
-		k.includes("token") ||
-		k.includes("secret") ||
-		k.includes("password") ||
-		k.includes("passwd") ||
-		k.includes("api_key") ||
-		k === "authorization"
-	);
+  const k = key.toLowerCase()
+  return (
+    k.includes('token') ||
+    k.includes('secret') ||
+    k.includes('password') ||
+    k.includes('passwd') ||
+    k.includes('api_key') ||
+    k === 'authorization'
+  )
 }
 
 function getEmergencyBlockReason(
-	tool: Tool,
+  tool: Tool
 ): { haltedBecause: FailureClass; failureClass: FailureClass; error: string } | undefined {
-	const readOnlyMode = process.env.RINAWARP_EMERGENCY_READ_ONLY === "1";
-	const disableHighImpact = process.env.RINAWARP_DISABLE_HIGH_IMPACT === "1";
-	const disabledToolList = (process.env.RINAWARP_BLOCK_TOOLS ?? "")
-		.split(",")
-		.map((x) => x.trim())
-		.filter(Boolean);
+  const readOnlyMode = process.env.RINAWARP_EMERGENCY_READ_ONLY === '1'
+  const disableHighImpact = process.env.RINAWARP_DISABLE_HIGH_IMPACT === '1'
+  const disabledToolList = (process.env.RINAWARP_BLOCK_TOOLS ?? '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
 
-	if (readOnlyMode && tool.category !== "read") {
-		return {
-			haltedBecause: "permission_denied",
-			failureClass: "permission_denied",
-			error: `Emergency read-only mode blocks tool: ${tool.name}`,
-		};
-	}
-	if (disableHighImpact && tool.category === "high-impact") {
-		return {
-			haltedBecause: "permission_denied",
-			failureClass: "permission_denied",
-			error: `Emergency high-impact block enabled for tool: ${tool.name}`,
-		};
-	}
-	if (disabledToolList.includes(tool.name)) {
-		return {
-			haltedBecause: "tool_unavailable",
-			failureClass: "tool_unavailable",
-			error: `Tool blocked by emergency policy: ${tool.name}`,
-		};
-	}
-	return undefined;
+  if (readOnlyMode && tool.category !== 'read') {
+    return {
+      haltedBecause: 'permission_denied',
+      failureClass: 'permission_denied',
+      error: `Emergency read-only mode blocks tool: ${tool.name}`,
+    }
+  }
+  if (disableHighImpact && tool.category === 'high-impact') {
+    return {
+      haltedBecause: 'permission_denied',
+      failureClass: 'permission_denied',
+      error: `Emergency high-impact block enabled for tool: ${tool.name}`,
+    }
+  }
+  if (disabledToolList.includes(tool.name)) {
+    return {
+      haltedBecause: 'tool_unavailable',
+      failureClass: 'tool_unavailable',
+      error: `Tool blocked by emergency policy: ${tool.name}`,
+    }
+  }
+  return undefined
 }
 
 function validateSafetyFields(step: PlanStep, tool: Tool): string[] {
-	const errors: string[] = [];
-	const allowedRiskLevels = new Set(["low", "medium", "high"]);
-	const expectedRiskLevel = getExpectedRiskLevel(tool.category);
-	const expectedRequiresConfirmation = ConfirmationPolicy.needsExplicitConfirmation(tool);
+  const errors: string[] = []
+  const allowedRiskLevels = new Set(['low', 'medium', 'high'])
+  const expectedRiskLevel = getExpectedRiskLevel(tool.category)
+  const expectedRequiresConfirmation = ConfirmationPolicy.needsExplicitConfirmation(tool)
 
-	if (!step.description || step.description.trim().length === 0) {
-		errors.push("description is required");
-	}
+  if (!step.description || step.description.trim().length === 0) {
+    errors.push('description is required')
+  }
 
-	if (!step.risk_level) {
-		errors.push("risk_level is required");
-	} else if (!allowedRiskLevels.has(step.risk_level)) {
-		errors.push(`risk_level must be one of: low, medium, high`);
-	} else if (step.risk_level !== expectedRiskLevel) {
-		errors.push(`risk_level mismatch (expected ${expectedRiskLevel}, got ${step.risk_level})`);
-	}
+  if (!step.risk_level) {
+    errors.push('risk_level is required')
+  } else if (!allowedRiskLevels.has(step.risk_level)) {
+    errors.push(`risk_level must be one of: low, medium, high`)
+  } else if (step.risk_level !== expectedRiskLevel) {
+    errors.push(`risk_level mismatch (expected ${expectedRiskLevel}, got ${step.risk_level})`)
+  }
 
-	if (typeof step.requires_confirmation !== "boolean") {
-		errors.push("requires_confirmation is required");
-	} else if (step.requires_confirmation !== expectedRequiresConfirmation) {
-		errors.push(
-			`requires_confirmation mismatch (expected ${String(expectedRequiresConfirmation)}, got ${String(step.requires_confirmation)})`,
-		);
-	}
+  if (typeof step.requires_confirmation !== 'boolean') {
+    errors.push('requires_confirmation is required')
+  } else if (step.requires_confirmation !== expectedRequiresConfirmation) {
+    errors.push(
+      `requires_confirmation mismatch (expected ${String(expectedRequiresConfirmation)}, got ${String(step.requires_confirmation)})`
+    )
+  }
 
-	if (!step.verification_plan) {
-		errors.push("verification_plan is required");
-	} else if (!Array.isArray(step.verification_plan.steps)) {
-		errors.push("verification_plan.steps must be an array");
-	}
+  if (!step.verification_plan) {
+    errors.push('verification_plan is required')
+  } else if (!Array.isArray(step.verification_plan.steps)) {
+    errors.push('verification_plan.steps must be an array')
+  }
 
-	if (step.requires_confirmation && !step.confirmationScope) {
-		errors.push("confirmationScope is required when requires_confirmation=true");
-	}
+  if (step.requires_confirmation && !step.confirmationScope) {
+    errors.push('confirmationScope is required when requires_confirmation=true')
+  }
 
-	return errors;
+  return errors
 }
 
-function getExpectedRiskLevel(category: ToolCategory): "low" | "medium" | "high" {
-	if (category === "high-impact") return "high";
-	if (category === "safe-write") return "medium";
-	return "low";
+function getExpectedRiskLevel(category: ToolCategory): 'low' | 'medium' | 'high' {
+  if (category === 'high-impact') return 'high'
+  if (category === 'safe-write') return 'medium'
+  return 'low'
 }

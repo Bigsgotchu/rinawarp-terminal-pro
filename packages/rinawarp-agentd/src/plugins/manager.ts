@@ -1,28 +1,28 @@
 /**
  * Plugin Manager
- * 
+ *
  * Loads and manages plugins.
  */
 
-import type { Plugin, PluginManifest, PluginSuggestion, PluginContext } from "./api.js";
-import { hasPermission } from "./api.js";
+import type { Plugin, PluginManifest, PluginSuggestion, PluginContext } from './api.js'
+import { hasPermission } from './api.js'
 
 export interface PluginManagerConfig {
-  pluginDirs: string[];
-  disabledPlugins: string[];
+  pluginDirs: string[]
+  disabledPlugins: string[]
 }
 
 const DEFAULT_CONFIG: PluginManagerConfig = {
-  pluginDirs: ["./plugins", "~/.rinawarp/plugins"],
+  pluginDirs: ['./plugins', '~/.rinawarp/plugins'],
   disabledPlugins: [],
-};
+}
 
 export class PluginManager {
-  private plugins: Map<string, Plugin> = new Map();
-  private config: PluginManagerConfig;
+  private plugins: Map<string, Plugin> = new Map()
+  private config: PluginManagerConfig
 
   constructor(config: Partial<PluginManagerConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.config = { ...DEFAULT_CONFIG, ...config }
   }
 
   /**
@@ -31,63 +31,63 @@ export class PluginManager {
   async load(plugin: Plugin): Promise<void> {
     // Skip if disabled
     if (this.config.disabledPlugins.includes(plugin.manifest.name)) {
-      return;
+      return
     }
 
     // Check for onLoad hook
     if (plugin.onLoad) {
-      await plugin.onLoad();
+      await plugin.onLoad()
     }
 
-    this.plugins.set(plugin.manifest.name, plugin);
+    this.plugins.set(plugin.manifest.name, plugin)
   }
 
   /**
    * Unload a plugin
    */
   async unload(name: string): Promise<void> {
-    const plugin = this.plugins.get(name);
-    if (!plugin) return;
+    const plugin = this.plugins.get(name)
+    if (!plugin) return
 
     if (plugin.onUnload) {
-      await plugin.onUnload();
+      await plugin.onUnload()
     }
 
-    this.plugins.delete(name);
+    this.plugins.delete(name)
   }
 
   /**
    * Get plugin by name
    */
   get(name: string): Plugin | undefined {
-    return this.plugins.get(name);
+    return this.plugins.get(name)
   }
 
   /**
    * List all plugins
    */
   list(): Plugin[] {
-    return Array.from(this.plugins.values());
+    return Array.from(this.plugins.values())
   }
 
   /**
    * Get suggestions from all plugins
    */
   async getSuggestions(context: PluginContext): Promise<PluginSuggestion[]> {
-    const suggestions: PluginSuggestion[] = [];
+    const suggestions: PluginSuggestion[] = []
 
     for (const plugin of this.plugins.values()) {
       // Check permission
-      if (!hasPermission(plugin, "suggestions")) continue;
+      if (!hasPermission(plugin, 'suggestions')) continue
 
       try {
-        const result = await plugin.onSuggest?.(context);
+        const result = await plugin.onSuggest?.(context)
         if (result) {
           for (const cmd of result) {
             suggestions.push({
               command: cmd,
               reason: `Plugin: ${plugin.manifest.name}`,
-            });
+            })
           }
         }
       } catch {
@@ -95,7 +95,7 @@ export class PluginManager {
       }
     }
 
-    return suggestions;
+    return suggestions
   }
 
   /**
@@ -104,19 +104,19 @@ export class PluginManager {
   async processCommand(command: string): Promise<PluginSuggestion | null> {
     for (const plugin of this.plugins.values()) {
       // Check permission
-      if (!hasPermission(plugin, "terminal")) continue;
+      if (!hasPermission(plugin, 'terminal')) continue
 
       try {
-        const result = await plugin.onCommand?.(command);
+        const result = await plugin.onCommand?.(command)
         if (result) {
-          return result;
+          return result
         }
       } catch {
         // Skip plugins that error
       }
     }
 
-    return null;
+    return null
   }
 
   /**
@@ -129,11 +129,11 @@ export class PluginManager {
 }
 
 // Singleton
-let pluginManager: PluginManager | null = null;
+let pluginManager: PluginManager | null = null
 
 export function getPluginManager(): PluginManager {
   if (!pluginManager) {
-    pluginManager = new PluginManager();
+    pluginManager = new PluginManager()
   }
-  return pluginManager;
+  return pluginManager
 }

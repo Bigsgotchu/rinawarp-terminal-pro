@@ -5,44 +5,50 @@
  */
 
 function getRina(): any {
-  return (window as unknown as { rina: unknown }).rina;
+  return (window as unknown as { rina: unknown }).rina
 }
 
 function esc(s: unknown): string {
-  return String(s ?? "")
-    .replaceAll("&", "&")
-    .replaceAll("<", "<")
-    .replaceAll(">", ">");
+  return String(s ?? '')
+    .replaceAll('&', '&')
+    .replaceAll('<', '<')
+    .replaceAll('>', '>')
 }
 
 function fmtMs(ms: number | null | undefined): string {
-  if (ms == null || !Number.isFinite(ms)) return "—";
-  if (ms < 1) return `${(ms * 1000).toFixed(0)}μs`;
-  if (ms < 1000) return `${ms.toFixed(1)}ms`;
-  return `${(ms / 1000).toFixed(2)}s`;
+  if (ms == null || !Number.isFinite(ms)) return '—'
+  if (ms < 1) return `${(ms * 1000).toFixed(0)}μs`
+  if (ms < 1000) return `${ms.toFixed(1)}ms`
+  return `${(ms / 1000).toFixed(2)}s`
 }
 
 function renderStatus(status: any): string {
   if (!status) {
-    return `<div class="rw-muted">No retrieval status. Click refresh to fetch.</div>`;
+    return `<div class="rw-muted">No retrieval status. Click refresh to fetch.</div>`
   }
 
-  const mode = status.mode || "unknown";
-  const indexedPaths = status.indexedPaths || [];
-  const lastIndexTime = status.lastIndexTime ? new Date(status.lastIndexTime).toLocaleString() : "Never";
-  const metrics = status.metrics || {};
+  const mode = status.mode || 'unknown'
+  const indexedPaths = status.indexedPaths || []
+  const lastIndexTime = status.lastIndexTime ? new Date(status.lastIndexTime).toLocaleString() : 'Never'
+  const metrics = status.metrics || {}
 
   const pathRows = indexedPaths.length
-    ? indexedPaths.map((p: string) => `<div class="rw-kv"><div class="rw-k">${esc(p)}</div><div class="rw-v rw-ok">indexed</div></div>`).join("")
-    : `<div class="rw-muted">No paths indexed yet.</div>`;
+    ? indexedPaths
+        .map(
+          (p: string) =>
+            `<div class="rw-kv"><div class="rw-k">${esc(p)}</div><div class="rw-v rw-ok">indexed</div></div>`
+        )
+        .join('')
+    : `<div class="rw-muted">No paths indexed yet.</div>`
 
-  const latencyRow = metrics.p95LatencyMs != null
-    ? `<div class="rw-kv"><div class="rw-k">P95 Latency</div><div class="rw-v">${fmtMs(metrics.p95LatencyMs)}</div></div>`
-    : `<div class="rw-kv"><div class="rw-k">P95 Latency</div><div class="rw-muted">—</div></div>`;
+  const latencyRow =
+    metrics.p95LatencyMs != null
+      ? `<div class="rw-kv"><div class="rw-k">P95 Latency</div><div class="rw-v">${fmtMs(metrics.p95LatencyMs)}</div></div>`
+      : `<div class="rw-kv"><div class="rw-k">P95 Latency</div><div class="rw-muted">—</div></div>`
 
-  const retrievalCount = metrics.totalRetrievals ?? 0;
-  const indexHits = metrics.indexHits ?? 0;
-  const fallbackHits = metrics.fallbackHits ?? 0;
+  const retrievalCount = metrics.totalRetrievals ?? 0
+  const indexHits = metrics.indexHits ?? 0
+  const fallbackHits = metrics.fallbackHits ?? 0
 
   return `
     <div class="rw-panel-section">
@@ -59,30 +65,30 @@ function renderStatus(status: any): string {
       <div class="rw-kv"><div class="rw-k">Total Retrievals</div><div class="rw-v">${retrievalCount}</div></div>
       <div class="rw-kv"><div class="rw-k">Index Hits</div><div class="rw-v rw-ok">${indexHits}</div></div>
       <div class="rw-kv"><div class="rw-k">Fallback Hits</div><div class="rw-v rw-warn">${fallbackHits}</div></div>
-      ${indexHits + fallbackHits > 0 ? `<div class="rw-kv"><div class="rw-k">Index Rate</div><div class="rw-v">${((indexHits / (indexHits + fallbackHits)) * 100).toFixed(1)}%</div></div>` : ""}
+      ${indexHits + fallbackHits > 0 ? `<div class="rw-kv"><div class="rw-k">Index Rate</div><div class="rw-v">${((indexHits / (indexHits + fallbackHits)) * 100).toFixed(1)}%</div></div>` : ''}
     </div>
-  `;
+  `
 }
 
 function renderConfig(config: any): string {
-  const mode = config?.mode || "hybrid";
-  const maxPaths = config?.maxPaths || 10;
-  const p95TargetMs = config?.p95TargetMs || 500;
+  const mode = config?.mode || 'hybrid'
+  const maxPaths = config?.maxPaths || 10
+  const p95TargetMs = config?.p95TargetMs || 500
 
   return `
     <div class="rw-panel-section">
       <h3>Retrieval Mode</h3>
       <div class="rw-radio-group">
         <label class="rw-radio">
-          <input type="radio" name="retrievalMode" value="hybrid" ${mode === "hybrid" ? "checked" : ""}>
+          <input type="radio" name="retrievalMode" value="hybrid" ${mode === 'hybrid' ? 'checked' : ''}>
           <span>Hybrid (Index + Grep)</span>
         </label>
         <label class="rw-radio">
-          <input type="radio" name="retrievalMode" value="index" ${mode === "index" ? "checked" : ""}>
+          <input type="radio" name="retrievalMode" value="index" ${mode === 'index' ? 'checked' : ''}>
           <span>Index Only (Fast)</span>
         </label>
         <label class="rw-radio">
-          <input type="radio" name="retrievalMode" value="grep" ${mode === "grep" ? "checked" : ""}>
+          <input type="radio" name="retrievalMode" value="grep" ${mode === 'grep' ? 'checked' : ''}>
           <span>Grep Fallback (Slow, Complete)</span>
         </label>
       </div>
@@ -94,7 +100,7 @@ function renderConfig(config: any): string {
       <div class="rw-kv"><div class="rw-k">Max Indexed Paths</div><div class="rw-v"><input type="number" id="rw-retrieval-max-paths" value="${maxPaths}" min="1" max="100" class="rw-input"></div></div>
       <div class="rw-kv"><div class="rw-k">P95 Latency Target</div><div class="rw-v"><input type="number" id="rw-retrieval-p95-target" value="${p95TargetMs}" min="100" max="10000" step="100" class="rw-input"> ms</div></div>
     </div>
-  `;
+  `
 }
 
 export async function mountRetrievalPanel(container: HTMLElement): Promise<void> {
@@ -128,103 +134,107 @@ export async function mountRetrievalPanel(container: HTMLElement): Promise<void>
         <p>Run benchmarks to measure P95 retrieval latency against your repositories.</p>
       </div>
     </div>
-  `;
+  `
 
-  const rina = getRina();
-  const refreshBtn = container.querySelector<HTMLButtonElement>("#rw-retrieval-refresh");
-  const saveBtn = container.querySelector<HTMLButtonElement>("#rw-retrieval-save");
-  const benchmarkBtn = container.querySelector<HTMLButtonElement>("#rw-retrieval-benchmark");
-  const statusEl = container.querySelector<HTMLElement>("#rw-retrieval-status");
-  const configEl = container.querySelector<HTMLElement>("#rw-retrieval-config");
-  const statusDisplayEl = container.querySelector<HTMLElement>("#rw-retrieval-status-display");
+  const rina = getRina()
+  const refreshBtn = container.querySelector<HTMLButtonElement>('#rw-retrieval-refresh')
+  const saveBtn = container.querySelector<HTMLButtonElement>('#rw-retrieval-save')
+  const benchmarkBtn = container.querySelector<HTMLButtonElement>('#rw-retrieval-benchmark')
+  const statusEl = container.querySelector<HTMLElement>('#rw-retrieval-status')
+  const configEl = container.querySelector<HTMLElement>('#rw-retrieval-config')
+  const statusDisplayEl = container.querySelector<HTMLElement>('#rw-retrieval-status-display')
 
   if (!refreshBtn || !saveBtn || !benchmarkBtn || !statusEl || !configEl || !statusDisplayEl) {
-    return;
+    return
   }
 
-  let currentStatus: any = null;
-  let currentConfig: any = null;
+  let currentStatus: any = null
+  let currentConfig: any = null
 
   const loadStatus = async () => {
-    statusEl.textContent = "Loading...";
+    statusEl.textContent = 'Loading...'
     try {
       if (rina?.retrievalStatus) {
-        currentStatus = await rina.retrievalStatus();
+        currentStatus = await rina.retrievalStatus()
       } else {
         // Fallback: call API via IPC
-        currentStatus = await rina?.api?.get?.("/v1/platform/retrieval/status") || null;
+        currentStatus = (await rina?.api?.get?.('/v1/platform/retrieval/status')) || null
       }
-      statusDisplayEl.innerHTML = renderStatus(currentStatus);
-      statusEl.textContent = currentStatus ? "Ready." : "No status available.";
+      statusDisplayEl.innerHTML = renderStatus(currentStatus)
+      statusEl.textContent = currentStatus ? 'Ready.' : 'No status available.'
     } catch (e) {
-      statusDisplayEl.innerHTML = renderStatus(null);
-      statusEl.textContent = `Failed: ${String(e)}`;
+      statusDisplayEl.innerHTML = renderStatus(null)
+      statusEl.textContent = `Failed: ${String(e)}`
     }
-  };
+  }
 
   const loadConfig = async () => {
     try {
       if (rina?.retrievalConfig) {
-        currentConfig = await rina.retrievalConfig();
+        currentConfig = await rina.retrievalConfig()
       } else {
         // Fallback: call API via IPC
-        currentConfig = await rina?.api?.get?.("/v1/platform/retrieval/config") || { mode: "hybrid", maxPaths: 10, p95TargetMs: 500 };
+        currentConfig = (await rina?.api?.get?.('/v1/platform/retrieval/config')) || {
+          mode: 'hybrid',
+          maxPaths: 10,
+          p95TargetMs: 500,
+        }
       }
-      configEl.innerHTML = renderConfig(currentConfig);
+      configEl.innerHTML = renderConfig(currentConfig)
     } catch (e) {
-      configEl.innerHTML = renderConfig({ mode: "hybrid", maxPaths: 10, p95TargetMs: 500 });
+      configEl.innerHTML = renderConfig({ mode: 'hybrid', maxPaths: 10, p95TargetMs: 500 })
     }
-  };
+  }
 
   const saveConfig = async () => {
-    statusEl.textContent = "Saving...";
-    const modeEl = container.querySelector<HTMLInputElement>('input[name="retrievalMode"]:checked');
-    const maxPathsEl = container.querySelector<HTMLInputElement>("#rw-retrieval-max-paths");
-    const p95TargetEl = container.querySelector<HTMLInputElement>("#rw-retrieval-p95-target");
+    statusEl.textContent = 'Saving...'
+    const modeEl = container.querySelector<HTMLInputElement>('input[name="retrievalMode"]:checked')
+    const maxPathsEl = container.querySelector<HTMLInputElement>('#rw-retrieval-max-paths')
+    const p95TargetEl = container.querySelector<HTMLInputElement>('#rw-retrieval-p95-target')
 
     const config = {
-      mode: modeEl?.value || "hybrid",
-      maxPaths: parseInt(maxPathsEl?.value || "10", 10),
-      p95TargetMs: parseInt(p95TargetEl?.value || "500", 10),
-    };
+      mode: modeEl?.value || 'hybrid',
+      maxPaths: parseInt(maxPathsEl?.value || '10', 10),
+      p95TargetMs: parseInt(p95TargetEl?.value || '500', 10),
+    }
 
     try {
       if (rina?.setRetrievalConfig) {
-        await rina.setRetrievalConfig(config);
+        await rina.setRetrievalConfig(config)
       } else {
-        await rina?.api?.put?.("/v1/platform/retrieval/config", config) || { ok: true };
+        ;(await rina?.api?.put?.('/v1/platform/retrieval/config', config)) || { ok: true }
       }
-      currentConfig = config;
-      statusEl.textContent = "Config saved.";
+      currentConfig = config
+      statusEl.textContent = 'Config saved.'
     } catch (e) {
-      statusEl.textContent = `Save failed: ${String(e)}`;
+      statusEl.textContent = `Save failed: ${String(e)}`
     }
-  };
+  }
 
   const runBenchmark = async () => {
-    statusEl.textContent = "Running benchmark...";
-    benchmarkBtn.disabled = true;
+    statusEl.textContent = 'Running benchmark...'
+    benchmarkBtn.disabled = true
     try {
-      let result;
+      let result
       if (rina?.runRetrievalBenchmark) {
-        result = await rina.runRetrievalBenchmark();
+        result = await rina.runRetrievalBenchmark()
       } else {
-        result = await rina?.api?.post?.("/v1/platform/retrieval/benchmark", {}) || { ok: true, metrics: {} };
+        result = (await rina?.api?.post?.('/v1/platform/retrieval/benchmark', {})) || { ok: true, metrics: {} }
       }
-      statusEl.textContent = result?.ok ? "Benchmark complete." : `Benchmark failed: ${result?.error || "unknown"}`;
-      await loadStatus(); // Refresh metrics
+      statusEl.textContent = result?.ok ? 'Benchmark complete.' : `Benchmark failed: ${result?.error || 'unknown'}`
+      await loadStatus() // Refresh metrics
     } catch (e) {
-      statusEl.textContent = `Benchmark failed: ${String(e)}`;
+      statusEl.textContent = `Benchmark failed: ${String(e)}`
     } finally {
-      benchmarkBtn.disabled = false;
+      benchmarkBtn.disabled = false
     }
-  };
+  }
 
-  refreshBtn.addEventListener("click", () => void loadStatus());
-  saveBtn.addEventListener("click", () => void saveConfig());
-  benchmarkBtn.addEventListener("click", () => void runBenchmark());
+  refreshBtn.addEventListener('click', () => void loadStatus())
+  saveBtn.addEventListener('click', () => void saveConfig())
+  benchmarkBtn.addEventListener('click', () => void runBenchmark())
 
   // Initial load
-  await loadConfig();
-  await loadStatus();
+  await loadConfig()
+  await loadStatus()
 }

@@ -1,0 +1,30 @@
+{
+  "name": "security-audit",
+  "description": "Run security audits on your project - npm audit, secrets detection, dependency checks",
+  "author": "RinaWarp",
+  "version": "1.0.0",
+  "price": 5,
+  "permissions": ["npm", "filesystem:read", "network"],
+  "commands": [
+    {
+      "name": "audit",
+      "steps": [
+        "npm audit --json > audit-report.json",
+        "cat audit-report.json | head -50"
+      ]
+    },
+    {
+      "name": "secrets",
+      "steps": [
+        "grep -r -E \"(api_key|password|secret|token)\" --include=\"*.env\" . || echo \"No secrets found in .env files\""
+      ]
+    },
+    {
+      "name": "deps",
+      "steps": [
+        "npm outdated",
+        "npm audit"
+      ]
+    }
+  ]
+}

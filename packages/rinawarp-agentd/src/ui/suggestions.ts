@@ -1,31 +1,27 @@
 /**
  * Suggestions
- * 
+ *
  * AI suggestion display types.
  */
 
-import type { RiskLevel } from "../safety/risk.js";
+import type { RiskLevel } from '../safety/risk.js'
 
 export interface Suggestion {
-  command: string;
-  explanation: string;
-  risk: RiskLevel;
-  originalCommand?: string;
+  command: string
+  explanation: string
+  risk: RiskLevel
+  originalCommand?: string
 }
 
 export interface DiffSuggestion {
-  original: string;
-  suggested: string;
-  explanation: string;
-  risk: RiskLevel;
+  original: string
+  suggested: string
+  explanation: string
+  risk: RiskLevel
 }
 
-export function createSuggestion(
-  command: string,
-  explanation: string,
-  risk: RiskLevel
-): Suggestion {
-  return { command, explanation, risk };
+export function createSuggestion(command: string, explanation: string, risk: RiskLevel): Suggestion {
+  return { command, explanation, risk }
 }
 
 export function createDiffSuggestion(
@@ -34,11 +30,11 @@ export function createDiffSuggestion(
   explanation: string,
   risk: RiskLevel
 ): DiffSuggestion {
-  return { original, suggested, explanation, risk };
+  return { original, suggested, explanation, risk }
 }
 
 export function requiresConfirmation(suggestion: Suggestion): boolean {
-  return suggestion.risk === "medium" || suggestion.risk === "high";
+  return suggestion.risk === 'medium' || suggestion.risk === 'high'
 }
 
 export function formatSuggestion(suggestion: Suggestion): string {
@@ -48,5 +44,5 @@ export function formatSuggestion(suggestion: Suggestion): string {
 Explanation:
   ${suggestion.explanation}
 
-Risk: ${suggestion.risk.toUpperCase()}`;
+Risk: ${suggestion.risk.toUpperCase()}`
 }

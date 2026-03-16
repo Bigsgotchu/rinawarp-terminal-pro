@@ -1,176 +1,103 @@
 /**
- * Rina OS Control Layer - Main Export
- * 
- * This is the public API for the Rina OS Control Layer.
- * Import this file to use Rina OS in your application.
- * 
+ * Rina OS - Main Export File
+ *
+ * Central export point for all Rina OS modules.
+ * This enables convenient imports like:
+ *   import { rinaController, rinaPersona, handleRinaMessage } from "../../src/rina/index.js";
+ *
  * Additive architecture - does not modify existing core functionality.
  */
 
-import { rinaController } from "./rina-controller.js";
-import { rinaPersona, type RinaPersonaContext, type RinaMood } from "./personality.js";
+// Controller and main entry points
+export {
+  RinaController,
+  rinaController,
+  handleRinaMessage,
+  executeConfirmedCommand,
+  type RinaResponse,
+  type TinaResponse,
+} from './rina-controller.js'
 
-// Brain - Intent interpretation
-export { rinaBrain, type RinaTask, type ExecutionMode } from "./brain.js";
+// Brain and intent interpretation
+export { rinaBrain, type RinaTask, type ExecutionMode } from './brain.js'
 
-// Safety - Execution guardrails
-export { 
-  safetyCheck, 
-  isCommandBlocked, 
-  requiresConfirmation,
-  getExecutionPolicy, 
-  setExecutionPolicy, 
-  resetExecutionPolicy,
-  type SafetyCheckResult,
-  type ExecutionPolicy
-} from "./safety.js";
+// Personality module
+export { RinaPersona, rinaPersona, type RinaMood, type RinaPersonaContext } from './personality.js'
 
-// Memory - Session memory
-export { 
-  remember, 
-  getMemory, 
-  getMemoryByRole, 
-  getRecentMemory, 
+// Agent and planning
+export { agentLoop, type AgentResult, type AgentEvent, type AgentEventCallback } from './agent-loop.js'
+export { taskPlanner, type RinaPlan, type RinaPlanStep } from './planner/task-planner.js'
+export { taskQueue, type StepExecutionResult, type TaskQueueState } from './executor/task-queue.js'
+
+// Reflection engine
+export { reflectionEngine, type ReflectionResult, type ReflectionInsight } from './reflection.js'
+
+// Memory - session based
+export {
+  remember,
+  getMemory,
+  getMemoryByRole,
+  getRecentMemory,
   getLastUserMessage,
   getLastRinaResponse,
-  clearMemory, 
-  getMemoryContext, 
+  clearMemory,
+  getMemoryContext,
   getMemoryStats,
+  searchMemory,
   type MemoryEntry,
-  type MemoryRole
-} from "./memory/session.js";
+  type MemoryRole,
+} from './memory/session.js'
 
-// Planner
+// Memory - new layered system
 export {
-  taskPlanner,
-  type RinaPlan,
-  type RinaPlanStep
-} from "./planner/task-planner.js";
+  memoryManager,
+  conversationMemory,
+  workspaceMemory,
+  longtermMemory,
+  type MemoryStats,
+} from './memory/memory-manager.js'
+export { ConversationMemory, type ConversationEntry } from './memory/conversation.js'
+export { WorkspaceMemory, type WorkspaceMemoryData, type CommandRecord } from './memory/workspace.js'
+export { LongTermMemory, type LongTermMemoryData } from './memory/longterm.js'
 
-// Task Queue
+// Legacy persistent memory (used by smoke-test)
+export { rinaMemory } from './memory/persistent-memory.js'
+
+// Safety
+export { safetyCheck, type SafetyCheckResult } from './safety.js'
+
+// Tools
 export {
-  taskQueue,
-  type TaskQueueState,
-  type StepExecutionResult
-} from "./executor/task-queue.js";
-
-// Agent Loop
-export {
-  agentLoop,
-  type AgentResult,
-  type AgentEvent,
-  type AgentEventCallback
-} from "./agent-loop.js";
-
-// Tools - Tool registry
-export { 
-  RinaTools, 
-  getTool, 
-  getAvailableTools, 
-  findToolForTask, 
+  getAvailableTools,
   executeToolTask,
-  type RinaTool,
+  getTool,
+  findToolForTask,
   type ToolContext,
   type ToolResult,
-  type ValidationResult
-} from "./tools/registry.js";
+  type RinaTool,
+  type ValidationResult,
+} from './tools/registry.js'
 
-// Terminal tool
-export { terminalTool } from "./tools/terminal.js";
+// Tools - individual modules (for direct access)
+export { terminalTool } from './tools/terminal.js'
+export { filesystemTool } from './tools/filesystem.js'
+export { systemTool } from './tools/system.js'
+export { gitTool, gitTools } from './tools/git.js'
+export { dockerTool, dockerTools } from './tools/docker.js'
 
-// Filesystem tool  
-export { filesystemTool } from "./tools/filesystem.js";
+// Dev diagnostics
+export { initDevDiagnostics } from './dev-diagnostics.js'
 
-// System tool
-export { systemTool } from "./tools/system.js";
-
-// Main controller - re-export from rina-controller
-export { 
-  rinaController, 
-  handleRinaMessage, 
-  executeConfirmedCommand,
-  type RinaController,
-  type RinaResponse 
-} from "./rina-controller.js";
-
-// Reflection Engine
+// Repair planner (Autonomous Dev Fix)
 export {
-  reflectionEngine,
-  type ReflectionInsight,
-  type ReflectionResult
-} from "./reflection.js";
+  scanProjectContext,
+  buildRepairPlan,
+  executeRepairPlan,
+  formatRepairPlan,
+  type ProjectContext,
+  type RepairPlan,
+  type RepairStep,
+} from './repair-planner.js'
 
-// Personality - re-export from personality module
-export {
-  rinaPersona,
-  type RinaPersonaContext,
-  type RinaMood
-} from "./personality.js";
-
-/**
- * Handle a message from the user - main entry point
- * Combines personality, chat responses, and agent execution
- * 
- * @deprecated Use handleRinaMessage from rina-controller instead
- */
-export async function handleRinaMessageWithPersonality(
-  message: string, 
-  context?: RinaPersonaContext
-): Promise<import("./rina-controller.js").RinaResponse> {
-  // Use provided context or get from persona
-  context = context || rinaPersona.getContext();
-  
-  // Check if this is a command (needs agent execution)
-  const isCommand = /(run|create|build|setup|init|install|start)/i.test(message);
-
-  if (isCommand) {
-    // Use agent for task execution
-    const result = await rinaController.runAgent(message);
-    
-    // Check if we need confirmation for retry
-    const needsRetry = result.reflection?.nextActions.some((a) => 
-      a.includes("Retry")
-    );
-
-    return {
-      ok: result.success,
-      intent: "agent-execution",
-      output: {
-        type: "agent",
-        text: `Rina (mood: ${context.mood}): Task executed. See reflection for details.`,
-        reflection: result.reflection
-      },
-      error: result.success ? undefined : "One or more steps failed",
-      requiresConfirmation: needsRetry && rinaController.getMode() === "assist"
-    };
-  }
-
-  // Chat response
-  const chatResponse = getChatReply(message, context);
-  
-  return {
-    ok: true,
-    intent: "chat",
-    output: {
-      type: "chat",
-      text: `Rina (mood: ${context.mood}): ${chatResponse}`
-    }
-  };
-}
-
-/**
- * Generate a chat reply based on mood
- */
-function getChatReply(message: string, ctx: RinaPersonaContext): string {
-  const lowerMessage = message.toLowerCase();
-  
-  switch (ctx.mood) {
-    case "playful":
-      return `Haha! I see you said: "${message}". 😄 What else can I help you with?`;
-    case "curious":
-      return `Interesting! "${message}" — tell me more about what you'd like to do? 🤔`;
-    case "helpful":
-    default:
-      return `Got it! "${message}" — I can help you with that. Would you like me to execute any commands?`;
-  }
-}
+// Error explainer
+export { explainError, explainErrorPattern } from './error-explainer.js'

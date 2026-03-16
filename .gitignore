@@ -24,46 +24,31 @@ apps/terminal-pro/playwright-report/
 apps/terminal-pro/.playwright/
 apps/terminal-pro/.cache/
 
-# OS files
-.DS_Store
-Thumbs.db
+# Agent test artifacts and metrics (should not be committed)
+.tmp-agentd-test/
+.rinawarp/
+.rinawarp/**
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Analytics and runtime data (generated locally)
+analytics-funnel.json
+analytics-usage.json
+analytics-device-id.txt
 
-# Logs
-*.log
-npm-debug.log*
+# Package-specific build artifacts
+packages/*/dist/
+packages/*/.turbo/
+packages/*/coverage/
 
-# SQLite databases
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
-
-# Miniflare/CF state
-.miniflare/
-
-# ============================================================
-# KiloCode Security Protection
-# ============================================================
-# Prevent CI bypass attacks by excluding .kilocode from version control
-.kilocode/
-.kilocode/**/
-**/.kilocode/
-**/.kilocode/**/
-
-# Also exclude node_modules in .kilocode directories
-.kilocode/**/node_modules/
-
-# local secrets
-deploy/aws/scripts/cross-account-attestation.env
+# Release artifacts that shouldn't be in repo
 release/*.exe
 release/*.AppImage
 release/*.deb
 release/*.dmg
-data/
-dist/
-*.tsbuildinfo
+
+# Test results
+test-results/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+coverage/

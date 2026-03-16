@@ -1,0 +1,16 @@
+name = "rinawarp-api"
+main = "api-worker.js"
+compatibility_date = "2024-01-01"
+account_id = "ba2f14cefa19dbdc42ff88d772410689"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rinawarp-users"
+database_id = "ca5efe98-909b-4bb5-9182-29cc9dd1fba2"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = false
+invocation_logs = true

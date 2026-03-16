@@ -1,0 +1,65 @@
+# RinaWarp Marketplace Worker
+name = "rinawarp-marketplace"
+main = "workers/router.ts"
+compatibility_date = "2024-01-01"
+
+[[routes]]
+pattern = "rinawarptech.com/"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/v1/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/agents"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/stripe/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/license/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/health"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/events"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/me"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/portal"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/feedback"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/pricing"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/download"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/feedback"
+zone_name = "rinawarptech.com"
+
+[[kv_namespaces]]
+binding = "AGENTS_KV"
+id = "5741295fdb9541a196314377c3e36601"
+
+# Future: Add more KV namespaces for ratings and purchases
+# [[kv_namespaces]]
+# binding = "RATINGS_KV"
+# id = "ratings_namespace_id"

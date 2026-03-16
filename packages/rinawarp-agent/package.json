@@ -1,6 +1,7 @@
 {
   "name": "@rinawarp/agent",
   "version": "1.0.0",
+  "type": "module",
   "description": "Agent runtime and skills for RinaWarp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

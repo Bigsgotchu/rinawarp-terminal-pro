@@ -10,10 +10,10 @@
  */
 
 // Enforcement spine
-export * from "./enforcement/index.js";
+export * from './enforcement/index.js'
 
 // Presentation lens
-export * from "./presentation/lens.js";
+export * from './presentation/lens.js'
 
 // Tools registry
-export * from "./tools/index.js";
+export * from './tools/index.js'

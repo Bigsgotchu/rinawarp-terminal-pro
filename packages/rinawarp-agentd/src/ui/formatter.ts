@@ -1,68 +1,71 @@
 /**
  * Formatter
- * 
+ *
  * Terminal output formatting.
  */
 
-import type { RiskLevel } from "../safety/risk.js";
+import type { RiskLevel } from '../safety/risk.js'
 
 export function riskBadge(risk: RiskLevel): string {
   switch (risk) {
-    case "low": return "[LOW ✓]";
-    case "medium": return "[MEDIUM ⚠]";
-    case "high": return "[HIGH ✗]";
+    case 'low':
+      return '[LOW ✓]'
+    case 'medium':
+      return '[MEDIUM ⚠]'
+    case 'high':
+      return '[HIGH ✗]'
   }
 }
 
 export function command(cmd: string): string {
-  return `$ ${cmd}`;
+  return `$ ${cmd}`
 }
 
 export function success(msg: string): string {
-  return `✓ ${msg}`;
+  return `✓ ${msg}`
 }
 
 export function error(msg: string): string {
-  return `✗ ${msg}`;
+  return `✗ ${msg}`
 }
 
 export function warning(msg: string): string {
-  return `⚠ ${msg}`;
+  return `⚠ ${msg}`
 }
 
 export function info(msg: string): string {
-  return `ℹ ${msg}`;
+  return `ℹ ${msg}`
 }
 
 export function header(title: string): string {
-  return `\n━━━ ${title} ━━━\n`;
+  return `\n━━━ ${title} ━━━\n`
 }
 
 export function keyValue(key: string, value: string): string {
-  return `${key}: ${value}`;
+  return `${key}: ${value}`
 }
 
 export function listItem(item: string): string {
-  return `  • ${item}`;
+  return `  • ${item}`
 }
 
 export function numberedItem(n: number, item: string): string {
-  return `  ${n}. ${item}`;
+  return `  ${n}. ${item}`
 }
 
 export function output(text: string): string {
-  return `\n${text}\n`;
+  return `\n${text}\n`
 }
 
 export function truncate(text: string, maxLen: number): string {
-  if (text.length <= maxLen) return text;
-  return text.slice(0, maxLen - 3) + "...";
+  if (text.length <= maxLen) return text
+  return text.slice(0, maxLen - 3) + '...'
 }
 
 export function help(commands: [string, string][]): string {
-  let s = "Available commands:\n";
+  let s = 'Available commands:\n'
   for (const [cmd, desc] of commands) {
-    s += `  ${cmd.padEnd(20)} ${desc}\n`;
+    s += `  ${cmd.padEnd(20)} ${desc}\n`
   }
-  return s;
+  return s
 }

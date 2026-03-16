@@ -1,17 +1,17 @@
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const distDir = path.resolve(__dirname, "..", "dist");
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const distDir = path.resolve(__dirname, '..', 'dist')
 
-mkdirSync(distDir, { recursive: true });
+mkdirSync(distDir, { recursive: true })
 
 // naive CJS wrapper so consumers using require() work
-const esmPath = path.join(distDir, "index.js");
-const cjsPath = path.join(distDir, "index.cjs");
+const esmPath = path.join(distDir, 'index.js')
+const cjsPath = path.join(distDir, 'index.cjs')
 
-const esm = readFileSync(esmPath, "utf8");
+const esm = readFileSync(esmPath, 'utf8')
 
 // This keeps things simple for Electron/CommonJS importers.
 const cjs = `
@@ -26,7 +26,7 @@ async function load() {
 
 exports.createApiClient = (...args) => load().then(m => m.createApiClient(...args));
 exports.APIError = (...args) => load().then(m => m.APIError(...args));
-`;
+`
 
-writeFileSync(cjsPath, cjs.trimStart(), "utf8");
-console.log("✅ emitted dist/index.cjs");
+writeFileSync(cjsPath, cjs.trimStart(), 'utf8')
+console.log('✅ emitted dist/index.cjs')

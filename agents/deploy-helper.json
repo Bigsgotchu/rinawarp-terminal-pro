@@ -1,0 +1,32 @@
+{
+  "name": "deploy-helper",
+  "description": "Common deployment helpers for Vercel, Netlify, and Docker",
+  "author": "RinaWarp",
+  "version": "1.0.0",
+  "price": 5,
+  "permissions": ["npm", "docker", "filesystem:write"],
+  "commands": [
+    {
+      "name": "vercel",
+      "steps": [
+        "npm i -g vercel",
+        "vercel --prod"
+      ]
+    },
+    {
+      "name": "netlify",
+      "steps": [
+        "npm i -g netlify-cli",
+        "netlify deploy --prod"
+      ]
+    },
+    {
+      "name": "docker",
+      "steps": [
+        "docker build -t app .",
+        "docker tag app:latest registry.example.com/app:latest",
+        "docker push registry.example.com/app:latest"
+      ]
+    }
+  ]
+}

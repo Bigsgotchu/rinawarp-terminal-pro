@@ -1,34 +1,34 @@
 /**
  * Command Translator
- * 
+ *
  * Problem #1: Command Translation
  * Converts natural language to shell commands.
- * 
+ *
  * "find all .js files modified today" → find . -name "*.js" -mtime -1
  */
 
-import { generateFixPlan } from "./llm.js";
-import type { LLMConfig } from "./llm.js";
+import { generateFixPlan } from './llm.js'
+import type { LLMConfig } from './llm.js'
 
 export interface CommandTranslationInput {
-  userInput: string;
-  os: "linux" | "darwin" | "win32";
-  shell: string;
+  userInput: string
+  os: 'linux' | 'darwin' | 'win32'
+  shell: string
   context?: {
-    workingDirectory?: string;
-    gitBranch?: string;
-    packageManager?: "npm" | "yarn" | "pnpm" | "cargo" | "pip";
-    dockerAvailable?: boolean;
-    kubernetesAvailable?: boolean;
-  };
+    workingDirectory?: string
+    gitBranch?: string
+    packageManager?: 'npm' | 'yarn' | 'pnpm' | 'cargo' | 'pip'
+    dockerAvailable?: boolean
+    kubernetesAvailable?: boolean
+  }
 }
 
 export interface CommandSuggestion {
-  command: string;
-  explanation: string;
-  risk: "low" | "medium" | "high";
-  confidence: number;
-  dryRun?: string;
+  command: string
+  explanation: string
+  risk: 'low' | 'medium' | 'high'
+  confidence: number
+  dryRun?: string
 }
 
 /**
@@ -38,9 +38,9 @@ export async function translateToCommand(
   config: LLMConfig,
   input: CommandTranslationInput
 ): Promise<CommandSuggestion> {
-  const osHints = getOsHints(input.os);
-  const contextHints = getContextHints(input.context);
-  
+  const osHints = getOsHints(input.os)
+  const contextHints = getContextHints(input.context)
+
   const prompt = `You are a Linux/macOS shell command translator.
 
 Rules:
@@ -62,115 +62,121 @@ Respond with ONLY valid JSON:
   "risk": "low|medium|high",
   "confidence": 0.0-1.0,
   "dryRun": "optional preview command (e.g., add | head)"
-}`;
+}`
 
   try {
-    const result = await generateFixPlan(config, {
-      userPrompt: input.userInput,
-      systemContext: {
-        os: input.os,
-        kernel: "",
-        hostname: "",
-        uptime: "",
-        cpu: "",
-        memory: "",
-        disk: "",
-        processes: "",
-        services: "",
-        git: input.context?.gitBranch ? {
-          branch: input.context.gitBranch,
-          status: ""
-        } : undefined,
+    const result = await generateFixPlan(
+      config,
+      {
+        userPrompt: input.userInput,
+        systemContext: {
+          os: input.os,
+          kernel: '',
+          hostname: '',
+          uptime: '',
+          cpu: '',
+          memory: '',
+          disk: '',
+          processes: '',
+          services: '',
+          git: input.context?.gitBranch
+            ? {
+                branch: input.context.gitBranch,
+                status: '',
+              }
+            : undefined,
+        },
       },
-    }, {
-      systemPrompt: prompt,
-      maxRetries: 2,
-    });
+      {
+        systemPrompt: prompt,
+        maxRetries: 2,
+      }
+    )
 
     return {
-      command: result.commands[0] || "",
+      command: result.commands[0] || '',
       explanation: result.reasoning || result.analysis,
       risk: result.risk,
       confidence: result.confidence,
-    };
+    }
   } catch (error) {
     return {
-      command: "",
-      explanation: error instanceof Error ? error.message : "Failed to generate command",
-      risk: "low",
+      command: '',
+      explanation: error instanceof Error ? error.message : 'Failed to generate command',
+      risk: 'low',
       confidence: 0,
-    };
+    }
   }
 }
 
 function getOsHints(os: string): string {
   switch (os) {
-    case "darwin":
-      return "Available: brew, port, gnu-sed, gawk, launchctl";
-    case "win32":
-      return "Available: powershell, cmd, choco, winget";
+    case 'darwin':
+      return 'Available: brew, port, gnu-sed, gawk, launchctl'
+    case 'win32':
+      return 'Available: powershell, cmd, choco, winget'
     default:
-      return "Available: apt, yum, dnf, systemctl, journalctl";
+      return 'Available: apt, yum, dnf, systemctl, journalctl'
   }
 }
 
-function getContextHints(ctx?: CommandTranslationInput["context"]): string {
-  if (!ctx) return "";
-  
-  const hints: string[] = [];
-  
+function getContextHints(ctx?: CommandTranslationInput['context']): string {
+  if (!ctx) return ''
+
+  const hints: string[] = []
+
   if (ctx.packageManager) {
-    hints.push(`Package manager: ${ctx.packageManager}`);
+    hints.push(`Package manager: ${ctx.packageManager}`)
   }
-  
+
   if (ctx.dockerAvailable) {
-    hints.push("Docker available");
+    hints.push('Docker available')
   }
-  
+
   if (ctx.kubernetesAvailable) {
-    hints.push("Kubernetes available");
+    hints.push('Kubernetes available')
   }
-  
+
   if (ctx.workingDirectory) {
-    hints.push(`Working directory: ${ctx.workingDirectory}`);
+    hints.push(`Working directory: ${ctx.workingDirectory}`)
   }
-  
-  return hints.join("\n");
+
+  return hints.join('\n')
 }
 
 /**
  * Validate command before execution
  */
 export function validateCommand(command: string): {
-  valid: boolean;
-  issues: string[];
+  valid: boolean
+  issues: string[]
 } {
-  const issues: string[] = [];
-  
+  const issues: string[] = []
+
   // Check for dangerous patterns
   const dangerous = [
-    { pattern: /rm\s+-rf\s+\//, message: "Deletes entire filesystem" },
-    { pattern: /rm\s+-rf\s+\./, message: "Deletes current directory recursively" },
-    { pattern: /mkfs/, message: "Formats disk" },
-    { pattern: /dd\s+if=/, message: "Direct disk write" },
-    { pattern: />\s*\/dev\/sd/, message: "Writing to block device" },
-    { pattern: /chmod\s+777/, message: "World-writable permissions" },
-    { pattern: /shutdown|reboot/, message: "System shutdown" },
-  ];
-  
+    { pattern: /rm\s+-rf\s+\//, message: 'Deletes entire filesystem' },
+    { pattern: /rm\s+-rf\s+\./, message: 'Deletes current directory recursively' },
+    { pattern: /mkfs/, message: 'Formats disk' },
+    { pattern: /dd\s+if=/, message: 'Direct disk write' },
+    { pattern: />\s*\/dev\/sd/, message: 'Writing to block device' },
+    { pattern: /chmod\s+777/, message: 'World-writable permissions' },
+    { pattern: /shutdown|reboot/, message: 'System shutdown' },
+  ]
+
   for (const { pattern, message } of dangerous) {
     if (pattern.test(command)) {
-      issues.push(`DANGEROUS: ${message}`);
+      issues.push(`DANGEROUS: ${message}`)
     }
   }
-  
+
   // Check for scope escape
-  if (command.includes("../../../") || command.includes("..\\")) {
-    issues.push("WARNING: Directory traversal detected");
+  if (command.includes('../../../') || command.includes('..\\')) {
+    issues.push('WARNING: Directory traversal detected')
   }
-  
+
   return {
     valid: issues.length === 0,
     issues,
-  };
+  }
 }

@@ -6,7 +6,8 @@
   "workspaces": [
     "rinawarp-agent",
     "rinawarp-tools",
-    "rinawarp-safety"
+    "rinawarp-safety",
+    "rinawarp-context"
   ],
   "scripts": {
     "build": "npm run build --workspaces",

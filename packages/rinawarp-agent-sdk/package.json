@@ -1,0 +1,29 @@
+{
+  "name": "@rinawarp/agent-sdk",
+  "version": "1.0.0",
+  "description": "RinaWarp Agent SDK - Create, test, and publish agents",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "rina": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node --experimental-vm-modules test/run.mjs"
+  },
+  "keywords": ["agent", "automation", "sdk", "cli"],
+  "author": "RinaWarp",
+  "license": "MIT",
+  "dependencies": {
+    "@rinawarp/agent": "workspace:*",
+    "@rinawarp/safety": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

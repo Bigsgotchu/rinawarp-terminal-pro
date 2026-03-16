@@ -1,41 +1,37 @@
 /**
  * Plugin API
- * 
+ *
  * Defines the plugin interface and permissions.
  */
 
 export interface PluginManifest {
-  name: string;
-  version: string;
-  description?: string;
-  entry: string;
-  permissions: PluginPermission[];
+  name: string
+  version: string
+  description?: string
+  entry: string
+  permissions: PluginPermission[]
 }
 
-export type PluginPermission = 
-  | "terminal"
-  | "suggestions"
-  | "events"
-  | "config";
+export type PluginPermission = 'terminal' | 'suggestions' | 'events' | 'config'
 
 export interface Plugin {
-  manifest: PluginManifest;
-  onCommand?(command: string): Promise<PluginSuggestion | null>;
-  onSuggest?(context: PluginContext): Promise<string[]>;
-  onLoad?(): Promise<void>;
-  onUnload?(): Promise<void>;
+  manifest: PluginManifest
+  onCommand?(command: string): Promise<PluginSuggestion | null>
+  onSuggest?(context: PluginContext): Promise<string[]>
+  onLoad?(): Promise<void>
+  onUnload?(): Promise<void>
 }
 
 export interface PluginSuggestion {
-  command: string;
-  reason: string;
+  command: string
+  reason: string
 }
 
 export interface PluginContext {
-  workingDirectory: string;
-  gitBranch?: string;
-  packageManager?: string;
-  shell?: string;
+  workingDirectory: string
+  gitBranch?: string
+  packageManager?: string
+  shell?: string
 }
 
 /**
@@ -48,15 +44,12 @@ export function createManifest(
   permissions: PluginPermission[],
   description?: string
 ): PluginManifest {
-  return { name, version, description, entry, permissions };
+  return { name, version, description, entry, permissions }
 }
 
 /**
  * Validate permissions
  */
-export function hasPermission(
-  plugin: Plugin,
-  permission: PluginPermission
-): boolean {
-  return plugin.manifest.permissions.includes(permission);
+export function hasPermission(plugin: Plugin, permission: PluginPermission): boolean {
+  return plugin.manifest.permissions.includes(permission)
 }

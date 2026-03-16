@@ -7,20 +7,20 @@
 // Session & Environment
 // ============================================================================
 
-export type Risk = "read" | "safe-write" | "high-impact";
+export type Risk = 'read' | 'safe-write' | 'high-impact'
 
-export type Platform = "linux" | "darwin" | "win32";
+export type Platform = 'linux' | 'darwin' | 'win32'
 
-export type UserMode = "starter" | "creator" | "pro" | "founder" | "enterprise";
+export type UserMode = 'starter' | 'creator' | 'pro' | 'founder' | 'enterprise'
 
 export interface SessionMetadata {
-  sessionId: string;
-  startedAt: string; // ISO timestamp
-  platform: Platform;
-  distro?: string; // e.g. "Kali"
-  kernel?: string;
-  hostname?: string;
-  userMode: UserMode;
+  sessionId: string
+  startedAt: string // ISO timestamp
+  platform: Platform
+  distro?: string // e.g. "Kali"
+  kernel?: string
+  hostname?: string
+  userMode: UserMode
 }
 
 // ============================================================================
@@ -28,24 +28,24 @@ export interface SessionMetadata {
 // ============================================================================
 
 export interface ToolStep {
-  id: string;
-  tool: "terminal" | "fs" | "git";
-  command: string;
-  risk: Risk;
-  description?: string;
-  timeoutMs?: number; // default: 15000 for read, 60000 for safe-write
-  maxBytes?: number; // output cap, default: 1MB
-  normalize?: "kv" | "table" | "json" | "raw";
-  tags?: string[]; // e.g. ["cpu", "thermal"]
+  id: string
+  tool: 'terminal' | 'fs' | 'git'
+  command: string
+  risk: Risk
+  description?: string
+  timeoutMs?: number // default: 15000 for read, 60000 for safe-write
+  maxBytes?: number // output cap, default: 1MB
+  normalize?: 'kv' | 'table' | 'json' | 'raw'
+  tags?: string[] // e.g. ["cpu", "thermal"]
 }
 
 export interface AgentPlan {
-  id: string;
-  intent: string;
-  playbookId?: string;
-  stage: "inspect" | "fix" | "verify";
-  reasoning: string;
-  steps: ToolStep[];
+  id: string
+  intent: string
+  playbookId?: string
+  stage: 'inspect' | 'fix' | 'verify'
+  reasoning: string
+  steps: ToolStep[]
 }
 
 // ============================================================================
@@ -53,58 +53,58 @@ export interface AgentPlan {
 // ============================================================================
 
 export interface StepOutput {
-  stepId: string;
-  stdout: string;
-  stderr: string;
-  exitCode: number | null;
-  durationMs: number;
+  stepId: string
+  stdout: string
+  stderr: string
+  exitCode: number | null
+  durationMs: number
 }
 
 export interface EvidenceBundle {
-  collectedAt: string;
-  raw: Record<string, StepOutput>;
-  metrics: Record<string, number | string | boolean>;
-  snapshots: Snapshot[];
+  collectedAt: string
+  raw: Record<string, StepOutput>
+  metrics: Record<string, number | string | boolean>
+  snapshots: Snapshot[]
 }
 
 export interface Snapshot {
-  ts: string;
-  kind: "cpu" | "mem" | "disk" | "thermal" | "net" | "proc" | "service";
-  data: any;
+  ts: string
+  kind: 'cpu' | 'mem' | 'disk' | 'thermal' | 'net' | 'proc' | 'service'
+  data: any
 }
 
 // ============================================================================
 // Findings & Diagnosis
 // ============================================================================
 
-export type Severity = "info" | "warn" | "critical";
+export type Severity = 'info' | 'warn' | 'critical'
 
 export interface Finding {
-  id: string;
-  severity: Severity;
-  title: string;
-  explanation: string;
+  id: string
+  severity: Severity
+  title: string
+  explanation: string
   evidenceRefs: Array<{
-    stepId?: string;
-    metricKey?: string;
-    excerpt?: string;
-  }>;
-  confidence: number; // 0..1 for the finding itself
+    stepId?: string
+    metricKey?: string
+    excerpt?: string
+  }>
+  confidence: number // 0..1 for the finding itself
 }
 
 export interface Diagnosis {
-  causeId: string; // e.g. "cpu_runaway_process"
-  label: string;
-  probability: number; // 0..1
-  supportingFindings: string[]; // finding ids
-  disconfirmingFindings?: string[];
-  nextProbes?: ToolStep[];
+  causeId: string // e.g. "cpu_runaway_process"
+  label: string
+  probability: number // 0..1
+  supportingFindings: string[] // finding ids
+  disconfirmingFindings?: string[]
+  nextProbes?: ToolStep[]
 }
 
 export interface DiagnosisBundle {
-  primary: Diagnosis;
-  differential: Diagnosis[]; // sorted by probability
-  notes: string;
+  primary: Diagnosis
+  differential: Diagnosis[] // sorted by probability
+  notes: string
 }
 
 // ============================================================================
@@ -112,13 +112,13 @@ export interface DiagnosisBundle {
 // ============================================================================
 
 export interface FixOption {
-  id: string;
-  label: string;
-  why: string;
-  risk: Risk;
-  plan: AgentPlan; // stage="fix"
-  expectedOutcome: string[];
-  rollback?: AgentPlan; // optional safe rollback
+  id: string
+  label: string
+  why: string
+  risk: Risk
+  plan: AgentPlan // stage="fix"
+  expectedOutcome: string[]
+  rollback?: AgentPlan // optional safe rollback
 }
 
 // ============================================================================
@@ -126,32 +126,32 @@ export interface FixOption {
 // ============================================================================
 
 export interface VerificationResult {
-  ok: boolean;
+  ok: boolean
   checks: {
-    label: string;
-    ok: boolean;
-    details?: string;
-  }[];
-  before?: EvidenceBundle;
-  after: EvidenceBundle;
+    label: string
+    ok: boolean
+    details?: string
+  }[]
+  before?: EvidenceBundle
+  after: EvidenceBundle
 }
 
 // ============================================================================
 // Outcome Card
 // ============================================================================
 
-export type OutcomeStatus = "resolved" | "improved" | "unchanged" | "stopped" | "failed";
+export type OutcomeStatus = 'resolved' | 'improved' | 'unchanged' | 'stopped' | 'failed'
 
 export interface OutcomeCard {
-  status: OutcomeStatus;
-  rootCause?: string;
+  status: OutcomeStatus
+  rootCause?: string
   actionsTaken: {
-    label: string;
-    risk: Risk;
-  }[];
-  results: string[];
-  preventionTips?: string[];
-  confidence: number; // 0..1
+    label: string
+    risk: Risk
+  }[]
+  results: string[]
+  preventionTips?: string[]
+  confidence: number // 0..1
 }
 
 // ============================================================================
@@ -159,20 +159,20 @@ export interface OutcomeCard {
 // ============================================================================
 
 export type TranscriptType =
-  | "intent"
-  | "plan"
-  | "approval"
-  | "exec"
-  | "output"
-  | "finding"
-  | "diagnosis"
-  | "verification"
-  | "summary";
+  | 'intent'
+  | 'plan'
+  | 'approval'
+  | 'exec'
+  | 'output'
+  | 'finding'
+  | 'diagnosis'
+  | 'verification'
+  | 'summary'
 
 export interface TranscriptEvent {
-  ts: string;
-  type: TranscriptType;
-  [key: string]: any;
+  ts: string
+  type: TranscriptType
+  [key: string]: any
 }
 
 // ============================================================================
@@ -180,53 +180,53 @@ export interface TranscriptEvent {
 // ============================================================================
 
 export interface Rule {
-  id: string;
-  when: RuleExpression;
-  emit: Omit<Finding, "id">; // evidenceRefs will be populated at emit time
+  id: string
+  when: RuleExpression
+  emit: Omit<Finding, 'id'> // evidenceRefs will be populated at emit time
 }
 
 export type RuleExpression =
-  | { op: "gt"; lhs: string; rhs: number }
-  | { op: "gte"; lhs: string; rhs: number }
-  | { op: "lt"; lhs: string; rhs: number }
-  | { op: "lte"; lhs: string; rhs: number }
-  | { op: "eq"; lhs: string; rhs: number | string | boolean }
-  | { op: "neq"; lhs: string; rhs: number | string | boolean }
-  | { op: "and"; expressions: RuleExpression[] }
-  | { op: "or"; expressions: RuleExpression[] }
-  | { op: "exists"; path: string }
-  | { op: "matches"; path: string; pattern: string };
+  | { op: 'gt'; lhs: string; rhs: number }
+  | { op: 'gte'; lhs: string; rhs: number }
+  | { op: 'lt'; lhs: string; rhs: number }
+  | { op: 'lte'; lhs: string; rhs: number }
+  | { op: 'eq'; lhs: string; rhs: number | string | boolean }
+  | { op: 'neq'; lhs: string; rhs: number | string | boolean }
+  | { op: 'and'; expressions: RuleExpression[] }
+  | { op: 'or'; expressions: RuleExpression[] }
+  | { op: 'exists'; path: string }
+  | { op: 'matches'; path: string; pattern: string }
 
 // ============================================================================
 // Playbook Definition
 // ============================================================================
 
 export interface Playbook {
-  id: string; // e.g. "sys_hot_v1"
-  name: string;
-  version: string;
-  triggers: string[]; // keywords and classifiers
-  inspect: ToolStep[];
-  interpret: Rule[];
-  fixes: FixTemplate[];
-  verify: ToolStep[];
-  stopConditions?: StopCondition[];
+  id: string // e.g. "sys_hot_v1"
+  name: string
+  version: string
+  triggers: string[] // keywords and classifiers
+  inspect: ToolStep[]
+  interpret: Rule[]
+  fixes: FixTemplate[]
+  verify: ToolStep[]
+  stopConditions?: StopCondition[]
 }
 
 export interface FixTemplate {
-  id: string;
-  label: string;
-  why: string;
-  risk: Risk;
-  templateSteps: string[]; // command templates
-  verification: string;
-  rollback?: string[];
+  id: string
+  label: string
+  why: string
+  risk: Risk
+  templateSteps: string[] // command templates
+  verification: string
+  rollback?: string[]
 }
 
 export interface StopCondition {
-  when: RuleExpression;
-  message: string;
-  suggestedNext?: FixOption[];
+  when: RuleExpression
+  message: string
+  suggestedNext?: FixOption[]
 }
 
 // ============================================================================
@@ -234,12 +234,12 @@ export interface StopCondition {
 // ============================================================================
 
 export interface NormalizedCommand {
-  original: string;
-  normalized: string;
-  risk: Risk;
-  timeoutMs: number;
-  maxBytes: number;
-  warnings?: string[];
+  original: string
+  normalized: string
+  risk: Risk
+  timeoutMs: number
+  maxBytes: number
+  warnings?: string[]
 }
 
 // ============================================================================
@@ -247,12 +247,12 @@ export interface NormalizedCommand {
 // ============================================================================
 
 export interface DoctorConfig {
-  platform: Platform;
-  allowlist: RegExp[];
-  maxReadTimeout: number;
-  maxWriteTimeout: number;
-  maxOutputBytes: number;
-  strictMode: boolean;
+  platform: Platform
+  allowlist: RegExp[]
+  maxReadTimeout: number
+  maxWriteTimeout: number
+  maxOutputBytes: number
+  strictMode: boolean
 }
 
 // ============================================================================
@@ -260,8 +260,8 @@ export interface DoctorConfig {
 // ============================================================================
 
 export interface CollectOptions {
-  timeoutMs?: number;
-  maxBytes?: number;
-  abortSignal?: AbortSignal;
-  streamCallback?: (chunk: string, stream: "stdout" | "stderr") => void;
+  timeoutMs?: number
+  maxBytes?: number
+  abortSignal?: AbortSignal
+  streamCallback?: (chunk: string, stream: 'stdout' | 'stderr') => void
 }

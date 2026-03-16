@@ -1,1 +1,1 @@
-declare module "node-pty";
+declare module 'node-pty'

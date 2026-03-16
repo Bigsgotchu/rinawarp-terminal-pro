@@ -1,0 +1,34 @@
+{
+  "name": "test-runner",
+  "description": "Run and manage tests - Jest, Vitest, Mocha, Playwright",
+  "author": "RinaWarp",
+  "version": "1.0.0",
+  "price": 4,
+  "permissions": ["npm", "filesystem:read", "process"],
+  "commands": [
+    {
+      "name": "jest",
+      "steps": [
+        "npx jest --coverage"
+      ]
+    },
+    {
+      "name": "vitest",
+      "steps": [
+        "npx vitest run --coverage"
+      ]
+    },
+    {
+      "name": "playwright",
+      "steps": [
+        "npx playwright test"
+      ]
+    },
+    {
+      "name": "watch",
+      "steps": [
+        "npx vitest"
+      ]
+    }
+  ]
+}

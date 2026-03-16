@@ -1,6 +1,6 @@
 /**
  * @rinawarp/agent
- * 
+ *
  * Agent runtime, types, and skills for RinaWarp.
  */
 
@@ -15,20 +15,10 @@ export type {
   LoggerFn,
   UserContext,
   WorkspaceContext,
-} from "./types";
+} from './types.js'
 
 // Runtime
-export {
-  runPlan,
-  createConfirmationMessage,
-  validatePlan,
-  estimatePlanRisk,
-  type RuntimeOptions,
-} from "./runtime";
+export { runPlan, createConfirmationMessage, validatePlan, estimatePlanRisk, type RuntimeOptions } from './runtime.js'
 
 // Skills
-export {
-  planHotComputer,
-  type DiagnosticResult,
-  parseDiagnostics,
-} from "./skills/hot-computer";
+export { planHotComputer, type DiagnosticResult, parseDiagnostics } from './skills/hot-computer.js'

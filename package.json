@@ -8,18 +8,19 @@
     "packages/*"
   ],
   "scripts": {
-    "clean": "bash scripts/clean-builds.sh",
+    "start": "npm run agent:daemon:start && npm run dev:terminal",
+    "dev:terminal": "cd apps/terminal-pro && npm run dev",
     "build": "npm --workspace apps/terminal-pro run build:electron",
     "build:all": "npm run build --workspaces",
     "agent:daemon:start": "npm --workspace packages/rinawarp-agentd run daemon:start",
-    "agent:daemon:stop": "npm --workspace packages/rinawarp-agentd run daemon:stop",
     "agent:daemon:status": "npm --workspace packages/rinawarp-agentd run daemon:status",
+    "agent:daemon:stop": "npm --workspace packages/rinawarp-agentd run daemon:stop",
     "agent:daemon:tasks": "npm --workspace packages/rinawarp-agentd run daemon:task:list",
     "agent:daemon:dlq": "npm --workspace packages/rinawarp-agentd run daemon:task:dlq",
-    "deploy:pages": "bash scripts/deploy-pages-prod.sh",
+    "clean": "bash scripts/clean-builds.sh",
     "dev:terminal-pro": "cd apps/terminal-pro && npm run dev",
-    "dev:terminal": "npm run dev:terminal-pro",
     "pack:terminal": "npm --workspace apps/terminal-pro run build:all",
+    "deploy:pages": "bash scripts/deploy-pages-prod.sh",
     "e2e:smoke": "npm --workspace apps/terminal-pro run e2e:smoke",
     "guard:contracts": "bash scripts/ci-contract-guard.sh",
     "verify:branding": "bash scripts/verify-branding.sh",
@@ -47,10 +48,17 @@
     "verify:appimage:ci": "bash deploy/verify-appimage-ci.sh",
     "release:desktop": "bash deploy/release-runner.sh",
     "release:bump": "bash deploy/bump-release-version.sh",
+    "cli:list-agents": "npx tsx tools/list-agents.ts",
+    "cli:install-agent": "npx tsx tools/install-agent.ts",
     "migrate:auth-local": "bash scripts/migrate-auth-local.sh",
     "migrate:funnel-events": "bash scripts/migrate-funnel-events.sh",
     "e2e:auth-local": "bash scripts/e2e-auth-local.sh https://www.rinawarptech.com https://api.rinawarptech.com",
-    "e2e:project": "bash scripts/e2e-project.sh"
+    "e2e:project": "bash scripts/e2e-project.sh",
+    "lint": "cd apps/terminal-pro && pnpm run lint",
+    "lint:fix": "cd apps/terminal-pro && pnpm run lint:fix",
+    "format": "prettier --write 'apps/**/*.{ts,tsx,js,cjs,mjs}' 'packages/**/*.{ts,tsx,js,cjs,mjs}' 'tools/**/*.{ts,tsx,js,cjs,mjs}'",
+    "format:check": "prettier --check 'apps/**/*.{ts,tsx,js,cjs,mjs}' 'packages/**/*.{ts,tsx,js,cjs,mjs}' 'tools/**/*.{ts,tsx,js,cjs,mjs}'",
+    "spellcheck": "cspell 'apps/**/*.{ts,tsx,js,cjs,mjs}' 'packages/**/*.{ts,tsx,js,cjs,mjs}' 'tools/**/*.{ts,tsx,js,cjs,mjs}'"
   },
   "keywords": [
     "rinawarp",
@@ -61,10 +69,33 @@
   ],
   "author": "RinaWarp Team",
   "license": "MIT",
+  "resolutions": {
+    "typescript": "5.4.2",
+    "electron": ">=35.7.5",
+    "playwright": ">=1.55.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": ">=7.5.11",
+      "minimatch": ">=10.2.3",
+      "yauzl": ">=3.2.1",
+      "@tootallnate/once": ">=3.0.1"
+    },
+    "onlyBuiltDependencies": [
+      "electron",
+      "better-sqlite3",
+      "esbuild",
+      "node-pty"
+    ]
+  },
   "dependencies": {
     "electron": "28.3.0"
   },
   "engines": {
     "node": ">=18.19.0"
+  },
+  "devDependencies": {
+    "cspell": "^9.7.0",
+    "prettier": "^3.8.1"
   }
 }

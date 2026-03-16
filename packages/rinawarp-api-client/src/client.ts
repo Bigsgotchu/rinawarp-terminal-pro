@@ -6,22 +6,18 @@ import type {
   DownloadTokenResponse,
   MeResponse,
   PortalResponse,
-} from "./types.js";
-import type { GetAuth } from "./http.js";
-import { jsonFetch } from "./http.js";
+} from './types.js'
+import type { GetAuth } from './http.js'
+import { jsonFetch } from './http.js'
 
-export function createApiClient(args: {
-  baseUrl: string;
-  getAuth?: GetAuth;
-  withCredentials?: boolean;
-}) {
-  const base = args.baseUrl.replace(/\/+$/, "");
+export function createApiClient(args: { baseUrl: string; getAuth?: GetAuth; withCredentials?: boolean }) {
+  const base = args.baseUrl.replace(/\/+$/, '')
 
   return {
     authStart: (req: AuthStartRequest) =>
       jsonFetch<AuthStartResponse>({
         url: `${base}/api/auth/start`,
-        method: "POST",
+        method: 'POST',
         body: req,
         getAuth: args.getAuth,
         withCredentials: args.withCredentials,
@@ -30,7 +26,7 @@ export function createApiClient(args: {
     authVerify: (token: string) =>
       jsonFetch<AuthVerifyResponse>({
         url: `${base}/api/auth/verify?token=${encodeURIComponent(token)}`,
-        method: "GET",
+        method: 'GET',
         getAuth: args.getAuth,
         withCredentials: args.withCredentials,
       }),
@@ -38,7 +34,7 @@ export function createApiClient(args: {
     me: () =>
       jsonFetch<MeResponse>({
         url: `${base}/api/me`,
-        method: "GET",
+        method: 'GET',
         getAuth: args.getAuth,
         withCredentials: args.withCredentials,
       }),
@@ -46,7 +42,7 @@ export function createApiClient(args: {
     downloadToken: (req: DownloadTokenRequest) =>
       jsonFetch<DownloadTokenResponse>({
         url: `${base}/api/download-token`,
-        method: "POST",
+        method: 'POST',
         body: req,
         getAuth: args.getAuth,
         withCredentials: args.withCredentials,
@@ -55,10 +51,10 @@ export function createApiClient(args: {
     portal: () =>
       jsonFetch<PortalResponse>({
         url: `${base}/api/portal`,
-        method: "POST",
+        method: 'POST',
         body: {},
         getAuth: args.getAuth,
         withCredentials: args.withCredentials,
       }),
-  };
+  }
 }

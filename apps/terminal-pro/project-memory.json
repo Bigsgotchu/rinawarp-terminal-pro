@@ -1,0 +1,23 @@
+{
+  "projects": {
+    "/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro": {
+      "name": "Unknown",
+      "root": "./",
+      "type": "node",
+      "lastOpened": "2026-03-16T10:28:38.759Z",
+      "visitCount": 150,
+      "notes": "",
+      "customCommands": {}
+    },
+    "/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/tmp-smoke-continuous": {
+      "name": "tmp-smoke-continuous",
+      "root": "/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/tmp-smoke-continuous",
+      "type": "unknown",
+      "lastOpened": "2026-03-15T18:07:37.767Z",
+      "visitCount": 2,
+      "notes": "",
+      "customCommands": {}
+    }
+  },
+  "lastUpdated": "2026-03-16T10:28:38.759Z"
+}

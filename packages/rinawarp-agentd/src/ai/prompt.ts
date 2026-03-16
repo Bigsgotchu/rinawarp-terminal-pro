@@ -1,11 +1,11 @@
 /**
  * Prompt Builder
- * 
+ *
  * Production-grade structured prompts for LLM.
  * Ensures schema compliance and prevents hallucinations.
  */
 
-import type { AiMessage } from "./schema.js";
+import type { AiMessage } from './schema.js'
 
 /**
  * System prompt for shell assistant - production quality
@@ -27,7 +27,7 @@ Response schema:
   "commands": ["cmd1", "cmd2"],
   "risk": "low|medium|high",
   "explanation": "what these commands do"
-}`;
+}`
 }
 
 /**
@@ -50,7 +50,7 @@ If user requests these, respond with:
   "commands": [],
   "risk": "high",
   "explanation": "This command is blocked for safety reasons"
-}`;
+}`
 }
 
 /**
@@ -74,7 +74,7 @@ JSON schema:
   "explanation": "what this fixes"
 }
 
-Respond with ONLY valid JSON.`;
+Respond with ONLY valid JSON.`
 }
 
 /**
@@ -93,7 +93,7 @@ JSON schema:
   "risk": "low|medium|high"
 }
 
-Respond with ONLY valid JSON.`;
+Respond with ONLY valid JSON.`
 }
 
 /**
@@ -116,7 +116,7 @@ JSON schema:
   "explanation": "what will happen"
 }
 
-Respond with ONLY valid JSON.`;
+Respond with ONLY valid JSON.`
 }
 
 /**
@@ -138,55 +138,46 @@ JSON schema:
   "reasoning": "why this risk level"
 }
 
-Respond with ONLY valid JSON.`;
+Respond with ONLY valid JSON.`
 }
 
 /**
  * Create chat messages
  */
-export function createMessages(
-  systemPrompt: string,
-  userContent: string
-): AiMessage[] {
+export function createMessages(systemPrompt: string, userContent: string): AiMessage[] {
   return [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: userContent },
-  ];
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userContent },
+  ]
 }
 
 /**
  * Create error explanation request
  */
-export function createErrorExplanationRequest(
-  error: string,
-  context: string
-): AiMessage[] {
-  const system = buildSystemPrompt() + "\n\n" + buildSafetyPrompt();
-  return createMessages(system, buildErrorFixPrompt(error, context));
+export function createErrorExplanationRequest(error: string, context: string): AiMessage[] {
+  const system = buildSystemPrompt() + '\n\n' + buildSafetyPrompt()
+  return createMessages(system, buildErrorFixPrompt(error, context))
 }
 
 /**
  * Create command translation request
  */
-export function createTranslationRequest(
-  intent: string,
-  context: string
-): AiMessage[] {
-  const system = buildSystemPrompt() + "\n\n" + buildSafetyPrompt();
-  return createMessages(system, buildTranslatePrompt(intent, context));
+export function createTranslationRequest(intent: string, context: string): AiMessage[] {
+  const system = buildSystemPrompt() + '\n\n' + buildSafetyPrompt()
+  return createMessages(system, buildTranslatePrompt(intent, context))
 }
 
 /**
  * Validate response schema - prevents hallucinations
  */
 export function validateSchema(response: Record<string, unknown>): boolean {
-  const risk = response.risk as string | undefined;
-  const valid = 
-    typeof response.analysis === "string" &&
+  const risk = response.risk as string | undefined
+  const valid =
+    typeof response.analysis === 'string' &&
     Array.isArray(response.commands) &&
     risk !== undefined &&
-    ["low", "medium", "high"].includes(risk) &&
-    typeof response.explanation === "string";
-  
-  return valid;
+    ['low', 'medium', 'high'].includes(risk) &&
+    typeof response.explanation === 'string'
+
+  return valid
 }

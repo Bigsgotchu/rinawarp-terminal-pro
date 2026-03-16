@@ -1,0 +1,15 @@
+name = "rinawarp-downloads"
+main = "download-worker.js"
+compatibility_date = "2024-01-01"
+account_id = "ba2f14cefa19dbdc42ff88d772410689"
+
+[[r2_buckets]]
+binding = "RINAWARP_CDN"
+bucket_name = "rinawarp-cdn"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = false
+invocation_logs = true

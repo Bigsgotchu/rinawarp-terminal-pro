@@ -1,3 +1,24 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - apps/*
+  - packages/*
+
+enablePrePostScripts: true
+
+ignoredBuiltDependencies: []
+
+overrides:
+  '@tootallnate/once@<3.0.1': '>=3.0.1'
+  electron: 28.3.3
+  electron@<35.7.5: '>=35.7.5'
+  minimatch@>=10.0.0 <10.2.1: '>=10.2.1'
+  minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
+  playwright: 1.44.0
+  playwright@<1.55.1: '>=1.55.1'
+  tar@<7.5.7: '>=7.5.7'
+  tar@<7.5.8: '>=7.5.8'
+  tar@<=7.5.10: '>=7.5.11'
+  tar@<=7.5.2: '>=7.5.3'
+  tar@<=7.5.3: '>=7.5.4'
+  tar@<=7.5.9: '>=7.5.10'
+  typescript: 5.4.2
+  yauzl@<3.2.1: '>=3.2.1'

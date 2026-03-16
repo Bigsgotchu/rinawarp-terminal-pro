@@ -1,0 +1,11 @@
+{
+  "git.ignoreLimitWarning": true,
+  "cs-script.engine.cscs": "/home/karina/.dotnet/tools/.store/cs-script.cli/4.13.1/cs-script.cli/4.13.1/tools/net8.0/any/cscs.dll",
+  "cs-script.engine.syntaxer": "/home/karina/.dotnet/tools/.store/cs-syntaxer/3.2.7/cs-syntaxer/3.2.7/tools/net8.0/any/syntaxer.dll",
+  "deno.enable": false,
+  "deno.lint": false,
+  "deno.unstable": false,
+  "npm.packageManager": "npm",
+  "typescript.tsserver.useSyntaxServer": "auto",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}

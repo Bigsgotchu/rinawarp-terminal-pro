@@ -1,0 +1,37 @@
+{
+  "stats": {
+    "echo Rina Test": {
+      "command": "echo Rina Test",
+      "count": 2,
+      "lastUsed": "2026-03-15T18:07:37.774Z",
+      "successRate": 1,
+      "totalRuns": 2,
+      "successfulRuns": 2
+    },
+    "echo hello": {
+      "command": "echo hello",
+      "count": 14,
+      "lastUsed": "2026-03-16T10:28:31.678Z",
+      "successRate": 1,
+      "totalRuns": 14,
+      "successfulRuns": 14
+    },
+    "Hello Rina!": {
+      "command": "Hello Rina!",
+      "count": 13,
+      "lastUsed": "2026-03-16T10:28:35.982Z",
+      "successRate": 0,
+      "totalRuns": 12,
+      "successfulRuns": 0
+    },
+    "": {
+      "command": "",
+      "count": 7,
+      "lastUsed": "2026-03-16T10:28:38.763Z",
+      "successRate": 0,
+      "totalRuns": 6,
+      "successfulRuns": 0
+    }
+  },
+  "lastUpdated": "2026-03-16T10:28:38.763Z"
+}

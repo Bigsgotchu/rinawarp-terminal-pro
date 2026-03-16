@@ -1,104 +1,195 @@
-import type { IncomingMessage } from "node:http";
-import { createHmac, timingSafeEqual } from "node:crypto";
-import type { LicenseTier } from "@rinawarp/core/enforcement/types.js";
+import type { IncomingMessage } from 'node:http'
+import { createHmac, timingSafeEqual } from 'node:crypto'
+import type { LicenseTier } from '@rinawarp/core/enforcement/types.js'
 
-const VALID_LICENSE_TIERS: LicenseTier[] = ["starter", "creator", "pro", "pioneer", "founder", "enterprise"];
-const VALID_LICENSE_SET = new Set<LicenseTier>(VALID_LICENSE_TIERS);
+const VALID_LICENSE_TIERS: LicenseTier[] = [
+  'starter',
+  'creator',
+  'pro',
+  'pioneer',
+  'founder',
+  'evergreen',
+  'enterprise',
+]
+
+/**
+ * Lifetime tier sales limits configuration.
+ * Set via environment variables to enforce scarcity.
+ *
+ * Format: RINAWARP_LIFETIME_LIMIT_[TIER]=count
+ * Example: RINAWARP_LIFETIME_LIMIT_FOUNDER=200
+ */
+interface LifetimeLimit {
+  tier: string
+  maxCount: number
+  currentCount: number
+}
+
+/**
+ * Get configured lifetime tier limits from environment.
+ * Defaults to unlimited if not configured.
+ */
+function getLifetimeLimits(): LifetimeLimit[] {
+  const limits: LifetimeLimit[] = []
+  const tiers = ['founder', 'pioneer', 'evergreen']
+
+  for (const tier of tiers) {
+    const envVar = `RINAWARP_LIFETIME_LIMIT_${tier.toUpperCase()}`
+    const limitStr = process.env[envVar]
+
+    if (limitStr !== undefined) {
+      const maxCount = parseInt(limitStr, 10)
+      if (!isNaN(maxCount) && maxCount > 0) {
+        // Get current count from environment (set by external system like Stripe webhooks)
+        const currentEnvVar = `RINAWARP_LIFETIME_SOLD_${tier.toUpperCase()}`
+        const currentStr = process.env[currentEnvVar]
+        const currentCount = currentStr ? parseInt(currentStr, 10) : 0
+
+        limits.push({
+          tier,
+          maxCount,
+          currentCount: isNaN(currentCount) ? 0 : currentCount,
+        })
+      }
+    }
+  }
+
+  return limits
+}
+
+/**
+ * Check if a lifetime tier has reached its sales limit.
+ * Returns true if the tier is at capacity (should not allow new sales).
+ */
+export function isLifetimeTierAtLimit(tier: string): boolean {
+  const limits = getLifetimeLimits()
+  const tierLower = tier.toLowerCase()
+
+  for (const limit of limits) {
+    if (limit.tier === tierLower) {
+      // If maxCount is 0, it's unlimited
+      if (limit.maxCount === 0) return false
+      return limit.currentCount >= limit.maxCount
+    }
+  }
+
+  // No limit configured = unlimited
+  return false
+}
+
+/**
+ * Get remaining slots for a lifetime tier.
+ * Returns null if unlimited, or the number of remaining slots.
+ */
+export function getLifetimeTierRemaining(tier: string): number | null {
+  const limits = getLifetimeLimits()
+  const tierLower = tier.toLowerCase()
+
+  for (const limit of limits) {
+    if (limit.tier === tierLower) {
+      if (limit.maxCount === 0) return null
+      return Math.max(0, limit.maxCount - limit.currentCount)
+    }
+  }
+
+  return null
+}
+const VALID_LICENSE_SET = new Set<LicenseTier>(VALID_LICENSE_TIERS)
 
 function toSingleHeaderValue(value: string | string[] | undefined): string | undefined {
-  if (!value) return undefined;
-  if (Array.isArray(value)) return value[0];
-  return value;
+  if (!value) return undefined
+  if (Array.isArray(value)) return value[0]
+  return value
 }
 
 function normalizeTier(value: string | undefined): LicenseTier | undefined {
-  if (!value) return undefined;
-  const normalized = value.trim().toLowerCase();
-  if (!normalized) return undefined;
+  if (!value) return undefined
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) return undefined
   if (VALID_LICENSE_SET.has(normalized as LicenseTier)) {
-    return normalized as LicenseTier;
+    return normalized as LicenseTier
   }
-  return undefined;
+  return undefined
 }
 
 function makeBadRequest(message: string): Error {
-  const err = new Error(message);
-  (err as Error & { statusCode: number }).statusCode = 400;
-  return err;
+  const err = new Error(message)
+  ;(err as Error & { statusCode: number }).statusCode = 400
+  return err
 }
 
 function makeUnauthorized(message: string): Error {
-  const err = new Error(message);
-  (err as Error & { statusCode: number }).statusCode = 401;
-  return err;
+  const err = new Error(message)
+  ;(err as Error & { statusCode: number }).statusCode = 401
+  return err
 }
 
 function makeServerError(message: string): Error {
-  const err = new Error(message);
-  (err as Error & { statusCode: number }).statusCode = 500;
-  return err;
+  const err = new Error(message)
+  ;(err as Error & { statusCode: number }).statusCode = 500
+  return err
 }
 
 function envFlag(name: string): boolean {
-  const raw = process.env[name];
-  if (!raw) return false;
-  const value = raw.trim().toLowerCase();
-  return value === "1" || value === "true" || value === "yes";
+  const raw = process.env[name]
+  if (!raw) return false
+  const value = raw.trim().toLowerCase()
+  return value === '1' || value === 'true' || value === 'yes'
 }
 
 function isProductionMode(): boolean {
-  return process.env.NODE_ENV === "production";
+  return process.env.NODE_ENV === 'production'
 }
 
 function b64urlDecodeToBuffer(value: string): Buffer {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padding = normalized.length % 4 === 0 ? "" : "=".repeat(4 - (normalized.length % 4));
-  return Buffer.from(normalized + padding, "base64");
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
+  const padding = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4))
+  return Buffer.from(normalized + padding, 'base64')
 }
 
 function parseTierFromLicenseToken(token: string, secret: string): LicenseTier {
-  const parts = token.split(".");
+  const parts = token.split('.')
   if (parts.length !== 2) {
-    throw makeUnauthorized("invalid license token format");
+    throw makeUnauthorized('invalid license token format')
   }
 
-  const payloadPart = parts[0];
-  const sigPart = parts[1];
-  const payloadBytes = b64urlDecodeToBuffer(payloadPart);
-  const providedSig = b64urlDecodeToBuffer(sigPart);
-  const expectedSig = createHmac("sha256", secret).update(payloadBytes).digest();
+  const payloadPart = parts[0]
+  const sigPart = parts[1]
+  const payloadBytes = b64urlDecodeToBuffer(payloadPart)
+  const providedSig = b64urlDecodeToBuffer(sigPart)
+  const expectedSig = createHmac('sha256', secret).update(payloadBytes).digest()
 
   if (providedSig.length !== expectedSig.length || !timingSafeEqual(providedSig, expectedSig)) {
-    throw makeUnauthorized("invalid license token signature");
+    throw makeUnauthorized('invalid license token signature')
   }
 
-  let payload: unknown;
+  let payload: unknown
   try {
-    payload = JSON.parse(payloadBytes.toString("utf8"));
+    payload = JSON.parse(payloadBytes.toString('utf8'))
   } catch {
-    throw makeUnauthorized("invalid license token payload");
+    throw makeUnauthorized('invalid license token payload')
   }
 
-  if (!payload || typeof payload !== "object") {
-    throw makeUnauthorized("invalid license token payload");
+  if (!payload || typeof payload !== 'object') {
+    throw makeUnauthorized('invalid license token payload')
   }
 
-  const record = payload as Record<string, unknown>;
-  if (record.typ !== "license") {
-    throw makeUnauthorized("invalid license token type");
+  const record = payload as Record<string, unknown>
+  if (record.typ !== 'license') {
+    throw makeUnauthorized('invalid license token type')
   }
 
-  const exp = typeof record.exp === "number" ? record.exp : null;
+  const exp = typeof record.exp === 'number' ? record.exp : null
   if (!exp || !Number.isFinite(exp) || exp <= Date.now()) {
-    throw makeUnauthorized("expired license token");
+    throw makeUnauthorized('expired license token')
   }
 
-  const tier = normalizeTier(typeof record.tier === "string" ? record.tier : undefined);
+  const tier = normalizeTier(typeof record.tier === 'string' ? record.tier : undefined)
   if (!tier) {
-    throw makeUnauthorized("invalid license token tier");
+    throw makeUnauthorized('invalid license token tier')
   }
 
-  return tier;
+  return tier
 }
 
 /**
@@ -118,44 +209,46 @@ function parseTierFromLicenseToken(token: string, secret: string): LicenseTier {
  * 4) fallback: `starter` (safe default)
  */
 export function resolveRequestLicense(req: IncomingMessage): LicenseTier {
-  const entitlementSecret = process.env.RINAWARP_AGENTD_ENTITLEMENT_SECRET;
-  const entitlementToken = toSingleHeaderValue(req.headers["x-rinawarp-license-token"]);
+  const entitlementSecret = process.env.RINAWARP_AGENTD_ENTITLEMENT_SECRET
+  const entitlementToken = toSingleHeaderValue(req.headers['x-rinawarp-license-token'])
 
   if (isProductionMode()) {
     if (!entitlementSecret) {
-      throw makeServerError("missing RINAWARP_AGENTD_ENTITLEMENT_SECRET in production");
+      throw makeServerError('missing RINAWARP_AGENTD_ENTITLEMENT_SECRET in production')
     }
     if (!entitlementToken) {
-      throw makeUnauthorized("missing x-rinawarp-license-token");
+      throw makeUnauthorized('missing x-rinawarp-license-token')
     }
-    return parseTierFromLicenseToken(entitlementToken, entitlementSecret);
+    return parseTierFromLicenseToken(entitlementToken, entitlementSecret)
   }
 
   if (entitlementToken) {
     if (!entitlementSecret) {
-      throw makeServerError("x-rinawarp-license-token provided but RINAWARP_AGENTD_ENTITLEMENT_SECRET is not configured");
+      throw makeServerError(
+        'x-rinawarp-license-token provided but RINAWARP_AGENTD_ENTITLEMENT_SECRET is not configured'
+      )
     }
-    return parseTierFromLicenseToken(entitlementToken, entitlementSecret);
+    return parseTierFromLicenseToken(entitlementToken, entitlementSecret)
   }
 
-  const envValue = process.env.RINAWARP_AGENTD_LICENSE;
+  const envValue = process.env.RINAWARP_AGENTD_LICENSE
   if (envValue !== undefined) {
-    const fromEnv = normalizeTier(envValue);
+    const fromEnv = normalizeTier(envValue)
     if (!fromEnv) {
-      throw makeBadRequest("invalid RINAWARP_AGENTD_LICENSE value");
+      throw makeBadRequest('invalid RINAWARP_AGENTD_LICENSE value')
     }
-    return fromEnv;
+    return fromEnv
   }
 
-  const headerAllowed = !isProductionMode() && envFlag("RINAWARP_AGENTD_ALLOW_LICENSE_HEADER");
-  const headerValue = toSingleHeaderValue(req.headers["x-rinawarp-license"]);
+  const headerAllowed = !isProductionMode() && envFlag('RINAWARP_AGENTD_ALLOW_LICENSE_HEADER')
+  const headerValue = toSingleHeaderValue(req.headers['x-rinawarp-license'])
   if (headerAllowed && headerValue !== undefined) {
-    const fromHeader = normalizeTier(headerValue);
+    const fromHeader = normalizeTier(headerValue)
     if (!fromHeader) {
-      throw makeBadRequest("invalid x-rinawarp-license header");
+      throw makeBadRequest('invalid x-rinawarp-license header')
     }
-    return fromHeader;
+    return fromHeader
   }
 
-  return "starter";
+  return 'starter'
 }

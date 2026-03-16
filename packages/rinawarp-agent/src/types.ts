@@ -1,35 +1,30 @@
 /**
  * RinaWarp Agent Types
- * 
+ *
  * Core type definitions for agent plans, tool calls, and execution.
  */
 
-import type { RiskLevel } from "@rinawarp/safety";
+import type { RiskLevel } from '@rinawarp/safety'
 
 /**
  * Available tool names in the RinaWarp agent system.
  */
-export type ToolName = 
-  | "terminal" 
-  | "filesystem" 
-  | "git" 
-  | "http" 
-  | "system";
+export type ToolName = 'terminal' | 'filesystem' | 'git' | 'http' | 'system'
 
 /**
  * A single tool call in an agent plan.
  */
 export interface ToolCall {
   /** The tool to execute */
-  tool: ToolName;
+  tool: ToolName
   /** The command or operation to perform */
-  command: string;
+  command: string
   /** Additional arguments for the tool */
-  args?: Record<string, unknown>;
+  args?: Record<string, unknown>
   /** Risk level - auto-classified if not provided */
-  risk?: RiskLevel;
+  risk?: RiskLevel
   /** Human-readable description of what this step does */
-  description?: string;
+  description?: string
 }
 
 /**
@@ -37,20 +32,20 @@ export interface ToolCall {
  */
 export interface AgentPlan {
   /** The user's intent that prompted this plan */
-  intent: string;
+  intent: string
   /** Brief summary of what the plan accomplishes */
-  summary: string;
+  summary: string
   /** Ordered list of steps to execute */
-  steps: ToolCall[];
+  steps: ToolCall[]
   /** Optional metadata about the plan */
   metadata?: {
     /** Estimated time to complete in seconds */
-    estimatedTimeSeconds?: number;
+    estimatedTimeSeconds?: number
     /** Whether this plan requires user confirmation */
-    requiresConfirmation?: boolean;
+    requiresConfirmation?: boolean
     /** Tags for categorizing the plan */
-    tags?: string[];
-  };
+    tags?: string[]
+  }
 }
 
 /**
@@ -58,13 +53,13 @@ export interface AgentPlan {
  */
 export interface StepResult {
   /** The step that was executed */
-  step: ToolCall;
+  step: ToolCall
   /** Whether the step succeeded */
-  ok: boolean;
+  ok: boolean
   /** Output from successful execution */
-  output?: string;
+  output?: string
   /** Error message if execution failed */
-  error?: string;
+  error?: string
 }
 
 /**
@@ -72,41 +67,41 @@ export interface StepResult {
  */
 export interface PlanResult {
   /** The original plan that was executed */
-  plan: AgentPlan;
+  plan: AgentPlan
   /** Results for each step in order */
-  results: StepResult[];
+  results: StepResult[]
   /** Whether the entire plan completed successfully */
-  success: boolean;
+  success: boolean
   /** Overall summary of what happened */
-  summary: string;
+  summary: string
   /** Total time spent executing in milliseconds */
-  executionTimeMs: number;
+  executionTimeMs: number
 }
 
 /**
  * Function type for confirming risky operations.
  */
-export type ConfirmFn = (step: ToolCall) => Promise<boolean>;
+export type ConfirmFn = (step: ToolCall) => Promise<boolean>
 
 /**
  * Function type for logging agent activity.
  */
-export type LoggerFn = (message: string, level: "info" | "warn" | "error") => void;
+export type LoggerFn = (message: string, level: 'info' | 'warn' | 'error') => void
 
 /**
  * User context available to the agent.
  */
 export interface UserContext {
   /** User's preferred working directory */
-  workingDirectory?: string;
+  workingDirectory?: string
   /** User's name for personalized messages */
-  userName?: string;
+  userName?: string
   /** User's timezone */
-  timezone?: string;
+  timezone?: string
   /** Operating system platform */
-  platform?: "linux" | "darwin" | "win32";
+  platform?: 'linux' | 'darwin' | 'win32'
   /** User preferences for auto-confirmation */
-  autoConfirmLowRisk?: boolean;
+  autoConfirmLowRisk?: boolean
 }
 
 /**
@@ -114,15 +109,15 @@ export interface UserContext {
  */
 export interface WorkspaceContext {
   /** Path to the workspace root */
-  rootPath: string;
+  rootPath: string
   /** Git repository info if available */
   git?: {
-    branch: string;
-    isRepo: boolean;
-    remote?: string;
-  };
+    branch: string
+    isRepo: boolean
+    remote?: string
+  }
   /** Package manager detected */
-  packageManager?: "npm" | "yarn" | "pnpm" | "bun" | "cargo";
+  packageManager?: 'npm' | 'yarn' | 'pnpm' | 'bun' | 'cargo'
   /** Project type if detectable */
-  projectType?: "node" | "rust" | "python" | "go" | "unknown";
+  projectType?: 'node' | 'rust' | 'python' | 'go' | 'unknown'
 }

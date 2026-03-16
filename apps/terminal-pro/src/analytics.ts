@@ -1,124 +1,131 @@
 /**
  * RinaWarp Analytics Module
- * 
+ *
  * Privacy-friendly product analytics using PostHog.
  * Tracks user behavior for product improvement.
- * 
+ *
  * Features:
  * - Anonymous user tracking (no PII)
  * - Automatic session tracking
  * - Feature usage analytics
  * - Revenue funnel tracking
- * 
+ *
  * Environment:
  * - POSTHOG_API_KEY: Your PostHog API key
  * - POSTHOG_HOST: PostHog host (default: https://app.posthog.com)
  * - RINAWARP_ANALYTICS_DISABLED: Set to 'true' to disable tracking
  */
 
-import { app } from 'electron';
-import path from 'node:path';
-import fs from 'node:fs';
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const electron = require('electron')
+const { app } = electron
+import path from 'node:path'
+import fs from 'node:fs'
 
 // Configuration - uses RINAWARP_ prefix to match project conventions
-const POSTHOG_API_KEY = process.env.RINAWARP_POSTHOG_KEY || process.env.POSTHOG_API_KEY || '';
-const POSTHOG_HOST = process.env.RINAWARP_POSTHOG_HOST || process.env.POSTHOG_HOST || 'https://app.posthog.com';
-const ANALYTICS_DISABLED = process.env.RINAWARP_ANALYTICS_DISABLED === 'true' || process.env.RINAWARP_ANALYTICS_DISABLED === '1' || !POSTHOG_API_KEY;
+const POSTHOG_API_KEY = process.env.RINAWARP_POSTHOG_KEY || process.env.POSTHOG_API_KEY || ''
+const POSTHOG_HOST = process.env.RINAWARP_POSTHOG_HOST || process.env.POSTHOG_HOST || 'https://app.posthog.com'
+const ANALYTICS_DISABLED =
+  process.env.RINAWARP_ANALYTICS_DISABLED === 'true' ||
+  process.env.RINAWARP_ANALYTICS_DISABLED === '1' ||
+  !POSTHOG_API_KEY
 
 type FunnelMeta = {
-  lastAppStartAt?: number;
-  firstRunAt?: number;
-  firstBlockAt?: number;
-};
+  lastAppStartAt?: number
+  firstRunAt?: number
+  firstBlockAt?: number
+}
 
 function funnelMetaPath(): string {
-  const userDataPath = app?.getPath?.('userData') || '.';
-  return path.join(userDataPath, 'analytics-funnel.json');
+  const userDataPath = app?.getPath?.('userData') || '.'
+  return path.join(userDataPath, 'analytics-funnel.json')
 }
 
 function loadFunnelMeta(): FunnelMeta {
   try {
-    const fp = funnelMetaPath();
-    if (!fs.existsSync(fp)) return {};
-    const raw = fs.readFileSync(fp, 'utf8');
-    const parsed = JSON.parse(raw) as FunnelMeta;
-    return parsed || {};
+    const fp = funnelMetaPath()
+    if (!fs.existsSync(fp)) return {}
+    const raw = fs.readFileSync(fp, 'utf8')
+    const parsed = JSON.parse(raw) as FunnelMeta
+    return parsed || {}
   } catch {
-    return {};
+    return {}
   }
 }
 
 function saveFunnelMeta(meta: FunnelMeta): void {
   try {
-    const fp = funnelMetaPath();
-    fs.mkdirSync(path.dirname(fp), { recursive: true });
-    fs.writeFileSync(fp, JSON.stringify(meta, null, 2), 'utf8');
+    const fp = funnelMetaPath()
+    fs.mkdirSync(path.dirname(fp), { recursive: true })
+    fs.writeFileSync(fp, JSON.stringify(meta, null, 2), 'utf8')
   } catch {
     // ignore
   }
 }
 
-let funnelMeta: FunnelMeta = loadFunnelMeta();
+let funnelMeta: FunnelMeta = loadFunnelMeta()
 
 // Device ID storage
 function getDeviceId(): string {
-  const userDataPath = app?.getPath?.('userData') || '.';
-  const deviceIdPath = path.join(userDataPath, 'analytics-device-id.txt');
-  
+  const userDataPath = app?.getPath?.('userData') || '.'
+  const deviceIdPath = path.join(userDataPath, 'analytics-device-id.txt')
+
   try {
     if (fs.existsSync(deviceIdPath)) {
-      return fs.readFileSync(deviceIdPath, 'utf8').trim();
+      return fs.readFileSync(deviceIdPath, 'utf8').trim()
     }
     // Generate new device ID
-    const crypto = require('node:crypto');
-    const deviceId = crypto.randomUUID();
-    fs.mkdirSync(path.dirname(deviceIdPath), { recursive: true });
-    fs.writeFileSync(deviceIdPath, deviceId, 'utf8');
-    return deviceId;
+    const crypto = require('node:crypto')
+    const deviceId = crypto.randomUUID()
+    fs.mkdirSync(path.dirname(deviceIdPath), { recursive: true })
+    fs.writeFileSync(deviceIdPath, deviceId, 'utf8')
+    return deviceId
   } catch {
-    return 'unknown-device';
+    return 'unknown-device'
   }
 }
 
 // PostHog instance (lazy initialized). Optional at runtime.
-let posthog: any | null = null;
-let posthogCtor: any | null = null;
+let posthog: any | null = null
+let posthogCtor: any | null = null
 
 function loadPostHogCtor(): any | null {
-  if (posthogCtor) return posthogCtor;
+  if (posthogCtor) return posthogCtor
   try {
     // Optional dependency: do not hard-fail builds if missing.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mod = require('posthog-node');
-    posthogCtor = mod?.PostHog || mod?.default || null;
+
+    const mod = require('posthog-node')
+    posthogCtor = mod?.PostHog || mod?.default || null
   } catch {
-    posthogCtor = null;
+    posthogCtor = null
   }
-  return posthogCtor;
+  return posthogCtor
 }
 
 function getPostHog(): any | null {
   if (ANALYTICS_DISABLED) {
-    return null;
+    return null
   }
-  
+
   if (!posthog) {
-    const PostHog = loadPostHogCtor();
-    if (!PostHog) return null;
+    const PostHog = loadPostHogCtor()
+    if (!PostHog) return null
     try {
       posthog = new PostHog(POSTHOG_API_KEY, {
         host: POSTHOG_HOST,
-        flushAt: 1,
-        flushInterval: 0,
+        // Batch events for better performance - flush when 20 events are queued or every 10 seconds
+        flushAt: 20,
+        flushInterval: 10000,
         enable: true,
-      });
+      })
     } catch (error) {
-      console.error('[Analytics] Failed to initialize PostHog:', error);
-      return null;
+      console.error('[Analytics] Failed to initialize PostHog:', error)
+      return null
     }
   }
-  
-  return posthog;
+
+  return posthog
 }
 
 // Event types
@@ -157,18 +164,15 @@ export type AnalyticsEvent =
   | 'usage_tracking_enabled'
   | 'ai_suggestion_used'
   | 'self_healing_run'
-  | 'terminal_session_tracked';
+  | 'terminal_session_tracked'
 
 /**
  * Track an analytics event
  */
-export function trackEvent(
-  event: AnalyticsEvent,
-  properties?: Record<string, unknown>
-): void {
-  const ph = getPostHog();
-  if (!ph) return;
-  
+export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
+  const ph = getPostHog()
+  if (!ph) return
+
   try {
     ph.capture({
       distinctId: getDeviceId(),
@@ -182,9 +186,9 @@ export function trackEvent(
         timestamp: new Date().toISOString(),
       },
       timestamp: new Date(),
-    });
+    })
   } catch (error) {
-    console.error('[Analytics] Failed to track event:', event, error);
+    console.error('[Analytics] Failed to track event:', event, error)
   }
 }
 
@@ -192,17 +196,17 @@ export function trackEvent(
  * Track a user identification (for logged-in users)
  */
 export function identifyUser(userId: string, traits?: Record<string, unknown>): void {
-  const ph = getPostHog();
-  if (!ph) return;
-  
+  const ph = getPostHog()
+  if (!ph) return
+
   try {
     ph.identify({
       distinctId: getDeviceId(),
       userId,
       properties: traits,
-    });
+    })
   } catch (error) {
-    console.error('[Analytics] Failed to identify user:', error);
+    console.error('[Analytics] Failed to identify user:', error)
   }
 }
 
@@ -210,17 +214,17 @@ export function identifyUser(userId: string, traits?: Record<string, unknown>): 
  * Set super properties (included in all events)
  */
 export function setSuperProperties(properties: Record<string, unknown>): void {
-  const ph = getPostHog();
-  if (!ph) return;
-  
+  const ph = getPostHog()
+  if (!ph) return
+
   try {
     ph.register({
       ...properties,
       app_version: app?.getVersion?.() || 'unknown',
       platform: process.platform,
-    });
+    })
   } catch (error) {
-    console.error('[Analytics] Failed to set super properties:', error);
+    console.error('[Analytics] Failed to set super properties:', error)
   }
 }
 
@@ -231,20 +235,20 @@ export function trackFeatureFlag(flagName: string, flagValue: unknown): void {
   trackEvent('feature_flag_evaluated', {
     flag_name: flagName,
     flag_value: String(flagValue),
-  });
+  })
 }
 
 /**
  * Flush all pending events
  */
 export async function flushAnalytics(): Promise<void> {
-  const ph = getPostHog();
-  if (!ph) return;
-  
+  const ph = getPostHog()
+  if (!ph) return
+
   try {
-    await ph.flushAsync();
+    await ph.flushAsync()
   } catch (error) {
-    console.error('[Analytics] Failed to flush:', error);
+    console.error('[Analytics] Failed to flush:', error)
   }
 }
 
@@ -252,12 +256,12 @@ export async function flushAnalytics(): Promise<void> {
  * Shutdown analytics (call on app quit)
  */
 export async function shutdownAnalytics(): Promise<void> {
-  await flushAnalytics();
-  
-  const ph = getPostHog();
+  await flushAnalytics()
+
+  const ph = getPostHog()
   if (ph) {
-    ph.shutdown();
-    posthog = null;
+    ph.shutdown()
+    posthog = null
   }
 }
 
@@ -268,7 +272,7 @@ const funnelStepToKey: Record<string, keyof typeof funnelState> = {
   first_block: 'firstBlockTracked',
   upgrade_view: 'upgradeViewTracked',
   paid: 'paidTracked',
-};
+}
 
 let funnelState = {
   signupTracked: false,
@@ -276,64 +280,61 @@ let funnelState = {
   firstBlockTracked: false,
   upgradeViewTracked: false,
   paidTracked: false,
-};
+}
 
-type FunnelStep = 'signup' | 'first_run' | 'first_block' | 'upgrade_view' | 'paid';
+type FunnelStep = 'signup' | 'first_run' | 'first_block' | 'upgrade_view' | 'paid'
 
 /**
  * Track conversion funnel step
  * These events track the user journey from signup to paid
  */
-export function trackFunnelStep(
-  step: FunnelStep,
-  properties?: Record<string, unknown>
-): void {
+export function trackFunnelStep(step: FunnelStep, properties?: Record<string, unknown>): void {
   const eventMap: Record<FunnelStep, AnalyticsEvent> = {
     signup: 'funnel_signup',
     first_run: 'funnel_first_run',
     first_block: 'funnel_first_block',
     upgrade_view: 'funnel_upgrade_view',
     paid: 'funnel_paid',
-  };
-  
-  // Check if already tracked (prevent duplicates)
-  const stateKey = funnelStepToKey[step];
-  if (funnelState[stateKey]) {
-    return;
   }
-  
+
+  // Check if already tracked (prevent duplicates)
+  const stateKey = funnelStepToKey[step]
+  if (funnelState[stateKey]) {
+    return
+  }
+
   // Mark as tracked
-  funnelState[stateKey] = true;
-  
-  const now = Date.now();
+  funnelState[stateKey] = true
+
+  const now = Date.now()
   const enriched: Record<string, unknown> = {
     ...properties,
     funnel_step: step,
     funnel_order: ['signup', 'first_run', 'first_block', 'upgrade_view', 'paid'].indexOf(step) + 1,
-  };
+  }
 
   if (step === 'first_run') {
-    if (!funnelMeta.firstRunAt) funnelMeta.firstRunAt = now;
-    const base = funnelMeta.lastAppStartAt || now;
-    const delta = Math.max(0, now - base);
-    enriched.time_to_first_run_ms = delta;
-    enriched.first_run_within_10m = delta <= 10 * 60 * 1000;
+    if (!funnelMeta.firstRunAt) funnelMeta.firstRunAt = now
+    const base = funnelMeta.lastAppStartAt || now
+    const delta = Math.max(0, now - base)
+    enriched.time_to_first_run_ms = delta
+    enriched.first_run_within_10m = delta <= 10 * 60 * 1000
   }
 
   if (step === 'first_block') {
-    if (!funnelMeta.firstBlockAt) funnelMeta.firstBlockAt = now;
-    const base = funnelMeta.lastAppStartAt || now;
-    const delta = Math.max(0, now - base);
-    enriched.time_to_first_block_ms = delta;
-    enriched.first_block_within_10m = delta <= 10 * 60 * 1000;
+    if (!funnelMeta.firstBlockAt) funnelMeta.firstBlockAt = now
+    const base = funnelMeta.lastAppStartAt || now
+    const delta = Math.max(0, now - base)
+    enriched.time_to_first_block_ms = delta
+    enriched.first_block_within_10m = delta <= 10 * 60 * 1000
   }
 
-  saveFunnelMeta(funnelMeta);
+  saveFunnelMeta(funnelMeta)
 
   // Track the event
   trackEvent(eventMap[step], {
     ...enriched,
-  });
+  })
 }
 
 /**
@@ -346,30 +347,30 @@ export function resetFunnelState(): void {
     firstBlockTracked: false,
     upgradeViewTracked: false,
     paidTracked: false,
-  };
+  }
 }
 
 // Default super properties
 export function initAnalytics(): void {
   if (ANALYTICS_DISABLED) {
-    console.log('[Analytics] Analytics disabled (no POSTHOG_API_KEY set)');
-    return;
+    console.log('[Analytics] Analytics disabled (no POSTHOG_API_KEY set)')
+    return
   }
 
-  funnelMeta.lastAppStartAt = Date.now();
-  saveFunnelMeta(funnelMeta);
+  funnelMeta.lastAppStartAt = Date.now()
+  saveFunnelMeta(funnelMeta)
 
-  console.log('[Analytics] Initialized with device ID:', getDeviceId().slice(0, 8) + '...');
-  
+  console.log('[Analytics] Initialized with device ID:', getDeviceId().slice(0, 8) + '...')
+
   setSuperProperties({
     app_name: 'RinaWarp Terminal Pro',
     app_version: app?.getVersion?.() || 'unknown',
     platform: process.platform,
     arch: process.arch,
-  });
-  
+  })
+
   // Track app start
-  trackEvent('app_started');
+  trackEvent('app_started')
 }
 
 // ============================================================
@@ -378,11 +379,11 @@ export function initAnalytics(): void {
 // Tracks usage metrics for free tier to create upgrade urgency
 
 interface UsageMetrics {
-  commandsExecuted: number;
-  aiSuggestionsUsed: number;
-  selfHealingRuns: number;
-  terminalSessions: number;
-  totalSessionTimeMs: number;
+  commandsExecuted: number
+  aiSuggestionsUsed: number
+  selfHealingRuns: number
+  terminalSessions: number
+  totalSessionTimeMs: number
 }
 
 const DEFAULT_USAGE: UsageMetrics = {
@@ -391,10 +392,7 @@ const DEFAULT_USAGE: UsageMetrics = {
   selfHealingRuns: 0,
   terminalSessions: 0,
   totalSessionTimeMs: 0,
-};
-
-let usageMetrics: UsageMetrics = { ...DEFAULT_USAGE };
-let usageTrackingEnabled = false;
+}
 
 // Free tier limits (create upgrade urgency)
 const FREE_TIER_LIMITS = {
@@ -403,39 +401,73 @@ const FREE_TIER_LIMITS = {
   selfHealingRuns: 10,
   terminalSessions: 50,
   totalSessionTimeMs: 3600000, // 1 hour
-};
+}
+
+// Usage metrics file path
+function usageMetricsPath(): string {
+  const userDataPath = app?.getPath?.('userData') || '.'
+  return path.join(userDataPath, 'analytics-usage.json')
+}
+
+// Load usage metrics from disk
+function loadUsageMetrics(): UsageMetrics {
+  try {
+    const fp = usageMetricsPath()
+    if (!fs.existsSync(fp)) return { ...DEFAULT_USAGE }
+    const raw = fs.readFileSync(fp, 'utf8')
+    const parsed = JSON.parse(raw) as UsageMetrics
+    return parsed || { ...DEFAULT_USAGE }
+  } catch {
+    return { ...DEFAULT_USAGE }
+  }
+}
+
+// Save usage metrics to disk
+function saveUsageMetrics(): void {
+  try {
+    const fp = usageMetricsPath()
+    fs.mkdirSync(path.dirname(fp), { recursive: true })
+    fs.writeFileSync(fp, JSON.stringify(usageMetrics, null, 2), 'utf8')
+  } catch {
+    // ignore
+  }
+}
+
+// Load persisted usage metrics on startup
+let usageMetrics: UsageMetrics = loadUsageMetrics()
+let usageTrackingEnabled = false
 
 /**
  * Check if usage tracking is enabled
  */
 export function isUsageTrackingEnabled(): boolean {
-  return usageTrackingEnabled;
+  return usageTrackingEnabled
 }
 
 /**
  * Enable usage tracking (opt-in for free tier)
  */
 export function enableUsageTracking(): void {
-  usageTrackingEnabled = true;
-  trackEvent('usage_tracking_enabled');
+  usageTrackingEnabled = true
+  trackEvent('usage_tracking_enabled')
 }
 
 /**
  * Disable usage tracking
  */
 export function disableUsageTracking(): void {
-  usageTrackingEnabled = false;
+  usageTrackingEnabled = false
 }
 
 /**
  * Check if user is approaching free tier limits
  */
 export function getUsageStatus(): {
-  approachingLimit: boolean;
-  atLimit: boolean;
-  limits: typeof FREE_TIER_LIMITS;
-  usage: UsageMetrics;
-  usagePercent: Record<keyof UsageMetrics, number>;
+  approachingLimit: boolean
+  atLimit: boolean
+  limits: typeof FREE_TIER_LIMITS
+  usage: UsageMetrics
+  usagePercent: Record<keyof UsageMetrics, number>
 } {
   const usagePercent: Record<keyof UsageMetrics, number> = {
     commandsExecuted: Math.min(100, (usageMetrics.commandsExecuted / FREE_TIER_LIMITS.commandsExecuted) * 100),
@@ -443,10 +475,10 @@ export function getUsageStatus(): {
     selfHealingRuns: Math.min(100, (usageMetrics.selfHealingRuns / FREE_TIER_LIMITS.selfHealingRuns) * 100),
     terminalSessions: Math.min(100, (usageMetrics.terminalSessions / FREE_TIER_LIMITS.terminalSessions) * 100),
     totalSessionTimeMs: Math.min(100, (usageMetrics.totalSessionTimeMs / FREE_TIER_LIMITS.totalSessionTimeMs) * 100),
-  };
+  }
 
-  const approachingLimit = Object.values(usagePercent).some(p => p >= 80);
-  const atLimit = Object.values(usagePercent).some(p => p >= 100);
+  const approachingLimit = Object.values(usagePercent).some((p) => p >= 80)
+  const atLimit = Object.values(usagePercent).some((p) => p >= 100)
 
   return {
     approachingLimit,
@@ -454,74 +486,80 @@ export function getUsageStatus(): {
     limits: FREE_TIER_LIMITS,
     usage: { ...usageMetrics },
     usagePercent,
-  };
+  }
 }
 
 /**
  * Track command execution (for usage metering)
  */
 export function trackCommandExecuted(): void {
-  if (!usageTrackingEnabled) return;
-  usageMetrics.commandsExecuted += 1;
-  
+  if (!usageTrackingEnabled) return
+  usageMetrics.commandsExecuted += 1
+  saveUsageMetrics() // Persist to disk
+
   // Track in PostHog with usage status
-  const status = getUsageStatus();
+  const status = getUsageStatus()
   trackEvent('command_executed', {
     total_commands: usageMetrics.commandsExecuted,
     usage_percent: status.usagePercent.commandsExecuted,
     approaching_limit: status.approachingLimit,
-  });
+  })
 }
 
 /**
  * Track AI suggestion usage (for usage metering)
  */
 export function trackAISuggestionUsed(): void {
-  if (!usageTrackingEnabled) return;
-  usageMetrics.aiSuggestionsUsed += 1;
-  
-  const status = getUsageStatus();
+  if (!usageTrackingEnabled) return
+  usageMetrics.aiSuggestionsUsed += 1
+  saveUsageMetrics() // Persist to disk
+
+  const status = getUsageStatus()
   trackEvent('ai_suggestion_used', {
     total_suggestions: usageMetrics.aiSuggestionsUsed,
     usage_percent: status.usagePercent.aiSuggestionsUsed,
     approaching_limit: status.approachingLimit,
-  });
+  })
 }
 
 /**
  * Track self-healing run (for usage metering)
  */
 export function trackSelfHealingRun(): void {
-  if (!usageTrackingEnabled) return;
-  usageMetrics.selfHealingRuns += 1;
-  
-  const status = getUsageStatus();
+  if (!usageTrackingEnabled) return
+  usageMetrics.selfHealingRuns += 1
+  saveUsageMetrics() // Persist to disk
+
+  const status = getUsageStatus()
   trackEvent('self_healing_run', {
     total_runs: usageMetrics.selfHealingRuns,
     usage_percent: status.usagePercent.selfHealingRuns,
     approaching_limit: status.approachingLimit,
-  });
+  })
 }
 
 /**
  * Track terminal session start (for usage metering)
  */
 export function trackTerminalSessionStart(): void {
-  if (!usageTrackingEnabled) return;
-  usageMetrics.terminalSessions += 1;
-  
-  const status = getUsageStatus();
+  if (!usageTrackingEnabled) return
+  usageMetrics.terminalSessions += 1
+  saveUsageMetrics() // Persist to disk
+
+  const status = getUsageStatus()
   trackEvent('terminal_session_tracked', {
     total_sessions: usageMetrics.terminalSessions,
     usage_percent: status.usagePercent.terminalSessions,
     approaching_limit: status.approachingLimit,
-  });
+  })
 }
 
 /**
  * Add session time (for usage metering)
  */
 export function addSessionTime(ms: number): void {
-  if (!usageTrackingEnabled) return;
-  usageMetrics.totalSessionTimeMs += ms;
+  if (!usageTrackingEnabled) return
+  usageMetrics.totalSessionTimeMs += ms
+  // Note: We don't save on every addSessionTime call to avoid excessive disk writes
+  // The metrics will be saved when trackCommandExecuted or other explicit tracking is called
 }

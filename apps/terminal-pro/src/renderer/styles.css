@@ -1,0 +1,75 @@
+:root {
+  --primary: #FF007F;
+  --secondary: #FF6F61;
+  --accent: #00CED1;
+  --info: #89CFF0;
+  --bg: #000000;
+  --text: #FFFFFF;
+
+  --font: 'JetBrains Mono, monospace';
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  height: 100%;
+}
+
+.sidebar {
+  background-color: var(--primary);
+  padding: 20px;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar .logo img {
+  max-width: 150px;
+  margin-bottom: 30px;
+}
+
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+}
+
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+#input-container {
+  display: flex;
+  border-top: 1px solid var(--accent);
+}
+
+#chat-input {
+  flex: 1;
+  padding: 10px;
+  font-family: var(--font);
+  font-size: 14px;
+  background-color: var(--bg);
+  color: var(--text);
+  border: none;
+  resize: none;
+}
+
+#send-btn {
+  background-color: var(--secondary);
+  color: var(--text);
+  border: none;
+  padding: 0 20px;
+  cursor: pointer;
+}

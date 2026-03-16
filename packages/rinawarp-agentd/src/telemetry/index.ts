@@ -1,8 +1,8 @@
 /**
  * Telemetry Module
- * 
+ *
  * Privacy-friendly analytics for product improvement.
- * 
+ *
  * Principles:
  * - Opt-in only (default: off)
  * - No PII
@@ -11,5 +11,6 @@
  * - Anonymized metrics
  */
 
-export * from "./events.js";
-export * from "./collector.js";
+export * from './events.js'
+export * from './collector.js'
+export * from './server.js'

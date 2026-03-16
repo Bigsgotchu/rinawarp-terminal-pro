@@ -5,37 +5,37 @@
  */
 
 function getRina(): any {
-  return (window as unknown as { rina: unknown }).rina;
+  return (window as unknown as { rina: unknown }).rina
 }
 
 function esc(s: unknown): string {
-  return String(s ?? "")
-    .replaceAll("&", "&")
-    .replaceAll("<", "<")
-    .replaceAll(">", ">");
+  return String(s ?? '')
+    .replaceAll('&', '&')
+    .replaceAll('<', '<')
+    .replaceAll('>', '>')
 }
 
 function renderStatus(status: any): string {
   if (!status) {
-    return `<div class="rw-muted">No research status. Click refresh to fetch.</div>`;
+    return `<div class="rw-muted">No research status. Click refresh to fetch.</div>`
   }
 
-  const enabled = status.enabled ?? false;
-  const allowedDomains = status.allowedDomains || [];
-  const maxSizeBytes = status.maxSizeBytes || 0;
-  const maxTimeoutMs = status.maxTimeoutMs || 0;
-  const fetchCount = status.totalFetches || 0;
-  const successCount = status.successfulFetches || 0;
-  const blockedCount = status.blockedFetches || 0;
+  const enabled = status.enabled ?? false
+  const allowedDomains = status.allowedDomains || []
+  const maxSizeBytes = status.maxSizeBytes || 0
+  const maxTimeoutMs = status.maxTimeoutMs || 0
+  const fetchCount = status.totalFetches || 0
+  const successCount = status.successfulFetches || 0
+  const blockedCount = status.blockedFetches || 0
 
   const domainList = allowedDomains.length
-    ? allowedDomains.map((d: string) => `<span class="rw-tag">${esc(d)}</span>`).join(" ")
-    : `<span class="rw-muted">No domains configured</span>`;
+    ? allowedDomains.map((d: string) => `<span class="rw-tag">${esc(d)}</span>`).join(' ')
+    : `<span class="rw-muted">No domains configured</span>`
 
   return `
     <div class="rw-panel-section">
       <h3>Research Status</h3>
-      <div class="rw-kv"><div class="rw-k">Enabled</div><div class="rw-v"><span class="rw-badge ${enabled ? 'rw-ok' : 'rw-muted'}">${enabled ? "Active" : "Disabled"}</span></div></div>
+      <div class="rw-kv"><div class="rw-k">Enabled</div><div class="rw-v"><span class="rw-badge ${enabled ? 'rw-ok' : 'rw-muted'}">${enabled ? 'Active' : 'Disabled'}</span></div></div>
       <div class="rw-kv"><div class="rw-k">Total Fetches</div><div class="rw-v">${fetchCount}</div></div>
       <div class="rw-kv"><div class="rw-k">Successful</div><div class="rw-v rw-ok">${successCount}</div></div>
       <div class="rw-kv"><div class="rw-k">Blocked</div><div class="rw-v rw-warn">${blockedCount}</div></div>
@@ -47,21 +47,21 @@ function renderStatus(status: any): string {
       <div class="rw-kv"><div class="rw-k">Max Timeout</div><div class="rw-v">${(maxTimeoutMs / 1000).toFixed(1)}s</div></div>
       <div class="rw-kv"><div class="rw-k">Allowed Domains</div><div class="rw-v">${domainList}</div></div>
     </div>
-  `;
+  `
 }
 
 function renderConfig(config: any): string {
-  const enabled = config?.enabled ?? true;
-  const allowedDomains = config?.allowedDomains || [];
-  const maxSizeMb = (config?.maxSizeBytes || 10 * 1024 * 1024) / (1024 * 1024);
-  const maxTimeoutSec = (config?.maxTimeoutMs || 30000) / 1000;
+  const enabled = config?.enabled ?? true
+  const allowedDomains = config?.allowedDomains || []
+  const maxSizeMb = (config?.maxSizeBytes || 10 * 1024 * 1024) / (1024 * 1024)
+  const maxTimeoutSec = (config?.maxTimeoutMs || 30000) / 1000
 
-  const domainInput = allowedDomains.join(", ");
+  const domainInput = allowedDomains.join(', ')
 
   return `
     <div class="rw-panel-section">
       <h3>Research Fetching</h3>
-      <div class="rw-kv"><div class="rw-k">Enable Web Fetch</div><div class="rw-v"><input type="checkbox" id="rw-research-enabled" ${enabled ? "checked" : ""}></div></div>
+      <div class="rw-kv"><div class="rw-k">Enable Web Fetch</div><div class="rw-v"><input type="checkbox" id="rw-research-enabled" ${enabled ? 'checked' : ''}></div></div>
       <p class="rw-sub">When enabled, agents can fetch web pages and docs from allowed domains.</p>
     </div>
 
@@ -85,7 +85,7 @@ function renderConfig(config: any): string {
       <button id="rw-research-test-fetch" class="rw-btn rw-btn-ghost">Test Fetch</button>
       <div id="rw-research-test-result" class="rw-muted"></div>
     </div>
-  `;
+  `
 }
 
 export async function mountResearchPanel(container: HTMLElement): Promise<void> {
@@ -119,120 +119,136 @@ export async function mountResearchPanel(container: HTMLElement): Promise<void> 
         <p>Safety features prevent fetching from untrusted or excessive sources.</p>
       </div>
     </div>
-  `;
+  `
 
-  const rina = getRina();
-  const refreshBtn = container.querySelector<HTMLButtonElement>("#rw-research-refresh");
-  const saveBtn = container.querySelector<HTMLButtonElement>("#rw-research-save");
-  const testFetchBtn = container.querySelector<HTMLButtonElement>("#rw-research-test-fetch");
-  const statusEl = container.querySelector<HTMLElement>("#rw-research-status");
-  const configEl = container.querySelector<HTMLElement>("#rw-research-config");
-  const statusDisplayEl = container.querySelector<HTMLElement>("#rw-research-status-display");
-  const testResultEl = container.querySelector<HTMLElement>("#rw-research-test-result");
+  const rina = getRina()
+  const refreshBtn = container.querySelector<HTMLButtonElement>('#rw-research-refresh')
+  const saveBtn = container.querySelector<HTMLButtonElement>('#rw-research-save')
+  const testFetchBtn = container.querySelector<HTMLButtonElement>('#rw-research-test-fetch')
+  const statusEl = container.querySelector<HTMLElement>('#rw-research-status')
+  const configEl = container.querySelector<HTMLElement>('#rw-research-config')
+  const statusDisplayEl = container.querySelector<HTMLElement>('#rw-research-status-display')
+  const testResultEl = container.querySelector<HTMLElement>('#rw-research-test-result')
 
   if (!refreshBtn || !saveBtn || !testFetchBtn || !statusEl || !configEl || !statusDisplayEl || !testResultEl) {
-    return;
+    return
   }
 
-  let currentStatus: any = null;
-  let currentConfig: any = null;
+  let currentStatus: any = null
+  let currentConfig: any = null
 
   const loadStatus = async () => {
-    statusEl.textContent = "Loading...";
+    statusEl.textContent = 'Loading...'
     try {
       if (rina?.researchStatus) {
-        currentStatus = await rina.researchStatus();
+        currentStatus = await rina.researchStatus()
       } else {
-        currentStatus = await rina?.api?.get?.("/v1/platform/research/status") || null;
+        currentStatus = (await rina?.api?.get?.('/v1/platform/research/status')) || null
       }
-      statusDisplayEl.innerHTML = renderStatus(currentStatus);
-      statusEl.textContent = currentStatus ? "Ready." : "No status available.";
+      statusDisplayEl.innerHTML = renderStatus(currentStatus)
+      statusEl.textContent = currentStatus ? 'Ready.' : 'No status available.'
     } catch (e) {
-      statusDisplayEl.innerHTML = renderStatus(null);
-      statusEl.textContent = `Failed: ${String(e)}`;
+      statusDisplayEl.innerHTML = renderStatus(null)
+      statusEl.textContent = `Failed: ${String(e)}`
     }
-  };
+  }
 
   const loadConfig = async () => {
     try {
       if (rina?.researchConfig) {
-        currentConfig = await rina.researchConfig();
+        currentConfig = await rina.researchConfig()
       } else {
-        currentConfig = await rina?.api?.get?.("/v1/platform/research/config") || { enabled: true, allowedDomains: [], maxSizeBytes: 10485760, maxTimeoutMs: 30000 };
+        currentConfig = (await rina?.api?.get?.('/v1/platform/research/config')) || {
+          enabled: true,
+          allowedDomains: [],
+          maxSizeBytes: 10485760,
+          maxTimeoutMs: 30000,
+        }
       }
-      configEl.innerHTML = renderConfig(currentConfig);
+      configEl.innerHTML = renderConfig(currentConfig)
     } catch (e) {
-      configEl.innerHTML = renderConfig({ enabled: true, allowedDomains: [], maxSizeBytes: 10485760, maxTimeoutMs: 30000 });
+      configEl.innerHTML = renderConfig({
+        enabled: true,
+        allowedDomains: [],
+        maxSizeBytes: 10485760,
+        maxTimeoutMs: 30000,
+      })
     }
-  };
+  }
 
   const saveConfig = async () => {
-    statusEl.textContent = "Saving...";
-    const enabledEl = container.querySelector<HTMLInputElement>("#rw-research-enabled");
-    const domainsEl = container.querySelector<HTMLTextAreaElement>("#rw-research-domains");
-    const maxSizeEl = container.querySelector<HTMLInputElement>("#rw-research-max-size");
-    const maxTimeoutEl = container.querySelector<HTMLInputElement>("#rw-research-max-timeout");
+    statusEl.textContent = 'Saving...'
+    const enabledEl = container.querySelector<HTMLInputElement>('#rw-research-enabled')
+    const domainsEl = container.querySelector<HTMLTextAreaElement>('#rw-research-domains')
+    const maxSizeEl = container.querySelector<HTMLInputElement>('#rw-research-max-size')
+    const maxTimeoutEl = container.querySelector<HTMLInputElement>('#rw-research-max-timeout')
 
-    const domainsText = domainsEl?.value || "";
-    const domains = domainsText.split(",").map(d => d.trim()).filter(d => d.length > 0);
+    const domainsText = domainsEl?.value || ''
+    const domains = domainsText
+      .split(',')
+      .map((d) => d.trim())
+      .filter((d) => d.length > 0)
 
     const config = {
       enabled: enabledEl?.checked ?? true,
       allowedDomains: domains,
-      maxSizeBytes: parseFloat(maxSizeEl?.value || "10") * 1024 * 1024,
-      maxTimeoutMs: parseInt(maxTimeoutEl?.value || "30", 10) * 1000,
-    };
+      maxSizeBytes: parseFloat(maxSizeEl?.value || '10') * 1024 * 1024,
+      maxTimeoutMs: parseInt(maxTimeoutEl?.value || '30', 10) * 1000,
+    }
 
     try {
       if (rina?.setResearchConfig) {
-        await rina.setResearchConfig(config);
+        await rina.setResearchConfig(config)
       } else {
-        await rina?.api?.put?.("/v1/platform/research/config", config) || { ok: true };
+        ;(await rina?.api?.put?.('/v1/platform/research/config', config)) || { ok: true }
       }
-      currentConfig = config;
-      statusEl.textContent = "Config saved.";
+      currentConfig = config
+      statusEl.textContent = 'Config saved.'
     } catch (e) {
-      statusEl.textContent = `Save failed: ${String(e)}`;
+      statusEl.textContent = `Save failed: ${String(e)}`
     }
-  };
+  }
 
   const testFetch = async () => {
-    const urlEl = container.querySelector<HTMLInputElement>("#rw-research-test-url");
-    const url = urlEl?.value?.trim();
+    const urlEl = container.querySelector<HTMLInputElement>('#rw-research-test-url')
+    const url = urlEl?.value?.trim()
     if (!url) {
-      testResultEl.textContent = "Please enter a URL to test.";
-      return;
+      testResultEl.textContent = 'Please enter a URL to test.'
+      return
     }
 
-    testResultEl.textContent = "Fetching...";
-    testFetchBtn.disabled = true;
+    testResultEl.textContent = 'Fetching...'
+    testFetchBtn.disabled = true
 
     try {
-      let result;
+      let result
       if (rina?.researchFetch) {
-        result = await rina.researchFetch({ url });
+        result = await rina.researchFetch({ url })
       } else {
-        result = await rina?.api?.post?.("/v1/platform/research/fetch", { url }) || { ok: false, error: "API not available" };
+        result = (await rina?.api?.post?.('/v1/platform/research/fetch', { url })) || {
+          ok: false,
+          error: 'API not available',
+        }
       }
 
       if (result?.ok) {
-        const size = result.content?.length || 0;
-        testResultEl.innerHTML = `<span class="rw-ok">✓ Fetched ${size} bytes from ${esc(url)}</span>`;
+        const size = result.content?.length || 0
+        testResultEl.innerHTML = `<span class="rw-ok">✓ Fetched ${size} bytes from ${esc(url)}</span>`
       } else {
-        testResultEl.innerHTML = `<span class="rw-warn">✗ Failed: ${esc(result?.error || "Unknown error")}</span>`;
+        testResultEl.innerHTML = `<span class="rw-warn">✗ Failed: ${esc(result?.error || 'Unknown error')}</span>`
       }
     } catch (e) {
-      testResultEl.innerHTML = `<span class="rw-warn">✗ Error: ${String(e)}</span>`;
+      testResultEl.innerHTML = `<span class="rw-warn">✗ Error: ${String(e)}</span>`
     } finally {
-      testFetchBtn.disabled = false;
+      testFetchBtn.disabled = false
     }
-  };
+  }
 
-  refreshBtn.addEventListener("click", () => void loadStatus());
-  saveBtn.addEventListener("click", () => void saveConfig());
-  testFetchBtn.addEventListener("click", () => void testFetch());
+  refreshBtn.addEventListener('click', () => void loadStatus())
+  saveBtn.addEventListener('click', () => void saveConfig())
+  testFetchBtn.addEventListener('click', () => void testFetch())
 
   // Initial load
-  await loadConfig();
-  await loadStatus();
+  await loadConfig()
+  await loadStatus()
 }

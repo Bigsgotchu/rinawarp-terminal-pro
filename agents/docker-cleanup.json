@@ -1,0 +1,23 @@
+{
+  "name": "docker-cleanup",
+  "description": "Clean up Docker resources - remove unused containers, images, and volumes",
+  "author": "RinaWarp",
+  "version": "1.0.0",
+  "price": 3,
+  "permissions": ["docker", "filesystem:write"],
+  "commands": [
+    {
+      "name": "clean",
+      "steps": [
+        "docker system prune -af",
+        "docker volume prune -f"
+      ]
+    },
+    {
+      "name": "status",
+      "steps": [
+        "docker system df"
+      ]
+    }
+  ]
+}

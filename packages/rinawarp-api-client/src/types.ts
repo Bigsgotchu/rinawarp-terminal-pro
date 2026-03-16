@@ -1,56 +1,46 @@
-export type LicenseTier =
-  | "starter"
-  | "creator"
-  | "pro"
-  | "pioneer"
-  | "founder"
-  | "enterprise";
+export type LicenseTier = 'starter' | 'creator' | 'pro' | 'pioneer' | 'founder' | 'evergreen' | 'enterprise'
 
-export type ApiOk<T> = T & { ok: true };
-export type ApiErr = { ok: false; error: string; message?: string };
+export type ApiOk<T> = T & { ok: true }
+export type ApiErr = { ok: false; error: string; message?: string }
 
-export type AuthMode = "login" | "signup";
+export type AuthMode = 'login' | 'signup'
 
 export interface AuthStartRequest {
-  email: string;
-  mode?: AuthMode;
+  email: string
+  mode?: AuthMode
 }
 
-export type AuthStartResponse =
-  | ApiOk<{ message: string; next?: string }>
-  | ApiErr;
+export type AuthStartResponse = ApiOk<{ message: string; next?: string }> | ApiErr
 
 export type AuthVerifyResponse =
   | ApiOk<{
-      user: { id: string; email: string };
-      redirect?: string;
-      token?: string; // bearer token option
+      user: { id: string; email: string }
+      redirect?: string
+      token?: string // bearer token option
     }>
-  | ApiErr;
+  | ApiErr
 
 export type MeResponse =
   | ApiOk<{
-      user: { id: string; email: string; createdAt?: string };
-      license: { tier: LicenseTier; status: "active" | "inactive"; expiresAt: string | null };
+      user: { id: string; email: string; createdAt?: string }
+      license: { tier: LicenseTier; status: 'active' | 'inactive'; expiresAt: string | null }
     }>
-  | ApiErr;
+  | ApiErr
 
-export type DownloadPlatform = "linux-appimage" | "linux-deb" | "windows" | "macos";
+export type DownloadPlatform = 'linux-appimage' | 'linux-deb' | 'windows' | 'macos'
 
 export interface DownloadTokenRequest {
-  product: "terminal-pro";
-  version: string;
-  platform: DownloadPlatform;
+  product: 'terminal-pro'
+  version: string
+  platform: DownloadPlatform
 }
 
 export type DownloadTokenResponse =
   | ApiOk<{
-      token: string;
-      expiresAt: string;
-      urls: Partial<Record<DownloadPlatform, string>>;
+      token: string
+      expiresAt: string
+      urls: Partial<Record<DownloadPlatform, string>>
     }>
-  | ApiErr;
+  | ApiErr
 
-export type PortalResponse =
-  | ApiOk<{ url: string }>
-  | ApiErr;
+export type PortalResponse = ApiOk<{ url: string }> | ApiErr

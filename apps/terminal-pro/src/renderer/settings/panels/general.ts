@@ -18,5 +18,5 @@ export function mountGeneralPanel(container: HTMLElement): void {
         </div>
       </div>
     </div>
-  `;
+  `
 }

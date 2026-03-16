@@ -57,8 +57,8 @@ echo "Installing RinaWarp Terminal Pro v${VERSION}..."
 # Create install directory
 mkdir -p "${BIN_DIR}"
 
-# Download the binary from GitHub Releases
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${VERSION}/${FILENAME}"
+# Download the binary from RinaWarp CDN
+DOWNLOAD_URL="https://rinawarp-downloads.rinawarptech.workers.dev/${FILENAME}"
 echo "Downloading from ${DOWNLOAD_URL}..."
 
 curl -fsSL "${DOWNLOAD_URL}" -o "${BIN_DIR}/${FILENAME}"

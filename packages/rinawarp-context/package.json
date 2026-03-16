@@ -1,0 +1,31 @@
+{
+  "name": "@rinawarp/context",
+  "version": "1.0.0",
+  "description": "Local Context Index Engine for RinaWarp - enables AI to understand codebase, terminal history, and project structure",
+  "main": "dist/contextEngine.js",
+  "types": "dist/contextEngine.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/contextEngine.d.ts",
+      "import": "./dist/contextEngine.js",
+      "require": "./dist/contextEngine.js"
+    },
+    "./vector": {
+      "types": "./dist/vector/vectorStore.d.ts",
+      "import": "./dist/vector/vectorStore.js",
+      "require": "./dist/vector/vectorStore.js"
+    },
+    "./embedding": {
+      "types": "./dist/embedding/embedder.d.ts",
+      "import": "./dist/embedding/embedder.js",
+      "require": "./dist/embedding/embedder.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "npm run build && node --test test/*.test.cjs"
+  },
+  "keywords": ["rinawarp", "context", "index", "embedding", "vector", "ai"],
+  "license": "MIT"
+}

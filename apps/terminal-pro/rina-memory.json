@@ -1,0 +1,67 @@
+[
+  {
+    "timestamp": 1773556795034,
+    "userInput": "test user message",
+    "agentResponse": "test rina response"
+  },
+  {
+    "timestamp": 1773556999357,
+    "userInput": "test user message",
+    "agentResponse": "test rina response"
+  },
+  {
+    "timestamp": 1773556999358,
+    "userInput": "cloud sync test 1773556999358",
+    "agentResponse": "testing cloud encryption"
+  },
+  {
+    "timestamp": 1773557657918,
+    "userInput": "test user message",
+    "agentResponse": "test rina response"
+  },
+  {
+    "timestamp": 1773557657921,
+    "userInput": "cloud sync test 1773557657921",
+    "agentResponse": "testing cloud encryption"
+  },
+  {
+    "timestamp": 1773557657951,
+    "userInput": "network-task: Install project dependencies",
+    "agentResponse": "{\"type\":\"network-task\",\"task\":{\"id\":\"agent-A-1773557657951-ngpmg1q\",\"task\":\"Install project dependencies\",\"agentId\":\"agent-A\",\"timestamp\":1773557657951,\"status\":\"pending\"}}",
+    "metadata": {
+      "type": "network-task",
+      "task": {
+        "id": "agent-A-1773557657951-ngpmg1q",
+        "task": "Install project dependencies",
+        "agentId": "agent-A",
+        "timestamp": 1773557657951,
+        "status": "pending"
+      }
+    }
+  },
+  {
+    "timestamp": 1773558439178,
+    "userInput": "test user message",
+    "agentResponse": "test rina response"
+  },
+  {
+    "timestamp": 1773558439179,
+    "userInput": "cloud sync test 1773558439179",
+    "agentResponse": "testing cloud encryption"
+  },
+  {
+    "timestamp": 1773558439183,
+    "userInput": "network-task: Install project dependencies",
+    "agentResponse": "{\"type\":\"network-task\",\"task\":{\"id\":\"agent-A-1773558439183-5qudc8q\",\"task\":\"Install project dependencies\",\"agentId\":\"agent-A\",\"timestamp\":1773558439183,\"status\":\"pending\"}}",
+    "metadata": {
+      "type": "network-task",
+      "task": {
+        "id": "agent-A-1773558439183-5qudc8q",
+        "task": "Install project dependencies",
+        "agentId": "agent-A",
+        "timestamp": 1773558439183,
+        "status": "pending"
+      }
+    }
+  }
+]

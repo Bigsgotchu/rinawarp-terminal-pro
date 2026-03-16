@@ -1,9 +1,9 @@
 /**
  * RinaWarp Prompt Library
- * 
+ *
  * Structured prompt templates for AI terminal assistance.
  * Used by the LLM interface to generate consistent, safe responses.
- * 
+ *
  * Based on prompt engineering best practices from production AI tools.
  */
 
@@ -80,12 +80,12 @@ Respond with ONLY valid JSON:
     /**
      * Command generation task
      */
-    generateCommand: (context: { userInput: string; os: string; packageManager?: string; dockerAvailable?: boolean }) => 
-`User request: "${context.userInput}"
+    generateCommand: (context: { userInput: string; os: string; packageManager?: string; dockerAvailable?: boolean }) =>
+      `User request: "${context.userInput}"
 
 OS: ${context.os}
-${context.packageManager ? `Package manager: ${context.packageManager}` : ""}
-${context.dockerAvailable ? "Docker available" : ""}
+${context.packageManager ? `Package manager: ${context.packageManager}` : ''}
+${context.dockerAvailable ? 'Docker available' : ''}
 
 Generate the appropriate shell command.
 
@@ -100,11 +100,11 @@ Respond with ONLY valid JSON:
     /**
      * Fix generation task
      */
-    fixIssue: (context: { error: string; command?: string; workingDirectory?: string }) => 
-`Error to fix:
+    fixIssue: (context: { error: string; command?: string; workingDirectory?: string }) =>
+      `Error to fix:
 ${context.error}
-${context.command ? `Command that failed: ${context.command}` : ""}
-${context.workingDirectory ? `Directory: ${context.workingDirectory}` : ""}
+${context.command ? `Command that failed: ${context.command}` : ''}
+${context.workingDirectory ? `Directory: ${context.workingDirectory}` : ''}
 
 Generate a fix plan.
 
@@ -119,9 +119,9 @@ Respond with ONLY valid JSON:
     /**
      * Code search task
      */
-    searchCode: (context: { query: string; fileTypes?: string[] }) => 
-`Search query: "${context.query}"
-${context.fileTypes ? `File types: ${context.fileTypes.join(", ")}` : ""}
+    searchCode: (context: { query: string; fileTypes?: string[] }) =>
+      `Search query: "${context.query}"
+${context.fileTypes ? `File types: ${context.fileTypes.join(', ')}` : ''}
 
 Find relevant code locations.
 
@@ -140,31 +140,31 @@ Respond with ONLY valid JSON:
      * Commands that are NEVER allowed
      */
     blockedCommands: [
-      "rm -rf /",
-      "rm -rf /*",
-      "mkfs",
-      "dd if=/dev/zero",
-      "chmod 777 /",
-      "> /dev/sda",
-      "shutdown",
-      "reboot",
-      "init 0",
-      "init 6",
+      'rm -rf /',
+      'rm -rf /*',
+      'mkfs',
+      'dd if=/dev/zero',
+      'chmod 777 /',
+      '> /dev/sda',
+      'shutdown',
+      'reboot',
+      'init 0',
+      'init 6',
     ],
 
     /**
      * Commands requiring explicit confirmation
      */
     confirmationRequired: [
-      "rm -rf",
-      "sudo rm",
-      "dd ",
-      "mkfs",
-      "> file",
-      "chown -R",
-      "chmod -R 777",
-      "kill -9",
-      "pkill -9",
+      'rm -rf',
+      'sudo rm',
+      'dd ',
+      'mkfs',
+      '> file',
+      'chown -R',
+      'chmod -R 777',
+      'kill -9',
+      'pkill -9',
     ],
 
     /**
@@ -183,26 +183,26 @@ If asked to generate a dangerous command, respond:
   "safeAlternative": "a safer alternative if possible"
 }`,
   },
-} as const;
+} as const
 
 /**
  * Prompt router selects the appropriate prompt based on task type
  */
 export function getPromptForTask(
-  task: "command" | "error" | "search" | "fix",
+  task: 'command' | 'error' | 'search' | 'fix',
   context: Record<string, unknown>
 ): string {
   switch (task) {
-    case "command":
-      return PROMPTS.tasks.generateCommand(context as any);
-    case "error":
-      return PROMPTS.system.errorExplainer;
-    case "search":
-      return PROMPTS.tasks.searchCode(context as any);
-    case "fix":
-      return PROMPTS.tasks.fixIssue(context as any);
+    case 'command':
+      return PROMPTS.tasks.generateCommand(context as any)
+    case 'error':
+      return PROMPTS.system.errorExplainer
+    case 'search':
+      return PROMPTS.tasks.searchCode(context as any)
+    case 'fix':
+      return PROMPTS.tasks.fixIssue(context as any)
     default:
-      return PROMPTS.system.shellAssistant;
+      return PROMPTS.system.shellAssistant
   }
 }
 
@@ -210,25 +210,21 @@ export function getPromptForTask(
  * Get the base system prompt
  */
 export function getSystemPrompt(): string {
-  return PROMPTS.system.shellAssistant;
+  return PROMPTS.system.shellAssistant
 }
 
 /**
  * Check if a command is dangerous (synchronous check)
  */
 export function isDangerousCommand(command: string): boolean {
-  const lower = command.toLowerCase().trim();
-  return PROMPTS.safety.blockedCommands.some(dangerous => 
-    lower.includes(dangerous.toLowerCase())
-  );
+  const lower = command.toLowerCase().trim()
+  return PROMPTS.safety.blockedCommands.some((dangerous) => lower.includes(dangerous.toLowerCase()))
 }
 
 /**
  * Check if a command requires confirmation
  */
 export function requiresConfirmation(command: string): boolean {
-  const lower = command.toLowerCase().trim();
-  return PROMPTS.safety.confirmationRequired.some(pattern => 
-    lower.includes(pattern.toLowerCase())
-  );
+  const lower = command.toLowerCase().trim()
+  return PROMPTS.safety.confirmationRequired.some((pattern) => lower.includes(pattern.toLowerCase()))
 }

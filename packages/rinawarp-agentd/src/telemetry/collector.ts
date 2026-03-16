@@ -1,36 +1,36 @@
 /**
  * Telemetry Collector
- * 
+ *
  * Collects and sends telemetry events.
  */
 
-import type { TelemetryEvent } from "./events.js";
+import type { TelemetryEvent } from './events.js'
 
 export interface TelemetryConfig {
-  enabled: boolean;
-  endpoint: string;
-  flushIntervalMs: number;
-  maxQueueSize: number;
+  enabled: boolean
+  endpoint: string
+  flushIntervalMs: number
+  maxQueueSize: number
 }
 
 const DEFAULT_CONFIG: TelemetryConfig = {
   enabled: false, // Opt-in by default
-  endpoint: "https://telemetry.rinawarp.tech/events",
+  endpoint: 'https://telemetry.rinawarp.tech/events',
   flushIntervalMs: 60000, // 1 minute
   maxQueueSize: 100,
-};
+}
 
 class TelemetryCollector {
-  private queue: TelemetryEvent[] = [];
-  private config: TelemetryConfig;
-  private flushTimer: ReturnType<typeof setInterval> | null = null;
-  private sessionStart = Date.now();
+  private queue: TelemetryEvent[] = []
+  private config: TelemetryConfig
+  private flushTimer: ReturnType<typeof setInterval> | null = null
+  private sessionStart = Date.now()
 
   constructor(config: Partial<TelemetryConfig> = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
-    
+    this.config = { ...DEFAULT_CONFIG, ...config }
+
     if (this.config.enabled) {
-      this.start();
+      this.start()
     }
   }
 
@@ -38,34 +38,34 @@ class TelemetryCollector {
    * Enable telemetry
    */
   enable(): void {
-    this.config.enabled = true;
-    this.start();
+    this.config.enabled = true
+    this.start()
   }
 
   /**
    * Disable telemetry
    */
   disable(): void {
-    this.config.enabled = false;
-    this.stop();
+    this.config.enabled = false
+    this.stop()
   }
 
   /**
    * Check if enabled
    */
   isEnabled(): boolean {
-    return this.config.enabled;
+    return this.config.enabled
   }
 
   /**
    * Start collecting
    */
   private start(): void {
-    if (this.flushTimer) return;
-    
+    if (this.flushTimer) return
+
     this.flushTimer = setInterval(() => {
-      this.flush();
-    }, this.config.flushIntervalMs);
+      this.flush()
+    }, this.config.flushIntervalMs)
   }
 
   /**
@@ -73,24 +73,24 @@ class TelemetryCollector {
    */
   private stop(): void {
     if (this.flushTimer) {
-      clearInterval(this.flushTimer);
-      this.flushTimer = null;
+      clearInterval(this.flushTimer)
+      this.flushTimer = null
     }
     // Flush remaining events
-    this.flush();
+    this.flush()
   }
 
   /**
    * Track an event
    */
   track(event: TelemetryEvent): void {
-    if (!this.config.enabled) return;
-    
-    this.queue.push(event);
-    
+    if (!this.config.enabled) return
+
+    this.queue.push(event)
+
     // Flush if queue is full
     if (this.queue.length >= this.config.maxQueueSize) {
-      this.flush();
+      this.flush()
     }
   }
 
@@ -98,23 +98,23 @@ class TelemetryCollector {
    * Flush events to backend
    */
   private async flush(): Promise<void> {
-    if (this.queue.length === 0) return;
-    
-    const events = [...this.queue];
-    this.queue = [];
-    
+    if (this.queue.length === 0) return
+
+    const events = [...this.queue]
+    this.queue = []
+
     try {
       await fetch(this.config.endpoint, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ events }),
-      });
+      })
     } catch {
       // Silently fail - don't crash the app
       // Re-queue events on failure (up to limit)
-      this.queue = [...events.slice(-this.config.maxQueueSize), ...this.queue];
+      this.queue = [...events.slice(-this.config.maxQueueSize), ...this.queue]
     }
   }
 
@@ -122,19 +122,19 @@ class TelemetryCollector {
    * Get session duration
    */
   getSessionDuration(): number {
-    return Date.now() - this.sessionStart;
+    return Date.now() - this.sessionStart
   }
 
   /**
    * Get queue size
    */
   getQueueSize(): number {
-    return this.queue.length;
+    return this.queue.length
   }
 }
 
 // Singleton instance
-let telemetryInstance: TelemetryCollector | null = null;
+let telemetryInstance: TelemetryCollector | null = null
 
 /**
  * Get telemetry collector
@@ -142,15 +142,15 @@ let telemetryInstance: TelemetryCollector | null = null;
 export function getTelemetry(): TelemetryCollector {
   if (!telemetryInstance) {
     // Check environment for opt-in
-    const enabled = process.env.RINAWARP_TELEMETRY === "true";
-    telemetryInstance = new TelemetryCollector({ enabled });
+    const enabled = process.env.RINAWARP_TELEMETRY === 'true'
+    telemetryInstance = new TelemetryCollector({ enabled })
   }
-  return telemetryInstance;
+  return telemetryInstance
 }
 
 /**
  * Quick track function
  */
 export function track(event: TelemetryEvent): void {
-  getTelemetry().track(event);
+  getTelemetry().track(event)
 }
