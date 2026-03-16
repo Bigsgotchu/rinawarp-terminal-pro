@@ -1,14 +1,17 @@
-import { ipcMain, BrowserWindow } from "electron"
+import { BrowserWindow } from "electron"
 import os from "os"
 import fs from "fs"
 import path from "path"
+import { safeHandle, getRegisteredChannels } from "./safe-handler.js"
 
 export function registerIpcHandlers() {
+  console.log("[Router] Starting IPC handler registration...")
+
   // ------------------------------------------------
   // Status / Mode
   // ------------------------------------------------
 
-  ipcMain.handle("rina:getStatus", () => {
+  safeHandle("rina:getStatus", () => {
     return {
       ready: true,
       platform: process.platform,
@@ -18,9 +21,9 @@ export function registerIpcHandlers() {
 
   let mode = "assist"
 
-  ipcMain.handle("rina:getMode", () => mode)
+  safeHandle("rina:getMode", () => mode)
 
-  ipcMain.handle("rina:setMode", (_e, m: string) => {
+  safeHandle("rina:setMode", (_e, m: string) => {
     mode = m
     return { ok: true }
   })
@@ -29,33 +32,33 @@ export function registerIpcHandlers() {
   // Diagnostics
   // ------------------------------------------------
 
-  ipcMain.handle("rina:diagnostics:paths", () => ({
+  safeHandle("rina:diagnostics:paths", () => ({
     home: os.homedir(),
     tmp: os.tmpdir(),
     cwd: process.cwd()
   }))
 
-  ipcMain.handle("rina:support:bundle", () => {
+  safeHandle("rina:support:bundle", () => {
     const bundle = path.join(os.tmpdir(), `rinawarp-${Date.now()}.zip`)
     fs.writeFileSync(bundle, "support bundle placeholder")
     return { path: bundle }
   })
 
   // ------------------------------------------------
-  // Telemetry
+  // Telemetry (stubs - always succeed)
   // ------------------------------------------------
 
-  ipcMain.handle("telemetry:sessionStart", () => true)
-  ipcMain.handle("telemetry:sessionEnd", () => true)
-  ipcMain.handle("telemetry:commandRun", () => true)
-  ipcMain.handle("telemetry:aiMessage", () => true)
-  ipcMain.handle("telemetry:quickFix", () => true)
+  safeHandle("telemetry:sessionStart", () => true)
+  safeHandle("telemetry:sessionEnd", () => true)
+  safeHandle("telemetry:commandRun", () => true)
+  safeHandle("telemetry:aiMessage", () => true)
+  safeHandle("telemetry:quickFix", () => true)
 
   // ------------------------------------------------
   // Agent
   // ------------------------------------------------
 
-  ipcMain.handle("rina:runAgent", async (event: Electron.IpcMainInvokeEvent, command: string) => {
+  safeHandle("rina:runAgent", async (event: Electron.IpcMainInvokeEvent, command: string) => {
     const win = BrowserWindow.fromWebContents(event.sender)
 
     if (!win) {
@@ -91,7 +94,7 @@ export function registerIpcHandlers() {
   // Plans
   // ------------------------------------------------
 
-  ipcMain.handle("rina:getPlans", () => {
+  safeHandle("rina:getPlans", () => {
     return [
       {
         id: "plan-1",
@@ -108,7 +111,7 @@ export function registerIpcHandlers() {
   // Tools
   // ------------------------------------------------
 
-  ipcMain.handle("rina:getTools", () => {
+  safeHandle("rina:getTools", () => {
     return [
       { id: "terminal", name: "Terminal", description: "Execute shell commands" },
       { id: "editor", name: "Editor", description: "Edit files" },
@@ -117,5 +120,6 @@ export function registerIpcHandlers() {
     ]
   })
 
-  console.log("[IPC] All handlers registered")
+  console.log("[Router] Registered IPC channels:", getRegisteredChannels())
+  console.log("[Router] All handlers registered")
 }

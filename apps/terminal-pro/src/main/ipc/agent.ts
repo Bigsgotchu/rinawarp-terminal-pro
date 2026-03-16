@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import { spawn } from 'child_process'
+import { safeHandle } from './safe-handler.js'
 
 // Re-export types and functions expected by registerAllIpc
 export type AgentPlan = {
@@ -20,7 +21,7 @@ export { registerAgentIpc } from './registerAgentIpc.js'
 
 // Register the rina:runAgent handler for CLI command execution
 export function registerAgentHandlers() {
-  ipcMain.handle('rina:runAgent', async (event, input: string) => {
+  safeHandle('rina:runAgent', async (event, input: string) => {
     console.log('[rina:runAgent] Request:', input)
 
     // Simple fallback: treat input as shell command
