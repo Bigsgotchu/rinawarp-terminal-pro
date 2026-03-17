@@ -4,7 +4,7 @@ productName: RinaWarp Terminal Pro
 npmRebuild: false
 
 directories:
-  output: dist
+  output: dist-electron/installer
   buildResources: build
 
 files:

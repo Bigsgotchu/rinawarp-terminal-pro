@@ -21,7 +21,16 @@
     "test:agent": "node --test tests/agent.test.mjs",
     "test:cli": "node --test tests/cli.test.mjs",
     "test:streaming": "node --test tests/streaming.test.mjs",
-    "test:all": "npm run test:agent && npm run test:cli && npm run test:streaming",
+    "test:unit": "pnpm vitest",
+    "test:unit:watch": "vitest",
+    "test:ipc": "pnpm build:electron && vitest run tests/e2e/rina-ipc-full-smoke.test.ts",
+    "test:playwright": "pnpm build:electron && playwright test -c tests/playwright.config.ts",
+    "test:playwright:headed": "pnpm build:electron && playwright test -c tests/playwright.config.ts --headed",
+    "test:playwright:ci": "CI=1 pnpm build:electron && playwright test -c tests/playwright.config.ts",
+    "test:playwright:smoke": "pnpm build:electron && playwright test rina-tools.smoke.spec.ts smoke.electron.spec.ts -c tests/playwright.config.ts --workers=4",
+    "test:playwright:ipc": "pnpm build:electron && playwright test rina-ipc -c tests/playwright.config.ts --workers=4",
+    "test:playwright:tools": "pnpm build:electron && playwright test rina-tools -c tests/playwright.config.ts --workers=4",
+    "test:all": "pnpm test:unit && pnpm test:playwright",
     "smoke-test": "bash scripts/smoke-test.sh",
     "continuous-smoke": "node --import tsx scripts/continuous-smoke.ts",
     "dev:terminal": "cross-env RINAWARP_DEV=1 npm run continuous-smoke && npm run dev",
@@ -67,6 +76,7 @@
     "eslint-plugin-unicorn": "^56.0.1",
     "playwright": ">=1.55.1",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.8"
   }
 }
