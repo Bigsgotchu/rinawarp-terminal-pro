@@ -69,3 +69,18 @@ jobs:
           asset_path: ./apps/terminal-pro/out/RinaWarp-Terminal-Pro-1.0.4.AppImage
           asset_name: RinaWarp-Terminal-Pro-1.0.4.AppImage
           asset_content_type: application/octet-stream
+
+      - name: Setup Wrangler
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Upload to R2
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          pnpm wrangler r2 object put releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.AppImage --source=apps/terminal-pro/out/RinaWarp-Terminal-Pro-1.0.4.AppImage
+          pnpm wrangler r2 object put releases/1.0.4/SHASUMS256.txt --source=release/v1.0.4/SHASUMS256.txt
+          pnpm wrangler r2 object put releases/latest.json --source=release/v1.0.4/latest.json
+          pnpm wrangler r2 object put releases/1.0.4/latest.json --source=release/v1.0.4/latest.json

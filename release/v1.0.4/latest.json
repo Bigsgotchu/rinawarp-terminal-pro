@@ -1,0 +1,20 @@
+{
+  "version": "1.0.4",
+  "releaseDate": "2026-03-17",
+  "platforms": {
+    "linux": {
+      "AppImage": "https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.AppImage",
+      "deb": "https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.deb"
+    },
+    "mac": {
+      "dmg": "https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.dmg"
+    },
+    "windows": {
+      "exe": "https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.exe"
+    }
+  },
+  "checksums": {
+    "sha256": "https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/SHASUMS256.txt",
+    "signature": "https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/SHASUMS256.txt.asc"
+  }
+}

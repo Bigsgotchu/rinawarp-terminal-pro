@@ -6,7 +6,23 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const objectKey = url.pathname.slice(1); // Remove leading slash
+    const pathname = url.pathname;
+    
+    // Handle specific download endpoints
+    if (pathname === '/download/mac' || pathname === '/download/mac/') {
+      // Redirect to latest mac release or show available options
+      return Response.redirect('https://rinawarp-downloads.rinawarptech.workers.dev/releases/latest.json', 302);
+    }
+    
+    if (pathname === '/download/checksums' || pathname === '/download/checksums/') {
+      return Response.redirect('https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/SHASUMS256.txt', 302);
+    }
+    
+    if (pathname === '/releases/latest.json' || pathname === '/releases/latest.json/') {
+      return Response.redirect('https://rinawarp-downloads.rinawarptech.workers.dev/releases/latest.json', 302);
+    }
+    
+    const objectKey = pathname.slice(1); // Remove leading slash
 
     // Map file extensions to content types
     const contentTypes = {
