@@ -33,8 +33,6 @@ win:
     - nsis
   icon: src/assets/icon.ico
 
-publish: never
-
 linux:
   target:
     - AppImage

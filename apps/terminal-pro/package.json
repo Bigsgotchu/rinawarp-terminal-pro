@@ -44,10 +44,10 @@
     "build:all": "npm run build:electron && npm run package:linux && npm run package:win",
     "package:linux": "bash ../../deploy/package-linux.sh",
     "package:win": "electron-builder --win --publish never",
-    "dist:mac": "npm run build:electron && electron-builder --mac",
-    "dist:win": "npm run build:electron && electron-builder --win",
-    "dist:linux": "npm run build:electron && electron-builder --linux",
-    "dist:all": "npm run build:electron && electron-builder -mwl"
+    "dist:mac": "npm run build:electron && electron-builder --mac --publish never",
+    "dist:win": "npm run build:electron && electron-builder --win --publish never",
+    "dist:linux": "npm run build:electron && electron-builder --linux --publish never",
+    "dist:all": "npm run build:electron && electron-builder -mwl --publish never"
   },
   "dependencies": {
     "@rinawarp/agent": "workspace:*",
