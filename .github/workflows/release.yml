@@ -83,17 +83,13 @@ jobs:
           asset_name: RinaWarp-Terminal-Pro-1.0.4.AppImage
           asset_content_type: application/octet-stream
 
-      - name: Setup Wrangler
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Upload to R2
         if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          pnpm wrangler r2 object put releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.AppImage --source=apps/terminal-pro/dist-electron/installer/RinaWarp-Terminal-Pro-1.0.4.AppImage
-          pnpm wrangler r2 object put releases/1.0.4/SHASUMS256.txt --source=release/v1.0.4/SHASUMS256.txt
-          pnpm wrangler r2 object put releases/latest.json --source=release/v1.0.4/latest.json
-          pnpm wrangler r2 object put releases/1.0.4/latest.json --source=release/v1.0.4/latest.json
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.AppImage --file=apps/terminal-pro/dist-electron/installer/RinaWarp-Terminal-Pro-1.0.4.AppImage --remote
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/1.0.4/SHASUMS256.txt --file=release/v1.0.4/SHASUMS256.txt --remote
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/latest.json --file=release/v1.0.4/latest.json --remote
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/1.0.4/latest.json --file=release/v1.0.4/latest.json --remote
