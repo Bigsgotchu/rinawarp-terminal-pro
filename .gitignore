@@ -36,6 +36,7 @@ analytics-device-id.txt
 
 # Package-specific build artifacts
 packages/*/dist/
+packages/*/tsconfig.tsbuildinfo
 packages/*/.turbo/
 packages/*/coverage/
 
