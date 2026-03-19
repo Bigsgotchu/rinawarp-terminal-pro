@@ -8,23 +8,11 @@ binding = "RINAWARP_CDN"
 bucket_name = "rinawarp-cdn"
 
 [[routes]]
-pattern = "rinawarptech.com/download/mac"
+pattern = "rinawarptech.com/download/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
-pattern = "rinawarptech.com/download/checksums"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/releases/latest.json"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/releases/v1.0.4/RinaWarp-Terminal-Pro-1.0.4.AppImage"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/releases/v1.0.4/RinaWarp-Terminal-Pro-1.0.4.deb"
+pattern = "rinawarptech.com/releases/*"
 zone_name = "rinawarptech.com"
 
 [observability]

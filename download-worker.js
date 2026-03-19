@@ -14,6 +14,10 @@ export default {
       return Response.redirect('https://rinawarp-downloads.rinawarptech.workers.dev/releases/latest.json', 302);
     }
     
+    if (pathname === '/download/linux' || pathname === '/download/linux/') {
+      return Response.redirect('https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.AppImage', 302);
+    }
+    
     if (pathname === '/download/checksums' || pathname === '/download/checksums/') {
       return Response.redirect('https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/SHASUMS256.txt', 302);
     }
