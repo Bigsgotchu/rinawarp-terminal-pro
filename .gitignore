@@ -13,6 +13,10 @@ node_modules/
 
 # Build outputs (keep dist, only ignore secrets in build dirs)
 **/build/
+!apps/terminal-pro/build/
+!apps/terminal-pro/build/afterSign.cjs
+!apps/terminal-pro/build/entitlements.mac.plist
+!apps/terminal-pro/build/entitlements.mac.inherit.plist
 
 # Terminal Pro build artifacts
 apps/terminal-pro/dist/

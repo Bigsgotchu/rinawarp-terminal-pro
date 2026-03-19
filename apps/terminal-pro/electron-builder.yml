@@ -15,7 +15,7 @@ files:
 
 asar: true
 
-afterSign: build/afterSign.js
+afterSign: build/afterSign.cjs
 
 mac:
   target:
