@@ -28,6 +28,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace package dependencies
+        run: |
+          pnpm --filter @rinawarp/tools build
+          pnpm --filter @rinawarp/safety build
+          pnpm --filter @rinawarp/core build
+          pnpm --filter @rinawarp/agent build
+          pnpm --filter @rinawarp/doctor build
+
       - name: Build
         run: pnpm build
 
