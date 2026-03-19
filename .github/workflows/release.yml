@@ -88,7 +88,7 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           mkdir -p release/v$VERSION
 
-          APPIMAGE_SOURCE="$(find . -path './data/db' -prune -o -type f -name 'RinaWarp-Terminal-Pro-*.AppImage' -print | head -n 1)"
+          APPIMAGE_SOURCE="$(find apps/terminal-pro -type f -name 'RinaWarp-Terminal-Pro-*.AppImage' | head -n 1)"
           if [ -z "$APPIMAGE_SOURCE" ]; then
             echo "ERROR: No AppImage artifact found after packaging"
             exit 1
@@ -96,20 +96,98 @@ jobs:
 
           APPIMAGE_TARGET="release/v$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage"
           cp "$APPIMAGE_SOURCE" "$APPIMAGE_TARGET"
+
+          WINDOWS_SOURCE="$(find apps/terminal-pro -type f -name 'RinaWarp-Terminal-Pro-*.exe' | head -n 1)"
+          if [ -n "$WINDOWS_SOURCE" ]; then
+            cp "$WINDOWS_SOURCE" "release/v$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe"
+          fi
+
+          DMG_SOURCE="$(find apps/terminal-pro -type f -name 'RinaWarp-Terminal-Pro-*.dmg' | head -n 1)"
+          if [ -n "$DMG_SOURCE" ]; then
+            cp "$DMG_SOURCE" "release/v$VERSION/RinaWarp-Terminal-Pro-$VERSION.dmg"
+          fi
+
+          ZIP_SOURCE="$(find apps/terminal-pro -type f -name 'RinaWarp-Terminal-Pro-*.zip' | head -n 1)"
+          if [ -n "$ZIP_SOURCE" ]; then
+            cp "$ZIP_SOURCE" "release/v$VERSION/RinaWarp-Terminal-Pro-$VERSION.zip"
+          fi
+
           sha256sum "$APPIMAGE_TARGET" > "release/v$VERSION/SHASUMS256.txt"
 
-          cat > "release/v$VERSION/latest.json" << EOF
-          {
-            "version": "$VERSION",
-            "notes": "RinaWarp Terminal Pro v$VERSION",
-            "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "platforms": {
-              "linux-x86_64": {
-                "signature": "",
-                "url": "releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage"
-              }
-            }
+          VERSION="$VERSION" node <<'EOF'
+          const crypto = require("node:crypto");
+          const fs = require("node:fs");
+          const path = require("node:path");
+
+          const version = process.env.VERSION;
+          const releaseDir = path.join("release", `v${version}`);
+          const releasePrefix = `releases/${version}`;
+          const publishedAt = new Date().toISOString();
+
+          function sha256(fileName) {
+            const filePath = path.join(releaseDir, fileName);
+            return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
           }
+
+          function entry(fileName) {
+            if (!fileName) return null;
+            const filePath = path.join(releaseDir, fileName);
+            if (!fs.existsSync(filePath)) return null;
+            return {
+              name: fileName,
+              path: `${releasePrefix}/${fileName}`,
+              sha256: sha256(fileName),
+              bytes: fs.statSync(filePath).size,
+            };
+          }
+
+          const stagedFiles = fs.readdirSync(releaseDir);
+          const appImage = stagedFiles.find((file) => file.endsWith(".AppImage")) || null;
+          const checksums = stagedFiles.find((file) => file === "SHASUMS256.txt") || null;
+          const windowsExe = stagedFiles.find((file) => file.endsWith(".exe")) || null;
+          const macDmg = stagedFiles.find((file) => file.endsWith(".dmg")) || null;
+          const macZip = stagedFiles.find((file) => file.endsWith(".zip")) || null;
+
+          const manifest = {
+            schemaVersion: 1,
+            product: "terminal-pro",
+            version,
+            notes: `RinaWarp Terminal Pro v${version}`,
+            pub_date: publishedAt,
+            files: {
+              checksums: entry(checksums),
+            },
+            platforms: {},
+          };
+
+          if (appImage) {
+            manifest.files.linux = entry(appImage);
+            manifest.platforms["linux-x86_64"] = {
+              signature: "",
+              url: manifest.files.linux.path,
+            };
+          }
+
+          if (windowsExe) {
+            manifest.files.windows = entry(windowsExe);
+          }
+
+          if (macDmg || macZip) {
+            manifest.files.mac = entry(macDmg || macZip);
+          }
+
+          if (macDmg && macZip) {
+            manifest.files.macVariants = {
+              dmg: entry(macDmg),
+              zip: entry(macZip),
+            };
+          }
+
+          fs.writeFileSync(
+            path.join(releaseDir, "latest.json"),
+            `${JSON.stringify(manifest, null, 2)}\n`,
+            "utf8",
+          );
           EOF
 
       - name: Upload to R2
@@ -145,8 +223,13 @@ jobs:
           
           # Upload files
           echo "=== Uploading to R2 ==="
-          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage --file=release/v$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage
-          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/$VERSION/SHASUMS256.txt --file=release/v$VERSION/SHASUMS256.txt
+          for file in release/v$VERSION/*; do
+            base="$(basename "$file")"
+            if [ "$base" = "latest.json" ]; then
+              continue
+            fi
+            npx wrangler@3.90.0 r2 object put "rinawarp-cdn/releases/$VERSION/$base" --file="$file"
+          done
           npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/latest.json --file=release/v$VERSION/latest.json
           npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/$VERSION/latest.json --file=release/v$VERSION/latest.json
           echo ""

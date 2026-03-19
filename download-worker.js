@@ -30,14 +30,26 @@ async function getManifest(env) {
 
 function pickArtifactPath(manifest, kind) {
   const version = manifest?.version;
-  const linuxPath = manifest?.platforms?.["linux-x86_64"]?.url ?? null;
+  const explicitLinuxPath = manifest?.files?.linux?.path ?? null;
+  const explicitWindowsPath = manifest?.files?.windows?.path ?? null;
+  const explicitMacPath =
+    manifest?.files?.mac?.path ??
+    manifest?.files?.macVariants?.dmg?.path ??
+    manifest?.files?.macVariants?.zip?.path ??
+    null;
+  const explicitChecksumsPath = manifest?.files?.checksums?.path ?? null;
+  const linuxPath = explicitLinuxPath ?? manifest?.platforms?.["linux-x86_64"]?.url ?? null;
 
   if (kind === "linux") return linuxPath;
+  if (kind === "windows") return explicitWindowsPath;
+  if (kind === "mac") return explicitMacPath;
+  if (kind === "checksums" && explicitChecksumsPath) {
+    return explicitChecksumsPath;
+  }
   if (kind === "checksums" && version) {
     return `releases/${version}/SHASUMS256.txt`;
   }
 
-  // mac/windows are not published by the current workflow yet.
   return null;
 }
 
