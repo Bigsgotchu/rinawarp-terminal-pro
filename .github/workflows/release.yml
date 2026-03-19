@@ -44,11 +44,10 @@ jobs:
         run: pnpm build
 
       - name: Package Linux
-        run: pnpm --workspace apps/terminal-pro run build:electron && pnpm --workspace apps/terminal-pro run package:linux
-        continue-on-error: true
+        run: pnpm --dir apps/terminal-pro run dist:linux
 
       - name: Package Windows
-        run: pnpm package:win
+        run: pnpm --dir apps/terminal-pro run dist:win
         continue-on-error: true
 
       - name: Upload Linux artifacts
