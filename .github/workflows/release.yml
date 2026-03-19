@@ -30,6 +30,7 @@ jobs:
 
       - name: Build workspace package dependencies
         run: |
+          pnpm --filter @rinawarp/context build
           pnpm --filter @rinawarp/tools build
           pnpm --filter @rinawarp/safety build
           pnpm --filter @rinawarp/core build

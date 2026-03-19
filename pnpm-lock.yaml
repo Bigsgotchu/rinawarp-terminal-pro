@@ -33,6 +33,9 @@ importers:
       '@rinawarp/agent':
         specifier: workspace:*
         version: link:../../packages/rinawarp-agent
+      '@rinawarp/context':
+        specifier: workspace:*
+        version: link:../../packages/rinawarp-context
       '@rinawarp/core':
         specifier: workspace:*
         version: link:../../packages/rinawarp-core

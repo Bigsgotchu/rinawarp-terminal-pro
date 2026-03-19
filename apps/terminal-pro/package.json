@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@rinawarp/agent": "workspace:*",
+    "@rinawarp/context": "workspace:*",
     "@rinawarp/core": "workspace:*",
     "@rinawarp/doctor": "workspace:*",
     "@rinawarp/safety": "workspace:*",

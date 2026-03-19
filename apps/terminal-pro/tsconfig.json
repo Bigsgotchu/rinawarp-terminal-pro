@@ -30,6 +30,7 @@
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["src/**/*.tsx", "src/**/*.test.ts", "src/**/smoke-test.ts", "src/**/*-test.ts", "dist", "node_modules"],
   "references": [
+    { "path": "../../packages/rinawarp-context" },
     { "path": "../../packages/rinawarp-tools" },
     { "path": "../../packages/rinawarp-safety" },
     { "path": "../../packages/rinawarp-core" },
