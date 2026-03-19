@@ -5,6 +5,8 @@
  * Integrates terminal, Git, Docker, filesystem tools with safety guardrails.
  */
 
+import fs from 'node:fs'
+import path from 'node:path'
 import { EventEmitter } from 'events'
 import type { AgentPlan } from './types.js'
 import type { AgentEvent } from './agent-loop.js'
@@ -32,8 +34,6 @@ import { thinkingStream } from './thinking/thinkingStream.js'
 import { brainEvents } from './brain/brainEvents.js'
 
 // Planner import
-import { runAgent } from './agent/planner.js'
-
 // Safety imports
 import { safetyCheck, ExecutionMode } from './safety.js'
 
@@ -265,6 +265,58 @@ class RinaController {
     return plans
   }
 
+  private getProjectCommand(intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'): string {
+    const project = this.workspaceRoot ? projectMemory.loadProject(this.workspaceRoot) : null
+    const custom = project?.customCommands || {}
+    const packageScripts = this.readPackageScripts()
+
+    if (intent === 'build') {
+      return project?.buildCommand || custom.build || packageScripts.build || 'npm run build'
+    }
+
+    if (intent === 'test') {
+      return project?.testCommand || custom.test || packageScripts.test || 'npm test'
+    }
+
+    if (intent === 'lint') {
+      return custom.lint || packageScripts.lint || 'npm run lint'
+    }
+
+    if (intent === 'deploy') {
+      return custom.deploy || packageScripts.deploy || 'npm run deploy'
+    }
+
+    return custom.analyze || custom.lint || packageScripts.lint || 'npm run lint'
+  }
+
+  private readPackageScripts(): Record<string, string> {
+    if (!this.workspaceRoot) return {}
+
+    const packageJsonPath = path.join(this.workspaceRoot, 'package.json')
+    try {
+      if (!fs.existsSync(packageJsonPath)) return {}
+      const parsed = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as { scripts?: Record<string, string> }
+      return parsed.scripts && typeof parsed.scripts === 'object' ? parsed.scripts : {}
+    } catch {
+      return {}
+    }
+  }
+
+  private async executeIntentCommand(intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'): Promise<RinaResponse> {
+    const command = this.getProjectCommand(intent)
+    const result = await this.tools.terminal.runCommand(command, this.mode)
+    return {
+      ok: result.ok,
+      intent,
+      output: {
+        command,
+        output: result.output,
+        success: result.ok,
+      },
+      error: result.error,
+    }
+  }
+
   async runAgent(planOrCommand: string | AgentPlan) {
     this.isRunning = true
     const taskId = `task-${Date.now()}`
@@ -281,7 +333,12 @@ class RinaController {
       if (typeof planOrCommand === 'string') {
         // Execute command directly
         brainEvents.emitEvent('intent', `Executing: ${planOrCommand}`, { taskId })
-        result = await runAgent(planOrCommand)
+        const terminalResult = await this.tools.terminal.runCommand(planOrCommand, this.mode)
+        result = {
+          ok: terminalResult.ok,
+          output: terminalResult.output,
+          error: terminalResult.error,
+        }
       } else {
         // Execute plan steps
         const steps = planOrCommand.steps || []
@@ -296,12 +353,12 @@ class RinaController {
 
           try {
             // Execute the step
-            const stepResult = await runAgent(step)
+            const stepResult = await this.tools.terminal.runCommand(String(step), this.mode)
 
             reflections.push({
               stepId: step,
               stepDescription: step,
-              feedback: [stepResult.output as string],
+              feedback: [String(stepResult.output || stepResult.error || '')],
               severity: 'info',
             })
 
@@ -468,16 +525,7 @@ class RinaController {
         case 'deploy':
         case 'analyze':
         case 'lint':
-          const result = await this.runAgent(intent)
-          // Handle different return types from runAgent
-          const resultOk = result && typeof result === 'object' && 'ok' in result ? result.ok : true
-          const resultSummary =
-            result && typeof result === 'object' && 'summary' in result ? result.summary : { output: result }
-          return {
-            ok: resultOk,
-            intent,
-            output: resultSummary,
-          }
+          return this.executeIntentCommand(intent)
 
         case 'status':
           return {
@@ -525,6 +573,8 @@ class RinaController {
     // Check for fix execute/run commands first
     if (lower.match(/^rina\s*fix\s+(run|execute)/)) return 'fix-run'
     if (lower.match(/^rina\s*fix\s+step\s+\d+/)) return 'fix-step'
+    if (lower.includes('what can you do') || lower.includes('what do you do') || lower.includes('help me')) return 'help'
+    if (lower.includes("what's wrong") || lower.includes('what is wrong') || lower.includes('what failed') || lower.includes('why did this fail')) return 'analyze'
     if (lower.includes('fix')) return 'fix'
     if (lower.includes('explain')) return 'explain'
     if (lower.includes('build')) return 'build'
