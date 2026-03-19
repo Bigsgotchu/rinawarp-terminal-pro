@@ -83,6 +83,35 @@ jobs:
           asset_name: RinaWarp-Terminal-Pro-1.0.4.AppImage
           asset_content_type: application/octet-stream
 
+      - name: Prepare release files
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          mkdir -p release/v$VERSION
+          
+          # Generate checksums for the AppImage
+          if [ -f "apps/terminal-pro/dist-electron/installer/RinaWarp-Terminal-Pro-$VERSION.AppImage" ]; then
+            sha256sum apps/terminal-pro/dist-electron/installer/RinaWarp-Terminal-Pro-$VERSION.AppImage > release/v$VERSION/SHASUMS256.txt
+          fi
+          
+          # Copy latest.json from previous version if not exists
+          if [ ! -f "release/v$VERSION/latest.json" ]; then
+            # Create a basic latest.json
+            cat > release/v$VERSION/latest.json << EOF
+          {
+            "version": "$VERSION",
+            "notes": "RinaWarp Terminal Pro v$VERSION",
+            "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "platforms": {
+              "linux-x86_64": {
+                "signature": "",
+                "url": "releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage"
+              }
+            }
+          }
+          EOF
+          fi
+
       - name: Upload to R2
         if: startsWith(github.ref, 'refs/tags/v')
         env:
@@ -93,9 +122,10 @@ jobs:
           echo "=== R2 Upload Debug Info ==="
           echo "Wrangler version: $(npx wrangler@3.90.0 --version)"
           echo "Bucket: rinawarp-cdn"
-          echo "Key prefix: releases/1.0.4/"
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Key prefix: releases/$VERSION/"
           echo "Tag: ${{ github.ref }}"
-          echo "Version: 1.0.4"
+          echo "Version: $VERSION"
           echo ""
           
           # Verify secrets exist (fail fast)
@@ -111,14 +141,14 @@ jobs:
           # Verify files exist before upload
           echo "=== Checking source files ==="
           ls -la apps/terminal-pro/dist-electron/installer/ 2>/dev/null || echo "dist-electron/installer/ not found"
-          ls -la release/v1.0.4/ 2>/dev/null || echo "release/v1.0.4/ not found"
+          ls -la release/v$VERSION/ 2>/dev/null || echo "release/v$VERSION/ not found"
           echo ""
           
           # Upload files
           echo "=== Uploading to R2 ==="
-          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/1.0.4/RinaWarp-Terminal-Pro-1.0.4.AppImage --file=apps/terminal-pro/dist-electron/installer/RinaWarp-Terminal-Pro-1.0.4.AppImage
-          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/1.0.4/SHASUMS256.txt --file=release/v1.0.4/SHASUMS256.txt
-          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/latest.json --file=release/v1.0.4/latest.json
-          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/1.0.4/latest.json --file=release/v1.0.4/latest.json
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage --file=apps/terminal-pro/dist-electron/installer/RinaWarp-Terminal-Pro-$VERSION.AppImage
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/$VERSION/SHASUMS256.txt --file=release/v$VERSION/SHASUMS256.txt
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/latest.json --file=release/v$VERSION/latest.json
+          npx wrangler@3.90.0 r2 object put rinawarp-cdn/releases/$VERSION/latest.json --file=release/v$VERSION/latest.json
           echo ""
           echo "=== Upload complete ==="
