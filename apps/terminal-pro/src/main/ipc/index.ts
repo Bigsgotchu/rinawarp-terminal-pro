@@ -5,10 +5,19 @@
  * Uses the consolidated IPC system for Rina OS core functionality.
  */
 
-import { ipcMain, BrowserWindow } from 'electron'
-import { handleRinaMessage, memoryManager } from '../../rina/index.js'
+import { createRequire } from 'node:module'
+import type { BrowserWindow } from 'electron'
+import type { shell } from 'electron'
+import { memoryManager } from '../../rina/index.js'
 import { thinkingStream } from '../../rina/thinking/thinkingStream.js'
 import { registerConsolidatedIpcHandlers } from './registerConsolidatedIpcHandlers.js'
+import { registerLicenseIpc } from './registerLicenseIpc.js'
+import { registerTelemetryIpc } from './registerTelemetryIpc.js'
+import type { LicenseVerifyResponse } from '../../license.js'
+
+const require = createRequire(import.meta.url)
+const electron = require('electron')
+const { ipcMain } = electron
 
 // Daemon functions imported from main.ts context
 // These need to be passed in since they depend on main.ts scope
@@ -19,6 +28,42 @@ let daemonFunctions: {
   daemonTaskAdd: (args: { type: string; payload?: Record<string, unknown>; maxAttempts?: number }) => Promise<any>
   daemonStart: () => Promise<any>
   daemonStop: () => Promise<any>
+  runAgent?: (prompt: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) => Promise<any>
+  getStatus?: () => Promise<any>
+  getMode?: () => Promise<any>
+  setMode?: (mode: string) => Promise<any>
+  getPlans?: () => Promise<any>
+  getTools?: () => Promise<any>
+  runsList?: (args?: { limit?: number }) => Promise<any>
+  runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
+  codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
+  codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
+} | null = null
+
+let licenseFunctions: {
+  verifyLicense: (customerId: string) => Promise<LicenseVerifyResponse>
+  applyVerifiedLicense: (data: LicenseVerifyResponse) => string
+  resetLicenseToStarter: () => void
+  saveEntitlements: () => void
+  refreshLicenseState: () => Promise<{
+    tier: string
+    has_token: boolean
+    expires_at: number | null
+    customer_id: string | null
+    status: string
+  }>
+  shell: Pick<typeof shell, 'openExternal'>
+  getLicenseState: () => {
+    tier: string
+    has_token: boolean
+    expires_at: number | null
+    customer_id: string | null
+    status: string
+  }
+  getCurrentLicenseCustomerId: () => string | null
+  getDeviceId: () => string
+  getCachedEmail: () => string | null
+  setCachedEmail: (email: string) => void
 } | null = null
 
 /**
@@ -31,8 +76,46 @@ export function setDaemonFunctions(daemon: {
   daemonTaskAdd: (args: { type: string; payload?: Record<string, unknown>; maxAttempts?: number }) => Promise<any>
   daemonStart: () => Promise<any>
   daemonStop: () => Promise<any>
+  runAgent?: (prompt: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) => Promise<any>
+  getStatus?: () => Promise<any>
+  getMode?: () => Promise<any>
+  setMode?: (mode: string) => Promise<any>
+  getPlans?: () => Promise<any>
+  getTools?: () => Promise<any>
+  runsList?: (args?: { limit?: number }) => Promise<any>
+  runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
+  codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
+  codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
 }): void {
   daemonFunctions = daemon
+}
+
+export function setLicenseFunctions(license: {
+  verifyLicense: (customerId: string) => Promise<LicenseVerifyResponse>
+  applyVerifiedLicense: (data: LicenseVerifyResponse) => string
+  resetLicenseToStarter: () => void
+  saveEntitlements: () => void
+  refreshLicenseState: () => Promise<{
+    tier: string
+    has_token: boolean
+    expires_at: number | null
+    customer_id: string | null
+    status: string
+  }>
+  shell: Pick<typeof shell, 'openExternal'>
+  getLicenseState: () => {
+    tier: string
+    has_token: boolean
+    expires_at: number | null
+    customer_id: string | null
+    status: string
+  }
+  getCurrentLicenseCustomerId: () => string | null
+  getDeviceId: () => string
+  getCachedEmail: () => string | null
+  setCachedEmail: (email: string) => void
+}): void {
+  licenseFunctions = license
 }
 
 /**
@@ -52,47 +135,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
     console.warn('[IPC] Daemon functions not set, skipping consolidated handlers')
   }
 
-  // Agent handlers
-  ipcMain.handle('agent:interpret', async (_event, msg: string) => {
-    return handleRinaMessage(msg)
-  })
+  if (licenseFunctions) {
+    registerLicenseIpc({
+      ipcMain,
+      ...licenseFunctions,
+    })
+  } else {
+    console.warn('[IPC] License functions not set, using consolidated placeholder handlers')
+  }
 
-  ipcMain.handle('agent:getSessions', async () => {
-    const stats = memoryManager.getStats()
-    return {
-      sessions: [],
-      count: 0,
-      conversationCount: stats.conversation?.entries ?? 0,
-      sessionCount: stats.longterm?.sessions ?? 0,
-    }
-  })
-
-  ipcMain.handle('agent:loadSession', async (_event, sessionId: string) => {
-    return { ok: true, sessionId }
-  })
-
-  // System handlers
-  ipcMain.handle('system:getPlatform', () => {
-    return { platform: process.platform, arch: process.arch }
-  })
-
-  ipcMain.handle('system:getInfo', () => {
-    return {
-      platform: process.platform,
-      arch: process.arch,
-      version: process.version,
-      uptime: process.uptime(),
-    }
-  })
-
-  // Dev diagnostics handlers
-  ipcMain.handle('dev:getMemoryStats', () => memoryManager.getStats())
-
-  ipcMain.handle('dev:getVersion', () => ({
-    version: process.versions.node,
-    chrome: process.versions.chrome,
-    electron: process.versions.electron,
-  }))
+  registerTelemetryIpc()
 
   // Brain stats for Visual AI Brain Panel
   ipcMain.handle('rina:brain:stats', () => {
@@ -109,43 +161,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
       error: stats.byType.error,
       avgDuration: Math.round(stats.avgDuration),
     }
-  })
-
-  // PTY handlers (consolidated from system.ts)
-  ipcMain.handle('pty:start', async (_event, options: { cols?: number; rows?: number; cwd?: string } = {}) => {
-    return {
-      ok: true,
-      shell: process.env.SHELL || '/bin/bash',
-      cwd: options.cwd || process.env.HOME || '/',
-      cols: options.cols || 80,
-      rows: options.rows || 24,
-    }
-  })
-
-  ipcMain.handle('pty:write', async (_event, data: string) => {
-    return { ok: true }
-  })
-
-  ipcMain.handle('pty:resize', async (_event, cols: number, rows: number) => {
-    return { ok: true }
-  })
-
-  // Memory handlers
-  ipcMain.handle('memory:get', async (_event, category: string) => {
-    return null
-  })
-
-  ipcMain.handle('memory:set', async (_event, category: string, key: string, value: string) => {
-    return { ok: true }
-  })
-
-  // Diagnostics handlers
-  ipcMain.handle('diagnostics:readTailLines', async (_event, filePath: string, maxLines: number) => {
-    return `Last ${maxLines} lines of ${filePath}`
-  })
-
-  ipcMain.handle('diagnostics:rendererErrors', async () => {
-    return 'no errors'
   })
 
   // Utility handlers

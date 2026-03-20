@@ -1,6 +1,8 @@
 # RinaWarp MVP Architecture (~2000 LOC)
 
-A minimal, production-ready architecture for RinaWarp Terminal Pro.
+A minimal, production-ready architecture for Rina's agent-first desktop app.
+
+> Product direction is locked in [PRODUCT_WORKBENCH_REQUIREMENTS.md](/home/karina/Documents/rinawarp-terminal-pro/docs/PRODUCT_WORKBENCH_REQUIREMENTS.md).
 
 > **Strategic Priority**: Focus on high-frequency developer pain points, not "general AI magic"
 
@@ -12,7 +14,7 @@ A minimal, production-ready architecture for RinaWarp Terminal Pro.
 | 2 | Debugging Failed Commands | AI explains errors + suggests fixes | P0 |
 | 3 | Repo-Aware Commands | AI understands project structure | P0 |
 | 4 | Error Log Explainer | Parse stack traces → explain in plain English | P1 |
-| 5 | Natural Language Terminal | "compress folder but ignore node_modules" | P1 |
+| 5 | Natural Language Execution | "compress folder but ignore node_modules" | P1 |
 | 6 | Multi-Step Dev Tasks | Generate sequence, ask confirmation | P1 |
 | 7 | Shell Autocomplete (AI) | Context-aware suggestions | P2 |
 | 8 | Infrastructure Commands | "deploy docker to AWS" → full pipeline | P2 |
@@ -22,7 +24,7 @@ A minimal, production-ready architecture for RinaWarp Terminal Pro.
 ## Core Philosophy
 
 ```
-CLI → Agent Loop → LLM → Safety Filter → Command Runner
+Agent Thread → Agent Loop → LLM → Safety Filter → Command Runner → Proof
 ```
 
 ## High-Level Flow
@@ -49,11 +51,11 @@ Return output to agent loop
 
 | Module | LOC | Location |
 |--------|-----|----------|
-| CLI Interface | ~300 | [`apps/terminal-pro/src/main.ts`](../apps/terminal-pro/src/main.ts) |
+| Desktop App Shell | ~300 | [`apps/terminal-pro/src/main.ts`](../apps/terminal-pro/src/main.ts) |
 | Agent Loop | ~400 | [`packages/rinawarp-agentd/src/daemon/runner.ts`](../packages/rinawarp-agentd/src/daemon/runner.ts) |
 | Context Collector | ~300 | [`packages/rinawarp-agent/src/runtime.ts`](../packages/rinawarp-agent/src/runtime.ts) |
 | LLM Interface | ~200 | [`packages/rinawarp-agentd/src/platform/llm.ts`](../packages/rinawarp-agentd/src/platform/llm.ts) |
-| Command Executor | ~300 | [`packages/rinawarp-tools/src/terminal.ts`](../packages/rinawarp-tools/src/terminal.ts) |
+| Execution Runner | ~300 | [`packages/rinawarp-tools/src/terminal.ts`](../packages/rinawarp-tools/src/terminal.ts) |
 | Safety Filter | ~300 | [`packages/rinawarp-safety/src/policy.ts`](../packages/rinawarp-safety/src/policy.ts) |
 | Logging/Session | ~200 | [`packages/rinawarp-agentd/src/workspace/state.ts`](../packages/rinawarp-agentd/src/workspace/state.ts) |
 
@@ -61,13 +63,13 @@ Return output to agent loop
 
 ---
 
-## Module 1 — CLI Interface
+## Module 1 — Desktop App Shell
 
-**Purpose:** Chat-style terminal, display plans, approve commands
+**Purpose:** Agent-first thread, display plans, approve commands, attach proof
 
 **Location:** `apps/terminal-pro/src/main.ts`
 
-**Flow:**
+**User flow:**
 ```typescript
 $ rinawarp
 
@@ -276,7 +278,7 @@ interface SessionLog {
 
 ```
 rinawarp-terminal-pro/
-├── apps/terminal-pro/          # CLI + UI (Electron)
+├── apps/terminal-pro/          # Desktop app shell (Electron)
 │   └── src/
 │       ├── main.ts            # Entry point
 │       ├── renderer/          # UI components
@@ -329,11 +331,11 @@ rinawarp-terminal-pro/
 
 | Module | File Location | Status | Notes |
 |--------|---------------|--------|-------|
-| CLI Interface | `apps/terminal-pro/src/main.ts` | ✅ Implemented | Electron main process, IPC handlers |
+| Desktop App Shell | `apps/terminal-pro/src/main.ts` | ✅ Implemented | Electron main process, IPC handlers |
 | Agent Loop | `packages/rinawarp-agentd/src/daemon/runner.ts` | ✅ Implemented | Task queue processing, retries, backoff |
 | Context Collector | `packages/rinawarp-agent/src/runtime.ts` | ✅ Implemented | Plan execution with safety checks |
 | LLM Interface | `packages/rinawarp-agentd/src/platform/llm.ts` | ✅ Implemented | OpenAI + Anthropic support |
-| Command Executor | `packages/rinawarp-tools/src/terminal.ts` | ✅ Implemented | Shell execution, timeout, env filtering |
+| Execution Runner | `packages/rinawarp-tools/src/terminal.ts` | ✅ Implemented | Shell execution, timeout, env filtering |
 | Safety Filter | `packages/rinawarp-safety/src/policy.ts` | ✅ Implemented | Risk classification, confirmation flow |
 | Session Logging | `packages/rinawarp-agentd/src/workspace/state.ts` | ✅ Implemented | Task registry, state management |
 
@@ -345,7 +347,7 @@ rinawarp-terminal-pro/
    - Execution policy (requiresConfirmation)
    - Environment filtering (safeEnv blocks credentials)
 
-2. **Command Executor** - Well implemented:
+2. **Execution Runner** - Well implemented:
    - PTY allocation
    - Timeout handling
    - Shell injection prevention (splitCommand)
@@ -398,7 +400,7 @@ Detect: package.json scripts, Dockerfile, workflows, git status
 #### 4. Error Log Explainer
 **File:** `packages/rinawarp-agentd/src/platform/log-explainer.ts`
 
-#### 5. Natural Language Terminal
+#### 5. Natural Language Execution
 **Enhance:** Command translator with file operation support
 
 #### 6. Multi-Step Tasks
@@ -497,7 +499,7 @@ Execute
 
 ## The Killer Promise
 
-> **"The terminal that fixes itself."**
+> **"The agent thread that acts in the background and always shows proof."**
 
 Example workflow:
 ```

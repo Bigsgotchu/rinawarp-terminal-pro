@@ -73,7 +73,7 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
       </div>
       <div class="rw-row">
         <div class="rw-muted">
-          Built to feel fast, safe, and fun. ✨
+          Agent-first desktop workflow with background execution and proof.
         </div>
       </div>
     </div>

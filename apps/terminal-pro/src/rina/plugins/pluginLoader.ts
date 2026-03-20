@@ -8,7 +8,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { pluginRegistry } from './pluginRegistry.js'
-import { createPluginContext } from './pluginContext.js'
+import { createPluginContext, resolvePluginWorkspacePath } from './pluginContext.js'
 import { RinaPlugin, PLUGIN_EXTENSIONS } from './pluginTypes.js'
 
 /**
@@ -62,7 +62,7 @@ export async function loadPlugins(root: string): Promise<{ loaded: number; faile
 /**
  * Load a single plugin from a file path
  */
-export async function loadPlugin(pluginPath: string): Promise<void> {
+export async function loadPlugin(pluginPath: string, workspacePath?: string): Promise<void> {
   pluginRegistry.logger.debug(`Loading plugin from: ${pluginPath}`)
 
   // Dynamic import of the plugin
@@ -79,8 +79,7 @@ export async function loadPlugin(pluginPath: string): Promise<void> {
   await pluginRegistry.register(plugin, pluginPath)
 
   // Create context and activate
-  const workspacePath = process.cwd()
-  const context = createPluginContext(workspacePath)
+  const context = createPluginContext(resolvePluginWorkspacePath(workspacePath))
 
   await pluginRegistry.activate(plugin.name, context)
 
@@ -90,7 +89,7 @@ export async function loadPlugin(pluginPath: string): Promise<void> {
 /**
  * Load plugin from npm package
  */
-export async function loadPluginFromPackage(packageName: string): Promise<void> {
+export async function loadPluginFromPackage(packageName: string, workspacePath?: string): Promise<void> {
   pluginRegistry.logger.info(`Loading plugin from npm: ${packageName}`)
 
   try {
@@ -105,7 +104,7 @@ export async function loadPluginFromPackage(packageName: string): Promise<void> 
 
     // Register and activate
     await pluginRegistry.register(plugin, `npm:${packageName}`)
-    const context = createPluginContext(process.cwd())
+    const context = createPluginContext(resolvePluginWorkspacePath(workspacePath))
     await pluginRegistry.activate(plugin.name, context)
 
     pluginRegistry.logger.info(`Loaded npm plugin: ${plugin.name}`)
@@ -139,7 +138,7 @@ export async function reloadPlugin(name: string): Promise<void> {
   await unloadPlugin(name)
 
   // Reload from same path
-  await loadPlugin(pluginPath)
+  await loadPlugin(pluginPath, state.context?.workspacePath)
 }
 
 /**

@@ -1,0 +1,123 @@
+import type { AgentPackage } from '../agent-manager.js'
+import type { CapabilityPack } from './types.js'
+
+export const BUILTIN_CAPABILITY_PACKS: CapabilityPack[] = [
+  {
+    key: 'system:doctor',
+    title: 'System Doctor',
+    description: 'Read-only diagnostics and guided repairs for system and workspace issues.',
+    category: 'system',
+    source: 'builtin',
+    tier: 'starter',
+    installState: 'builtin',
+    permissions: ['read-only'],
+    tags: ['doctor', 'diagnostics', 'proof'],
+    actions: [
+      { id: 'inspect', label: 'Inspect system state', tool: 'doctor.inspect', risk: 'read', proof: ['run', 'receipt', 'log'] },
+      {
+        id: 'repair',
+        label: 'Apply guided repair',
+        tool: 'doctor.fix',
+        risk: 'safe-write',
+        proof: ['run', 'receipt', 'log', 'artifact'],
+        requiresConfirmation: true,
+      },
+    ],
+  },
+  {
+    key: 'deploy:cloudflare',
+    title: 'Cloudflare Deploy',
+    description: 'Proof-backed deploy workflows for Workers, Pages, and related Cloudflare targets.',
+    category: 'deploy',
+    source: 'builtin',
+    tier: 'pro',
+    installState: 'builtin',
+    permissions: ['read-only', 'workspace-write', 'network', 'cloud'],
+    tags: ['deploy', 'cloudflare'],
+    actions: [
+      { id: 'plan', label: 'Plan deploy', tool: 'deploy.plan', risk: 'read', proof: ['run', 'receipt', 'log'] },
+      {
+        id: 'deploy',
+        label: 'Deploy to Cloudflare',
+        tool: 'deploy.cloudflare',
+        risk: 'high-impact',
+        proof: ['run', 'receipt', 'log', 'artifact'],
+        requiresConfirmation: true,
+      },
+    ],
+  },
+  {
+    key: 'device:android:scan',
+    title: 'Android Device Scan',
+    description: 'ADB-backed Android inspection and evidence capture with explicit device permissions.',
+    category: 'device',
+    source: 'builtin',
+    tier: 'pro',
+    installState: 'available',
+    permissions: ['read-only', 'device'],
+    tags: ['android', 'adb', 'device'],
+    actions: [
+      { id: 'inspect', label: 'Scan Android device', tool: 'device.android.scan', risk: 'read', proof: ['run', 'receipt', 'log'] },
+    ],
+  },
+  {
+    key: 'device:ios:scan',
+    title: 'iOS Device Scan',
+    description: 'Limited iOS diagnostics with Apple-compatible tooling and strict approval boundaries.',
+    category: 'device',
+    source: 'builtin',
+    tier: 'pro',
+    installState: 'available',
+    permissions: ['read-only', 'device'],
+    tags: ['ios', 'device'],
+    actions: [
+      { id: 'inspect', label: 'Scan iOS device', tool: 'device.ios.scan', risk: 'read', proof: ['run', 'receipt', 'log'] },
+    ],
+  },
+]
+
+export const FALLBACK_MARKETPLACE_AGENTS: AgentPackage[] = [
+  {
+    name: 'deploy-helper',
+    description: 'Common deployment helpers for Vercel, Netlify, and Docker',
+    author: 'RinaWarp',
+    version: '1.0.0',
+    commands: [
+      { name: 'vercel', steps: ['npm i -g vercel', 'vercel --prod'] },
+      { name: 'netlify', steps: ['npm i -g netlify-cli', 'netlify deploy --prod'] },
+      { name: 'docker', steps: ['docker build -t app .', 'docker push registry.example.com/app:latest'] },
+    ],
+    downloads: 0,
+    price: 5,
+  },
+  {
+    name: 'docker-cleanup',
+    description: 'Clean up Docker resources - remove unused containers, images, and volumes',
+    author: 'RinaWarp',
+    version: '1.0.0',
+    commands: [
+      { name: 'clean', steps: ['docker system prune -af', 'docker volume prune -f'] },
+      { name: 'status', steps: ['docker system df'] },
+    ],
+    downloads: 0,
+    price: 3,
+  },
+  {
+    name: 'security-audit',
+    description: 'Run security audits on your project - npm audit, secrets detection, dependency checks',
+    author: 'RinaWarp',
+    version: '1.0.0',
+    commands: [{ name: 'audit', steps: ['npm audit --json > audit-report.json', 'cat audit-report.json | head -50'] }],
+    downloads: 0,
+    price: 5,
+  },
+  {
+    name: 'system-diagnostics',
+    description: 'Full system diagnostic agent. Collects logs, checks resource usage, and identifies common issues.',
+    author: 'RinaWarp',
+    version: '1.0.0',
+    commands: [{ name: 'diagnose', steps: ['df -h', 'free -m', 'top -bn1'] }],
+    downloads: 0,
+    price: 0,
+  },
+]

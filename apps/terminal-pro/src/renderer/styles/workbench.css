@@ -1,0 +1,7 @@
+/**
+ * Workbench style compatibility layer.
+ *
+ * The canonical workbench shell now lives in ../renderer.css.
+ * Keep this file intentionally minimal so it does not override the
+ * agent-first layout and visual system loaded earlier.
+ */

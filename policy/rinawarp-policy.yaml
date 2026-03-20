@@ -139,14 +139,37 @@ rules:
     message: "Force push requires typed confirmation."
 
   - id: package-install
-    description: "Installs are allowed but require click approval in staging/prod"
+    description: "Installs are allowed in dev and require click approval in staging/prod"
     match:
       any_regex:
         - '\bnpm\s+i(nstall)?\b'
+        - '\bnpm\s+ci\b'
         - '\byarn\s+add\b'
         - '\bpip\s+install\b'
         - '\bapt(-get)?\s+install\b'
         - '\bbrew\s+install\b'
+    when:
+      env:
+        any:
+          - dev
+    action: allow
+    message: "Allowed in dev."
+
+  - id: package-install-approved
+    description: "Installs require click approval outside dev"
+    match:
+      any_regex:
+        - '\bnpm\s+i(nstall)?\b'
+        - '\bnpm\s+ci\b'
+        - '\byarn\s+add\b'
+        - '\bpip\s+install\b'
+        - '\bapt(-get)?\s+install\b'
+        - '\bbrew\s+install\b'
+    when:
+      env:
+        any:
+          - staging
+          - prod
     action: require_approval
     approval: click
     message: "Package install requires approval."
@@ -159,12 +182,53 @@ rules:
         - '^\s*cat(\s|$)'
         - '^\s*pwd(\s|$)'
         - '^\s*whoami(\s|$)'
+        - '^\s*uptime(\s|$)'
+        - '^\s*uname\s+-a\b'
+        - '^\s*df\s+-h\b'
+        - '^\s*free\s+-h\b'
+        - '^\s*vm_stat\b'
+        - '^\s*tasklist(\s|$)'
+        - '^\s*ps\s+-eo\b.*\|\s*head\b'
+        - '^\s*ps\s+aux\b.*\|\s*(sort\b.*\|\s*)?head\b'
         - '^\s*git\s+status\b'
         - '^\s*git\s+diff\b'
         - '^\s*kubectl\s+(get|describe)\b'
         - '^\s*terraform\s+plan\b'
     action: allow
     message: "Allowed."
+
+  - id: safe-toolchain-probes
+    description: "Toolchain version and probe commands are always allowed"
+    match:
+      any_regex:
+        - '^\s*node\s+(-v|--version)\b'
+        - '^\s*npm\s+(-v|--version)\b'
+        - '^\s*python3?\s+(-V|--version)\b'
+        - '^\s*pip\s+(-V|--version)\b'
+        - '^\s*go\s+version\b'
+        - '^\s*cargo\s+(-V|--version)\b'
+        - '^\s*rustc\s+(-V|--version)\b'
+    action: allow
+    message: "Allowed."
+
+  - id: local-build-and-test-dev
+    description: "Local build and test workflows are allowed in dev"
+    match:
+      any_regex:
+        - '^\s*npm\s+run\s+([a-z0-9:_-]*build[a-z0-9:_-]*|[a-z0-9:_-]*test[a-z0-9:_-]*)\b'
+        - '^\s*npm\s+test\b'
+        - '^\s*pnpm\s+(build|test)\b'
+        - '^\s*yarn\s+(build|test)\b'
+        - '^\s*go\s+(build|test)\b'
+        - '^\s*cargo\s+(build|test)\b'
+        - '^\s*pytest\b'
+        - '^\s*python3?\s+-m\s+pytest\b'
+    when:
+      env:
+        any:
+          - dev
+    action: allow
+    message: "Allowed in dev."
 
 fallback:
   action: require_approval

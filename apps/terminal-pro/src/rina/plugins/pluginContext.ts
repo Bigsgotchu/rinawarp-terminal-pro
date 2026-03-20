@@ -9,6 +9,14 @@ import { EventEmitter } from 'events'
 import { PluginContext, PluginConfig, PluginLogger } from './pluginTypes.js'
 import { pluginRegistry } from './pluginRegistry.js'
 
+export function resolvePluginWorkspacePath(explicit?: string): string {
+  const candidate = String(explicit || process.env.RINA_WORKSPACE_ROOT || '').trim()
+  if (!candidate) {
+    throw new Error('Missing workspace path for plugin context')
+  }
+  return candidate
+}
+
 /**
  * Plugin context implementation
  */
@@ -83,5 +91,5 @@ function createPluginLogger(): PluginLogger {
  * Get the global plugin context for RinaWarp core
  */
 export function getGlobalPluginContext(): PluginContext {
-  return createPluginContext(process.cwd())
+  return createPluginContext(resolvePluginWorkspacePath())
 }

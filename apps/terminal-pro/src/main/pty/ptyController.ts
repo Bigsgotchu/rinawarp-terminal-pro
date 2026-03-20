@@ -1,10 +1,18 @@
-import { ipcMain, BrowserWindow } from "electron"
+import { createRequire } from "node:module"
 import { spawn, ChildProcessWithoutNullStreams } from "child_process"
+
+const require = createRequire(import.meta.url)
+const electron = require("electron")
+const { ipcMain, BrowserWindow } = electron
 
 let shell: ChildProcessWithoutNullStreams | null = null
 
-export function registerPtyHandlers() {
-  ipcMain.handle("rina:pty:start", (event: Electron.IpcMainInvokeEvent) => {
+type RegisterPtyHandlersArgs = {
+  resolvePtyCwd: (input?: string) => string
+}
+
+export function registerPtyHandlers(args: RegisterPtyHandlersArgs) {
+  ipcMain.handle("rina:pty:start", (event: Electron.IpcMainInvokeEvent, payload?: { cwd?: string | null }) => {
     const win = BrowserWindow.fromWebContents(event.sender)
 
     if (shell) {
@@ -12,8 +20,9 @@ export function registerPtyHandlers() {
     }
 
     const shellPath = process.env.SHELL || "/bin/bash"
+    const cwd = args.resolvePtyCwd(payload?.cwd || undefined)
     shell = spawn(shellPath, [], {
-      cwd: process.cwd(),
+      cwd,
       env: process.env
     })
 
@@ -39,10 +48,10 @@ export function registerPtyHandlers() {
       shell = null
     })
 
-    return { started: true }
+    return { started: true, cwd }
   })
 
-  ipcMain.handle("rina:pty:write", (_e, data: string) => {
+  ipcMain.handle("rina:pty:write", (_e: unknown, data: string) => {
     if (shell) {
       shell.stdin.write(data)
     }

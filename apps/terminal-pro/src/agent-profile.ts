@@ -110,16 +110,18 @@ export function gateCommandRun(args: {
   confirmationText: string
 }): GateResult {
   const { profile, command, risk, confirmed } = args
+  const normalizedCommand = command.trim()
   const interactiveLikely =
-    /\b(top|htop|vim|nvim|nano|less|more|ssh|sftp|ftp|python|node|irb|rails\s+c|mysql|psql)\b/i.test(command)
+    /\b(top|htop|vim|nvim|nano|less|more|ssh|sftp|ftp|irb|rails\s+c|mysql|psql)\b/i.test(normalizedCommand) ||
+    /^(python|python3|node)\s*$/i.test(normalizedCommand)
   if (interactiveLikely && !profile.cmd.allowInteractive) {
     return { ok: false, reason: 'interactive_disabled', message: 'Agent profile blocks interactive commands.' }
   }
-  if (risk !== 'read' && profile.cmd.requireApprovalForWriteRisk && !confirmed) {
+  if (risk === 'high-impact' && profile.cmd.requireApprovalForWriteRisk && !confirmed) {
     return {
       ok: false,
       reason: 'approval_required',
-      message: 'Approval required for write-risk command.',
+      message: 'Approval required for high-impact command.',
       requires: 'click',
     }
   }

@@ -7,10 +7,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import { createRequire } from 'node:module'
-const require = createRequire(import.meta.url)
-const electron = require('electron')
-const { app } = electron
+import { resolveRinaDataDir } from '../memory/dataRoot.js'
 
 export type CommandStat = {
   command: string
@@ -33,8 +30,7 @@ class CommandMemory {
   private _loaded = false
 
   constructor() {
-    const userDataPath = app?.getPath?.('userData') || process.cwd()
-    this.dataPath = path.join(userDataPath, 'command-memory.json')
+    this.dataPath = path.join(resolveRinaDataDir(), 'command-memory.json')
   }
 
   private ensureLoaded() {

@@ -60,6 +60,9 @@ test('agent smoke: build prompt executes a real project command', async () => {
       return nodes.slice(previous as number).map((node) => node.textContent?.trim() || '')
     }, beforeCount)
 
+    const reply = newMessages.join('\n')
+    expect(reply).toContain('I built the project and it completed successfully.')
+    expect(reply).toContain('What happened')
     expect(newMessages.join('\n')).toContain('npm run build:electron')
     expect(newMessages.join('\n')).not.toContain("I don't know how to do that yet.")
     expect(newMessages.join('\n')).not.toContain('/bin/sh: 1: pnpm: not found')

@@ -8,9 +8,8 @@
  * to function properly in Electron.
  */
 
-import { IpcMain } from 'electron'
+import type { IpcMain } from 'electron'
 import { rinaController } from '../../rina/rina-controller.js'
-import { getAvailableTools, RinaTools } from '../../rina/tools/registry.js'
 
 // --- Type definitions ---
 
@@ -69,6 +68,16 @@ export interface ConsolidatedIpcArgs {
   daemonTaskAdd: (args: { type: string; payload?: Record<string, unknown>; maxAttempts?: number }) => Promise<any>
   daemonStart: () => Promise<any>
   daemonStop: () => Promise<any>
+  runAgent?: (prompt: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) => Promise<any>
+  getStatus?: () => Promise<any>
+  getMode?: () => Promise<any>
+  setMode?: (mode: string) => Promise<any>
+  getPlans?: () => Promise<any>
+  getTools?: () => Promise<any>
+  runsList?: (args?: { limit?: number }) => Promise<any>
+  runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
+  codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
+  codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
 }
 
 /**
@@ -82,7 +91,18 @@ export function registerConsolidatedIpcHandlers({
   daemonTaskAdd,
   daemonStart,
   daemonStop,
+  runAgent,
+  getStatus,
+  getMode,
+  setMode,
+  getPlans,
+  getTools,
+  runsList,
+  runsTail,
+  codeListFiles,
+  codeReadFile,
 }: ConsolidatedIpcArgs): void {
+  console.log('[ipc] consolidated handlers registered')
   console.log('[IPC] Registering consolidated IPC handlers...')
 
   // --- Daemon handlers ---
@@ -131,6 +151,126 @@ export function registerConsolidatedIpcHandlers({
     }
   })
 
+  if (runsTail) {
+    ipcMain.removeHandler('rina:runs:tail')
+    ipcMain.handle('rina:runs:tail', async (_event, args) => {
+      try {
+        return await runsTail(args)
+      } catch (error) {
+        console.error('[IPC] rina:runs:tail error:', error)
+        return { ok: false, error: String(error) }
+      }
+    })
+  }
+
+  if (runsList) {
+    ipcMain.removeHandler('rina:runs:list')
+    ipcMain.handle('rina:runs:list', async (_event, args) => {
+      try {
+        return await runsList(args)
+      } catch (error) {
+        console.error('[IPC] rina:runs:list error:', error)
+        return { ok: false, error: String(error) }
+      }
+    })
+  }
+
+  if (codeListFiles) {
+    ipcMain.removeHandler('rina:code:listFiles')
+    ipcMain.handle('rina:code:listFiles', async (_event, args) => {
+      try {
+        return await codeListFiles(args)
+      } catch (error) {
+        console.error('[IPC] rina:code:listFiles error:', error)
+        return { ok: false, error: String(error) }
+      }
+    })
+  }
+
+  if (codeReadFile) {
+    ipcMain.removeHandler('rina:code:readFile')
+    ipcMain.handle('rina:code:readFile', async (_event, args) => {
+      try {
+        return await codeReadFile(args)
+      } catch (error) {
+        console.error('[IPC] rina:code:readFile error:', error)
+        return { ok: false, error: String(error) }
+      }
+    })
+  }
+
+  if (runAgent) {
+    ipcMain.removeHandler('rina:runAgent')
+    ipcMain.handle('rina:runAgent', async (_event, prompt, opts) => {
+      try {
+        return await runAgent(String(prompt || ''), opts)
+      } catch (error) {
+        console.error('[IPC] rina:runAgent error:', error)
+        return { ok: false, error: String(error), text: String(error) }
+      }
+    })
+  }
+
+  if (getStatus) {
+    ipcMain.removeHandler('rina:getStatus')
+    ipcMain.handle('rina:getStatus', async () => {
+      try {
+        return await getStatus()
+      } catch (error) {
+        console.error('[IPC] rina:getStatus error:', error)
+        return { mode: 'assist', tools: [], agentRunning: false, memoryStats: { conversationCount: 0, learnedCommandsCount: 0, projectsCount: 0 } }
+      }
+    })
+  }
+
+  if (getMode) {
+    ipcMain.removeHandler('rina:getMode')
+    ipcMain.handle('rina:getMode', async () => {
+      try {
+        return await getMode()
+      } catch (error) {
+        console.error('[IPC] rina:getMode error:', error)
+        return 'assist'
+      }
+    })
+  }
+
+  if (setMode) {
+    ipcMain.removeHandler('rina:setMode')
+    ipcMain.handle('rina:setMode', async (_event, mode) => {
+      try {
+        return await setMode(String(mode || ''))
+      } catch (error) {
+        console.error('[IPC] rina:setMode error:', error)
+        return { ok: false, error: String(error) }
+      }
+    })
+  }
+
+  if (getPlans) {
+    ipcMain.removeHandler('rina:getPlans')
+    ipcMain.handle('rina:getPlans', async () => {
+      try {
+        return await getPlans()
+      } catch (error) {
+        console.error('[IPC] rina:getPlans error:', error)
+        return []
+      }
+    })
+  }
+
+  if (getTools) {
+    ipcMain.removeHandler('rina:getTools')
+    ipcMain.handle('rina:getTools', async () => {
+      try {
+        return await getTools()
+      } catch (error) {
+        console.error('[IPC] rina:getTools error:', error)
+        return []
+      }
+    })
+  }
+
   // --- Rina OS Core handlers ---
 
   // Get Rina status
@@ -154,36 +294,6 @@ export function registerConsolidatedIpcHandlers({
         agentRunning: false,
         memoryStats: { conversation: 0, longterm: 0 },
       }
-    }
-  })
-
-  // Set Rina execution mode
-  ipcMain.handle('rina:setMode', async (_event, mode: string) => {
-    try {
-      if (mode === 'auto' || mode === 'assist' || mode === 'explain') {
-        rinaController.setMode(mode)
-        return { ok: true, mode }
-      }
-      return { ok: false, error: `Invalid mode: ${mode}` }
-    } catch (error) {
-      console.error('[IPC] rina:setMode error:', error)
-      return { ok: false, error: String(error) }
-    }
-  })
-
-  // Get available tools
-  ipcMain.handle('rina:getTools', async () => {
-    try {
-      const tools = rinaController.getTools()
-      const toolDetails = Object.entries(RinaTools).map(([name, tool]) => ({
-        name,
-        description: tool.description,
-        safe: tool.safe ?? false,
-      }))
-      return { ok: true, tools, details: toolDetails }
-    } catch (error) {
-      console.error('[IPC] rina:getTools error:', error)
-      return { ok: false, error: String(error), tools: [], details: [] }
     }
   })
 
@@ -242,25 +352,6 @@ export function registerConsolidatedIpcHandlers({
     } catch (error) {
       console.error('[IPC] rina:clearSession error:', error)
       return { ok: false, error: String(error) }
-    }
-  })
-
-  // --- License handlers ---
-
-  ipcMain.handle('license:verify', async (_event, key: string): Promise<LicenseVerifyResponse> => {
-    // Simplified license verification - actual implementation would call license service
-    if (key && key.length > 0) {
-      return {
-        valid: true,
-        message: 'License verified',
-        tier: 'starter',
-        ok: true,
-      }
-    }
-    return {
-      valid: false,
-      message: 'Invalid license key',
-      ok: false,
     }
   })
 

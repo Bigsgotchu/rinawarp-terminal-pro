@@ -1,7 +1,7 @@
 /**
  * RinaWarp Prompt Library
  *
- * Structured prompt templates for AI terminal assistance.
+ * Structured prompt templates for agent-guided execution.
  * Used by the LLM interface to generate consistent, safe responses.
  *
  * Based on prompt engineering best practices from production AI tools.

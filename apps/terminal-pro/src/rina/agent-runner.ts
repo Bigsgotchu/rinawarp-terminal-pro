@@ -3,10 +3,7 @@
  */
 import fs from 'fs'
 import path from 'path'
-import { exec as nodeExec } from 'child_process'
-import { promisify } from 'util'
-
-const execAsync = promisify(nodeExec)
+import { execCommand } from './execution/legacyShell.js'
 
 const AGENTS_DIR = path.join(process.env.HOME || '.', '.rinawarp', 'agents')
 
@@ -78,7 +75,7 @@ export async function runAgent(name: string, commandName?: string): Promise<stri
     console.log(`[Agent Runner] Step ${i + 1}/${command.steps.length}: ${step}`)
 
     try {
-      const { stdout, stderr } = await execAsync(step, {
+      const { stdout, stderr } = await execCommand(step, {
         timeout: 120000, // 2 minute timeout per step
         maxBuffer: 10 * 1024 * 1024, // 10MB max output
       })

@@ -1,4 +1,4 @@
-import electron from 'electron'
+import * as electron from 'electron'
 const { contextBridge, ipcRenderer, shell } = electron
 
 // ============================================================
@@ -12,8 +12,6 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:runAgent',
   'rina:getPlans',
   'rina:getTools',
-  // Terminal
-  'terminal:run',
   // Telemetry (stubs - always return true)
   'telemetry:sessionStart',
   'telemetry:sessionEnd',
@@ -23,23 +21,37 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   // Diagnostics
   'rina:diagnostics:paths',
   'rina:support:bundle',
+  'rina:openRunsFolder',
+  'rina:runs:list',
+  'rina:runs:tail',
+  'rina:revealRunReceipt',
+  'rina:code:listFiles',
+  'rina:code:readFile',
+  'rina:workspace:default',
   // PTY (if available)
   'rina:pty:start',
   'rina:pty:write',
   'rina:pty:resize',
   'rina:pty:stop',
   'rina:pty:metrics',
-  // Agent
-  'agent:interpret',
-  'agent:getSessions',
-  'agent:getPlans',
-  'agent:loadSession',
-  'agent:executePlan',
+  // Canonical plan/run/proof path
+  'rina:agent:plan',
+  'rina:executePlanStream',
+  'rina:capabilities:execute',
+  'rina:analytics:funnel',
+  'analytics:trackEvent',
   // License
   'license:verify',
+  'license:refresh',
   'license:state',
+  'license:checkout',
   'license:portal',
   'license:lookup',
+  'license:email',
+  'secure-agent:list',
+  'secure-agent:marketplace',
+  'secure-agent:install',
+  'rina:capabilities:list',
 ])
 
 const ALLOWED_ON_CHANNELS = new Set([
@@ -121,20 +133,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   shell,
 })
 
-// Agent API for hybrid Chat + CLI + IDE UI
-contextBridge.exposeInMainWorld('agent', {
-  interpret: (input: string) => ipcRenderer.invoke('agent:interpret', input),
-  getSessions: () => ipcRenderer.invoke('agent:getSessions'),
-  getPlans: () => ipcRenderer.invoke('agent:getPlans'),
-  loadSession: (id: string) => ipcRenderer.invoke('agent:loadSession', id),
-  executePlan: (id: string) => ipcRenderer.invoke('agent:executePlan', id),
-})
-
-// Terminal API for CLI block execution in chat
-contextBridge.exposeInMainWorld('terminal', {
-  run: (command: string) => ipcRenderer.invoke('terminal:run', command),
-})
-
 // ============================================================
 // MINIMAL RINA API - Only verified working channels exposed to renderer
 // ============================================================
@@ -156,11 +154,9 @@ contextBridge.exposeInMainWorld('rina', {
   setMode: (mode: string) => ipcRenderer.invoke('rina:setMode', mode),
   getStatus: () => ipcRenderer.invoke('rina:getStatus'),
   getPlans: () => ipcRenderer.invoke('rina:getPlans'),
-  runAgent: (command: string) => ipcRenderer.invoke('rina:runAgent', command),
+  runAgent: (command: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) =>
+    ipcRenderer.invoke('rina:runAgent', command, opts),
   getTools: () => ipcRenderer.invoke('rina:getTools'),
-
-  // Terminal execution
-  runCommand: (cmd: string) => ipcRenderer.invoke('terminal:run', cmd),
 
   // PTY terminal (if available)
   ptyStart: (args?: { cols?: number; rows?: number; cwd?: string }) => ipcRenderer.invoke('rina:pty:start', args),
@@ -208,6 +204,10 @@ contextBridge.exposeInMainWorld('rina', {
   // Diagnostics
   diagnosticsPaths: () => ipcRenderer.invoke('rina:diagnostics:paths'),
   supportBundle: () => ipcRenderer.invoke('rina:support:bundle'),
+  openRunsFolder: () => ipcRenderer.invoke('rina:openRunsFolder'),
+  runsList: (limit?: number) => ipcRenderer.invoke('rina:runs:list', { limit }),
+  runsTail: (args: { runId: string; sessionId: string; maxLines?: number; maxBytes?: number }) => ipcRenderer.invoke('rina:runs:tail', args),
+  revealRunReceipt: (receiptId: string) => ipcRenderer.invoke('rina:revealRunReceipt', receiptId),
 
   // Telemetry (stubs - always work)
   trackSessionStart: () => ipcRenderer.invoke('telemetry:sessionStart'),
@@ -216,17 +216,37 @@ contextBridge.exposeInMainWorld('rina', {
   trackAiMessage: () => ipcRenderer.invoke('telemetry:aiMessage'),
   trackQuickFix: () => ipcRenderer.invoke('telemetry:quickFix'),
 
-  // Agent sessions
-  interpret: (input: string) => ipcRenderer.invoke('agent:interpret', input),
-  getSessions: () => ipcRenderer.invoke('agent:getSessions'),
-  loadSession: (id: string) => ipcRenderer.invoke('agent:loadSession', id),
-  executePlan: (id: string) => ipcRenderer.invoke('agent:executePlan', id),
+  agentPlan: (args: { intentText: string; projectRoot: string }) => ipcRenderer.invoke('rina:agent:plan', args),
+  executePlanStream: (args: {
+    plan: any[]
+    projectRoot: string
+    confirmed: boolean
+    confirmationText: string
+  }) => ipcRenderer.invoke('rina:executePlanStream', args),
+  executeCapability: (args: {
+    packKey: string
+    projectRoot: string
+    actionId?: string
+    confirmed?: boolean
+    confirmationText?: string
+  }) => ipcRenderer.invoke('rina:capabilities:execute', args),
+  trackEvent: (event: string, properties?: Record<string, unknown>) => ipcRenderer.invoke('analytics:trackEvent', event, properties),
+  trackFunnelStep: (step: string, properties?: Record<string, unknown>) =>
+    ipcRenderer.invoke('rina:analytics:funnel', step, properties),
+  workspaceDefault: () => ipcRenderer.invoke('rina:workspace:default'),
 
   // License
   verifyLicense: (customerId: string) => ipcRenderer.invoke('license:verify', customerId),
+  licenseRefresh: () => ipcRenderer.invoke('license:refresh'),
   licenseState: () => ipcRenderer.invoke('license:state'),
-  openStripePortal: () => ipcRenderer.invoke('license:portal'),
+  licenseCheckout: (email?: string) => ipcRenderer.invoke('license:checkout', { email }),
+  openStripePortal: (email?: string) => ipcRenderer.invoke('license:portal', { email }),
+  licenseCachedEmail: () => ipcRenderer.invoke('license:email'),
   licenseLookupByEmail: (email: string) => ipcRenderer.invoke('license:lookup', email),
+  marketplaceList: () => ipcRenderer.invoke('secure-agent:marketplace'),
+  installedAgents: () => ipcRenderer.invoke('secure-agent:list'),
+  installMarketplaceAgent: (args: { name: string; userEmail?: string }) => ipcRenderer.invoke('secure-agent:install', args),
+  capabilityPacks: () => ipcRenderer.invoke('rina:capabilities:list'),
 
   // Autonomy status (stub for now)
   autonomy: { enabled: false, level: 'off' },

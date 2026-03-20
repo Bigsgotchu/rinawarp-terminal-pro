@@ -10,6 +10,7 @@
 import fs from 'fs'
 import path from 'path'
 import { cloudSync } from './cloud-sync.js'
+import { resolveRinaDataDir } from './dataRoot.js'
 
 export interface PersistentEntry {
   timestamp: number
@@ -33,9 +34,7 @@ export class PersistentMemory {
   private maxEntries: number = 1000
 
   constructor(fileName: string = 'rina-memory.json') {
-    // Store in user's data directory or current working directory
-    const dataDir = process.env.RINA_DATA_DIR || process.cwd()
-    this.filePath = path.resolve(dataDir, fileName)
+    this.filePath = path.resolve(resolveRinaDataDir(), fileName)
     this.load()
   }
 

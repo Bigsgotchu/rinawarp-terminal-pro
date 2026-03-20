@@ -2,7 +2,7 @@
 
 ## Title
 
-**RinaWarp – AI terminal that diagnoses and explains system errors**
+**RinaWarp – agent-first desktop app that diagnoses system errors and shows proof**
 
 *(Avoid "First AI" claims - HN readers are skeptical of hype. Be factual.)*
 
@@ -12,20 +12,17 @@
 
 I built RinaWarp to help developers debug system problems without hours of trial and error.
 
-It analyzes errors from your terminal, explains what they mean, and suggests safe fixes. You approve any change before it runs.
+You tell Rina what is broken in plain language. She explains what it means, suggests a safe plan, runs the work in the background, and leaves proof attached to the thread. You approve any high-impact change before it runs.
 
 ### Example
 
 ```
-$ docker build .
-error: cannot connect to registry
+You: docker build is failing, fix the safest thing first
 
-RinaWarp: Docker cannot reach the registry.
-Suggested fix: docker login
-
-> yes
-[Running: docker login]
-Login succeeded
+Rina: Docker cannot reach the registry.
+Plan: verify auth, then try docker login if needed.
+Action: docker login
+Proof: runId + receipt + execution trace
 ```
 
 ### Why this matters
@@ -63,7 +60,7 @@ A: RinaWarp uses a combination of local analysis (for fast diagnostics) and clou
 
 ### Q: How is this different from Claude Code or Cursor?
 
-A: RinaWarp focuses specifically on system-level diagnostics rather than writing new code. It's your "terminal doctor" - analyzing what's broken and explaining how to fix it.
+A: RinaWarp focuses specifically on system-level diagnostics and execution trust rather than writing new code. The thread is primary, execution happens in the background, and proof stays attached to the work.
 
 ### Q: Does this work offline?
 

@@ -40,6 +40,10 @@ pattern = "rinawarptech.com/api/portal"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/api/checkout"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/feedback"
 zone_name = "rinawarptech.com"
 
@@ -52,6 +56,14 @@ pattern = "rinawarptech.com/download"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/download/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/releases/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/api/feedback"
 zone_name = "rinawarptech.com"
 
@@ -59,7 +71,14 @@ zone_name = "rinawarptech.com"
 binding = "AGENTS_KV"
 id = "5741295fdb9541a196314377c3e36601"
 
+[[r2_buckets]]
+binding = "RINAWARP_CDN"
+bucket_name = "rinawarp-cdn"
+
 # Future: Add more KV namespaces for ratings and purchases
 # [[kv_namespaces]]
 # binding = "RATINGS_KV"
 # id = "ratings_namespace_id"
+
+# Secrets (set via: wrangler secret put STRIPE_SECRET_KEY)
+# STRIPE_SECRET_KEY - Your Stripe secret key for API calls

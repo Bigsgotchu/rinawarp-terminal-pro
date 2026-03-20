@@ -1,0 +1,33 @@
+/**
+ * Component Styles
+ *
+ * MINIMAL COMPATIBILITY LAYER ONLY
+ *
+ * The canonical agent-first visual system lives in ../renderer.css.
+ * This file should contain ONLY truly generic utilities that won't
+ * conflict with the more specific styles in renderer.css.
+ *
+ * DO NOT add panel, tab, topbar, chip, or input styles here.
+ */
+
+/* Links and buttons - safe to keep */
+.rw-link-btn {
+  color: var(--rw-babyblue, #7cc7ff);
+  text-decoration: none;
+}
+
+.rw-link-btn:hover {
+  text-decoration: underline;
+}
+
+/*
+ * CONFLICTING STYLES REMOVED:
+ * - html[data-rw-renderer="prod"] body - conflicts with renderer.css body styles
+ * - All rw-space-*, rw-pad-*, rw-radius-* utilities - variables undefined in theme
+ * - rw-text-sm, rw-text-md - font-size utilities with undefined variables
+ * - rw-bg-surface - background utility with undefined variable
+ * - rw-border - border utility with undefined variable  
+ * - rw-text, rw-text-muted - conflict with more specific text styles in renderer.css
+ *
+ * Single source of truth: renderer.css
+ */

@@ -10,6 +10,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { resolveRinaDataDir } from './dataRoot.js'
 
 const MEMORY_FILENAME = '.rina-memory.json'
 
@@ -47,8 +48,7 @@ export class LongTermMemory {
   private saveDebounceTimer?: NodeJS.Timeout
 
   constructor(customPath?: string) {
-    // Use custom path or default to current working directory
-    this.filePath = customPath || path.join(process.cwd(), MEMORY_FILENAME)
+    this.filePath = customPath || path.join(resolveRinaDataDir(), MEMORY_FILENAME)
     this.load()
   }
 

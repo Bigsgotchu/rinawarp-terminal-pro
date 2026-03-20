@@ -21,7 +21,9 @@ export class BasePanel {
     const body = this.root.querySelector('.rw-panel-body')
     if (!body) return
     if (typeof el === 'string') {
-      body.innerHTML += el
+      const template = document.createElement('template')
+      template.innerHTML = el
+      body.appendChild(template.content.cloneNode(true))
     } else {
       body.appendChild(el)
     }

@@ -7,7 +7,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { execSync } from 'child_process'
+import { execCommandSync } from '../execution/legacyShell.js'
 
 export interface ProjectContext {
   root: string
@@ -96,9 +96,9 @@ export class ContextEngine {
    */
   getGitStatus(): GitContext | null {
     try {
-      const status = execSync('git status --porcelain', { cwd: this.root, encoding: 'utf-8' })
-      const branch = execSync('git branch --show-current', { cwd: this.root, encoding: 'utf-8' }).trim()
-      const lastCommit = execSync('git log -1 --oneline', { cwd: this.root, encoding: 'utf-8' }).trim()
+      const status = execCommandSync('git status --porcelain', { cwd: this.root }).trimEnd()
+      const branch = execCommandSync('git branch --show-current', { cwd: this.root }).trim()
+      const lastCommit = execCommandSync('git log -1 --oneline', { cwd: this.root }).trim()
 
       return {
         status: status || 'clean',

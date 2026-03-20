@@ -69,6 +69,13 @@ declare global {
         customer_id?: string
         license_token?: string
       }>
+      licenseRefresh(): Promise<{
+        tier: string
+        has_token: boolean
+        expires_at: number | null
+        customer_id: string | null
+        status?: string
+      }>
       licenseState(): Promise<{
         tier: string
         has_token: boolean
@@ -76,11 +83,75 @@ declare global {
         customer_id: string | null
         status?: string
       }>
-      openStripePortal(): Promise<{ ok: boolean; fallback?: boolean }>
+      licenseCheckout(email?: string): Promise<{ ok: boolean; error?: string; url?: string; sessionId?: string }>
+      openStripePortal(email?: string): Promise<{ ok: boolean; fallback?: boolean; error?: string }>
+      licenseCachedEmail(): Promise<{ email?: string | null }>
       licenseLookupByEmail(email: string): Promise<{
         ok: boolean
         customer_id?: string
         error?: string
+      }>
+      marketplaceList(): Promise<{
+        ok: boolean
+        agents?: Array<{
+          name: string
+          description: string
+          author: string
+          version: string
+          commands: unknown[]
+          downloads?: number
+          price?: number
+          rating?: number | null
+        }>
+        error?: string
+      }>
+      installedAgents(): Promise<{
+        ok: boolean
+        agents?: Array<{
+          name: string
+          version?: string
+          permissions?: string[]
+          hasSignature?: boolean
+        }>
+        error?: string
+      }>
+      installMarketplaceAgent(args: { name: string; userEmail?: string }): Promise<{
+        ok: boolean
+        agent?: {
+          name: string
+          version: string
+          description: string
+          author: string
+          permissions?: string[]
+          commands?: unknown[]
+        }
+        error?: string
+      }>
+      capabilityPacks(): Promise<{
+        ok: boolean
+        source?: string
+        error?: string
+        capabilities?: Array<{
+          key: string
+          title: string
+          description: string
+          category: 'system' | 'deploy' | 'device' | 'security' | 'workspace'
+          source: 'builtin' | 'marketplace' | 'installed'
+          tier: 'starter' | 'pro' | 'paid'
+          installState: 'builtin' | 'available' | 'installed' | 'upgrade-required'
+          permissions: Array<'read-only' | 'workspace-write' | 'network' | 'cloud' | 'device'>
+          actions: Array<{
+            id: string
+            label: string
+            tool: string
+            risk: 'read' | 'safe-write' | 'high-impact'
+            proof: Array<'run' | 'receipt' | 'log' | 'artifact' | 'diff'>
+            requiresConfirmation?: boolean
+          }>
+          tags?: string[]
+          price?: number
+          commands?: string[]
+        }>
       }>
       personalityReply(args: { userId: string; message: string; isTaskContext: boolean }): Promise<{
         shouldSmallTalk: boolean
@@ -111,7 +182,7 @@ declare global {
         error?: string
       }>
 
-      // Interactive PTY terminal
+      // Low-level PTY stream used for background execution and proof
       ptyStart(args?: { cols?: number; rows?: number; cwd?: string }): Promise<any>
       ptyWrite(data: string): Promise<any>
       ptyResize(cols: number, rows: number): Promise<any>
@@ -141,7 +212,37 @@ declare global {
         projectRoot: string
         confirmed: boolean
         confirmationText: string
-      }): Promise<{ runId: string; planRunId?: string }>
+      }): Promise<{
+        ok?: boolean
+        runId?: string
+        planRunId?: string
+        haltedStepId?: string | null
+        haltReason?: string
+        error?: string
+        code?: string
+        retrySuggestion?: string
+      }>
+      executeCapability(args: {
+        packKey: string
+        projectRoot: string
+        actionId?: string
+        confirmed?: boolean
+        confirmationText?: string
+      }): Promise<{
+        ok?: boolean
+        runId?: string
+        planRunId?: string
+        packKey?: string
+        actionId?: string
+        prompt?: string
+        reasoning?: string
+        plan?: any[]
+        haltedStepId?: string | null
+        haltReason?: string
+        error?: string
+        code?: string
+        retrySuggestion?: string
+      }>
 
       // Plan stop API
       stopPlan(planRunId: string): Promise<{ ok: boolean; message?: string }>
@@ -241,6 +342,34 @@ declare global {
       }>
       diagnosticsPaths(): Promise<DiagnosticsPaths>
       supportBundle(): Promise<{ ok: boolean; error?: string; path?: string; bytes?: number }>
+      openRunsFolder(): Promise<{ ok: boolean; error?: string; path?: string }>
+      runsList(limit?: number): Promise<{
+        ok: boolean
+        runs?: Array<{
+          sessionId: string
+          createdAt: string
+          updatedAt: string
+          projectRoot?: string
+          source?: string
+          platform?: string
+          commandCount: number
+          failedCount: number
+          latestCommand?: string
+          latestExitCode?: number | null
+          latestCwd?: string
+          latestReceiptId?: string
+          latestStartedAt?: string
+          latestEndedAt?: string | null
+          interrupted: boolean
+        }>
+        error?: string
+      }>
+      runsTail(args: { runId: string; sessionId: string; maxLines?: number; maxBytes?: number }): Promise<{
+        ok: boolean
+        tail?: string
+        error?: string
+      }>
+      revealRunReceipt(receiptId: string): Promise<{ ok: boolean; error?: string; path?: string }>
       importShellHistory(
         limit?: number
       ): Promise<{ ok: boolean; imported?: number; commands?: string[]; error?: string }>

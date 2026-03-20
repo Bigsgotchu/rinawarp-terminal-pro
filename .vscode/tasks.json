@@ -1,0 +1,78 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Autopilot Watcher",
+      "type": "shell",
+      "command": "node autopilot.js",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Proof: repo health",
+      "type": "shell",
+      "command": "set -euo pipefail; git status --porcelain && echo '---' && git diff --stat && echo '---' && npm --prefix apps/terminal-pro run build:electron",
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-lc"
+          ]
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Proof: claim check (IPC/entrypoints)",
+      "type": "shell",
+      "command": "set -euo pipefail; npm --prefix apps/terminal-pro run check:ipc; rg -n \"ipcMain\\\\.handle\\\\\\(['\\\"]rina:executePlanStream\" apps/terminal-pro/src/main -S | wc -l | rg -q \"^1$\"; ! rg -n \"registerPlanExecutor|planExecutor\" apps/terminal-pro/src/main -S",
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-lc"
+          ]
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Proof: unit (agent/streaming)",
+      "type": "shell",
+      "command": "set -euo pipefail; npm --prefix apps/terminal-pro run test:agent; npm --prefix apps/terminal-pro run test:streaming",
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-lc"
+          ]
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Proof: e2e (run proof)",
+      "type": "shell",
+      "command": "set -euo pipefail; npm --prefix apps/terminal-pro run test:e2e:proof",
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-lc"
+          ]
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Proof: full",
+      "dependsOn": [
+        "Proof: claim check (IPC/entrypoints)",
+        "Proof: repo health",
+        "Proof: unit (agent/streaming)",
+        "Proof: e2e (run proof)"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

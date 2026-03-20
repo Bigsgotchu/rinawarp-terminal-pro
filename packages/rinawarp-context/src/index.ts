@@ -1,8 +1,8 @@
 /**
  * RinaWarp Context Package
  * 
- * Local Context Index Engine for RinaWarp AI terminal.
- * Enables semantic understanding of codebase, terminal history, and project structure.
+ * Local context index engine for Rina's agent workflow.
+ * Enables semantic understanding of codebase, execution history, and project structure.
  */
 
 // Main exports

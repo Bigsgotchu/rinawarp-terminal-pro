@@ -1,0 +1,23 @@
+:root {
+  --w-bg: #0b0d10;
+  --w-panel: #0f1217;
+  --w-panel-2: #121621;
+
+  --w-border: color-mix(in oklab, white 10%, transparent);
+  --w-divider: color-mix(in oklab, white 7%, transparent);
+
+  --w-fg: color-mix(in oklab, white 88%, transparent);
+  --w-muted: color-mix(in oklab, white 62%, transparent);
+
+  --w-r1: 6px;
+  --w-r2: 10px;
+  --w-shadow: none;
+
+  --w-pad-xs: 6px;
+  --w-pad-s: 10px;
+  --w-pad-m: 14px;
+  --w-gap: 10px;
+
+  --w-pill-h: 24px;
+  --w-pill-r: 7px;
+}

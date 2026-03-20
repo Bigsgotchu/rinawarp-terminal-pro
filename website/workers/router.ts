@@ -8,6 +8,104 @@ import { apiRouter } from "./api/index";
 import { marketplaceUI } from "./marketplace/ui";
 import { injectSeoTags } from "./seo";
 
+function rwHeaders(headers = new Headers()): Headers {
+  headers.set("Vary", "Accept-Encoding");
+  return headers;
+}
+
+function rwText(status: number, message: string): Response {
+  const headers = rwHeaders();
+  headers.set("Content-Type", "text/plain; charset=utf-8");
+  headers.set("Cache-Control", "public, max-age=60, must-revalidate");
+  return new Response(message, { status, headers });
+}
+
+function rwRedirect(location: string, status = 302): Response {
+  const headers = rwHeaders();
+  headers.set("Location", location);
+  headers.set("Cache-Control", "public, max-age=60, must-revalidate");
+  return new Response(null, { status, headers });
+}
+
+function normalizeArtifactKind(rawKind: string): string {
+  const kind = (rawKind || "").toLowerCase().trim();
+
+  if (["linux", "terminal-pro-linux", "appimage"].includes(kind)) return "linux";
+  if (["windows", "terminal-pro-windows", "exe", "win"].includes(kind)) return "windows";
+  if (["mac", "macos", "terminal-pro-mac", "terminal-pro-macos", "dmg"].includes(kind)) return "mac";
+  if (["checksums", "checksum", "sha256", "shasums", "shasums256.txt"].includes(kind)) return "checksums";
+
+  return kind;
+}
+
+async function getReleaseManifest(env: any): Promise<any | null> {
+  const object = await env.RINAWARP_CDN?.get("releases/latest.json");
+  if (!object) return null;
+  return JSON.parse(await object.text());
+}
+
+function pickArtifactPath(manifest: any, kind: string): string | null {
+  const version = manifest?.version;
+  const explicitLinuxPath = manifest?.files?.linux?.path ?? null;
+  const explicitWindowsPath = manifest?.files?.windows?.path ?? null;
+  const explicitMacPath =
+    manifest?.files?.mac?.path ??
+    manifest?.files?.macVariants?.dmg?.path ??
+    manifest?.files?.macVariants?.zip?.path ??
+    null;
+  const explicitChecksumsPath = manifest?.files?.checksums?.path ?? null;
+  const linuxPath = explicitLinuxPath ?? manifest?.platforms?.["linux-x86_64"]?.url ?? null;
+
+  if (kind === "linux") return linuxPath;
+  if (kind === "windows") return explicitWindowsPath;
+  if (kind === "mac") return explicitMacPath;
+  if (kind === "checksums" && explicitChecksumsPath) return explicitChecksumsPath;
+  if (kind === "checksums" && version) return `releases/${version}/SHASUMS256.txt`;
+  return null;
+}
+
+function toAbsoluteArtifactUrl(origin: string, artifactPath: string | null): string | null {
+  if (!artifactPath) return null;
+  if (/^https?:\/\//i.test(artifactPath)) return artifactPath;
+  return `${origin}/${artifactPath.replace(/^\/+/, "")}`;
+}
+
+function contentTypeFor(key: string): string {
+  const ext = key.slice(key.lastIndexOf("."));
+  const contentTypes: Record<string, string> = {
+    ".AppImage": "application/vnd.appimage",
+    ".appimage": "application/vnd.appimage",
+    ".deb": "application/vnd.debian.binary-package",
+    ".exe": "application/x-msdownload",
+    ".dmg": "application/x-apple-diskimage",
+    ".json": "application/json; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+    ".xml": "application/xml; charset=utf-8",
+    ".zip": "application/zip",
+  };
+  return contentTypes[ext] || "application/octet-stream";
+}
+
+async function serveReleaseObject(env: any, objectKey: string): Promise<Response | null> {
+  const object = await env.RINAWARP_CDN?.get(objectKey);
+  if (!object) return null;
+
+  const headers = rwHeaders();
+  object.writeHttpMetadata(headers);
+  headers.set("ETag", object.httpEtag);
+  headers.set("Content-Type", contentTypeFor(objectKey));
+
+  if (objectKey === "releases/latest.json" || objectKey.endsWith("/latest.json")) {
+    headers.set("Cache-Control", "public, max-age=60, must-revalidate");
+  } else if (objectKey.startsWith("releases/")) {
+    headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  } else {
+    headers.set("Cache-Control", "public, max-age=86400");
+  }
+
+  return new Response(object.body, { headers });
+}
+
 function renderHomepage(): Response {
   const seo = injectSeoTags("/");
   const html = `<!DOCTYPE html>
@@ -64,8 +162,8 @@ function renderHomepage(): Response {
   
   <main>
     <section class="hero">
-      <h1>AI-Powered Terminal for Developers</h1>
-      <p class="subtitle">RinaWarp combines persistent AI agents with a powerful terminal. Automate workflows, run tests, and deploy apps - all from your terminal.</p>
+      <h1>Agent-First Desktop Workflow for Developers</h1>
+      <p class="subtitle">Tell Rina what you want to build, test, deploy, or fix. She plans the work, runs it in the background, and keeps proof attached to the thread.</p>
       <div class="cta-buttons">
         <a href="/download" class="btn btn-primary">Download Now</a>
         <a href="/agents" class="btn btn-secondary">Browse Agents</a>
@@ -77,7 +175,7 @@ function renderHomepage(): Response {
       <div class="features-grid">
         <div class="feature-card">
           <h3>🤖 AI Agents</h3>
-          <p>Install and run AI agents directly in your terminal. From security audits to deployment helpers.</p>
+          <p>Install focused capability packs and agents for security audits, deployment helpers, and repeatable workflows.</p>
         </div>
         <div class="feature-card">
           <h3>🔒 Secure Execution</h3>
@@ -184,7 +282,7 @@ function renderPricing(): Response {
           <h2>Free</h2>
           <div class="price">$0<span>/month</span></div>
           <ul class="features">
-            <li>Basic terminal features</li>
+            <li>Agent thread + planning</li>
             <li>5 free agents</li>
             <li>Community support</li>
             <li>Standard security</li>
@@ -424,9 +522,9 @@ function renderDownload(): Response {
   
   <main>
     <section class="hero" role="banner">
-      <span class="version">v1.0.4</span>
+      <span class="version">Latest Release</span>
       <h1>Download RinaWarp Terminal Pro</h1>
-      <p class="subtitle">The First AI You Can Trust to Actually Fix Things. Available for Linux, Windows, and macOS.</p>
+      <p class="subtitle">Agent-first desktop workflow for build, test, deploy, and fixes. Available for Linux, Windows, and macOS.</p>
     </section>
     
     <div class="container">
@@ -435,51 +533,47 @@ function renderDownload(): Response {
           <div class="platform-icon" role="img" aria-label="Linux logo">🐧</div>
           <h3>Linux</h3>
           <p>AppImage (recommended) or .deb package</p>
-          <a href="/login/" class="btn btn-primary" role="button" aria-label="Download for Linux">Download AppImage</a>
+          <a href="/download/linux" class="btn btn-primary" role="button" aria-label="Download for Linux">Download AppImage</a>
           <br><br>
-          <a href="/login/" class="btn btn-secondary" role="button" aria-label="Download Debian package for Linux">Download .deb</a>
+          <a href="/releases/latest.json" class="btn btn-secondary" role="button" aria-label="View latest Linux release manifest">View Latest Manifest</a>
         </article>
         
         <article class="platform-card">
           <div class="platform-icon" role="img" aria-label="Windows logo">🪟</div>
           <h3>Windows</h3>
           <p>Windows Installer (.exe)</p>
-          <a href="/login/" class="btn btn-primary" role="button" aria-label="Download for Windows">Download .exe</a>
+          <a href="/download/windows" class="btn btn-primary" role="button" aria-label="Download for Windows">Download .exe</a>
         </article>
         
         <article class="platform-card">
           <div class="platform-icon" role="img" aria-label="Apple logo">🍎</div>
           <h3>macOS</h3>
-          <p>macOS Installer (.dmg) - Coming Soon</p>
-          <a href="/login/" class="btn btn-secondary" role="button" aria-label="Download for macOS (Coming Soon)" aria-disabled="true">Download .dmg</a>
+          <p>macOS Installer (.dmg) - coming soon after Apple signing is enabled</p>
+          <a href="/download/mac" class="btn btn-secondary" role="button" aria-label="Download for macOS (Coming Soon)" aria-disabled="true">Check macOS availability</a>
         </article>
       </section>
       
       <section class="verification" aria-labelledby="verify-heading">
         <h2 id="verify-heading">🔒 File Integrity Verification</h2>
-        <p>For your security, we provide SHA-256 checksums and GPG signatures for all downloadable files. Please verify your download before running it.</p>
+        <p>For your security, we publish the latest manifest and SHA-256 checksums. Verify your download before running it.</p>
         
         <p><strong>SHA-256 Checksums:</strong></p>
         <div class="hash" aria-label="SHA-256 checksums">
-3aff452e84c40bc58e6bfd626c170939f636db8b8af75fe0fd9f988d0d7fc732  RinaWarp-Terminal-Pro-1.0.4.AppImage
-bbee395e8de6baf2a902d9e69d1869af53441bb8286bd5c6f119bed76827122a  RinaWarp-Terminal-Pro-1.0.4.amd64.deb
-0382dfdd47d96465ec25e5d7133c331c1d86e085135120caafd9b80474ff7ab4  RinaWarp-Terminal-Pro-1.0.4.exe</div>
+Use the live checksum file and manifest below for the current release.</div>
         
         <p><strong>Verification Files:</strong></p>
         <div class="verification-links">
-          <a href="https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt" aria-label="Download SHA-256 checksums file">SHASUMS256.txt</a>
-          <a href="https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt.asc" aria-label="Download GPG signature for checksums">SHASUMS256.txt.asc</a>
-          <a href="https://rinawarp-downloads.rinawarptech.workers.dev/verify/RINAWARP_GPG_PUBLIC_KEY.asc" aria-label="Download GPG public key">RINAWARP_GPG_PUBLIC_KEY.asc</a>
+          <a href="/download/checksums" aria-label="Download SHA-256 checksums file">SHASUMS256.txt</a>
+          <a href="/releases/latest.json" aria-label="View latest release manifest">latest.json</a>
         </div>
         
         <p style="margin-top: 16px;"><strong>To verify on Linux/macOS:</strong></p>
         <div class="hash" aria-label="Verification commands">
-# Download and verify the checksums
-curl -O https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt
-curl -O https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt.asc
+# Download the live checksum file
+curl -O https://rinawarptech.com/download/checksums
 
-# Verify the signature
-gpg --verify SHASUMS256.txt.asc SHASUMS256.txt
+# Inspect the live release manifest
+curl https://rinawarptech.com/releases/latest.json
 
 # Verify the file hash
 sha256sum -c SHASUMS256.txt</div>
@@ -521,6 +615,39 @@ export default {
     // API routes: /api/*
     if (path.startsWith('/api/')) {
       return handleApiRequest(request, env, path, corsHeaders);
+    }
+
+    if (path.startsWith("/download/")) {
+      const manifest = await getReleaseManifest(env);
+      if (!manifest) {
+        return rwText(404, "latest.json not found");
+      }
+
+      const kind = normalizeArtifactKind(path.slice("/download/".length));
+      const artifactPath = pickArtifactPath(manifest, kind);
+      if (!artifactPath) {
+        return rwText(404, "Artifact not available");
+      }
+
+      if (kind === "checksums") {
+        const checksumObject = await env.RINAWARP_CDN?.get(artifactPath);
+        if (!checksumObject) {
+          return rwText(404, "Artifact not available");
+        }
+      }
+
+      const location = toAbsoluteArtifactUrl(url.origin, artifactPath);
+      if (!location) {
+        return rwText(404, "Artifact not available");
+      }
+
+      return rwRedirect(location);
+    }
+
+    if (path.startsWith("/releases/")) {
+      const response = await serveReleaseObject(env, path.slice(1));
+      if (response) return response;
+      return rwText(404, "Not found");
     }
 
     // Homepage
@@ -602,13 +729,14 @@ async function handleApiRequest(request: Request, env: any, path: string, corsHe
     });
   }
 
-  // License portal
-  if (path === '/api/portal' && request.method === 'GET') {
-    return new Response(JSON.stringify({ 
-      url: 'https://billing.stripe.com/p/login/test'
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
+  // License portal - now supports POST
+  if (path === '/api/portal' && (request.method === 'GET' || request.method === 'POST')) {
+    return handlePortalRequest(request, env, corsHeaders);
+  }
+
+  // Checkout session creation
+  if (path === '/api/checkout' && request.method === 'POST') {
+    return handleCheckoutRequest(request, env, corsHeaders);
   }
 
   // Stripe webhook
@@ -700,6 +828,11 @@ async function handleLicenseRequest(request: Request, env: any, corsHeaders: Rec
     });
   }
 
+  // License lookup by email
+  if (path === '/api/license/lookup-by-email' && request.method === 'POST') {
+    return handleLicenseLookup(request, env, corsHeaders);
+  }
+
   return new Response(JSON.stringify({ error: 'Not found' }), {
     status: 404,
     headers: { 'Content-Type': 'application/json', ...corsHeaders }
@@ -767,6 +900,269 @@ async function handleFeedbackSubmit(request: Request, env: any, corsHeaders: Rec
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'Invalid request' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+}
+
+// Stripe Checkout session creation handler
+async function handleCheckoutRequest(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
+  try {
+    const body = await request.json();
+    const { email, tier = 'pro' } = body;
+
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'Email is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+
+    // Map tiers to Stripe price IDs
+    const priceIds: Record<string, string> = {
+      'pro': 'price_3cI6oH2TYeZce7A7vJ0480h',
+      'creator': 'price_6oU28rcuy6sG3sWcQ30480i',
+      'team': 'price_fZu3cv8eicR48NgcQ30480j',
+      'founder': 'price_bJe5kDgKObN0e7A7vJ0480k'
+    };
+
+    const priceId = priceIds[tier] || priceIds['pro'];
+
+    // Fallback mock URLs
+    const mockUrls: Record<string, string> = {
+      'pro': 'https://checkout.stripe.com/pay/cs_test_mock_pro',
+      'creator': 'https://checkout.stripe.com/pay/cs_test_mock_creator',
+      'team': 'https://checkout.stripe.com/pay/cs_test_mock_team',
+      'founder': 'https://checkout.stripe.com/pay/cs_test_mock_founder'
+    };
+
+    // If Stripe secret key is available, create a real checkout session
+    if (env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+      try {
+        const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            'mode': 'subscription',
+            'customer_email': email,
+            'line_items[0][price]': priceId,
+            'line_items[0][quantity]': '1',
+            'success_url': 'https://rinawarptech.com/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url': 'https://rinawarptech.com/pricing'
+          })
+        });
+
+        const session = await response.json();
+
+        if (session.error) {
+          // Return mock URL on Stripe error
+          return new Response(JSON.stringify({ checkoutUrl: mockUrls[tier] || mockUrls['pro'] }), {
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        return new Response(JSON.stringify({ checkoutUrl: session.url }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      } catch (e) {
+        // Fallback on exception
+      }
+    }
+
+    // Fallback: return mock checkout URL for testing
+    return new Response(JSON.stringify({ checkoutUrl: mockUrls[tier] || mockUrls['pro'] }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'Invalid request' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+}
+
+// Stripe Customer Portal handler
+async function handlePortalRequest(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
+  try {
+    let email: string | undefined;
+
+    if (request.method === 'POST') {
+      const body = await request.json();
+      email = body.email;
+    } else {
+      // For GET, try to get email from query param
+      const url = new URL(request.url);
+      email = url.searchParams.get('email') || undefined;
+    }
+
+    // If Stripe secret key is available, create a real portal session
+    if (env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.startsWith('sk_') && email) {
+      // First, try to find or create a customer
+      const customerResponse = await fetch(`https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(email)}'`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`
+        }
+      });
+
+      const customerData = await customerResponse.json();
+      const customers = customerData.data || [];
+
+      let customerId: string | null = null;
+
+      // Find customer by email
+      for (const customer of customers) {
+        if (customer.email === email) {
+          customerId = customer.id;
+          break;
+        }
+      }
+
+      // If no customer found, we can't create a portal session without one
+      if (!customerId) {
+        return new Response(JSON.stringify({ 
+          url: 'https://billing.stripe.com/p/login/test',
+          message: 'No existing subscription found. Please subscribe first.'
+        }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      // Create portal session
+      const portalResponse = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          'customer': customerId,
+          'return_url': 'https://rinawarptech.com/account'
+        })
+      });
+
+      const portalSession = await portalResponse.json();
+
+      if (portalSession.error) {
+        return new Response(JSON.stringify({ error: portalSession.error.message }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      return new Response(JSON.stringify({ url: portalSession.url }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+
+    // Fallback: return test portal URL
+    return new Response(JSON.stringify({ url: 'https://billing.stripe.com/p/login/test' }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'Invalid request' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+}
+
+// License lookup by email handler
+async function handleLicenseLookup(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
+  try {
+    const body = await request.json();
+    const { email } = body;
+
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'Email is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+
+    // Try to find customer in Stripe if API key is available
+    if (env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+      const response = await fetch(`https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(email)}'`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`
+        }
+      });
+
+      const customerData = await response.json();
+      const customers = customerData.data || [];
+
+      if (customers.length > 0) {
+        const customer = customers[0];
+        
+        // Check for active subscriptions
+        const subscriptionsResponse = await fetch(`https://api.stripe.com/v1/customers/${customer.id}/subscriptions?status=active`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        });
+
+        const subscriptionsData = await subscriptionsResponse.json();
+        const subscriptions = subscriptionsData.data || [];
+
+        if (subscriptions.length > 0) {
+          const sub = subscriptions[0];
+          const priceId = sub.items?.data[0]?.price?.id;
+
+          // Map price IDs to tier names
+          const tierMap: Record<string, string> = {
+            'price_3cI6oH2TYeZce7A7vJ0480h': 'pro',
+            'price_6oU28rcuy6sG3sWcQ30480i': 'creator',
+            'price_fZu3cv8eicR48NgcQ30480j': 'team',
+            'price_bJe5kDgKObN0e7A7vJ0480k': 'founder'
+          };
+
+          const tier = tierMap[priceId] || 'unknown';
+
+          return new Response(JSON.stringify({ 
+            ok: true,
+            email: customer.email,
+            tier: tier,
+            status: 'active',
+            customerId: customer.id
+          }), {
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        // Customer exists but no active subscription
+        return new Response(JSON.stringify({ 
+          ok: true,
+          email: customer.email,
+          tier: null,
+          status: 'no_subscription',
+          customerId: customer.id
+        }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+    }
+
+    // No Stripe - return mock response for testing
+    return new Response(JSON.stringify({ 
+      ok: true,
+      email: email,
+      tier: null,
+      status: 'not_found'
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Invalid request' }), {
       status: 400,

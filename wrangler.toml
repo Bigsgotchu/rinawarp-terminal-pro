@@ -7,14 +7,6 @@ account_id = "ba2f14cefa19dbdc42ff88d772410689"
 binding = "RINAWARP_CDN"
 bucket_name = "rinawarp-cdn"
 
-[[routes]]
-pattern = "rinawarptech.com/download/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/releases/*"
-zone_name = "rinawarptech.com"
-
 [observability]
 enabled = true
 

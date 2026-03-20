@@ -9,20 +9,25 @@ const MAIN_ENTRY = path.join(APP_ROOT, 'dist-electron', 'main.js')
 const ELECTRON_PATH = path.join(APP_ROOT, 'node_modules/electron/dist/electron')
 
 export async function launchApp(extraEnv?: Record<string, string>): Promise<ElectronApplication> {
-  const isE2E = process.env.RINAWARP_E2E === '1' || process.env.CI === '1' || process.env.CI === 'true'
+  const isLinux = process.platform === 'linux'
+  const userDataSuffix =
+    extraEnv?.RINAWARP_E2E_USER_DATA_SUFFIX ||
+    process.env.RINAWARP_E2E_USER_DATA_SUFFIX ||
+    `e2e-${Date.now()}-${Math.random().toString(16).slice(2)}`
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     RINAWARP_ENV: 'dev',
     RINAWARP_E2E: '1',
     ...extraEnv,
+    RINAWARP_E2E_USER_DATA_SUFFIX: userDataSuffix,
   }
 
   delete env.ELECTRON_RUN_AS_NODE
-  if (isE2E) env.ELECTRON_DISABLE_SANDBOX = '1'
+  if (isLinux) env.ELECTRON_DISABLE_SANDBOX = '1'
 
   return electron.launch({
     executablePath: ELECTRON_PATH,
-    args: [...(isE2E ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] : []), MAIN_ENTRY],
+    args: [...(isLinux ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] : []), MAIN_ENTRY],
     cwd: APP_ROOT,
     env,
   })

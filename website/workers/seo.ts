@@ -14,10 +14,10 @@ export interface SeoData {
 export const SEO_CONFIG: Record<string, SeoData> = {
   "/": {
     title: "RinaWarp Terminal Pro",
-    description: "The AI-powered terminal for developers. Manage agents, plugins, and tools efficiently. Automate workflows, run tests, and deploy apps.",
+    description: "An agent-first desktop app for developers. Ask Rina to build, test, deploy, and fix issues with background execution and proof-backed runs.",
     canonical: "https://rinawarptech.com/",
     ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "AI, terminal, developer tools, automation, AI agents, developer productivity, Linux, Windows, macOS",
+    keywords: "AI, agent workflow, developer tools, automation, AI agents, developer productivity, Linux, Windows, macOS",
   },
   "/agents": {
     title: "Agent Marketplace",
@@ -35,10 +35,10 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   },
   "/download": {
     title: "Download",
-    description: "Download RinaWarp Terminal Pro for macOS, Windows, and Linux. Verify downloads with SHA256 and GPG signatures for security.",
+    description: "Download RinaWarp Terminal Pro for macOS, Windows, and Linux. Ask Rina to work in the thread while background execution and proof stay inspectable.",
     canonical: "https://rinawarptech.com/download",
     ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "download, RinaWarp, terminal, AI, developer tools, Linux, Windows, macOS, AppImage, deb, exe",
+    keywords: "download, RinaWarp, AI, agent workflow, developer tools, Linux, Windows, macOS, AppImage, deb, exe",
   },
   "/feedback": {
     title: "Feedback",
@@ -49,7 +49,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   },
   "/docs": {
     title: "Documentation",
-    description: "Learn how to use RinaWarp Terminal Pro. Build, publish, and manage AI agents for your development workflow.",
+    description: "Learn how to use RinaWarp Terminal Pro. Ask Rina to plan, act, and attach proof for your development workflow.",
     canonical: "https://rinawarptech.com/docs",
     ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
     keywords: "documentation, docs, RinaWarp, guides, tutorials, AI agents, development",

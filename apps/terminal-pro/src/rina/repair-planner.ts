@@ -5,12 +5,9 @@
  * Core component of the "Autonomous Dev Fix" viral feature.
  */
 
-import { exec } from 'child_process'
-import { promisify } from 'util'
 import * as fs from 'fs'
 import * as path from 'path'
-
-const execAsync = promisify(exec)
+import { execCommand } from './execution/legacyShell.js'
 
 /**
  * Project context detected by scanner
@@ -143,7 +140,7 @@ export async function scanProjectContext(projectRoot: string): Promise<ProjectCo
 
   // Check for git repository
   try {
-    await execAsync('git rev-parse --git-dir', { cwd: projectRoot, timeout: 5000 })
+    await execCommand('git rev-parse --git-dir', { cwd: projectRoot, timeout: 5000 })
     context.hasGitRepo = true
   } catch {
     context.hasGitRepo = false
@@ -174,7 +171,7 @@ export async function analyzeErrors(projectRoot: string): Promise<ErrorDetection
         // Try TypeScript check first
         if (fs.existsSync(path.join(projectRoot, 'tsconfig.json'))) {
           try {
-            const tscOutput = await execAsync('npx tsc --noEmit 2>&1', { 
+            const tscOutput = await execCommand('npx tsc --noEmit 2>&1', { 
               cwd: projectRoot, 
               timeout: 60000 
             })
@@ -327,7 +324,7 @@ export async function buildRepairPlan(projectRoot: string): Promise<RepairPlan> 
   // Step 5: Git stash if there are uncommitted changes that might cause issues
   if (context.hasGitRepo) {
     try {
-      const gitStatus = await execAsync('git status --porcelain', { cwd: projectRoot, timeout: 5000 })
+      const gitStatus = await execCommand('git status --porcelain', { cwd: projectRoot, timeout: 5000 })
       if (gitStatus.stdout.trim()) {
         errorAnalysis.suggestions.push('You have uncommitted changes - consider committing or stashing before rebuild')
       }
@@ -387,7 +384,7 @@ export async function executeRepairStep(
   }
 
   try {
-    const { stdout, stderr } = await execAsync(step.command, {
+    const { stdout, stderr } = await execCommand(step.command, {
       cwd: projectRoot,
       timeout: 300000, // 5 minute timeout
       env: { ...process.env, FORCE_COLOR: 'true' },

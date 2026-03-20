@@ -33,6 +33,7 @@
     "node-pty": "^1.0.0",
     "openai": "^4.77.0",
     "posthog-node": "^4.0.0",
+    "stripe": "^18.5.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
@@ -42,6 +43,8 @@
     "typescript": "^5.4.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["better-sqlite3"]
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

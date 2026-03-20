@@ -13,13 +13,13 @@
 
 ## What is RinaWarp?
 
-RinaWarp Terminal Pro is an AI-powered terminal that diagnoses and fixes system issues from your terminal. Chat with your system, review commands, approve fixes safely.
+RinaWarp Terminal Pro is an agent-first desktop app for build, test, deploy, and system-repair workflows. You tell Rina what you want in plain language, she explains the plan, runs the work in the background, and keeps proof attached to the thread.
 
 ### Key Features
 
-- **Natural Conversation** - Describe problems in plain English. Rina understands context and provides clear explanations.
+- **Natural Conversation** - Describe problems in plain English. Rina understands context and responds with explanation, plan, and actions.
 - **Safe Execution** - Every action is explained before execution. High-impact commands require explicit approval.
-- **Full Transparency** - Watch every command as it runs. Complete audit logs show exactly what was done.
+- **Proof-Backed Work** - Runs, receipts, and execution traces are attached to the thread so “done” always has proof behind it.
 - **Local-First** - Your system data never leaves your machine. No cloud dependencies, no privacy concerns.
 
 ## Quick Install
@@ -52,7 +52,7 @@ This repository contains the source code for RinaWarp Terminal Pro.
 # Install dependencies
 pnpm install
 
-# Build the terminal
+# Build the desktop app
 cd apps/terminal-pro
 pnpm build
 ```

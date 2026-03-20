@@ -246,7 +246,7 @@ async function runChecks(context: CheckContext): Promise<CheckResult[]> {
   if (context.runBuild) {
     const build = runCommand(
       'Desktop build completes',
-      ['pnpm', '--dir', appRoot, 'build:electron'],
+      ['npm', '--workspace', 'apps/terminal-pro', 'run', 'build:electron'],
       { timeoutMs: 15 * 60 * 1000 }
     )
     addResult(results, {
@@ -455,9 +455,9 @@ async function runChecks(context: CheckContext): Promise<CheckResult[]> {
 
   if (context.runUnit) {
     for (const [id, title, command] of [
-      ['agent-tests', 'Agent tests pass', ['pnpm', '--dir', appRoot, 'test:agent']],
-      ['streaming-tests', 'Streaming tests pass', ['pnpm', '--dir', appRoot, 'test:streaming']],
-      ['ipc-smoke', 'IPC smoke test passes', ['pnpm', '--dir', appRoot, 'test:ipc']],
+      ['agent-tests', 'Agent tests pass', ['npm', '--workspace', 'apps/terminal-pro', 'run', 'test:agent']],
+      ['streaming-tests', 'Streaming tests pass', ['npm', '--workspace', 'apps/terminal-pro', 'run', 'test:streaming']],
+      ['ipc-smoke', 'IPC smoke test passes', ['npm', '--workspace', 'apps/terminal-pro', 'run', 'test:ipc']],
     ] as const) {
       const outcome = runCommand(title, [...command], { timeoutMs: 15 * 60 * 1000, allowFailure: id === 'ipc-smoke' })
       addResult(results, {
@@ -485,7 +485,7 @@ async function runChecks(context: CheckContext): Promise<CheckResult[]> {
   if (context.runPlaywright) {
     const playwright = runCommand(
       'Playwright smoke suite passes',
-      ['pnpm', '--dir', appRoot, 'test:playwright:smoke'],
+      ['npm', '--workspace', 'apps/terminal-pro', 'run', 'test:playwright:smoke'],
       { timeoutMs: 20 * 60 * 1000, allowFailure: true }
     )
     addResult(results, {

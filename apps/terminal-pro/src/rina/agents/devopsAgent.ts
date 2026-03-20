@@ -10,6 +10,14 @@ import * as path from 'path'
 import { brainEvents } from '../brain/brainEvents.js'
 import { toolRegistry } from '../core/toolRegistry.js'
 
+function resolveDeploymentTargetPath(explicit?: string): string {
+  const candidate = String(explicit || process.env.RINA_WORKSPACE_ROOT || '').trim()
+  if (!candidate) {
+    throw new Error('Missing deployment target path')
+  }
+  return candidate
+}
+
 /**
  * Deployment configuration
  */
@@ -257,11 +265,11 @@ export class DevOpsAgent {
       brainEvents.intent('Deployment requested')
 
       // Extract target directory
-      let target =
-        input
-          .replace(/rina\s+deploy\s*/i, '')
-          .replace(/this\s+project/i, '')
-          .trim() || process.cwd()
+      const requestedTarget = input
+        .replace(/rina\s+deploy\s*/i, '')
+        .replace(/this\s+project/i, '')
+        .trim()
+      const target = resolveDeploymentTargetPath(requestedTarget)
 
       const config: DeploymentConfig = {
         projectRoot: target,

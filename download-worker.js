@@ -28,6 +28,17 @@ async function getManifest(env) {
   return JSON.parse(await object.text());
 }
 
+function normalizeArtifactKind(rawKind) {
+  const kind = (rawKind || "").toLowerCase().trim();
+
+  if (["linux", "terminal-pro-linux", "appimage"].includes(kind)) return "linux";
+  if (["windows", "terminal-pro-windows", "exe", "win"].includes(kind)) return "windows";
+  if (["mac", "macos", "terminal-pro-mac", "terminal-pro-macos", "dmg"].includes(kind)) return "mac";
+  if (["checksums", "checksum", "sha256", "shasums", "shasums256.txt"].includes(kind)) return "checksums";
+
+  return kind;
+}
+
 function pickArtifactPath(manifest, kind) {
   const version = manifest?.version;
   const explicitLinuxPath = manifest?.files?.linux?.path ?? null;
@@ -101,7 +112,7 @@ export default {
     const pathname = url.pathname.replace(/\/+$/, "") || "/";
 
     if (pathname.startsWith("/download/")) {
-      const kind = pathname.slice("/download/".length);
+      const kind = normalizeArtifactKind(pathname.slice("/download/".length));
       const manifest = await getManifest(env);
 
       if (!manifest) {

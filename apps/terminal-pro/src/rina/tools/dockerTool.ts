@@ -5,10 +5,7 @@
  * Part of the cloud control layer.
  */
 
-import { exec } from 'child_process'
-import { promisify } from 'util'
-
-const execAsync = promisify(exec)
+import { execCommand } from '../execution/legacyShell.js'
 
 export interface DockerResult {
   success: boolean
@@ -26,7 +23,7 @@ export class DockerTool {
     const timeout = options?.timeout || this.defaultTimeout
 
     try {
-      const { stdout, stderr } = await execAsync(`docker ${command}`, {
+      const { stdout, stderr } = await execCommand(`docker ${command}`, {
         timeout,
         maxBuffer: 10 * 1024 * 1024, // 10MB
       })
@@ -58,7 +55,7 @@ export class DockerTool {
    */
   async isAvailable(): Promise<boolean> {
     try {
-      await execAsync('docker info', { timeout: 5000 })
+      await execCommand('docker info', { timeout: 5000 })
       return true
     } catch {
       return false

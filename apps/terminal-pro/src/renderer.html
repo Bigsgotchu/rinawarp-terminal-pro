@@ -2,766 +2,202 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.rinawarptech.com https://agentd.rinawarptech.com http://127.0.0.1:8787;"
+  >
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RinaWarp Terminal Pro</title>
-  <style>
-    /* ─── CSS Custom Properties ─────────────────────────────── */
-    :root {
-      --bg:            #0b0b0b;
-      --panel-bg:      #111214;
-      --border:        #1e2128;
-      --teal:          #00e5cc;
-      --teal-dim:      #00b5a0;
-      --hot-pink:      #ff007f;
-      --coral:         #ff7f50;
-      --baby-blue:     #7fffd4;
-      --purple:        #b57bff;
-      --text-primary:  #e8eaed;
-      --text-muted:    #6b7280;
-      --grad-rainbow:  linear-gradient(90deg, #ff007f, #ff7f50, #00ffff, #7fffd4);
-      --grad-header:   linear-gradient(90deg, #ff007f 0%, #ff7f50 40%, #00e5cc 75%, #7fffd4 100%);
-      --shadow-card:   0 4px 24px rgba(0,0,0,.6), 0 1px 4px rgba(0,0,0,.4);
-      --shadow-teal:   0 0 12px rgba(0,229,204,.35);
-      --shadow-pink:   0 0 12px rgba(255,0,127,.35);
-      --radius-panel:  10px;
-      --tab-h:         34px;
-      --font:          "Fira Code", "Cascadia Code", "JetBrains Mono", monospace;
-    }
-
-    /* ─── Reset ─────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; }
-    body {
-      display: flex;
-      flex-direction: column;
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text-primary);
-      font-size: 13px;
-    }
-
-    /* ─── Scrollbars ─────────────────────────────────────────── */
-    ::-webkit-scrollbar            { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track      { background: transparent; }
-    ::-webkit-scrollbar-thumb      { background: #2a2f38; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover{ background: var(--teal-dim); }
-
-    /* ─── Header ─────────────────────────────────────────────── */
-    header {
-      flex: 0 0 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      background: var(--grad-header);
-      background-size: 300% 300%;
-      animation: gradShift 8s ease infinite;
-      box-shadow: 0 2px 16px rgba(255,0,127,.3);
-      z-index: 10;
-    }
-    header h1 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #000;
-      letter-spacing: .04em;
-      text-shadow: 0 1px 2px rgba(255,255,255,.3);
-    }
-    .header-badge {
-      background: rgba(0,0,0,.25);
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-size: .75rem;
-      color: rgba(0,0,0,.8);
-      font-weight: 600;
-    }
-
-    /* ─── Main Content ───────────────────────────────────────── */
-    .main-content {
-      flex: 1 1 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    /* ─── Workspace (left + right columns) ──────────────────── */
-    .workspace-container {
-      flex: 1 1 0;
-      display: flex;
-      flex-direction: row;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    /* ─── Columns ────────────────────────────────────────────── */
-    .left-col, .right-col {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-width: 0;
-      min-height: 0;
-    }
-    .left-col  { flex: 0 0 56%; }
-    .right-col { flex: 1 1 0; }
-
-    /* ─── Pane Resizers ──────────────────────────────────────── */
-    .pane-resizer {
-      background: var(--border);
-      flex-shrink: 0;
-      transition: background .15s;
-    }
-    .pane-resizer:hover,
-    .pane-resizer.dragging { background: var(--teal); }
-    .pane-resizer.vertical   { width: 4px; cursor: ew-resize; }
-    .pane-resizer.horizontal { height: 4px; cursor: ns-resize; }
-
-    /* ─── Column Tab Bars ────────────────────────────────────── */
-    .col-tabs {
-      display: flex;
-      height: var(--tab-h);
-      background: #0d0f11;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .tab-button {
-      flex: 1;
-      background: transparent;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-family: var(--font);
-      font-size: .73rem;
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      padding: 0 12px;
-      transition: color .2s, border-color .2s, background .2s;
-    }
-    .tab-button:hover {
-      color: var(--teal);
-      background: rgba(0,229,204,.05);
-    }
-    .tab-button.active {
-      color: var(--teal);
-      border-bottom-color: var(--teal);
-      background: rgba(0,229,204,.07);
-    }
-
-    /* ─── Panels ─────────────────────────────────────────────── */
-    .panel {
-      display: flex;
-      flex-direction: column;
-      background: var(--panel-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-panel);
-      margin: 4px;
-      overflow: hidden;
-      box-shadow: var(--shadow-card);
-      flex: 1 1 0;
-      min-height: 0;
-    }
-    .panel.collapsed     { display: none !important; }
-    .panel.active-panel  { display: flex; }
-
-    /* ─── Panel Headers ──────────────────────────────────────── */
-    .panel-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      background: rgba(0,0,0,.3);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .panel-header::before {
-      content: '';
-      width: 3px;
-      height: 14px;
-      background: var(--teal);
-      border-radius: 2px;
-      box-shadow: 0 0 6px var(--teal);
-      flex-shrink: 0;
-    }
-    .panel-title {
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--teal);
-    }
-
-    /* ─── Terminal ───────────────────────────────────────────── */
-    #terminal-output {
-      flex: 1 1 0;
-      overflow-y: auto;
-      padding: 10px 12px;
-      min-height: 0;
-      line-height: 1.6;
-    }
-    #terminal-output > div {
-      animation: slideUp .2s ease-out;
-    }
-    .thinking-stream {
-      padding: 4px 12px;
-      max-height: 72px;
-      overflow-y: auto;
-      background: rgba(0,229,204,.03);
-      border-top: 1px solid rgba(0,229,204,.1);
-      flex-shrink: 0;
-    }
-    .rina-thinking-step {
-      color: rgba(127,255,212,.7);
-      font-size: .72rem;
-      padding: 1px 0;
-      animation: slideUp .15s ease-out;
-    }
-    .terminal-input-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: rgba(0,0,0,.4);
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-      transition: border-top-color .2s, box-shadow .2s;
-    }
-    .terminal-input-wrapper:focus-within {
-      border-top-color: var(--teal);
-      box-shadow: 0 -1px 0 var(--teal), var(--shadow-teal);
-    }
-    .prompt-symbol {
-      color: var(--teal);
-      font-weight: 700;
-      font-size: .9rem;
-      flex-shrink: 0;
-      text-shadow: 0 0 8px var(--teal);
-    }
-    #terminal-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text-primary);
-      font-family: var(--font);
-      font-size: .85rem;
-      caret-color: var(--teal);
-    }
-
-    /* ─── Thinking Indicator ─────────────────────────────────── */
-    #thinking-indicator {
-      display: flex;
-      gap: 3px;
-      align-items: center;
-      margin-left: auto;
-    }
-    .thinking-dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--teal);
-    }
-    #thinking-indicator .thinking-dot:nth-child(1) { animation: bounce .9s 0s    infinite; }
-    #thinking-indicator .thinking-dot:nth-child(2) { animation: bounce .9s .15s  infinite; }
-    #thinking-indicator .thinking-dot:nth-child(3) { animation: bounce .9s .30s  infinite; }
-
-    /* ─── Code Workspace ─────────────────────────────────────── */
-    #workspace-files {
-      flex: 1 1 0;
-      overflow-y: auto;
-      padding: 10px 12px;
-      min-height: 0;
-    }
-    #workspace-files > div {
-      padding: 3px 6px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background .15s;
-      animation: slideUp .2s ease-out;
-    }
-    #workspace-files > div:hover { background: rgba(0,229,204,.08); }
-
-    /* ─── Agent Panel ────────────────────────────────────────── */
-    .status-badge {
-      margin-left: auto;
-      font-size: .65rem;
-      padding: 2px 6px;
-      border-radius: 3px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-    }
-    #agent-output {
-      max-height: 160px;
-      overflow-y: auto;
-      padding: 8px 12px;
-      flex-shrink: 0;
-    }
-    #agent-plan-container {
-      flex: 1 1 0;
-      overflow-y: auto;
-      padding: 8px 12px;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    /* Agent step cards */
-    .agent-step {
-      background: rgba(255,255,255,.03);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      transition: border-color .3s, opacity .5s, background .3s;
-      animation: slideUp .25s ease-out;
-    }
-    .agent-step > div:first-child {
-      color: var(--text-muted);
-      font-size: .75rem;
-      margin-bottom: 4px;
-    }
-    .agent-step.step-running {
-      border-color: var(--teal);
-      background: rgba(0,229,204,.06);
-      box-shadow: var(--shadow-teal);
-    }
-    .agent-step.step-running > div:first-child { color: var(--teal); }
-    .agent-step.step-complete {
-      border-color: rgba(60,255,181,.3);
-      opacity: .5;
-      transition: opacity 1.5s ease;
-    }
-    .agent-step.step-complete > div:first-child { color: #3cffb5; }
-
-    /* Progress bars */
-    .progress-bar {
-      height: 4px;
-      background: rgba(255,255,255,.07);
-      border-radius: 2px;
-      overflow: hidden;
-      margin-top: 5px;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--teal), #7fffd4);
-      border-radius: 2px;
-      transition: width .4s cubic-bezier(.4,0,.2,1);
-      box-shadow: 0 0 6px var(--teal);
-    }
-    .agent-step.step-running .progress-fill {
-      animation: progressPulse 2s ease-in-out infinite;
-    }
-
-    /* ─── Diagnostics ────────────────────────────────────────── */
-    #diagnostics-output {
-      flex: 1 1 0;
-      overflow-y: auto;
-      padding: 10px 12px;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    #diagnostics-output > div {
-      padding: 4px 8px;
-      border-radius: 4px;
-      background: rgba(255,255,255,.02);
-      font-size: .78rem;
-      border-left: 2px solid transparent;
-      animation: slideUp .2s ease-out;
-    }
-
-    /* ─── AI Brain Panel ─────────────────────────────────────── */
-    #panel-brain {
-      flex: 0 0 200px;
-      margin: 0 4px 4px 4px;
-      position: relative;
-      box-shadow: var(--shadow-card), 0 0 30px rgba(255,0,127,.07);
-      overflow: hidden;
-    }
-    #panel-brain::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 20% 60%, rgba(255,0,127,.05) 0%, transparent 55%),
-        radial-gradient(ellipse at 80% 40%, rgba(0,229,204,.05) 0%, transparent 55%);
-      pointer-events: none;
-      animation: neuralPulse 5s ease-in-out infinite;
-    }
-    .brain-header::before { background: linear-gradient(180deg, var(--hot-pink), var(--teal)); }
-    .brain-header {
-      background: linear-gradient(90deg, rgba(255,0,127,.1), rgba(0,229,204,.1));
-      border-bottom-color: rgba(255,0,127,.2);
-    }
-    .gradient-text {
-      background: var(--grad-rainbow);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: gradShift 4s ease infinite;
-    }
-    .brain-thinking-dots {
-      display: flex;
-      gap: 4px;
-      margin-left: 6px;
-    }
-    .brain-thinking-dots span {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      animation: bounce 1.2s infinite;
-    }
-    .brain-thinking-dots span:nth-child(1) { background: var(--hot-pink); }
-    .brain-thinking-dots span:nth-child(2) { background: var(--coral);    animation-delay: .2s; }
-    .brain-thinking-dots span:nth-child(3) { background: var(--teal);     animation-delay: .4s; }
-    .brain-stats {
-      margin-left: auto;
-      display: flex;
-      gap: 10px;
-    }
-    .brain-stat { text-align: center; }
-    .brain-stat-value {
-      font-size: .85rem;
-      font-weight: 700;
-    }
-    .brain-stat-label {
-      font-size: .6rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-    #brain-visualization {
-      flex: 1 1 0;
-      overflow-y: auto;
-      padding: 6px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-height: 0;
-    }
-
-    /* Brain flow items */
-    .brain-flow {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 4px 6px;
-      border-radius: 6px;
-      background: rgba(255,255,255,.02);
-      border-left: 2px solid transparent;
-      animation: slideUp .2s ease-out;
-      transition: opacity .3s;
-    }
-    .brain-flow:hover { background: rgba(255,255,255,.04); }
-    .brain-icon {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .75rem;
-      flex-shrink: 0;
-      background: rgba(255,255,255,.05);
-    }
-    .brain-icon.intent    { border:1px solid var(--hot-pink); color:var(--hot-pink); }
-    .brain-icon.planning  { border:1px solid var(--coral);    color:var(--coral); }
-    .brain-icon.reasoning { border:1px solid var(--teal);     color:var(--teal); }
-    .brain-icon.tool      { border:1px solid #ffd166;         color:#ffd166; }
-    .brain-icon.memory    { border:1px solid var(--purple);   color:var(--purple); }
-    .brain-icon.action    { border:1px solid #61a0ff;         color:#61a0ff; }
-    .brain-icon.result    { border:1px solid #3cffb5;         color:#3cffb5; }
-    .brain-icon.error     { border:1px solid #ff4d6d;         color:#ff4d6d; }
-    .brain-flow.intent    { border-left-color: var(--hot-pink); }
-    .brain-flow.planning  { border-left-color: var(--coral); }
-    .brain-flow.reasoning { border-left-color: var(--teal); }
-    .brain-flow.tool      { border-left-color: #ffd166; }
-    .brain-flow.memory    { border-left-color: var(--purple); }
-    .brain-flow.action    { border-left-color: #61a0ff; }
-    .brain-flow.result    { border-left-color: #3cffb5; }
-    .brain-flow.error     { border-left-color: #ff4d6d; }
-    .brain-step   { flex: 1; min-width: 0; }
-    .brain-label  { font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:600; }
-    .brain-text   { font-size:.75rem; color:var(--baby-blue); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-    /* ─── Status Bar ─────────────────────────────────────────── */
-    .status-bar {
-      flex: 0 0 26px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 0 12px;
-      background: #0a0a0c;
-      border-top: 1px solid var(--border);
-      font-size: .7rem;
-      color: var(--text-muted);
-      overflow: hidden;
-    }
-    .status-brand   { color:var(--hot-pink); font-weight:700; letter-spacing:.03em; white-space:nowrap; }
-    .status-sep     { color:#2a2f38; }
-    .status-item    { display:flex; align-items:center; gap:4px; white-space:nowrap; }
-    .status-right   { margin-left:auto; }
-    .status-dot     { width:6px; height:6px; border-radius:50%; display:inline-block; flex-shrink:0; }
-    .status-dot.on  { background:#3cffb5; box-shadow:0 0 4px #3cffb5; }
-    .status-dot.off { background:#ff4d6d; }
-
-    /* ─── Command Palette ────────────────────────────────────── */
-    #command-palette {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.72);
-      backdrop-filter: blur(6px);
-      display: none;
-      align-items: flex-start;
-      justify-content: center;
-      padding-top: 80px;
-      z-index: 999;
-    }
-    .palette-inner {
-      width: 560px;
-      max-width: 96vw;
-      background: #141720;
-      border: 1px solid var(--hot-pink);
-      border-radius: 12px;
-      box-shadow:
-        0 0 0 1px rgba(255,0,127,.2),
-        0 20px 60px rgba(0,0,0,.7),
-        0 0 30px rgba(255,0,127,.15);
-      overflow: hidden;
-      animation: paletteIn .15s ease-out;
-    }
-    .palette-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-bottom: 1px solid rgba(255,0,127,.2);
-      background: rgba(255,0,127,.05);
-    }
-    .palette-icon { color:var(--hot-pink); font-size:1rem; }
-    #palette-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text-primary);
-      font-family: var(--font);
-      font-size: .9rem;
-      caret-color: var(--teal);
-    }
-    .palette-header kbd {
-      font-family: var(--font);
-      font-size: .65rem;
-      background: rgba(255,255,255,.06);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 2px 5px;
-      color: var(--text-muted);
-    }
-    #palette-results { max-height: 280px; overflow-y: auto; }
-    .palette-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 14px;
-      cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,.03);
-      font-size: .8rem;
-      transition: background .1s, border-left .1s;
-      border-left: 2px solid transparent;
-    }
-    .palette-item:hover,
-    .palette-item.selected {
-      background: rgba(0,229,204,.08);
-      border-left-color: var(--teal);
-    }
-    .palette-footer {
-      display: flex;
-      gap: 14px;
-      padding: 6px 14px;
-      border-top: 1px solid rgba(255,127,80,.15);
-      background: rgba(255,127,80,.04);
-      font-size: .65rem;
-      color: var(--text-muted);
-    }
-
-    /* ─── Text utilities ─────────────────────────────────────── */
-    .text-teal     { color: var(--teal); }
-    .text-hot-pink { color: var(--hot-pink); }
-    .text-coral    { color: var(--coral); }
-    .text-babyblue { color: var(--baby-blue); }
-    .text-purple   { color: var(--purple); }
-    .text-green    { color: #3cffb5; }
-    .text-gray-400 { color: #9ca3af; }
-    .font-bold     { font-weight: 700; }
-    .glow-hotpink  { color: var(--hot-pink); text-shadow: 0 0 8px rgba(255,0,127,.5); }
-    .pulse         { animation: slideUp .2s ease-out; }
-
-    /* ─── Keyframes ──────────────────────────────────────────── */
-    @keyframes gradShift {
-      0%  { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100%{ background-position: 0% 50%; }
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes bounce {
-      0%,100% { transform: translateY(0);   opacity: .4; }
-      50%      { transform: translateY(-4px); opacity: 1; }
-    }
-    @keyframes neuralPulse {
-      0%,100% { opacity: .6; }
-      50%     { opacity: 1; }
-    }
-    @keyframes progressPulse {
-      0%,100% { box-shadow: 0 0 4px var(--teal); }
-      50%     { box-shadow: 0 0 14px var(--teal), 0 0 4px #7fffd4; }
-    }
-    @keyframes paletteIn {
-      from { opacity: 0; transform: translateY(-12px) scale(.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-  </style>
+  <link rel="stylesheet" href="./renderer.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <link rel="stylesheet" href="./styles/workbench.css">
 </head>
 <body>
+  <div id="rw-app">
+    <aside class="rw-activitybar" aria-label="Workbench activity">
+      <div class="rw-activitybar-logo" aria-hidden="true">
+        <img class="rw-activitybar-logo-img" src="../assets/rinawarp-logo.png" alt="">
+      </div>
+    </aside>
 
-  <!-- ── Header ───────────────────────────────────────────── -->
-  <header>
-    <h1>&#x26A1; RinaWarpTech Terminal Pro</h1>
-    <span class="header-badge">AI Agent</span>
-  </header>
-
-  <!-- ── Main Content ─────────────────────────────────────── -->
-  <div class="main-content">
-
-    <div class="workspace-container">
-
-      <!-- Left Column: Terminal + Code ──────────────────────── -->
-      <div class="left-col" id="left-col">
-        <div class="col-tabs">
-          <button class="tab-button active" data-panel="shell">&#x276F;&nbsp;Terminal</button>
-          <button class="tab-button"         data-panel="code">&#x1F4C1;&nbsp;Code</button>
+    <main class="rw-workbench-shell">
+      <header class="rw-workbench-topbar">
+        <nav class="rw-workbench-tabs" aria-label="Workbench">
+          <button class="rw-workbench-tab rw-workbench-tab-primary active" data-tab="agent" type="button" aria-label="Agent">Agent</button>
+          <span class="rw-workbench-tab-group-label">Inspect</span>
+          <button class="rw-workbench-tab rw-workbench-tab-secondary" data-tab="runs" type="button" aria-label="Runs Inspector">Runs</button>
+        </nav>
+        <div class="rw-workbench-topbar-actions">
+          <button id="recovery-toggle" class="rw-topbar-action rw-topbar-action-secondary" data-tab="runs" type="button" hidden>Recovered runs</button>
+          <button class="rw-topbar-action rw-topbar-action-secondary" data-tab="marketplace" type="button" aria-label="Capabilities">Capabilities</button>
+          <button class="rw-topbar-action rw-topbar-action-secondary" data-tab="diagnostics" type="button" aria-label="Diagnostics">Diagnostics</button>
+          <button class="rw-topbar-action" data-tab="settings" data-action="open-settings" type="button" aria-label="Settings">Settings</button>
         </div>
+      </header>
 
-        <!-- Terminal / Shell Panel -->
-        <div id="panel-shell" class="panel active-panel">
-          <div class="panel-header">
-            <span class="panel-title">Shell</span>
-            <div id="thinking-indicator" style="display:none;">
-              <span class="thinking-dot"></span>
-              <span class="thinking-dot"></span>
-              <span class="thinking-dot"></span>
+      <section class="rw-workbench">
+        <section class="rw-center">
+        <section class="rw-center-stack">
+        <section id="panel-execution-trace" class="rw-panel rw-view" data-view="execution-trace">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Execution Trace</span>
+              <span class="rw-panel-subtitle">Background-only execution stream. Rina uses this internally while the thread stays primary.</span>
+            </div>
+            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
+            <div id="thinking-indicator" class="rw-thinking" style="display:none;">
+              <div class="rw-thinking-dots">
+                <span class="rw-thinking-dot"></span>
+                <span class="rw-thinking-dot"></span>
+                <span class="rw-thinking-dot"></span>
+              </div>
+              <span>Rina is figuring it out</span>
             </div>
           </div>
-          <div id="terminal-output"></div>
-          <div id="thinking-stream" class="thinking-stream"></div>
-          <div class="terminal-input-wrapper">
-            <span class="prompt-symbol">$</span>
-            <input type="text" id="terminal-input"
-                   placeholder="Type a command&#x2026; (Ctrl+K for palette)"
-                   autocomplete="off" spellcheck="false" />
+          <div id="execution-trace-output" class="rw-execution-trace-body" data-testid="execution-trace-output"></div>
+          <div id="thinking-stream" class="rw-stream-strip"></div>
+        </section>
+
+        <section id="panel-code" class="rw-panel rw-view" data-view="code">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Workspace Inspector</span>
+              <span class="rw-panel-subtitle">Project files and code context when you want to inspect them</span>
+            </div>
+            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
           </div>
-        </div>
+          <div class="rw-panel-body" id="workspace-files"></div>
+        </section>
 
-        <!-- Code Workspace Panel -->
-        <div id="panel-code" class="panel collapsed">
-          <div class="panel-header">
-            <span class="panel-title">Code Workspace</span>
+        <section id="panel-runs" class="rw-panel rw-view" data-view="runs">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Runs Inspector</span>
+              <span class="rw-panel-subtitle">Receipts, sessions, and proof when you want to inspect execution.</span>
+            </div>
+            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
           </div>
-          <div id="workspace-files"></div>
-        </div>
-      </div>
+          <div class="rw-panel-body" id="runs-output"></div>
+        </section>
 
-      <!-- Vertical Resizer ──────────────────────────────────── -->
-      <div class="pane-resizer vertical" id="col-resizer"></div>
-
-      <!-- Right Column: Agent + Diagnostics ─────────────────── -->
-      <div class="right-col" id="right-col">
-        <div class="col-tabs">
-          <button class="tab-button active" data-panel="agent">&#x1F916;&nbsp;Agent</button>
-          <button class="tab-button"         data-panel="diagnostics">&#x1F50E;&nbsp;Diagnostics</button>
-        </div>
-
-        <!-- Agent Panel -->
-        <div id="panel-agent" class="panel active-panel">
-          <div class="panel-header">
-            <span class="panel-title">Agent</span>
-            <span id="autonomy-status" class="status-badge">Autonomy: OFF</span>
+        <section id="panel-marketplace" class="rw-panel rw-view" data-view="marketplace">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Marketplace</span>
+              <span class="rw-panel-subtitle">Capability packs and installable workflows when you need to expand what Rina can do</span>
+            </div>
+            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
           </div>
-          <div id="agent-output"></div>
-          <div id="agent-plan-container"></div>
-        </div>
+          <div class="rw-panel-body" id="marketplace-output"></div>
+        </section>
 
-        <!-- Diagnostics Panel -->
-        <div id="panel-diagnostics" class="panel collapsed">
-          <div class="panel-header">
-            <span class="panel-title">Diagnostics</span>
+        <section id="panel-brain" class="rw-panel rw-view" data-view="brain">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Brain Inspector</span>
+              <span class="rw-panel-subtitle">Planning, tools, memory, and results</span>
+            </div>
+            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
+            <div id="brain-stats" class="rw-brain-stats"></div>
           </div>
-          <div id="diagnostics-output"></div>
-        </div>
-      </div>
+          <div class="rw-panel-body" id="brain-visualization"></div>
+        </section>
 
-    </div><!-- end workspace-container -->
+        <section id="panel-settings" class="rw-panel rw-view" data-view="settings">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Settings</span>
+              <span class="rw-panel-subtitle">License, updates, diagnostics, and app controls</span>
+            </div>
+          </div>
+          <div class="rw-panel-body">
+            <div id="rw-settings"></div>
+          </div>
+        </section>
+        </section>
+        </section>
 
-    <!-- Horizontal Resizer (workspace / brain) ─────────────── -->
-    <div class="pane-resizer horizontal" id="row-resizer"></div>
+        <aside class="rw-inspector">
+        <aside class="rw-right-stack">
+          <section id="panel-agent" class="rw-panel rw-view active rw-agent-panel" data-view="agent">
+          <div class="rw-panel-body rw-agent-body">
+            <section class="rw-agent-hero">
+              <div class="rw-agent-hero-copy">
+                <div class="rw-agent-kicker">Rina-first developer workflow</div>
+                <h2>Tell Rina what to do. She can diagnose, build, test, deploy, and leave proof behind.</h2>
+                <p>
+                  Start with what feels off, what failed, or what you want to ship. Rina will explain the plan, take action through the trusted runner,
+                  and keep proof attached to the thread when real work happens.
+                </p>
+              </div>
+            </section>
+            <div id="agent-recovery"></div>
+            <div id="agent-output"></div>
+            <div id="agent-plan-container"></div>
+            <div class="rw-agent-composer">
+              <textarea
+                id="agent-input"
+                class="rw-agent-input"
+                rows="3"
+                placeholder="Tell Rina what to do."
+                spellcheck="false"
+              ></textarea>
+              <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
+              <div class="rw-agent-composer-actions">
+                <div class="rw-agent-hint">Ask in plain language. Enter sends.</div>
+                <button id="agent-send" class="rw-agent-send" type="button">Ask Rina</button>
+              </div>
+            </div>
+          </div>
+          </section>
 
-    <!-- AI Brain Panel ──────────────────────────────────────── -->
-    <div id="panel-brain" class="panel">
-      <div class="panel-header brain-header">
-        <span class="panel-title gradient-text">AI Brain</span>
-        <div class="brain-thinking-dots">
-          <span></span><span></span><span></span>
-        </div>
-        <div id="brain-stats" class="brain-stats"></div>
-      </div>
-      <div id="brain-visualization"></div>
-    </div>
-
-  </div><!-- end main-content -->
-
-  <!-- Status Bar ──────────────────────────────────────────── -->
-  <div class="status-bar">
-    <span class="status-brand">&#x26A1; RinaWarpTech</span>
-    <span class="status-sep">|</span>
-    <span class="status-item">
-      <span class="status-dot off" id="autonomy-dot"></span>
-      <span id="autonomy-status-bar">Autonomy: OFF</span>
-    </span>
-    <span class="status-sep">|</span>
-    <span id="workspace-status"  class="status-item">Workspace: &#x2013;</span>
-    <span class="status-sep">|</span>
-    <span id="commands-learned" class="status-item">Commands: 0</span>
-    <span class="status-sep">|</span>
-    <span id="active-tools"     class="status-item">Tools: 0</span>
-    <span class="status-sep">|</span>
-    <span id="status-right"     class="status-item status-right">Mode: explain</span>
+          <section id="panel-diagnostics" class="rw-panel rw-view" data-view="diagnostics">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Diagnostics Inspector</span>
+              <span class="rw-panel-subtitle">Open this drawer when you want health, status, and observability details.</span>
+            </div>
+            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
+          </div>
+          <div class="rw-panel-body" id="diagnostics-output"></div>
+          </section>
+        </aside>
+        </aside>
+      </section>
+    </main>
   </div>
 
-  <!-- Command Palette ─────────────────────────────────────── -->
-  <div id="command-palette">
+  <div id="status-bar" class="rw-statusbar">
+    <span class="rw-status-item">
+      <span class="status-dot disconnected" id="autonomy-dot"></span>
+      <span id="mode-status-bar">Mode: assist</span>
+    </span>
+    <span class="rw-status-item" id="workspace-status">Workspace: -</span>
+    <span class="rw-status-item" id="activity-status">0 commands · 0 tools</span>
+    <span class="rw-status-item rw-status-item-right" id="status-summary">Starting…</span>
+  </div>
+
+  <div id="command-palette" class="rw-palette" role="dialog" aria-modal="true" aria-label="Command palette">
     <div class="palette-inner">
       <div class="palette-header">
-        <span class="palette-icon">&#x2318;</span>
-        <input type="text" id="palette-input"
-               placeholder="Type a command or describe your intent&#x2026;"
-               autocomplete="off" spellcheck="false" />
-        <kbd>ESC</kbd>
+        <input
+          type="text"
+          id="palette-input"
+          class="rw-palette-input"
+          placeholder="Quick actions: ask Rina or open an inspector…"
+          autocomplete="off"
+          spellcheck="false"
+        >
       </div>
-      <div id="palette-results"></div>
+      <div class="suggestions" id="palette-results"></div>
       <div class="palette-footer">
-        <span>&#x2191;&#x2193;&nbsp;Navigate</span>
-        <span>&#x23CE;&nbsp;Execute</span>
-        <span>ESC&nbsp;Close</span>
+        <span>Ctrl+K quick actions</span>
+        <span>Enter ask Rina</span>
+        <span>Esc close</span>
       </div>
     </div>
   </div>
 
-  <!-- Renderer Script ─────────────────────────────────────── -->
-  <script type="module" src="./renderer.prod.js"></script>
+  <script type="module" src="./index.js"></script>
 </body>
 </html>

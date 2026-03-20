@@ -7,10 +7,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import { createRequire } from 'node:module'
-const require = createRequire(import.meta.url)
-const electron = require('electron')
-const { app } = electron
+import { resolveRinaDataDir } from './dataRoot.js'
 
 export interface ProjectContext {
   name: string
@@ -37,9 +34,7 @@ class ProjectMemory {
   private _loaded = false
 
   constructor() {
-    // Use process.cwd() as fallback if app isn't ready
-    const userDataPath = typeof app !== 'undefined' && app?.getPath ? app.getPath('userData') : process.cwd()
-    this.dataPath = path.join(userDataPath, 'project-memory.json')
+    this.dataPath = path.join(resolveRinaDataDir(), 'project-memory.json')
   }
 
   private ensureLoaded() {

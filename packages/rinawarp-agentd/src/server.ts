@@ -4,6 +4,7 @@
 import http from 'node:http'
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import { Buffer } from 'node:buffer'
+import { createRequire } from 'node:module'
 import { appendFile, mkdir, writeFile } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
@@ -154,7 +155,9 @@ import {
   recordPurchase,
   hasPurchased,
 } from './marketplace.js'
+import { entitlementFilePath, readEntitlement, upsertEntitlement, type EntitlementStatus, type EntitlementTier } from './entitlementsStore.js'
 
+const require = createRequire(import.meta.url)
 const engine = new ExecutionEngine(createStandardRegistry())
 
 // OpenAI client for AI streaming
@@ -506,6 +509,100 @@ function accountPlanFromEnv() {
   }
 }
 
+function normalizeEntitlementTier(raw: unknown): EntitlementTier {
+  const value = String(raw || 'starter').trim().toLowerCase()
+  if (value === 'pro') return 'pro'
+  if (value === 'team') return 'team'
+  if (value === 'enterprise') return 'enterprise'
+  return 'starter'
+}
+
+function stripeStatusToEntitlementStatus(raw: unknown): EntitlementStatus {
+  const value = String(raw || '').trim().toLowerCase()
+  if (value === 'active' || value === 'trialing') return 'active'
+  if (value === 'past_due' || value === 'unpaid' || value === 'paused') return 'suspended'
+  if (value === 'canceled' || value === 'cancelled' || value === 'incomplete_expired') return 'cancelled'
+  if (value === 'expired') return 'expired'
+  if (value === 'incomplete') return 'inactive'
+  return 'active'
+}
+
+function entitlementFeatures(tier: EntitlementTier): string[] {
+  const base = ['terminal', 'filesystem', 'git', 'basic-commands']
+  if (tier === 'pro') return [...base, 'docker', 'ai-brain', 'memory', 'advanced-commands']
+  if (tier === 'team') return [...base, 'docker', 'ai-brain', 'memory', 'advanced-commands', 'multi-agent']
+  if (tier === 'enterprise') return [...base, 'docker', 'ai-brain', 'memory', 'advanced-commands', 'multi-agent', 'enterprise-support']
+  return base
+}
+
+function entitlementLimits(tier: EntitlementTier): { concurrentAgents: number; memorySessions: number; apiCallsPerDay: number } {
+  if (tier === 'pro') return { concurrentAgents: 3, memorySessions: 50, apiCallsPerDay: 1000 }
+  if (tier === 'team') return { concurrentAgents: 10, memorySessions: 200, apiCallsPerDay: 5000 }
+  if (tier === 'enterprise') return { concurrentAgents: -1, memorySessions: -1, apiCallsPerDay: -1 }
+  return { concurrentAgents: 1, memorySessions: 5, apiCallsPerDay: 100 }
+}
+
+function entitlementResponse(args?: {
+  customerId?: string | null
+  tier?: EntitlementTier
+  status?: EntitlementStatus
+  expiresAt?: number | null
+  valid?: boolean
+}) {
+  const tier = args?.tier || 'starter'
+  const status = args?.status || (args?.valid === false ? 'inactive' : 'active')
+  return {
+    ok: true,
+    valid: args?.valid !== false,
+    customer_id: args?.customerId || null,
+    tier,
+    status,
+    expires_at: args?.expiresAt ?? null,
+    license_token: null,
+    features: entitlementFeatures(tier),
+    limits: entitlementLimits(tier),
+  }
+}
+
+async function getStripeClient(): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const stripeModule = require('stripe')
+  const stripeKey = process.env.STRIPE_SECRET_KEY
+  if (!stripeKey) {
+    throw new Error('stripe_not_configured')
+  }
+  return new stripeModule(stripeKey)
+}
+
+function isProdStrictWebhookMode(): boolean {
+  return process.env.NODE_ENV === 'production' || process.env.RINAWARP_STRICT_WEBHOOKS === '1'
+}
+
+function allowUnsignedStripeWebhooks(): boolean {
+  return process.env.ALLOW_UNSIGNED_STRIPE_WEBHOOKS === '1'
+}
+
+async function verifyStripeWebhook(rawBody: string, signature: string | undefined): Promise<any> {
+  const signingSecret = String(process.env.STRIPE_WEBHOOK_SECRET || '').trim()
+  if (!signingSecret) {
+    if (isProdStrictWebhookMode() || !allowUnsignedStripeWebhooks()) {
+      const error = new Error('STRIPE_WEBHOOK_SECRET is not configured; refusing unsigned webhook') as Error & {
+        statusCode?: number
+      }
+      error.statusCode = 503
+      throw error
+    }
+    return JSON.parse(rawBody)
+  }
+  if (!signature) {
+    const error = new Error('Missing Stripe-Signature header') as Error & { statusCode?: number }
+    error.statusCode = 401
+    throw error
+  }
+  const stripe = await getStripeClient()
+  return stripe.webhooks.constructEvent(rawBody, signature || '', signingSecret)
+}
+
 function roleRank(role: 'owner' | 'admin' | 'member'): number {
   if (role === 'owner') return 3
   if (role === 'admin') return 2
@@ -840,7 +937,94 @@ export function createServer(opts: { port: number }) {
         return sendJson(res, 200, { ok: true, workspace: updated })
       }
 
-      // --- STRIPE CHECKOUT SESSION (public)
+      if (req.method === 'POST' && url.pathname === '/v1/stripe/webhook') {
+        const clientIp = webhookClientIp(req)
+        const signature = String(req.headers['stripe-signature'] || '')
+        try {
+          const parsed = await readRawJson(req, { maxBytes: webhookMaxBytes() })
+          const event = await verifyStripeWebhook(parsed.raw, signature)
+          const type = String(event?.type || '').trim()
+          const object = event?.data?.object || {}
+          const metadata = object?.metadata || {}
+          const customerId = String(
+            metadata.customerId || metadata.customer_id || object.customer || object.customer_id || ''
+          ).trim()
+          const deviceId = String(metadata.deviceId || metadata.device_id || '').trim()
+          const email = String(
+            metadata.email || object?.customer_details?.email || object?.customer_email || object?.receipt_email || ''
+          )
+            .trim()
+            .toLowerCase()
+          const subscriptionId = String(object.subscription || object.id || '').trim()
+
+          if (!type) return sendJson(res, 400, { ok: false, error: 'stripe event type is required' })
+
+          if (type === 'checkout.session.completed') {
+            const resolvedCustomerId = customerId || String(object.customer || '').trim()
+            if (!resolvedCustomerId) return sendJson(res, 400, { ok: false, error: 'customer_id is required' })
+            const record = upsertEntitlement({
+              customerId: resolvedCustomerId,
+              stripeCustomerId: String(object.customer || '').trim() || resolvedCustomerId,
+              subscriptionId,
+              deviceId,
+              email,
+              tier: normalizeEntitlementTier(metadata.tier || process.env.RINAWARP_STRIPE_DEFAULT_TIER || 'pro'),
+              status: 'active',
+              expiresAt: null,
+            })
+            return sendJson(res, 200, { ok: true, entitlement: record, store: entitlementFilePath() })
+          }
+
+          if (
+            type === 'customer.subscription.created' ||
+            type === 'customer.subscription.updated' ||
+            type === 'customer.subscription.deleted'
+          ) {
+            const resolvedCustomerId = customerId || String(object.customer || '').trim()
+            if (!resolvedCustomerId) return sendJson(res, 400, { ok: false, error: 'customer_id is required' })
+            const existing = readEntitlement({
+              customerId: resolvedCustomerId,
+              stripeCustomerId: String(object.customer || '').trim(),
+              email,
+              deviceId,
+            })
+            const record = upsertEntitlement({
+              customerId: resolvedCustomerId,
+              stripeCustomerId: String(object.customer || '').trim() || resolvedCustomerId,
+              subscriptionId: String(object.id || '').trim() || existing?.subscriptionId,
+              deviceId: deviceId || existing?.deviceId,
+              email: email || existing?.email,
+              tier: normalizeEntitlementTier(
+                metadata.tier || existing?.tier || process.env.RINAWARP_STRIPE_DEFAULT_TIER || 'pro'
+              ),
+              status: stripeStatusToEntitlementStatus(
+                object.status || (type.endsWith('.deleted') ? 'cancelled' : 'active')
+              ),
+              expiresAt: Number.isFinite(object.current_period_end)
+                ? Number(object.current_period_end) * 1000
+                : existing?.expiresAt || null,
+            })
+            return sendJson(res, 200, { ok: true, entitlement: record, store: entitlementFilePath() })
+          }
+
+          return sendJson(res, 200, { ok: true, ignored: true, type })
+        } catch (error) {
+          const statusCode =
+            typeof (error as { statusCode?: unknown })?.statusCode === 'number'
+              ? Number((error as { statusCode?: number }).statusCode)
+              : 400
+          const message = error instanceof Error ? error.message : 'stripe_webhook_error'
+          console.error('[StripeWebhook] rejected', {
+            statusCode,
+            reason: message,
+            clientIp,
+            hasSignature: signature.length > 0,
+          })
+          return sendJson(res, statusCode, { ok: false, error: message })
+        }
+      }
+
+      // --- STRIPE CHECKOUT SESSION (workspace/public)
       if (req.method === 'POST' && url.pathname === '/v1/checkout/sessions') {
         const body = (await readJson(req)) as { priceId?: string; workspaceId?: string } | null
         const priceId = String(body?.priceId || '').trim()
@@ -892,6 +1076,104 @@ export function createServer(opts: { port: number }) {
         }
       }
 
+      if (req.method === 'POST' && url.pathname === '/v1/license/checkout') {
+        const body = (await readJson(req)) as {
+          deviceId?: string
+          device_id?: string
+          email?: string
+          customerId?: string
+          customer_id?: string
+          priceId?: string
+          tier?: string
+        } | null
+        const deviceId = String(body?.deviceId || body?.device_id || '').trim()
+        const email = String(body?.email || '')
+          .trim()
+          .toLowerCase()
+        const customerId = String(body?.customerId || body?.customer_id || '').trim()
+        const priceId = String(body?.priceId || process.env.RINAWARP_STRIPE_PRICE_ID || '').trim()
+        const tier = normalizeEntitlementTier(body?.tier || process.env.RINAWARP_STRIPE_DEFAULT_TIER || 'pro')
+
+        if (!deviceId && !email && !customerId) {
+          return sendJson(res, 400, { ok: false, error: 'deviceId, email, or customerId is required' })
+        }
+        if (!priceId) {
+          return sendJson(res, 503, { ok: false, error: 'price_id_not_configured' })
+        }
+
+        try {
+          const stripe = await getStripeClient()
+          const successUrl = String(process.env.RINAWARP_STRIPE_SUCCESS_URL || 'https://rinawarptech.com/success').trim()
+          const cancelUrl = String(process.env.RINAWARP_STRIPE_CANCEL_URL || 'https://rinawarptech.com/pricing').trim()
+          const session = await stripe.checkout.sessions.create({
+            mode: 'subscription',
+            payment_method_types: ['card'],
+            line_items: [{ price: priceId, quantity: 1 }],
+            customer_email: email || undefined,
+            success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: cancelUrl,
+            metadata: {
+              customerId,
+              customer_id: customerId,
+              deviceId,
+              device_id: deviceId,
+              email,
+              tier,
+            },
+          })
+          return sendJson(res, 200, { ok: true, url: session.url, sessionId: session.id })
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          const code = message === 'stripe_not_configured' ? 503 : 500
+          return sendJson(res, code, { ok: false, error: message })
+        }
+      }
+
+      if (req.method === 'POST' && url.pathname === '/v1/license/portal') {
+        const body = (await readJson(req)) as {
+          deviceId?: string
+          device_id?: string
+          email?: string
+          customerId?: string
+          customer_id?: string
+        } | null
+        const deviceId = String(body?.deviceId || body?.device_id || '').trim()
+        const email = String(body?.email || '')
+          .trim()
+          .toLowerCase()
+        const customerId = String(body?.customerId || body?.customer_id || '').trim()
+        const entitlement = readEntitlement({ customerId, deviceId, email })
+        if (!entitlement?.customerId) {
+          return sendJson(res, 404, { ok: false, error: 'entitlement_not_found' })
+        }
+        try {
+          const stripe = await getStripeClient()
+          const returnUrl = String(process.env.RINAWARP_STRIPE_PORTAL_RETURN_URL || 'https://rinawarptech.com/pricing').trim()
+          const session = await stripe.billingPortal.sessions.create({
+            customer: entitlement.customerId,
+            return_url: returnUrl,
+          })
+          return sendJson(res, 200, { ok: true, url: session.url, customer_id: entitlement.customerId })
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          const code = message === 'stripe_not_configured' ? 503 : 500
+          return sendJson(res, code, { ok: false, error: message })
+        }
+      }
+
+      if (req.method === 'POST' && url.pathname === '/v1/license/lookup') {
+        const body = (await readJson(req)) as { email?: string } | null
+        const email = String(body?.email || '')
+          .trim()
+          .toLowerCase()
+        if (!email) return sendJson(res, 400, { ok: false, error: 'email is required' })
+        const entitlement = readEntitlement({ email })
+        if (!entitlement?.customerId) {
+          return sendJson(res, 404, { ok: false, error: 'entitlement_not_found' })
+        }
+        return sendJson(res, 200, { ok: true, customer_id: entitlement.customerId, tier: entitlement.tier })
+      }
+
       // --- LICENSE KEY GENERATION (public - called after successful payment)
       if (req.method === 'POST' && url.pathname === '/v1/licenses/generate') {
         const body = (await readJson(req)) as { tier?: string; customerId?: string; email?: string } | null
@@ -924,53 +1206,63 @@ export function createServer(opts: { port: number }) {
       }
 
       // --- LICENSE VERIFICATION (public - for Electron app)
-      if (req.method === 'POST' && url.pathname === '/v1/licenses/verify') {
-        const body = (await readJson(req)) as { key?: string; customerId?: string; deviceId?: string } | null
+      if (
+        req.method === 'POST' &&
+        (url.pathname === '/v1/licenses/verify' || url.pathname === '/v1/license/verify')
+      ) {
+        const body = (await readJson(req)) as {
+          key?: string
+          customerId?: string
+          customer_id?: string
+          deviceId?: string
+          device_id?: string
+          email?: string
+        } | null
+        const customerId = String(body?.customerId || body?.customer_id || '').trim()
+        const deviceId = String(body?.deviceId || body?.device_id || '').trim()
+        const email = String(body?.email || '')
+          .trim()
+          .toLowerCase()
         const key = String(body?.key || '').trim()
-        const customerId = String(body?.customerId || '').trim()
-        const deviceId = String(body?.deviceId || '').trim()
 
-        if (!key && !customerId) {
-          return sendJson(res, 400, { ok: false, error: 'key or customerId is required' })
+        const entitlement = readEntitlement({ customerId, deviceId, email, stripeCustomerId: customerId })
+        if (entitlement) {
+          return sendJson(
+            res,
+            200,
+            entitlementResponse({
+              customerId: entitlement.customerId,
+              tier: entitlement.tier,
+              status: entitlement.status,
+              expiresAt: entitlement.expiresAt,
+              valid: entitlement.status === 'active',
+            })
+          )
         }
 
-        // In production, this would query a database
-        // For demo purposes, check for demo/test keys
         const isDevMode = process.env.NODE_ENV === 'development'
-
         if (isDevMode && (key === 'DEMO' || key.startsWith('TEST-'))) {
-          return sendJson(res, 200, {
-            ok: true,
-            valid: true,
-            tier: 'demo',
-            status: 'active',
-            license_token: key,
-            features: ['terminal', 'filesystem', 'git', 'basic-commands', 'docker', 'ai-brain'],
-            limits: { concurrentAgents: 3, memorySessions: 50, apiCallsPerDay: 1000 },
+          return sendJson(
+            res,
+            200,
+            entitlementResponse({
+              customerId: customerId || 'demo_customer',
+              tier: 'pro',
+              status: 'active',
+            })
+          )
+        }
+
+        return sendJson(
+          res,
+          200,
+          entitlementResponse({
+            customerId: customerId || null,
+            tier: 'starter',
+            status: 'inactive',
+            valid: false,
           })
-        }
-
-        // Production: validate against database
-        // For now, reject unknown keys in production
-        if (!isDevMode && key.length < 10) {
-          return sendJson(res, 200, { ok: true, valid: false, error: 'invalid_license_key' })
-        }
-
-        // In production, query DB for valid license
-        // Return mock response for now (replace with actual DB query)
-        return sendJson(res, 200, {
-          ok: true,
-          valid: isDevMode,
-          tier: isDevMode ? 'pro' : 'free',
-          status: isDevMode ? 'active' : 'inactive',
-          license_token: isDevMode ? key : null,
-          features: isDevMode
-            ? ['terminal', 'filesystem', 'git', 'basic-commands', 'docker', 'ai-brain', 'memory', 'advanced-commands']
-            : ['terminal', 'filesystem', 'git', 'basic-commands'],
-          limits: isDevMode
-            ? { concurrentAgents: 3, memorySessions: 50, apiCallsPerDay: 1000 }
-            : { concurrentAgents: 1, memorySessions: 5, apiCallsPerDay: 100 },
-        })
+        )
       }
 
       // --- FEEDBACK SUBMISSION (public)

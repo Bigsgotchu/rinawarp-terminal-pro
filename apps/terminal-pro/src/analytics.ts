@@ -16,9 +16,7 @@
  * - RINAWARP_ANALYTICS_DISABLED: Set to 'true' to disable tracking
  */
 
-import { createRequire } from 'node:module'
-const require = createRequire(import.meta.url)
-const electron = require('electron')
+import * as electron from 'electron'
 const { app } = electron
 import path from 'node:path'
 import fs from 'node:fs'
@@ -154,6 +152,10 @@ export type AnalyticsEvent =
   | 'agent_run_failed'
   | 'self_heal_success'
   | 'self_heal_failed'
+  | 'starter_intent_selected'
+  | 'inspector_opened'
+  | 'run_output_expanded'
+  | 'proof_backed_run_seen'
   // Conversion funnel events
   | 'funnel_signup'
   | 'funnel_first_run'

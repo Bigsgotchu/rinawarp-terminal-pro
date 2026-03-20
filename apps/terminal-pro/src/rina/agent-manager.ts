@@ -19,6 +19,17 @@ export interface AgentPackage {
   price?: number
 }
 
+export function installAgentPackage(agent: AgentPackage): AgentPackage {
+  if (!fs.existsSync(AGENTS_DIR)) {
+    fs.mkdirSync(AGENTS_DIR, { recursive: true })
+  }
+
+  const agentPath = path.join(AGENTS_DIR, `${agent.name}.json`)
+  fs.writeFileSync(agentPath, JSON.stringify(agent, null, 2), 'utf8')
+  console.log(`[Agent Manager] Installed agent package: ${agent.name} v${agent.version}`)
+  return agent
+}
+
 /**
  * Installs an agent from the marketplace
  * @param name - The name of the agent to install
@@ -74,17 +85,7 @@ export async function installAgent(name: string, apiBaseUrl?: string, userEmail?
   }
 
   // Create agents directory if it doesn't exist
-  if (!fs.existsSync(AGENTS_DIR)) {
-    fs.mkdirSync(AGENTS_DIR, { recursive: true })
-  }
-
-  // Write agent to local storage
-  const agentPath = path.join(AGENTS_DIR, `${name}.json`)
-  fs.writeFileSync(agentPath, JSON.stringify(agent, null, 2), 'utf8')
-
-  console.log(`[Agent Manager] Installed agent: ${name} v${agent.version}`)
-
-  return agent
+  return installAgentPackage(agent)
 }
 
 /**
@@ -138,6 +139,7 @@ export function listInstalledAgents(): string[] {
 
 export default {
   installAgent,
+  installAgentPackage,
   uninstallAgent,
   getInstalledAgent,
   listInstalledAgents,

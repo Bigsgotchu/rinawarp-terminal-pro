@@ -54,5 +54,8 @@ export function resolveProjectRootSafe(args: { input?: string; allowedWorkspaceR
       // fall through
     }
   }
-  return normalizeProjectRoot({ input: process.cwd(), allowedWorkspaceRoots: args.allowedWorkspaceRoots })
+  return normalizeProjectRoot({
+    input: process.env.RINA_WORKSPACE_ROOT || process.env.HOME || '/',
+    allowedWorkspaceRoots: args.allowedWorkspaceRoots,
+  })
 }

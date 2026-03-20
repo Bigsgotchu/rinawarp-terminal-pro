@@ -1,5 +1,9 @@
-import { ipcMain } from 'electron'
-import * as telemetry from '../telemetry'
+import { createRequire } from 'node:module'
+import * as telemetry from '../telemetry.js'
+
+const require = createRequire(import.meta.url)
+const electron = require('electron')
+const { ipcMain } = electron
 
 /**
  * Telemetry IPC Handlers

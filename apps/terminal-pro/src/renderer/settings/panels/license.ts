@@ -195,13 +195,17 @@ function buildManageCard(): string {
 /**
  * Build usage card for free tier users showing their usage and limits
  */
-function buildUsageCard(): string {
+function escapeAttr(value: string): string {
+  return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+}
+
+function buildUsageCard(email = ''): string {
   return `
     <div class="rw-card" style="margin-top: 16px; border: 1px solid #fbbf24; background: #fef3c7;">
       <div class="rw-row">
         <div>
           <div class="rw-label" style="color: #92400e;">⚡ Free Tier Usage</div>
-          <div class="rw-muted" style="color: #b45309;">You've used some of your free limits. Upgrade to Pro for unlimited access!</div>
+          <div class="rw-muted" style="color: #b45309;">You've used some of your free limits. Upgrade to Pro for premium execution, capability packs, and higher limits.</div>
         </div>
       </div>
       <div class="rw-row" style="margin-top: 12px;">
@@ -221,12 +225,29 @@ function buildUsageCard(): string {
         </div>
       </div>
       <div class="rw-row" style="margin-top: 12px;">
+        <input
+          id="rw-upgrade-email"
+          type="email"
+          value="${escapeAttr(email)}"
+          placeholder="Billing email"
+          style="width: 100%; padding: 10px 12px; border: 1px solid #f59e0b; border-radius: 6px; background: #fffaf0; color: #92400e;"
+        />
+      </div>
+      <div class="rw-row" style="margin-top: 12px;">
         <button 
           id="rw-upgrade-btn"
           style="width: 100%; padding: 10px 16px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
-          🚀 Upgrade to Pro - Unlimited Everything
+          Upgrade to Pro - Unlock premium execution
         </button>
       </div>
+      <div class="rw-row" style="margin-top: 8px;">
+        <button 
+          id="rw-refresh-license-btn"
+          style="width: 100%; padding: 8px 14px; background: transparent; color: #92400e; border: 1px solid #d97706; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">
+          I paid — Refresh Pro status
+        </button>
+      </div>
+      <div id="rw-upgrade-status" class="rw-muted" style="margin-top: 8px; color: #92400e;"></div>
     </div>
   `
 }
@@ -434,8 +455,26 @@ function attachManageHandler(): void {
   })
 }
 
+async function refreshLicenseStateWithRetry(): Promise<boolean> {
+  const refresh = (window as any).rina.licenseRefresh
+  const readState = (window as any).rina.licenseState
+  const deadline = Date.now() + 60_000
+
+  while (Date.now() < deadline) {
+    const state = refresh ? await refresh() : await readState()
+    const tier = String(state?.tier || 'starter').toLowerCase()
+    if (tier !== 'starter') return true
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+  }
+
+  return false
+}
+
 export async function mountLicensePanel(container: HTMLElement): Promise<void> {
   const licenseState = await fetchLicenseState()
+  const cachedEmail = String(((window as any).rina.licenseCachedEmail ? await (window as any).rina.licenseCachedEmail() : { email: '' })?.email || '')
+    .trim()
+    .toLowerCase()
   const isPro = licenseState.tier !== 'starter'
   const expiryText = formatExpiry(licenseState.expires_at)
   const tierText = formatTier(licenseState.tier)
@@ -452,7 +491,7 @@ export async function mountLicensePanel(container: HTMLElement): Promise<void> {
       <p class="rw-sub">Manage your Rinawarp Pro subscription.</p>
     </div>
     ${buildStatusCard({ isPro, tierText, statusText, expiryText, expiresAt: licenseState.expires_at })}
-    ${!isPro ? buildUsageCard() : ''}
+    ${!isPro ? buildUsageCard(cachedEmail) : ''}
     ${buildRestoreCard()}
     ${isPro ? buildManageCard() : ''}
   `
@@ -507,15 +546,59 @@ async function updateUsageBars(): Promise<void> {
  */
 function attachUpgradeHandler(container: HTMLElement): void {
   const upgradeBtn = container.querySelector('#rw-upgrade-btn') as HTMLButtonElement
+  const refreshBtn = container.querySelector('#rw-refresh-license-btn') as HTMLButtonElement | null
+  const emailInput = container.querySelector('#rw-upgrade-email') as HTMLInputElement | null
+  const statusEl = container.querySelector('#rw-upgrade-status') as HTMLDivElement | null
   if (!upgradeBtn) return
 
   upgradeBtn.addEventListener('click', async () => {
     trackAnalytics('upgrade_click', { source: 'usage_card' })
-    // Open billing portal or pricing page
+    const email = String(emailInput?.value || '').trim().toLowerCase()
+    if (!email) {
+      if (statusEl) statusEl.textContent = 'Enter your billing email to start checkout.'
+      emailInput?.focus()
+      return
+    }
+
+    const original = upgradeBtn.textContent
+    upgradeBtn.disabled = true
+    upgradeBtn.textContent = 'Opening checkout…'
     try {
-      await (window as any).rina.openStripePortal?.()
+      const result = await (window as any).rina.licenseCheckout?.(email)
+      if (result?.ok) {
+        if (statusEl) statusEl.textContent = 'Checkout opened in your browser. After payment, click Refresh Pro status.'
+      } else if ((window as any).rina.openStripePortal) {
+        await (window as any).rina.openStripePortal(email)
+        if (statusEl) statusEl.textContent = 'Billing portal opened in your browser.'
+      } else {
+        window.open('https://rinawarptech.com/pricing', '_blank')
+      }
     } catch {
-      window.open('https://rinawarptech.com/pricing', '_blank')
+      if (statusEl) statusEl.textContent = 'Could not open checkout. Try again in a moment.'
+    } finally {
+      upgradeBtn.disabled = false
+      upgradeBtn.textContent = original
+    }
+  })
+
+  refreshBtn?.addEventListener('click', async () => {
+    const original = refreshBtn.textContent
+    refreshBtn.disabled = true
+    refreshBtn.textContent = 'Refreshing…'
+    try {
+      const ok = await refreshLicenseStateWithRetry()
+      refreshBtn.textContent = ok ? 'Pro unlocked' : 'Still pending — try again'
+      if (ok) {
+        await mountLicensePanel(container)
+      }
+    } catch {
+      refreshBtn.textContent = 'Refresh failed'
+    } finally {
+      refreshBtn.disabled = false
+      if (refreshBtn.textContent === 'Pro unlocked') return
+      setTimeout(() => {
+        if (refreshBtn.isConnected) refreshBtn.textContent = original
+      }, 2500)
     }
   })
 }

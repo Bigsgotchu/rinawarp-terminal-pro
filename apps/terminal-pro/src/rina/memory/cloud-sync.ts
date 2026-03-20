@@ -17,6 +17,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import type { PersistentEntry } from './persistent-memory.js'
+import { resolveRinaDataDir } from './dataRoot.js'
 
 const CLOUD_FILE = 'rina-cloud.json'
 
@@ -35,8 +36,7 @@ export class CloudSync {
   private cloudFilePath: string
 
   constructor(fileName: string = CLOUD_FILE) {
-    const dataDir = process.env.RINA_DATA_DIR || process.cwd()
-    this.cloudFilePath = path.resolve(dataDir, fileName)
+    this.cloudFilePath = path.resolve(resolveRinaDataDir(), fileName)
   }
 
   /**

@@ -4,17 +4,14 @@
  * Runs diagnostics and automatically fixes common issues.
  */
 
-import { exec } from 'child_process'
-import { promisify } from 'util'
-
-const execAsync = promisify(exec)
+import { execCommand } from './execution/legacyShell.js'
 
 /**
  * Run a diagnostic command
  */
 async function runCommand(cmd: string): Promise<{ success: boolean; output: string; error?: string }> {
   try {
-    const { stdout, stderr } = await execAsync(cmd, { timeout: 30000 })
+    const { stdout, stderr } = await execCommand(cmd, { timeout: 30000 })
     return { success: true, output: stdout || stderr }
   } catch (error: any) {
     return { success: false, output: error.stdout || '', error: error.message }

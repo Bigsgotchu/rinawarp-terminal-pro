@@ -30,6 +30,7 @@ function copyDir(srcDir, destDir) {
   }
 }
 
+// Canonical desktop shell. Do not add parallel HTML entrypoints under src/ui.
 const srcHtml = path.join(projectRoot, 'src', 'renderer.html')
 const outHtml = path.join(outDir, 'renderer', 'renderer.html')
 
@@ -55,6 +56,17 @@ function copyOptional(src, dest) {
   }
   copyFile(src, dest)
 }
+
+function removeStaleOutput(target) {
+  fs.rmSync(target, { recursive: true, force: true })
+}
+
+// Remove stale alternate renderer outputs so we only ever ship one desktop shell.
+removeStaleOutput(path.join(outDir, 'ui'))
+removeStaleOutput(path.join(outDir, 'renderer.js'))
+removeStaleOutput(path.join(outDir, 'renderer.js.map'))
+removeStaleOutput(path.join(outDir, 'renderer.d.ts'))
+removeStaleOutput(path.join(outDir, 'renderer.d.ts.map'))
 
 copyOptional(path.join(repoRoot, 'node_modules', 'xterm', 'lib', 'xterm.js'), path.join(outDir, 'vendor', 'xterm.js'))
 copyOptional(path.join(repoRoot, 'node_modules', 'xterm', 'css', 'xterm.css'), path.join(outDir, 'vendor', 'xterm.css'))

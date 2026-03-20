@@ -83,7 +83,7 @@ export function applyRinaWarpTheme(term: import('xterm').Terminal): void {
 
 /**
  * Rina system message helper
- * Outputs styled Rina messages in the terminal
+ * Outputs styled Rina messages in the execution stream
  */
 export function rinaLog(
   term: import('xterm').Terminal,
@@ -103,7 +103,7 @@ export function rinaLog(
 
 /**
  * Rina command helper
- * Outputs styled Rina commands in the terminal
+ * Outputs styled Rina commands in the execution stream
  */
 export function rinaCommand(term: import('xterm').Terminal, command: string): void {
   // Coral color for Rina commands

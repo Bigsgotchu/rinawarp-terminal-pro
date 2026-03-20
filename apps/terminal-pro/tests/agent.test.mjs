@@ -32,13 +32,13 @@ describe('Agent Tests', () => {
     assert.ok(Array.isArray(mockResponse.actions))
   })
 
-  it('should handle terminal block creation', async () => {
-    // Test the createTerminalBlock function structure
+  it('should handle execution trace block creation', async () => {
+    // Test the execution trace block structure
     const mockCommand = 'ls -la'
     
-    // Simulate the structure that createTerminalBlock creates
+    // Simulate the structure that the execution trace renderer creates
     const block = {
-      className: 'terminal-block',
+      className: 'execution-trace-block',
       innerHTML: `command: $ ${mockCommand}`
     }
     

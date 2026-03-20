@@ -672,7 +672,7 @@ class RinaController {
     try {
       const deviceId = this.getDeviceId()
 
-      const res = await fetch('https://api.rinawarptech.com/v1/licenses/verify', {
+      const res = await fetch('https://api.rinawarptech.com/api/license/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key, device_id: deviceId }),

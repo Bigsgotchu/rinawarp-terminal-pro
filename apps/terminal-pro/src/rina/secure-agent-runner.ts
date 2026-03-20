@@ -8,6 +8,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { execCommandSync } from './execution/legacyShell.js'
 
 const AGENTS_DIR = path.join(process.env.HOME || '.', '.rinawarp', 'agents')
 
@@ -28,6 +29,14 @@ const VALID_PERMISSIONS: Permission[] = [
   'docker',
   'process',
 ]
+
+function resolveSecureWorkspaceDir(explicit?: string): string {
+  const candidate = String(explicit || process.env.RINA_WORKSPACE_ROOT || '').trim()
+  if (!candidate) {
+    throw new Error('Missing workspace directory for secure agent execution')
+  }
+  return candidate
+}
 
 /**
  * Agent manifest with security fields
@@ -82,10 +91,8 @@ function safeExec(cmd: string, permissions: Permission[], cwd: string): string {
     }
   }
 
-  const { execSync } = require('child_process')
-  return execSync(cmd, {
+  return execCommandSync(cmd, {
     cwd,
-    encoding: 'utf8',
     timeout: 30000,
     maxBuffer: 10 * 1024 * 1024,
   })
@@ -167,7 +174,7 @@ export async function runSecureAgent(
   }
 
   // Execute in workspace
-  const workspaceDir = options?.workspaceDir || process.cwd()
+  const workspaceDir = resolveSecureWorkspaceDir(options?.workspaceDir)
   console.log(`[Secure Runner] Running "${name}" with permissions: ${agent.permissions.join(', ')}`)
 
   const outputs: string[] = []

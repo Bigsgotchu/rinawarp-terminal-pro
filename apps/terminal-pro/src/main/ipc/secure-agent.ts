@@ -9,18 +9,65 @@ import type { IpcMain } from 'electron'
 import { runSecureAgent, getSecureAgentInfo, validateAgentManifest } from '../../rina/secure-agent-runner.js'
 import {
   installAgent as installAgentFromManager,
+  installAgentPackage,
   getInstalledAgent,
   listInstalledAgents,
+  type AgentPackage,
 } from '../../rina/agent-manager.js'
+import { FALLBACK_MARKETPLACE_AGENTS } from '../../rina/capabilities/catalog.js'
+import { listCapabilityPacks } from '../../rina/capabilities/registry.js'
+import { licenseApiUrl } from '../../license.js'
+
+function mergeMarketplaceAgents(agents: AgentPackage[]): AgentPackage[] {
+  const merged = new Map<string, AgentPackage>()
+  for (const agent of agents) merged.set(agent.name, agent)
+  for (const fallback of FALLBACK_MARKETPLACE_AGENTS) {
+    if (!merged.has(fallback.name)) merged.set(fallback.name, fallback)
+  }
+  return Array.from(merged.values())
+}
+
+async function fetchMarketplaceAgents(): Promise<{ ok: boolean; agents?: AgentPackage[]; error?: string; source?: string }> {
+  const candidates = [
+    licenseApiUrl('/v1/agents'),
+    'https://www.rinawarptech.com/api/agents',
+  ]
+
+  let lastError: string | undefined
+  for (const url of candidates) {
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        lastError = `Marketplace request failed: ${response.status}`
+        continue
+      }
+      const payload = (await response.json()) as { agents?: AgentPackage[] }
+      if (Array.isArray(payload?.agents)) {
+        return { ok: true, agents: mergeMarketplaceAgents(payload.agents), source: 'remote' }
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  return {
+    ok: true,
+    agents: mergeMarketplaceAgents(FALLBACK_MARKETPLACE_AGENTS),
+    error: lastError,
+    source: 'fallback',
+  }
+}
 
 /**
  * Register secure agent IPC handlers
  */
-export function registerSecureAgentIpc(ipcMain: IpcMain) {
+export function registerSecureAgentIpc(ipcMain: IpcMain, deps?: { getLicenseTier?: () => string }) {
   // Remove existing handlers to prevent duplicates
   ipcMain.removeHandler('secure-agent:run')
   ipcMain.removeHandler('secure-agent:info')
   ipcMain.removeHandler('secure-agent:list')
+  ipcMain.removeHandler('secure-agent:marketplace')
+  ipcMain.removeHandler('rina:capabilities:list')
   ipcMain.removeHandler('secure-agent:validate-manifest')
   ipcMain.removeHandler('secure-agent:install')
 
@@ -82,6 +129,24 @@ export function registerSecureAgentIpc(ipcMain: IpcMain) {
     return { ok: true, agents: agentList }
   })
 
+  ipcMain.handle('secure-agent:marketplace', async () => {
+    const marketplace = await fetchMarketplaceAgents()
+    return {
+      ...marketplace,
+      capabilities: listCapabilityPacks(marketplace.agents || []),
+    }
+  })
+
+  ipcMain.handle('rina:capabilities:list', async () => {
+    const marketplace = await fetchMarketplaceAgents()
+    return {
+      ok: true,
+      capabilities: listCapabilityPacks(marketplace.agents || []),
+      source: marketplace.source,
+      error: marketplace.error,
+    }
+  })
+
   /**
    * Validate an agent manifest
    */
@@ -110,6 +175,32 @@ export function registerSecureAgentIpc(ipcMain: IpcMain) {
       }
     ) => {
       try {
+        const marketplace = await fetchMarketplaceAgents()
+        const fallbackAgent = marketplace.agents?.find((agent) => agent.name === options.name)
+        if (fallbackAgent) {
+          const currentTier = String(deps?.getLicenseTier?.() || 'starter').toLowerCase()
+          const premiumUnlocked = currentTier !== 'starter'
+          if (fallbackAgent.price && fallbackAgent.price > 0 && !premiumUnlocked) {
+            return {
+              ok: false,
+              error: `Agent "${options.name}" requires Pro or purchase before installation.`,
+            }
+          }
+
+          const agent = installAgentPackage(fallbackAgent)
+          return {
+            ok: true,
+            agent: {
+              name: agent.name,
+              version: agent.version,
+              description: agent.description,
+              author: agent.author,
+              permissions: ['terminal'],
+              commands: agent.commands,
+            },
+          }
+        }
+
         const agent = await installAgentFromManager(options.name, options.apiUrl, options.userEmail)
 
         // Agent package may not have permissions field (backward compatibility)

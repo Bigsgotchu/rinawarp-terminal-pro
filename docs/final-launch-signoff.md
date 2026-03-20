@@ -2,15 +2,46 @@
 
 Date: __________
 Verifier run: `npm run verify:prelaunch:full`
-Result: `ready`
+Result: `blocked`
 Owner: __________
+
+Live revenue runbook:
+
+- [LIVE_REVENUE_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/docs/LIVE_REVENUE_RUNBOOK.md)
+
+Primary completion checklist:
+
+- [RINA_COMPLETION_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/RINA_COMPLETION_CHECKLIST.md)
+
+## Current Known Blockers
+
+- [x] Local desktop verification is green.
+  - `build:electron`, `test:trust-smoke`, and `test:e2e:proof` are passing.
+  - local paid-gating proof is covered: starter blocks Pro-only capability runs, seeded Pro entitlement unlocks them.
+  - marketplace local gating proof is covered: starter sees premium agents as locked, seeded Pro entitlement enables local install.
+- [ ] Public Stripe/API smoke is green.
+  - `npm run verify:prelaunch:full` currently stops at `npm run smoke:stripe`.
+  - `https://api.rinawarptech.com/api/health` is returning `429` with Cloudflare body `error code: 1027`.
+- [x] Downloads worker is confirmed live and serving manifest-backed routes.
+  - `https://rinawarp-downloads.rinawarptech.workers.dev/download/terminal-pro-linux` redirects correctly to the `1.1.3` AppImage
+- [ ] Public download surface is re-verified against the current live site and reconciled with the runbook.
+  - This document and `LIVE_REVENUE_RUNBOOK.md` must agree on whether the apex Pages/download surface is current before launch.
+- [ ] macOS signing secrets are configured in GitHub Actions if macOS is part of launch scope.
+  - Current `Release` workflow runs fail the macOS job without `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID`.
+- [x] Capability-pack execution is wired through the blessed run/receipt path, not just discovery/gating.
+  - local proof covers ready, locked, install-needed, and seeded-Pro-unlocked capability states in-thread.
+- [ ] Agent-first UI audit is completed and signed off.
 
 ## Hard Launch Gates
 
 - [ ] Stripe test checkout completed successfully with a real test card.
 - [ ] Stripe webhook upgraded the license in the desktop app after checkout.
-- [ ] Free users are blocked from Pro-only agents and Pro-only auto-fix actions.
-- [ ] Pro badges are visibly present in the marketplace UI.
+- [x] Free users are blocked from Pro-only capability actions in local desktop verification.
+  - live billing/API confirmation is still pending because public Stripe smoke is blocked upstream.
+- [x] Pro badges are visibly present in the marketplace UI.
+- [x] Marketplace install flow is locally verified for both starter-blocked and Pro-unlocked states.
+- [ ] Marketplace install flow is verified against the live billing/backend path.
+- [x] Local upgrade-boundary copy matches the actual Pro unlocks shown in the desktop app.
 - [ ] Analytics shows the expected conversion and usage events after a real flow.
 
 Do not launch publicly until every hard gate above is checked.
@@ -22,7 +53,10 @@ Do not launch publicly until every hard gate above is checked.
 - [ ] Workspace detection correctly identifies an opened project.
 - [ ] A failing command surfaces the AI/pro upgrade experience clearly.
 - [ ] Upgrade modal shows the correct price and value framing.
-- [ ] Marketplace install flow feels clear for both free and blocked Pro agents.
+- [x] Marketplace install flow feels clear for both free and blocked Pro agents in local desktop verification.
+- [x] Marketplace upgrade copy explains the real Pro unlocks in local desktop verification.
+- [ ] Agent remains the obvious home screen; inspectors do not read like peer-primary work modes.
+- [ ] Capability-required / capability-locked / capability-install-needed states feel clear in-thread.
 
 ## Revenue Flow
 

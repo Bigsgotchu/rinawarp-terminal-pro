@@ -18,6 +18,13 @@
       "failed": 8,
       "revenue_events": 0,
       "new_users": 0
+    },
+    "2026-03-19": {
+      "runs": 0,
+      "completed": 0,
+      "failed": 0,
+      "revenue_events": 0,
+      "new_users": 0
     }
   }
 }

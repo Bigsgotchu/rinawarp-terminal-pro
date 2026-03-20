@@ -1,9 +1,4 @@
-/**
- * Palette state management - pure state container and helpers.
- */
-
 import type { PaletteCommand } from './model.js'
-import { loadRecent } from './recent.js'
 
 export type PaletteState = {
   commands: PaletteCommand[]
@@ -28,10 +23,7 @@ export function setCommands(state: PaletteState, next: PaletteCommand[]): void {
 }
 
 export function buildRecentBoost(): Map<string, number> {
-  const recents = loadRecent()
-  const boost = new Map<string, number>()
-  recents.forEach((id, idx) => boost.set(id, Math.max(0, 1.5 - idx * 0.15)))
-  return boost
+  return new Map<string, number>()
 }
 
 export function clampIndex(idx: number, length: number): number {

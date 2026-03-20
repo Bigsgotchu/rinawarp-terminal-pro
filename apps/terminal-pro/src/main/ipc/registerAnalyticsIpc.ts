@@ -4,7 +4,7 @@
  * Exposes analytics functions to the renderer process.
  */
 
-import electron from 'electron'
+import * as electron from 'electron'
 const { ipcMain } = electron
 import {
   trackFunnelStep,

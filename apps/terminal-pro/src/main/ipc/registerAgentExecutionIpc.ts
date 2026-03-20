@@ -1,4 +1,11 @@
 import type { IpcMain, WebContents } from 'electron'
+import { getInstalledAgent } from '../../rina/agent-manager.js'
+import { FALLBACK_MARKETPLACE_AGENTS } from '../../rina/capabilities/catalog.js'
+import {
+  buildCapabilityExecutionPlan,
+  buildMarketplaceCapabilityExecutionPlan,
+} from '../../rina/capabilities/execution.js'
+import { listCapabilityPacks } from '../../rina/capabilities/registry.js'
 
 type PlanRunState = {
   stopped: boolean
@@ -13,6 +20,14 @@ type ExecutePlanPayload = {
   projectRoot: string
   confirmed: boolean
   confirmationText: string
+}
+
+type ExecuteCapabilityPayload = {
+  packKey: string
+  projectRoot: string
+  actionId?: string
+  confirmed?: boolean
+  confirmationText?: string
 }
 
 type RegisterAgentExecutionArgs = {
@@ -47,17 +62,7 @@ type RegisterAgentExecutionArgs = {
     agentdPlanRunId: string
     runId: string
   }) => Promise<string | undefined>
-  allowLocalEngineFallback: boolean
   createStreamId: () => string
-  startStreamingStepViaEngine: (args: {
-    webContents: WebContents
-    streamId: string
-    step: { id: string; tool: 'terminal'; command: string; risk: RiskLevel }
-    confirmed: boolean
-    confirmationText: string
-    projectRoot: string
-  }) => Promise<unknown>
-  haltReasonFromFallbackStep: (result: any) => string | null
   executeStepStream: (args: {
     eventSender: WebContents
     step: any
@@ -125,62 +130,6 @@ async function runRemotePlan(
   )
 }
 
-async function runFallbackPlan(
-  args: RegisterAgentExecutionArgs,
-  eventSender: WebContents,
-  planRunId: string,
-  runId: string,
-  payload: ExecutePlanPayload,
-  projectRoot: string
-) {
-  for (const step of payload.plan) {
-    const state = args.runningPlanRuns.get(planRunId)
-    if (!state || state.stopped) {
-      return { haltedStepId: step.stepId, haltReason: 'stop_requested' }
-    }
-    const streamId = args.createStreamId()
-    state.currentStreamId = streamId
-    const command = step?.input?.command
-    if (typeof command !== 'string') {
-      args.safeSend(eventSender, 'rina:stream:end', {
-        streamId,
-        ok: false,
-        code: null,
-        cancelled: false,
-        error: 'Invalid step input: missing command',
-        report: { ok: false, haltedBecause: 'unknown_tool', steps: [] },
-      })
-      return { haltedStepId: step.stepId, haltReason: 'Invalid step input' }
-    }
-    args.safeSend(eventSender, 'rina:plan:stepStart', {
-      planRunId,
-      runId,
-      streamId,
-      step: { stepId: step.stepId, tool: 'terminal', input: step.input },
-    })
-    const toolStep = {
-      id: step.stepId ?? `step_${streamId}`,
-      tool: 'terminal' as const,
-      command,
-      risk: args.riskFromPlanStep(step),
-    }
-    const stepResult = await args.startStreamingStepViaEngine({
-      webContents: eventSender,
-      streamId,
-      step: toolStep,
-      confirmed: payload.confirmed,
-      confirmationText: payload.confirmationText ?? '',
-      projectRoot,
-    })
-    state.currentStreamId = undefined
-    const stepHalt = args.haltReasonFromFallbackStep(stepResult)
-    if (stepHalt) {
-      return { haltedStepId: step.stepId ?? toolStep.id, haltReason: stepHalt }
-    }
-  }
-  return { haltedStepId: null, haltReason: '' }
-}
-
 async function handleExecutePlanStream(
   args: RegisterAgentExecutionArgs,
   eventSender: WebContents,
@@ -188,7 +137,18 @@ async function handleExecutePlanStream(
 ) {
   const planRunId = args.newPlanRunId()
   const runId = `run_${Date.now()}_${Math.random().toString(16).slice(2)}`
-  const projectRoot = args.resolveProjectRootSafe(payload.projectRoot || process.cwd())
+  if (!payload.projectRoot) {
+    return {
+      ok: false,
+      runId,
+      planRunId,
+      haltedStepId: payload.plan[0]?.stepId ?? null,
+      haltReason: 'Missing projectRoot for executePlanStream',
+      error: 'Missing projectRoot for executePlanStream',
+      code: 'MISSING_PROJECT_ROOT',
+    }
+  }
+  const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)
   args.ensureStructuredSession({ source: 'execute_plan_stream', projectRoot, preferredId: planRunId })
   args.runningPlanRuns.set(planRunId, { stopped: false })
   args.safeSend(eventSender, 'rina:plan:run:start', { planRunId })
@@ -201,22 +161,32 @@ async function handleExecutePlanStream(
       haltedBecause: preflightHalt.haltReason,
     })
     args.runningPlanRuns.delete(planRunId)
-    return { runId, planRunId, haltedStepId: preflightHalt.haltedStepId, haltReason: preflightHalt.haltReason }
+    return {
+      ok: false,
+      runId,
+      planRunId,
+      haltedStepId: preflightHalt.haltedStepId,
+      haltReason: preflightHalt.haltReason,
+      error: preflightHalt.haltReason,
+      code: 'PLAN_HALTED',
+    }
   }
 
   let haltedStepId: string | null = null
   let haltReason = ''
+  let failureCode: 'RUN_FAILED' | 'EXEC_BACKEND_UNAVAILABLE' | null = null
   try {
     haltReason = await runRemotePlan(args, eventSender, planRunId, runId, payload, projectRoot)
-  } catch (error) {
-    if (!args.allowLocalEngineFallback) {
-      haltedStepId = payload.plan[0]?.stepId ?? null
-      haltReason = error instanceof Error ? error.message : String(error)
-    } else {
-      const fallback = await runFallbackPlan(args, eventSender, planRunId, runId, payload, projectRoot)
-      haltedStepId = fallback.haltedStepId
-      haltReason = fallback.haltReason
+    if (haltReason) {
+      failureCode = 'RUN_FAILED'
     }
+  } catch (error) {
+    haltedStepId = payload.plan[0]?.stepId ?? null
+    const message = error instanceof Error ? error.message : String(error)
+    haltReason =
+      'Execution backend unavailable. No fallback execution was performed. ' +
+      `Check connectivity/config and retry. (${message})`
+    failureCode = 'EXEC_BACKEND_UNAVAILABLE'
   } finally {
     args.safeSend(eventSender, 'rina:plan:run:end', {
       planRunId,
@@ -225,7 +195,97 @@ async function handleExecutePlanStream(
     })
     args.runningPlanRuns.delete(planRunId)
   }
-  return { runId, planRunId, haltedStepId, haltReason }
+  if (haltReason) {
+    return {
+      ok: false,
+      runId,
+      planRunId,
+      haltedStepId,
+      haltReason,
+      error: haltReason,
+      code: failureCode || 'RUN_FAILED',
+      retrySuggestion:
+        failureCode === 'EXEC_BACKEND_UNAVAILABLE'
+          ? 'Retry after the execution backend is healthy again.'
+          : undefined,
+    }
+  }
+
+  return { ok: true, runId, planRunId, haltedStepId, haltReason: '' }
+}
+
+function resolveCapabilityPlan(payload: ExecuteCapabilityPayload, projectRoot: string) {
+  const pack = listCapabilityPacks(FALLBACK_MARKETPLACE_AGENTS).find((entry) => entry.key === payload.packKey)
+  if (!pack) {
+    return {
+      ok: false as const,
+      error: 'Capability not found',
+      code: 'CAPABILITY_NOT_FOUND',
+    }
+  }
+
+  const builtinPlan = buildCapabilityExecutionPlan(pack, projectRoot, payload.actionId)
+  if (builtinPlan) {
+    return {
+      ok: true as const,
+      pack,
+      plan: builtinPlan,
+    }
+  }
+
+  const installed = getInstalledAgent(pack.key)
+  if (installed) {
+    const marketplacePlan = buildMarketplaceCapabilityExecutionPlan(pack, installed, projectRoot, payload.actionId)
+    if (marketplacePlan) {
+      return {
+        ok: true as const,
+        pack,
+        plan: marketplacePlan,
+      }
+    }
+  }
+
+  return {
+    ok: false as const,
+    error: 'Capability action not wired yet',
+    code: 'CAPABILITY_NOT_WIRED',
+  }
+}
+
+async function handleExecuteCapability(
+  args: RegisterAgentExecutionArgs,
+  eventSender: WebContents,
+  payload: ExecuteCapabilityPayload
+) {
+  if (!payload.projectRoot) {
+    return {
+      ok: false,
+      error: 'Missing projectRoot for capability execution',
+      code: 'MISSING_PROJECT_ROOT',
+    }
+  }
+
+  const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)
+  const resolved = resolveCapabilityPlan(payload, projectRoot)
+  if (!resolved.ok) {
+    return resolved
+  }
+
+  const result = await handleExecutePlanStream(args, eventSender, {
+    plan: resolved.plan.steps,
+    projectRoot,
+    confirmed: payload.confirmed === true,
+    confirmationText: payload.confirmationText ?? '',
+  })
+
+  return {
+    ...result,
+    packKey: resolved.pack.key,
+    actionId: resolved.plan.actionId,
+    prompt: resolved.plan.prompt,
+    reasoning: resolved.plan.reasoning,
+    plan: resolved.plan.steps,
+  }
 }
 
 export function registerAgentExecutionIpc(args: RegisterAgentExecutionArgs) {
@@ -233,6 +293,9 @@ export function registerAgentExecutionIpc(args: RegisterAgentExecutionArgs) {
 
   ipcMain.handle('rina:executePlanStream', async (event, payload: ExecutePlanPayload) =>
     handleExecutePlanStream(args, event.sender, payload)
+  )
+  ipcMain.handle('rina:capabilities:execute', async (event, payload: ExecuteCapabilityPayload) =>
+    handleExecuteCapability(args, event.sender, payload)
   )
 
   ipcMain.handle(
