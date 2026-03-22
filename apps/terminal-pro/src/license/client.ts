@@ -221,6 +221,11 @@ export async function verifyLicense(customerId: string, options?: { force?: bool
 export async function createCheckoutSession(args: {
   email: string
   deviceId: string
+  tier?: string
+  billingCycle?: 'monthly' | 'annual'
+  seats?: number
+  workspaceId?: string
+  priceId?: string
 }): Promise<CheckoutResponse> {
   const response = await postJsonWithFallback<CheckoutResponse & { checkoutUrl?: string }>({
     paths: ['/v1/license/checkout', '/api/checkout'],
@@ -228,6 +233,12 @@ export async function createCheckoutSession(args: {
       email: args.email.trim().toLowerCase(),
       deviceId: args.deviceId,
       device_id: args.deviceId,
+      tier: args.tier,
+      billingCycle: args.billingCycle,
+      seats: args.seats,
+      workspaceId: args.workspaceId,
+      workspace_id: args.workspaceId,
+      priceId: args.priceId,
     },
     errorLabel: 'checkout',
   })

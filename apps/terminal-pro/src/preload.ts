@@ -82,6 +82,15 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'auth:state',
   'auth:token',
   'team:state',
+  'team:plan',
+  'team:workspace:create',
+  'team:workspace:set',
+  'team:workspace:get',
+  'team:invites:list',
+  'team:invite:create',
+  'team:invite:revoke',
+  'team:audit:list',
+  'team:billing:setEnforcement',
   'secure-agent:list',
   'secure-agent:marketplace',
   'secure-agent:install',
@@ -301,7 +310,13 @@ contextBridge.exposeInMainWorld('rina', {
   verifyLicense: (customerId: string) => ipcRenderer.invoke('license:verify', customerId),
   licenseRefresh: () => ipcRenderer.invoke('license:refresh'),
   licenseState: () => ipcRenderer.invoke('license:state'),
-  licenseCheckout: (email?: string) => ipcRenderer.invoke('license:checkout', { email }),
+  licenseCheckout: (input?: string | { email?: string; tier?: string; billingCycle?: 'monthly' | 'annual'; seats?: number; workspaceId?: string; priceId?: string }) =>
+    ipcRenderer.invoke(
+      'license:checkout',
+      typeof input === 'string'
+        ? { email: input }
+        : (input || {})
+    ),
   openStripePortal: (email?: string) => ipcRenderer.invoke('license:portal', { email }),
   licenseCachedEmail: () => ipcRenderer.invoke('license:email'),
   licenseLookupByEmail: (email: string) => ipcRenderer.invoke('license:lookup', email),
@@ -314,6 +329,18 @@ contextBridge.exposeInMainWorld('rina', {
   authState: () => ipcRenderer.invoke('auth:state'),
   authToken: () => ipcRenderer.invoke('auth:token'),
   teamState: () => ipcRenderer.invoke('team:state'),
+  teamPlan: () => ipcRenderer.invoke('team:plan'),
+  teamWorkspaceCreate: (args: { name: string; region?: string }) => ipcRenderer.invoke('team:workspace:create', args),
+  teamWorkspaceSet: (workspaceId: string) => ipcRenderer.invoke('team:workspace:set', workspaceId),
+  teamWorkspaceGet: (workspaceId?: string) => ipcRenderer.invoke('team:workspace:get', workspaceId),
+  teamInvitesList: (workspaceId?: string) => ipcRenderer.invoke('team:invites:list', workspaceId),
+  teamInviteCreate: (args: { workspaceId?: string; email: string; role?: 'owner' | 'admin' | 'member'; expiresInHours?: number; sendEmail?: boolean }) =>
+    ipcRenderer.invoke('team:invite:create', args),
+  teamInviteRevoke: (inviteId: string) => ipcRenderer.invoke('team:invite:revoke', inviteId),
+  teamAuditList: (args?: { workspaceId?: string; type?: string; from?: string; to?: string; limit?: number }) =>
+    ipcRenderer.invoke('team:audit:list', args),
+  teamBillingSetEnforcement: (args: { workspaceId?: string; requireActivePlan: boolean }) =>
+    ipcRenderer.invoke('team:billing:setEnforcement', args),
   marketplaceList: () => ipcRenderer.invoke('secure-agent:marketplace'),
   installedAgents: () => ipcRenderer.invoke('secure-agent:list'),
   installMarketplaceAgent: (args: { name: string; userEmail?: string }) => ipcRenderer.invoke('secure-agent:install', args),

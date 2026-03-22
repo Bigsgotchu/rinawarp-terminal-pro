@@ -44,7 +44,14 @@ declare global {
         customer_id: string | null
         status?: string
       }>
-      licenseCheckout(email?: string): Promise<{ ok: boolean; error?: string; url?: string; sessionId?: string }>
+      licenseCheckout(input?: string | {
+        email?: string
+        tier?: string
+        billingCycle?: 'monthly' | 'annual'
+        seats?: number
+        workspaceId?: string
+        priceId?: string
+      }): Promise<{ ok: boolean; error?: string; url?: string; sessionId?: string }>
       openStripePortal(email?: string): Promise<{ ok: boolean; fallback?: boolean; error?: string }>
       licenseCachedEmail(): Promise<{ email?: string | null }>
       licenseLookupByEmail(email: string): Promise<{
@@ -79,6 +86,7 @@ declare global {
       authToken(): Promise<{ token?: string | null }>
       teamState(): Promise<{
         ok: boolean
+        workspaceId?: string
         currentUser: string
         currentRole: string
         members: Array<{ email: string; role: string }>
@@ -86,6 +94,40 @@ declare global {
         seatsUsed: number
         error?: string
       }>
+      teamPlan(): Promise<{
+        ok?: boolean
+        plan?: string
+        status?: string
+        seats_allowed?: number
+        seats_used?: number
+        renews_at?: string
+        error?: string
+      }>
+      teamWorkspaceCreate(args: { name: string; region?: string }): Promise<{ workspace_id?: string; owner_id?: string; ok?: boolean; error?: string }>
+      teamWorkspaceSet(workspaceId: string): Promise<{ ok: boolean; workspaceId?: string }>
+      teamWorkspaceGet(workspaceId?: string): Promise<{
+        id?: string
+        name?: string
+        region?: string
+        seats_allowed?: number
+        seats_used?: number
+        billing_status?: string
+        billing_enforced?: boolean
+        billing_locked?: boolean
+        error?: string
+        ok?: boolean
+      }>
+      teamInvitesList(workspaceId?: string): Promise<{ ok?: boolean; invites?: Array<any>; error?: string }>
+      teamInviteCreate(args: {
+        workspaceId?: string
+        email: string
+        role?: 'owner' | 'admin' | 'member'
+        expiresInHours?: number
+        sendEmail?: boolean
+      }): Promise<{ ok?: boolean; invite_id?: string; expires_at?: string; invite_token?: string; error?: string }>
+      teamInviteRevoke(inviteId: string): Promise<{ ok?: boolean; error?: string }>
+      teamAuditList(args?: { workspaceId?: string; type?: string; from?: string; to?: string; limit?: number }): Promise<{ ok?: boolean; entries?: Array<any>; error?: string }>
+      teamBillingSetEnforcement(args: { workspaceId?: string; requireActivePlan: boolean }): Promise<{ ok?: boolean; workspace?: any; error?: string }>
       marketplaceList(): Promise<{
         ok: boolean
         agents?: Array<{

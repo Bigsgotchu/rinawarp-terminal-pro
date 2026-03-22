@@ -84,7 +84,14 @@ export interface RinaRendererWindow {
       status?: string
     }>
     licenseState: () => Promise<{ tier?: string }>
-    licenseCheckout?: (email?: string) => Promise<{ ok: boolean; error?: string; url?: string; sessionId?: string }>
+    licenseCheckout?: (input?: string | {
+      email?: string
+      tier?: string
+      billingCycle?: 'monthly' | 'annual'
+      seats?: number
+      workspaceId?: string
+      priceId?: string
+    }) => Promise<{ ok: boolean; error?: string; url?: string; sessionId?: string }>
     licenseCachedEmail?: () => Promise<{ email?: string | null }>
     openStripePortal: (email?: string) => Promise<{ ok: boolean; fallback?: boolean; error?: string }>
     marketplaceList?: () => Promise<{

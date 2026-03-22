@@ -1,7 +1,7 @@
 {
   "name": "rinawarp-terminal-pro",
   "private": true,
-  "version": "1.1.4",
+  "version": "1.1.5",
   "type": "module",
   "main": "dist-electron/main.js",
   "description": "RinaWarp agent-first desktop app for build, test, deploy, and system workflows",
@@ -47,7 +47,7 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs --fix",
     "build:all": "npm run build:electron && npm run package:linux && npm run package:win",
-    "package:linux": "bash ../../deploy/package-linux.sh",
+    "package:linux": "electron-builder --linux --publish never",
     "package:win": "electron-builder --win --publish never",
     "dist:mac": "npm run build:electron && electron-builder --mac --publish never",
     "dist:win": "npm run build:electron && electron-builder --win --publish never",

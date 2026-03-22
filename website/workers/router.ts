@@ -1031,7 +1031,7 @@ function renderDownload(): Response {
           <p>For <strong>Debian/Ubuntu desktops</strong>, use the <strong>.deb</strong> package. It is the recommended Early Access path because APT pulls the standard Electron desktop libraries automatically. Choose <strong>AppImage</strong> only if you specifically want the in-app automatic update path and you already have a desktop Linux runtime stack in place.</p>
           <div class="link-row">
             <a href="/download/linux/deb" class="btn btn-primary">Download Linux .deb</a>
-            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.4/RinaWarp-Terminal-Pro-1.1.4.AppImage" class="btn btn-secondary">Download AppImage</a>
+            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/RinaWarp-Terminal-Pro-1.1.5.AppImage" class="btn btn-secondary">Download AppImage</a>
             <a href="${PUBLIC_UPDATES_BASE}/latest.json" class="btn btn-secondary">View manifest</a>
           </div>
           <p class="note">Recommended baseline: Debian 13 / Ubuntu desktop-class systems for Early Access. Minimal server images may need additional GUI/runtime packages if you choose the AppImage path.</p>
@@ -1041,7 +1041,7 @@ function renderDownload(): Response {
           <h3>.exe installer</h3>
           <p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p>
           <div class="link-row">
-            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.4/RinaWarp-Terminal-Pro-1.1.4.exe" class="btn btn-primary">Download Windows</a>
+            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/RinaWarp-Terminal-Pro-1.1.5.exe" class="btn btn-primary">Download Windows</a>
           </div>
         </article>
         <article class="card platform-card">
@@ -1063,11 +1063,11 @@ function renderDownload(): Response {
         </div>
         <h2 class="section-title">How to verify your download</h2>
         <div class="link-row">
-          <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.4/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a>
+          <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a>
           <a href="${PUBLIC_UPDATES_BASE}/latest.json" class="btn btn-secondary">Open latest.json</a>
         </div>
         <div class="hash"># Download the checksum file
-curl -O ${PUBLIC_INSTALLERS_BASE}/releases/1.1.4/SHASUMS256.txt
+curl -O ${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/SHASUMS256.txt
 
 # Inspect the live release manifest
 curl ${PUBLIC_UPDATES_BASE}/latest.json
@@ -2060,7 +2060,7 @@ async function handleCheckoutRequest(
 ): Promise<Response> {
   try {
     const body = await request.json()
-    const { email, tier = 'pro', billingCycle = 'monthly' } = body
+    const { email, tier = 'pro', billingCycle = 'monthly', seats, workspaceId } = body
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -2084,19 +2084,25 @@ async function handleCheckoutRequest(
       founder: String(env.STRIPE_FOUNDER_PRICE_ID || '').trim(),
     }
 
-    if (normalizedTier !== 'pro') {
-      return new Response(JSON.stringify({ error: 'Only Pro Early Access is available for self-serve checkout right now. Contact RinaWarp for team access.' }), {
+    if (normalizedTier !== 'pro' && normalizedTier !== 'team') {
+      return new Response(JSON.stringify({ error: 'Only Pro Early Access and Team are configured for checkout right now.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       })
     }
 
     const resolvedTierKey =
-      normalizedBillingCycle === 'annual'
-        ? 'pro_annual'
-        : 'pro_monthly'
+      normalizedTier === 'team'
+        ? 'team'
+        : normalizedBillingCycle === 'annual'
+          ? 'pro_annual'
+          : 'pro_monthly'
 
     const priceId = priceIds[resolvedTierKey] || priceIds.pro_monthly
+    const quantity =
+      normalizedTier === 'team'
+        ? String(Math.max(1, Math.min(500, Number(seats || 1) || 1)))
+        : '1'
 
     if (!priceId) {
       return new Response(JSON.stringify({ error: `Checkout is not configured for ${normalizedTier}${normalizedTier === 'pro' ? ` (${normalizedBillingCycle})` : ''}.` }), {
@@ -2118,12 +2124,18 @@ async function handleCheckoutRequest(
             mode: 'subscription',
             customer_email: email,
             'line_items[0][price]': priceId,
-            'line_items[0][quantity]': '1',
+            'line_items[0][quantity]': quantity,
             billing_address_collection: 'required',
             'automatic_tax[enabled]': 'true',
             'tax_id_collection[enabled]': 'true',
-            success_url: 'https://rinawarptech.com/success?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'https://rinawarptech.com/pricing',
+            'metadata[tier]': normalizedTier,
+            ...(String(workspaceId || '').trim() ? { 'metadata[workspace_id]': String(workspaceId).trim() } : {}),
+            ...(normalizedTier === 'team' ? { 'subscription_data[metadata][tier]': 'team' } : {}),
+            ...(normalizedTier === 'team' && String(workspaceId || '').trim()
+              ? { 'subscription_data[metadata][workspace_id]': String(workspaceId).trim() }
+              : {}),
+            success_url: 'https://rinawarptech.com/success/?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url: normalizedTier === 'team' ? 'https://rinawarptech.com/team/' : 'https://rinawarptech.com/pricing/',
           }),
         })
 

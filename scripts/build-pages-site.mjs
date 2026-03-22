@@ -9,8 +9,8 @@ const outdir = path.join(repoRoot, "website", ".pages-dist");
 
 const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
 const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
-const VERSION = "1.1.4";
-const ASSET_VERSION = "20260322-pricing-buttons";
+const VERSION = "1.1.5";
+const ASSET_VERSION = "20260322-success-handoff";
 
 const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -275,6 +275,9 @@ if (page === 'pricing') {
       }
       setStatus('checkout-status', 'Opening secure checkout…');
       try {
+        localStorage.setItem('checkout_email', email);
+        localStorage.setItem('checkout_tier', 'pro');
+        localStorage.setItem('checkout_billing_cycle', billingCycle);
         const payload = await withJson(await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -287,6 +290,59 @@ if (page === 'pricing') {
       }
     });
   });
+}
+
+if (page === 'team') {
+  document.getElementById('team-checkout-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const email = String(formData.get('email') || '').trim();
+    const seats = Math.max(1, Number(formData.get('seats') || 1));
+    const workspaceId = String(formData.get('workspaceId') || '').trim();
+    if (!email) {
+      setStatus('team-checkout-status', 'Add the billing email first.', 'error');
+      return;
+    }
+    setStatus('team-checkout-status', 'Opening secure Team checkout…');
+    try {
+      localStorage.setItem('checkout_email', email);
+      localStorage.setItem('checkout_tier', 'team');
+      localStorage.setItem('checkout_seats', String(seats));
+      if (workspaceId) localStorage.setItem('checkout_workspace_id', workspaceId);
+      const payload = await withJson(await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, tier: 'team', seats, workspaceId }),
+      }));
+      if (!payload.checkoutUrl) throw new Error('Checkout could not be created.');
+      window.location.href = payload.checkoutUrl;
+    } catch (error) {
+      setStatus('team-checkout-status', error instanceof Error ? error.message : 'Team checkout could not be created.', 'error');
+    }
+  });
+}
+
+if (page === 'success') {
+  const email = localStorage.getItem('checkout_email') || '';
+  const tier = localStorage.getItem('checkout_tier') || 'pro';
+  const seats = localStorage.getItem('checkout_seats') || '';
+  const workspaceId = localStorage.getItem('checkout_workspace_id') || '';
+  const sessionId = new URLSearchParams(window.location.search).get('session_id') || '';
+  const emailEls = document.querySelectorAll('[data-success-email]');
+  emailEls.forEach((el) => { el.textContent = email || 'the billing email you used at checkout'; });
+  const sessionEl = document.getElementById('success-session-id');
+  if (sessionEl) sessionEl.textContent = sessionId || 'Pending';
+  const planEl = document.getElementById('success-plan');
+  if (planEl) planEl.textContent = tier === 'team' ? 'Team / Business' : 'Pro Early Access';
+  const seatEl = document.getElementById('success-seats');
+  if (seatEl) seatEl.textContent = tier === 'team' ? (seats || 'Seat count saved in checkout') : '1';
+  const workspaceEl = document.getElementById('success-workspace');
+  if (workspaceEl) workspaceEl.textContent = workspaceId || 'Not attached during checkout';
+  const accountLink = document.getElementById('success-account-link');
+  if (accountLink && email) accountLink.href = '/account/?email=' + encodeURIComponent(email);
+  const restoreLink = document.getElementById('success-restore-link');
+  if (restoreLink && email) restoreLink.href = '/account/?email=' + encodeURIComponent(email) + '#restore';
 }
 
 if (page === 'feedback') {
@@ -415,11 +471,15 @@ if (page === 'account') {
   const authGate = document.getElementById('account-gate');
   const authState = document.getElementById('account-state');
   const restoreForm = document.getElementById('restore-form');
+  const emailFromQuery = new URLSearchParams(window.location.search).get('email') || '';
+  const checkoutEmail = emailFromQuery || localStorage.getItem('checkout_email') || localStorage.getItem('user_email') || '';
 
   async function loadAccount() {
     if (!token) {
       if (authGate) authGate.hidden = false;
       if (authState) authState.hidden = true;
+      const restoreInput = restoreForm?.querySelector('input[name=\"email\"]');
+      if (restoreInput && checkoutEmail) restoreInput.value = checkoutEmail;
       return;
     }
     try {
@@ -430,6 +490,7 @@ if (page === 'account') {
       if (authState) authState.hidden = false;
       document.getElementById('account-name').textContent = payload.user?.name || 'RinaWarp account';
       document.getElementById('account-email').textContent = payload.user?.email || localStorage.getItem('user_email') || '';
+      if (payload.user?.email) localStorage.setItem('user_email', payload.user.email);
       try {
         const sub = await withJson(await fetch('/api/license/lookup-by-email', {
           method: 'POST',
@@ -613,12 +674,12 @@ const pages = [
     description: "Choose the RinaWarp plan that fits your workflow. Pay for proof-backed execution, recovery, and an agent-first desktop experience.",
     eyebrow: "Early Access pricing",
     heading: "Price the trust, proof, and recovery people actually use.",
-    copy: "RinaWarp Terminal Pro Early Access keeps the ladder simple: a real free tier to feel the workbench, a serious Pro tier for proof-backed execution, and team pricing later when the admin and governance surface is ready.",
+    copy: "RinaWarp Terminal Pro Early Access keeps the ladder simple: a real free tier to feel the workbench, a serious Pro tier for proof-backed execution, and a Team plan that now has a live checkout path tied to seats and workspace rollout.",
     content: `
       <section class="section"><div class="pricing-grid">
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary">Get started</a></article>
         <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
-        <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>Managed onboarding for teams that need seats, role boundaries, trust controls, and founder-level rollout support.</p><ul class="feature-list"><li>Seat planning, managed onboarding, and team rollout support</li><li>Role-aware workspace boundaries and invite flows</li><li>Team memory and audit/export direction</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">See Team</a></article>
+        <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>For teams that need seats, role boundaries, invite management, audit visibility, and a truth-based path from checkout into workspace rollout.</p><ul class="feature-list"><li>Seat-based checkout and workspace-linked team rollout</li><li>Role-aware invite management and audit direction</li><li>Team memory, multi-agent limits, and proof-backed workflows</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team</a></article>
       </div></section>
     `
   },
@@ -626,26 +687,37 @@ const pages = [
     route: "team",
     path: "/team",
     page: "team",
-    title: "RinaWarp Team | Managed Team Onboarding",
-    description: "RinaWarp Team gives growing teams a managed path to seats, role-aware rollout, proof-backed execution, and founder-led onboarding.",
-    eyebrow: "Managed Team plan",
-    heading: "RinaWarp Team is real. It’s just managed, not self-serve.",
-    copy: "The Team plan is for teams that need multi-seat rollout, role boundaries, proof-backed execution, and founder-led onboarding before we expose full self-serve org billing.",
+    title: "RinaWarp Team | Seat-Based Team Workbench",
+    description: "RinaWarp Team gives growing teams a seat-based path to proof-backed execution, invite management, audit visibility, and workspace-aware rollout.",
+    eyebrow: "Team plan",
+    heading: "RinaWarp Team is seat-based, proof-backed, and ready for real rollout.",
+    copy: "The Team plan is for teams that need multi-seat rollout, role boundaries, proof-backed execution, and a cleaner path from checkout to workspace administration.",
     content: `
       <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">Pricing</div><h3>$49 per user / month</h3><p>Team is a real managed plan, not a placeholder enterprise upsell. We start with founder-led onboarding so the rollout is supportable.</p></article>
+        <article class="card"><div class="kicker">Pricing</div><h3>$49 per user / month</h3><p>Team pricing is seat-based so billing, workspace limits, and invite pressure stay aligned instead of drifting apart.</p></article>
         <article class="card"><div class="kicker">Roles</div><h3>Owner, admin, and member boundaries</h3><p>The product stack already includes role-aware workspace and invite primitives, so Team maps to real behavior instead of generic account fluff.</p></article>
-        <article class="card"><div class="kicker">Support</div><h3>Priority rollout help</h3><p>We help with seat planning, restore issues, supported platforms, and the first production rollout instead of leaving teams to guess.</p></article>
+        <article class="card"><div class="kicker">Support</div><h3>Priority rollout help</h3><p>We still help with the first rollout, but the checkout path, invite controls, and audit surface no longer depend on founder DMs to exist.</p></article>
       </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">What Team includes now</h2>
         <div class="grid three-up">
           <article class="card"><h3>Proof-backed team workflows</h3><p>Shared expectations around receipts, run proof, recovery, and safer execution than generic AI terminal tooling.</p></article>
-          <article class="card"><h3>Seat and invite management direction</h3><p>Roles, invite flows, seat tracking, and team state already exist in the product stack and can be rolled out as a managed plan.</p></article>
-          <article class="card"><h3>Founder-led onboarding</h3><p>Support is direct while the team tier stays managed. That keeps the product honest while the full org surface hardens.</p></article>
+          <article class="card"><h3>Seat and invite management</h3><p>Roles, invite flows, seat tracking, and team state already exist in the product stack and now have a direct checkout path.</p></article>
+          <article class="card"><h3>Workspace audit visibility</h3><p>Workspace events and audit history are already part of the backend surface, which means Team can ship with inspectable admin behavior instead of blind trust.</p></article>
         </div>
+        <form id="team-checkout-form" class="stack">
+          <label>Billing email<input type="email" name="email" placeholder="team@company.com" required></label>
+          <div class="link-row">
+            <label>Seats<input type="number" name="seats" min="2" max="500" value="5" required></label>
+            <label>Workspace ID (optional)<input type="text" name="workspaceId" placeholder="ws_..." /></label>
+          </div>
+          <div class="cta-row">
+            <button type="submit" class="btn btn-primary">Start Team checkout</button>
+            <a href="/feedback/?topic=team" class="btn btn-secondary">Talk to support first</a>
+          </div>
+          <p id="team-checkout-status" class="status-message">Checkout opens in Stripe and uses automatic tax based on billing address.</p>
+        </form>
         <div class="cta-row">
-          <a href="/feedback/?topic=team" class="btn btn-primary">Request Team onboarding</a>
           <a href="mailto:hello@rinawarptech.com?subject=RinaWarp%20Team%20Plan" class="btn btn-secondary">Email the founder</a>
         </div>
       </div></section>
@@ -804,9 +876,38 @@ const pages = [
           <p id="account-tier-note" class="section-copy"></p>
           <div class="link-row"><button class="btn btn-primary" id="billing-portal-btn" type="button">Open billing portal</button><button class="btn btn-secondary" id="logout-btn" type="button">Sign out</button></div>
         </div>
-        <div class="auth-card stack">
+        <div class="auth-card stack" id="restore">
           <h2 class="section-title">Restore Pro access</h2>
           <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message"></p></form>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "success",
+    path: "/success/",
+    page: "success",
+    title: "Payment successful | RinaWarp Terminal Pro",
+    description: "Your RinaWarp payment went through. Install the app, restore the paid entitlement, and get moving.",
+    eyebrow: "Payment received",
+    heading: "You’re through checkout. Now let’s get you into the product.",
+    copy: "Stripe payment succeeded. The next step is simple: install the app, open Account inside the app, and restore the purchase with the same billing email you just used.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><div class="kicker">1. Install</div><h3>Download the app</h3><p>Use the Windows installer or Linux package path below. Debian/Ubuntu users should prefer the <strong>.deb</strong> package. AppImage is the updater path.</p><div class="link-row"><a href="/download/" class="btn btn-primary">Open downloads</a></div></article>
+        <article class="card"><div class="kicker">2. Restore</div><h3>Use your billing email</h3><p>Open Account in the app and restore paid access using <strong data-success-email>the billing email you used at checkout</strong>.</p><div class="link-row"><a id="success-restore-link" href="/account/" class="btn btn-secondary">Open account help</a></div></article>
+        <article class="card"><div class="kicker">3. Verify</div><h3>Make sure the tier shows up</h3><p>Your plan should show as <strong id="success-plan">Pro Early Access</strong>. If it does not, use billing restore or contact support.</p><div class="link-row"><a href="/feedback/?topic=billing" class="btn btn-secondary">Get billing help</a></div></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Checkout receipt details</h2>
+        <div class="grid three-up">
+          <article class="card"><div class="kicker">Billing email</div><h3 data-success-email>Not captured</h3><p>This is the email to use for restore on this or another device.</p></article>
+          <article class="card"><div class="kicker">Session ID</div><h3 id="success-session-id">Pending</h3><p>Keep this handy if support needs to trace the checkout.</p></article>
+          <article class="card"><div class="kicker">Seats / workspace</div><h3><span id="success-seats">1</span> seat(s)</h3><p>Workspace: <span id="success-workspace">Not attached during checkout</span></p></article>
+        </div>
+        <div class="cta-row">
+          <a href="/download/" class="btn btn-primary">Download RinaWarp Terminal Pro</a>
+          <a id="success-account-link" href="/account/" class="btn btn-secondary">Open account page</a>
         </div>
       </div></section>
     `

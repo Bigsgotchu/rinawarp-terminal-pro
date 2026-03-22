@@ -1059,8 +1059,8 @@ export function createServer(opts: { port: number }) {
                 quantity: 1,
               },
             ],
-            success_url: 'https://rinawarptech.com/success?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'https://rinawarptech.com/pricing',
+            success_url: 'https://rinawarptech.com/success/?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url: 'https://rinawarptech.com/pricing/',
           }
 
           // Attach workspace_id to metadata for webhook processing
@@ -1085,14 +1085,39 @@ export function createServer(opts: { port: number }) {
           customer_id?: string
           priceId?: string
           tier?: string
+          billingCycle?: 'monthly' | 'annual'
+          seats?: number
+          workspaceId?: string
+          workspace_id?: string
         } | null
         const deviceId = String(body?.deviceId || body?.device_id || '').trim()
         const email = String(body?.email || '')
           .trim()
           .toLowerCase()
         const customerId = String(body?.customerId || body?.customer_id || '').trim()
-        const priceId = String(body?.priceId || process.env.RINAWARP_STRIPE_PRICE_ID || '').trim()
-        const tier = normalizeEntitlementTier(body?.tier || process.env.RINAWARP_STRIPE_DEFAULT_TIER || 'pro')
+        const normalizedTier = normalizeEntitlementTier(body?.tier || process.env.RINAWARP_STRIPE_DEFAULT_TIER || 'pro')
+        const billingCycle = String(body?.billingCycle || 'monthly').trim().toLowerCase()
+        const workspaceId = String(body?.workspaceId || body?.workspace_id || '').trim()
+        const quantity =
+          normalizedTier === 'team'
+            ? Math.max(1, Math.min(500, Number(body?.seats || 1) || 1))
+            : 1
+        const resolvedPriceId =
+          normalizedTier === 'team'
+            ? String(process.env.STRIPE_TEAM_PRICE_ID || body?.priceId || process.env.RINAWARP_STRIPE_PRICE_ID || '').trim()
+            : billingCycle === 'annual'
+              ? String(
+                  process.env.STRIPE_PRO_ANNUAL_PRICE_ID ||
+                    body?.priceId ||
+                    process.env.STRIPE_PRO_MONTHLY_PRICE_ID ||
+                    process.env.RINAWARP_STRIPE_PRICE_ID ||
+                    ''
+                ).trim()
+              : String(
+                  process.env.STRIPE_PRO_MONTHLY_PRICE_ID || body?.priceId || process.env.RINAWARP_STRIPE_PRICE_ID || ''
+                ).trim()
+        const priceId = resolvedPriceId
+        const tier = normalizedTier
 
         if (!deviceId && !email && !customerId) {
           return sendJson(res, 400, { ok: false, error: 'deviceId, email, or customerId is required' })
@@ -1103,15 +1128,18 @@ export function createServer(opts: { port: number }) {
 
         try {
           const stripe = await getStripeClient()
-          const successUrl = String(process.env.RINAWARP_STRIPE_SUCCESS_URL || 'https://rinawarptech.com/success').trim()
-          const cancelUrl = String(process.env.RINAWARP_STRIPE_CANCEL_URL || 'https://rinawarptech.com/pricing').trim()
+          const successUrl = String(process.env.RINAWARP_STRIPE_SUCCESS_URL || 'https://rinawarptech.com/success/').trim()
+          const cancelUrl = String(process.env.RINAWARP_STRIPE_CANCEL_URL || 'https://rinawarptech.com/pricing/').trim()
           const session = await stripe.checkout.sessions.create({
             mode: 'subscription',
             payment_method_types: ['card'],
-            line_items: [{ price: priceId, quantity: 1 }],
+            line_items: [{ price: priceId, quantity }],
             customer_email: email || undefined,
             success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: cancelUrl,
+            billing_address_collection: 'required',
+            automatic_tax: { enabled: true },
+            tax_id_collection: { enabled: true },
             metadata: {
               customerId,
               customer_id: customerId,
@@ -1119,7 +1147,18 @@ export function createServer(opts: { port: number }) {
               device_id: deviceId,
               email,
               tier,
+              workspace_id: workspaceId,
             },
+            ...(workspaceId || tier === 'team'
+              ? {
+                  subscription_data: {
+                    metadata: {
+                      tier,
+                      ...(workspaceId ? { workspace_id: workspaceId } : {}),
+                    },
+                  },
+                }
+              : {}),
           })
           return sendJson(res, 200, { ok: true, url: session.url, sessionId: session.id })
         } catch (error) {
@@ -3720,7 +3759,7 @@ export function createServer(opts: { port: number }) {
                 quantity: 1,
               },
             ],
-            success_url: `https://rinawarptech.com/success?agent=${encodeURIComponent(agentName)}&email=${encodeURIComponent(email)}`,
+            success_url: `https://rinawarptech.com/success/?agent=${encodeURIComponent(agentName)}&email=${encodeURIComponent(email)}`,
             cancel_url: `https://rinawarptech.com/agents?agent=${encodeURIComponent(agentName)}`,
             metadata: {
               agent_name: agentName,

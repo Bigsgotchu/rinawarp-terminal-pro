@@ -100,7 +100,19 @@ export function registerLicenseIpc(deps: {
     }
   })
 
-  deps.ipcMain.handle('license:checkout', async (_event, options: { email?: string; priceId?: string; tier?: string }) => {
+  deps.ipcMain.handle(
+    'license:checkout',
+    async (
+      _event,
+      options: {
+        email?: string
+        priceId?: string
+        tier?: string
+        billingCycle?: 'monthly' | 'annual'
+        seats?: number
+        workspaceId?: string
+      }
+    ) => {
     try {
       const email = String(options?.email || deps.getCachedEmail() || '')
         .trim()
@@ -111,6 +123,11 @@ export function registerLicenseIpc(deps: {
       const data = await createCheckoutSession({
         email,
         deviceId: deps.getDeviceId(),
+        priceId: options?.priceId,
+        tier: options?.tier,
+        billingCycle: options?.billingCycle,
+        seats: options?.seats,
+        workspaceId: options?.workspaceId,
       })
       if (!data.url) return { ok: false, error: 'No checkout URL returned' }
 
@@ -119,7 +136,8 @@ export function registerLicenseIpc(deps: {
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : 'Checkout failed' }
     }
-  })
+    }
+  )
 
   deps.ipcMain.handle('license:email', async () => {
     return { email: deps.getCachedEmail() }

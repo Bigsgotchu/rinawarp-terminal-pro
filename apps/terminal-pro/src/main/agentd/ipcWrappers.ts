@@ -273,6 +273,152 @@ export function createAgentdIpcWrappers(deps) {
             };
         }
     }
+    async function accountPlanForIpc() {
+        try {
+            return await agentdJson('/v1/account/plan', {
+                method: 'GET',
+                includeLicenseToken: false,
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+                plan: 'pro',
+                status: 'unknown',
+                seats_allowed: 1,
+                seats_used: 1,
+            };
+        }
+    }
+    async function teamWorkspaceCreateForIpc(args) {
+        try {
+            return await agentdJson('/v1/workspaces', {
+                method: 'POST',
+                body: args,
+                includeLicenseToken: false,
+                headers: {
+                    'Idempotency-Key': `team-workspace-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                },
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+    async function teamWorkspaceGetForIpc(workspaceId) {
+        try {
+            return await agentdJson(`/v1/workspaces/${encodeURIComponent(String(workspaceId || '').trim())}`, {
+                method: 'GET',
+                includeLicenseToken: false,
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+    async function teamInvitesListForIpc(workspaceId) {
+        try {
+            return await agentdJson(`/v1/workspaces/${encodeURIComponent(String(workspaceId || '').trim())}/invites`, {
+                method: 'GET',
+                includeLicenseToken: false,
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+                invites: [],
+            };
+        }
+    }
+    async function teamInviteCreateForIpc(args) {
+        try {
+            const workspaceId = encodeURIComponent(String(args?.workspaceId || '').trim());
+            return await agentdJson(`/v1/workspaces/${workspaceId}/invites`, {
+                method: 'POST',
+                body: {
+                    email: args?.email,
+                    role: args?.role,
+                    expires_in_hours: args?.expiresInHours,
+                    send_email: args?.sendEmail,
+                },
+                includeLicenseToken: false,
+                headers: {
+                    'Idempotency-Key': `team-invite-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                },
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+    async function teamInviteRevokeForIpc(inviteId) {
+        try {
+            return await agentdJson(`/v1/invites/${encodeURIComponent(String(inviteId || '').trim())}/revoke`, {
+                method: 'POST',
+                body: {},
+                includeLicenseToken: false,
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+    async function teamAuditListForIpc(args) {
+        try {
+            const params = new URLSearchParams();
+            if (args?.type)
+                params.set('type', args.type);
+            if (args?.from)
+                params.set('from', args.from);
+            if (args?.to)
+                params.set('to', args.to);
+            if (typeof args?.limit === 'number' && Number.isFinite(args.limit))
+                params.set('limit', String(args.limit));
+            const suffix = params.toString() ? `?${params.toString()}` : '';
+            return await agentdJson(`/v1/workspaces/${encodeURIComponent(String(args?.workspaceId || '').trim())}/audit${suffix}`, {
+                method: 'GET',
+                includeLicenseToken: false,
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+                entries: [],
+            };
+        }
+    }
+    async function teamBillingEnforcementForIpc(args) {
+        try {
+            return await agentdJson(`/v1/workspaces/${encodeURIComponent(String(args?.workspaceId || '').trim())}/billing/enforce`, {
+                method: 'PUT',
+                body: {
+                    require_active_plan: args?.requireActivePlan === true,
+                },
+                includeLicenseToken: false,
+            });
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
     return {
         daemonStatus,
         daemonTasks,
@@ -289,5 +435,13 @@ export function createAgentdIpcWrappers(deps) {
         orchestratorWebhookAuditForIpc,
         orchestratorCiStatusForIpc,
         orchestratorReviewCommentForIpc,
+        accountPlanForIpc,
+        teamWorkspaceCreateForIpc,
+        teamWorkspaceGetForIpc,
+        teamInvitesListForIpc,
+        teamInviteCreateForIpc,
+        teamInviteRevokeForIpc,
+        teamAuditListForIpc,
+        teamBillingEnforcementForIpc,
     };
 }

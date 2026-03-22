@@ -6,6 +6,7 @@ export function createAgentdClient(deps) {
   function buildAgentdHeaders(opts) {
     const headers = {
       'content-type': 'application/json',
+      ...(opts?.headers || {}),
     }
     if (AGENTD_AUTH_TOKEN) {
       headers.authorization = `Bearer ${AGENTD_AUTH_TOKEN}`
@@ -20,7 +21,10 @@ export function createAgentdClient(deps) {
   async function agentdJson(path, init) {
     const res = await fetch(`${AGENTD_BASE_URL}${path}`, {
       method: init.method,
-      headers: buildAgentdHeaders({ includeLicenseToken: init.includeLicenseToken }),
+      headers: buildAgentdHeaders({
+        includeLicenseToken: init.includeLicenseToken,
+        headers: init.headers,
+      }),
       body: init.body ? JSON.stringify(init.body) : undefined,
     })
     let data = null

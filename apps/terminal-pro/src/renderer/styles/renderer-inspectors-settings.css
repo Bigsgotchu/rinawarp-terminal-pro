@@ -66,6 +66,18 @@
   gap: 8px;
 }
 
+.rw-inline-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--rw-muted);
+}
+
+.rw-inline-check input {
+  inline-size: auto;
+  min-height: unset;
+}
+
 .rw-account-identity {
   color: var(--rw-fg);
   font-size: 0.96rem;
@@ -97,6 +109,48 @@
 .rw-team-member-main {
   display: grid;
   gap: 4px;
+}
+
+.rw-team-audit {
+  display: grid;
+  gap: 8px;
+}
+
+.rw-team-audit-row {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--rw-border-soft, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rw-team-audit-meta {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rw-input-sm {
+  max-inline-size: 120px;
+}
+
+.rw-select {
+  max-inline-size: 160px;
+}
+
+.rw-tone-success {
+  color: #3fd08f;
+}
+
+.rw-tone-error {
+  color: #ff7a93;
+}
+
+.rw-tone-pending {
+  color: var(--rw-muted);
 }
 
 .rw-settings-density {
