@@ -703,7 +703,7 @@ function renderPricing(): Response {
         </article>
         <article class="card pricing-card">
           <span class="pill">Team / Business</span>
-          <div class="price">$40–$49 <span>/ user / month later</span></div>
+          <div class="price">$49 <span>/ user / month later</span></div>
           <p>Planned for teams that need policy controls, audit export, reliability guarantees, and admin support.</p>
           <ul class="feature-list">
             <li>Org-level trust and governance controls</li>
@@ -2083,12 +2083,17 @@ async function handleCheckoutRequest(
       founder: String(env.STRIPE_FOUNDER_PRICE_ID || '').trim(),
     }
 
+    if (normalizedTier !== 'pro') {
+      return new Response(JSON.stringify({ error: 'Only Pro Early Access is available for self-serve checkout right now. Contact RinaWarp for team access.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
     const resolvedTierKey =
-      normalizedTier === 'pro'
-        ? normalizedBillingCycle === 'annual'
-          ? 'pro_annual'
-          : 'pro_monthly'
-        : normalizedTier
+      normalizedBillingCycle === 'annual'
+        ? 'pro_annual'
+        : 'pro_monthly'
 
     const priceId = priceIds[resolvedTierKey] || priceIds.pro_monthly
 
@@ -2113,6 +2118,9 @@ async function handleCheckoutRequest(
             customer_email: email,
             'line_items[0][price]': priceId,
             'line_items[0][quantity]': '1',
+            billing_address_collection: 'required',
+            'automatic_tax[enabled]': 'true',
+            'tax_id_collection[enabled]': 'true',
             success_url: 'https://rinawarptech.com/success?session_id={CHECKOUT_SESSION_ID}',
             cancel_url: 'https://rinawarptech.com/pricing',
           }),
