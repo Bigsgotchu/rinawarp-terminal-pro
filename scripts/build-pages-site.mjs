@@ -9,7 +9,7 @@ const outdir = path.join(repoRoot, "website", ".pages-dist");
 
 const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
 const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
-const VERSION = "1.1.5";
+const VERSION = "1.1.7";
 const ASSET_VERSION = "20260322-success-handoff";
 
 const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">

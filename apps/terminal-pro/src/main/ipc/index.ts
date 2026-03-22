@@ -14,6 +14,7 @@ import { registerLicenseIpc } from './registerLicenseIpc.js'
 import { registerAuthIpc, setAuthConfig, setCachedToken } from './registerAuthIpc.js'
 import { registerTelemetryIpc } from './registerTelemetryIpc.js'
 import type { LicenseVerifyResponse } from '../../license.js'
+export { setAuthConfig, setCachedToken } from './registerAuthIpc.js'
 
 const require = createRequire(import.meta.url)
 const electron = require('electron')

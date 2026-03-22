@@ -1031,7 +1031,7 @@ function renderDownload(): Response {
           <p>For <strong>Debian/Ubuntu desktops</strong>, use the <strong>.deb</strong> package. It is the recommended Early Access path because APT pulls the standard Electron desktop libraries automatically. Choose <strong>AppImage</strong> only if you specifically want the in-app automatic update path and you already have a desktop Linux runtime stack in place.</p>
           <div class="link-row">
             <a href="/download/linux/deb" class="btn btn-primary">Download Linux .deb</a>
-            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/RinaWarp-Terminal-Pro-1.1.5.AppImage" class="btn btn-secondary">Download AppImage</a>
+            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.7/RinaWarp-Terminal-Pro-1.1.7.AppImage" class="btn btn-secondary">Download AppImage</a>
             <a href="${PUBLIC_UPDATES_BASE}/latest.json" class="btn btn-secondary">View manifest</a>
           </div>
           <p class="note">Recommended baseline: Debian 13 / Ubuntu desktop-class systems for Early Access. Minimal server images may need additional GUI/runtime packages if you choose the AppImage path.</p>
@@ -1041,7 +1041,7 @@ function renderDownload(): Response {
           <h3>.exe installer</h3>
           <p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p>
           <div class="link-row">
-            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/RinaWarp-Terminal-Pro-1.1.5.exe" class="btn btn-primary">Download Windows</a>
+            <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.7/RinaWarp-Terminal-Pro-1.1.7.exe" class="btn btn-primary">Download Windows</a>
           </div>
         </article>
         <article class="card platform-card">
@@ -1063,11 +1063,11 @@ function renderDownload(): Response {
         </div>
         <h2 class="section-title">How to verify your download</h2>
         <div class="link-row">
-          <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a>
+          <a href="${PUBLIC_INSTALLERS_BASE}/releases/1.1.7/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a>
           <a href="${PUBLIC_UPDATES_BASE}/latest.json" class="btn btn-secondary">Open latest.json</a>
         </div>
         <div class="hash"># Download the checksum file
-curl -O ${PUBLIC_INSTALLERS_BASE}/releases/1.1.5/SHASUMS256.txt
+curl -O ${PUBLIC_INSTALLERS_BASE}/releases/1.1.7/SHASUMS256.txt
 
 # Inspect the live release manifest
 curl ${PUBLIC_UPDATES_BASE}/latest.json
