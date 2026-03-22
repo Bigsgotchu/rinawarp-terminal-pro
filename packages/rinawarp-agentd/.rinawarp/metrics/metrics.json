@@ -1,12 +1,12 @@
 {
-  "runs_total": 8,
+  "runs_total": 10,
   "runs_completed": 0,
-  "runs_failed": 8,
+  "runs_failed": 10,
   "runs_cancelled": 0,
   "interventions_total": 0,
   "confirmation_denied_total": 0,
   "failure_classes": {
-    "invalid_plan": 8
+    "invalid_plan": 10
   },
   "duration_ms_total": 0,
   "unblock_runs": 0,
@@ -23,6 +23,13 @@
       "runs": 0,
       "completed": 0,
       "failed": 0,
+      "revenue_events": 0,
+      "new_users": 0
+    },
+    "2026-03-22": {
+      "runs": 2,
+      "completed": 0,
+      "failed": 2,
       "revenue_events": 0,
       "new_users": 0
     }
