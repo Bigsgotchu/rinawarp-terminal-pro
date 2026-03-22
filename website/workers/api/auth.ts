@@ -148,20 +148,17 @@ async function sendPasswordResetEmail(
 }
 
 /**
- * Send verification email
+ * Send welcome email
  */
-async function sendVerificationEmail(
+async function sendWelcomeEmail(
   env: Env,
   email: string,
-  name: string | null,
-  token: string
+  name: string | null
 ): Promise<boolean> {
   if (!env.SENDGRID_API_KEY) {
-    console.log('[Auth] SendGrid not configured, would send verification to:', email);
+    console.log('[Auth] SendGrid not configured, would send welcome email to:', email);
     return true;
   }
-
-  const verifyUrl = `https://rinawarptech.com/verify-email?token=${token}`;
   
   try {
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -184,13 +181,8 @@ async function sendVerificationEmail(
             value: `
               <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
                 <h2>Welcome to RinaWarp Terminal Pro${name ? `, ${name}` : ''}!</h2>
-                <p>Thanks for creating an account. Please verify your email address:</p>
-                <p style="margin: 24px 0;">
-                  <a href="${verifyUrl}" style="background: #62f6e5; color: #08121b; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    Verify Email
-                  </a>
-                </p>
-                <p>This link expires in 24 hours.</p>
+                <p>Your account is ready. You can sign in from the desktop app or the account page any time.</p>
+                <p>If you ever need help restoring access, reply to this email or contact support@rinawarptech.com.</p>
                 <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
                 <p style="color: #666; font-size: 12px;">
                   RinaWarp Terminal Pro - Proof-first AI workbench
@@ -265,24 +257,20 @@ async function handleRegister(
     // Create user
     await db.prepare(`
       INSERT INTO users (id, email, password_hash, name, created_at, updated_at, email_verified)
-      VALUES (?, ?, ?, ?, ?, ?, 0)
+      VALUES (?, ?, ?, ?, ?, ?, 1)
     `).bind(userId, normalizedEmail, passwordHash, name || null, now, now).run();
 
-    // Send verification email
-    const verificationToken = generateSecureToken(32);
-    // Store verification token (in production, use separate table)
-    
-    await sendVerificationEmail(env, normalizedEmail, name || null, verificationToken);
+    await sendWelcomeEmail(env, normalizedEmail, name || null);
 
     return successResponse({
-      message: 'Account created. Please check your email to verify your account.',
+      message: 'Account created. You can sign in now.',
       user: { id: userId, email: normalizedEmail, name: name || null },
     });
   }
 
   // Fallback: Return success without DB (for development)
   return successResponse({
-    message: 'Account created successfully (development mode)',
+    message: 'Account created. You can sign in now.',
     user: { id: generateUserId(), email: normalizedEmail, name: name || null },
   });
 }

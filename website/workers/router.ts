@@ -1849,7 +1849,7 @@ async function handleApiRequest(
 
   // User endpoint
   if (path === '/api/me' && request.method === 'GET') {
-    return handleAuthRequest(new Request(new URL('/api/auth/me', request.url).toString(), request), env)
+    return handleAuthRequest(new Request(new URL('/api/auth/me', request.url).toString(), request), env, '/api/auth/me')
   }
 
   // License portal - now supports POST
