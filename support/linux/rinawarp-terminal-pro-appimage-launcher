@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APPIMAGE="${HOME}/Applications/RinaWarp-Terminal-Pro.AppImage"
+
+if [[ ! -x "${APPIMAGE}" ]]; then
+  echo "RinaWarp AppImage not found or not executable: ${APPIMAGE}" >&2
+  exit 1
+fi
+
+unset ELECTRON_RUN_AS_NODE
+
+exec "${APPIMAGE}" "$@"

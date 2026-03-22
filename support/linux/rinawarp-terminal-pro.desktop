@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=RinaWarp Terminal Pro
+Comment=Agent-first terminal workbench you can trust
+Exec=/home/karina/.local/bin/rinawarp-terminal-pro %U
+Icon=/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/src/assets/icon.png
+Terminal=false
+Categories=Development;
+StartupNotify=true
+MimeType=x-scheme-handler/rinawarp;

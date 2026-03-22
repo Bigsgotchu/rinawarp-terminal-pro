@@ -1042,13 +1042,13 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
         <article class="card platform-card">
           <span class="pill">Linux</span>
           <h3>Choose your Linux path</h3>
-          <p>For <strong>Debian/Ubuntu desktops</strong>, use the <strong>.deb</strong> package. It is the recommended Early Access path because APT pulls the standard Electron desktop libraries automatically. Choose <strong>AppImage</strong> only if you specifically want the in-app automatic update path and you already have a desktop Linux runtime stack in place.</p>
+          <p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and the easiest way to get running on a clean machine, but updates on that path should be treated as <strong>manual .deb installs</strong>. <strong>AppImage</strong> is the Linux path for <strong>in-app automatic updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p>
           <div class="link-row">
             <a href="${linuxDebUrl}" class="btn btn-primary">Download Linux .deb</a>
             <a href="${linuxAppImageUrl}" class="btn btn-secondary">Download AppImage</a>
             <a href="${PUBLIC_UPDATES_BASE}/latest.json" class="btn btn-secondary">View manifest</a>
           </div>
-          <p class="note">Recommended baseline: Debian 13 / Ubuntu desktop-class systems for Early Access. Minimal server images may need additional GUI/runtime packages if you choose the AppImage path.</p>
+          <p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install. Recommended baseline: Debian 13 / Ubuntu desktop-class systems for Early Access. Minimal server images may need additional GUI/runtime packages if you choose the AppImage path.</p>
         </article>
         <article class="card platform-card">
           <span class="pill">Windows</span>
