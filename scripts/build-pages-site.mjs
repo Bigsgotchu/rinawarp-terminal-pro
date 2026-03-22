@@ -10,6 +10,7 @@ const outdir = path.join(repoRoot, "website", ".pages-dist");
 const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
 const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
 const VERSION = "1.1.4";
+const ASSET_VERSION = "20260322-pricing-buttons";
 
 const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -537,7 +538,7 @@ function shell({ path, page, title, description, eyebrow, heading, copy, content
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   ${seo(path, title, description)}
-  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/site.css?v=${ASSET_VERSION}">
 </head>
 <body data-page="${page}">
   <div class="site-shell">
@@ -573,7 +574,7 @@ function shell({ path, page, title, description, eyebrow, heading, copy, content
       </div>
     </footer>
   </div>
-  <script src="/assets/site.js"></script>
+  <script src="/assets/site.js?v=${ASSET_VERSION}"></script>
 </body>
 </html>`;
 }
