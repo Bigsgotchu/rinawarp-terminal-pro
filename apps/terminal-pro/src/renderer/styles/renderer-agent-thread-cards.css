@@ -111,6 +111,8 @@
   font-size: 0.88rem;
   box-shadow: none;
   backdrop-filter: blur(10px);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .rw-reply-card {
@@ -286,6 +288,8 @@
   font: 500 0.82rem/1.45 var(--font-mono);
   white-space: pre-wrap;
   word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .rw-command-result-copy {
@@ -298,6 +302,8 @@
   font: 500 0.84rem/1.55 var(--font-ui);
   white-space: pre-wrap;
   word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .rw-command-result-empty {

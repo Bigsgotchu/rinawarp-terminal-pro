@@ -246,11 +246,17 @@ function renderRecoveryToggle(state: WorkbenchState): void {
     button.hidden = true
     button.textContent = 'Recovered runs'
     button.title = ''
+    delete button.dataset.recoveryToggle
+    delete button.dataset.recoveryExpanded
     return
   }
   button.hidden = false
-  button.textContent = `Recovered ${restoredRuns.length}`
-  button.title = `${restoredRuns.length} restored run${restoredRuns.length === 1 ? '' : 's'} available in Runs`
+  button.dataset.recoveryToggle = 'topbar'
+  button.dataset.recoveryExpanded = String(state.ui.recoveryExpanded)
+  button.textContent = state.ui.recoveryExpanded ? `Hide recovery` : `Recovered ${restoredRuns.length}`
+  button.title = state.ui.recoveryExpanded
+    ? 'Collapse recovered-session details'
+    : `${restoredRuns.length} restored run${restoredRuns.length === 1 ? '' : 's'} available`
 }
 
 function renderHero(state: WorkbenchState): void {
@@ -427,22 +433,66 @@ export function renderAgent(state: WorkbenchState): void {
   const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
   const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
   const hasConversation = threadMessages.length > 0 || recoveryMessages.length > 0 || state.fixBlocks.length > 0
+  const shouldCompactRecovery = recoveryMessages.length > 0 && threadMessages.length > 0 && !state.ui.recoveryExpanded
 
   if (recoveryRoot) {
     clear(recoveryRoot)
     if (recoveryMessages.length > 0) {
+      const restoredRuns = state.runs
+        .filter((run) => run.restored)
+        .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
+      const latestRun = restoredRuns[0]
       const recoveryShell = document.createDocumentFragment()
-      for (const message of recoveryMessages) {
-        const linkedRuns = state.runs.filter((run) => run.originMessageId === message.id || (message.runIds || []).includes(run.id))
-        const unresolvedRunIds = (message.runIds || []).filter((runId) => !linkedRuns.some((run) => run.id === runId))
-        const node = el('div', {
-          class: ['rw-thread-message', message.role, 'is-recovery-message'].filter(Boolean).join(' '),
-          dataset: { msgId: message.id },
-        })
-        appendMessageContent(node, message)
-        const linkedRunsNode = renderLinkedRunsNode(state, message.id, linkedRuns, unresolvedRunIds)
-        if (linkedRunsNode) node.appendChild(linkedRunsNode)
-        recoveryShell.appendChild(node)
+
+      const summaryCard = el(
+        'section',
+        {
+          class: ['rw-recovery-strip', shouldCompactRecovery ? 'is-collapsed' : ''].filter(Boolean).join(' '),
+          dataset: { recoveryExpanded: String(state.ui.recoveryExpanded) },
+        },
+        el(
+          'div',
+          { class: 'rw-recovery-strip-head' },
+          el('div', { class: 'rw-recovery-strip-title' }, 'I recovered your last session safely'),
+          el('div', { class: 'rw-recovery-strip-badge' }, `${restoredRuns.length} restored`)
+        ),
+        el(
+          'p',
+          { class: 'rw-recovery-strip-copy' },
+          latestRun
+            ? `Receipts are intact. Latest interrupted task: ${latestRun.command || latestRun.title || 'Unknown command'}.`
+            : 'Receipts are intact and the restored runs are ready when you want them.'
+        ),
+        el(
+          'div',
+          { class: 'rw-inline-actions rw-inline-actions-recovery' },
+          ...(latestRun ? [el('button', { class: 'rw-inline-action', dataset: { runResume: latestRun.id } }, 'Resume latest')] : []),
+          el(
+            'button',
+            {
+              class: 'rw-inline-action',
+              dataset: { recoveryToggle: state.ui.recoveryExpanded ? 'collapse' : 'expand' },
+            },
+            state.ui.recoveryExpanded ? 'Hide details' : 'Show details'
+          ),
+          el('button', { class: 'rw-inline-action is-subtle', dataset: { tab: 'runs' } }, 'Open Runs')
+        )
+      )
+      recoveryShell.appendChild(summaryCard)
+
+      if (!shouldCompactRecovery) {
+        for (const message of recoveryMessages) {
+          const linkedRuns = state.runs.filter((run) => run.originMessageId === message.id || (message.runIds || []).includes(run.id))
+          const unresolvedRunIds = (message.runIds || []).filter((runId) => !linkedRuns.some((run) => run.id === runId))
+          const node = el('div', {
+            class: ['rw-thread-message', message.role, 'is-recovery-message'].filter(Boolean).join(' '),
+            dataset: { msgId: message.id },
+          })
+          appendMessageContent(node, message)
+          const linkedRunsNode = renderLinkedRunsNode(state, message.id, linkedRuns, unresolvedRunIds)
+          if (linkedRunsNode) node.appendChild(linkedRunsNode)
+          recoveryShell.appendChild(node)
+        }
       }
       mount(recoveryRoot, recoveryShell)
     }
@@ -491,6 +541,7 @@ export function renderAgent(state: WorkbenchState): void {
   root.classList.toggle('is-empty-thread', !hasThreadContent)
   agentBody?.classList.toggle('is-empty', !hasThreadContent)
   agentBody?.classList.toggle('has-thread-content', hasThreadContent)
+  agentBody?.classList.toggle('has-recovery-strip', recoveryMessages.length > 0)
   root.scrollTop = hasThreadContent ? root.scrollHeight : 0
   renderComposerStarterPrompts()
   syncStarterPromptChips(state)

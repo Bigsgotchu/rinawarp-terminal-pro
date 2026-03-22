@@ -47,6 +47,62 @@
   gap: 6px;
 }
 
+.rw-recovery-strip {
+  display: grid;
+  gap: 10px;
+  padding: 12px 13px;
+  border-radius: 16px;
+  border: 1px solid rgba(124, 199, 255, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(124, 199, 255, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(16, 21, 31, 0.92), rgba(10, 14, 22, 0.94));
+}
+
+.rw-recovery-strip.is-collapsed {
+  gap: 8px;
+}
+
+.rw-recovery-strip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rw-recovery-strip-title {
+  color: color-mix(in oklab, var(--baby-blue) 86%, white 14%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rw-recovery-strip-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 79, 163, 0.12);
+  border: 1px solid rgba(255, 79, 163, 0.18);
+  color: #ffd4ea;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.rw-recovery-strip-copy {
+  color: rgba(241, 247, 255, 0.86);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.rw-thread-message.is-recovery-message {
+  margin-inline-start: 6px;
+}
+
 .rw-inline-action.is-subtle {
   border-color: rgba(255,255,255,0.08);
   color: rgba(214, 221, 229, 0.82);

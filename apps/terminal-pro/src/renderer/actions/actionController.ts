@@ -119,6 +119,19 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
     const target = event.target as HTMLElement | null
     if (!target) return
 
+    const recoveryToggle = target.closest<HTMLElement>('[data-recovery-toggle]')
+    if (recoveryToggle) {
+      const current = store.getState().ui.recoveryExpanded
+      const next =
+        recoveryToggle.dataset.recoveryToggle === 'expand'
+          ? true
+          : recoveryToggle.dataset.recoveryToggle === 'collapse'
+            ? false
+            : !current
+      store.dispatch({ type: 'ui/setRecoveryExpanded', expanded: next })
+      return
+    }
+
     if (target.closest('#agent-send')) {
       await submitComposer()
       return

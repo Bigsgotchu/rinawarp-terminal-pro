@@ -75,6 +75,7 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
         snapshot?.ui && typeof snapshot.ui === 'object' && snapshot.ui.expandedRunOutputByRunId && typeof snapshot.ui.expandedRunOutputByRunId === 'object'
           ? snapshot.ui.expandedRunOutputByRunId
           : {},
+      recoveryExpanded: Boolean(snapshot?.ui?.recoveryExpanded),
       showAllRuns: Boolean(snapshot?.ui?.showAllRuns),
       scopeRunsToWorkspace: snapshot?.ui?.scopeRunsToWorkspace !== false,
       openDrawer: null,

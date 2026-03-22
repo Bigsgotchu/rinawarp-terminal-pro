@@ -58,6 +58,12 @@
   display: none;
 }
 
+.rw-agent-body.has-thread-content.has-recovery-strip #agent-recovery {
+  display: grid;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
 .rw-prompt-chip {
   display: inline-flex;
   align-items: center;

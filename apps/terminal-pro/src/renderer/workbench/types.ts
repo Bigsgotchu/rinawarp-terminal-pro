@@ -178,6 +178,7 @@ export type WorkbenchState = {
   ui: {
     expandedRunLinksByMessageId: Record<string, boolean>
     expandedRunOutputByRunId: Record<string, boolean>
+    recoveryExpanded: boolean
     showAllRuns: boolean
     scopeRunsToWorkspace: boolean
     openDrawer: DrawerView | null
@@ -274,6 +275,7 @@ export type WorkbenchAction =
   | { type: 'view/rightSet'; view: RightView }
   | { type: 'ui/toggleRunLinks'; messageId: string; expanded?: boolean }
   | { type: 'ui/toggleRunOutput'; runId: string; expanded?: boolean }
+  | { type: 'ui/setRecoveryExpanded'; expanded: boolean }
   | { type: 'ui/setShowAllRuns'; showAllRuns: boolean }
   | { type: 'ui/setScopeRunsToWorkspace'; scopeRunsToWorkspace: boolean }
   | { type: 'ui/openDrawer'; view: DrawerView }

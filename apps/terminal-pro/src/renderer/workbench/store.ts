@@ -119,6 +119,15 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
       }
     }
 
+    case 'ui/setRecoveryExpanded':
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          recoveryExpanded: action.expanded,
+        },
+      }
+
     case 'ui/setShowAllRuns':
       return {
         ...state,

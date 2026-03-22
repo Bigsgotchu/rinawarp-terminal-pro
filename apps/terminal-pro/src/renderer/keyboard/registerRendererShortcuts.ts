@@ -7,6 +7,13 @@ type ShortcutDeps = {
   closeSettings: () => void
 }
 
+async function copyCurrentSelection(): Promise<void> {
+  const selection = window.getSelection()
+  const text = selection?.toString().trim() || ''
+  if (!text) return
+  await navigator.clipboard.writeText(text)
+}
+
 export function registerRendererShortcuts(deps: ShortcutDeps): () => void {
   const unregisterShortcuts = [
     globalShortcutRegistry.register({
@@ -34,6 +41,36 @@ export function registerRendererShortcuts(deps: ShortcutDeps): () => void {
       handler: () => {
         deps.hidePalette()
         deps.closeSettings()
+      },
+    }),
+    globalShortcutRegistry.register({
+      key: 'C',
+      ctrl: true,
+      shift: true,
+      handler: () => {
+        void copyCurrentSelection()
+      },
+    }),
+    globalShortcutRegistry.register({
+      key: 'C',
+      cmd: true,
+      shift: true,
+      handler: () => {
+        void copyCurrentSelection()
+      },
+    }),
+    globalShortcutRegistry.register({
+      key: 'c',
+      ctrl: true,
+      handler: () => {
+        void copyCurrentSelection()
+      },
+    }),
+    globalShortcutRegistry.register({
+      key: 'c',
+      cmd: true,
+      handler: () => {
+        void copyCurrentSelection()
       },
     }),
   ]
