@@ -694,8 +694,11 @@ function renderPricing(): Response {
           </ul>
           <div class="stack" style="gap:12px">
             <input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,0.04);color:var(--text)">
-            <button class="btn btn-primary" id="checkout-pro">Start Pro Early Access</button>
-            <div class="note" id="checkout-status">Annual plan: $192/year. Checkout opens in Stripe.</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button>
+              <button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button>
+            </div>
+            <div class="note" id="checkout-status">Monthly: $20. Annual: $192. Checkout opens in Stripe.</div>
           </div>
         </article>
         <article class="card pricing-card">
@@ -715,32 +718,34 @@ function renderPricing(): Response {
   `
   const script = `
     const emailInput = document.getElementById('checkout-email');
-    const checkoutBtn = document.getElementById('checkout-pro');
     const status = document.getElementById('checkout-status');
-    checkoutBtn?.addEventListener('click', async () => {
-      const email = emailInput?.value?.trim();
-      if (!email) {
-        status.textContent = 'Add your email first so Stripe can create the checkout session.';
-        emailInput?.focus();
-        return;
-      }
-      status.textContent = 'Opening secure checkout…';
-      checkoutBtn.disabled = true;
-      try {
-        const response = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, tier: 'pro' }),
-        });
-        const payload = await response.json();
-        if (!response.ok || !payload.checkoutUrl) {
-          throw new Error(payload.error || 'Checkout could not be created.');
+    document.querySelectorAll('[data-checkout-cycle]').forEach((checkoutBtn) => {
+      checkoutBtn.addEventListener('click', async () => {
+        const email = emailInput?.value?.trim();
+        const billingCycle = checkoutBtn.getAttribute('data-checkout-cycle') || 'monthly';
+        if (!email) {
+          status.textContent = 'Add your email first so Stripe can create the checkout session.';
+          emailInput?.focus();
+          return;
         }
-        window.location.href = payload.checkoutUrl;
-      } catch (error) {
-        status.textContent = error instanceof Error ? error.message : 'Checkout could not be created.';
-        checkoutBtn.disabled = false;
-      }
+        status.textContent = 'Opening secure checkout…';
+        checkoutBtn.disabled = true;
+        try {
+          const response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, tier: 'pro', billingCycle }),
+          });
+          const payload = await response.json();
+          if (!response.ok || !payload.checkoutUrl) {
+            throw new Error(payload.error || 'Checkout could not be created.');
+          }
+          window.location.href = payload.checkoutUrl;
+        } catch (error) {
+          status.textContent = error instanceof Error ? error.message : 'Checkout could not be created.';
+          checkoutBtn.disabled = false;
+        }
+      });
     });
   `
 
@@ -2054,7 +2059,7 @@ async function handleCheckoutRequest(
 ): Promise<Response> {
   try {
     const body = await request.json()
-    const { email, tier = 'pro' } = body
+    const { email, tier = 'pro', billingCycle = 'monthly' } = body
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -2063,20 +2068,32 @@ async function handleCheckoutRequest(
       })
     }
 
+    const normalizedTier = String(tier || 'pro')
+      .trim()
+      .toLowerCase()
+    const normalizedBillingCycle = String(billingCycle || 'monthly')
+      .trim()
+      .toLowerCase()
+
     const priceIds: Record<string, string> = {
-      pro: String(env.STRIPE_PRO_PRICE_ID || '').trim(),
+      pro_monthly: String(env.STRIPE_PRO_MONTHLY_PRICE_ID || env.STRIPE_PRO_PRICE_ID || '').trim(),
+      pro_annual: String(env.STRIPE_PRO_ANNUAL_PRICE_ID || '').trim(),
       creator: String(env.STRIPE_CREATOR_PRICE_ID || '').trim(),
       team: String(env.STRIPE_TEAM_PRICE_ID || '').trim(),
       founder: String(env.STRIPE_FOUNDER_PRICE_ID || '').trim(),
     }
 
-    const normalizedTier = String(tier || 'pro')
-      .trim()
-      .toLowerCase()
-    const priceId = priceIds[normalizedTier] || priceIds.pro
+    const resolvedTierKey =
+      normalizedTier === 'pro'
+        ? normalizedBillingCycle === 'annual'
+          ? 'pro_annual'
+          : 'pro_monthly'
+        : normalizedTier
+
+    const priceId = priceIds[resolvedTierKey] || priceIds.pro_monthly
 
     if (!priceId) {
-      return new Response(JSON.stringify({ error: `Checkout is not configured for tier "${normalizedTier}".` }), {
+      return new Response(JSON.stringify({ error: `Checkout is not configured for ${normalizedTier}${normalizedTier === 'pro' ? ` (${normalizedBillingCycle})` : ''}.` }), {
         status: 503,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       })
@@ -2283,12 +2300,14 @@ async function handleLicenseLookup(request: Request, env: any, corsHeaders: Reco
 
           // Map price IDs to tier names
           const tierMap: Record<string, string> = {}
-          const proPriceId = String(env.STRIPE_PRO_PRICE_ID || '').trim()
+          const proPriceId = String(env.STRIPE_PRO_MONTHLY_PRICE_ID || env.STRIPE_PRO_PRICE_ID || '').trim()
+          const proAnnualPriceId = String(env.STRIPE_PRO_ANNUAL_PRICE_ID || '').trim()
           const creatorPriceId = String(env.STRIPE_CREATOR_PRICE_ID || '').trim()
           const teamPriceId = String(env.STRIPE_TEAM_PRICE_ID || '').trim()
           const founderPriceId = String(env.STRIPE_FOUNDER_PRICE_ID || '').trim()
 
           if (proPriceId) tierMap[proPriceId] = 'pro'
+          if (proAnnualPriceId) tierMap[proAnnualPriceId] = 'pro'
           if (creatorPriceId) tierMap[creatorPriceId] = 'creator'
           if (teamPriceId) tierMap[teamPriceId] = 'team'
           if (founderPriceId) tierMap[founderPriceId] = 'founder'

@@ -262,26 +262,29 @@ function clearToken() {
 }
 
 if (page === 'pricing') {
-  document.getElementById('checkout-pro')?.addEventListener('click', async () => {
-    const emailInput = document.getElementById('checkout-email');
-    const email = emailInput?.value?.trim();
-    if (!email) {
-      setStatus('checkout-status', 'Add your email first so Stripe can create the checkout session.');
-      emailInput?.focus();
-      return;
-    }
-    setStatus('checkout-status', 'Opening secure checkout…');
-    try {
-      const payload = await withJson(await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tier: 'pro' }),
-      }));
-      if (!payload.checkoutUrl) throw new Error('Checkout could not be created.');
-      window.location.href = payload.checkoutUrl;
-    } catch (error) {
-      setStatus('checkout-status', error instanceof Error ? error.message : 'Checkout could not be created.', 'error');
-    }
+  document.querySelectorAll('[data-checkout-cycle]')?.forEach((button) => {
+    button.addEventListener('click', async () => {
+      const emailInput = document.getElementById('checkout-email');
+      const email = emailInput?.value?.trim();
+      const billingCycle = button.getAttribute('data-checkout-cycle') || 'monthly';
+      if (!email) {
+        setStatus('checkout-status', 'Add your email first so Stripe can create the checkout session.');
+        emailInput?.focus();
+        return;
+      }
+      setStatus('checkout-status', 'Opening secure checkout…');
+      try {
+        const payload = await withJson(await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, tier: 'pro', billingCycle }),
+        }));
+        if (!payload.checkoutUrl) throw new Error('Checkout could not be created.');
+        window.location.href = payload.checkoutUrl;
+      } catch (error) {
+        setStatus('checkout-status', error instanceof Error ? error.message : 'Checkout could not be created.', 'error');
+      }
+    });
   });
 }
 
@@ -609,7 +612,7 @@ const pages = [
     content: `
       <section class="section"><div class="pricing-grid">
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary">Get started</a></article>
-        <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><button class="btn btn-primary" id="checkout-pro">Start Pro Early Access</button><p id="checkout-status" class="status-message">Annual plan: $192/year. Checkout opens in Stripe.</p></div></article>
+        <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
         <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$40–$49 <span>/ user / month later</span></div><p>Planned for teams that need policy controls, audit export, and admin support.</p><ul class="feature-list"><li>Org-level trust and governance controls</li><li>Team memory boundaries and audit export</li><li>Admin support and stronger operational guarantees</li></ul><a href="/feedback/" class="btn btn-secondary">Talk to us</a></article>
       </div></section>
     `
