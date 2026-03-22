@@ -124,6 +124,7 @@
 .rw-execution-trace-body,
 .rw-panel-body {
   min-block-size: 0;
+  flex: 1 1 auto;
   overflow: auto;
 }
 

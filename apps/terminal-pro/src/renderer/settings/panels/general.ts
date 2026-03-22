@@ -8,7 +8,18 @@ declare global {
   }
 }
 
-export function mountGeneralPanel(container: HTMLElement): void {
+async function resolveWorkspaceLabel(): Promise<string> {
+  try {
+    const workspace = await (window as any).rina?.workspaceDefault?.()
+    if (workspace?.ok && workspace.path) return String(workspace.path)
+  } catch {
+    // ignore
+  }
+  return 'No workspace selected'
+}
+
+export async function mountGeneralPanel(container: HTMLElement): Promise<void> {
+  const workspaceLabel = await resolveWorkspaceLabel()
   container.innerHTML = `
     <div class="rw-panel-head">
       <h2>General</h2>
@@ -37,6 +48,15 @@ export function mountGeneralPanel(container: HTMLElement): void {
           <div class="rw-muted">High-impact commands require explicit confirmation.</div>
         </div>
       </div>
+      <div class="rw-row rw-space">
+        <div>
+          <div class="rw-label">Workspace</div>
+          <div class="rw-muted" id="rw-general-workspace-path">${workspaceLabel}</div>
+          <div class="rw-muted">Pick the folder Rina should use as the current workspace for runs, receipts, and code context.</div>
+        </div>
+        <button type="button" class="rw-btn rw-btn-primary" id="rw-general-pick-workspace">Choose workspace</button>
+      </div>
+      <div id="rw-general-workspace-status" class="rw-muted" aria-live="polite"></div>
     </div>
   `
 
@@ -60,6 +80,28 @@ export function mountGeneralPanel(container: HTMLElement): void {
       }
     })
   }
+
+  const workspacePath = container.querySelector<HTMLElement>('#rw-general-workspace-path')
+  const workspaceStatus = container.querySelector<HTMLElement>('#rw-general-workspace-status')
+  container.querySelector<HTMLButtonElement>('#rw-general-pick-workspace')?.addEventListener('click', async () => {
+    if (workspaceStatus) workspaceStatus.textContent = 'Opening workspace picker…'
+    try {
+      const result = await (window as any).rina?.pickWorkspace?.()
+      if (!result?.ok || !result.path) {
+        if (workspaceStatus) workspaceStatus.textContent = 'Workspace selection cancelled.'
+        return
+      }
+      if (workspacePath) workspacePath.textContent = String(result.path)
+      if (workspaceStatus) workspaceStatus.textContent = 'Workspace updated.'
+      window.dispatchEvent(
+        new CustomEvent('rina:workspace-selected', {
+          detail: { path: String(result.path) },
+        })
+      )
+    } catch (error) {
+      if (workspaceStatus) workspaceStatus.textContent = error instanceof Error ? error.message : 'Could not change workspace.'
+    }
+  })
 
   sync()
 }

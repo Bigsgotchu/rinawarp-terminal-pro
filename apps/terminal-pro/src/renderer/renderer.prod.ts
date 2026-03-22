@@ -84,7 +84,18 @@ export async function initProductionRenderer(): Promise<void> {
     const open = (event as CustomEvent<{ open?: boolean }>).detail?.open
     store.dispatch({ type: 'tab/set', tab: open ? 'settings' : 'agent' })
   }) as EventListener
+  const handleWorkspaceSelected = ((event: Event) => {
+    const path = normalizeWorkspaceKey((event as CustomEvent<{ path?: string }>).detail?.path)
+    store.dispatch({ type: 'workspace/set', workspaceKey: path })
+    void refreshRuns(store)
+    void refreshCode(store)
+    void refreshDiagnostics(store)
+    void refreshRuntimeStatus(store)
+    void refreshMarketplace(store)
+    void refreshCapabilityPacks(store)
+  }) as EventListener
   window.addEventListener('rina:settings-visibility', handleSettingsVisibility)
+  window.addEventListener('rina:workspace-selected', handleWorkspaceSelected)
   store.subscribe((state) => {
     renderWorkbench(state)
     persistWorkbenchState(store)
@@ -174,6 +185,7 @@ export async function initProductionRenderer(): Promise<void> {
       unbindRendererEvents()
       unbindRendererTelemetrySessionEnd()
       window.removeEventListener('rina:settings-visibility', handleSettingsVisibility)
+      window.removeEventListener('rina:workspace-selected', handleWorkspaceSelected)
       unregisterShortcuts()
     },
     { once: true }

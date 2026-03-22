@@ -538,6 +538,8 @@ app.whenReady().then(async () => {
     ipcMain.handle('rina:diagnostics:paths', async () => diagnosticsPathsForIpc(diagnosticsBundleDeps));
     ipcMain.removeHandler('rina:support:bundle');
     ipcMain.handle('rina:support:bundle', async () => supportBundleForIpc(diagnosticsBundleDeps));
+    ipcMain.removeHandler('rina:workspace:pick');
+    ipcMain.handle('rina:workspace:pick', async () => workspacePickForIpc());
     ipcMain.removeHandler('rina:workspace:default');
     ipcMain.handle('rina:workspace:default', async (event) => workspaceDefaultForIpc(event.sender.id));
     ipcMain.removeHandler('team:plan');
