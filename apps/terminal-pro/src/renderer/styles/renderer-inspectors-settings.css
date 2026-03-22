@@ -50,7 +50,9 @@
 
 .rw-account-toggle,
 .rw-account-views,
-.rw-account-platforms {
+.rw-account-platforms,
+.rw-team-stats,
+.rw-team-members {
   display: grid;
   gap: 8px;
 }
@@ -75,6 +77,26 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.rw-team-stats > div,
+.rw-team-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rw-team-member {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--rw-border-soft, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rw-team-member-main {
+  display: grid;
+  gap: 4px;
 }
 
 .rw-settings-density {

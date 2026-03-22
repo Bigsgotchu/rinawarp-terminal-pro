@@ -20,7 +20,7 @@ export function createLicenseState(deps) {
         if (t === 'enterprise')
             return 'enterprise';
         if (t === 'team')
-            return 'enterprise';
+            return 'team';
         return 'starter';
     }
     function applyVerifiedLicense(data) {

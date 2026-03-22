@@ -77,6 +77,15 @@ declare global {
         token?: string | null
       }>
       authToken(): Promise<{ token?: string | null }>
+      teamState(): Promise<{
+        ok: boolean
+        currentUser: string
+        currentRole: string
+        members: Array<{ email: string; role: string }>
+        seatsAllowed: number
+        seatsUsed: number
+        error?: string
+      }>
       marketplaceList(): Promise<{
         ok: boolean
         agents?: Array<{

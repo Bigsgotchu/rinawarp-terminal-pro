@@ -5,6 +5,7 @@
 
 export type SettingsTabId =
   | 'account'
+  | 'team'
   | 'general'
   | 'memory'
   | 'license'
@@ -68,6 +69,7 @@ function readStoredTab(storageKey: string): SettingsTabId | null {
     if (!raw) return null
     if (
       raw === 'account' ||
+      raw === 'team' ||
       raw === 'general' ||
       raw === 'memory' ||
       raw === 'license' ||

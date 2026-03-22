@@ -289,6 +289,9 @@ if (page === 'pricing') {
 }
 
 if (page === 'feedback') {
+  const topicField = document.querySelector('[name="topic"]');
+  const topicFromUrl = new URLSearchParams(window.location.search).get('topic');
+  if (topicField && topicFromUrl) topicField.value = topicFromUrl;
   document.getElementById('feedback-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -515,6 +518,7 @@ function nav(active) {
   const items = [
     ["/", "Home", "home"],
     ["/pricing/", "Pricing", "pricing"],
+    ["/team/", "Team", "team"],
     ["/download/", "Download", "download"],
     ["/docs/", "Docs", "docs"],
     ["/agents", "Packs", "agents"],
@@ -613,7 +617,36 @@ const pages = [
       <section class="section"><div class="pricing-grid">
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary">Get started</a></article>
         <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
-        <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month later</span></div><p>Planned for teams that need policy controls, audit export, and admin support.</p><ul class="feature-list"><li>Org-level trust and governance controls</li><li>Team memory boundaries and audit export</li><li>Admin support and stronger operational guarantees</li></ul><a href="/feedback/" class="btn btn-secondary">Talk to us</a></article>
+        <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>Managed onboarding for teams that need seats, role boundaries, trust controls, and founder-level rollout support.</p><ul class="feature-list"><li>Seat planning, managed onboarding, and team rollout support</li><li>Role-aware workspace boundaries and invite flows</li><li>Team memory and audit/export direction</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">See Team</a></article>
+      </div></section>
+    `
+  },
+  {
+    route: "team",
+    path: "/team",
+    page: "team",
+    title: "RinaWarp Team | Managed Team Onboarding",
+    description: "RinaWarp Team gives growing teams a managed path to seats, role-aware rollout, proof-backed execution, and founder-led onboarding.",
+    eyebrow: "Managed Team plan",
+    heading: "RinaWarp Team is real. It’s just managed, not self-serve.",
+    copy: "The Team plan is for teams that need multi-seat rollout, role boundaries, proof-backed execution, and founder-led onboarding before we expose full self-serve org billing.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><div class="kicker">Pricing</div><h3>$49 per user / month</h3><p>Team is a real managed plan, not a placeholder enterprise upsell. We start with founder-led onboarding so the rollout is supportable.</p></article>
+        <article class="card"><div class="kicker">Roles</div><h3>Owner, admin, and member boundaries</h3><p>The product stack already includes role-aware workspace and invite primitives, so Team maps to real behavior instead of generic account fluff.</p></article>
+        <article class="card"><div class="kicker">Support</div><h3>Priority rollout help</h3><p>We help with seat planning, restore issues, supported platforms, and the first production rollout instead of leaving teams to guess.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">What Team includes now</h2>
+        <div class="grid three-up">
+          <article class="card"><h3>Proof-backed team workflows</h3><p>Shared expectations around receipts, run proof, recovery, and safer execution than generic AI terminal tooling.</p></article>
+          <article class="card"><h3>Seat and invite management direction</h3><p>Roles, invite flows, seat tracking, and team state already exist in the product stack and can be rolled out as a managed plan.</p></article>
+          <article class="card"><h3>Founder-led onboarding</h3><p>Support is direct while the team tier stays managed. That keeps the product honest while the full org surface hardens.</p></article>
+        </div>
+        <div class="cta-row">
+          <a href="/feedback/?topic=team" class="btn btn-primary">Request Team onboarding</a>
+          <a href="mailto:hello@rinawarptech.com?subject=RinaWarp%20Team%20Plan" class="btn btn-secondary">Email the founder</a>
+        </div>
       </div></section>
     `
   },
@@ -667,7 +700,7 @@ const pages = [
         <article class="card"><h3>General contact</h3><p>For partnership, launch, or founder access questions, email <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>.</p></article>
         <article class="card"><h3>Fastest useful bug report</h3><p>Tell us what you asked Rina to do, what you expected, what actually happened, and whether a run or recovery card was visible.</p></article>
       </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message"></p></form></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Topic<select name="topic"><option value="support">Support</option><option value="bug">Bug report</option><option value="billing">Billing</option><option value="team">Team plan</option><option value="feature">Feature request</option><option value="launch">Launch / partnership</option></select></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message"></p></form></div></section>
     `
   },
   {

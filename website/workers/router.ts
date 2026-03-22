@@ -1982,7 +1982,7 @@ async function handleFeedbackSubmit(
 ): Promise<Response> {
   try {
     const body = await request.json()
-    const { name, email, rating, message } = body
+    const { name, email, rating, message, topic } = body
 
     if (!name || !email || !message) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -1992,7 +1992,7 @@ async function handleFeedbackSubmit(
     }
 
     // Log feedback for now
-    console.log('Feedback received:', { name, email, rating, message, timestamp: new Date().toISOString() })
+    console.log('Feedback received:', { name, email, rating, topic, message, timestamp: new Date().toISOString() })
 
     // Send email notification via SendGrid if API key is configured
     if (env.SENDGRID_API_KEY) {
@@ -2001,7 +2001,7 @@ async function handleFeedbackSubmit(
           personalizations: [
             {
               to: [{ email: 'support@rinawarptech.com' }],
-              subject: `New Feedback: ${rating ? `⭐${rating}` : ''} from ${name}`,
+              subject: `[${String(topic || 'general').toUpperCase()}] New Feedback: ${rating ? `⭐${rating}` : ''} from ${name}`,
             },
           ],
           from: { email: 'noreply@rinawarptech.com', name: 'RinaWarp Feedback' },
@@ -2012,6 +2012,7 @@ async function handleFeedbackSubmit(
               <h2>New Feedback Received</h2>
               <p><strong>Name:</strong> ${name}</p>
               <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Topic:</strong> ${topic || 'General'}</p>
               <p><strong>Rating:</strong> ${rating || 'Not provided'}</p>
               <p><strong>Message:</strong></p>
               <p>${message}</p>

@@ -199,6 +199,37 @@ const { getCurrentRole, hasRoleAtLeast } = createTeamAccess({
     fs,
     teamFile: TEAM_FILE,
 });
+ipcMain.removeHandler('team:state');
+ipcMain.handle('team:state', async () => {
+    try {
+        const team = createTeamAccess({
+            fs,
+            teamFile: TEAM_FILE,
+        }).loadTeamDb();
+        const members = Array.isArray(team?.members) ? team.members : [];
+        const currentUser = String(team?.currentUser || 'owner@local');
+        const currentRole = getCurrentRole();
+        return {
+            ok: true,
+            currentUser,
+            currentRole,
+            members,
+            seatsAllowed: Math.max(1, Number(team?.seatsAllowed || members.length || 1)),
+            seatsUsed: members.length,
+        };
+    }
+    catch (error) {
+        return {
+            ok: false,
+            error: error instanceof Error ? error.message : 'Could not load team state',
+            currentUser: 'owner@local',
+            currentRole: 'owner',
+            members: [{ email: 'owner@local', role: 'owner' }],
+            seatsAllowed: 1,
+            seatsUsed: 1,
+        };
+    }
+});
 const diagnosticsBundleDeps = {
     appProjectRoot: APP_PROJECT_ROOT,
     resolveResourcePath,
