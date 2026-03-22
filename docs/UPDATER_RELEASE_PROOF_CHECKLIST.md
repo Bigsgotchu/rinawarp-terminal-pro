@@ -72,7 +72,7 @@ It is not the same thing as package-manager-native updates.
 - [ ] target is auto-updatable (`NSIS`)
 - [ ] installed production build can check, find, download, and stage/apply update
 - [ ] restart/apply UX is acceptable
-- [ ] proof logs are captured for the full update path
+- [x] proof logs are captured for the feed + download + stage path
 
 ### Linux
 
@@ -99,7 +99,8 @@ It is not the same thing as package-manager-native updates.
 ### Current known proof state
 
 - [x] Linux AppImage detect/download/stage proof completed
-- [ ] Windows in-app updater proof still needs completion
+- [x] Windows NSIS feed detect/download/stage proof completed against the live `1.1.8` feed
+- [ ] Windows visible in-app restart/apply UX still needs final manual proof
 - [ ] full broad-launch updater parity is not yet claimed
 
 ## Smoke Coverage
@@ -112,7 +113,7 @@ It is not the same thing as package-manager-native updates.
 
 ## Risk Gaps
 
-- Windows in-app updater proof is still open.
+- Windows restart/apply UX is still not manually proven inside a visible Windows session.
 - Same-version rebuilds can confuse local validation unless the release version is bumped.
 - Self-hosted metadata makes cache correctness and artifact synchronization your responsibility.
 - `.deb` install success does not automatically equal `.deb` updater parity.
@@ -127,10 +128,10 @@ only when all of the following are true:
 
 - [ ] one canonical feed base URL is confirmed
 - [ ] live metadata matches uploaded binaries
-- [ ] Windows proof is complete
+- [ ] Windows full restart/apply proof is complete
 - [ ] Linux proof is complete
 - [ ] update logging is sufficient for support/debugging
 
 Until then, the honest statement is:
 
-> the updater architecture is correct, and Linux is proven; Windows still needs end-to-end proof
+> the updater architecture is correct, Linux is proven, and Windows feed/download/stage is proven; final Windows restart/apply UX still needs confirmation
