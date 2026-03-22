@@ -4,77 +4,84 @@
  */
 
 export interface SeoData {
-  title: string;
-  description: string;
-  canonical: string;
-  ogImage: string;
-  keywords?: string;
+  title: string
+  description: string
+  canonical: string
+  ogImage: string
+  keywords?: string
 }
 
 export const SEO_CONFIG: Record<string, SeoData> = {
-  "/": {
-    title: "RinaWarp Terminal Pro",
-    description: "An agent-first desktop app for developers. Ask Rina to build, test, deploy, and fix issues with background execution and proof-backed runs.",
-    canonical: "https://rinawarptech.com/",
-    ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "AI, agent workflow, developer tools, automation, AI agents, developer productivity, Linux, Windows, macOS",
+  '/': {
+    title: 'RinaWarp Terminal Pro | Proof-First AI Workbench',
+    description:
+      'Talk to Rina naturally in RinaWarp Terminal Pro, let her act through one trusted path, and keep proof, receipts, and recovery attached to the work.',
+    canonical: 'https://rinawarptech.com/',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    keywords:
+      'AI workbench, proof-first AI, agent workflow, developer tools, trusted execution, run receipts, developer productivity',
   },
-  "/agents": {
-    title: "Agent Marketplace",
-    description: "Browse and install AI agents for RinaWarp Terminal Pro. Free and premium agents available. Security audits, deployment helpers, and more.",
-    canonical: "https://rinawarptech.com/agents",
-    ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "AI agents, marketplace, plugins, RinaWarp, developer tools, automation",
+  '/agents': {
+    title: 'RinaWarp Terminal Pro Marketplace | Capability Packs',
+    description:
+      'Browse capability packs and curated agents for RinaWarp. Install focused tooling for deployment, diagnostics, security, and repeated workflows.',
+    canonical: 'https://rinawarptech.com/agents',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    keywords: 'capability packs, AI agents, marketplace, RinaWarp, developer tools, automation',
   },
-  "/pricing": {
-    title: "Pricing Plans",
-    description: "Compare subscription plans for RinaWarp Terminal Pro. Pro, Creator, Team, and Lifetime options. Start free or upgrade for full features.",
-    canonical: "https://rinawarptech.com/pricing",
-    ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "pricing, subscription, RinaWarp, plans, Pro, Creator, Team, lifetime",
+  '/pricing': {
+    title: 'RinaWarp Terminal Pro Pricing | Trust, Recovery, and Execution',
+    description:
+      'Choose the RinaWarp plan that fits your workflow. Pay for proof-backed execution, recovery, and an agent-first desktop experience that stays understandable.',
+    canonical: 'https://rinawarptech.com/pricing',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    keywords: 'pricing, subscription, RinaWarp, plans, proof-backed AI, agent workbench',
   },
-  "/download": {
-    title: "Download",
-    description: "Download RinaWarp Terminal Pro for macOS, Windows, and Linux. Ask Rina to work in the thread while background execution and proof stay inspectable.",
-    canonical: "https://rinawarptech.com/download",
-    ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "download, RinaWarp, AI, agent workflow, developer tools, Linux, Windows, macOS, AppImage, deb, exe",
+  '/download': {
+    title: 'Download RinaWarp Terminal Pro | Verified Releases',
+    description:
+      'Download verified RinaWarp releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.',
+    canonical: 'https://rinawarptech.com/download',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    keywords: 'download, RinaWarp, verified releases, checksums, AppImage, deb, exe',
   },
-  "/feedback": {
-    title: "Feedback",
-    description: "Send us feedback to improve RinaWarp Terminal Pro. Feature requests, bug reports, and suggestions welcome.",
-    canonical: "https://rinawarptech.com/feedback",
-    ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "feedback, support, contact, RinaWarp, suggestions, bug report",
+  '/feedback': {
+    title: 'Support & Feedback | RinaWarp Terminal Pro',
+    description:
+      'Reach the RinaWarp team with product feedback, support requests, launch questions, and capability requests.',
+    canonical: 'https://rinawarptech.com/feedback',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    keywords: 'feedback, support, contact, RinaWarp, bug report, launch support',
   },
-  "/docs": {
-    title: "Documentation",
-    description: "Learn how to use RinaWarp Terminal Pro. Ask Rina to plan, act, and attach proof for your development workflow.",
-    canonical: "https://rinawarptech.com/docs",
-    ogImage: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
-    keywords: "documentation, docs, RinaWarp, guides, tutorials, AI agents, development",
+  '/docs': {
+    title: 'RinaWarp Terminal Pro Docs | Getting Started',
+    description:
+      'Learn how to use RinaWarp: start from the Agent surface, inspect proof, recover work, and understand what Rina actually did.',
+    canonical: 'https://rinawarptech.com/docs',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    keywords: 'documentation, docs, RinaWarp, getting started, proof-backed execution, recovery',
   },
-};
+}
 
 export function injectSeoTags(path: string): string {
   // Normalize path - remove trailing slash except for root
-  const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
-  
-  const seo = SEO_CONFIG[normalizedPath] || SEO_CONFIG["/"];
-  
+  const normalizedPath = path === '/' ? '/' : path.replace(/\/$/, '')
+
+  const seo = SEO_CONFIG[normalizedPath] || SEO_CONFIG['/']
+
   const metaTags = `
   <!-- Primary Meta Tags -->
-  <title>${seo.title} - RinaWarp Terminal Pro</title>
+  <title>${seo.title}</title>
   <meta name="description" content="${seo.description}">
-  ${seo.keywords ? `<meta name="keywords" content="${seo.keywords}">` : ""}
-  <meta name="author" content="RinaWarp Tech">
+  ${seo.keywords ? `<meta name="keywords" content="${seo.keywords}">` : ''}
+  <meta name="author" content="RinaWarp Technologies, LLC">
 
   <!-- Canonical URL -->
   <link rel="canonical" href="${seo.canonical}">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="${seo.title} - RinaWarp Terminal Pro">
+  <meta property="og:title" content="${seo.title}">
   <meta property="og:description" content="${seo.description}">
   <meta property="og:url" content="${seo.canonical}">
   <meta property="og:image" content="${seo.ogImage}">
@@ -82,14 +89,14 @@ export function injectSeoTags(path: string): string {
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${seo.title} - RinaWarp Terminal Pro">
+  <meta name="twitter:title" content="${seo.title}">
   <meta name="twitter:description" content="${seo.description}">
   <meta name="twitter:image" content="${seo.ogImage}">
   <meta name="twitter:site" content="@RinaWarpTech">
 
   <!-- Favicon -->
-  <link rel="icon" href="/assets/img/rinawarp-logo.png" type="image/png">
-  <link rel="shortcut icon" href="/assets/img/rinawarp-logo.png" type="image/png">
+  <link rel="icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
   
   <!-- Preconnect to external domains for performance -->
 
@@ -98,38 +105,29 @@ export function injectSeoTags(path: string): string {
   
   <!-- Base URL for relative links -->
   <base href="/">
-`;
+`
 
-  return metaTags;
+  return metaTags
 }
 
 // Helper to inject SEO into existing HTML head
 export function injectIntoHead(html: string, path: string): string {
-  const seoTags = injectSeoTags(path);
-  
+  const seoTags = injectSeoTags(path)
+
   // Replace the existing head content with SEO tags
   // This regex matches <head>...</head> and replaces content inside
-  return html.replace(
-    /<head>([\s\S]*?)<\/head>/i,
-    `<head>\n${seoTags}\n</head>`
-  );
+  return html.replace(/<head>([\s\S]*?)<\/head>/i, `<head>\n${seoTags}\n</head>`)
 }
 
 // Enhanced SEO injection with performance optimizations (lazy loading, etc.)
 export function injectOptimizedSeo(path: string, html: string): string {
-  const seoTags = injectSeoTags(path);
-  
+  const seoTags = injectSeoTags(path)
+
   // Inject SEO into head
-  let result = html.replace(
-    /<head>([\s\S]*?)<\/head>/i,
-    `<head>\n${seoTags}\n</head>`
-  );
-  
+  let result = html.replace(/<head>([\s\S]*?)<\/head>/i, `<head>\n${seoTags}\n</head>`)
+
   // Add loading="lazy" to img tags that don't already have it
-  result = result.replace(
-    /<img(?!.*loading=)(.*?)src="(.*?)"(.*?)>/gi,
-    '<img$1 src="$2" loading="lazy"$3>'
-  );
-  
-  return result;
+  result = result.replace(/<img(?!.*loading=)(.*?)src="(.*?)"(.*?)>/gi, '<img$1 src="$2" loading="lazy"$3>')
+
+  return result
 }

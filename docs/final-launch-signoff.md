@@ -22,8 +22,9 @@ Primary completion checklist:
 - [ ] Public Stripe/API smoke is green.
   - `npm run verify:prelaunch:full` currently stops at `npm run smoke:stripe`.
   - `https://api.rinawarptech.com/api/health` is returning `429` with Cloudflare body `error code: 1027`.
-- [x] Downloads worker is confirmed live and serving manifest-backed routes.
-  - `https://rinawarp-downloads.rinawarptech.workers.dev/download/terminal-pro-linux` redirects correctly to the `1.1.3` AppImage
+- [x] Downloads surface is confirmed live and serving manifest-backed routes.
+  - `https://rinawarptech.com/download/linux/deb` redirects correctly to the `1.1.4` Debian package.
+  - `https://rinawarptech.com/download/linux/appimage` redirects correctly to the `1.1.4` AppImage.
 - [ ] Public download surface is re-verified against the current live site and reconciled with the runbook.
   - This document and `LIVE_REVENUE_RUNBOOK.md` must agree on whether the apex Pages/download surface is current before launch.
 - [ ] macOS signing secrets are configured in GitHub Actions if macOS is part of launch scope.
@@ -74,10 +75,11 @@ ____________________________________________________________
 
 ## Installer Confidence
 
-- [ ] Linux installer tested from a fresh install path.
+- [x] Linux installer tested from a fresh install path.
+- [x] Debian/Ubuntu `.deb` path is the recommended Early Access Linux baseline.
 - [ ] macOS installer tested, if shipping macOS at launch.
-- [ ] Windows installer tested, if shipping Windows at launch.
-- [ ] Installed app launches successfully after install.
+- [x] Windows installer tested, if shipping Windows at launch.
+- [x] Installed Linux package registers and launches under a display-capable environment after install.
 - [ ] Checksums or release artifacts match what you intend to publish.
 
 ## Demo And Marketing

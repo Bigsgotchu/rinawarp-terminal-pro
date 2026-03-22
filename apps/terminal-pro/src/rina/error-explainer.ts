@@ -4,11 +4,6 @@
  * Uses AI to explain developer errors and provide fixes.
  */
 
-interface ExplainErrorOptions {
-  errorText: string
-  context?: string
-}
-
 /**
  * Explain an error using AI
  */

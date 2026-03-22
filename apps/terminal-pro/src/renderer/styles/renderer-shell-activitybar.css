@@ -1,0 +1,174 @@
+.rw-activitybar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 8px 4px;
+  background: color-mix(in oklab, var(--w-panel, #0f1217) 92%, black);
+  border-inline-end: 1px solid var(--w-divider, rgba(255,255,255,0.07));
+}
+
+.rw-activitybar-spacer {
+  flex: 1;
+}
+
+.rw-activitybar-logo {
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 22% 22%, rgba(255, 47, 179, 0.26), transparent 56%),
+    radial-gradient(circle at 72% 28%, rgba(125, 211, 255, 0.2), transparent 56%),
+    radial-gradient(circle at 50% 78%, rgba(38, 247, 212, 0.18), transparent 60%),
+    color-mix(in oklab, var(--w-panel-2, #121621) 92%, black);
+  border: 1px solid var(--w-border, rgba(255,255,255,0.1));
+}
+
+.rw-activitybar-logo-img {
+  inline-size: 14px;
+  block-size: 14px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 47, 179, 0.24));
+}
+
+.rw-activitybtn {
+  inline-size: 32px;
+  block-size: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(154, 164, 178, 0.78);
+  font: 700 0.74rem/1 var(--font-ui);
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+  position: relative;
+}
+
+.rw-activitybtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--rw-fg);
+}
+
+.rw-activitybtn.active {
+  color: var(--rw-fg);
+  border-color: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.05);
+}
+
+.rw-activitybtn.active::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -7px;
+  inline-size: 3px;
+  block-size: 60%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--hot-pink), var(--teal), var(--baby-blue));
+}
+
+.rw-brand {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 4px 2px 8px;
+  text-align: center;
+}
+
+.rw-sidebar-shortcut {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 5px 7px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(232, 234, 237, 0.88);
+  font: 600 0.62rem/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.rw-sidebar-shortcut:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.rw-brand-logo {
+  inline-size: 76px;
+  max-inline-size: 100%;
+  block-size: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(255, 46, 136, 0.18)) drop-shadow(0 0 10px rgba(29, 233, 182, 0.08));
+}
+
+.rw-brand-copy {
+  min-inline-size: 0;
+}
+
+.rw-logo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--hot-pink), var(--teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.rw-sidebar-label {
+  font-size: 0.56rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--baby-blue);
+  margin-block-start: 2px;
+}
+
+.rw-sidebar-meta {
+  margin-block-start: 3px;
+  font-size: 0.56rem;
+  line-height: 1.35;
+  color: rgba(255,255,255,0.46);
+}
+
+.rw-company-link {
+  font-size: 0.58rem;
+  color: rgba(255, 111, 97, 0.72);
+  text-decoration: none;
+}
+
+.rw-company-link:hover {
+  color: var(--hot-pink);
+}
+
+.rw-sidebar-footer {
+  margin-block-start: auto;
+  padding: 8px 2px 0;
+  border-block-start: 1px solid var(--rw-border);
+  display: grid;
+  gap: 6px;
+}
+
+.rw-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.64rem;
+  color: var(--rw-muted);
+}
+
+.rw-status-dot,
+.status-dot {
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 999px;
+  background: var(--rw-accent-2);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.12);
+}
+
+.status-dot.disconnected {
+  background: var(--rw-danger);
+  box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.12);
+}

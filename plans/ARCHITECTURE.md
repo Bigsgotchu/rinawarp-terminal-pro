@@ -4,6 +4,7 @@
 > **Last Updated**: 2026-03-19
 
 > Product direction is locked in [PRODUCT_WORKBENCH_REQUIREMENTS.md](/home/karina/Documents/rinawarp-terminal-pro/docs/PRODUCT_WORKBENCH_REQUIREMENTS.md). If implementation details conflict with that document, the product requirements win.
+> Adaptive personality/memory follow-on work is specified in [ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md), with current milestone status tracked in [ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md).
 
 ## Executive Summary
 
@@ -199,7 +200,7 @@ rinawarp-terminal-pro/
 ├── apps/terminal-pro/          # Electron desktop app
 │   └── src/
 │       ├── main.ts            # Entry point
-│       ├── renderer/          # React UI components
+│       ├── renderer/          # Agent workbench renderer, settings, and inspectors
 │       └── main/ipc/          # IPC handlers
 │
 ├── packages/

@@ -1,5 +1,5 @@
 import { BaseTool } from './baseTool.js'
-import { safetyCheck, ExecutionMode } from '../safety.js'
+import { safetyCheck } from '../safety.js'
 import { thinkingStream } from '../thinking/thinkingStream.js'
 import * as pty from 'node-pty'
 

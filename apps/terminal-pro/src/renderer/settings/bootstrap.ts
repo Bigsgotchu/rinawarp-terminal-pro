@@ -6,6 +6,8 @@ import {
   type SettingsTabId,
 } from './tabs.js'
 import { mountGeneralPanel } from './panels/general.js'
+import { mountAccountPanel } from './panels/account.js'
+import { mountMemoryPanel } from './panels/memory.js'
 import { mountThemesPanel } from './panels/themes.js'
 import { mountDiagnosticsPanel } from './panels/diagnostics.js'
 import { mountAboutPanel } from './panels/about.js'
@@ -91,7 +93,9 @@ export function initSettingsUi(): void {
 
   const tabsApi = initSettingsTabs(
     [
+      { id: 'account', label: 'Account', icon: '👤', mount: (el: HTMLElement) => void mountAccountPanel(el) },
       { id: 'general', label: 'General', icon: '⚡', mount: (el: HTMLElement) => mountGeneralPanel(el) },
+      { id: 'memory', label: 'Memory', icon: '🧠', mount: (el: HTMLElement) => void mountMemoryPanel(el) },
       { id: 'themes', label: 'Themes', icon: '🎨', mount: (el: HTMLElement) => void mountThemesPanel(el) },
       { id: 'retrieval', label: 'Retrieval', icon: '🔍', mount: (el: HTMLElement) => void mountRetrievalPanel(el) },
       { id: 'research', label: 'Research', icon: '🌐', mount: (el: HTMLElement) => void mountResearchPanel(el) },

@@ -7,7 +7,6 @@
 
 import { thinkingStream } from '../thinking/thinkingStream.js'
 import { detectFailure } from '../diagnostics/failureDetector.js'
-import { runAgent } from '../agent/planner.js'
 
 export type AutonomyLevel = 'off' | 'observe' | 'assist' | 'full'
 

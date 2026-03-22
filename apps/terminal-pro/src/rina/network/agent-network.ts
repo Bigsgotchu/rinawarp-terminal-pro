@@ -51,7 +51,6 @@ export interface AgentPeer {
 export class AgentNetwork {
   private agentId: string
   private tasks: Map<string, NetworkTask> = new Map()
-  private peers: Map<string, AgentPeer> = new Map()
 
   constructor(agentId: string) {
     this.agentId = agentId

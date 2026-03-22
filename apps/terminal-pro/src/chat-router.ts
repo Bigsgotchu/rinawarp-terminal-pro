@@ -9,7 +9,6 @@ import {
   doctorInterpret,
   doctorExecuteFix,
   doctorVerify,
-  doctorGetTranscript,
 } from './doctor-bridge.js'
 import { redactText } from '@rinawarp/safety/redaction'
 

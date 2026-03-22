@@ -7,8 +7,6 @@
  * Additive architecture - does not modify existing core functionality.
  */
 
-import type { RinaTask } from '../brain.js'
-
 /**
  * A single step in a plan
  */

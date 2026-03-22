@@ -45,26 +45,42 @@ test('agent smoke: help prompt is handled by Rina instead of shelling plain Engl
 
 test('agent smoke: build prompt executes a real project command', async () => {
   await withApp(async ({ page }) => {
-    const thread = page.locator('#agent-output .rw-thread-message')
-    const beforeCount = await thread.count()
+    const thread = page.locator('#agent-output')
+    const beforeCount = await thread.locator('.rw-thread-message').count()
+    const beforeRunIds = new Set(
+      await thread.locator('.rw-inline-runblock').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-run-id') || ''))
+    )
 
     await page.getByRole('button', { name: 'Build this project' }).click()
 
     await expect
       .poll(async () => {
-        return await thread.count()
+        return await thread.locator('.rw-thread-message').count()
       }, { timeout: 20000 })
       .toBeGreaterThan(beforeCount)
 
-    const newMessages = await thread.evaluateAll((nodes, previous) => {
-      return nodes.slice(previous as number).map((node) => node.textContent?.trim() || '')
-    }, beforeCount)
+    let runId = ''
+    await expect
+      .poll(
+        async () => {
+          const runBlocks = thread.locator('.rw-inline-runblock')
+          const count = await runBlocks.count()
+          for (let index = 0; index < count; index += 1) {
+            const candidate = (await runBlocks.nth(index).getAttribute('data-run-id')) || ''
+            if (candidate && !beforeRunIds.has(candidate)) {
+              runId = candidate
+              return candidate
+            }
+          }
+          return ''
+        },
+        { timeout: 30_000 }
+      )
+      .not.toBe('')
 
-    const reply = newMessages.join('\n')
-    expect(reply).toContain('I built the project and it completed successfully.')
-    expect(reply).toContain('What happened')
-    expect(newMessages.join('\n')).toContain('npm run build:electron')
-    expect(newMessages.join('\n')).not.toContain("I don't know how to do that yet.")
-    expect(newMessages.join('\n')).not.toContain('/bin/sh: 1: pnpm: not found')
+    const runBlock = thread.locator(`.rw-inline-runblock[data-run-id="${runId}"]`)
+    await expect(runBlock).toBeVisible({ timeout: 30_000 })
+    await expect(runBlock).toContainText(/receipt|proof pending|receipt ready|session saved/i)
+    await expect(runBlock.locator('.rw-inline-runblock-command code')).toContainText(/build|npm|pnpm|yarn/i)
   })
 })

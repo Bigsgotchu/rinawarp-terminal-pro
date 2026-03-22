@@ -3,8 +3,6 @@
  *
  * Notes:
  * - Canonical workbench surfaces should mount nodes via replaceChildren().
- * - During migration we still accept trusted, store-authored markup and parse it
- *   through a single helper instead of scattering innerHTML assignments.
  */
 
 export type Child = Node | string | number | boolean | null | undefined
@@ -74,18 +72,6 @@ export function clear(node: Element): void {
 
 export function mount(container: Element, node: Node): void {
   container.replaceChildren(node)
-}
-
-export function markupFragment(markup: string): DocumentFragment {
-  return document.createRange().createContextualFragment(markup)
-}
-
-export function mountMarkup(container: Element, markup: string): void {
-  mount(container, markupFragment(markup))
-}
-
-export function appendMarkup(container: Element, markup: string): void {
-  container.appendChild(markupFragment(markup))
 }
 
 export function closestActionTarget(ev: Event): HTMLElement | null {

@@ -99,20 +99,6 @@ function safeExec(cmd: string, permissions: Permission[], cwd: string): string {
 }
 
 /**
- * Safe filesystem read
- */
-function safeRead(filePath: string, permissions: Permission[], baseDir: string): string {
-  checkPermission(permissions, 'filesystem:read')
-
-  const resolved = path.resolve(baseDir, filePath)
-  if (!resolved.startsWith(baseDir)) {
-    throw new Error('Access outside workspace denied')
-  }
-
-  return fs.readFileSync(resolved, 'utf8')
-}
-
-/**
  * Run a secure agent
  */
 export async function runSecureAgent(

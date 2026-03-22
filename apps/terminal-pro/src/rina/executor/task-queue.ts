@@ -7,7 +7,6 @@
  */
 
 import type { RinaPlan, RinaPlanStep } from '../planner/task-planner.js'
-import type { RinaTask } from '../brain.js'
 import { executeToolTask, type ToolContext, type ToolResult } from '../tools/registry.js'
 
 /**

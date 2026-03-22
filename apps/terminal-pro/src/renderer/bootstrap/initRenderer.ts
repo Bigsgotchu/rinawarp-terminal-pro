@@ -1,21 +1,21 @@
 /**
  * Renderer Bootstrap
  *
- * Orchestrates the initialization of all renderer modules.
- * This is the central entry point for setting up the UI.
+ * Orchestrates the initialization of the production renderer.
+ * Keep this file thin so startup ownership stays explicit while the
+ * renderer is progressively extracted from the monolith.
  */
 
-import { ThemeController } from '../theme/themeController.js'
+import { domReady } from './domReady.js'
+import { initProductionRenderer } from '../renderer.prod.js'
+import { applySelectedThemeFromApi } from '../theme/selectedTheme.js'
 
-// Placeholder for future modular initialization
 export async function initRenderer(): Promise<void> {
   console.log('[renderer] bootstrap starting')
+  await domReady()
 
-  // TODO: Initialize theme controller
-  const themeController = new ThemeController()
-  themeController.applyTheme()
-
-  // TODO: Initialize other modules...
+  await initProductionRenderer()
+  await applySelectedThemeFromApi()
 
   console.log('[renderer] bootstrap complete')
 }

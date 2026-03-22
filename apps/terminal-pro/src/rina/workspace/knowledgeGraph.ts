@@ -105,7 +105,7 @@ class KnowledgeGraph {
 
         if (this.fileExtensions.has(ext)) {
           // Add file node
-          const fileNode = this.addNode({
+          this.addNode({
             id: nodeId,
             type: this.getFileType(ext, entry.name),
             name: entry.name,

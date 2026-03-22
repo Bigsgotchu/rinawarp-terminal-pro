@@ -1,0 +1,94 @@
+.rw-run-sections {
+  display: grid;
+  gap: 4px;
+}
+
+.rw-run-section {
+  border-block-start: 1px solid rgba(255, 255, 255, 0.04);
+  padding-block-start: 5px;
+}
+
+.rw-run-section summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--rw-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rw-run-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.rw-run-section summary::before {
+  content: '▸';
+  color: var(--rw-subtle);
+  font-size: 0.66rem;
+  transition: transform 0.16s ease;
+}
+
+.rw-run-section[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.rw-run-section-body {
+  margin-block-start: 6px;
+  padding: 6px 0 0;
+}
+
+.rw-run-section-grid {
+  display: grid;
+  gap: 6px 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.rw-run-section-grid > div {
+  display: grid;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+.rw-run-section-grid code {
+  display: block;
+  min-inline-size: 0;
+  color: #dff5ff;
+  font: 500 0.7rem/1.36 var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rw-run-command-label {
+  color: var(--baby-blue);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.rw-run-output-tail {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #dff5ff;
+  font: 500 0.7rem/1.4 var(--font-mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rw-run-section-placeholder {
+  color: var(--rw-subtle);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.rw-run-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

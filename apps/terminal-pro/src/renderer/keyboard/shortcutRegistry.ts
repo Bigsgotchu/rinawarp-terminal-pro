@@ -44,6 +44,8 @@ export class ShortcutRegistry {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (this.shouldIgnoreEvent(event)) return
+
     const key = this.normalizeKey({
       key: event.key,
       ctrl: event.ctrlKey,
@@ -58,6 +60,15 @@ export class ShortcutRegistry {
       event.stopPropagation()
       shortcut.handler(event)
     }
+  }
+
+  private shouldIgnoreEvent(event: KeyboardEvent): boolean {
+    if (event.key === 'Escape') return false
+    const target = event.target
+    if (!(target instanceof HTMLElement)) return false
+    if (target.isContentEditable) return true
+    const tag = target.tagName.toLowerCase()
+    return tag === 'input' || tag === 'textarea' || tag === 'select'
   }
 
   private normalizeKey(shortcut: Partial<Shortcut>): string {

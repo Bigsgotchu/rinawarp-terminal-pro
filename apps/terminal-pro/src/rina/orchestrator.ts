@@ -58,7 +58,6 @@ export interface OrchestratorEvents {
 export class TaskOrchestrator extends EventEmitter {
   private queue: OrchestratorTask[] = []
   private running = false
-  private maxConcurrent = 1
   private maxRetries = 3
 
   constructor() {
@@ -179,7 +178,7 @@ export class TaskOrchestrator extends EventEmitter {
         console.log(`✅ Orchestrator: Task ${task.id} completed`)
       } else {
         // Task failed - check if we should retry
-        await this.handleTaskFailure(task, result)
+        await this.handleTaskFailure(task)
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err)
@@ -194,12 +193,11 @@ export class TaskOrchestrator extends EventEmitter {
   /**
    * Handle task failure with retry logic
    */
-  private async handleTaskFailure(task: OrchestratorTask, result: unknown): Promise<void> {
+  private async handleTaskFailure(task: OrchestratorTask): Promise<void> {
     task.attempts++
 
     if (task.attempts < task.maxAttempts) {
-      // Use reflection engine to get insights for retry
-      const insights = reflectionEngine.getFailureCount(task.id)
+      reflectionEngine.getFailureCount(task.id)
       console.log(`🔄 Orchestrator: Task ${task.id} failed, attempt ${task.attempts}/${task.maxAttempts}`)
 
       task.status = 'retrying'

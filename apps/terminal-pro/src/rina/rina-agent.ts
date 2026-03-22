@@ -8,7 +8,6 @@
  */
 
 import { agentLoop, type AgentResult, type AgentEvent, type AgentEventCallback } from './agent-loop.js'
-import { taskQueue } from './executor/task-queue.js'
 import { userMemory, type UserMemory } from './memory/user-preferences.js'
 import { toolDiscovery } from './tools/discovery.js'
 import { remember } from './memory/session.js'

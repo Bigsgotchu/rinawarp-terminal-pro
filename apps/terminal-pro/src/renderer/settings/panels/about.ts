@@ -3,13 +3,18 @@ function getRina(): any {
 }
 
 type UpdateState = {
-  status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'error'
+  status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'downloading' | 'downloaded' | 'unsupported' | 'error'
   currentVersion: string
   latestVersion: string | null
   checkedAt: string | null
   manifestUrl: string
   releaseUrl: string
   error: string | null
+  downloadProgress: number | null
+  downloadedAt: string | null
+  supported: boolean
+  installReady: boolean
+  channel: 'stable' | 'beta' | 'nightly'
 }
 
 function formatStatus(state: UpdateState | null): string {
@@ -19,6 +24,12 @@ function formatStatus(state: UpdateState | null): string {
       return 'Checking for updates...'
     case 'update_available':
       return `Update available: ${state.latestVersion || 'new version'}`
+    case 'downloading':
+      return `Downloading update: ${Math.round(state.downloadProgress || 0)}%`
+    case 'downloaded':
+      return `Update ready: ${state.latestVersion || 'new version'}`
+    case 'unsupported':
+      return state.error || 'This install uses manual updates.'
     case 'up_to_date':
       return 'You are on the latest version.'
     case 'error':
@@ -53,6 +64,11 @@ function toErrorUpdateState(version: string, error: unknown): UpdateState {
     manifestUrl: '',
     releaseUrl: 'https://www.rinawarptech.com/account/',
     error: error instanceof Error ? error.message : 'Failed to check updates',
+    downloadProgress: null,
+    downloadedAt: null,
+    supported: false,
+    installReady: false,
+    channel: 'stable',
   }
 }
 
@@ -85,6 +101,7 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
       <div class="rw-row rw-gap">
         <button id="rw-update-check" class="rw-btn">Check Now</button>
         <button id="rw-update-download" class="rw-btn rw-btn-ghost">Open Download</button>
+        <button id="rw-update-install" class="rw-btn rw-btn-primary">Install & Restart</button>
       </div>
       <div class="rw-row">
         <div id="rw-update-meta" class="rw-muted"></div>
@@ -96,13 +113,15 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
   const metaEl = container.querySelector<HTMLElement>('#rw-update-meta')
   const checkBtn = container.querySelector<HTMLButtonElement>('#rw-update-check')
   const downloadBtn = container.querySelector<HTMLButtonElement>('#rw-update-download')
-  if (!statusEl || !metaEl || !checkBtn || !downloadBtn) return
+  const installBtn = container.querySelector<HTMLButtonElement>('#rw-update-install')
+  if (!statusEl || !metaEl || !checkBtn || !downloadBtn || !installBtn) return
 
   const renderUpdateState = (state: UpdateState | null) => {
     statusEl.textContent = formatStatus(state)
     const checkedAt = state?.checkedAt ? new Date(state.checkedAt).toLocaleString() : 'never'
     metaEl.textContent = `Last checked: ${checkedAt}`
-    downloadBtn.disabled = state?.status !== 'update_available'
+    downloadBtn.disabled = state?.status !== 'update_available' && state?.status !== 'unsupported'
+    installBtn.disabled = !state?.installReady
   }
 
   renderUpdateState(updateState)
@@ -126,6 +145,15 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
       await rina?.openUpdateDownload?.()
     } catch {
       statusEl.textContent = 'Could not open download page.'
+    }
+  })
+
+  installBtn.addEventListener('click', async () => {
+    try {
+      const result = await rina?.installUpdate?.()
+      statusEl.textContent = result?.ok ? 'Installing update and restarting…' : result?.error || 'Install unavailable.'
+    } catch {
+      statusEl.textContent = 'Could not start the install.'
     }
   })
 }

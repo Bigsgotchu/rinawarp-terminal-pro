@@ -7,7 +7,7 @@
 
 import { thinkingStream } from '../thinking/thinkingStream.js'
 import { toolRegistry } from '../core/toolRegistry.js'
-import { detectFailure, findFailure, getFailureSummary } from '../diagnostics/failureDetector.js'
+import { detectFailure, getFailureSummary } from '../diagnostics/failureDetector.js'
 
 export type RepairAction = {
   type: string

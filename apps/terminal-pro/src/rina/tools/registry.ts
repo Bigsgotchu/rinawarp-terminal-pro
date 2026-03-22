@@ -71,8 +71,8 @@ export interface ValidationResult {
 import { terminalTool } from './terminal.js'
 import { filesystemTool } from './filesystem.js'
 import { systemTool } from './system.js'
-import { gitTool, gitTools } from './git.js'
-import { dockerTool, dockerTools } from './docker.js'
+import { gitTool } from './git.js'
+import { dockerTool } from './docker.js'
 
 /**
  * Tool registry

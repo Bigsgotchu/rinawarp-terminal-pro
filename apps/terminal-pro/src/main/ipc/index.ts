@@ -8,10 +8,10 @@
 import { createRequire } from 'node:module'
 import type { BrowserWindow } from 'electron'
 import type { shell } from 'electron'
-import { memoryManager } from '../../rina/index.js'
 import { thinkingStream } from '../../rina/thinking/thinkingStream.js'
 import { registerConsolidatedIpcHandlers } from './registerConsolidatedIpcHandlers.js'
 import { registerLicenseIpc } from './registerLicenseIpc.js'
+import { registerAuthIpc, setAuthConfig, setCachedToken } from './registerAuthIpc.js'
 import { registerTelemetryIpc } from './registerTelemetryIpc.js'
 import type { LicenseVerifyResponse } from '../../license.js'
 
@@ -29,6 +29,7 @@ let daemonFunctions: {
   daemonStart: () => Promise<any>
   daemonStop: () => Promise<any>
   runAgent?: (prompt: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) => Promise<any>
+  conversationRoute?: (prompt: string, opts?: { workspaceRoot?: string | null }) => Promise<any>
   getStatus?: () => Promise<any>
   getMode?: () => Promise<any>
   setMode?: (mode: string) => Promise<any>
@@ -36,6 +37,7 @@ let daemonFunctions: {
   getTools?: () => Promise<any>
   runsList?: (args?: { limit?: number }) => Promise<any>
   runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
+  runsArtifacts?: (args?: { runId?: string; sessionId?: string }) => Promise<any>
   codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
   codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
 } | null = null
@@ -77,6 +79,7 @@ export function setDaemonFunctions(daemon: {
   daemonStart: () => Promise<any>
   daemonStop: () => Promise<any>
   runAgent?: (prompt: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) => Promise<any>
+  conversationRoute?: (prompt: string, opts?: { workspaceRoot?: string | null }) => Promise<any>
   getStatus?: () => Promise<any>
   getMode?: () => Promise<any>
   setMode?: (mode: string) => Promise<any>
@@ -84,6 +87,7 @@ export function setDaemonFunctions(daemon: {
   getTools?: () => Promise<any>
   runsList?: (args?: { limit?: number }) => Promise<any>
   runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
+  runsArtifacts?: (args?: { runId?: string; sessionId?: string }) => Promise<any>
   codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
   codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
 }): void {
@@ -122,7 +126,7 @@ export function setLicenseFunctions(license: {
  * Main IPC handler registration
  * Groups all IPC handlers for the application
  */
-export function registerIpcHandlers(mainWindow: BrowserWindow): void {
+export function registerIpcHandlers(_mainWindow: BrowserWindow): void {
   console.log('[IPC] Starting IPC handler registration...')
 
   // Register consolidated Rina OS handlers first
@@ -141,8 +145,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
       ...licenseFunctions,
     })
   } else {
-    console.warn('[IPC] License functions not set, using consolidated placeholder handlers')
+    console.warn('[IPC] License functions not set, skipping license IPC registration')
   }
+
+  // Register auth handlers
+  registerAuthIpc(ipcMain, _mainWindow)
 
   registerTelemetryIpc()
 

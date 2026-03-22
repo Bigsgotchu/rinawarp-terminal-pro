@@ -1,7 +1,7 @@
 {
   "name": "rinawarp-terminal-pro",
   "private": true,
-  "version": "1.1.3",
+  "version": "1.1.4",
   "type": "module",
   "main": "dist-electron/main.js",
   "description": "RinaWarp agent-first desktop app for build, test, deploy, and system workflows",
@@ -22,8 +22,8 @@
     "test:agent": "node --test tests/agent.test.mjs",
     "test:cli": "node --test tests/cli.test.mjs",
     "test:streaming": "node --test tests/streaming.test.mjs",
-    "test:unit": "vitest",
-    "test:unit:watch": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:unit:watch": "vitest tests/unit",
     "test:ipc": "npm run build:electron && playwright test tests/e2e/rina-ipc-full-smoke.test.ts -c tests/playwright.config.ts",
     "test:playwright": "npm run build:electron && playwright test -c tests/playwright.config.ts",
     "test:playwright:headed": "npm run build:electron && playwright test -c tests/playwright.config.ts --headed",
@@ -32,8 +32,10 @@
     "test:playwright:ipc": "npm run build:electron && playwright test rina-ipc -c tests/playwright.config.ts --workers=4",
     "test:playwright:tools": "npm run build:electron && playwright test rina-tools -c tests/playwright.config.ts --workers=4",
     "test:e2e:proof": "playwright test tests/e2e/agent-runproof.spec.ts -c tests/playwright.config.ts --reporter=line",
+    "test:e2e:conversation": "playwright test tests/e2e/rina-conversation-resilience.spec.ts -c tests/playwright.config.ts --reporter=line",
     "test:trust-smoke": "playwright test tests/e2e/trust-smoke.spec.ts -c tests/playwright.config.ts --reporter=line",
     "test:all": "npm run test:unit && npm run test:playwright",
+    "release:readiness": "npm run build:electron && npm run test:unit && npm run test:e2e:proof && npm run test:e2e:conversation && npm run test:trust-smoke && playwright test tests/e2e/smoke.electron.spec.ts tests/e2e/settings.spec.ts tests/e2e/marketplace.spec.ts tests/e2e/visual-qa.spec.ts tests/e2e/updates.spec.ts tests/e2e/release-golden-journeys.spec.ts -c tests/playwright.config.ts --reporter=line",
     "smoke-test": "bash scripts/smoke-test.sh",
     "continuous-smoke": "node --import tsx scripts/continuous-smoke.ts",
     "dev:terminal": "cross-env RINAWARP_DEV=1 npm run continuous-smoke && npm run dev",
@@ -50,7 +52,8 @@
     "dist:mac": "npm run build:electron && electron-builder --mac --publish never",
     "dist:win": "npm run build:electron && electron-builder --win --publish never",
     "dist:linux": "npm run build:electron && electron-builder --linux --publish never",
-    "dist:all": "npm run build:electron && electron-builder -mwl --publish never"
+    "dist:all": "npm run build:electron && electron-builder -mwl --publish never",
+    "release:metadata": "node scripts/generate-update-metadata.mjs"
   },
   "dependencies": {
     "@rinawarp/agent": "workspace:*",
@@ -60,6 +63,7 @@
     "@rinawarp/safety": "workspace:*",
     "@rinawarp/tools": "workspace:*",
     "diff": "^8.0.3",
+    "electron-updater": "^6.8.3",
     "node-pty": "^1.1.0",
     "posthog-node": "^4.0.0",
     "ws": "^8.18.0",

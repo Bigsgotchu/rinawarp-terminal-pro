@@ -4,10 +4,6 @@ main = "workers/router.ts"
 compatibility_date = "2024-01-01"
 
 [[routes]]
-pattern = "rinawarptech.com/"
-zone_name = "rinawarptech.com"
-
-[[routes]]
 pattern = "rinawarptech.com/v1/*"
 zone_name = "rinawarptech.com"
 
@@ -44,32 +40,21 @@ pattern = "rinawarptech.com/api/checkout"
 zone_name = "rinawarptech.com"
 
 [[routes]]
-pattern = "rinawarptech.com/feedback"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/pricing"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/download"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/download/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/releases/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
 pattern = "rinawarptech.com/api/feedback"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 
 [[kv_namespaces]]
 binding = "AGENTS_KV"
 id = "5741295fdb9541a196314377c3e36601"
+
+[[d1_databases]]
+binding = "RINAWARP_DB"
+database_name = "rinawarp-users"
+database_id = "ca5efe98-909b-4bb5-9182-29cc9dd1fba2"
 
 [[r2_buckets]]
 binding = "RINAWARP_CDN"

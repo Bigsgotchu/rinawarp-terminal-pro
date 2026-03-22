@@ -3,6 +3,7 @@
 A minimal, production-ready architecture for Rina's agent-first desktop app.
 
 > Product direction is locked in [PRODUCT_WORKBENCH_REQUIREMENTS.md](/home/karina/Documents/rinawarp-terminal-pro/docs/PRODUCT_WORKBENCH_REQUIREMENTS.md).
+> Adaptive trusted-workbench follow-on work is specified in [ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md), with milestone status tracked in [ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md).
 
 > **Strategic Priority**: Focus on high-frequency developer pain points, not "general AI magic"
 

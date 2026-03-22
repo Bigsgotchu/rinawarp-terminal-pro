@@ -74,6 +74,34 @@ export const BUILTIN_CAPABILITY_PACKS: CapabilityPack[] = [
       { id: 'inspect', label: 'Scan iOS device', tool: 'device.ios.scan', risk: 'read', proof: ['run', 'receipt', 'log'] },
     ],
   },
+  {
+    key: 'workspace:repo-audit',
+    title: 'Workspace Repo Audit',
+    description: 'Fast repository structure, file hot-spot, and workspace hygiene inspection with receipts attached.',
+    category: 'workspace',
+    source: 'builtin',
+    tier: 'starter',
+    installState: 'builtin',
+    permissions: ['read-only'],
+    tags: ['workspace', 'repo', 'audit'],
+    actions: [
+      { id: 'inspect', label: 'Inspect repository shape', tool: 'workspace.repo.audit', risk: 'read', proof: ['run', 'receipt', 'log'] },
+    ],
+  },
+  {
+    key: 'security:dependency-audit',
+    title: 'Dependency Security Audit',
+    description: 'Proof-backed dependency and secret exposure checks for repositories that need a quick risk readout.',
+    category: 'security',
+    source: 'builtin',
+    tier: 'pro',
+    installState: 'builtin',
+    permissions: ['read-only', 'workspace-write'],
+    tags: ['security', 'audit', 'dependencies'],
+    actions: [
+      { id: 'inspect', label: 'Run dependency audit', tool: 'security.dependency.audit', risk: 'read', proof: ['run', 'receipt', 'log', 'artifact'] },
+    ],
+  },
 ]
 
 export const FALLBACK_MARKETPLACE_AGENTS: AgentPackage[] = [

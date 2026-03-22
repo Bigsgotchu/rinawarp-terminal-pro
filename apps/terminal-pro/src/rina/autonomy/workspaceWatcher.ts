@@ -114,7 +114,7 @@ class WorkspaceWatcher {
   /**
    * Handle file system event with debouncing
    */
-  private handleEvent(eventType: 'change' | 'rename', filePath: string): void {
+  private handleEvent(_eventType: 'change' | 'rename', filePath: string): void {
     // Debounce events
     const existingTimer = this.debounceTimers.get(filePath)
     if (existingTimer) {

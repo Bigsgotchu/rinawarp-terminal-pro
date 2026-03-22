@@ -1,27 +1,815 @@
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "esbuild";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const outdir = path.join(repoRoot, "website", ".pages-dist");
-const entry = path.join(repoRoot, "website", "pages", "_worker.ts");
+
+const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
+const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
+const VERSION = "1.1.4";
+
+const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="80" y1="60" x2="440" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#62F6E5"/>
+      <stop offset="0.38" stop-color="#8FEFFF"/>
+      <stop offset="0.7" stop-color="#FF9B6B"/>
+      <stop offset="1" stop-color="#FF4FD8"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="64" y="64" width="384" height="384" rx="96" fill="#0B1020"/>
+  <path filter="url(#glow)" d="M150 335c54-155 140-190 212-190 0 0-42 22-77 79 0 0 58-30 115-18 0 0-73 37-110 130-40 102-144 116-140-1z" fill="url(#g)"/>
+  <path d="M160 338c48-138 122-168 186-168" stroke="rgba(255,255,255,0.18)" stroke-width="10" stroke-linecap="round"/>
+</svg>`;
+
+const SITE_CSS = `
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --surface: rgba(10, 21, 32, 0.84);
+  --surface-strong: #0d1c2a;
+  --surface-soft: rgba(255, 255, 255, 0.04);
+  --line: rgba(148, 163, 184, 0.16);
+  --line-strong: rgba(98, 246, 229, 0.28);
+  --text: #edf6ff;
+  --muted: #a3b6c9;
+  --accent: #62f6e5;
+  --accent-2: #ff4fd8;
+  --accent-warm: #ff9b6b;
+  --accent-soft: #8fefff;
+  --success: #22c55e;
+  --danger: #fb7185;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  --radius: 22px;
+  --radius-sm: 14px;
+  --content: 1160px;
+}
+body {
+  min-height: 100vh;
+  color: var(--text);
+  font-family: "IBM Plex Sans", "Segoe UI", Inter, system-ui, sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(255, 79, 216, 0.18), transparent 32%),
+    radial-gradient(circle at 85% 12%, rgba(98, 246, 229, 0.16), transparent 24%),
+    radial-gradient(circle at 50% 0%, rgba(255, 155, 107, 0.10), transparent 30%),
+    linear-gradient(180deg, #090d18 0%, #0b1020 100%);
+}
+a { color: inherit; text-decoration: none; }
+.site-shell { min-height: 100vh; display: flex; flex-direction: column; }
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(20px);
+  background: rgba(7, 17, 26, 0.78);
+  border-bottom: 1px solid var(--line);
+}
+nav {
+  min-height: 70px;
+  max-width: var(--content);
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  box-shadow: 0 0 24px rgba(98, 246, 229, 0.25);
+}
+.nav-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.nav-links a.active,
+.nav-links a:hover { color: var(--text); }
+main { flex: 1; }
+.hero,
+.section {
+  max-width: var(--content);
+  margin: 0 auto;
+  padding: 36px 28px;
+}
+.hero { padding-top: 72px; }
+.eyebrow, .kicker, .pill, .note, .auth-subtitle, .footer-links {
+  color: var(--muted);
+}
+.eyebrow, .kicker, .pill {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.hero h1 {
+  margin-top: 12px;
+  font-size: clamp(2.1rem, 4vw, 4.2rem);
+  line-height: 1.05;
+  max-width: 10ch;
+}
+.hero-copy, .section-copy, p, li {
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 1rem;
+}
+.hero-copy { max-width: 72ch; margin-top: 18px; }
+.cta-row, .link-row, .stack, .signal-list, .feature-list, .auth-container, .auth-card, .panel {
+  display: grid;
+  gap: 14px;
+}
+.cta-row, .link-row { grid-auto-flow: column; justify-content: start; gap: 12px; }
+.grid.three-up, .download-grid, .pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 18px;
+}
+.card, .panel, .auth-card, .pricing-card, .platform-card, .proof-step {
+  padding: 22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.pricing-card.featured {
+  border-color: var(--line-strong);
+  background: linear-gradient(180deg, rgba(98,246,229,0.09), rgba(13,28,42,0.95));
+}
+.section-title { font-size: 1.5rem; margin-bottom: 10px; }
+.price { font-size: 2rem; font-weight: 700; color: var(--text); }
+.price span { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+.proof-strip, .signal-list, .feature-list {
+  display: grid;
+  gap: 12px;
+  padding-left: 0;
+  list-style: none;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: #04121a;
+}
+.btn-secondary {
+  border-color: var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 600;
+}
+input, textarea, select {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+textarea { min-height: 140px; resize: vertical; }
+.status-message.success { color: var(--success); }
+.status-message.error { color: var(--danger); }
+.auth-container { max-width: 720px; }
+footer {
+  border-top: 1px solid var(--line);
+  padding: 22px 28px 32px;
+}
+.footer-inner {
+  max-width: var(--content);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--muted);
+}
+.footer-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+@media (max-width: 840px) {
+  nav, .hero, .section, footer { padding-left: 18px; padding-right: 18px; }
+  .cta-row, .link-row { grid-auto-flow: row; }
+}
+`;
+
+const SITE_JS = `
+const page = document.body.dataset.page || '';
+
+function setStatus(id, message, state = '') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = message;
+  el.className = state ? 'status-message ' + state : 'status-message';
+}
+
+async function withJson(response) {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || payload.message || 'Request failed.');
+  return payload;
+}
+
+function getToken() {
+  return localStorage.getItem('auth_token');
+}
+
+function setToken(token) {
+  if (token) localStorage.setItem('auth_token', token);
+}
+
+function clearToken() {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('user_email');
+}
+
+if (page === 'pricing') {
+  document.getElementById('checkout-pro')?.addEventListener('click', async () => {
+    const emailInput = document.getElementById('checkout-email');
+    const email = emailInput?.value?.trim();
+    if (!email) {
+      setStatus('checkout-status', 'Add your email first so Stripe can create the checkout session.');
+      emailInput?.focus();
+      return;
+    }
+    setStatus('checkout-status', 'Opening secure checkout…');
+    try {
+      const payload = await withJson(await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, tier: 'pro' }),
+      }));
+      if (!payload.checkoutUrl) throw new Error('Checkout could not be created.');
+      window.location.href = payload.checkoutUrl;
+    } catch (error) {
+      setStatus('checkout-status', error instanceof Error ? error.message : 'Checkout could not be created.', 'error');
+    }
+  });
+}
+
+if (page === 'feedback') {
+  document.getElementById('feedback-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    setStatus('feedback-status', 'Sending feedback...');
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      await withJson(await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }));
+      form.reset();
+      setStatus('feedback-status', 'Thanks. Your message is in and we’ll use it to improve the product.', 'success');
+    } catch (error) {
+      setStatus('feedback-status', error instanceof Error ? error.message : 'Feedback could not be sent right now.', 'error');
+    }
+  });
+}
+
+if (page === 'login') {
+  document.getElementById('login-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      const payload = await withJson(await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }));
+      setToken(payload.token);
+      localStorage.setItem('user_email', payload.user?.email || data.email || '');
+      window.location.href = new URLSearchParams(window.location.search).get('returnTo') || '/account/';
+    } catch (error) {
+      setStatus('login-status', error instanceof Error ? error.message : 'Login failed.', 'error');
+    }
+  });
+}
+
+if (page === 'register') {
+  document.getElementById('register-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const password = String(formData.get('password') || '');
+    const confirmPassword = String(formData.get('confirmPassword') || '');
+    if (password !== confirmPassword) {
+      setStatus('register-status', 'Passwords do not match.', 'error');
+      return;
+    }
+    try {
+      const payload = await withJson(await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.get('name') || undefined,
+          email: formData.get('email'),
+          password,
+        }),
+      }));
+      form.reset();
+      setStatus('register-status', payload.message || 'Account created. Check your email.', 'success');
+    } catch (error) {
+      setStatus('register-status', error instanceof Error ? error.message : 'Registration failed.', 'error');
+    }
+  });
+}
+
+if (page === 'forgot-password') {
+  document.getElementById('forgot-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      const payload = await withJson(await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }));
+      form.reset();
+      setStatus('forgot-status', payload.message || 'If the account exists, a reset email is on the way.', 'success');
+    } catch (error) {
+      setStatus('forgot-status', error instanceof Error ? error.message : 'Could not send reset email.', 'error');
+    }
+  });
+}
+
+if (page === 'reset-password') {
+  document.getElementById('reset-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const password = String(formData.get('password') || '');
+    const confirmPassword = String(formData.get('confirmPassword') || '');
+    if (password !== confirmPassword) {
+      setStatus('reset-status', 'Passwords do not match.', 'error');
+      return;
+    }
+    const token = new URLSearchParams(window.location.search).get('token');
+    if (!token) {
+      setStatus('reset-status', 'Reset token missing from the URL.', 'error');
+      return;
+    }
+    try {
+      const payload = await withJson(await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+      }));
+      form.reset();
+      setStatus('reset-status', payload.message || 'Password reset successful. You can sign in now.', 'success');
+    } catch (error) {
+      setStatus('reset-status', error instanceof Error ? error.message : 'Password reset failed.', 'error');
+    }
+  });
+}
+
+if (page === 'account') {
+  const token = getToken();
+  const authGate = document.getElementById('account-gate');
+  const authState = document.getElementById('account-state');
+  const restoreForm = document.getElementById('restore-form');
+
+  async function loadAccount() {
+    if (!token) {
+      if (authGate) authGate.hidden = false;
+      if (authState) authState.hidden = true;
+      return;
+    }
+    try {
+      const payload = await withJson(await fetch('/api/auth/me', {
+        headers: { Authorization: 'Bearer ' + token },
+      }));
+      if (authGate) authGate.hidden = true;
+      if (authState) authState.hidden = false;
+      document.getElementById('account-name').textContent = payload.user?.name || 'RinaWarp account';
+      document.getElementById('account-email').textContent = payload.user?.email || localStorage.getItem('user_email') || '';
+      try {
+        const sub = await withJson(await fetch('/api/license/lookup-by-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: payload.user?.email }),
+        }));
+        document.getElementById('account-tier').textContent = sub.tier ? String(sub.tier).toUpperCase() : 'FREE';
+        document.getElementById('account-tier-note').textContent = sub.tier ? 'Status: ' + (sub.status || 'active') : 'No paid entitlement found yet.';
+      } catch {
+        document.getElementById('account-tier').textContent = 'UNKNOWN';
+        document.getElementById('account-tier-note').textContent = 'Could not load billing state.';
+      }
+    } catch {
+      clearToken();
+      if (authGate) authGate.hidden = false;
+      if (authState) authState.hidden = true;
+    }
+  }
+
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    clearToken();
+    window.location.reload();
+  });
+
+  document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
+    const email = document.getElementById('account-email').textContent.trim() || localStorage.getItem('user_email') || '';
+    try {
+      const payload = await withJson(await fetch('/api/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }));
+      if (payload.url) window.location.href = payload.url;
+    } catch (error) {
+      setStatus('restore-status', error instanceof Error ? error.message : 'Could not open billing portal.', 'error');
+    }
+  });
+
+  restoreForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const email = String(new FormData(form).get('email') || '').trim();
+    if (!email) {
+      setStatus('restore-status', 'Enter the billing email you used at checkout.', 'error');
+      return;
+    }
+    try {
+      const lookup = await withJson(await fetch('/api/license/lookup-by-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }));
+      setStatus('restore-status', lookup.tier ? 'Entitlement found. Open the desktop app and use the restore flow with this billing email.' : 'No paid entitlement found for that email yet.', lookup.tier ? 'success' : 'error');
+    } catch (error) {
+      setStatus('restore-status', error instanceof Error ? error.message : 'Restore lookup failed.', 'error');
+    }
+  });
+
+  loadAccount();
+}
+`;
+
+function seo(path, title, description) {
+  const canonical = `https://rinawarptech.com${path}`;
+  const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.svg";
+  return `
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  <meta name="author" content="RinaWarp Technologies, LLC">
+  <link rel="canonical" href="${canonical}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:url" content="${canonical}">
+  <meta property="og:image" content="${ogImage}">
+  <meta property="og:site_name" content="RinaWarp Terminal Pro">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${ogImage}">
+  <link rel="icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
+  `;
+}
+
+function nav(active) {
+  const items = [
+    ["/", "Home", "home"],
+    ["/pricing/", "Pricing", "pricing"],
+    ["/download/", "Download", "download"],
+    ["/docs/", "Docs", "docs"],
+    ["/agents", "Packs", "agents"],
+    ["/feedback/", "Support", "feedback"],
+    ["/account/", "Account", "account"],
+  ];
+  return items
+    .map(([href, label, key]) => `<a href="${href}"${active === key ? ' class="active" aria-current="page"' : ''}>${label}</a>`)
+    .join("");
+}
+
+function shell({ path, page, title, description, eyebrow, heading, copy, content }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  ${seo(path, title, description)}
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body data-page="${page}">
+  <div class="site-shell">
+    <header>
+      <nav aria-label="Main navigation">
+        <a href="/" class="logo" aria-label="RinaWarp Terminal Pro home">
+          <img class="logo-mark" src="/assets/img/rinawarp-mark.svg" alt="RinaWarp Terminal Pro logo">
+          <span>RinaWarp Terminal Pro</span>
+        </a>
+        <div class="nav-links">${nav(page)}</div>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <span class="eyebrow">${eyebrow}</span>
+        <h1>${heading}</h1>
+        <p class="hero-copy">${copy}</p>
+      </section>
+      ${content}
+    </main>
+    <footer>
+      <div class="footer-inner">
+        <div>© 2026 RinaWarp Technologies, LLC. Proof-first AI workbench.</div>
+        <div class="footer-links">
+          <a href="/docs/">Docs</a>
+          <a href="/pricing/">Pricing</a>
+          <a href="/download/">Download</a>
+          <a href="/feedback/">Support</a>
+          <a href="/terms/">Terms</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/early-access/">Early Access</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+  <script src="/assets/site.js"></script>
+</body>
+</html>`;
+}
+
+const pages = [
+  {
+    route: "",
+    path: "/",
+    page: "home",
+    title: "RinaWarp Terminal Pro | Proof-First AI Workbench",
+    description: "Talk to Rina naturally, let her act through one trusted path, and keep proof, receipts, and recovery attached to the work.",
+    eyebrow: "Proof-first agent execution",
+    heading: "Talk to Rina naturally. Ship with proof.",
+    copy: "RinaWarp Terminal Pro is the AI workbench for people who want an agent they can actually talk to, trust, and recover with. Ask in plain language, let Rina inspect or act through one trusted path, and keep the run ID, receipts, and output attached to the thread.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><div class="kicker">Trust</div><h3>Claims stay tied to proof</h3><p>Run IDs, receipts, tails, and recovery state stay attached to the work instead of disappearing behind agent vibes.</p></article>
+        <article class="card"><div class="kicker">Conversation</div><h3>Rina handles real human input</h3><p>Vague asks, follow-ups, frustration, and mixed conversation are part of the job. Rina stays coherent and grounded.</p></article>
+        <article class="card"><div class="kicker">Recovery</div><h3>Interrupted work still makes sense</h3><p>When a run is interrupted or a session restarts, restored work remains understandable and actionable.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Ask → Plan → Execute → Prove → Recover</h2>
+        <p class="section-copy">The promise is simple: open the app, ask for real work, let it execute through the canonical path, and inspect proof only when you need more detail.</p>
+        <div class="cta-row">
+          <a href="/download/" class="btn btn-primary">Download the app</a>
+          <a href="/pricing/" class="btn btn-secondary">See plans</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "pricing",
+    path: "/pricing",
+    page: "pricing",
+    title: "RinaWarp Terminal Pro Pricing | Trust, Recovery, and Execution",
+    description: "Choose the RinaWarp plan that fits your workflow. Pay for proof-backed execution, recovery, and an agent-first desktop experience.",
+    eyebrow: "Early Access pricing",
+    heading: "Price the trust, proof, and recovery people actually use.",
+    copy: "RinaWarp Terminal Pro Early Access keeps the ladder simple: a real free tier to feel the workbench, a serious Pro tier for proof-backed execution, and team pricing later when the admin and governance surface is ready.",
+    content: `
+      <section class="section"><div class="pricing-grid">
+        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary">Get started</a></article>
+        <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><button class="btn btn-primary" id="checkout-pro">Start Pro Early Access</button><p id="checkout-status" class="status-message">Annual plan: $192/year. Checkout opens in Stripe.</p></div></article>
+        <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$40–$49 <span>/ user / month later</span></div><p>Planned for teams that need policy controls, audit export, and admin support.</p><ul class="feature-list"><li>Org-level trust and governance controls</li><li>Team memory boundaries and audit export</li><li>Admin support and stronger operational guarantees</li></ul><a href="/feedback/" class="btn btn-secondary">Talk to us</a></article>
+      </div></section>
+    `
+  },
+  {
+    route: "download",
+    path: "/download",
+    page: "download",
+    title: "Download RinaWarp Terminal Pro | Verified Releases",
+    description: "Download verified RinaWarp releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.",
+    eyebrow: "Early Access releases",
+    heading: "Download RinaWarp Terminal Pro.",
+    copy: "Install the desktop workbench, inspect the live release manifest, and choose the package path that matches how you want updates delivered.",
+    content: `
+      <section class="section"><div class="download-grid">
+        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p>For Debian and Ubuntu desktops, use the <strong>.deb</strong> package. Choose <strong>AppImage</strong> when you specifically want the in-app updater path and already have a desktop Linux runtime stack.</p><div class="link-row"><a href="/download/linux/deb" class="btn btn-primary">Download Linux .deb</a><a href="${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary">Download AppImage</a><a href="${UPDATES_BASE}/latest.json" class="btn btn-secondary">View manifest</a></div></article>
+        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p><div class="link-row"><a href="${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary">Download Windows</a></div></article>
+        <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS signing is not enabled yet. We would rather say that plainly than ship a rough installer path we cannot support.</p><div class="link-row"><a href="/feedback/" class="btn btn-secondary">Ask about macOS</a></div></article>
+      </div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${UPDATES_BASE}/latest.json" class="btn btn-secondary">Open latest.json</a></div><p class="section-copy">If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
+    `
+  },
+  {
+    route: "docs",
+    path: "/docs",
+    page: "docs",
+    title: "RinaWarp Terminal Pro Docs | Getting Started",
+    description: "Learn how to use RinaWarp: start from the Agent surface, inspect proof, recover work, and understand what Rina actually did.",
+    eyebrow: "Getting started",
+    heading: "Use RinaWarp Terminal Pro like a collaborator, not a command form.",
+    copy: "The desktop app is built around one simple flow: ask in the Agent surface, let Rina inspect or act, and inspect proof only when you need more detail.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><div class="kicker">1. Ask naturally</div><h3>Start in the Agent thread</h3><p>Use normal language. Rina can handle questions, vague asks, follow-ups, and real execution requests without forcing you into terminal-shaped commands.</p></article>
+        <article class="card"><div class="kicker">2. Trust the route</div><h3>Execution only happens through the canonical path</h3><p>If Rina needs to build, test, deploy, fix, or inspect, the work goes through the trusted execution spine.</p></article>
+        <article class="card"><div class="kicker">3. Inspect only when needed</div><h3>Runs, code, diagnostics, and terminal are inspectors</h3><p>The thread is primary. Proof is there when you need it.</p></article>
+      </div></section>
+    `
+  },
+  {
+    route: "feedback",
+    path: "/feedback",
+    page: "feedback",
+    title: "Support & Feedback | RinaWarp Terminal Pro",
+    description: "Reach the RinaWarp team with product feedback, support requests, launch questions, and capability requests.",
+    eyebrow: "Support & feedback",
+    heading: "Tell us what happened.",
+    copy: "Launch questions, feature requests, bug reports, and capability requests are all welcome. If something broke, give us the clearest description you can and we’ll use it to tighten the product.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Support</h3><p>If you are stuck on a paid workflow or launch issue, email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p></article>
+        <article class="card"><h3>General contact</h3><p>For partnership, launch, or founder access questions, email <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>.</p></article>
+        <article class="card"><h3>Fastest useful bug report</h3><p>Tell us what you asked Rina to do, what you expected, what actually happened, and whether a run or recovery card was visible.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message"></p></form></div></section>
+    `
+  },
+  {
+    route: "terms",
+    path: "/terms",
+    page: "legal",
+    title: "Terms | RinaWarp Terminal Pro Early Access",
+    description: "Terms for RinaWarp Terminal Pro Early Access.",
+    eyebrow: "Terms",
+    heading: "Terms for RinaWarp Terminal Pro Early Access.",
+    copy: "These terms are intentionally plain. Early Access means real software, real support, and honest boundaries while the product is still hardening.",
+    content: `<section class="section"><div class="panel stack"><h2 class="section-title">Use of the product</h2><p>RinaWarp Terminal Pro is provided by <strong>RinaWarp Technologies, LLC</strong> for professional and personal workflow use. You are responsible for reviewing outputs, especially for builds, deploys, file changes, and other high-impact actions.</p><p>Paid access is currently sold as an Early Access subscription. Billing is handled through Stripe.</p><p>Early Access support is provided on a reasonable-effort basis. We aim to be responsive and honest, but we do not promise enterprise-grade response times yet.</p></div></section>`
+  },
+  {
+    route: "privacy",
+    path: "/privacy",
+    page: "legal",
+    title: "Privacy | RinaWarp Terminal Pro",
+    description: "Privacy and product data for RinaWarp Terminal Pro.",
+    eyebrow: "Privacy",
+    heading: "Privacy and product data.",
+    copy: "RinaWarp should feel trustworthy not only in execution, but in how we handle purchase, support, and product data.",
+    content: `<section class="section"><div class="panel stack"><h2 class="section-title">What we collect</h2><p>We may collect billing information through Stripe, support and feedback submissions you send to us, and limited product telemetry needed to understand reliability, updates, and launch issues.</p><p>Questions about privacy, billing, or support can be sent to <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p></div></section>`
+  },
+  {
+    route: "early-access",
+    path: "/early-access",
+    page: "legal",
+    title: "Early Access Policy | RinaWarp Terminal Pro",
+    description: "What Early Access means for RinaWarp Terminal Pro.",
+    eyebrow: "Early Access policy",
+    heading: "What Early Access means here.",
+    copy: "Early Access should never be a vague excuse. It means the product is real, paid, and supportable, but some platform, update, and workflow edges are still being tightened in public.",
+    content: `<section class="section"><div class="grid three-up"><article class="card"><h3>What is stable enough now</h3><p>Core trust, proof, recovery, and conversational workflow are real. Linux and Windows releases are validated against clean-machine install paths.</p></article><article class="card"><h3>What is still intentionally limited</h3><p>macOS is not launched yet. Platform support is still narrower than a broad stable release. Automatic updates are still being validated as a real installed-build pipeline.</p></article><article class="card"><h3>How billing and restore work</h3><p>Early Access access is currently anchored to billing email and entitlement restore. If access drifts, support can help recover it.</p></article></div></section>`
+  },
+  {
+    route: "login",
+    path: "/login",
+    page: "login",
+    title: "Login | RinaWarp Terminal Pro",
+    description: "Sign in to your RinaWarp account.",
+    eyebrow: "Welcome back",
+    heading: "Sign in to your account",
+    copy: "Use your RinaWarp account to manage billing, recover access on a new device, and keep your Early Access install connected.",
+    content: `<section class="section"><div class="auth-container"><div class="auth-card stack"><h2 class="section-title">Sign In</h2><form id="login-form"><label>Email<input type="email" name="email" placeholder="you@company.com" required></label><label>Password<input type="password" name="password" placeholder="Enter your password" required></label><button type="submit" class="btn btn-primary">Sign In</button><p id="login-status" class="status-message"></p></form><div class="link-row"><a class="btn btn-secondary" href="/register/">Create account</a><a class="btn btn-secondary" href="/forgot-password/">Forgot password</a></div></div></div></section>`
+  },
+  {
+    route: "register",
+    path: "/register",
+    page: "register",
+    title: "Register | RinaWarp Terminal Pro",
+    description: "Create your RinaWarp account.",
+    eyebrow: "Get started",
+    heading: "Create your account",
+    copy: "Create a RinaWarp account for billing access, password recovery, and future continuity features. Paid installs can still be restored by billing email today.",
+    content: `<section class="section"><div class="auth-container"><div class="auth-card stack"><h2 class="section-title">Create Account</h2><form id="register-form"><label>Name (optional)<input type="text" name="name" placeholder="Your name"></label><label>Email<input type="email" name="email" placeholder="you@company.com" required></label><label>Password<input type="password" name="password" placeholder="Create a strong password" required></label><label>Confirm password<input type="password" name="confirmPassword" placeholder="Confirm password" required></label><button type="submit" class="btn btn-primary">Create Account</button><p id="register-status" class="status-message"></p></form></div></div></section>`
+  },
+  {
+    route: "forgot-password",
+    path: "/forgot-password",
+    page: "forgot-password",
+    title: "Forgot Password | RinaWarp Terminal Pro",
+    description: "Request a password reset.",
+    eyebrow: "Reset password",
+    heading: "Forgot your password?",
+    copy: "Enter your email and we’ll send you a link to reset your password.",
+    content: `<section class="section"><div class="auth-container"><div class="auth-card stack"><h2 class="section-title">Reset Password</h2><form id="forgot-form"><label>Email<input type="email" name="email" placeholder="you@company.com" required></label><button type="submit" class="btn btn-primary">Send Reset Link</button><p id="forgot-status" class="status-message"></p></form></div></div></section>`
+  },
+  {
+    route: "reset-password",
+    path: "/reset-password",
+    page: "reset-password",
+    title: "Reset Password | RinaWarp Terminal Pro",
+    description: "Create a new password for your RinaWarp account.",
+    eyebrow: "Reset password",
+    heading: "Create new password",
+    copy: "Enter your new password below. Make sure it’s strong and different from previous passwords.",
+    content: `<section class="section"><div class="auth-container"><div class="auth-card stack"><h2 class="section-title">New Password</h2><form id="reset-form"><label>New password<input type="password" name="password" placeholder="Create a strong password" required></label><label>Confirm password<input type="password" name="confirmPassword" placeholder="Confirm your password" required></label><button type="submit" class="btn btn-primary">Reset Password</button><p id="reset-status" class="status-message"></p></form></div></div></section>`
+  },
+  {
+    route: "account",
+    path: "/account",
+    page: "account",
+    title: "Account | RinaWarp Terminal Pro",
+    description: "Manage your RinaWarp account, billing, and Early Access restore flow.",
+    eyebrow: "Account",
+    heading: "Your account",
+    copy: "Manage your RinaWarp Terminal Pro account, billing, restore flow, and Early Access support boundaries.",
+    content: `
+      <section class="section"><div class="auth-container stack">
+        <div class="auth-card stack" id="account-gate" hidden>
+          <h2 class="section-title">Sign in to your account</h2>
+          <p class="section-copy">Use your billing email to restore paid access in the desktop app, or sign in if you already created a password.</p>
+          <div class="link-row"><a href="/login/" class="btn btn-primary">Sign In</a><a href="/register/" class="btn btn-secondary">Create Account</a><a href="/early-access/" class="btn btn-secondary">Early Access Policy</a></div>
+        </div>
+        <div class="auth-card stack" id="account-state" hidden>
+          <h2 class="section-title" id="account-name">Loading…</h2>
+          <p id="account-email" class="section-copy"></p>
+          <div class="pill" id="account-tier">—</div>
+          <p id="account-tier-note" class="section-copy"></p>
+          <div class="link-row"><button class="btn btn-primary" id="billing-portal-btn" type="button">Open billing portal</button><button class="btn btn-secondary" id="logout-btn" type="button">Sign out</button></div>
+        </div>
+        <div class="auth-card stack">
+          <h2 class="section-title">Restore Pro access</h2>
+          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message"></p></form>
+        </div>
+      </div></section>
+    `
+  }
+];
+
+async function writeRoute(route, html) {
+  const dir = route ? path.join(outdir, route) : outdir;
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, "index.html"), html, "utf8");
+}
+
+const REDIRECTS = `
+/download/windows ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe 302
+/download/windows/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe 302
+/download/linux ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage 302
+/download/linux/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage 302
+/download/linux/deb ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb 302
+/download/linux/deb/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb 302
+/download/checksums ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
+/download/checksums/ ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
+/releases/latest.json ${UPDATES_BASE}/latest.json 302
+/releases/latest.yml ${UPDATES_BASE}/latest.yml 302
+/releases/latest-linux.yml ${UPDATES_BASE}/latest-linux.yml 302
+/releases/stable/latest.json ${UPDATES_BASE}/stable/latest.json 302
+/releases/stable/latest.yml ${UPDATES_BASE}/stable/latest.yml 302
+/releases/stable/latest-linux.yml ${UPDATES_BASE}/stable/latest-linux.yml 302
+/releases/SHASUMS256.txt ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
+`.trim() + "\n";
 
 await rm(outdir, { recursive: true, force: true });
-await mkdir(outdir, { recursive: true });
+await mkdir(path.join(outdir, "assets", "img"), { recursive: true });
+await writeFile(path.join(outdir, "assets", "site.css"), SITE_CSS, "utf8");
+await writeFile(path.join(outdir, "assets", "site.js"), SITE_JS, "utf8");
+await writeFile(path.join(outdir, "assets", "img", "rinawarp-mark.svg"), LOGO_SVG, "utf8");
+await writeFile(path.join(outdir, "assets", "img", "rinawarp-logo.svg"), LOGO_SVG, "utf8");
+await writeFile(path.join(outdir, "_redirects"), REDIRECTS, "utf8");
 
-await build({
-  entryPoints: [entry],
-  outfile: path.join(outdir, "_worker.js"),
-  bundle: true,
-  format: "esm",
-  platform: "browser",
-  target: "es2022",
-  sourcemap: false,
-  minify: false,
-  logLevel: "info",
-});
+for (const page of pages) {
+  await writeRoute(page.route, shell(page));
+}
 
-console.log(`Built Pages worker bundle: ${path.join(outdir, "_worker.js")}`);
+console.log(`Built static Pages site: ${outdir}`);

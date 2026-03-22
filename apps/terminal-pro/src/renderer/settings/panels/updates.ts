@@ -9,22 +9,15 @@ function getRina(): any {
 
 function esc(s: unknown): string {
   return String(s ?? '')
-    .replaceAll('&', '&')
-    .replaceAll('<', '<')
-    .replaceAll('>', '>')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
 }
 
 type UpdateConfig = {
   channel: 'stable' | 'beta' | 'nightly'
   autoCheck: boolean
   autoDownload: boolean
-}
-
-type UpdateState = {
-  status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'error'
-  currentVersion: string
-  latestVersion: string | null
-  checkedAt: string | null
 }
 
 type ReleaseInfo = {
@@ -35,6 +28,21 @@ type ReleaseInfo = {
   checksumOk: boolean | null
   signedBy: string | null
   publishedAt: string | null
+}
+
+type UpdateState = {
+  status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'downloading' | 'downloaded' | 'unsupported' | 'error'
+  currentVersion: string
+  latestVersion: string | null
+  checkedAt: string | null
+  manifestUrl: string
+  releaseUrl: string
+  error: string | null
+  downloadProgress: number | null
+  downloadedAt: string | null
+  supported: boolean
+  installReady: boolean
+  channel: 'stable' | 'beta' | 'nightly'
 }
 
 function renderUpdateConfig(config: UpdateConfig): string {
@@ -52,11 +60,11 @@ function renderUpdateConfig(config: UpdateConfig): string {
         </label>
         <label class="rw-radio">
           <input type="radio" name="updateChannel" value="beta" ${channel === 'beta' ? 'checked' : ''}>
-          <span>Beta (Preview features)</span>
+          <span>Beta (Manual preview)</span>
         </label>
         <label class="rw-radio">
           <input type="radio" name="updateChannel" value="nightly" ${channel === 'nightly' ? 'checked' : ''}>
-          <span>Nightly (Latest, less tested)</span>
+          <span>Nightly (Manual preview)</span>
         </label>
       </div>
     </div>
@@ -79,14 +87,14 @@ function renderReleaseInfo(info: ReleaseInfo | null): string {
       ? `<span class="rw-badge rw-ok">Verified</span>`
       : info.signatureOk === false
         ? `<span class="rw-badge rw-bad">Invalid</span>`
-        : `<span class="rw-badge rw-muted">Not verified</span>`
+        : `<span class="rw-badge rw-muted">Managed by release flow</span>`
 
   const sumBadge =
     info.checksumOk === true
       ? `<span class="rw-badge rw-ok">OK</span>`
       : info.checksumOk === false
         ? `<span class="rw-badge rw-bad">Mismatch</span>`
-        : `<span class="rw-badge rw-muted">Not verified</span>`
+        : `<span class="rw-badge rw-muted">Published metadata</span>`
 
   const publishedDate = info.publishedAt ? new Date(info.publishedAt).toLocaleDateString() : 'Unknown'
 
@@ -100,9 +108,43 @@ function renderReleaseInfo(info: ReleaseInfo | null): string {
 
     <div class="rw-panel-section">
       <h3>Trust & Verification</h3>
-      <div class="rw-kv"><div class="rw-k">GPG Signature</div><div class="rw-v">${sigBadge}</div></div>
-      <div class="rw-kv"><div class="rw-k">Checksum</div><div class="rw-v">${sumBadge}</div></div>
-      ${info.signedBy ? `<div class="rw-kv"><div class="rw-k">Signed by</div><div class="rw-v">${esc(info.signedBy)}</div></div>` : ''}
+      <div class="rw-kv"><div class="rw-k">Installer trust</div><div class="rw-v">${sigBadge}</div></div>
+      <div class="rw-kv"><div class="rw-k">Release metadata</div><div class="rw-v">${sumBadge}</div></div>
+      ${info.signedBy ? `<div class="rw-kv"><div class="rw-k">Verification path</div><div class="rw-v">${esc(info.signedBy)}</div></div>` : ''}
+    </div>
+  `
+}
+
+function renderRuntimeState(state: UpdateState | null): string {
+  if (!state) {
+    return `<div class="rw-panel-section"><div class="rw-muted">Not checked yet.</div></div>`
+  }
+
+  const statusLabel =
+    state.status === 'downloaded'
+      ? 'Ready to install'
+      : state.status === 'downloading'
+        ? 'Downloading'
+        : state.status === 'unsupported'
+          ? 'Manual update only'
+          : state.status.replaceAll('_', ' ')
+
+  const progress =
+    state.status === 'downloading' && state.downloadProgress !== null
+      ? `<div class="rw-kv"><div class="rw-k">Download</div><div class="rw-v">${Math.round(state.downloadProgress)}%</div></div>`
+      : ''
+
+  return `
+    <div class="rw-panel-section">
+      <h3>Runtime Status</h3>
+      <div class="rw-kv"><div class="rw-k">Status</div><div class="rw-v">${esc(statusLabel)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Channel</div><div class="rw-v">${esc(state.channel)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Auto updates</div><div class="rw-v">${state.supported ? 'Supported on this install' : 'Manual download on this install'}</div></div>
+      <div class="rw-kv"><div class="rw-k">Current version</div><div class="rw-v">${esc(state.currentVersion)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Latest version</div><div class="rw-v">${esc(state.latestVersion || '—')}</div></div>
+      <div class="rw-kv"><div class="rw-k">Last checked</div><div class="rw-v">${state.checkedAt ? new Date(state.checkedAt).toLocaleString() : 'Never'}</div></div>
+      ${progress}
+      ${state.error ? `<div class="rw-kv"><div class="rw-k">Note</div><div class="rw-v">${esc(state.error)}</div></div>` : ''}
     </div>
   `
 }
@@ -111,63 +153,60 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
   container.innerHTML = `
     <div class="rw-panel-head">
       <h2>Updates & Trust</h2>
-      <p class="rw-sub">Configure auto-update behavior and verify release integrity.</p>
+      <p class="rw-sub">Configure automatic updates where supported and keep the release story honest.</p>
     </div>
 
     <div class="rw-card">
       <div class="rw-row rw-gap">
         <button id="rw-updates-check" class="rw-btn">Check for Updates</button>
+        <button id="rw-updates-install" class="rw-btn rw-btn-primary" disabled>Install & Restart</button>
         <button id="rw-updates-verify" class="rw-btn rw-btn-ghost">Verify Release</button>
-        <button id="rw-updates-save" class="rw-btn rw-btn-primary">Save Settings</button>
+        <button id="rw-updates-save" class="rw-btn">Save Settings</button>
         <div id="rw-updates-status" class="rw-muted"></div>
       </div>
 
       <div id="rw-updates-config"></div>
+      <div id="rw-updates-runtime"></div>
       <div id="rw-updates-release"></div>
     </div>
 
     <div class="rw-card">
       <h3>How Updates Work</h3>
       <div class="rw-prose">
-        <p>RinaWarp uses secure update channels with cryptographic verification:</p>
+        <p>RinaWarp Terminal Pro supports real in-app updates on the install types we can prove today:</p>
         <ul>
-          <li><strong>Stable</strong>: Fully tested releases, recommended for production</li>
-          <li><strong>Beta</strong>: Pre-release features, may have bugs</li>
-          <li><strong>Nightly</strong>: Latest development builds, least tested</li>
+          <li><strong>Windows NSIS</strong>: check, download, and install from the app</li>
+          <li><strong>Linux AppImage</strong>: check, download, and apply on restart</li>
+          <li><strong>Linux .deb</strong>: manual/package-manager update path</li>
+          <li><strong>Beta / Nightly</strong>: preview channels still use manual download until their release feeds are promoted</li>
         </ul>
-        <p>Every release is signed with GPG and includes SHA256 checksums for verification.</p>
-      </div>
-    </div>
-
-    <div class="rw-card">
-      <h3>Verify a Release</h3>
-      <div class="rw-prose">
-        <p>To manually verify a release:</p>
-        <ol>
-          <li>Download the release and signature (.asc) files</li>
-          <li>Import the RinaWarp GPG key: <code>gpg --keyserver keyserver.ubuntu.com --recv-keys YOUR_KEY_ID</code></li>
-          <li>Verify: <code>gpg --verify filename.asc filename</code></li>
-          <li>Check checksum: <code>sha256sum -c SHASUMS256.txt</code></li>
-        </ol>
-        <p>Public keys are available at: <a href="https://www.rinawarptech.com/security" target="_blank">rinawarptech.com/security</a></p>
+        <p>The release site publishes public manifests and checksums so the app and the website point to the same artifact truth.</p>
       </div>
     </div>
   `
 
   const rina = getRina()
   const checkBtn = container.querySelector<HTMLButtonElement>('#rw-updates-check')
+  const installBtn = container.querySelector<HTMLButtonElement>('#rw-updates-install')
   const verifyBtn = container.querySelector<HTMLButtonElement>('#rw-updates-verify')
   const saveBtn = container.querySelector<HTMLButtonElement>('#rw-updates-save')
   const statusEl = container.querySelector<HTMLElement>('#rw-updates-status')
   const configEl = container.querySelector<HTMLElement>('#rw-updates-config')
+  const runtimeEl = container.querySelector<HTMLElement>('#rw-updates-runtime')
   const releaseEl = container.querySelector<HTMLElement>('#rw-updates-release')
 
-  if (!checkBtn || !verifyBtn || !saveBtn || !statusEl || !configEl || !releaseEl) {
+  if (!checkBtn || !installBtn || !verifyBtn || !saveBtn || !statusEl || !configEl || !runtimeEl || !releaseEl) {
     return
   }
 
   let currentConfig: UpdateConfig = { channel: 'stable', autoCheck: true, autoDownload: false }
   let releaseInfo: ReleaseInfo | null = null
+  let updateState: UpdateState | null = null
+
+  const syncRuntime = () => {
+    runtimeEl.innerHTML = renderRuntimeState(updateState)
+    installBtn.disabled = !updateState?.installReady
+  }
 
   const loadConfig = async () => {
     try {
@@ -185,7 +224,6 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
       if (rina?.releaseInfo) {
         releaseInfo = await rina.releaseInfo()
       } else {
-        // Build from available info
         const version = (await rina?.appVersion?.()) || 'unknown'
         releaseInfo = {
           version,
@@ -203,6 +241,17 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
     releaseEl.innerHTML = renderReleaseInfo(releaseInfo)
   }
 
+  const loadUpdateState = async () => {
+    try {
+      if (rina?.updateState) {
+        updateState = await rina.updateState()
+      }
+    } catch {
+      updateState = null
+    }
+    syncRuntime()
+  }
+
   const saveConfig = async () => {
     const channelEl = container.querySelector<HTMLInputElement>('input[name="updateChannel"]:checked')
     const autoCheckEl = container.querySelector<HTMLInputElement>('#rw-update-auto-check')
@@ -215,11 +264,10 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
     }
 
     try {
-      if (rina?.setUpdateConfig) {
-        await rina.setUpdateConfig(config)
-      }
+      if (rina?.setUpdateConfig) await rina.setUpdateConfig(config)
       currentConfig = config
       statusEl.textContent = 'Settings saved.'
+      await loadUpdateState()
     } catch (e) {
       statusEl.textContent = `Save failed: ${String(e)}`
     }
@@ -231,10 +279,20 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
 
     try {
       if (rina?.checkForUpdate) {
-        const result = await rina.checkForUpdate()
-        statusEl.textContent = result?.updateAvailable
-          ? `Update available: ${result.version}`
-          : 'You are on the latest version.'
+        updateState = (await rina.checkForUpdate()) as UpdateState
+        syncRuntime()
+        statusEl.textContent =
+          updateState.status === 'downloaded'
+            ? `Update downloaded: ${updateState.latestVersion || 'new version'}. Install when ready.`
+            : updateState.status === 'downloading'
+              ? `Downloading update: ${Math.round(updateState.downloadProgress || 0)}%`
+              : updateState.status === 'update_available'
+                ? `Update available: ${updateState.latestVersion || 'new version'}`
+                : updateState.status === 'unsupported'
+                  ? updateState.error || 'Automatic updates are not available on this install type.'
+                  : updateState.status === 'error'
+                    ? `Check failed: ${updateState.error || 'Unknown error'}`
+                    : 'You are on the latest version.'
       } else {
         statusEl.textContent = 'Update API not available.'
       }
@@ -260,7 +318,12 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
           publishedAt: releaseInfo?.publishedAt ?? null,
         }
         releaseEl.innerHTML = renderReleaseInfo(releaseInfo)
-        statusEl.textContent = result?.signatureOk ? 'Release verified successfully.' : 'Release verification failed.'
+        statusEl.textContent =
+          result?.signatureOk === true
+            ? 'Release verified successfully.'
+            : result?.signatureOk === false
+              ? 'Release verification failed.'
+              : 'Release verification is managed by the installer and published metadata.'
       } else {
         statusEl.textContent = 'Verify API not available.'
       }
@@ -271,11 +334,32 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
     }
   }
 
+  const installUpdate = async () => {
+    statusEl.textContent = 'Installing update...'
+    installBtn.disabled = true
+
+    try {
+      if (rina?.installUpdate) {
+        const result = await rina.installUpdate()
+        statusEl.textContent = result?.ok
+          ? 'Update install started. The app will restart to finish applying it.'
+          : `Install unavailable: ${result?.error || 'Unknown error'}`
+      } else {
+        statusEl.textContent = 'Install API not available.'
+      }
+    } catch (e) {
+      statusEl.textContent = `Install failed: ${String(e)}`
+    } finally {
+      await loadUpdateState()
+    }
+  }
+
   checkBtn.addEventListener('click', () => void checkForUpdates())
+  installBtn.addEventListener('click', () => void installUpdate())
   verifyBtn.addEventListener('click', () => void verifyRelease())
   saveBtn.addEventListener('click', () => void saveConfig())
 
-  // Initial load
   await loadConfig()
+  await loadUpdateState()
   await loadReleaseInfo()
 }

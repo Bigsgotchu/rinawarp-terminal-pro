@@ -10,6 +10,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:getMode',
   'rina:setMode',
   'rina:runAgent',
+  'rina:conversation:route',
   'rina:getPlans',
   'rina:getTools',
   // Telemetry (stubs - always return true)
@@ -24,6 +25,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:openRunsFolder',
   'rina:runs:list',
   'rina:runs:tail',
+  'rina:runs:artifacts',
   'rina:revealRunReceipt',
   'rina:code:listFiles',
   'rina:code:readFile',
@@ -34,12 +36,35 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:pty:resize',
   'rina:pty:stop',
   'rina:pty:metrics',
-  // Canonical plan/run/proof path
+  // Canonical plan/run/proof path. New renderer work should use these channels.
   'rina:agent:plan',
   'rina:executePlanStream',
   'rina:capabilities:execute',
   'rina:analytics:funnel',
   'analytics:trackEvent',
+  'rina:policy:explain',
+  'rina:redaction:preview',
+  'rina:memory:getState',
+  'rina:memory:updateProfile',
+  'rina:memory:updateWorkspace',
+  'rina:memory:deleteEntry',
+  'rina:memory:resetWorkspace',
+  'rina:memory:resetAll',
+  'themes:list',
+  'themes:get',
+  'themes:set',
+  'themes:custom:get',
+  'themes:custom:upsert',
+  'themes:custom:delete',
+  'app:version',
+  'app:updateState',
+  'app:checkForUpdate',
+  'app:openUpdateDownload',
+  'app:installUpdate',
+  'app:updateConfig:get',
+  'app:updateConfig:set',
+  'app:releaseInfo',
+  'app:verifyRelease',
   // License
   'license:verify',
   'license:refresh',
@@ -48,6 +73,14 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'license:portal',
   'license:lookup',
   'license:email',
+  'auth:login',
+  'auth:register',
+  'auth:logout',
+  'auth:me',
+  'auth:forgot-password',
+  'auth:reset-password',
+  'auth:state',
+  'auth:token',
   'secure-agent:list',
   'secure-agent:marketplace',
   'secure-agent:install',
@@ -98,6 +131,12 @@ function sanitizeObject(input: unknown): Record<string, unknown> | undefined {
   if (typeof input !== 'object' || input === null) return undefined
   // Return a shallow copy to prevent mutation
   return { ...(input as Record<string, unknown>) }
+}
+
+function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
+  const wrapped = (_event: unknown, payload: T) => cb(payload)
+  ipcRenderer.on(channel, wrapped)
+  return () => ipcRenderer.removeListener(channel, wrapped)
 }
 
 // Electron API for renderer access - wrap ipcRenderer methods explicitly
@@ -156,6 +195,8 @@ contextBridge.exposeInMainWorld('rina', {
   getPlans: () => ipcRenderer.invoke('rina:getPlans'),
   runAgent: (command: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) =>
     ipcRenderer.invoke('rina:runAgent', command, opts),
+  conversationRoute: (command: string, opts?: { workspaceRoot?: string | null }) =>
+    ipcRenderer.invoke('rina:conversation:route', command, opts),
   getTools: () => ipcRenderer.invoke('rina:getTools'),
 
   // PTY terminal (if available)
@@ -164,9 +205,8 @@ contextBridge.exposeInMainWorld('rina', {
   ptyResize: (cols: number, rows: number) => ipcRenderer.invoke('rina:pty:resize', cols, rows),
   ptyStop: () => ipcRenderer.invoke('rina:pty:stop'),
   ptyMetrics: () => ipcRenderer.invoke('rina:pty:metrics'),
-  onPtyData: (cb: (data: string) => void) => ipcRenderer.on('rina:pty:data', (_e, data) => cb(data)),
-  onPtyExit: (cb: (evt: { exitCode: number; signal: number }) => void) =>
-    ipcRenderer.on('rina:pty:exit', (_e, payload) => cb(payload)),
+  onPtyData: (cb: (data: string) => void) => subscribe('rina:pty:data', cb),
+  onPtyExit: (cb: (evt: { exitCode: number; signal: number }) => void) => subscribe('rina:pty:exit', cb),
 
   // Event subscriptions (allowed channels only)
   on: (channel: string, handler: (...args: any[]) => void) => {
@@ -180,26 +220,21 @@ contextBridge.exposeInMainWorld('rina', {
   },
 
   // Thinking stream events
-  onThinking: (cb: (step: { time: number; message: string }) => void) =>
-    ipcRenderer.on('rina:thinking', (_e, step) => cb(step)),
+  onThinking: (cb: (step: { time: number; message: string }) => void) => subscribe('rina:thinking', cb),
 
   // Stream events
-  onStreamChunk: (cb: (data: any) => void) => {
-    ipcRenderer.on('rina:stream:chunk', (_e, payload) => cb(payload))
-  },
-  onStreamEnd: (cb: (data: any) => void) => {
-    ipcRenderer.on('rina:stream:end', (_e, payload) => cb(payload))
-  },
+  onStreamChunk: (cb: (data: any) => void) => subscribe('rina:stream:chunk', cb),
+  onStreamEnd: (cb: (data: any) => void) => subscribe('rina:stream:end', cb),
 
   // Plan events
-  onPlanStepStart: (cb: (evt: any) => void) => ipcRenderer.on('rina:plan:stepStart', (_e, payload) => cb(payload)),
-  onPlanRunStart: (cb: (p: { planRunId: string }) => void) => ipcRenderer.on('rina:plan:run:start', (_e, p) => cb(p)),
+  onPlanStepStart: (cb: (evt: any) => void) => subscribe('rina:plan:stepStart', cb),
+  onPlanRunStart: (cb: (p: { planRunId: string }) => void) => subscribe('rina:plan:run:start', cb),
   onPlanRunEnd: (cb: (p: { planRunId: string; ok: boolean; haltedBecause?: string }) => void) =>
-    ipcRenderer.on('rina:plan:run:end', (_e, p) => cb(p)),
+    subscribe('rina:plan:run:end', cb),
 
   // Brain events
   getBrainStats: () => ipcRenderer.invoke('rina:brain:stats'),
-  onBrainEvent: (cb: (event: any) => void) => ipcRenderer.on('rina:brain:event', (_e, event) => cb(event)),
+  onBrainEvent: (cb: (event: any) => void) => subscribe('rina:brain:event', cb),
 
   // Diagnostics
   diagnosticsPaths: () => ipcRenderer.invoke('rina:diagnostics:paths'),
@@ -207,6 +242,7 @@ contextBridge.exposeInMainWorld('rina', {
   openRunsFolder: () => ipcRenderer.invoke('rina:openRunsFolder'),
   runsList: (limit?: number) => ipcRenderer.invoke('rina:runs:list', { limit }),
   runsTail: (args: { runId: string; sessionId: string; maxLines?: number; maxBytes?: number }) => ipcRenderer.invoke('rina:runs:tail', args),
+  runsArtifacts: (args: { runId: string; sessionId: string }) => ipcRenderer.invoke('rina:runs:artifacts', args),
   revealRunReceipt: (receiptId: string) => ipcRenderer.invoke('rina:revealRunReceipt', receiptId),
 
   // Telemetry (stubs - always work)
@@ -233,7 +269,32 @@ contextBridge.exposeInMainWorld('rina', {
   trackEvent: (event: string, properties?: Record<string, unknown>) => ipcRenderer.invoke('analytics:trackEvent', event, properties),
   trackFunnelStep: (step: string, properties?: Record<string, unknown>) =>
     ipcRenderer.invoke('rina:analytics:funnel', step, properties),
+  policyExplain: (command: string) => ipcRenderer.invoke('rina:policy:explain', command),
+  redactionPreview: (text: string) => ipcRenderer.invoke('rina:redaction:preview', text),
+  memoryGetState: () => ipcRenderer.invoke('rina:memory:getState'),
+  memoryUpdateProfile: (input: any) => ipcRenderer.invoke('rina:memory:updateProfile', input),
+  memoryUpdateWorkspace: (workspaceId: string, input: any) => ipcRenderer.invoke('rina:memory:updateWorkspace', workspaceId, input),
+  memoryDeleteEntry: (input: any) => ipcRenderer.invoke('rina:memory:deleteEntry', input),
+  memorySetInferredStatus: (id: string, status: 'approved' | 'dismissed') =>
+    ipcRenderer.invoke('rina:memory:setInferredStatus', id, status),
+  memoryResetWorkspace: (workspaceId: string) => ipcRenderer.invoke('rina:memory:resetWorkspace', workspaceId),
+  memoryResetAll: () => ipcRenderer.invoke('rina:memory:resetAll'),
   workspaceDefault: () => ipcRenderer.invoke('rina:workspace:default'),
+  themesList: () => ipcRenderer.invoke('themes:list'),
+  themesGet: () => ipcRenderer.invoke('themes:get'),
+  themesSet: (id: string) => ipcRenderer.invoke('themes:set', id),
+  themesCustomGet: () => ipcRenderer.invoke('themes:custom:get'),
+  themesCustomUpsert: (theme: any) => ipcRenderer.invoke('themes:custom:upsert', theme),
+  themesCustomDelete: (id: string) => ipcRenderer.invoke('themes:custom:delete', id),
+  appVersion: () => ipcRenderer.invoke('app:version'),
+  updateState: () => ipcRenderer.invoke('app:updateState'),
+  checkForUpdate: () => ipcRenderer.invoke('app:checkForUpdate'),
+  openUpdateDownload: () => ipcRenderer.invoke('app:openUpdateDownload'),
+  installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
+  updateConfig: () => ipcRenderer.invoke('app:updateConfig:get'),
+  setUpdateConfig: (config: any) => ipcRenderer.invoke('app:updateConfig:set', config),
+  releaseInfo: () => ipcRenderer.invoke('app:releaseInfo'),
+  verifyRelease: () => ipcRenderer.invoke('app:verifyRelease'),
 
   // License
   verifyLicense: (customerId: string) => ipcRenderer.invoke('license:verify', customerId),
@@ -243,6 +304,14 @@ contextBridge.exposeInMainWorld('rina', {
   openStripePortal: (email?: string) => ipcRenderer.invoke('license:portal', { email }),
   licenseCachedEmail: () => ipcRenderer.invoke('license:email'),
   licenseLookupByEmail: (email: string) => ipcRenderer.invoke('license:lookup', email),
+  authLogin: (args: { email: string; password: string }) => ipcRenderer.invoke('auth:login', args),
+  authRegister: (args: { email: string; password: string; name?: string }) => ipcRenderer.invoke('auth:register', args),
+  authLogout: () => ipcRenderer.invoke('auth:logout'),
+  authMe: () => ipcRenderer.invoke('auth:me'),
+  authForgotPassword: (args: { email: string }) => ipcRenderer.invoke('auth:forgot-password', args),
+  authResetPassword: (args: { token: string; password: string }) => ipcRenderer.invoke('auth:reset-password', args),
+  authState: () => ipcRenderer.invoke('auth:state'),
+  authToken: () => ipcRenderer.invoke('auth:token'),
   marketplaceList: () => ipcRenderer.invoke('secure-agent:marketplace'),
   installedAgents: () => ipcRenderer.invoke('secure-agent:list'),
   installMarketplaceAgent: (args: { name: string; userEmail?: string }) => ipcRenderer.invoke('secure-agent:install', args),

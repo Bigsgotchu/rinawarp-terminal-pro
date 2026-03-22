@@ -4,8 +4,8 @@
  * Parses structured commands and routes to appropriate handlers.
  */
 
-import { installAgent, listInstalledAgents } from '../agent-manager'
-import { runAgent, getAgentInfo } from '../agent-runner'
+import { installAgent } from '../agent-manager'
+import { runAgent } from '../agent-runner'
 import { listInstalledAgents as listPlugins } from '../plugin-registry'
 import { explainError, explainErrorPattern } from '../error-explainer'
 import { runDoctor, runDoctorFix } from '../doctor'

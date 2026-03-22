@@ -1,7 +1,243 @@
 /**
- * Workbench style compatibility layer.
+ * Workbench refinements for the agent-first shell.
  *
- * The canonical workbench shell now lives in ../renderer.css.
- * Keep this file intentionally minimal so it does not override the
- * agent-first layout and visual system loaded earlier.
+ * The canonical workbench shell lives in ../renderer.css.
+ * Keep this file intentionally minimal so it only carries focused
+ * workbench-specific overrides.
  */
+
+html[data-skin="vscode"] .rw-workbench-topbar {
+  block-size: 32px;
+  padding: 5px 8px;
+  border-block-end: 1px solid var(--w-divider, var(--rw-divider));
+  background: transparent;
+}
+
+html[data-skin="vscode"] .rw-workbench-tab-group-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--w-muted, var(--rw-muted));
+  opacity: 0.75;
+}
+
+html[data-skin="vscode"] .rw-workbench-tab {
+  block-size: 22px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  color: var(--w-muted, var(--rw-muted));
+}
+
+html[data-skin="vscode"] .rw-workbench-tab:hover {
+  color: var(--w-fg, var(--rw-fg));
+  background: color-mix(in oklab, var(--w-panel-2, var(--rw-surface-2)) 35%, transparent);
+  border-color: var(--w-border, var(--rw-border));
+}
+
+html[data-skin="vscode"] .rw-workbench-tab[aria-selected="true"],
+html[data-skin="vscode"] .rw-workbench-tab[data-active="true"] {
+  color: var(--w-fg, var(--rw-fg));
+  background: transparent;
+  border-color: transparent;
+  position: relative;
+}
+
+html[data-skin="vscode"] .rw-workbench-tab[aria-selected="true"]::after,
+html[data-skin="vscode"] .rw-workbench-tab[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 8px;
+  inset-inline-end: 8px;
+  inset-block-end: -7px;
+  block-size: 2px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--rw-hotpink), var(--rw-teal), var(--rw-babyblue));
+  opacity: 0.9;
+}
+
+html[data-skin="vscode"] .rw-topbar-action {
+  block-size: 22px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid var(--w-border, var(--rw-border));
+  box-shadow: none;
+  color: var(--w-muted, var(--rw-muted));
+}
+
+html[data-skin="vscode"] .rw-topbar-action:hover {
+  color: var(--w-fg, var(--rw-fg));
+  background: color-mix(in oklab, var(--w-panel-2, var(--rw-surface-2)) 35%, transparent);
+}
+
+html[data-skin="vscode"] .rw-inline-runblock {
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--w-divider, var(--rw-divider));
+  background: color-mix(in oklab, var(--w-panel, var(--rw-surface)) 92%, transparent);
+  box-shadow: none;
+}
+
+html[data-skin="vscode"] .rw-inline-runblock-head {
+  padding-block-end: 8px;
+  border-block-end: 1px solid var(--w-divider, var(--rw-divider));
+}
+
+html[data-skin="vscode"] .rw-status-pill,
+html[data-skin="vscode"] .rw-proof-pill,
+html[data-skin="vscode"] .rw-pill {
+  min-block-size: 22px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid var(--w-border, var(--rw-border));
+  box-shadow: none;
+}
+
+html[data-skin="vscode"] .rw-inline-runblock-command,
+html[data-skin="vscode"] .rw-inline-runblock-output {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--w-divider, var(--rw-divider));
+  background: color-mix(in oklab, black 70%, transparent);
+  box-shadow: none;
+}
+
+html[data-skin="vscode"] .rw-inline-runblock-actions-top .rw-link-btn,
+html[data-skin="vscode"] .rw-inline-runblock-overflow > summary {
+  min-block-size: 22px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--rw-babyblue);
+}
+
+html[data-skin="vscode"] .rw-inline-runblock-overflow-menu {
+  border: 1px solid var(--w-divider, var(--rw-divider));
+  border-radius: 10px;
+  background: rgba(12, 15, 20, 0.98);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+html[data-density="comfortable"] .rw-topbar-action[data-action="toggle-density"] {
+  box-shadow: inset 0 0 0 1px rgba(124, 199, 255, 0.16);
+}
+
+html[data-density="compact"] {
+  --rw-radius-1: 6px;
+  --rw-radius-2: 10px;
+  --rw-radius-3: 12px;
+  --rw-pad-1: 8px;
+  --rw-pad-2: 12px;
+  --rw-gap-1: 8px;
+  --rw-pill-h: 24px;
+  --rw-pill-px: 10px;
+}
+
+html[data-density="compact"] .rw-workbench-topbar {
+  padding: 6px 10px;
+}
+
+html[data-density="compact"] .rw-workbench-tab {
+  border-radius: var(--rw-radius-2);
+  padding: 5px 8px;
+  min-block-size: 22px;
+  font-size: 0.7rem;
+}
+
+html[data-density="compact"] .rw-topbar-action {
+  border-radius: var(--rw-radius-2);
+  padding: 5px 8px;
+  min-block-size: 22px;
+  font-size: 0.66rem;
+  box-shadow: none;
+  transform: none;
+}
+
+html[data-density="compact"] .rw-chip,
+html[data-density="compact"] .rw-agent-chip,
+html[data-density="compact"] .rw-status-pill,
+html[data-density="compact"] .rw-proof-pill,
+html[data-density="compact"] .rw-inline-action {
+  border-radius: var(--rw-radius-1);
+  padding: 0 var(--rw-pill-px);
+  min-block-size: var(--rw-pill-h);
+  box-shadow: none;
+}
+
+html[data-density="compact"] .rw-agent-panel-head {
+  padding: 6px 12px;
+}
+
+html[data-density="compact"] .rw-agent-body {
+  padding: 10px;
+  gap: 8px;
+}
+
+html[data-density="compact"] #agent-output {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  gap: 8px;
+}
+
+html[data-density="compact"] .rw-agent-hero,
+html[data-density="compact"] .rw-agent-composer,
+html[data-density="compact"] .rw-inline-runblock,
+html[data-density="compact"] .rw-reply-card,
+html[data-density="compact"] .rw-message-bubble {
+  border-radius: var(--rw-radius-3);
+  box-shadow: none;
+}
+
+html[data-density="compact"] .rw-agent-hero {
+  padding: var(--rw-pad-2);
+}
+
+html[data-density="compact"] .rw-prompt-chip {
+  border-radius: var(--rw-radius-2);
+  padding: 7px 10px;
+  transform: none;
+  gap: 8px;
+  font-size: 0.76rem;
+}
+
+html[data-density="compact"] .rw-agent-composer {
+  padding: var(--rw-pad-1);
+  gap: 8px;
+}
+
+html[data-density="compact"] .rw-agent-input {
+  min-block-size: 56px;
+  padding: 9px 10px;
+  border-radius: var(--rw-radius-3);
+  box-shadow: none;
+  font-size: 0.88rem;
+}
+
+html[data-density="compact"] .rw-agent-input:focus {
+  box-shadow: 0 0 0 3px rgba(87, 231, 255, 0.06);
+}
+
+html[data-density="compact"] .rw-agent-send {
+  border-radius: var(--rw-radius-2);
+  padding: 8px 12px;
+  box-shadow: none;
+  transform: none;
+}
+
+html[data-density="compact"] .rw-inline-runblock {
+  padding: 10px 11px;
+  gap: 8px;
+}
+
+html[data-density="compact"] .rw-run-block {
+  padding: 10px 0;
+  gap: 7px;
+}

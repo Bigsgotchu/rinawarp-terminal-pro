@@ -1,34 +1,43 @@
 import type { ExecutionTraceBlock, WorkbenchState } from '../store.js'
-import { mountMarkup } from '../dom.js'
-import { escapeHtml } from './format.js'
+import { el, mount } from '../dom.js'
 
-export function renderExecutionTraceBlock(block: ExecutionTraceBlock): string {
-  return `
-    <div class="tb ${escapeHtml(block.status)}" data-block-id="${escapeHtml(block.id)}">
-      <div class="tb-head">
-        <span class="tb-status">${escapeHtml(block.status.toUpperCase())}</span>
-        ${block.runId ? `<span class="tb-meta">runId: <code>${escapeHtml(block.runId)}</code></span>` : ''}
-      </div>
-      ${block.cmd ? `<div class="tb-cmd"><code>${escapeHtml(block.cmd)}</code></div>` : ''}
-      <pre class="tb-out">${escapeHtml(block.output)}</pre>
-    </div>
-  `
+export function renderExecutionTraceBlock(block: ExecutionTraceBlock): HTMLElement {
+  const head = el('div', { class: 'tb-head' }, el('span', { class: 'tb-status' }, block.status.toUpperCase()))
+  if (block.runId) {
+    head.appendChild(el('span', { class: 'tb-meta' }, 'runId: ', el('code', undefined, block.runId)))
+  }
+
+  return el(
+    'div',
+    { class: `tb ${block.status}`, dataset: { blockId: block.id } },
+    head,
+    block.cmd ? el('div', { class: 'tb-cmd' }, el('code', undefined, block.cmd)) : null,
+    el('pre', { class: 'tb-out' }, block.output)
+  )
 }
 
 export function renderExecutionTrace(state: WorkbenchState): void {
   const root = document.getElementById('execution-trace-output')
   if (!root) return
-  mountMarkup(
-    root,
+  const shell =
     state.executionTrace.blocks.length > 0
-      ? state.executionTrace.blocks.slice(-60).map(renderExecutionTraceBlock).join('')
-      : `
-        <div class="rw-execution-trace-empty">
-          <div class="rw-execution-trace-empty-title">Execution trace</div>
-          <div class="rw-execution-trace-empty-copy">Rina can build, test, and fix in the background. This stream exists only as low-level proof when you need command details.</div>
-        </div>
-      `
-  )
+      ? el('div')
+      : el(
+          'div',
+          { class: 'rw-execution-trace-empty' },
+          el('div', { class: 'rw-execution-trace-empty-title' }, 'Execution trace'),
+          el(
+            'div',
+            { class: 'rw-execution-trace-empty-copy' },
+            'Rina can build, test, and fix in the background. This stream exists only as low-level proof when you need command details.'
+          )
+        )
+  if (state.executionTrace.blocks.length > 0) {
+    for (const block of state.executionTrace.blocks.slice(-60)) {
+      shell.appendChild(renderExecutionTraceBlock(block))
+    }
+  }
+  mount(root, shell)
   root.scrollTop = root.scrollHeight
 
   const thinkingIndicator = document.getElementById('thinking-indicator')

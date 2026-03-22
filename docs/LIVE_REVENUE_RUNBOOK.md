@@ -48,11 +48,12 @@ The main public-launch blockers are now on the distribution surface:
 
 That means CI release publication is ahead of the public download surface right now.
 
-Update after worker deployment:
+Update after production routing fixes:
 
-- `https://rinawarp-downloads.rinawarptech.workers.dev/download/terminal-pro-linux` now redirects correctly to the `1.1.3` AppImage
-- the apex site is still stale because the Pages project `rinawarptech-website` is serving an older production deployment (`c713f8e`, 1 week old)
-- until that Pages deployment is updated or its `/download/*` and `/releases/*` behavior is aligned, the public site will continue to show stale release data
+- `https://rinawarptech.com/download/linux/deb` now redirects correctly to the live `1.1.4` Debian package
+- `https://rinawarptech.com/download/linux/appimage` now redirects correctly to the live `1.1.4` AppImage
+- Debian/Ubuntu desktop systems should use the `.deb` package as the recommended Early Access baseline
+- the AppImage remains the in-app updater path for Linux users who already have the standard desktop runtime stack in place
 
 ## Live Systems Involved
 
@@ -198,9 +199,9 @@ Minimum evidence set for signoff:
 
 - macOS signing/notarization still must be verified in the real release environment
 - Windows signing still must be verified in the real release environment
-- fresh-machine install/activate tests still must be run on the platforms you plan to ship
+- fresh-machine Windows install/activate tests still must be run on the platforms you plan to ship
 - live marketplace backend still needs full alignment if marketplace is in launch scope
-- public manifest/download routing still needs to be aligned so the website serves the same release metadata that CI is publishing to R2
+- Linux AppImage still assumes a desktop runtime stack; the recommended public Linux baseline is Debian/Ubuntu `.deb`
 
 ## Launch Decision Rule
 

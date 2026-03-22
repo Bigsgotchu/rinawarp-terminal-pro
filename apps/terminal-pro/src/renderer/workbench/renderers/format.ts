@@ -6,15 +6,6 @@
 import type { RunModel } from '../store.js'
 import { formatRunStatusForDisplay, hasRunProof } from '../proof.js'
 
-export function escapeHtml(input: string): string {
-  return String(input)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;')
-}
-
 export function formatRunDate(value: string): string {
   if (!value) return 'Unknown'
   const date = new Date(value)
@@ -55,12 +46,15 @@ export function formatExitState(run: RunModel): string {
   if (run.status === 'running') return 'running'
   if (run.status === 'interrupted') return 'interrupted'
   if (run.status === 'failed') return typeof run.exitCode === 'number' ? `exit=${run.exitCode}` : 'failed'
-  if (typeof run.exitCode === 'number') return `exit=${run.exitCode}`
+  if (hasRunProof(run) && typeof run.exitCode === 'number') return `verified · exit=${run.exitCode}`
+  if (typeof run.exitCode === 'number') return `awaiting receipt · exit=${run.exitCode}`
   return hasRunProof(run) ? 'completed with proof' : 'proof pending'
 }
 
 export function formatProofBadge(run: RunModel): string {
-  if (run.latestReceiptId) return 'Receipt ready'
-  if (run.sessionId) return run.status === 'running' ? 'Session saved' : 'Proof pending'
+  if (run.restored && (run.latestReceiptId || run.sessionId)) return 'Recovered receipt'
+  if (hasRunProof(run) && run.latestReceiptId) return 'Receipt verified'
+  if (run.latestReceiptId) return 'Receipt attached'
+  if (run.sessionId) return run.status === 'running' ? 'Session recording' : 'Awaiting receipt'
   return 'No receipt yet'
 }

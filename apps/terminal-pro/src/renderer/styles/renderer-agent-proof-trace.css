@@ -1,0 +1,111 @@
+.tb {
+  border: 1px solid var(--rw-border-soft, rgba(148, 163, 184, 0.1));
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.48);
+  overflow: hidden;
+}
+
+.tb-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-block-end: 1px solid rgba(148, 163, 184, 0.1);
+  color: var(--rw-muted-soft, var(--rw-muted));
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tb-status {
+  font-weight: 700;
+}
+
+.tb.success .tb-status {
+  color: var(--rw-accent-2);
+}
+
+.tb.failed .tb-status {
+  color: var(--rw-danger);
+}
+
+.tb.running .tb-status {
+  color: var(--rw-warning);
+}
+
+.tb.info .tb-status {
+  color: var(--rw-accent);
+}
+
+.tb-cmd {
+  padding: 8px 10px 0;
+  font-family: var(--font-mono);
+  color: #cfe3ff;
+  font-size: 0.74rem;
+}
+
+.tb-meta code,
+.tb-cmd code {
+  font-family: var(--font-mono);
+}
+
+.tb-out {
+  margin: 0;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.42;
+  color: #dbe7fb;
+}
+
+.rw-stream-strip {
+  display: none;
+  min-block-size: 0;
+  max-block-size: 104px;
+  overflow: auto;
+  padding: 8px 12px;
+  border-block-start: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(15, 23, 42, 0.62);
+  color: var(--rw-muted-soft, var(--rw-muted));
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.rw-stream-strip.visible {
+  display: block;
+}
+
+.rw-thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.06);
+  color: #dbeafe;
+  font-size: 0.7rem;
+}
+
+.rw-thinking-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.rw-thinking-dot {
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--rw-accent);
+  animation: rwThinking 1.2s infinite ease-in-out;
+}
+
+.rw-thinking-dot:nth-child(2) { animation-delay: 0.12s; }
+.rw-thinking-dot:nth-child(3) { animation-delay: 0.24s; }
+
+@keyframes rwThinking {
+  0%, 80%, 100% { transform: scale(0.75); opacity: 0.45; }
+  40% { transform: scale(1); opacity: 1; }
+}

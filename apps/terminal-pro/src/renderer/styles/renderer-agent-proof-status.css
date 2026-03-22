@@ -1,0 +1,111 @@
+.rw-stat-grid {
+  gap: 8px;
+}
+
+.rw-stat-pill {
+  min-inline-size: 84px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.022);
+  border: 1px solid rgba(147, 207, 255, 0.06);
+}
+
+.rw-stat-pill span {
+  color: var(--rw-subtle);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rw-stat-pill strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.rw-truth-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 2px;
+  max-inline-size: none;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 199, 255, 0.09);
+  background:
+    linear-gradient(180deg, rgba(18, 24, 35, 0.78), rgba(16, 21, 32, 0.72)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.05), transparent 34%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.rw-truth-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.rw-truth-group-dev {
+  justify-content: flex-end;
+  opacity: 0.54;
+}
+
+.rw-truth-group-label {
+  color: var(--rw-subtle);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding-inline-end: 2px;
+}
+
+.rw-truth-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-inline-size: 0;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--rw-muted);
+  font-size: 0.61rem;
+}
+
+.rw-truth-chip-dev {
+  background: rgba(255, 255, 255, 0.015);
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.rw-truth-chip-workspace {
+  max-inline-size: min(100%, 430px);
+}
+
+.rw-truth-chip span {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rw-subtle);
+}
+
+.rw-truth-chip code {
+  font-family: var(--font-mono);
+  color: var(--rw-fg);
+  font-size: 0.63rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rw-proof-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.rw-proof-summary-item {
+  color: var(--rw-muted);
+  font-size: 0.76rem;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.024);
+  border: 1px solid rgba(147, 207, 255, 0.06);
+}

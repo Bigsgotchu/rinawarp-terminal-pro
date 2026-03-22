@@ -18,6 +18,7 @@ export function formatRunStatusForDisplay(run: RunModel): string {
   if (run.status === 'running') return 'RUNNING'
   if (run.status === 'interrupted') return 'INTERRUPTED'
   if (run.status === 'failed') return typeof run.exitCode === 'number' ? `FAILED · EXIT ${run.exitCode}` : 'FAILED'
-  if (isRunSuccessWithProof(run)) return 'SUCCESS'
+  if (isRunSuccessWithProof(run)) return 'VERIFIED · EXIT 0'
+  if (run.status === 'ok' && typeof run.exitCode === 'number') return `DONE · EXIT ${run.exitCode} · VERIFYING`
   return 'PROOF PENDING'
 }

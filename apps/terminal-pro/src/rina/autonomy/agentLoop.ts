@@ -6,7 +6,6 @@
  */
 
 import { thinkingStream } from '../thinking/thinkingStream.js'
-import { selfRepair } from '../agent/selfRepair.js'
 import { autonomousMode } from './autonomousMode.js'
 import { commandMemory } from '../learning/commandMemory.js'
 

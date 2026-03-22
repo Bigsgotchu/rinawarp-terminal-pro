@@ -5,8 +5,6 @@
  * Plugins can register tools and agents to extend RinaWarp's capabilities.
  */
 
-import { EventEmitter } from 'events'
-
 /**
  * Main plugin interface that all RinaWarp plugins must implement
  */

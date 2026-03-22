@@ -9,7 +9,9 @@ directories:
 
 files:
   - dist-electron/**/*
+  - "!dist-electron/installer{,/**/*}"
   - package.json
+  - "!test-results{,/**/*}"
   - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
   - "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}"
 
@@ -41,3 +43,7 @@ linux:
   icon: src/assets/icon.png
 
 artifactName: "RinaWarp-Terminal-Pro-${version}.${ext}"
+
+publish:
+  provider: generic
+  url: https://rinawarptech.com/releases

@@ -4,7 +4,9 @@
  */
 
 export type SettingsTabId =
+  | 'account'
   | 'general'
+  | 'memory'
   | 'license'
   | 'themes'
   | 'diagnostics'
@@ -40,25 +42,19 @@ type InternalState = {
 
 const DEFAULT_STORAGE_KEY = 'rinawarp.settings.activeTab.v1'
 
-function isEditableTarget(el: EventTarget | null): boolean {
-  const node = el as HTMLElement | null
-  if (!node) return false
-  // Allow global shortcuts while focused in the primary command box.
-  if (node.id === 'intent' || node.closest?.('#intent')) return false
-  const tag = node.tagName?.toLowerCase()
-  if (tag === 'input' || tag === 'textarea' || tag === 'select') return true
-  if (node.isContentEditable) return true
-  return false
-}
-
-function isCmdComma(ev: KeyboardEvent): boolean {
-  return ev.key === ',' && (ev.metaKey || ev.ctrlKey) && !ev.altKey && !ev.shiftKey
-}
-
 function shouldIgnoreKey(ev: KeyboardEvent): boolean {
   if (ev.defaultPrevented) return true
   if (ev.isComposing) return true
   return false
+}
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null
+  if (!el) return false
+  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) {
+    return true
+  }
+  return Boolean(el.closest('[contenteditable="true"], [contenteditable=""], input, textarea, select'))
 }
 
 function clampIndex(i: number, maxExclusive: number): number {
@@ -71,7 +67,9 @@ function readStoredTab(storageKey: string): SettingsTabId | null {
     const raw = localStorage.getItem(storageKey)
     if (!raw) return null
     if (
+      raw === 'account' ||
       raw === 'general' ||
+      raw === 'memory' ||
       raw === 'license' ||
       raw === 'themes' ||
       raw === 'diagnostics' ||
@@ -276,6 +274,7 @@ export function openSettings(opts: SettingsTabsOptions, state?: InternalState): 
   }
   setHidden(opts.root, false)
   opts.root.classList.add('rw-settings-open')
+  window.dispatchEvent(new CustomEvent('rina:settings-visibility', { detail: { open: true } }))
   const stored = readStoredTab(opts.storageKey || DEFAULT_STORAGE_KEY)
   const activeBtn = findTabButton(opts.rail, stored || opts.defaultTab || 'general')
   if (activeBtn) activeBtn.focus()
@@ -287,6 +286,7 @@ export function closeSettings(opts: SettingsTabsOptions, state?: InternalState):
   }
   opts.root.classList.remove('rw-settings-open')
   setHidden(opts.root, true)
+  window.dispatchEvent(new CustomEvent('rina:settings-visibility', { detail: { open: false } }))
   if (state?.previousFocus && typeof state.previousFocus.focus === 'function') {
     state.previousFocus.focus()
     state.previousFocus = null
@@ -349,34 +349,32 @@ export function initSettingsTabs(
   const onGlobalKeydown = (ev: KeyboardEvent): void => {
     if (shouldIgnoreKey(ev)) return
 
-    // Cmd/Ctrl+, toggles settings, but do not steal if user is typing in a random input outside the dialog.
-    if (isCmdComma(ev)) {
-      const inDialog = opts.root.contains(ev.target as Node)
-      if (isEditableTarget(ev.target) && !inDialog) return
+    const isOpenShortcut = (ev.metaKey || ev.ctrlKey) && !ev.altKey && !ev.shiftKey && ev.key === ','
+    if (!state.open && isOpenShortcut) {
+      if (isEditableTarget(ev.target)) return
       ev.preventDefault()
+      openSettings(opts, state)
       ev.stopPropagation()
-      state.open ? closeSettings(opts, state) : openSettings(opts, state)
       return
     }
 
     if (!state.open) return
+
+    if (ev.key === 'Escape') {
+      ev.preventDefault()
+      closeSettings(opts, state)
+      ev.stopPropagation()
+      return
+    }
 
     // Focus trap
     if (trapTabKey(ev, opts.root)) {
       ev.stopPropagation()
       return
     }
-
-    // Esc closes only if user is NOT actively typing in input-like element
-    if (ev.key === 'Escape') {
-      if (isEditableTarget(ev.target)) return
-      ev.preventDefault()
-      ev.stopPropagation()
-      closeSettings(opts, state)
-    }
   }
 
-  window.addEventListener('keydown', onGlobalKeydown, { capture: true })
+  document.addEventListener('keydown', onGlobalKeydown, { capture: true })
 
   setSelected(state, opts, initial)
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# RinaWarp Terminal Pro v1.0.4 Installer
+# RinaWarp Terminal Pro Installer
 # https://rinawarptech.com
 #
 # Usage:
@@ -9,10 +9,11 @@
 
 set -e
 
-VERSION="1.0.4"
-REPO="Bigsgotchu/rinawarp-terminal-pro"
+MANIFEST_URL="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev/latest.json"
 INSTALL_DIR="${HOME}/.rinawarp"
 BIN_DIR="${INSTALL_DIR}/bin"
+
+VERSION="$(curl -fsSL "$MANIFEST_URL" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
 
 # Detect OS
 OS="$(uname -s)"
@@ -57,8 +58,8 @@ echo "Installing RinaWarp Terminal Pro v${VERSION}..."
 # Create install directory
 mkdir -p "${BIN_DIR}"
 
-# Download the binary from RinaWarp CDN
-DOWNLOAD_URL="https://rinawarp-downloads.rinawarptech.workers.dev/${FILENAME}"
+# Download the binary from the public installers origin
+DOWNLOAD_URL="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev/releases/${VERSION}/${FILENAME}"
 echo "Downloading from ${DOWNLOAD_URL}..."
 
 curl -fsSL "${DOWNLOAD_URL}" -o "${BIN_DIR}/${FILENAME}"

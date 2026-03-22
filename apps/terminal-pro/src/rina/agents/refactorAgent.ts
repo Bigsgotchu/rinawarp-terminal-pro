@@ -84,7 +84,6 @@ export class RefactorAgent {
     }
 
     const code = fs.readFileSync(filePath, 'utf-8')
-    const ext = path.extname(filePath)
 
     brainEvents.execution(`Reading ${path.basename(filePath)}`, 20)
 

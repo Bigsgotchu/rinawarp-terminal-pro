@@ -1,5 +1,6 @@
 export class BasePanel {
   public root: HTMLElement
+  private cleanup: Array<() => void> = []
 
   constructor(selector: string) {
     const el = document.querySelector(selector)
@@ -26,6 +27,21 @@ export class BasePanel {
       body.appendChild(template.content.cloneNode(true))
     } else {
       body.appendChild(el)
+    }
+  }
+
+  protected registerCleanup(cleanup: () => void) {
+    this.cleanup.push(cleanup)
+  }
+
+  destroy() {
+    while (this.cleanup.length > 0) {
+      const next = this.cleanup.pop()
+      try {
+        next?.()
+      } catch {
+        // Ignore panel cleanup failures.
+      }
     }
   }
 }

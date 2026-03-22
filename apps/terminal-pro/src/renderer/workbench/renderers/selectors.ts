@@ -29,7 +29,9 @@ export function getRunsView(state: WorkbenchState): {
   hiddenNoiseCount: number
   hiddenOverflowCount: number
 } {
-  const workspaceScopedRuns = state.ui.scopeRunsToWorkspace ? state.runs.filter((run) => matchesWorkspace(run, state.workspaceKey)) : state.runs
+  const workspaceScopedRuns = state.ui.scopeRunsToWorkspace
+    ? state.runs.filter((run) => matchesWorkspace(run, state.workspaceKey) || run.restored)
+    : state.runs
   const visibleRunsRaw = state.ui.showAllRuns ? workspaceScopedRuns : workspaceScopedRuns.filter(isDisplayableRun)
   return {
     visibleRuns: visibleRunsRaw.slice(0, 30),

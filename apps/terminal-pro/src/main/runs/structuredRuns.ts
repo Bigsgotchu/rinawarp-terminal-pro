@@ -54,6 +54,17 @@ type CommandRow = {
   ended_at?: string
 }
 
+export type StructuredRunArtifactSummary = {
+  stdoutChunks: number
+  stderrChunks: number
+  metaChunks: number
+  stdoutPreview: string
+  stderrPreview: string
+  metaPreview: string
+  changedFiles: string[]
+  diffHints: string[]
+}
+
 function readCommandRows(commandsFile: string): { starts: Map<string, CommandRow>; ends: Map<string, CommandRow> } {
   const starts = new Map<string, CommandRow>()
   const ends = new Map<string, CommandRow>()
@@ -202,5 +213,82 @@ export function readStructuredRunTailFromSessionsRoot(
     return lines.slice(Math.max(0, lines.length - maxLines)).join('\n')
   } finally {
     fs.closeSync(fd)
+  }
+}
+
+function cleanArtifactPath(candidate: string): string {
+  return candidate.replace(/^[.\/]+/, '').replace(/[,:;]+$/, '').trim()
+}
+
+export function summarizeStructuredRunArtifactsFromSessionsRoot(
+  sessionsRoot: string,
+  args: { sessionId: string; runId?: string }
+): StructuredRunArtifactSummary {
+  const sessionId = String(args.sessionId || '').trim()
+  const runId = String(args.runId || '').trim()
+  if (!sessionId) throw new Error('Missing sessionId')
+  if (!runId) throw new Error('Missing runId')
+
+  const sessionDir = safeJoinUnder(sessionsRoot, sessionId)
+  if (!sessionDir) throw new Error('Invalid session path')
+
+  const artifactsFile = path.join(sessionDir, 'artifacts.ndjson')
+  if (!fs.existsSync(artifactsFile)) {
+    return {
+      stdoutChunks: 0,
+      stderrChunks: 0,
+      metaChunks: 0,
+      stdoutPreview: '',
+      stderrPreview: '',
+      metaPreview: '',
+      changedFiles: [],
+      diffHints: [],
+    }
+  }
+
+  const stdoutPayloads: string[] = []
+  const stderrPayloads: string[] = []
+  const metaPayloads: string[] = []
+  const changedFiles = new Set<string>()
+  const diffHints = new Set<string>()
+  const lines = fs.readFileSync(artifactsFile, 'utf8').split(/\r?\n/)
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+    try {
+      const row = JSON.parse(trimmed) as {
+        command_id?: string
+        payload?: string
+        type?: 'stdout_chunk' | 'stderr_chunk' | 'meta_chunk'
+      }
+      if (String(row.command_id || '') !== runId) continue
+      const payload = String(row.payload || '')
+      if (!payload) continue
+
+      if (row.type === 'stdout_chunk') stdoutPayloads.push(payload)
+      else if (row.type === 'stderr_chunk') stderrPayloads.push(payload)
+      else metaPayloads.push(payload)
+
+      for (const match of payload.matchAll(/\b(?:src|app|apps|packages|docs|tests)\/[^\s:]+(?:\.[a-z0-9]+)\b/gi)) {
+        if (match[0]) changedFiles.add(cleanArtifactPath(match[0]))
+      }
+
+      const diffMatch = payload.match(/(\d+\s+files?\s+changed(?:,\s+\d+\s+insertions?\(\+\))?(?:,\s+\d+\s+deletions?\(-\))?)/i)
+      if (diffMatch?.[1]) diffHints.add(diffMatch[1].trim())
+    } catch {
+      continue
+    }
+  }
+
+  return {
+    stdoutChunks: stdoutPayloads.length,
+    stderrChunks: stderrPayloads.length,
+    metaChunks: metaPayloads.length,
+    stdoutPreview: stdoutPayloads.join('').slice(-1600).trim(),
+    stderrPreview: stderrPayloads.join('').slice(-1600).trim(),
+    metaPreview: metaPayloads.join('').slice(-1600).trim(),
+    changedFiles: Array.from(changedFiles).slice(0, 12),
+    diffHints: Array.from(diffHints).slice(0, 6),
   }
 }
