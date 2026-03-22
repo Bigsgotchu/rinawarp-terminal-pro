@@ -2301,19 +2301,24 @@ async function handleLicenseLookup(request: Request, env: any, corsHeaders: Reco
         const customer = customers[0]
 
         // Check for active subscriptions
-        const subscriptionsResponse = await fetch(
-          `https://api.stripe.com/v1/customers/${customer.id}/subscriptions?status=active`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          }
-        )
+        const subscriptionsResponse = await fetch('https://api.stripe.com/v1/subscriptions?' + new URLSearchParams({
+          customer: String(customer.id),
+          status: 'all',
+          limit: '10',
+        }).toString(), {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        })
 
         const subscriptionsData = await subscriptionsResponse.json()
-        const subscriptions = subscriptionsData.data || []
+        const subscriptions = Array.isArray(subscriptionsData.data)
+          ? subscriptionsData.data.filter((sub: any) =>
+              ['active', 'trialing', 'past_due', 'unpaid'].includes(String(sub?.status || '').toLowerCase())
+            )
+          : []
 
         if (subscriptions.length > 0) {
           const sub = subscriptions[0]
