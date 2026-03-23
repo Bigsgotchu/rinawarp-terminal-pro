@@ -17,14 +17,29 @@
 
 @layer utilities {
   .glass {
-    @apply bg-black/40 backdrop-blur-xl border border-white/5;
+    background: rgba(10, 10, 10, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  .glow-accent {
-    box-shadow: 0 0 20px rgba(77, 212, 212, 0.3);
+  .neon-text-pink {
+    color: #ff0080;
+    text-shadow: 0 0 10px rgba(255, 0, 128, 0.8),
+                 0 0 20px rgba(255, 0, 128, 0.6),
+                 0 0 30px rgba(255, 0, 128, 0.4);
   }
 
-  .glow-secondary {
-    box-shadow: 0 0 20px rgba(255, 90, 120, 0.3);
+  .neon-text-cyan {
+    color: #00d4ff;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.8),
+                 0 0 20px rgba(0, 212, 255, 0.6),
+                 0 0 30px rgba(0, 212, 255, 0.4);
+  }
+
+  .infinity-gradient {
+    background: linear-gradient(90deg, #ff1493 0%, #ff8800 50%, #00d4ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

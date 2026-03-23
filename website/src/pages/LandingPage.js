@@ -34,23 +34,34 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 glass">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold">
-                <span className="text-[#ff5a78]">Rina</span>
-                <span className="text-[#4dd4d4]">Warp</span>
-              </h1>
-              <span className="text-xs text-muted-foreground">Terminal Pro</span>
+            <div className="flex items-center space-x-3">
+              <img 
+                src="https://customer-assets.emergentagent.com/job_electron-agent-hub/artifacts/hygsyojc_rinawarpterminallogo.png" 
+                alt="RinaWarp Technologies" 
+                className="h-10 w-auto"
+                style={{ filter: 'drop-shadow(0 0 10px rgba(255, 0, 128, 0.5))' }}
+              />
+              <div>
+                <h1 className="text-xl font-bold infinity-gradient">
+                  RinaWarp
+                </h1>
+                <span className="text-xs text-muted-foreground">Terminal Pro</span>
+              </div>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-sm hover:text-[#4dd4d4] transition">
+              <a href="#features" className="text-sm hover:text-[#00d4ff] transition">
                 Features
               </a>
-              <a href="#pricing" onClick={() => navigate('/pricing')} className="text-sm hover:text-[#4dd4d4] transition cursor-pointer">
+              <a href="#pricing" onClick={() => navigate('/pricing')} className="text-sm hover:text-[#00d4ff] transition cursor-pointer">
                 Pricing
               </a>
               <button
                 onClick={() => navigate('/download')}
-                className="px-4 py-2 bg-gradient-to-r from-[#4dd4d4] to-[#3ac4c4] text-black rounded-lg font-medium hover:shadow-lg hover:shadow-[#4dd4d4]/30 transition"
+                className="px-4 py-2 bg-gradient-infinity rounded-lg font-medium shadow-neon-gradient hover:shadow-neon-cyan transition"
+                style={{ 
+                  background: 'linear-gradient(90deg, #ff0080 0%, #ff8800 50%, #00d4ff 100%)',
+                  color: '#000'
+                }}
               >
                 Download
               </button>
