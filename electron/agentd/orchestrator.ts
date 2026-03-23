@@ -1,12 +1,12 @@
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
-import { AgentExecutor } from './executor';
+import { RealAgentExecutor } from './real-executor';
 import { ReceiptGenerator } from './receipts';
 import { DataStore } from '../store/datastore';
 import { Run, RunStatus, AgentMode, ExecutionReceipt } from '../../shared/contracts';
 
 export class AgentOrchestrator extends EventEmitter {
-  private executor: AgentExecutor;
+  private executor: RealAgentExecutor;
   private receiptGen: ReceiptGenerator;
   private activeRuns: Map<string, Run> = new Map();
   private dataStore: DataStore;
@@ -14,7 +14,7 @@ export class AgentOrchestrator extends EventEmitter {
   constructor(dataStore: DataStore) {
     super();
     this.dataStore = dataStore;
-    this.executor = new AgentExecutor();
+    this.executor = new RealAgentExecutor();
     this.receiptGen = new ReceiptGenerator();
   }
 

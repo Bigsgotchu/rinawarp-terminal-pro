@@ -20,6 +20,7 @@
     "dotenv": "^16.4.5",
     "electron-updater": "^6.1.7",
     "mongodb": "^6.3.0",
+    "openai": "^6.32.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
