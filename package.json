@@ -37,6 +37,7 @@
     "guard:no-stubs": "node scripts/check-no-stubs.mjs",
     "guard:runtime-integrity": "node scripts/check-no-stubs.mjs",
     "guard:no-fake-success": "node scripts/check-no-fake-success.mjs",
+    "guard:feature-reality": "node scripts/check-feature-reality-matrix.mjs",
     "guard:intent-contracts": "npm --workspace apps/terminal-pro run qa:intents",
     "guard:single-owner-events": "npm --workspace apps/terminal-pro run qa:ownership",
     "verify:desktop:rc": "bash scripts/verify-desktop-rc.sh",

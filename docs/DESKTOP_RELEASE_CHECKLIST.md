@@ -9,6 +9,9 @@
   - Linux
 
 ## Ship Gate
+- Feature reality matrix is current and passes:
+  - [feature-reality-matrix.md](/home/karina/Documents/rinawarp-terminal-pro/docs/feature-reality-matrix.md)
+  - `npm run guard:feature-reality`
 - Headless runner tests are green:
   - success receipt/log path
   - timeout receipt/log path
