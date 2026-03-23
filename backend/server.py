@@ -1,89 +1,117 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, EmailStr
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
+from dotenv import load_dotenv
 
+load_dotenv()
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+app = FastAPI(title="RinaWarp Terminal Pro API")
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
-app = FastAPI()
-
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Models
+class RestoreLicenseRequest(BaseModel):
+    email: EmailStr
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+class CheckoutRequest(BaseModel):
+    email: EmailStr
+    plan: str
+
+class User(BaseModel):
+    id: str
+    email: str
+    name: str | None = None
+    plan: str = "free"
+    license_key: str | None = None
+
+# Routes
+@app.get("/")
+async def root():
+    return {
+        "service": "RinaWarp Terminal Pro API",
+        "version": "0.1.0",
+        "status": "operational"
+    }
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok", "service": "rinawarp-api"}
+
+@app.post("/api/account/restore")
+async def restore_license(request: RestoreLicenseRequest):
+    """
+    Restore license by email.
+    In production, this would:
+    1. Look up user by email
+    2. Send license key via email
+    3. Return success
+    """
+    # Placeholder implementation
+    print(f"License restoration requested for: {request.email}")
+    
+    # In production: Send email with license key
+    # For now, just return success
+    return {
+        "success": True,
+        "message": "If an account exists with this email, you will receive your license key shortly."
+    }
+
+@app.get("/api/account/me")
+async def get_account(authorization: str = Header(None)):
+    """
+    Get current user account info.
+    In production, this would validate the JWT token.
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    # Placeholder: Return mock user
+    return User(
+        id="user_123",
+        email="demo@rinawarp.com",
+        name="Demo User",
+        plan="pro",
+        license_key="RNWP-XXXX-XXXX-XXXX"
+    )
+
+@app.post("/api/billing/checkout")
+async def create_checkout(request: CheckoutRequest):
+    """
+    Create Stripe checkout session.
+    In production, this would:
+    1. Create Stripe checkout session
+    2. Return session URL
+    """
+    # Placeholder implementation
+    return {
+        "session_id": "cs_test_...",
+        "url": "https://checkout.stripe.com/pay/cs_test_..."
+    }
+
+@app.get("/api/downloads/latest")
+async def get_latest_version():
+    """
+    Get latest app version info.
+    """
+    return {
+        "version": "0.1.0",
+        "release_date": "2026-01-15",
+        "notes": "Initial release - Proof-first agent workbench with receipt verification",
+        "downloads": {
+            "mac": "/api/downloads/mac/0.1.0",
+            "windows": "/api/downloads/windows/0.1.0",
+            "linux": "/api/downloads/linux/0.1.0"
+        }
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)

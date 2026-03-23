@@ -79,3 +79,4 @@ agenthub/agents/youtube/db
 # Mobile development
 android-sdk/ node_modules/electron/dist/electron
 cloudflare-worker/node_modules/@cloudflare/workerd-linux-arm64/bin/workerd
+node_modules/electron/dist/electron
