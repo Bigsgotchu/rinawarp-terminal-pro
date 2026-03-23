@@ -11,6 +11,8 @@ export interface SeoData {
   keywords?: string
 }
 
+const GA_MEASUREMENT_ID = 'G-YGX1R0MEB6'
+
 export const SEO_CONFIG: Record<string, SeoData> = {
   '/': {
     title: 'RinaWarp Terminal Pro | Proof-First AI Terminal',
@@ -118,9 +120,20 @@ export function injectSeoTags(path: string): string {
   <script type="application/ld+json">${structuredData}</script>
   
   <!-- Preconnect to external domains for performance -->
+  <link rel="preconnect" href="https://www.googletagmanager.com">
+  <link rel="preconnect" href="https://www.google-analytics.com">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${GA_MEASUREMENT_ID}');
+  </script>
 
   <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self';">
   
   <!-- Base URL for relative links -->
   <base href="/">
