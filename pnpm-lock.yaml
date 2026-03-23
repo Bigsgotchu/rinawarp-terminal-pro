@@ -240,6 +240,28 @@ importers:
         specifier: ^5.0.0
         version: 5.4.21(@types/node@24.12.0)
 
+  packages/rinawarp-deploy-capabilities:
+    dependencies:
+      '@rinawarp/agent':
+        specifier: workspace:*
+        version: link:../rinawarp-agent
+      '@rinawarp/core':
+        specifier: workspace:*
+        version: link:../rinawarp-core
+      axios:
+        specifier: ^1.6.0
+        version: 1.13.6
+      dotenv:
+        specifier: ^16.3.0
+        version: 16.6.1
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: 5.4.2
+        version: 5.4.2
+
   packages/rinawarp-plugins:
     dependencies:
       '@rinawarp/core':
