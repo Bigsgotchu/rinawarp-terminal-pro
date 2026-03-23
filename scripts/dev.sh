@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# RinaWarp Terminal Pro - Development Start Script
+
+echo \"🚀 Starting RinaWarp Terminal Pro in development mode...\"\necho \"\"\n\n# Check if MongoDB is running\nif ! pgrep -x \"mongod\" > /dev/null; then\n    echo \"⚠️  Warning: MongoDB doesn't appear to be running\"\n    echo \"   Start MongoDB with: mongod --dbpath /path/to/data\"\n    echo \"\"\nfi\n\n# Build Electron main process\necho \"📦 Building Electron main process...\"\nyarn build:electron\n\nif [ $? -ne 0 ]; then\n    echo \"❌ Failed to build Electron main process\"\n    exit 1\nfi\n\necho \"✅ Electron main process built successfully\"\necho \"\"\n\n# Start renderer and electron concurrently\necho \"🎨 Starting renderer (React) and Electron...\"\necho \"   Renderer will be available at http://localhost:3000\"\necho \"   Electron window will open automatically\"\necho \"\"\n\nyarn dev\n
