@@ -8,7 +8,22 @@ import { getFeaturesForTier, getLimitsForTier } from './tierHelpers.js'
 const { app } = electron
 
 const LICENSE_CACHE_FILE = 'license-cache.json'
-export const DEFAULT_LICENSE_API_BASE = process.env.RINAWARP_LICENSE_API_BASE || 'https://api.rinawarptech.com'
+const DEFAULT_LICENSE_API_BASES = [
+  'https://api.rinawarptech.com',
+  'https://www.rinawarptech.com',
+  'https://rinawarptech.com',
+]
+
+function getConfiguredLicenseApiBases(): string[] {
+  const configured = String(process.env.RINAWARP_LICENSE_API_BASE || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+
+  return configured.length > 0 ? configured : DEFAULT_LICENSE_API_BASES
+}
+
+export const DEFAULT_LICENSE_API_BASE = getConfiguredLicenseApiBases()[0]
 
 function defaultUserDataPath(): string {
   return app?.getPath?.('userData') || path.join(os.homedir(), '.rinawarp-terminal-pro')
@@ -45,12 +60,22 @@ function buildCandidateUrls(base: string, paths: string[]): string[] {
   return [...urls]
 }
 
+function buildCandidateUrlsForBases(paths: string[]): string[] {
+  const urls = new Set<string>()
+  for (const base of getConfiguredLicenseApiBases()) {
+    for (const url of buildCandidateUrls(base, paths)) {
+      urls.add(url)
+    }
+  }
+  return [...urls]
+}
+
 async function postJsonWithFallback<T>(args: {
   paths: string[]
   body: unknown
   errorLabel: string
 }): Promise<T> {
-  const candidates = buildCandidateUrls(DEFAULT_LICENSE_API_BASE, args.paths)
+  const candidates = buildCandidateUrlsForBases(args.paths)
   let lastError: Error | null = null
 
   for (const url of candidates) {
