@@ -184,13 +184,13 @@ After deploying to Cloudflare:
 
 ```bash
 # Health check
-curl https://updates.rinawarp.com/api/health
+curl https://updates.rinawarptech.com/api/health
 
 # Latest version
-curl https://updates.rinawarp.com/api/updates/latest
+curl https://updates.rinawarptech.com/api/updates/latest
 
 # Download
-curl -I https://updates.rinawarp.com/download/v0.1.0/RinaWarp-Terminal-Pro-0.1.0.dmg
+curl -I https://updates.rinawarptech.com/download/v0.1.0/RinaWarp-Terminal-Pro-0.1.0.dmg
 ```
 
 ## E2E Testing with Playwright

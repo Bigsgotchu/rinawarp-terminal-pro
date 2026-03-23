@@ -18,8 +18,8 @@ ENVIRONMENT = "production"
 
 # Routes
 [routes]
-pattern = "updates.rinawarp.com/*"
-zone_name = "rinawarp.com"
+pattern = "updates.rinawarptech.com/*"
+zone_name = "rinawarptech.com"
 
 # Development
 [dev]

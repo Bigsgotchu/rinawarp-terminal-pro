@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExecutionReceipt, AgentMode } from '../../shared/contracts';
+import { FilesystemTools, GitTools, SystemTools, DeployTools, ToolResult } from './tools';
 
 interface ExecutionOptions {
   id: string;
@@ -140,11 +141,10 @@ export class RealAgentExecutor {
   }
 
   /**
-   * Use GPT-5.1 to classify intent and generate execution plan
+   * Use GPT-5.1 to classify intent and generate execution plan with function calling
    */
   private async classifyAndPlan(prompt: string): Promise<AgentPlan> {
     if (!this.openai) {
-      // Fallback: simple keyword matching
       return this.fallbackClassify(prompt);
     }
 
@@ -156,7 +156,16 @@ export class RealAgentExecutor {
             role: 'system',
             content: `You are RinaWarp Terminal Pro Agent - a proof-first execution assistant.
 
-Analyze user requests and respond with JSON:
+Available tools:
+- read_file: Read file contents
+- write_file: Create/update files
+- list_directory: List directory contents
+- execute_command: Run shell commands
+- git_status: Check git status
+- git_commit: Commit changes
+- git_diff: View changes
+
+Analyze requests and respond with JSON:
 {
   "intent": "build|test|deploy|self-check|code|help",
   "steps": ["step1", "step2"],
@@ -164,19 +173,11 @@ Analyze user requests and respond with JSON:
   "explanation": "brief explanation"
 }
 
-Available intents:
-- build: Compile, bundle, build projects
-- test: Run test suites, verify functionality
-- deploy: Deploy to platforms
-- self-check: Verify environment, diagnose issues
-- code: Generate or modify code
-- help: Provide guidance
-
 Be precise and actionable.`,
           },
           {
             role: 'user',
-            content: `Analyze this request and create an execution plan:\n\n${prompt}`,
+            content: `Analyze and create execution plan:\n\n${prompt}`,
           },
         ],
         response_format: { type: 'json_object' },

@@ -60,7 +60,7 @@ async function handleUpdates(
           version: '0.1.0',
           releaseDate: new Date().toISOString(),
           notes: 'Initial release',
-          url: 'https://updates.rinawarp.com/download/v0.1.0',
+          url: 'https://updates.rinawarptech.com/download/v0.1.0',
         },
         corsHeaders
       );

@@ -395,7 +395,7 @@ NODE_ENV=development
 
 ## Contributing
 
-This is a commercial product. For bug reports or feature requests, contact support@rinawarp.com.
+This is a commercial product. For bug reports or feature requests, contact support@rinawarptech.com.
 
 ## License
 
@@ -404,6 +404,6 @@ Proprietary - All rights reserved
 ## Support
 
 For technical support:
-- Email: support@rinawarp.com
-- Docs: https://docs.rinawarp.com
+- Email: support@rinawarptech.com
+- Docs: https://docs.rinawarptech.com
 - Discord: https://discord.gg/rinawarp

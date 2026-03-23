@@ -63,7 +63,7 @@ async function initializeApp() {
 function setupAutoUpdater() {
   autoUpdater.setFeedURL({
     provider: 'generic',
-    url: 'https://updates.rinawarp.com',
+    url: 'https://updates.rinawarptech.com',
   });
 
   autoUpdater.on('update-available', (info) => {

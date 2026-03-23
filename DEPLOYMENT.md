@@ -211,7 +211,7 @@ UI updates in real-time
 
 ```bash
 REACT_APP_API_URL=https://electron-agent-hub.preview.emergentagent.com/api
-REACT_APP_CLOUDFLARE_WORKER_URL=https://updates.rinawarp.com
+REACT_APP_CLOUDFLARE_WORKER_URL=https://updates.rinawarptech.com
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=rinawarp_terminal
 CORS_ORIGINS=*
@@ -310,7 +310,7 @@ wrangler r2 object put rinawarp-releases/releases/latest.json \
 
 ### 3. Configure DNS
 
-Point `updates.rinawarp.com` to Cloudflare Worker
+Point `updates.rinawarptech.com` to Cloudflare Worker
 
 ### 4. Set Up Stripe
 
@@ -385,7 +385,7 @@ Replace simulated execution in `/app/electron/agentd/executor.ts`:
 
 - **Website**: https://electron-agent-hub.preview.emergentagent.com
 - **API**: https://electron-agent-hub.preview.emergentagent.com/api
-- **Cloudflare Worker**: (To be deployed at updates.rinawarp.com)
+- **Cloudflare Worker**: (To be deployed at updates.rinawarptech.com)
 
 ## Status Summary
 

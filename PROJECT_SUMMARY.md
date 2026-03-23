@@ -225,7 +225,7 @@ yarn tail             # Stream logs
 6. **Production Deploy**
    - Deploy Cloudflare Worker
    - Upload first release to R2
-   - Configure DNS for updates.rinawarp.com
+   - Configure DNS for updates.rinawarptech.com
    - Set up monitoring
 
 ## How to Run
