@@ -124,6 +124,89 @@ function generateId() {
   return id;
 }
 
+function getStripeSecret(env) {
+  return String(env.STRIPE_SECRET_KEY || env.STRIPE_KEY || "").trim();
+}
+
+function getActiveSubscription(list) {
+  if (!Array.isArray(list)) return null;
+  return (
+    list.find((sub) => ["active", "trialing", "past_due", "unpaid"].includes(String(sub?.status || "").toLowerCase())) ||
+    null
+  );
+}
+
+function inferTierFromPrice(price) {
+  const metadataTier = String(price?.metadata?.tier || "").trim().toLowerCase();
+  if (metadataTier) return metadataTier;
+
+  const lookupKey = String(price?.lookup_key || "").trim().toLowerCase();
+  if (lookupKey.includes("team")) return "team";
+  if (lookupKey.includes("creator")) return "creator";
+  if (lookupKey.includes("pro")) return "pro";
+  if (lookupKey.includes("founder")) return "founder";
+
+  const nickname = String(price?.nickname || "").trim().toLowerCase();
+  if (nickname.includes("team")) return "team";
+  if (nickname.includes("creator")) return "creator";
+  if (nickname.includes("pro")) return "pro";
+  if (nickname.includes("founder")) return "founder";
+
+  return "unknown";
+}
+
+async function stripeRequest(env, pathname, searchParams) {
+  const secret = getStripeSecret(env);
+  if (!secret || !secret.startsWith("sk_")) {
+    throw new Error("stripe_not_configured");
+  }
+
+  const url = new URL(`https://api.stripe.com${pathname}`);
+  if (searchParams) {
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (value !== undefined && value !== null && value !== "") {
+        url.searchParams.set(key, String(value));
+      }
+    }
+  }
+
+  const response = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${secret}` },
+  });
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload?.error?.message || `stripe_request_failed:${response.status}`);
+  }
+  return payload;
+}
+
+async function stripeCustomerByEmail(env, email) {
+  const payload = await stripeRequest(env, "/v1/customers/search", {
+    query: `email:'${String(email).replace(/'/g, "\\'")}'`,
+  });
+  const customers = Array.isArray(payload?.data) ? payload.data : [];
+  return customers.find((customer) => String(customer?.email || "").toLowerCase() === String(email).toLowerCase()) || customers[0] || null;
+}
+
+async function stripeSubscriptionSummary(env, customerId) {
+  const payload = await stripeRequest(env, "/v1/subscriptions", {
+    customer: customerId,
+    status: "all",
+    limit: "10",
+  });
+  const subscription = getActiveSubscription(payload?.data);
+  if (!subscription) return null;
+
+  const price = subscription?.items?.data?.[0]?.price || null;
+  return {
+    subscription,
+    price,
+    tier: inferTierFromPrice(price),
+    status: String(subscription?.status || "active").toLowerCase(),
+    expiresAt: Number(subscription?.current_period_end || 0) ? Number(subscription.current_period_end) * 1000 : null,
+  };
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -149,7 +232,7 @@ export default {
         return json(200, { status: "ok", timestamp: Date.now() }, corsHeaders);
       }
 
-      // /api/me - Get current user info
+      // /api/me - lightweight session check
       if (path === '/api/me') {
         const secret = String(env.RINAWARP_AUTH_SECRET || "").trim();
         if (!secret) {
@@ -166,82 +249,21 @@ export default {
         if (!payload) {
           return json(401, { ok: false, error: "invalid_session" }, corsHeaders);
         }
-
-        // Get user from D1
-        let user = null;
-        let license = { tier: "starter", status: "active", expiresAt: null };
-        
-        if (env.DB) {
-          try {
-          }
-
-          // Hash password with salt
-          const salt = crypto.randomUUID();
-          const passwordHash = await hashPassword(password, salt);
-
-          // Create user
-          const userId = generateId();
-          const now = Math.floor(Date.now() / 1000);
-          
-          await db.prepare(
-            "INSERT INTO users (id, email, password_hash, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-          ).bind(userId, email, salt + ":" + passwordHash, name, now, now).run();
-
-          // Issue session token
-          const sessionToken = await issueAuthToken(email, secret, SESSION_TTL_SEC);
-          const headers = {
-            ...corsHeaders,
-            "Set-Cookie": `rw_session=${sessionToken}; Path=/; Max-Age=${SESSION_TTL_SEC}; Secure; HttpOnly; SameSite=None`,
-          };
-
-          return json(200, {
-            ok: true,
-            user: { id: userId, email, name },
-            token: sessionToken,
-          }, headers);
-        } catch (e) {
-          return json(500, { ok: false, error: e.message }, corsHeaders);
-        }
+        return json(200, {
+          ok: true,
+          user: {
+            id: null,
+            email: payload.email,
+            name: payload.email,
+          },
+          license: { tier: "starter", status: "unknown", expiresAt: null },
+        }, corsHeaders);
       }
 
-      // /api/auth/login - Login with email/password
+      // /api/auth/login - not implemented on this worker
       if (path === "/api/auth/login" && request.method === "POST") {
-        const secret = String(env.RINAWARP_AUTH_SECRET || "").trim();
-        if (!secret) {
-          return json(503, { ok: false, error: "auth_not_configured" }, corsHeaders);
-        }
-
-        if (!db) {
-          return json(503, { ok: false, error: "database_not_configured" }, corsHeaders);
-        }
-
-        try {
-          const body = await request.json();
-          const email = String(body?.email || "").trim().toLowerCase();
-          const password = String(body?.password || "");
-
-          if (!email || !password) {
-            return json(400, { ok: false, error: "email_and_password_required" }, corsHeaders);
-          }
-
-          // Find user
-          const user = await db.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
-          if (!user) {
-            return json(401, { ok: false, error: "invalid_credentials" }, corsHeaders);
-          }
-
-          // Verify password
-          const [salt, storedHash] = user.password_hash.split(":");
-          const inputHash = await hashPassword(password, salt);
-          
-          if (inputHash !== storedHash) {
-            return json(401, { ok: false, error: "invalid_credentials" }, corsHeaders);
-          }
-
-          // Issue session token
-          const sessionToken = await issueAuthToken(email, secret, SESSION_TTL_SEC);
-          const headers = {
-            ...corsHeaders,
+        return json(501, { ok: false, error: "auth_login_not_implemented" }, corsHeaders);
+      }
 
       // License endpoints
       if (path.startsWith('/api/license/')) {
@@ -251,16 +273,36 @@ export default {
         if (subPath === 'verify' && request.method === 'POST') {
           try {
             const body = await request.json();
-            // TODO: Implement with actual license validation database
-            // For now, return a valid response for testing
-            return json(200, { 
+            const customerId = String(body?.customer_id || body?.customerId || "").trim();
+            if (!customerId) {
+              return json(400, { ok: false, error: "customer_id_required" }, corsHeaders);
+            }
+
+            const summary = await stripeSubscriptionSummary(env, customerId);
+            if (!summary) {
+              return json(200, {
+                ok: false,
+                valid: false,
+                customer_id: customerId,
+                tier: "starter",
+                status: "inactive",
+                expires_at: null,
+                features: [],
+              }, corsHeaders);
+            }
+
+            return json(200, {
               ok: true,
-              tier: 'starter',
-              expires_at: null,
-              customer_id: null
+              valid: true,
+              customer_id: customerId,
+              customerId,
+              tier: summary.tier,
+              status: summary.status,
+              expires_at: summary.expiresAt,
+              license_token: "",
             }, corsHeaders);
           } catch (e) {
-            return json(400, { error: "Invalid JSON" }, corsHeaders);
+            return json(400, { ok: false, error: e.message || "Invalid JSON" }, corsHeaders);
           }
         }
         
@@ -276,14 +318,27 @@ export default {
         if (subPath === 'lookup-by-email' && request.method === 'POST') {
           try {
             const body = await request.json();
-            // TODO: Implement with database lookup
-            return json(200, { 
+            const email = String(body?.email || "").trim().toLowerCase();
+            if (!email) {
+              return json(400, { ok: false, error: "email_required" }, corsHeaders);
+            }
+
+            const customer = await stripeCustomerByEmail(env, email);
+            if (!customer) {
+              return json(200, { ok: true, customer_id: null, customerId: null, tier: null, status: "not_found" }, corsHeaders);
+            }
+
+            const summary = await stripeSubscriptionSummary(env, customer.id);
+            return json(200, {
               ok: true,
-              customer_id: null,
-              tier: null
+              email: customer.email || email,
+              customer_id: customer.id,
+              customerId: customer.id,
+              tier: summary?.tier || null,
+              status: summary?.status || "no_subscription",
             }, corsHeaders);
           } catch (e) {
-            return json(400, { error: "Invalid JSON" }, corsHeaders);
+            return json(400, { ok: false, error: e.message || "Invalid JSON" }, corsHeaders);
           }
         }
         

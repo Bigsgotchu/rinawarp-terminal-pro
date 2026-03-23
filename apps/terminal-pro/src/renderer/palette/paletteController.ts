@@ -6,6 +6,8 @@ type PalettePlansApi = {
 type PaletteCommand = { cmd: string; desc: string; action: string }
 type PaletteDeps = {
   sendPrompt: (prompt: string) => Promise<void>
+  navigateToPanel: (panel: 'agent' | 'diagnostics' | 'execution-trace' | 'code' | 'brain' | 'runs' | 'marketplace' | 'settings') => Promise<void> | void
+  setRuntimeMode: (mode: 'auto' | 'assist' | 'explain') => Promise<void> | void
 }
 
 // ============================================================
@@ -159,32 +161,7 @@ class CommandPalette {
   }
 
   private async executeCommand(cmd: string, action: string): Promise<void> {
-    // Handle panel switching
-    if (action?.startsWith('panel-')) {
-      const panelName = action.replace('panel-', '')
-      const tabButton = document.querySelector(`[data-tab="${panelName}"]`)
-      if (tabButton) {
-        ;(tabButton as HTMLElement).click()
-      }
-      this.hide()
-      return
-    }
-
-    // Handle mode changes
-    if (action?.startsWith('mode-')) {
-      const mode = action.replace('mode-', '')
-      await (window.rina as PalettePlansApi).setMode?.(mode)
-      this.hide()
-      return
-    }
-
-    // Ask Rina through the canonical thread path
-    try {
-      await this.deps.sendPrompt(cmd)
-    } catch (error) {
-      console.error('Command execution failed:', error)
-    }
-
+    await executePaletteCommand(cmd, action, this.deps)
     this.hide()
   }
 
@@ -250,5 +227,25 @@ export function createPaletteController(deps: PaletteDeps): PaletteController {
     isVisible(): boolean {
       return commandPalette?.visible() || false
     },
+  }
+}
+
+export async function executePaletteCommand(cmd: string, action: string, deps: PaletteDeps): Promise<void> {
+  if (action?.startsWith('panel-')) {
+    const panelName = action.replace('panel-', '') as Parameters<PaletteDeps['navigateToPanel']>[0]
+    await deps.navigateToPanel(panelName)
+    return
+  }
+
+  if (action?.startsWith('mode-')) {
+    const mode = action.replace('mode-', '') as Parameters<PaletteDeps['setRuntimeMode']>[0]
+    await deps.setRuntimeMode(mode)
+    return
+  }
+
+  try {
+    await deps.sendPrompt(cmd)
+  } catch (error) {
+    console.error('Command execution failed:', error)
   }
 }

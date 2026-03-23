@@ -1,7 +1,7 @@
 import * as electron from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
-import { trackEvent, type AnalyticsEvent } from './core.js'
+import { trackEvent, type AnalyticsDispatchResult, type AnalyticsEvent } from './core.js'
 
 const { app } = electron
 
@@ -58,7 +58,7 @@ function saveFunnelMeta(meta: FunnelMeta): void {
 
 let funnelMeta: FunnelMeta = loadFunnelMeta()
 
-export function trackFunnelStep(step: FunnelStep, properties?: Record<string, unknown>): void {
+export function trackFunnelStep(step: FunnelStep, properties?: Record<string, unknown>): AnalyticsDispatchResult {
   const eventMap: Record<FunnelStep, AnalyticsEvent> = {
     signup: 'funnel_signup',
     first_run: 'funnel_first_run',
@@ -68,7 +68,14 @@ export function trackFunnelStep(step: FunnelStep, properties?: Record<string, un
   }
 
   const stateKey = funnelStepToKey[step]
-  if (funnelState[stateKey]) return
+  if (funnelState[stateKey]) {
+    return {
+      accepted: false,
+      enabled: true,
+      degraded: true,
+      error: `Funnel step already tracked: ${step}`,
+    }
+  }
   funnelState[stateKey] = true
 
   const now = Date.now()
@@ -95,7 +102,7 @@ export function trackFunnelStep(step: FunnelStep, properties?: Record<string, un
   }
 
   saveFunnelMeta(funnelMeta)
-  trackEvent(eventMap[step], enriched)
+  return trackEvent(eventMap[step], enriched)
 }
 
 export function resetFunnelState(): void {

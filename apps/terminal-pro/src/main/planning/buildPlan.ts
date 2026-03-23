@@ -1,6 +1,7 @@
 // @ts-nocheck
 export function createBuildPlanHelpers(deps) {
     const { fs, path, playbooks, topCpuCmdSafeShort } = deps;
+    const SELF_CHECK_PATTERN = /\b(scan yourself|check yourself|self-check|inspect current state|check the workbench|diagnose the app|what is broken right now)\b/i;
     function detectBuildKind(projectRoot) {
         const has = (p) => fs.existsSync(path.join(projectRoot, p));
         if (has('package.json'))
@@ -40,6 +41,8 @@ export function createBuildPlanHelpers(deps) {
                 const scripts = readNodeScripts(projectRoot);
                 const buildScript = firstAvailableScript(scripts, ['build', 'build:electron']);
                 const testScript = firstAvailableScript(scripts, ['test', 'test:agent', 'test:unit', 'test:streaming']);
+                const deployScript = firstAvailableScript(scripts, ['deploy', 'publish']);
+                const hasElectronBuilder = fs.existsSync(path.join(projectRoot, 'electron-builder.yml'));
                 const installStep = {
                     id: 'install',
                     tool: 'terminal',
@@ -47,8 +50,8 @@ export function createBuildPlanHelpers(deps) {
                     risk: 'safe-write',
                     description: 'Install dependencies',
                 };
-                return workflow === 'test'
-                    ? [
+                if (workflow === 'test') {
+                    return [
                         { id: 'node_version', tool: 'terminal', command: 'node -v', risk: 'read' },
                         { id: 'npm_version', tool: 'terminal', command: 'npm -v', risk: 'read' },
                         installStep,
@@ -59,8 +62,30 @@ export function createBuildPlanHelpers(deps) {
                             risk: 'read',
                             description: 'Run tests',
                         },
-                    ]
-                    : [
+                    ];
+                } else if (workflow === 'deploy') {
+                    const deployCommand = deployScript ? `npm run ${deployScript}` : hasElectronBuilder ? 'npx electron-builder --publish never' : 'echo "No deploy target detected"';
+                    return [
+                        { id: 'node_version', tool: 'terminal', command: 'node -v', risk: 'read' },
+                        { id: 'npm_version', tool: 'terminal', command: 'npm -v', risk: 'read' },
+                        installStep,
+                        {
+                            id: 'build',
+                            tool: 'terminal',
+                            command: buildScript ? `npm run ${buildScript}` : 'npm run build',
+                            risk: 'safe-write',
+                            description: 'Build project for deployment',
+                        },
+                        {
+                            id: 'deploy',
+                            tool: 'terminal',
+                            command: deployCommand,
+                            risk: 'safe-write',
+                            description: 'Deploy project',
+                        },
+                    ];
+                } else {
+                    return [
                         { id: 'node_version', tool: 'terminal', command: 'node -v', risk: 'read' },
                         { id: 'npm_version', tool: 'terminal', command: 'npm -v', risk: 'read' },
                         installStep,
@@ -72,6 +97,7 @@ export function createBuildPlanHelpers(deps) {
                             description: 'Build project',
                         },
                     ];
+                }
             }
             case 'python':
                 return [
@@ -143,6 +169,16 @@ export function createBuildPlanHelpers(deps) {
                 };
             }
         }
+        if (SELF_CHECK_PATTERN.test(intentRaw || '') || intent.includes('self-check') || intent === 'self-check') {
+            return {
+                id,
+                intent: intentRaw,
+                reasoning: "Running Rina self-check against policy checklist.",
+                steps: [
+                    { id: 's1', tool: 'selfCheck', command: 'executeSelfCheck', risk: 'read', description: 'Run self-check tool' },
+                ],
+            };
+        }
         if (intent.includes('build') || intent.includes('test') || intent.includes('broken') || intent.includes('fix')) {
             const workflow = intent.includes('test') && !intent.includes('build')
                 ? 'test'
@@ -155,6 +191,17 @@ export function createBuildPlanHelpers(deps) {
                     reasoning: workflow === 'test'
                         ? `Detected ${buildKind} project. I'll run the test workflow and leave proof in the thread.`
                         : `Detected ${buildKind} project. I'll run the build workflow to diagnose and fix issues.`,
+                    steps,
+                };
+            }
+        }
+        if (intent.includes('deploy')) {
+            const steps = buildStepsForKind(buildKind, projectRoot, 'deploy');
+            if (steps.length > 0) {
+                return {
+                    id,
+                    intent: intentRaw,
+                    reasoning: `Detected ${buildKind} project. I'll run the deploy workflow to get it live.`,
                     steps,
                 };
             }

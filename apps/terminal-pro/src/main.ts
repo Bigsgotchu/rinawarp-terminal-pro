@@ -52,11 +52,11 @@ import { createPlanExecutionHelpers } from './main/stream/planExecution.js';
 import { createTeamAccess } from './main/team/access.js';
 import { createWindowLifecycle } from './main/window/windowLifecycle.js';
 import { createWorkspaceCodeHelpers } from './main/workspace/codeHelpers.js';
-import { initAnalytics, trackFunnelStep } from './analytics.js';
+import { initAnalytics, trackEvent, trackFunnelStep } from './analytics.js';
 import { handleRinaMessage, rinaController } from './rina/index.js';
 import { thinkingStream } from './rina/thinking/thinkingStream.js';
 import { listStructuredRunsFromSessionsRoot, readStructuredRunTailFromSessionsRoot, summarizeStructuredRunArtifactsFromSessionsRoot } from './main/runs/structuredRuns.js';
-import { diagnosticsPathsForIpc, supportBundleForIpc } from './main/diagnostics/supportBundle.js';
+import { diagnosticsPathsForIpc, supportBundleForIpcWithSnapshot } from './main/diagnostics/supportBundle.js';
 import { canonicalizePath, isWithinRoot, normalizeProjectRoot as normalizeProjectRootFromSecurity, resolveProjectRootSafe as resolveProjectRootSafeFromSecurity, } from './security/projectRoot.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -427,29 +427,6 @@ app.whenReady().then(async () => {
     } catch (e) {
       // Ignore errors loading cached token
     }
-
-    createWindow();
-    if (IS_E2E) {
-        console.log('[boot] createWindow scheduled');
-    }
-    try {
-        initAnalytics();
-    }
-    catch (error) {
-        console.warn('[analytics] init failed:', error);
-    }
-    if (featureFlags.structuredSessionV1) {
-        if (IS_E2E) {
-            console.log('[boot] structuredSession init start');
-        }
-        const rootDir = path.join(app.getPath('userData'), 'structured-session-v1');
-        structuredSessionStore = new StructuredSessionStore(rootDir, true);
-        ctx.structuredSessionStore = structuredSessionStore;
-        withStructuredSessionWrite(() => structuredSessionStore?.init());
-        if (IS_E2E) {
-            console.log('[boot] structuredSession init done');
-        }
-    }
     const storedEntitlement = loadEntitlements();
     if (IS_E2E) {
         console.log('[boot] entitlements restored', !!storedEntitlement);
@@ -470,6 +447,28 @@ app.whenReady().then(async () => {
                 .catch((err) => {
                 console.warn('[license] Soft refresh failed (offline?):', err instanceof Error ? err.message : String(err));
             });
+        }
+    }
+    createWindow();
+    if (IS_E2E) {
+        console.log('[boot] createWindow scheduled');
+    }
+    try {
+        initAnalytics();
+    }
+    catch (error) {
+        console.warn('[analytics] init failed:', error);
+    }
+    if (featureFlags.structuredSessionV1) {
+        if (IS_E2E) {
+            console.log('[boot] structuredSession init start');
+        }
+        const rootDir = path.join(app.getPath('userData'), 'structured-session-v1');
+        structuredSessionStore = new StructuredSessionStore(rootDir, true);
+        ctx.structuredSessionStore = structuredSessionStore;
+        withStructuredSessionWrite(() => structuredSessionStore?.init());
+        if (IS_E2E) {
+            console.log('[boot] structuredSession init done');
         }
     }
     void (async () => {
@@ -499,22 +498,82 @@ app.whenReady().then(async () => {
         streamKill: streamKillForIpc,
         planStop: planStopForIpc,
     });
+    ipcMain.handle('analytics:trackEvent', async (_event, event, properties) => {
+        try {
+            const result = trackEvent(event, properties);
+            return {
+                ok: Boolean(result?.accepted),
+                accepted: Boolean(result?.accepted),
+                enabled: Boolean(result?.enabled),
+                degraded: Boolean(result?.degraded),
+                event: String(event || ''),
+                error: result?.error,
+            };
+        }
+        catch (error) {
+            console.error('[Analytics] Failed to track event:', error);
+            return {
+                ok: false,
+                accepted: false,
+                enabled: true,
+                degraded: true,
+                event: String(event || ''),
+                error: String(error),
+            };
+        }
+    });
     ipcMain.handle('rina:analytics:funnel', async (_event, step, properties) => {
         try {
-            trackFunnelStep(step, properties);
-            return { ok: true };
+            const result = trackFunnelStep(step, properties);
+            return {
+                ok: Boolean(result?.accepted),
+                accepted: Boolean(result?.accepted),
+                enabled: Boolean(result?.enabled),
+                degraded: Boolean(result?.degraded),
+                event: `funnel:${String(step)}`,
+                error: result?.error,
+            };
         }
         catch (error) {
             console.error('[Analytics] Failed to track funnel step:', error);
-            return { ok: false, error: String(error) };
+            return {
+                ok: false,
+                accepted: false,
+                enabled: true,
+                degraded: true,
+                event: `funnel:${String(step)}`,
+                error: String(error),
+            };
         }
     });
     ipcMain.removeHandler('rina:agent:plan');
     ipcMain.handle('rina:agent:plan', async (_event, args) => {
         try {
             const projectRoot = resolveProjectRootSafe(args?.projectRoot);
+            const intentText = String(args?.intentText || '');
+            if (/\b(scan yourself|check yourself|self-check|inspect current state|check the workbench|diagnose the app|what is broken right now)\b/i.test(intentText)) {
+                return {
+                    id: `plan_self_check_${Date.now()}`,
+                    reasoning: 'Running Rina self-check against policy checklist.',
+                    steps: [
+                        {
+                            stepId: 's1',
+                            tool: 'selfCheck',
+                            input: {
+                                command: 'executeSelfCheck',
+                                cwd: projectRoot,
+                                timeoutMs: 60000,
+                            },
+                            risk: 'inspect',
+                            risk_level: 'low',
+                            requires_confirmation: false,
+                            description: 'Run self-check tool',
+                        },
+                    ],
+                };
+            }
             return await fetchRemotePlanForIpc({
-                intentText: String(args?.intentText || ''),
+                intentText,
                 projectRoot,
             });
         }
@@ -537,7 +596,7 @@ app.whenReady().then(async () => {
     ipcMain.removeHandler('rina:diagnostics:paths');
     ipcMain.handle('rina:diagnostics:paths', async () => diagnosticsPathsForIpc(diagnosticsBundleDeps));
     ipcMain.removeHandler('rina:support:bundle');
-    ipcMain.handle('rina:support:bundle', async () => supportBundleForIpc(diagnosticsBundleDeps));
+    ipcMain.handle('rina:support:bundle', async (_event, snapshot) => supportBundleForIpcWithSnapshot(diagnosticsBundleDeps, snapshot));
     ipcMain.removeHandler('rina:workspace:pick');
     ipcMain.handle('rina:workspace:pick', async () => workspacePickForIpc());
     ipcMain.removeHandler('rina:workspace:default');
@@ -560,10 +619,14 @@ app.whenReady().then(async () => {
     });
     ipcMain.removeHandler('team:workspace:set');
     ipcMain.handle('team:workspace:set', async (_event, workspaceId) => {
+        const nextWorkspaceId = String(workspaceId || '').trim();
+        if (!nextWorkspaceId) {
+            return { ok: false, error: 'workspace_id_required' };
+        }
         const existing = loadTeamDb();
         const next = saveTeamDb({
             ...existing,
-            workspaceId: String(workspaceId || '').trim(),
+            workspaceId: nextWorkspaceId,
         });
         return { ok: true, workspaceId: next.workspaceId };
     });

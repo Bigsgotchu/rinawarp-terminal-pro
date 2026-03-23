@@ -1,4 +1,4 @@
-export type CenterView = 'execution-trace' | 'runs' | 'marketplace' | 'code' | 'brain'
+export type CenterView = 'execution-trace' | 'runs' | 'marketplace' | 'code' | 'brain' | 'receipt'
 export type RightView = 'agent' | 'diagnostics'
 export type TabKey = CenterView | RightView | 'settings'
 export type DrawerView = Exclude<CenterView | RightView, 'agent'>
@@ -9,11 +9,19 @@ export type ReplyAction = {
   className?: string
   tab?: string
   prompt?: string
+  executePlan?: string
+  executePlanPrompt?: string
+  executePlanWorkspaceRoot?: string
   agentTopTab?: string
   capabilityInstall?: string
   capabilityRun?: string
+  capabilityActionId?: string
   planUpgrade?: string
   runResume?: string
+  runRerun?: string
+  runFix?: string
+  runDiff?: string
+  runCopy?: string
   openRunsPanel?: string
   runReveal?: string
   runArtifacts?: string
@@ -28,6 +36,37 @@ export type RunArtifactSummary = {
   metaPreview: string
   changedFiles: string[]
   diffHints: string[]
+}
+
+export type DeploymentStatus = 'idle' | 'planning' | 'running' | 'deployed' | 'verified' | 'failed' | 'interrupted'
+export type DeploymentVerificationState = 'not-run' | 'pending' | 'passed'
+export type DeploymentRollbackState = 'unknown' | 'provider-supported' | 'manual' | 'unsupported'
+export type DeploymentTargetKind = 'cloudflare' | 'vercel' | 'netlify' | 'docker' | 'vps' | 'unknown' | null
+
+export type DeploymentState = {
+  target: DeploymentTargetKind
+  detectedTarget: DeploymentTargetKind
+  detectedSignals: string[]
+  recommendedPackKey: string | null
+  targetIdentity: string | null
+  targetIdentitySource: 'provider-output' | 'workspace-signal' | 'inferred' | 'unknown'
+  targetIdentityEvidence: string[]
+  status: DeploymentStatus
+  verification: DeploymentVerificationState
+  rollback: DeploymentRollbackState
+  latestRunId: string | null
+  latestReceiptId: string | null
+  targetUrl: string | null
+  artifact: string | null
+  buildId: string | null
+  verificationEvidence: string[]
+  rollbackEvidence: string[]
+  summary: string
+  verificationSummary: string
+  rollbackSummary: string
+  nextActionLabel: string
+  updatedAt: string | null
+  source: 'none' | 'run' | 'receipt'
 }
 
 export type ReplyListItem = {
@@ -137,7 +176,7 @@ export type RunModel = {
   status: 'running' | 'ok' | 'failed' | 'interrupted'
   startedAt: string
   updatedAt: string
-  endedAt?: string | null
+  endedAt: string | null
   exitCode?: number | null
   commandCount: number
   failedCount: number
@@ -147,6 +186,11 @@ export type RunModel = {
   platform?: string
   originMessageId?: string
   restored?: boolean
+}
+
+export type ReceiptData = {
+  id: string
+  [key: string]: any
 }
 
 export type CapabilityPackModel = {
@@ -197,6 +241,8 @@ export type WorkbenchState = {
   }
   fixBlocks: FixBlockModel[]
   runs: RunModel[]
+  receipt: ReceiptData | null
+  deployment: DeploymentState
   code: {
     files: string[]
   }
@@ -294,6 +340,7 @@ export type WorkbenchAction =
   | { type: 'runs/appendOutputTail'; runId: string; chunk: string }
   | { type: 'runs/setOutputTail'; runId: string; tail: string }
   | { type: 'runs/setArtifactSummary'; runId: string; summary: RunArtifactSummary }
+  | { type: 'deployment/set'; deployment: DeploymentState }
   | { type: 'code/setFiles'; files: string[] }
   | {
       type: 'diagnostics/set'
@@ -315,3 +362,4 @@ export type WorkbenchAction =
   | { type: 'capabilities/setLoading'; loading: boolean }
   | { type: 'capabilities/setError'; error?: string }
   | { type: 'capabilities/setPacks'; packs: CapabilityPackModel[] }
+  | { type: 'receipt/set'; receipt: ReceiptData | null }

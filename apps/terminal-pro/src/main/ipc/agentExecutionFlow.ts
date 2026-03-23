@@ -6,6 +6,7 @@ import {
   buildMarketplaceCapabilityExecutionPlan,
 } from '../../rina/capabilities/execution.js'
 import { listCapabilityPacks } from '../../rina/capabilities/registry.js'
+import { executeSelfCheck } from '../tools/selfCheck.js'
 
 export type PlanRunState = {
   stopped: boolean
@@ -77,11 +78,12 @@ function getHaltFromPreflight(args: RegisterAgentExecutionArgs, payload: Execute
     const command = rawStep?.input?.command
     if (typeof command !== 'string') continue
     const risk = args.riskFromPlanStep(rawStep)
+    const effectiveConfirmed = payload.confirmed || risk === 'read'
     const profileGate = args.gateProfileCommand({
       projectRoot,
       command,
       risk,
-      confirmed: payload.confirmed,
+      confirmed: effectiveConfirmed,
       confirmationText: payload.confirmationText ?? '',
     })
     if (!profileGate.ok) {
@@ -90,7 +92,7 @@ function getHaltFromPreflight(args: RegisterAgentExecutionArgs, payload: Execute
         haltReason: (profileGate as { message: string }).message,
       }
     }
-    const policyGate = args.evaluatePolicyGate(command, payload.confirmed, payload.confirmationText ?? '')
+    const policyGate = args.evaluatePolicyGate(command, effectiveConfirmed, payload.confirmationText ?? '')
     if (!policyGate.ok) {
       return {
         haltedStepId: rawStep?.stepId ?? null,
@@ -127,6 +129,62 @@ async function runRemotePlan(
   )
 }
 
+function isLocalSelfCheckPlan(payload: ExecutePlanPayload): boolean {
+  const steps = Array.isArray(payload.plan) ? payload.plan : []
+  if (steps.length !== 1) return false
+  const step = steps[0]
+  const tool = String(step?.tool || '').trim().toLowerCase()
+  const command = String(step?.input?.command || '').trim()
+  return tool === 'selfcheck' || command === 'executeSelfCheck'
+}
+
+async function runLocalSelfCheck(
+  args: RegisterAgentExecutionArgs,
+  eventSender: WebContents,
+  planRunId: string,
+  projectRoot: string
+) {
+  const streamId = `stream_${Date.now()}_${Math.random().toString(16).slice(2)}`
+  args.safeSend(eventSender, 'rina:plan:stepStart', {
+    planRunId,
+    runId: streamId,
+    streamId,
+    stepId: 's1',
+    tool: 'selfCheck',
+    input: {
+      command: 'executeSelfCheck',
+      cwd: projectRoot,
+      timeoutMs: 60_000,
+    },
+  })
+  const result = await executeSelfCheck(projectRoot, {
+    workspaceRoot: projectRoot,
+    sessionId: planRunId,
+    lastRunId: null,
+  })
+  args.safeSend(eventSender, 'rina:stream:chunk', {
+    streamId,
+    stream: 'meta',
+    data: `${result.findings}\n`,
+  })
+  args.safeSend(eventSender, 'rina:stream:end', {
+    streamId,
+    ok: result.run.exitCode === 0,
+    code: result.run.exitCode,
+    cancelled: false,
+    error: result.run.exitCode === 0 ? null : 'Self-check found issues that need attention.',
+  })
+  return {
+    ok: result.run.exitCode === 0,
+    runId: streamId,
+    planRunId,
+    haltedStepId: result.run.exitCode === 0 ? null : 's1',
+    haltReason: result.run.exitCode === 0 ? '' : 'Self-check found issues that need attention.',
+    error: result.run.exitCode === 0 ? undefined : 'Self-check found issues that need attention.',
+    code: result.run.exitCode === 0 ? undefined : 'RUN_FAILED',
+  }
+}
+
 export async function handleExecutePlanStream(
   args: RegisterAgentExecutionArgs,
   eventSender: WebContents,
@@ -149,6 +207,20 @@ export async function handleExecutePlanStream(
   args.ensureStructuredSession({ source: 'execute_plan_stream', projectRoot, preferredId: planRunId })
   args.runningPlanRuns.set(planRunId, { stopped: false })
   args.safeSend(eventSender, 'rina:plan:run:start', { planRunId })
+
+  if (isLocalSelfCheckPlan(payload)) {
+    try {
+      const result = await runLocalSelfCheck(args, eventSender, planRunId, projectRoot)
+      args.safeSend(eventSender, 'rina:plan:run:end', {
+        planRunId,
+        ok: result.ok,
+        haltedBecause: result.haltReason || undefined,
+      })
+      return result
+    } finally {
+      args.runningPlanRuns.delete(planRunId)
+    }
+  }
 
   const preflightHalt = getHaltFromPreflight(args, payload, projectRoot)
   if (preflightHalt) {

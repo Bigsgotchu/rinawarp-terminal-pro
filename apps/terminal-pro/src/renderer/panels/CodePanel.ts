@@ -18,14 +18,14 @@ export class CodePanel extends BasePanel {
   async refresh(): Promise<void> {
     try {
       const workspaceRoot = this.store ? this.deps.getWorkspaceRoot(this.store) : null
-      const files = (await window.rina.invoke(
-        'rina:code:listFiles',
-        workspaceRoot ? { projectRoot: workspaceRoot, limit: 100 } : { limit: 100 }
-      )) as {
+      const request = workspaceRoot ? { projectRoot: workspaceRoot, limit: 100 } : { projectRoot: undefined, limit: 100 }
+      const files = (await window.rina.codeListFiles?.(request)) as
+        | {
         ok: boolean
         files?: string[]
       }
-      if (files.ok && files.files) {
+        | undefined
+      if (files?.ok && Array.isArray(files.files)) {
         this.clearContent()
         files.files.forEach((file: string) => {
           const row = document.createElement('div')

@@ -84,24 +84,17 @@ export async function mountGeneralPanel(container: HTMLElement): Promise<void> {
   const workspacePath = container.querySelector<HTMLElement>('#rw-general-workspace-path')
   const workspaceStatus = container.querySelector<HTMLElement>('#rw-general-workspace-status')
   container.querySelector<HTMLButtonElement>('#rw-general-pick-workspace')?.addEventListener('click', async () => {
-    if (workspaceStatus) workspaceStatus.textContent = 'Opening workspace picker…'
-    try {
-      const result = await (window as any).rina?.pickWorkspace?.()
-      if (!result?.ok || !result.path) {
-        if (workspaceStatus) workspaceStatus.textContent = 'Workspace selection cancelled.'
-        return
-      }
+    const result = await requestWorkspaceSelection({
+      source: 'settings_general',
+      onStatus: (message) => {
+        if (workspaceStatus) workspaceStatus.textContent = message
+      },
+    })
+    if (result.ok && result.path) {
       if (workspacePath) workspacePath.textContent = String(result.path)
-      if (workspaceStatus) workspaceStatus.textContent = 'Workspace updated.'
-      window.dispatchEvent(
-        new CustomEvent('rina:workspace-selected', {
-          detail: { path: String(result.path) },
-        })
-      )
-    } catch (error) {
-      if (workspaceStatus) workspaceStatus.textContent = error instanceof Error ? error.message : 'Could not change workspace.'
     }
   })
 
   sync()
 }
+import { requestWorkspaceSelection } from '../../actions/workspaceOwnership.js'

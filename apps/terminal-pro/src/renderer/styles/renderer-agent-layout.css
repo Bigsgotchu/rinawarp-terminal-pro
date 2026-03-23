@@ -12,10 +12,8 @@
   padding-inline: 10px;
 }
 
-.rw-agent-body > :where(.rw-agent-hero, .rw-agent-composer, #agent-recovery, #agent-output, #agent-plan-container) {
-  inline-size: 100%;
-  max-inline-size: none;
-  margin-inline: 0;
+.rw-agent-body {
+  padding-bottom: 120px; /* Space for fixed composer */
 }
 
 .rw-agent-hero {
@@ -170,35 +168,51 @@
 }
 
 .rw-agent-composer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 20px;
   display: grid;
   gap: 8px;
-  padding: 8px 0 0;
-  border: 0;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  border-radius: 0;
-  background: linear-gradient(180deg, rgba(8, 10, 14, 0), rgba(8, 10, 14, 0.88) 36%);
-  box-shadow: none;
-  flex: 0 0 auto;
-  position: sticky;
-  inset-block-end: 0;
-  z-index: 2;
+}
+
+.rw-agent-input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .rw-agent-input {
-  inline-size: 100%;
+  flex: 1;
   min-block-size: 46px;
   resize: none;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--rw-fg);
   font: 500 0.88rem/1.5 var(--font-ui);
-  padding: 0;
+  padding: 12px 16px;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .rw-agent-input:focus {
-  box-shadow: none;
+  border-color: rgba(87, 231, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(87, 231, 255, 0.2);
 }
 
 .rw-agent-composer-actions {
@@ -231,7 +245,7 @@
 }
 
 #status-bar {
-  display: none;
+  display: flex;
 }
 
 #agent-starter-prompts {
@@ -283,6 +297,16 @@
   font-size: 0.62rem;
 }
 
+.rw-agent-welcome-pill.is-warning {
+  border-color: rgba(255, 184, 77, 0.28);
+  background: rgba(255, 184, 77, 0.12);
+  color: #ffe1a8;
+}
+
+.rw-agent-welcome-actions {
+  margin-top: 4px;
+}
+
 .rw-agent-empty-state-shell {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.95fr);
@@ -322,6 +346,17 @@
   border-color: rgba(255, 189, 89, 0.18);
   background:
     radial-gradient(circle at top left, rgba(255, 189, 89, 0.12), transparent 40%),
+    linear-gradient(180deg, rgba(24, 20, 12, 0.95), rgba(12, 16, 24, 0.92));
+}
+
+.rw-agent-workspace-setup {
+  border-style: dashed;
+}
+
+.rw-agent-workspace-setup.is-weak {
+  border-color: rgba(255, 184, 77, 0.22);
+  background:
+    radial-gradient(circle at top left, rgba(255, 184, 77, 0.12), transparent 40%),
     linear-gradient(180deg, rgba(24, 20, 12, 0.95), rgba(12, 16, 24, 0.92));
 }
 

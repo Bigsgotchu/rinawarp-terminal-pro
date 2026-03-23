@@ -17,9 +17,11 @@ type ExecutionResult = {
 type ConversationRouteResult = {
   mode:
     | 'chat'
+    | 'help'
     | 'question'
     | 'inspect'
     | 'execute'
+    | 'self_check'
     | 'follow_up'
     | 'recovery'
     | 'settings'
@@ -47,7 +49,7 @@ type AgentExecutionFlowDeps = {
     prompt: string,
     plan: FixPlanResponse,
     requirements: PlanCapabilityRequirement[],
-    options?: { introText?: string }
+    options?: { introText?: string; reviewOnly?: boolean; planActionPrompt?: string; workspaceRoot?: string }
   ) => MessageBlock[]
   buildCapabilityDecisionContent: (
     decision: NonNullable<ReturnType<AgentExecutionFlowDeps['resolvePromptCapability']>>
@@ -56,6 +58,7 @@ type AgentExecutionFlowDeps = {
   buildRinaReplyContent: (result: RinaReplyResult, options?: { leadText?: string | null }) => MessageBlock[]
   composeRinaReplyLead: (args: { result: RinaReplyResult; memoryState?: any }) => string | null
   composeExecutionPlanLead: (args: { prompt: string; stepCount: number; requiresCapabilities?: boolean; memoryState?: any }) => string
+  composePlanModeLead: (args: { prompt: string; stepCount: number; requiresCapabilities?: boolean; memoryState?: any }) => string
   composeCapabilityLead: (args: {
     state: 'ready' | 'locked' | 'install'
     title: string
@@ -120,10 +123,11 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
       planSteps: FixPlanStep[]
       capabilityRequirements?: PlanCapabilityRequirement[]
       memoryState?: any
+      reviewOnly?: boolean
     }
   ): Promise<boolean> => {
     const messageId = `rina:plan:${Date.now()}`
-    const introText = deps.composeExecutionPlanLead({
+    const introText = (args.reviewOnly ? deps.composePlanModeLead : deps.composeExecutionPlanLead)({
       prompt: args.prompt,
       stepCount: args.planSteps.length,
       requiresCapabilities: (args.capabilityRequirements || []).length > 0,
@@ -134,11 +138,20 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
       msg: {
         id: messageId,
         role: 'rina',
-        content: deps.buildExecutionPlanContent(args.prompt, args.plan, args.capabilityRequirements || [], { introText }),
+        content: deps.buildExecutionPlanContent(args.prompt, args.plan, args.capabilityRequirements || [], {
+          introText,
+          reviewOnly: args.reviewOnly,
+          planActionPrompt: args.prompt,
+          workspaceRoot: args.workspaceRoot,
+        }),
         ts: Date.now(),
         workspaceKey: args.workspaceKey,
       },
     })
+
+    if (args.reviewOnly) {
+      return false
+    }
 
     if ((args.capabilityRequirements || []).some((requirement) => requirement.state !== 'ready')) {
       return false
@@ -273,6 +286,7 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
             planSteps: normalizedPlanSteps,
             capabilityRequirements: planCapabilityRequirements,
             memoryState,
+            reviewOnly: routedTurn?.allowedNextAction === 'plan',
           })
           return
         }

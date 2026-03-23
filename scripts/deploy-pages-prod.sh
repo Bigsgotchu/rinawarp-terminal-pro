@@ -20,4 +20,9 @@ npx wrangler@3.90.0 pages deploy "$DIST_DIR" \
   --commit-message "$COMMIT_MSG" \
   --commit-dirty=true
 
+if [[ "$PROJECT_NAME" == "rinawarptech-website" && "$BRANCH" == "master" ]]; then
+  echo "[deploy:pages] Running production trust-path smoke"
+  npm run smoke:prod
+fi
+
 echo "[deploy:pages] Done"

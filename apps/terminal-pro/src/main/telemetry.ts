@@ -29,6 +29,13 @@ type TelemetryEventType =
 
 type MetricsCallback = (metrics: TelemetryMetrics) => void
 
+export interface TelemetryDispatchResult {
+  accepted: boolean
+  connected: boolean
+  degraded?: boolean
+  error?: string
+}
+
 class TelemetryClient {
   private ws: WebSocket | null = null
   private reconnectAttempts = 0
@@ -103,18 +110,30 @@ class TelemetryClient {
   /**
    * Send an event to the telemetry server
    */
-  sendEvent(type: TelemetryEventType, payload?: Record<string, unknown>): void {
+  sendEvent(type: TelemetryEventType, payload?: Record<string, unknown>): TelemetryDispatchResult {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       console.log("[Telemetry] Not connected, attempting to connect...")
       this.connect()
-      return
+      return {
+        accepted: false,
+        connected: false,
+        degraded: true,
+        error: "Telemetry server is not connected",
+      }
     }
 
     try {
       this.ws.send(JSON.stringify({ type, payload }))
       console.log(`[Telemetry] Event sent: ${type}`)
+      return { accepted: true, connected: true }
     } catch (err) {
       console.error("[Telemetry] Failed to send event:", err)
+      return {
+        accepted: false,
+        connected: this.isConnected,
+        degraded: true,
+        error: err instanceof Error ? err.message : "Failed to send telemetry event",
+      }
     }
   }
 
@@ -164,36 +183,36 @@ export function getTelemetryClient(): TelemetryClient {
 /**
  * Track session start
  */
-export function trackSessionStart(): void {
-  getTelemetryClient().sendEvent("session:start")
+export function trackSessionStart(): TelemetryDispatchResult {
+  return getTelemetryClient().sendEvent("session:start")
 }
 
 /**
  * Track session end
  */
-export function trackSessionEnd(): void {
-  getTelemetryClient().sendEvent("session:end")
+export function trackSessionEnd(): TelemetryDispatchResult {
+  return getTelemetryClient().sendEvent("session:end")
 }
 
 /**
  * Track command execution
  */
-export function trackCommandRun(): void {
-  getTelemetryClient().sendEvent("command:run")
+export function trackCommandRun(): TelemetryDispatchResult {
+  return getTelemetryClient().sendEvent("command:run")
 }
 
 /**
  * Track AI message
  */
-export function trackAiMessage(): void {
-  getTelemetryClient().sendEvent("ai:message")
+export function trackAiMessage(): TelemetryDispatchResult {
+  return getTelemetryClient().sendEvent("ai:message")
 }
 
 /**
  * Track quick fix application
  */
-export function trackQuickFix(): void {
-  getTelemetryClient().sendEvent("quickfix:apply")
+export function trackQuickFix(): TelemetryDispatchResult {
+  return getTelemetryClient().sendEvent("quickfix:apply")
 }
 
 /**

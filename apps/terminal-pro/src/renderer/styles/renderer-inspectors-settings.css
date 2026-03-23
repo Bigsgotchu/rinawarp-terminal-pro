@@ -1,5 +1,18 @@
 #rw-settings {
-  inline-size: 100%;
+  position: fixed;
+  inset: 12px 12px 46px 52px;
+  z-index: 40;
+  inline-size: auto;
+  block-size: auto;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(10, 14, 20, 0.94), rgba(10, 12, 18, 0.98)),
+    radial-gradient(circle at top right, rgba(124, 199, 255, 0.08), transparent 24%),
+    radial-gradient(circle at top left, rgba(255, 46, 136, 0.07), transparent 22%);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+  overflow: hidden !important;
 }
 
 #rw-settings[hidden] {
@@ -11,6 +24,8 @@
   grid-template-columns: 240px minmax(0, 1fr);
   gap: 12px;
   min-block-size: 100%;
+  block-size: 100%;
+  overflow: hidden;
 }
 
 .rw-settings-rail {
@@ -26,6 +41,8 @@
   flex-direction: column;
   gap: 12px;
   min-inline-size: 0;
+  min-block-size: 0;
+  overflow: hidden;
 }
 
 .rw-settings-top {
@@ -42,10 +59,17 @@
 .rw-settings-content {
   border-radius: 14px;
   padding: 12px;
+  min-block-size: 0;
+  block-size: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .rw-settings-panel {
   min-inline-size: 0;
+  min-block-size: 0;
+  display: grid;
+  align-content: start;
 }
 
 .rw-account-toggle,
@@ -202,6 +226,22 @@ html[data-density="compact"] .rw-account-toggle {
 
 .rw-settings-fab {
   display: none;
+}
+
+@media (max-width: 920px) {
+  #rw-settings {
+    inset: 8px 8px 42px 8px;
+    padding: 10px;
+  }
+
+  .rw-settings-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .rw-settings-rail {
+    max-block-size: 140px;
+    overflow: auto;
+  }
 }
 
 .rw-card {

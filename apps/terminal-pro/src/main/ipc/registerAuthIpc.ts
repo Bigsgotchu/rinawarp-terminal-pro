@@ -5,6 +5,9 @@
  */
 
 import type { IpcMain, BrowserWindow } from 'electron'
+import { app } from 'electron'
+import fs from 'node:fs'
+import path from 'node:path'
 
 export interface AuthConfig {
   apiBaseUrl: string
@@ -13,6 +16,36 @@ export interface AuthConfig {
 
 let authConfig: AuthConfig | null = null
 let cachedToken: string | null = null
+
+function authSessionFile(): string {
+  return path.join(app.getPath('userData'), 'auth-session.json')
+}
+
+function persistCachedToken(token: string | null): void {
+  try {
+    const filePath = authSessionFile()
+    if (!token) {
+      if (fs.existsSync(filePath)) fs.rmSync(filePath, { force: true })
+      return
+    }
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, JSON.stringify({ token }, null, 2), 'utf8')
+  } catch (error) {
+    console.warn('[auth] Failed to persist auth token:', error)
+  }
+}
+
+function loadCachedTokenFromDisk(): string | null {
+  try {
+    const filePath = authSessionFile()
+    if (!fs.existsSync(filePath)) return null
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8')) as { token?: string | null }
+    return typeof parsed?.token === 'string' && parsed.token.trim() ? parsed.token.trim() : null
+  } catch (error) {
+    console.warn('[auth] Failed to load cached auth token:', error)
+    return null
+  }
+}
 
 /**
  * Set auth configuration
@@ -33,6 +66,7 @@ export function getAuthConfig(): AuthConfig | null {
  */
 export function setCachedToken(token: string | null): void {
   cachedToken = token
+  persistCachedToken(token)
 }
 
 /**
@@ -46,6 +80,10 @@ export function getCachedToken(): string | null {
  * Register authentication IPC handlers
  */
 export function registerAuthIpc(ipcMain: IpcMain, _mainWindow: BrowserWindow): void {
+  if (!cachedToken) {
+    cachedToken = loadCachedTokenFromDisk()
+  }
+
   // Remove existing handlers
   ipcMain.removeHandler('auth:login')
   ipcMain.removeHandler('auth:register')
@@ -82,6 +120,7 @@ export function registerAuthIpc(ipcMain: IpcMain, _mainWindow: BrowserWindow): v
       // Cache the token
       if (data.token) {
         cachedToken = data.token
+        persistCachedToken(cachedToken)
       }
       
       return { ok: true, token: data.token, user: data.user }
@@ -123,6 +162,7 @@ export function registerAuthIpc(ipcMain: IpcMain, _mainWindow: BrowserWindow): v
   // Logout - clear cached token
   ipcMain.handle('auth:logout', async () => {
     cachedToken = null
+    persistCachedToken(null)
     return { ok: true }
   })
   
@@ -144,6 +184,7 @@ export function registerAuthIpc(ipcMain: IpcMain, _mainWindow: BrowserWindow): v
       
       if (!response.ok) {
         cachedToken = null
+        persistCachedToken(null)
         return { ok: false, error: data.error || 'Failed to get user' }
       }
       
@@ -205,10 +246,25 @@ export function registerAuthIpc(ipcMain: IpcMain, _mainWindow: BrowserWindow): v
   
   // Get auth state
   ipcMain.handle('auth:state', async () => {
+    if (!cachedToken) {
+      return { ok: true, authenticated: false, user: null, token: null }
+    }
+
+    if (!authConfig) {
+      return {
+        ok: false,
+        authenticated: false,
+        user: null,
+        token: cachedToken,
+        degraded: true,
+        error: 'Auth not configured; cached session could not be verified',
+      }
+    }
+
     if (cachedToken) {
       // Try to verify the token
       try {
-        const response = await fetch(`${authConfig?.apiBaseUrl}/api/auth/me`, {
+        const response = await fetch(`${authConfig.apiBaseUrl}/api/auth/me`, {
           headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${cachedToken}`,
@@ -218,17 +274,34 @@ export function registerAuthIpc(ipcMain: IpcMain, _mainWindow: BrowserWindow): v
         if (response.ok) {
           const data = await response.json()
           return { 
+            ok: true,
             authenticated: true, 
             user: data.user,
             token: cachedToken,
           }
         }
-      } catch {
-        // Token invalid
+        cachedToken = null
+        persistCachedToken(null)
+        return {
+          ok: false,
+          authenticated: false,
+          user: null,
+          token: null,
+          error: 'Failed to verify cached session',
+        }
+      } catch (error) {
+        return {
+          ok: false,
+          authenticated: false,
+          user: null,
+          token: cachedToken,
+          degraded: true,
+          error: error instanceof Error ? error.message : 'Failed to verify cached session',
+        }
       }
     }
     
-    return { authenticated: false, user: null, token: null }
+    return { ok: true, authenticated: false, user: null, token: null }
   })
   
   // Get token (for API calls)

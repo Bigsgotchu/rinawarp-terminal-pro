@@ -35,5 +35,5 @@ export function didExecutionStart(result: { runId?: string; code?: string; ok?: 
 }
 
 export function isExecutionPrompt(prompt: string): boolean {
-  return /\b(build|test|tests|deploy|lint|fix|repair)\b/i.test(prompt)
+  return /\b(build|test|tests|deploy|lint|fix|repair|scan yourself|check yourself|self-check|inspect current state|check the workbench)\b/i.test(prompt)
 }

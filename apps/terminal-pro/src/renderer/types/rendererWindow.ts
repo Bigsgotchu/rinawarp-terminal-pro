@@ -1,7 +1,7 @@
 import type { FixPlanResponse, FixPlanStep } from '../replies/renderPlanReplies.js'
 import type { BrainEvent, BrainStats, ThinkingStep } from '../services/rendererEventTypes.js'
 import type { Density as ThemeDensity } from '../theme/tokens.js'
-import type { CapabilityPackModel } from '../workbench/store.js'
+import type { CapabilityPackModel, WorkbenchAction, WorkbenchState } from '../workbench/store.js'
 
 export interface RinaRendererWindow {
   addEventListener: Window['addEventListener']
@@ -64,8 +64,14 @@ export interface RinaRendererWindow {
       code?: string
       retrySuggestion?: string
     }>
-    trackEvent?: (event: string, properties?: Record<string, unknown>) => Promise<{ ok?: boolean }>
-    trackFunnelStep?: (step: string, properties?: Record<string, unknown>) => Promise<{ ok?: boolean }>
+    trackEvent?: (
+      event: string,
+      properties?: Record<string, unknown>
+    ) => Promise<{ ok?: boolean; accepted?: boolean; enabled?: boolean; degraded?: boolean; event?: string; error?: string }>
+    trackFunnelStep?: (
+      step: string,
+      properties?: Record<string, unknown>
+    ) => Promise<{ ok?: boolean; accepted?: boolean; enabled?: boolean; degraded?: boolean; event?: string; error?: string }>
     getTools: () => Promise<unknown[]>
     getBrainStats: () => Promise<BrainStats>
     onBrainEvent: (cb: (event: BrainEvent) => void) => () => void
@@ -96,6 +102,8 @@ export interface RinaRendererWindow {
     openStripePortal: (email?: string) => Promise<{ ok: boolean; fallback?: boolean; error?: string }>
     marketplaceList?: () => Promise<{
       ok: boolean
+      source?: string
+      degraded?: boolean
       agents?: Array<{
         name: string
         description: string
@@ -115,6 +123,9 @@ export interface RinaRendererWindow {
     }>
     installMarketplaceAgent?: (args: { name: string; userEmail?: string }) => Promise<{
       ok: boolean
+      source?: string
+      degraded?: boolean
+      warning?: string
       agent?: { name: string; version: string; description: string; author: string; permissions?: string[]; commands?: unknown[] }
       error?: string
     }>
@@ -124,7 +135,7 @@ export interface RinaRendererWindow {
       error?: string
       capabilities?: CapabilityPackModel[]
     }>
-    supportBundle: () => Promise<{ ok: boolean; error?: string; path?: string; bytes?: number }>
+    supportBundle: (snapshot?: unknown) => Promise<{ ok: boolean; error?: string; path?: string; bytes?: number }>
     openRunsFolder: () => Promise<{ ok: boolean; error?: string; path?: string }>
     runsList?: (limit?: number) => Promise<{
       ok: boolean
@@ -152,7 +163,9 @@ export interface RinaRendererWindow {
       tail?: string
       error?: string
     }>
-    revealRunReceipt: (receiptId: string) => Promise<{ ok: boolean; error?: string; path?: string }>
+    revealRunReceipt: (receiptId: string) => Promise<{ ok: boolean; error?: string; receipt?: any }>
+    codeListFiles?: (args?: { projectRoot?: string | undefined; limit?: number; query?: string }) => Promise<{ ok?: boolean; files?: string[]; error?: string }>
+    codeReadFile?: (args: { projectRoot?: string; filePath: string }) => Promise<{ ok?: boolean; content?: string; error?: string }>
     workspaceDefault?: () => Promise<{ ok: boolean; path?: string }>
     autonomy: { enabled: boolean; level: string }
   }
@@ -168,6 +181,13 @@ export interface RinaRendererWindow {
     get: () => ThemeDensity
     set: (value: ThemeDensity) => void
     toggle: () => ThemeDensity
+  }
+  __rinaE2EWorkbench?: {
+    dispatch: (action: WorkbenchAction) => void
+    getState: () => WorkbenchState
+  }
+  __rinaDebugEvidence?: {
+    getSnapshot: () => unknown
   }
   RINAWARP_READY?: boolean
 }

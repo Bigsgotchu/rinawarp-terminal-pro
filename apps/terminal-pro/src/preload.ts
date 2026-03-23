@@ -13,7 +13,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:conversation:route',
   'rina:getPlans',
   'rina:getTools',
-  // Telemetry (stubs - always return true)
+  // Telemetry channels
   'telemetry:sessionStart',
   'telemetry:sessionEnd',
   'telemetry:commandRun',
@@ -29,6 +29,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:revealRunReceipt',
   'rina:code:listFiles',
   'rina:code:readFile',
+  'rina:workspace:pick',
   'rina:workspace:default',
   // PTY (if available)
   'rina:pty:start',
@@ -48,8 +49,10 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:memory:updateProfile',
   'rina:memory:updateWorkspace',
   'rina:memory:deleteEntry',
+  'rina:memory:setInferredStatus',
   'rina:memory:resetWorkspace',
   'rina:memory:resetAll',
+  'rina:brain:stats',
   'themes:list',
   'themes:get',
   'themes:set',
@@ -149,6 +152,61 @@ function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
   return () => ipcRenderer.removeListener(channel, wrapped)
 }
 
+function summarizeArgShape(value: unknown, depth = 0): unknown {
+  if (value == null) return value
+  if (typeof value === 'string') return { type: 'string', length: value.length }
+  if (typeof value === 'number' || typeof value === 'boolean') return { type: typeof value }
+  if (Array.isArray(value)) return { type: 'array', length: value.length }
+  if (typeof value === 'object') {
+    if (depth > 0) return { type: 'object' }
+    return {
+      type: 'object',
+      keys: Object.keys(value as Record<string, unknown>).slice(0, 10),
+    }
+  }
+  return { type: typeof value }
+}
+
+function emitRendererDebugEvent(detail: Record<string, unknown>): void {
+  try {
+    window.dispatchEvent(new CustomEvent('rina:ipc-trace', { detail }))
+  } catch {
+    // Ignore debug-event failures.
+  }
+}
+
+function invokeAllowedChannel(channel: string, args: unknown[]): Promise<unknown> {
+  if (!isInvokeChannelAllowed(channel)) {
+    console.warn(`[Security] Blocked invoke channel: ${channel}`)
+    return Promise.reject(new Error(`Channel not allowed: ${channel}`))
+  }
+  const startedAt = Date.now()
+  const sanitizedArgs = args.map((arg) =>
+    typeof arg === 'string' ? sanitizeString(arg) : typeof arg === 'object' ? sanitizeObject(arg) : arg
+  )
+  return ipcRenderer
+    .invoke(channel, ...sanitizedArgs)
+    .then((result) => {
+      emitRendererDebugEvent({
+        channel,
+        ok: true,
+        durationMs: Date.now() - startedAt,
+        args: sanitizedArgs.map((entry) => summarizeArgShape(entry)),
+      })
+      return result
+    })
+    .catch((error) => {
+      emitRendererDebugEvent({
+        channel,
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        error: error instanceof Error ? error.message : String(error),
+        args: sanitizedArgs.map((entry) => summarizeArgShape(entry)),
+      })
+      throw error
+    })
+}
+
 // Electron API for renderer access - wrap ipcRenderer methods explicitly
 // SECURITY: All IPC calls are validated against whitelist
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -168,15 +226,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.send(channel, ...args)
     },
     invoke: (channel: string, ...args: any[]) => {
-      if (!isInvokeChannelAllowed(channel)) {
-        console.warn(`[Security] Blocked invoke channel: ${channel}`)
-        return Promise.reject(new Error(`Channel not allowed: ${channel}`))
-      }
-      // Sanitize arguments
-      const sanitizedArgs = args.map((arg) =>
-        typeof arg === 'string' ? sanitizeString(arg) : typeof arg === 'object' ? sanitizeObject(arg) : arg
-      )
-      return ipcRenderer.invoke(channel, ...sanitizedArgs)
+      return invokeAllowedChannel(channel, args)
     },
   },
   shell,
@@ -188,14 +238,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 contextBridge.exposeInMainWorld('rina', {
   // Generic invoke for any allowed channel
   invoke: (channel: string, ...args: any[]) => {
-    if (!isInvokeChannelAllowed(channel)) {
-      console.warn(`[Security] Blocked invoke channel: ${channel}`)
-      return Promise.reject(new Error(`Channel not allowed: ${channel}`))
-    }
-    const sanitizedArgs = args.map((arg) =>
-      typeof arg === 'string' ? sanitizeString(arg) : typeof arg === 'object' ? sanitizeObject(arg) : arg
-    )
-    return ipcRenderer.invoke(channel, ...sanitizedArgs)
+    return invokeAllowedChannel(channel, args)
   },
 
   // Core status/mode (verified working)
@@ -248,14 +291,16 @@ contextBridge.exposeInMainWorld('rina', {
 
   // Diagnostics
   diagnosticsPaths: () => ipcRenderer.invoke('rina:diagnostics:paths'),
-  supportBundle: () => ipcRenderer.invoke('rina:support:bundle'),
+  supportBundle: (snapshot?: unknown) => ipcRenderer.invoke('rina:support:bundle', snapshot),
   openRunsFolder: () => ipcRenderer.invoke('rina:openRunsFolder'),
   runsList: (limit?: number) => ipcRenderer.invoke('rina:runs:list', { limit }),
   runsTail: (args: { runId: string; sessionId: string; maxLines?: number; maxBytes?: number }) => ipcRenderer.invoke('rina:runs:tail', args),
   runsArtifacts: (args: { runId: string; sessionId: string }) => ipcRenderer.invoke('rina:runs:artifacts', args),
   revealRunReceipt: (receiptId: string) => ipcRenderer.invoke('rina:revealRunReceipt', receiptId),
+  codeListFiles: (args?: { projectRoot?: string; limit?: number; query?: string }) => ipcRenderer.invoke('rina:code:listFiles', args),
+  codeReadFile: (args: { projectRoot?: string; filePath: string }) => ipcRenderer.invoke('rina:code:readFile', args),
 
-  // Telemetry (stubs - always work)
+  // Telemetry helpers
   trackSessionStart: () => ipcRenderer.invoke('telemetry:sessionStart'),
   trackSessionEnd: () => ipcRenderer.invoke('telemetry:sessionEnd'),
   trackCommandRun: () => ipcRenderer.invoke('telemetry:commandRun'),
@@ -347,6 +392,6 @@ contextBridge.exposeInMainWorld('rina', {
   installMarketplaceAgent: (args: { name: string; userEmail?: string }) => ipcRenderer.invoke('secure-agent:install', args),
   capabilityPacks: () => ipcRenderer.invoke('rina:capabilities:list'),
 
-  // Autonomy status (stub for now)
+  // Static autonomy status until the runtime bridge is wired
   autonomy: { enabled: false, level: 'off' },
 })

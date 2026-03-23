@@ -9,6 +9,8 @@
  */
 
 import { createActionsController } from './actions/actionController.js'
+import { createWorkbenchNavigator } from './actions/navigationOwner.js'
+import { createRuntimeModeOwner } from './actions/runtimeOwnership.js'
 import { finalizeRendererBoot, installDensityBridge, resolveInitialWorkspaceKey } from './bootstrap/rendererBootLifecycle.js'
 import { FixBlockManager } from './fixes/FixBlockManager.js'
 import { createFixExecutionActions } from './fixes/fixExecutionActions.js'
@@ -32,8 +34,15 @@ import type {
   PlanCapabilityRequirement,
 } from './replies/renderPlanReplies.js'
 import { bindRendererEvents } from './services/bindRendererEvents.js'
+import { buildDebugSnapshot, installDebugEvidenceBridge } from './services/debugEvidence.js'
 import { createAgentExecutionFlow } from './services/agentExecutionFlow.js'
-import { composeCapabilityLead, composeExecutionHaltLead, composeExecutionPlanLead, composeRinaReplyLead } from './services/responseComposer.js'
+import {
+  composeCapabilityLead,
+  composeExecutionHaltLead,
+  composeExecutionPlanLead,
+  composePlanModeLead,
+  composeRinaReplyLead,
+} from './services/responseComposer.js'
 import {
   buildInterruptedRunRecoveryPrompt,
   buildTrustSnapshot,
@@ -53,6 +62,8 @@ import {
 } from './services/rendererTelemetry.js'
 import { createRunLinkedMessage, scrollToMessage, scrollToRun } from './services/workbenchNavigation.js'
 import { initSettingsUi } from './settings/bootstrap.js'
+import { syncWorkbenchToSettingsVisibility } from './state/settingsVisibilityOwnership.js'
+import { applyWorkspaceSelection } from './actions/workspaceOwnership.js'
 import { createWorkbenchStore, persistWorkbenchState } from './state/workbenchBootstrap.js'
 import { initRendererThemeCompat } from './theme/rendererThemeCompat.js'
 import type { RinaRendererWindow } from './types/rendererWindow.js'
@@ -79,23 +90,45 @@ export async function initProductionRenderer(): Promise<void> {
   initRendererThemeCompat()
   const initialWorkspaceKey = await resolveInitialWorkspaceKey(normalizeWorkspaceKey)
   const store = createWorkbenchStore(initialWorkspaceKey)
+  if (navigator.webdriver) {
+    window.__rinaE2EWorkbench = {
+      dispatch: (action) => store.dispatch(action),
+      getState: () => store.getState(),
+    }
+  }
   store.dispatch({ type: 'workspace/set', workspaceKey: initialWorkspaceKey })
+  const unbindDebugEvidence = await installDebugEvidenceBridge({
+    getState: () => store.getState(),
+  })
+  window.__rinaDebugEvidence = {
+    getSnapshot: () => buildDebugSnapshot(store.getState()),
+  }
   const handleSettingsVisibility = ((event: Event) => {
     const open = (event as CustomEvent<{ open?: boolean }>).detail?.open
-    store.dispatch({ type: 'tab/set', tab: open ? 'settings' : 'agent' })
+    syncWorkbenchToSettingsVisibility(store, Boolean(open))
   }) as EventListener
   const handleWorkspaceSelected = ((event: Event) => {
-    const path = normalizeWorkspaceKey((event as CustomEvent<{ path?: string }>).detail?.path)
-    store.dispatch({ type: 'workspace/set', workspaceKey: path })
-    void refreshRuns(store)
-    void refreshCode(store)
-    void refreshDiagnostics(store)
-    void refreshRuntimeStatus(store)
-    void refreshMarketplace(store)
-    void refreshCapabilityPacks(store)
+    const path = (event as CustomEvent<{ path?: string }>).detail?.path
+    applyWorkspaceSelection(store, path, {
+      refreshRuns,
+      refreshCode,
+      refreshDiagnostics,
+      refreshRuntimeStatus,
+      refreshMarketplace,
+      refreshCapabilityPacks,
+    })
+  }) as EventListener
+  const handleLicenseUpdated = ((event: Event) => {
+    const tier = String((event as CustomEvent<{ tier?: string }>).detail?.tier || 'starter').toLowerCase()
+    store.dispatch({
+      type: 'license/set',
+      tier: (tier as any) || 'starter',
+      lastCheckedAt: Date.now(),
+    })
   }) as EventListener
   window.addEventListener('rina:settings-visibility', handleSettingsVisibility)
   window.addEventListener('rina:workspace-selected', handleWorkspaceSelected)
+  window.addEventListener('rina:license-updated', handleLicenseUpdated)
   store.subscribe((state) => {
     renderWorkbench(state)
     persistWorkbenchState(store)
@@ -138,6 +171,7 @@ export async function initProductionRenderer(): Promise<void> {
     buildRinaReplyContent,
     composeRinaReplyLead,
     composeExecutionPlanLead,
+    composePlanModeLead,
     composeCapabilityLead,
     composeExecutionHaltLead,
     didExecutionStart,
@@ -175,6 +209,8 @@ export async function initProductionRenderer(): Promise<void> {
     },
   })
   actionsController.mount()
+  const navigateToWorkbenchView = createWorkbenchNavigator(store, { trackRendererEvent })
+  const setRuntimeMode = createRuntimeModeOwner(store)
   globalThis.addEventListener(
     'beforeunload',
     () => {
@@ -183,10 +219,13 @@ export async function initProductionRenderer(): Promise<void> {
       agentPanel.destroy()
       refreshScheduler.stop()
       unbindRendererEvents()
+      unbindDebugEvidence()
       unbindRendererTelemetrySessionEnd()
       window.removeEventListener('rina:settings-visibility', handleSettingsVisibility)
       window.removeEventListener('rina:workspace-selected', handleWorkspaceSelected)
+      window.removeEventListener('rina:license-updated', handleLicenseUpdated)
       unregisterShortcuts()
+      delete window.__rinaDebugEvidence
     },
     { once: true }
   )
@@ -206,6 +245,8 @@ export async function initProductionRenderer(): Promise<void> {
 
   const commandPalette = createPaletteController({
     sendPrompt: (prompt: string) => sendPromptToRina(store, prompt),
+    navigateToPanel: (panel) => navigateToWorkbenchView(panel, { source: 'command_palette' }),
+    setRuntimeMode: (mode) => setRuntimeMode(mode, { source: 'command_palette' }),
   })
   commandPalette.mount()
   const unregisterShortcuts = registerRendererShortcuts({

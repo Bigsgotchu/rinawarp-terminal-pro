@@ -11,7 +11,7 @@ check_get() {
   local url="$1"
   local out="$2"
   local code
-  code="$(curl -sS -o "$out" -w '%{http_code}' "$url")"
+  code="$(curl -sS -L -o "$out" -w '%{http_code}' "$url")"
   if [[ "$code" != "200" ]]; then
     echo "[smoke:stripe] GET $url -> $code" >&2
     if [[ "$code" == "429" ]]; then
@@ -38,10 +38,10 @@ check_post() {
   code="$(check_post_code "$url" "$body" "$out")"
   if [[ "$code" != "200" ]]; then
     echo "[smoke:stripe] POST $url -> $code" >&2
+    echo "[smoke:stripe] Response body:" >&2
+    sed -n '1,20p' "$out" >&2 || true
     if [[ "$code" == "429" ]]; then
       echo "[smoke:stripe] Cloudflare or upstream rate limiting is blocking the public API smoke check." >&2
-      echo "[smoke:stripe] Response body:" >&2
-      sed -n '1,20p' "$out" >&2 || true
     fi
     exit 1
   fi
@@ -52,12 +52,11 @@ check_get "${API_BASE%/}/api/health" "$TMP_DIR/health.json"
 rg -q '"status"\s*:\s*"ok"' "$TMP_DIR/health.json"
 
 echo "[smoke:stripe] Checking pricing page"
-check_get "${SITE_BASE%/}/pricing" "$TMP_DIR/pricing.html"
+check_get "${SITE_BASE%/}/pricing/" "$TMP_DIR/pricing.html"
 rg -q 'RinaWarp Terminal Pro Pricing' "$TMP_DIR/pricing.html"
-rg -q 'Start Pro' "$TMP_DIR/pricing.html"
-rg -q 'Choose Creator' "$TMP_DIR/pricing.html"
-rg -q 'Choose Team' "$TMP_DIR/pricing.html"
-rg -q 'Claim founder access' "$TMP_DIR/pricing.html"
+rg -q 'Start Monthly' "$TMP_DIR/pricing.html"
+rg -q 'Start Annual' "$TMP_DIR/pricing.html"
+rg -q 'Start Team' "$TMP_DIR/pricing.html"
 
 echo "[smoke:stripe] Checking checkout endpoint"
 check_post "${API_BASE%/}/api/checkout" '{"email":"nobody@example.com"}' "$TMP_DIR/checkout.json"

@@ -305,10 +305,18 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
     }
   }
 
-  async function openUpdateDownload(): Promise<{ ok: boolean; url: string }> {
+  async function openUpdateDownload(): Promise<{ ok: boolean; url: string; error?: string }> {
     refreshStaticState()
-    await deps.shell.openExternal(state.releaseUrl)
-    return { ok: true, url: state.releaseUrl }
+    try {
+      await deps.shell.openExternal(state.releaseUrl)
+      return { ok: true, url: state.releaseUrl }
+    } catch (error) {
+      return {
+        ok: false,
+        url: state.releaseUrl,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
   }
 
   async function installUpdate(): Promise<{ ok: boolean; immediate: boolean; error?: string }> {
@@ -341,13 +349,25 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
     }
   }
 
-  async function verifyRelease(): Promise<{ signatureOk: boolean | null; checksumOk: boolean | null; signedBy: string | null }> {
+  async function verifyRelease(): Promise<{
+    ok: boolean
+    performed: boolean
+    degraded: boolean
+    signatureOk: boolean | null
+    checksumOk: boolean | null
+    signedBy: string | null
+    error?: string
+  }> {
     return {
+      ok: false,
+      performed: false,
+      degraded: true,
       signatureOk: null,
       checksumOk: null,
       signedBy: state.supported
         ? 'Verification is handled by the signed installer flow and published update metadata.'
         : 'This install type uses manual verification via the published release metadata.',
+      error: 'Release verification details are informational only; no direct signature or checksum verification was performed in-app.',
     }
   }
 

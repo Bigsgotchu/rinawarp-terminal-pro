@@ -6,6 +6,7 @@ import {
 } from '../workbench/store.js'
 import { createClipboardActionHandler } from './bindClipboardActions.js'
 import { createCapabilityActionHandler } from './bindCapabilityActions.js'
+import { createUserTurnSubmitter, type UserTurnSource } from './conversationOwner.js'
 import { createFixActionHandler } from './bindFixActions.js'
 import { createNavigationActionHandler } from './bindNavigationActions.js'
 import { createRunActionHandler } from './bindRunActions.js'
@@ -31,7 +32,8 @@ export type WorkbenchActionControllerDeps<TFixBlockManager extends WorkbenchActi
   buildExecutionPlanContent: (
     prompt: string,
     plan: any,
-    requirements?: any[]
+    requirements?: any[],
+    options?: { introText?: string; reviewOnly?: boolean; planActionPrompt?: string; workspaceRoot?: string }
   ) => MessageBlock[]
   commitStartedExecutionResult: (
     store: WorkbenchStore,
@@ -68,19 +70,25 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
   fixBlockManager: TFixBlockManager,
   deps: WorkbenchActionControllerDeps<TFixBlockManager>
 ): WorkbenchActionCleanup {
-  const submitComposer = async () => {
+  const submitUserTurn = createUserTurnSubmitter(store, {
+    sendPromptToRina: deps.sendPromptToRina,
+  })
+
+  const submitComposer = async (source: UserTurnSource) => {
     const input = root.querySelector<HTMLTextAreaElement>('#agent-input')
     if (!input) return
     const prompt = input.value.trim()
     if (!prompt) return
-    input.value = ''
-    await deps.sendPromptToRina(store, prompt)
+    const submitted = await submitUserTurn(prompt, source)
+    if (submitted) {
+      input.value = ''
+    }
   }
   const handleNavigationAction = createNavigationActionHandler(store, {
     trackRendererEvent: deps.trackRendererEvent,
     scrollToRun: deps.scrollToRun,
     scrollToMessage: deps.scrollToMessage,
-    sendPromptToRina: deps.sendPromptToRina,
+    submitUserTurn,
   })
   const handleClipboardAction = createClipboardActionHandler(store, {
     buildTrustSnapshot: deps.buildTrustSnapshot,
@@ -88,8 +96,12 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
   })
   const handleRunAction = createRunActionHandler(store, {
     trackRendererEvent: deps.trackRendererEvent,
-    sendPromptToRina: deps.sendPromptToRina,
+    submitUserTurn,
     buildInterruptedRunRecoveryPrompt: deps.buildInterruptedRunRecoveryPrompt,
+    normalizePlanSteps: deps.normalizePlanSteps,
+    commitStartedExecutionResult: deps.commitStartedExecutionResult,
+    buildExecutionHaltContent: deps.buildExecutionHaltContent,
+    getWorkspaceKey: deps.getWorkspaceKey,
   })
   const handleFixAction = createFixActionHandler(store, fixBlockManager, {
     autoApplyFixFromStore: deps.autoApplyFixFromStore,
@@ -133,7 +145,7 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
     }
 
     if (target.closest('#agent-send')) {
-      await submitComposer()
+      await submitComposer('button')
       return
     }
 
@@ -149,7 +161,7 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
     if (target.id !== 'agent-input') return
     if (event.key !== 'Enter' || event.shiftKey) return
     event.preventDefault()
-    void submitComposer()
+    void submitComposer('keyboard')
   }
 
   root.addEventListener('click', onClick)

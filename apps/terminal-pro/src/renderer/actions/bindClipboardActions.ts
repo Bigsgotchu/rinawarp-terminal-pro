@@ -1,5 +1,6 @@
 import type { WorkbenchActionControllerDeps } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
+import { receiptReferenceForFix } from '../state/receiptOwnership.js'
 
 export function createClipboardActionHandler(
   store: WorkbenchStore,
@@ -19,9 +20,10 @@ export function createClipboardActionHandler(
     const receiptBtn = target.closest<HTMLElement>('[data-fix-receipt]')
     if (receiptBtn?.dataset.fixId) {
       const fix = store.getState().fixBlocks.find((entry) => entry.id === receiptBtn.dataset.fixId)
-      if (fix) {
-        await navigator.clipboard.writeText(fix.runId)
-        deps.setTransientStatusSummary(store, 'Run ID copied')
+      const receiptId = receiptReferenceForFix(store, fix)
+      if (receiptId) {
+        await navigator.clipboard.writeText(receiptId)
+        deps.setTransientStatusSummary(store, 'Receipt ID copied')
       }
       return true
     }

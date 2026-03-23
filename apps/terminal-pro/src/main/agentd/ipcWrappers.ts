@@ -283,11 +283,12 @@ export function createAgentdIpcWrappers(deps) {
         catch (error) {
             return {
                 ok: false,
+                degraded: true,
                 error: error instanceof Error ? error.message : String(error),
-                plan: 'pro',
                 status: 'unknown',
-                seats_allowed: 1,
-                seats_used: 1,
+                plan: 'unknown',
+                seats_allowed: null,
+                seats_used: null,
             };
         }
     }

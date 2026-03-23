@@ -1,5 +1,7 @@
 import type { WorkbenchActionControllerDeps, WorkbenchActionFixBlockManager } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
+import { receiptReferenceForFix } from '../state/receiptOwnership.js'
+import { exportSupportBundleOwned, openRunsFolderOwned } from './utilityOwnership.js'
 
 export function createFixActionHandler<TFixBlockManager extends WorkbenchActionFixBlockManager>(
   store: WorkbenchStore,
@@ -23,12 +25,13 @@ export function createFixActionHandler<TFixBlockManager extends WorkbenchActionF
     const revealBtn = target.closest<HTMLElement>('[data-fix-reveal]')
     if (revealBtn?.dataset.fixId) {
       const fix = store.getState().fixBlocks.find((entry) => entry.id === revealBtn.dataset.fixId)
-      if (fix) await window.rina.revealRunReceipt(fix.runId)
+      const receiptId = receiptReferenceForFix(store, fix)
+      if (receiptId) await window.rina.revealRunReceipt(receiptId)
       return true
     }
 
     if (target.closest('[data-fix-folder]')) {
-      await window.rina.openRunsFolder()
+      await openRunsFolderOwned(store, { source: 'fix_actions' })
       return true
     }
 
@@ -37,7 +40,8 @@ export function createFixActionHandler<TFixBlockManager extends WorkbenchActionF
       const fix = store.getState().fixBlocks.find((entry) => entry.id === proofBtn.dataset.fixId)
       if (!fix) return true
       try {
-        await window.rina.supportBundle()
+        const result = await exportSupportBundleOwned(store.getState().workspaceKey, undefined, { source: 'fix_actions' })
+        if (!result.ok) throw new Error(result.error || 'Support bundle failed')
         store.dispatch({ type: 'fix/upsert', fix: { ...fix, error: undefined } })
       } catch (error) {
         store.dispatch({

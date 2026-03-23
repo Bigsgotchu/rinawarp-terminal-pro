@@ -13,13 +13,44 @@ function toUpdatesUrl(requestUrl: string): string {
   return `${UPDATES_ORIGIN}${url.pathname.replace(/^\/releases/, '')}${url.search}`
 }
 
+async function proxyReleaseFeed(request: Request): Promise<Response> {
+  const upstream = await fetch(toUpdatesUrl(request.url), {
+    method: request.method,
+    headers: request.headers,
+    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
+    redirect: 'follow',
+  })
+
+  const headers = new Headers(upstream.headers)
+  headers.set('Access-Control-Allow-Origin', '*')
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  headers.set('X-Content-Type-Options', 'nosniff')
+
+  if (!headers.get('Cache-Control')) {
+    headers.set('Cache-Control', 'public, max-age=60, must-revalidate')
+  }
+
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers,
+  })
+}
+
 export default {
   async fetch(request: Request, env: Record<string, unknown>, ctx: any): Promise<Response> {
     const url = new URL(request.url)
 
-    // Pages production is currently stale on release/download routes.
-    // Proxy them through the live downloads worker until Pages bindings are unified.
-    if (url.pathname.startsWith('/download/')) {
+    if (url.pathname === '/downloads' || url.pathname === '/downloads/') {
+      return Response.redirect(`${url.origin}/download`, 301)
+    }
+
+    if (url.pathname.startsWith('/downloads/')) {
+      return Response.redirect(`${url.origin}/download/${url.pathname.slice('/downloads/'.length)}`, 301)
+    }
+
+    // Pages production is currently stale on artifact download routes.
+    // Keep the actual /download page on the site router, but proxy artifact paths.
+    if (url.pathname.startsWith('/download/') && url.pathname !== '/download/') {
       return fetch(toDownloadsUrl(request.url), {
         method: request.method,
         headers: request.headers,
@@ -29,12 +60,7 @@ export default {
     }
 
     if (url.pathname.startsWith('/releases/')) {
-      return fetch(toUpdatesUrl(request.url), {
-        method: request.method,
-        headers: request.headers,
-        body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
-        redirect: 'manual',
-      })
+      return proxyReleaseFeed(request)
     }
 
     return (siteRouter as any).fetch(request, env, ctx)

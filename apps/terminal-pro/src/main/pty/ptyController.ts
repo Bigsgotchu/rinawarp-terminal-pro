@@ -6,6 +6,9 @@ const electron = require("electron")
 const { ipcMain, BrowserWindow } = electron
 
 let shell: ChildProcessWithoutNullStreams | null = null
+let lastShellPid: number | null = null
+let lastShellCwd: string | null = null
+let lastShellStartedAt: string | null = null
 
 type RegisterPtyHandlersArgs = {
   resolvePtyCwd: (input?: string) => string
@@ -21,10 +24,13 @@ export function registerPtyHandlers(args: RegisterPtyHandlersArgs) {
 
     const shellPath = process.env.SHELL || "/bin/bash"
     const cwd = args.resolvePtyCwd(payload?.cwd || undefined)
+    lastShellCwd = cwd
+    lastShellStartedAt = new Date().toISOString()
     shell = spawn(shellPath, [], {
       cwd,
       env: process.env
     })
+    lastShellPid = shell.pid ?? null
 
     shell.stdout.on("data", (data: Buffer) => {
       if (win && !win.isDestroyed()) {
@@ -46,6 +52,7 @@ export function registerPtyHandlers(args: RegisterPtyHandlersArgs) {
         })
       }
       shell = null
+      lastShellPid = null
     })
 
     return { started: true, cwd }
@@ -62,7 +69,29 @@ export function registerPtyHandlers(args: RegisterPtyHandlersArgs) {
       shell.kill()
       shell = null
     }
+    lastShellPid = null
     return { stopped: true }
+  })
+
+  ipcMain.handle("rina:pty:resize", (_e: unknown, cols: number, rows: number) => {
+    return {
+      ok: true,
+      supported: false,
+      running: Boolean(shell),
+      cols: Number(cols || 0),
+      rows: Number(rows || 0),
+    }
+  })
+
+  ipcMain.handle("rina:pty:metrics", () => {
+    return {
+      running: Boolean(shell),
+      pid: lastShellPid,
+      cwd: lastShellCwd,
+      startedAt: lastShellStartedAt,
+      transport: 'child_process',
+      resizeSupported: false,
+    }
   })
 
   console.log("[PTY] PTY handlers registered")

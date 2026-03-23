@@ -96,6 +96,12 @@ export async function verifyAndApplyLicense(
     `✓ License restored! Plan: ${formatTier(verifyResult.tier || verifyResult.effective_tier)}`
   )
 
+  window.dispatchEvent(
+    new CustomEvent('rina:license-updated', {
+      detail: { tier: String(verifyResult.tier || verifyResult.effective_tier || 'starter').toLowerCase() },
+    })
+  )
+
   trackLicenseAnalytics('paid', { tier: verifyResult.tier || verifyResult.effective_tier, status: verifyResult.status })
 
   setTimeout(() => {
@@ -324,6 +330,12 @@ export function attachUpgradeHandler(container: HTMLElement, remount: (container
       const ok = await refreshLicenseStateWithRetry()
       refreshBtn.textContent = ok ? 'Pro unlocked' : 'Still pending — try again'
       if (ok) {
+        const currentState = ((window as any).rina.licenseState ? await (window as any).rina.licenseState() : null) || null
+        window.dispatchEvent(
+          new CustomEvent('rina:license-updated', {
+            detail: { tier: String(currentState?.tier || 'starter').toLowerCase() },
+          })
+        )
         await remount(container)
       }
     } catch {

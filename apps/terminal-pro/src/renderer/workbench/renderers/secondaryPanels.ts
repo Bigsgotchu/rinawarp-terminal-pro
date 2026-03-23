@@ -1,6 +1,59 @@
 import type { WorkbenchState } from '../store.js'
 import { el, mount } from '../dom.js'
 import { formatAnalyticsDate } from './format.js'
+import { getTruthHudState, getWorkspaceContextState } from './selectors.js'
+
+export type StatusBarModel = {
+  modeText: string
+  workspaceText: string
+  workspaceTitle: string
+  workspacePickerText: string
+  workspacePickerTitle: string
+  workspacePickerWeak: boolean
+  activityText: string
+  summaryText: string
+}
+
+function humanizeRunStatus(status: string | null): string {
+  if (!status) return 'Unverified'
+  return status
+    .split(/\s+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+export function getStatusBarModel(state: WorkbenchState): StatusBarModel {
+  const hudState = getTruthHudState(state)
+  const workspaceState = getWorkspaceContextState(state)
+  const mode = hudState.mode || 'assist'
+  const lastRunStatus = humanizeRunStatus(hudState.lastRunStatus)
+  const recoveryText = hudState.recoveryReadyCount > 0 ? `${hudState.recoveryReadyCount} items restored` : 'No recovery'
+  const workspacePickerText =
+    workspaceState.status === 'missing'
+      ? 'Choose workspace'
+      : workspaceState.status === 'weak'
+        ? `Workspace may be wrong: ${workspaceState.displayValue}`
+        : `Workspace: ${workspaceState.displayValue}`
+
+  let summaryText: string
+  if (workspaceState.status !== 'project') summaryText = 'Choose a project folder to give Rina stronger context'
+  else if (state.ui.statusSummaryText && state.ui.statusSummaryText.trim() && state.ui.statusSummaryText.trim().toLowerCase() !== 'ready') {
+    summaryText = state.ui.statusSummaryText
+  }
+  else if (state.thinking.active && state.thinking.message) summaryText = state.thinking.message
+  else summaryText = 'Rina is ready to work in this project.'
+
+  return {
+    modeText: `Mode: ${mode.charAt(0).toUpperCase()}${mode.slice(1)}`,
+    workspaceText: `Workspace: ${workspaceState.displayValue}`,
+    workspaceTitle: workspaceState.title,
+    workspacePickerText,
+    workspacePickerTitle: workspaceState.title,
+    workspacePickerWeak: workspaceState.status !== 'project',
+    activityText: `Last run: ${lastRunStatus} • Recovery: ${recoveryText}`,
+    summaryText,
+  }
+}
 
 function buildEmptyState(title: string, copy: string): HTMLElement {
   return el(
@@ -164,6 +217,24 @@ export function renderDiagnostics(state: WorkbenchState): void {
     row('First starter at', formatAnalyticsDate(state.analytics.firstStarterIntentAt)),
     row('Last inspector', state.analytics.lastInspector || 'none'),
     row('First proof at', formatAnalyticsDate(state.analytics.firstProofBackedRunAt)),
+    el('div', { class: 'rw-diagnostics-divider' }, 'Deploy state'),
+    row('Deploy target', state.deployment.target || 'none'),
+    row('Detected target', state.deployment.detectedTarget || 'none'),
+    row('Detected signals', state.deployment.detectedSignals.join(', ') || 'none'),
+    row('Recommended pack', state.deployment.recommendedPackKey || 'none'),
+    row('Target identity', state.deployment.targetIdentity || 'none'),
+    row('Identity source', state.deployment.targetIdentitySource),
+    row('Deploy status', state.deployment.status),
+    row('Verification', state.deployment.verification),
+    row('Rollback', state.deployment.rollback),
+    row('Deploy source', state.deployment.source),
+    row('Latest deploy run', state.deployment.latestRunId || 'none'),
+    row('Latest receipt', state.deployment.latestReceiptId || 'none'),
+    row('Target URL', state.deployment.targetUrl || 'none'),
+    row('Artifact', state.deployment.artifact || 'none'),
+    row('Build ID', state.deployment.buildId || 'none'),
+    row('Verification evidence', state.deployment.verificationEvidence.join(', ') || 'none'),
+    row('Rollback evidence', state.deployment.rollbackEvidence.join(', ') || 'none'),
     el(
       'div',
       { class: 'rw-inline-actions' },
@@ -234,11 +305,12 @@ export function renderBrain(state: WorkbenchState): void {
 }
 
 export function renderStatus(state: WorkbenchState): void {
+  const model = getStatusBarModel(state)
   const autonomyChip = document.getElementById('autonomy-status')
   if (autonomyChip) autonomyChip.textContent = `Autonomy: ${state.runtime.autonomyEnabled ? state.runtime.autonomyLevel.toUpperCase() : 'OFF'}`
 
   const modeBar = document.getElementById('mode-status-bar')
-  if (modeBar) modeBar.textContent = `Mode: ${state.runtime.mode || 'explain'}`
+  if (modeBar) modeBar.textContent = model.modeText
 
   const autonomyDot = document.getElementById('autonomy-dot')
   if (autonomyDot) autonomyDot.classList.toggle('disconnected', !state.runtime.autonomyEnabled)
@@ -248,23 +320,20 @@ export function renderStatus(state: WorkbenchState): void {
 
   const workspace = document.getElementById('workspace-status')
   if (workspace) {
-    const workspaceText = state.workspaceKey === '__none__' ? '-' : state.workspaceKey
-    const compactWorkspace =
-      workspaceText.length > 42 ? `...${workspaceText.slice(Math.max(0, workspaceText.length - 39))}` : workspaceText
-    workspace.textContent = `Workspace: ${compactWorkspace}`
-    workspace.setAttribute('title', workspaceText)
+    workspace.textContent = model.workspaceText
+    workspace.setAttribute('title', model.workspaceTitle)
+  }
+
+  const workspacePicker = document.getElementById('workspace-picker')
+  if (workspacePicker) {
+    workspacePicker.textContent = model.workspacePickerText
+    workspacePicker.setAttribute('title', model.workspacePickerTitle)
+    workspacePicker.classList.toggle('is-weak', model.workspacePickerWeak)
   }
 
   const activityStatus = document.getElementById('activity-status')
-  if (activityStatus) {
-    const commands = state.diagnostics.learnedCommandsCount || state.executionTrace.blocks.length
-    activityStatus.textContent = `${commands} commands · ${state.diagnostics.toolsCount} tools`
-  }
+  if (activityStatus) activityStatus.textContent = model.activityText
 
   const summary = document.getElementById('status-summary')
-  if (summary) {
-    if (state.ui.statusSummaryText) summary.textContent = state.ui.statusSummaryText
-    else if (state.thinking.active && state.thinking.message) summary.textContent = state.thinking.message
-    else summary.textContent = state.license.tier === 'starter' ? 'Ready' : `Ready · ${state.license.tier}`
-  }
+  if (summary) summary.textContent = model.summaryText
 }

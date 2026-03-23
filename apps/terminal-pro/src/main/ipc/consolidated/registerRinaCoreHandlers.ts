@@ -21,6 +21,9 @@ export function registerRinaCoreHandlers({ ipcMain }: ConsolidatedIpcArgs): void
         tools: [],
         agentRunning: false,
         memoryStats: { conversation: 0, longterm: 0 },
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+        degraded: true,
       }
     }
   })
@@ -30,7 +33,14 @@ export function registerRinaCoreHandlers({ ipcMain }: ConsolidatedIpcArgs): void
       return rinaController.getAgentProgress()
     } catch (error) {
       console.error('[IPC] rina:getProgress error:', error)
-      return { current: 0, total: 0, percentage: 0 }
+      return {
+        current: 0,
+        total: 0,
+        percentage: 0,
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+        degraded: true,
+      }
     }
   })
 
@@ -51,7 +61,13 @@ export function registerRinaCoreHandlers({ ipcMain }: ConsolidatedIpcArgs): void
       return rinaController.getStats()
     } catch (error) {
       console.error('[IPC] rina:getMemoryStats error:', error)
-      return { conversation: { entries: 0 }, longterm: { sessions: 0, projects: 0 } }
+      return {
+        conversation: { entries: 0 },
+        longterm: { sessions: 0, projects: 0 },
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+        degraded: true,
+      }
     }
   })
 

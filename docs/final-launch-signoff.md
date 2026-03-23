@@ -5,6 +5,10 @@ Verifier run: `npm run verify:prelaunch:full`
 Result: `blocked`
 Owner: __________
 
+Desktop RC checklist:
+
+- [DESKTOP_RC_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/DESKTOP_RC_CHECKLIST.md)
+
 Live revenue runbook:
 
 - [LIVE_REVENUE_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/docs/LIVE_REVENUE_RUNBOOK.md)

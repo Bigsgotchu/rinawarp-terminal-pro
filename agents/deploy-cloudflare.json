@@ -1,0 +1,178 @@
+{
+  "name": "deploy-cloudflare",
+  "description": "Deploy to Cloudflare Workers and Pages with full verification and rollback",
+  "author": "RinaWarp",
+  "version": "1.0.0",
+  "price": 15,
+  "permissions": ["filesystem:read", "filesystem:write", "network:outbound", "cli:execute"],
+  "commands": [
+    {
+      "name": "deploy",
+      "description": "Deploy application to Cloudflare with full verification",
+      "steps": [
+        {
+          "id": "validate-target",
+          "name": "Validate Cloudflare Target",
+          "description": "Validate Cloudflare configuration and API access",
+          "command": "validate-cloudflare-target",
+          "timeout": 30000,
+          "verification": {
+            "type": "health-check",
+            "config": {
+              "url": "https://api.cloudflare.com/client/v4/user/tokens/verify",
+              "expectedStatus": 200,
+              "timeout": 10000,
+              "retries": 3
+            }
+          }
+        },
+        {
+          "id": "check-wrangler",
+          "name": "Check Wrangler Installation",
+          "description": "Verify wrangler CLI is installed and configured",
+          "command": "wrangler --version",
+          "timeout": 10000
+        },
+        {
+          "id": "build-project",
+          "name": "Build Project",
+          "description": "Build the project for production deployment",
+          "command": "npm run build",
+          "timeout": 300000,
+          "requiresApproval": false
+        },
+        {
+          "id": "deploy-worker",
+          "name": "Deploy Cloudflare Worker",
+          "description": "Deploy the application as a Cloudflare Worker",
+          "command": "wrangler deploy --env production",
+          "timeout": 120000,
+          "verification": {
+            "type": "smoke-test",
+            "config": {
+              "tests": [
+                {
+                  "name": "Worker accessibility",
+                  "url": "${WORKER_URL}",
+                  "expectedStatus": 200
+                }
+              ],
+              "timeout": 60000
+            }
+          }
+        },
+        {
+          "id": "deploy-pages",
+          "name": "Deploy Cloudflare Pages",
+          "description": "Deploy static assets to Cloudflare Pages",
+          "command": "wrangler pages deploy --project-name=${PROJECT_NAME}",
+          "timeout": 300000,
+          "verification": {
+            "type": "smoke-test",
+            "config": {
+              "tests": [
+                {
+                  "name": "Pages accessibility",
+                  "url": "${PAGES_URL}",
+                  "expectedStatus": 200
+                },
+                {
+                  "name": "API endpoint",
+                  "url": "${PAGES_URL}/api/health",
+                  "expectedStatus": 200
+                }
+              ],
+              "timeout": 120000
+            }
+          }
+        },
+        {
+          "id": "verify-deployment",
+          "name": "Verify Complete Deployment",
+          "description": "Verify both Worker and Pages are working correctly",
+          "command": "verify-cloudflare-deployment",
+          "timeout": 120000,
+          "verification": {
+            "type": "health-check",
+            "config": {
+              "url": "${PAGES_URL}",
+              "expectedStatus": 200,
+              "timeout": 30000,
+              "retries": 3
+            }
+          }
+        },
+        {
+          "id": "generate-receipt",
+          "name": "Generate Deployment Receipt",
+          "description": "Generate structured deployment receipt with proof artifacts",
+          "command": "generate-cloudflare-receipt",
+          "timeout": 30000
+        }
+      ]
+    },
+    {
+      "name": "rollback",
+      "description": "Rollback Cloudflare deployment to previous version",
+      "steps": [
+        {
+          "id": "check-rollback-availability",
+          "name": "Check Rollback Availability",
+          "description": "Check if rollback is available for Cloudflare deployment",
+          "command": "check-cloudflare-rollback-availability",
+          "timeout": 30000
+        },
+        {
+          "id": "execute-worker-rollback",
+          "name": "Execute Worker Rollback",
+          "description": "Rollback Cloudflare Worker to previous version",
+          "command": "wrangler rollback --env production",
+          "timeout": 120000,
+          "verification": {
+            "type": "health-check",
+            "config": {
+              "url": "${WORKER_URL}",
+              "expectedStatus": 200,
+              "timeout": 30000,
+              "retries": 3
+            }
+          }
+        },
+        {
+          "id": "execute-pages-rollback",
+          "name": "Execute Pages Rollback",
+          "description": "Rollback Cloudflare Pages to previous deployment",
+          "command": "wrangler pages rollback --project-name=${PROJECT_NAME}",
+          "timeout": 180000,
+          "verification": {
+            "type": "smoke-test",
+            "config": {
+              "tests": [
+                {
+                  "name": "Pages accessibility after rollback",
+                  "url": "${PAGES_URL}",
+                  "expectedStatus": 200
+                }
+              ],
+              "timeout": 60000
+            }
+          }
+        },
+        {
+          "id": "verify-rollback",
+          "name": "Verify Rollback Success",
+          "description": "Verify rollback completed successfully",
+          "command": "verify-cloudflare-rollback",
+          "timeout": 60000
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "platform": "cloudflare",
+    "supportsRollback": true,
+    "requiresWrangler": true,
+    "verificationLevel": "comprehensive",
+    "estimatedDuration": "10-15 minutes"
+  }
+}

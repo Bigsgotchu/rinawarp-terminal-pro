@@ -43,6 +43,102 @@ export function createRunsIpcHelpers(deps) {
         }
         return null;
     }
+    function readJsonSafe(filePath, fallback = null) {
+        try {
+            return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        }
+        catch {
+            return fallback;
+        }
+    }
+    function parseCommandReceipt(commandsFile, requestedReceiptId) {
+        const lines = fs.readFileSync(commandsFile, 'utf8').split(/\r?\n/).filter(line => line.trim());
+        const starts = new Map();
+        const ends = new Map();
+        for (const line of lines) {
+            try {
+                const row = JSON.parse(line);
+                const id = String(row.id || '').trim();
+                if (!id)
+                    continue;
+                if (row.ended_at)
+                    ends.set(id, row);
+                else
+                    starts.set(id, row);
+            }
+            catch {
+                continue;
+            }
+        }
+        const orderedStarts = Array.from(starts.values()).sort((left, right) => String(right.started_at || '').localeCompare(String(left.started_at || '')));
+        const requestedId = String(requestedReceiptId || '').trim();
+        const start = (requestedId && starts.get(requestedId)) || orderedStarts[0] || null;
+        if (!start)
+            return null;
+        return {
+            start,
+            end: ends.get(String(start.id || '')) || null,
+            starts: orderedStarts,
+            rowsCount: lines.length,
+        };
+    }
+    function extractUrls(text) {
+        return Array.from(new Set(String(text || '').match(/https?:\/\/[^\s<>"')\]]+/g) || [])).map(value => value.replace(/[.,;:]+$/, ''));
+    }
+    function buildStructuredReceipt(receiptId, commandsFile, sessionsRoot) {
+        const sessionId = path.basename(path.dirname(commandsFile));
+        const parsed = parseCommandReceipt(commandsFile, receiptId);
+        if (!parsed)
+            return null;
+        const sessionMeta = readJsonSafe(path.join(path.dirname(commandsFile), 'session.json'), {});
+        const commandId = String(parsed.start.id || '').trim();
+        const artifactSummary = commandId
+            ? summarizeStructuredRunArtifactsFromSessionsRoot(sessionsRoot, { sessionId, runId: commandId })
+            : {
+                stdoutChunks: 0,
+                stderrChunks: 0,
+                metaChunks: 0,
+                stdoutPreview: '',
+                stderrPreview: '',
+                metaPreview: '',
+                changedFiles: [],
+                diffHints: [],
+            };
+        const combinedPreview = [artifactSummary.stdoutPreview, artifactSummary.stderrPreview, artifactSummary.metaPreview].filter(Boolean).join('\n');
+        return {
+            kind: 'structured_command_receipt',
+            id: commandId || sessionId,
+            sessionId,
+            commandId,
+            intent: String(parsed.start.input || ''),
+            session: {
+                id: sessionId,
+                createdAt: sessionMeta?.createdAt || null,
+                updatedAt: sessionMeta?.updatedAt || null,
+                projectRoot: sessionMeta?.projectRoot || null,
+                source: sessionMeta?.source || null,
+                platform: sessionMeta?.platform || null,
+            },
+            command: {
+                id: commandId || null,
+                input: parsed.start.input || '',
+                cwd: parsed.start.cwd || null,
+                risk: parsed.start.risk || null,
+                startedAt: parsed.start.started_at || null,
+                endedAt: parsed.end?.ended_at || null,
+                ok: typeof parsed.end?.ok === 'boolean' ? parsed.end.ok : null,
+                exitCode: typeof parsed.end?.exit_code === 'number' ? parsed.end.exit_code : null,
+                cancelled: Boolean(parsed.end?.cancelled),
+                error: parsed.end?.error || null,
+            },
+            artifacts: {
+                ...artifactSummary,
+                urls: extractUrls(combinedPreview),
+            },
+            rowsCount: parsed.rowsCount,
+            commandCount: parsed.starts.length,
+        };
+    }
     async function runsListForIpc(args) {
         try {
             const sessionsRoot = structuredSessionsRoot();
@@ -75,8 +171,23 @@ export function createRunsIpcHelpers(deps) {
                     error: `No structured receipt artifact found for "${String(receiptId || '').trim()}".`,
                 };
             }
-            shell.showItemInFolder(targetPath);
-            return { ok: true, path: targetPath };
+            const sessionsRoot = structuredSessionsRoot();
+            let receipt;
+            if (targetPath.endsWith('commands.ndjson')) {
+                receipt = buildStructuredReceipt(receiptId, targetPath, sessionsRoot);
+            }
+            if (!receipt) {
+                const content = fs.readFileSync(targetPath, 'utf8');
+                if (targetPath.endsWith('.json')) {
+                    receipt = JSON.parse(content);
+                } else if (targetPath.endsWith('.ndjson')) {
+                    const lines = content.split(/\r?\n/).filter(line => line.trim());
+                    receipt = lines.map(line => JSON.parse(line));
+                } else {
+                    receipt = { raw: content };
+                }
+            }
+            return { ok: true, receipt };
         }
         catch (error) {
             return { ok: false, error: error instanceof Error ? error.message : String(error) };

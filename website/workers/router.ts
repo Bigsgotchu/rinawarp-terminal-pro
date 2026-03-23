@@ -55,6 +55,10 @@ function rwRedirect(location: string, status = 302): Response {
   return new Response(null, { status, headers })
 }
 
+function primaryReleaseUrl(origin: string, fileName: string): string {
+  return `${origin}/releases/${fileName.replace(/^\/+/, '')}`
+}
+
 function rwSvg(svg: string): Response {
   const headers = rwHeaders()
   headers.set('Content-Type', 'image/svg+xml; charset=utf-8')
@@ -531,6 +535,31 @@ function navAccountLink(active: SitePage): string {
   </a>`
 }
 
+function robotsMetaForPath(path: string): string {
+  const noindexPaths = new Set(['/account', '/login', '/register', '/forgot-password', '/reset-password', '/success'])
+  if (noindexPaths.has(path)) return '<meta name="robots" content="noindex, nofollow">'
+  return '<meta name="robots" content="index, follow">'
+}
+
+function renderRobotsTxt(origin: string): Response {
+  const body = `User-agent: *\nAllow: /\nDisallow: /account\nDisallow: /login\nDisallow: /register\nDisallow: /forgot-password\nDisallow: /reset-password\nDisallow: /success\n\nSitemap: ${origin}/sitemap.xml\n`
+  const headers = rwHeaders()
+  headers.set('Content-Type', 'text/plain; charset=utf-8')
+  headers.set('Cache-Control', 'public, max-age=3600, must-revalidate')
+  return new Response(body, { status: 200, headers })
+}
+
+function renderSitemapXml(origin: string): Response {
+  const urls = ['/', '/pricing', '/download', '/docs', '/feedback', '/early-access', '/terms', '/privacy', '/agents']
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+    .map((pathname) => `  <url><loc>${origin}${pathname}</loc></url>`)
+    .join('\n')}\n</urlset>\n`
+  const headers = rwHeaders()
+  headers.set('Content-Type', 'application/xml; charset=utf-8')
+  headers.set('Cache-Control', 'public, max-age=3600, must-revalidate')
+  return new Response(body, { status: 200, headers })
+}
+
 function renderPage(path: string, active: SitePage, hero: string, content: string, script = ''): Response {
   const seo = injectSeoTags(path)
   const html = `<!DOCTYPE html>
@@ -539,6 +568,7 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   ${seo}
+  ${robotsMetaForPath(path)}
   <style>${SITE_STYLES}</style>
 </head>
 <body>
@@ -1015,7 +1045,7 @@ function renderEarlyAccess(): Response {
 
 async function renderDownload(env: any, origin: string): Promise<Response> {
   const manifest = await getReleaseManifest(env)
-  const version = manifest?.version || '1.1.7'
+  const version = manifest?.version || '1.1.9'
   const linuxAppImageUrl =
     toAbsoluteArtifactUrl(origin, pickArtifactPath(manifest, 'linux')) ||
     `${PUBLIC_INSTALLERS_BASE}/releases/${version}/RinaWarp-Terminal-Pro-${version}.AppImage`
@@ -1028,6 +1058,9 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
   const checksumsUrl =
     toAbsoluteArtifactUrl(origin, pickArtifactPath(manifest, 'checksums')) ||
     `${PUBLIC_INSTALLERS_BASE}/releases/${version}/SHASUMS256.txt`
+  const latestJsonUrl = primaryReleaseUrl(origin, 'latest.json')
+  const latestYmlUrl = primaryReleaseUrl(origin, 'latest.yml')
+  const latestLinuxYmlUrl = primaryReleaseUrl(origin, 'latest-linux.yml')
   const hero = `
     <section class="hero">
       <span class="eyebrow">Early Access releases</span>
@@ -1046,7 +1079,7 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
           <div class="link-row">
             <a href="${linuxDebUrl}" class="btn btn-primary">Download Linux .deb</a>
             <a href="${linuxAppImageUrl}" class="btn btn-secondary">Download AppImage</a>
-            <a href="${PUBLIC_UPDATES_BASE}/latest.json" class="btn btn-secondary">View manifest</a>
+            <a href="${latestJsonUrl}" class="btn btn-secondary">View manifest</a>
           </div>
           <p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install. Recommended baseline: Debian 13 / Ubuntu desktop-class systems for Early Access. Minimal server images may need additional GUI/runtime packages if you choose the AppImage path.</p>
         </article>
@@ -1072,19 +1105,23 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
     <section class="section">
       <div class="panel stack">
         <div class="info-bar">
-          <span class="status-ok">Checksums and release manifest are public.</span>
-          <span class="note">Use them before running the installer.</span>
+          <span class="status-ok">The canonical updater feed is served from rinawarptech.com/releases/*.</span>
+          <span class="note">Those primary-domain URLs stay aligned with the public installers and the app updater.</span>
         </div>
         <h2 class="section-title">How to verify your download</h2>
         <div class="link-row">
           <a href="${checksumsUrl}" class="btn btn-secondary">Download SHASUMS256.txt</a>
-          <a href="${PUBLIC_UPDATES_BASE}/latest.json" class="btn btn-secondary">Open latest.json</a>
+          <a href="${latestJsonUrl}" class="btn btn-secondary">Open latest.json</a>
+          <a href="${latestYmlUrl}" class="btn btn-secondary">Open latest.yml</a>
+          <a href="${latestLinuxYmlUrl}" class="btn btn-secondary">Open latest-linux.yml</a>
         </div>
         <div class="hash"># Download the checksum file
 curl -O ${checksumsUrl}
 
-# Inspect the live release manifest
-curl ${PUBLIC_UPDATES_BASE}/latest.json
+# Inspect the canonical release feeds
+curl ${latestJsonUrl}
+curl ${latestYmlUrl}
+curl ${latestLinuxYmlUrl}
 
 # Verify the local file hash
 sha256sum -c SHASUMS256.txt</div>
@@ -1574,17 +1611,27 @@ function renderAccount(authToken: string | null): Response {
       <div class="auth-container">
         <div class="auth-card">
           <div id="account-info">
-            <h2 class="auth-title">Loading...</h2>
+            <h2 class="auth-title">Loading your account</h2>
+            <p class="auth-subtitle">We are verifying your signed-in account and billing state before showing live controls.</p>
           </div>
           
           <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
             <h3 style="margin-bottom:16px;">Subscription</h3>
-            <div id="subscription-info">Loading...</div>
+            <div id="subscription-info"><p style="color:var(--muted);">Checking your tier, restore status, and billing access now.</p></div>
           </div>
           
           <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
-            <button id="logout-btn" class="btn btn-secondary" style="width:100%;">Sign Out</button>
+            <div class="link-row">
+              <button id="billing-portal-btn" class="btn btn-primary" type="button">Open billing portal</button>
+              <button id="logout-btn" class="btn btn-secondary" style="width:auto;">Sign Out</button>
+            </div>
+            <p class="note">If billing controls do not appear, use the restore form below with your checkout email.</p>
           </div>
+        </div>
+        <div class="auth-card">
+          <h2 class="auth-title">Restore Pro access</h2>
+          <p class="auth-subtitle">Use the same billing email from checkout. This works even before your full account state finishes loading.</p>
+          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message"></p></form>
         </div>
       </div>
     </section>`
@@ -1639,6 +1686,20 @@ function renderAccount(authToken: string | null): Response {
           } catch (e) {
             document.getElementById('subscription-info').innerHTML = '<p style="color:var(--muted);">Unable to load subscription</p>';
           }
+          document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
+            try {
+              const response = await fetch('/api/portal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email })
+              });
+              const payload = await response.json();
+              if (payload?.url) window.location.href = payload.url;
+            } catch (e) {
+              const status = document.getElementById('restore-status');
+              if (status) status.textContent = 'Could not open billing portal right now.';
+            }
+          });
         } catch (err) {
           console.error('Failed to load account:', err);
         }
@@ -1689,7 +1750,7 @@ export default {
     const path = url.pathname
     const host = url.hostname.toLowerCase()
 
-    if (host === 'www.rinawarptech.com') {
+    if (host === 'www.rinawarptech.com' && !path.startsWith('/api/')) {
       const redirectUrl = new URL(request.url)
       redirectUrl.hostname = 'rinawarptech.com'
       return rwRedirect(redirectUrl.toString(), 301)
@@ -1717,6 +1778,26 @@ export default {
 
     if (path === '/assets/img/rinawarp-mark.svg' || path === '/assets/img/rinawarp-logo.svg') {
       return rwSvg(LOGO_SVG)
+    }
+
+    if (path === '/robots.txt') {
+      return renderRobotsTxt(url.origin)
+    }
+
+    if (path === '/sitemap.xml') {
+      return renderSitemapXml(url.origin)
+    }
+
+    if (path === '/downloads' || path === '/downloads/') {
+      return rwRedirect(`${url.origin}/download`, 301)
+    }
+
+    if (path.startsWith('/downloads/')) {
+      return rwRedirect(`${url.origin}/download/${path.slice('/downloads/'.length)}`, 301)
+    }
+
+    if (path === '/download' || path === '/download/') {
+      return await renderDownload(env, url.origin)
     }
 
     if (path.startsWith('/download/')) {
@@ -1789,11 +1870,6 @@ export default {
       const authHeader = request.headers.get('Authorization')
       const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
       return renderAccount(token)
-    }
-
-    // Download page
-    if (path === '/download' || path === '/download/') {
-      return await renderDownload(env, url.origin)
     }
 
     if (path === '/docs' || path === '/docs/') {
@@ -2156,7 +2232,14 @@ async function handleCheckoutRequest(
         const session = await response.json()
 
         if (session.error) {
-          return new Response(JSON.stringify({ error: session.error.message || 'Checkout could not be created.' }), {
+          const stripeMessage = String(session.error.message || 'Checkout could not be created.')
+          const inactivePrice = /price specified is inactive|only accepts active prices/i.test(stripeMessage)
+          return new Response(JSON.stringify({
+            error: inactivePrice
+              ? 'Checkout is temporarily unavailable because the configured Stripe price is inactive. Update the live Stripe price ID and try again.'
+              : stripeMessage,
+            code: inactivePrice ? 'stripe_price_inactive' : 'stripe_checkout_failed',
+          }), {
             status: 502,
             headers: { 'Content-Type': 'application/json', ...corsHeaders },
           })

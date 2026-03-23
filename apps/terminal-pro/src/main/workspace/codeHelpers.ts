@@ -21,6 +21,26 @@ export function createWorkspaceCodeHelpers(deps) {
         '.cache',
         'coverage',
     ]);
+    const CODE_EXPLORER_PRIORITY_FILES = new Map([
+        ['package.json', 140],
+        ['package-lock.json', 110],
+        ['pnpm-lock.yaml', 108],
+        ['readme.md', 132],
+        ['tsconfig.json', 124],
+        ['vite.config.ts', 118],
+        ['vite.config.js', 118],
+        ['wrangler.toml', 116],
+        ['electron-builder.yml', 116],
+        ['electron-builder.json', 116],
+        ['src/main.ts', 126],
+        ['src/index.ts', 122],
+        ['src/index.tsx', 122],
+        ['src/app.ts', 118],
+        ['src/app.tsx', 118],
+        ['src/renderer.ts', 114],
+        ['src/renderer/index.ts', 114],
+        ['src/renderer/index.tsx', 114],
+    ]);
     function looksLikeAppBundlePath(candidate) {
         const normalized = String(candidate || '').replace(/\\/g, '/');
         return normalized.includes('/app.asar') || normalized.includes('/dist-electron/installer/') || normalized.includes('/resources/');
@@ -65,7 +85,104 @@ export function createWorkspaceCodeHelpers(deps) {
             return getDefaultPtyCwd();
         }
     }
-    function listProjectFilesSafe(projectRoot, limit = 800) {
+    function tokenizeSearch(value) {
+        return String(value || '')
+            .toLowerCase()
+            .split(/[^a-z0-9_./:-]+/g)
+            .map((token) => token.trim())
+            .filter(Boolean)
+            .slice(0, 12);
+    }
+    function scoreProjectFile(relativePath, query = '') {
+        const normalizedPath = String(relativePath || '').replace(/\\/g, '/').toLowerCase();
+        if (!normalizedPath)
+            return Number.NEGATIVE_INFINITY;
+        const segments = normalizedPath.split('/').filter(Boolean);
+        const basename = segments[segments.length - 1] || normalizedPath;
+        const depth = Math.max(0, segments.length - 1);
+        let score = 0;
+        const priorityScore = CODE_EXPLORER_PRIORITY_FILES.get(normalizedPath) ?? CODE_EXPLORER_PRIORITY_FILES.get(basename);
+        if (priorityScore)
+            score += priorityScore;
+        if (depth === 0)
+            score += 18;
+        if (normalizedPath.startsWith('src/'))
+            score += 24;
+        if (normalizedPath.includes('/main/'))
+            score += 22;
+        if (normalizedPath.includes('/renderer/'))
+            score += 16;
+        if (normalizedPath.includes('/workspace/'))
+            score += 14;
+        if (/\.(ts|tsx|js|jsx|mjs|cjs)$/.test(normalizedPath))
+            score += 10;
+        if (basename.startsWith('index.'))
+            score += 9;
+        if (basename.startsWith('app.') || basename.startsWith('main.'))
+            score += 8;
+        if (/(^|\/)(test|tests|__tests__|fixtures|mocks)(\/|$)/.test(normalizedPath))
+            score -= 18;
+        if (/\.(spec|test)\./.test(normalizedPath))
+            score -= 14;
+        if (/(^|\/)(docs|coverage|tmp|output|release)(\/|$)/.test(normalizedPath))
+            score -= 12;
+        if (/(^|\/)(scripts)(\/|$)/.test(normalizedPath))
+            score -= 4;
+        score -= depth * 2.25;
+        const normalizedQuery = String(query || '').trim().toLowerCase();
+        if (normalizedQuery) {
+            const tokens = tokenizeSearch(normalizedQuery);
+            let matchedTokens = 0;
+            if (basename === normalizedQuery || normalizedPath === normalizedQuery)
+                score += 160;
+            else if (basename.startsWith(normalizedQuery))
+                score += 92;
+            else if (basename.includes(normalizedQuery))
+                score += 70;
+            else if (normalizedPath.includes(normalizedQuery))
+                score += 48;
+            for (const token of tokens) {
+                if (basename === token) {
+                    score += 34;
+                    matchedTokens += 1;
+                    continue;
+                }
+                if (segments.includes(token)) {
+                    score += 26;
+                    matchedTokens += 1;
+                    continue;
+                }
+                if (basename.startsWith(token)) {
+                    score += 21;
+                    matchedTokens += 1;
+                    continue;
+                }
+                if (basename.includes(token)) {
+                    score += 16;
+                    matchedTokens += 1;
+                    continue;
+                }
+                if (normalizedPath.includes(token)) {
+                    score += 9;
+                    matchedTokens += 1;
+                }
+            }
+            if (tokens.length > 0 && matchedTokens === tokens.length)
+                score += 22;
+            else if (matchedTokens === 0)
+                score -= 18;
+        }
+        return Number(score.toFixed(4));
+    }
+    function sortProjectFiles(files, query = '') {
+        return [...files].sort((left, right) => {
+            const scoreDelta = scoreProjectFile(right, query) - scoreProjectFile(left, query);
+            if (scoreDelta !== 0)
+                return scoreDelta;
+            return left.localeCompare(right);
+        });
+    }
+    function listProjectFilesSafe(projectRoot, limit = 800, query = '') {
         const safeRoot = normalizeProjectRoot(projectRoot);
         const out = [];
         const max = Math.max(50, Math.min(Number(limit || 800), 5000));
@@ -100,8 +217,7 @@ export function createWorkspaceCodeHelpers(deps) {
                     break;
             }
         }
-        out.sort((a, b) => a.localeCompare(b));
-        return out;
+        return sortProjectFiles(out, query).slice(0, max);
     }
     function readProjectFileSafe(args) {
         const safeRoot = normalizeProjectRoot(args.projectRoot);
@@ -163,7 +279,7 @@ export function createWorkspaceCodeHelpers(deps) {
     async function codeListFilesForIpc(args) {
         try {
             const projectRoot = resolveProjectRootSafe(args?.projectRoot);
-            const files = listProjectFilesSafe(projectRoot, args?.limit);
+            const files = listProjectFilesSafe(projectRoot, args?.limit, args?.query);
             return { ok: true, files };
         }
         catch (error) {
@@ -187,6 +303,7 @@ export function createWorkspaceCodeHelpers(deps) {
         getDefaultPtyCwd,
         resolvePtyCwd,
         listProjectFilesSafe,
+        scoreProjectFile,
         readProjectFileSafe,
         workspacePickDirectoryForIpc,
         workspacePickForIpc,

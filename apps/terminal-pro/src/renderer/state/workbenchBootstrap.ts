@@ -1,4 +1,5 @@
 import { WorkbenchStore, type WorkbenchState } from '../workbench/store.js'
+import { deriveDeploymentState } from '../workbench/deploymentState.js'
 
 const WORKBENCH_STORAGE_KEY = 'rinawarp.workbench.state.v1'
 
@@ -52,7 +53,7 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     (typeof snapshot?.workspaceKey === 'string' && snapshot.workspaceKey === activeWorkspaceKey ? snapshot.analytics : undefined) ||
     snapshot?.analytics
 
-  return new WorkbenchStore({
+  const initialState: WorkbenchState = {
     activeTab: 'agent',
     activeCenterView:
       snapshotActiveCenterView === 'runs' ||
@@ -91,6 +92,32 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     executionTrace: { blocks: [] },
     fixBlocks: [],
     runs: [],
+    receipt: null,
+    deployment: {
+      target: null,
+      detectedTarget: null,
+      detectedSignals: [],
+      recommendedPackKey: null,
+      targetIdentity: null,
+      targetIdentitySource: 'unknown',
+      targetIdentityEvidence: [],
+      status: 'idle',
+      verification: 'not-run',
+      rollback: 'unknown',
+      latestRunId: null,
+      latestReceiptId: null,
+      targetUrl: null,
+      artifact: null,
+      buildId: null,
+      verificationEvidence: [],
+      rollbackEvidence: [],
+      summary: 'No deploy proof yet.',
+      verificationSummary: 'Verification has not run yet.',
+      rollbackSummary: 'Rollback truth is unknown until a deploy target is selected.',
+      nextActionLabel: 'Run deploy preflight',
+      updatedAt: null,
+      source: 'none',
+    },
     code: { files: [] },
     diagnostics: {
       mode: 'unknown',
@@ -123,7 +150,10 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     },
     marketplace: { loading: false, agents: [], installed: [] },
     capabilities: { loading: false, packs: [] },
-  })
+  }
+
+  initialState.deployment = deriveDeploymentState(initialState)
+  return new WorkbenchStore(initialState)
 }
 
 function getSnapshotAnalyticsByWorkspace(snapshot: unknown): Record<string, WorkbenchState['analytics']> {

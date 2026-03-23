@@ -54,8 +54,9 @@ type ComposeExecutionHaltLeadArgs = {
   memoryState?: MemoryState | null
 }
 
-function classifyIntent(command: string): 'build' | 'test' | 'deploy' | 'fix' | 'command' {
+function classifyIntent(command: string): 'build' | 'test' | 'deploy' | 'fix' | 'self_check' | 'command' {
   const normalized = command.toLowerCase()
+  if (/\b(scan yourself|check yourself|self-check|inspect current state|check the workbench)\b/.test(normalized)) return 'self_check'
   if (normalized.includes('build')) return 'build'
   if (normalized.includes('test')) return 'test'
   if (normalized.includes('deploy')) return 'deploy'
@@ -166,7 +167,9 @@ export function composeExecutionPlanLead({
   const humor = getHumor(memoryState)
   const intent = classifyIntent(prompt)
   const target =
-    intent === 'build'
+    intent === 'self_check'
+      ? 'self-check'
+      : intent === 'build'
       ? 'build'
       : intent === 'test'
         ? 'test run'
@@ -178,6 +181,9 @@ export function composeExecutionPlanLead({
   const base = requiresCapabilities
     ? `I mapped the ${target} into ${stepCount} proof-backed step${stepCount === 1 ? '' : 's'}, and I flagged the capability checks before anything runs.`
     : `I mapped the ${target} into ${stepCount} proof-backed step${stepCount === 1 ? '' : 's'} so we can inspect the run before it claims anything.`
+  if (intent === 'self_check') {
+    return 'I’m checking the current workspace and app state now. I’ll verify workspace, IPC, renderer, recovery, updater, and last-run integrity, then report what needs attention.'
+  }
   if (intent === 'build' && hasApprovedInference(memoryState, /\bbuild\b.*\bbefore\b.*\btest|build-first/)) {
     return addLightStyle(`${base} I kept the build lane tight first, then left room for the test gate right after.`, tone, humor, true)
   }
@@ -187,6 +193,29 @@ export function composeExecutionPlanLead({
   if (intent === 'deploy' && hasApprovedInference(memoryState, /\bdeploy\b.*\baware|deploy-aware/)) {
     return addLightStyle(`${base} I kept the deploy path extra explicit so target and receipts stay easy to audit.`, tone, humor, true)
   }
+  return addLightStyle(base, tone, humor, true)
+}
+
+export function composePlanModeLead({
+  prompt,
+  stepCount,
+  requiresCapabilities,
+  memoryState,
+}: ComposeExecutionPlanLeadArgs): string {
+  const tone = getTone(memoryState)
+  const humor = getHumor(memoryState)
+  const intent = classifyIntent(prompt)
+  const target =
+    intent === 'deploy'
+      ? 'deploy path'
+      : intent === 'fix'
+        ? 'repair path'
+        : intent === 'self_check'
+          ? 'self-check'
+          : 'execution path'
+  const base = requiresCapabilities
+    ? `Plan Mode is on for this ${target}. I mapped ${stepCount} reviewable step${stepCount === 1 ? '' : 's'} and held execution until you choose to run it.`
+    : `Plan Mode is on for this ${target}. I mapped ${stepCount} reviewable step${stepCount === 1 ? '' : 's'} and kept execution separate so we can inspect the plan first.`
   return addLightStyle(base, tone, humor, true)
 }
 

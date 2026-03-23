@@ -1,0 +1,21 @@
+{
+  "name": "@rinawarp/deploy-capabilities",
+  "version": "1.0.0",
+  "description": "Deployment capability packs for RinaWarp",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@rinawarp/agent": "workspace:*",
+    "@rinawarp/core": "workspace:*",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

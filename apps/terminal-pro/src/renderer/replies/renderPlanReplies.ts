@@ -1,4 +1,4 @@
-import type { CapabilityPackModel, MessageBlock, WorkbenchState } from '../workbench/store.js'
+import type { CapabilityPackModel, MessageBlock, ReplyAction, WorkbenchState } from '../workbench/store.js'
 import { bubbleBlock, copyBlock, replyCardBlock, replyListBlock } from './renderFragments.js'
 
 export type FixPlanStep = {
@@ -18,6 +18,13 @@ export type FixPlanResponse = {
   id?: string
   reasoning?: string
   steps?: FixPlanStep[]
+}
+
+type BuildExecutionPlanOptions = {
+  introText?: string
+  reviewOnly?: boolean
+  planActionPrompt?: string
+  workspaceRoot?: string
 }
 
 type CapabilityPromptMatch = {
@@ -41,7 +48,7 @@ export function buildExecutionPlanContent(
   prompt: string,
   plan: FixPlanResponse,
   requirements: PlanCapabilityRequirement[] = [],
-  options?: { introText?: string }
+  options?: BuildExecutionPlanOptions
 ): MessageBlock[] {
   const steps = Array.isArray(plan.steps) ? plan.steps : []
   const intro = options?.introText?.trim() || plan.reasoning?.trim() || `I mapped "${prompt}" to a receipts-backed run.`
@@ -62,13 +69,42 @@ export function buildExecutionPlanContent(
     replyCardBlock({
       kind: 'plan',
       label: 'Plan',
-      badge: 'Receipts-backed',
+      badge: options?.reviewOnly ? 'Plan Mode' : 'Receipts-backed',
       bodyBlocks: [replyListBlock(stepItems, 'No plan steps returned.')],
+      actions:
+        options?.reviewOnly && steps.length > 0 && options.workspaceRoot
+          ? [
+              {
+                label: 'Run this plan',
+                executePlan: encodeExecutionPlan(steps),
+                executePlanPrompt: options.planActionPrompt || prompt,
+                executePlanWorkspaceRoot: options.workspaceRoot,
+              },
+              { label: 'Open Code', tab: 'code' },
+            ]
+          : undefined,
     }),
   ]
   const capabilityCard = buildPlanCapabilityCard(requirements)
   if (capabilityCard) blocks.push(capabilityCard)
   return blocks
+}
+
+function encodeExecutionPlan(steps: FixPlanStep[]): string {
+  return JSON.stringify(
+    steps.map((step, index) => ({
+      stepId: step.stepId || `step_${index + 1}`,
+      tool: step.tool || 'terminal',
+      input: {
+        command: String(step.input?.command || ''),
+        cwd: step.input?.cwd,
+        timeoutMs: step.input?.timeoutMs,
+      },
+      risk: step.risk,
+      risk_level: step.risk_level,
+      requires_confirmation: step.requires_confirmation,
+    }))
+  )
 }
 
 export function resolvePromptCapability(state: WorkbenchState, prompt: string): CapabilityDecision | null {
@@ -92,7 +128,7 @@ export function buildCapabilityDecisionContent(decision: CapabilityDecision): Me
   const proofLine = decision.pack.actions[0]?.proof.join(', ') || 'run, receipt, log'
   const introText = `${decision.reason} is being routed through ${decision.pack.title}.`
   if (decision.state === 'ready') {
-    const runLabel = buildCapabilityRunLabel(decision.pack.key)
+    const runActions = buildCapabilityRunActions(decision.pack)
     return [
       bubbleBlock(introText),
       replyCardBlock({
@@ -100,11 +136,7 @@ export function buildCapabilityDecisionContent(decision: CapabilityDecision): Me
         label: 'Capability ready',
         badge: decision.pack.title,
         bodyBlocks: [copyBlock(`${decision.reason} is available in this workspace.`), copyBlock(`Proof contract: ${proofLine}`, 'muted')],
-        actions: [
-          { label: runLabel, capabilityRun: decision.pack.key },
-          { label: 'Open Plan', agentTopTab: 'plan' },
-          { label: 'Inspect capabilities', tab: 'marketplace' },
-        ],
+        actions: [...runActions, { label: 'Open Plan', agentTopTab: 'plan' }, { label: 'Inspect capabilities', tab: 'marketplace' }],
       }),
     ]
   }
@@ -187,6 +219,18 @@ export function matchPromptCapability(prompt: string): { key: string; reason: st
   if (/\b(cloudflare|workers|pages)\b/.test(normalized)) {
     return { key: 'deploy:cloudflare', reason: 'Cloudflare deploy capability' }
   }
+  if (/\bvercel\b/.test(normalized)) {
+    return { key: 'deploy:vercel', reason: 'Vercel deploy capability' }
+  }
+  if (/\bnetlify\b/.test(normalized)) {
+    return { key: 'deploy:netlify', reason: 'Netlify deploy capability' }
+  }
+  if (/\b(docker|container|compose)\b/.test(normalized)) {
+    return { key: 'deploy:docker', reason: 'Docker deploy capability' }
+  }
+  if (/\b(vps|ssh deploy|server deploy|virtual private server)\b/.test(normalized)) {
+    return { key: 'deploy:vps', reason: 'VPS deploy capability' }
+  }
   if (/\b(android|adb)\b/.test(normalized)) {
     return { key: 'device:android:scan', reason: 'Android scan capability' }
   }
@@ -211,6 +255,18 @@ function matchPlanStepCapability(step: FixPlanStep): CapabilityPromptMatch | nul
   const combined = `${tool} ${command}`
   if (/\b(cloudflare|wrangler|workers|pages)\b/.test(combined)) {
     return { key: 'deploy:cloudflare', reason: 'Cloudflare deploy capability' }
+  }
+  if (/\bvercel\b/.test(combined)) {
+    return { key: 'deploy:vercel', reason: 'Vercel deploy capability' }
+  }
+  if (/\bnetlify\b/.test(combined)) {
+    return { key: 'deploy:netlify', reason: 'Netlify deploy capability' }
+  }
+  if (/\b(docker|compose)\b/.test(combined)) {
+    return { key: 'deploy:docker', reason: 'Docker deploy capability' }
+  }
+  if (/\b(ssh|scp|rsync|pm2|systemctl|vps)\b/.test(combined)) {
+    return { key: 'deploy:vps', reason: 'VPS deploy capability' }
   }
   if (/\b(android|adb)\b/.test(combined)) {
     return { key: 'device:android:scan', reason: 'Android scan capability' }
@@ -269,6 +325,10 @@ function buildPlanCapabilityCard(requirements: PlanCapabilityRequirement[]): Mes
 function buildCapabilityRunLabel(packKey: string): string {
   if (packKey === 'system:doctor') return 'Run diagnostics'
   if (packKey === 'deploy:cloudflare') return 'Run deploy preflight'
+  if (packKey === 'deploy:vercel') return 'Run deploy preflight'
+  if (packKey === 'deploy:netlify') return 'Run deploy preflight'
+  if (packKey === 'deploy:docker') return 'Run deploy preflight'
+  if (packKey === 'deploy:vps') return 'Run deploy preflight'
   if (packKey === 'device:android:scan') return 'Run device scan'
   if (packKey === 'device:ios:scan') return 'Run device scan'
   if (packKey === 'workspace:repo-audit') return 'Inspect repository'
@@ -276,4 +336,28 @@ function buildCapabilityRunLabel(packKey: string): string {
   if (packKey === 'device:ios:scan') return 'Run device scan'
   if (packKey === 'system-diagnostics') return 'Run diagnostics'
   return 'Run capability check'
+}
+
+function buildCapabilityRunActions(pack: CapabilityPackModel): ReplyAction[] {
+  if (pack.category !== 'deploy') {
+    return [{ label: buildCapabilityRunLabel(pack.key), capabilityRun: pack.key, capabilityActionId: pack.actions[0]?.id }]
+  }
+
+  const preferredOrder = ['plan', 'deploy', 'verify', 'rollback']
+  return preferredOrder
+    .map((actionId) => pack.actions.find((action) => action.id === actionId))
+    .filter(Boolean)
+    .map((action) => ({
+      label:
+        action!.id === 'plan'
+          ? 'Plan deploy'
+          : action!.id === 'deploy'
+            ? 'Deploy'
+            : action!.id === 'verify'
+              ? 'Verify'
+              : 'Check rollback',
+      capabilityRun: action!.id === 'plan' ? pack.key : `${pack.key}|${action!.id}`,
+      capabilityActionId: action!.id,
+      className: action!.id === 'deploy' ? 'is-primary' : action!.id === 'verify' ? 'is-secondary' : 'is-subtle',
+    }))
 }

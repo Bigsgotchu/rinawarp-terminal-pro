@@ -35,6 +35,14 @@ function escapeAttr(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 }
 
+function notifyLicenseUpdated(tier: string | null | undefined): void {
+  window.dispatchEvent(
+    new CustomEvent('rina:license-updated', {
+      detail: { tier: String(tier || 'starter').toLowerCase() },
+    })
+  )
+}
+
 function renderSignedOut(authConfigured: boolean, billingEmail: string): string {
   return `
     <div class="rw-card">
@@ -207,6 +215,7 @@ async function handleRestore(container: HTMLElement, remount: (container: HTMLEl
       setStatusError(statusEl, verified?.error || 'We found the account, but verification did not complete.')
       return
     }
+    notifyLicenseUpdated(verified?.tier || verified?.effective_tier)
     setStatusSuccess(statusEl, 'Pro access restored on this device. Refreshing account state…')
     setTimeout(() => {
       void remount(container)

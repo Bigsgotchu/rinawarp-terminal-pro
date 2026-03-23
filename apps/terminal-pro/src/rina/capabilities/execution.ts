@@ -74,37 +74,150 @@ function buildSystemDoctorPlan(workspaceRoot: string, actionId: string): Capabil
 }
 
 function buildCloudflarePlan(workspaceRoot: string, actionId: string): CapabilityExecutionPlan | null {
-  if (actionId === 'plan') {
+  return buildDeployPlan(workspaceRoot, {
+    packKey: 'deploy:cloudflare',
+    actionId,
+    providerLabel: 'Cloudflare',
+    authCommand: 'wrangler whoami',
+    configCommand: 'test -f wrangler.toml || test -f wrangler.json || test -f website/wrangler.toml',
+    buildCommand: 'npm run build',
+    deployCommand: 'wrangler deploy',
+    verifyCommand: 'npm run smoke:pages',
+    rollbackCommand: 'echo "Rollback uses Cloudflare deployment history. Confirm the previous deployment before promoting it."',
+  })
+}
+
+function buildVercelPlan(workspaceRoot: string, actionId: string): CapabilityExecutionPlan | null {
+  return buildDeployPlan(workspaceRoot, {
+    packKey: 'deploy:vercel',
+    actionId,
+    providerLabel: 'Vercel',
+    authCommand: 'vercel whoami',
+    configCommand: 'test -f vercel.json || test -d .vercel',
+    buildCommand: 'npm run build',
+    deployCommand: 'vercel deploy --prod',
+    verifyCommand: 'vercel inspect --wait',
+    rollbackCommand: 'echo "Rollback uses Vercel deployment history or promote flow. Treat rollback as provider-backed only after the receipt captures the deployment ID."',
+  })
+}
+
+function buildNetlifyPlan(workspaceRoot: string, actionId: string): CapabilityExecutionPlan | null {
+  return buildDeployPlan(workspaceRoot, {
+    packKey: 'deploy:netlify',
+    actionId,
+    providerLabel: 'Netlify',
+    authCommand: 'netlify status',
+    configCommand: 'test -f netlify.toml || test -d .netlify',
+    buildCommand: 'npm run build',
+    deployCommand: 'netlify deploy --prod',
+    verifyCommand: 'netlify status',
+    rollbackCommand: 'echo "Rollback uses Netlify deploy history or manual restore. Treat it as real only if the receipt includes the deploy ID or published URL."',
+  })
+}
+
+function buildDockerPlan(workspaceRoot: string, actionId: string): CapabilityExecutionPlan | null {
+  return buildDeployPlan(workspaceRoot, {
+    packKey: 'deploy:docker',
+    actionId,
+    providerLabel: 'Docker',
+    authCommand: 'docker info',
+    configCommand: 'test -f Dockerfile || test -f docker-compose.yml || test -f compose.yaml',
+    buildCommand: 'docker build -t app:trusted-proof .',
+    deployCommand: 'docker compose up -d || docker run --detach app:trusted-proof',
+    verifyCommand: 'docker ps --format "{{.Image}} {{.Status}}"',
+    rollbackCommand: 'echo "Rollback is manual unless the previous image tag is recorded. Confirm the previous image before switching traffic back."',
+  })
+}
+
+function buildVpsPlan(workspaceRoot: string, actionId: string): CapabilityExecutionPlan | null {
+  return buildDeployPlan(workspaceRoot, {
+    packKey: 'deploy:vps',
+    actionId,
+    providerLabel: 'VPS',
+    authCommand: 'ssh -V',
+    configCommand: 'test -f deploy.sh || test -d deploy || test -f docker-compose.yml || test -f compose.yaml',
+    buildCommand: 'npm run build',
+    deployCommand: 'echo "Run the project-specific SSH/VPS deploy command here after target confirmation."',
+    verifyCommand: 'echo "Run the target health check or smoke script for the deployed host."',
+    rollbackCommand: 'echo "Rollback is manual on VPS unless the project stores a previous artifact or release pointer."',
+  })
+}
+
+function buildDeployPlan(
+  workspaceRoot: string,
+  options: {
+    packKey: CapabilityExecutionPlan['packKey']
+    actionId: string
+    providerLabel: string
+    authCommand: string
+    configCommand: string
+    buildCommand: string
+    deployCommand: string
+    verifyCommand: string
+    rollbackCommand: string
+  }
+): CapabilityExecutionPlan | null {
+  const commonInspectSteps: CapabilityPlanStep[] = [
+    { stepId: 'auth', tool: 'terminal.write', input: { command: options.authCommand, cwd: workspaceRoot }, risk: 'inspect' },
+    { stepId: 'target_config', tool: 'terminal.write', input: { command: options.configCommand, cwd: workspaceRoot }, risk: 'inspect' },
+    { stepId: 'git_status', tool: 'terminal.write', input: { command: 'git status --short', cwd: workspaceRoot }, risk: 'inspect' },
+    { stepId: 'workspace', tool: 'terminal.write', input: { command: 'pwd', cwd: workspaceRoot }, risk: 'inspect' },
+  ]
+
+  if (options.actionId === 'plan') {
     return {
-      packKey: 'deploy:cloudflare',
-      actionId,
-      prompt: 'Run Cloudflare deploy preflight safely.',
-      reasoning: 'I’m checking Cloudflare auth, workspace state, and build readiness before any deploy action.',
+      packKey: options.packKey,
+      actionId: options.actionId,
+      prompt: `Run ${options.providerLabel} deploy preflight safely.`,
+      reasoning: `I’m checking ${options.providerLabel} auth, target config, and workspace readiness before any deploy side effects happen.`,
+      steps: normalizePlanSteps(commonInspectSteps),
+    }
+  }
+
+  if (options.actionId === 'verify') {
+    return {
+      packKey: options.packKey,
+      actionId: options.actionId,
+      prompt: `Verify the latest ${options.providerLabel} deploy.`,
+      reasoning: `I’m treating verification as a hard gate, so this run only inspects the deployed target and its provider state.`,
       steps: normalizePlanSteps([
-        { stepId: 'wrangler_auth', tool: 'terminal.write', input: { command: 'wrangler whoami', cwd: workspaceRoot }, risk: 'inspect' },
-        { stepId: 'git_status', tool: 'terminal.write', input: { command: 'git status --short', cwd: workspaceRoot }, risk: 'inspect' },
-        { stepId: 'workspace', tool: 'terminal.write', input: { command: 'pwd', cwd: workspaceRoot }, risk: 'inspect' },
+        ...commonInspectSteps.slice(0, 2),
+        { stepId: 'verify_target', tool: 'terminal.write', input: { command: options.verifyCommand, cwd: workspaceRoot }, risk: 'inspect' },
       ]),
     }
   }
 
-  if (actionId === 'deploy') {
+  if (options.actionId === 'rollback') {
     return {
-      packKey: 'deploy:cloudflare',
-      actionId,
-      prompt: 'Deploy to Cloudflare through the trusted runner.',
-      reasoning: 'I’m using the Cloudflare deploy capability so the build and deploy steps stay receipts-backed.',
+      packKey: options.packKey,
+      actionId: options.actionId,
+      prompt: `Check rollback truth for ${options.providerLabel}.`,
+      reasoning: `I’m verifying whether rollback is truly available for this target instead of assuming it exists.`,
       steps: normalizePlanSteps([
-        { stepId: 'wrangler_auth', tool: 'terminal.write', input: { command: 'wrangler whoami', cwd: workspaceRoot }, risk: 'inspect' },
-        { stepId: 'git_status', tool: 'terminal.write', input: { command: 'git status --short', cwd: workspaceRoot }, risk: 'inspect' },
-        { stepId: 'build', tool: 'terminal.write', input: { command: 'npm run build', cwd: workspaceRoot }, risk: 'safe-write' },
+        ...commonInspectSteps.slice(0, 2),
+        { stepId: 'rollback_truth', tool: 'terminal.write', input: { command: options.rollbackCommand, cwd: workspaceRoot }, risk: 'inspect' },
+      ]),
+    }
+  }
+
+  if (options.actionId === 'deploy') {
+    return {
+      packKey: options.packKey,
+      actionId: options.actionId,
+      prompt: `Deploy to ${options.providerLabel} through the trusted runner.`,
+      reasoning: `I’m using the ${options.providerLabel} deploy capability so auth, config validation, deploy, verification, and rollback truth stay receipts-backed in one run.`,
+      steps: normalizePlanSteps([
+        ...commonInspectSteps,
+        { stepId: 'build', tool: 'terminal.write', input: { command: options.buildCommand, cwd: workspaceRoot }, risk: 'safe-write' },
         {
           stepId: 'deploy',
           tool: 'terminal.write',
-          input: { command: 'wrangler deploy', cwd: workspaceRoot },
+          input: { command: options.deployCommand, cwd: workspaceRoot },
           risk: 'high-impact',
           requires_confirmation: true,
         },
+        { stepId: 'verify_target', tool: 'terminal.write', input: { command: options.verifyCommand, cwd: workspaceRoot }, risk: 'inspect' },
+        { stepId: 'rollback_truth', tool: 'terminal.write', input: { command: options.rollbackCommand, cwd: workspaceRoot }, risk: 'inspect' },
       ]),
     }
   }
@@ -156,6 +269,10 @@ export function buildCapabilityExecutionPlan(
   const actionId = requestedActionId || defaultActionId(pack)
   if (pack.key === 'system:doctor') return buildSystemDoctorPlan(workspaceRoot, actionId)
   if (pack.key === 'deploy:cloudflare') return buildCloudflarePlan(workspaceRoot, actionId)
+  if (pack.key === 'deploy:vercel') return buildVercelPlan(workspaceRoot, actionId)
+  if (pack.key === 'deploy:netlify') return buildNetlifyPlan(workspaceRoot, actionId)
+  if (pack.key === 'deploy:docker') return buildDockerPlan(workspaceRoot, actionId)
+  if (pack.key === 'deploy:vps') return buildVpsPlan(workspaceRoot, actionId)
   if (pack.key === 'device:android:scan') return buildAndroidPlan(workspaceRoot, actionId)
   if (pack.key === 'device:ios:scan') return buildIosPlan(workspaceRoot, actionId)
   return null

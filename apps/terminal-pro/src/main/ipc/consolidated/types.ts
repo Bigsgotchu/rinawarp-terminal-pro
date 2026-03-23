@@ -27,6 +27,9 @@ export interface RinaStatus {
     conversation: number
     longterm: number
   }
+  ok?: boolean
+  error?: string
+  degraded?: boolean
 }
 
 export type ExecutionMode = 'assist' | 'auto' | 'explain'

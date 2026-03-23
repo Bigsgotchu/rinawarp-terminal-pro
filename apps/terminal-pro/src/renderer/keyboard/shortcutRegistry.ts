@@ -20,6 +20,7 @@ export interface Shortcut {
 export class ShortcutRegistry {
   private shortcuts: Map<string, Shortcut> = new Map()
   private keydownHandler: (event: KeyboardEvent) => void
+  private started = false
 
   constructor() {
     this.keydownHandler = this.handleKeydown.bind(this)
@@ -36,10 +37,14 @@ export class ShortcutRegistry {
   }
 
   start(): void {
+    if (this.started) return
+    this.started = true
     document.addEventListener('keydown', this.keydownHandler)
   }
 
   stop(): void {
+    if (!this.started) return
+    this.started = false
     document.removeEventListener('keydown', this.keydownHandler)
   }
 

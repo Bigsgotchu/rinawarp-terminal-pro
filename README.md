@@ -1,7 +1,7 @@
 # RinaWarp Terminal Pro
 
 <p align="center">
-  <strong>The First AI You Can Trust to Actually Fix Things</strong>
+  <strong>Proof-First AI Workbench for Build, Test, Deploy, and Recovery</strong>
 </p>
 
 <p align="center">
@@ -59,7 +59,7 @@ pnpm build
 
 ## Version
 
-Current version: **v1.0.4**
+Current version: **v1.1.9**
 
 ## License
 

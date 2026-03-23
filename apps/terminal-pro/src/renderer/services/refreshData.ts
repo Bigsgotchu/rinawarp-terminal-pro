@@ -1,5 +1,6 @@
 import { bubbleBlock, copyBlock, inlineCodeBlock, replyCardBlock } from '../replies/renderFragments.js'
 import { type WorkbenchState, WorkbenchStore } from '../workbench/store.js'
+import { formatRecoveryNarrative, getRecoveryGuidance } from '../workbench/renderers/runIntelligence.js'
 
 type RefreshDeps = {
   getWorkspaceKey: (store: WorkbenchStore) => string
@@ -8,6 +9,7 @@ type RefreshDeps = {
 
 export function createRefreshActions(deps: RefreshDeps) {
   const rina = window.rina as any
+  const STALE_RECOVERY_MS = 24 * 60 * 60 * 1000
 
   const refreshRuns = async (store: WorkbenchStore, options?: { markRestored?: boolean }): Promise<void> => {
     if (typeof rina.runsList !== 'function') return
@@ -17,10 +19,18 @@ export function createRefreshActions(deps: RefreshDeps) {
       const previousRuns = new Map(store.getState().runs.map((run: WorkbenchState['runs'][number]) => [run.id, run]))
       const mappedRuns: WorkbenchState['runs'] = result.runs.map((run: any) => {
         const runId = run.latestReceiptId || run.sessionId
+        const updatedAtMs = new Date(run.updatedAt).getTime()
+        const staleRecoveredShell =
+          Boolean(options?.markRestored) &&
+          !String(run.latestCommand || '').trim() &&
+          Number.isFinite(updatedAtMs) &&
+          Date.now() - updatedAtMs > STALE_RECOVERY_MS
         const status: WorkbenchState['runs'][number]['status'] = run.interrupted
           ? 'interrupted'
           : run.failedCount > 0
             ? 'failed'
+            : staleRecoveredShell
+              ? 'interrupted'
             : run.latestExitCode === null || run.latestExitCode === undefined
               ? 'running'
               : 'ok'
@@ -28,7 +38,7 @@ export function createRefreshActions(deps: RefreshDeps) {
         return {
           id: runId,
           sessionId: run.sessionId,
-          title: run.latestCommand || 'Session activity',
+          title: run.latestCommand || (Boolean(options?.markRestored) ? 'Recovered session activity' : 'Session activity'),
           command: run.latestCommand || '',
           cwd: run.latestCwd || run.projectRoot || '',
           status,
@@ -54,6 +64,7 @@ export function createRefreshActions(deps: RefreshDeps) {
         if (restoredRuns.length > 0) {
           const interruptedRuns = restoredRuns.filter((run) => run.status === 'interrupted')
           const latestInterrupted = interruptedRuns[0] || restoredRuns[0]
+          const recovery = latestInterrupted ? getRecoveryGuidance(latestInterrupted) : null
           store.dispatch({ type: 'chat/removeByPrefix', prefix: 'system:runs:restore:' })
           store.dispatch({ type: 'chat/removeByPrefix', prefix: 'rina:runs:resume:' })
           store.dispatch({
@@ -66,15 +77,20 @@ export function createRefreshActions(deps: RefreshDeps) {
                     replyCardBlock({
                       kind: 'recovery',
                       label: 'I recovered your last session safely',
-                      badge: `${restoredRuns.length} restored`,
+                      badge: `${restoredRuns.length} runs restored`,
                       className: 'rw-recovery-card',
                       bodyBlocks:
                         latestInterrupted.command || latestInterrupted.title
                           ? [
                               copyBlock(
-                                `Your receipts are intact. I restored ${restoredRuns.length} recent run${restoredRuns.length === 1 ? '' : 's'} from your last session and can pick up the latest interrupted task when you are ready.`
+                                `Your receipts are intact. I restored ${restoredRuns.length} recent run${restoredRuns.length === 1 ? '' : 's'} and kept the safest next move visible.`
                               ),
-                              inlineCodeBlock(`Latest interrupted task: ${latestInterrupted.command || latestInterrupted.title || latestInterrupted.id}`, 'rw-recovery-latest'),
+                              inlineCodeBlock(
+                                recovery
+                                  ? formatRecoveryNarrative(recovery, { prefix: 'Recovered task' })
+                                  : `${latestInterrupted.command || latestInterrupted.title || latestInterrupted.id}\nInspect the receipt before deciding whether to resume or rerun.`,
+                                'rw-recovery-latest'
+                              ),
                             ]
                           : [
                               copyBlock(
@@ -82,8 +98,28 @@ export function createRefreshActions(deps: RefreshDeps) {
                               ),
                             ],
                       actions: [
-                        ...(latestInterrupted ? [{ label: 'Resume latest', runResume: latestInterrupted.id }] : []),
-                        { label: 'Review recovered runs', openRunsPanel: 'system:runs:restore' },
+                        ...(latestInterrupted && recovery?.resumeSafe
+                          ? [{ label: recovery.resumeLabel, runResume: latestInterrupted.id, className: 'is-primary' }]
+                          : []),
+                        ...(latestInterrupted
+                          ? [
+                              {
+                                label: recovery?.rerunLabel || 'Rerun task',
+                                runRerun: latestInterrupted.id,
+                                className: recovery?.resumeSafe ? 'is-secondary' : 'is-primary',
+                              },
+                            ]
+                          : []),
+                        ...(latestInterrupted
+                          ? [
+                              {
+                                label: recovery?.receiptLabel || 'Open receipt',
+                                runReveal: latestInterrupted.latestReceiptId || latestInterrupted.id,
+                                className: 'is-secondary',
+                              },
+                            ]
+                          : []),
+                        { label: 'Review recovered runs', openRunsPanel: 'system:runs:restore', className: 'is-subtle' },
                         { label: 'Dismiss for now', tab: 'runs', className: 'is-subtle' },
                       ],
                     }),
@@ -104,13 +140,12 @@ export function createRefreshActions(deps: RefreshDeps) {
   const refreshCode = async (store: WorkbenchStore): Promise<void> => {
     try {
       const workspaceRoot = deps.getAgentWorkspaceRoot(store)
-      const files = (await rina.invoke(
-        'rina:code:listFiles',
+      const files = (await rina.codeListFiles?.(
         workspaceRoot ? { projectRoot: workspaceRoot, limit: 100 } : { limit: 100 }
       )) as {
         ok?: boolean
         files?: string[]
-      }
+      } | undefined
       if (files?.ok && Array.isArray(files.files)) {
         store.dispatch({ type: 'code/setFiles', files: files.files })
       }

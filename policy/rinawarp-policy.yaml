@@ -208,6 +208,7 @@ rules:
         - '^\s*go\s+version\b'
         - '^\s*cargo\s+(-V|--version)\b'
         - '^\s*rustc\s+(-V|--version)\b'
+        - '^\s*wrangler\s+whoami\b'
     action: allow
     message: "Allowed."
 

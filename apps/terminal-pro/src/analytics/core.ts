@@ -50,6 +50,13 @@ export type AnalyticsEvent =
   | 'self_healing_run'
   | 'terminal_session_tracked'
 
+export interface AnalyticsDispatchResult {
+  accepted: boolean
+  enabled: boolean
+  degraded?: boolean
+  error?: string
+}
+
 function getDeviceId(): string {
   const userDataPath = app?.getPath?.('userData') || '.'
   const deviceIdPath = path.join(userDataPath, 'analytics-device-id.txt')
@@ -102,9 +109,16 @@ function getPostHog(): any | null {
   return posthog
 }
 
-export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
+export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): AnalyticsDispatchResult {
   const ph = getPostHog()
-  if (!ph) return
+  if (!ph) {
+    return {
+      accepted: false,
+      enabled: false,
+      degraded: true,
+      error: ANALYTICS_DISABLED ? 'Analytics disabled' : 'Analytics backend unavailable',
+    }
+  }
 
   try {
     ph.capture({
@@ -119,8 +133,15 @@ export function trackEvent(event: AnalyticsEvent, properties?: Record<string, un
       },
       timestamp: new Date(),
     })
+    return { accepted: true, enabled: true }
   } catch (error) {
     console.error('[Analytics] Failed to track event:', event, error)
+    return {
+      accepted: false,
+      enabled: true,
+      degraded: true,
+      error: error instanceof Error ? error.message : 'Failed to track analytics event',
+    }
   }
 }
 

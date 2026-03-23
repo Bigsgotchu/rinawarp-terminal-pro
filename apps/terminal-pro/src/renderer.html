@@ -27,11 +27,23 @@
           <span class="rw-workbench-tab-group-label">Inspect</span>
           <button class="rw-workbench-tab rw-workbench-tab-secondary" data-tab="runs" type="button" aria-label="Runs Inspector">Runs</button>
         </nav>
+        <div class="rw-workbench-topbar-workspace">
+          <button
+            id="workspace-picker"
+            class="rw-topbar-workspace"
+            data-pick-workspace="topbar"
+            type="button"
+            aria-label="Choose workspace"
+            title="Choose workspace"
+          >
+            Choose workspace
+          </button>
+        </div>
         <div class="rw-workbench-topbar-actions">
           <button id="recovery-toggle" class="rw-topbar-action rw-topbar-action-secondary" data-tab="runs" type="button" hidden>Recovered runs</button>
           <button class="rw-topbar-action rw-topbar-action-secondary" data-tab="marketplace" type="button" aria-label="Capabilities">Capabilities</button>
           <button class="rw-topbar-action rw-topbar-action-secondary" data-tab="diagnostics" type="button" aria-label="Diagnostics">Diagnostics</button>
-          <button class="rw-topbar-action" data-tab="settings" data-action="open-settings" type="button" aria-label="Settings">Settings</button>
+          <button class="rw-topbar-action" data-tab="settings" data-action="open-settings" type="button" aria-label="Settings" hidden aria-hidden="true">Settings</button>
         </div>
       </header>
 
@@ -78,6 +90,17 @@
             <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
           </div>
           <div class="rw-panel-body" id="runs-output"></div>
+        </section>
+
+        <section id="panel-receipt" class="rw-panel rw-view" data-view="receipt">
+          <div class="rw-panel-head">
+            <div class="rw-panel-title-group">
+              <span class="rw-panel-title">Receipt Viewer</span>
+              <span class="rw-panel-subtitle">Detailed proof of execution with commands, timestamps, and next actions.</span>
+            </div>
+            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
+          </div>
+          <div class="rw-panel-body" id="receipt-output"></div>
         </section>
 
         <section id="panel-marketplace" class="rw-panel rw-view" data-view="marketplace">

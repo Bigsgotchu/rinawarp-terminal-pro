@@ -13,6 +13,13 @@
   - success receipt/log path
   - timeout receipt/log path
   - prune path
+- First-run guarded suite is green:
+  - unit/state pass
+  - IPC contract pass
+  - dev first-run Electron pass
+  - packaged first-run pass
+- Release-candidate guarded suite is green on the exact candidate:
+  - `npm run qa:release-candidate`
 - Desktop runs panel remains stable under workspace switching
 - Run receipts are versioned and schema-compatible across desktop and headless
 - Installer artifacts are produced by CI
@@ -75,13 +82,14 @@
 - Publish tagged releases from CI
 
 ## Manual Smoke Checks
-- Launch app on clean machine
-- Open workspace
-- Run build/test command through Rina
-- Verify receipt/log creation
+- Launch the exact release-candidate artifact from [CORE_PATH_BUILD_LOCK.md](/home/karina/Documents/rinawarp-terminal-pro/docs/CORE_PATH_BUILD_LOCK.md)
+- Confirm `Settings` responds and opens the settings surface
+- Confirm the workspace picker is obvious on first launch
+- Confirm the footer/status strip stays at the bottom and reads clearly
+- Confirm the Agent empty state explains how to choose a workspace
+- Run `self-check` and verify a run starts cleanly
+- Open one receipt and confirm proof/actions render correctly
 - Restart app and confirm workspace/run restore
-- Export support bundle
-- Check update settings panel
 
 ## Nice-to-Have Before Broad Release
 - Crash reporting backend

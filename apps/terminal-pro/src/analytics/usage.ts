@@ -1,7 +1,7 @@
 import * as electron from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
-import { trackEvent } from './core.js'
+import { trackEvent, type AnalyticsDispatchResult } from './core.js'
 
 const { app } = electron
 
@@ -63,9 +63,9 @@ export function isUsageTrackingEnabled(): boolean {
   return usageTrackingEnabled
 }
 
-export function enableUsageTracking(): void {
+export function enableUsageTracking(): AnalyticsDispatchResult {
   usageTrackingEnabled = true
-  trackEvent('usage_tracking_enabled')
+  return trackEvent('usage_tracking_enabled')
 }
 
 export function disableUsageTracking(): void {
@@ -99,52 +99,80 @@ export function getUsageStatus(): {
   }
 }
 
-export function trackCommandExecuted(): void {
-  if (!usageTrackingEnabled) return
+export function trackCommandExecuted(): AnalyticsDispatchResult {
+  if (!usageTrackingEnabled) {
+    return {
+      accepted: false,
+      enabled: false,
+      degraded: true,
+      error: 'Usage tracking disabled',
+    }
+  }
   usageMetrics.commandsExecuted += 1
   saveUsageMetrics()
 
   const status = getUsageStatus()
-  trackEvent('command_executed', {
+  return trackEvent('command_executed', {
     total_commands: usageMetrics.commandsExecuted,
     usage_percent: status.usagePercent.commandsExecuted,
     approaching_limit: status.approachingLimit,
   })
 }
 
-export function trackAISuggestionUsed(): void {
-  if (!usageTrackingEnabled) return
+export function trackAISuggestionUsed(): AnalyticsDispatchResult {
+  if (!usageTrackingEnabled) {
+    return {
+      accepted: false,
+      enabled: false,
+      degraded: true,
+      error: 'Usage tracking disabled',
+    }
+  }
   usageMetrics.aiSuggestionsUsed += 1
   saveUsageMetrics()
 
   const status = getUsageStatus()
-  trackEvent('ai_suggestion_used', {
+  return trackEvent('ai_suggestion_used', {
     total_suggestions: usageMetrics.aiSuggestionsUsed,
     usage_percent: status.usagePercent.aiSuggestionsUsed,
     approaching_limit: status.approachingLimit,
   })
 }
 
-export function trackSelfHealingRun(): void {
-  if (!usageTrackingEnabled) return
+export function trackSelfHealingRun(): AnalyticsDispatchResult {
+  if (!usageTrackingEnabled) {
+    return {
+      accepted: false,
+      enabled: false,
+      degraded: true,
+      error: 'Usage tracking disabled',
+    }
+  }
   usageMetrics.selfHealingRuns += 1
   saveUsageMetrics()
 
   const status = getUsageStatus()
-  trackEvent('self_healing_run', {
+  return trackEvent('self_healing_run', {
     total_runs: usageMetrics.selfHealingRuns,
     usage_percent: status.usagePercent.selfHealingRuns,
     approaching_limit: status.approachingLimit,
   })
 }
 
-export function trackTerminalSessionStart(): void {
-  if (!usageTrackingEnabled) return
+export function trackTerminalSessionStart(): AnalyticsDispatchResult {
+  if (!usageTrackingEnabled) {
+    return {
+      accepted: false,
+      enabled: false,
+      degraded: true,
+      error: 'Usage tracking disabled',
+    }
+  }
   usageMetrics.terminalSessions += 1
   saveUsageMetrics()
 
   const status = getUsageStatus()
-  trackEvent('terminal_session_tracked', {
+  return trackEvent('terminal_session_tracked', {
     total_sessions: usageMetrics.terminalSessions,
     usage_percent: status.usagePercent.terminalSessions,
     approaching_limit: status.approachingLimit,

@@ -142,7 +142,10 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
 
   downloadBtn.addEventListener('click', async () => {
     try {
-      await rina?.openUpdateDownload?.()
+      const result = await rina?.openUpdateDownload?.()
+      if (result && result.ok === false) {
+        statusEl.textContent = result.error || 'Could not open download page.'
+      }
     } catch {
       statusEl.textContent = 'Could not open download page.'
     }

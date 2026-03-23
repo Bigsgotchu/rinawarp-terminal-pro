@@ -19,11 +19,18 @@ function expectIncludes(haystack, needle, label) {
 const websiteConfig = read(websiteConfigPath);
 const rootConfig = read(rootConfigPath);
 
+expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/download"', "Pages exact download route");
+expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/download/"', "Pages slash download route");
 expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/download/*"', "Pages download route");
 expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/releases/*"', "Pages releases route");
 expectIncludes(websiteConfig, 'binding = "RINAWARP_CDN"', "Pages R2 binding");
 
-if (rootConfig.includes('pattern = "rinawarptech.com/download/*"') || rootConfig.includes('pattern = "rinawarptech.com/releases/*"')) {
+if (
+  rootConfig.includes('pattern = "rinawarptech.com/download"') ||
+  rootConfig.includes('pattern = "rinawarptech.com/download/"') ||
+  rootConfig.includes('pattern = "rinawarptech.com/download/*"') ||
+  rootConfig.includes('pattern = "rinawarptech.com/releases/*"')
+) {
   throw new Error("Root downloads worker still owns apex download/release routes");
 }
 

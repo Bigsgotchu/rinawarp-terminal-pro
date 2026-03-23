@@ -27,7 +27,13 @@ function mergeMarketplaceAgents(agents: AgentPackage[]): AgentPackage[] {
   return Array.from(merged.values())
 }
 
-async function fetchMarketplaceAgents(): Promise<{ ok: boolean; agents?: AgentPackage[]; error?: string; source?: string }> {
+async function fetchMarketplaceAgents(): Promise<{
+  ok: boolean
+  agents?: AgentPackage[]
+  error?: string
+  source?: string
+  degraded?: boolean
+}> {
   const candidates = [
     licenseApiUrl('/v1/agents'),
     'https://www.rinawarptech.com/api/agents',
@@ -43,7 +49,12 @@ async function fetchMarketplaceAgents(): Promise<{ ok: boolean; agents?: AgentPa
       }
       const payload = (await response.json()) as { agents?: AgentPackage[] }
       if (Array.isArray(payload?.agents)) {
-        return { ok: true, agents: mergeMarketplaceAgents(payload.agents), source: 'remote' }
+        return {
+          ok: true,
+          agents: mergeMarketplaceAgents(payload.agents),
+          source: 'remote',
+          degraded: false,
+        }
       }
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error)
@@ -55,6 +66,7 @@ async function fetchMarketplaceAgents(): Promise<{ ok: boolean; agents?: AgentPa
     agents: mergeMarketplaceAgents(FALLBACK_MARKETPLACE_AGENTS),
     error: lastError,
     source: 'fallback',
+    degraded: true,
   }
 }
 
@@ -143,6 +155,7 @@ export function registerSecureAgentIpc(ipcMain: IpcMain, deps?: { getLicenseTier
       ok: true,
       capabilities: listCapabilityPacks(marketplace.agents || []),
       source: marketplace.source,
+      degraded: marketplace.degraded,
       error: marketplace.error,
     }
   })
@@ -190,6 +203,12 @@ export function registerSecureAgentIpc(ipcMain: IpcMain, deps?: { getLicenseTier
           const agent = installAgentPackage(fallbackAgent)
           return {
             ok: true,
+            source: marketplace.source,
+            degraded: Boolean(marketplace.degraded),
+            warning:
+              marketplace.source === 'fallback'
+                ? 'Installed from the bundled fallback catalog because the remote marketplace was unavailable.'
+                : undefined,
             agent: {
               name: agent.name,
               version: agent.version,
@@ -212,6 +231,8 @@ export function registerSecureAgentIpc(ipcMain: IpcMain, deps?: { getLicenseTier
 
         return {
           ok: true,
+          source: 'remote',
+          degraded: false,
           agent: {
             name: agent.name,
             version: agent.version,

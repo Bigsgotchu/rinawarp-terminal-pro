@@ -20,20 +20,41 @@ import {
 } from '../../analytics.js'
 
 export function registerAnalyticsIpc(): void {
+  function toIpcResult(
+    result:
+      | { accepted: boolean; enabled: boolean; degraded?: boolean; error?: string }
+      | undefined,
+    event: string
+  ) {
+    return {
+      ok: Boolean(result?.accepted),
+      accepted: Boolean(result?.accepted),
+      enabled: Boolean(result?.enabled),
+      degraded: Boolean(result?.degraded),
+      event,
+      error: result?.error,
+    }
+  }
+
   // Track funnel step from renderer
   ipcMain.handle('analytics:trackFunnelStep', async (_event, step: string) => {
     const validSteps = ['signup', 'first_run', 'first_block', 'upgrade_view', 'paid']
     if (validSteps.includes(step)) {
-      trackFunnelStep(step as any)
-      return { success: true }
+      return toIpcResult(trackFunnelStep(step as any), `funnel:${step}`)
     }
-    return { success: false, error: 'Invalid funnel step' }
+    return {
+      ok: false,
+      accepted: false,
+      enabled: true,
+      degraded: false,
+      event: `funnel:${step}`,
+      error: 'Invalid funnel step',
+    }
   })
 
   // Track generic event from renderer
   ipcMain.handle('analytics:trackEvent', async (_event, event: string, properties?: Record<string, unknown>) => {
-    trackEvent(event as any, properties)
-    return { success: true }
+    return toIpcResult(trackEvent(event as any, properties), event)
   })
 
   // Get usage status (for license panel)
@@ -48,38 +69,39 @@ export function registerAnalyticsIpc(): void {
 
   // Enable usage tracking (opt-in)
   ipcMain.handle('analytics:enableUsageTracking', async () => {
-    enableUsageTracking()
-    return { success: true }
+    return toIpcResult(enableUsageTracking(), 'usage_tracking_enabled')
   })
 
   // Disable usage tracking
   ipcMain.handle('analytics:disableUsageTracking', async () => {
     disableUsageTracking()
-    return { success: true }
+    return {
+      ok: true,
+      accepted: true,
+      enabled: false,
+      degraded: false,
+      event: 'usage_tracking_disabled',
+    }
   })
 
   // Track command executed (called from PTY)
   ipcMain.handle('analytics:trackCommandExecuted', async () => {
-    trackCommandExecuted()
-    return { success: true }
+    return toIpcResult(trackCommandExecuted(), 'command_executed')
   })
 
   // Track AI suggestion used
   ipcMain.handle('analytics:trackAISuggestionUsed', async () => {
-    trackAISuggestionUsed()
-    return { success: true }
+    return toIpcResult(trackAISuggestionUsed(), 'ai_suggestion_used')
   })
 
   // Track self-healing run
   ipcMain.handle('analytics:trackSelfHealingRun', async () => {
-    trackSelfHealingRun()
-    return { success: true }
+    return toIpcResult(trackSelfHealingRun(), 'self_healing_run')
   })
 
   // Track terminal session start
   ipcMain.handle('analytics:trackTerminalSessionStart', async () => {
-    trackTerminalSessionStart()
-    return { success: true }
+    return toIpcResult(trackTerminalSessionStart(), 'terminal_session_tracked')
   })
 
   console.log('[IPC] Analytics handlers registered')

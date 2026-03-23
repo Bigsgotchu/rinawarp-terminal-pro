@@ -47,6 +47,74 @@ zone_name = "rinawarptech.com"
 pattern = "rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 
+[[routes]]
+pattern = "rinawarptech.com/download"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/download/"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/download/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/releases/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/download"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/download/"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/download/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/releases/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/stripe/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/license/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/health"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/events"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/me"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/portal"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/checkout"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/feedback"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/auth/*"
+zone_name = "rinawarptech.com"
+
 [[kv_namespaces]]
 binding = "AGENTS_KV"
 id = "5741295fdb9541a196314377c3e36601"

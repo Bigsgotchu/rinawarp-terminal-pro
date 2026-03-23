@@ -319,11 +319,11 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
         }
         releaseEl.innerHTML = renderReleaseInfo(releaseInfo)
         statusEl.textContent =
-          result?.signatureOk === true
+          result?.performed && result?.signatureOk === true
             ? 'Release verified successfully.'
-            : result?.signatureOk === false
+            : result?.performed && result?.signatureOk === false
               ? 'Release verification failed.'
-              : 'Release verification is managed by the installer and published metadata.'
+              : result?.error || 'Release verification is managed by the installer and published metadata.'
       } else {
         statusEl.textContent = 'Verify API not available.'
       }

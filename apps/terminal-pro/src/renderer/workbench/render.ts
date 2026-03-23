@@ -4,6 +4,7 @@ import { renderBrain, renderCode, renderDiagnostics, renderMarketplace, renderSt
 import { renderRuns } from './renderers/runsPanel.js'
 import { renderAgent } from './renderers/agentThread.js'
 import { renderFixBlocks } from './renderers/fixBlocksPanel.js'
+import { renderReceiptPanel } from './renderers/receiptPanel.js'
 
 function renderTabs(state: WorkbenchState): void {
   const drawerOpen = state.activeTab === 'agent' && Boolean(state.ui.openDrawer)
@@ -40,7 +41,7 @@ function renderTabs(state: WorkbenchState): void {
     else delete app.dataset.drawer
   }
 
-  const centerViews: Array<TabKey> = ['execution-trace', 'runs', 'marketplace', 'code', 'brain']
+  const centerViews: Array<TabKey> = ['execution-trace', 'runs', 'receipt', 'marketplace', 'code', 'brain']
   const rightViews: Array<TabKey> = ['agent', 'diagnostics']
 
   for (const name of centerViews) {
@@ -59,6 +60,7 @@ export function renderWorkbench(state: WorkbenchState): void {
   renderAgent(state)
   renderFixBlocks(state)
   renderRuns(state)
+  renderReceiptPanel(state)
   renderMarketplace(state)
   renderCode(state)
   renderDiagnostics(state)

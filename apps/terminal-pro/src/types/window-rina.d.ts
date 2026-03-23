@@ -52,7 +52,7 @@ declare global {
         workspaceId?: string
         priceId?: string
       }): Promise<{ ok: boolean; error?: string; url?: string; sessionId?: string }>
-      openStripePortal(email?: string): Promise<{ ok: boolean; fallback?: boolean; error?: string }>
+      openStripePortal(email?: string): Promise<{ ok: boolean; fallback?: boolean; degraded?: boolean; error?: string }>
       licenseCachedEmail(): Promise<{ email?: string | null }>
       licenseLookupByEmail(email: string): Promise<{
         ok: boolean
@@ -79,9 +79,12 @@ declare global {
       authForgotPassword(args: { email: string }): Promise<{ ok: boolean; message?: string; error?: string }>
       authResetPassword(args: { token: string; password: string }): Promise<{ ok: boolean; message?: string; error?: string }>
       authState(): Promise<{
+        ok?: boolean
         authenticated: boolean
         user: { id?: string; email?: string; name?: string; emailVerified?: boolean } | null
         token?: string | null
+        degraded?: boolean
+        error?: string
       }>
       authToken(): Promise<{ token?: string | null }>
       teamState(): Promise<{
@@ -104,7 +107,7 @@ declare global {
         error?: string
       }>
       teamWorkspaceCreate(args: { name: string; region?: string }): Promise<{ workspace_id?: string; owner_id?: string; ok?: boolean; error?: string }>
-      teamWorkspaceSet(workspaceId: string): Promise<{ ok: boolean; workspaceId?: string }>
+      teamWorkspaceSet(workspaceId: string): Promise<{ ok: boolean; workspaceId?: string; error?: string }>
       teamWorkspaceGet(workspaceId?: string): Promise<{
         id?: string
         name?: string
@@ -130,6 +133,8 @@ declare global {
       teamBillingSetEnforcement(args: { workspaceId?: string; requireActivePlan: boolean }): Promise<{ ok?: boolean; workspace?: any; error?: string }>
       marketplaceList(): Promise<{
         ok: boolean
+        source?: string
+        degraded?: boolean
         agents?: Array<{
           name: string
           description: string
@@ -154,6 +159,9 @@ declare global {
       }>
       installMarketplaceAgent(args: { name: string; userEmail?: string }): Promise<{
         ok: boolean
+        source?: string
+        degraded?: boolean
+        warning?: string
         agent?: {
           name: string
           version: string
@@ -167,6 +175,7 @@ declare global {
       capabilityPacks(): Promise<{
         ok: boolean
         source?: string
+        degraded?: boolean
         error?: string
         capabilities?: Array<{
           key: string
@@ -204,11 +213,14 @@ declare global {
       openDirectory(): Promise<{ ok: boolean; path?: string }>
       pickWorkspace(): Promise<{ ok: boolean; path?: string }>
       workspaceDefault(): Promise<{ ok: boolean; path?: string }>
-      codeListFiles(args: {
-        projectRoot: string
+      setMode(mode: string): Promise<{ ok: boolean; mode: string }>
+      getMode(): Promise<string>
+      codeListFiles(args?: {
+        projectRoot?: string
         limit?: number
+        query?: string
       }): Promise<{ ok: boolean; files?: string[]; error?: string }>
-      codeReadFile(args: { projectRoot: string; relativePath: string; maxBytes?: number }): Promise<{
+      codeReadFile(args: { projectRoot?: string; relativePath: string; maxBytes?: number }): Promise<{
         ok: boolean
         content?: string
         truncated?: boolean
@@ -346,7 +358,7 @@ declare global {
         matchedRuleId?: string
       }>
       diagnosticsPaths(): Promise<DiagnosticsPaths>
-      supportBundle(): Promise<{ ok: boolean; error?: string; path?: string; bytes?: number }>
+      supportBundle(snapshot?: unknown): Promise<{ ok: boolean; error?: string; path?: string; bytes?: number }>
       openRunsFolder(): Promise<{ ok: boolean; error?: string; path?: string }>
       runsList(limit?: number): Promise<{
         ok: boolean
@@ -388,7 +400,7 @@ declare global {
         }
         error?: string
       }>
-      revealRunReceipt(receiptId: string): Promise<{ ok: boolean; error?: string; path?: string }>
+      revealRunReceipt(receiptId: string): Promise<{ ok: boolean; error?: string; receipt?: any }>
       importShellHistory(limit?: number): Promise<{ ok: boolean; imported?: number; commands?: string[]; error?: string }>
       reportRendererError(payload: {
         kind?: string
@@ -518,9 +530,13 @@ declare global {
         publishedAt: string | null
       }>
       verifyRelease(): Promise<{
+        ok: boolean
+        performed: boolean
+        degraded: boolean
         signatureOk: boolean | null
         checksumOk: boolean | null
         signedBy: string | null
+        error?: string
       }>
       updateState(): Promise<{
         status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'downloading' | 'downloaded' | 'unsupported' | 'error'
@@ -550,7 +566,7 @@ declare global {
         installReady: boolean
         channel: 'stable' | 'beta' | 'nightly'
       }>
-      openUpdateDownload(): Promise<{ ok: boolean; url: string }>
+      openUpdateDownload(): Promise<{ ok: boolean; url: string; error?: string }>
       installUpdate(): Promise<{ ok: boolean; immediate: boolean; error?: string }>
       doctorPlan(args: { projectRoot: string; symptom: string }): Promise<any>
       onThinking(cb: (step: { time: number; message: string }) => void): () => void

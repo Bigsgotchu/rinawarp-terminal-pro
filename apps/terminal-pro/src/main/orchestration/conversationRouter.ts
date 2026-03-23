@@ -1,8 +1,29 @@
+import { resolveDiagnosticContext, shouldAskClarifyingQuestion } from '../utils/diagnosticContext.js'
+import * as fs from 'fs'
+import * as path from 'path'
+
+function detectDeployCapability(workspaceRoot: string | null): boolean {
+  if (!workspaceRoot) return false
+  const has = (p: string) => fs.existsSync(path.join(workspaceRoot, p))
+  if (has('package.json')) {
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(path.join(workspaceRoot, 'package.json'), 'utf8'))
+      if (packageJson.scripts && (packageJson.scripts.deploy || packageJson.scripts.publish)) return true
+    } catch {}
+    if (has('electron-builder.yml') || has('electron-builder.json')) return true
+    if (has('vercel.json') || has('netlify.toml')) return true
+  }
+  if (has('Dockerfile')) return true
+  return false
+}
+
 export type ConversationMode =
   | 'chat'
+  | 'help'
   | 'question'
   | 'inspect'
   | 'execute'
+  | 'self_check'
   | 'follow_up'
   | 'recovery'
   | 'settings'
@@ -56,7 +77,83 @@ type BuildConversationReplyArgs = {
   latestRun?: ConversationRunReference | null
 }
 
+export function buildConversationReply(args: BuildConversationReplyArgs): { intent: string; message: string } {
+  const { routedTurn, workspaceLabel, latestRun } = args
+
+  switch (routedTurn.mode) {
+    case 'self_check':
+      const ctx = resolveSelfCheckContext({ rawText: routedTurn.rawText, workspaceId: routedTurn.workspaceId, latestRun: latestRun })
+      if (shouldAskClarifyingQuestion(ctx)) {
+        return {
+          intent: 'self_check',
+          message: "I can run a self-check, but I don't see an active workspace. Which workspace should I inspect?",
+        }
+      }
+      return {
+        intent: 'self_check',
+        message: `I’m checking the current workspace and app state now. I’ll verify workspace, IPC, renderer, recovery, updater, and last-run integrity, then report what needs attention.`,
+      }
+    case 'question':
+      return {
+        intent: 'question',
+        message: buildVerifiedRunSentence(latestRun),
+      }
+    case 'help':
+      return {
+        intent: 'help',
+        message: buildHelpReply({ workspaceLabel, canDeploy: detectDeployCapability(routedTurn.workspaceId || null) }),
+      }
+    case 'inspect':
+      return {
+        intent: 'inspect',
+        message: `I’ll stay inspect-first here. I can look through ${workspaceLabel || 'the current workspace'}${latestRun?.runId ? ' with the latest run proof alongside it' : ''} before we change anything.`,
+      }
+    case 'follow_up':
+      return {
+        intent: 'follow_up',
+        message: latestRun?.runId
+          ? `I’m treating that as a follow-up to the last run, not an automatic rerun. I can inspect the proof trail first or rerun it on the trusted path when you want.`
+          : `I’m treating that as a follow-up to the last run, but I won’t auto-rerun anything. I can inspect the latest run first or rerun it on the trusted path when you confirm.`,
+      }
+    case 'recovery':
+      return {
+        intent: 'recovery',
+        message: latestRun?.interrupted
+          ? `The latest run looks interrupted. I can inspect the receipt, explain what likely happened, and line up the safest next recovery step before we resume anything.`
+          : `I don’t see an interrupted run yet, so the safest move is to inspect the latest run or the current workspace first.`,
+      }
+    case 'settings':
+      return {
+        intent: 'settings',
+        message: `That sounds like a settings change. I can point you to Settings or help inspect what is already configured before we change anything.`,
+      }
+    case 'memory_update':
+      return {
+        intent: 'memory_update',
+        message: `I’m treating that as an explicit preference, not a hidden write. If you want it saved, make it owner-visible in Settings > Memory so it stays reviewable.`,
+      }
+    case 'chat':
+      return {
+        intent: 'chat',
+        message: `Hi. I’m here and ready. I can talk through the workspace, explain the latest run, or help line up the next move.`,
+      }
+    case 'unclear':
+      return {
+        intent: 'unclear',
+        message: `I need one anchor before I act. I can inspect ${workspaceLabel || 'the current workspace'}${latestRun?.runId ? ' or the latest run proof' : ''}, then line up the safest next step.`,
+      }
+    default:
+      return {
+        intent: routedTurn.mode,
+        message: `I understand you want to ${routedTurn.mode}. Let me help with that.`,
+      }
+  }
+}
+
 const EXECUTION_KEYWORDS = /\b(build|test|tests|deploy|fix|repair|lint|analy[sz]e|diagnos(?:e|tics?))\b/i
+const SELF_CHECK_TRIGGERS = /\b(scan yourself|check yourself|what needs fixed|diagnose the app|inspect current state|check the workbench|why are you not helping|what is broken right now)\b/i
+const HELP_WORDS =
+  /\b(what can u do|what can you do|what do you do|help me|help\b|what are your capabilities|what can rina do|show capabilities)\b/i
 const QUESTION_WORDS = /^(why|what|how|did|does|is|are|can|could|would|should)\b/i
 const SOCIAL_WORDS = /\b(lol|haha|fair|thanks|thank you|funny|nice|cool|okay|ok)\b/i
 const VAGUE_WORK_WORDS = /\b(make this work|make it work|fix whatever is broken|this is broken|what failed|what's wrong|what is wrong|look into this|inspect this|check this)\b/i
@@ -67,16 +164,48 @@ const SETTINGS_WORDS = /\b(settings|preferences|memory panel|theme|density|owner
 const RECOVERY_WORDS = /\b(resume|recover|restored|interrupted|pick up where we left off)\b/i
 const OFF_BOUNDARY_WORDS = /\b(poem|horoscope|astrology|tell me a bedtime story)\b/i
 
+/**
+ * Resolves self-check context from routing args (no full WorkbenchState available).
+ */
+function resolveSelfCheckContext(args: RouteConversationTurnArgs): {
+  workspaceRoot: string | null
+  sessionId: string | null
+  lastRunId: string | null
+} {
+  return resolveDiagnosticContext({
+    workspaceRoot: args.workspaceId || null,
+    sessionId: args.latestRun?.sessionId || null,
+    lastRunId: args.latestRun?.runId || null,
+  })
+}
+
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
 }
 
+function stripAssistantPrefix(value: string): string {
+  return value.replace(/^rina[\s,:-]*/i, '').trim()
+}
+
+function stripConversationalPrefix(value: string): string {
+  return value
+    .replace(/^(?:hey|hi|hello|yo|sup)[\s,!.-]*/i, '')
+    .replace(/^rina[\s,:!-]*/i, '')
+    .trim()
+}
+
+function isGreetingTurn(rawText: string): boolean {
+  const normalized = stripAssistantPrefix(normalizeWhitespace(rawText).toLowerCase())
+  if (!normalized) return false
+  return /^(?:hey|hi|hello|yo|sup)(?:\s+(?:there|rina))?[!.?]*$/.test(normalized)
+}
+
 function classifyExecutionGoal(rawText: string): RoutedTurn['executionCandidate'] | null {
   const normalized = rawText.toLowerCase()
-  if (/\bbuild\b/.test(normalized)) return { goal: 'build', risk: 'low' }
-  if (/\btests?\b/.test(normalized)) return { goal: 'test', risk: 'low' }
-  if (/\bdeploy\b/.test(normalized)) return { goal: 'deploy', risk: 'medium' }
   if (/\bfix|repair\b/.test(normalized)) return { goal: 'fix', risk: 'medium' }
+  if (/\bbuild\b/.test(normalized)) return { goal: 'build_project', risk: 'low' }
+  if (/\btests?\b/.test(normalized)) return { goal: 'run_tests', risk: 'low' }
+  if (/\bdeploy\b/.test(normalized)) return { goal: 'deploy_project', risk: 'medium' }
   if (/\bdiagnos(?:e|tics?)\b/.test(normalized)) return { goal: 'diagnose', risk: 'low' }
   if (/\blint|analy[sz]e\b/.test(normalized)) return { goal: 'inspect', risk: 'low' }
   return null
@@ -84,8 +213,37 @@ function classifyExecutionGoal(rawText: string): RoutedTurn['executionCandidate'
 
 export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTurn {
   const rawText = normalizeWhitespace(String(args.rawText || ''))
-  const lower = rawText.toLowerCase()
+  const conversationalText = stripConversationalPrefix(rawText)
+  const lower = conversationalText.toLowerCase()
   const latestRun = args.latestRun || null
+
+  if (SELF_CHECK_TRIGGERS.test(conversationalText)) {
+    const ctx = resolveSelfCheckContext(args)
+    if (shouldAskClarifyingQuestion(ctx)) {
+      return {
+        rawText,
+        mode: 'self_check',
+        confidence: 1.0,
+        workspaceId: args.workspaceId,
+        references: {},
+        allowedNextAction: 'clarify',
+        clarification: {
+          required: true,
+          reason: 'no_context',
+          question: "I can run a self-check, but I don't see an active workspace. Which workspace should I inspect?",
+        },
+      }
+    }
+    return {
+      rawText,
+      mode: 'self_check',
+      confidence: 1.0,
+      workspaceId: args.workspaceId,
+      references: { runId: ctx.lastRunId || undefined },
+      allowedNextAction: 'execute',
+      executionCandidate: { goal: 'self-check', risk: 'low' as const },
+    }
+  }
 
   if (!rawText) {
     return {
@@ -100,6 +258,28 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
         reason: 'empty_turn',
         question: 'What do you want me to look at: the current workspace or the last run?',
       },
+    }
+  }
+
+  if (isGreetingTurn(rawText) || isGreetingTurn(conversationalText)) {
+    return {
+      rawText,
+      mode: 'chat',
+      confidence: 0.95,
+      workspaceId: args.workspaceId,
+      references: { runId: latestRun?.runId },
+      allowedNextAction: 'reply_only',
+    }
+  }
+
+  if (HELP_WORDS.test(lower)) {
+    return {
+      rawText,
+      mode: 'help',
+      confidence: 0.96,
+      workspaceId: args.workspaceId,
+      references: { runId: latestRun?.runId },
+      allowedNextAction: 'reply_only',
     }
   }
 
@@ -225,7 +405,21 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
   }
 
   if (EXECUTION_KEYWORDS.test(lower)) {
-    const executionCandidate = classifyExecutionGoal(rawText)
+    const executionCandidate = classifyExecutionGoal(conversationalText || rawText)
+    if (executionCandidate?.goal === 'deploy_project' && !detectDeployCapability(args.workspaceId || null)) {
+      return {
+        rawText,
+        mode: 'execute',
+        confidence: 0.86,
+        workspaceId: args.workspaceId,
+        references: { runId: latestRun?.runId },
+        allowedNextAction: 'plan',
+        executionCandidate: {
+          ...executionCandidate,
+          constraints: ['deployment_target_required'],
+        },
+      }
+    }
     return {
       rawText,
       mode: 'execute',
@@ -261,7 +455,7 @@ function formatLatestRunLabel(latestRun?: ConversationRunReference | null): stri
 
 function buildVerifiedRunSentence(latestRun?: ConversationRunReference | null): string {
   if (!latestRun?.runId) {
-    return "I don't have a verified run to anchor that to yet."
+    return "I don't have proof yet. If you want, I can inspect the workspace or line up a plan without pretending a run already happened."
   }
   if (latestRun.interrupted) {
     return `The latest run was interrupted before it finished cleanly. I can inspect it or help you resume from there.`
@@ -274,69 +468,12 @@ function buildVerifiedRunSentence(latestRun?: ConversationRunReference | null): 
   return `The latest run is still proof-pending. I can inspect the current state before we say anything stronger.`
 }
 
-export function buildConversationReply(args: BuildConversationReplyArgs): { intent: string; message: string } {
-  const workspaceLabel = args.workspaceLabel || 'this workspace'
-  const latestRunLabel = formatLatestRunLabel(args.latestRun)
-  const { routedTurn } = args
-
-  switch (routedTurn.mode) {
-    case 'chat':
-      if (OFF_BOUNDARY_WORDS.test(routedTurn.rawText.toLowerCase())) {
-        return {
-          intent: 'chat',
-          message: `I can keep the tone human, but I am at my best around real work in ${workspaceLabel}. If you want, I can inspect the project, the latest run, or the next safe move.`,
-        }
-      }
-      return {
-        intent: 'chat',
-        message: `Fair. I'm still anchored to ${workspaceLabel}. If you want a next move, I can inspect ${latestRunLabel} or line up the safest step from here.`,
-      }
-    case 'question':
-      return {
-        intent: 'question',
-        message: buildVerifiedRunSentence(args.latestRun),
-      }
-    case 'inspect':
-      return {
-        intent: 'inspect',
-        message: `I can inspect ${workspaceLabel} first and use ${latestRunLabel} as the starting clue, then I'll suggest the safest next step without guessing.`,
-      }
-    case 'follow_up':
-      return {
-        intent: 'follow_up',
-        message: args.latestRun?.runId
-          ? `I'm treating that as ${latestRunLabel}. If you want, I can rerun it on the trusted path or open the proof trail first.`
-          : `I can help with that, but I need one anchor first: do you mean the current workspace or the last run?`,
-      }
-    case 'recovery':
-      return {
-        intent: 'recovery',
-        message: args.latestRun?.interrupted
-          ? `I still have the interrupted run in view. I can inspect the recovered state first, or you can ask me to resume ${latestRunLabel} when you're ready.`
-          : `I don't have an active interrupted run to resume right now, but I can inspect the latest receipts and show you what is still relevant.`,
-      }
-    case 'settings':
-      return {
-        intent: 'settings',
-        message: 'I can help with preferences and memory, but I keep those changes explicit and owner-visible. Open Settings and I will keep the path clean from there.',
-      }
-    case 'memory_update':
-      return {
-        intent: 'memory_update',
-        message:
-          "That sounds like an explicit preference. In this phase I keep memory changes owner-visible, so save it in Settings > Memory and I'll use it consistently from there.",
-      }
-    case 'unclear':
-      return {
-        intent: 'unclear',
-        message:
-          routedTurn.clarification?.question ||
-          `I can help with that, but I need one anchor: do you mean ${workspaceLabel} or ${latestRunLabel}?`,
-      }
-    default:
-      return {
-        intent: 'chat',
-        message: `I can help from ${workspaceLabel}. If you want, I can inspect the current state first and keep the next step grounded in proof.`,
-      }
-  }
+function buildHelpReply(args: { workspaceLabel?: string; canDeploy: boolean }): string {
+  const workspaceText = args.workspaceLabel
+    ? `In ${args.workspaceLabel}, I can help with project work, explain runs, inspect receipts, and keep changes grounded in the current workspace.`
+    : `I can help with project work, explain runs, inspect receipts, and stay grounded once you choose a workspace.`
+  const deployText = args.canDeploy
+    ? `I can help build, test, and deploy when the project is ready.`
+    : `I can help build and test now, and I can help line up deployment once we confirm the target.`
+  return `${workspaceText} ${deployText} I can also scan myself, explain the latest run, and help you choose the safest next step without kicking off extra work just to answer a help question.`
 }

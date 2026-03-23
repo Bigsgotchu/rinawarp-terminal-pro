@@ -83,7 +83,12 @@ export function registerLicenseIpc(deps: {
       return { ok: true }
     } catch {
       await deps.shell.openExternal('https://billing.stripe.com/p/login')
-      return { ok: true, fallback: true }
+      return {
+        ok: true,
+        fallback: true,
+        degraded: true,
+        error: 'Opened generic billing portal because the account-specific portal was unavailable',
+      }
     }
   })
 

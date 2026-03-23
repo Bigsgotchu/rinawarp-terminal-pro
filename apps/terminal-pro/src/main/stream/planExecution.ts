@@ -89,6 +89,7 @@ export function createPlanExecutionHelpers(deps) {
       return { ok: false, message: 'No running plan for that planRunId.' }
     }
     state.stopped = true
+    const failures = []
     if (state.agentdPlanRunId) {
       try {
         await agentdJson('/v1/cancel', {
@@ -96,14 +97,22 @@ export function createPlanExecutionHelpers(deps) {
           body: { planRunId: state.agentdPlanRunId, reason: 'user' },
           includeLicenseToken: true,
         })
-      } catch {}
+      } catch (error) {
+        failures.push(error instanceof Error ? error.message : String(error))
+      }
     }
     if (state.currentStreamId) {
       try {
         await cancelStream(state.currentStreamId)
-      } catch {}
+      } catch (error) {
+        failures.push(error instanceof Error ? error.message : String(error))
+      }
     }
-    return { ok: true }
+    return {
+      ok: failures.length === 0,
+      degraded: failures.length > 0,
+      message: failures.length > 0 ? failures.join(' | ') : 'Cancellation requested.',
+    }
   }
 
   async function streamCancelForIpc(streamId) {

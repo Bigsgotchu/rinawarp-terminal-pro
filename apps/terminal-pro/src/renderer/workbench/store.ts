@@ -2,6 +2,7 @@ export type {
   CapabilityPackModel,
   CenterView,
   ChatMessage,
+  DeploymentState,
   DrawerView,
   ExecutionTraceBlock,
   FixBlockModel,
@@ -23,6 +24,7 @@ export type {
 } from './types.js'
 
 import type { WorkbenchAction, WorkbenchState } from './types.js'
+import { deriveDeploymentState } from './deploymentState.js'
 
 type Listener = (state: WorkbenchState) => void
 
@@ -151,7 +153,12 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
         ...state,
         activeTab: 'agent',
         activeCenterView:
-          action.view === 'execution-trace' || action.view === 'runs' || action.view === 'marketplace' || action.view === 'code' || action.view === 'brain'
+          action.view === 'execution-trace' ||
+          action.view === 'runs' ||
+          action.view === 'receipt' ||
+          action.view === 'marketplace' ||
+          action.view === 'code' ||
+          action.view === 'brain'
             ? action.view
             : state.activeCenterView,
         activeRightView: action.view === 'diagnostics' ? 'diagnostics' : 'agent',
@@ -279,11 +286,11 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
           runIds: [...new Set([...(message.runIds || []), ...linkedIds])],
         }
       })
-      return {
+      return withDerivedDeployment({
         ...state,
         chat: nextChat,
         runs: nextRuns,
-      }
+      })
     }
 
     case 'runs/upsert': {
@@ -291,7 +298,7 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
       const runs = [...state.runs]
       if (index >= 0) runs[index] = { ...runs[index], ...action.run }
       else runs.unshift(action.run)
-      return { ...state, runs: runs.slice(0, 50) }
+      return withDerivedDeployment({ ...state, runs: runs.slice(0, 50) })
     }
 
     case 'runs/appendOutputTail':
@@ -313,13 +320,16 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
       }
 
     case 'runs/setArtifactSummary':
-      return {
+      return withDerivedDeployment({
         ...state,
         runArtifactSummaryByRunId: {
           ...state.runArtifactSummaryByRunId,
           [action.runId]: action.summary,
         },
-      }
+      })
+
+    case 'deployment/set':
+      return { ...state, deployment: action.deployment }
 
     case 'code/setFiles':
       return { ...state, code: { files: action.files.slice(0, 200) } }
@@ -423,7 +433,17 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
         },
       }
 
+    case 'receipt/set':
+      return withDerivedDeployment({ ...state, receipt: action.receipt })
+
     default:
       return state
+  }
+}
+
+function withDerivedDeployment(state: WorkbenchState): WorkbenchState {
+  return {
+    ...state,
+    deployment: deriveDeploymentState(state),
   }
 }

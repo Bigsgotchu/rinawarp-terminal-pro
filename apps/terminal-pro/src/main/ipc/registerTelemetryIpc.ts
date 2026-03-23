@@ -13,30 +13,36 @@ const { ipcMain } = electron
  */
 
 export function registerTelemetryIpc() {
+  function toIpcResult(result: telemetry.TelemetryDispatchResult, event: string) {
+    return {
+      ok: result.accepted,
+      accepted: result.accepted,
+      connected: result.connected,
+      degraded: Boolean(result.degraded),
+      event,
+      error: result.error,
+    }
+  }
+
   // Session tracking
   ipcMain.handle('telemetry:sessionStart', async () => {
-    telemetry.trackSessionStart()
-    return { ok: true }
+    return toIpcResult(telemetry.trackSessionStart(), 'session:start')
   })
 
   ipcMain.handle('telemetry:sessionEnd', async () => {
-    telemetry.trackSessionEnd()
-    return { ok: true }
+    return toIpcResult(telemetry.trackSessionEnd(), 'session:end')
   })
 
   // Action tracking
   ipcMain.handle('telemetry:commandRun', async () => {
-    telemetry.trackCommandRun()
-    return { ok: true }
+    return toIpcResult(telemetry.trackCommandRun(), 'command:run')
   })
 
   ipcMain.handle('telemetry:aiMessage', async () => {
-    telemetry.trackAiMessage()
-    return { ok: true }
+    return toIpcResult(telemetry.trackAiMessage(), 'ai:message')
   })
 
   ipcMain.handle('telemetry:quickFix', async () => {
-    telemetry.trackQuickFix()
-    return { ok: true }
+    return toIpcResult(telemetry.trackQuickFix(), 'quickfix:apply')
   })
 }

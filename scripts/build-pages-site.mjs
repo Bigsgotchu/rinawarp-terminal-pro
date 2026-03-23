@@ -10,6 +10,7 @@ const packageJson = JSON.parse(await readFile(path.join(repoRoot, "apps", "termi
 
 const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
 const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
+const PRIMARY_UPDATES_BASE = "https://rinawarptech.com/releases";
 const VERSION = String(packageJson.version);
 const ASSET_VERSION = "20260322-success-handoff";
 
@@ -557,10 +558,13 @@ if (page === 'account') {
 function seo(path, title, description) {
   const canonical = `https://rinawarptech.com${path}`;
   const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.svg";
+  const noindexPaths = new Set(["/account", "/login", "/register", "/forgot-password", "/reset-password", "/success/"]);
+  const robots = noindexPaths.has(path) ? 'noindex, nofollow' : 'index, follow';
   return `
   <title>${title}</title>
   <meta name="description" content="${description}">
   <meta name="author" content="RinaWarp Technologies, LLC">
+  <meta name="robots" content="${robots}">
   <link rel="canonical" href="${canonical}">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
@@ -735,11 +739,11 @@ const pages = [
     copy: "Install the desktop workbench, inspect the live release manifest, and choose the package path that matches how you want updates delivered.",
     content: `
       <section class="section"><div class="download-grid">
-        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and is the easiest way to get running on a clean machine, but you should expect to install newer <strong>.deb</strong> packages manually. <strong>AppImage</strong> is the Linux path for <strong>in-app updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p><div class="link-row"><a href="/download/linux/deb" class="btn btn-primary">Download Linux .deb</a><a href="${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary">Download AppImage</a><a href="${UPDATES_BASE}/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install.</p></article>
+        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and is the easiest way to get running on a clean machine, but you should expect to install newer <strong>.deb</strong> packages manually. <strong>AppImage</strong> is the Linux path for <strong>in-app updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p><div class="link-row"><a href="/download/linux/deb" class="btn btn-primary">Download Linux .deb</a><a href="${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary">Download AppImage</a><a href="${PRIMARY_UPDATES_BASE}/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install.</p></article>
         <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p><div class="link-row"><a href="${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary">Download Windows</a></div></article>
         <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS signing is not enabled yet. We would rather say that plainly than ship a rough installer path we cannot support.</p><div class="link-row"><a href="/feedback/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${UPDATES_BASE}/latest.json" class="btn btn-secondary">Open latest.json</a></div><p class="section-copy">If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${PRIMARY_UPDATES_BASE}/latest.json" class="btn btn-secondary">Open latest.json</a><a href="${PRIMARY_UPDATES_BASE}/latest.yml" class="btn btn-secondary">Open latest.yml</a><a href="${PRIMARY_UPDATES_BASE}/latest-linux.yml" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The canonical updater feed lives on <code>rinawarptech.com/releases/*</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
     `
   },
   {
@@ -871,14 +875,15 @@ const pages = [
           <div class="link-row"><a href="/login/" class="btn btn-primary">Sign In</a><a href="/register/" class="btn btn-secondary">Create Account</a><a href="/early-access/" class="btn btn-secondary">Early Access Policy</a></div>
         </div>
         <div class="auth-card stack" id="account-state" hidden>
-          <h2 class="section-title" id="account-name">Loading…</h2>
+          <h2 class="section-title" id="account-name">Loading your account</h2>
           <p id="account-email" class="section-copy"></p>
           <div class="pill" id="account-tier">—</div>
-          <p id="account-tier-note" class="section-copy"></p>
+          <p id="account-tier-note" class="section-copy">We verify your signed-in tier and billing state before showing live controls.</p>
           <div class="link-row"><button class="btn btn-primary" id="billing-portal-btn" type="button">Open billing portal</button><button class="btn btn-secondary" id="logout-btn" type="button">Sign out</button></div>
         </div>
         <div class="auth-card stack" id="restore">
           <h2 class="section-title">Restore Pro access</h2>
+          <p class="section-copy">Use the same billing email from checkout. This works even if your full account state has not loaded yet.</p>
           <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message"></p></form>
         </div>
       </div></section>
@@ -895,15 +900,15 @@ const pages = [
     copy: "Stripe payment succeeded. The next step is simple: install the app, open Account inside the app, and restore the purchase with the same billing email you just used.",
     content: `
       <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">1. Install</div><h3>Download the app</h3><p>Use the Windows installer or choose the Linux path that matches how you want updates to work: <strong>.deb</strong> for the easiest Debian/Ubuntu install, or <strong>AppImage</strong> if you want Linux in-app updates.</p><div class="link-row"><a href="/download/" class="btn btn-primary">Open downloads</a></div></article>
+        <article class="card"><div class="kicker">1. Install</div><h3>Download the app</h3><p>Use the Windows installer or choose the Linux path that matches how you want updates to work: <strong>.deb</strong> for the easiest Debian/Ubuntu install, or <strong>AppImage</strong> if you want Linux in-app updates.</p><div class="link-row"><a href="/download/" class="btn btn-primary">Open download page</a></div></article>
         <article class="card"><div class="kicker">2. Restore</div><h3>Use your billing email</h3><p>Open Account in the app and restore paid access using <strong data-success-email>the billing email you used at checkout</strong>.</p><div class="link-row"><a id="success-restore-link" href="/account/" class="btn btn-secondary">Open account help</a></div></article>
         <article class="card"><div class="kicker">3. Verify</div><h3>Make sure the tier shows up</h3><p>Your plan should show as <strong id="success-plan">Pro Early Access</strong>. If it does not, use billing restore or contact support.</p><div class="link-row"><a href="/feedback/?topic=billing" class="btn btn-secondary">Get billing help</a></div></article>
       </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Checkout receipt details</h2>
         <div class="grid three-up">
-          <article class="card"><div class="kicker">Billing email</div><h3 data-success-email>Not captured</h3><p>This is the email to use for restore on this or another device.</p></article>
-          <article class="card"><div class="kicker">Session ID</div><h3 id="success-session-id">Pending</h3><p>Keep this handy if support needs to trace the checkout.</p></article>
+          <article class="card"><div class="kicker">Billing email</div><h3 data-success-email>Waiting for checkout sync</h3><p>This will update from the Stripe session when available. Use the same billing email for restore on this or another device.</p></article>
+          <article class="card"><div class="kicker">Session ID</div><h3 id="success-session-id">Waiting for checkout sync</h3><p>This appears after the success page receives the checkout session details. Keep it handy if support needs to trace the payment.</p></article>
           <article class="card"><div class="kicker">Seats / workspace</div><h3><span id="success-seats">1</span> seat(s)</h3><p>Workspace: <span id="success-workspace">Not attached during checkout</span></p></article>
         </div>
         <div class="cta-row">
@@ -930,14 +935,37 @@ const REDIRECTS = `
 /download/linux/deb/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb 302
 /download/checksums ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
 /download/checksums/ ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
-/releases/latest.json ${UPDATES_BASE}/latest.json 302
-/releases/latest.yml ${UPDATES_BASE}/latest.yml 302
-/releases/latest-linux.yml ${UPDATES_BASE}/latest-linux.yml 302
-/releases/stable/latest.json ${UPDATES_BASE}/stable/latest.json 302
-/releases/stable/latest.yml ${UPDATES_BASE}/stable/latest.yml 302
-/releases/stable/latest-linux.yml ${UPDATES_BASE}/stable/latest-linux.yml 302
-/releases/SHASUMS256.txt ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
+/downloads /download/ 301
+/downloads/ /download/ 301
+/downloads/* /download/:splat 301
 `.trim() + "\n";
+
+const ROBOTS_TXT = `User-agent: *
+Allow: /
+Disallow: /account/
+Disallow: /login/
+Disallow: /register/
+Disallow: /forgot-password/
+Disallow: /reset-password/
+Disallow: /success/
+
+Sitemap: https://rinawarptech.com/sitemap.xml
+`;
+
+const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://rinawarptech.com/</loc></url>
+  <url><loc>https://rinawarptech.com/pricing/</loc></url>
+  <url><loc>https://rinawarptech.com/team/</loc></url>
+  <url><loc>https://rinawarptech.com/download/</loc></url>
+  <url><loc>https://rinawarptech.com/docs/</loc></url>
+  <url><loc>https://rinawarptech.com/feedback/</loc></url>
+  <url><loc>https://rinawarptech.com/early-access/</loc></url>
+  <url><loc>https://rinawarptech.com/terms/</loc></url>
+  <url><loc>https://rinawarptech.com/privacy/</loc></url>
+  <url><loc>https://rinawarptech.com/agents</loc></url>
+</urlset>
+`;
 
 await rm(outdir, { recursive: true, force: true });
 await mkdir(path.join(outdir, "assets", "img"), { recursive: true });
@@ -946,6 +974,8 @@ await writeFile(path.join(outdir, "assets", "site.js"), SITE_JS, "utf8");
 await writeFile(path.join(outdir, "assets", "img", "rinawarp-mark.svg"), LOGO_SVG, "utf8");
 await writeFile(path.join(outdir, "assets", "img", "rinawarp-logo.svg"), LOGO_SVG, "utf8");
 await writeFile(path.join(outdir, "_redirects"), REDIRECTS, "utf8");
+await writeFile(path.join(outdir, "robots.txt"), ROBOTS_TXT, "utf8");
+await writeFile(path.join(outdir, "sitemap.xml"), SITEMAP_XML, "utf8");
 
 for (const page of pages) {
   await writeRoute(page.route, shell(page));

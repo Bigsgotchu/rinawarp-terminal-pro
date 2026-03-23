@@ -364,7 +364,8 @@ function buildRecommendedNextSteps(
     }
     if (intent === 'deploy') {
       return [
-        { title: 'Verify the live target', text: 'Check the deployed target and keep the receipt nearby in case we need to audit the release.', badge: 'Recommended', strongTitle: true },
+        { title: 'Verify the live target', text: 'Check the deployed URL, target identity, and build proof before treating the release as complete.', badge: 'Recommended', strongTitle: true },
+        { title: 'Confirm rollback truth', text: 'Make sure rollback is truly available for this target instead of assuming the provider can undo it.' },
       ]
     }
     return [{ title: 'Inspect the receipt trail', text: 'That keeps the next step grounded in the same proof-backed path.', badge: 'Recommended', strongTitle: true }]
@@ -386,6 +387,7 @@ function buildRecommendedNextSteps(
     return [
       { title: 'Inspect the deploy target and trace', text: 'That will tell us whether the failure was configuration, packaging, or provider-side.', badge: 'Recommended', strongTitle: true },
       { title: 'Ask for a rollback-safe recovery plan', text: 'Rina can map the safest next move without pretending the release landed.' },
+      { title: 'Check whether rollback is real', text: 'Some targets need manual rollback, and the receipt should say that clearly.' },
     ]
   }
   return [
@@ -406,7 +408,10 @@ function buildRecommendedActions(
       return [{ label: 'Build this project', prompt: 'Build this project through the trusted path.' }]
     }
     if (intent === 'deploy') {
-      return [{ label: 'Summarize the deploy target', prompt: `Summarize the deploy target and proof for: ${reply.command}` }]
+      return [
+        { label: 'Summarize the deploy target', prompt: `Summarize the deploy target and proof for: ${reply.command}` },
+        { label: 'Verify deploy proof', prompt: `Verify the deployed URL, target identity, and build evidence for: ${reply.command}` },
+      ]
     }
     return []
   }
@@ -426,6 +431,7 @@ function buildRecommendedActions(
   if (intent === 'deploy') {
     return [
       { label: 'Recommend the safest recovery', prompt: `Recommend the safest recovery after this failed deploy: ${reply.command}` },
+      { label: 'Check rollback truth', prompt: `Check whether rollback is truly available or manual for this failed deploy: ${reply.command}` },
       { label: 'Inspect deploy trace', tab: 'execution-trace' },
     ]
   }

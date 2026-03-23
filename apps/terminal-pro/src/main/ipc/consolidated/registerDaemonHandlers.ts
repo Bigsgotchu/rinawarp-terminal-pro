@@ -167,7 +167,7 @@ export function registerDaemonHandlers({
         return await getStatus()
       } catch (error) {
         console.error('[IPC] rina:getStatus error:', error)
-        return { mode: 'assist', tools: [], agentRunning: false, memoryStats: { conversationCount: 0, learnedCommandsCount: 0, projectsCount: 0 } }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })
   }
@@ -179,7 +179,7 @@ export function registerDaemonHandlers({
         return await getMode()
       } catch (error) {
         console.error('[IPC] rina:getMode error:', error)
-        return 'assist'
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })
   }
@@ -203,7 +203,7 @@ export function registerDaemonHandlers({
         return await getPlans()
       } catch (error) {
         console.error('[IPC] rina:getPlans error:', error)
-        return []
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })
   }
@@ -215,7 +215,7 @@ export function registerDaemonHandlers({
         return await getTools()
       } catch (error) {
         console.error('[IPC] rina:getTools error:', error)
-        return []
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })
   }

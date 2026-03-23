@@ -75,6 +75,13 @@ jobs:
           ELECTRON_DISABLE_SANDBOX: "1"
         run: xvfb-run -a npm --workspace apps/terminal-pro run e2e:smoke
 
+      - name: Run Electron proof and trust suite
+        env:
+          CI: "1"
+          RINAWARP_E2E: "1"
+          ELECTRON_DISABLE_SANDBOX: "1"
+        run: npm --workspace apps/terminal-pro run test:e2e:core
+
       - name: Build CI failure bundle
         if: failure()
         env:

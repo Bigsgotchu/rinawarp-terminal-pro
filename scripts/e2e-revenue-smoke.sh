@@ -28,7 +28,7 @@ rm -f "$download_tmp"
 echo "[e2e:revenue] Running desktop revenue flow E2E"
 (
   cd apps/terminal-pro
-  npx playwright test tests/e2e/revenue-flow.electron.spec.ts -c tests/playwright.config.ts --reporter=line
+  bash scripts/run-electron-playwright.sh tests/e2e/revenue-flow.electron.spec.ts
 )
 
 echo "[e2e:revenue] PASS"

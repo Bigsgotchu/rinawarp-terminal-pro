@@ -6,6 +6,11 @@ export function registerUtilityHandlers({ ipcMain }: ConsolidatedIpcArgs): void 
   })
 
   ipcMain.handle('utility:devtoolsToggle', async () => {
-    return { ok: true, opened: false }
+    return {
+      ok: false,
+      opened: false,
+      error: 'utility:devtoolsToggle is registered, but no BrowserWindow bridge was provided here.',
+      degraded: true,
+    }
   })
 }

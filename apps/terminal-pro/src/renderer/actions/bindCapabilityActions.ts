@@ -1,4 +1,5 @@
 import type { WorkbenchActionControllerDeps, WorkbenchActionFixBlockManager } from './actionController.js'
+import { resetUserTurnSubmitGuard } from './conversationOwner.js'
 import { WorkbenchStore } from '../workbench/store.js'
 
 export function createCapabilityActionHandler<TFixBlockManager extends WorkbenchActionFixBlockManager>(
@@ -36,6 +37,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
     if (installBtn) {
       const agentName = String(installBtn.dataset.marketInstall || '')
       if (!agentName) return true
+      resetUserTurnSubmitGuard()
 
       const premiumLocked = store.getState().license.tier === 'starter'
         && store.getState().marketplace.agents.find((agent) => agent.name === agentName)?.price
@@ -56,6 +58,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
           store.dispatch({ type: 'marketplace/setError', error: undefined })
           await deps.refreshMarketplace(store)
           await deps.refreshCapabilityPacks(store)
+          resetUserTurnSubmitGuard()
         }
       } catch (error) {
         store.dispatch({
@@ -69,6 +72,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
     const capabilityInstallBtn = target.closest<HTMLElement>('[data-capability-install]')
     if (capabilityInstallBtn?.dataset.capabilityInstall) {
       const packKey = capabilityInstallBtn.dataset.capabilityInstall
+      resetUserTurnSubmitGuard()
       try {
         const cached = await window.rina.licenseCachedEmail?.()
         const result = await window.rina.installMarketplaceAgent?.({ name: packKey, userEmail: cached?.email || undefined })
@@ -81,6 +85,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
           store.dispatch({ type: 'capabilities/setError', error: undefined })
           await deps.refreshMarketplace(store)
           await deps.refreshCapabilityPacks(store)
+          resetUserTurnSubmitGuard()
         }
       } catch (error) {
         store.dispatch({
@@ -99,7 +104,9 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
 
     const capabilityRunBtn = target.closest<HTMLElement>('[data-capability-run]')
     if (capabilityRunBtn?.dataset.capabilityRun) {
-      const packKey = capabilityRunBtn.dataset.capabilityRun
+      const packKey = String(capabilityRunBtn.dataset.capabilityRun || '').split('|')[0] || ''
+      const actionId = capabilityRunBtn.dataset.capabilityActionId || undefined
+      if (!packKey) return true
       const workspaceRoot = deps.getAgentWorkspaceRoot()
       if (!workspaceRoot) {
         deps.setTransientStatusSummary(store, 'Missing workspace root')
@@ -111,6 +118,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
       }
       const result = await window.rina.executeCapability({
         packKey,
+        actionId,
         projectRoot: workspaceRoot,
       })
       const planSteps = Array.isArray(result?.plan) ? deps.normalizePlanSteps(result.plan) : []
@@ -138,7 +146,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
             prompt: result?.prompt || `Run ${packKey} through the trusted runner.`,
             workspaceRoot,
             planSteps,
-            title: packKey,
+            title: result?.prompt || packKey,
             command:
               planSteps.map((step) => String(step?.input?.command || '')).filter(Boolean).join(' && ')
               || result?.prompt
