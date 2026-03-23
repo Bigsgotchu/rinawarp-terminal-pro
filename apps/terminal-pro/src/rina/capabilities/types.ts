@@ -35,3 +35,22 @@ export interface CapabilityPack {
   price?: number
   commands?: string[]
 }
+
+export interface CapabilityActionContract {
+  id: string
+  label: string
+  tool?: string
+  risk: CapabilityRisk
+  proof?: CapabilityProofKind[]
+  requiresConfirmation?: boolean
+}
+
+export interface CapabilityContract {
+  category: CapabilityPackCategory
+  tier?: CapabilityTier
+  permissions: CapabilityPermission[]
+  risk?: CapabilityRisk
+  proof?: CapabilityProofKind[]
+  tags?: string[]
+  actions: CapabilityActionContract[]
+}

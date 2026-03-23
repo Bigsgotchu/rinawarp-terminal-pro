@@ -10,8 +10,23 @@
   background: transparent;
 }
 
+.rw-runs-summary {
+  gap: 14px;
+  margin-block-end: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(87, 231, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(16, 22, 33, 0.92), rgba(10, 15, 24, 0.82)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.045), transparent 42%);
+}
+
 .rw-runs-toolbar {
   gap: 8px;
+}
+
+.rw-runs-toolbar {
+  gap: 10px;
 }
 
 .rw-runs-summary-copy {
@@ -26,6 +41,11 @@
   border-block-start: 1px solid rgba(255, 255, 255, 0.04);
 }
 
+.rw-runs-list {
+  gap: 14px;
+  border-block-start: 0;
+}
+
 .rw-run-card,
 .rw-run-block,
 .rw-market-card {
@@ -35,6 +55,16 @@
   background: transparent;
   box-shadow: none;
   position: relative;
+}
+
+.rw-run-block {
+  padding: 14px 16px;
+  border: 1px solid rgba(87, 231, 255, 0.08);
+  border-radius: 18px !important;
+  background:
+    linear-gradient(180deg, rgba(16, 22, 33, 0.92), rgba(10, 15, 24, 0.82)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.045), transparent 42%);
+  box-shadow: 0 10px 24px rgba(3, 8, 16, 0.18) !important;
 }
 
 .rw-run-card,

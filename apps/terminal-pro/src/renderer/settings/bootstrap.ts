@@ -5,17 +5,9 @@ import {
   type SettingsTabsOptions,
   type SettingsTabId,
 } from './tabs.js'
-import { mountGeneralPanel } from './panels/general.js'
-import { mountAccountPanel } from './panels/account.js'
-import { mountTeamPanel } from './panels/team.js'
-import { mountMemoryPanel } from './panels/memory.js'
-import { mountThemesPanel } from './panels/themes.js'
-import { mountDiagnosticsPanel } from './panels/diagnostics.js'
-import { mountAboutPanel } from './panels/about.js'
-import { mountLicensePanel } from './panels/license.js'
-import { mountRetrievalPanel } from './panels/retrieval.js'
-import { mountResearchPanel } from './panels/research.js'
-import { mountUpdatesPanel } from './panels/updates.js'
+import { SETTINGS_TABS } from './settingsRegistry.js'
+import { createSettingsShellModel } from './settingsShellModel.js'
+import { renderSettingsShell } from './settingsShellSurface.js'
 
 declare global {
   interface Window {
@@ -28,23 +20,16 @@ declare global {
 }
 
 function ensureSettingsHost(): HTMLElement {
-  const shellMarkup = `
-    <div class="rw-settings-shell">
-      <div class="rw-settings-rail" id="rw-settings-rail"></div>
-      <div class="rw-settings-body">
-        <div class="rw-settings-top">
-          <div class="rw-settings-title">Settings</div>
-          <button type="button" class="rw-btn rw-btn-ghost" id="rw-settings-close">Close</button>
-        </div>
-        <div class="rw-settings-content" id="rw-settings-content"></div>
-      </div>
-    </div>
-  `
+  const shellMarkup = renderSettingsShell(createSettingsShellModel(SETTINGS_TABS))
 
   const existing = document.querySelector<HTMLElement>('#rw-settings')
   if (existing) {
     // If host already exists from static HTML, ensure expected shell is present.
-    if (!existing.querySelector('#rw-settings-rail') || !existing.querySelector('#rw-settings-content')) {
+    if (
+      !existing.querySelector('#rw-settings-rail') ||
+      !existing.querySelector('#rw-settings-content') ||
+      !existing.querySelector('[data-settings-shell="true"]')
+    ) {
       existing.innerHTML = shellMarkup
     }
     return existing
@@ -99,24 +84,7 @@ export function initSettingsUi(): void {
   }
 
   const tabsApi = initSettingsTabs(
-    [
-      { id: 'account', label: 'Account', icon: '👤', mount: (el: HTMLElement) => void mountAccountPanel(el) },
-      { id: 'team', label: 'Team', icon: '👥', mount: (el: HTMLElement) => void mountTeamPanel(el) },
-      { id: 'general', label: 'General', icon: '⚡', mount: (el: HTMLElement) => mountGeneralPanel(el) },
-      { id: 'memory', label: 'Memory', icon: '🧠', mount: (el: HTMLElement) => void mountMemoryPanel(el) },
-      { id: 'themes', label: 'Themes', icon: '🎨', mount: (el: HTMLElement) => void mountThemesPanel(el) },
-      { id: 'retrieval', label: 'Retrieval', icon: '🔍', mount: (el: HTMLElement) => void mountRetrievalPanel(el) },
-      { id: 'research', label: 'Research', icon: '🌐', mount: (el: HTMLElement) => void mountResearchPanel(el) },
-      { id: 'updates', label: 'Updates', icon: '🔄', mount: (el: HTMLElement) => void mountUpdatesPanel(el) },
-      { id: 'license', label: 'License', icon: '🔑', mount: (el: HTMLElement) => void mountLicensePanel(el) },
-      {
-        id: 'diagnostics',
-        label: 'Diagnostics',
-        icon: '🧪',
-        mount: (el: HTMLElement) => void mountDiagnosticsPanel(el),
-      },
-      { id: 'about', label: 'About', icon: 'ℹ️', mount: (el: HTMLElement) => void mountAboutPanel(el) },
-    ],
+    SETTINGS_TABS,
     opts
   )
 

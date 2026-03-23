@@ -4,6 +4,8 @@
 import fs from 'fs'
 import path from 'path'
 
+import type { CapabilityContract } from './capabilities/types.js'
+
 const AGENTS_DIR = path.join(process.env.HOME || '.', '.rinawarp', 'agents')
 
 export interface AgentPackage {
@@ -17,6 +19,7 @@ export interface AgentPackage {
   }[]
   downloads?: number
   price?: number
+  capability?: CapabilityContract
 }
 
 export function installAgentPackage(agent: AgentPackage): AgentPackage {

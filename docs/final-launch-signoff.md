@@ -12,6 +12,8 @@ Desktop RC checklist:
 Live revenue runbook:
 
 - [LIVE_REVENUE_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/docs/LIVE_REVENUE_RUNBOOK.md)
+- [REVENUE_LAUNCH_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_LAUNCH_PLAN.md)
+- [REVENUE_EXECUTION_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_EXECUTION_CHECKLIST.md)
 
 Primary completion checklist:
 

@@ -297,6 +297,10 @@
   padding: 16px;
 }
 
+.rw-receipt-panel {
+  gap: 18px;
+}
+
 .rw-receipt-hero,
 .rw-receipt-section,
 .rw-receipt-guidance-card,
@@ -363,6 +367,10 @@
 .rw-receipt-preview-stack {
   display: grid;
   gap: 10px;
+}
+
+.rw-receipt-preview-stack {
+  gap: 14px;
 }
 
 .rw-receipt-grid {

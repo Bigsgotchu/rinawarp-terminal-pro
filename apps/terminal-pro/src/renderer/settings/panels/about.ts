@@ -1,42 +1,8 @@
+import { buildAboutPanelModel, formatAboutUpdateStatus, type AboutUpdateState } from './aboutModel.js'
+import { renderAboutPanel } from './aboutSurface.js'
+
 function getRina(): any {
   return (window as unknown as { rina: unknown }).rina
-}
-
-type UpdateState = {
-  status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'downloading' | 'downloaded' | 'unsupported' | 'error'
-  currentVersion: string
-  latestVersion: string | null
-  checkedAt: string | null
-  manifestUrl: string
-  releaseUrl: string
-  error: string | null
-  downloadProgress: number | null
-  downloadedAt: string | null
-  supported: boolean
-  installReady: boolean
-  channel: 'stable' | 'beta' | 'nightly'
-}
-
-function formatStatus(state: UpdateState | null): string {
-  if (!state) return 'Not checked yet.'
-  switch (state.status) {
-    case 'checking':
-      return 'Checking for updates...'
-    case 'update_available':
-      return `Update available: ${state.latestVersion || 'new version'}`
-    case 'downloading':
-      return `Downloading update: ${Math.round(state.downloadProgress || 0)}%`
-    case 'downloaded':
-      return `Update ready: ${state.latestVersion || 'new version'}`
-    case 'unsupported':
-      return state.error || 'This install uses manual updates.'
-    case 'up_to_date':
-      return 'You are on the latest version.'
-    case 'error':
-      return `Check failed: ${state.error || 'Unknown error'}`
-    default:
-      return 'Not checked yet.'
-  }
 }
 
 async function loadAppVersion(rina: any): Promise<string> {
@@ -47,7 +13,7 @@ async function loadAppVersion(rina: any): Promise<string> {
   }
 }
 
-async function loadUpdateState(rina: any): Promise<UpdateState | null> {
+async function loadUpdateState(rina: any): Promise<AboutUpdateState | null> {
   try {
     return (await rina?.updateState?.()) || null
   } catch {
@@ -55,7 +21,7 @@ async function loadUpdateState(rina: any): Promise<UpdateState | null> {
   }
 }
 
-function toErrorUpdateState(version: string, error: unknown): UpdateState {
+function toErrorUpdateState(version: string, error: unknown): AboutUpdateState {
   return {
     status: 'error',
     currentVersion: version,
@@ -77,37 +43,7 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
   const version = await loadAppVersion(rina)
   let updateState = await loadUpdateState(rina)
 
-  container.innerHTML = `
-    <div class="rw-panel-head">
-      <h2>About</h2>
-      <p class="rw-sub">RinaWarp Terminal Pro</p>
-    </div>
-    <div class="rw-card">
-      <div class="rw-row rw-space">
-        <div class="rw-label">Version</div>
-        <div class="rw-pill">${String(version)}</div>
-      </div>
-      <div class="rw-row">
-        <div class="rw-muted">
-          Agent-first desktop workflow with background execution and proof.
-        </div>
-      </div>
-    </div>
-    <div class="rw-card rw-flex rw-gap">
-      <div class="rw-row rw-space">
-        <div class="rw-label">Updates</div>
-        <div id="rw-update-status" class="rw-muted">${formatStatus(updateState)}</div>
-      </div>
-      <div class="rw-row rw-gap">
-        <button id="rw-update-check" class="rw-btn">Check Now</button>
-        <button id="rw-update-download" class="rw-btn rw-btn-ghost">Open Download</button>
-        <button id="rw-update-install" class="rw-btn rw-btn-primary">Install & Restart</button>
-      </div>
-      <div class="rw-row">
-        <div id="rw-update-meta" class="rw-muted"></div>
-      </div>
-    </div>
-  `
+  container.innerHTML = renderAboutPanel(version, updateState)
 
   const statusEl = container.querySelector<HTMLElement>('#rw-update-status')
   const metaEl = container.querySelector<HTMLElement>('#rw-update-meta')
@@ -116,12 +52,12 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
   const installBtn = container.querySelector<HTMLButtonElement>('#rw-update-install')
   if (!statusEl || !metaEl || !checkBtn || !downloadBtn || !installBtn) return
 
-  const renderUpdateState = (state: UpdateState | null) => {
-    statusEl.textContent = formatStatus(state)
-    const checkedAt = state?.checkedAt ? new Date(state.checkedAt).toLocaleString() : 'never'
-    metaEl.textContent = `Last checked: ${checkedAt}`
-    downloadBtn.disabled = state?.status !== 'update_available' && state?.status !== 'unsupported'
-    installBtn.disabled = !state?.installReady
+  const renderUpdateState = (state: AboutUpdateState | null) => {
+    const model = buildAboutPanelModel(version, state)
+    statusEl.textContent = formatAboutUpdateStatus(state)
+    metaEl.textContent = `Last checked: ${model.lastCheckedLabel}`
+    downloadBtn.disabled = !model.canOpenDownload
+    installBtn.disabled = !model.canInstall
   }
 
   renderUpdateState(updateState)
@@ -130,7 +66,7 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
     checkBtn.disabled = true
     statusEl.textContent = 'Checking for updates...'
     try {
-      const next = (await rina?.checkForUpdate?.()) as UpdateState | undefined
+      const next = (await rina?.checkForUpdate?.()) as AboutUpdateState | undefined
       updateState = next || null
     } catch (error) {
       updateState = toErrorUpdateState(version, error)

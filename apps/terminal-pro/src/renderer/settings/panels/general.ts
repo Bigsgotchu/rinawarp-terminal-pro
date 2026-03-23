@@ -1,3 +1,6 @@
+import { requestWorkspaceSelection } from '../../actions/workspaceOwnership.js'
+import { renderGeneralPanel } from './generalSurface.js'
+
 declare global {
   interface Window {
     __rinaDensity?: {
@@ -20,45 +23,7 @@ async function resolveWorkspaceLabel(): Promise<string> {
 
 export async function mountGeneralPanel(container: HTMLElement): Promise<void> {
   const workspaceLabel = await resolveWorkspaceLabel()
-  container.innerHTML = `
-    <div class="rw-panel-head">
-      <h2>General</h2>
-      <p class="rw-sub">App behavior and defaults.</p>
-    </div>
-    <div class="rw-card">
-      <div class="rw-row rw-settings-density">
-        <div class="rw-settings-density-copy">
-          <div class="rw-label">Density</div>
-          <div class="rw-muted">Choose whether the app feels tighter or more relaxed.</div>
-        </div>
-        <div class="rw-settings-density-actions" role="group" aria-label="Density">
-          <button type="button" class="rw-btn rw-btn-ghost" data-density-option="compact">Compact</button>
-          <button type="button" class="rw-btn rw-btn-ghost" data-density-option="comfortable">Comfortable</button>
-        </div>
-      </div>
-      <div class="rw-row">
-        <div>
-          <div class="rw-label">Keyboard shortcuts</div>
-          <div class="rw-muted">Open Settings: Ctrl/⌘ + ,</div>
-        </div>
-      </div>
-      <div class="rw-row">
-        <div>
-          <div class="rw-label">Safety mode</div>
-          <div class="rw-muted">High-impact commands require explicit confirmation.</div>
-        </div>
-      </div>
-      <div class="rw-row rw-space">
-        <div>
-          <div class="rw-label">Workspace</div>
-          <div class="rw-muted" id="rw-general-workspace-path">${workspaceLabel}</div>
-          <div class="rw-muted">Pick the folder Rina should use as the current workspace for runs, receipts, and code context.</div>
-        </div>
-        <button type="button" class="rw-btn rw-btn-primary" id="rw-general-pick-workspace">Choose workspace</button>
-      </div>
-      <div id="rw-general-workspace-status" class="rw-muted" aria-live="polite"></div>
-    </div>
-  `
+  container.innerHTML = renderGeneralPanel(workspaceLabel)
 
   const sync = () => {
     const current = window.__rinaDensity?.get?.() || 'compact'
@@ -97,4 +62,3 @@ export async function mountGeneralPanel(container: HTMLElement): Promise<void> {
 
   sync()
 }
-import { requestWorkspaceSelection } from '../../actions/workspaceOwnership.js'

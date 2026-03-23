@@ -1,153 +1,15 @@
-import { resolveDiagnosticContext, shouldAskClarifyingQuestion } from '../utils/diagnosticContext.js'
-import * as fs from 'fs'
-import * as path from 'path'
+import { shouldAskClarifyingQuestion } from '../utils/diagnosticContext.js'
+import {
+  buildConversationReply as buildConversationReplyImpl,
+  detectDeployCapability,
+  resolveSelfCheckContext,
+} from './conversationResponder.js'
+import type { BuildConversationReplyArgs, RouteConversationTurnArgs, RoutedTurn } from './conversationTypes.js'
 
-function detectDeployCapability(workspaceRoot: string | null): boolean {
-  if (!workspaceRoot) return false
-  const has = (p: string) => fs.existsSync(path.join(workspaceRoot, p))
-  if (has('package.json')) {
-    try {
-      const packageJson = JSON.parse(fs.readFileSync(path.join(workspaceRoot, 'package.json'), 'utf8'))
-      if (packageJson.scripts && (packageJson.scripts.deploy || packageJson.scripts.publish)) return true
-    } catch {}
-    if (has('electron-builder.yml') || has('electron-builder.json')) return true
-    if (has('vercel.json') || has('netlify.toml')) return true
-  }
-  if (has('Dockerfile')) return true
-  return false
-}
-
-export type ConversationMode =
-  | 'chat'
-  | 'help'
-  | 'question'
-  | 'inspect'
-  | 'execute'
-  | 'self_check'
-  | 'follow_up'
-  | 'recovery'
-  | 'settings'
-  | 'memory_update'
-  | 'unclear'
-
-export type AllowedNextAction = 'reply_only' | 'inspect' | 'plan' | 'execute' | 'clarify'
-
-export type RoutedTurn = {
-  rawText: string
-  mode: ConversationMode
-  confidence: number
-  workspaceId?: string
-  references: {
-    runId?: string
-    priorMessageId?: string
-    restoredSessionId?: string
-  }
-  allowedNextAction: AllowedNextAction
-  clarification?: {
-    required: boolean
-    reason?: string
-    question?: string
-  }
-  executionCandidate?: {
-    goal: string
-    target?: string
-    constraints?: string[]
-    risk: 'low' | 'medium' | 'high'
-  }
-}
-
-export type ConversationRunReference = {
-  runId?: string
-  sessionId?: string
-  latestCommand?: string
-  latestExitCode?: number | null
-  latestReceiptId?: string
-  interrupted?: boolean
-}
-
-type RouteConversationTurnArgs = {
-  rawText: string
-  workspaceId?: string
-  latestRun?: ConversationRunReference | null
-}
-
-type BuildConversationReplyArgs = {
-  routedTurn: RoutedTurn
-  workspaceLabel?: string
-  latestRun?: ConversationRunReference | null
-}
+export type { AllowedNextAction, BuildConversationReplyArgs, ConversationMode, ConversationRunReference, RouteConversationTurnArgs, RoutedTurn } from './conversationTypes.js'
 
 export function buildConversationReply(args: BuildConversationReplyArgs): { intent: string; message: string } {
-  const { routedTurn, workspaceLabel, latestRun } = args
-
-  switch (routedTurn.mode) {
-    case 'self_check':
-      const ctx = resolveSelfCheckContext({ rawText: routedTurn.rawText, workspaceId: routedTurn.workspaceId, latestRun: latestRun })
-      if (shouldAskClarifyingQuestion(ctx)) {
-        return {
-          intent: 'self_check',
-          message: "I can run a self-check, but I don't see an active workspace. Which workspace should I inspect?",
-        }
-      }
-      return {
-        intent: 'self_check',
-        message: `I’m checking the current workspace and app state now. I’ll verify workspace, IPC, renderer, recovery, updater, and last-run integrity, then report what needs attention.`,
-      }
-    case 'question':
-      return {
-        intent: 'question',
-        message: buildVerifiedRunSentence(latestRun),
-      }
-    case 'help':
-      return {
-        intent: 'help',
-        message: buildHelpReply({ workspaceLabel, canDeploy: detectDeployCapability(routedTurn.workspaceId || null) }),
-      }
-    case 'inspect':
-      return {
-        intent: 'inspect',
-        message: `I’ll stay inspect-first here. I can look through ${workspaceLabel || 'the current workspace'}${latestRun?.runId ? ' with the latest run proof alongside it' : ''} before we change anything.`,
-      }
-    case 'follow_up':
-      return {
-        intent: 'follow_up',
-        message: latestRun?.runId
-          ? `I’m treating that as a follow-up to the last run, not an automatic rerun. I can inspect the proof trail first or rerun it on the trusted path when you want.`
-          : `I’m treating that as a follow-up to the last run, but I won’t auto-rerun anything. I can inspect the latest run first or rerun it on the trusted path when you confirm.`,
-      }
-    case 'recovery':
-      return {
-        intent: 'recovery',
-        message: latestRun?.interrupted
-          ? `The latest run looks interrupted. I can inspect the receipt, explain what likely happened, and line up the safest next recovery step before we resume anything.`
-          : `I don’t see an interrupted run yet, so the safest move is to inspect the latest run or the current workspace first.`,
-      }
-    case 'settings':
-      return {
-        intent: 'settings',
-        message: `That sounds like a settings change. I can point you to Settings or help inspect what is already configured before we change anything.`,
-      }
-    case 'memory_update':
-      return {
-        intent: 'memory_update',
-        message: `I’m treating that as an explicit preference, not a hidden write. If you want it saved, make it owner-visible in Settings > Memory so it stays reviewable.`,
-      }
-    case 'chat':
-      return {
-        intent: 'chat',
-        message: `Hi. I’m here and ready. I can talk through the workspace, explain the latest run, or help line up the next move.`,
-      }
-    case 'unclear':
-      return {
-        intent: 'unclear',
-        message: `I need one anchor before I act. I can inspect ${workspaceLabel || 'the current workspace'}${latestRun?.runId ? ' or the latest run proof' : ''}, then line up the safest next step.`,
-      }
-    default:
-      return {
-        intent: routedTurn.mode,
-        message: `I understand you want to ${routedTurn.mode}. Let me help with that.`,
-      }
-  }
+  return buildConversationReplyImpl(args)
 }
 
 const EXECUTION_KEYWORDS = /\b(build|test|tests|deploy|fix|repair|lint|analy[sz]e|diagnos(?:e|tics?))\b/i
@@ -163,21 +25,6 @@ const MEMORY_WORDS =
 const SETTINGS_WORDS = /\b(settings|preferences|memory panel|theme|density|owner settings)\b/i
 const RECOVERY_WORDS = /\b(resume|recover|restored|interrupted|pick up where we left off)\b/i
 const OFF_BOUNDARY_WORDS = /\b(poem|horoscope|astrology|tell me a bedtime story)\b/i
-
-/**
- * Resolves self-check context from routing args (no full WorkbenchState available).
- */
-function resolveSelfCheckContext(args: RouteConversationTurnArgs): {
-  workspaceRoot: string | null
-  sessionId: string | null
-  lastRunId: string | null
-} {
-  return resolveDiagnosticContext({
-    workspaceRoot: args.workspaceId || null,
-    sessionId: args.latestRun?.sessionId || null,
-    lastRunId: args.latestRun?.runId || null,
-  })
-}
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
@@ -446,34 +293,4 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
           question: 'I can help with that, but I need one anchor: do you mean the current workspace or the last run?',
         },
   }
-}
-
-function formatLatestRunLabel(latestRun?: ConversationRunReference | null): string {
-  const command = normalizeWhitespace(String(latestRun?.latestCommand || ''))
-  return command || 'the last run in this workspace'
-}
-
-function buildVerifiedRunSentence(latestRun?: ConversationRunReference | null): string {
-  if (!latestRun?.runId) {
-    return "I don't have proof yet. If you want, I can inspect the workspace or line up a plan without pretending a run already happened."
-  }
-  if (latestRun.interrupted) {
-    return `The latest run was interrupted before it finished cleanly. I can inspect it or help you resume from there.`
-  }
-  if (typeof latestRun.latestExitCode === 'number') {
-    return latestRun.latestExitCode === 0
-      ? `The last verified run finished cleanly. I can show you the proof trail or rerun it on the trusted path if you want.`
-      : `The last verified run failed. I can inspect the failure first and then line up the safest next fix.`
-  }
-  return `The latest run is still proof-pending. I can inspect the current state before we say anything stronger.`
-}
-
-function buildHelpReply(args: { workspaceLabel?: string; canDeploy: boolean }): string {
-  const workspaceText = args.workspaceLabel
-    ? `In ${args.workspaceLabel}, I can help with project work, explain runs, inspect receipts, and keep changes grounded in the current workspace.`
-    : `I can help with project work, explain runs, inspect receipts, and stay grounded once you choose a workspace.`
-  const deployText = args.canDeploy
-    ? `I can help build, test, and deploy when the project is ready.`
-    : `I can help build and test now, and I can help line up deployment once we confirm the target.`
-  return `${workspaceText} ${deployText} I can also scan myself, explain the latest run, and help you choose the safest next step without kicking off extra work just to answer a help question.`
 }

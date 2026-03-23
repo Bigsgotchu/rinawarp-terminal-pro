@@ -1,5 +1,6 @@
 import type { ChatMessage, MessageBlock } from '../store.js'
 import { el } from '../dom.js'
+import { buildReplyActionDataset } from '../../replies/replyActionDatasets.js'
 
 export function buildMessageBlockNode(block: MessageBlock): HTMLElement | DocumentFragment {
   if (block.type === 'bubble') {
@@ -77,27 +78,8 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
         el(
           'button',
           {
-            class: ['rw-inline-action', action.className].filter(Boolean).join(' '),
-              dataset: {
-                tab: action.tab,
-                agentPrompt: action.prompt,
-                executePlan: action.executePlan,
-                executePlanPrompt: action.executePlanPrompt,
-                executePlanWorkspaceRoot: action.executePlanWorkspaceRoot,
-                agentTopTab: action.agentTopTab,
-                capabilityInstall: action.capabilityInstall,
-                capabilityRun: action.capabilityRun,
-                capabilityActionId: action.capabilityActionId,
-                planUpgrade: action.planUpgrade,
-                runResume: action.runResume,
-                runRerun: action.runRerun,
-                runFix: action.runFix,
-                runDiff: action.runDiff,
-                runCopy: action.runCopy,
-                openRunsPanel: action.openRunsPanel,
-                runReveal: action.runReveal,
-                runArtifacts: action.runArtifacts,
-              },
+                class: ['rw-inline-action', action.className].filter(Boolean).join(' '),
+              dataset: buildReplyActionDataset(action),
             },
           action.label
         )
@@ -134,26 +116,7 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
               'button',
               {
                 class: ['rw-inline-action', action.className].filter(Boolean).join(' '),
-                dataset: {
-                  tab: action.tab,
-                  agentPrompt: action.prompt,
-                  executePlan: action.executePlan,
-                  executePlanPrompt: action.executePlanPrompt,
-                  executePlanWorkspaceRoot: action.executePlanWorkspaceRoot,
-                  agentTopTab: action.agentTopTab,
-                  capabilityInstall: action.capabilityInstall,
-                  capabilityRun: action.capabilityRun,
-                  capabilityActionId: action.capabilityActionId,
-                  planUpgrade: action.planUpgrade,
-                  runResume: action.runResume,
-                  runRerun: action.runRerun,
-                  runFix: action.runFix,
-                  runDiff: action.runDiff,
-                  runCopy: action.runCopy,
-                  openRunsPanel: action.openRunsPanel,
-                  runReveal: action.runReveal,
-                  runArtifacts: action.runArtifacts,
-                },
+                dataset: buildReplyActionDataset(action),
               },
               action.label
             )

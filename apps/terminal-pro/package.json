@@ -44,7 +44,7 @@
     "qa:first-run": "npm run build:electron && npm run test:unit -- first-run-status.test.ts && npm run test:e2e:first-run && npm run test:e2e:packaged-first-run",
     "qa:stabilization-core": "npm run test:unit -- first-run-status.test.ts && npm run test:e2e:packaged-first-run",
     "qa:wiring": "npm run check:ipc:contracts && npm run test:unit -- state-invariants.test.ts",
-    "qa:ownership": "vitest run tests/unit/event-ownership.test.ts tests/unit/view-state-ownership.test.ts tests/unit/state-invariants.test.ts tests/unit/navigation-ownership.test.ts tests/unit/runtime-ownership.test.ts tests/unit/workspace-ownership.test.ts tests/unit/utility-ownership.test.ts",
+    "qa:ownership": "vitest run tests/unit/event-ownership.test.ts tests/unit/view-state-ownership.test.ts tests/unit/state-invariants.test.ts tests/unit/navigation-ownership.test.ts tests/unit/runtime-ownership.test.ts tests/unit/workspace-ownership.test.ts tests/unit/utility-ownership.test.ts tests/unit/workbench-shell.test.ts",
     "qa:intents": "npm run test:unit -- intent-contracts.test.ts && node --test --test-reporter=spec tests/agent.test.mjs",
     "qa:release-candidate": "npm run test:unit -- first-run-status.test.ts && npm run test:agent && npm run test:e2e:first-run && npm run test:e2e:packaged-first-run",
     "test:all": "npm run test:unit && npm run test:playwright",

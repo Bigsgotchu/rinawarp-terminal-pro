@@ -8,6 +8,8 @@ RinaWarp should be the place where a user asks for work, watches verified execut
 
 The adaptive next-phase product spec lives in [ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md), and the current implementation status against that spec lives in [ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md).
 
+The target desktop architecture for the next major renderer/conversation migration lives in [RINAWARP_V2_ARCHITECTURE.md](/home/karina/Documents/rinawarp-terminal-pro/docs/RINAWARP_V2_ARCHITECTURE.md).
+
 The core loop is:
 
 `ask -> act -> prove -> recover`

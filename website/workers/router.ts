@@ -59,6 +59,10 @@ function primaryReleaseUrl(origin: string, fileName: string): string {
   return `${origin}/releases/${fileName.replace(/^\/+/, '')}`
 }
 
+function primaryDownloadUrl(origin: string, kind: string): string {
+  return `${origin}/download/${kind.replace(/^\/+/, '')}`
+}
+
 function rwSvg(svg: string): Response {
   const headers = rwHeaders()
   headers.set('Content-Type', 'image/svg+xml; charset=utf-8')
@@ -150,6 +154,20 @@ async function serveReleaseObject(env: any, objectKey: string): Promise<Response
   } else {
     headers.set('Cache-Control', 'public, max-age=86400')
   }
+
+  return new Response(object.body, { headers })
+}
+
+async function serveDownloadObject(env: any, objectKey: string): Promise<Response | null> {
+  const object = await env.RINAWARP_CDN?.get(objectKey)
+  if (!object) return null
+
+  const headers = rwHeaders()
+  object.writeHttpMetadata(headers)
+  headers.set('ETag', object.httpEtag)
+  headers.set('Content-Type', contentTypeFor(objectKey))
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  headers.set('Content-Disposition', `attachment; filename="${objectKey.split('/').pop() || 'download'}"`)
 
   return new Response(object.body, { headers })
 }
@@ -1045,19 +1063,10 @@ function renderEarlyAccess(): Response {
 
 async function renderDownload(env: any, origin: string): Promise<Response> {
   const manifest = await getReleaseManifest(env)
-  const version = manifest?.version || '1.1.9'
-  const linuxAppImageUrl =
-    toAbsoluteArtifactUrl(origin, pickArtifactPath(manifest, 'linux')) ||
-    `${PUBLIC_INSTALLERS_BASE}/releases/${version}/RinaWarp-Terminal-Pro-${version}.AppImage`
-  const linuxDebUrl =
-    toAbsoluteArtifactUrl(origin, pickArtifactPath(manifest, 'linux-deb')) ||
-    `${PUBLIC_INSTALLERS_BASE}/releases/${version}/RinaWarp-Terminal-Pro-${version}.deb`
-  const windowsUrl =
-    toAbsoluteArtifactUrl(origin, pickArtifactPath(manifest, 'windows')) ||
-    `${PUBLIC_INSTALLERS_BASE}/releases/${version}/RinaWarp-Terminal-Pro-${version}.exe`
-  const checksumsUrl =
-    toAbsoluteArtifactUrl(origin, pickArtifactPath(manifest, 'checksums')) ||
-    `${PUBLIC_INSTALLERS_BASE}/releases/${version}/SHASUMS256.txt`
+  const linuxAppImageUrl = primaryDownloadUrl(origin, 'linux')
+  const linuxDebUrl = primaryDownloadUrl(origin, 'linux/deb')
+  const windowsUrl = primaryDownloadUrl(origin, 'windows')
+  const checksumsUrl = primaryDownloadUrl(origin, 'checksums')
   const latestJsonUrl = primaryReleaseUrl(origin, 'latest.json')
   const latestYmlUrl = primaryReleaseUrl(origin, 'latest.yml')
   const latestLinuxYmlUrl = primaryReleaseUrl(origin, 'latest-linux.yml')
@@ -1820,6 +1829,11 @@ export default {
       }
 
       const location = toAbsoluteArtifactUrl(url.origin, artifactPath)
+      const firstPartyDownload = await serveDownloadObject(env, artifactPath.replace(/^\/+/, ''))
+      if (firstPartyDownload) {
+        return firstPartyDownload
+      }
+
       if (!location) {
         return rwText(404, 'Artifact not available')
       }

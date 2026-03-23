@@ -1,10 +1,10 @@
 .rw-agent-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   min-block-size: 0;
   block-size: 100%;
-  padding: 10px 14px 14px;
+  padding: 14px 18px 120px;
   overflow: hidden;
 }
 
@@ -12,13 +12,9 @@
   padding-inline: 10px;
 }
 
-.rw-agent-body {
-  padding-bottom: 120px; /* Space for fixed composer */
-}
-
 .rw-agent-hero {
   display: grid;
-  gap: 6px;
+  gap: 10px;
   padding: 4px 0 0;
   border: 0;
   border-radius: 0;
@@ -81,6 +77,16 @@
   border-color: rgba(87, 231, 255, 0.34);
   background: rgba(87, 231, 255, 0.08);
   transform: translateY(-1px);
+}
+
+.rw-prompt-chip {
+  border-radius: 14px;
+  padding: 10px 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.035)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.08), transparent 46%);
+  border-color: rgba(87, 231, 255, 0.16);
+  box-shadow: 0 10px 24px rgba(4, 9, 18, 0.12);
 }
 
 .rw-prompt-chip-label {
@@ -170,7 +176,7 @@
 .rw-agent-composer {
   position: fixed;
   bottom: 0;
-  left: 0;
+  left: 41px;
   right: 0;
   z-index: 10;
   background: rgba(0, 0, 0, 0.9);
@@ -184,7 +190,7 @@
 .rw-agent-input-container {
   position: fixed;
   bottom: 0;
-  left: 0;
+  left: 41px;
   right: 0;
   z-index: 10;
   background: rgba(0, 0, 0, 0.8);
@@ -315,10 +321,20 @@
   max-inline-size: min(100%, 980px);
 }
 
+.rw-agent-empty-state-shell {
+  grid-template-columns: minmax(280px, 0.92fr) minmax(360px, 1.08fr);
+  max-inline-size: min(100%, 1080px);
+}
+
 .rw-agent-empty-column {
   display: grid;
   gap: 10px;
   align-content: start;
+}
+
+.rw-agent-empty-column-side,
+.rw-agent-empty-column-main {
+  gap: 14px;
 }
 
 .rw-agent-empty-card {
@@ -333,6 +349,17 @@
   box-shadow:
     0 10px 24px rgba(4, 9, 18, 0.11),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.rw-agent-empty-card {
+  border-radius: 18px;
+  border-color: rgba(87, 231, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(18, 24, 36, 0.84), rgba(13, 18, 29, 0.78)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.05), transparent 42%);
+  box-shadow:
+    0 16px 32px rgba(4, 9, 18, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .rw-agent-empty-actions {
@@ -387,6 +414,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.rw-agent-empty-prompts {
+  gap: 12px;
 }
 
 @media (max-width: 980px) {

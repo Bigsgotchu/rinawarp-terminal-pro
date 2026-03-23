@@ -28,12 +28,26 @@
   overflow: hidden;
 }
 
+.rw-settings-shell {
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+}
+
 .rw-settings-rail {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 10px;
   border-radius: 14px;
+}
+
+.rw-settings-rail {
+  padding: 12px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(18, 24, 36, 0.88), rgba(13, 18, 29, 0.82)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.06), transparent 44%);
+  border: 1px solid rgba(87, 231, 255, 0.08);
 }
 
 .rw-settings-body {
@@ -45,9 +59,17 @@
   overflow: hidden;
 }
 
+.rw-settings-body {
+  gap: 16px;
+}
+
 .rw-settings-top {
   justify-content: space-between;
   gap: 10px;
+}
+
+.rw-settings-top {
+  padding: 6px 4px 0;
 }
 
 .rw-settings-title {
@@ -63,6 +85,18 @@
   block-size: 100%;
   overflow: auto;
   overscroll-behavior: contain;
+}
+
+.rw-settings-content {
+  padding: 16px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(18, 24, 36, 0.78), rgba(13, 18, 29, 0.74)),
+    radial-gradient(circle at top left, rgba(255, 122, 168, 0.05), transparent 42%);
+  border: 1px solid rgba(87, 231, 255, 0.08);
+  box-shadow:
+    0 18px 34px rgba(4, 9, 18, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .rw-settings-panel {
@@ -216,6 +250,19 @@ html[data-density="compact"] .rw-account-toggle {
   background: rgba(96, 165, 250, 0.08);
   border-color: rgba(96, 165, 250, 0.18);
   color: var(--rw-fg);
+}
+
+.rw-tab {
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.rw-tab:hover,
+.rw-tab.rw-tab-active {
+  background:
+    linear-gradient(180deg, rgba(87, 231, 255, 0.12), rgba(87, 231, 255, 0.06)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.08), transparent 42%);
+  border-color: rgba(87, 231, 255, 0.18);
 }
 
 .rw-tab-ico {

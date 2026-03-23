@@ -20,6 +20,10 @@ export function createNavigationActionHandler(
 ): (target: HTMLElement) => Promise<boolean> {
   const navigateTo = createWorkbenchNavigator(store, { trackRendererEvent: deps.trackRendererEvent })
   return async (target: HTMLElement): Promise<boolean> => {
+    if (target.closest('[data-shell-owned="true"]')) {
+      return false
+    }
+
     const settingsAction = target.closest<HTMLElement>('[data-action="open-settings"]')
     if (settingsAction) {
       if (window.__rinaSettings?.isOpen()) {

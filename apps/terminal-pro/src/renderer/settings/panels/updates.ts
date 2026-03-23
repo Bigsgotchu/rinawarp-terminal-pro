@@ -2,188 +2,20 @@
  * Updates & Trust Settings Panel
  * Desktop trust + auto-update configuration and release verification.
  */
+import {
+  renderReleaseInfo,
+  renderRuntimeState,
+  renderUpdateConfig,
+  renderUpdatesPanelShell,
+} from './updatesSurface.js'
+import type { ReleaseInfo, UpdateConfig, UpdateState } from './updatesModel.js'
 
 function getRina(): any {
   return (window as unknown as { rina: unknown }).rina
 }
 
-function esc(s: unknown): string {
-  return String(s ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-}
-
-type UpdateConfig = {
-  channel: 'stable' | 'beta' | 'nightly'
-  autoCheck: boolean
-  autoDownload: boolean
-}
-
-type ReleaseInfo = {
-  version: string
-  platform: string
-  arch: string
-  signatureOk: boolean | null
-  checksumOk: boolean | null
-  signedBy: string | null
-  publishedAt: string | null
-}
-
-type UpdateState = {
-  status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'downloading' | 'downloaded' | 'unsupported' | 'error'
-  currentVersion: string
-  latestVersion: string | null
-  checkedAt: string | null
-  manifestUrl: string
-  releaseUrl: string
-  error: string | null
-  downloadProgress: number | null
-  downloadedAt: string | null
-  supported: boolean
-  installReady: boolean
-  channel: 'stable' | 'beta' | 'nightly'
-}
-
-function renderUpdateConfig(config: UpdateConfig): string {
-  const channel = config?.channel || 'stable'
-  const autoCheck = config?.autoCheck ?? true
-  const autoDownload = config?.autoDownload ?? false
-
-  return `
-    <div class="rw-panel-section">
-      <h3>Update Channel</h3>
-      <div class="rw-radio-group">
-        <label class="rw-radio">
-          <input type="radio" name="updateChannel" value="stable" ${channel === 'stable' ? 'checked' : ''}>
-          <span>Stable (Recommended)</span>
-        </label>
-        <label class="rw-radio">
-          <input type="radio" name="updateChannel" value="beta" ${channel === 'beta' ? 'checked' : ''}>
-          <span>Beta (Manual preview)</span>
-        </label>
-        <label class="rw-radio">
-          <input type="radio" name="updateChannel" value="nightly" ${channel === 'nightly' ? 'checked' : ''}>
-          <span>Nightly (Manual preview)</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="rw-panel-section">
-      <h3>Auto-Update</h3>
-      <div class="rw-kv"><div class="rw-k">Auto-check for updates</div><div class="rw-v"><input type="checkbox" id="rw-update-auto-check" ${autoCheck ? 'checked' : ''}></div></div>
-      <div class="rw-kv"><div class="rw-k">Auto-download updates</div><div class="rw-v"><input type="checkbox" id="rw-update-auto-download" ${autoDownload ? 'checked' : ''}></div></div>
-    </div>
-  `
-}
-
-function renderReleaseInfo(info: ReleaseInfo | null): string {
-  if (!info) {
-    return `<div class="rw-muted">No release info available.</div>`
-  }
-
-  const sigBadge =
-    info.signatureOk === true
-      ? `<span class="rw-badge rw-ok">Verified</span>`
-      : info.signatureOk === false
-        ? `<span class="rw-badge rw-bad">Invalid</span>`
-        : `<span class="rw-badge rw-muted">Managed by release flow</span>`
-
-  const sumBadge =
-    info.checksumOk === true
-      ? `<span class="rw-badge rw-ok">OK</span>`
-      : info.checksumOk === false
-        ? `<span class="rw-badge rw-bad">Mismatch</span>`
-        : `<span class="rw-badge rw-muted">Published metadata</span>`
-
-  const publishedDate = info.publishedAt ? new Date(info.publishedAt).toLocaleDateString() : 'Unknown'
-
-  return `
-    <div class="rw-panel-section">
-      <h3>Current Release</h3>
-      <div class="rw-kv"><div class="rw-k">Version</div><div class="rw-v">${esc(info.version)}</div></div>
-      <div class="rw-kv"><div class="rw-k">Platform</div><div class="rw-v">${esc(info.platform)} / ${esc(info.arch)}</div></div>
-      <div class="rw-kv"><div class="rw-k">Published</div><div class="rw-v">${publishedDate}</div></div>
-    </div>
-
-    <div class="rw-panel-section">
-      <h3>Trust & Verification</h3>
-      <div class="rw-kv"><div class="rw-k">Installer trust</div><div class="rw-v">${sigBadge}</div></div>
-      <div class="rw-kv"><div class="rw-k">Release metadata</div><div class="rw-v">${sumBadge}</div></div>
-      ${info.signedBy ? `<div class="rw-kv"><div class="rw-k">Verification path</div><div class="rw-v">${esc(info.signedBy)}</div></div>` : ''}
-    </div>
-  `
-}
-
-function renderRuntimeState(state: UpdateState | null): string {
-  if (!state) {
-    return `<div class="rw-panel-section"><div class="rw-muted">Not checked yet.</div></div>`
-  }
-
-  const statusLabel =
-    state.status === 'downloaded'
-      ? 'Ready to install'
-      : state.status === 'downloading'
-        ? 'Downloading'
-        : state.status === 'unsupported'
-          ? 'Manual update only'
-          : state.status.replaceAll('_', ' ')
-
-  const progress =
-    state.status === 'downloading' && state.downloadProgress !== null
-      ? `<div class="rw-kv"><div class="rw-k">Download</div><div class="rw-v">${Math.round(state.downloadProgress)}%</div></div>`
-      : ''
-
-  return `
-    <div class="rw-panel-section">
-      <h3>Runtime Status</h3>
-      <div class="rw-kv"><div class="rw-k">Status</div><div class="rw-v">${esc(statusLabel)}</div></div>
-      <div class="rw-kv"><div class="rw-k">Channel</div><div class="rw-v">${esc(state.channel)}</div></div>
-      <div class="rw-kv"><div class="rw-k">Auto updates</div><div class="rw-v">${state.supported ? 'Supported on this install' : 'Manual download on this install'}</div></div>
-      <div class="rw-kv"><div class="rw-k">Current version</div><div class="rw-v">${esc(state.currentVersion)}</div></div>
-      <div class="rw-kv"><div class="rw-k">Latest version</div><div class="rw-v">${esc(state.latestVersion || '—')}</div></div>
-      <div class="rw-kv"><div class="rw-k">Last checked</div><div class="rw-v">${state.checkedAt ? new Date(state.checkedAt).toLocaleString() : 'Never'}</div></div>
-      ${progress}
-      ${state.error ? `<div class="rw-kv"><div class="rw-k">Note</div><div class="rw-v">${esc(state.error)}</div></div>` : ''}
-    </div>
-  `
-}
-
 export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
-  container.innerHTML = `
-    <div class="rw-panel-head">
-      <h2>Updates & Trust</h2>
-      <p class="rw-sub">Configure automatic updates where supported and keep the release story honest.</p>
-    </div>
-
-    <div class="rw-card">
-      <div class="rw-row rw-gap">
-        <button id="rw-updates-check" class="rw-btn">Check for Updates</button>
-        <button id="rw-updates-install" class="rw-btn rw-btn-primary" disabled>Install & Restart</button>
-        <button id="rw-updates-verify" class="rw-btn rw-btn-ghost">Verify Release</button>
-        <button id="rw-updates-save" class="rw-btn">Save Settings</button>
-        <div id="rw-updates-status" class="rw-muted"></div>
-      </div>
-
-      <div id="rw-updates-config"></div>
-      <div id="rw-updates-runtime"></div>
-      <div id="rw-updates-release"></div>
-    </div>
-
-    <div class="rw-card">
-      <h3>How Updates Work</h3>
-      <div class="rw-prose">
-        <p>RinaWarp Terminal Pro supports real in-app updates on the install types we can prove today:</p>
-        <ul>
-          <li><strong>Windows NSIS</strong>: check, download, and install from the app</li>
-          <li><strong>Linux AppImage</strong>: check, download, and apply on restart</li>
-          <li><strong>Linux .deb</strong>: manual/package-manager update path</li>
-          <li><strong>Beta / Nightly</strong>: preview channels still use manual download until their release feeds are promoted</li>
-        </ul>
-        <p>The release site publishes public manifests and checksums so the app and the website point to the same artifact truth.</p>
-      </div>
-    </div>
-  `
+  container.innerHTML = renderUpdatesPanelShell()
 
   const rina = getRina()
   const checkBtn = container.querySelector<HTMLButtonElement>('#rw-updates-check')

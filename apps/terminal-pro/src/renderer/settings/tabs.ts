@@ -228,8 +228,16 @@ function handleRailKeydown(state: InternalState, opts: SettingsTabsOptions, ev: 
   }
 }
 
-function renderRailButtons(tabs: SettingsTab[], rail: HTMLElement): void {
-  if (rail.querySelector('[data-settings-tab]')) return
+export function hasCanonicalRailButtons(
+  tabs: SettingsTab[],
+  rail: Pick<HTMLElement, 'querySelector'>
+): boolean {
+  return tabs.every((tab) => Boolean(findTabButton(rail as HTMLElement, tab.id)))
+}
+
+function ensureRailButtons(tabs: SettingsTab[], rail: HTMLElement): void {
+  if (hasCanonicalRailButtons(tabs, rail)) return
+
   rail.innerHTML = ''
   for (const tab of tabs) {
     const btn = document.createElement('button')
@@ -239,7 +247,17 @@ function renderRailButtons(tabs: SettingsTab[], rail: HTMLElement): void {
     btn.setAttribute('role', 'tab')
     btn.setAttribute('aria-selected', 'false')
     btn.className = 'rw-tab'
-    btn.innerHTML = `<span class="rw-tab-ico" aria-hidden="true">${tab.icon || '•'}</span><span class="rw-tab-label">${tab.label}</span>`
+
+    const icon = document.createElement('span')
+    icon.className = 'rw-tab-ico'
+    icon.setAttribute('aria-hidden', 'true')
+    icon.textContent = tab.icon || '•'
+
+    const label = document.createElement('span')
+    label.className = 'rw-tab-label'
+    label.textContent = tab.label
+
+    btn.append(icon, label)
     rail.appendChild(btn)
   }
 }
@@ -327,7 +345,7 @@ export function initSettingsTabs(
   opts.root.setAttribute('aria-modal', 'true')
   setHidden(opts.root, true)
 
-  renderRailButtons(tabs, opts.rail)
+  ensureRailButtons(tabs, opts.rail)
   ensurePanels(tabs, opts.content)
 
   opts.rail.setAttribute('role', 'tablist')

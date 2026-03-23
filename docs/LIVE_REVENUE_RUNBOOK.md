@@ -2,6 +2,11 @@
 
 This runbook covers the remaining non-local checks required before calling RinaWarp Terminal Pro commercially ready.
 
+Related planning docs:
+
+- [REVENUE_LAUNCH_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_LAUNCH_PLAN.md)
+- [REVENUE_EXECUTION_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_EXECUTION_CHECKLIST.md)
+
 ## What Is Already Automated
 
 Run this first:

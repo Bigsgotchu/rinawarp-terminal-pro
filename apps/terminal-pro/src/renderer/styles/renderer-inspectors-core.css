@@ -244,6 +244,21 @@
   border-radius: 14px;
 }
 
+.rw-workbench-panel-surface {
+  display: grid;
+  gap: 14px;
+}
+
+.rw-workbench-panel-card,
+.rw-workbench-panel-empty {
+  border-radius: 16px;
+  border: 1px solid rgba(87, 231, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(16, 22, 33, 0.92), rgba(10, 15, 24, 0.82)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.045), transparent 42%);
+  box-shadow: 0 10px 24px rgba(3, 8, 16, 0.18);
+}
+
 .rw-empty-title {
   font-size: 0.86rem;
   font-weight: 700;
