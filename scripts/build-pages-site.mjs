@@ -58,6 +58,21 @@ body {
     linear-gradient(180deg, #090d18 0%, #0b1020 100%);
 }
 a { color: inherit; text-decoration: none; }
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 50;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent-warm), var(--accent));
+  color: #08121b;
+  font-weight: 700;
+  transition: top 0.2s ease;
+}
+.skip-link:focus-visible {
+  top: 16px;
+}
 .site-shell { min-height: 100vh; display: flex; flex-direction: column; }
 header {
   position: sticky;
@@ -805,6 +820,13 @@ function seo(path, title, description) {
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${ogImage}">
+  <meta name="theme-color" content="#ff9b6b">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="msapplication-TileColor" content="#ff4fd8">
+  <link rel="preconnect" href="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev" crossorigin>
+  <link rel="preconnect" href="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev" crossorigin>
   <link rel="icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
   <link rel="shortcut icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
   `;
@@ -836,6 +858,7 @@ function shell({ path, page, title, description, eyebrow, heading, copy, content
   <link rel="stylesheet" href="/assets/site.css?v=${ASSET_VERSION}">
 </head>
 <body data-page="${page}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="site-shell">
     <header>
       <nav aria-label="Main navigation">
@@ -846,7 +869,7 @@ function shell({ path, page, title, description, eyebrow, heading, copy, content
         <div class="nav-links">${nav(page)}</div>
       </nav>
     </header>
-    <main>
+    <main id="main-content" tabindex="-1">
       <section class="hero">
         <span class="eyebrow">${eyebrow}</span>
         <h1>${heading}</h1>
@@ -891,11 +914,11 @@ const pages = [
         <article class="card"><div class="kicker">Recovery</div><h3>Interrupted work still makes sense</h3><p>When a run is interrupted or a session restarts, restored work remains understandable and actionable.</p></article>
       </div></section>
       <section class="section"><h2 class="section-title">Actual product screenshots</h2><p class="section-copy">Real captures from the current product, not concept art.</p><div class="screenshot-grid">
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-empty-state.png" alt="RinaWarp Terminal Pro empty agent state screenshot"></div><div class="screenshot-caption"><strong>Start clean.</strong> The empty state stays focused instead of dumping a wall of setup noise into the thread.</div></article>
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active thread screenshot"></div><div class="screenshot-caption"><strong>Stay in the conversation.</strong> Active work reads like a transcript with proof attached, not a pile of disconnected cards.</div></article>
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/diagnostics-inspector.png" alt="RinaWarp Terminal Pro diagnostics inspector screenshot"></div><div class="screenshot-caption"><strong>Inspect the details only when needed.</strong> Diagnostics are there for confidence and recovery, not as the primary surface.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-empty-state.png" alt="RinaWarp Terminal Pro empty agent state screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Start clean.</strong> The empty state stays focused instead of dumping a wall of setup noise into the thread.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active thread screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Stay in the conversation.</strong> Active work reads like a transcript with proof attached, not a pile of disconnected cards.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/diagnostics-inspector.png" alt="RinaWarp Terminal Pro diagnostics inspector screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Inspect the details only when needed.</strong> Diagnostics are there for confidence and recovery, not as the primary surface.</div></article>
       </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">Short product demo</h2><p class="section-copy">Start clean, move into a real thread, and inspect proof when needed.</p><div class="screenshot-frame"><img src="/assets/img/rinawarp-demo.gif" alt="Animated demo of RinaWarp Terminal Pro conversation and proof workflow"></div></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Short product demo</h2><p class="section-copy">Start clean, move into a real thread, and inspect proof when needed.</p><div class="screenshot-frame"><img src="/assets/img/rinawarp-demo.gif" alt="Animated demo of RinaWarp Terminal Pro conversation and proof workflow" width="1200" height="662" loading="lazy" decoding="async"></div></div></section>
       <section class="section"><h2 class="section-title">Best fit for teams and developers who care about trust</h2><p class="section-copy">Best when the work matters enough that you want the agent to stay understandable before, during, and after execution.</p><div class="fit-grid">
         <article class="fit-card"><h3>Build and release work</h3><p>Use it when you want the thread, receipts, and recovery state to stay connected to real build and deploy work instead of disappearing into shell history.</p></article>
         <article class="fit-card"><h3>Messy real-world requests</h3><p>It is built for vague asks, follow-ups, and mixed conversation, not just perfect command-style prompts.</p></article>
@@ -942,12 +965,12 @@ const pages = [
     content: `
       <section class="section"><div class="pricing-grid">
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a></article>
-        <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
+        <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message" aria-live="polite">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
         <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>For teams that need seats, role boundaries, invite management, audit visibility, and a truth-based path from checkout into workspace rollout.</p><ul class="feature-list"><li>Seat-based checkout and workspace-linked team rollout</li><li>Role-aware invite management and audit direction</li><li>Team memory, multi-agent limits, and proof-backed workflows</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team</a></article>
       </div></section>
       <section class="section"><div class="screenshot-grid">
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/settings-memory.png" alt="RinaWarp Terminal Pro settings memory screenshot"></div><div class="screenshot-caption"><strong>Paid feels tangible.</strong> The product already has real settings and workbench surfaces, not just a paywall on top of an empty shell.</div></article>
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active proof thread screenshot"></div><div class="screenshot-caption"><strong>Pro is for real execution.</strong> The buyer should understand the difference between chatting and proof-backed work before they hit Stripe.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/settings-memory.png" alt="RinaWarp Terminal Pro settings memory screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Paid feels tangible.</strong> The product already has real settings and workbench surfaces, not just a paywall on top of an empty shell.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active proof thread screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Pro is for real execution.</strong> The buyer should understand the difference between chatting and proof-backed work before they hit Stripe.</div></article>
       </div></section>
       <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The practical questions people ask right before paying.</p><div class="faq-grid">
         <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp, where you can download the app, sign in or restore access, and confirm the paid tier from the account surface and desktop settings.</p></article>
@@ -989,7 +1012,7 @@ const pages = [
             <button type="submit" class="btn btn-primary">Start Team checkout</button>
             <a href="/feedback/?topic=team" class="btn btn-secondary">Talk to support first</a>
           </div>
-          <p id="team-checkout-status" class="status-message">Checkout opens in Stripe and uses automatic tax based on billing address.</p>
+          <p id="team-checkout-status" class="status-message" aria-live="polite">Checkout opens in Stripe and uses automatic tax based on billing address.</p>
         </form>
         <div class="cta-row">
           <a href="mailto:hello@rinawarptech.com?subject=RinaWarp%20Team%20Plan" class="btn btn-secondary">Email the founder</a>
@@ -1047,7 +1070,7 @@ const pages = [
         <article class="card"><h3>General contact</h3><p>For partnership, launch, or founder access questions, email <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>.</p></article>
         <article class="card"><h3>Fastest useful bug report</h3><p>Tell us what you asked Rina to do, what you expected, what actually happened, and whether a run or recovery card was visible.</p></article>
       </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Topic<select name="topic"><option value="support">Support</option><option value="bug">Bug report</option><option value="billing">Billing</option><option value="team">Team plan</option><option value="feature">Feature request</option><option value="launch">Launch / partnership</option></select></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message"></p></form></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Topic<select name="topic"><option value="support">Support</option><option value="bug">Bug report</option><option value="billing">Billing</option><option value="team">Team plan</option><option value="feature">Feature request</option><option value="launch">Launch / partnership</option></select></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message" aria-live="polite"></p></form></div></section>
     `
   },
   {
@@ -1153,7 +1176,7 @@ const pages = [
         <div class="auth-card stack" id="restore">
           <h2 class="section-title">Restore Pro access</h2>
           <p class="section-copy">Use the same billing email from checkout. This works even if your full account state has not loaded yet.</p>
-          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message"></p></form>
+          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message" aria-live="polite"></p></form>
         </div>
       </div></section>
     `

@@ -109,7 +109,13 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#ff9b6b">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="msapplication-TileColor" content="#ff4fd8">
+  <link rel="preconnect" href="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev" crossorigin>
+  <link rel="preconnect" href="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev" crossorigin>
   ${seo}
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -137,6 +143,19 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
         linear-gradient(180deg, #090d18 0%, #0b1020 100%);
     }
     a { color: inherit; text-decoration: none; }
+    .skip-link {
+      position: absolute;
+      left: 16px;
+      top: -48px;
+      z-index: 50;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff4fd8, #ff9b6b, #62f6e5, #8fefff);
+      color: #08121b;
+      font-weight: 700;
+      transition: top 0.2s ease;
+    }
+    .skip-link:focus-visible { top: 16px; }
     .site-shell { min-height: 100vh; display: flex; flex-direction: column; }
     header { background: rgba(7, 17, 26, 0.78); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); }
     nav {
@@ -279,6 +298,7 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="site-shell">
   <header>
     <nav aria-label="Main navigation">
@@ -299,7 +319,7 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
     </nav>
   </header>
 
-  <main>
+  <main id="main-content" tabindex="-1">
     <div class="hero">
       <span class="eyebrow">Capability packs</span>
       <h1>Capability packs for the proof-first workbench.</h1>

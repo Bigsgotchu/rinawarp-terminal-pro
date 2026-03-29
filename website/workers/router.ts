@@ -215,6 +215,21 @@ const SITE_STYLES = `
       linear-gradient(180deg, #090d18 0%, #0b1020 100%);
   }
   a { color: inherit; text-decoration: none; }
+  .skip-link {
+    position: absolute;
+    left: 16px;
+    top: -48px;
+    z-index: 50;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent-warm), var(--accent));
+    color: #08121b;
+    font-weight: 700;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus-visible {
+    top: 16px;
+  }
   .site-shell { min-height: 100vh; display: flex; flex-direction: column; }
   header {
     position: sticky;
@@ -779,11 +794,19 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ff9b6b">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="msapplication-TileColor" content="#ff4fd8">
+  <link rel="preconnect" href="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev" crossorigin>
+  <link rel="preconnect" href="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev" crossorigin>
   ${seo}
   ${robotsMetaForPath(path)}
   <style>${SITE_STYLES}</style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="site-shell">
     <header>
       <nav aria-label="Main navigation">
@@ -794,6 +817,7 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
         <div class="nav-links">
           ${navLink('/', 'Home', active, 'home')}
           ${navLink('/pricing', 'Pricing', active, 'pricing')}
+          <a href="/team">Team</a>
           ${navLink('/download', 'Download', active, 'download')}
           ${navLink('/docs', 'Docs', active, 'docs')}
           ${navLink('/agents', 'Packs', active, 'agents')}
@@ -802,7 +826,7 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
         </div>
       </nav>
     </header>
-    <main>
+    <main id="main-content" tabindex="-1">
       ${hero}
       ${content}
     </main>
@@ -985,7 +1009,7 @@ function renderPricing(): Response {
               <button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button>
               <button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button>
             </div>
-            <div class="note" id="checkout-status">Monthly: $20. Annual: $192. Checkout opens in Stripe.</div>
+            <div class="note" id="checkout-status" aria-live="polite">Monthly: $20. Annual: $192. Checkout opens in Stripe.</div>
           </div>
         </article>
         <article class="card pricing-card">
@@ -2010,7 +2034,7 @@ function renderAccount(authToken: string | null): Response {
         <div class="auth-card">
           <h2 class="auth-title">Restore Pro access</h2>
           <p class="auth-subtitle">Use the same billing email from checkout. This works even before your full account state finishes loading.</p>
-          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message"></p></form>
+          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message" aria-live="polite"></p></form>
         </div>
       </div>
     </section>`
