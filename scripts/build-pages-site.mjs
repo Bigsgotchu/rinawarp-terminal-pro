@@ -798,6 +798,7 @@ function seo(path, title, description) {
   const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png";
   const noindexPaths = new Set(["/account", "/login", "/register", "/forgot-password", "/reset-password", "/success/"]);
   const robots = noindexPaths.has(path) ? 'noindex, nofollow' : 'index, follow';
+  const structuredData = buildStructuredData(path, title, description);
   return `
   <title>${title}</title>
   <meta name="description" content="${description}">
@@ -825,7 +826,103 @@ function seo(path, title, description) {
   <link rel="icon" href="/assets/img/icon.png" type="image/png">
   <link rel="shortcut icon" href="/assets/img/icon.png" type="image/png">
   <link rel="apple-touch-icon" href="/assets/img/icon.png">
+  <script type="application/ld+json">${structuredData}</script>
   `;
+}
+
+function buildStructuredData(path, title, description) {
+  const canonical = `https://rinawarptech.com${path}`;
+  const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
+  const graph = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "RinaWarp Technologies, LLC",
+      url: "https://rinawarptech.com",
+      logo: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "RinaWarp Terminal Pro",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Windows, Linux",
+      url: canonical,
+      description,
+      publisher: {
+        "@type": "Organization",
+        name: "RinaWarp Technologies, LLC",
+      },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "USD",
+        price: "20",
+        availability: "https://schema.org/InStock",
+      },
+    },
+  ];
+
+  if (normalizedPath === "/what-is-rinawarp" || normalizedPath === "/what-is-a-proof-first-ai-terminal") {
+    graph.push({
+      "@context": "https://schema.org",
+      "@type": "DefinedTerm",
+      name: normalizedPath === "/what-is-rinawarp" ? "RinaWarp Terminal Pro" : "Proof-first AI terminal",
+      description: normalizedPath === "/what-is-rinawarp"
+        ? "A proof-first AI terminal workbench that keeps receipts, recovery, and trust attached to real developer work."
+        : "A terminal workflow surface where AI actions stay connected to receipts, recovery, and proof instead of only producing opaque answers.",
+      url: canonical,
+      inDefinedTermSet: canonical,
+    });
+  }
+
+  if (normalizedPath === "/pricing" || normalizedPath === "/early-access") {
+    graph.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What is RinaWarp Terminal Pro?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "RinaWarp Terminal Pro is a proof-first AI workbench for build, test, deploy, and recovery workflows.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do restore and updates work?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "The canonical release surface is rinawarptech.com/releases, and paid access can be recovered through the billing-email restore path.",
+          },
+        },
+      ],
+    });
+  }
+
+  if (normalizedPath === "/rinawarp-vs-ai-terminals") {
+    graph.push({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: title,
+      description,
+      mainEntityOfPage: canonical,
+      author: {
+        "@type": "Organization",
+        name: "RinaWarp Technologies, LLC",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "RinaWarp Technologies, LLC",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://rinawarptech.com/assets/img/rinawarp-logo.png",
+        },
+      },
+    });
+  }
+
+  return JSON.stringify(graph);
 }
 
 function nav(active) {
@@ -945,6 +1042,15 @@ const pages = [
           <a href="/pricing/" class="btn btn-secondary">See plans</a>
         </div>
       </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Start with a definition, not just a pitch</h2>
+        <p class="section-copy">Search works better when the product has pages that define the category plainly and compare it honestly, not only launch copy.</p>
+        <div class="link-row">
+          <a href="/what-is-rinawarp/" class="btn btn-secondary">What is RinaWarp Terminal Pro?</a>
+          <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">What is a proof-first AI terminal?</a>
+          <a href="/rinawarp-vs-ai-terminals/" class="btn btn-secondary">RinaWarp vs generic AI terminals</a>
+        </div>
+      </div></section>
       <section class="section"><div class="founder-note"><blockquote>We would rather show the rough edges plainly than claim trust we have not earned yet. That is why the site calls out proof, restore, checksums, and platform limits directly instead of hiding them behind generic AI marketing.</blockquote><cite>Founder note from RinaWarp Technologies, LLC</cite></div></section>
     `
   },
@@ -1034,6 +1140,83 @@ const pages = [
     `
   },
   {
+    route: "what-is-a-proof-first-ai-terminal",
+    path: "/what-is-a-proof-first-ai-terminal",
+    page: "docs",
+    title: "What Is a Proof-First AI Terminal? | Definition and Why It Matters",
+    description: "A proof-first AI terminal keeps receipts, recovery, and trust attached to execution instead of relying on opaque assistant claims alone.",
+    eyebrow: "Category definition",
+    heading: "What a proof-first AI terminal actually means.",
+    copy: "A proof-first AI terminal is a workflow surface where AI help stays attached to evidence. Instead of only giving you an answer, it keeps the receipt, recovery path, and execution context visible when the work matters.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>More than chat</h3><p>The category is not just terminal chat. It is AI guidance plus a reliable trail of what actually happened.</p></article>
+        <article class="card"><h3>Proof over confidence</h3><p>If an AI suggests a build, deploy, or fix path, a proof-first terminal keeps the evidence and recovery path attached instead of hiding them behind a polished reply.</p></article>
+        <article class="card"><h3>Why developers care</h3><p>For high-impact work, developers need to trust the result, not just the tone. That is the wedge behind proof-first terminal tools.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Where RinaWarp fits</h2>
+        <p>RinaWarp Terminal Pro is one implementation of this idea: a proof-first AI workbench for build, test, deploy, and recovery workflows where the thread, receipts, and recovery state stay connected.</p>
+        <div class="link-row">
+          <a href="/what-is-rinawarp/" class="btn btn-secondary">Read the RinaWarp definition</a>
+          <a href="/download/" class="btn btn-primary">Try the app</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "what-is-rinawarp",
+    path: "/what-is-rinawarp",
+    page: "docs",
+    title: "What Is RinaWarp Terminal Pro? | Proof-First AI Terminal Definition",
+    description: "RinaWarp Terminal Pro is a proof-first AI terminal workbench for developers who want chat, receipts, recovery, and trusted execution in one place.",
+    eyebrow: "Definition",
+    heading: "What RinaWarp Terminal Pro actually is.",
+    copy: "RinaWarp Terminal Pro is a proof-first AI terminal workbench. It lets developers talk naturally, run work through one trusted path, and keep receipts and recovery attached to the result.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>AI terminal, but not black-box</h3><p>RinaWarp is built for developers who want natural-language help without losing the proof of what happened.</p></article>
+        <article class="card"><h3>Thread first, inspectors second</h3><p>The main surface is the conversation. Runs, diagnostics, and terminal detail are there when you need to inspect them.</p></article>
+        <article class="card"><h3>Best fit for real build and recovery work</h3><p>The strongest use case is not generic chat. It is build, test, deploy, and recovery work where trust matters.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Short definition</h2>
+        <p>RinaWarp Terminal Pro is a proof-first AI workbench for developers. It combines conversational interaction with trusted execution, receipts, and recovery so work does not disappear into opaque agent claims.</p>
+        <div class="link-row">
+          <a href="/download/" class="btn btn-primary">Download Terminal Pro</a>
+          <a href="/pricing/" class="btn btn-secondary">See pricing</a>
+          <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">Define proof-first AI terminal</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "rinawarp-vs-ai-terminals",
+    path: "/rinawarp-vs-ai-terminals",
+    page: "docs",
+    title: "RinaWarp vs Generic AI Terminals | Why Proof Matters",
+    description: "See how RinaWarp differs from generic AI terminals: proof-backed execution, receipts, recovery, and a clearer trust model for real developer work.",
+    eyebrow: "Comparison",
+    heading: "Why RinaWarp is not just another AI terminal.",
+    copy: "The difference is not that RinaWarp has chat. The difference is that it keeps trust, receipts, and recovery attached to the work instead of hiding everything behind a confident answer.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Generic AI terminals</h3><p>Often optimize for speed and novelty first. You get output, but not always a strong trail of proof or recovery.</p></article>
+        <article class="card"><h3>RinaWarp Terminal Pro</h3><p>Optimizes for proof-first execution: thread continuity, run receipts, diagnostics, and recovery all stay attached to the workflow.</p></article>
+        <article class="card"><h3>Why that matters</h3><p>When build, deploy, or system work goes wrong, you need evidence and next steps, not just a confident summary.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">The real wedge</h2>
+        <p>RinaWarp is strongest for developers and teams who distrust black-box AI. It is meant to help you act faster without making the workflow less understandable.</p>
+        <div class="link-row">
+          <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">Define proof-first AI terminal</a>
+          <a href="/what-is-rinawarp/" class="btn btn-secondary">Read the definition</a>
+          <a href="/download/" class="btn btn-primary">Try the app</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
     route: "docs",
     path: "/docs",
     page: "docs",
@@ -1099,7 +1282,29 @@ const pages = [
     eyebrow: "Early Access policy",
     heading: "What Early Access means here.",
     copy: "Early Access should never be a vague excuse. It means the product is real, paid, and supportable, but some platform, update, and workflow edges are still being tightened in public.",
-    content: `<section class="section"><div class="grid three-up"><article class="card"><h3>What is stable enough now</h3><p>Core trust, proof, recovery, and conversational workflow are real. Linux and Windows releases are validated against clean-machine install paths.</p></article><article class="card"><h3>What is still intentionally limited</h3><p>macOS is not launched yet. Platform support is still narrower than a broad stable release. Automatic updates are still being validated as a real installed-build pipeline.</p></article><article class="card"><h3>How billing and restore work</h3><p>Early Access access is currently anchored to billing email and entitlement restore. If access drifts, support can help recover it.</p></article></div></section>`
+    content: `
+      <section class="section"><div class="panel stack">
+        <div class="card trust-note">
+          <h3>Current Early Access release</h3>
+          <p><strong>${VERSION}</strong> is the current public release. Linux and Windows installers, release metadata, and checksums are tied to the same live bundle.</p>
+        </div>
+        <div class="link-row">
+          <a href="/pricing/" class="btn btn-primary">See pricing</a>
+          <a href="/download/" class="btn btn-secondary">Download Terminal Pro</a>
+          <a href="/feedback/" class="btn btn-secondary">Contact support</a>
+        </div>
+      </div></section>
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>What is stable enough now</h3><p>Core trust, proof, recovery, and conversational workflow are real. Linux and Windows releases are validated against clean-machine install paths, and the website routes are tied to live release metadata.</p></article>
+        <article class="card"><h3>What is still intentionally limited</h3><p>macOS is not launched yet. Windows signing is still a follow-up trust investment. Automatic updates are still being validated as a real installed-build pipeline, so manual download remains the safest default expectation until that validation is fully complete.</p></article>
+        <article class="card"><h3>How billing and restore work</h3><p>Early Access access is anchored to your billing email and the restore path in the app/account flow. If access drifts, use restore first, then contact support and we can recover it from the billing record without making you guess.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Refunds, cancellations, and updates</h2>
+        <p>If you need help with cancellation, billing questions, or a reasonable launch-stage refund request, contact <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>. We would rather handle an issue clearly than let a billing or trust problem sit unresolved.</p>
+        <p>Until the updater path is fully proven across installed builds, treat the canonical website download and published checksums as the safest release surface.</p>
+      </div></section>
+    `
   },
   {
     route: "login",

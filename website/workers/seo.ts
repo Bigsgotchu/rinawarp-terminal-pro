@@ -61,6 +61,14 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'documentation, docs, RinaWarp, getting started, proof-backed execution, recovery',
   },
+  '/early-access': {
+    title: 'Early Access Policy | RinaWarp Terminal Pro',
+    description:
+      'Understand what Early Access means for RinaWarp Terminal Pro, including release safety, restore guidance, and current platform limits.',
+    canonical: 'https://rinawarptech.com/early-access',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'early access, RinaWarp, restore, release policy, proof-first AI terminal',
+  },
 }
 
 export function injectSeoTags(path: string): string {
@@ -68,6 +76,7 @@ export function injectSeoTags(path: string): string {
   const normalizedPath = path === '/' ? '/' : path.replace(/\/$/, '')
 
   const seo = SEO_CONFIG[normalizedPath] || SEO_CONFIG['/']
+  const structuredData = buildStructuredData(normalizedPath, seo)
 
   const metaTags = `
   <!-- Primary Meta Tags -->
@@ -98,6 +107,7 @@ export function injectSeoTags(path: string): string {
   <link rel="icon" href="/assets/img/icon.png" type="image/png">
   <link rel="shortcut icon" href="/assets/img/icon.png" type="image/png">
   <link rel="apple-touch-icon" href="/assets/img/icon.png">
+  <script type="application/ld+json">${structuredData}</script>
   
   <!-- Preconnect to external domains for performance -->
 
@@ -109,6 +119,58 @@ export function injectSeoTags(path: string): string {
 `
 
   return metaTags
+}
+
+function buildStructuredData(path: string, seo: SeoData): string {
+  const graph: Array<Record<string, unknown>> = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'RinaWarp Technologies, LLC',
+      url: 'https://rinawarptech.com',
+      logo: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'RinaWarp Terminal Pro',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Windows, Linux',
+      url: seo.canonical,
+      description: seo.description,
+      publisher: {
+        '@type': 'Organization',
+        name: 'RinaWarp Technologies, LLC',
+      },
+    },
+  ]
+
+  if (path === '/pricing' || path === '/early-access') {
+    graph.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'What is RinaWarp Terminal Pro?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RinaWarp Terminal Pro is a proof-first AI workbench for build, test, deploy, and recovery workflows.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do restore and updates work?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'The canonical release surface is rinawarptech.com/releases, and paid access can be recovered through the billing-email restore path.',
+          },
+        },
+      ],
+    })
+  }
+
+  return JSON.stringify(graph)
 }
 
 // Helper to inject SEO into existing HTML head

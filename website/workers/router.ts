@@ -1358,7 +1358,7 @@ function renderPrivacy(): Response {
   return renderPage('/privacy', 'legal', hero, content)
 }
 
-function renderEarlyAccess(): Response {
+function renderEarlyAccess(version?: string): Response {
   const hero = `
     <section class="hero">
       <span class="eyebrow">Early Access policy</span>
@@ -1369,6 +1369,20 @@ function renderEarlyAccess(): Response {
 
   const content = `
     <section class="section">
+      <div class="panel stack">
+        <div class="card trust-note">
+          <h3>Current Early Access release</h3>
+          <p><strong>${version || 'Current live release'}</strong> is the current public release. Linux and Windows installers, release metadata, and checksums are tied to the same live bundle.</p>
+        </div>
+        <div class="link-row">
+          <a href="/pricing" class="btn btn-primary">See pricing</a>
+          <a href="/download" class="btn btn-secondary">Download Terminal Pro</a>
+          <a href="/feedback" class="btn btn-secondary">Contact support</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
       <div class="grid three-up">
         <article class="card">
           <h3>What is stable enough now</h3>
@@ -1376,19 +1390,20 @@ function renderEarlyAccess(): Response {
         </article>
         <article class="card">
           <h3>What is still intentionally limited</h3>
-          <p>macOS is not launched yet. Platform support is still narrower than a broad stable release. Automatic updates are still being validated as a real installed-build pipeline, not just a code path.</p>
+          <p>macOS is not launched yet. Windows signing is still a follow-up trust investment. Automatic updates are still being validated as a real installed-build pipeline, so manual download remains the safest default expectation until that validation is fully complete.</p>
         </article>
         <article class="card">
           <h3>How billing and restore work</h3>
-          <p>Early Access access is currently anchored to billing email and entitlement restore, not a full password-based account system. If access drifts, support can help recover it.</p>
+          <p>Early Access access is anchored to your billing email and the restore path in the app/account flow. If access drifts, use restore first, then contact support and we can recover it from the billing record without making you guess.</p>
         </article>
       </div>
     </section>
 
     <section class="section">
       <div class="panel stack">
-        <h2 class="section-title">Refunds and cancellations</h2>
+        <h2 class="section-title">Refunds, cancellations, and updates</h2>
         <p>If you need help with cancellation, billing questions, or a reasonable launch-stage refund request, contact <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>. We would rather handle issues clearly than let a billing problem damage trust.</p>
+        <p>Until the updater path is fully proven across installed builds, treat the canonical website download and published checksums as the safest release surface.</p>
       </div>
     </section>
   `
@@ -2334,7 +2349,8 @@ export default {
     }
 
     if (path === '/early-access' || path === '/early-access/') {
-      return renderEarlyAccess()
+      const manifest = await getReleaseManifest(env)
+      return renderEarlyAccess(manifest?.version ? String(manifest.version) : undefined)
     }
 
     // Feedback API (POST)
