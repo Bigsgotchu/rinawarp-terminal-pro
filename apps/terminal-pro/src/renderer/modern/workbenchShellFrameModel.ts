@@ -49,8 +49,6 @@ export type WorkbenchShellFrameModel = {
 export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
   return {
     activityItems: [
-      { id: 'agent', label: 'Agent', glyph: 'A', ariaLabel: 'Agent thread', tab: 'agent', placement: 'primary' },
-      { id: 'runs', label: 'Runs', glyph: 'R', ariaLabel: 'Runs inspector', tab: 'runs', placement: 'primary' },
       { id: 'marketplace', label: 'Capabilities', glyph: 'C', ariaLabel: 'Capabilities', tab: 'marketplace', placement: 'primary' },
       { id: 'diagnostics', label: 'Diagnostics', glyph: 'D', ariaLabel: 'Diagnostics', tab: 'diagnostics', placement: 'primary' },
       { id: 'settings', label: 'Settings', glyph: 'S', ariaLabel: 'Settings', tab: 'settings', placement: 'footer' },
@@ -61,8 +59,6 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
     ],
     actions: [
       { id: 'recovery-toggle', tab: 'runs', label: 'Recovered runs', ariaLabel: 'Recovered runs', tone: 'secondary', hidden: true },
-      { tab: 'marketplace', label: 'Capabilities', ariaLabel: 'Capabilities', tone: 'secondary' },
-      { tab: 'diagnostics', label: 'Diagnostics', ariaLabel: 'Diagnostics', tone: 'secondary' },
       {
         action: 'open-settings',
         tab: 'settings',

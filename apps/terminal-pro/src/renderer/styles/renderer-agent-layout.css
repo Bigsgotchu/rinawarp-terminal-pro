@@ -1,25 +1,31 @@
 .rw-agent-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   min-block-size: 0;
   block-size: 100%;
-  padding: 14px 18px 120px;
+  padding: 18px 24px 128px;
   overflow: hidden;
 }
 
 .rw-workbench.agent-focused .rw-agent-body {
-  padding-inline: 10px;
+  padding-inline: 16px;
 }
 
 .rw-agent-hero {
   display: grid;
   gap: 10px;
-  padding: 4px 0 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  inline-size: min(100%, 1080px);
+  margin-inline: auto;
+  padding: 14px 16px 16px;
+  border: 1px solid rgba(255, 122, 168, 0.12);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(18, 21, 31, 0.94), rgba(11, 15, 24, 0.9)),
+    radial-gradient(circle at top left, rgba(255, 122, 168, 0.08), transparent 42%);
+  box-shadow:
+    0 16px 34px rgba(4, 9, 18, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .rw-agent-hero h2 {
@@ -33,7 +39,7 @@
 
 .rw-agent-hero p {
   margin: 0;
-  max-inline-size: 72ch;
+  max-inline-size: 66ch;
   color: color-mix(in oklab, var(--rw-fg) 76%, var(--rw-muted));
   font-size: 0.79rem;
   line-height: 1.45;
@@ -56,6 +62,12 @@
   display: grid;
   gap: 10px;
   flex: 0 0 auto;
+}
+
+#agent-recovery,
+#agent-plan-container {
+  inline-size: min(100%, 1080px);
+  margin-inline: auto;
 }
 
 .rw-prompt-chip {
@@ -139,8 +151,10 @@
 #agent-output {
   display: grid;
   align-content: start;
-  gap: 12px;
-  padding: 2px 0 16px;
+  gap: 16px;
+  inline-size: min(100%, 1080px);
+  margin-inline: auto;
+  padding: 0 0 20px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -154,7 +168,9 @@
   display: grid;
   align-content: start;
   min-block-size: 0;
-  padding: 2px 0 16px;
+  inline-size: min(100%, 1080px);
+  margin-inline: auto;
+  padding: 0 0 20px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -165,7 +181,7 @@
 
 #agent-plan-container {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   align-content: start;
 }
 
@@ -179,12 +195,19 @@
   left: 41px;
   right: 0;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.9);
+  background:
+    linear-gradient(180deg, rgba(4, 7, 11, 0.92), rgba(4, 6, 10, 0.97)),
+    radial-gradient(circle at top left, rgba(87, 231, 255, 0.03), transparent 24%);
   backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 16px 20px;
+  padding: 14px 20px 16px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
+}
+
+.rw-agent-composer > * {
+  inline-size: min(100%, 1080px);
+  margin-inline: auto;
 }
 
 .rw-agent-input-container {
@@ -204,16 +227,16 @@
 
 .rw-agent-input {
   flex: 1;
-  min-block-size: 46px;
+  min-block-size: 52px;
   resize: none;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--rw-fg);
   font: 500 0.88rem/1.5 var(--font-ui);
-  padding: 12px 16px;
+  padding: 14px 16px;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .rw-agent-input:focus {
@@ -264,14 +287,14 @@
 .rw-agent-welcome-card {
   display: grid;
   gap: 8px;
-  padding: 12px 14px;
-  border-radius: 16px;
+  padding: 14px 16px;
+  border-radius: 20px;
   border: 1px solid rgba(255, 122, 168, 0.12);
   background:
     radial-gradient(circle at top left, rgba(255, 122, 168, 0.08), transparent 40%),
     linear-gradient(180deg, rgba(18, 21, 31, 0.94), rgba(11, 15, 24, 0.9));
   box-shadow:
-    0 14px 34px rgba(4, 9, 18, 0.14),
+    0 16px 36px rgba(4, 9, 18, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 

@@ -88,6 +88,9 @@ function renderHero(state: WorkbenchState): void {
 function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
   const recovery = buildRecoverySummaryCardModel(state)
+  const hasRecoveryMessages = state.chat.some(
+    (message) => message.workspaceKey === state.workspaceKey && message.id.startsWith('system:runs:restore:')
+  )
   const sideColumn = el(
     'div',
     {
@@ -95,7 +98,7 @@ function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
     },
     renderAgentCard(buildRecentProofCardModel(state))
   )
-  if (recovery) sideColumn.appendChild(renderAgentCard(recovery))
+  if (recovery && !hasRecoveryMessages) sideColumn.appendChild(renderAgentCard(recovery))
   const mainColumn = el(
     'div',
     {
@@ -123,7 +126,9 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const visibleMessages = state.chat.filter((message) => message.workspaceKey === state.workspaceKey).slice(-200)
   const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
   const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
-  const shouldCompactRecovery = recoveryMessages.length > 0 && threadMessages.length > 0 && !state.ui.recoveryExpanded
+  const hasThreadContent = threadMessages.length > 0
+  const shouldCompactRecovery = recoveryMessages.length > 0 && !state.ui.recoveryExpanded
+  const shouldShowRecoveryStrip = recoveryMessages.length > 0 && (shouldCompactRecovery || hasThreadContent)
 
   if (recoveryRoot) {
     clear(recoveryRoot)
@@ -131,7 +136,7 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
       const recoveryShell = document.createDocumentFragment()
       const stripModel = buildRecoveryStripViewModel(state, shouldCompactRecovery)
 
-      if (stripModel) recoveryShell.appendChild(renderRecoveryStrip(stripModel))
+      if (stripModel && shouldShowRecoveryStrip) recoveryShell.appendChild(renderRecoveryStrip(stripModel))
 
       if (!shouldCompactRecovery) {
         for (const message of recoveryMessages) {
@@ -156,7 +161,6 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const shell = document.createDocumentFragment()
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
 
-  const hasThreadContent = threadMessages.length > 0
   if (!hasThreadContent) {
     shell.appendChild(buildEmptyStateNode(state))
   }

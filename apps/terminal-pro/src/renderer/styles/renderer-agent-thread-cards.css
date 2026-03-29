@@ -88,11 +88,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 16px; /* Increased spacing */
+  gap: 14px;
   padding: 0;
   position: relative;
-  max-inline-size: min(100%, 1160px);
-  margin-bottom: 24px; /* More space between messages */
+  inline-size: min(100%, 960px);
+  margin-inline: auto;
+  margin-bottom: 18px;
 }
 
 .rw-thread-message.user {
@@ -105,12 +106,11 @@
 }
 
 .rw-thread-message {
-  max-inline-size: min(100%, 1040px);
-  gap: 18px;
+  gap: 14px;
 }
 
 .rw-message-bubble {
-  max-inline-size: min(100%, 920px);
+  max-inline-size: min(100%, 860px);
   border-radius: 8px; /* Flatter */
   padding: 16px 20px; /* More padding */
   line-height: 1.6;
@@ -125,7 +125,7 @@
 .rw-reply-card {
   display: grid;
   gap: 10px;
-  max-inline-size: min(100%, 980px);
+  max-inline-size: min(100%, 920px);
   margin-block-start: 4px;
   padding: 12px 13px;
   border-radius: 16px;
@@ -139,11 +139,11 @@
 }
 
 .rw-inline-runs {
-  gap: 14px;
+  gap: 12px;
 }
 
 .rw-message-section {
-  max-inline-size: min(100%, 980px);
+  max-inline-size: min(100%, 920px);
   margin-block-start: 2px;
   padding-inline-start: 1px;
 }

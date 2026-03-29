@@ -16,7 +16,7 @@ function runsInspectorTopbarTab(page: Page) {
 }
 
 function diagnosticsTopbarAction(page: Page) {
-  return page.locator('[data-shell-source="shell_topbar"][data-shell-nav="diagnostics"][aria-label="Diagnostics"]')
+  return page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="diagnostics"][aria-label="Diagnostics"]')
 }
 
 function ensureVisualDir(): void {
@@ -135,7 +135,7 @@ test('visual QA captures recovery state', async () => {
     await page.waitForLoadState('domcontentloaded')
     await waitForAppReady(page)
     await agentTopbarTab(page).click()
-    await expect(page.locator('[data-agent-section="recovery-summary"]')).toBeVisible()
+    await expect(page.locator('#agent-recovery')).toContainText(/I recovered your last session safely/i)
     await capture(page, 'agent-recovery')
   } finally {
     await app.close()

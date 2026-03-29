@@ -28,7 +28,13 @@ export function renderRunsSummary(stateLabel: string, model: RunsSummaryModel): 
     { class: 'rw-runs-summary rw-runs-summary' },
     renderRunsToolbar(model.toolbar)
   )
-  summary.appendChild(el('div', { class: 'rw-runs-summary-copy' }, `Showing ${model.visibleCount} run${model.visibleCount === 1 ? '' : 's'} for ${stateLabel}.`))
+  summary.appendChild(
+    el(
+      'div',
+      { class: 'rw-runs-summary-copy' },
+      `Showing ${model.visibleCount} run${model.visibleCount === 1 ? '' : 's'} for ${stateLabel}. Open one when you need proof, recovery, or artifact detail.`
+    )
+  )
   if (model.hiddenWorkspaceCount) summary.appendChild(el('div', { class: 'rw-runs-summary-copy' }, `Hidden ${model.hiddenWorkspaceCount} run${model.hiddenWorkspaceCount === 1 ? '' : 's'} from other workspaces.`))
   if (model.hiddenNoiseCount) summary.appendChild(el('div', { class: 'rw-runs-summary-copy' }, `Hidden ${model.hiddenNoiseCount} session activity item${model.hiddenNoiseCount === 1 ? '' : 's'} with 0 commands.`))
   if (model.hiddenOverflowCount) summary.appendChild(el('div', { class: 'rw-runs-summary-copy' }, `Hidden ${model.hiddenOverflowCount} older run${model.hiddenOverflowCount === 1 ? '' : 's'} from the current view.`))
@@ -83,6 +89,7 @@ function runSection(summary: string, body: HTMLElement, open = false): HTMLEleme
 }
 
 export function renderRunBlock(model: RunsRunModel): HTMLElement {
+  const topActions = model.actions.filter((action) => !action.className.includes('is-subtle')).slice(0, 4)
   const article = el('article', {
     class: ['rw-run-block', 'rw-run-block', model.status === 'running' ? 'is-running' : ''].filter(Boolean).join(' '),
     dataset: { sessionId: model.sessionId, runId: model.id },
@@ -93,9 +100,9 @@ export function renderRunBlock(model: RunsRunModel): HTMLElement {
     el(
       'div',
       { class: 'rw-run-row' },
-      el(
-        'div',
-        { class: 'rw-run-row-main' },
+        el(
+          'div',
+          { class: 'rw-run-row-main' },
         el(
           'div',
           { class: 'rw-run-row-top' },
@@ -105,15 +112,15 @@ export function renderRunBlock(model: RunsRunModel): HTMLElement {
           model.restored ? el('span', { class: 'rw-run-note' }, 'RESTORED') : null
         ),
         el('div', { class: 'rw-run-row-command', title: model.commandLabel }, el('code', undefined, model.commandLabel)),
-        el(
-          'div',
-          { class: 'rw-run-meta' },
-          el('span', { class: 'rw-run-subtitle' }, model.locationLabel),
-          ...model.summaryBits.map((bit) => el('span', undefined, bit)),
-          model.originMessageId ? el('button', { class: 'rw-run-origin-link', dataset: { openMessage: model.originMessageId } }, 'From thread') : null
-        )
-      ),
-      el('div', { class: 'rw-run-actions' }, ...model.actions.slice(0, 7).map((action) => actionButton({ ...action, className: 'rw-link-btn rw-run-action' })))
+          el(
+            'div',
+            { class: 'rw-run-meta' },
+            el('span', { class: 'rw-run-subtitle' }, model.locationLabel),
+            ...model.summaryBits.map((bit) => el('span', undefined, bit)),
+            model.originMessageId ? el('button', { class: 'rw-run-origin-link', dataset: { openMessage: model.originMessageId } }, 'From thread') : null
+          )
+        ),
+      el('div', { class: 'rw-run-actions' }, ...topActions.map(actionButton))
     )
   )
   if (model.alert) article.appendChild(el('div', { class: `rw-run-alert${model.alert.tone === 'subtle' ? ' subtle' : ''}` }, model.alert.text))

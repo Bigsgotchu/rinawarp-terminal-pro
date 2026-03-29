@@ -249,6 +249,16 @@
   gap: 14px;
 }
 
+.rw-workbench-panel-surface-diagnostics {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-content: start;
+}
+
+.rw-workbench-panel-surface-diagnostics .rw-inline-actions {
+  grid-column: 1 / -1;
+  margin-block-start: 4px;
+}
+
 .rw-workbench-panel-card,
 .rw-workbench-panel-empty {
   border-radius: 16px;
@@ -257,6 +267,29 @@
     linear-gradient(180deg, rgba(16, 22, 33, 0.92), rgba(10, 15, 24, 0.82)),
     radial-gradient(circle at top left, rgba(87, 231, 255, 0.045), transparent 42%);
   box-shadow: 0 10px 24px rgba(3, 8, 16, 0.18);
+}
+
+.rw-workbench-panel-surface-diagnostics .stat-item {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-block-size: 92px;
+  padding: 12px 14px;
+}
+
+.rw-workbench-panel-surface-diagnostics .stat-label {
+  margin: 0;
+  color: var(--rw-subtle);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rw-workbench-panel-surface-diagnostics .stat-value {
+  color: #f8fbff;
+  font-size: 0.92rem;
+  line-height: 1.35;
 }
 
 .rw-empty-title {
