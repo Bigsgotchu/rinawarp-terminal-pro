@@ -144,11 +144,11 @@
 
 .rw-message-section {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   max-inline-size: min(100%, 760px);
   margin-block-start: 0;
-  padding: 2px 0 2px 16px;
-  border-inline-start: 2px solid rgba(124, 199, 255, 0.18);
+  padding: 1px 0 1px 12px;
+  border-inline-start: 1px solid rgba(124, 199, 255, 0.12);
 }
 
 .rw-message-section-head,
@@ -169,24 +169,24 @@
 }
 
 .rw-message-section-label {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(162, 211, 255, 0.82);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: rgba(187, 217, 244, 0.7);
 }
 
 .rw-message-section-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(236, 245, 255, 0.82);
-  font-size: 0.59rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: rgba(224, 236, 248, 0.66);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
 
 .rw-command-result-card {
@@ -194,11 +194,11 @@
 }
 
 .rw-card-section-label {
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(153, 176, 205, 0.72);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: rgba(168, 190, 216, 0.62);
   margin-top: 0;
 }
 
@@ -286,20 +286,62 @@
 }
 
 .rw-reply-list {
+  counter-reset: rw-reply-step;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
-  padding-inline-start: 18px;
+  padding: 0;
+  list-style: none;
   color: rgba(236, 243, 251, 0.9);
 }
 
-.rw-reply-inline-code {
-  border-radius: 12px;
-  padding: 9px 12px;
-  background: rgba(7, 11, 18, 0.78);
+.rw-reply-list > li {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding-inline-start: 22px;
+}
+
+.rw-reply-list > li::before {
+  counter-increment: rw-reply-step;
+  content: counter(rw-reply-step) ".";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 1px;
+  color: rgba(162, 211, 255, 0.62);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.rw-plan-step-title {
+  min-width: 0;
+  color: rgba(241, 247, 255, 0.96);
+  font-size: 0.89rem;
+  line-height: 1.55;
+}
+
+.rw-inline-code-chip {
+  display: inline-flex;
+  align-items: center;
+  max-inline-size: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(147, 207, 255, 0.08);
-  color: #dff2ff;
-  font: 500 0.82rem/1.45 var(--font-mono);
+  color: rgba(223, 242, 255, 0.92);
+  font: 500 0.76rem/1.35 var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rw-reply-inline-code {
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: rgba(9, 14, 22, 0.48);
+  border: 1px solid rgba(147, 207, 255, 0.05);
+  color: rgba(223, 242, 255, 0.92);
+  font: 500 0.78rem/1.45 var(--font-mono);
   white-space: pre-wrap;
   word-break: break-word;
   user-select: text;
@@ -318,6 +360,16 @@
   word-break: break-word;
   user-select: text;
   -webkit-user-select: text;
+}
+
+.rw-reply-list .rw-command-result-copy {
+  padding: 1px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(210, 223, 239, 0.84);
+  font-size: 0.8rem;
+  line-height: 1.55;
 }
 
 .rw-command-result-empty {
@@ -340,7 +392,7 @@
 .rw-message-section-generic,
 .rw-message-section-fix-result,
 .rw-message-section-capability {
-  border-inline-start-color: rgba(124, 199, 255, 0.24);
+  border-inline-start-color: rgba(124, 199, 255, 0.15);
 }
 
 .rw-message-section.rw-plan-starter,
@@ -356,12 +408,34 @@
   box-shadow: none;
 }
 
+.rw-message-section.is-plain {
+  gap: 6px;
+  padding: 0;
+  border-inline-start: 0;
+}
+
+.rw-message-section.is-plain .rw-inline-actions {
+  margin-top: 2px;
+}
+
+.rw-message-section.is-plain .rw-command-result-copy,
+.rw-message-section.is-plain .rw-reply-inline-code {
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rw-message-section.is-plain .rw-reply-inline-code {
+  color: rgba(216, 234, 250, 0.9);
+}
+
 .rw-message-section .rw-reply-card-badge {
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(255, 79, 163, 0.08);
-  border: 1px solid rgba(255, 79, 163, 0.12);
-  color: rgba(255, 221, 239, 0.9);
+  background: rgba(255, 79, 163, 0.05);
+  border: 1px solid rgba(255, 79, 163, 0.08);
+  color: rgba(255, 221, 239, 0.74);
   font-size: 0.58rem;
   box-shadow: none;
 }

@@ -85,11 +85,11 @@ export function buildRinaReplyContent(result: RinaReplyResult, options?: { leadT
       blocks.push(
         replyCardBlock({
           kind: 'plan',
-          label: 'My plan',
-          badge: result.requiresConfirmation ? 'Needs your approval' : 'Ready for review',
+          label: 'Plan',
+          badge: result.requiresConfirmation ? 'Needs approval' : undefined,
           bodyBlocks: [replyListBlock(stepItems, 'No plan steps returned.')],
           actions: [
-            { label: 'Run the safe steps', prompt: 'Run the safe steps from the current fix plan.' },
+            { label: 'Run safe steps', prompt: 'Run the safe steps from the current fix plan.' },
             { label: 'Open Runs', tab: 'runs' },
           ],
         })

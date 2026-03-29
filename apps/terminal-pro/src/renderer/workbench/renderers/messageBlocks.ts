@@ -31,13 +31,17 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
     for (const item of block.items) {
       const li = el('li')
       const titleRow = el('div', { class: item.code || item.badge || item.text ? 'rw-plan-step-title' : '' })
+      const compactCode = typeof item.code === 'string' && item.code.trim().length > 0 && item.code.length <= 72 && !item.text
       titleRow.appendChild(item.strongTitle ? el('strong', undefined, item.title) : document.createTextNode(item.title))
       if (item.badge) {
         titleRow.appendChild(el('span', { class: 'rw-reply-card-badge' }, item.badge))
       }
+      if (compactCode) {
+        titleRow.appendChild(el('code', { class: 'rw-inline-code-chip' }, item.code as string))
+      }
       li.appendChild(titleRow)
       if (item.text) li.appendChild(el('div', { class: 'rw-command-result-copy' }, item.text))
-      if (item.code) li.appendChild(el('div', { class: 'rw-reply-inline-code' }, item.code))
+      if (item.code && !compactCode) li.appendChild(el('div', { class: 'rw-reply-inline-code' }, item.code))
       list.appendChild(li)
     }
     return list
@@ -91,18 +95,23 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
     const blockClasses = (block.className || '').split(/\s+/).filter(Boolean)
     const useCardShell = blockClasses.some((name) => persistentCardClasses.includes(name))
     const kindClass = block.kind ? (useCardShell ? `rw-reply-card-${block.kind}` : `rw-message-section-${block.kind}`) : ''
+    const showHead = useCardShell || Boolean(block.badge)
     const container = el('div', {
-      class: [useCardShell ? 'rw-reply-card' : 'rw-message-section', kindClass, block.className || ''].filter(Boolean).join(' '),
+      class: [useCardShell ? 'rw-reply-card' : 'rw-message-section', !useCardShell && !showHead ? 'is-plain' : '', kindClass, block.className || '']
+        .filter(Boolean)
+        .join(' '),
     })
-    const head = el(
-      'div',
-      { class: useCardShell ? 'rw-reply-card-head' : 'rw-message-section-head' },
-      el('div', { class: useCardShell ? 'rw-reply-card-label' : 'rw-message-section-label' }, block.label)
-    )
-    if (block.badge) {
-      head.appendChild(el('div', { class: useCardShell ? 'rw-reply-card-badge' : 'rw-message-section-badge' }, block.badge))
+    if (showHead) {
+      const head = el(
+        'div',
+        { class: useCardShell ? 'rw-reply-card-head' : 'rw-message-section-head' },
+        el('div', { class: useCardShell ? 'rw-reply-card-label' : 'rw-message-section-label' }, block.label)
+      )
+      if (block.badge) {
+        head.appendChild(el('div', { class: useCardShell ? 'rw-reply-card-badge' : 'rw-message-section-badge' }, block.badge))
+      }
+      container.appendChild(head)
     }
-    container.appendChild(head)
     if (Array.isArray(block.bodyBlocks) && block.bodyBlocks.length > 0) {
       for (const child of block.bodyBlocks) container.appendChild(buildMessageBlockNode(child))
     }

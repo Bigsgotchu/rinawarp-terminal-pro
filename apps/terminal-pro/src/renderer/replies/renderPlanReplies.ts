@@ -74,13 +74,13 @@ export function buildExecutionPlanContent(
     replyCardBlock({
       kind: 'plan',
       label: 'Plan',
-      badge: options?.reviewOnly ? 'Plan Mode' : 'Receipts-backed',
+      badge: options?.reviewOnly ? 'Review only' : undefined,
       bodyBlocks: [replyListBlock(stepItems, 'No plan steps returned.')],
       actions:
         options?.reviewOnly && steps.length > 0 && options.workspaceRoot
           ? [
               {
-                label: 'Run this plan',
+                label: 'Run plan',
                 executePlan: encodeExecutionPlan(steps),
                 executePlanPrompt: options.planActionPrompt || prompt,
                 executePlanWorkspaceRoot: options.workspaceRoot,
