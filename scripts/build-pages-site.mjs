@@ -238,6 +238,53 @@ footer {
 const SITE_JS = `
 const page = document.body.dataset.page || '';
 
+async function trackSiteEvent(event, properties = {}) {
+  try {
+    await fetch('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        event,
+        properties,
+        path: window.location.pathname,
+        hostname: window.location.hostname,
+        ts: Date.now(),
+      }),
+    });
+  } catch {
+    // Analytics is optional and should never block the user path.
+  }
+}
+
+const pageViewEventMap = {
+  home: 'site_home_viewed',
+  pricing: 'site_pricing_viewed',
+  download: 'site_download_viewed',
+};
+
+const pageViewEvent = pageViewEventMap[page];
+if (pageViewEvent) {
+  trackSiteEvent(pageViewEvent, { referrer: document.referrer ? 'present' : 'none' });
+}
+
+document.addEventListener('click', (event) => {
+  const target = event.target instanceof Element ? event.target.closest('[data-analytics-event]') : null;
+  if (!target) return;
+
+  const name = target.getAttribute('data-analytics-event');
+  if (!name) return;
+
+  const properties = {};
+  for (const attr of target.getAttributeNames()) {
+    if (!attr.startsWith('data-analytics-prop-')) continue;
+    const key = attr.slice('data-analytics-prop-'.length);
+    properties[key] = target.getAttribute(attr) || '';
+  }
+
+  trackSiteEvent(name, properties);
+});
+
 function setStatus(id, message, state = '') {
   const el = document.getElementById(id);
   if (!el) return;
@@ -277,6 +324,11 @@ if (page === 'pricing') {
       }
       setStatus('checkout-status', 'Opening secure checkout…');
       try {
+        trackSiteEvent('checkout_started', {
+          tier: 'pro',
+          billingCycle,
+          placement: 'pricing_pro',
+        });
         localStorage.setItem('checkout_email', email);
         localStorage.setItem('checkout_tier', 'pro');
         localStorage.setItem('checkout_billing_cycle', billingCycle);
@@ -308,6 +360,11 @@ if (page === 'team') {
     }
     setStatus('team-checkout-status', 'Opening secure Team checkout…');
     try {
+      trackSiteEvent('checkout_started', {
+        tier: 'team',
+        placement: 'team_page',
+        seats,
+      });
       localStorage.setItem('checkout_email', email);
       localStorage.setItem('checkout_tier', 'team');
       localStorage.setItem('checkout_seats', String(seats));
@@ -665,7 +722,7 @@ const pages = [
         <h2 class="section-title">Ask → Plan → Execute → Prove → Recover</h2>
         <p class="section-copy">The promise is simple: open the app, ask for real work, let it execute through the canonical path, and inspect proof only when you need more detail.</p>
         <div class="cta-row">
-          <a href="/download/" class="btn btn-primary">Download the app</a>
+          <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download the app</a>
           <a href="/pricing/" class="btn btn-secondary">See plans</a>
         </div>
       </div></section>
@@ -682,7 +739,7 @@ const pages = [
     copy: "RinaWarp Terminal Pro Early Access keeps the ladder simple: a real free tier to feel the workbench, a serious Pro tier for proof-backed execution, and a Team plan that now has a live checkout path tied to seats and workspace rollout.",
     content: `
       <section class="section"><div class="pricing-grid">
-        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary">Get started</a></article>
+        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a></article>
         <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
         <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>For teams that need seats, role boundaries, invite management, audit visibility, and a truth-based path from checkout into workspace rollout.</p><ul class="feature-list"><li>Seat-based checkout and workspace-linked team rollout</li><li>Role-aware invite management and audit direction</li><li>Team memory, multi-agent limits, and proof-backed workflows</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team</a></article>
       </div></section>
@@ -739,8 +796,8 @@ const pages = [
     copy: "Install the desktop workbench, inspect the live release manifest, and choose the package path that matches how you want updates delivered.",
     content: `
       <section class="section"><div class="download-grid">
-        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and is the easiest way to get running on a clean machine, but you should expect to install newer <strong>.deb</strong> packages manually. <strong>AppImage</strong> is the Linux path for <strong>in-app updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb" class="btn btn-primary">Download Linux .deb</a><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install.</p></article>
-        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary">Download Windows</a></div></article>
+        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and is the easiest way to get running on a clean machine, but you should expect to install newer <strong>.deb</strong> packages manually. <strong>AppImage</strong> is the Linux path for <strong>in-app updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install.</p></article>
+        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a></div></article>
         <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS signing is not enabled yet. We would rather say that plainly than ship a rough installer path we cannot support.</p><div class="link-row"><a href="/feedback/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
       <section class="section"><div class="panel stack"><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="/releases/latest.json" class="btn btn-secondary">Open latest.json</a><a href="/releases/latest.yml" class="btn btn-secondary">Open latest.yml</a><a href="/releases/latest-linux.yml" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The canonical updater feed lives on <code>rinawarptech.com/releases/*</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>

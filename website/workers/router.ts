@@ -8,6 +8,7 @@ import { apiRouter } from './api/index'
 import { marketplaceUI } from './marketplace/ui'
 import { injectSeoTags } from './seo'
 import { handleAuthRequest } from './api/auth'
+import { extractToken, verifyToken } from './lib/auth'
 
 const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -173,6 +174,13 @@ async function serveDownloadObject(env: any, objectKey: string): Promise<Respons
 }
 
 type SitePage = 'home' | 'pricing' | 'download' | 'docs' | 'agents' | 'feedback' | 'legal' | 'login' | 'register' | 'account'
+
+type SiteAnalyticsEvent =
+  | 'site_home_viewed'
+  | 'site_pricing_viewed'
+  | 'site_download_viewed'
+  | 'site_download_clicked'
+  | 'checkout_started'
 
 const SITE_STYLES = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -578,6 +586,68 @@ function renderSitemapXml(origin: string): Response {
   return new Response(body, { status: 200, headers })
 }
 
+function pageViewEventForPath(path: string): SiteAnalyticsEvent | null {
+  if (path === '/') return 'site_home_viewed'
+  if (path === '/pricing') return 'site_pricing_viewed'
+  if (path === '/download') return 'site_download_viewed'
+  return null
+}
+
+function renderAnalyticsBootstrap(path: string): string {
+  const pageEvent = pageViewEventForPath(path)
+  return `
+    <script>
+      (function () {
+        const pageEvent = ${JSON.stringify(pageEvent)};
+
+        async function rwTrackEvent(event, properties) {
+          try {
+            await fetch('/api/events', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              keepalive: true,
+              body: JSON.stringify({
+                event,
+                properties: properties || {},
+                path: window.location.pathname,
+                hostname: window.location.hostname,
+                ts: Date.now(),
+              }),
+            });
+          } catch {
+            // Analytics is optional and should never block the main experience.
+          }
+        }
+
+        window.rwTrackEvent = rwTrackEvent;
+
+        if (pageEvent) {
+          rwTrackEvent(pageEvent, {
+            referrer: document.referrer ? 'present' : 'none',
+          });
+        }
+
+        document.addEventListener('click', (event) => {
+          const target = event.target instanceof Element ? event.target.closest('[data-analytics-event]') : null;
+          if (!target) return;
+
+          const name = target.getAttribute('data-analytics-event');
+          if (!name) return;
+
+          const properties = {};
+          for (const attr of target.getAttributeNames()) {
+            if (!attr.startsWith('data-analytics-prop-')) continue;
+            const key = attr.slice('data-analytics-prop-'.length);
+            properties[key] = target.getAttribute(attr) || '';
+          }
+
+          rwTrackEvent(name, properties);
+        });
+      })();
+    </script>
+  `
+}
+
 function renderPage(path: string, active: SitePage, hero: string, content: string, script = ''): Response {
   const seo = injectSeoTags(path)
   const html = `<!DOCTYPE html>
@@ -627,6 +697,7 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
       </div>
     </footer>
   </div>
+  ${renderAnalyticsBootstrap(path)}
   ${script ? `<script>${script}</script>` : ''}
 </body>
 </html>`
@@ -644,7 +715,7 @@ function renderHomepage(): Response {
       <h1>Talk to Rina naturally. Ship with proof.</h1>
       <p class="hero-copy">RinaWarp Terminal Pro is the AI workbench for people who want an agent they can actually talk to, trust, and recover with. Ask in plain language, let Rina inspect or act through one trusted path, and keep the run ID, receipts, and output attached to the thread.</p>
       <div class="cta-row">
-        <a href="/download" class="btn btn-primary">Download the app</a>
+        <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download the app</a>
         <a href="/pricing" class="btn btn-secondary">See plans</a>
       </div>
     </section>
@@ -728,7 +799,7 @@ function renderPricing(): Response {
             <li>Core inspectors and workspace-aware proof UI</li>
             <li>Download and use on your own machine</li>
           </ul>
-          <a href="/download" class="btn btn-secondary">Get started</a>
+          <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a>
         </article>
         <article class="card pricing-card featured">
           <span class="pill">Pro Early Access</span>
@@ -767,6 +838,8 @@ function renderPricing(): Response {
   const script = `
     const emailInput = document.getElementById('checkout-email');
     const status = document.getElementById('checkout-status');
+    const pricingParams = new URLSearchParams(window.location.search);
+    const returnTo = pricingParams.get('return_to');
     document.querySelectorAll('[data-checkout-cycle]').forEach((checkoutBtn) => {
       checkoutBtn.addEventListener('click', async () => {
         const email = emailInput?.value?.trim();
@@ -779,10 +852,17 @@ function renderPricing(): Response {
         status.textContent = 'Opening secure checkout…';
         checkoutBtn.disabled = true;
         try {
+          if (typeof window.rwTrackEvent === 'function') {
+            window.rwTrackEvent('checkout_started', {
+              tier: 'pro',
+              billingCycle,
+              placement: 'pricing_pro',
+            });
+          }
           const response = await fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, tier: 'pro', billingCycle }),
+            body: JSON.stringify({ email, tier: 'pro', billingCycle, returnTo }),
           });
           const payload = await response.json();
           if (!response.ok || !payload.checkoutUrl) {
@@ -856,6 +936,52 @@ function renderDocs(): Response {
   `
 
   return renderPage('/docs', 'docs', hero, content)
+}
+
+function renderSuccess(returnTo: string = '', sessionId: string = ''): Response {
+  const hero = `
+    <section class="hero">
+      <span class="eyebrow">Checkout complete</span>
+      <h1>Your purchase went through.</h1>
+      <p class="hero-copy">The next step is simple: return to the product you came from and refresh your access so the new plan is visible.</p>
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="auth-container">
+        <div class="auth-card">
+          <h2 class="auth-title">What happens next</h2>
+          <p class="auth-subtitle">If you started from the VS Code companion, use the return button below. If not, open your account and confirm your billing state there.</p>
+          <div class="link-row">
+            <a id="return-to-product" href="${returnTo || '/account'}" class="btn btn-primary">Return to VS Code</a>
+            <a href="/account" class="btn btn-secondary">Open account</a>
+          </div>
+          <p class="note">If your paid tier does not appear immediately, use refresh inside the product after you return.</p>
+          ${sessionId ? `<p class="note">Checkout session: <code>${sessionId}</code></p>` : ''}
+        </div>
+        <div class="auth-card">
+          <h2 class="auth-title">Need help?</h2>
+          <p class="auth-subtitle">If billing or restore state looks wrong, use the same billing email from checkout in the account restore flow or contact support.</p>
+          <div class="link-row">
+            <a href="/pricing" class="btn btn-secondary">See plans</a>
+            <a href="/feedback" class="btn btn-secondary">Contact support</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  `
+
+  const script = `
+    const returnTo = ${JSON.stringify(returnTo)};
+    const returnBtn = document.getElementById('return-to-product');
+    if (!returnTo && returnBtn) {
+      returnBtn.textContent = 'Open account';
+      returnBtn.setAttribute('href', '/account');
+    }
+  `
+
+  return renderPage('/success', 'account', hero, content, script)
 }
 
 function renderFeedback(): Response {
@@ -1086,8 +1212,8 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
           <h3>Choose your Linux path</h3>
           <p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and the easiest way to get running on a clean machine, but updates on that path should be treated as <strong>manual .deb installs</strong>. <strong>AppImage</strong> is the Linux path for <strong>in-app automatic updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p>
           <div class="link-row">
-            <a href="${linuxDebUrl}" class="btn btn-primary">Download Linux .deb</a>
-            <a href="${linuxAppImageUrl}" class="btn btn-secondary">Download AppImage</a>
+            <a href="${linuxDebUrl}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
+            <a href="${linuxAppImageUrl}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
             <a href="${latestJsonUrl}" class="btn btn-secondary">View manifest</a>
           </div>
           <p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install. Recommended baseline: Debian 13 / Ubuntu desktop-class systems for Early Access. Minimal server images may need additional GUI/runtime packages if you choose the AppImage path.</p>
@@ -1097,7 +1223,7 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
           <h3>.exe installer</h3>
           <p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p>
           <div class="link-row">
-            <a href="${windowsUrl}" class="btn btn-primary">Download Windows</a>
+            <a href="${windowsUrl}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a>
           </div>
         </article>
         <article class="card platform-card">
@@ -1159,6 +1285,7 @@ function renderLogin(returnTo: string = ''): Response {
           
           <div id="login-error" class="alert alert-error" style="display:none;"></div>
           <div id="login-success" class="alert alert-success" style="display:none;"></div>
+          <div id="login-return" style="display:none; margin-top:12px;"></div>
           
           <form id="login-form">
             <label for="email">Email
@@ -1186,7 +1313,44 @@ function renderLogin(returnTo: string = ''): Response {
     const form = document.getElementById('login-form');
     const errorDiv = document.getElementById('login-error');
     const successDiv = document.getElementById('login-success');
-    const returnTo = '${returnTo}';
+    const returnDiv = document.getElementById('login-return');
+    const returnTo = ${JSON.stringify(returnTo)};
+
+    function buildReturnTarget(target, token) {
+      if (!target) return '/account';
+      try {
+        const url = new URL(target);
+        url.searchParams.set('token', token);
+        return url.toString();
+      } catch {
+        const separator = target.includes('?') ? '&' : '?';
+        return target + separator + 'token=' + encodeURIComponent(token);
+      }
+    }
+
+    function showReturnButton(target) {
+      if (!returnDiv || !target) return;
+      returnDiv.innerHTML = '<a class="btn btn-secondary" id="open-vscode-return" href="#">Open VS Code</a><p class="note" style="margin-top:10px;">If your browser does not switch back automatically, click the button.</p>';
+      returnDiv.style.display = 'block';
+      const returnLink = document.getElementById('open-vscode-return');
+      if (returnLink) {
+        returnLink.addEventListener('click', (event) => {
+          event.preventDefault();
+          window.location.href = target;
+        });
+      }
+    }
+
+    const existingToken = localStorage.getItem('auth_token');
+    if (existingToken && returnTo) {
+      successDiv.textContent = 'You are already signed in. Sending you back to VS Code...';
+      successDiv.style.display = 'block';
+      const returnTarget = buildReturnTarget(returnTo, existingToken);
+      showReturnButton(returnTarget);
+      setTimeout(() => {
+        window.location.href = returnTarget;
+      }, 250);
+    }
     
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1223,11 +1387,20 @@ function renderLogin(returnTo: string = ''): Response {
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('user_email', data.user?.email || email);
         
-        successDiv.textContent = 'Login successful! Redirecting...';
+        const returnTarget = buildReturnTarget(returnTo, data.token);
+        const isExternalAppReturn = Boolean(returnTo);
+
+        successDiv.textContent = isExternalAppReturn
+          ? 'Login successful. We are trying to send you back to VS Code now.'
+          : 'Login successful! Redirecting...';
         successDiv.style.display = 'block';
+
+        if (isExternalAppReturn) {
+          showReturnButton(returnTarget);
+        }
         
         setTimeout(() => {
-          window.location.href = returnTo || '/account';
+          window.location.href = returnTarget;
         }, 500);
       } catch (err) {
         errorDiv.textContent = err instanceof Error ? err.message : 'Login failed';
@@ -1241,7 +1414,7 @@ function renderLogin(returnTo: string = ''): Response {
   return renderPage('/login', 'account', hero, content, script)
 }
 
-function renderRegister(): Response {
+function renderRegister(returnTo: string = ''): Response {
   const hero = `
     <section class="hero">
       <span class="eyebrow">Get started</span>
@@ -1294,6 +1467,7 @@ function renderRegister(): Response {
     const errorDiv = document.getElementById('register-error');
     const successDiv = document.getElementById('register-success');
     const passwordInput = document.getElementById('password');
+    const returnTo = ${JSON.stringify(returnTo)};
     
     // Password validation
     const reqs = {
@@ -1364,7 +1538,7 @@ function renderRegister(): Response {
         form.reset();
         
         setTimeout(() => {
-          window.location.href = '/login';
+          window.location.href = returnTo ? '/login?return_to=' + encodeURIComponent(returnTo) : '/login';
         }, 2000);
       } catch (err) {
         errorDiv.textContent = err instanceof Error ? err.message : 'Registration failed';
@@ -1730,14 +1904,57 @@ function renderAccount(authToken: string | null): Response {
           <h2 class="auth-title">Sign in to your account</h2>
           <p class="auth-subtitle">Sign in, restore by billing email, or start from the Early Access support path.</p>
           
-          <a href="/login" class="btn btn-primary" style="width:100%; margin-bottom:12px;">Sign In</a>
-          <a href="/register" class="btn btn-secondary" style="width:100%; margin-bottom:12px;">Create Account</a>
+          <a href="/login" id="account-login-link" class="btn btn-primary" style="width:100%; margin-bottom:12px;">Sign In</a>
+          <a href="/register" id="account-register-link" class="btn btn-secondary" style="width:100%; margin-bottom:12px;">Create Account</a>
           <a href="/early-access" class="btn btn-secondary" style="width:100%;">Early Access Policy</a>
+          <div id="account-return" style="display:none; margin-top:12px;"></div>
         </div>
       </div>
     </section>`
     
     script = `
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get('return_to');
+      const existingToken = localStorage.getItem('auth_token');
+      const returnDiv = document.getElementById('account-return');
+
+      function showReturnButton(target) {
+        if (!returnDiv || !target) return;
+        returnDiv.innerHTML = '<a class="btn btn-secondary" id="account-open-vscode" href="#">Open VS Code</a><p class="note" style="margin-top:10px;">If your browser does not switch back automatically, click the button.</p>';
+        returnDiv.style.display = 'block';
+        const returnLink = document.getElementById('account-open-vscode');
+        if (returnLink) {
+          returnLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            window.location.href = target;
+          });
+        }
+      }
+
+      function buildReturnTarget(target, token) {
+        try {
+          const url = new URL(target);
+          url.searchParams.set('token', token);
+          return url.toString();
+        } catch {
+          const separator = target.includes('?') ? '&' : '?';
+          return target + separator + 'token=' + encodeURIComponent(token);
+        }
+      }
+
+      if (returnTo) {
+        const loginLink = document.getElementById('account-login-link');
+        const registerLink = document.getElementById('account-register-link');
+        if (loginLink) loginLink.href = '/login?return_to=' + encodeURIComponent(returnTo);
+        if (registerLink) registerLink.href = '/register?return_to=' + encodeURIComponent(returnTo);
+      }
+
+      if (existingToken && returnTo) {
+        const returnTarget = buildReturnTarget(returnTo, existingToken);
+        showReturnButton(returnTarget);
+        window.location.href = returnTarget;
+      }
+
       // Check for existing token in URL (e.g., from OAuth)
       const hash = window.location.hash;
       if (hash && hash.includes('token=')) {
@@ -1864,11 +2081,11 @@ export default {
 
     // Auth pages
     if (path === '/login' || path === '/login/') {
-      return renderLogin()
+      return renderLogin(url.searchParams.get('return_to') || '')
     }
 
     if (path === '/register' || path === '/register/') {
-      return renderRegister()
+      return renderRegister(url.searchParams.get('return_to') || '')
     }
 
     if (path === '/forgot-password' || path === '/forgot-password/') {
@@ -1884,6 +2101,10 @@ export default {
       const authHeader = request.headers.get('Authorization')
       const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
       return renderAccount(token)
+    }
+
+    if (path === '/success' || path === '/success/') {
+      return renderSuccess(url.searchParams.get('return_to') || '', url.searchParams.get('session_id') || '')
     }
 
     if (path === '/docs' || path === '/docs/') {
@@ -1944,7 +2165,60 @@ async function handleApiRequest(
   if (path === '/api/events' && request.method === 'POST') {
     try {
       const body = await request.json()
-      console.log('Event received:', body)
+      const event = typeof body?.event === 'string' ? body.event.trim() : ''
+      const properties =
+        body && typeof body.properties === 'object' && body.properties && !Array.isArray(body.properties)
+          ? Object.fromEntries(
+              Object.entries(body.properties as Record<string, unknown>).slice(0, 12).map(([key, value]) => [key, String(value ?? '').slice(0, 120)])
+            )
+          : {}
+      const pathName = typeof body?.path === 'string' ? body.path.slice(0, 120) : ''
+      const hostname = typeof body?.hostname === 'string' ? body.hostname.slice(0, 120) : ''
+
+      if (!event) {
+        return new Response(JSON.stringify({ error: 'Missing event name' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        })
+      }
+
+      const payload = {
+        event,
+        properties,
+        path: pathName,
+        hostname,
+        timestamp: new Date().toISOString(),
+        source: 'website',
+      }
+
+      console.log('Website event received:', payload)
+
+      const posthogKey = String(env.RINAWARP_POSTHOG_KEY || env.POSTHOG_API_KEY || '').trim()
+      const posthogHost = String(env.RINAWARP_POSTHOG_HOST || env.POSTHOG_HOST || 'https://app.posthog.com').trim()
+
+      if (posthogKey) {
+        try {
+          await fetch(`${posthogHost.replace(/\\/+$/, '')}/capture/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              api_key: posthogKey,
+              event,
+              distinct_id: 'website-anonymous',
+              properties: {
+                ...properties,
+                path: pathName,
+                hostname,
+                source: 'website',
+              },
+              timestamp: payload.timestamp,
+            }),
+          })
+        } catch (error) {
+          console.error('Website event forward failed:', error)
+        }
+      }
+
       return new Response(JSON.stringify({ ok: true }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       })
@@ -1959,6 +2233,14 @@ async function handleApiRequest(
   // User endpoint
   if (path === '/api/me' && request.method === 'GET') {
     return handleAuthRequest(new Request(new URL('/api/auth/me', request.url).toString(), request), env, '/api/auth/me')
+  }
+
+  if (path === '/api/vscode/entitlements' && request.method === 'GET') {
+    return handleVscodeEntitlements(request, env, corsHeaders)
+  }
+
+  if (path === '/api/vscode/chat' && request.method === 'POST') {
+    return handleVscodeChat(request, env, corsHeaders)
   }
 
   // License portal - now supports POST
@@ -2078,6 +2360,381 @@ async function handleLicenseRequest(
   })
 }
 
+async function lookupLicenseByEmail(email: string, env: any): Promise<{
+  customerId?: string;
+  email: string;
+  ok: boolean;
+  status: string;
+  tier: string | null;
+}> {
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+
+  if (!normalizedEmail) {
+    return {
+      ok: false,
+      email: '',
+      tier: null,
+      status: 'missing_email',
+    }
+  }
+
+  if (env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+    const response = await fetch(
+      `https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(normalizedEmail)}'`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+        },
+      }
+    )
+
+    const customerData = await response.json()
+    const customers = customerData.data || []
+
+    if (customers.length > 0) {
+      const customer = customers[0]
+
+      const subscriptionsResponse = await fetch('https://api.stripe.com/v1/subscriptions?' + new URLSearchParams({
+        customer: String(customer.id),
+        status: 'all',
+        limit: '10',
+      }).toString(), {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+
+      const subscriptionsData = await subscriptionsResponse.json()
+      const subscriptions = Array.isArray(subscriptionsData.data)
+        ? subscriptionsData.data.filter((sub: any) =>
+            ['active', 'trialing', 'past_due', 'unpaid'].includes(String(sub?.status || '').toLowerCase())
+          )
+        : []
+
+      if (subscriptions.length > 0) {
+        const sub = subscriptions[0]
+        const priceId = sub.items?.data[0]?.price?.id
+
+        const tierMap: Record<string, string> = {}
+        const proPriceId = String(env.STRIPE_PRO_MONTHLY_PRICE_ID || env.STRIPE_PRO_PRICE_ID || '').trim()
+        const proAnnualPriceId = String(env.STRIPE_PRO_ANNUAL_PRICE_ID || '').trim()
+        const creatorPriceId = String(env.STRIPE_CREATOR_PRICE_ID || '').trim()
+        const teamPriceId = String(env.STRIPE_TEAM_PRICE_ID || '').trim()
+        const founderPriceId = String(env.STRIPE_FOUNDER_PRICE_ID || '').trim()
+
+        if (proPriceId) tierMap[proPriceId] = 'pro'
+        if (proAnnualPriceId) tierMap[proAnnualPriceId] = 'pro'
+        if (creatorPriceId) tierMap[creatorPriceId] = 'creator'
+        if (teamPriceId) tierMap[teamPriceId] = 'team'
+        if (founderPriceId) tierMap[founderPriceId] = 'founder'
+
+        return {
+          ok: true,
+          email: customer.email || normalizedEmail,
+          tier: tierMap[priceId] || 'unknown',
+          status: 'active',
+          customerId: customer.id,
+        }
+      }
+
+      return {
+        ok: true,
+        email: customer.email || normalizedEmail,
+        tier: null,
+        status: 'no_subscription',
+        customerId: customer.id,
+      }
+    }
+  }
+
+  return {
+    ok: true,
+    email: normalizedEmail,
+    tier: null,
+    status: 'not_found',
+  }
+}
+
+async function handleVscodeEntitlements(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const token = extractToken(request.headers.get('Authorization'))
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'No token provided' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const payload = await verifyToken(token, env.AUTH_SECRET)
+  if (!payload) {
+    return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const email = String(payload.email || '').trim().toLowerCase()
+  if (!email) {
+    return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const license = await lookupLicenseByEmail(email, env)
+  const plan = license.tier === 'pro' || license.tier === 'team' ? license.tier : 'free'
+  const packs =
+    plan === 'team'
+      ? ['docker-repair', 'system-diagnostics', 'npm-audit', 'security-audit', 'test-runner']
+      : plan === 'pro'
+        ? ['docker-repair', 'system-diagnostics', 'npm-audit', 'security-audit']
+        : ['system-diagnostics']
+
+  return new Response(JSON.stringify({
+    email,
+    plan,
+    packs,
+    status: license.status,
+    updatedAt: new Date().toISOString(),
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleVscodeChat(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const token = extractToken(request.headers.get('Authorization'))
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'No token provided' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const payload = await verifyToken(token, env.AUTH_SECRET)
+  if (!payload) {
+    return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const email = String(payload.email || '').trim().toLowerCase()
+  if (!email) {
+    return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const body = await request.json().catch(() => null) as {
+    client?: { product?: string; extensionVersion?: string }
+    messages?: Array<{ role?: string; content?: string }>
+    workspaceContext?: {
+      diagnostic?: {
+        findings?: string[]
+        recommendedPack?: string
+        recommendedReason?: string
+        workspaceName?: string
+      }
+      hasWorkspace?: boolean
+      markers?: string[]
+      packageManagerHint?: string
+      packageName?: string
+      packageScripts?: string[]
+      plan?: string
+      topLevelEntries?: string[]
+      workspaceName?: string
+      workspaceSummary?: string
+    }
+  } | null
+
+  const messages = Array.isArray(body?.messages)
+    ? body!.messages
+        .filter((message): message is { role: 'user' | 'assistant'; content: string } =>
+          (message?.role === 'user' || message?.role === 'assistant') && typeof message.content === 'string' && message.content.trim().length > 0
+        )
+        .slice(-10)
+    : []
+
+  const latestUserMessage = [...messages].reverse().find((message) => message.role === 'user')?.content?.trim()
+  if (!latestUserMessage) {
+    return new Response(JSON.stringify({ error: 'A user message is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const plan = body?.workspaceContext?.plan === 'pro' || body?.workspaceContext?.plan === 'team'
+    ? body.workspaceContext.plan
+    : 'free'
+  const diagnostic = body?.workspaceContext?.diagnostic
+  const fallback = buildCompanionChatFallback({
+    diagnostic,
+    hasWorkspace: Boolean(body?.workspaceContext?.hasWorkspace),
+    latestUserMessage,
+    plan,
+  })
+
+  if (!env.OPENAI_API_KEY) {
+    return new Response(JSON.stringify({
+      actions: fallback.actions,
+      message: fallback.message,
+      mode: 'fallback',
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  try {
+    const systemPrompt = [
+      'You are Rina for RinaWarp Companion inside VS Code.',
+      'Be concise, practical, and safe.',
+      'Do not claim to have executed commands.',
+      'Do not ask for secrets or file contents.',
+      'Focus on diagnostics, capability packs, pricing boundaries, and next safe steps.',
+      'If the user sounds like they want execution, recommend Companion actions instead of pretending you ran anything.',
+      'Keep the response under 140 words.',
+    ].join(' ')
+
+    const contextLines = [
+      `Plan: ${plan}`,
+      `Connected email: ${email}`,
+      `Workspace open: ${body?.workspaceContext?.hasWorkspace ? 'yes' : 'no'}`,
+      body?.workspaceContext?.workspaceName ? `Workspace: ${body.workspaceContext.workspaceName}` : null,
+      body?.workspaceContext?.workspaceSummary ? `Workspace summary: ${body.workspaceContext.workspaceSummary}` : null,
+      Array.isArray(body?.workspaceContext?.markers) && body?.workspaceContext?.markers?.length ? `Markers: ${body.workspaceContext.markers.join(', ')}` : null,
+      body?.workspaceContext?.packageName ? `Package name: ${body.workspaceContext.packageName}` : null,
+      body?.workspaceContext?.packageManagerHint ? `Package manager: ${body.workspaceContext.packageManagerHint}` : null,
+      Array.isArray(body?.workspaceContext?.packageScripts) && body?.workspaceContext?.packageScripts?.length ? `Package scripts: ${body.workspaceContext.packageScripts.join(', ')}` : null,
+      Array.isArray(body?.workspaceContext?.topLevelEntries) && body?.workspaceContext?.topLevelEntries?.length ? `Top level entries: ${body.workspaceContext.topLevelEntries.join(', ')}` : null,
+      diagnostic?.workspaceName ? `Last diagnostic workspace: ${diagnostic.workspaceName}` : null,
+      diagnostic?.recommendedPack ? `Recommended pack: ${diagnostic.recommendedPack}` : null,
+      diagnostic?.recommendedReason ? `Recommended reason: ${diagnostic.recommendedReason}` : null,
+      Array.isArray(diagnostic?.findings) && diagnostic?.findings?.length ? `Findings: ${diagnostic.findings.join('; ')}` : null,
+    ].filter(Boolean).join('\n')
+
+    const llmMessages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'system', content: `Context:\n${contextLines}` },
+      ...messages.map((message) => ({ role: message.role, content: message.content })),
+    ]
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: llmMessages,
+        temperature: 0.3,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`OpenAI returned ${response.status}`)
+    }
+
+    const json = await response.json() as {
+      choices?: Array<{ message?: { content?: string } }>
+    }
+    const content = json.choices?.[0]?.message?.content?.trim() || fallback.message
+
+    return new Response(JSON.stringify({
+      actions: fallback.actions,
+      message: content,
+      mode: 'model',
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  } catch (error) {
+    console.warn('[vscode/chat] model-backed response failed, falling back', error)
+    return new Response(JSON.stringify({
+      actions: fallback.actions,
+      message: fallback.message,
+      mode: 'fallback',
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+}
+
+function buildCompanionChatFallback(input: {
+  diagnostic?: {
+    findings?: string[]
+    recommendedPack?: string
+    recommendedReason?: string
+    workspaceName?: string
+  }
+  hasWorkspace: boolean
+  latestUserMessage: string
+  plan: 'free' | 'pro' | 'team'
+}): { actions: Array<{ command: string; label: string; args?: unknown[] }>; message: string } {
+  const normalized = input.latestUserMessage.toLowerCase()
+  const recommendedPack = input.diagnostic?.recommendedPack || 'system-diagnostics'
+  const actions: Array<{ command: string; label: string; args?: unknown[] }> = []
+
+  if (!input.hasWorkspace) {
+    return {
+      actions,
+      message: 'Open a workspace folder first if you want project-specific guidance. You can still ask about plans, packs, or how Companion works.',
+    }
+  }
+
+  if (/\bdiagnostic|check|scan|health|inspect\b/.test(normalized)) {
+    actions.push({ command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' })
+    return {
+      actions,
+      message: input.diagnostic
+        ? `Your last diagnostic for ${input.diagnostic.workspaceName || 'this workspace'} pointed toward ${recommendedPack}. ${input.diagnostic.recommendedReason || 'That is the safest next place to start.'}`
+        : 'The safest next step is to run the free diagnostic so Companion can inspect local workspace markers and recommend a pack.',
+    }
+  }
+
+  if (/\bpack|docker|security|audit|test|npm\b/.test(normalized)) {
+    actions.push({ command: 'rinawarp.openPack', label: `Open ${recommendedPack}`, args: [recommendedPack, 'chat_recommended_pack'] })
+    actions.push({ command: 'rinawarp.openPacks', label: 'Open All Packs' })
+    return {
+      actions,
+      message: `Based on the current workspace signals, I would start with ${recommendedPack}. ${input.diagnostic?.recommendedReason || 'That pack is the best fit for the strongest signal Companion has seen so far.'}`,
+    }
+  }
+
+  if (/\bprice|upgrade|pro|team|billing\b/.test(normalized)) {
+    if (input.plan === 'free') {
+      actions.push({ command: 'rinawarp.upgradeToPro', label: 'Upgrade to Pro' })
+      return {
+        actions,
+        message: 'You are currently on the free plan. Pro is the next step if you want richer pack coverage and higher-velocity workflows from Companion.',
+      }
+    }
+    return {
+      actions: [{ command: 'rinawarp.refreshEntitlements', label: 'Refresh Entitlements' }],
+      message: `Your current plan is ${input.plan.toUpperCase()}. If Companion looks out of sync, refresh entitlements here before changing billing.`,
+    }
+  }
+
+  actions.push({ command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' })
+  actions.push({ command: 'rinawarp.openPack', label: `Open ${recommendedPack}`, args: [recommendedPack, 'chat_default_pack'] })
+  return {
+    actions,
+    message: input.diagnostic
+      ? `A good next step is ${recommendedPack} for ${input.diagnostic.workspaceName || 'this workspace'}. If you want fresher context first, rerun the free diagnostic and I can interpret it with you.`
+      : 'A good first move is to run the free diagnostic. Once Companion sees your workspace markers, I can recommend the safest pack and explain why.',
+  }
+}
+
 // Feedback submission handler with SendGrid email notification
 async function handleFeedbackSubmit(
   request: Request,
@@ -2164,7 +2821,7 @@ async function handleCheckoutRequest(
 ): Promise<Response> {
   try {
     const body = await request.json()
-    const { email, tier = 'pro', billingCycle = 'monthly', seats, workspaceId } = body
+    const { email, tier = 'pro', billingCycle = 'monthly', seats, workspaceId, returnTo } = body
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -2202,6 +2859,12 @@ async function handleCheckoutRequest(
           ? 'pro_annual'
           : 'pro_monthly'
 
+    const successUrl = new URL('https://rinawarptech.com/success/')
+    if (String(returnTo || '').trim()) {
+      successUrl.searchParams.set('return_to', String(returnTo).trim())
+    }
+    successUrl.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}')
+
     const priceId = priceIds[resolvedTierKey] || priceIds.pro_monthly
     const quantity =
       normalizedTier === 'team'
@@ -2238,7 +2901,7 @@ async function handleCheckoutRequest(
             ...(normalizedTier === 'team' && String(workspaceId || '').trim()
               ? { 'subscription_data[metadata][workspace_id]': String(workspaceId).trim() }
               : {}),
-            success_url: 'https://rinawarptech.com/success/?session_id={CHECKOUT_SESSION_ID}',
+            success_url: successUrl.toString(),
             cancel_url: normalizedTier === 'team' ? 'https://rinawarptech.com/team/' : 'https://rinawarptech.com/pricing/',
           }),
         })
@@ -2393,106 +3056,10 @@ async function handleLicenseLookup(request: Request, env: any, corsHeaders: Reco
       })
     }
 
-    // Try to find customer in Stripe if API key is available
-    if (env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.startsWith('sk_')) {
-      const response = await fetch(
-        `https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(email)}'`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-          },
-        }
-      )
-
-      const customerData = await response.json()
-      const customers = customerData.data || []
-
-      if (customers.length > 0) {
-        const customer = customers[0]
-
-        // Check for active subscriptions
-        const subscriptionsResponse = await fetch('https://api.stripe.com/v1/subscriptions?' + new URLSearchParams({
-          customer: String(customer.id),
-          status: 'all',
-          limit: '10',
-        }).toString(), {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        })
-
-        const subscriptionsData = await subscriptionsResponse.json()
-        const subscriptions = Array.isArray(subscriptionsData.data)
-          ? subscriptionsData.data.filter((sub: any) =>
-              ['active', 'trialing', 'past_due', 'unpaid'].includes(String(sub?.status || '').toLowerCase())
-            )
-          : []
-
-        if (subscriptions.length > 0) {
-          const sub = subscriptions[0]
-          const priceId = sub.items?.data[0]?.price?.id
-
-          // Map price IDs to tier names
-          const tierMap: Record<string, string> = {}
-          const proPriceId = String(env.STRIPE_PRO_MONTHLY_PRICE_ID || env.STRIPE_PRO_PRICE_ID || '').trim()
-          const proAnnualPriceId = String(env.STRIPE_PRO_ANNUAL_PRICE_ID || '').trim()
-          const creatorPriceId = String(env.STRIPE_CREATOR_PRICE_ID || '').trim()
-          const teamPriceId = String(env.STRIPE_TEAM_PRICE_ID || '').trim()
-          const founderPriceId = String(env.STRIPE_FOUNDER_PRICE_ID || '').trim()
-
-          if (proPriceId) tierMap[proPriceId] = 'pro'
-          if (proAnnualPriceId) tierMap[proAnnualPriceId] = 'pro'
-          if (creatorPriceId) tierMap[creatorPriceId] = 'creator'
-          if (teamPriceId) tierMap[teamPriceId] = 'team'
-          if (founderPriceId) tierMap[founderPriceId] = 'founder'
-
-          const tier = tierMap[priceId] || 'unknown'
-
-          return new Response(
-            JSON.stringify({
-              ok: true,
-              email: customer.email,
-              tier: tier,
-              status: 'active',
-              customerId: customer.id,
-            }),
-            {
-              headers: { 'Content-Type': 'application/json', ...corsHeaders },
-            }
-          )
-        }
-
-        // Customer exists but no active subscription
-        return new Response(
-          JSON.stringify({
-            ok: true,
-            email: customer.email,
-            tier: null,
-            status: 'no_subscription',
-            customerId: customer.id,
-          }),
-          {
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          }
-        )
-      }
-    }
-
-    // No Stripe - return mock response for testing
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        email: email,
-        tier: null,
-        status: 'not_found',
-      }),
-      {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      }
-    )
+    const result = await lookupLicenseByEmail(email, env)
+    return new Response(JSON.stringify(result), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Invalid request' }), {
       status: 400,
