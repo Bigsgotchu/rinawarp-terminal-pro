@@ -21,6 +21,8 @@ export type RestoreHandlerOpts = {
   statusDiv: HTMLDivElement
 }
 
+type RestoreMethod = 'email_lookup' | 'customer_id'
+
 export function trackLicenseAnalytics(event: string, properties?: Record<string, unknown>): void {
   try {
     const funnelSteps = ['signup', 'first_run', 'first_block', 'upgrade_view', 'paid']
@@ -73,20 +75,35 @@ function handleLookupError(
   }
 }
 
+function trackRestorePurchaseFailure(
+  method: RestoreMethod,
+  stage: 'lookup' | 'verify' | 'status' | 'exception',
+  reason: string
+): void {
+  trackLicenseAnalytics('restore_purchase_failed', {
+    method,
+    stage,
+    reason,
+  })
+}
+
 export async function verifyAndApplyLicense(
   customerId: string,
   statusDiv: HTMLDivElement,
   container: HTMLElement,
-  remount: (container: HTMLElement) => Promise<void>
+  remount: (container: HTMLElement) => Promise<void>,
+  method: RestoreMethod = 'customer_id'
 ): Promise<boolean> {
   const verifyResult = await (window as any).rina.verifyLicense(customerId)
   if (!verifyResult.ok) {
+    trackRestorePurchaseFailure(method, 'verify', 'verification_failed')
     setStatusError(statusDiv, 'License verification failed. Please contact support.')
     return false
   }
 
   const statusError = checkLicenseStatus(verifyResult.status || 'active')
   if (statusError) {
+    trackRestorePurchaseFailure(method, 'status', String(verifyResult.status || 'active').toLowerCase())
     setStatusError(statusDiv, statusError)
     return false
   }
@@ -102,6 +119,11 @@ export async function verifyAndApplyLicense(
     })
   )
 
+  trackLicenseAnalytics('restore_purchase_succeeded', {
+    method,
+    tier: verifyResult.tier || verifyResult.effective_tier,
+    status: verifyResult.status,
+  })
   trackLicenseAnalytics('paid', { tier: verifyResult.tier || verifyResult.effective_tier, status: verifyResult.status })
 
   setTimeout(() => {
@@ -133,19 +155,22 @@ export function attachRestoreHandler(
     try {
       const lookupResult = await (window as any).rina.licenseLookupByEmail(email)
       if (!lookupResult.ok) {
+        trackRestorePurchaseFailure('email_lookup', 'lookup', lookupResult.multiple ? 'multiple_accounts' : 'lookup_failed')
         handleLookupError(statusDiv, lookupResult)
         return
       }
 
       const customerId = lookupResult.customer_id
       if (!customerId) {
+        trackRestorePurchaseFailure('email_lookup', 'lookup', 'missing_customer_id')
         setStatusError(statusDiv, 'No customer account found for this email.')
         return
       }
 
       setStatusPending(statusDiv, 'Verifying license...')
-      await verifyAndApplyLicense(customerId, statusDiv, container, remount)
+      await verifyAndApplyLicense(customerId, statusDiv, container, remount, 'email_lookup')
     } catch (err: any) {
+      trackRestorePurchaseFailure('email_lookup', 'exception', 'lookup_exception')
       setStatusError(statusDiv, err?.message || 'Verification failed. Please try again.')
     } finally {
       restoreBtn.disabled = false
@@ -183,11 +208,12 @@ export function attachCustomerIdHandler(
     verifyBtn.disabled = true
 
     try {
-      const ok = await verifyAndApplyLicense(customerId, statusDiv, container, remount)
+      const ok = await verifyAndApplyLicense(customerId, statusDiv, container, remount, 'customer_id')
       if (!ok && statusDiv.textContent?.includes('License verification failed')) {
         setStatusError(statusDiv, 'License verification failed. Check your Customer ID.')
       }
     } catch (err: any) {
+      trackRestorePurchaseFailure('customer_id', 'exception', 'verify_exception')
       setStatusError(statusDiv, err?.message || 'Verification failed.')
     } finally {
       verifyBtn.disabled = false

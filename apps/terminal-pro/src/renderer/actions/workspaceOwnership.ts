@@ -26,6 +26,11 @@ export async function requestWorkspaceSelection(options?: {
     }
     const path = String(result.path)
     recordDebugEvent('ui', 'workspace.selected', { path, source })
+    void (window.rina as any)?.trackEvent?.('workspace_selected', {
+      source,
+      selection_method: 'picker',
+      workspace_present: true,
+    })
     options?.onStatus?.('Workspace updated.')
     window.dispatchEvent(
       new CustomEvent('rina:workspace-selected', {

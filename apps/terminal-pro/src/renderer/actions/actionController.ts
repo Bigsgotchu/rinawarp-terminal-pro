@@ -72,6 +72,7 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
 ): WorkbenchActionCleanup {
   const submitUserTurn = createUserTurnSubmitter(store, {
     sendPromptToRina: deps.sendPromptToRina,
+    trackRendererEvent: deps.trackRendererEvent,
   })
 
   const submitComposer = async (source: UserTurnSource) => {

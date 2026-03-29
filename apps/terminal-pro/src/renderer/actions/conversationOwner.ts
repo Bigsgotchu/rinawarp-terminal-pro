@@ -13,11 +13,29 @@ export type UserTurnSource =
 
 type SubmitUserTurnDeps = {
   sendPromptToRina: (store: WorkbenchStore, prompt: string) => Promise<void>
+  trackRendererEvent: (event: string, properties?: Record<string, unknown>) => Promise<void>
 }
 
 let globalLastSubmitKey = ''
 let globalLastSubmitAt = 0
 let globalSubmitInFlight = false
+const FIRST_PROMPT_SENT_STORAGE_KEY = 'rinawarp.analytics.firstPromptSent.v1'
+
+function hasTrackedFirstPromptSent(): boolean {
+  try {
+    return localStorage.getItem(FIRST_PROMPT_SENT_STORAGE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markFirstPromptSentTracked(): void {
+  try {
+    localStorage.setItem(FIRST_PROMPT_SENT_STORAGE_KEY, '1')
+  } catch {
+    // Ignore persistence failures.
+  }
+}
 
 export function resetUserTurnSubmitGuard(): void {
   globalLastSubmitKey = ''
@@ -79,6 +97,14 @@ export function createUserTurnSubmitter(store: WorkbenchStore, deps: SubmitUserT
     globalSubmitInFlight = true
     try {
       await deps.sendPromptToRina(store, trimmed)
+      if (!hasTrackedFirstPromptSent()) {
+        markFirstPromptSentTracked()
+        void deps.trackRendererEvent('first_prompt_sent', {
+          source,
+          prompt_length: trimmed.length,
+          workspace_selected: store.getState().workspaceKey !== '__none__',
+        })
+      }
       return true
     } finally {
       globalSubmitInFlight = false
