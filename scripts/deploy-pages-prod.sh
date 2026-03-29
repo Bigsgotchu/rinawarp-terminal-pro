@@ -5,6 +5,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_NAME="${CF_PAGES_PROJECT:-rinawarptech-website}"
 BRANCH="${CF_PAGES_BRANCH:-master}"
 DIST_DIR="$ROOT_DIR/website/.pages-dist"
+VERIFY_DOWNLOADS="${RINAWARP_SKIP_DOWNLOAD_VERIFICATION:-0}"
+
+if [[ "$PROJECT_NAME" == "rinawarptech-website" && "$BRANCH" == "master" && "$VERIFY_DOWNLOADS" != "1" ]]; then
+  echo "[deploy:pages] Verifying release/download bundle before production deploy"
+  node "$ROOT_DIR/scripts/verify-download-links.mjs"
+fi
 
 echo "[deploy:pages] Building Pages worker bundle"
 node "$ROOT_DIR/scripts/build-pages-site.mjs"
