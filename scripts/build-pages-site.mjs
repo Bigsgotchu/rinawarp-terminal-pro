@@ -172,6 +172,117 @@ main { flex: 1; }
   padding-left: 0;
   list-style: none;
 }
+.proof-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 20px;
+  align-items: start;
+}
+.transcript-demo {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(6, 17, 26, 0.96), rgba(10, 21, 32, 0.88));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+.demo-windowbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.demo-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.demo-chat { display: grid; gap: 12px; }
+.demo-message {
+  max-width: 92%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  line-height: 1.6;
+  color: #dbe9f6;
+}
+.demo-message.user {
+  justify-self: end;
+  background: rgba(255, 255, 255, 0.05);
+}
+.demo-message.assistant {
+  background: rgba(98, 246, 229, 0.07);
+  border-color: rgba(98, 246, 229, 0.2);
+}
+.demo-proof {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+}
+.demo-proof-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #dce9f5;
+  font-weight: 600;
+}
+.demo-proof-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(98, 246, 229, 0.12);
+  border: 1px solid rgba(98, 246, 229, 0.22);
+  color: #d8f3ff;
+  font-size: 0.8rem;
+}
+.demo-proof-lines {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.86rem;
+}
+.proof-notes {
+  display: grid;
+  gap: 14px;
+}
+.proof-note {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+.proof-note strong {
+  display: block;
+  margin-bottom: 8px;
+}
+.faq-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.faq-item {
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+.faq-item h3 { margin-bottom: 10px; }
+.trust-note {
+  border-color: rgba(251, 191, 36, 0.22);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(10, 21, 32, 0.88));
+}
 .btn {
   display: inline-flex;
   align-items: center;
@@ -232,6 +343,7 @@ footer {
 @media (max-width: 840px) {
   nav, .hero, .section, footer { padding-left: 18px; padding-right: 18px; }
   .cta-row, .link-row { grid-auto-flow: row; }
+  .proof-demo { grid-template-columns: 1fr; }
 }
 `;
 
@@ -718,6 +830,24 @@ const pages = [
         <article class="card"><div class="kicker">Conversation</div><h3>Rina handles real human input</h3><p>Vague asks, follow-ups, frustration, and mixed conversation are part of the job. Rina stays coherent and grounded.</p></article>
         <article class="card"><div class="kicker">Recovery</div><h3>Interrupted work still makes sense</h3><p>When a run is interrupted or a session restarts, restored work remains understandable and actionable.</p></article>
       </div></section>
+      <section class="section"><h2 class="section-title">What the product actually looks like in use</h2><p class="section-copy">The first trust win is visual: the thread stays readable, the proof stays attached, and recovery does not hide what happened. This is the shape customers see when RinaWarp is doing real work.</p><div class="proof-demo">
+        <div class="transcript-demo">
+          <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>RinaWarp Terminal Pro</span></div>
+          <div class="demo-chat">
+            <div class="demo-message user">Build the app, show me what failed, and tell me the safest next move.</div>
+            <div class="demo-message assistant">I checked the workspace, ran the build through the trusted path, and attached the proof below. The failure is in one TypeScript import, so the next move is a scoped fix instead of retrying the whole pipeline blindly.</div>
+            <div class="demo-proof">
+              <div class="demo-proof-header"><span>Build receipt</span><span class="demo-proof-tag">Run ID rw_8f4c1d</span></div>
+              <div class="demo-proof-lines"><span>npm run build</span><span>src/main/update/updateService.ts: missing export \`publishRelease\`</span><span>receipt attached • recovery available • output tail preserved</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="proof-notes">
+          <div class="proof-note"><strong>Cleaner than terminal archaeology</strong><p>You do not have to reconstruct what happened from disconnected tabs, old scrollback, and a vague success claim.</p></div>
+          <div class="proof-note"><strong>Best fit for build, test, deploy, and recovery</strong><p>The strongest buyer story is not generic AI chat. It is doing real work with proof that stays attached.</p></div>
+          <div class="proof-note"><strong>Honest early-access boundary</strong><p>RinaWarp is strongest when you want trusted execution and understandable recovery, not when you want a magic black box.</p></div>
+        </div>
+      </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Ask → Plan → Execute → Prove → Recover</h2>
         <p class="section-copy">The promise is simple: open the app, ask for real work, let it execute through the canonical path, and inspect proof only when you need more detail.</p>
@@ -742,6 +872,12 @@ const pages = [
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a></article>
         <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
         <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>For teams that need seats, role boundaries, invite management, audit visibility, and a truth-based path from checkout into workspace rollout.</p><ul class="feature-list"><li>Seat-based checkout and workspace-linked team rollout</li><li>Role-aware invite management and audit direction</li><li>Team memory, multi-agent limits, and proof-backed workflows</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team</a></article>
+      </div></section>
+      <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The best conversion copy is the honest kind. These are the practical questions people have right before they decide whether to pay.</p><div class="faq-grid">
+        <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp, where you can download the app, sign in or restore access, and confirm the paid tier from the account surface and desktop settings.</p></article>
+        <article class="faq-item"><h3>How does restore work?</h3><p>Paid access is anchored to the billing email. If a device loses entitlement state, use the restore path in the app or account page before contacting support.</p></article>
+        <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Billing is handled through Stripe, and the billing portal is the canonical place to manage cancellation, plan changes, and payment method updates.</p></article>
+        <article class="faq-item"><h3>What does Early Access mean here?</h3><p>It means the product is paid and supportable today, but platform edges like signing and broader rollout are still being tightened in public rather than hidden behind vague promises.</p></article>
       </div></section>
     `
   },
@@ -797,10 +933,10 @@ const pages = [
     content: `
       <section class="section"><div class="download-grid">
         <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and is the easiest way to get running on a clean machine, but you should expect to install newer <strong>.deb</strong> packages manually. <strong>AppImage</strong> is the Linux path for <strong>in-app updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install.</p></article>
-        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a></div></article>
+        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a></div><p class="note"><strong>Plain trust note:</strong> Windows signing is still a follow-up investment. Depending on your system, SmartScreen may ask for extra confirmation before the installer runs. We would rather say that directly than pretend the trust path is finished.</p></article>
         <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS signing is not enabled yet. We would rather say that plainly than ship a rough installer path we cannot support.</p><div class="link-row"><a href="/feedback/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="/releases/latest.json" class="btn btn-secondary">Open latest.json</a><a href="/releases/latest.yml" class="btn btn-secondary">Open latest.yml</a><a href="/releases/latest-linux.yml" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The canonical updater feed lives on <code>rinawarptech.com/releases/*</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
+      <section class="section"><div class="panel stack"><div class="card trust-note"><h3>Verification matters more than vibes</h3><p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p></div><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="/releases/latest.json" class="btn btn-secondary">Open latest.json</a><a href="/releases/latest.yml" class="btn btn-secondary">Open latest.yml</a><a href="/releases/latest-linux.yml" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The canonical updater feed lives on <code>rinawarptech.com/releases/*</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
     `
   },
   {

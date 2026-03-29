@@ -388,6 +388,117 @@ const SITE_STYLES = `
     gap: 12px;
     margin-top: 8px;
   }
+  .proof-demo {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .transcript-demo {
+    display: grid;
+    gap: 14px;
+    padding: 24px;
+    background: linear-gradient(180deg, rgba(6, 17, 26, 0.96), rgba(10, 21, 32, 0.88));
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+  }
+  .demo-windowbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .demo-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .demo-chat { display: grid; gap: 12px; }
+  .demo-message {
+    max-width: 92%;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    line-height: 1.6;
+    color: #dbe9f6;
+  }
+  .demo-message.user {
+    justify-self: end;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .demo-message.assistant {
+    background: rgba(98, 246, 229, 0.07);
+    border-color: rgba(98, 246, 229, 0.2);
+  }
+  .demo-proof {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+  }
+  .demo-proof-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #dce9f5;
+    font-weight: 600;
+  }
+  .demo-proof-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 5px 10px;
+    background: rgba(98, 246, 229, 0.12);
+    border: 1px solid rgba(98, 246, 229, 0.22);
+    color: #d8f3ff;
+    font-size: 0.8rem;
+  }
+  .demo-proof-lines {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+    font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    font-size: 0.86rem;
+  }
+  .proof-notes {
+    display: grid;
+    gap: 14px;
+  }
+  .proof-note {
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .proof-note strong {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .faq-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .faq-item {
+    padding: 20px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .faq-item h3 { margin-bottom: 10px; }
+  .trust-note {
+    border-color: rgba(251, 191, 36, 0.22);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(10, 21, 32, 0.88));
+  }
   .proof-step {
     border: 1px solid var(--line);
     border-radius: 18px;
@@ -540,6 +651,7 @@ const SITE_STYLES = `
     nav { height: auto; padding-top: 18px; padding-bottom: 18px; align-items: flex-start; flex-direction: column; }
     .hero { padding-top: 58px; }
     h1 { max-width: 100%; }
+    .proof-demo { grid-template-columns: 1fr; }
   }
 `
 
@@ -743,6 +855,50 @@ function renderHomepage(): Response {
     </section>
 
     <section class="section">
+      <h2 class="section-title">What the product actually looks like in use</h2>
+      <p class="section-copy">The first trust win is visual: the thread stays readable, the proof stays attached, and recovery does not hide what happened. This is the shape customers see when RinaWarp is doing real work.</p>
+      <div class="proof-demo">
+        <div class="transcript-demo">
+          <div class="demo-windowbar">
+            <span class="demo-dot"></span>
+            <span class="demo-dot"></span>
+            <span class="demo-dot"></span>
+            <span>RinaWarp Terminal Pro</span>
+          </div>
+          <div class="demo-chat">
+            <div class="demo-message user">Build the app, show me what failed, and tell me the safest next move.</div>
+            <div class="demo-message assistant">I checked the workspace, ran the build through the trusted path, and attached the proof below. The failure is in one TypeScript import, so the next move is a scoped fix instead of retrying the whole pipeline blindly.</div>
+            <div class="demo-proof">
+              <div class="demo-proof-header">
+                <span>Build receipt</span>
+                <span class="demo-proof-tag">Run ID rw_8f4c1d</span>
+              </div>
+              <div class="demo-proof-lines">
+                <span>npm run build</span>
+                <span>src/main/update/updateService.ts: missing export \`publishRelease\`</span>
+                <span>receipt attached • recovery available • output tail preserved</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="proof-notes">
+          <div class="proof-note">
+            <strong>Cleaner than terminal archaeology</strong>
+            You do not have to reconstruct what happened from disconnected tabs, old scrollback, and a vague success claim.
+          </div>
+          <div class="proof-note">
+            <strong>Best fit for build, test, deploy, and recovery</strong>
+            The strongest buyer story is not generic AI chat. It is doing real work with proof that stays attached.
+          </div>
+          <div class="proof-note">
+            <strong>Honest early-access boundary</strong>
+            RinaWarp is strongest when you want trusted execution and understandable recovery, not when you want a magic black box.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
       <h2 class="section-title">What the product promise actually is</h2>
       <p class="section-copy">RinaWarp Terminal Pro is not another vague AI shell. The paid promise is simple: you open the app, Rina understands the workspace, you ask for real work, the action goes through the canonical path, and the result is understandable without digging through raw logs unless you want to.</p>
       <div class="proof-strip">
@@ -831,6 +987,29 @@ function renderPricing(): Response {
             <li>Join the waitlist while Early Access hardens</li>
           </ul>
           <a href="/feedback" class="btn btn-secondary">Talk to us</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Quick answers before you buy</h2>
+      <p class="section-copy">The best conversion copy is the honest kind. These are the practical questions people have right before they decide whether to pay.</p>
+      <div class="faq-grid">
+        <article class="faq-item">
+          <h3>What happens after checkout?</h3>
+          <p>Checkout returns you to RinaWarp, where you can download the app, sign in or restore access, and confirm the paid tier from the account surface and desktop settings.</p>
+        </article>
+        <article class="faq-item">
+          <h3>How does restore work?</h3>
+          <p>Paid access is anchored to the billing email. If a device loses entitlement state, use the restore path in the app or account page before contacting support.</p>
+        </article>
+        <article class="faq-item">
+          <h3>Can I cancel later?</h3>
+          <p>Yes. Billing is handled through Stripe, and the billing portal is the canonical place to manage cancellation, plan changes, and payment method updates.</p>
+        </article>
+        <article class="faq-item">
+          <h3>What does Early Access mean here?</h3>
+          <p>It means the product is paid and supportable today, but platform edges like signing and broader rollout are still being tightened in public rather than hidden behind vague promises.</p>
         </article>
       </div>
     </section>
@@ -1225,6 +1404,7 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
           <div class="link-row">
             <a href="${windowsUrl}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a>
           </div>
+          <p class="note"><strong>Plain trust note:</strong> Windows signing is still a follow-up investment. Depending on your system, SmartScreen may ask for extra confirmation before the installer runs. We would rather say that directly than pretend the trust path is finished.</p>
         </article>
         <article class="card platform-card">
           <span class="pill">macOS</span>
@@ -1239,6 +1419,10 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
 
     <section class="section">
       <div class="panel stack">
+        <div class="card trust-note">
+          <h3>Verification matters more than vibes</h3>
+          <p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p>
+        </div>
         <div class="info-bar">
           <span class="status-ok">The canonical updater feed is served from rinawarptech.com/releases/*.</span>
           <span class="note">Those primary-domain URLs stay aligned with the public installers and the app updater.</span>
@@ -2198,7 +2382,7 @@ async function handleApiRequest(
 
       if (posthogKey) {
         try {
-          await fetch(`${posthogHost.replace(/\\/+$/, '')}/capture/`, {
+          await fetch(`${posthogHost.replace(/\/+$/, '')}/capture/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
