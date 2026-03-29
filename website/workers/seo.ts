@@ -17,7 +17,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     description:
       'Talk to Rina naturally in RinaWarp Terminal Pro, let her act through one trusted path, and keep proof, receipts, and recovery attached to the work.',
     canonical: 'https://rinawarptech.com/',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords:
       'AI workbench, proof-first AI, agent workflow, developer tools, trusted execution, run receipts, developer productivity',
   },
@@ -26,7 +26,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     description:
       'Browse capability packs and curated agents for RinaWarp. Install focused tooling for deployment, diagnostics, security, and repeated workflows.',
     canonical: 'https://rinawarptech.com/agents',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'capability packs, AI agents, marketplace, RinaWarp, developer tools, automation',
   },
   '/pricing': {
@@ -34,7 +34,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     description:
       'Choose the RinaWarp plan that fits your workflow. Pay for proof-backed execution, recovery, and an agent-first desktop experience that stays understandable.',
     canonical: 'https://rinawarptech.com/pricing',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'pricing, subscription, RinaWarp, plans, proof-backed AI, agent workbench',
   },
   '/download': {
@@ -42,7 +42,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     description:
       'Download verified RinaWarp releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.',
     canonical: 'https://rinawarptech.com/download',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'download, RinaWarp, verified releases, checksums, AppImage, deb, exe',
   },
   '/feedback': {
@@ -50,7 +50,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     description:
       'Reach the RinaWarp team with product feedback, support requests, launch questions, and capability requests.',
     canonical: 'https://rinawarptech.com/feedback',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'feedback, support, contact, RinaWarp, bug report, launch support',
   },
   '/docs': {
@@ -58,7 +58,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     description:
       'Learn how to use RinaWarp: start from the Agent surface, inspect proof, recover work, and understand what Rina actually did.',
     canonical: 'https://rinawarptech.com/docs',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.svg',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'documentation, docs, RinaWarp, getting started, proof-backed execution, recovery',
   },
 }
@@ -95,8 +95,9 @@ export function injectSeoTags(path: string): string {
   <meta name="twitter:site" content="@RinaWarpTech">
 
   <!-- Favicon -->
-  <link rel="icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
-  <link rel="shortcut icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/icon.png" type="image/png">
+  <link rel="shortcut icon" href="/assets/img/icon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/icon.png">
   
   <!-- Preconnect to external domains for performance -->
 

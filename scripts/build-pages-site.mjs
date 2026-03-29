@@ -795,7 +795,7 @@ if (page === 'account') {
 
 function seo(path, title, description) {
   const canonical = `https://rinawarptech.com${path}`;
-  const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.svg";
+  const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png";
   const noindexPaths = new Set(["/account", "/login", "/register", "/forgot-password", "/reset-password", "/success/"]);
   const robots = noindexPaths.has(path) ? 'noindex, nofollow' : 'index, follow';
   return `
@@ -822,8 +822,9 @@ function seo(path, title, description) {
   <meta name="msapplication-TileColor" content="#ff4fd8">
   <link rel="preconnect" href="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev" crossorigin>
   <link rel="preconnect" href="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev" crossorigin>
-  <link rel="icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
-  <link rel="shortcut icon" href="/assets/img/rinawarp-logo.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/icon.png" type="image/png">
+  <link rel="shortcut icon" href="/assets/img/icon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/icon.png">
   `;
 }
 
