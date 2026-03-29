@@ -723,6 +723,7 @@ function renderSitemapXml(origin: string): Response {
     '/what-is-rinawarp',
     '/what-is-a-proof-first-ai-terminal',
     '/rinawarp-vs-ai-terminals',
+    '/rinawarp-vs-warp',
   ]
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
     .map((pathname) => `  <url><loc>${origin}${pathname}</loc></url>`)

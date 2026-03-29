@@ -900,7 +900,7 @@ function buildStructuredData(path, title, description) {
     });
   }
 
-  if (normalizedPath === "/rinawarp-vs-ai-terminals") {
+  if (normalizedPath === "/rinawarp-vs-ai-terminals" || normalizedPath === "/rinawarp-vs-warp") {
     graph.push({
       "@context": "https://schema.org",
       "@type": "Article",
@@ -1049,6 +1049,7 @@ const pages = [
           <a href="/what-is-rinawarp/" class="btn btn-secondary">What is RinaWarp Terminal Pro?</a>
           <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">What is a proof-first AI terminal?</a>
           <a href="/rinawarp-vs-ai-terminals/" class="btn btn-secondary">RinaWarp vs generic AI terminals</a>
+          <a href="/rinawarp-vs-warp/" class="btn btn-secondary">RinaWarp vs Warp</a>
         </div>
       </div></section>
       <section class="section"><div class="founder-note"><blockquote>We would rather show the rough edges plainly than claim trust we have not earned yet. That is why the site calls out proof, restore, checksums, and platform limits directly instead of hiding them behind generic AI marketing.</blockquote><cite>Founder note from RinaWarp Technologies, LLC</cite></div></section>
@@ -1212,6 +1213,44 @@ const pages = [
           <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">Define proof-first AI terminal</a>
           <a href="/what-is-rinawarp/" class="btn btn-secondary">Read the definition</a>
           <a href="/download/" class="btn btn-primary">Try the app</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "rinawarp-vs-warp",
+    path: "/rinawarp-vs-warp",
+    page: "docs",
+    title: "RinaWarp vs Warp | Proof-First AI Terminal Comparison",
+    description: "Compare RinaWarp and Warp across trust, proof, recovery, and AI terminal workflow design so developers can see where RinaWarp is intentionally different.",
+    eyebrow: "Comparison",
+    heading: "RinaWarp vs Warp: where the product philosophy diverges.",
+    copy: "This is not a claim that one terminal is universally better. It is a clearer statement of what RinaWarp is optimizing for: proof, recovery, and trusted execution instead of speed, polish, or novelty alone.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Warp</h3><p>Warp is widely known as a modern terminal with polished UI, strong command workflows, and broad awareness in the terminal category.</p></article>
+        <article class="card"><h3>RinaWarp</h3><p>RinaWarp is focused on proof-first AI execution: conversational work, run receipts, recovery, and trust signals that stay attached to real actions.</p></article>
+        <article class="card"><h3>Why compare them</h3><p>People searching for AI terminals often know Warp already. This page helps explain where RinaWarp is intentionally different instead of pretending the products are identical.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Where RinaWarp is strongest</h2>
+        <div class="grid three-up">
+          <article class="card"><div class="kicker">Trust</div><h3>Receipts stay attached</h3><p>RinaWarp keeps proof, diagnostics, and recovery tied to the conversation instead of leaving you to reconstruct what happened later.</p></article>
+          <article class="card"><div class="kicker">Conversation</div><h3>Natural language stays central</h3><p>The primary workflow is ask, inspect, recover, and continue. The thread is meant to feel like a real collaborator surface, not just a command launcher.</p></article>
+          <article class="card"><div class="kicker">Recovery</div><h3>Failure handling is part of the story</h3><p>When work breaks or a session restarts, RinaWarp treats recovery as a first-class surface instead of an afterthought.</p></article>
+        </div>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Where Warp still has advantages</h2>
+        <p>Warp has more mainstream awareness, a more established brand in the terminal category, and a broader public reputation today. RinaWarp should win by being clearer about its trust model, not by pretending that market reality does not exist.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Short buyer takeaway</h2>
+        <p>Choose RinaWarp when you want an AI terminal that keeps proof, receipts, and recovery attached to real work. Choose the more generic category leader when brand familiarity matters more than a proof-first workflow.</p>
+        <div class="link-row">
+          <a href="/download/" class="btn btn-primary">Try RinaWarp</a>
+          <a href="/pricing/" class="btn btn-secondary">See pricing</a>
+          <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">Define proof-first AI terminal</a>
         </div>
       </div></section>
     `
@@ -1467,6 +1506,7 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
   <url><loc>https://rinawarptech.com/what-is-rinawarp/</loc></url>
   <url><loc>https://rinawarptech.com/what-is-a-proof-first-ai-terminal/</loc></url>
   <url><loc>https://rinawarptech.com/rinawarp-vs-ai-terminals/</loc></url>
+  <url><loc>https://rinawarptech.com/rinawarp-vs-warp/</loc></url>
 </urlset>
 `;
 

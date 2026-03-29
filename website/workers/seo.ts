@@ -69,6 +69,14 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'early access, RinaWarp, restore, release policy, proof-first AI terminal',
   },
+  '/rinawarp-vs-warp': {
+    title: 'RinaWarp vs Warp | Proof-First AI Terminal Comparison',
+    description:
+      'Compare RinaWarp and Warp across trust, proof, recovery, and AI terminal workflow design so developers can see where RinaWarp is intentionally different.',
+    canonical: 'https://rinawarptech.com/rinawarp-vs-warp',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'RinaWarp vs Warp, AI terminal comparison, proof-first AI terminal, developer terminal tools',
+  },
 }
 
 export function injectSeoTags(path: string): string {
@@ -167,6 +175,28 @@ function buildStructuredData(path: string, seo: SeoData): string {
           },
         },
       ],
+    })
+  }
+
+  if (path === '/rinawarp-vs-warp') {
+    graph.push({
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: seo.title,
+      description: seo.description,
+      mainEntityOfPage: seo.canonical,
+      author: {
+        '@type': 'Organization',
+        name: 'RinaWarp Technologies, LLC',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'RinaWarp Technologies, LLC',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+        },
+      },
     })
   }
 
