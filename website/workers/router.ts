@@ -709,7 +709,21 @@ function renderRobotsTxt(origin: string): Response {
 }
 
 function renderSitemapXml(origin: string): Response {
-  const urls = ['/', '/pricing', '/download', '/docs', '/feedback', '/early-access', '/terms', '/privacy', '/agents']
+  const urls = [
+    '/',
+    '/pricing',
+    '/team',
+    '/download',
+    '/docs',
+    '/feedback',
+    '/early-access',
+    '/terms',
+    '/privacy',
+    '/agents',
+    '/what-is-rinawarp',
+    '/what-is-a-proof-first-ai-terminal',
+    '/rinawarp-vs-ai-terminals',
+  ]
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
     .map((pathname) => `  <url><loc>${origin}${pathname}</loc></url>`)
     .join('\n')}\n</urlset>\n`
@@ -2211,6 +2225,19 @@ export default {
       return rwRedirect(redirectUrl.toString(), 301)
     }
 
+    const legacyRedirects: Record<string, string> = {
+      '/terminal-pro': '/',
+      '/terminal-pro.html': '/',
+      '/contact': '/feedback/',
+      '/contact.html': '/feedback/',
+      '/affiliates.html': '/pricing/',
+    }
+
+    const legacyTarget = legacyRedirects[path]
+    if (legacyTarget) {
+      return rwRedirect(`${url.origin}${legacyTarget}`, 301)
+    }
+
     // CORS headers for API responses
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -2241,6 +2268,20 @@ export default {
 
     if (path === '/sitemap.xml') {
       return renderSitemapXml(url.origin)
+    }
+
+    if (path.startsWith('/downloads/terminal-pro/')) {
+      const artifactName = path.split('/').pop()
+      if (artifactName?.endsWith('.AppImage')) {
+        return rwRedirect(`${url.origin}/download/linux`, 301)
+      }
+      if (artifactName?.endsWith('.deb')) {
+        return rwRedirect(`${url.origin}/download/linux/deb`, 301)
+      }
+      if (artifactName?.endsWith('.exe')) {
+        return rwRedirect(`${url.origin}/download/windows`, 301)
+      }
+      return rwRedirect(`${url.origin}/download/`, 301)
     }
 
     if (path === '/downloads' || path === '/downloads/') {

@@ -1427,9 +1427,17 @@ const REDIRECTS = `
 /download/linux/deb/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb 302
 /download/checksums ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
 /download/checksums/ ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
+/downloads/terminal-pro/linux/*.AppImage /download/linux 301
+/downloads/terminal-pro/linux/*.deb /download/linux/deb 301
+/downloads/terminal-pro/windows/*.exe /download/windows 301
 /downloads /download/ 301
 /downloads/ /download/ 301
 /downloads/* /download/:splat 301
+/terminal-pro / 301
+/terminal-pro.html / 301
+/contact /feedback/ 301
+/contact.html /feedback/ 301
+/affiliates.html /pricing/ 301
 `.trim() + "\n";
 
 const ROBOTS_TXT = `User-agent: *
@@ -1456,6 +1464,9 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
   <url><loc>https://rinawarptech.com/terms/</loc></url>
   <url><loc>https://rinawarptech.com/privacy/</loc></url>
   <url><loc>https://rinawarptech.com/agents</loc></url>
+  <url><loc>https://rinawarptech.com/what-is-rinawarp/</loc></url>
+  <url><loc>https://rinawarptech.com/what-is-a-proof-first-ai-terminal/</loc></url>
+  <url><loc>https://rinawarptech.com/rinawarp-vs-ai-terminals/</loc></url>
 </urlset>
 `;
 
