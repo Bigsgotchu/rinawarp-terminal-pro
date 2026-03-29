@@ -80,6 +80,7 @@ A build is shippable only when the paid promise is delivered under controlled pr
 - [x] Runs/receipts/session state are inspectable
 - [x] Version/build info is visible
 - [x] Release-readiness script exists
+- [x] VS Code Companion validation can be run from the repo root with `npm run test:companion`
 
 ## Golden Customer Journeys
 
@@ -102,6 +103,7 @@ Validation lives in:
 
 - `npm run build:electron`
 - `npm run test:unit`
+- `npm run test:companion`
 - `npm run release:readiness`
 - `npm run test:playwright`
 - `npm run dist:linux`

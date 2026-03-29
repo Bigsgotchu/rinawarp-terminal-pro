@@ -1,0 +1,237 @@
+{
+  "name": "rinawarp-companion",
+  "displayName": "RinaWarp Companion",
+  "description": "Proof-first workflows for build, audit, deploy, and recovery inside VS Code.",
+  "version": "0.0.1",
+  "publisher": "rinawarp",
+  "preview": true,
+  "pricing": "Trial",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other",
+    "Linters",
+    "Snippets"
+  ],
+  "keywords": [
+    "rinawarp",
+    "ai",
+    "audit",
+    "deployment",
+    "recovery",
+    "devops",
+    "proof",
+    "terminal",
+    "workspace"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onUri",
+    "onCommand:rinawarp.connectAccount",
+    "onCommand:rinawarp.runFreeDiagnostic",
+    "onCommand:rinawarp.upgradeToPro",
+    "onCommand:rinawarp.openPacks",
+    "onView:rinawarp.companion",
+    "onView:rinawarp.chat"
+  ],
+  "main": "./dist/extension.js",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0F172A",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rinawarp/terminal-pro.git"
+  },
+  "homepage": "https://www.rinawarptech.com",
+  "bugs": {
+    "url": "https://www.rinawarptech.com/account/"
+  },
+  "sponsor": {
+    "url": "https://www.rinawarptech.com/pricing/"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "RinaWarp Companion can open account, pricing, and pack surfaces in Restricted Mode, but proof-backed workspace workflows should only run in trusted workspaces."
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist *.vsix",
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json -w",
+    "test": "npm run build && node --test tests/*.test.cjs",
+    "lint": "eslint src --ext .ts",
+    "package:vsix": "npm run build && npx vsce package --pre-release --out rinawarp-companion.vsix",
+    "package:vsix:versioned": "npm run build && npx vsce package --pre-release --out rinawarp-companion-${npm_package_version}.vsix",
+    "publish:pre-release": "npm run build && npx vsce publish --pre-release",
+    "publish:release": "npm run build && npx vsce publish"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "rinawarp.connectAccount",
+        "title": "RinaWarp: Connect Account",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.runFreeDiagnostic",
+        "title": "RinaWarp: Run Free Diagnostic",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.openPacks",
+        "title": "RinaWarp: Open Packs",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.openPack",
+        "title": "RinaWarp: Open Pack",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.openWorkspaceFile",
+        "title": "RinaWarp: Open Workspace File",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.upgradeToPro",
+        "title": "RinaWarp: Upgrade to Pro",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.openBillingPortal",
+        "title": "RinaWarp: Open Billing Portal",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.openPrivacy",
+        "title": "RinaWarp: Open Privacy Details",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.refreshEntitlements",
+        "title": "RinaWarp: Refresh Entitlements",
+        "category": "RinaWarp"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "rinawarp",
+          "title": "RinaWarp",
+          "icon": "media/rinawarp-activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "rinawarp": [
+        {
+          "id": "rinawarp.companion",
+          "name": "Companion"
+        },
+        {
+          "id": "rinawarp.chat",
+          "name": "Chat"
+        }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "id": "rinawarp.gettingStarted",
+        "title": "Get Started With RinaWarp",
+        "description": "Connect your account, run a free workflow, and unlock proof-backed execution inside VS Code.",
+        "steps": [
+          {
+            "id": "rinawarp.step.connect",
+            "title": "Connect Account",
+            "description": "Link your workspace to RinaWarp and restore your plan entitlements.",
+            "media": {
+              "image": "media/walkthrough-connect.svg",
+              "altText": "Connect your RinaWarp account"
+            },
+            "completionEvents": [
+              "onCommand:rinawarp.connectAccount"
+            ]
+          },
+          {
+            "id": "rinawarp.step.freeDiagnostic",
+            "title": "Run Your First Free Workflow",
+            "description": "Start with a free diagnostic so users see value before they see a paywall.",
+            "media": {
+              "image": "media/walkthrough-run.svg",
+              "altText": "Run a free diagnostic"
+            },
+            "completionEvents": [
+              "onCommand:rinawarp.runFreeDiagnostic"
+            ]
+          },
+          {
+            "id": "rinawarp.step.packs",
+            "title": "Explore Capability Packs",
+            "description": "Browse the pack catalog for deployment, recovery, and audit workflows.",
+            "media": {
+              "image": "media/walkthrough-packs.svg",
+              "altText": "Browse capability packs"
+            },
+            "completionEvents": [
+              "onCommand:rinawarp.openPacks"
+            ]
+          },
+          {
+            "id": "rinawarp.step.privacy",
+            "title": "Review Privacy and Telemetry",
+            "description": "Understand what the extension collects and how billing works on rinawarptech.com.",
+            "media": {
+              "image": "media/walkthrough-privacy.svg",
+              "altText": "Review privacy and telemetry"
+            },
+            "completionEvents": [
+              "onCommand:rinawarp.openPrivacy"
+            ]
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "RinaWarp",
+      "properties": {
+        "rinawarp.baseUrl": {
+          "type": "string",
+          "default": "https://www.rinawarptech.com",
+          "description": "Base website URL for account, pricing, and pack flows."
+        },
+        "rinawarp.apiBaseUrl": {
+          "type": "string",
+          "default": "https://api.rinawarptech.com",
+          "description": "Base API URL for entitlement refresh."
+        },
+        "rinawarp.enableTelemetry": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable minimal product telemetry when VS Code telemetry is enabled."
+        }
+      }
+    }
+  },
+  "files": [
+    "dist/**",
+    "media/**",
+    "README.md",
+    "CHANGELOG.md",
+    "SUPPORT.md",
+    "LICENSE",
+    "telemetry.json",
+    "package.json"
+  ],
+  "licenseURL": "https://www.rinawarptech.com/terms/",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.96.0",
+    "typescript": "^5.4.2",
+    "vsce": "^2.15.0"
+  }
+}

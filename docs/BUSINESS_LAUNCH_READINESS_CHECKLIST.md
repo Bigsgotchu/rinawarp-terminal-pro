@@ -187,6 +187,14 @@ Checklist:
 - [ ] support volume is measurable
 - [ ] failure patterns can be identified without guessing
 
+## 12A. Companion Revenue Surface
+
+- [ ] `RinaWarp Companion` messaging matches the actual shipped extension surface
+- [ ] Companion chat, diagnostics, and telemetry validation are green via `npm run test:companion`
+- [ ] Companion account-linking and entitlement-refresh flows are documented and supportable
+- [ ] Companion upgrade links and pack links still land on the intended website surfaces
+- [ ] Companion does not claim proof-backed execution depth beyond what the extension currently supports
+
 ## 13. Post-Purchase Customer Flow
 
 - [ ] buyer knows what to do immediately after purchase

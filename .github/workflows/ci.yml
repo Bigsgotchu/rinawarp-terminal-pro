@@ -35,7 +35,10 @@ jobs:
       - name: TypeScript check
         run: pnpm tsc --noEmit
 
-      - name: Run tests
+      - name: Run Companion validation
+        run: npm run test:companion
+
+      - name: Run root test entrypoint
         run: pnpm test
 
       - name: Build

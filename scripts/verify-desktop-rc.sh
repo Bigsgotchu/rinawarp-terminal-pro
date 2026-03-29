@@ -28,6 +28,9 @@ npm --workspace apps/terminal-pro run test:e2e:proof
 echo "[verify:desktop:rc] Running packaged first-run acceptance"
 npm --workspace apps/terminal-pro run test:e2e:packaged-first-run
 
+echo "[verify:desktop:rc] Running VS Code Companion validation"
+npm run test:companion
+
 echo "[verify:desktop:rc] Building desktop app"
 npm --workspace apps/terminal-pro run build:electron
 
