@@ -62,8 +62,8 @@ RinaWarp Companion is designed to follow VS Code telemetry guidance:
 
 See:
 
-- [Privacy Policy](https://www.rinawarptech.com/privacy/)
-- [Terms](https://www.rinawarptech.com/terms/)
+- [Privacy Policy](https://rinawarptech.com/privacy/)
+- [Terms](https://rinawarptech.com/terms/)
 - [telemetry.json](./telemetry.json)
 - [SUPPORT.md](./SUPPORT.md)
 - [PUBLISHING.md](./PUBLISHING.md)

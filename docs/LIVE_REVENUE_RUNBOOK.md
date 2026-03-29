@@ -47,8 +47,8 @@ That means local desktop and proof verification are green, but public billing/AP
 
 The main public-launch blockers are now on the distribution surface:
 
-- `https://www.rinawarptech.com/releases/latest.json` is still serving an older static manifest instead of the current release manifest
-- `https://www.rinawarptech.com/download/terminal-pro-linux` is not handing off to the installer artifact yet
+- `https://rinawarptech.com/releases/latest.json` is still serving an older static manifest instead of the current release manifest
+- `https://rinawarptech.com/download/terminal-pro-linux` is not handing off to the installer artifact yet
 - `https://rinawarp-downloads.rinawarptech.workers.dev/download/terminal-pro-linux` currently returns `404`
 
 That means CI release publication is ahead of the public download surface right now.

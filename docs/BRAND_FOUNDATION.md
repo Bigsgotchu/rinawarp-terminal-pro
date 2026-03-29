@@ -13,6 +13,7 @@
 - **RinaWarp Terminal Pro** = the desktop product
 - **RinaWarp Technologies, LLC** = the legal company behind the product
 - **RinaWarp Technologies** = the public-facing short company form
+- **rinawarptech.com** = the canonical website domain
 
 ### Brand Essence
 

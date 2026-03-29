@@ -28,7 +28,7 @@ function toErrorUpdateState(version: string, error: unknown): AboutUpdateState {
     latestVersion: null,
     checkedAt: new Date().toISOString(),
     manifestUrl: '',
-    releaseUrl: 'https://www.rinawarptech.com/account/',
+    releaseUrl: 'https://rinawarptech.com/account/',
     error: error instanceof Error ? error.message : 'Failed to check updates',
     downloadProgress: null,
     downloadedAt: null,

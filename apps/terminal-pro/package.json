@@ -6,7 +6,7 @@
   "main": "dist-electron/main.js",
   "description": "RinaWarp agent-first desktop app for build, test, deploy, and system workflows",
   "author": "RinaWarp Team <team@rinawarptech.com>",
-  "homepage": "https://www.rinawarptech.com",
+  "homepage": "https://rinawarptech.com",
   "bugs": {
     "url": "https://github.com/rinawarp/terminal-pro/issues"
   },

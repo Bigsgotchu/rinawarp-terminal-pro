@@ -46,12 +46,12 @@
     "type": "git",
     "url": "https://github.com/rinawarp/terminal-pro.git"
   },
-  "homepage": "https://www.rinawarptech.com",
+  "homepage": "https://rinawarptech.com",
   "bugs": {
-    "url": "https://www.rinawarptech.com/account/"
+    "url": "https://rinawarptech.com/account/"
   },
   "sponsor": {
-    "url": "https://www.rinawarptech.com/pricing/"
+    "url": "https://rinawarptech.com/pricing/"
   },
   "capabilities": {
     "untrustedWorkspaces": {
@@ -201,7 +201,7 @@
       "properties": {
         "rinawarp.baseUrl": {
           "type": "string",
-          "default": "https://www.rinawarptech.com",
+          "default": "https://rinawarptech.com",
           "description": "Base website URL for account, pricing, and pack flows."
         },
         "rinawarp.apiBaseUrl": {
@@ -227,7 +227,7 @@
     "telemetry.json",
     "package.json"
   ],
-  "licenseURL": "https://www.rinawarptech.com/terms/",
+  "licenseURL": "https://rinawarptech.com/terms/",
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.96.0",
