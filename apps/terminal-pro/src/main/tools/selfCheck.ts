@@ -34,7 +34,8 @@ export async function executeSelfCheck(cwd: string, ctx: {workspaceRoot: string 
 
 Self-check complete: ${workspaceOk ? 'SUCCESS' : 'WARNING - no workspace'}`
 
-  const receiptDir = path.join(process.cwd(), 'runs', 'receipts')
+  const receiptBaseDir = cwd || ctx.workspaceRoot || '.'
+  const receiptDir = path.join(receiptBaseDir, 'runs', 'receipts')
   fs.mkdirSync(receiptDir, { recursive: true })
   const receiptPath = path.join(receiptDir, `${runId}-receipt.md`)
   fs.writeFileSync(receiptPath, rawFindings)

@@ -59,7 +59,7 @@ export function diagnosticsPathsForIpc(deps: DiagnosticsBundleDeps) {
       isPackaged: app.isPackaged,
       appPath: app.getAppPath(),
       resourcesPath: process.resourcesPath,
-      cwd: process.cwd(),
+      cwd: deps.appProjectRoot,
       platform: process.platform,
       arch: process.arch,
       versions: {

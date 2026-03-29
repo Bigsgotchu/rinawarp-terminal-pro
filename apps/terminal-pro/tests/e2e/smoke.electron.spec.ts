@@ -5,6 +5,10 @@ import { launchApp } from "./_launch";
 
 test.setTimeout(120_000);
 
+function agentTopbarTab(page: import("@playwright/test").Page) {
+  return page.locator('[data-shell-source="shell_topbar"][data-shell-nav="agent"]');
+}
+
 test("smoke: agent home + settings persistence", async () => {
   const sharedUserData = `smoke-settings-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -51,7 +55,9 @@ test("smoke: agent home + settings persistence", async () => {
     await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
     persistedDensity = "compact";
 
-    await page.locator('[data-tab="agent"]').click();
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#rw-settings")).not.toBeVisible();
+    await agentTopbarTab(page).click();
     await expect(page.locator("#panel-agent")).toBeVisible();
   } finally {
     await app.close();
