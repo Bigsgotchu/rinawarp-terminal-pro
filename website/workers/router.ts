@@ -253,16 +253,10 @@ const SITE_STYLES = `
   .logo {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-  }
-  .logo-mark {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    object-fit: contain;
+    gap: 0;
   }
   .logo-wordmark {
-    height: 28px;
+    height: 30px;
     width: auto;
     object-fit: contain;
   }
@@ -796,6 +790,7 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#ff9b6b">
   <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="msapplication-TileColor" content="#ff4fd8">
@@ -811,7 +806,6 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
     <header>
       <nav aria-label="Main navigation">
         <a href="/" class="logo" aria-label="RinaWarp Terminal Pro home">
-          <img class="logo-mark" src="/assets/img/rinawarp-mark.svg" alt="RinaWarp Terminal Pro mark">
           <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp Terminal Pro logo">
         </a>
         <div class="nav-links">
