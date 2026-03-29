@@ -990,15 +990,15 @@ function renderPricing(): Response {
         </article>
         <article class="card pricing-card">
           <span class="pill">Team / Business</span>
-          <div class="price">$49 <span>/ user / month later</span></div>
-          <p>Planned for teams that need policy controls, audit export, reliability guarantees, and admin support.</p>
+          <div class="price">$49 <span>/ user / month</span></div>
+          <p>For teams that need seat-based rollout, role boundaries, audit visibility, and proof-backed execution.</p>
           <ul class="feature-list">
-            <li>Org-level trust and governance controls</li>
-            <li>Team memory boundaries and admin support</li>
-            <li>Audit/export features and stronger operational guarantees</li>
-            <li>Join the waitlist while Early Access hardens</li>
+            <li>Seat-based checkout and workspace-linked rollout</li>
+            <li>Role-aware team boundaries and admin support</li>
+            <li>Audit visibility and proof-backed team workflows</li>
+            <li>Priority support for real rollout</li>
           </ul>
-          <a href="/feedback" class="btn btn-secondary">Talk to us</a>
+          <a href="/team" class="btn btn-secondary">Start Team</a>
         </article>
       </div>
     </section>
