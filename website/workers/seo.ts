@@ -13,58 +13,58 @@ export interface SeoData {
 
 export const SEO_CONFIG: Record<string, SeoData> = {
   '/': {
-    title: 'RinaWarp Terminal Pro | Proof-First AI Workbench',
+    title: 'RinaWarp Terminal Pro | Proof-First AI Terminal',
     description:
-      'Talk to Rina naturally in RinaWarp Terminal Pro, let her act through one trusted path, and keep proof, receipts, and recovery attached to the work.',
+      'RinaWarp Terminal Pro is a proof-first AI terminal for developers who want trusted execution, receipts, recovery, and a cleaner chat-to-command workflow.',
     canonical: 'https://rinawarptech.com/',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords:
       'AI workbench, proof-first AI, agent workflow, developer tools, trusted execution, run receipts, developer productivity',
   },
   '/agents': {
-    title: 'RinaWarp Terminal Pro Marketplace | Capability Packs',
+    title: 'RinaWarp Packs | Capability Packs for RinaWarp Terminal Pro',
     description:
-      'Browse capability packs and curated agents for RinaWarp. Install focused tooling for deployment, diagnostics, security, and repeated workflows.',
+      'Browse capability packs for RinaWarp Terminal Pro. Add focused workflows for deployment, diagnostics, security, and repeated developer tasks.',
     canonical: 'https://rinawarptech.com/agents',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'capability packs, AI agents, marketplace, RinaWarp, developer tools, automation',
   },
   '/pricing': {
-    title: 'RinaWarp Terminal Pro Pricing | Trust, Recovery, and Execution',
+    title: 'RinaWarp Terminal Pro Pricing | AI Terminal Plans',
     description:
-      'Choose the RinaWarp plan that fits your workflow. Pay for proof-backed execution, recovery, and an agent-first desktop experience that stays understandable.',
+      'See RinaWarp Terminal Pro pricing for individual and team AI terminal plans with trusted execution, receipts, recovery, and Early Access support.',
     canonical: 'https://rinawarptech.com/pricing',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'pricing, subscription, RinaWarp, plans, proof-backed AI, agent workbench',
   },
   '/download': {
-    title: 'Download RinaWarp Terminal Pro | Verified Releases',
+    title: 'Download RinaWarp Terminal Pro | Verified AI Terminal Releases',
     description:
-      'Download verified RinaWarp releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.',
+      'Download verified RinaWarp Terminal Pro releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.',
     canonical: 'https://rinawarptech.com/download',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'download, RinaWarp, verified releases, checksums, AppImage, deb, exe',
   },
   '/feedback': {
-    title: 'Support & Feedback | RinaWarp Terminal Pro',
+    title: 'RinaWarp Support | Help, Feedback, and Contact',
     description:
-      'Reach the RinaWarp team with product feedback, support requests, launch questions, and capability requests.',
+      'Contact RinaWarp for product support, billing help, restore issues, feedback, launch questions, and capability requests.',
     canonical: 'https://rinawarptech.com/feedback',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'feedback, support, contact, RinaWarp, bug report, launch support',
   },
   '/docs': {
-    title: 'RinaWarp Terminal Pro Docs | Getting Started',
+    title: 'RinaWarp Terminal Pro Docs | AI Terminal Guides',
     description:
-      'Learn how to use RinaWarp: start from the Agent surface, inspect proof, recover work, and understand what Rina actually did.',
+      'Read RinaWarp Terminal Pro docs, setup guides, and proof-first AI terminal workflows for trusted execution, receipts, and recovery.',
     canonical: 'https://rinawarptech.com/docs',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'documentation, docs, RinaWarp, getting started, proof-backed execution, recovery',
   },
   '/early-access': {
-    title: 'Early Access Policy | RinaWarp Terminal Pro',
+    title: 'RinaWarp Early Access | Release and Restore Policy',
     description:
-      'Understand what Early Access means for RinaWarp Terminal Pro, including release safety, restore guidance, and current platform limits.',
+      'Understand the RinaWarp Early Access policy, including release safety, restore guidance, update expectations, and current platform limits.',
     canonical: 'https://rinawarptech.com/early-access',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'early access, RinaWarp, restore, release policy, proof-first AI terminal',
