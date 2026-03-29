@@ -837,7 +837,7 @@ function renderHomepage(): Response {
     <section class="hero">
       <span class="eyebrow">Proof-first agent execution</span>
       <h1>Talk to Rina naturally. Ship with proof.</h1>
-      <p class="hero-copy">RinaWarp Terminal Pro is the AI workbench for people who want an agent they can actually talk to, trust, and recover with. Ask in plain language, let Rina inspect or act through one trusted path, and keep the run ID, receipts, and output attached to the thread.</p>
+      <p class="hero-copy">A desktop AI workbench that keeps proof, receipts, and recovery attached to real work. Ask naturally, let Rina act through one trusted path, and inspect the details only when you need them.</p>
       <div class="cta-row">
         <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download the app</a>
         <a href="/pricing" class="btn btn-secondary">See plans</a>
@@ -851,24 +851,24 @@ function renderHomepage(): Response {
         <article class="card">
           <div class="kicker">Trust</div>
           <h3>Claims stay tied to proof</h3>
-          <p>RinaWarp Terminal Pro is built around run IDs, receipts, tails, and recovery state. The goal is fewer fake wins, fewer mystery actions, and less terminal archaeology when something matters.</p>
+          <p>Run IDs, receipts, tails, and recovery stay attached to the work.</p>
         </article>
         <article class="card">
           <div class="kicker">Conversation</div>
           <h3>Rina handles real human input</h3>
-          <p>Vague asks, follow-ups, frustration, messy phrasing, and casual turns are part of the job. Rina stays coherent, asks one sharp clarification when needed, and does not break proof discipline to sound confident.</p>
+          <p>Vague asks and follow-ups are normal. Rina stays coherent without dropping proof discipline.</p>
         </article>
         <article class="card">
           <div class="kicker">Recovery</div>
           <h3>Interrupted work still makes sense</h3>
-          <p>When a run is interrupted or a session restarts, RinaWarp Terminal Pro keeps the state visible. You can see what happened, what was restored, and what the next safe move is.</p>
+          <p>Interrupted work stays understandable, with restore state and the next safe move still visible.</p>
         </article>
       </div>
     </section>
 
     <section class="section">
       <h2 class="section-title">What the product actually looks like in use</h2>
-      <p class="section-copy">The first trust win is visual: the thread stays readable, the proof stays attached, and recovery does not hide what happened. This is the shape customers see when RinaWarp is doing real work.</p>
+      <p class="section-copy">The thread stays readable, the proof stays attached, and recovery does not hide what happened.</p>
       <div class="proof-demo">
         <div class="transcript-demo">
           <div class="demo-windowbar">
@@ -912,7 +912,7 @@ function renderHomepage(): Response {
 
     <section class="section">
       <h2 class="section-title">What the product promise actually is</h2>
-      <p class="section-copy">RinaWarp Terminal Pro is not another vague AI shell. The paid promise is simple: you open the app, Rina understands the workspace, you ask for real work, the action goes through the canonical path, and the result is understandable without digging through raw logs unless you want to.</p>
+      <p class="section-copy">Open the app, ask for real work, and keep proof attached from start to finish.</p>
       <div class="proof-strip">
         <div class="proof-step">
           <strong>1. Ask in the Agent thread</strong>
@@ -933,7 +933,7 @@ function renderHomepage(): Response {
       <div class="panel">
         <div class="kicker">Why people switch</div>
         <h2 class="section-title">Sell certainty, not just speed</h2>
-      <p class="section-copy">Warp is terminal-native. Cursor is editor-native. Copilot is ecosystem-native. RinaWarp Terminal Pro is agent-native: chat is the primary surface, runs and terminal are inspectors, and trust stays visible from the first ten minutes forward.</p>
+      <p class="section-copy">RinaWarp is agent-native: chat is primary, inspectors stay secondary, and trust stays visible.</p>
         <div class="link-row">
           <a href="/docs" class="btn btn-secondary">Read the workflow</a>
           <a href="/agents" class="btn btn-secondary">Browse capability packs</a>
@@ -949,8 +949,8 @@ function renderPricing(): Response {
   const hero = `
     <section class="hero">
       <span class="eyebrow">Early Access pricing</span>
-      <h1>Price the trust, proof, and recovery people actually use.</h1>
-      <p class="hero-copy">RinaWarp Terminal Pro Early Access keeps the ladder simple: a real free tier to feel the workbench, a serious Pro tier for proof-backed execution, and team pricing later when the admin and governance surface is ready.</p>
+      <h1>Start free. Upgrade for proof-backed execution.</h1>
+      <p class="hero-copy">The ladder is simple: free to feel the workbench, Pro for real execution, Team for seat-based rollout.</p>
     </section>
   `
 
@@ -1005,7 +1005,7 @@ function renderPricing(): Response {
 
     <section class="section">
       <h2 class="section-title">Quick answers before you buy</h2>
-      <p class="section-copy">The best conversion copy is the honest kind. These are the practical questions people have right before they decide whether to pay.</p>
+      <p class="section-copy">The practical questions people ask right before paying.</p>
       <div class="faq-grid">
         <article class="faq-item">
           <h3>What happens after checkout?</h3>
@@ -1391,7 +1391,7 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
     <section class="hero">
       <span class="eyebrow">Early Access releases</span>
       <h1>Download RinaWarp Terminal Pro.</h1>
-      <p class="hero-copy">Install the desktop workbench, inspect the live release manifest, and choose the package path that matches how you want updates delivered. Trust on the site should match trust in the product.</p>
+      <p class="hero-copy">Choose your installer, inspect the live manifest, and verify the release before you run it.</p>
     </section>
   `
 

@@ -883,20 +883,20 @@ const pages = [
     description: "Talk to Rina naturally, let her act through one trusted path, and keep proof, receipts, and recovery attached to the work.",
     eyebrow: "Proof-first agent execution",
     heading: "Talk to Rina naturally. Ship with proof.",
-    copy: "RinaWarp Terminal Pro is the AI workbench for people who want an agent they can actually talk to, trust, and recover with. Ask in plain language, let Rina inspect or act through one trusted path, and keep the run ID, receipts, and output attached to the thread.",
+    copy: "A desktop AI workbench that keeps proof, receipts, and recovery attached to real work. Ask naturally, let Rina act through one trusted path, and inspect the details only when you need them.",
     content: `
       <section class="section"><div class="grid three-up">
         <article class="card"><div class="kicker">Trust</div><h3>Claims stay tied to proof</h3><p>Run IDs, receipts, tails, and recovery state stay attached to the work instead of disappearing behind agent vibes.</p></article>
         <article class="card"><div class="kicker">Conversation</div><h3>Rina handles real human input</h3><p>Vague asks, follow-ups, frustration, and mixed conversation are part of the job. Rina stays coherent and grounded.</p></article>
         <article class="card"><div class="kicker">Recovery</div><h3>Interrupted work still makes sense</h3><p>When a run is interrupted or a session restarts, restored work remains understandable and actionable.</p></article>
       </div></section>
-      <section class="section"><h2 class="section-title">Actual product screenshots</h2><p class="section-copy">These are real captures from the current product surface, not concept art. If the website says trust, proof, and recovery, the UI needs to show it.</p><div class="screenshot-grid">
+      <section class="section"><h2 class="section-title">Actual product screenshots</h2><p class="section-copy">Real captures from the current product, not concept art.</p><div class="screenshot-grid">
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-empty-state.png" alt="RinaWarp Terminal Pro empty agent state screenshot"></div><div class="screenshot-caption"><strong>Start clean.</strong> The empty state stays focused instead of dumping a wall of setup noise into the thread.</div></article>
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active thread screenshot"></div><div class="screenshot-caption"><strong>Stay in the conversation.</strong> Active work reads like a transcript with proof attached, not a pile of disconnected cards.</div></article>
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/diagnostics-inspector.png" alt="RinaWarp Terminal Pro diagnostics inspector screenshot"></div><div class="screenshot-caption"><strong>Inspect the details only when needed.</strong> Diagnostics are there for confidence and recovery, not as the primary surface.</div></article>
       </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">Short product demo</h2><p class="section-copy">A quick look at the current surface: start clean, move into a real thread, and inspect proof when needed.</p><div class="screenshot-frame"><img src="/assets/img/rinawarp-demo.gif" alt="Animated demo of RinaWarp Terminal Pro conversation and proof workflow"></div></div></section>
-      <section class="section"><h2 class="section-title">Best fit for teams and developers who care about trust</h2><p class="section-copy">RinaWarp is strongest when the job matters enough that you want the agent to stay understandable before, during, and after execution.</p><div class="fit-grid">
+      <section class="section"><div class="panel stack"><h2 class="section-title">Short product demo</h2><p class="section-copy">Start clean, move into a real thread, and inspect proof when needed.</p><div class="screenshot-frame"><img src="/assets/img/rinawarp-demo.gif" alt="Animated demo of RinaWarp Terminal Pro conversation and proof workflow"></div></div></section>
+      <section class="section"><h2 class="section-title">Best fit for teams and developers who care about trust</h2><p class="section-copy">Best when the work matters enough that you want the agent to stay understandable before, during, and after execution.</p><div class="fit-grid">
         <article class="fit-card"><h3>Build and release work</h3><p>Use it when you want the thread, receipts, and recovery state to stay connected to real build and deploy work instead of disappearing into shell history.</p></article>
         <article class="fit-card"><h3>Messy real-world requests</h3><p>It is built for vague asks, follow-ups, and mixed conversation, not just perfect command-style prompts.</p></article>
         <article class="fit-card"><h3>People who distrust black-box AI</h3><p>If you are tired of agents sounding confident without showing the proof, this is the right product story.</p></article>
@@ -921,7 +921,7 @@ const pages = [
       </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Ask → Plan → Execute → Prove → Recover</h2>
-        <p class="section-copy">The promise is simple: open the app, ask for real work, let it execute through the canonical path, and inspect proof only when you need more detail.</p>
+        <p class="section-copy">Open the app, ask for real work, and keep proof attached from start to finish.</p>
         <div class="cta-row">
           <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download the app</a>
           <a href="/pricing/" class="btn btn-secondary">See plans</a>
@@ -937,8 +937,8 @@ const pages = [
     title: "RinaWarp Terminal Pro Pricing | Trust, Recovery, and Execution",
     description: "Choose the RinaWarp plan that fits your workflow. Pay for proof-backed execution, recovery, and an agent-first desktop experience.",
     eyebrow: "Early Access pricing",
-    heading: "Price the trust, proof, and recovery people actually use.",
-    copy: "RinaWarp Terminal Pro Early Access keeps the ladder simple: a real free tier to feel the workbench, a serious Pro tier for proof-backed execution, and a Team plan that now has a live checkout path tied to seats and workspace rollout.",
+    heading: "Start free. Upgrade for proof-backed execution.",
+    copy: "The ladder is simple: free to feel the workbench, Pro for real execution, Team for seat-based rollout.",
     content: `
       <section class="section"><div class="pricing-grid">
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a></article>
@@ -949,7 +949,7 @@ const pages = [
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/settings-memory.png" alt="RinaWarp Terminal Pro settings memory screenshot"></div><div class="screenshot-caption"><strong>Paid feels tangible.</strong> The product already has real settings and workbench surfaces, not just a paywall on top of an empty shell.</div></article>
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active proof thread screenshot"></div><div class="screenshot-caption"><strong>Pro is for real execution.</strong> The buyer should understand the difference between chatting and proof-backed work before they hit Stripe.</div></article>
       </div></section>
-      <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The best conversion copy is the honest kind. These are the practical questions people have right before they decide whether to pay.</p><div class="faq-grid">
+      <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The practical questions people ask right before paying.</p><div class="faq-grid">
         <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp, where you can download the app, sign in or restore access, and confirm the paid tier from the account surface and desktop settings.</p></article>
         <article class="faq-item"><h3>How does restore work?</h3><p>Paid access is anchored to the billing email. If a device loses entitlement state, use the restore path in the app or account page before contacting support.</p></article>
         <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Billing is handled through Stripe, and the billing portal is the canonical place to manage cancellation, plan changes, and payment method updates.</p></article>
@@ -1005,7 +1005,7 @@ const pages = [
     description: "Download verified RinaWarp releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.",
     eyebrow: "Early Access releases",
     heading: "Download RinaWarp Terminal Pro.",
-    copy: "Install the desktop workbench, inspect the live release manifest, and choose the package path that matches how you want updates delivered.",
+    copy: "Choose your installer, inspect the live manifest, and verify the release before you run it.",
     content: `
       <section class="section"><div class="download-grid">
         <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and is the easiest way to get running on a clean machine, but you should expect to install newer <strong>.deb</strong> packages manually. <strong>AppImage</strong> is the Linux path for <strong>in-app updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install.</p></article>
