@@ -1,5 +1,12 @@
 # Business Launch Readiness Checklist
 
+Related operating docs:
+
+- [COMPANY_OPERATING_SYSTEM.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_OPERATING_SYSTEM.md)
+- [SUPPORT_OPERATING_MODEL.md](/home/karina/Documents/rinawarp-terminal-pro/docs/SUPPORT_OPERATING_MODEL.md)
+- [GTM_OPERATING_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/GTM_OPERATING_PLAN.md)
+- [METRICS_SCOREBOARD.md](/home/karina/Documents/rinawarp-terminal-pro/docs/METRICS_SCOREBOARD.md)
+
 This checklist is for the real business surface around **RinaWarp Terminal Pro** and **RinaWarp Technologies, LLC**, not just the app binary.
 
 The goal is simple:
