@@ -60,7 +60,7 @@
     "kpi:snapshot": "bash scripts/kpi-snapshot.sh https://www.rinawarptech.com https://api.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
     "watchdog:prod": "bash scripts/prod-watchdog.sh",
     "watchdog:prod:once": "ONCE=1 bash scripts/prod-watchdog.sh",
-    "audit:prod": "bash scripts/audit-site.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt",
+    "audit:prod": "bash scripts/audit-site.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev https://www.rinawarptech.com/releases/SHASUMS256.txt",
     "audit:compare": "bash scripts/audit-prod.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev",
     "smoke:stripe": "bash scripts/smoke-stripe.sh https://api.rinawarptech.com https://www.rinawarptech.com",
     "audit:stripe-success": "bash scripts/stripe-success-audit.sh",
