@@ -315,6 +315,38 @@ main { flex: 1; }
   font-size: 0.94rem;
   line-height: 1.6;
 }
+.fit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+.fit-card {
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+.fit-card h3 {
+  margin-bottom: 10px;
+}
+.founder-note {
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(98, 246, 229, 0.22);
+  background: linear-gradient(180deg, rgba(98, 246, 229, 0.08), rgba(10, 21, 32, 0.92));
+  box-shadow: var(--shadow);
+}
+.founder-note blockquote {
+  color: var(--text);
+  font-size: 1.02rem;
+  line-height: 1.75;
+}
+.founder-note cite {
+  color: var(--muted);
+  display: block;
+  margin-top: 12px;
+  font-style: normal;
+}
 .btn {
   display: inline-flex;
   align-items: center;
@@ -867,6 +899,11 @@ const pages = [
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active thread screenshot"></div><div class="screenshot-caption"><strong>Stay in the conversation.</strong> Active work reads like a transcript with proof attached, not a pile of disconnected cards.</div></article>
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/diagnostics-inspector.png" alt="RinaWarp Terminal Pro diagnostics inspector screenshot"></div><div class="screenshot-caption"><strong>Inspect the details only when needed.</strong> Diagnostics are there for confidence and recovery, not as the primary surface.</div></article>
       </div></section>
+      <section class="section"><h2 class="section-title">Best fit for teams and developers who care about trust</h2><p class="section-copy">RinaWarp is strongest when the job matters enough that you want the agent to stay understandable before, during, and after execution.</p><div class="fit-grid">
+        <article class="fit-card"><h3>Build and release work</h3><p>Use it when you want the thread, receipts, and recovery state to stay connected to real build and deploy work instead of disappearing into shell history.</p></article>
+        <article class="fit-card"><h3>Messy real-world requests</h3><p>It is built for vague asks, follow-ups, and mixed conversation, not just perfect command-style prompts.</p></article>
+        <article class="fit-card"><h3>People who distrust black-box AI</h3><p>If you are tired of agents sounding confident without showing the proof, this is the right product story.</p></article>
+      </div></section>
       <section class="section"><h2 class="section-title">What the product actually looks like in use</h2><p class="section-copy">The first trust win is visual: the thread stays readable, the proof stays attached, and recovery does not hide what happened. This is the shape customers see when RinaWarp is doing real work.</p><div class="proof-demo">
         <div class="transcript-demo">
           <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>RinaWarp Terminal Pro</span></div>
@@ -893,6 +930,7 @@ const pages = [
           <a href="/pricing/" class="btn btn-secondary">See plans</a>
         </div>
       </div></section>
+      <section class="section"><div class="founder-note"><blockquote>We would rather show the rough edges plainly than claim trust we have not earned yet. That is why the site calls out proof, restore, checksums, and platform limits directly instead of hiding them behind generic AI marketing.</blockquote><cite>Founder note from RinaWarp Technologies, LLC</cite></div></section>
     `
   },
   {
