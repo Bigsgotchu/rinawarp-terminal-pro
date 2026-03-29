@@ -14,6 +14,7 @@ Related docs:
 - [BUSINESS_LAUNCH_READINESS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/BUSINESS_LAUNCH_READINESS_CHECKLIST.md)
 - [LIVE_REVENUE_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/docs/LIVE_REVENUE_RUNBOOK.md)
 - [SUPPORT_OPERATING_MODEL.md](/home/karina/Documents/rinawarp-terminal-pro/docs/SUPPORT_OPERATING_MODEL.md)
+- [SUPPORT_INBOX_WORKFLOW.md](/home/karina/Documents/rinawarp-terminal-pro/docs/SUPPORT_INBOX_WORKFLOW.md)
 - [GTM_OPERATING_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/GTM_OPERATING_PLAN.md)
 - [METRICS_SCOREBOARD.md](/home/karina/Documents/rinawarp-terminal-pro/docs/METRICS_SCOREBOARD.md)
 

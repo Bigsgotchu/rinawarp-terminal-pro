@@ -8,6 +8,7 @@ Related docs:
 
 - [LIVE_REVENUE_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/docs/LIVE_REVENUE_RUNBOOK.md)
 - [BUSINESS_LAUNCH_READINESS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/BUSINESS_LAUNCH_READINESS_CHECKLIST.md)
+- [SUPPORT_INBOX_WORKFLOW.md](/home/karina/Documents/rinawarp-terminal-pro/docs/SUPPORT_INBOX_WORKFLOW.md)
 
 ## Support Categories
 
@@ -92,6 +93,10 @@ If relevant, also capture:
 3. link the issue to the relevant runbook or checklist
 4. respond with next step, not just acknowledgment
 5. log the root cause after resolution
+
+Use this concrete inbox workflow for daily founder-led handling:
+
+- [SUPPORT_INBOX_WORKFLOW.md](/home/karina/Documents/rinawarp-terminal-pro/docs/SUPPORT_INBOX_WORKFLOW.md)
 
 ## Required Support Assets
 
