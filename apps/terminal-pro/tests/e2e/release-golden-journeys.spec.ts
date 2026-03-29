@@ -106,7 +106,7 @@ test('golden journey A: packaged first-use value is clear on a fresh state', asy
   await withPackagedApp(async ({ page }) => {
     await agentTopbarTab(page).click()
     await expect(page.locator('#agent-input')).toBeVisible()
-    await expect(page.locator('.rw-agent-welcome-card')).toContainText(/Ready when you are|workspace|proof|receipts/i)
+    await expect(page.locator('.rw-agent-welcome-card')).toContainText(/What should we work on\?|Build, test, fix, or ship/i)
     await expect(page.getByRole('button', { name: 'Build this project' })).toBeVisible()
     await page.locator('#agent-input').fill('Inspect this project and suggest the safest next step.')
     await page.locator('#agent-send').click()
