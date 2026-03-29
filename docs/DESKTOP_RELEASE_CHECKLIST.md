@@ -28,6 +28,7 @@
 - Installer artifacts are produced by CI
 - Support bundle export works
 - Release metadata is published for update checks
+- Versioned release bundle passes `npm run verify:downloads` before any production site deploy
 
 ## Signing & Distribution
 
@@ -54,6 +55,8 @@
   - `releasedAt`
   - `downloadUrl`
 - Verify desktop update check from settings/about
+- Keep website deploy after artifact publish, not before:
+  - [DESKTOP_RELEASE_SEQUENCE.md](/home/karina/Documents/rinawarp-terminal-pro/docs/DESKTOP_RELEASE_SEQUENCE.md)
 
 ## Crash & Supportability
 - Renderer errors are captured

@@ -72,6 +72,8 @@
     "verify:appimage:ci": "bash deploy/verify-appimage-ci.sh",
     "release:desktop": "bash deploy/release-runner.sh",
     "release:bump": "bash deploy/bump-release-version.sh",
+    "release:publish:desktop": "bash scripts/publish-desktop-release.sh",
+    "release:publish:metadata": "bash scripts/publish-update-metadata.sh",
     "cli:list-agents": "node --import ./apps/terminal-pro/node_modules/tsx/dist/loader.mjs tools/list-agents.ts",
     "cli:install-agent": "node --import ./apps/terminal-pro/node_modules/tsx/dist/loader.mjs tools/install-agent.ts",
     "migrate:auth-local": "bash scripts/migrate-auth-local.sh",
