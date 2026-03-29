@@ -141,6 +141,10 @@ As of `2026-03-29`:
 - production Pages deploy is guarded
 - a fresh `1.1.10` multi-platform release bundle still needs to be produced before publish
 
+Current candidate-specific handoff:
+
+- [RELEASE_HANDOFF_1.1.10.md](/home/karina/Documents/rinawarp-terminal-pro/docs/RELEASE_HANDOFF_1.1.10.md)
+
 ## Decision Rule
 
 Only move `rinawarptech.com` to a new desktop version after all of the following are true:
