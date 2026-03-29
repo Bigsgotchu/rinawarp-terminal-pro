@@ -25,10 +25,11 @@ test("smoke: agent home + settings persistence", async () => {
     await waitForAppReady(page);
 
     await expect(page.locator("#panel-agent")).toBeVisible();
-    await expect(page.locator("#agent-output")).toBeVisible();
     await expect(page.locator(".rw-agent-welcome-card")).toBeVisible();
-    await expect(page.locator('[data-agent-section="suggested-actions"]')).toBeVisible();
-    await expect(page.locator('[data-agent-section="recent-proof"]')).toBeVisible();
+    await expect(page.locator(".rw-agent-welcome-card")).toContainText(/What should we work on\?|Start by choosing the project or folder you want Rina to work in|This folder may not be the project root yet/i);
+    await expect(page.locator('#agent-starter-prompts')).toBeVisible();
+    await expect(page.locator('#agent-starter-prompts').getByRole('button', { name: 'Build this project' })).toBeVisible();
+    await expect(page.locator('#agent-starter-prompts').getByRole('button', { name: 'Run tests' })).toBeVisible();
 
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === "function");
     await page.keyboard.press(modKey(","));

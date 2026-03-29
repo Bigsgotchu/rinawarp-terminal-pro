@@ -5,6 +5,7 @@ import { appendMessageContent } from './messageBlocks.js'
 import {
   clearStarterPromptMount,
   mountAgentHero,
+  mountStarterPromptMount,
   renderAgentCard,
   renderInlineRunBlock,
 } from '../components/agentSurface.js'
@@ -14,15 +15,15 @@ import {
   buildInlineRunViewModel,
   buildWorkspaceSetupCardModel,
 } from '../view-models/agentThreadModel.js'
-import { buildRecentProofCardModel, buildRecoveryStripViewModel, buildRecoverySummaryCardModel } from '../view-models/recoveryViewModel.js'
-import { buildSuggestedActionsCardModel } from '../view-models/suggestedActionsViewModel.js'
+import { buildRecoveryStripViewModel } from '../view-models/recoveryViewModel.js'
+import { getStarterPromptViewModels } from '../view-models/suggestedActionsViewModel.js'
 
 function syncStarterPromptChips(state: WorkbenchState): void {
   const chips = Array.from(document.querySelectorAll<HTMLElement>('.rw-prompt-chip[data-intent-key]'))
   for (const chip of chips) {
     const intent = chip.dataset.intentKey as 'build' | 'test' | 'deploy' | 'fix' | undefined
     if (!intent) continue
-    const meta = buildSuggestedActionsCardModel(state).prompts?.find((entry) => entry.intent === intent)
+    const meta = getStarterPromptViewModels(state).find((entry) => entry.intent === intent)
     if (!meta) continue
     chip.dataset.tierHint = meta.hint
     chip.dataset.tierTone = meta.tone
@@ -69,8 +70,15 @@ function renderInlineRunBlocksNode(state: WorkbenchState, linkedRuns: RunModel[]
   return root
 }
 
-function renderComposerStarterPrompts(): void {
-  clearStarterPromptMount(document.getElementById('agent-starter-prompts'))
+function renderComposerStarterPrompts(state: WorkbenchState, hasThreadContent: boolean): void {
+  const container = document.getElementById('agent-starter-prompts')
+  if (!container) return
+  const workspaceSetup = buildWorkspaceSetupCardModel(state)
+  if (hasThreadContent || workspaceSetup) {
+    clearStarterPromptMount(container)
+    return
+  }
+  mountStarterPromptMount(container, getStarterPromptViewModels(state))
 }
 
 function renderRecoveryToggle(state: WorkbenchState): void {
@@ -87,34 +95,20 @@ function renderHero(state: WorkbenchState): void {
 
 function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
-  const recovery = buildRecoverySummaryCardModel(state)
-  const hasRecoveryMessages = state.chat.some(
-    (message) => message.workspaceKey === state.workspaceKey && message.id.startsWith('system:runs:restore:')
-  )
-  const sideColumn = el(
-    'div',
-    {
-      class: 'rw-agent-empty-column rw-agent-empty-column-side',
-    },
-    renderAgentCard(buildRecentProofCardModel(state))
-  )
-  if (recovery && !hasRecoveryMessages) sideColumn.appendChild(renderAgentCard(recovery))
-  const mainColumn = el(
-    'div',
-    {
-      class: 'rw-agent-empty-column rw-agent-empty-column-main',
-    }
-  )
-  if (workspaceSetup) mainColumn.appendChild(renderAgentCard(workspaceSetup))
-  mainColumn.appendChild(renderAgentCard(buildSuggestedActionsCardModel(state)))
+  if (!workspaceSetup) return el('section', { class: 'rw-agent-empty-state-shell', dataset: { agentSection: 'empty-state' } })
   return el(
     'section',
     {
-      class: 'rw-agent-empty-state-shell',
+      class: 'rw-agent-empty-state-shell is-single-column',
       dataset: { agentSection: 'empty-state' },
     },
-    sideColumn,
-    mainColumn
+    el(
+      'div',
+      {
+        class: 'rw-agent-empty-column rw-agent-empty-column-main',
+      },
+      renderAgentCard(workspaceSetup)
+    )
   )
 }
 
@@ -202,7 +196,7 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   agentBody?.classList.toggle('has-thread-content', hasThreadContent)
   agentBody?.classList.toggle('has-recovery-strip', recoveryMessages.length > 0)
   root.scrollTop = hasThreadContent ? root.scrollHeight : 0
-  renderComposerStarterPrompts()
+  renderComposerStarterPrompts(state, hasThreadContent)
   syncStarterPromptChips(state)
 }
 

@@ -89,8 +89,8 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
   if (block.type === 'reply-card') {
     const persistentCardClasses = ['rw-command-result-card', 'rw-recovery-card', 'halted']
     const blockClasses = (block.className || '').split(/\s+/).filter(Boolean)
-    const kindClass = block.kind ? `rw-reply-card-${block.kind}` : ''
-    const useCardShell = Boolean(block.kind) || blockClasses.some((name) => persistentCardClasses.includes(name))
+    const useCardShell = blockClasses.some((name) => persistentCardClasses.includes(name))
+    const kindClass = block.kind ? (useCardShell ? `rw-reply-card-${block.kind}` : `rw-message-section-${block.kind}`) : ''
     const container = el('div', {
       class: [useCardShell ? 'rw-reply-card' : 'rw-message-section', kindClass, block.className || ''].filter(Boolean).join(' '),
     })

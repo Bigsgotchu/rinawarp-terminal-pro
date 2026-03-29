@@ -37,16 +37,13 @@ export function mountAgentHero(container: HTMLElement, model: AgentHeroViewModel
       el('div', { class: 'rw-agent-kicker' }, 'Rina workbench'),
       el('h2', undefined, model.heading),
       el('p', undefined, model.copy),
-      el(
-        'div',
-        { class: 'rw-agent-welcome-meta' },
-        el('span', { class: 'rw-agent-welcome-pill' }, `Workspace · ${model.workspaceDisplay}`),
-        el('span', { class: 'rw-agent-welcome-pill' }, `Mode · ${model.modeLabel}`),
-        el('span', { class: 'rw-agent-welcome-pill' }, model.runLabel),
-        model.weakWorkspace
-          ? el('span', { class: 'rw-agent-welcome-pill is-warning', title: model.weakWorkspaceReason }, 'Project root not detected')
-          : null
-      ),
+      model.weakWorkspace
+        ? el(
+            'div',
+            { class: 'rw-agent-welcome-meta' },
+            el('span', { class: 'rw-agent-welcome-pill is-warning', title: model.weakWorkspaceReason }, 'Project root not detected')
+          )
+        : null,
       model.actions.length
         ? el('div', { class: 'rw-inline-actions rw-agent-welcome-actions' }, ...model.actions.map(renderActionButton))
         : null
@@ -186,4 +183,13 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
 export function clearStarterPromptMount(container: HTMLElement | null): void {
   if (!container) return
   clear(container)
+}
+
+export function mountStarterPromptMount(container: HTMLElement | null, prompts: StarterPromptViewModel[]): void {
+  if (!container) return
+  clear(container)
+  if (prompts.length === 0) return
+  const fragment = document.createDocumentFragment()
+  for (const prompt of prompts) fragment.appendChild(renderStarterPromptChip(prompt))
+  mount(container, fragment)
 }

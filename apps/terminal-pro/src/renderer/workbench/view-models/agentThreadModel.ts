@@ -80,7 +80,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
             ? 'Ready when you are. I know the workspace, and the last verified run ended cleanly.'
             : lastRun
               ? 'Ready when you are. I know where we are, and I can pick up from the last run without pretending.'
-              : 'Ready when you are. I’ve got the workspace, the receipts when we need them, and a calm way through the work.'
+              : 'What should we work on?'
   const copy =
     workspaceState.status === 'missing'
       ? 'Choose a workspace first so build, test, fix, and deploy actions happen in the right place from the start.'
@@ -90,7 +90,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
           ? `There ${restoredRuns.length === 1 ? 'is' : 'are'} ${restoredRuns.length} recovered run${restoredRuns.length === 1 ? '' : 's'} ready to inspect or resume. Pick a lane and I’ll keep it clean.`
           : lastRun
             ? `I can build, test, deploy, or inspect what just happened in ${workspaceState.displayValue}. No drama, just proof when it counts.`
-            : `Tell me what to build, test, fix, or ship in ${workspaceState.displayValue}. I’ll explain the path, do the work through the trusted runner, and leave the receipts behind.`
+            : `Build, test, fix, or ship in ${workspaceState.displayValue}.`
 
   const actions =
     workspaceState.status === 'project'
