@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,7 +12,13 @@ const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
 const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
 const PRIMARY_UPDATES_BASE = "https://rinawarptech.com/releases";
 const VERSION = String(packageJson.version);
-const ASSET_VERSION = "20260322-success-handoff";
+const ASSET_VERSION = "20260329-proof-gallery";
+const SCREENSHOT_SOURCES = [
+  ["agent-empty-state.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-empty-state.png")],
+  ["agent-active-thread.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-active-thread.png")],
+  ["diagnostics-inspector.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "diagnostics-inspector.png")],
+  ["settings-memory.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "settings-memory.png")],
+];
 
 const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -282,6 +288,32 @@ main { flex: 1; }
 .trust-note {
   border-color: rgba(251, 191, 36, 0.22);
   background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(10, 21, 32, 0.88));
+}
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+.screenshot-card {
+  display: grid;
+  gap: 10px;
+}
+.screenshot-frame {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: var(--shadow);
+}
+.screenshot-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.screenshot-caption {
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
 }
 .btn {
   display: inline-flex;
@@ -830,6 +862,11 @@ const pages = [
         <article class="card"><div class="kicker">Conversation</div><h3>Rina handles real human input</h3><p>Vague asks, follow-ups, frustration, and mixed conversation are part of the job. Rina stays coherent and grounded.</p></article>
         <article class="card"><div class="kicker">Recovery</div><h3>Interrupted work still makes sense</h3><p>When a run is interrupted or a session restarts, restored work remains understandable and actionable.</p></article>
       </div></section>
+      <section class="section"><h2 class="section-title">Actual product screenshots</h2><p class="section-copy">These are real captures from the current product surface, not concept art. If the website says trust, proof, and recovery, the UI needs to show it.</p><div class="screenshot-grid">
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-empty-state.png" alt="RinaWarp Terminal Pro empty agent state screenshot"></div><div class="screenshot-caption"><strong>Start clean.</strong> The empty state stays focused instead of dumping a wall of setup noise into the thread.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active thread screenshot"></div><div class="screenshot-caption"><strong>Stay in the conversation.</strong> Active work reads like a transcript with proof attached, not a pile of disconnected cards.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/diagnostics-inspector.png" alt="RinaWarp Terminal Pro diagnostics inspector screenshot"></div><div class="screenshot-caption"><strong>Inspect the details only when needed.</strong> Diagnostics are there for confidence and recovery, not as the primary surface.</div></article>
+      </div></section>
       <section class="section"><h2 class="section-title">What the product actually looks like in use</h2><p class="section-copy">The first trust win is visual: the thread stays readable, the proof stays attached, and recovery does not hide what happened. This is the shape customers see when RinaWarp is doing real work.</p><div class="proof-demo">
         <div class="transcript-demo">
           <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>RinaWarp Terminal Pro</span></div>
@@ -872,6 +909,10 @@ const pages = [
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a></article>
         <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
         <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>For teams that need seats, role boundaries, invite management, audit visibility, and a truth-based path from checkout into workspace rollout.</p><ul class="feature-list"><li>Seat-based checkout and workspace-linked team rollout</li><li>Role-aware invite management and audit direction</li><li>Team memory, multi-agent limits, and proof-backed workflows</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team</a></article>
+      </div></section>
+      <section class="section"><div class="screenshot-grid">
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/settings-memory.png" alt="RinaWarp Terminal Pro settings memory screenshot"></div><div class="screenshot-caption"><strong>Paid feels tangible.</strong> The product already has real settings and workbench surfaces, not just a paywall on top of an empty shell.</div></article>
+        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active proof thread screenshot"></div><div class="screenshot-caption"><strong>Pro is for real execution.</strong> The buyer should understand the difference between chatting and proof-backed work before they hit Stripe.</div></article>
       </div></section>
       <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The best conversion copy is the honest kind. These are the practical questions people have right before they decide whether to pay.</p><div class="faq-grid">
         <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp, where you can download the app, sign in or restore access, and confirm the paid tier from the account surface and desktop settings.</p></article>
@@ -1166,6 +1207,9 @@ await writeFile(path.join(outdir, "assets", "site.css"), SITE_CSS, "utf8");
 await writeFile(path.join(outdir, "assets", "site.js"), SITE_JS, "utf8");
 await writeFile(path.join(outdir, "assets", "img", "rinawarp-mark.svg"), LOGO_SVG, "utf8");
 await writeFile(path.join(outdir, "assets", "img", "rinawarp-logo.svg"), LOGO_SVG, "utf8");
+for (const [filename, sourcePath] of SCREENSHOT_SOURCES) {
+  await copyFile(sourcePath, path.join(outdir, "assets", "img", filename));
+}
 await writeFile(path.join(outdir, "_redirects"), REDIRECTS, "utf8");
 await writeFile(path.join(outdir, "robots.txt"), ROBOTS_TXT, "utf8");
 await writeFile(path.join(outdir, "sitemap.xml"), SITEMAP_XML, "utf8");
