@@ -12,34 +12,18 @@ const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
 const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
 const PRIMARY_UPDATES_BASE = "https://rinawarptech.com/releases";
 const VERSION = String(packageJson.version);
-const ASSET_VERSION = "20260329-proof-gallery";
+const ASSET_VERSION = "20260329-brand-refresh";
 const SCREENSHOT_SOURCES = [
   ["agent-empty-state.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-empty-state.png")],
   ["agent-active-thread.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-active-thread.png")],
   ["diagnostics-inspector.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "diagnostics-inspector.png")],
   ["settings-memory.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "settings-memory.png")],
 ];
-
-const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="g" x1="80" y1="60" x2="440" y2="460" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#62F6E5"/>
-      <stop offset="0.38" stop-color="#8FEFFF"/>
-      <stop offset="0.7" stop-color="#FF9B6B"/>
-      <stop offset="1" stop-color="#FF4FD8"/>
-    </linearGradient>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="10" result="b"/>
-      <feMerge>
-        <feMergeNode in="b"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  <rect x="64" y="64" width="384" height="384" rx="96" fill="#0B1020"/>
-  <path filter="url(#glow)" d="M150 335c54-155 140-190 212-190 0 0-42 22-77 79 0 0 58-30 115-18 0 0-73 37-110 130-40 102-144 116-140-1z" fill="url(#g)"/>
-  <path d="M160 338c48-138 122-168 186-168" stroke="rgba(255,255,255,0.18)" stroke-width="10" stroke-linecap="round"/>
-</svg>`;
+const BRAND_MARK_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-mark.svg");
+const BRAND_LOGO_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-logo.png");
+const BRAND_ICON_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "icon.png");
+const DEMO_GIF_PATH = path.join("/tmp", "rinawarp-site-demo.gif");
+const BRAND_MARK_SVG = await readFile(BRAND_MARK_PATH, "utf8");
 
 const SITE_CSS = `
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,19 +43,18 @@ const SITE_CSS = `
   --accent-soft: #8fefff;
   --success: #22c55e;
   --danger: #fb7185;
-  --shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
-  --radius: 22px;
-  --radius-sm: 14px;
-  --content: 1160px;
+  --shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --content: 1080px;
 }
 body {
   min-height: 100vh;
   color: var(--text);
-  font-family: "IBM Plex Sans", "Segoe UI", Inter, system-ui, sans-serif;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at top, rgba(255, 79, 216, 0.18), transparent 32%),
-    radial-gradient(circle at 85% 12%, rgba(98, 246, 229, 0.16), transparent 24%),
-    radial-gradient(circle at 50% 0%, rgba(255, 155, 107, 0.10), transparent 30%),
+    radial-gradient(circle at top, rgba(255, 79, 216, 0.11), transparent 30%),
+    radial-gradient(circle at 85% 12%, rgba(98, 246, 229, 0.10), transparent 22%),
     linear-gradient(180deg, #090d18 0%, #0b1020 100%);
 }
 a { color: inherit; text-decoration: none; }
@@ -85,81 +68,91 @@ header {
   border-bottom: 1px solid var(--line);
 }
 nav {
-  min-height: 70px;
+  min-height: 64px;
   max-width: var(--content);
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 .logo {
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .logo-mark {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
-  box-shadow: 0 0 24px rgba(98, 246, 229, 0.25);
+  object-fit: contain;
+}
+.logo-wordmark {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
 }
 .nav-links {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: center;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: var(--muted);
 }
+.nav-links a {
+  padding: 6px 10px;
+  border-radius: 999px;
+}
 .nav-links a.active,
-.nav-links a:hover { color: var(--text); }
+.nav-links a:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
 main { flex: 1; }
 .hero,
 .section {
   max-width: var(--content);
   margin: 0 auto;
-  padding: 36px 28px;
+  padding: 26px 24px;
 }
-.hero { padding-top: 72px; }
+.hero { padding-top: 56px; }
 .eyebrow, .kicker, .pill, .note, .auth-subtitle, .footer-links {
   color: var(--muted);
 }
 .eyebrow, .kicker, .pill {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
 }
 .hero h1 {
-  margin-top: 12px;
-  font-size: clamp(2.1rem, 4vw, 4.2rem);
-  line-height: 1.05;
-  max-width: 10ch;
+  margin-top: 10px;
+  font-size: clamp(1.85rem, 3vw, 3.2rem);
+  line-height: 1.02;
+  max-width: 12ch;
+  letter-spacing: -0.04em;
 }
 .hero-copy, .section-copy, p, li {
   color: var(--muted);
-  line-height: 1.65;
-  font-size: 1rem;
+  line-height: 1.58;
+  font-size: 0.95rem;
 }
-.hero-copy { max-width: 72ch; margin-top: 18px; }
+.hero-copy { max-width: 64ch; margin-top: 14px; }
 .cta-row, .link-row, .stack, .signal-list, .feature-list, .auth-container, .auth-card, .panel {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 .cta-row, .link-row { grid-auto-flow: column; justify-content: start; gap: 12px; }
 .grid.three-up, .download-grid, .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
 }
 .card, .panel, .auth-card, .pricing-card, .platform-card, .proof-step {
-  padding: 22px;
+  padding: 18px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: var(--surface);
@@ -169,8 +162,8 @@ main { flex: 1; }
   border-color: var(--line-strong);
   background: linear-gradient(180deg, rgba(98,246,229,0.09), rgba(13,28,42,0.95));
 }
-.section-title { font-size: 1.5rem; margin-bottom: 10px; }
-.price { font-size: 2rem; font-weight: 700; color: var(--text); }
+.section-title { font-size: 1.28rem; margin-bottom: 8px; letter-spacing: -0.02em; }
+.price { font-size: 1.8rem; font-weight: 700; color: var(--text); }
 .price span { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
 .proof-strip, .signal-list, .feature-list {
   display: grid;
@@ -181,16 +174,16 @@ main { flex: 1; }
 .proof-demo {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-  gap: 20px;
+  gap: 16px;
   align-items: start;
 }
 .transcript-demo {
   display: grid;
-  gap: 14px;
-  padding: 24px;
+  gap: 12px;
+  padding: 18px;
   background: linear-gradient(180deg, rgba(6, 17, 26, 0.96), rgba(10, 21, 32, 0.88));
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 18px;
   box-shadow: var(--shadow);
 }
 .demo-windowbar {
@@ -211,11 +204,12 @@ main { flex: 1; }
 .demo-chat { display: grid; gap: 12px; }
 .demo-message {
   max-width: 92%;
-  padding: 14px 16px;
-  border-radius: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
   border: 1px solid var(--line);
   line-height: 1.6;
   color: #dbe9f6;
+  font-size: 0.93rem;
 }
 .demo-message.user {
   justify-self: end;
@@ -228,8 +222,8 @@ main { flex: 1; }
 .demo-proof {
   display: grid;
   gap: 8px;
-  padding: 14px 16px;
-  border-radius: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--line);
 }
@@ -275,12 +269,12 @@ main { flex: 1; }
 }
 .faq-grid {
   display: grid;
-  gap: 18px;
+  gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 .faq-item {
-  padding: 20px;
-  border-radius: 18px;
+  padding: 16px;
+  border-radius: 16px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -292,7 +286,7 @@ main { flex: 1; }
 .screenshot-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 .screenshot-card {
   display: grid;
@@ -318,11 +312,11 @@ main { flex: 1; }
 .fit-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 .fit-card {
-  padding: 20px;
-  border-radius: 18px;
+  padding: 16px;
+  border-radius: 16px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -330,16 +324,16 @@ main { flex: 1; }
   margin-bottom: 10px;
 }
 .founder-note {
-  padding: 24px;
-  border-radius: 20px;
+  padding: 20px;
+  border-radius: 18px;
   border: 1px solid rgba(98, 246, 229, 0.22);
   background: linear-gradient(180deg, rgba(98, 246, 229, 0.08), rgba(10, 21, 32, 0.92));
   box-shadow: var(--shadow);
 }
 .founder-note blockquote {
   color: var(--text);
-  font-size: 1.02rem;
-  line-height: 1.75;
+  font-size: 0.96rem;
+  line-height: 1.7;
 }
 .founder-note cite {
   color: var(--muted);
@@ -351,12 +345,13 @@ main { flex: 1; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: 12px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
   border: 1px solid transparent;
   font-weight: 700;
   cursor: pointer;
+  font-size: 0.92rem;
 }
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-soft));
@@ -388,7 +383,7 @@ textarea { min-height: 140px; resize: vertical; }
 .auth-container { max-width: 720px; }
 footer {
   border-top: 1px solid var(--line);
-  padding: 22px 28px 32px;
+  padding: 20px 24px 30px;
 }
 .footer-inner {
   max-width: var(--content);
@@ -408,6 +403,7 @@ footer {
   nav, .hero, .section, footer { padding-left: 18px; padding-right: 18px; }
   .cta-row, .link-row { grid-auto-flow: row; }
   .proof-demo { grid-template-columns: 1fr; }
+  .logo-wordmark { height: 24px; }
 }
 `;
 
@@ -844,8 +840,8 @@ function shell({ path, page, title, description, eyebrow, heading, copy, content
     <header>
       <nav aria-label="Main navigation">
         <a href="/" class="logo" aria-label="RinaWarp Terminal Pro home">
-          <img class="logo-mark" src="/assets/img/rinawarp-mark.svg" alt="RinaWarp Terminal Pro logo">
-          <span>RinaWarp Terminal Pro</span>
+          <img class="logo-mark" src="/assets/img/rinawarp-mark.svg" alt="RinaWarp Terminal Pro mark">
+          <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp Terminal Pro logo">
         </a>
         <div class="nav-links">${nav(page)}</div>
       </nav>
@@ -899,6 +895,7 @@ const pages = [
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active thread screenshot"></div><div class="screenshot-caption"><strong>Stay in the conversation.</strong> Active work reads like a transcript with proof attached, not a pile of disconnected cards.</div></article>
         <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/diagnostics-inspector.png" alt="RinaWarp Terminal Pro diagnostics inspector screenshot"></div><div class="screenshot-caption"><strong>Inspect the details only when needed.</strong> Diagnostics are there for confidence and recovery, not as the primary surface.</div></article>
       </div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Short product demo</h2><p class="section-copy">A quick look at the current surface: start clean, move into a real thread, and inspect proof when needed.</p><div class="screenshot-frame"><img src="/assets/img/rinawarp-demo.gif" alt="Animated demo of RinaWarp Terminal Pro conversation and proof workflow"></div></div></section>
       <section class="section"><h2 class="section-title">Best fit for teams and developers who care about trust</h2><p class="section-copy">RinaWarp is strongest when the job matters enough that you want the agent to stay understandable before, during, and after execution.</p><div class="fit-grid">
         <article class="fit-card"><h3>Build and release work</h3><p>Use it when you want the thread, receipts, and recovery state to stay connected to real build and deploy work instead of disappearing into shell history.</p></article>
         <article class="fit-card"><h3>Messy real-world requests</h3><p>It is built for vague asks, follow-ups, and mixed conversation, not just perfect command-style prompts.</p></article>
@@ -1243,11 +1240,14 @@ await rm(outdir, { recursive: true, force: true });
 await mkdir(path.join(outdir, "assets", "img"), { recursive: true });
 await writeFile(path.join(outdir, "assets", "site.css"), SITE_CSS, "utf8");
 await writeFile(path.join(outdir, "assets", "site.js"), SITE_JS, "utf8");
-await writeFile(path.join(outdir, "assets", "img", "rinawarp-mark.svg"), LOGO_SVG, "utf8");
-await writeFile(path.join(outdir, "assets", "img", "rinawarp-logo.svg"), LOGO_SVG, "utf8");
+await writeFile(path.join(outdir, "assets", "img", "rinawarp-mark.svg"), BRAND_MARK_SVG, "utf8");
+await writeFile(path.join(outdir, "assets", "img", "rinawarp-logo.svg"), BRAND_MARK_SVG, "utf8");
+await copyFile(BRAND_LOGO_PATH, path.join(outdir, "assets", "img", "rinawarp-logo.png"));
+await copyFile(BRAND_ICON_PATH, path.join(outdir, "assets", "img", "icon.png"));
 for (const [filename, sourcePath] of SCREENSHOT_SOURCES) {
   await copyFile(sourcePath, path.join(outdir, "assets", "img", filename));
 }
+await copyFile(DEMO_GIF_PATH, path.join(outdir, "assets", "img", "rinawarp-demo.gif"));
 await writeFile(path.join(outdir, "_redirects"), REDIRECTS, "utf8");
 await writeFile(path.join(outdir, "robots.txt"), ROBOTS_TXT, "utf8");
 await writeFile(path.join(outdir, "sitemap.xml"), SITEMAP_XML, "utf8");
