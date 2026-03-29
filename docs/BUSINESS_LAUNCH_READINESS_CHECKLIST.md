@@ -3,6 +3,7 @@
 Related operating docs:
 
 - [COMPANY_OPERATING_SYSTEM.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_OPERATING_SYSTEM.md)
+- [COMPANY_STATUS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STATUS_CHECKLIST.md)
 - [SUPPORT_OPERATING_MODEL.md](/home/karina/Documents/rinawarp-terminal-pro/docs/SUPPORT_OPERATING_MODEL.md)
 - [GTM_OPERATING_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/GTM_OPERATING_PLAN.md)
 - [METRICS_SCOREBOARD.md](/home/karina/Documents/rinawarp-terminal-pro/docs/METRICS_SCOREBOARD.md)

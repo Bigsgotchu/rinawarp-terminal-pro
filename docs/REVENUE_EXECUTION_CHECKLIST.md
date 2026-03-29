@@ -7,14 +7,16 @@ Use this with:
 - [REVENUE_LAUNCH_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_LAUNCH_PLAN.md)
 - [LIVE_REVENUE_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/docs/LIVE_REVENUE_RUNBOOK.md)
 - [COMPANY_OPERATING_SYSTEM.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_OPERATING_SYSTEM.md)
+- [COMPANY_STATUS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STATUS_CHECKLIST.md)
 - [METRICS_SCOREBOARD.md](/home/karina/Documents/rinawarp-terminal-pro/docs/METRICS_SCOREBOARD.md)
+
+As of `2026-03-29`, `RinaWarp Terminal Pro 1.1.10` is live. Use this checklist for post-launch verification, the next release, and revenue-ops follow-through.
 
 ## Phase 1: Revenue-Critical
 
-- [ ] Promote `v1.1.9-rc1` to the final desktop release if no blocker appears.
-- [ ] Publish the final desktop artifacts users are meant to install.
-- [ ] Verify the updater/feed points to the same final release.
-- [ ] Verify the download page points to one canonical release artifact path.
+- [x] Publish the current desktop artifacts users are meant to install.
+- [x] Verify the updater/feed points to the same live release.
+- [x] Verify the download page points to one canonical release artifact path.
 - [ ] Verify a brand-new customer can go from website to paid unlocked desktop app without manual help.
 - [ ] Verify restore purchase works for a returning customer.
 - [ ] Verify downgrade or expired-license behavior is understandable and honest.
@@ -49,7 +51,6 @@ Use this with:
 
 Treat these as blockers before public launch:
 
-- [ ] final release not promoted from the RC
 - [ ] checkout does not reliably unlock the app
 - [ ] restore purchase does not reliably work
 - [ ] download/install path is confusing or inconsistent
