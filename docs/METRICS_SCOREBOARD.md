@@ -6,6 +6,10 @@ This is the minimum operating scoreboard for RinaWarp Terminal Pro and the surro
 
 If a metric is not available yet, mark it as unknown explicitly rather than pretending it exists.
 
+Implementation map:
+
+- [METRICS_IMPLEMENTATION_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/METRICS_IMPLEMENTATION_PLAN.md)
+
 ## Funnel Metrics
 
 ### Acquisition
