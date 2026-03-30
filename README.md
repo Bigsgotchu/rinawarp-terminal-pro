@@ -1,7 +1,7 @@
 # RinaWarp
 
 <p align="center">
-  <strong>One platform, two product surfaces: Terminal Pro for serious execution, Companion for the fastest VS Code start.</strong>
+  <strong>One platform, two product surfaces: Terminal Pro for serious execution, Companion for the fastest chat-first VS Code start.</strong>
 </p>
 
 <p align="center">
@@ -18,9 +18,9 @@ RinaWarp is the platform and shared account layer behind the current product lin
 Today the platform has two product surfaces:
 
 - `RinaWarp Terminal Pro` - the flagship proof-first desktop workbench for build, test, deploy, and recovery workflows
-- `RinaWarp Companion` - the VS Code on-ramp for account connect, free diagnostic value, pack discovery, and entitlement refresh
+- `RinaWarp Companion` - the chat-first VS Code on-ramp for account connect, diagnostics, pack discovery, and entitlement refresh
 
-Terminal Pro is the deeper execution environment. Companion is the fastest way to start inside the editor.
+Terminal Pro is the deeper execution environment. Companion is the fastest chat-first way to start inside the editor.
 
 ### Key Features
 

@@ -872,7 +872,7 @@ function renderHomepage(): Response {
     <section class="hero">
       <span class="eyebrow">RinaWarp platform</span>
       <h1>Run real work with proof, not vibes.</h1>
-      <p class="hero-copy">RinaWarp is the proof-first AI workbench platform. Terminal Pro is the flagship execution environment. Companion is the fastest way to start inside VS Code.</p>
+      <p class="hero-copy">RinaWarp is the proof-first AI workbench platform. Terminal Pro is the flagship execution environment. Companion is the chat-first way to start inside VS Code.</p>
       <div class="cta-row">
         <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Terminal Pro</a>
         <a href="/pricing" class="btn btn-secondary">Start in VS Code with Companion</a>
@@ -903,7 +903,7 @@ function renderHomepage(): Response {
 
     <section class="section" id="products">
       <h2 class="section-title">Two product surfaces, one RinaWarp account</h2>
-      <p class="section-copy">Terminal Pro is the flagship for serious execution. Companion is the lower-friction VS Code on-ramp for account connect, free diagnostic value, pack discovery, and upgrade handoff.</p>
+      <p class="section-copy">Terminal Pro is the flagship for serious execution. Companion is the lower-friction chat-first VS Code on-ramp for account connect, diagnostics, pack discovery, and upgrade handoff.</p>
       <div class="grid two-up">
         <article class="card">
           <div class="kicker">Flagship</div>
@@ -917,7 +917,7 @@ function renderHomepage(): Response {
         <article class="card">
           <div class="kicker">On-ramp</div>
           <h3>RinaWarp Companion</h3>
-          <p>The fastest way to start inside VS Code. Connect your account, run a free diagnostic, explore agents, and move into deeper paid capability when the workflow proves itself.</p>
+          <p>The fastest way to start inside VS Code. Ask Rina what to do next, connect your account, run a free diagnostic, explore agents, and move into deeper paid capability when the workflow proves itself.</p>
           <div class="link-row">
             <a href="/pricing" class="btn btn-secondary">See shared plans</a>
             <a href="/agents" class="btn btn-secondary">Browse agents</a>
@@ -1010,7 +1010,7 @@ function renderPricing(): Response {
     <section class="hero">
       <span class="eyebrow">One RinaWarp account</span>
       <h1>Start free. Upgrade when the workflow proves itself.</h1>
-      <p class="hero-copy">Use one shared RinaWarp account across Terminal Pro and Companion. Companion is the free on-ramp. Terminal Pro is where paid depth is most fully realized.</p>
+      <p class="hero-copy">Use one shared RinaWarp account across Terminal Pro and Companion. Companion is the free chat-first on-ramp. Terminal Pro is where paid depth is most fully realized.</p>
     </section>
   `
 
@@ -1020,9 +1020,9 @@ function renderPricing(): Response {
         <article class="card pricing-card">
           <span class="pill">Free</span>
           <div class="price">$0 <span>/ month</span></div>
-          <p>Install Companion, try the starter flow, explore agents, and make sure the product feels real before you pay.</p>
+          <p>Install Companion, ask Rina for the next safe step, try the starter flow, and make sure the product feels real before you pay.</p>
           <ul class="feature-list">
-            <li>Companion install and VS Code entry point</li>
+            <li>Companion install and chat-first VS Code entry point</li>
             <li>Limited free diagnostic and starter value</li>
             <li>Limited pack and agent discovery</li>
             <li>Shared RinaWarp account foundation</li>

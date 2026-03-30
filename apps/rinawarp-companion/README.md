@@ -1,20 +1,20 @@
 # RinaWarp Companion
 
-Proof-first workflows for build, audit, deploy, and recovery inside VS Code.
+Chat-first proof-aware workflows for build, audit, deploy, and recovery inside VS Code.
 
-RinaWarp Companion is the extension entry point for the RinaWarp revenue loop:
+RinaWarp Companion is the chat-first VS Code entry point into the RinaWarp platform:
 
 1. Connect account
-2. Run a free workflow
-3. Explore capability packs
-4. Hit a meaningful Pro boundary
+2. Ask Companion for the next safe step
+3. Run a free workflow
+4. Explore capability packs
 5. Upgrade on `rinawarptech.com`
 6. Refresh entitlements back in VS Code
 
 ## What It Does
 
 - Adds a `RinaWarp` activity bar surface with account and plan status
-- Adds a `Chat` view for asking Rina about diagnostics, packs, and next safe steps
+- Adds a `Chat` view as the primary conversational surface for asking Rina about diagnostics, packs, workspace questions, and next safe steps
 - Guides first-run onboarding with a built-in walkthrough
 - Opens pack, pricing, billing, and privacy flows on `rinawarptech.com`
 - Stores local session and entitlement state in `SecretStorage`
@@ -23,7 +23,21 @@ RinaWarp Companion is the extension entry point for the RinaWarp revenue loop:
 
 ## Preview Status
 
-This extension is currently a Preview scaffold. The account, entitlement, and pricing loop is real at the UI and integration-shape level, but some workflow execution remains intentionally narrow while the first proof-backed workflow is being hardened.
+This extension is currently a Preview pre-release candidate. The account, chat, entitlement, and pricing loop is real, but proof-backed execution depth is still intentionally narrower than Terminal Pro while the first trustworthy workflow set is being hardened.
+
+## Product Role
+
+RinaWarp Companion is:
+
+- the chat-first VS Code surface for RinaWarp
+- the fastest way to start in-editor with a shared RinaWarp account
+- the lower-friction path into diagnostics, pack discovery, and upgrade handoff
+
+RinaWarp Companion is not:
+
+- full Terminal Pro parity
+- the deepest proof-and-recovery surface in the product line
+- a disconnected product with its own billing silo
 
 ## Current Commands
 
@@ -44,11 +58,12 @@ RinaWarp Companion supports limited use in Restricted Mode.
 
 ## Billing Model
 
-RinaWarp Companion is a bring-your-own-license style extension:
+RinaWarp Companion uses the shared RinaWarp account model:
 
 - the extension is installed from VS Code
 - paid access is obtained on `rinawarptech.com`
 - premium capability is unlocked by entitlement checks after sign-in
+- users buy RinaWarp capability access, not a disconnected Companion-only license
 
 ## Privacy and Telemetry
 

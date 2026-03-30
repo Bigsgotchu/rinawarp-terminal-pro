@@ -17,6 +17,7 @@ Manual live-flow runbook:
 `RinaWarp Companion` is:
 
 - the VS Code on-ramp into the RinaWarp platform
+- the chat-first conversational surface for RinaWarp inside VS Code
 - the fastest way to start with a shared RinaWarp account
 - a pre-release acquisition and activation surface
 
@@ -25,6 +26,7 @@ Manual live-flow runbook:
 - the flagship product
 - full Terminal Pro parity
 - a claim of deep proof-backed execution beyond the current extension surface
+- a replacement for Terminal Pro's richer proof, recovery, and execution depth
 
 ## Release Decision
 
@@ -39,6 +41,7 @@ Current repo-backed assessment as of `2026-03-29`:
 - build and automated tests are green
 - Companion packaging evidence exists, but a fresh package run still depends on resolving local `vsce` installation cleanly in this workspace
 - local VSIX install, extension activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff were manually verified in VS Code on `2026-03-29`
+- Companion already has a real chat view and account-linked chat API surface in the repo
 - the local Linux `vscode://` handler was repaired on this machine, and the live Companion sidebar now restores connected account state in the normal VS Code profile
 - the callback still leaves rough UX in this Code build because callback tabs can remain visible instead of disappearing cleanly
 - entitlement refresh and billing portal still require additional manual verification

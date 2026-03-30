@@ -49,11 +49,12 @@ Its role:
 
 ### On-Ramp Product
 
-`RinaWarp Companion` is the lightweight VS Code on-ramp.
+`RinaWarp Companion` is the lightweight chat-first VS Code on-ramp.
 
 Its role:
 
 - fastest way to start inside the editor
+- conversational control surface for diagnostics, packs, and next safe steps
 - account connect and entitlement refresh
 - free diagnostic and starter value
 - pack discovery, upgrade handoff, and return flow
@@ -72,6 +73,7 @@ Companion should be positioned as:
 
 - the lower-friction entry surface
 - the editor-native path into the platform
+- the chat-first VS Code surface for RinaWarp
 - the first-win channel
 
 ## Commercial Model
@@ -182,6 +184,7 @@ The following are cross-surface requirements:
 ### Companion Owns
 
 - VS Code onboarding
+- chat-first editor assistance
 - account connection from editor context
 - lightweight diagnostic preview
 - pack browsing, upsell, and return flow
@@ -203,7 +206,7 @@ The homepage should not try to explain everything equally.
 - secondary CTA: Start in VS Code with Companion
 - product section:
   - Terminal Pro = full execution environment
-  - Companion = quick-start VS Code surface
+  - Companion = chat-first VS Code surface
 - pricing:
   - one RinaWarp account
   - capabilities unlocked across surfaces where relevant

@@ -1,7 +1,7 @@
 {
   "name": "rinawarp-companion",
   "displayName": "RinaWarp Companion",
-  "description": "Proof-first workflows for build, audit, deploy, and recovery inside VS Code.",
+  "description": "Chat-first proof-aware workflows for build, audit, deploy, and recovery inside VS Code.",
   "version": "0.0.1",
   "publisher": "rinawarp",
   "preview": true,
@@ -143,7 +143,7 @@
       {
         "id": "rinawarp.gettingStarted",
         "title": "Get Started With RinaWarp",
-        "description": "Connect your account, run a free workflow, and unlock proof-backed execution inside VS Code.",
+        "description": "Connect your account, ask Companion for the next safe step, and unlock proof-aware workflows inside VS Code.",
         "steps": [
           {
             "id": "rinawarp.step.connect",

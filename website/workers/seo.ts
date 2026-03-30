@@ -17,11 +17,11 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/': {
     title: 'RinaWarp | Proof-First AI Workbench Platform',
     description:
-      'RinaWarp is a proof-first AI workbench platform with Terminal Pro for serious execution and Companion for the fastest VS Code start.',
+      'RinaWarp is a proof-first AI workbench platform with Terminal Pro for serious execution and Companion for the fastest chat-first VS Code start.',
     canonical: 'https://rinawarptech.com/',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords:
-      'AI workbench, proof-first AI, terminal pro, VS Code companion, agent workflow, developer tools, trusted execution, run receipts',
+      'AI workbench, proof-first AI, terminal pro, VS Code companion chat, agent workflow, developer tools, trusted execution, run receipts',
   },
   '/agents': {
     title: 'RinaWarp Packs | Capability Packs for RinaWarp Terminal Pro',
