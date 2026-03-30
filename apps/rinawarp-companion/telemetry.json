@@ -1,0 +1,135 @@
+{
+  "$schema": "vscode://schemas/telemetry",
+  "extension": "rinawarp.rinawarp-companion",
+  "events": [
+    {
+      "name": "extension_activated",
+      "description": "Recorded when the extension activates so we can measure active extension sessions.",
+      "properties": {
+        "plan": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Current local entitlement tier label only."
+        }
+      }
+    },
+    {
+      "name": "connect_account_started",
+      "description": "Recorded when a user intentionally starts account connection from the extension."
+    },
+    {
+      "name": "free_diagnostic_started",
+      "description": "Recorded when a user starts the first free workflow entry point."
+    },
+    {
+      "name": "proof_summary_viewed",
+      "description": "Recorded when the extension shows a local proof-style diagnostic summary.",
+      "properties": {
+        "pack": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Recommended pack name only."
+        },
+        "workspace": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Local workspace folder display name only."
+        }
+      }
+    },
+    {
+      "name": "open_packs_clicked",
+      "description": "Recorded when a user opens the packs catalog from the extension."
+    },
+    {
+      "name": "open_pack_clicked",
+      "description": "Recorded when a user opens a specific recommended pack from the extension.",
+      "properties": {
+        "pack": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Pack name only."
+        },
+        "placement": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Surface where the specific pack was opened."
+        }
+      }
+    },
+    {
+      "name": "upgrade_clicked",
+      "description": "Recorded when a user intentionally opens an upgrade flow.",
+      "properties": {
+        "placement": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Surface where the upgrade CTA was clicked, such as command or sidebar."
+        }
+      }
+    },
+    {
+      "name": "purchase_returned",
+      "description": "Recorded when the website routes a completed purchase back into VS Code."
+    },
+    {
+      "name": "billing_portal_clicked",
+      "description": "Recorded when a user opens the billing portal from the extension."
+    },
+    {
+      "name": "refresh_entitlements_started",
+      "description": "Recorded when a user manually refreshes entitlements."
+    },
+    {
+      "name": "chat_prompt_sent",
+      "description": "Recorded when a connected user sends a chat prompt from the Companion chat view.",
+      "properties": {
+        "plan": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Current entitlement tier label only."
+        },
+        "hasWorkspace": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Whether a workspace folder was open when the prompt was sent."
+        }
+      }
+    },
+    {
+      "name": "chat_response_received",
+      "description": "Recorded when Companion receives a chat response.",
+      "properties": {
+        "mode": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Whether the response came from local workspace tools, the model-backed path, or the contextual fallback path."
+        },
+        "plan": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Current entitlement tier label only."
+        }
+      }
+    },
+    {
+      "name": "chat_response_failed",
+      "description": "Recorded when a chat request fails before a usable response is shown."
+    },
+    {
+      "name": "chat_action_clicked",
+      "description": "Recorded when the user clicks a structured action button from a chat response.",
+      "properties": {
+        "command": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Companion command identifier only."
+        }
+      }
+    },
+    {
+      "name": "chat_cleared",
+      "description": "Recorded when the user clears the local chat conversation in the view."
+    }
+  ]
+}

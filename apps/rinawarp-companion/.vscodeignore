@@ -1,0 +1,7 @@
+src/**
+tsconfig.json
+tsconfig.tsbuildinfo
+*.map
+**/*.test.*
+**/*.spec.*
+node_modules/**

@@ -73,6 +73,20 @@
         "Proof: e2e (run proof)"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "Repair: Kilo Code duplex patch",
+      "type": "shell",
+      "command": "python3 scripts/patch-kilocode-duplex.py",
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-lc"
+          ]
+        }
+      },
+      "problemMatcher": []
     }
   ]
 }

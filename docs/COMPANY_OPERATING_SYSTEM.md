@@ -10,6 +10,7 @@ Do not put banking records, tax filings, passwords, legal identity paperwork, or
 
 Related docs:
 
+- [COMPANY_STRATEGY_2026-03-29.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STRATEGY_2026-03-29.md)
 - [REVENUE_LAUNCH_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_LAUNCH_PLAN.md)
 - [BUSINESS_LAUNCH_READINESS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/BUSINESS_LAUNCH_READINESS_CHECKLIST.md)
 - [COMPANY_STATUS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STATUS_CHECKLIST.md)

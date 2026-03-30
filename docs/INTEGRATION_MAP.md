@@ -48,6 +48,9 @@ Public web flows live on `rinawarptech.com` through the Cloudflare worker:
 - [`router.ts`](../website/workers/router.ts)
 - [`auth.ts`](../website/workers/api/auth.ts)
 
+Canonical website deploys use Cloudflare Pages/Workers via `npm run deploy:pages`.
+Vercel is not part of the required website runtime or release path here; any Vercel support in the repo is optional provider tooling for deployment-capability demos and proofs.
+
 These cover:
 
 - checkout

@@ -7,6 +7,7 @@
     { "path": "./packages/rina-doctor" },
     { "path": "./packages/rinawarp-agent" },
     { "path": "./packages/rinawarp-agentd" },
+    { "path": "./apps/rinawarp-companion" },
     { "path": "./apps/terminal-pro" }
   ]
 }

@@ -57,6 +57,20 @@ cd apps/terminal-pro
 pnpm build
 ```
 
+## Website Deployment
+
+The public site at `rinawarptech.com` is deployed through Cloudflare Pages/Workers.
+
+Canonical production deploy:
+
+```bash
+npm run deploy:pages
+```
+
+That path builds the Pages bundle and publishes it with `wrangler pages deploy`.
+
+Vercel is not required for the website. Any Vercel tooling in this repo is optional and exists for deploy-capability demos, preview experiments, or provider-proof flows inside Terminal Pro.
+
 ## Version
 
 Current version: **v1.1.9**

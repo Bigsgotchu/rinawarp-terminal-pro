@@ -7,5 +7,35 @@
   "deno.unstable": false,
   "npm.packageManager": "npm",
   "typescript.tsserver.useSyntaxServer": "auto",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "workbench.editor.enablePreview": false,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.kilocode/**": true,
+    "**/dist/**": true,
+    "**/build/**": true
+  },
+  "search.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/.kilocode": true,
+    "**/dist": true,
+    "**/build": true
+  },
+  "kilocode.singleAIAgentMode": true,
+  "kilocode.enableErrorGuard": true,
+  "kilocode.autoExplainErrors": true,
+  "kilocode.replayLastCommandOnError": true,
+  "chatgpt.openOnStartup": true
 }

@@ -4,6 +4,10 @@ Date: 2026-03-23
 
 This plan is for the next phase after the desktop RC freeze.
 
+Related follow-on growth channel plan:
+
+- [VS_CODE_EXTENSION_REVENUE_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/VS_CODE_EXTENSION_REVENUE_PLAN.md)
+
 The goal is not more internal invention. The goal is to get RinaWarp Terminal Pro:
 
 1. shippable

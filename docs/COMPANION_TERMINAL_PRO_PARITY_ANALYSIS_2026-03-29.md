@@ -2,6 +2,10 @@
 
 Date: 2026-03-29
 
+Follow-on strategy memo:
+
+- [PRODUCT_SUITE_STRATEGY_2026-03-29.md](/home/karina/Documents/rinawarp-terminal-pro/docs/PRODUCT_SUITE_STRATEGY_2026-03-29.md)
+
 ## Executive Summary
 
 The original comparison overstated the gap between RinaWarp Companion and Terminal Pro.

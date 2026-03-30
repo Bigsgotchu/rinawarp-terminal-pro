@@ -63,3 +63,18 @@ RinaWarp-Terminal-Pro-*.AppImage
 
 # Local Netlify folder
 .netlify
+
+# Local agent/editor state
+.codex
+.kilocode/
+.kilocodeignore
+RinaWarp.code-workspace
+
+# Local receipts and caches
+runs/
+scripts/__pycache__/
+
+# VS Code companion generated artifacts
+apps/rinawarp-companion/dist/
+apps/rinawarp-companion/*.vsix
+apps/rinawarp-companion/tsconfig.tsbuildinfo
