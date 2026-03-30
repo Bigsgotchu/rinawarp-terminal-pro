@@ -523,3 +523,37 @@ serialTest('chat provider stages background fix actions for explicit fix prompts
   assert.equal(lastState.nextActionLabel, 'Fix Selection');
   assert.equal(lastState.messages[1].actions[0].command, 'rinawarp.fixSelection');
 });
+
+serialTest('chat provider offers a file picker action when fix intent has no editor', async () => {
+  const stubVscode = createVscodeStub({
+    workspaceFolders: undefined,
+    window: {
+      activeTextEditor: undefined,
+    },
+  });
+  const { CompanionChatProvider } = loadWithVscodeStub(distPath('chat.js'), stubVscode);
+  const context = { secrets: createSecretStorage() };
+
+  const provider = new CompanionChatProvider(
+    context,
+    { path: '/extension' },
+    { plan: 'pro', packs: [], updatedAt: '', email: 'user@example.com' },
+    {
+      async sendChat() {
+        throw new Error('fix-intent path should not call remote chat');
+      },
+    },
+  );
+  const view = createWebviewView();
+  provider.resolveWebviewView(view);
+  await flushMicrotasks();
+
+  await view.webview.simulateMessage({ type: 'send', text: 'fix this file' });
+  await flushMicrotasks();
+
+  const lastState = view.posted.at(-1).value;
+  assert.equal(lastState.pending, false);
+  assert.equal(lastState.messages.length, 2);
+  assert.match(lastState.messages[1].content, /file picker/i);
+  assert.equal(lastState.messages[1].actions[0].command, 'workbench.action.files.openFile');
+});

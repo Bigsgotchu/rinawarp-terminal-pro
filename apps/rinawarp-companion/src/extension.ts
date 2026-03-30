@@ -136,7 +136,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand('rinawarp.fixFile', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        void vscode.window.showWarningMessage('Open a file first so Rina can fix it.');
+        const choice = await vscode.window.showInformationMessage('Open a file first so Rina can fix it.', 'Open File');
+        if (choice === 'Open File') {
+          await vscode.commands.executeCommand('workbench.action.files.openFile');
+        }
         return;
       }
 
@@ -185,7 +188,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand('rinawarp.fixSelection', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        void vscode.window.showWarningMessage('Open a file and select code first so Rina can help.');
+        const choice = await vscode.window.showInformationMessage('Open a file and select code first so Rina can help.', 'Open File');
+        if (choice === 'Open File') {
+          await vscode.commands.executeCommand('workbench.action.files.openFile');
+        }
         return;
       }
 

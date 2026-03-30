@@ -18,7 +18,8 @@ export interface ChatAction {
     | 'rinawarp.openPacks'
     | 'rinawarp.upgradeToPro'
     | 'rinawarp.refreshEntitlements'
-    | 'rinawarp.openWorkspaceFile';
+    | 'rinawarp.openWorkspaceFile'
+    | 'workbench.action.files.openFile';
   label: string;
   args?: unknown[];
 }
@@ -164,7 +165,10 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         if (!actions.length) {
           this.messages.push({
             role: 'assistant',
-            content: 'I can help with fixes, but I need an active editor first. Open a file, or select code if you want a scoped fix.',
+            content: 'I can help with fixes, but I need an active editor first. Open a file, or select code if you want a scoped fix. I can pop the file picker for you.',
+            actions: [
+              { command: 'workbench.action.files.openFile', label: 'Open File' },
+            ],
           });
           this.stagedAction = undefined;
           recordTelemetry({
