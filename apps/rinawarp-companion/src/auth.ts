@@ -20,6 +20,8 @@ export class AuthUriHandler implements vscode.UriHandler {
   async handleUri(uri: vscode.Uri): Promise<void> {
     if (uri.path === PURCHASE_COMPLETE_PATH) {
       recordTelemetry({ name: 'purchase_returned' });
+      const output = vscode.window.createOutputChannel('RinaWarp Companion');
+      output.appendLine('[info] purchase-complete callback received');
       const result = await this.refreshEntitlements('purchase-complete');
       showRefreshResult(result);
       return;
