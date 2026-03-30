@@ -4,11 +4,13 @@ import { AuthUriHandler, getPurchaseReturnUri, PUBLISHED_EXTENSION_ID } from './
 import { CompanionChatApiClient } from './chatApi';
 import { CompanionChatProvider } from './chat';
 import { getConfig } from './config';
-import { runWorkspaceDiagnostic } from './diagnostics';
+import { runWorkspaceDiagnostic, type DiagnosticRunSummary } from './diagnostics';
 import { EntitlementService, defaultSnapshot, type EntitlementSnapshot } from './entitlements';
+import { summarizeActiveEditor } from './fileSummary';
 import { CompanionFixClient } from './fixCode';
 import { CompanionInlineCompletionClient, CompanionInlineCompletionProvider } from './inlineCompletion';
 import { runEntitlementRefresh } from './refreshFlow';
+import { answerWorkspaceQuestion, gatherWorkspaceContext } from './workspaceContext';
 import {
   createBillingPortalUrl,
   createPackUrl,
@@ -28,6 +30,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const fixClient = new CompanionFixClient(entitlements);
   const inlineCompletionClient = new CompanionInlineCompletionClient(entitlements);
   let snapshot = await entitlements.getSnapshot();
+  let diagnosticSummary: DiagnosticRunSummary | undefined;
   if (!snapshot.updatedAt) {
     snapshot = defaultSnapshot();
   }
@@ -99,6 +102,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       telemetry.record({ name: 'free_diagnostic_started' });
       try {
         const summary = await runWorkspaceDiagnostic(output);
+        diagnosticSummary = summary;
         sidebar.updateDiagnostic(summary);
         chat.updateDiagnostic(summary);
         telemetry.record({
@@ -132,6 +136,35 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         output.appendLine(`[error] ${message}`);
         void vscode.window.showWarningMessage(`RinaWarp could not complete the free diagnostic: ${message}`);
       }
+    }),
+    vscode.commands.registerCommand('rinawarp.summarizeWorkspace', async () => {
+      const workspaceContext = await gatherWorkspaceContext();
+      if (!workspaceContext.hasWorkspace) {
+        chat.appendSystemMessage('Open a workspace folder first so I can summarize it.');
+        return;
+      }
+      telemetry.record({ name: 'summarize_workspace_requested' });
+      const summary = await answerWorkspaceQuestion('summarize this repo', workspaceContext, diagnosticSummary);
+      chat.appendAssistantMessage(summary, [
+        { command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' },
+        { command: 'rinawarp.openPacks', label: 'Open Capability Packs' },
+      ]);
+    }),
+    vscode.commands.registerCommand('rinawarp.summarizeActiveFile', async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        const choice = await vscode.window.showInformationMessage('Open a file first so I can summarize it.', 'Open File');
+        if (choice === 'Open File') {
+          await vscode.commands.executeCommand('workbench.action.files.openFile');
+        }
+        return;
+      }
+      telemetry.record({ name: 'summarize_file_requested' });
+      const summary = summarizeActiveEditor(editor);
+      chat.appendAssistantMessage(summary, [
+        { command: 'rinawarp.fixSelection', label: 'Fix Selection' },
+        { command: 'rinawarp.fixFile', label: 'Fix File' },
+      ]);
     }),
     vscode.commands.registerCommand('rinawarp.fixFile', async () => {
       const editor = vscode.window.activeTextEditor;

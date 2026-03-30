@@ -22,6 +22,38 @@
       "description": "Recorded when a user starts the first free workflow entry point."
     },
     {
+      "name": "summarize_workspace_requested",
+      "description": "Recorded when a user asks Companion to summarize the current workspace."
+    },
+    {
+      "name": "summarize_file_requested",
+      "description": "Recorded when a user asks Companion to summarize the active file."
+    },
+    {
+      "name": "fix_file_started",
+      "description": "Recorded when a user starts a full-file fix flow from Companion."
+    },
+    {
+      "name": "fix_file_completed",
+      "description": "Recorded when a full-file fix completes successfully."
+    },
+    {
+      "name": "fix_file_failed",
+      "description": "Recorded when a full-file fix fails."
+    },
+    {
+      "name": "fix_selection_started",
+      "description": "Recorded when a selection-only fix starts."
+    },
+    {
+      "name": "fix_selection_completed",
+      "description": "Recorded when a selection-only fix completes successfully."
+    },
+    {
+      "name": "fix_selection_failed",
+      "description": "Recorded when a selection-only fix fails."
+    },
+    {
       "name": "proof_summary_viewed",
       "description": "Recorded when the extension shows a local proof-style diagnostic summary.",
       "properties": {

@@ -39,6 +39,8 @@
     "onCommand:rinawarp.runFreeDiagnostic",
     "onCommand:rinawarp.fixSelection",
     "onCommand:rinawarp.fixFile",
+    "onCommand:rinawarp.summarizeWorkspace",
+    "onCommand:rinawarp.summarizeActiveFile",
     "onCommand:rinawarp.upgradeToPro",
     "onCommand:rinawarp.verifyPurchaseReturn",
     "onCommand:rinawarp.openPacks",
@@ -101,6 +103,16 @@
       {
         "command": "rinawarp.runFreeDiagnostic",
         "title": "RinaWarp: Run Free Diagnostic",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.summarizeWorkspace",
+        "title": "RinaWarp: Summarize Workspace",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.summarizeActiveFile",
+        "title": "RinaWarp: Summarize Active File",
         "category": "RinaWarp"
       },
       {

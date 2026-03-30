@@ -14,6 +14,8 @@ export interface ChatAction {
     | 'rinawarp.runFreeDiagnostic'
     | 'rinawarp.fixSelection'
     | 'rinawarp.fixFile'
+    | 'rinawarp.summarizeWorkspace'
+    | 'rinawarp.summarizeActiveFile'
     | 'rinawarp.openPack'
     | 'rinawarp.openPacks'
     | 'rinawarp.upgradeToPro'
@@ -79,6 +81,19 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
   updateDiagnostic(summary?: DiagnosticRunSummary): void {
     this.diagnostic = summary;
     this.pushState();
+  }
+
+  appendAssistantMessage(content: string, actions?: ChatAction[]): void {
+    this.messages.push({ role: 'assistant', content, actions });
+    this.stagedAction = pickPrimaryAction(actions || []);
+    this.pushState();
+    void this.persistState();
+  }
+
+  appendSystemMessage(content: string): void {
+    this.messages.push({ role: 'system', content });
+    this.pushState();
+    void this.persistState();
   }
 
   resolveWebviewView(webviewView: vscode.WebviewView): void {
@@ -357,6 +372,12 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
     const fixActions = this.buildFixActions();
     if (fixActions.length && /\b(fix|improve|clean up|refactor|repair|rewrite)\b/i.test(prompt)) {
       actions.push(...fixActions);
+    }
+    if (/\b(summarize|summary|what is this project|what is this repo|workspace summary|project summary)\b/i.test(prompt)) {
+      actions.push({ command: 'rinawarp.summarizeWorkspace', label: 'Summarize Workspace' });
+    }
+    if (/\b(summarize|summary|this file|active file|current file)\b/i.test(prompt)) {
+      actions.push({ command: 'rinawarp.summarizeActiveFile', label: 'Summarize Active File' });
     }
     const fileMatch = findRequestedFile(prompt.toLowerCase(), workspaceContext.fileSummaries || []);
     const recommendation = inferRecommendedPack(workspaceContext, this.diagnostic);
