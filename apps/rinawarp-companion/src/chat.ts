@@ -719,6 +719,10 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         prompts: [],
         starterActions: [],
       };
+      let animatedMessageIndex = null;
+      let animatedText = '';
+      let animationTimer = null;
+      let lastMessageCount = 0;
 
       function escapeHtml(value) {
         return String(value)
@@ -776,12 +780,13 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
             '</div>';
         } else {
           messagesEl.innerHTML = state.messages.map((message, index) => {
+            const content = index === animatedMessageIndex ? animatedText : message.content;
             const actions = Array.isArray(message.actions) && message.actions.length
               ? '<div class="action-row">' + message.actions.map((action, actionIndex) =>
                   '<button class="action" data-action-index="' + actionIndex + '" data-message-index="' + index + '">' + escapeHtml(action.label) + '</button>'
                 ).join('') + '</div>'
               : '';
-            return '<div class="message ' + escapeHtml(message.role) + '">' + escapeHtml(message.content) + actions + '</div>';
+            return '<div class="message ' + escapeHtml(message.role) + '">' + escapeHtml(content) + actions + '</div>';
           }).join('');
         }
 
@@ -792,10 +797,41 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
       window.addEventListener('message', (event) => {
         const message = event.data;
         if (message?.type === 'state') {
-          state = message.value;
+          const nextState = message.value;
+          if (nextState?.messages?.length > lastMessageCount) {
+            const lastIndex = nextState.messages.length - 1;
+            const lastMessage = nextState.messages[lastIndex];
+            if (lastMessage?.role === 'assistant') {
+              startAnimation(lastMessage.content || '', lastIndex);
+            }
+          }
+          lastMessageCount = nextState?.messages?.length || 0;
+          state = nextState;
           render();
         }
       });
+
+      function startAnimation(fullText, index) {
+        if (!fullText) return;
+        if (animationTimer) {
+          clearInterval(animationTimer);
+        }
+        animatedMessageIndex = index;
+        animatedText = '';
+        let cursor = 0;
+        animationTimer = setInterval(() => {
+          cursor = Math.min(fullText.length, cursor + 3);
+          animatedText = fullText.slice(0, cursor);
+          render();
+          if (cursor >= fullText.length) {
+            clearInterval(animationTimer);
+            animationTimer = null;
+            animatedMessageIndex = null;
+            animatedText = '';
+            render();
+          }
+        }, 16);
+      }
 
       sendEl.addEventListener('click', () => {
         const text = inputEl.value.trim();

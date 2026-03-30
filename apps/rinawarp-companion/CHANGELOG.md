@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- Added chat-first patch preview and apply actions
+- Added workspace and active-file summaries inside Companion
+- Added inline completion through Companion account sessions
+- Added lightweight streaming-style chat rendering for a more live feel
+
 ## 0.1.0
 
 - Promoted Companion from preview candidate to release candidate metadata
