@@ -1,6 +1,6 @@
 {
   "$schema": "vscode://schemas/telemetry",
-  "extension": "RinawarpTech.rinawarp-companion",
+  "extension": "rinawarpbykarinagilley.rinawarp-companion",
   "events": [
     {
       "name": "extension_activated",

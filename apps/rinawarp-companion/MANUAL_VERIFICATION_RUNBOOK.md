@@ -91,7 +91,7 @@ If anything fails:
 2. Confirm the browser opens the intended login flow.
 3. Complete login.
 4. If the browser does not switch back automatically, click `Return to VS Code`.
-5. Confirm the callback returns to `RinawarpTech.rinawarp-companion`.
+5. Confirm the callback returns to `rinawarpbykarinagilley.rinawarp-companion`.
 6. Confirm VS Code shows the connected-plan notification.
 7. Confirm the sidebar reflects the connected account state.
 
@@ -174,7 +174,7 @@ Use the safe verification command before you try a real charge flow.
 2. Confirm the browser opens the verification-only purchase success page.
 3. Confirm the page is clearly labeled as a no-charge verification path.
 4. Click `Return to VS Code` if the browser does not auto-switch.
-5. Confirm the browser returns to `RinawarpTech.rinawarp-companion/purchase-complete`.
+5. Confirm the browser returns to `rinawarpbykarinagilley.rinawarp-companion/purchase-complete`.
 6. Confirm the extension either:
    - refreshes entitlements and shows the new plan, or
    - shows the recovery message telling the user to refresh manually

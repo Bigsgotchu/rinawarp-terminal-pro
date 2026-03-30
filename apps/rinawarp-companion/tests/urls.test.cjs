@@ -12,11 +12,11 @@ test('createPurchaseVerificationUrl preserves the callback return target', async
       campaign: 'rinawarp_vscode_launch_q2_2026',
       content: 'verify_purchase_return',
     },
-    'vscode://RinawarpTech.rinawarp-companion/purchase-complete',
+    'vscode://rinawarpbykarinagilley.rinawarp-companion/purchase-complete',
   );
 
   assert.equal(url.origin, 'https://rinawarptech.com');
   assert.equal(url.pathname, '/verify/companion-purchase/');
-  assert.equal(url.searchParams.get('return_to'), 'vscode://RinawarpTech.rinawarp-companion/purchase-complete');
+  assert.equal(url.searchParams.get('return_to'), 'vscode://rinawarpbykarinagilley.rinawarp-companion/purchase-complete');
   assert.equal(url.searchParams.get('utm_content'), 'verify_purchase_return');
 });
