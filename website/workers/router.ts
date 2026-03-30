@@ -2120,6 +2120,7 @@ function renderAccount(authToken: string | null): Response {
               <button id="billing-portal-btn" class="btn btn-primary" type="button">Open billing portal</button>
               <button id="logout-btn" class="btn btn-secondary" style="width:auto;">Sign Out</button>
             </div>
+            <div id="account-return" style="display:none; margin-top:12px;"></div>
             <p class="note">If billing controls do not appear, use the restore form below with your checkout email.</p>
           </div>
         </div>
@@ -2132,6 +2133,76 @@ function renderAccount(authToken: string | null): Response {
     </section>`
     
     script = `
+      const params = new URLSearchParams(window.location.search);
+      const pendingReturnKey = 'rinawarp_pending_return_to';
+      const returnTo = params.get('return_to');
+      const returnDiv = document.getElementById('account-return');
+
+      function showReturnButton(target) {
+        if (!returnDiv || !target) return;
+        returnDiv.innerHTML = '<a class="btn btn-secondary" id="account-open-vscode" href="#">Open VS Code</a><p class="note" style="margin-top:10px;">If your browser does not switch back automatically, click the button.</p>';
+        returnDiv.style.display = 'block';
+        const returnLink = document.getElementById('account-open-vscode');
+        if (returnLink) {
+          returnLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            window.location.href = target;
+          });
+        }
+      }
+
+      function normalizeReturnTarget(target) {
+        try {
+          const decodedTarget = decodeURIComponent(target);
+          const url = new URL(decodedTarget);
+          const encodedQueryIndex = url.pathname.indexOf('%3F');
+          if (encodedQueryIndex >= 0) {
+            const encodedQuery = url.pathname.slice(encodedQueryIndex + 3);
+            url.pathname = url.pathname.slice(0, encodedQueryIndex);
+            const carriedParams = new URLSearchParams(encodedQuery);
+            carriedParams.forEach((value, key) => {
+              if (!url.searchParams.has(key)) {
+                url.searchParams.set(key, value);
+              }
+            });
+          }
+          return url;
+        } catch {
+          return null;
+        }
+      }
+
+      function buildReturnTarget(target, token) {
+        const normalizedUrl = normalizeReturnTarget(target);
+        if (normalizedUrl) {
+          normalizedUrl.searchParams.set('token', token);
+          return normalizedUrl.toString();
+        }
+
+        const separator = target.includes('?') ? '&' : '?';
+        return target + separator + 'token=' + encodeURIComponent(token);
+      }
+
+      function readPendingReturnTarget() {
+        try {
+          return sessionStorage.getItem(pendingReturnKey);
+        } catch {
+          return null;
+        }
+      }
+
+      function rememberReturnTarget(target) {
+        if (!target) return;
+        try {
+          sessionStorage.setItem(pendingReturnKey, target);
+        } catch {}
+      }
+
+      const effectiveReturnTo = returnTo || readPendingReturnTarget();
+      if (effectiveReturnTo) {
+        rememberReturnTarget(effectiveReturnTo);
+      }
+
       async function loadAccount() {
         try {
           const response = await fetch('/api/auth/me', {
@@ -2147,6 +2218,14 @@ function renderAccount(authToken: string | null): Response {
           
           const data = await response.json();
           const user = data.user;
+
+          if (effectiveReturnTo) {
+            const returnTarget = buildReturnTarget(effectiveReturnTo, '${authToken}');
+            showReturnButton(returnTarget);
+            setTimeout(() => {
+              window.location.href = returnTarget;
+            }, 150);
+          }
           
           document.getElementById('account-info').innerHTML = \`
             <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
