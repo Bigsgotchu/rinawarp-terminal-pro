@@ -15,13 +15,13 @@ const GA_MEASUREMENT_ID = 'G-YGX1R0MEB6'
 
 export const SEO_CONFIG: Record<string, SeoData> = {
   '/': {
-    title: 'RinaWarp Terminal Pro | Proof-First AI Terminal',
+    title: 'RinaWarp | Proof-First AI Workbench Platform',
     description:
-      'RinaWarp Terminal Pro is a proof-first AI terminal for developers who want trusted execution, receipts, recovery, and a cleaner chat-to-command workflow.',
+      'RinaWarp is a proof-first AI workbench platform with Terminal Pro for serious execution and Companion for the fastest VS Code start.',
     canonical: 'https://rinawarptech.com/',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords:
-      'AI workbench, proof-first AI, agent workflow, developer tools, trusted execution, run receipts, developer productivity',
+      'AI workbench, proof-first AI, terminal pro, VS Code companion, agent workflow, developer tools, trusted execution, run receipts',
   },
   '/agents': {
     title: 'RinaWarp Packs | Capability Packs for RinaWarp Terminal Pro',
@@ -104,7 +104,7 @@ export function injectSeoTags(path: string): string {
   <meta property="og:description" content="${seo.description}">
   <meta property="og:url" content="${seo.canonical}">
   <meta property="og:image" content="${seo.ogImage}">
-  <meta property="og:site_name" content="RinaWarp Terminal Pro">
+  <meta property="og:site_name" content="RinaWarp">
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image">

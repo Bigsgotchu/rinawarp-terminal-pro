@@ -820,16 +820,17 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
   <div class="site-shell">
     <header>
       <nav aria-label="Main navigation">
-        <a href="/" class="logo" aria-label="RinaWarp Terminal Pro home">
-          <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp Terminal Pro logo">
+        <a href="/" class="logo" aria-label="RinaWarp home">
+          <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp logo">
         </a>
         <div class="nav-links">
           ${navLink('/', 'Home', active, 'home')}
+          <a href="/#products">Products</a>
           ${navLink('/pricing', 'Pricing', active, 'pricing')}
           <a href="/team">Team</a>
           ${navLink('/download', 'Download', active, 'download')}
           ${navLink('/docs', 'Docs', active, 'docs')}
-          ${navLink('/agents', 'Packs', active, 'agents')}
+          ${navLink('/agents', 'Agents', active, 'agents')}
           ${navLink('/feedback', 'Support', active, 'feedback')}
           ${navAccountLink(active)}
         </div>
@@ -841,8 +842,9 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
     </main>
     <footer>
       <div class="footer-inner">
-        <div>© 2026 RinaWarp Technologies, LLC. Proof-first AI workbench.</div>
+        <div>© 2026 RinaWarp Technologies, LLC. One platform, two product surfaces.</div>
         <div class="footer-links">
+          <a href="/#products">Products</a>
           <a href="/docs">Docs</a>
           <a href="/pricing">Pricing</a>
           <a href="/download">Download</a>
@@ -868,12 +870,12 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
 function renderHomepage(): Response {
   const hero = `
     <section class="hero">
-      <span class="eyebrow">Proof-first agent execution</span>
-      <h1>Talk to Rina naturally. Ship with proof.</h1>
-      <p class="hero-copy">A desktop AI workbench that keeps proof, receipts, and recovery attached to real work. Ask naturally, let Rina act through one trusted path, and inspect the details only when you need them.</p>
+      <span class="eyebrow">RinaWarp platform</span>
+      <h1>Run real work with proof, not vibes.</h1>
+      <p class="hero-copy">RinaWarp is the proof-first AI workbench platform. Terminal Pro is the flagship execution environment. Companion is the fastest way to start inside VS Code.</p>
       <div class="cta-row">
-        <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download the app</a>
-        <a href="/pricing" class="btn btn-secondary">See plans</a>
+        <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Terminal Pro</a>
+        <a href="/pricing" class="btn btn-secondary">Start in VS Code with Companion</a>
       </div>
     </section>
   `
@@ -895,6 +897,31 @@ function renderHomepage(): Response {
           <div class="kicker">Recovery</div>
           <h3>Interrupted work still makes sense</h3>
           <p>Interrupted work stays understandable, with restore state and the next safe move still visible.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="products">
+      <h2 class="section-title">Two product surfaces, one RinaWarp account</h2>
+      <p class="section-copy">Terminal Pro is the flagship for serious execution. Companion is the lower-friction VS Code on-ramp for account connect, free diagnostic value, pack discovery, and upgrade handoff.</p>
+      <div class="grid two-up">
+        <article class="card">
+          <div class="kicker">Flagship</div>
+          <h3>RinaWarp Terminal Pro</h3>
+          <p>The deeper execution environment for trusted build, test, deploy, recovery, receipts, and workflow continuity.</p>
+          <div class="link-row">
+            <a href="/download" class="btn btn-primary">Download Terminal Pro</a>
+            <a href="/docs" class="btn btn-secondary">Read docs</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="kicker">On-ramp</div>
+          <h3>RinaWarp Companion</h3>
+          <p>The fastest way to start inside VS Code. Connect your account, run a free diagnostic, explore agents, and move into deeper paid capability when the workflow proves itself.</p>
+          <div class="link-row">
+            <a href="/pricing" class="btn btn-secondary">See shared plans</a>
+            <a href="/agents" class="btn btn-secondary">Browse agents</a>
+          </div>
         </article>
       </div>
     </section>
@@ -981,9 +1008,9 @@ function renderHomepage(): Response {
 function renderPricing(): Response {
   const hero = `
     <section class="hero">
-      <span class="eyebrow">Early Access pricing</span>
-      <h1>Start free. Upgrade for proof-backed execution.</h1>
-      <p class="hero-copy">The ladder is simple: free to feel the workbench, Pro for real execution, Team for seat-based rollout.</p>
+      <span class="eyebrow">One RinaWarp account</span>
+      <h1>Start free. Upgrade when the workflow proves itself.</h1>
+      <p class="hero-copy">Use one shared RinaWarp account across Terminal Pro and Companion. Companion is the free on-ramp. Terminal Pro is where paid depth is most fully realized.</p>
     </section>
   `
 
@@ -993,24 +1020,24 @@ function renderPricing(): Response {
         <article class="card pricing-card">
           <span class="pill">Free</span>
           <div class="price">$0 <span>/ month</span></div>
-          <p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p>
+          <p>Install Companion, try the starter flow, explore agents, and make sure the product feels real before you pay.</p>
           <ul class="feature-list">
-            <li>Agent-first desktop workbench</li>
-            <li>Limited chats and proof-backed runs</li>
-            <li>Core inspectors and workspace-aware proof UI</li>
-            <li>Download and use on your own machine</li>
+            <li>Companion install and VS Code entry point</li>
+            <li>Limited free diagnostic and starter value</li>
+            <li>Limited pack and agent discovery</li>
+            <li>Shared RinaWarp account foundation</li>
           </ul>
           <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a>
         </article>
         <article class="card pricing-card featured">
           <span class="pill">Pro Early Access</span>
           <div class="price">$20 <span>/ month</span></div>
-          <p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p>
+          <p>For people who want Rina to take real action, keep proof attached, recover safely, and use Terminal Pro as the serious execution surface.</p>
           <ul class="feature-list">
-            <li>Trusted build, test, deploy, and fix flows</li>
+            <li>Advanced capability unlocks across the shared RinaWarp account</li>
+            <li>Trusted build, test, deploy, and fix flows in Terminal Pro</li>
             <li>Recovery and proof-backed summaries</li>
-            <li>Rina cards, cross-session explicit preferences, and higher usage limits</li>
-            <li>Priority Early Access support and faster feature access</li>
+            <li>Higher usage limits, priority Early Access support, and faster feature access</li>
           </ul>
           <div class="stack" style="gap:12px">
             <input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,0.04);color:var(--text)">
@@ -1024,7 +1051,7 @@ function renderPricing(): Response {
         <article class="card pricing-card">
           <span class="pill">Team / Business</span>
           <div class="price">$49 <span>/ user / month</span></div>
-          <p>For teams that need seat-based rollout, role boundaries, audit visibility, and proof-backed execution.</p>
+          <p>For teams that need seat-based rollout, role boundaries, audit visibility, and proof-backed execution across the RinaWarp platform.</p>
           <ul class="feature-list">
             <li>Seat-based checkout and workspace-linked rollout</li>
             <li>Role-aware team boundaries and admin support</li>

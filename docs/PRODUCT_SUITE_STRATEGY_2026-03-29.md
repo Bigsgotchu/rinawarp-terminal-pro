@@ -4,6 +4,10 @@ Date: 2026-03-29
 
 This memo updates the earlier Companion vs Terminal Pro comparison using the current repo and live business state.
 
+Canonical operating model:
+
+- [PRODUCT_OPERATING_MODEL.md](/home/karina/Documents/rinawarp-terminal-pro/docs/PRODUCT_OPERATING_MODEL.md)
+
 It is meant to replace older assumptions that:
 
 - Companion has no chat

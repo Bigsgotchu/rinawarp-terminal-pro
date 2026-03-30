@@ -1,7 +1,7 @@
-# RinaWarp Terminal Pro
+# RinaWarp
 
 <p align="center">
-  <strong>Proof-First AI Workbench for Build, Test, Deploy, and Recovery</strong>
+  <strong>One platform, two product surfaces: Terminal Pro for serious execution, Companion for the fastest VS Code start.</strong>
 </p>
 
 <p align="center">
@@ -13,7 +13,14 @@
 
 ## What is RinaWarp?
 
-RinaWarp Terminal Pro is an agent-first desktop app for build, test, deploy, and system-repair workflows. You tell Rina what you want in plain language, she explains the plan, runs the work in the background, and keeps proof attached to the thread.
+RinaWarp is the platform and shared account layer behind the current product line.
+
+Today the platform has two product surfaces:
+
+- `RinaWarp Terminal Pro` - the flagship proof-first desktop workbench for build, test, deploy, and recovery workflows
+- `RinaWarp Companion` - the VS Code on-ramp for account connect, free diagnostic value, pack discovery, and entitlement refresh
+
+Terminal Pro is the deeper execution environment. Companion is the fastest way to start inside the editor.
 
 ### Key Features
 
@@ -38,7 +45,17 @@ Or download directly from the [Releases](https://github.com/Bigsgotchu/rinawarp-
 
 ## Building from Source
 
-This repository contains the source code for RinaWarp Terminal Pro.
+This repository is the RinaWarp monorepo.
+
+Current primary product surfaces:
+
+- `apps/terminal-pro`
+- `apps/rinawarp-companion`
+- `website/`
+
+Canonical operating guidance:
+
+- [docs/PRODUCT_OPERATING_MODEL.md](/home/karina/Documents/rinawarp-terminal-pro/docs/PRODUCT_OPERATING_MODEL.md)
 
 ### Prerequisites
 

@@ -16,6 +16,7 @@ The company is not yet "finished." The remaining work is less about basic launch
 
 Related docs:
 
+- [PRODUCT_OPERATING_MODEL.md](/home/karina/Documents/rinawarp-terminal-pro/docs/PRODUCT_OPERATING_MODEL.md)
 - [COMPANY_STATUS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STATUS_CHECKLIST.md)
 - [COMPANY_OPERATING_SYSTEM.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_OPERATING_SYSTEM.md)
 - [REVENUE_LAUNCH_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_LAUNCH_PLAN.md)
