@@ -215,4 +215,4 @@ Current note:
 
 - after the account-page cleanup and callback fixes on `2026-03-30`, the safe purchase-return verification flow has been exercised successfully
 - the billing portal path is now verified at the live API level because `/api/portal` returns a Stripe billing-session URL for the paid account email
-- the main remaining operational cleanup is a fresh local VSIX packaging run if you want release evidence beyond the inspected artifact
+- fresh local VSIX packaging has now been re-verified on the current build with `npm --workspace apps/rinawarp-companion run package:vsix`

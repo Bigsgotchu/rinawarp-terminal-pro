@@ -39,7 +39,7 @@ Choose exactly one result before publishing:
 Current repo-backed assessment as of `2026-03-30`:
 
 - build and automated tests are green
-- Companion packaging evidence exists, but a fresh package run still depends on resolving local `vsce` installation cleanly in this workspace
+- Companion packaging has now been re-verified on the current build with the pinned `vsce` workflow using `--no-dependencies`, which matches the extension's self-contained runtime payload
 - local VSIX install, extension activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff were manually verified in VS Code on `2026-03-29`
 - Companion already has a real chat view and account-linked chat API surface in the repo
 - isolated-profile install and activation were re-verified on `2026-03-30` after the entitlement-refresh hardening and chat-first positioning pass
@@ -53,7 +53,7 @@ Current repo-backed assessment as of `2026-03-30`:
 
 That means the current status is:
 
-- `Go with known limits` remains the current call while fresh local packaging is still open
+- `Go` is now the current call for a Companion pre-release candidate on the currently verified build
 
 ## No-Go Blockers
 
@@ -63,7 +63,7 @@ Any unchecked item here means `No-Go`.
 
 - [x] `npm --workspace apps/rinawarp-companion run build` passes
 - [x] `npm --workspace apps/rinawarp-companion run test` passes
-- [ ] a fresh pre-release VSIX is produced successfully
+- [x] a fresh pre-release VSIX is produced successfully
 - [x] the VSIX installs locally in VS Code
 - [x] the package does not include unwanted files in the inspected VSIX artifact
 
@@ -189,8 +189,8 @@ That means:
 
 Result:
 
-- [ ] Go
-- [x] Go with known limits
+- [x] Go
+- [ ] Go with known limits
 - [ ] No-Go
 
 Release notes for this decision:
@@ -200,5 +200,5 @@ Release notes for this decision:
 - Manual verification in VS Code proved local install, activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff.
 - Manual verification in the normal VS Code profile also proved that the Companion sidebar can restore connected account state after a callback once the Linux `vscode://` handler and website handoff flow are repaired.
 - The account page now presents one coherent signed-in or signed-out state and gives a clear `Return to VS Code` fallback when browser auto-switching misses.
-- Immediate publish still depends on a fresh local packaging run if operationally required.
-- The extension now looks like a credible `v0.1` pre-release candidate with known limits rather than a `No-Go`.
+- Fresh local packaging has now been re-verified on the current build using the pinned `vsce` workflow with `--no-dependencies`.
+- The extension now looks like a credible `v0.1` pre-release candidate that is ready for a Preview publish on the currently verified build.
