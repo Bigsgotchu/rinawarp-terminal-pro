@@ -90,19 +90,22 @@ If anything fails:
 1. Run `RinaWarp: Connect Account`.
 2. Confirm the browser opens the intended login flow.
 3. Complete login.
-4. Confirm the callback returns to `rinawarp.rinawarp-companion`.
-5. Confirm VS Code shows the connected-plan notification.
-6. Confirm the sidebar reflects the connected account state.
+4. If the browser does not switch back automatically, click `Return to VS Code`.
+5. Confirm the callback returns to `rinawarp.rinawarp-companion`.
+6. Confirm VS Code shows the connected-plan notification.
+7. Confirm the sidebar reflects the connected account state.
 
 Expected results:
 
 - browser opens the intended auth surface
 - the callback returns into the extension
 - the extension stores account state and shows the refreshed plan
+- if the browser misses the auto-switch, the account page still offers a working `Return to VS Code` fallback
 
 If the callback lands but refresh fails:
 
-- this is acceptable only if the extension clearly tells the user to run `RinaWarp: Refresh Entitlements`
+- reconnect first
+- then run `RinaWarp: Refresh Entitlements`
 - record whether the snapshot fallback still shows usable account context
 
 ## 3. Entitlement Refresh
@@ -116,6 +119,7 @@ Expected results:
 - paid account reflects `pro` or `team` correctly
 - unpaid account reflects `free` honestly
 - failures are explicit and recoverable, not silent
+- if the account was previously stale, reconnect first and then re-run refresh
 
 ## 4. Free Diagnostic
 
@@ -203,3 +207,7 @@ Do not move the final gate from `No-Go` until:
 - entitlement refresh behavior is proven
 - free diagnostic behavior is proven
 - purchase return behavior is proven or has an honest fallback
+
+Current note:
+
+- after the account-page cleanup and callback fixes on `2026-03-30`, the remaining high-value live checks are `Open Billing Portal` and purchase-return verification

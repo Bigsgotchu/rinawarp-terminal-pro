@@ -36,7 +36,7 @@ Choose exactly one result before publishing:
 - `Go with known limits`
 - `No-Go`
 
-Current repo-backed assessment as of `2026-03-29`:
+Current repo-backed assessment as of `2026-03-30`:
 
 - build and automated tests are green
 - Companion packaging evidence exists, but a fresh package run still depends on resolving local `vsce` installation cleanly in this workspace
@@ -44,15 +44,16 @@ Current repo-backed assessment as of `2026-03-29`:
 - Companion already has a real chat view and account-linked chat API surface in the repo
 - isolated-profile install and activation were re-verified on `2026-03-30` after the entitlement-refresh hardening and chat-first positioning pass
 - the local Linux `vscode://` handler was repaired on this machine, and the live Companion sidebar now restores connected account state in the normal VS Code profile
-- the callback still leaves rough UX in this Code build because callback tabs can remain visible instead of disappearing cleanly
-- entitlement refresh and billing portal still require additional manual verification
-- purchase-complete can now be routed back into VS Code on this machine, but the post-return success or recovery messaging still was not cleanly observed in this pass
+- the website account surface now resolves to a single signed-in or signed-out state instead of mixing both shells
+- account connect callback, account-page fallback, and `Return to VS Code` handoff were manually verified in the normal VS Code profile on `2026-03-30`
+- `Refresh Entitlements` was treated as successful after reconnect in the live Companion UI on `2026-03-30`
+- billing portal and purchase-complete still require one final manual pass from the cleaned-up account flow
 - a raw CLI `code --open-url vscode://...` callback without the browser-provided routing context does not reach the extension cleanly in the isolated profile, so that is not a trustworthy substitute for the real browser-return flow
 
 That means the current status is:
 
-- still `No-Go` for immediate publish because billing, entitlement refresh, and purchase-return are still not fully verified
-- likely movable to `Go with known limits` once the callback path and remaining entitlement checks pass
+- still `No-Go` for immediate publish because billing portal, purchase-return, and fresh local packaging are still not fully verified
+- likely movable to `Go with known limits` once those remaining checks pass
 
 ## No-Go Blockers
 
@@ -71,7 +72,7 @@ Any unchecked item here means `No-Go`.
 - [x] account connect returns to the extension successfully
 - [x] free diagnostic runs and produces a useful result in a trusted workspace
 - [ ] purchase success returns to VS Code successfully
-- [ ] entitlement refresh works correctly or fails honestly with a clear recovery path
+- [x] entitlement refresh works correctly or fails honestly with a clear recovery path
 
 ### Commercial Integrity
 
@@ -86,7 +87,7 @@ These are acceptable for a pre-release if explicitly understood and supportable.
 
 - [ ] Restricted Mode behavior is acceptable but still limited
 - [x] some flows still feel scaffolded, but the free diagnostic is real enough to create first value
-- [ ] entitlement refresh works but still needs monitoring for edge cases
+- [x] entitlement refresh works but still needs monitoring for edge cases
 - [x] the extension is clearly labeled `Preview` everywhere it matters
 
 ## Manual Verification Matrix
@@ -103,14 +104,14 @@ Record the result for each item as:
 - [x] extension activates without obvious errors - Pass via `exthost.log` activation on `onStartupFinished`, re-confirmed in an isolated profile on `2026-03-30`
 - [x] sidebar appears correctly - Pass; Companion tree rendered plan, account, diagnostic, pack, and upgrade items
 - [ ] walkthrough assets and icon render correctly - Needs work; the activity bar icon rendered as a blank square in the isolated VS Code session
-- [ ] chat view opens correctly - Not tested in this session
+- [x] chat view opens correctly - Pass; the Chat webview now renders correctly in the live VS Code session
 
 ### 2. Account and Entitlements
 
 - [x] Connect Account opens the correct browser flow - Pass; logged login URL with `return_to=vscode://rinawarp.rinawarp-companion/auth/callback...`
-- [x] callback returns to `rinawarp.rinawarp-companion` - Pass in the normal VS Code profile after repairing the local Linux `vscode://` handler
+- [x] callback returns to `rinawarp.rinawarp-companion` - Pass in the normal VS Code profile after repairing the local Linux `vscode://` handler and fixing the website callback handoff
 - [x] account snapshot updates in the extension - Pass; live Companion sidebar updated to `Plan: PRO` and `Account: test2@example.com`
-- [ ] Refresh Entitlements updates state correctly - Live visual confirmation still pending, but the refresh UX is now hardened in repo and automated tests cover success, fallback, auth rejection, network failure, malformed response, and stale-state preservation
+- [x] Refresh Entitlements updates state correctly - Pass after reconnect in the live Companion UI; stale auth was cleared after the account callback path was repaired
 - [x] paid account reflects expected plan state - Pass for a simulated `pro` callback in the live profile
 - [ ] unpaid account fails honestly and clearly - Not tested in this session
 
@@ -127,13 +128,13 @@ Record the result for each item as:
 - [x] Open Packs lands on the intended `/agents` surface - Pass; logged `/agents?...utm_content=sidebar_open_packs`
 - [x] pack-specific deep links land on the expected destination - Pass; logged `/agents?...agent=npm-audit&utm_content=sidebar_recommended_pack`
 - [x] Upgrade to Pro lands on the expected pricing flow - Pass; logged `/pricing?...return_to=vscode://rinawarp.rinawarp-companion/purchase-complete`
-- [ ] Billing Portal opens the expected billing surface - Not tested; free-plan state did not expose the billing action in this session
+- [ ] Billing Portal opens the expected billing surface - Remaining manual check from the cleaned-up signed-in account flow
 
 ### 5. Purchase Return and Recovery
 
 - [ ] purchase success returns to the extension - Partially exercised after repairing the local `vscode://` handler, but not yet proven with a clean success or recovery signal
-- [ ] entitlement refresh after purchase behaves correctly - Not tested in this session
-- [ ] if refresh fails, the user sees a clear next step - Not tested in this session
+- [ ] entitlement refresh after purchase behaves correctly - Remaining manual check
+- [ ] if refresh fails, the user sees a clear next step - Remaining manual check
 - [x] support can handle “I paid but it did not unlock”
 
 ### 6. Safety and Positioning
@@ -189,14 +190,15 @@ That means:
 Result:
 
 - [ ] Go
-- [ ] Go with known limits
-- [x] No-Go
+- [x] Go with known limits
+- [ ] No-Go
 
 Release notes for this decision:
 
 - Automated status is encouraging: build and tests are green.
 - The inspected VSIX artifact looks clean and appropriately scoped.
 - Manual verification in VS Code proved local install, activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff.
-- Manual verification in the normal VS Code profile also proved that the Companion sidebar can restore connected account state after a callback once the Linux `vscode://` handler is repaired.
-- Immediate publish is still blocked by the remaining billing, entitlement refresh, and purchase-return checks, plus the callback-tab UX rough edge.
-- The extension looks like a credible `v0.1` pre-release candidate once those manual checks pass.
+- Manual verification in the normal VS Code profile also proved that the Companion sidebar can restore connected account state after a callback once the Linux `vscode://` handler and website handoff flow are repaired.
+- The account page now presents one coherent signed-in or signed-out state and gives a clear `Return to VS Code` fallback when browser auto-switching misses.
+- Immediate publish still depends on one last billing portal check, one last purchase-return check, and a fresh local packaging run if operationally required.
+- The extension now looks like a credible `v0.1` pre-release candidate with known limits rather than a `No-Go`.

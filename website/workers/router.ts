@@ -1545,7 +1545,7 @@ function renderLogin(returnTo: string = ''): Response {
     <section class="hero">
       <span class="eyebrow">Welcome back</span>
       <h1>Sign in to your account</h1>
-      <p class="hero-copy">Use your RinaWarp account to manage billing, recover access on a new device, and keep your Early Access install connected.</p>
+      <p class="hero-copy">Use your RinaWarp account to manage billing, recover access on a new device, and return cleanly to VS Code when Companion asks you to reconnect.</p>
     </section>`
 
   const content = `
@@ -1553,7 +1553,7 @@ function renderLogin(returnTo: string = ''): Response {
       <div class="auth-container">
         <div class="auth-card">
           <h2 class="auth-title">Sign In</h2>
-          <p class="auth-subtitle">Use your email and password</p>
+          <p class="auth-subtitle">Use your email and password to reconnect the desktop flow or manage your account in the browser.</p>
           
           <div id="login-error" class="alert alert-error" style="display:none;"></div>
           <div id="login-success" class="alert alert-success" style="display:none;"></div>
@@ -1587,6 +1587,7 @@ function renderLogin(returnTo: string = ''): Response {
     const successDiv = document.getElementById('login-success');
     const returnDiv = document.getElementById('login-return');
     const returnTo = ${JSON.stringify(returnTo)};
+    const pendingReturnKey = 'rinawarp_pending_return_to';
 
     function normalizeReturnTarget(target) {
       if (!target) return '/account';
@@ -2094,7 +2095,7 @@ function renderAccount(authToken: string | null): Response {
     <section class="hero">
       <span class="eyebrow">Account</span>
       <h1>Your account</h1>
-      <p class="hero-copy">Manage your RinaWarp Terminal Pro account, billing, restore flow, and Early Access support boundaries.</p>
+      <p class="hero-copy">Manage billing, restore access on a new device, and complete any pending return to VS Code from one clean account surface.</p>
     </section>`
 
   const content = `
@@ -2109,7 +2110,7 @@ function renderAccount(authToken: string | null): Response {
 
           <div id="account-shell-signed-out" style="display:none;">
             <h2 class="auth-title">Sign in to your account</h2>
-            <p class="auth-subtitle">Sign in to manage billing, restore access, and return to VS Code when a desktop handoff is waiting.</p>
+            <p class="auth-subtitle">Sign in to manage billing, restore access, and return to VS Code when Companion is waiting for you.</p>
             <div class="link-row" style="margin-top:16px;">
               <a href="/login" id="account-login-link" class="btn btn-primary">Sign In</a>
               <a href="/register" id="account-register-link" class="btn btn-secondary">Create Account</a>
@@ -2133,7 +2134,7 @@ function renderAccount(authToken: string | null): Response {
                 <button id="billing-portal-btn" class="btn btn-primary" type="button">Open billing portal</button>
                 <button id="logout-btn" class="btn btn-secondary" style="width:auto;" type="button">Sign Out</button>
               </div>
-              <p class="note">Use billing for plan changes and the restore form if a device loses access.</p>
+              <p class="note">Use billing for plan changes, and use the return action below if you need to hand control back to VS Code.</p>
             </div>
           </div>
 
