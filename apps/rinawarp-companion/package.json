@@ -2,7 +2,7 @@
   "name": "rinawarp-companion",
   "displayName": "RinaWarp Companion",
   "description": "Chat with Rina in VS Code, run a free diagnostic, refresh entitlements, and open packs, pricing, and billing flows.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "rinawarpbykarinagilley",
   "preview": true,
   "pricing": "Trial",
