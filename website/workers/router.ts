@@ -1225,6 +1225,7 @@ function renderSuccess(returnTo: string = '', sessionId: string = ''): Response 
 
   const script = `
     const returnTo = ${JSON.stringify(returnTo)};
+    const pendingReturnKey = 'rinawarp_pending_return_to';
     const returnBtn = document.getElementById('return-to-product');
     if (!returnTo && returnBtn) {
       returnBtn.textContent = 'Open account';
@@ -1633,7 +1634,24 @@ function renderLogin(returnTo: string = ''): Response {
       }
     }
 
+    function rememberReturnTarget(target) {
+      if (!target) return;
+      try {
+        sessionStorage.setItem(pendingReturnKey, target);
+      } catch {}
+    }
+
+    function clearRememberedReturnTarget() {
+      try {
+        sessionStorage.removeItem(pendingReturnKey);
+      } catch {}
+    }
+
     const existingToken = localStorage.getItem('auth_token');
+    if (returnTo) {
+      rememberReturnTarget(returnTo);
+    }
+
     if (existingToken && returnTo) {
       successDiv.textContent = 'You are already signed in. Sending you back to VS Code...';
       successDiv.style.display = 'block';
@@ -1678,6 +1696,7 @@ function renderLogin(returnTo: string = ''): Response {
         // Store token
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('user_email', data.user?.email || email);
+        rememberReturnTarget(returnTo);
         
         const returnTarget = buildReturnTarget(returnTo, data.token);
         const isExternalAppReturn = Boolean(returnTo);
@@ -1695,6 +1714,7 @@ function renderLogin(returnTo: string = ''): Response {
           window.location.href = returnTarget;
         }, 500);
       } catch (err) {
+        clearRememberedReturnTarget();
         errorDiv.textContent = err instanceof Error ? err.message : 'Login failed';
         errorDiv.style.display = 'block';
         submitBtn.disabled = false;
@@ -2207,6 +2227,7 @@ function renderAccount(authToken: string | null): Response {
     script = `
       const params = new URLSearchParams(window.location.search);
       const returnTo = params.get('return_to');
+      const pendingReturnKey = 'rinawarp_pending_return_to';
       const existingToken = localStorage.getItem('auth_token');
       const returnDiv = document.getElementById('account-return');
 
@@ -2255,17 +2276,46 @@ function renderAccount(authToken: string | null): Response {
         return target + separator + 'token=' + encodeURIComponent(token);
       }
 
-      if (returnTo) {
-        const loginLink = document.getElementById('account-login-link');
-        const registerLink = document.getElementById('account-register-link');
-        if (loginLink) loginLink.href = '/login?return_to=' + encodeURIComponent(returnTo);
-        if (registerLink) registerLink.href = '/register?return_to=' + encodeURIComponent(returnTo);
+      function readPendingReturnTarget() {
+        try {
+          return sessionStorage.getItem(pendingReturnKey);
+        } catch {
+          return null;
+        }
       }
 
-      if (existingToken && returnTo) {
-        const returnTarget = buildReturnTarget(returnTo, existingToken);
+      function rememberReturnTarget(target) {
+        if (!target) return;
+        try {
+          sessionStorage.setItem(pendingReturnKey, target);
+        } catch {}
+      }
+
+      function clearPendingReturnTarget() {
+        try {
+          sessionStorage.removeItem(pendingReturnKey);
+        } catch {}
+      }
+
+      const effectiveReturnTo = returnTo || readPendingReturnTarget();
+      if (effectiveReturnTo) {
+        rememberReturnTarget(effectiveReturnTo);
+      }
+
+      if (effectiveReturnTo) {
+        const loginLink = document.getElementById('account-login-link');
+        const registerLink = document.getElementById('account-register-link');
+        if (loginLink) loginLink.href = '/login?return_to=' + encodeURIComponent(effectiveReturnTo);
+        if (registerLink) registerLink.href = '/register?return_to=' + encodeURIComponent(effectiveReturnTo);
+      }
+
+      if (existingToken && effectiveReturnTo) {
+        const returnTarget = buildReturnTarget(effectiveReturnTo, existingToken);
         showReturnButton(returnTarget);
-        window.location.href = returnTarget;
+        setTimeout(() => {
+          window.location.href = returnTarget;
+          clearPendingReturnTarget();
+        }, 150);
       }
 
       // Check for existing token in URL (e.g., from OAuth)
