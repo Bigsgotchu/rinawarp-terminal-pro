@@ -1587,16 +1587,37 @@ function renderLogin(returnTo: string = ''): Response {
     const returnDiv = document.getElementById('login-return');
     const returnTo = ${JSON.stringify(returnTo)};
 
-    function buildReturnTarget(target, token) {
+    function normalizeReturnTarget(target) {
       if (!target) return '/account';
       try {
-        const url = new URL(target);
-        url.searchParams.set('token', token);
-        return url.toString();
+        const decodedTarget = decodeURIComponent(target);
+        const url = new URL(decodedTarget);
+        const encodedQueryIndex = url.pathname.indexOf('%3F');
+        if (encodedQueryIndex >= 0) {
+          const encodedQuery = url.pathname.slice(encodedQueryIndex + 3);
+          url.pathname = url.pathname.slice(0, encodedQueryIndex);
+          const carriedParams = new URLSearchParams(encodedQuery);
+          carriedParams.forEach((value, key) => {
+            if (!url.searchParams.has(key)) {
+              url.searchParams.set(key, value);
+            }
+          });
+        }
+        return url;
       } catch {
-        const separator = target.includes('?') ? '&' : '?';
-        return target + separator + 'token=' + encodeURIComponent(token);
+        return null;
       }
+    }
+
+    function buildReturnTarget(target, token) {
+      const normalizedUrl = normalizeReturnTarget(target);
+      if (normalizedUrl) {
+        normalizedUrl.searchParams.set('token', token);
+        return normalizedUrl.toString();
+      }
+
+      const separator = target.includes('?') ? '&' : '?';
+      return target + separator + 'token=' + encodeURIComponent(token);
     }
 
     function showReturnButton(target) {
@@ -2202,15 +2223,36 @@ function renderAccount(authToken: string | null): Response {
         }
       }
 
-      function buildReturnTarget(target, token) {
+      function normalizeReturnTarget(target) {
         try {
-          const url = new URL(target);
-          url.searchParams.set('token', token);
-          return url.toString();
+          const decodedTarget = decodeURIComponent(target);
+          const url = new URL(decodedTarget);
+          const encodedQueryIndex = url.pathname.indexOf('%3F');
+          if (encodedQueryIndex >= 0) {
+            const encodedQuery = url.pathname.slice(encodedQueryIndex + 3);
+            url.pathname = url.pathname.slice(0, encodedQueryIndex);
+            const carriedParams = new URLSearchParams(encodedQuery);
+            carriedParams.forEach((value, key) => {
+              if (!url.searchParams.has(key)) {
+                url.searchParams.set(key, value);
+              }
+            });
+          }
+          return url;
         } catch {
-          const separator = target.includes('?') ? '&' : '?';
-          return target + separator + 'token=' + encodeURIComponent(token);
+          return null;
         }
+      }
+
+      function buildReturnTarget(target, token) {
+        const normalizedUrl = normalizeReturnTarget(target);
+        if (normalizedUrl) {
+          normalizedUrl.searchParams.set('token', token);
+          return normalizedUrl.toString();
+        }
+
+        const separator = target.includes('?') ? '&' : '?';
+        return target + separator + 'token=' + encodeURIComponent(token);
       }
 
       if (returnTo) {
