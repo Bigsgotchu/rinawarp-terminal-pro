@@ -51,7 +51,7 @@ Any unchecked item here means `No-Go`.
 - [x] `npm --workspace apps/rinawarp-companion run test` passes
 - [ ] a fresh pre-release VSIX is produced successfully
 - [ ] the VSIX installs locally in VS Code
-- [ ] the package does not include unwanted files
+- [x] the package does not include unwanted files in the inspected VSIX artifact
 
 ### Core User Loop
 
@@ -134,10 +134,10 @@ Record the result for each item as:
 
 Confirm the package contents before publish:
 
-- [ ] expected extension files only - Needs manual package inspection
-- [ ] no local runtime clutter - Needs manual package inspection
-- [ ] no generated debug artifacts - Needs manual package inspection
-- [ ] no secrets or local-only state - Needs manual package inspection
+- [x] expected extension files only - Existing `rinawarp-companion.vsix` contains the declared extension payload
+- [x] no local runtime clutter - Existing `rinawarp-companion.vsix` does not include `src/`, `tests/`, `node_modules/`, or local workspace files
+- [x] no generated debug artifacts - Existing `rinawarp-companion.vsix` does not include `.map` files or `tsconfig.tsbuildinfo`
+- [x] no secrets or local-only state - No obvious secrets or local-only state were found in the inspected VSIX artifact
 
 ## Telemetry and Support Readiness
 
@@ -182,5 +182,6 @@ Result:
 Release notes for this decision:
 
 - Automated status is encouraging: build and tests are green.
+- The inspected VSIX artifact looks clean and appropriately scoped.
 - Immediate publish is still blocked on manual verification of the core VS Code and browser-return flows.
 - The extension looks like a credible `v0.1` pre-release candidate once those manual checks pass.
