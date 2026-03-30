@@ -8,6 +8,10 @@ Use it as the final release call.
 
 If any blocker in the `No-Go` section is still unresolved, do not publish.
 
+Manual live-flow runbook:
+
+- [MANUAL_VERIFICATION_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/MANUAL_VERIFICATION_RUNBOOK.md)
+
 ## Current Intended Positioning
 
 `RinaWarp Companion` is:
