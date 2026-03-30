@@ -8,6 +8,10 @@ pattern = "rinawarptech.com/v1/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/agents"
 zone_name = "rinawarptech.com"
 
@@ -69,6 +73,10 @@ zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "www.rinawarptech.com/download"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
