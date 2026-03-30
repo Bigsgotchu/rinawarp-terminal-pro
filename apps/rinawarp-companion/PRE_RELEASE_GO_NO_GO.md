@@ -37,13 +37,15 @@ Choose exactly one result before publishing:
 Current repo-backed assessment as of `2026-03-29`:
 
 - build and automated tests are green
-- Companion packaging evidence exists, but a fresh package run was not cleanly verified in this shell
-- the account, purchase-return, entitlement-refresh, and local VSIX install flows still require manual verification
+- Companion packaging evidence exists, but a fresh package run still depends on resolving local `vsce` installation cleanly in this workspace
+- local VSIX install, extension activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff were manually verified in VS Code on `2026-03-29`
+- the account callback and purchase-return callback still need work on this machine because the registered `vscode://` handler is invoking `code --open-url`, which fails here
+- entitlement refresh and billing portal still require additional manual verification
 
 That means the current status is:
 
-- `No-Go` for immediate publish without manual checks
-- likely movable to `Go with known limits` after the manual verification items pass
+- still `No-Go` for immediate publish because the callback return path is not yet trustworthy
+- likely movable to `Go with known limits` once the callback path and remaining entitlement checks pass
 
 ## No-Go Blockers
 
@@ -54,13 +56,13 @@ Any unchecked item here means `No-Go`.
 - [x] `npm --workspace apps/rinawarp-companion run build` passes
 - [x] `npm --workspace apps/rinawarp-companion run test` passes
 - [ ] a fresh pre-release VSIX is produced successfully
-- [ ] the VSIX installs locally in VS Code
+- [x] the VSIX installs locally in VS Code
 - [x] the package does not include unwanted files in the inspected VSIX artifact
 
 ### Core User Loop
 
 - [ ] account connect returns to the extension successfully
-- [ ] free diagnostic runs and produces a useful result in a trusted workspace
+- [x] free diagnostic runs and produces a useful result in a trusted workspace
 - [ ] purchase success returns to VS Code successfully
 - [ ] entitlement refresh works correctly or fails honestly with a clear recovery path
 
@@ -90,41 +92,41 @@ Record the result for each item as:
 
 ### 1. Install and First Launch
 
-- [ ] VSIX installs on the primary dev machine - Not tested in this session
-- [ ] extension activates without obvious errors - Not tested in this session
-- [ ] sidebar appears correctly - Not tested in this session
-- [ ] walkthrough assets and icon render correctly - Not tested in this session
+- [x] VSIX installs on the primary dev machine - Pass via `code --install-extension .../rinawarp-companion.vsix`
+- [x] extension activates without obvious errors - Pass via `exthost.log` activation on `onStartupFinished`
+- [x] sidebar appears correctly - Pass; Companion tree rendered plan, account, diagnostic, pack, and upgrade items
+- [ ] walkthrough assets and icon render correctly - Needs work; the activity bar icon rendered as a blank square in the isolated VS Code session
 - [ ] chat view opens correctly - Not tested in this session
 
 ### 2. Account and Entitlements
 
-- [ ] Connect Account opens the correct browser flow - Manual check required
-- [ ] callback returns to `rinawarp.rinawarp-companion` - Manual check required
-- [ ] account snapshot updates in the extension - Manual check required
-- [ ] Refresh Entitlements updates state correctly - Manual check required
-- [ ] paid account reflects expected plan state - Manual check required
-- [ ] unpaid account fails honestly and clearly - Manual check required
+- [x] Connect Account opens the correct browser flow - Pass; logged login URL with `return_to=vscode://rinawarp.rinawarp-companion/auth/callback...`
+- [ ] callback returns to `rinawarp.rinawarp-companion` - Needs work; local `vscode://` handler failed with `/usr/share/code/code: bad option: --open-url`
+- [ ] account snapshot updates in the extension - Not tested; callback could not complete on this machine
+- [ ] Refresh Entitlements updates state correctly - Not tested in this session
+- [ ] paid account reflects expected plan state - Not tested in this session
+- [ ] unpaid account fails honestly and clearly - Not tested in this session
 
 ### 3. Free Diagnostic Flow
 
-- [ ] diagnostic can be run from the sidebar - Manual check required
-- [ ] diagnostic output is useful, not placeholder-feeling - Manual check required
-- [ ] diagnostic works in a trusted workspace - Manual check required
-- [ ] recommended next step or pack feels relevant - Manual check required
+- [x] diagnostic can be run from the sidebar - Pass
+- [x] diagnostic output is useful, not placeholder-feeling - Pass; output included workspace-specific markers and summary text
+- [x] diagnostic works in a trusted workspace - Pass in the repo workspace
+- [x] recommended next step or pack feels relevant - Pass; recommended `npm-audit` for this workspace
 - [x] no obvious misleading claims are made about proof depth
 
 ### 4. Pack and Upgrade Handoff
 
-- [ ] Open Packs lands on the intended `/agents` surface - Manual check required
-- [ ] pack-specific deep links land on the expected destination - Manual check required
-- [ ] Upgrade to Pro lands on the expected pricing flow - Manual check required
-- [ ] Billing Portal opens the expected billing surface - Manual check required
+- [x] Open Packs lands on the intended `/agents` surface - Pass; logged `/agents?...utm_content=sidebar_open_packs`
+- [x] pack-specific deep links land on the expected destination - Pass; logged `/agents?...agent=npm-audit&utm_content=sidebar_recommended_pack`
+- [x] Upgrade to Pro lands on the expected pricing flow - Pass; logged `/pricing?...return_to=vscode://rinawarp.rinawarp-companion/purchase-complete`
+- [ ] Billing Portal opens the expected billing surface - Not tested; free-plan state did not expose the billing action in this session
 
 ### 5. Purchase Return and Recovery
 
-- [ ] purchase success returns to the extension - Manual check required
-- [ ] entitlement refresh after purchase behaves correctly - Manual check required
-- [ ] if refresh fails, the user sees a clear next step - Manual check required
+- [ ] purchase success returns to the extension - Needs work; same local `vscode://` handler issue is expected to block this return path
+- [ ] entitlement refresh after purchase behaves correctly - Not tested in this session
+- [ ] if refresh fails, the user sees a clear next step - Not tested in this session
 - [x] support can handle “I paid but it did not unlock”
 
 ### 6. Safety and Positioning
@@ -187,5 +189,6 @@ Release notes for this decision:
 
 - Automated status is encouraging: build and tests are green.
 - The inspected VSIX artifact looks clean and appropriately scoped.
-- Immediate publish is still blocked on manual verification of the core VS Code and browser-return flows.
+- Manual verification in VS Code proved local install, activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff.
+- Immediate publish is still blocked because the local `vscode://` callback path failed on this machine when returning into VS Code.
 - The extension looks like a credible `v0.1` pre-release candidate once those manual checks pass.
