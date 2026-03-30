@@ -120,6 +120,8 @@ declare module 'vscode' {
 
   export class Position {
     constructor(line: number, character: number);
+    readonly line: number;
+    readonly character: number;
   }
 
   export class Range {
@@ -132,6 +134,8 @@ declare module 'vscode' {
 
   export interface Selection extends Range {
     readonly isEmpty: boolean;
+    readonly start: Position;
+    readonly end: Position;
   }
 
   export interface TextDocument {

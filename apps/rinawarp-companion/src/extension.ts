@@ -36,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   }
 
   const sidebar = new CompanionTreeProvider(snapshot);
-  const chat = new CompanionChatProvider(context, context.extensionUri, snapshot, new CompanionChatApiClient(entitlements));
+  const chat = new CompanionChatProvider(context, context.extensionUri, snapshot, new CompanionChatApiClient(entitlements), fixClient);
   context.subscriptions.push(vscode.window.registerTreeDataProvider('rinawarp.companion', sidebar));
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('rinawarp.chat', chat));
   context.subscriptions.push(
@@ -165,6 +165,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         { command: 'rinawarp.fixSelection', label: 'Fix Selection' },
         { command: 'rinawarp.fixFile', label: 'Fix File' },
       ]);
+    }),
+    vscode.commands.registerCommand('rinawarp.viewFixPatch', async (...args: unknown[]) => {
+      const payload = args[0] as FixPatchPayload | undefined;
+      if (!payload) {
+        void vscode.window.showWarningMessage('No patch is ready to preview yet.');
+        return;
+      }
+      await openDiffPreview(payload);
+    }),
+    vscode.commands.registerCommand('rinawarp.applyFixPatch', async (...args: unknown[]) => {
+      const payload = args[0] as FixPatchPayload | undefined;
+      if (!payload) {
+        void vscode.window.showWarningMessage('No patch is ready to apply yet.');
+        return;
+      }
+      await applyFixPatchFromPayload(payload);
+      void vscode.window.showInformationMessage('Patch applied.');
     }),
     vscode.commands.registerCommand('rinawarp.fixFile', async () => {
       const editor = vscode.window.activeTextEditor;
@@ -386,6 +403,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 export function deactivate(): void {}
 
+interface FixPatchPayload {
+  filePath: string;
+  label: string;
+  languageId: string;
+  mode: 'file' | 'selection';
+  original: string;
+  updated: string;
+  selection?: { start: { line: number; character: number }; end: { line: number; character: number } };
+}
+
 async function confirmAndApplyFix(input: {
   label: string;
   original: string;
@@ -424,4 +451,27 @@ async function openDiffPreview(input: {
     content: input.updated,
   });
   await vscode.commands.executeCommand('vscode.diff', left.uri, right.uri, `Rina patch preview: ${input.label}`);
+}
+
+async function applyFixPatchFromPayload(payload: FixPatchPayload): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    throw new Error('Open a file first so I can apply the patch.');
+  }
+
+  if (payload.mode === 'selection' && payload.selection) {
+    const selection = new vscode.Range(
+      new vscode.Position(payload.selection.start.line, payload.selection.start.character),
+      new vscode.Position(payload.selection.end.line, payload.selection.end.character),
+    );
+    await editor.edit((editBuilder) => {
+      editBuilder.replace(selection, payload.updated);
+    });
+    return;
+  }
+
+  await editor.edit((editBuilder) => {
+    const fullRange = new vscode.Range(editor.document.positionAt(0), editor.document.positionAt(editor.document.getText().length));
+    editBuilder.replace(fullRange, payload.updated);
+  });
 }

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import type { DiagnosticRunSummary } from './diagnostics';
 import type { EntitlementSnapshot } from './entitlements';
+import type { CompanionFixClient } from './fixCode';
 import { hasActiveSelection } from './fixCode';
 import { recordTelemetry } from './telemetry';
 import { answerWorkspaceQuestion, canAnswerLocally, findRequestedFile, findRelevantConfigFile, gatherWorkspaceContext, inferRecommendedPack, type CompanionWorkspaceContext } from './workspaceContext';
@@ -16,6 +17,8 @@ export interface ChatAction {
     | 'rinawarp.fixFile'
     | 'rinawarp.summarizeWorkspace'
     | 'rinawarp.summarizeActiveFile'
+    | 'rinawarp.viewFixPatch'
+    | 'rinawarp.applyFixPatch'
     | 'rinawarp.openPack'
     | 'rinawarp.openPacks'
     | 'rinawarp.upgradeToPro'
@@ -41,6 +44,16 @@ interface ChatApiClient {
   }): Promise<ChatReply>;
 }
 
+interface FixPatchPayload {
+  filePath: string;
+  label: string;
+  languageId: string;
+  mode: 'file' | 'selection';
+  original: string;
+  updated: string;
+  selection?: { start: { line: number; character: number }; end: { line: number; character: number } };
+}
+
 interface ChatMessage {
   actions?: ChatAction[];
   content: string;
@@ -61,6 +74,7 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
   private pending = false;
   private lastError?: string;
   private lastFixIntent?: 'file' | 'selection';
+  private lastFixPatch?: FixPatchPayload;
   private stagedAction?: ChatAction;
   private view?: vscode.WebviewView;
 
@@ -69,6 +83,7 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
     private readonly extensionUri: vscode.Uri,
     snapshot: EntitlementSnapshot,
     private readonly client: ChatApiClient,
+    private readonly fixClient?: CompanionFixClient,
   ) {
     this.snapshot = snapshot;
     void this.restoreState();
@@ -160,6 +175,15 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
     await this.persistState();
 
     try {
+      if (/^apply\b/i.test(text) && this.lastFixPatch) {
+        await vscode.commands.executeCommand('rinawarp.applyFixPatch', this.lastFixPatch);
+        this.messages.push({
+          role: 'assistant',
+          content: `Applying the patch for ${this.lastFixPatch.label} now.`,
+        });
+        recordTelemetry({ name: 'chat_action_clicked', properties: { command: 'rinawarp.applyFixPatch' } });
+        return;
+      }
       if (/^apply\b/i.test(text) && this.lastFixIntent) {
         const action = this.lastFixIntent === 'selection'
           ? { command: 'rinawarp.fixSelection', label: 'Fix Selection' }
@@ -209,16 +233,67 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
           return;
         }
 
+        if (!this.fixClient) {
+          this.messages.push({
+            role: 'assistant',
+            content: 'Fix actions are not ready yet. Try the command palette while I finish wiring the patch preview flow.',
+            actions,
+          });
+          this.stagedAction = actions[0];
+          recordTelemetry({
+            name: 'chat_response_received',
+            properties: {
+              mode: 'local_tool',
+              plan: this.snapshot.plan,
+            },
+          });
+          return;
+        }
+
+        const target = getFixTarget();
+        if (!target) {
+          this.messages.push({
+            role: 'assistant',
+            content: 'I need an active editor and selection to prepare a patch. Open a file first.',
+            actions: [{ command: 'workbench.action.files.openFile', label: 'Open File' }],
+          });
+          this.stagedAction = undefined;
+          return;
+        }
+
         const primaryAction = /selection|selected|this part/i.test(text)
           ? actions.find((action) => action.command === 'rinawarp.fixSelection') || actions[0]
           : actions[0];
 
+        const result = await this.fixClient.fixCode({
+          filePath: target.filePath,
+          instructions: target.mode === 'selection'
+            ? `Improve this ${target.languageId} code selection. Return only the updated code.`
+            : `Improve this ${target.languageId} file. Return only the updated code.`,
+          languageId: target.languageId,
+          mode: target.mode,
+          originalCode: target.original,
+        });
+
+        this.lastFixPatch = {
+          filePath: target.filePath,
+          label: target.mode === 'selection' ? 'your selection' : 'this file',
+          languageId: target.languageId,
+          mode: target.mode,
+          original: target.original,
+          updated: result.fixedCode,
+          selection: target.selection,
+        };
+
         this.messages.push({
           role: 'assistant',
-          content: `I can hand that off without blocking you. ${primaryAction.label} will run in the background and patch the editor directly if the result looks usable.`,
-          actions,
+          content: `Patch ready for ${this.lastFixPatch.label}. You can preview it or apply now.`,
+          actions: [
+            { command: 'rinawarp.viewFixPatch', label: 'View Diff', args: [this.lastFixPatch] },
+            { command: 'rinawarp.applyFixPatch', label: 'Apply Patch', args: [this.lastFixPatch] },
+          ],
         });
-        this.stagedAction = primaryAction;
+        this.stagedAction = { command: 'rinawarp.applyFixPatch', label: 'Apply Patch', args: [this.lastFixPatch] };
         this.lastFixIntent = primaryAction.command === 'rinawarp.fixSelection' ? 'selection' : 'file';
         recordTelemetry({
           name: 'chat_response_received',
@@ -772,6 +847,39 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
   </body>
 </html>`;
   }
+}
+
+function getFixTarget(): {
+  filePath: string;
+  languageId: string;
+  mode: 'file' | 'selection';
+  original: string;
+  selection?: { start: { line: number; character: number }; end: { line: number; character: number } };
+} | undefined {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return undefined;
+  const document = editor.document;
+  if (!editor.selection.isEmpty) {
+    const selection = editor.selection;
+    const original = document.getText(selection);
+    return {
+      filePath: document.uri.fsPath,
+      languageId: document.languageId,
+      mode: 'selection',
+      original,
+      selection: {
+        start: { line: selection.start.line, character: selection.start.character },
+        end: { line: selection.end.line, character: selection.end.character },
+      },
+    };
+  }
+  const original = document.getText();
+  return {
+    filePath: document.uri.fsPath,
+    languageId: document.languageId,
+    mode: 'file',
+    original,
+  };
 }
 
 export function isApprovalPrompt(text: string): boolean {

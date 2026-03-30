@@ -492,7 +492,16 @@ serialTest('chat provider stages background fix actions for explicit fix prompts
     workspaceFolders: undefined,
     window: {
       activeTextEditor: {
-        selection: { isEmpty: false },
+        document: {
+          uri: { fsPath: '/tmp/demo.ts' },
+          languageId: 'typescript',
+          getText: () => 'const value = 1;',
+        },
+        selection: {
+          isEmpty: false,
+          start: { line: 0, character: 0 },
+          end: { line: 0, character: 16 },
+        },
       },
     },
   });
@@ -508,6 +517,11 @@ serialTest('chat provider stages background fix actions for explicit fix prompts
         throw new Error('fix-intent path should not call remote chat');
       },
     },
+    {
+      async fixCode() {
+        return { fixedCode: 'const value = 2;', summary: 'ok' };
+      },
+    },
   );
   const view = createWebviewView();
   provider.resolveWebviewView(view);
@@ -519,9 +533,9 @@ serialTest('chat provider stages background fix actions for explicit fix prompts
   const lastState = view.posted.at(-1).value;
   assert.equal(lastState.pending, false);
   assert.equal(lastState.messages.length, 2);
-  assert.match(lastState.messages[1].content, /without blocking you/i);
-  assert.equal(lastState.nextActionLabel, 'Fix Selection');
-  assert.equal(lastState.messages[1].actions[0].command, 'rinawarp.fixSelection');
+  assert.match(lastState.messages[1].content, /Patch ready/i);
+  assert.equal(lastState.nextActionLabel, 'Apply Patch');
+  assert.equal(lastState.messages[1].actions[0].command, 'rinawarp.viewFixPatch');
 });
 
 serialTest('chat provider lets apply intent reuse the last fix target', async () => {
@@ -530,7 +544,16 @@ serialTest('chat provider lets apply intent reuse the last fix target', async ()
     workspaceFolders: undefined,
     window: {
       activeTextEditor: {
-        selection: { isEmpty: false },
+        document: {
+          uri: { fsPath: '/tmp/demo.ts' },
+          languageId: 'typescript',
+          getText: () => 'const value = 1;',
+        },
+        selection: {
+          isEmpty: false,
+          start: { line: 0, character: 0 },
+          end: { line: 0, character: 16 },
+        },
       },
     },
     commands: {
@@ -551,6 +574,11 @@ serialTest('chat provider lets apply intent reuse the last fix target', async ()
         return { message: 'ok', actions: [] };
       },
     },
+    {
+      async fixCode() {
+        return { fixedCode: 'const value = 2;', summary: 'ok' };
+      },
+    },
   );
   const view = createWebviewView();
   provider.resolveWebviewView(view);
@@ -562,7 +590,7 @@ serialTest('chat provider lets apply intent reuse the last fix target', async ()
   await view.webview.simulateMessage({ type: 'send', text: 'apply' });
   await flushMicrotasks();
 
-  assert.equal(executed.at(-1).command, 'rinawarp.fixSelection');
+  assert.equal(executed.at(-1).command, 'rinawarp.applyFixPatch');
 });
 
 serialTest('chat provider offers a file picker action when fix intent has no editor', async () => {
