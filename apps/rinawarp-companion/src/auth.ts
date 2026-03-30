@@ -7,7 +7,7 @@ import { recordTelemetry } from './telemetry';
 
 const AUTH_CALLBACK_PATH = '/auth/callback';
 const PURCHASE_COMPLETE_PATH = '/purchase-complete';
-const PUBLISHED_EXTENSION_ID = 'RinawarpTechnologies.rinawarp-companion';
+const PUBLISHED_EXTENSION_ID = 'RinawarpTech.rinawarp-companion';
 
 export class AuthUriHandler implements vscode.UriHandler {
   constructor(

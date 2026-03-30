@@ -108,8 +108,8 @@ Record the result for each item as:
 
 ### 2. Account and Entitlements
 
-- [x] Connect Account opens the correct browser flow - Pass; logged login URL with `return_to=vscode://RinawarpTechnologies.rinawarp-companion/auth/callback...`
-- [x] callback returns to `RinawarpTechnologies.rinawarp-companion` - Pass in the normal VS Code profile after repairing the local Linux `vscode://` handler and fixing the website callback handoff
+- [x] Connect Account opens the correct browser flow - Pass; logged login URL with `return_to=vscode://RinawarpTech.rinawarp-companion/auth/callback...`
+- [x] callback returns to `RinawarpTech.rinawarp-companion` - Pass in the normal VS Code profile after repairing the local Linux `vscode://` handler and fixing the website callback handoff
 - [x] account snapshot updates in the extension - Pass; live Companion sidebar updated to `Plan: PRO` and `Account: test2@example.com`
 - [x] Refresh Entitlements updates state correctly - Pass after reconnect in the live Companion UI; stale auth was cleared after the account callback path was repaired
 - [x] paid account reflects expected plan state - Pass for a simulated `pro` callback in the live profile
@@ -127,7 +127,7 @@ Record the result for each item as:
 
 - [x] Open Packs lands on the intended `/agents` surface - Pass; logged `/agents?...utm_content=sidebar_open_packs`
 - [x] pack-specific deep links land on the expected destination - Pass; logged `/agents?...agent=npm-audit&utm_content=sidebar_recommended_pack`
-- [x] Upgrade to Pro lands on the expected pricing flow - Pass; logged `/pricing?...return_to=vscode://RinawarpTechnologies.rinawarp-companion/purchase-complete`
+- [x] Upgrade to Pro lands on the expected pricing flow - Pass; logged `/pricing?...return_to=vscode://RinawarpTech.rinawarp-companion/purchase-complete`
 - [x] Billing Portal opens the expected billing surface - Pass at the live API level; `/api/portal` returned a real Stripe billing portal URL for the paid account email on `2026-03-30`
 
 ### 5. Purchase Return and Recovery
