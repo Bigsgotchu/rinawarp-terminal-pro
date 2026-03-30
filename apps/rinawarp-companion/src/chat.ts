@@ -60,6 +60,7 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
   private readonly messages: ChatMessage[] = [];
   private pending = false;
   private lastError?: string;
+  private lastFixIntent?: 'file' | 'selection';
   private stagedAction?: ChatAction;
   private view?: vscode.WebviewView;
 
@@ -159,6 +160,18 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
     await this.persistState();
 
     try {
+      if (/^apply\b/i.test(text) && this.lastFixIntent) {
+        const action = this.lastFixIntent === 'selection'
+          ? { command: 'rinawarp.fixSelection', label: 'Fix Selection' }
+          : { command: 'rinawarp.fixFile', label: 'Fix File' };
+        await vscode.commands.executeCommand(action.command);
+        this.messages.push({
+          role: 'assistant',
+          content: `Applying the patch for ${this.lastFixIntent === 'selection' ? 'your selection' : 'the active file'} now.`,
+        });
+        recordTelemetry({ name: 'chat_action_clicked', properties: { command: action.command } });
+        return;
+      }
       if (isApprovalPrompt(text) && this.stagedAction) {
         const action = pickActionForPrompt(text, this.collectAvailableActions(), this.stagedAction);
         await vscode.commands.executeCommand(action.command, ...(Array.isArray(action.args) ? action.args : []));
@@ -206,6 +219,7 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
           actions,
         });
         this.stagedAction = primaryAction;
+        this.lastFixIntent = primaryAction.command === 'rinawarp.fixSelection' ? 'selection' : 'file';
         recordTelemetry({
           name: 'chat_response_received',
           properties: {

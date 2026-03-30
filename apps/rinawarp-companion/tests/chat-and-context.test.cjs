@@ -524,6 +524,47 @@ serialTest('chat provider stages background fix actions for explicit fix prompts
   assert.equal(lastState.messages[1].actions[0].command, 'rinawarp.fixSelection');
 });
 
+serialTest('chat provider lets apply intent reuse the last fix target', async () => {
+  const executed = [];
+  const stubVscode = createVscodeStub({
+    workspaceFolders: undefined,
+    window: {
+      activeTextEditor: {
+        selection: { isEmpty: false },
+      },
+    },
+    commands: {
+      async executeCommand(command, ...args) {
+        executed.push({ command, args });
+      },
+    },
+  });
+  const { CompanionChatProvider } = loadWithVscodeStub(distPath('chat.js'), stubVscode);
+  const context = { secrets: createSecretStorage() };
+
+  const provider = new CompanionChatProvider(
+    context,
+    { path: '/extension' },
+    { plan: 'pro', packs: [], updatedAt: '', email: 'user@example.com' },
+    {
+      async sendChat() {
+        return { message: 'ok', actions: [] };
+      },
+    },
+  );
+  const view = createWebviewView();
+  provider.resolveWebviewView(view);
+  await flushMicrotasks();
+
+  await view.webview.simulateMessage({ type: 'send', text: 'fix this selection' });
+  await flushMicrotasks();
+
+  await view.webview.simulateMessage({ type: 'send', text: 'apply' });
+  await flushMicrotasks();
+
+  assert.equal(executed.at(-1).command, 'rinawarp.fixSelection');
+});
+
 serialTest('chat provider offers a file picker action when fix intent has no editor', async () => {
   const stubVscode = createVscodeStub({
     workspaceFolders: undefined,
