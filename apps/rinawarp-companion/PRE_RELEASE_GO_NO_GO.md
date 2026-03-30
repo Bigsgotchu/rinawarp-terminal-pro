@@ -42,10 +42,12 @@ Current repo-backed assessment as of `2026-03-29`:
 - Companion packaging evidence exists, but a fresh package run still depends on resolving local `vsce` installation cleanly in this workspace
 - local VSIX install, extension activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff were manually verified in VS Code on `2026-03-29`
 - Companion already has a real chat view and account-linked chat API surface in the repo
+- isolated-profile install and activation were re-verified on `2026-03-30` after the entitlement-refresh hardening and chat-first positioning pass
 - the local Linux `vscode://` handler was repaired on this machine, and the live Companion sidebar now restores connected account state in the normal VS Code profile
 - the callback still leaves rough UX in this Code build because callback tabs can remain visible instead of disappearing cleanly
 - entitlement refresh and billing portal still require additional manual verification
 - purchase-complete can now be routed back into VS Code on this machine, but the post-return success or recovery messaging still was not cleanly observed in this pass
+- a raw CLI `code --open-url vscode://...` callback without the browser-provided routing context does not reach the extension cleanly in the isolated profile, so that is not a trustworthy substitute for the real browser-return flow
 
 That means the current status is:
 
@@ -98,7 +100,7 @@ Record the result for each item as:
 ### 1. Install and First Launch
 
 - [x] VSIX installs on the primary dev machine - Pass via `code --install-extension .../rinawarp-companion.vsix`
-- [x] extension activates without obvious errors - Pass via `exthost.log` activation on `onStartupFinished`
+- [x] extension activates without obvious errors - Pass via `exthost.log` activation on `onStartupFinished`, re-confirmed in an isolated profile on `2026-03-30`
 - [x] sidebar appears correctly - Pass; Companion tree rendered plan, account, diagnostic, pack, and upgrade items
 - [ ] walkthrough assets and icon render correctly - Needs work; the activity bar icon rendered as a blank square in the isolated VS Code session
 - [ ] chat view opens correctly - Not tested in this session
@@ -108,7 +110,7 @@ Record the result for each item as:
 - [x] Connect Account opens the correct browser flow - Pass; logged login URL with `return_to=vscode://rinawarp.rinawarp-companion/auth/callback...`
 - [x] callback returns to `rinawarp.rinawarp-companion` - Pass in the normal VS Code profile after repairing the local Linux `vscode://` handler
 - [x] account snapshot updates in the extension - Pass; live Companion sidebar updated to `Plan: PRO` and `Account: test2@example.com`
-- [ ] Refresh Entitlements updates state correctly - Attempted in the live profile, but no clear visible success or failure signal was captured
+- [ ] Refresh Entitlements updates state correctly - Live visual confirmation still pending, but the refresh UX is now hardened in repo and automated tests cover success, fallback, auth rejection, network failure, malformed response, and stale-state preservation
 - [x] paid account reflects expected plan state - Pass for a simulated `pro` callback in the live profile
 - [ ] unpaid account fails honestly and clearly - Not tested in this session
 
