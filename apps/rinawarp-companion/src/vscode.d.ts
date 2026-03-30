@@ -90,6 +90,11 @@ declare module 'vscode' {
     readonly uri: Uri;
   }
 
+  export interface DocumentSelector {
+    scheme?: string;
+    language?: string;
+  }
+
   export namespace workspace {
     const isTrusted: boolean;
     const workspaceFolders: readonly WorkspaceFolder[] | undefined;
@@ -132,6 +137,7 @@ declare module 'vscode' {
     readonly uri: Uri;
     readonly languageId: string;
     getText(range?: Range | Selection): string;
+    offsetAt(position: Position): number;
     positionAt(offset: number): Position;
   }
 
@@ -143,6 +149,25 @@ declare module 'vscode' {
     readonly document: TextDocument;
     readonly selection: Selection;
     edit(callback: (editBuilder: TextEditorEdit) => void): Thenable<boolean>;
+  }
+
+  export interface CancellationToken {
+    readonly isCancellationRequested: boolean;
+  }
+
+  export interface InlineCompletionContext {}
+
+  export class InlineCompletionItem {
+    constructor(insertText: string, range?: Range);
+  }
+
+  export interface InlineCompletionItemProvider {
+    provideInlineCompletionItems(
+      document: TextDocument,
+      position: Position,
+      context: InlineCompletionContext,
+      token: CancellationToken,
+    ): ProviderResult<InlineCompletionItem[]>;
   }
 
   export interface WebviewOptions {
@@ -168,6 +193,13 @@ declare module 'vscode' {
   export namespace commands {
     function registerCommand(command: string, callback: (...args: unknown[]) => unknown): Disposable;
     function executeCommand<T = unknown>(command: string, ...rest: unknown[]): Thenable<T>;
+  }
+
+  export namespace languages {
+    function registerInlineCompletionItemProvider(
+      selector: DocumentSelector | DocumentSelector[],
+      provider: InlineCompletionItemProvider,
+    ): Disposable;
   }
 
   export namespace env {

@@ -255,6 +255,53 @@ serialTest('chat API client requires auth and sends the expected payload shape',
   }
 });
 
+serialTest('inline completion client uses the Companion auth session and returns completions', async () => {
+  const stubVscode = createVscodeStub({
+    configValues: {
+      apiBaseUrl: 'https://api.rinawarptech.com',
+      baseUrl: 'https://www.rinawarptech.com',
+      enableTelemetry: true,
+    },
+  });
+  const { CompanionInlineCompletionClient } = loadWithVscodeStub(distPath('inlineCompletion.js'), stubVscode);
+
+  const fetchCalls = [];
+  const originalFetch = global.fetch;
+  global.fetch = async (url, init) => {
+    fetchCalls.push({ url, init });
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ completion: 'console.log(value);' }),
+    };
+  };
+
+  try {
+    const client = new CompanionInlineCompletionClient({
+      getSessionToken: async () => 'session-token',
+    });
+
+    const completion = await client.getInlineCompletion({
+      filePath: '/tmp/demo.ts',
+      languageId: 'typescript',
+      textAfterCursor: '',
+      textBeforeCursor: 'const value = 1;\n',
+    });
+
+    assert.equal(completion, 'console.log(value);');
+    assert.equal(fetchCalls.length, 1);
+    assert.equal(fetchCalls[0].url, 'https://api.rinawarptech.com/api/ai/inline');
+    assert.equal(fetchCalls[0].init.headers.Authorization, 'Bearer session-token');
+
+    const body = JSON.parse(fetchCalls[0].init.body);
+    assert.equal(body.languageId, 'typescript');
+    assert.equal(body.filePath, '/tmp/demo.ts');
+    assert.match(body.before, /const value = 1;/i);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 serialTest('chat provider blocks send when the user is not connected', async () => {
   const stubVscode = createVscodeStub();
   const { CompanionChatProvider } = loadWithVscodeStub(distPath('chat.js'), stubVscode);

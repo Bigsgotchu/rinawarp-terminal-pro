@@ -7,6 +7,7 @@ import { getConfig } from './config';
 import { runWorkspaceDiagnostic } from './diagnostics';
 import { EntitlementService, defaultSnapshot, type EntitlementSnapshot } from './entitlements';
 import { CompanionFixClient } from './fixCode';
+import { CompanionInlineCompletionClient, CompanionInlineCompletionProvider } from './inlineCompletion';
 import { runEntitlementRefresh } from './refreshFlow';
 import {
   createBillingPortalUrl,
@@ -25,6 +26,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   setTelemetryService(telemetry);
   const entitlements = new EntitlementService(context);
   const fixClient = new CompanionFixClient(entitlements);
+  const inlineCompletionClient = new CompanionInlineCompletionClient(entitlements);
   let snapshot = await entitlements.getSnapshot();
   if (!snapshot.updatedAt) {
     snapshot = defaultSnapshot();
@@ -34,6 +36,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const chat = new CompanionChatProvider(context, context.extensionUri, snapshot, new CompanionChatApiClient(entitlements));
   context.subscriptions.push(vscode.window.registerTreeDataProvider('rinawarp.companion', sidebar));
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('rinawarp.chat', chat));
+  context.subscriptions.push(
+    vscode.languages.registerInlineCompletionItemProvider(
+      { scheme: 'file' },
+      new CompanionInlineCompletionProvider(inlineCompletionClient),
+    ),
+  );
 
   const setSnapshot = (next: EntitlementSnapshot) => {
     snapshot = next;
