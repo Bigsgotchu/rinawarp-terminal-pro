@@ -312,6 +312,9 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
     if (workspaceContext.hasWorkspace) {
       actions.push({ command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' });
     }
+    if (/refresh|plan|entitlement|billing|connected/i.test(prompt) && this.snapshot.email) {
+      actions.push({ command: 'rinawarp.refreshEntitlements', label: 'Refresh Entitlements' });
+    }
     if (recommendation.pack) {
       actions.push({
         command: 'rinawarp.openPack',

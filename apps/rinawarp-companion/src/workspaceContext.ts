@@ -78,7 +78,7 @@ export async function gatherWorkspaceContext(): Promise<CompanionWorkspaceContex
 }
 
 export function canAnswerLocally(prompt: string): boolean {
-  return /\b(workspace|project|repo|scripts|package\.json|readme|dockerfile|wrangler|tsconfig|files|folder|what am i in|what do you see|what did you find|git|branch|status|dependencies|deps|packages|show|explain|recommend|recommended|pack|why|first step|next step|plan)\b/i.test(prompt);
+  return /\b(workspace|project|repo|summarize|summary|scripts|package\.json|readme|dockerfile|wrangler|tsconfig|files|folder|what am i in|what do you see|what did you find|git|branch|status|dependencies|deps|packages|stack|tech|technology|show|explain|recommend|recommended|pack|why|first step|next step|plan|risk|risks|blocker|blockers|watch out|inspect|where should i start|which file)\b/i.test(prompt);
 }
 
 export async function answerWorkspaceQuestion(
@@ -96,15 +96,37 @@ export async function answerWorkspaceQuestion(
     return buildPackComparison(context, ranked);
   }
 
+  if (/\b(summarize|summary|what is this project|what kind of project|what is this repo|what am i looking at|stack|tech)\b/.test(normalized)) {
+    return buildWorkspaceSummaryCard(context, diagnostic);
+  }
+
   if (/\b(why|recommend|recommended).*\b(pack|workflow)\b|\bwhich pack\b/.test(normalized)) {
     const recommendation = inferRecommendedPack(context, diagnostic);
     return `${context.summary} I would recommend ${recommendation.pack} because ${recommendation.reason} ${summarizeRunnerUps(rankPackCandidates(context, diagnostic))}`;
+  }
+
+  if (/\b(risk|risks|blocker|blockers|watch out|what could break|concern|concerns)\b/.test(normalized)) {
+    return buildRiskCard(context, diagnostic);
   }
 
   if (/\b(first step|next step|plan|what should i do first|what should i do next)\b/.test(normalized)) {
     const ranked = rankPackCandidates(context, diagnostic);
     const recommendation = ranked[0];
     return buildLocalPlan(context, recommendation.pack, recommendation.reason, ranked.slice(1, 3));
+  }
+
+  if (/\b(where should i start|which file|what file should i inspect|inspect first|start with file)\b/.test(normalized)) {
+    const recommendation = inferRecommendedPack(context, diagnostic);
+    const file = findRelevantConfigFile(context, recommendation);
+    if (!file) {
+      return `${context.summary} I do not see one strong starter file, so the safest beginning is to run the free diagnostic and then open ${recommendation.pack}.`;
+    }
+    return [
+      'Decision card',
+      `Best first file: ${file.name}`,
+      `Why: ${file.summary}`,
+      `Recommended next action: Inspect ${file.name}, then run the free diagnostic, then open ${recommendation.pack}.`,
+    ].join('\n\n');
   }
 
   const fileMatch = findRequestedFile(normalized, context.fileSummaries || []);
@@ -220,6 +242,24 @@ function buildPackComparison(
   ].filter(Boolean).join('\n\n');
 }
 
+function buildWorkspaceSummaryCard(
+  context: CompanionWorkspaceContext,
+  diagnostic?: DiagnosticRunSummary,
+): string {
+  const stack = summarizeTechStack(context);
+  const recommendation = inferRecommendedPack(context, diagnostic);
+  const entries = context.topLevelEntries?.slice(0, 6).join(', ') || 'no obvious top-level entries';
+  return [
+    'Decision card',
+    `Workspace summary: ${context.workspaceName || 'Current workspace'}`,
+    `What I see: ${stack}`,
+    `Top-level entries: ${entries}`,
+    `Best recommendation: ${recommendation.pack}`,
+    `Why: ${recommendation.reason}`,
+    `Recommended next action: Run the free diagnostic, then inspect the suggested pack or a relevant config file.`,
+  ].join('\n\n');
+}
+
 function summarizeRunnerUps(
   ranked: Array<{ pack: string; reason: string }>,
 ): string {
@@ -236,18 +276,22 @@ function buildLocalPlan(
   reason: string,
   alternatives: Array<{ pack: string; reason: string }>,
 ): string {
+  const configFile = findRelevantConfigFile(context, { pack, reason });
   const steps = [
     `1. Confirm the workspace shape first. ${context.summary}`,
-    `2. Run the free diagnostic so Companion can attach a fresh proof-style summary to the current project state.`,
-    `3. Open ${pack} next because ${reason}`,
+    configFile
+      ? `2. Inspect ${configFile.name} first so you can ground the next step in a real project file.`
+      : '2. Identify the main project file or config before making changes.',
+    `3. Run the free diagnostic so Companion can attach a fresh proof-style summary to the current project state.`,
+    `4. Open ${pack} next because ${reason}`,
   ];
 
   if (alternatives.length) {
-    steps.push(`4. Keep these as runner-up options if the first path is not the right fit: ${alternatives.map((entry) => `${entry.pack}`).join(', ')}.`);
+    steps.push(`5. Keep these as runner-up options if the first path is not the right fit: ${alternatives.map((entry) => `${entry.pack}`).join(', ')}.`);
   }
 
   if (context.packageScripts?.length) {
-    steps.push(`5. Use the visible scripts (${context.packageScripts.slice(0, 4).join(', ')}) as the first commands to inspect before making any risky changes.`);
+    steps.push(`6. Use the visible scripts (${context.packageScripts.slice(0, 4).join(', ')}) as the first commands to inspect before making any risky changes.`);
   }
 
   return [
@@ -258,6 +302,72 @@ function buildLocalPlan(
     'Next safe actions:',
     steps.join('\n'),
   ].join('\n\n');
+}
+
+function buildRiskCard(
+  context: CompanionWorkspaceContext,
+  diagnostic?: DiagnosticRunSummary,
+): string {
+  const risks: string[] = [];
+
+  if (context.gitStatusSummary && !/working tree clean/i.test(context.gitStatusSummary)) {
+    risks.push(`The workspace is already dirty: ${context.gitStatusSummary}.`);
+  }
+  if (!context.packageManagerHint && context.markers.includes('node-project')) {
+    risks.push('There is a Node-style project signal, but no package manager lockfile was detected yet.');
+  }
+  if (context.markers.includes('env-file')) {
+    risks.push('Environment files are present, so config and secret handling need extra care.');
+  }
+  if (context.markers.includes('docker')) {
+    risks.push('Docker assets are present, so runtime issues may involve both app code and container config.');
+  }
+  if (context.markers.includes('github')) {
+    risks.push('CI/workflow files are present, so changes may affect deployment or automation behavior.');
+  }
+  if (!context.markers.includes('tests')) {
+    risks.push('No clear test signal was detected, so verification may depend on manual checks.');
+  }
+  if (diagnostic?.recommendedPack) {
+    risks.push(`The last diagnostic pointed toward ${diagnostic.recommendedPack}, which is a signal worth following before making broader changes.`);
+  }
+
+  const recommendation = inferRecommendedPack(context, diagnostic);
+  const findings = risks.length ? risks.map((risk) => `- ${risk}`).join('\n') : '- No obvious high-risk marker stands out yet.';
+  return [
+    'Decision card',
+    `Best recommendation: ${recommendation.pack}`,
+    `Why: ${recommendation.reason}`,
+    'Risks to watch:',
+    findings,
+    'Recommended next action: Inspect the most relevant config file, then run the free diagnostic before taking a riskier workflow step.',
+  ].join('\n\n');
+}
+
+function summarizeTechStack(context: CompanionWorkspaceContext): string {
+  const parts: string[] = [];
+  if (context.packageName) {
+    parts.push(`package ${context.packageName}`);
+  }
+  if (context.packageManagerHint) {
+    parts.push(`${context.packageManagerHint}-managed app`);
+  }
+  if (context.markers.includes('docker')) {
+    parts.push('containerized workflow');
+  }
+  if (context.markers.includes('react')) {
+    parts.push('React');
+  }
+  if (context.markers.includes('typescript')) {
+    parts.push('TypeScript');
+  }
+  if (context.markers.includes('github')) {
+    parts.push('GitHub automation');
+  }
+  if (context.markers.includes('tests')) {
+    parts.push('test coverage present');
+  }
+  return parts.length ? parts.join(', ') : 'a general project workspace with limited strong signals so far';
 }
 
 export function findRelevantConfigFile(

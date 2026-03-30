@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs/promises');
+const os = require('node:os');
 
 const { loadWithVscodeStub } = require('./helpers/load-module.cjs');
 
@@ -145,6 +147,13 @@ serialTest('workspace context answers local workspace questions and ignores gene
 
   const answer = await workspaceContext.answerWorkspaceQuestion('what scripts do you see here', context);
   assert.match(answer, /build, test/i);
+
+  const summary = await workspaceContext.answerWorkspaceQuestion('summarize this repo', context);
+  assert.match(summary, /Decision card/i);
+  assert.match(summary, /test coverage present/i);
+
+  const risks = await workspaceContext.answerWorkspaceQuestion('what should I watch out for here', context);
+  assert.match(risks, /Risks to watch/i);
 });
 
 serialTest('chat action selection prefers inspection and explicit workflow intents', () => {
@@ -297,6 +306,33 @@ serialTest('chat provider answers local workspace questions and stages a follow-
   assert.match(lastState.messages[1].content, /No workspace folder is open right now/i);
   assert.equal(lastState.messages[1].actions.some((action) => action.command === 'rinawarp.upgradeToPro'), true);
   assert.equal(lastState.nextActionLabel, 'Open system-diagnostics');
+});
+
+serialTest('workspace context recommends a starter file for local reasoning prompts', async () => {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'rinawarp-chat-'));
+  await fs.writeFile(
+    path.join(tempRoot, 'package.json'),
+    JSON.stringify({ name: 'demo', scripts: { build: 'tsc', test: 'node --test' } }, null, 2),
+  );
+  await fs.writeFile(path.join(tempRoot, 'README.md'), '# Demo\n\nWorkspace summary file.\n');
+
+  const stubVscode = createVscodeStub({
+    workspaceFolders: [{ name: 'demo', uri: { fsPath: tempRoot } }],
+  });
+  const workspaceContext = loadWithVscodeStub(distPath('workspaceContext.js'), stubVscode);
+
+  try {
+    const context = await workspaceContext.gatherWorkspaceContext();
+    const recommendation = workspaceContext.inferRecommendedPack(context);
+    const file = workspaceContext.findRelevantConfigFile(context, recommendation);
+    const answer = await workspaceContext.answerWorkspaceQuestion('what file should I inspect first', context);
+
+    assert.equal(file?.name, 'package.json');
+    assert.match(answer, /Best first file: package\.json/i);
+    assert.match(answer, /Run the free diagnostic/i);
+  } finally {
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  }
 });
 
 serialTest('chat provider routes action clicks into VS Code commands', async () => {
