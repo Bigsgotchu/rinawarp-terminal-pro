@@ -73,6 +73,10 @@
       "description": "Recorded when the website routes a completed purchase back into VS Code."
     },
     {
+      "name": "purchase_return_verification_started",
+      "description": "Recorded when a user opens the safe purchase-return verification flow from the extension."
+    },
+    {
       "name": "billing_portal_clicked",
       "description": "Recorded when a user opens the billing portal from the extension."
     },

@@ -1236,6 +1236,57 @@ function renderSuccess(returnTo: string = '', sessionId: string = ''): Response 
   return renderPage('/success', 'account', hero, content, script)
 }
 
+function renderCompanionPurchaseVerification(returnTo: string = ''): Response {
+  const hero = `
+    <section class="hero">
+      <span class="eyebrow">Verification only</span>
+      <h1>Test the Companion purchase return.</h1>
+      <p class="hero-copy">This page does not create a Stripe charge. It exists only to verify that the VS Code purchase-complete callback returns cleanly and gives the user an honest next step.</p>
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="auth-container">
+        <div class="auth-card">
+          <h2 class="auth-title">No charge will happen here</h2>
+          <p class="auth-subtitle">Use this only for release verification. It simulates the moment after a successful purchase return without touching live billing.</p>
+          <div class="link-row">
+            <a id="verify-return-to-product" href="${returnTo || '/account'}" class="btn btn-primary">Return to VS Code</a>
+            <a href="/pricing" class="btn btn-secondary">Open live pricing</a>
+          </div>
+          <p class="note">If the browser does not switch back automatically, click <strong>Return to VS Code</strong>. Companion should then run the same purchase-complete flow it uses after a real checkout return.</p>
+        </div>
+        <div class="auth-card">
+          <h2 class="auth-title">What this proves</h2>
+          <ul class="signal-list">
+            <li><strong>Callback plumbing.</strong> The browser can hand control back to the Companion purchase-complete callback.</li>
+            <li><strong>Extension recovery messaging.</strong> Companion can refresh entitlements or tell the user what to do next.</li>
+            <li><strong>No billing side effects.</strong> This page is isolated from live Stripe Checkout.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  `
+
+  const script = `
+    const returnTo = ${JSON.stringify(returnTo)};
+    const returnBtn = document.getElementById('verify-return-to-product');
+    if (!returnTo && returnBtn) {
+      returnBtn.textContent = 'Open account';
+      returnBtn.setAttribute('href', '/account');
+    }
+
+    if (returnTo) {
+      setTimeout(() => {
+        window.location.href = returnTo;
+      }, 350);
+    }
+  `
+
+  return renderPage('/verify/companion-purchase', 'account', hero, content, script)
+}
+
 function renderFeedback(): Response {
   const hero = `
     <section class="hero">
@@ -2563,6 +2614,10 @@ export default {
 
     if (path === '/success' || path === '/success/') {
       return renderSuccess(url.searchParams.get('return_to') || '', url.searchParams.get('session_id') || '')
+    }
+
+    if (path === '/verify/companion-purchase' || path === '/verify/companion-purchase/') {
+      return renderCompanionPurchaseVerification(url.searchParams.get('return_to') || '')
     }
 
     if (path === '/docs' || path === '/docs/') {

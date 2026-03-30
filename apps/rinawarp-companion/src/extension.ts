@@ -11,6 +11,7 @@ import {
   createBillingPortalUrl,
   createPackUrl,
   createPacksUrl,
+  createPurchaseVerificationUrl,
   createPricingUrl,
   createPrivacyUrl,
 } from './rinawarpUrls';
@@ -153,6 +154,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         term: 'proof_export',
       });
       url.searchParams.set('return_to', getPurchaseReturnUri().toString());
+      await vscode.env.openExternal(vscode.Uri.parse(url.toString()));
+    }),
+    vscode.commands.registerCommand('rinawarp.verifyPurchaseReturn', async () => {
+      telemetry.record({ name: 'purchase_return_verification_started' });
+      const url = createPurchaseVerificationUrl(getConfig().baseUrl, {
+        campaign: 'rinawarp_vscode_launch_q2_2026',
+        content: 'verify_purchase_return',
+      }, getPurchaseReturnUri().toString());
       await vscode.env.openExternal(vscode.Uri.parse(url.toString()));
     }),
     vscode.commands.registerCommand('rinawarp.openBillingPortal', async () => {

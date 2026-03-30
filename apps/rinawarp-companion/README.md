@@ -45,6 +45,7 @@ RinaWarp Companion is not:
 - `RinaWarp: Run Free Diagnostic`
 - `RinaWarp: Open Packs`
 - `RinaWarp: Upgrade to Pro`
+- `RinaWarp: Verify Purchase Return`
 - `RinaWarp: Open Billing Portal`
 - `RinaWarp: Open Privacy Details`
 - `RinaWarp: Refresh Entitlements`

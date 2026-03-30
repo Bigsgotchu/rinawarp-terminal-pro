@@ -47,7 +47,7 @@ Current repo-backed assessment as of `2026-03-30`:
 - the website account surface now resolves to a single signed-in or signed-out state instead of mixing both shells
 - account connect callback, account-page fallback, and `Return to VS Code` handoff were manually verified in the normal VS Code profile on `2026-03-30`
 - `Refresh Entitlements` was treated as successful after reconnect in the live Companion UI on `2026-03-30`
-- purchase-complete still requires one final manual pass from the cleaned-up account flow
+- purchase-complete still requires one final manual pass from the new safe verification flow
 - the live billing portal endpoint now returns a real Stripe billing-session URL for the paid account email
 - a raw CLI `code --open-url vscode://...` callback without the browser-provided routing context does not reach the extension cleanly in the isolated profile, so that is not a trustworthy substitute for the real browser-return flow
 
@@ -71,7 +71,7 @@ Any unchecked item here means `No-Go`.
 
 - [x] account connect returns to the extension successfully
 - [x] free diagnostic runs and produces a useful result in a trusted workspace
-- [ ] purchase success returns to VS Code successfully
+- [ ] purchase return verification returns to VS Code successfully
 - [x] entitlement refresh works correctly or fails honestly with a clear recovery path
 
 ### Commercial Integrity
@@ -132,7 +132,7 @@ Record the result for each item as:
 
 ### 5. Purchase Return and Recovery
 
-- [ ] purchase success returns to the extension - Partially exercised after repairing the local `vscode://` handler, but not yet proven with a clean success or recovery signal
+- [ ] purchase-return verification returns to the extension - New safe verification path exists for this check and should be used before any real checkout
 - [ ] entitlement refresh after purchase behaves correctly - Remaining manual check
 - [ ] if refresh fails, the user sees a clear next step - Remaining manual check
 - [x] support can handle “I paid but it did not unlock”
@@ -200,5 +200,5 @@ Release notes for this decision:
 - Manual verification in VS Code proved local install, activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff.
 - Manual verification in the normal VS Code profile also proved that the Companion sidebar can restore connected account state after a callback once the Linux `vscode://` handler and website handoff flow are repaired.
 - The account page now presents one coherent signed-in or signed-out state and gives a clear `Return to VS Code` fallback when browser auto-switching misses.
-- Immediate publish still depends on one last purchase-return check and a fresh local packaging run if operationally required.
+- Immediate publish still depends on one last safe purchase-return verification pass and a fresh local packaging run if operationally required.
 - The extension now looks like a credible `v0.1` pre-release candidate with known limits rather than a `No-Go`.

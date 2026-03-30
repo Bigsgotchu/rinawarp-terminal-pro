@@ -168,20 +168,23 @@ Expected results:
 
 ## 7. Purchase Return and Recovery
 
-Use a safe purchase or mocked purchase-complete path if available.
+Use the safe verification command before you try a real charge flow.
 
-1. Start from `RinaWarp: Upgrade to Pro`.
-2. Complete or simulate the expected purchase-success flow.
-3. Confirm the browser returns to `rinawarp.rinawarp-companion/purchase-complete`.
-4. Confirm the extension either:
+1. Run `RinaWarp: Verify Purchase Return`.
+2. Confirm the browser opens the verification-only purchase success page.
+3. Confirm the page is clearly labeled as a no-charge verification path.
+4. Click `Return to VS Code` if the browser does not auto-switch.
+5. Confirm the browser returns to `rinawarp.rinawarp-companion/purchase-complete`.
+6. Confirm the extension either:
    - refreshes entitlements and shows the new plan, or
    - shows the recovery message telling the user to refresh manually
 
 Expected results:
 
-- purchase success returns to the extension
+- purchase-return verification returns to the extension without requiring a real Stripe charge
 - entitlement refresh succeeds or fails honestly
 - the user is never left without a next step
+- real checkout remains separate and unchanged
 
 ## 8. Evidence To Record
 

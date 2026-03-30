@@ -38,6 +38,14 @@ export function createPricingUrl(baseUrl: string, context: CampaignContext): URL
   return createTrackedUrl(`${baseUrl}/pricing/`, context);
 }
 
+export function createPurchaseVerificationUrl(baseUrl: string, context: CampaignContext, callbackUri?: string): URL {
+  const url = createTrackedUrl(`${baseUrl}/verify/companion-purchase/`, context);
+  if (callbackUri) {
+    url.searchParams.set('return_to', callbackUri);
+  }
+  return url;
+}
+
 export function createPrivacyUrl(baseUrl: string, context: CampaignContext): URL {
   return createTrackedUrl(`${baseUrl}/privacy/`, context);
 }
