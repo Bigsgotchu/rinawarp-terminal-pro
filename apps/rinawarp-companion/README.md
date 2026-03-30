@@ -2,6 +2,10 @@
 
 Chat-first proof-aware workflows for build, audit, deploy, and recovery inside VS Code.
 
+Published pre-release:
+
+- [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=rinawarpbykarinagilley.rinawarp-companion)
+
 RinaWarp Companion is the chat-first VS Code entry point into the RinaWarp platform:
 
 1. Connect account
@@ -13,8 +17,10 @@ RinaWarp Companion is the chat-first VS Code entry point into the RinaWarp platf
 
 ## What It Does
 
+- Chat with Rina directly inside VS Code
 - Adds a `RinaWarp` activity bar surface with account and plan status
 - Adds a `Chat` view as the primary conversational surface for asking Rina about diagnostics, packs, workspace questions, and next safe steps
+- Runs a free workspace diagnostic before asking users to upgrade
 - Guides first-run onboarding with a built-in walkthrough
 - Opens pack, pricing, billing, and privacy flows on `rinawarptech.com`
 - Stores local session and entitlement state in `SecretStorage`
@@ -24,6 +30,14 @@ RinaWarp Companion is the chat-first VS Code entry point into the RinaWarp platf
 ## Preview Status
 
 This extension is currently a Preview pre-release candidate. The account, chat, entitlement, and pricing loop is real, but proof-backed execution depth is still intentionally narrower than Terminal Pro while the first trustworthy workflow set is being hardened.
+
+Best first-run path:
+
+1. Install from Marketplace
+2. Open `RinaWarp` in the activity bar
+3. Run `RinaWarp: Connect Account`
+4. Open `Chat`
+5. Run `RinaWarp: Run Free Diagnostic`
 
 ## Product Role
 

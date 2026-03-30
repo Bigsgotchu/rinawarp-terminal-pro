@@ -1,7 +1,7 @@
 {
   "name": "rinawarp-companion",
   "displayName": "RinaWarp Companion",
-  "description": "Chat-first proof-aware workflows for build, audit, deploy, and recovery inside VS Code.",
+  "description": "Chat with Rina in VS Code, run a free diagnostic, refresh entitlements, and open packs, pricing, and billing flows.",
   "version": "0.0.1",
   "publisher": "rinawarpbykarinagilley",
   "preview": true,
@@ -18,13 +18,19 @@
   "keywords": [
     "rinawarp",
     "ai",
+    "chat",
+    "assistant",
     "audit",
     "deployment",
     "recovery",
     "devops",
     "proof",
     "terminal",
-    "workspace"
+    "workspace",
+    "diagnostic",
+    "billing",
+    "entitlements",
+    "vscode"
   ],
   "activationEvents": [
     "onStartupFinished",
