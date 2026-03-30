@@ -2,7 +2,7 @@
 
 Chat-first proof-aware workflows for build, audit, deploy, and recovery inside VS Code.
 
-Published pre-release:
+Published listing:
 
 - [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=rinawarpbykarinagilley.rinawarp-companion)
 
@@ -27,9 +27,9 @@ RinaWarp Companion is the chat-first VS Code entry point into the RinaWarp platf
 - Supports browser callback return into VS Code for account linking
 - Supports browser callback return into VS Code after purchase completion
 
-## Preview Status
+## Release Status
 
-This extension is currently a Preview pre-release candidate. The account, chat, entitlement, and pricing loop is real, but proof-backed execution depth is still intentionally narrower than Terminal Pro while the first trustworthy workflow set is being hardened.
+This extension is now prepared as a full release candidate. The account, chat, entitlement, and pricing loop is real, but proof-backed execution depth is still intentionally narrower than Terminal Pro by design.
 
 Best first-run path:
 
@@ -115,10 +115,16 @@ No workspace content should be sent remotely until the user explicitly starts a 
 npm --workspace apps/rinawarp-companion run build
 ```
 
-Package a Preview VSIX:
+Package a release VSIX:
 
 ```bash
 npm --workspace apps/rinawarp-companion run package:vsix
+```
+
+Package a pre-release VSIX if you want another staged preview build:
+
+```bash
+npm --workspace apps/rinawarp-companion run package:vsix:pre-release
 ```
 
 Run Companion validation from the repo root:

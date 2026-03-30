@@ -1,6 +1,6 @@
 # Publishing RinaWarp Companion
 
-This extension is set up for a Preview-first Marketplace rollout.
+This extension is now set up for a normal Marketplace release, while still preserving explicit pre-release commands when you want a staged preview cut.
 
 Canonical launch decision gate:
 
@@ -15,16 +15,22 @@ Build the extension:
 npm --workspace apps/rinawarp-companion run build
 ```
 
-Create a pre-release VSIX:
+Create a release VSIX:
 
 ```bash
 npm --workspace apps/rinawarp-companion run package:vsix
 ```
 
-Create a versioned pre-release VSIX:
+Create a versioned release VSIX:
 
 ```bash
 npm --workspace apps/rinawarp-companion run package:vsix:versioned
+```
+
+Create a pre-release VSIX:
+
+```bash
+npm --workspace apps/rinawarp-companion run package:vsix:pre-release
 ```
 
 ## Publishing
@@ -49,14 +55,14 @@ npm --workspace apps/rinawarp-companion run publish:release
 - The scripts intentionally pin `vsce@2.15.0` so Node 18 environments do not accidentally pick up a newer transient CLI through plain `npx`.
 - On this machine, the scripts also invoke `npx-cli.js` through `/usr/bin/node` directly so publish/package does not fall back to an older shell-managed Node runtime.
 - The scripts also preload a tiny `File`/`Blob` compatibility shim so `vsce` does not crash if a Node 18 shell still touches the publish chain.
-- The package is configured as `preview: true` and `pricing: "Trial"` to match the current rollout plan.
+- The package is now configured as a normal release with `pricing: "Trial"`.
 - URI callbacks require the published extension id `rinawarpbykarinagilley.rinawarp-companion`.
-- Test pre-release installs locally before publishing broadly.
+- Test release installs locally before publishing broadly.
 
 ## Recommended order
 
 1. Build the extension.
 2. Package a VSIX and install it locally.
 3. Verify account connect, diagnostic flow, pack deep links, and purchase return flow.
-4. Publish as pre-release first.
-5. Watch install-to-activation feedback before moving to a full release.
+4. Publish a full release when the current Marketplace-installed build passes the final smoke test.
+5. Use the explicit pre-release commands only when you want a staged preview cut again.
