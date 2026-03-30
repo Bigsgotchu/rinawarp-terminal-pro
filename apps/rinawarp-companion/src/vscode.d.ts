@@ -100,6 +100,7 @@ declare module 'vscode' {
     const workspaceFolders: readonly WorkspaceFolder[] | undefined;
     function getConfiguration(section?: string): WorkspaceConfiguration;
     function openTextDocument(uri: Uri): Thenable<TextDocument>;
+    function openTextDocument(options: { language?: string; content?: string }): Thenable<TextDocument>;
   }
 
   export namespace window {

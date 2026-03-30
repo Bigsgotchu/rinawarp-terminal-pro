@@ -205,12 +205,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           return;
         }
 
-        await editor.edit((editBuilder) => {
-          const fullRange = new vscode.Range(document.positionAt(0), document.positionAt(originalCode.length));
-          editBuilder.replace(fullRange, result.fixedCode);
+        const outcome = await confirmAndApplyFix({
+          label: 'this file',
+          original: originalCode,
+          updated: result.fixedCode,
+          languageId: document.languageId,
+          apply: async () => {
+            await editor.edit((editBuilder) => {
+              const fullRange = new vscode.Range(document.positionAt(0), document.positionAt(originalCode.length));
+              editBuilder.replace(fullRange, result.fixedCode);
+            });
+          },
         });
-        telemetry.record({ name: 'fix_file_completed' });
-        void vscode.window.showInformationMessage(result.summary);
+
+        if (outcome === 'applied') {
+          telemetry.record({ name: 'fix_file_completed' });
+          void vscode.window.showInformationMessage(result.summary);
+        } else if (outcome === 'cancelled') {
+          void vscode.window.showInformationMessage('Left the original file unchanged.');
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown fix error';
         output.appendLine(`[fix-file] ${message}`);
@@ -256,11 +269,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           return;
         }
 
-        await editor.edit((editBuilder) => {
-          editBuilder.replace(editor.selection, result.fixedCode);
+        const outcome = await confirmAndApplyFix({
+          label: 'your selection',
+          original: originalCode,
+          updated: result.fixedCode,
+          languageId: editor.document.languageId,
+          apply: async () => {
+            await editor.edit((editBuilder) => {
+              editBuilder.replace(editor.selection, result.fixedCode);
+            });
+          },
         });
-        telemetry.record({ name: 'fix_selection_completed' });
-        void vscode.window.showInformationMessage(result.summary);
+
+        if (outcome === 'applied') {
+          telemetry.record({ name: 'fix_selection_completed' });
+          void vscode.window.showInformationMessage(result.summary);
+        } else if (outcome === 'cancelled') {
+          void vscode.window.showInformationMessage('Left the original selection unchanged.');
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown fix error';
         output.appendLine(`[fix-selection] ${message}`);
@@ -359,3 +385,43 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 export function deactivate(): void {}
+
+async function confirmAndApplyFix(input: {
+  label: string;
+  original: string;
+  updated: string;
+  languageId: string;
+  apply: () => Promise<void>;
+}): Promise<'applied' | 'cancelled'> {
+  const prompt = `Rina has a patch ready for ${input.label}.`;
+  // Offer preview without forcing a blocking flow.
+  while (true) {
+    const choice = await vscode.window.showInformationMessage(prompt, 'Apply', 'View Diff', 'Cancel');
+    if (choice === 'View Diff') {
+      await openDiffPreview(input);
+      continue;
+    }
+    if (choice === 'Apply') {
+      await input.apply();
+      return 'applied';
+    }
+    return 'cancelled';
+  }
+}
+
+async function openDiffPreview(input: {
+  label: string;
+  original: string;
+  updated: string;
+  languageId: string;
+}): Promise<void> {
+  const left = await vscode.workspace.openTextDocument({
+    language: input.languageId,
+    content: input.original,
+  });
+  const right = await vscode.workspace.openTextDocument({
+    language: input.languageId,
+    content: input.updated,
+  });
+  await vscode.commands.executeCommand('vscode.diff', left.uri, right.uri, `Rina patch preview: ${input.label}`);
+}
