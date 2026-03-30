@@ -48,6 +48,10 @@ pattern = "rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/api/vscode/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/download"
 zone_name = "rinawarptech.com"
 
@@ -113,6 +117,10 @@ zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "www.rinawarptech.com/api/auth/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/vscode/*"
 zone_name = "rinawarptech.com"
 
 [[kv_namespaces]]
