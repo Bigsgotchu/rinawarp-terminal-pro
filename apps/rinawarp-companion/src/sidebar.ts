@@ -28,27 +28,29 @@ export class CompanionTreeProvider implements vscode.TreeDataProvider<CompanionI
 
   getChildren(): CompanionItem[] {
     const items: CompanionItem[] = [
-      new CompanionItem(`Plan: ${this.snapshot.plan.toUpperCase()}`, vscode.TreeItemCollapsibleState.None),
+      new CompanionItem('plan', `Plan: ${this.snapshot.plan.toUpperCase()}`, vscode.TreeItemCollapsibleState.None),
       new CompanionItem(
+        'account',
         this.snapshot.email ? `Account: ${this.snapshot.email}` : 'Account: not connected',
         vscode.TreeItemCollapsibleState.None,
         this.snapshot.email ? undefined : 'rinawarp.connectAccount',
       ),
       this.createRefreshStatusItem(),
-      new CompanionItem('Run Free Diagnostic', vscode.TreeItemCollapsibleState.None, 'rinawarp.runFreeDiagnostic'),
-      new CompanionItem('Open Capability Packs', vscode.TreeItemCollapsibleState.None, 'rinawarp.openPacks'),
+      new CompanionItem('run-free-diagnostic', 'Run Free Diagnostic', vscode.TreeItemCollapsibleState.None, 'rinawarp.runFreeDiagnostic'),
+      new CompanionItem('open-capability-packs', 'Open Capability Packs', vscode.TreeItemCollapsibleState.None, 'rinawarp.openPacks'),
     ];
 
     if (this.snapshot.plan === 'free') {
-      items.push(new CompanionItem('Upgrade to Pro', vscode.TreeItemCollapsibleState.None, 'rinawarp.upgradeToPro'));
+      items.push(new CompanionItem('upgrade-to-pro', 'Upgrade to Pro', vscode.TreeItemCollapsibleState.None, 'rinawarp.upgradeToPro'));
     } else {
-      items.push(new CompanionItem('Open Billing Portal', vscode.TreeItemCollapsibleState.None, 'rinawarp.openBillingPortal'));
+      items.push(new CompanionItem('open-billing-portal', 'Open Billing Portal', vscode.TreeItemCollapsibleState.None, 'rinawarp.openBillingPortal'));
     }
 
     if (this.diagnostic) {
-      items.push(new CompanionItem(`Last diagnostic: ${this.diagnostic.workspaceName}`, vscode.TreeItemCollapsibleState.None));
+      items.push(new CompanionItem('last-diagnostic', `Last diagnostic: ${this.diagnostic.workspaceName}`, vscode.TreeItemCollapsibleState.None));
       items.push(
         new CompanionItem(
+          `recommended-pack:${this.diagnostic.recommendedPack}`,
           `Suggested pack: ${this.diagnostic.recommendedPack}`,
           vscode.TreeItemCollapsibleState.None,
           'rinawarp.openPack',
@@ -58,7 +60,7 @@ export class CompanionTreeProvider implements vscode.TreeDataProvider<CompanionI
     }
 
     for (const pack of this.snapshot.packs.slice(0, 5)) {
-      items.push(new CompanionItem(`Pack: ${pack}`, vscode.TreeItemCollapsibleState.None, 'rinawarp.openPack', [pack, 'sidebar_pack']));
+      items.push(new CompanionItem(`pack:${pack}`, `Pack: ${pack}`, vscode.TreeItemCollapsibleState.None, 'rinawarp.openPack', [pack, 'sidebar_pack']));
     }
 
     return items;
@@ -66,27 +68,28 @@ export class CompanionTreeProvider implements vscode.TreeDataProvider<CompanionI
 
   private createRefreshStatusItem(): CompanionItem {
     if (this.snapshot.refreshStatus === 'refreshing') {
-      return new CompanionItem('Entitlements: refreshing...', vscode.TreeItemCollapsibleState.None);
+      return new CompanionItem('refresh-status', 'Entitlements: refreshing...', vscode.TreeItemCollapsibleState.None);
     }
 
     if (this.snapshot.refreshStatus === 'failed') {
       const label = this.snapshot.lastRefreshError
         ? `Entitlements: stale. ${this.snapshot.lastRefreshError}`
         : 'Entitlements: stale. Retry refresh.';
-      return new CompanionItem(label, vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
+      return new CompanionItem('refresh-status', label, vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
     }
 
     if (this.snapshot.lastRefreshAttemptAt) {
-      return new CompanionItem('Entitlements: current', vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
+      return new CompanionItem('refresh-status', 'Entitlements: current', vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
     }
 
-    return new CompanionItem('Refresh Entitlements', vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
+    return new CompanionItem('refresh-status', 'Refresh Entitlements', vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
   }
 }
 
 class CompanionItem extends vscode.TreeItem {
-  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: string, args?: unknown[]) {
+  constructor(id: string, label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: string, args?: unknown[]) {
     super(label, collapsibleState);
+    Object.assign(this, { id });
     if (command) {
       this.command = {
         command,
