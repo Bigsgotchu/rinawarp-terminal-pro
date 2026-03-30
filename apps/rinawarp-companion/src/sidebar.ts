@@ -34,6 +34,7 @@ export class CompanionTreeProvider implements vscode.TreeDataProvider<CompanionI
         vscode.TreeItemCollapsibleState.None,
         this.snapshot.email ? undefined : 'rinawarp.connectAccount',
       ),
+      this.createRefreshStatusItem(),
       new CompanionItem('Run Free Diagnostic', vscode.TreeItemCollapsibleState.None, 'rinawarp.runFreeDiagnostic'),
       new CompanionItem('Open Capability Packs', vscode.TreeItemCollapsibleState.None, 'rinawarp.openPacks'),
     ];
@@ -61,6 +62,25 @@ export class CompanionTreeProvider implements vscode.TreeDataProvider<CompanionI
     }
 
     return items;
+  }
+
+  private createRefreshStatusItem(): CompanionItem {
+    if (this.snapshot.refreshStatus === 'refreshing') {
+      return new CompanionItem('Entitlements: refreshing...', vscode.TreeItemCollapsibleState.None);
+    }
+
+    if (this.snapshot.refreshStatus === 'failed') {
+      const label = this.snapshot.lastRefreshError
+        ? `Entitlements: stale. ${this.snapshot.lastRefreshError}`
+        : 'Entitlements: stale. Retry refresh.';
+      return new CompanionItem(label, vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
+    }
+
+    if (this.snapshot.lastRefreshAttemptAt) {
+      return new CompanionItem('Entitlements: current', vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
+    }
+
+    return new CompanionItem('Refresh Entitlements', vscode.TreeItemCollapsibleState.None, 'rinawarp.refreshEntitlements');
   }
 }
 

@@ -6,12 +6,44 @@ const ENTITLEMENT_KEY = 'rinawarp.entitlementSnapshot';
 const TOKEN_KEY = 'rinawarp.sessionToken';
 
 export type PlanTier = 'free' | 'pro' | 'team';
+export type EntitlementRefreshStatus = 'idle' | 'refreshing' | 'failed';
+export type EntitlementRefreshFailureCode =
+  | 'missing_token'
+  | 'auth_rejected'
+  | 'endpoint_unavailable'
+  | 'malformed_response';
 
 export interface EntitlementSnapshot {
   email?: string;
   plan: PlanTier;
   packs: string[];
   updatedAt: string;
+  refreshStatus?: EntitlementRefreshStatus;
+  lastRefreshAttemptAt?: string;
+  lastRefreshError?: string;
+}
+
+interface StoredEntitlementSnapshot {
+  email?: string;
+  plan: PlanTier;
+  packs: string[];
+  updatedAt: string;
+}
+
+export class EntitlementRefreshError extends Error {
+  constructor(
+    public readonly code: EntitlementRefreshFailureCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'EntitlementRefreshError';
+  }
+}
+
+export interface EntitlementRefreshFailureDetails {
+  code: EntitlementRefreshFailureCode;
+  message: string;
+  recoveryHint: string;
 }
 
 export class EntitlementService {
@@ -24,7 +56,7 @@ export class EntitlementService {
     }
 
     try {
-      return JSON.parse(raw) as EntitlementSnapshot;
+      return hydrateSnapshot(JSON.parse(raw) as Partial<StoredEntitlementSnapshot>);
     } catch {
       return defaultSnapshot();
     }
@@ -39,7 +71,7 @@ export class EntitlementService {
   }
 
   async setSnapshot(snapshot: EntitlementSnapshot): Promise<void> {
-    await this.context.secrets.store(ENTITLEMENT_KEY, JSON.stringify(snapshot));
+    await this.context.secrets.store(ENTITLEMENT_KEY, JSON.stringify(stripRefreshMetadata(snapshot)));
   }
 
   async clear(): Promise<void> {
@@ -52,34 +84,138 @@ export class EntitlementService {
   async refreshFromApi(): Promise<EntitlementSnapshot> {
     const token = await this.context.secrets.get(TOKEN_KEY);
     if (!token) {
-      return this.getSnapshot();
+      throw new EntitlementRefreshError(
+        'missing_token',
+        'Connect your RinaWarp account before refreshing entitlements.',
+      );
     }
 
     const config = getConfig();
     const json = await fetchEntitlements(config, token);
-    const snapshot: EntitlementSnapshot = {
+    const snapshot = hydrateSnapshot({
       email: json.email,
       plan: normalizePlan(json.plan),
       packs: Array.isArray(json.packs) ? json.packs.filter((pack): pack is string => typeof pack === 'string') : [],
       updatedAt: new Date().toISOString(),
-    };
+    });
     await this.setSnapshot(snapshot);
     return snapshot;
   }
 }
 
 export function defaultSnapshot(): EntitlementSnapshot {
-  return {
+  return hydrateSnapshot({
     plan: 'free',
     packs: [],
     updatedAt: new Date(0).toISOString(),
+  });
+}
+
+export function markEntitlementRefreshing(snapshot: EntitlementSnapshot, attemptedAt: string): EntitlementSnapshot {
+  return {
+    ...snapshot,
+    refreshStatus: 'refreshing',
+    lastRefreshAttemptAt: attemptedAt,
+    lastRefreshError: undefined,
+  };
+}
+
+export function markEntitlementRefreshSuccess(snapshot: EntitlementSnapshot, attemptedAt: string): EntitlementSnapshot {
+  return {
+    ...snapshot,
+    refreshStatus: 'idle',
+    lastRefreshAttemptAt: attemptedAt,
+    lastRefreshError: undefined,
+  };
+}
+
+export function markEntitlementRefreshFailure(
+  snapshot: EntitlementSnapshot,
+  attemptedAt: string,
+  errorMessage: string,
+): EntitlementSnapshot {
+  return {
+    ...snapshot,
+    refreshStatus: 'failed',
+    lastRefreshAttemptAt: attemptedAt,
+    lastRefreshError: errorMessage,
+  };
+}
+
+export function describeEntitlementRefreshError(error: unknown): EntitlementRefreshFailureDetails {
+  if (error instanceof EntitlementRefreshError) {
+    switch (error.code) {
+      case 'missing_token':
+        return {
+          code: error.code,
+          message: 'Connect your account to refresh entitlements.',
+          recoveryHint: 'Reconnect your RinaWarp account, then try refresh again.',
+        };
+      case 'auth_rejected':
+        return {
+          code: error.code,
+          message: 'Your saved RinaWarp session is no longer accepted.',
+          recoveryHint: 'Reconnect your account to restore access.',
+        };
+      case 'endpoint_unavailable':
+        return {
+          code: error.code,
+          message: 'RinaWarp could not reach the entitlement service.',
+          recoveryHint: 'Retry in a moment. If this keeps happening, check your network or service status.',
+        };
+      case 'malformed_response':
+        return {
+          code: error.code,
+          message: 'RinaWarp received an unexpected entitlement response.',
+          recoveryHint: 'Retry in a moment. If it keeps happening, reconnect your account or contact support.',
+        };
+    }
+  }
+
+  return {
+    code: 'endpoint_unavailable',
+    message: 'RinaWarp could not verify entitlements right now.',
+    recoveryHint: 'Retry in a moment. If this keeps happening, reconnect your account.',
+  };
+}
+
+export function mergeEntitlementSnapshot(
+  current: EntitlementSnapshot,
+  next: Partial<EntitlementSnapshot>,
+): EntitlementSnapshot {
+  return hydrateSnapshot({
+    email: next.email ?? current.email,
+    plan: next.plan ?? current.plan,
+    packs: next.packs ?? current.packs,
+    updatedAt: next.updatedAt ?? current.updatedAt,
+  });
+}
+
+function hydrateSnapshot(snapshot: Partial<StoredEntitlementSnapshot>): EntitlementSnapshot {
+  return {
+    email: snapshot.email,
+    plan: normalizePlan(snapshot.plan),
+    packs: Array.isArray(snapshot.packs) ? snapshot.packs.filter((pack): pack is string => typeof pack === 'string') : [],
+    updatedAt: typeof snapshot.updatedAt === 'string' ? snapshot.updatedAt : new Date(0).toISOString(),
+    refreshStatus: 'idle',
+    lastRefreshAttemptAt: undefined,
+    lastRefreshError: undefined,
+  };
+}
+
+function stripRefreshMetadata(snapshot: EntitlementSnapshot): StoredEntitlementSnapshot {
+  return {
+    email: snapshot.email,
+    plan: snapshot.plan,
+    packs: snapshot.packs,
+    updatedAt: snapshot.updatedAt,
   };
 }
 
 async function fetchEntitlements(
   config: ReturnType<typeof getConfig>,
   token: string,
-): Promise<Partial<EntitlementSnapshot>> {
+): Promise<Partial<StoredEntitlementSnapshot>> {
   const candidates = [
     `${config.apiBaseUrl}/v1/extension/entitlements`,
     `${config.baseUrl}/api/vscode/entitlements`,
@@ -96,17 +232,53 @@ async function fetchEntitlements(
       });
 
       if (!response.ok) {
-        lastError = new Error(`Entitlement refresh failed with status ${response.status} at ${url}`);
+        if (response.status === 401 || response.status === 403) {
+          throw new EntitlementRefreshError(
+            'auth_rejected',
+            `Entitlement refresh was rejected with status ${response.status} at ${url}`,
+          );
+        }
+
+        lastError = new EntitlementRefreshError(
+          'endpoint_unavailable',
+          `Entitlement refresh failed with status ${response.status} at ${url}`,
+        );
         continue;
       }
 
-      return (await response.json()) as Partial<EntitlementSnapshot>;
+      let json: unknown;
+      try {
+        json = await response.json();
+      } catch {
+        lastError = new EntitlementRefreshError(
+          'malformed_response',
+          `Entitlement refresh returned invalid JSON at ${url}`,
+        );
+        continue;
+      }
+
+      if (!isEntitlementPayload(json)) {
+        lastError = new EntitlementRefreshError(
+          'malformed_response',
+          `Entitlement refresh returned an unexpected payload at ${url}`,
+        );
+        continue;
+      }
+
+      return json;
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error('Unknown entitlement fetch error');
+      if (error instanceof EntitlementRefreshError) {
+        throw error;
+      }
+
+      lastError = new EntitlementRefreshError(
+        'endpoint_unavailable',
+        error instanceof Error ? error.message : 'Unknown entitlement fetch error',
+      );
     }
   }
 
-  throw lastError ?? new Error('No entitlement endpoint was available');
+  throw lastError ?? new EntitlementRefreshError('endpoint_unavailable', 'No entitlement endpoint was available');
 }
 
 function dedupe(values: string[]): string[] {
@@ -118,4 +290,18 @@ function normalizePlan(value: unknown): PlanTier {
     return value;
   }
   return 'free';
+}
+
+function isEntitlementPayload(value: unknown): value is Partial<StoredEntitlementSnapshot> {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as Record<string, unknown>;
+  const emailValid = payload.email === undefined || typeof payload.email === 'string';
+  const planValid = payload.plan === undefined || payload.plan === 'free' || payload.plan === 'pro' || payload.plan === 'team';
+  const packsValid = payload.packs === undefined
+    || (Array.isArray(payload.packs) && payload.packs.every((pack) => typeof pack === 'string'));
+
+  return emailValid && planValid && packsValid;
 }

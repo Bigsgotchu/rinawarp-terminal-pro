@@ -6,6 +6,7 @@ import { CompanionChatProvider } from './chat';
 import { getConfig } from './config';
 import { runWorkspaceDiagnostic } from './diagnostics';
 import { EntitlementService, defaultSnapshot, type EntitlementSnapshot } from './entitlements';
+import { runEntitlementRefresh } from './refreshFlow';
 import {
   createBillingPortalUrl,
   createPackUrl,
@@ -37,7 +38,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     chat.updateSnapshot(next);
   };
 
-  const authHandler = new AuthUriHandler(context, entitlements, setSnapshot);
+  const refreshEntitlements = async (
+    source: 'manual' | 'auth-callback' | 'purchase-complete',
+    fallbackSnapshot?: Partial<EntitlementSnapshot>,
+  ) =>
+    runEntitlementRefresh({
+      source,
+      entitlements,
+      getSnapshot: () => snapshot,
+      setSnapshot,
+      output,
+      fallbackSnapshot,
+    });
+
+  const authHandler = new AuthUriHandler(context, refreshEntitlements);
   context.subscriptions.push(vscode.window.registerUriHandler(authHandler));
 
   context.subscriptions.push(
@@ -151,14 +165,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
     vscode.commands.registerCommand('rinawarp.refreshEntitlements', async () => {
       telemetry.record({ name: 'refresh_entitlements_started' });
-      try {
-        const next = await entitlements.refreshFromApi();
-        setSnapshot(next);
-        void vscode.window.showInformationMessage(`RinaWarp entitlements refreshed. Plan: ${next.plan.toUpperCase()}.`);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown entitlement refresh error';
-        output.appendLine(`[error] ${message}`);
-        void vscode.window.showWarningMessage(`RinaWarp could not refresh entitlements: ${message}`);
+      const result = await refreshEntitlements('manual');
+      if (result.severity === 'warning') {
+        void vscode.window.showWarningMessage(result.toastMessage);
+      } else {
+        void vscode.window.showInformationMessage(result.toastMessage);
       }
     }),
   );

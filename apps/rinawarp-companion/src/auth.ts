@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
-import { EntitlementService, type EntitlementSnapshot } from './entitlements';
+import type { EntitlementSnapshot } from './entitlements';
+import type { EntitlementRefreshResult } from './refreshFlow';
 import { createLoginUrl } from './rinawarpUrls';
 import { recordTelemetry } from './telemetry';
 
@@ -10,22 +11,17 @@ const PURCHASE_COMPLETE_PATH = '/purchase-complete';
 export class AuthUriHandler implements vscode.UriHandler {
   constructor(
     private readonly context: vscode.ExtensionContext,
-    private readonly entitlements: EntitlementService,
-    private readonly onEntitlementChanged: (snapshot: EntitlementSnapshot) => void,
+    private readonly refreshEntitlements: (
+      source: 'auth-callback' | 'purchase-complete',
+      fallbackSnapshot?: Partial<EntitlementSnapshot>,
+    ) => Promise<EntitlementRefreshResult>,
   ) {}
 
   async handleUri(uri: vscode.Uri): Promise<void> {
     if (uri.path === PURCHASE_COMPLETE_PATH) {
       recordTelemetry({ name: 'purchase_returned' });
-      try {
-        const snapshot = await this.entitlements.refreshFromApi();
-        this.onEntitlementChanged(snapshot);
-        void vscode.window.showInformationMessage(`RinaWarp purchase confirmed. Plan: ${snapshot.plan.toUpperCase()}.`);
-      } catch {
-        void vscode.window.showInformationMessage(
-          'RinaWarp purchase completed. Use "RinaWarp: Refresh Entitlements" if your new plan does not appear yet.',
-        );
-      }
+      const result = await this.refreshEntitlements('purchase-complete');
+      showRefreshResult(result);
       return;
     }
 
@@ -40,30 +36,20 @@ export class AuthUriHandler implements vscode.UriHandler {
       return;
     }
 
-    await this.entitlements.setSessionToken(token);
-    try {
-      const snapshot = await this.entitlements.refreshFromApi();
-      this.onEntitlementChanged(snapshot);
-      void vscode.window.showInformationMessage(`RinaWarp connected. Plan: ${snapshot.plan.toUpperCase()}.`);
-      return;
-    } catch {
-      const snapshot: EntitlementSnapshot = {
-        email: params.get('email') ?? undefined,
-        plan: normalizePlan(params.get('plan')),
-        packs: params.getAll('pack'),
-        updatedAt: new Date().toISOString(),
-      };
-      await this.entitlements.setSnapshot(snapshot);
-      this.onEntitlementChanged(snapshot);
+    const plan = params.get('plan');
+    const packs = params.getAll('pack');
+    const snapshot: Partial<EntitlementSnapshot> = {
+      email: params.get('email') ?? undefined,
+      plan: plan ? normalizePlan(plan) : undefined,
+      packs: packs.length ? packs : undefined,
+      updatedAt: new Date().toISOString(),
+    };
 
-      if (snapshot.email) {
-        void vscode.window.showInformationMessage(`RinaWarp connected. Plan: ${snapshot.plan.toUpperCase()}.`);
-      } else {
-        void vscode.window.showWarningMessage(
-          'RinaWarp received the login callback, but account details could not be restored yet. Run "RinaWarp: Refresh Entitlements".',
-        );
-      }
-    }
+    const secrets = this.context.secrets;
+    await secrets.store('rinawarp.sessionToken', token);
+
+    const result = await this.refreshEntitlements('auth-callback', snapshot);
+    showRefreshResult(result);
   }
 
   async buildConnectUrl(baseUrl: string): Promise<URL> {
@@ -80,6 +66,15 @@ export class AuthUriHandler implements vscode.UriHandler {
 
 export function getPurchaseReturnUri(): vscode.Uri {
   return vscode.Uri.parse(`${vscode.env.uriScheme}://rinawarp.rinawarp-companion${PURCHASE_COMPLETE_PATH}`);
+}
+
+function showRefreshResult(result: EntitlementRefreshResult): void {
+  if (result.severity === 'warning') {
+    void vscode.window.showWarningMessage(result.toastMessage);
+    return;
+  }
+
+  void vscode.window.showInformationMessage(result.toastMessage);
 }
 
 function normalizePlan(value: string | null): 'free' | 'pro' | 'team' {
