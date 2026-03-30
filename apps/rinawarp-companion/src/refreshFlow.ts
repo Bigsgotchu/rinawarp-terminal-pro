@@ -64,7 +64,11 @@ export async function runEntitlementRefresh(
       : current;
     const snapshot = markEntitlementRefreshFailure(baseSnapshot, attemptedAt, details.message);
     options.setSnapshot(snapshot);
+    const debugMessage = error instanceof Error ? error.message : details.message;
     options.output.appendLine(`[warn] ${details.code}: ${details.message}`);
+    if (debugMessage !== details.message) {
+      options.output.appendLine(`[warn] debug: ${debugMessage}`);
+    }
 
     return {
       ok: false,

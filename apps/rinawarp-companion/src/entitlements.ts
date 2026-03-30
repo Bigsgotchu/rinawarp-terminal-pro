@@ -30,6 +30,13 @@ interface StoredEntitlementSnapshot {
   updatedAt: string;
 }
 
+interface ParsedEntitlementPayload {
+  email?: string;
+  packs?: string[];
+  plan?: PlanTier;
+  updatedAt?: string;
+}
+
 export class EntitlementRefreshError extends Error {
   constructor(
     public readonly code: EntitlementRefreshFailureCode,
@@ -94,9 +101,9 @@ export class EntitlementService {
     const json = await fetchEntitlements(config, token);
     const snapshot = hydrateSnapshot({
       email: json.email,
-      plan: normalizePlan(json.plan),
-      packs: Array.isArray(json.packs) ? json.packs.filter((pack): pack is string => typeof pack === 'string') : [],
-      updatedAt: new Date().toISOString(),
+      plan: json.plan,
+      packs: json.packs,
+      updatedAt: json.updatedAt ?? new Date().toISOString(),
     });
     await this.setSnapshot(snapshot);
     return snapshot;
@@ -215,7 +222,7 @@ function stripRefreshMetadata(snapshot: EntitlementSnapshot): StoredEntitlementS
 async function fetchEntitlements(
   config: ReturnType<typeof getConfig>,
   token: string,
-): Promise<Partial<StoredEntitlementSnapshot>> {
+): Promise<ParsedEntitlementPayload> {
   const candidates = [
     `${config.apiBaseUrl}/v1/extension/entitlements`,
     `${config.baseUrl}/api/vscode/entitlements`,
@@ -257,7 +264,8 @@ async function fetchEntitlements(
         continue;
       }
 
-      if (!isEntitlementPayload(json)) {
+      const normalizedPayload = parseEntitlementPayload(json);
+      if (!normalizedPayload) {
         lastError = new EntitlementRefreshError(
           'malformed_response',
           `Entitlement refresh returned an unexpected payload at ${url}`,
@@ -265,7 +273,7 @@ async function fetchEntitlements(
         continue;
       }
 
-      return json;
+      return normalizedPayload;
     } catch (error) {
       if (error instanceof EntitlementRefreshError) {
         throw error;
@@ -304,4 +312,91 @@ function isEntitlementPayload(value: unknown): value is Partial<StoredEntitlemen
     || (Array.isArray(payload.packs) && payload.packs.every((pack) => typeof pack === 'string'));
 
   return emailValid && planValid && packsValid;
+}
+
+function parseEntitlementPayload(value: unknown): ParsedEntitlementPayload | null {
+  const direct = normalizeEntitlementPayloadRecord(value);
+  if (direct) {
+    return direct;
+  }
+
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const nestedCandidates = [record.data, record.entitlements, record.result, record.account];
+  for (const candidate of nestedCandidates) {
+    const normalized = normalizeEntitlementPayloadRecord(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function normalizeEntitlementPayloadRecord(value: unknown): ParsedEntitlementPayload | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const planCandidate = parsePlanCandidate(record.plan ?? record.tier);
+  const packsCandidate = normalizePackList(
+    record.packs
+      ?? record.enabledPacks
+      ?? record.capabilityPacks
+      ?? record.features,
+  );
+  const emailCandidate = typeof record.email === 'string'
+    ? record.email
+    : typeof record.billingEmail === 'string'
+      ? record.billingEmail
+      : typeof record.userEmail === 'string'
+        ? record.userEmail
+        : undefined;
+  const updatedAtCandidate = typeof record.updatedAt === 'string'
+    ? record.updatedAt
+    : typeof record.refreshedAt === 'string'
+      ? record.refreshedAt
+      : typeof record.checkedAt === 'string'
+        ? record.checkedAt
+        : undefined;
+
+  if (!emailCandidate && !planCandidate && !packsCandidate && !updatedAtCandidate) {
+    return null;
+  }
+
+  return {
+    email: emailCandidate,
+    packs: packsCandidate,
+    plan: planCandidate,
+    updatedAt: updatedAtCandidate,
+  };
+}
+
+function normalizePackList(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    return value.filter((pack): pack is string => typeof pack === 'string');
+  }
+
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, enabled]) => enabled === true)
+      .map(([key]) => key);
+    if (entries.length > 0) {
+      return entries;
+    }
+  }
+
+  return undefined;
+}
+
+function parsePlanCandidate(value: unknown): PlanTier | undefined {
+  if (value === 'free' || value === 'pro' || value === 'team') {
+    return value;
+  }
+
+  return undefined;
 }

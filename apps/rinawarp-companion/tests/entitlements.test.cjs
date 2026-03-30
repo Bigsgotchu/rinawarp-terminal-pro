@@ -155,6 +155,75 @@ serialTest('refreshFromApi falls back to the secondary entitlement endpoint', as
   }
 });
 
+serialTest('refreshFromApi accepts nested entitlement envelopes from the backend', async () => {
+  const entitlementsModule = loadWithVscodeStub(
+    distPath('entitlements.js'),
+    createVscodeStub(),
+  );
+  const context = createContext({ 'rinawarp.sessionToken': 'session-token' });
+  const service = new entitlementsModule.EntitlementService(context);
+
+  const originalFetch = global.fetch;
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ({
+      ok: true,
+      data: {
+        email: 'nested@example.com',
+        plan: 'pro',
+        packs: ['npm-audit'],
+        updatedAt: '2026-03-30T06:00:00.000Z',
+      },
+    }),
+  });
+
+  try {
+    const snapshot = await service.refreshFromApi();
+    assert.equal(snapshot.plan, 'pro');
+    assert.equal(snapshot.email, 'nested@example.com');
+    assert.deepEqual(snapshot.packs, ['npm-audit']);
+    assert.equal(snapshot.updatedAt, '2026-03-30T06:00:00.000Z');
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+serialTest('refreshFromApi accepts tier and enabledPacks aliases from the backend', async () => {
+  const entitlementsModule = loadWithVscodeStub(
+    distPath('entitlements.js'),
+    createVscodeStub(),
+  );
+  const context = createContext({ 'rinawarp.sessionToken': 'session-token' });
+  const service = new entitlementsModule.EntitlementService(context);
+
+  const originalFetch = global.fetch;
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ({
+      entitlements: {
+        userEmail: 'aliases@example.com',
+        tier: 'team',
+        enabledPacks: {
+          'docker-repair': true,
+          'npm-audit': true,
+          'security-audit': false,
+        },
+        refreshedAt: '2026-03-30T06:05:00.000Z',
+      },
+    }),
+  });
+
+  try {
+    const snapshot = await service.refreshFromApi();
+    assert.equal(snapshot.plan, 'team');
+    assert.equal(snapshot.email, 'aliases@example.com');
+    assert.deepEqual(snapshot.packs, ['docker-repair', 'npm-audit']);
+    assert.equal(snapshot.updatedAt, '2026-03-30T06:05:00.000Z');
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 serialTest('refreshFromApi classifies missing session tokens', async () => {
   const entitlementsModule = loadWithVscodeStub(
     distPath('entitlements.js'),
@@ -226,7 +295,7 @@ serialTest('refreshFromApi classifies malformed entitlement responses', async ()
   const originalFetch = global.fetch;
   global.fetch = async () => ({
     ok: true,
-    json: async () => ({ plan: 123, packs: ['npm-audit'] }),
+    json: async () => ({ ok: true, data: { plan: 123, packs: 'npm-audit' } }),
   });
 
   try {
