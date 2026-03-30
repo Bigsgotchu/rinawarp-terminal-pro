@@ -2097,317 +2097,305 @@ function renderAccount(authToken: string | null): Response {
       <p class="hero-copy">Manage your RinaWarp Terminal Pro account, billing, restore flow, and Early Access support boundaries.</p>
     </section>`
 
-  let content = ''
-  let script = ''
-  
-  if (authToken) {
-    content = `
+  const content = `
     <section class="section">
       <div class="auth-container">
         <div class="auth-card">
-          <div id="account-info">
+          <div id="account-status" class="alert alert-success" style="display:none;"></div>
+          <div id="account-shell-loading">
             <h2 class="auth-title">Loading your account</h2>
-            <p class="auth-subtitle">We are verifying your signed-in account and billing state before showing live controls.</p>
+            <p class="auth-subtitle">Checking your sign-in state, billing controls, and any pending desktop return.</p>
           </div>
-          
-          <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
-            <h3 style="margin-bottom:16px;">Subscription</h3>
-            <div id="subscription-info"><p style="color:var(--muted);">Checking your tier, restore status, and billing access now.</p></div>
-          </div>
-          
-          <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
-            <div class="link-row">
-              <button id="billing-portal-btn" class="btn btn-primary" type="button">Open billing portal</button>
-              <button id="logout-btn" class="btn btn-secondary" style="width:auto;">Sign Out</button>
+
+          <div id="account-shell-signed-out" style="display:none;">
+            <h2 class="auth-title">Sign in to your account</h2>
+            <p class="auth-subtitle">Sign in to manage billing, restore access, and return to VS Code when a desktop handoff is waiting.</p>
+            <div class="link-row" style="margin-top:16px;">
+              <a href="/login" id="account-login-link" class="btn btn-primary">Sign In</a>
+              <a href="/register" id="account-register-link" class="btn btn-secondary">Create Account</a>
             </div>
-            <div id="account-return" style="display:none; margin-top:12px;"></div>
-            <p class="note">If billing controls do not appear, use the restore form below with your checkout email.</p>
+            <a href="/early-access" class="btn btn-secondary" style="width:100%; margin-top:12px;">Early Access Policy</a>
           </div>
+
+          <div id="account-shell-signed-in" style="display:none;">
+            <div id="account-info">
+              <h2 class="auth-title">Loading your account</h2>
+              <p class="auth-subtitle">We are verifying your signed-in account and billing state before showing live controls.</p>
+            </div>
+
+            <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
+              <h3 style="margin-bottom:16px;">Subscription</h3>
+              <div id="subscription-info"><p style="color:var(--muted);">Checking your tier, restore status, and billing access now.</p></div>
+            </div>
+
+            <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
+              <div class="link-row">
+                <button id="billing-portal-btn" class="btn btn-primary" type="button">Open billing portal</button>
+                <button id="logout-btn" class="btn btn-secondary" style="width:auto;" type="button">Sign Out</button>
+              </div>
+              <p class="note">Use billing for plan changes and the restore form if a device loses access.</p>
+            </div>
+          </div>
+
+          <div id="account-return" style="display:none; margin-top:16px;"></div>
         </div>
+
         <div class="auth-card">
           <h2 class="auth-title">Restore Pro access</h2>
-          <p class="auth-subtitle">Use the same billing email from checkout. This works even before your full account state finishes loading.</p>
-          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message" aria-live="polite"></p></form>
+          <p class="auth-subtitle" id="restore-copy">Use the same billing email from checkout to verify your access or recover on a new device.</p>
+          <form id="restore-form">
+            <label>Billing email
+              <input type="email" name="email" placeholder="Billing email used at checkout" required>
+            </label>
+            <button type="submit" class="btn btn-primary">Check restore status</button>
+            <p id="restore-status" class="status-message" aria-live="polite"></p>
+          </form>
         </div>
       </div>
     </section>`
-    
-    script = `
-      const params = new URLSearchParams(window.location.search);
-      const pendingReturnKey = 'rinawarp_pending_return_to';
-      const returnTo = params.get('return_to');
-      const returnDiv = document.getElementById('account-return');
 
-      function showReturnButton(target) {
-        if (!returnDiv || !target) return;
-        returnDiv.innerHTML = '<a class="btn btn-secondary" id="account-open-vscode" href="#">Open VS Code</a><p class="note" style="margin-top:10px;">If your browser does not switch back automatically, click the button.</p>';
-        returnDiv.style.display = 'block';
-        const returnLink = document.getElementById('account-open-vscode');
-        if (returnLink) {
-          returnLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            window.location.href = target;
+  const script = `
+    const params = new URLSearchParams(window.location.search);
+    const pendingReturnKey = 'rinawarp_pending_return_to';
+    const returnTo = params.get('return_to');
+    const returnDiv = document.getElementById('account-return');
+    const statusDiv = document.getElementById('account-status');
+    const loadingShell = document.getElementById('account-shell-loading');
+    const signedOutShell = document.getElementById('account-shell-signed-out');
+    const signedInShell = document.getElementById('account-shell-signed-in');
+    const loginLink = document.getElementById('account-login-link');
+    const registerLink = document.getElementById('account-register-link');
+    const restoreCopy = document.getElementById('restore-copy');
+    const restoreForm = document.getElementById('restore-form');
+    const restoreStatus = document.getElementById('restore-status');
+    const initialServerToken = ${JSON.stringify(authToken)};
+
+    function normalizeReturnTarget(target) {
+      if (!target) return null;
+      try {
+        const decodedTarget = decodeURIComponent(target);
+        const url = new URL(decodedTarget);
+        const encodedQueryIndex = url.pathname.indexOf('%3F');
+        if (encodedQueryIndex >= 0) {
+          const encodedQuery = url.pathname.slice(encodedQueryIndex + 3);
+          url.pathname = url.pathname.slice(0, encodedQueryIndex);
+          const carriedParams = new URLSearchParams(encodedQuery);
+          carriedParams.forEach((value, key) => {
+            if (!url.searchParams.has(key)) {
+              url.searchParams.set(key, value);
+            }
           });
         }
+        return url;
+      } catch {
+        return null;
+      }
+    }
+
+    function buildReturnTarget(target, token) {
+      const normalizedUrl = normalizeReturnTarget(target);
+      if (normalizedUrl) {
+        normalizedUrl.searchParams.set('token', token);
+        return normalizedUrl.toString();
       }
 
-      function normalizeReturnTarget(target) {
-        try {
-          const decodedTarget = decodeURIComponent(target);
-          const url = new URL(decodedTarget);
-          const encodedQueryIndex = url.pathname.indexOf('%3F');
-          if (encodedQueryIndex >= 0) {
-            const encodedQuery = url.pathname.slice(encodedQueryIndex + 3);
-            url.pathname = url.pathname.slice(0, encodedQueryIndex);
-            const carriedParams = new URLSearchParams(encodedQuery);
-            carriedParams.forEach((value, key) => {
-              if (!url.searchParams.has(key)) {
-                url.searchParams.set(key, value);
-              }
-            });
-          }
-          return url;
-        } catch {
-          return null;
-        }
+      const separator = target.includes('?') ? '&' : '?';
+      return target + separator + 'token=' + encodeURIComponent(token);
+    }
+
+    function readPendingReturnTarget() {
+      try {
+        return sessionStorage.getItem(pendingReturnKey);
+      } catch {
+        return null;
       }
+    }
 
-      function buildReturnTarget(target, token) {
-        const normalizedUrl = normalizeReturnTarget(target);
-        if (normalizedUrl) {
-          normalizedUrl.searchParams.set('token', token);
-          return normalizedUrl.toString();
-        }
+    function rememberReturnTarget(target) {
+      if (!target) return;
+      try {
+        sessionStorage.setItem(pendingReturnKey, target);
+      } catch {}
+    }
 
-        const separator = target.includes('?') ? '&' : '?';
-        return target + separator + 'token=' + encodeURIComponent(token);
+    function clearPendingReturnTarget() {
+      try {
+        sessionStorage.removeItem(pendingReturnKey);
+      } catch {}
+    }
+
+    function setShellState(state) {
+      if (loadingShell) loadingShell.style.display = state === 'loading' ? 'block' : 'none';
+      if (signedOutShell) signedOutShell.style.display = state === 'signed-out' ? 'block' : 'none';
+      if (signedInShell) signedInShell.style.display = state === 'signed-in' ? 'block' : 'none';
+    }
+
+    function showStatus(message) {
+      if (!statusDiv || !message) return;
+      statusDiv.textContent = message;
+      statusDiv.style.display = 'block';
+    }
+
+    function showReturnButton(target, label = 'Open VS Code') {
+      if (!returnDiv || !target) return;
+      returnDiv.innerHTML = '<a class="btn btn-secondary" id="account-open-vscode" href="#">' + label + '</a><p class="note" style="margin-top:10px;">If your browser does not switch back automatically, click the button.</p>';
+      returnDiv.style.display = 'block';
+      const returnLink = document.getElementById('account-open-vscode');
+      if (returnLink) {
+        returnLink.addEventListener('click', (event) => {
+          event.preventDefault();
+          window.location.href = target;
+        });
       }
+    }
 
-      function readPendingReturnTarget() {
-        try {
-          return sessionStorage.getItem(pendingReturnKey);
-        } catch {
-          return null;
-        }
-      }
+    function configureAuthLinks(target) {
+      if (loginLink && target) loginLink.href = '/login?return_to=' + encodeURIComponent(target);
+      if (registerLink && target) registerLink.href = '/register?return_to=' + encodeURIComponent(target);
+    }
 
-      function rememberReturnTarget(target) {
-        if (!target) return;
-        try {
-          sessionStorage.setItem(pendingReturnKey, target);
-        } catch {}
-      }
+    const effectiveReturnTo = returnTo || readPendingReturnTarget();
+    if (effectiveReturnTo) {
+      rememberReturnTarget(effectiveReturnTo);
+      configureAuthLinks(effectiveReturnTo);
+    }
 
-      const effectiveReturnTo = returnTo || readPendingReturnTarget();
-      if (effectiveReturnTo) {
-        rememberReturnTarget(effectiveReturnTo);
-      }
+    const storedToken = localStorage.getItem('auth_token');
+    const activeToken = storedToken || initialServerToken || null;
 
-      async function loadAccount() {
-        try {
-          const response = await fetch('/api/auth/me', {
-            headers: { 'Authorization': 'Bearer ${authToken}' }
-          });
-          
-          if (!response.ok) {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_email');
-            window.location.href = '/login';
-            return;
-          }
-          
-          const data = await response.json();
-          const user = data.user;
+    async function runRestoreLookup(email) {
+      const response = await fetch('/api/license/lookup-by-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      return response.json();
+    }
 
+    async function loadSignedInAccount(token) {
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_email');
+          setShellState('signed-out');
           if (effectiveReturnTo) {
-            const returnTarget = buildReturnTarget(effectiveReturnTo, '${authToken}');
-            showReturnButton(returnTarget);
-            setTimeout(() => {
-              window.location.href = returnTarget;
-            }, 150);
+            showStatus('Your RinaWarp session expired. Sign in again, then return to VS Code.');
           }
-          
-          document.getElementById('account-info').innerHTML = \`
-            <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-              <div class="user-avatar">\${(user.name || user.email || 'U').charAt(0).toUpperCase()}</div>
-              <div>
-                <h3 style="margin:0;">\${user.name || 'User'}</h3>
-                <p style="margin:4px 0 0; color:var(--muted); font-size:0.9rem;">\${user.email}</p>
-              </div>
+          return;
+        }
+
+        const data = await response.json();
+        const user = data.user;
+        setShellState('signed-in');
+
+        if (restoreCopy) {
+          restoreCopy.textContent = 'Use your billing email to confirm the plan attached to this account or help a second device recover access.';
+        }
+
+        document.getElementById('account-info').innerHTML = \`
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+            <div class="user-avatar">\${(user.name || user.email || 'U').charAt(0).toUpperCase()}</div>
+            <div>
+              <h3 style="margin:0;">\${user.name || 'User'}</h3>
+              <p style="margin:4px 0 0; color:var(--muted); font-size:0.9rem;">\${user.email}</p>
             </div>
-          \`;
-          
-          // Load subscription
+          </div>
+        \`;
+
+        try {
+          const subData = await runRestoreLookup(user.email);
+          if (subData.ok && subData.tier) {
+            document.getElementById('subscription-info').innerHTML = \`
+              <div class="pill" style="margin-bottom:12px;">\${subData.tier.toUpperCase()}</div>
+              <p style="color:var(--muted);">Status: \${subData.status || 'active'}</p>
+            \`;
+          } else {
+            document.getElementById('subscription-info').innerHTML = \`
+              <div class="pill" style="margin-bottom:12px;">FREE</div>
+              <p style="color:var(--muted);"><a href="/pricing" style="color:var(--accent);">Upgrade to Pro</a></p>
+            \`;
+          }
+        } catch (error) {
+          document.getElementById('subscription-info').innerHTML = '<p style="color:var(--muted);">Unable to load subscription right now.</p>';
+        }
+
+        document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
           try {
-            const subResponse = await fetch('/api/license/lookup-by-email', {
+            const response = await fetch('/api/portal', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: user.email })
             });
-            const subData = await subResponse.json();
-            
-            if (subData.ok && subData.tier) {
-              document.getElementById('subscription-info').innerHTML = \`
-                <div class="pill" style="margin-bottom:12px;">\${subData.tier.toUpperCase()}</div>
-                <p style="color:var(--muted);">Status: \${subData.status || 'active'}</p>
-              \`;
-            } else {
-              document.getElementById('subscription-info').innerHTML = \`
-                <div class="pill" style="margin-bottom:12px;">FREE</div>
-                <p style="color:var(--muted);"><a href="/pricing" style="color:var(--accent);">Upgrade to Pro</a></p>
-              \`;
+            const payload = await response.json();
+            if (payload?.url) {
+              window.location.href = payload.url;
             }
-          } catch (e) {
-            document.getElementById('subscription-info').innerHTML = '<p style="color:var(--muted);">Unable to load subscription</p>';
-          }
-          document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
-            try {
-              const response = await fetch('/api/portal', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: user.email })
-              });
-              const payload = await response.json();
-              if (payload?.url) window.location.href = payload.url;
-            } catch (e) {
-              const status = document.getElementById('restore-status');
-              if (status) status.textContent = 'Could not open billing portal right now.';
+          } catch (error) {
+            if (restoreStatus) {
+              restoreStatus.textContent = 'Could not open billing portal right now.';
+              restoreStatus.className = 'status-message error';
             }
-          });
-        } catch (err) {
-          console.error('Failed to load account:', err);
-        }
-      }
-      
-      document.getElementById('logout-btn')?.addEventListener('click', () => {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_email');
-        window.location.href = '/';
-      });
-      
-      loadAccount();
-    `
-  } else {
-    content = `
-    <section class="section">
-      <div class="auth-container">
-        <div class="auth-card" style="text-align:center;">
-          <h2 class="auth-title">Sign in to your account</h2>
-          <p class="auth-subtitle">Sign in, restore by billing email, or start from the Early Access support path.</p>
-          
-          <a href="/login" id="account-login-link" class="btn btn-primary" style="width:100%; margin-bottom:12px;">Sign In</a>
-          <a href="/register" id="account-register-link" class="btn btn-secondary" style="width:100%; margin-bottom:12px;">Create Account</a>
-          <a href="/early-access" class="btn btn-secondary" style="width:100%;">Early Access Policy</a>
-          <div id="account-return" style="display:none; margin-top:12px;"></div>
-        </div>
-      </div>
-    </section>`
-    
-    script = `
-      const params = new URLSearchParams(window.location.search);
-      const returnTo = params.get('return_to');
-      const pendingReturnKey = 'rinawarp_pending_return_to';
-      const existingToken = localStorage.getItem('auth_token');
-      const returnDiv = document.getElementById('account-return');
-
-      function showReturnButton(target) {
-        if (!returnDiv || !target) return;
-        returnDiv.innerHTML = '<a class="btn btn-secondary" id="account-open-vscode" href="#">Open VS Code</a><p class="note" style="margin-top:10px;">If your browser does not switch back automatically, click the button.</p>';
-        returnDiv.style.display = 'block';
-        const returnLink = document.getElementById('account-open-vscode');
-        if (returnLink) {
-          returnLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            window.location.href = target;
-          });
-        }
-      }
-
-      function normalizeReturnTarget(target) {
-        try {
-          const decodedTarget = decodeURIComponent(target);
-          const url = new URL(decodedTarget);
-          const encodedQueryIndex = url.pathname.indexOf('%3F');
-          if (encodedQueryIndex >= 0) {
-            const encodedQuery = url.pathname.slice(encodedQueryIndex + 3);
-            url.pathname = url.pathname.slice(0, encodedQueryIndex);
-            const carriedParams = new URLSearchParams(encodedQuery);
-            carriedParams.forEach((value, key) => {
-              if (!url.searchParams.has(key)) {
-                url.searchParams.set(key, value);
-              }
-            });
           }
-          return url;
-        } catch {
-          return null;
+        }, { once: true });
+
+        if (effectiveReturnTo) {
+          showStatus('You are signed in. Use the button below to return to VS Code.');
+          showReturnButton(buildReturnTarget(effectiveReturnTo, token), 'Return to VS Code');
         }
+      } catch (error) {
+        setShellState('signed-out');
+      }
+    }
+
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_email');
+      clearPendingReturnTarget();
+      window.location.href = '/account';
+    });
+
+    restoreForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!restoreStatus) return;
+      const emailField = restoreForm.querySelector('input[name="email"]');
+      const email = emailField?.value?.trim();
+      if (!email) {
+        restoreStatus.textContent = 'Enter the billing email used at checkout.';
+        restoreStatus.className = 'status-message error';
+        return;
       }
 
-      function buildReturnTarget(target, token) {
-        const normalizedUrl = normalizeReturnTarget(target);
-        if (normalizedUrl) {
-          normalizedUrl.searchParams.set('token', token);
-          return normalizedUrl.toString();
+      restoreStatus.textContent = 'Checking restore status...';
+      restoreStatus.className = 'status-message';
+
+      try {
+        const data = await runRestoreLookup(email);
+        if (data.ok && data.tier) {
+          restoreStatus.textContent = 'Access found: ' + String(data.tier).toUpperCase() + ' (' + String(data.status || 'active') + ').';
+          restoreStatus.className = 'status-message success';
+        } else {
+          restoreStatus.textContent = 'No paid access was found for that billing email yet.';
+          restoreStatus.className = 'status-message error';
         }
-
-        const separator = target.includes('?') ? '&' : '?';
-        return target + separator + 'token=' + encodeURIComponent(token);
+      } catch (error) {
+        restoreStatus.textContent = 'Restore lookup is temporarily unavailable.';
+        restoreStatus.className = 'status-message error';
       }
+    });
 
-      function readPendingReturnTarget() {
-        try {
-          return sessionStorage.getItem(pendingReturnKey);
-        } catch {
-          return null;
-        }
-      }
-
-      function rememberReturnTarget(target) {
-        if (!target) return;
-        try {
-          sessionStorage.setItem(pendingReturnKey, target);
-        } catch {}
-      }
-
-      function clearPendingReturnTarget() {
-        try {
-          sessionStorage.removeItem(pendingReturnKey);
-        } catch {}
-      }
-
-      const effectiveReturnTo = returnTo || readPendingReturnTarget();
+    if (activeToken) {
+      loadSignedInAccount(activeToken);
+    } else {
+      setShellState('signed-out');
       if (effectiveReturnTo) {
-        rememberReturnTarget(effectiveReturnTo);
+        showStatus('Sign in, then return to VS Code to finish connecting your Companion session.');
       }
-
-      if (effectiveReturnTo) {
-        const loginLink = document.getElementById('account-login-link');
-        const registerLink = document.getElementById('account-register-link');
-        if (loginLink) loginLink.href = '/login?return_to=' + encodeURIComponent(effectiveReturnTo);
-        if (registerLink) registerLink.href = '/register?return_to=' + encodeURIComponent(effectiveReturnTo);
-      }
-
-      if (existingToken && effectiveReturnTo) {
-        const returnTarget = buildReturnTarget(effectiveReturnTo, existingToken);
-        showReturnButton(returnTarget);
-        setTimeout(() => {
-          window.location.href = returnTarget;
-          clearPendingReturnTarget();
-        }, 150);
-      }
-
-      // Check for existing token in URL (e.g., from OAuth)
-      const hash = window.location.hash;
-      if (hash && hash.includes('token=')) {
-        const token = hash.split('token=')[1]?.split('&')[0];
-        if (token) {
-          localStorage.setItem('auth_token', token);
-          window.location.href = '/account';
-        }
-      }
-    `
-  }
+    }
+  `
 
   return renderPage('/account', 'account', hero, content, script)
 }
