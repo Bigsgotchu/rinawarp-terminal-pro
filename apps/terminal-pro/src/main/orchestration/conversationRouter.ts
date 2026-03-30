@@ -4,7 +4,17 @@ import {
   detectDeployCapability,
   resolveSelfCheckContext,
 } from './conversationResponder.js'
-import type { BuildConversationReplyArgs, RouteConversationTurnArgs, RoutedTurn } from './conversationTypes.js'
+import type {
+  BuildConversationReplyArgs,
+  ConversationContext,
+  ConversationRunIntent,
+  ConversationOutcome,
+  ReplyMode,
+  RouteConversationTurnArgs,
+  RoutedTurn,
+  Tone,
+  TurnType,
+} from './conversationTypes.js'
 
 export type { AllowedNextAction, BuildConversationReplyArgs, ConversationMode, ConversationRunReference, RouteConversationTurnArgs, RoutedTurn } from './conversationTypes.js'
 
@@ -58,11 +68,81 @@ function classifyExecutionGoal(rawText: string): RoutedTurn['executionCandidate'
   return null
 }
 
+function classifyTurnType(rawText: string, lower: string, latestRun?: RouteConversationTurnArgs['latestRun'] | null): TurnType {
+  if (SELF_CHECK_TRIGGERS.test(rawText)) return 'diagnose'
+  if (!rawText) return 'clarify_needed'
+  if (isGreetingTurn(rawText)) return 'greeting'
+  if (HELP_WORDS.test(lower)) return 'help'
+  if (RECOVERY_WORDS.test(lower) || FOLLOW_UP_WORDS.test(lower)) return 'follow_up'
+  if (MEMORY_WORDS.test(lower) || SETTINGS_WORDS.test(lower)) return 'clarify_needed'
+  if (/\b(stuck|frustrated|annoyed|why are you not helping|this is useless|this sucks)\b/i.test(lower)) return 'frustration'
+  if (QUESTION_WORDS.test(lower) || /\bexplain\b/.test(lower)) return 'explain'
+  if (EXECUTION_KEYWORDS.test(lower)) return 'action'
+  if (latestRun?.runId && SOCIAL_WORDS.test(lower)) return 'follow_up'
+  return 'clarify_needed'
+}
+
+function classifyLatestIntent(latestRun?: RouteConversationTurnArgs['latestRun'] | null): ConversationRunIntent {
+  const command = String(latestRun?.latestCommand || '').toLowerCase()
+  if (!command) return latestRun?.runId ? 'unknown' : 'unknown'
+  if (/\bself-check\b/.test(command)) return 'self_check'
+  if (/\bdeploy\b/.test(command)) return 'deploy'
+  if (/\btest/.test(command)) return 'test'
+  if (/\bbuild\b/.test(command)) return 'build'
+  if (/\bfix|repair\b/.test(command)) return 'fix'
+  if (/\binspect|analy[sz]e|lint\b/.test(command)) return 'inspect'
+  return 'command'
+}
+
+function classifyLatestOutcome(latestRun?: RouteConversationTurnArgs['latestRun'] | null): ConversationOutcome {
+  if (!latestRun?.runId) return 'none'
+  if (latestRun.interrupted) return 'interrupted'
+  if (typeof latestRun.latestExitCode === 'number') return latestRun.latestExitCode === 0 ? 'succeeded' : 'failed'
+  return 'unknown'
+}
+
+function buildConversationContext(args: RouteConversationTurnArgs): ConversationContext {
+  return {
+    workspaceRoot: args.workspaceId || null,
+    latestRunId: args.latestRun?.runId || null,
+    latestReceiptId: args.latestRun?.latestReceiptId || null,
+    latestRecoverySessionId: args.latestRun?.interrupted ? args.latestRun?.sessionId || null : null,
+    latestIntent: classifyLatestIntent(args.latestRun),
+    latestOutcome: classifyLatestOutcome(args.latestRun),
+    latestActionSummary: args.latestRun?.latestCommand || null,
+    hasVerifiedRun: Boolean(args.latestRun?.runId),
+    hasAnyAnchor: Boolean(args.workspaceId || args.latestRun?.runId),
+  }
+}
+
+function buildReplyPlan(args: {
+  turnType: TurnType
+  mode: ReplyMode
+  workspaceId?: string
+  latestRun?: RouteConversationTurnArgs['latestRun'] | null
+  shouldStartRun: boolean
+  tone?: Tone
+}) {
+  return {
+    turnType: args.turnType,
+    anchor: {
+      workspaceRoot: args.workspaceId || null,
+      runId: args.latestRun?.runId || null,
+      receiptId: args.latestRun?.latestReceiptId || null,
+    },
+    mode: args.mode,
+    tone: args.tone || 'normal',
+    shouldStartRun: args.shouldStartRun,
+  }
+}
+
 export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTurn {
   const rawText = normalizeWhitespace(String(args.rawText || ''))
   const conversationalText = stripConversationalPrefix(rawText)
   const lower = conversationalText.toLowerCase()
   const latestRun = args.latestRun || null
+  const context = buildConversationContext(args)
+  const turnType = classifyTurnType(conversationalText || rawText, lower, latestRun)
 
   if (SELF_CHECK_TRIGGERS.test(conversationalText)) {
     const ctx = resolveSelfCheckContext(args)
@@ -70,6 +150,7 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       return {
         rawText,
         mode: 'self_check',
+        turnType: 'diagnose',
         confidence: 1.0,
         workspaceId: args.workspaceId,
         references: {},
@@ -79,16 +160,34 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
           reason: 'no_context',
           question: "I can run a self-check, but I don't see an active workspace. Which workspace should I inspect?",
         },
+        context,
+        replyPlan: buildReplyPlan({
+          turnType: 'diagnose',
+          mode: 'ask_once',
+          workspaceId: args.workspaceId,
+          latestRun,
+          shouldStartRun: false,
+          tone: 'supportive',
+        }),
       }
     }
     return {
       rawText,
       mode: 'self_check',
+      turnType: 'diagnose',
       confidence: 1.0,
       workspaceId: args.workspaceId,
-      references: { runId: ctx.lastRunId || undefined },
+      references: { runId: ctx.lastRunId || undefined, receiptId: latestRun?.latestReceiptId || undefined },
       allowedNextAction: 'execute',
       executionCandidate: { goal: 'self-check', risk: 'low' as const },
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'diagnose',
+        mode: 'run',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: true,
+      }),
     }
   }
 
@@ -96,15 +195,24 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'unclear',
+      turnType: 'clarify_needed',
       confidence: 0.2,
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'clarify',
       clarification: {
         required: true,
-        reason: 'empty_turn',
-        question: 'What do you want me to look at: the current workspace or the last run?',
-      },
+          reason: 'empty_turn',
+          question: 'What do you want me to look at: the current workspace or the last run?',
+        },
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'clarify_needed',
+        mode: 'ask_once',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -112,10 +220,19 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'chat',
+      turnType: 'greeting',
       confidence: 0.95,
       workspaceId: args.workspaceId,
-      references: { runId: latestRun?.runId },
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'greeting',
+        mode: 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -123,10 +240,19 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'help',
+      turnType: 'help',
       confidence: 0.96,
       workspaceId: args.workspaceId,
-      references: { runId: latestRun?.runId },
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'help',
+        mode: 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -134,10 +260,19 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'memory_update',
+      turnType,
       confidence: 0.9,
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'reply_only',
+      context,
+      replyPlan: buildReplyPlan({
+        turnType,
+        mode: 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -145,10 +280,19 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'settings',
+      turnType,
       confidence: 0.85,
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'reply_only',
+      context,
+      replyPlan: buildReplyPlan({
+        turnType,
+        mode: 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -156,13 +300,24 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'recovery',
+      turnType: 'follow_up',
       confidence: 0.85,
       workspaceId: args.workspaceId,
       references: {
         runId: latestRun?.runId,
+        receiptId: latestRun?.latestReceiptId,
         restoredSessionId: latestRun?.interrupted ? latestRun.sessionId : undefined,
       },
       allowedNextAction: latestRun?.interrupted ? 'reply_only' : 'inspect',
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'follow_up',
+        mode: latestRun?.interrupted ? 'explain_verified' : 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+        tone: latestRun?.interrupted ? 'supportive' : 'normal',
+      }),
     }
   }
 
@@ -170,10 +325,12 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'follow_up',
+      turnType: 'follow_up',
       confidence: 0.8,
       workspaceId: args.workspaceId,
       references: {
         runId: latestRun?.runId,
+        receiptId: latestRun?.latestReceiptId,
         restoredSessionId: latestRun?.interrupted ? latestRun.sessionId : undefined,
       },
       allowedNextAction: latestRun?.runId ? 'reply_only' : 'clarify',
@@ -184,6 +341,14 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
             reason: 'missing_reference_anchor',
             question: 'Do you mean the current workspace or the last run?',
           },
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'follow_up',
+        mode: latestRun?.runId ? 'reply_only' : 'ask_once',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -191,10 +356,19 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'chat',
+      turnType: 'clarify_needed',
       confidence: 0.8,
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'reply_only',
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'clarify_needed',
+        mode: 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -202,11 +376,20 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'question',
+      turnType: 'explain',
       confidence: 0.9,
       workspaceId: args.workspaceId,
-      references: { runId: latestRun?.runId },
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
       executionCandidate: classifyExecutionGoal(rawText) || undefined,
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'explain',
+        mode: 'explain_verified',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -214,9 +397,10 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'inspect',
+      turnType: 'clarify_needed',
       confidence: 0.82,
       workspaceId: args.workspaceId,
-      references: { runId: latestRun?.runId },
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: args.workspaceId ? 'inspect' : 'clarify',
       clarification: args.workspaceId
         ? undefined
@@ -225,6 +409,14 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
             reason: 'missing_workspace_anchor',
             question: 'Do you want me to inspect the current workspace or the last run?',
           },
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'clarify_needed',
+        mode: args.workspaceId ? 'reply_only' : 'ask_once',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
     }
   }
 
@@ -232,10 +424,20 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'chat',
+      turnType: latestRun?.runId ? 'follow_up' : 'greeting',
       confidence: 0.82,
       workspaceId: args.workspaceId,
-      references: { runId: latestRun?.runId },
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: latestRun?.runId ? 'follow_up' : 'greeting',
+        mode: 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+        tone: latestRun?.runId ? 'supportive' : 'normal',
+      }),
     }
   }
 
@@ -243,11 +445,21 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     return {
       rawText,
       mode: 'question',
+      turnType: turnType === 'frustration' ? 'frustration' : 'explain',
       confidence: 0.76,
       workspaceId: args.workspaceId,
-      references: { runId: latestRun?.runId },
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
       executionCandidate: classifyExecutionGoal(rawText) || undefined,
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: turnType === 'frustration' ? 'frustration' : 'explain',
+        mode: latestRun?.runId ? 'explain_verified' : 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+        tone: turnType === 'frustration' ? 'supportive' : 'normal',
+      }),
     }
   }
 
@@ -257,33 +469,52 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       return {
         rawText,
         mode: 'execute',
+        turnType: 'action',
         confidence: 0.86,
         workspaceId: args.workspaceId,
-        references: { runId: latestRun?.runId },
+        references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
         allowedNextAction: 'plan',
         executionCandidate: {
           ...executionCandidate,
           constraints: ['deployment_target_required'],
         },
+        context,
+        replyPlan: buildReplyPlan({
+          turnType: 'action',
+          mode: 'plan',
+          workspaceId: args.workspaceId,
+          latestRun,
+          shouldStartRun: false,
+        }),
       }
     }
     return {
       rawText,
       mode: 'execute',
+      turnType: 'action',
       confidence: 0.86,
       workspaceId: args.workspaceId,
-      references: { runId: latestRun?.runId },
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: executionCandidate?.risk === 'medium' ? 'plan' : 'execute',
       executionCandidate: executionCandidate || undefined,
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'action',
+        mode: executionCandidate?.risk === 'medium' ? 'plan' : 'run',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: executionCandidate?.risk !== 'medium',
+      }),
     }
   }
 
   return {
     rawText,
     mode: 'unclear',
+    turnType: 'clarify_needed',
     confidence: 0.45,
     workspaceId: args.workspaceId,
-    references: { runId: latestRun?.runId },
+    references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
     allowedNextAction: args.workspaceId ? 'inspect' : 'clarify',
     clarification: args.workspaceId
       ? undefined
@@ -292,5 +523,13 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
           reason: 'missing_anchor',
           question: 'I can help with that, but I need one anchor: do you mean the current workspace or the last run?',
         },
+    context,
+    replyPlan: buildReplyPlan({
+      turnType: 'clarify_needed',
+      mode: args.workspaceId ? 'reply_only' : 'ask_once',
+      workspaceId: args.workspaceId,
+      latestRun,
+      shouldStartRun: false,
+    }),
   }
 }

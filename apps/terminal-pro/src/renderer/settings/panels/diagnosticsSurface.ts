@@ -24,7 +24,7 @@ function renderFileRow(row: DiagnosticsPanelModel['fileRows'][number]): string {
 export function renderDiagnosticsPanelShell(): string {
   return `
     <div class="rw-panel-head">
-      <h2>Diagnostics</h2>
+      <h2 id="rw-diag-title">Diagnostics</h2>
       <p class="rw-sub">Copy system info for support and verify packaged paths.</p>
     </div>
 
@@ -41,6 +41,24 @@ export function renderDiagnosticsPanelShell(): string {
       <div id="rw-diag-files" class="rw-diag-files"></div>
       <div id="rw-diag-notes" class="rw-diag-notes"></div>
       <pre id="rw-diag-raw" class="rw-code"></pre>
+    </div>
+
+    <div id="rw-rina-debug" class="rw-card rw-flex rw-gap" hidden>
+      <div class="rw-row rw-gap" style="align-items:center; justify-content:space-between;">
+        <div>
+          <strong>Rina Route Preview</strong>
+          <div class="rw-muted">Alt-click the Diagnostics title to toggle this hidden view. Previewing does not start runs.</div>
+        </div>
+        <div id="rw-rina-debug-status" class="rw-muted">Hidden.</div>
+      </div>
+      <label class="rw-muted" for="rw-rina-debug-prompt">Prompt preview</label>
+      <textarea id="rw-rina-debug-prompt" class="rw-code" rows="3">help me</textarea>
+      <div class="rw-row rw-gap">
+        <button id="rw-rina-debug-run" class="rw-btn">Preview route</button>
+        <button id="rw-rina-debug-copy" class="rw-btn rw-btn-ghost">Copy debug JSON</button>
+      </div>
+      <div id="rw-rina-debug-summary" class="rw-diag-grid"></div>
+      <pre id="rw-rina-debug-raw" class="rw-code"></pre>
     </div>
   `
 }

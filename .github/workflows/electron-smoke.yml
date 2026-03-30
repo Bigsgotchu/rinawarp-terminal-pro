@@ -7,26 +7,23 @@ on:
       - main
       - master
     paths:
-      - "rinawarp-terminal-pro/apps/terminal-pro/**"
-      - "rinawarp-terminal-pro/deploy/**"
-      - "rinawarp-terminal-pro/.github/workflows/electron-smoke.yml"
-      - "rinawarp-terminal-pro/package.json"
-      - "rinawarp-terminal-pro/package-lock.json"
+      - "apps/terminal-pro/**"
+      - "deploy/**"
+      - ".github/workflows/electron-smoke.yml"
+      - "package.json"
+      - "package-lock.json"
   pull_request:
     paths:
-      - "rinawarp-terminal-pro/apps/terminal-pro/**"
-      - "rinawarp-terminal-pro/deploy/**"
-      - "rinawarp-terminal-pro/.github/workflows/electron-smoke.yml"
-      - "rinawarp-terminal-pro/package.json"
-      - "rinawarp-terminal-pro/package-lock.json"
+      - "apps/terminal-pro/**"
+      - "deploy/**"
+      - ".github/workflows/electron-smoke.yml"
+      - "package.json"
+      - "package-lock.json"
 
 jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: rinawarp-terminal-pro
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,7 +33,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: rinawarp-terminal-pro/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install deps
         run: npm ci
@@ -98,10 +95,10 @@ jobs:
         with:
           name: electron-smoke-artifacts
           path: |
-            rinawarp-terminal-pro/artifacts/*.tgz
-            rinawarp-terminal-pro/artifacts/diagnostics.json
-            rinawarp-terminal-pro/artifacts/support-bundle-result.json
-            rinawarp-terminal-pro/artifacts/support-bundle.zip
-            rinawarp-terminal-pro/apps/terminal-pro/test-results
-            rinawarp-terminal-pro/apps/terminal-pro/playwright-report
+            artifacts/*.tgz
+            artifacts/diagnostics.json
+            artifacts/support-bundle-result.json
+            artifacts/support-bundle.zip
+            apps/terminal-pro/test-results
+            apps/terminal-pro/playwright-report
           if-no-files-found: ignore

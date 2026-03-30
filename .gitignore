@@ -66,13 +66,18 @@ RinaWarp-Terminal-Pro-*.AppImage
 
 # Local agent/editor state
 .codex
+.continue/
 .kilocode/
+.kilocodemodes
 .kilocodeignore
 RinaWarp.code-workspace
 
 # Local receipts and caches
 runs/
 scripts/__pycache__/
+apps/terminal-pro/demo-*.png
+output/demo-recordings/
+output/doc/
 
 # VS Code companion generated artifacts
 apps/rinawarp-companion/dist/

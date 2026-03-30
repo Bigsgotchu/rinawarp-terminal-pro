@@ -13,6 +13,7 @@ const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
 const PRIMARY_UPDATES_BASE = "https://rinawarptech.com/releases";
 const VERSION = String(packageJson.version);
 const ASSET_VERSION = "20260329-brand-refresh";
+const GA_MEASUREMENT_ID = "G-YGX1R0MEB6";
 const SCREENSHOT_SOURCES = [
   ["agent-empty-state.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-empty-state.png")],
   ["agent-active-thread.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-active-thread.png")],
@@ -823,9 +824,19 @@ function seo(path, title, description) {
   <meta name="msapplication-TileColor" content="#ff4fd8">
   <link rel="preconnect" href="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev" crossorigin>
   <link rel="preconnect" href="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev" crossorigin>
+  <link rel="preconnect" href="https://www.googletagmanager.com">
+  <link rel="preconnect" href="https://www.google-analytics.com">
   <link rel="icon" href="/assets/img/icon.png" type="image/png">
   <link rel="shortcut icon" href="/assets/img/icon.png" type="image/png">
   <link rel="apple-touch-icon" href="/assets/img/icon.png">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${GA_MEASUREMENT_ID}');
+  </script>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self';">
   <script type="application/ld+json">${structuredData}</script>
   `;
 }
