@@ -35,6 +35,26 @@ This runbook is for the live checks that must be done in VS Code and the browser
 
 If `npm --workspace apps/rinawarp-companion run package:vsix` stalls in a shell, confirm that `vsce` is actually available in the current environment. In this repo the script shells out through `npx vsce`, so a missing local install or blocked package fetch can look like a product problem when it is really an environment issue.
 
+## Linux Callback Note
+
+If the browser return path opens a plain text `callback?...` tab in VS Code instead of updating Companion state, check the desktop URL handler for `x-scheme-handler/vscode`.
+
+One confirmed failure mode on Linux was:
+
+- system handler pointed to `code-url-handler.desktop`
+- desktop entry used `Exec=/usr/share/code/code --open-url %U`
+- that invocation failed locally with `/usr/share/code/code: bad option: --open-url`
+
+The working user-level override on this machine was:
+
+- `Exec=/usr/bin/code --open-url %U`
+
+Verify with:
+
+```bash
+xdg-mime query default x-scheme-handler/vscode
+```
+
 ## Suggested Test Workspace
 
 Use a trusted workspace that has:
