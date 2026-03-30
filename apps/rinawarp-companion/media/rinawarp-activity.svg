@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <path
-    d="M6 18V6H11.9C15.02 6 17 7.76 17 10.45C17 13.14 15.02 14.9 11.9 14.9H8.98V18H6ZM8.98 12.73H11.64C13.27 12.73 14.14 11.91 14.14 10.45C14.14 8.99 13.27 8.17 11.64 8.17H8.98V12.73Z"
+    d="M150 335c54-155 140-190 212-190 0 0-42 22-77 79 0 0 58-30 115-18 0 0-73 37-110 130-40 102-144 116-140-1z"
     fill="currentColor"
+  />
+  <path
+    d="M160 338c48-138 122-168 186-168"
+    stroke="currentColor"
+    stroke-opacity="0.35"
+    stroke-width="10"
+    stroke-linecap="round"
   />
 </svg>
