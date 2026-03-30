@@ -47,6 +47,7 @@ npm --workspace apps/rinawarp-companion run publish:release
 - This repo currently targets Node 18 for the extension workflow, so prefer the `vsce` 2.x line unless you upgrade the packaging runtime to Node 20+.
 - In this monorepo, use the built-in `--no-dependencies` packaging flow because Companion ships a self-contained payload from `dist/**` and `media/**`, and root-level extraneous modules can confuse `vsce`'s dependency scan.
 - The scripts intentionally pin `vsce@2.15.0` so Node 18 environments do not accidentally pick up a newer transient CLI through plain `npx`.
+- On this machine, the scripts also invoke `npx-cli.js` through `/usr/bin/node` directly so publish/package does not fall back to an older shell-managed Node runtime.
 - The package is configured as `preview: true` and `pricing: "Trial"` to match the current rollout plan.
 - URI callbacks require the published extension id `rinawarp.rinawarp-companion`.
 - Test pre-release installs locally before publishing broadly.
