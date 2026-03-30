@@ -197,6 +197,10 @@ Checklist:
 
 ## 12A. Companion Revenue Surface
 
+Canonical pre-release launch gate:
+
+- [apps/rinawarp-companion/PRE_RELEASE_GO_NO_GO.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/PRE_RELEASE_GO_NO_GO.md)
+
 - [ ] `RinaWarp Companion` messaging matches the actual shipped extension surface
 - [ ] Companion chat, diagnostics, and telemetry validation are green via `npm run test:companion`
 - [ ] Companion account-linking and entitlement-refresh flows are documented and supportable

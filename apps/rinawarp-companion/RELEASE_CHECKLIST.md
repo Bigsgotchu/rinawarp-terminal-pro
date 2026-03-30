@@ -1,5 +1,9 @@
 # Release Checklist
 
+Canonical release decision gate:
+
+- [PRE_RELEASE_GO_NO_GO.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/PRE_RELEASE_GO_NO_GO.md)
+
 ## Before Packaging
 
 - [ ] `npm --workspace apps/rinawarp-companion run build` passes

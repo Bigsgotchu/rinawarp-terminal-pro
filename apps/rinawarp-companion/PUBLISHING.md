@@ -2,6 +2,10 @@
 
 This extension is set up for a Preview-first Marketplace rollout.
 
+Canonical launch decision gate:
+
+- [PRE_RELEASE_GO_NO_GO.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/PRE_RELEASE_GO_NO_GO.md)
+
 ## Packaging
 
 Build the extension:
