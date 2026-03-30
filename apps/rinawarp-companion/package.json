@@ -85,6 +85,16 @@
         "category": "RinaWarp"
       },
       {
+        "command": "rinawarp.openChat",
+        "title": "RinaWarp: Open Chat",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.openGettingStarted",
+        "title": "RinaWarp: Open Getting Started",
+        "category": "RinaWarp"
+      },
+      {
         "command": "rinawarp.runFreeDiagnostic",
         "title": "RinaWarp: Run Free Diagnostic",
         "category": "RinaWarp"

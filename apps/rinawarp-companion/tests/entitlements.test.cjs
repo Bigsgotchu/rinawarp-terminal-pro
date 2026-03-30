@@ -41,6 +41,11 @@ function createVscodeStub(overrides = {}) {
     TreeItemCollapsibleState: {
       None: 0,
     },
+    ThemeIcon: class ThemeIcon {
+      constructor(id) {
+        this.id = id;
+      }
+    },
     ...overrides.extra,
   };
 }
@@ -435,7 +440,37 @@ serialTest('sidebar renders refresh status labels for refreshing, stale, and cur
     lastRefreshAttemptAt: '2026-03-30T01:00:00.000Z',
   });
 
-  assert.equal(refreshingProvider.getChildren()[2].label, 'Entitlements: refreshing...');
-  assert.match(failedProvider.getChildren()[2].label, /Entitlements: stale\./);
-  assert.equal(currentProvider.getChildren()[2].label, 'Entitlements: current');
+  const refreshingLabels = refreshingProvider.getChildren().map((item) => item.label);
+  const failedLabels = failedProvider.getChildren().map((item) => item.label);
+  const currentLabels = currentProvider.getChildren().map((item) => item.label);
+
+  assert(refreshingLabels.includes('Entitlements: refreshing...'));
+  assert(failedLabels.some((label) => /Entitlements: stale\./.test(label)));
+  assert(currentLabels.includes('Entitlements: current'));
+});
+
+serialTest('sidebar shows onboarding items before account connect and before first diagnostic', () => {
+  const sidebarModule = loadWithVscodeStub(distPath('sidebar.js'), createVscodeStub());
+
+  const disconnectedProvider = new sidebarModule.CompanionTreeProvider({
+    plan: 'free',
+    packs: [],
+    updatedAt: '2026-03-30T00:00:00.000Z',
+    refreshStatus: 'idle',
+  });
+  const connectedProvider = new sidebarModule.CompanionTreeProvider({
+    email: 'test2@example.com',
+    plan: 'pro',
+    packs: [],
+    updatedAt: '2026-03-30T00:00:00.000Z',
+    refreshStatus: 'idle',
+  });
+
+  const disconnectedLabels = disconnectedProvider.getChildren().map((item) => item.label);
+  const connectedLabels = connectedProvider.getChildren().map((item) => item.label);
+
+  assert(disconnectedLabels.includes('Start Here: Connect Account'));
+  assert(disconnectedLabels.includes('Open Getting Started'));
+  assert(connectedLabels.includes('Start Here: Ask Rina Or Run A Diagnostic'));
+  assert(connectedLabels.includes('Open Chat With Rina'));
 });

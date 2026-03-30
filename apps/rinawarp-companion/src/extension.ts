@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { AuthUriHandler, getPurchaseReturnUri } from './auth';
+import { AuthUriHandler, getPurchaseReturnUri, PUBLISHED_EXTENSION_ID } from './auth';
 import { CompanionChatApiClient } from './chatApi';
 import { CompanionChatProvider } from './chat';
 import { getConfig } from './config';
@@ -60,6 +60,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       telemetry.record({ name: 'connect_account_started' });
       const url = await authHandler.buildConnectUrl(getConfig().baseUrl);
       await vscode.env.openExternal(vscode.Uri.parse(url.toString()));
+    }),
+    vscode.commands.registerCommand('rinawarp.openChat', async () => {
+      telemetry.record({ name: 'open_chat_clicked', properties: { placement: 'command' } });
+      await vscode.commands.executeCommand('workbench.view.extension.rinawarp');
+      try {
+        await vscode.commands.executeCommand('rinawarp.chat.focus');
+      } catch {
+        // Best effort: surfacing the RinaWarp container is still useful if the generated focus command is unavailable.
+      }
+    }),
+    vscode.commands.registerCommand('rinawarp.openGettingStarted', async () => {
+      telemetry.record({ name: 'open_getting_started_clicked' });
+      await vscode.commands.executeCommand(
+        'workbench.action.openWalkthrough',
+        `${PUBLISHED_EXTENSION_ID}#rinawarp.gettingStarted`,
+        false,
+      );
     }),
     vscode.commands.registerCommand('rinawarp.runFreeDiagnostic', async () => {
       if (!vscode.workspace.isTrusted) {

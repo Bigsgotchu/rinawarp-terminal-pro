@@ -8,6 +8,10 @@ Canonical decision gate:
 
 - [PRE_RELEASE_GO_NO_GO.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/PRE_RELEASE_GO_NO_GO.md)
 
+Post-publish trust pass:
+
+- [POST_PUBLISH_SMOKE_TEST.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/POST_PUBLISH_SMOKE_TEST.md)
+
 ## Scope
 
 This runbook is for the live checks that must be done in VS Code and the browser:

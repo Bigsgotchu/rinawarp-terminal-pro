@@ -6,7 +6,16 @@ import { recordTelemetry } from './telemetry';
 import { answerWorkspaceQuestion, canAnswerLocally, findRequestedFile, findRelevantConfigFile, gatherWorkspaceContext, inferRecommendedPack, type CompanionWorkspaceContext } from './workspaceContext';
 
 export interface ChatAction {
-  command: 'rinawarp.runFreeDiagnostic' | 'rinawarp.openPack' | 'rinawarp.openPacks' | 'rinawarp.upgradeToPro' | 'rinawarp.refreshEntitlements' | 'rinawarp.openWorkspaceFile';
+  command:
+    | 'rinawarp.connectAccount'
+    | 'rinawarp.openChat'
+    | 'rinawarp.openGettingStarted'
+    | 'rinawarp.runFreeDiagnostic'
+    | 'rinawarp.openPack'
+    | 'rinawarp.openPacks'
+    | 'rinawarp.upgradeToPro'
+    | 'rinawarp.refreshEntitlements'
+    | 'rinawarp.openWorkspaceFile';
   label: string;
   args?: unknown[];
 }
@@ -228,6 +237,7 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         pending: this.pending,
         plan: this.snapshot.plan,
         prompts: this.buildStarterPrompts(),
+        starterActions: this.buildStarterActions(),
       },
     });
   }
@@ -248,6 +258,27 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
     }
 
     return prompts.slice(0, 3);
+  }
+
+  private buildStarterActions(): ChatAction[] {
+    if (!this.snapshot.email) {
+      return [
+        { command: 'rinawarp.connectAccount', label: 'Connect Account' },
+        { command: 'rinawarp.openGettingStarted', label: 'Open Getting Started' },
+      ];
+    }
+
+    if (!this.diagnostic) {
+      return [
+        { command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' },
+        { command: 'rinawarp.openPacks', label: 'Open Capability Packs' },
+      ];
+    }
+
+    return [
+      { command: 'rinawarp.refreshEntitlements', label: 'Refresh Entitlements' },
+      { command: 'rinawarp.openPacks', label: 'Open Capability Packs' },
+    ];
   }
 
   private collectAvailableActions(): ChatAction[] {
@@ -342,6 +373,7 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         --button-secondary-bg: color-mix(in srgb, var(--button-bg) 20%, transparent);
         --user-bg: color-mix(in srgb, var(--button-bg) 18%, transparent);
         --assistant-bg: color-mix(in srgb, var(--accent) 10%, transparent);
+        --hero-bg: color-mix(in srgb, var(--accent) 10%, var(--bg));
       }
       body {
         margin: 0;
@@ -376,10 +408,33 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         align-content: start;
       }
       .empty {
-        border: 1px dashed var(--border);
-        border-radius: 10px;
-        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
         color: var(--muted);
+        background: linear-gradient(180deg, var(--hero-bg), transparent);
+      }
+      .empty-title {
+        color: var(--fg);
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .empty-copy {
+        margin-bottom: 10px;
+      }
+      .checklist {
+        display: grid;
+        gap: 6px;
+        margin: 10px 0 2px;
+      }
+      .checklist-item {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .check {
+        color: var(--accent);
+        font-weight: 700;
       }
       .prompt-row, .action-row {
         display: flex;
@@ -484,6 +539,7 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         pending: false,
         plan: 'free',
         prompts: [],
+        starterActions: [],
       };
 
       function escapeHtml(value) {
@@ -514,11 +570,30 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         }
 
         if (!state.messages.length) {
+          const actions = (state.starterActions || []).map((action, actionIndex) =>
+            '<button class="action" data-starter-action-index="' + actionIndex + '">' + escapeHtml(action.label) + '</button>'
+          ).join('');
           const prompts = state.prompts.map((prompt) => '<button class="chip" data-prompt="' + escapeHtml(prompt) + '">' + escapeHtml(prompt) + '</button>').join('');
+          const checklist = state.isConnected
+            ? '<div class="checklist">' +
+                '<div class="checklist-item"><span class="check">1.</span><span>Ask Rina what to do next in this workspace.</span></div>' +
+                '<div class="checklist-item"><span class="check">2.</span><span>Run the free diagnostic for a concrete recommendation.</span></div>' +
+                '<div class="checklist-item"><span class="check">3.</span><span>Open capability packs when you want the deeper workflow.</span></div>' +
+              '</div>'
+            : '<div class="checklist">' +
+                '<div class="checklist-item"><span class="check">1.</span><span>Connect your RinaWarp account.</span></div>' +
+                '<div class="checklist-item"><span class="check">2.</span><span>Return to VS Code and refresh entitlements if needed.</span></div>' +
+                '<div class="checklist-item"><span class="check">3.</span><span>Come back here and ask Rina what to do next.</span></div>' +
+              '</div>';
           messagesEl.innerHTML = '<div class="empty">' +
-            (state.isConnected
-              ? 'Start with a quick question or use one of the prompts below.'
-              : 'Connect your RinaWarp account from the Companion sidebar to unlock chat.') +
+            '<div class="empty-title">' + (state.isConnected ? 'Start with the quickest safe next step' : 'Connect Companion and start cleanly') + '</div>' +
+            '<div class="empty-copy">' +
+              (state.isConnected
+                ? 'Companion is ready. Use chat for direction, then diagnostics or packs when you want action.'
+                : 'Chat opens up after account connect. Companion keeps account, diagnostic, and billing flows in one place.') +
+            '</div>' +
+            checklist +
+            (actions ? '<div class="action-row">' + actions + '</div>' : '') +
             (prompts ? '<div class="prompt-row">' + prompts + '</div>' : '') +
             '</div>';
         } else {
@@ -566,6 +641,16 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
         const promptTarget = event.target.closest('[data-prompt]');
         if (promptTarget) {
           vscode.postMessage({ type: 'send', text: promptTarget.getAttribute('data-prompt') || '' });
+          return;
+        }
+
+        const starterActionTarget = event.target.closest('[data-starter-action-index]');
+        if (starterActionTarget) {
+          const actionIndex = Number(starterActionTarget.getAttribute('data-starter-action-index'));
+          const action = state.starterActions?.[actionIndex];
+          if (action?.command) {
+            vscode.postMessage({ type: 'action', command: action.command, args: action.args || [] });
+          }
           return;
         }
 

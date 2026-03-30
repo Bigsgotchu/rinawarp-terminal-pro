@@ -12,6 +12,10 @@ Manual live-flow runbook:
 
 - [MANUAL_VERIFICATION_RUNBOOK.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/MANUAL_VERIFICATION_RUNBOOK.md)
 
+Post-publish smoke test:
+
+- [POST_PUBLISH_SMOKE_TEST.md](/home/karina/Documents/rinawarp-terminal-pro/apps/rinawarp-companion/POST_PUBLISH_SMOKE_TEST.md)
+
 ## Current Intended Positioning
 
 `RinaWarp Companion` is:
@@ -57,6 +61,7 @@ Current repo-backed assessment as of `2026-03-30`:
 That means the current status is:
 
 - `Go` is now the current call for a Companion pre-release candidate on the currently verified build
+- the next release-quality work should focus on first-run onboarding, UI polish, and post-publish trust checks rather than more callback plumbing
 
 ## No-Go Blockers
 

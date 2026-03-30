@@ -25,6 +25,11 @@ declare module 'vscode' {
     readonly subscriptions: Disposable[];
   }
 
+  export class ThemeIcon {
+    constructor(id: string);
+    readonly id: string;
+  }
+
   export interface Uri {
     readonly fsPath: string;
     readonly path: string;
@@ -61,7 +66,11 @@ declare module 'vscode' {
 
   export class TreeItem {
     constructor(label: string, collapsibleState?: TreeItemCollapsibleState);
+    description?: string;
     command?: Command;
+    iconPath?: ThemeIcon;
+    id?: string;
+    tooltip?: string;
   }
 
   export interface TreeDataProvider<T> {
