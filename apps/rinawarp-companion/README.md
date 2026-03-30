@@ -53,6 +53,8 @@ RinaWarp Companion is not:
 - the deepest proof-and-recovery surface in the product line
 - a disconnected product with its own billing silo
 
+Companion is also the intended long-term home for any useful VS Code capabilities that still live in older internal RinaWarp extensions.
+
 ## Current Commands
 
 - `RinaWarp: Connect Account`
@@ -98,6 +100,7 @@ See:
 - [SUPPORT.md](./SUPPORT.md)
 - [PUBLISHING.md](./PUBLISHING.md)
 - [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
+- [CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md)
 
 ## External Network Behavior
 
