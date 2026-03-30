@@ -37,6 +37,8 @@
     "onUri",
     "onCommand:rinawarp.connectAccount",
     "onCommand:rinawarp.runFreeDiagnostic",
+    "onCommand:rinawarp.fixSelection",
+    "onCommand:rinawarp.fixFile",
     "onCommand:rinawarp.upgradeToPro",
     "onCommand:rinawarp.verifyPurchaseReturn",
     "onCommand:rinawarp.openPacks",
@@ -99,6 +101,16 @@
       {
         "command": "rinawarp.runFreeDiagnostic",
         "title": "RinaWarp: Run Free Diagnostic",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.fixSelection",
+        "title": "RinaWarp: Fix Selection",
+        "category": "RinaWarp"
+      },
+      {
+        "command": "rinawarp.fixFile",
+        "title": "RinaWarp: Fix File",
         "category": "RinaWarp"
       },
       {

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import type { DiagnosticRunSummary } from './diagnostics';
 import type { EntitlementSnapshot } from './entitlements';
+import { hasActiveSelection } from './fixCode';
 import { recordTelemetry } from './telemetry';
 import { answerWorkspaceQuestion, canAnswerLocally, findRequestedFile, findRelevantConfigFile, gatherWorkspaceContext, inferRecommendedPack, type CompanionWorkspaceContext } from './workspaceContext';
 
@@ -11,6 +12,8 @@ export interface ChatAction {
     | 'rinawarp.openChat'
     | 'rinawarp.openGettingStarted'
     | 'rinawarp.runFreeDiagnostic'
+    | 'rinawarp.fixSelection'
+    | 'rinawarp.fixFile'
     | 'rinawarp.openPack'
     | 'rinawarp.openPacks'
     | 'rinawarp.upgradeToPro'
@@ -156,6 +159,44 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
       }
 
       const workspaceContext = await gatherWorkspaceContext();
+      if (isFixIntent(text)) {
+        const actions = this.buildFixActions();
+        if (!actions.length) {
+          this.messages.push({
+            role: 'assistant',
+            content: 'I can help with fixes, but I need an active editor first. Open a file, or select code if you want a scoped fix.',
+          });
+          this.stagedAction = undefined;
+          recordTelemetry({
+            name: 'chat_response_received',
+            properties: {
+              mode: 'local_tool',
+              plan: this.snapshot.plan,
+            },
+          });
+          return;
+        }
+
+        const primaryAction = /selection|selected|this part/i.test(text)
+          ? actions.find((action) => action.command === 'rinawarp.fixSelection') || actions[0]
+          : actions[0];
+
+        this.messages.push({
+          role: 'assistant',
+          content: `I can hand that off without blocking you. ${primaryAction.label} will run in the background and patch the editor directly if the result looks usable.`,
+          actions,
+        });
+        this.stagedAction = primaryAction;
+        recordTelemetry({
+          name: 'chat_response_received',
+          properties: {
+            mode: 'local_tool',
+            plan: this.snapshot.plan,
+          },
+        });
+        return;
+      }
+
       if (canAnswerLocally(text)) {
         const actions = this.buildLocalActions(text, workspaceContext);
         const localAnswer = await answerWorkspaceQuestion(text, workspaceContext, this.diagnostic);
@@ -270,15 +311,31 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
 
     if (!this.diagnostic) {
       return [
+        ...this.buildFixActions(),
         { command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' },
         { command: 'rinawarp.openPacks', label: 'Open Capability Packs' },
       ];
     }
 
     return [
+      ...this.buildFixActions(),
       { command: 'rinawarp.refreshEntitlements', label: 'Refresh Entitlements' },
       { command: 'rinawarp.openPacks', label: 'Open Capability Packs' },
     ];
+  }
+
+  private buildFixActions(): ChatAction[] {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return [];
+    }
+
+    const actions: ChatAction[] = [];
+    if (hasActiveSelection(editor)) {
+      actions.push({ command: 'rinawarp.fixSelection', label: 'Fix Selection' });
+    }
+    actions.push({ command: 'rinawarp.fixFile', label: 'Fix File' });
+    return actions;
   }
 
   private collectAvailableActions(): ChatAction[] {
@@ -293,6 +350,10 @@ export class CompanionChatProvider implements vscode.WebviewViewProvider {
 
   private buildLocalActions(prompt: string, workspaceContext: CompanionWorkspaceContext): ChatAction[] {
     const actions: ChatAction[] = [];
+    const fixActions = this.buildFixActions();
+    if (fixActions.length && /\b(fix|improve|clean up|refactor|repair|rewrite)\b/i.test(prompt)) {
+      actions.push(...fixActions);
+    }
     const fileMatch = findRequestedFile(prompt.toLowerCase(), workspaceContext.fileSummaries || []);
     const recommendation = inferRecommendedPack(workspaceContext, this.diagnostic);
     const relevantConfig = findRelevantConfigFile(workspaceContext, recommendation);
@@ -678,12 +739,18 @@ export function isApprovalPrompt(text: string): boolean {
   return /\b(do it|go ahead|run it|open it|inspect it|yes do it|yes run it|continue|open that|inspect that|run that|refresh it|upgrade me)\b/i.test(text.trim());
 }
 
+export function isFixIntent(text: string): boolean {
+  return /\b(fix|improve|clean up|repair|rewrite|refactor)\b/i.test(text);
+}
+
 export function pickPrimaryAction(actions: ChatAction[]): ChatAction | undefined {
   if (!actions.length) {
     return undefined;
   }
 
   const preferredOrder: ChatAction['command'][] = [
+    'rinawarp.fixSelection',
+    'rinawarp.fixFile',
     'rinawarp.openWorkspaceFile',
     'rinawarp.runFreeDiagnostic',
     'rinawarp.openPack',
@@ -714,6 +781,14 @@ export function pickActionForPrompt(
 
   if (/\binspect|explain|show\b/.test(normalized)) {
     return actions.find((action) => action.command === 'rinawarp.openWorkspaceFile') || primary;
+  }
+
+  if (/\bfix selection|selected|this part\b/.test(normalized)) {
+    return actions.find((action) => action.command === 'rinawarp.fixSelection') || primary;
+  }
+
+  if (/\bfix file|fix this file|repair file|rewrite file|improve file\b/.test(normalized)) {
+    return actions.find((action) => action.command === 'rinawarp.fixFile') || primary;
   }
 
   if (/\bdiagnostic|diagnose|check|scan\b/.test(normalized)) {

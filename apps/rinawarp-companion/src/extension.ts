@@ -6,6 +6,7 @@ import { CompanionChatProvider } from './chat';
 import { getConfig } from './config';
 import { runWorkspaceDiagnostic } from './diagnostics';
 import { EntitlementService, defaultSnapshot, type EntitlementSnapshot } from './entitlements';
+import { CompanionFixClient } from './fixCode';
 import { runEntitlementRefresh } from './refreshFlow';
 import {
   createBillingPortalUrl,
@@ -23,6 +24,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const telemetry = new TelemetryService(output);
   setTelemetryService(telemetry);
   const entitlements = new EntitlementService(context);
+  const fixClient = new CompanionFixClient(entitlements);
   let snapshot = await entitlements.getSnapshot();
   if (!snapshot.updatedAt) {
     snapshot = defaultSnapshot();
@@ -121,6 +123,102 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const message = error instanceof Error ? error.message : 'Unknown diagnostic error';
         output.appendLine(`[error] ${message}`);
         void vscode.window.showWarningMessage(`RinaWarp could not complete the free diagnostic: ${message}`);
+      }
+    }),
+    vscode.commands.registerCommand('rinawarp.fixFile', async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        void vscode.window.showWarningMessage('Open a file first so Rina can fix it.');
+        return;
+      }
+
+      telemetry.record({ name: 'fix_file_started' });
+      const document = editor.document;
+      const originalCode = document.getText();
+      if (!originalCode.trim()) {
+        void vscode.window.showWarningMessage('This file is empty, so there is nothing for Rina to fix yet.');
+        return;
+      }
+
+      try {
+        const result = await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Rina is fixing this file',
+          },
+          () =>
+            fixClient.fixCode({
+              filePath: document.uri.fsPath,
+              instructions: `Improve this ${document.languageId} file. Return only the updated code.`,
+              languageId: document.languageId,
+              mode: 'file',
+              originalCode,
+            }),
+        );
+
+        if (result.fixedCode.trim() === originalCode.trim()) {
+          void vscode.window.showInformationMessage('Rina looked at the file and did not suggest a meaningful change.');
+          return;
+        }
+
+        await editor.edit((editBuilder) => {
+          const fullRange = new vscode.Range(document.positionAt(0), document.positionAt(originalCode.length));
+          editBuilder.replace(fullRange, result.fixedCode);
+        });
+        telemetry.record({ name: 'fix_file_completed' });
+        void vscode.window.showInformationMessage(result.summary);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown fix error';
+        output.appendLine(`[fix-file] ${message}`);
+        telemetry.record({ name: 'fix_file_failed' });
+        void vscode.window.showWarningMessage(`Rina could not fix this file: ${message}`);
+      }
+    }),
+    vscode.commands.registerCommand('rinawarp.fixSelection', async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        void vscode.window.showWarningMessage('Open a file and select code first so Rina can help.');
+        return;
+      }
+
+      if (editor.selection.isEmpty) {
+        void vscode.window.showWarningMessage('Select the code you want Rina to fix first.');
+        return;
+      }
+
+      telemetry.record({ name: 'fix_selection_started' });
+      const originalCode = editor.document.getText(editor.selection);
+      try {
+        const result = await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Rina is fixing your selection',
+          },
+          () =>
+            fixClient.fixCode({
+              filePath: editor.document.uri.fsPath,
+              instructions: `Improve this ${editor.document.languageId} code selection. Return only the updated code.`,
+              languageId: editor.document.languageId,
+              mode: 'selection',
+              originalCode,
+            }),
+        );
+
+        if (result.fixedCode.trim() === originalCode.trim()) {
+          void vscode.window.showInformationMessage('Rina looked at the selection and did not suggest a meaningful change.');
+          return;
+        }
+
+        await editor.edit((editBuilder) => {
+          editBuilder.replace(editor.selection, result.fixedCode);
+        });
+        telemetry.record({ name: 'fix_selection_completed' });
+        void vscode.window.showInformationMessage(result.summary);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown fix error';
+        output.appendLine(`[fix-selection] ${message}`);
+        telemetry.record({ name: 'fix_selection_failed' });
+        void vscode.window.showWarningMessage(`Rina could not fix that selection: ${message}`);
       }
     }),
     vscode.commands.registerCommand('rinawarp.openPacks', async () => {

@@ -98,20 +98,52 @@ declare module 'vscode' {
   }
 
   export namespace window {
+    const activeTextEditor: TextEditor | undefined;
     function createOutputChannel(name: string): OutputChannel;
     function registerTreeDataProvider<T>(viewId: string, treeDataProvider: TreeDataProvider<T>): Disposable;
     function registerWebviewViewProvider(viewId: string, provider: WebviewViewProvider): Disposable;
     function registerUriHandler(handler: UriHandler): Disposable;
+    function withProgress<T>(
+      options: { location: ProgressLocation; title?: string },
+      task: () => Thenable<T> | T,
+    ): Thenable<T>;
     function showInformationMessage(message: string, ...items: string[]): Thenable<string | undefined>;
     function showWarningMessage(message: string): Thenable<string | undefined>;
     function showTextDocument(document: TextDocument, options?: { preview?: boolean }): Thenable<TextEditor>;
   }
 
-  export interface TextDocument {
-    readonly uri: Uri;
+  export class Position {
+    constructor(line: number, character: number);
   }
 
-  export interface TextEditor {}
+  export class Range {
+    constructor(start: Position, end: Position);
+  }
+
+  export enum ProgressLocation {
+    Notification = 15,
+  }
+
+  export interface Selection extends Range {
+    readonly isEmpty: boolean;
+  }
+
+  export interface TextDocument {
+    readonly uri: Uri;
+    readonly languageId: string;
+    getText(range?: Range | Selection): string;
+    positionAt(offset: number): Position;
+  }
+
+  export interface TextEditorEdit {
+    replace(location: Range | Selection, value: string): void;
+  }
+
+  export interface TextEditor {
+    readonly document: TextDocument;
+    readonly selection: Selection;
+    edit(callback: (editBuilder: TextEditorEdit) => void): Thenable<boolean>;
+  }
 
   export interface WebviewOptions {
     enableScripts?: boolean;

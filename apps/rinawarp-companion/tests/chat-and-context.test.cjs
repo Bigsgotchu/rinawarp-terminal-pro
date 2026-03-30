@@ -161,6 +161,8 @@ serialTest('chat action selection prefers inspection and explicit workflow inten
   const chat = loadWithVscodeStub(distPath('chat.js'), stubVscode);
 
   const actions = [
+    { command: 'rinawarp.fixSelection', label: 'Fix Selection' },
+    { command: 'rinawarp.fixFile', label: 'Fix File' },
     { command: 'rinawarp.openPacks', label: 'Open Packs' },
     { command: 'rinawarp.openWorkspaceFile', label: 'Inspect package.json', args: ['/tmp/package.json'] },
     { command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' },
@@ -169,7 +171,10 @@ serialTest('chat action selection prefers inspection and explicit workflow inten
 
   assert.equal(chat.isApprovalPrompt('yes do it'), true);
   assert.equal(chat.isApprovalPrompt('maybe later'), false);
-  assert.equal(chat.pickPrimaryAction(actions).command, 'rinawarp.openWorkspaceFile');
+  assert.equal(chat.isFixIntent('can you fix this selection'), true);
+  assert.equal(chat.pickPrimaryAction(actions).command, 'rinawarp.fixSelection');
+  assert.equal(chat.pickActionForPrompt('fix this selection', actions).command, 'rinawarp.fixSelection');
+  assert.equal(chat.pickActionForPrompt('fix file please', actions).command, 'rinawarp.fixFile');
   assert.equal(chat.pickActionForPrompt('inspect it', actions).command, 'rinawarp.openWorkspaceFile');
   assert.equal(chat.pickActionForPrompt('run the diagnostic', actions).command, 'rinawarp.runFreeDiagnostic');
   assert.equal(chat.pickActionForPrompt('upgrade me', actions).command, 'rinawarp.upgradeToPro');
@@ -433,4 +438,41 @@ serialTest('chat provider surfaces remote failures as system messages', async ()
   assert.equal(lastState.messages.length, 2);
   assert.equal(lastState.messages[1].role, 'system');
   assert.match(lastState.messages[1].content, /could not answer right now: Remote service unavailable/i);
+});
+
+serialTest('chat provider stages background fix actions for explicit fix prompts', async () => {
+  const stubVscode = createVscodeStub({
+    workspaceFolders: undefined,
+    window: {
+      activeTextEditor: {
+        selection: { isEmpty: false },
+      },
+    },
+  });
+  const { CompanionChatProvider } = loadWithVscodeStub(distPath('chat.js'), stubVscode);
+  const context = { secrets: createSecretStorage() };
+
+  const provider = new CompanionChatProvider(
+    context,
+    { path: '/extension' },
+    { plan: 'pro', packs: [], updatedAt: '', email: 'user@example.com' },
+    {
+      async sendChat() {
+        throw new Error('fix-intent path should not call remote chat');
+      },
+    },
+  );
+  const view = createWebviewView();
+  provider.resolveWebviewView(view);
+  await flushMicrotasks();
+
+  await view.webview.simulateMessage({ type: 'send', text: 'fix this selection for me' });
+  await flushMicrotasks();
+
+  const lastState = view.posted.at(-1).value;
+  assert.equal(lastState.pending, false);
+  assert.equal(lastState.messages.length, 2);
+  assert.match(lastState.messages[1].content, /without blocking you/i);
+  assert.equal(lastState.nextActionLabel, 'Fix Selection');
+  assert.equal(lastState.messages[1].actions[0].command, 'rinawarp.fixSelection');
 });
