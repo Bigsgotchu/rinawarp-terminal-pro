@@ -39,12 +39,13 @@ Current repo-backed assessment as of `2026-03-29`:
 - build and automated tests are green
 - Companion packaging evidence exists, but a fresh package run still depends on resolving local `vsce` installation cleanly in this workspace
 - local VSIX install, extension activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff were manually verified in VS Code on `2026-03-29`
-- the account callback and purchase-return callback still need work on this machine because the registered `vscode://` handler is invoking `code --open-url`, which fails here
+- the local Linux `vscode://` handler was repaired on this machine, and the live Companion sidebar now restores connected account state in the normal VS Code profile
+- the callback still leaves rough UX in this Code build because callback tabs can remain visible instead of disappearing cleanly
 - entitlement refresh and billing portal still require additional manual verification
 
 That means the current status is:
 
-- still `No-Go` for immediate publish because the callback return path is not yet trustworthy
+- still `No-Go` for immediate publish because billing, entitlement refresh, and purchase-return are still not fully verified
 - likely movable to `Go with known limits` once the callback path and remaining entitlement checks pass
 
 ## No-Go Blockers
@@ -61,7 +62,7 @@ Any unchecked item here means `No-Go`.
 
 ### Core User Loop
 
-- [ ] account connect returns to the extension successfully
+- [x] account connect returns to the extension successfully
 - [x] free diagnostic runs and produces a useful result in a trusted workspace
 - [ ] purchase success returns to VS Code successfully
 - [ ] entitlement refresh works correctly or fails honestly with a clear recovery path
@@ -101,10 +102,10 @@ Record the result for each item as:
 ### 2. Account and Entitlements
 
 - [x] Connect Account opens the correct browser flow - Pass; logged login URL with `return_to=vscode://rinawarp.rinawarp-companion/auth/callback...`
-- [ ] callback returns to `rinawarp.rinawarp-companion` - Needs work; local `vscode://` handler failed with `/usr/share/code/code: bad option: --open-url`
-- [ ] account snapshot updates in the extension - Not tested; callback could not complete on this machine
+- [x] callback returns to `rinawarp.rinawarp-companion` - Pass in the normal VS Code profile after repairing the local Linux `vscode://` handler
+- [x] account snapshot updates in the extension - Pass; live Companion sidebar updated to `Plan: PRO` and `Account: test2@example.com`
 - [ ] Refresh Entitlements updates state correctly - Not tested in this session
-- [ ] paid account reflects expected plan state - Not tested in this session
+- [x] paid account reflects expected plan state - Pass for a simulated `pro` callback in the live profile
 - [ ] unpaid account fails honestly and clearly - Not tested in this session
 
 ### 3. Free Diagnostic Flow
@@ -124,7 +125,7 @@ Record the result for each item as:
 
 ### 5. Purchase Return and Recovery
 
-- [ ] purchase success returns to the extension - Needs work; same local `vscode://` handler issue is expected to block this return path
+- [ ] purchase success returns to the extension - Not tested after repairing the local `vscode://` handler
 - [ ] entitlement refresh after purchase behaves correctly - Not tested in this session
 - [ ] if refresh fails, the user sees a clear next step - Not tested in this session
 - [x] support can handle “I paid but it did not unlock”
@@ -190,5 +191,6 @@ Release notes for this decision:
 - Automated status is encouraging: build and tests are green.
 - The inspected VSIX artifact looks clean and appropriately scoped.
 - Manual verification in VS Code proved local install, activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff.
-- Immediate publish is still blocked because the local `vscode://` callback path failed on this machine when returning into VS Code.
+- Manual verification in the normal VS Code profile also proved that the Companion sidebar can restore connected account state after a callback once the Linux `vscode://` handler is repaired.
+- Immediate publish is still blocked by the remaining billing, entitlement refresh, and purchase-return checks, plus the callback-tab UX rough edge.
 - The extension looks like a credible `v0.1` pre-release candidate once those manual checks pass.
