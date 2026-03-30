@@ -7,6 +7,7 @@ import { recordTelemetry } from './telemetry';
 
 const AUTH_CALLBACK_PATH = '/auth/callback';
 const PURCHASE_COMPLETE_PATH = '/purchase-complete';
+const PUBLISHED_EXTENSION_ID = 'RinawarpTechnologies.rinawarp-companion';
 
 export class AuthUriHandler implements vscode.UriHandler {
   constructor(
@@ -56,7 +57,7 @@ export class AuthUriHandler implements vscode.UriHandler {
 
   async buildConnectUrl(baseUrl: string): Promise<URL> {
     const callbackUri = await vscode.env.asExternalUri(
-      vscode.Uri.parse(`${vscode.env.uriScheme}://rinawarp.rinawarp-companion${AUTH_CALLBACK_PATH}`),
+      vscode.Uri.parse(`${vscode.env.uriScheme}://${PUBLISHED_EXTENSION_ID}${AUTH_CALLBACK_PATH}`),
     );
 
     return createLoginUrl(baseUrl, {
@@ -67,7 +68,7 @@ export class AuthUriHandler implements vscode.UriHandler {
 }
 
 export function getPurchaseReturnUri(): vscode.Uri {
-  return vscode.Uri.parse(`${vscode.env.uriScheme}://rinawarp.rinawarp-companion${PURCHASE_COMPLETE_PATH}`);
+  return vscode.Uri.parse(`${vscode.env.uriScheme}://${PUBLISHED_EXTENSION_ID}${PURCHASE_COMPLETE_PATH}`);
 }
 
 function showRefreshResult(result: EntitlementRefreshResult): void {
