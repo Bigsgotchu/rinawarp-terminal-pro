@@ -40,6 +40,8 @@ Current repo-backed assessment as of `2026-03-30`:
 
 - build and automated tests are green
 - Companion packaging has now been re-verified on the current build with the pinned `vsce` workflow using `--no-dependencies`, which matches the extension's self-contained runtime payload
+- the Marketplace pre-release for `rinawarpbykarinagilley.rinawarp-companion` was published successfully on `2026-03-30`
+- the published Marketplace artifact was downloaded from the gallery API and installed into a clean isolated VS Code profile on `2026-03-30`
 - local VSIX install, extension activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff were manually verified in VS Code on `2026-03-29`
 - Companion already has a real chat view and account-linked chat API surface in the repo
 - isolated-profile install and activation were re-verified on `2026-03-30` after the entitlement-refresh hardening and chat-first positioning pass
@@ -50,6 +52,7 @@ Current repo-backed assessment as of `2026-03-30`:
 - the safe purchase-return verification page opened and `Return to VS Code` successfully switched back to VS Code on `2026-03-30`
 - the live billing portal endpoint now returns a real Stripe billing-session URL for the paid account email
 - a raw CLI `code --open-url vscode://...` callback without the browser-provided routing context does not reach the extension cleanly in the isolated profile, so that is not a trustworthy substitute for the real browser-return flow
+- the `code --install-extension <publisher>.<name>` path may lag Marketplace publication briefly even when the gallery artifact and `vsce show` are already live
 
 That means the current status is:
 
@@ -65,6 +68,7 @@ Any unchecked item here means `No-Go`.
 - [x] `npm --workspace apps/rinawarp-companion run test` passes
 - [x] a fresh pre-release VSIX is produced successfully
 - [x] the VSIX installs locally in VS Code
+- [x] the published Marketplace artifact installs into a clean isolated VS Code profile
 - [x] the package does not include unwanted files in the inspected VSIX artifact
 
 ### Core User Loop
@@ -197,6 +201,7 @@ Release notes for this decision:
 
 - Automated status is encouraging: build and tests are green.
 - The inspected VSIX artifact looks clean and appropriately scoped.
+- The published Marketplace artifact was also downloaded from the gallery API and installed cleanly into an isolated VS Code profile.
 - Manual verification in VS Code proved local install, activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff.
 - Manual verification in the normal VS Code profile also proved that the Companion sidebar can restore connected account state after a callback once the Linux `vscode://` handler and website handoff flow are repaired.
 - The account page now presents one coherent signed-in or signed-out state and gives a clear `Return to VS Code` fallback when browser auto-switching misses.
