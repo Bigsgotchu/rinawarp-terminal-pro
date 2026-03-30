@@ -88,13 +88,20 @@ export async function mountDiagnosticsPanel(container: HTMLElement): Promise<voi
 
   const renderDebugSummary = (payload: any) => {
     const summaryRows = [
+      ['Turn type', String(payload?.turnType || 'unknown')],
       ['Mode', String(payload?.mode || 'unknown')],
       ['Allowed next action', String(payload?.allowedNextAction || 'unknown')],
+      ['Reply mode', String(payload?.replyPlan?.mode || 'unknown')],
+      ['Tone', String(payload?.replyPlan?.tone || 'unknown')],
+      ['Should start run', payload?.replyPlan?.shouldStartRun ? 'Yes' : 'No'],
       ['Workspace', String(payload?.workspaceId || 'none')],
       ['Run reference', String(payload?.references?.runId || 'none')],
+      ['Receipt reference', String(payload?.references?.receiptId || 'none')],
       ['Restored session', String(payload?.references?.restoredSessionId || 'none')],
       ['Execution goal', String(payload?.executionCandidate?.goal || 'none')],
       ['Execution risk', String(payload?.executionCandidate?.risk || 'none')],
+      ['Context outcome', String(payload?.context?.latestOutcome || 'unknown')],
+      ['Context intent', String(payload?.context?.latestIntent || 'unknown')],
       ['Clarification required', payload?.clarification?.required ? 'Yes' : 'No'],
       ['Clarification reason', String(payload?.clarification?.reason || 'none')],
     ]

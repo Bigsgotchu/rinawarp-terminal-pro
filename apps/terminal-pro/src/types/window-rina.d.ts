@@ -420,10 +420,12 @@ declare global {
       ): Promise<{
         rawText: string
         mode: 'chat' | 'question' | 'inspect' | 'execute' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+        turnType?: 'greeting' | 'help' | 'follow_up' | 'diagnose' | 'action' | 'explain' | 'frustration' | 'clarify_needed'
         confidence: number
         workspaceId?: string
         references: {
           runId?: string
+          receiptId?: string
           priorMessageId?: string
           restoredSessionId?: string
         }
@@ -438,6 +440,28 @@ declare global {
           target?: string
           constraints?: string[]
           risk: 'low' | 'medium' | 'high'
+        }
+        context?: {
+          workspaceRoot: string | null
+          latestRunId: string | null
+          latestReceiptId: string | null
+          latestRecoverySessionId: string | null
+          latestIntent: 'self_check' | 'build' | 'test' | 'deploy' | 'fix' | 'inspect' | 'command' | 'unknown'
+          latestOutcome: 'succeeded' | 'failed' | 'interrupted' | 'running' | 'unknown' | 'none'
+          latestActionSummary: string | null
+          hasVerifiedRun: boolean
+          hasAnyAnchor: boolean
+        }
+        replyPlan?: {
+          turnType: 'greeting' | 'help' | 'follow_up' | 'diagnose' | 'action' | 'explain' | 'frustration' | 'clarify_needed'
+          anchor: {
+            workspaceRoot: string | null
+            runId: string | null
+            receiptId: string | null
+          }
+          mode: 'reply_only' | 'explain_verified' | 'ask_once' | 'plan' | 'run'
+          tone: 'normal' | 'supportive' | 'corrective'
+          shouldStartRun: boolean
         }
       }>
       memoryGetState(): Promise<{
