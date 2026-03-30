@@ -210,4 +210,5 @@ Do not move the final gate from `No-Go` until:
 
 Current note:
 
-- after the account-page cleanup and callback fixes on `2026-03-30`, the remaining high-value live checks are `Open Billing Portal` and purchase-return verification
+- after the account-page cleanup and callback fixes on `2026-03-30`, the remaining high-value live check is purchase-return verification
+- the billing portal path is now verified at the live API level because `/api/portal` returns a Stripe billing-session URL for the paid account email

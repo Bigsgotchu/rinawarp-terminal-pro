@@ -47,13 +47,13 @@ Current repo-backed assessment as of `2026-03-30`:
 - the website account surface now resolves to a single signed-in or signed-out state instead of mixing both shells
 - account connect callback, account-page fallback, and `Return to VS Code` handoff were manually verified in the normal VS Code profile on `2026-03-30`
 - `Refresh Entitlements` was treated as successful after reconnect in the live Companion UI on `2026-03-30`
-- billing portal and purchase-complete still require one final manual pass from the cleaned-up account flow
+- purchase-complete still requires one final manual pass from the cleaned-up account flow
+- the live billing portal endpoint now returns a real Stripe billing-session URL for the paid account email
 - a raw CLI `code --open-url vscode://...` callback without the browser-provided routing context does not reach the extension cleanly in the isolated profile, so that is not a trustworthy substitute for the real browser-return flow
 
 That means the current status is:
 
-- still `No-Go` for immediate publish because billing portal, purchase-return, and fresh local packaging are still not fully verified
-- likely movable to `Go with known limits` once those remaining checks pass
+- `Go with known limits` remains the current call while purchase-return and fresh local packaging are still open
 
 ## No-Go Blockers
 
@@ -128,7 +128,7 @@ Record the result for each item as:
 - [x] Open Packs lands on the intended `/agents` surface - Pass; logged `/agents?...utm_content=sidebar_open_packs`
 - [x] pack-specific deep links land on the expected destination - Pass; logged `/agents?...agent=npm-audit&utm_content=sidebar_recommended_pack`
 - [x] Upgrade to Pro lands on the expected pricing flow - Pass; logged `/pricing?...return_to=vscode://rinawarp.rinawarp-companion/purchase-complete`
-- [ ] Billing Portal opens the expected billing surface - Remaining manual check from the cleaned-up signed-in account flow
+- [x] Billing Portal opens the expected billing surface - Pass at the live API level; `/api/portal` returned a real Stripe billing portal URL for the paid account email on `2026-03-30`
 
 ### 5. Purchase Return and Recovery
 
@@ -200,5 +200,5 @@ Release notes for this decision:
 - Manual verification in VS Code proved local install, activation, sidebar rendering, free diagnostic, pack handoff, and pricing handoff.
 - Manual verification in the normal VS Code profile also proved that the Companion sidebar can restore connected account state after a callback once the Linux `vscode://` handler and website handoff flow are repaired.
 - The account page now presents one coherent signed-in or signed-out state and gives a clear `Return to VS Code` fallback when browser auto-switching misses.
-- Immediate publish still depends on one last billing portal check, one last purchase-return check, and a fresh local packaging run if operationally required.
+- Immediate publish still depends on one last purchase-return check and a fresh local packaging run if operationally required.
 - The extension now looks like a credible `v0.1` pre-release candidate with known limits rather than a `No-Go`.
