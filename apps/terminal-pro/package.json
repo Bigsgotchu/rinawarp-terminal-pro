@@ -21,7 +21,7 @@
     "test:search-ranking": "npm run build:electron && node --test test/search-ranking.test.mjs",
     "test:plan-risk": "npm run build:electron && node --test test/plan-risk.test.mjs",
     "test:plan-fallback": "npm run build:electron && node --test test/plan-fallback.test.mjs",
-    "test:agent": "node --test tests/agent.test.mjs",
+    "test:agent": "npm run build:electron && node --test tests/agent.test.mjs",
     "test:cli": "node --test tests/cli.test.mjs",
     "test:streaming": "node --test tests/streaming.test.mjs",
     "test:unit": "vitest run tests/unit --passWithNoTests",
