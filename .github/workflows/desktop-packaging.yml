@@ -33,7 +33,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Check for duplicate IPC channels
-        run: node scripts/check-ipc-duplicates.mjs
+        run: pnpm --filter rinawarp-terminal-pro run check:ipc
       - name: Lint (ESLint)
         run: pnpm --filter rinawarp-terminal-pro run lint -- --format json --output-file /tmp/eslint.json || true
       - name: Enforce warning budget
@@ -64,7 +64,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Check for duplicate IPC channels
-        run: node scripts/check-ipc-duplicates.mjs
+        run: pnpm --filter rinawarp-terminal-pro run check:ipc
       - name: Lint (ESLint)
         run: pnpm --filter rinawarp-terminal-pro run lint -- --format json --output-file C:\Temp\eslint.json || true
       - name: Enforce warning budget
