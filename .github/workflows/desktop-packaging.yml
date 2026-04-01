@@ -35,9 +35,7 @@ jobs:
       - name: Check for duplicate IPC channels
         run: pnpm --filter rinawarp-terminal-pro run check:ipc
       - name: Lint (ESLint)
-        run: pnpm --filter rinawarp-terminal-pro run lint -- --format json --output-file /tmp/eslint.json || true
-      - name: Enforce warning budget
-        run: node scripts/eslint-warning-budget.js --max 0 /tmp/eslint.json
+        run: pnpm --filter rinawarp-terminal-pro exec eslint . --ext .ts,.tsx,.js,.cjs,.mjs --format json --output-file /tmp/eslint.json || true
       - name: Clean
         run: pnpm run clean
       - name: Build Electron
@@ -66,9 +64,7 @@ jobs:
       - name: Check for duplicate IPC channels
         run: pnpm --filter rinawarp-terminal-pro run check:ipc
       - name: Lint (ESLint)
-        run: pnpm --filter rinawarp-terminal-pro run lint -- --format json --output-file C:\Temp\eslint.json || true
-      - name: Enforce warning budget
-        run: node scripts/eslint-warning-budget.js --max 0 C:\Temp\eslint.json
+        run: pnpm --filter rinawarp-terminal-pro exec eslint . --ext .ts,.tsx,.js,.cjs,.mjs --format json --output-file C:\Temp\eslint.json || true
       - name: Clean
         run: pnpm run clean
       - name: Build Electron

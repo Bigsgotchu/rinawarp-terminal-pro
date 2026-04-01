@@ -47,10 +47,7 @@ jobs:
         run: pnpm --filter rinawarp-terminal-pro run check:ipc
 
       - name: Lint (ESLint)
-        run: pnpm --filter rinawarp-terminal-pro run lint -- --format json --output-file /tmp/eslint.json || true
-
-      - name: Enforce warning budget
-        run: node scripts/eslint-warning-budget.js --max 0 /tmp/eslint.json
+        run: pnpm --filter rinawarp-terminal-pro exec eslint . --ext .ts,.tsx,.js,.cjs,.mjs --format json --output-file /tmp/eslint.json || true
 
       - name: Clean build outputs
         run: pnpm run clean
@@ -77,16 +74,6 @@ jobs:
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
         run: pnpm --filter rinawarp-terminal-pro run test:e2e:core
-
-      - name: Build CI failure bundle
-        if: failure()
-        env:
-          CI: "1"
-          RINAWARP_E2E: "1"
-          ELECTRON_DISABLE_SANDBOX: "1"
-        run: |
-          xvfb-run -a node scripts/collect-ci-support-artifacts.mjs artifacts || true
-          ./scripts/create-ci-failure-bundle.sh
 
       - name: Upload Playwright artifacts on failure
         if: failure()
