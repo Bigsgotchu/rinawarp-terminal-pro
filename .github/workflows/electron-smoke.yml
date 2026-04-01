@@ -12,6 +12,7 @@ on:
       - ".github/workflows/electron-smoke.yml"
       - "package.json"
       - "package-lock.json"
+      - "scripts/**"
   pull_request:
     paths:
       - "apps/terminal-pro/**"
@@ -19,6 +20,7 @@ on:
       - ".github/workflows/electron-smoke.yml"
       - "package.json"
       - "package-lock.json"
+      - "scripts/**"
 
 jobs:
   smoke:
