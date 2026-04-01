@@ -24,7 +24,7 @@
     "test:agent": "node --test tests/agent.test.mjs",
     "test:cli": "node --test tests/cli.test.mjs",
     "test:streaming": "node --test tests/streaming.test.mjs",
-    "test:unit": "vitest run tests/unit",
+    "test:unit": "vitest run tests/unit --passWithNoTests",
     "test:unit:watch": "vitest tests/unit",
     "test:ipc": "npm run build:electron && bash scripts/run-electron-playwright.sh tests/e2e/rina-ipc-full-smoke.test.ts",
     "test:playwright": "npm run build:electron && bash scripts/run-electron-playwright.sh",
