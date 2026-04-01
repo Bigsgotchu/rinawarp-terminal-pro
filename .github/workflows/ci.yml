@@ -79,7 +79,7 @@ jobs:
         run: pnpm build
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter rinawarp-terminal-pro exec playwright install --with-deps chromium
 
       - name: Run Electron E2E proof and trust tests
         env:
