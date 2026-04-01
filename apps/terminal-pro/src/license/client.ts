@@ -120,28 +120,46 @@ function coerceStatus(rawStatus: string | undefined, valid?: boolean): LicenseSt
   return valid === false ? 'expired' : 'active'
 }
 
+function isLicenseResponseValid(raw: any): boolean {
+  return raw?.valid !== false && raw?.ok !== false
+}
+
+function coerceExpiresAt(raw: any): number {
+  if (Number.isFinite(raw?.expires_at)) {
+    return Number(raw.expires_at)
+  }
+
+  if (Number.isFinite(raw?.expiresAt)) {
+    return Number(raw.expiresAt)
+  }
+
+  return Date.now() + 30 * 24 * 60 * 60 * 1000
+}
+
+function coerceCustomerId(raw: any, customerId: string): string {
+  return String(raw?.customer_id || raw?.customerId || customerId)
+}
+
+function coerceLicenseToken(raw: any): string {
+  return String(raw?.license_token || raw?.licenseToken || raw?.key || '')
+}
+
 function coerceLicenseResponse(raw: any, customerId: string): LicenseVerifyResponse {
-  const valid = raw?.valid !== false && raw?.ok !== false
-  if (!valid) {
+  if (!isLicenseResponseValid(raw)) {
     throw new Error(raw?.error || 'License is not valid')
   }
 
   const tier = coerceTier(raw?.tier)
   const status = coerceStatus(raw?.status, raw?.valid)
-  const expiresAt =
-    Number.isFinite(raw?.expires_at)
-      ? Number(raw.expires_at)
-      : Number.isFinite(raw?.expiresAt)
-        ? Number(raw.expiresAt)
-        : Date.now() + 30 * 24 * 60 * 60 * 1000
+  const expiresAt = coerceExpiresAt(raw)
 
   return {
     ok: true,
-    customer_id: String(raw?.customer_id || raw?.customerId || customerId),
+    customer_id: coerceCustomerId(raw, customerId),
     tier,
     status,
     expires_at: expiresAt,
-    license_token: String(raw?.license_token || raw?.licenseToken || raw?.key || ''),
+    license_token: coerceLicenseToken(raw),
     features: Array.isArray(raw?.features) ? raw.features : getFeaturesForTier(tier),
     limits: raw?.limits || getLimitsForTier(tier),
   }

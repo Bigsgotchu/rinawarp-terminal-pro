@@ -16,15 +16,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v5
         with:
           version: 10.17.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: pnpm
@@ -48,7 +48,7 @@ jobs:
         run: pnpm --dir apps/terminal-pro run dist:linux
 
       - name: Upload installer outputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: installer-linux
           path: apps/terminal-pro/dist-electron/installer/**
@@ -61,15 +61,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v5
         with:
           version: 10.17.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: pnpm
@@ -96,7 +96,7 @@ jobs:
         run: pnpm --dir apps/terminal-pro run dist:win
 
       - name: Upload installer outputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: installer-windows
           path: apps/terminal-pro/dist-electron/installer/**
@@ -109,15 +109,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v5
         with:
           version: 10.17.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: pnpm
@@ -181,7 +181,7 @@ jobs:
           spctl --assess --type execute -vv "$APP_PATH"
 
       - name: Upload installer outputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: installer-macos
           path: apps/terminal-pro/dist-electron/installer/**
@@ -189,7 +189,7 @@ jobs:
           retention-days: 7
 
       - name: Upload .app bundle (debug artifact)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: terminal-pro-macos-app-${{ github.ref_name }}
           path: apps/terminal-pro/${{ env.APP_PATH }}
@@ -206,15 +206,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
 
       - name: Download installer artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: installer-*
           path: release-input
