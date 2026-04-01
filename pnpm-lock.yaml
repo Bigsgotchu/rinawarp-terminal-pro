@@ -226,7 +226,11 @@ importers:
         specifier: 5.4.2
         version: 5.4.2
 
-  packages/rinawarp-context: {}
+  packages/rinawarp-context:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.15
 
   packages/rinawarp-core:
     dependencies:
@@ -297,7 +301,11 @@ importers:
 
   packages/rinawarp-safety: {}
 
-  packages/rinawarp-tools: {}
+  packages/rinawarp-tools:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.15
 
 packages:
 

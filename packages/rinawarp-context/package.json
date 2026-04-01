@@ -26,6 +26,9 @@
     "dev": "tsc --watch",
     "test": "npm run build && node --test test/*.test.cjs"
   },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  },
   "keywords": ["rinawarp", "context", "index", "embedding", "vector", "ai"],
   "license": "MIT"
 }
