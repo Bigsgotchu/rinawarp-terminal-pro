@@ -11,11 +11,11 @@
   "dependencies": {
     "@rinawarp/agent": "workspace:*",
     "@rinawarp/core": "workspace:*",
-    "axios": "^1.6.0",
+    "axios": "^1.14.0",
     "dotenv": "^16.3.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   }
 }

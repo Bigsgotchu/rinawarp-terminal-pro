@@ -78,12 +78,12 @@
     "watch": "tsc -p tsconfig.json -w",
     "test": "npm run build && node --test tests/*.test.cjs",
     "lint": "eslint src --ext .ts",
-    "package:vsix": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes vsce@2.15.0 package --no-dependencies --out rinawarp-companion.vsix",
-    "package:vsix:versioned": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes vsce@2.15.0 package --no-dependencies --out rinawarp-companion-${npm_package_version}.vsix",
-    "package:vsix:pre-release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes vsce@2.15.0 package --no-dependencies --pre-release --out rinawarp-companion.vsix",
-    "package:vsix:versioned:pre-release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes vsce@2.15.0 package --no-dependencies --pre-release --out rinawarp-companion-${npm_package_version}.vsix",
-    "publish:pre-release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes vsce@2.15.0 publish --no-dependencies --pre-release",
-    "publish:release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes vsce@2.15.0 publish --no-dependencies"
+    "package:vsix": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes @vscode/vsce@2.26.1 package --no-dependencies --out rinawarp-companion.vsix",
+    "package:vsix:versioned": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes @vscode/vsce@2.26.1 package --no-dependencies --out rinawarp-companion-${npm_package_version}.vsix",
+    "package:vsix:pre-release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes @vscode/vsce@2.26.1 package --no-dependencies --pre-release --out rinawarp-companion.vsix",
+    "package:vsix:versioned:pre-release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes @vscode/vsce@2.26.1 package --no-dependencies --pre-release --out rinawarp-companion-${npm_package_version}.vsix",
+    "publish:pre-release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes @vscode/vsce@2.26.1 publish --no-dependencies --pre-release",
+    "publish:release": "npm run build && NODE_OPTIONS=\"--require=$(pwd)/scripts/node18-file-polyfill.cjs ${NODE_OPTIONS:-}\" /usr/bin/node /usr/local/lib/node_modules/npm/bin/npx-cli.js --yes @vscode/vsce@2.26.1 publish --no-dependencies"
   },
   "contributes": {
     "commands": [
@@ -293,6 +293,6 @@
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.96.0",
     "typescript": "^5.4.2",
-    "vsce": "^2.15.0"
+    "@vscode/vsce": "^2.26.1"
   }
 }

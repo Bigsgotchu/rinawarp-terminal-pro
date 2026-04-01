@@ -8,6 +8,8 @@ const __dirname = path.dirname(__filename)
 const projectRoot = path.resolve(__dirname, '..')
 const outDir = path.join(projectRoot, 'dist-electron')
 const repoRoot = path.resolve(projectRoot, '..', '..')
+const projectNodeModules = path.join(projectRoot, 'node_modules')
+const repoNodeModules = path.join(repoRoot, 'node_modules')
 
 function copyFile(src, dest) {
   fs.mkdirSync(path.dirname(dest), { recursive: true })
@@ -57,6 +59,14 @@ function copyOptional(src, dest) {
   copyFile(src, dest)
 }
 
+function resolveNodeModulePath(...segments) {
+  const projectPath = path.join(projectNodeModules, ...segments)
+  if (fs.existsSync(projectPath)) return projectPath
+  const repoPath = path.join(repoNodeModules, ...segments)
+  if (fs.existsSync(repoPath)) return repoPath
+  return projectPath
+}
+
 function removeStaleOutput(target) {
   fs.rmSync(target, { recursive: true, force: true })
 }
@@ -68,10 +78,16 @@ removeStaleOutput(path.join(outDir, 'renderer.js.map'))
 removeStaleOutput(path.join(outDir, 'renderer.d.ts'))
 removeStaleOutput(path.join(outDir, 'renderer.d.ts.map'))
 
-copyOptional(path.join(repoRoot, 'node_modules', 'xterm', 'lib', 'xterm.js'), path.join(outDir, 'vendor', 'xterm.js'))
-copyOptional(path.join(repoRoot, 'node_modules', 'xterm', 'css', 'xterm.css'), path.join(outDir, 'vendor', 'xterm.css'))
 copyOptional(
-  path.join(repoRoot, 'node_modules', 'xterm-addon-fit', 'lib', 'xterm-addon-fit.js'),
+  resolveNodeModulePath('@xterm', 'xterm', 'lib', 'xterm.js'),
+  path.join(outDir, 'vendor', 'xterm.js')
+)
+copyOptional(
+  resolveNodeModulePath('@xterm', 'xterm', 'css', 'xterm.css'),
+  path.join(outDir, 'vendor', 'xterm.css')
+)
+copyOptional(
+  resolveNodeModulePath('@xterm', 'addon-fit', 'lib', 'addon-fit.js'),
   path.join(outDir, 'vendor', 'xterm-addon-fit.js')
 )
 

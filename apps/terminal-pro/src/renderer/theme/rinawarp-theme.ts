@@ -9,7 +9,7 @@
  * - Black (#050505)
  */
 
-import type { ITheme } from 'xterm'
+import type { ITheme } from '@xterm/xterm'
 
 export const rinaWarpTheme: ITheme = {
   background: '#050505',
@@ -77,7 +77,7 @@ export const rinaWarpTheme: ITheme = {
  *   experimentalCharAtlas: "dynamic",
  * });
  */
-export function applyRinaWarpTheme(term: import('xterm').Terminal): void {
+export function applyRinaWarpTheme(term: import('@xterm/xterm').Terminal): void {
   term.options.theme = rinaWarpTheme
 }
 
@@ -86,7 +86,7 @@ export function applyRinaWarpTheme(term: import('xterm').Terminal): void {
  * Outputs styled Rina messages in the execution stream
  */
 export function rinaLog(
-  term: import('xterm').Terminal,
+  term: import('@xterm/xterm').Terminal,
   text: string,
   type: 'info' | 'success' | 'warning' | 'error' = 'info'
 ): void {
@@ -105,7 +105,7 @@ export function rinaLog(
  * Rina command helper
  * Outputs styled Rina commands in the execution stream
  */
-export function rinaCommand(term: import('xterm').Terminal, command: string): void {
+export function rinaCommand(term: import('@xterm/xterm').Terminal, command: string): void {
   // Coral color for Rina commands
   term.writeln(`\x1b[38;5;203m[Rina] > ${command}\x1b[0m`)
 }
