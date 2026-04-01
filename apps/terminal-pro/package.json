@@ -36,7 +36,7 @@
     "test:e2e:proof": "bash scripts/run-electron-playwright.sh tests/e2e/agent-runproof.spec.ts",
     "test:e2e:conversation": "bash scripts/run-electron-playwright.sh tests/e2e/rina-conversation-resilience.spec.ts",
     "test:e2e:first-run": "bash scripts/run-electron-playwright.sh tests/e2e/agent-empty-state.spec.ts tests/e2e/ipc-contracts.spec.ts",
-    "test:e2e:packaged-first-run": "npm run build:packaged-linux && bash scripts/run-electron-playwright.sh tests/e2e/packaged-first-run.spec.ts",
+    "test:e2e:packaged-first-run": "npm run build:packaged-linux && bash scripts/run-electron-playwright.sh e2e/packaged-first-run.spec.ts",
     "test:trust-smoke": "bash scripts/run-electron-playwright.sh tests/e2e/trust-smoke.spec.ts",
     "qa:receipt-recovery:visual": "bash scripts/run-electron-playwright.sh tests/e2e/receipt-recovery-visual.spec.ts",
     "test:e2e:core": "npm run test:e2e:first-run && npm run test:e2e:proof && npm run test:e2e:conversation && npm run test:trust-smoke",
