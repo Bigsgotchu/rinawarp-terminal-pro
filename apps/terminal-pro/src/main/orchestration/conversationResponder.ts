@@ -126,7 +126,7 @@ function normalizeWhitespace(value: string): string {
 
 function buildVerifiedRunSentence(latestRun?: ConversationRunReference | null): string {
   if (!latestRun?.runId) {
-    return "I don't have a recent verified run yet. If you want, I can inspect the code directly in the workspace or line up a plan without pretending a run already happened."
+    return "I don't have proof yet because no verified run exists. If you want, I can inspect the code directly in the workspace or line up a plan without pretending a run already happened."
   }
   if (latestRun.interrupted) {
     return 'The latest run was interrupted before it finished cleanly. I can inspect it or help you resume from there.'
