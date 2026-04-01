@@ -68,7 +68,7 @@ jobs:
           CI: "1"
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
-        run: xvfb-run -a pnpm --filter rinawarp-terminal-pro run e2e:smoke
+        run: pnpm --filter rinawarp-terminal-pro run test:e2e:packaged-first-run
 
       - name: Run Electron proof and trust suite
         env:

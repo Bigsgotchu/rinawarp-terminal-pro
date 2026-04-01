@@ -79,7 +79,7 @@ jobs:
         run: pnpm build
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Electron E2E proof and trust tests
         env:
@@ -87,6 +87,13 @@ jobs:
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
         run: npm --workspace apps/terminal-pro run test:e2e:core
+
+      - name: Run packaged first-run E2E
+        env:
+          CI: "1"
+          RINAWARP_E2E: "1"
+          ELECTRON_DISABLE_SANDBOX: "1"
+        run: npm --workspace apps/terminal-pro run test:e2e:packaged-first-run
 
       - name: Upload test results
         if: failure()
