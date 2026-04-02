@@ -2,6 +2,7 @@ import type { FixPlanResponse, FixPlanStep } from '../replies/renderPlanReplies.
 import type { BrainEvent, BrainStats, ThinkingStep } from '../services/rendererEventTypes.js'
 import type { Density as ThemeDensity } from '../theme/tokens.js'
 import type { CapabilityPackModel, WorkbenchAction, WorkbenchState } from '../workbench/store.js'
+import type { FixProjectResult } from '../../main/assistant/fixProjectFlow.js'
 
 export interface RinaRendererWindow {
   addEventListener: Window['addEventListener']
@@ -47,6 +48,7 @@ export interface RinaRendererWindow {
       }
     }>
     agentPlan: (args: { intentText: string; projectRoot: string }) => Promise<FixPlanResponse>
+    fixProject: (projectRoot: string) => Promise<FixProjectResult>
     executePlanStream: (args: {
       plan: FixPlanStep[]
       projectRoot: string
@@ -182,9 +184,22 @@ export interface RinaRendererWindow {
       tail?: string
       error?: string
     }>
+    runsArtifacts?: (args: { runId?: string; sessionId: string }) => Promise<{
+      ok: boolean
+      runId?: string
+      sessionId?: string
+      summary?: {
+        changedFiles?: string[]
+        diffHints?: string[]
+        stdoutPreview?: string
+        stderrPreview?: string
+        metaPreview?: string
+      }
+      error?: string
+    }>
     revealRunReceipt: (receiptId: string) => Promise<{ ok: boolean; error?: string; receipt?: any }>
-    codeListFiles?: (args?: { projectRoot?: string | undefined; limit?: number; query?: string }) => Promise<{ ok?: boolean; files?: string[]; error?: string }>
-    codeReadFile?: (args: { projectRoot?: string; filePath: string }) => Promise<{ ok?: boolean; content?: string; error?: string }>
+    codeListFiles?: (args: CodeListFilesArgs) => Promise<CodeListFilesResult>
+    codeReadFile?: (args: CodeReadFileArgs) => Promise<CodeReadFileResult>
     workspaceDefault?: () => Promise<{ ok: boolean; path?: string }>
     autonomy: { enabled: boolean; level: string }
   }
@@ -210,3 +225,9 @@ export interface RinaRendererWindow {
   }
   RINAWARP_READY?: boolean
 }
+import type {
+  CodeListFilesArgs,
+  CodeListFilesResult,
+  CodeReadFileArgs,
+  CodeReadFileResult,
+} from '../../main/startup/runtimeTypes.js'

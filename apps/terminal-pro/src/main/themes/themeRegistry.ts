@@ -1,5 +1,9 @@
+import { createRequire } from 'node:module'
 import path from 'node:path'
-import { app, type IpcMain } from 'electron/main'
+import type { IpcMain, IpcMainInvokeEvent } from 'electron'
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
+const { app } = electron
 
 type ThemeRegistry = {
   themes: Array<{
@@ -16,6 +20,8 @@ type ThemeRegistry = {
     }
   }>
 }
+
+type ThemeRegistryEntry = ThemeRegistry['themes'][number]
 
 type ThemeRegistryDeps = {
   resolveResourcePath: (relPath: string, devBase: 'app' | 'repo') => string
@@ -199,7 +205,7 @@ export function registerThemeHandlers(ipcMain: IpcMain, deps: ThemeRegistryDeps)
   ipcMain.handle('themes:get', async () => ({ id: loadSelectedThemeId(deps) }))
 
   ipcMain.removeHandler('themes:set')
-  ipcMain.handle('themes:set', async (_event, id) => {
+  ipcMain.handle('themes:set', async (_event: IpcMainInvokeEvent, id: unknown) => {
     const themeId = String(id || '').trim()
     const registry = loadThemeRegistryMerged(deps)
     const exists = (registry?.themes || []).some((theme) => theme?.id === themeId)
@@ -214,8 +220,11 @@ export function registerThemeHandlers(ipcMain: IpcMain, deps: ThemeRegistryDeps)
   ipcMain.handle('themes:custom:get', async () => loadCustomThemeRegistry(deps))
 
   ipcMain.removeHandler('themes:custom:upsert')
-  ipcMain.handle('themes:custom:upsert', async (_event, theme) => {
-    const candidate = theme && typeof theme === 'object' ? { ...theme } : null
+  ipcMain.handle('themes:custom:upsert', async (_event: IpcMainInvokeEvent, theme: unknown) => {
+    const candidate: ThemeRegistryEntry | null = theme && typeof theme === 'object' ? { ...(theme as Record<string, unknown>) } as ThemeRegistryEntry : null
+    if (!candidate) {
+      return { ok: false, error: 'Missing theme' }
+    }
     const validation = validateTheme(candidate)
     if (!validation.ok) {
       return { ok: false, error: validation.error }
@@ -228,7 +237,7 @@ export function registerThemeHandlers(ipcMain: IpcMain, deps: ThemeRegistryDeps)
   })
 
   ipcMain.removeHandler('themes:custom:delete')
-  ipcMain.handle('themes:custom:delete', async (_event, id) => {
+  ipcMain.handle('themes:custom:delete', async (_event: IpcMainInvokeEvent, id: unknown) => {
     const themeId = String(id || '').trim()
     if (!themeId) {
       return { ok: false, error: 'Missing theme id' }

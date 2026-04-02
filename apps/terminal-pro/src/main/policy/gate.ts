@@ -1,5 +1,7 @@
 // @ts-nocheck
-export function createPolicyGate(deps) {
+import type { PolicyGateDeps } from '../startup/runtimeTypes.js'
+
+export function createPolicyGate(deps: PolicyGateDeps) {
     const { fs, ctx, resolveResourcePath, warnIfUnexpectedPackagedResource, sessionState, getCurrentRole } = deps;
     let cachedPolicy;
     function currentPolicyEnv() {

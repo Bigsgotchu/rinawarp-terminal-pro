@@ -1,5 +1,7 @@
 // @ts-nocheck
-export function createMiscIpcHelpers(deps) {
+import type { MiscIpcHelperDeps } from '../startup/runtimeTypes.js'
+
+export function createMiscIpcHelpers(deps: MiscIpcHelperDeps) {
     const { process, redactText, importShellHistory, diagnoseHotLinux, addTranscriptEntry, makePlan, playbooks } = deps;
     async function pingForIpc() {
         return { pong: true, timestamp: new Date().toISOString() };
@@ -20,7 +22,7 @@ export function createMiscIpcHelpers(deps) {
     }
     async function planForIpc(intent) {
         addTranscriptEntry({ type: 'intent', timestamp: new Date().toISOString(), intent });
-        const plan = makePlan(intent);
+        const plan = await makePlan(intent);
         addTranscriptEntry({ type: 'plan', timestamp: new Date().toISOString(), plan });
         return plan;
     }

@@ -1,4 +1,4 @@
-// @ts-nocheck
+import type { ChatDoctorIntentClassification } from '../startup/runtimeTypes.js'
 
 const DOCTOR_KEYWORDS = [
   'running hot',
@@ -23,11 +23,11 @@ const DEV_KEYWORDS = ['build', 'compile', 'error', 'failed', 'bug', 'crash', 'de
 
 const BUILDER_KEYWORDS = ['create', 'scaffold', 'project', 'setup', 'new file']
 
-function matchesKeyword(text, keywords) {
+function matchesKeyword(text: string, keywords: string[]) {
   return keywords.some((keyword) => text.includes(keyword))
 }
 
-export function classifyIntent(text) {
+export function classifyIntent(text: string): ChatDoctorIntentClassification {
   const normalized = String(text || '').toLowerCase()
 
   if (matchesKeyword(normalized, DOCTOR_KEYWORDS)) {

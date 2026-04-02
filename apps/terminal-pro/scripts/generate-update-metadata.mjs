@@ -16,26 +16,24 @@ function findArtifact(patterns) {
   return null
 }
 
-async function sha512Base64ForArtifact(filePath) {
-  const hash = createHash('sha512')
+async function hashArtifact(filePath, algorithm, encoding) {
+  const hash = createHash(algorithm)
   await new Promise((resolve, reject) => {
     const stream = fs.createReadStream(filePath)
     stream.on('data', (chunk) => hash.update(chunk))
     stream.on('end', resolve)
     stream.on('error', reject)
   })
-  return hash.digest('base64')
+  return hash.digest(encoding)
 }
 
-async function sha256HexForArtifact(filePath) {
-  const hash = createHash('sha256')
-  await new Promise((resolve, reject) => {
-    const stream = fs.createReadStream(filePath)
-    stream.on('data', (chunk) => hash.update(chunk))
-    stream.on('end', resolve)
-    stream.on('error', reject)
-  })
-  return hash.digest('hex')
+function getArtifactPatterns(version) {
+  const escapedVersion = version.replaceAll('.', '\\.')
+  return {
+    linux: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.AppImage$`, 'i')],
+    deb: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.deb$`, 'i')],
+    windows: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.exe$`, 'i')],
+  }
 }
 
 function toYaml({ version, pubDate, fileName, size, sha512 }) {
@@ -52,47 +50,59 @@ function toYaml({ version, pubDate, fileName, size, sha512 }) {
   ].join('\n')
 }
 
-async function main() {
-  const pubDate = new Date().toISOString()
-  const escapedVersion = version.replaceAll('.', '\\.')
-  const linuxName = findArtifact([new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.AppImage$`, 'i')]) || ''
-  const debName = findArtifact([new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.deb$`, 'i')]) || ''
-  const windowsName = findArtifact([new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.exe$`, 'i')]) || ''
-
+function resolveArtifacts(version) {
+  const patterns = getArtifactPatterns(version)
+  const linuxName = findArtifact(patterns.linux) || ''
+  const debName = findArtifact(patterns.deb) || ''
+  const windowsName = findArtifact(patterns.windows) || ''
   if (!linuxName || !windowsName) {
     throw new Error(`Missing required artifacts for ${version}. Expected AppImage and .exe in ${installerDir}`)
   }
+  return {
+    linux: {
+      name: linuxName,
+      path: path.join(installerDir, linuxName),
+    },
+    deb: debName
+      ? {
+          name: debName,
+          path: path.join(installerDir, debName),
+        }
+      : null,
+    windows: {
+      name: windowsName,
+      path: path.join(installerDir, windowsName),
+    },
+  }
+}
 
-  const linuxPath = path.join(installerDir, linuxName)
-  const windowsPath = path.join(installerDir, windowsName)
-  const debPath = debName ? path.join(installerDir, debName) : null
+async function enrichArtifact(artifact) {
+  if (!artifact) return null
+  const stats = fs.statSync(artifact.path)
+  return {
+    ...artifact,
+    bytes: stats.size,
+    sha512: await hashArtifact(artifact.path, 'sha512', 'base64'),
+    sha256: await hashArtifact(artifact.path, 'sha256', 'hex'),
+  }
+}
 
-  const linuxSha512 = await sha512Base64ForArtifact(linuxPath)
-  const windowsSha512 = await sha512Base64ForArtifact(windowsPath)
-  const linuxSha256 = await sha256HexForArtifact(linuxPath)
-  const windowsSha256 = await sha256HexForArtifact(windowsPath)
-  const debSha256 = debPath ? await sha256HexForArtifact(debPath) : null
+async function collectArtifactMetadata(version) {
+  const artifacts = resolveArtifacts(version)
+  return {
+    linux: await enrichArtifact(artifacts.linux),
+    deb: await enrichArtifact(artifacts.deb),
+    windows: await enrichArtifact(artifacts.windows),
+  }
+}
 
+function ensureOutputDirs() {
   fs.mkdirSync(installerDir, { recursive: true })
   fs.mkdirSync(path.join(installerDir, 'stable'), { recursive: true })
+}
 
-  const latestYml = toYaml({
-    version,
-    pubDate,
-    fileName: windowsName,
-    size: fs.statSync(windowsPath).size,
-    sha512: windowsSha512,
-  })
-
-  const latestLinuxYml = toYaml({
-    version,
-    pubDate,
-    fileName: linuxName,
-    size: fs.statSync(linuxPath).size,
-    sha512: linuxSha512,
-  })
-
-  const latestJson = {
+function buildLatestJson(version, pubDate, artifacts) {
+  return {
     schemaVersion: 1,
     product: 'terminal-pro',
     version,
@@ -104,49 +114,82 @@ async function main() {
         path: `releases/${version}/SHASUMS256.txt`,
       },
       linux: {
-        name: linuxName,
-        path: `releases/${version}/${linuxName}`,
-        sha256: linuxSha256,
-        bytes: fs.statSync(linuxPath).size,
+        name: artifacts.linux.name,
+        path: `releases/${version}/${artifacts.linux.name}`,
+        sha256: artifacts.linux.sha256,
+        bytes: artifacts.linux.bytes,
       },
-      ...(debPath
+      ...(artifacts.deb
         ? {
             deb: {
-              name: debName,
-              path: `releases/${version}/${debName}`,
-              sha256: debSha256,
-              bytes: fs.statSync(debPath).size,
+              name: artifacts.deb.name,
+              path: `releases/${version}/${artifacts.deb.name}`,
+              sha256: artifacts.deb.sha256,
+              bytes: artifacts.deb.bytes,
             },
           }
         : {}),
       windows: {
-        name: windowsName,
-        path: `releases/${version}/${windowsName}`,
-        sha256: windowsSha256,
-        bytes: fs.statSync(windowsPath).size,
+        name: artifacts.windows.name,
+        path: `releases/${version}/${artifacts.windows.name}`,
+        sha256: artifacts.windows.sha256,
+        bytes: artifacts.windows.bytes,
       },
     },
     platforms: {
       'linux-x86_64': {
         signature: '',
-        url: `releases/${version}/${linuxName}`,
+        url: `releases/${version}/${artifacts.linux.name}`,
       },
     },
   }
+}
 
-  const checksums = [
-    `${linuxSha256}  ${linuxName}`,
-    ...(debPath && debSha256 && debName ? [`${debSha256}  ${debName}`] : []),
-    `${windowsSha256}  ${windowsName}`,
+function buildChecksums(artifacts) {
+  return [
+    `${artifacts.linux.sha256}  ${artifacts.linux.name}`,
+    ...(artifacts.deb ? [`${artifacts.deb.sha256}  ${artifacts.deb.name}`] : []),
+    `${artifacts.windows.sha256}  ${artifacts.windows.name}`,
   ].join('\n') + '\n'
+}
 
+function writeUpdaterMetadata({ latestYml, latestLinuxYml, latestJson, checksums }) {
+  const stableDir = path.join(installerDir, 'stable')
   fs.writeFileSync(path.join(installerDir, 'latest.yml'), latestYml, 'utf8')
   fs.writeFileSync(path.join(installerDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
   fs.writeFileSync(path.join(installerDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
   fs.writeFileSync(path.join(installerDir, 'SHASUMS256.txt'), checksums, 'utf8')
-  fs.writeFileSync(path.join(installerDir, 'stable', 'latest.yml'), latestYml, 'utf8')
-  fs.writeFileSync(path.join(installerDir, 'stable', 'latest-linux.yml'), latestLinuxYml, 'utf8')
-  fs.writeFileSync(path.join(installerDir, 'stable', 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
+  fs.writeFileSync(path.join(stableDir, 'latest.yml'), latestYml, 'utf8')
+  fs.writeFileSync(path.join(stableDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
+  fs.writeFileSync(path.join(stableDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
+}
+
+async function main() {
+  const pubDate = new Date().toISOString()
+  const artifacts = await collectArtifactMetadata(version)
+
+  ensureOutputDirs()
+
+  const latestYml = toYaml({
+    version,
+    pubDate,
+    fileName: artifacts.windows.name,
+    size: artifacts.windows.bytes,
+    sha512: artifacts.windows.sha512,
+  })
+
+  const latestLinuxYml = toYaml({
+    version,
+    pubDate,
+    fileName: artifacts.linux.name,
+    size: artifacts.linux.bytes,
+    sha512: artifacts.linux.sha512,
+  })
+
+  const latestJson = buildLatestJson(version, pubDate, artifacts)
+  const checksums = buildChecksums(artifacts)
+
+  writeUpdaterMetadata({ latestYml, latestLinuxYml, latestJson, checksums })
 
   console.log(`Generated updater metadata for v${version}`)
   console.log(`- ${path.join(installerDir, 'latest.yml')}`)

@@ -1,3 +1,4 @@
+import { appendNarration, describeFixStep, interpretExecutionOutput } from '../fixes/fixNarration.js'
 import { hasRunProof } from '../workbench/proof.js'
 import { type WorkbenchState, WorkbenchStore } from '../workbench/store.js'
 
@@ -32,7 +33,40 @@ export function bindRendererEvents(args: {
 }): RendererEventCleanup {
   const { store, fixBlockManager, executionTracePanel, trackRendererEvent, trackRendererFunnel, refreshRuns, refreshDiagnostics, refreshCode } = args
   const liveRunIdByStreamId = new Map<string, string>()
+  const fixIdByStreamId = new Map<string, string>()
+  const lastNarrationTitleByStreamId = new Map<string, string>()
   const trackedProofRunIds = new Set<string>()
+
+  async function hydrateFixArtifactsFromRun(runId: string): Promise<void> {
+    if (!window.rina.runsArtifacts) return
+
+    const run = store.getState().runs.find((entry) => entry.id === runId)
+    if (!run?.sessionId) return
+
+    try {
+      const result = await window.rina.runsArtifacts({ runId, sessionId: run.sessionId })
+      if (!result?.ok || !result.summary) return
+
+      const changedFiles = Array.isArray(result.summary.changedFiles) ? result.summary.changedFiles.filter(Boolean) : []
+      const diffHints = Array.isArray(result.summary.diffHints) ? result.summary.diffHints.filter(Boolean) : []
+
+      if (changedFiles.length === 0 && diffHints.length === 0) return
+
+      const fixes = store.getState().fixBlocks.filter((entry) => entry.applyRunId === runId)
+      for (const fix of fixes) {
+        store.dispatch({
+          type: 'fix/upsert',
+          fix: {
+            ...fix,
+            changedFiles,
+            diffHints,
+          },
+        })
+      }
+    } catch {
+      // Keep artifact loading best-effort so proof UI never blocks on it.
+    }
+  }
 
   const cleanup = [
     window.rina.onThinking((step) => {
@@ -54,11 +88,39 @@ export function bindRendererEvents(args: {
       })
     }),
     window.rina.onPlanStepStart((payload: unknown) => {
-      const stepPayload = payload as { runId?: string; streamId?: string }
+      const stepPayload = payload as { runId?: string; streamId?: string; step?: { stepId?: string; input?: { command?: string } } }
       const streamId = String(stepPayload?.streamId || '')
       const runId = String(stepPayload?.runId || '')
       if (streamId && runId) {
         liveRunIdByStreamId.set(streamId, runId)
+        const command = String(stepPayload?.step?.input?.command || '').trim()
+        const fixes = store.getState().fixBlocks.filter((entry) => entry.applyRunId === runId)
+        for (const fix of fixes) {
+          const matchedStep = fix.steps.find((step) => command && step.command === command)
+          const narration = matchedStep ? describeFixStep(matchedStep) : null
+          const nextSteps = fix.steps.map((step) =>
+            command && step.command === command
+              ? { ...step, status: 'running' as const }
+              : step.status === 'running'
+                ? { ...step, status: 'pending' as const }
+                : step
+          )
+          store.dispatch({
+            type: 'fix/upsert',
+            fix: {
+              ...fix,
+              status: 'running',
+              phase: 'executing',
+              statusText: command ? `Running: ${command}` : 'Executing repair step…',
+              latestOutput: '',
+              narration: narration ? appendNarration(fix.narration, narration, fix.id) : fix.narration,
+              steps: nextSteps,
+              error: undefined,
+            },
+          })
+          if (respectiveTitle(narration)) lastNarrationTitleByStreamId.set(streamId, narration.title)
+          fixIdByStreamId.set(streamId, fix.id)
+        }
         const run = store.getState().runs.find((entry) => entry.id === runId)
         if (run) {
           store.dispatch({
@@ -75,6 +137,25 @@ export function bindRendererEvents(args: {
     window.rina.onStreamChunk((chunk: unknown) => {
       fixBlockManager.recordChunk(chunk)
       const data = chunk as { streamId?: string; data?: string; stream?: string }
+      const fixId = data.streamId ? fixIdByStreamId.get(data.streamId) : undefined
+      if (fixId && data.data) {
+        const fix = store.getState().fixBlocks.find((entry) => entry.id === fixId)
+        if (fix) {
+          const narration = interpretExecutionOutput(data.data)
+          const shouldAppendNarration = narration && lastNarrationTitleByStreamId.get(String(data.streamId || '')) !== narration.title
+          store.dispatch({
+            type: 'fix/upsert',
+            fix: {
+              ...fix,
+              latestOutput: `${fix.latestOutput || ''}${data.data}`.slice(-6000),
+              narration: shouldAppendNarration ? appendNarration(fix.narration, narration, fix.id) : fix.narration,
+            },
+          })
+          if (shouldAppendNarration && data.streamId) {
+            lastNarrationTitleByStreamId.set(data.streamId, narration.title)
+          }
+        }
+      }
       if ((data?.stream === 'stdout' || data?.stream === 'stderr') && data.streamId) {
         const blockId = `stream:${data.streamId}`
         const existing = store.getState().executionTrace.blocks.find((block) => block.id === blockId)
@@ -109,6 +190,7 @@ export function bindRendererEvents(args: {
       void fixBlockManager.recordStreamEnd(result)
       const res = result as { ok?: boolean; error?: string; streamId?: string; code?: number | null }
       const linkedRunId = res.streamId ? liveRunIdByStreamId.get(res.streamId) : undefined
+      const fixId = res.streamId ? fixIdByStreamId.get(res.streamId) : undefined
       const blockId = res.streamId ? `stream:${res.streamId}` : null
       if (blockId) {
         const existing = store.getState().executionTrace.blocks.find((block) => block.id === blockId)
@@ -170,22 +252,54 @@ export function bindRendererEvents(args: {
         }
         const affectedFixes = store.getState().fixBlocks.filter((fix) => fix.applyRunId === linkedRunId)
         for (const fix of affectedFixes) {
+          const completionNarration =
+            res.ok === false
+              ? {
+                  title: 'Repair step failed',
+                  description: res.error || 'The command stopped before the repair could clear.',
+                  level: 'error' as const,
+                }
+              : {
+                  title: 'Repair step completed',
+                  description: 'The command finished. RinaWarp is moving to verification.',
+                  level: 'success' as const,
+                }
           store.dispatch({
             type: 'fix/upsert',
             fix: {
               ...fix,
               exitCode: typeof res.code === 'number' ? res.code : fix.exitCode,
               status: res.ok === false ? 'error' : typeof res.code === 'number' && res.code === 0 ? 'done' : 'error',
+              phase: res.ok === false ? 'error' : typeof res.code === 'number' && res.code === 0 ? 'verifying' : 'error',
+              statusText:
+                res.ok === false
+                  ? 'A repair step failed before the proof could clear.'
+                  : typeof res.code === 'number' && res.code === 0
+                    ? 'Repair steps completed. Running final verification now…'
+                    : 'This streamed step ended without enough proof to clear the repair.',
               error:
                 res.ok === false
                   ? res.error || 'The fix run failed before proof completed.'
                   : typeof res.code === 'number' && res.code === 0
                     ? undefined
                     : 'The fix run finished without successful proof.',
+              steps: fix.steps.map((step) =>
+                step.status === 'running'
+                  ? { ...step, status: res.ok === false ? 'error' as const : 'done' as const }
+                  : step
+              ),
+              narration: appendNarration(fix.narration, completionNarration, fix.id),
             },
           })
         }
-        if (res.streamId) liveRunIdByStreamId.delete(res.streamId)
+        if (res.streamId) {
+          liveRunIdByStreamId.delete(res.streamId)
+          lastNarrationTitleByStreamId.delete(res.streamId)
+        }
+        void hydrateFixArtifactsFromRun(linkedRunId)
+      }
+      if (fixId && res.streamId) {
+        fixIdByStreamId.delete(res.streamId)
       }
       if (res?.error) {
         executionTracePanel.appendOutput(`Error: ${res.error}`, 'error')
@@ -197,6 +311,36 @@ export function bindRendererEvents(args: {
       void refreshDiagnostics(store)
       void refreshCode(store)
     }),
+    window.rina.onPlanRunEnd((payload: { planRunId: string; ok: boolean; haltedBecause?: string }) => {
+      const fixes = store.getState().fixBlocks.filter((entry) => entry.applyPlanRunId === payload.planRunId)
+      for (const fix of fixes) {
+        const verificationNarration = payload.ok
+          ? {
+              title: 'Verification passed',
+              description: 'The repair cleared verification and the proof trail is attached.',
+              level: 'success' as const,
+            }
+          : {
+              title: 'Verification needs review',
+              description: payload.haltedBecause || 'The repair stopped before the proof trail fully cleared.',
+              level: 'warning' as const,
+            }
+        store.dispatch({
+          type: 'fix/upsert',
+          fix: {
+            ...fix,
+            status: payload.ok ? 'done' : 'error',
+            phase: payload.ok ? 'done' : 'error',
+            statusText: payload.ok ? 'Project repaired with verification proof attached.' : `Repair halted: ${payload.haltedBecause || 'unknown reason'}`,
+            verificationStatus: payload.ok ? 'passed' : 'failed',
+            verificationText: payload.ok
+              ? 'Verification passed. This workspace cleared the repair run and the proof trail is ready.'
+              : payload.haltedBecause || 'Repair stopped before the proof trail could clear.',
+            narration: appendNarration(fix.narration, verificationNarration, fix.id),
+          },
+        })
+      }
+    }),
     window.rina.onPlanStepStart((step: unknown) => {
       fixBlockManager.recordPlanStepStart(step)
     }),
@@ -205,4 +349,10 @@ export function bindRendererEvents(args: {
   return () => {
     cleanup.forEach((unsubscribe) => unsubscribe())
   }
+}
+
+function respectiveTitle(
+  narration: { title: string } | null
+): narration is { title: string } {
+  return Boolean(narration?.title)
 }

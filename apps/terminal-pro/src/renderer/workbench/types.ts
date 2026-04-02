@@ -149,6 +149,50 @@ export type FixStepModel = {
   command: string
   cwd: string
   risk: 'safe' | 'moderate' | 'dangerous'
+  status?: 'pending' | 'running' | 'done' | 'error'
+}
+
+export type FixIssueModel = {
+  kind: string
+  summary: string
+  evidence: string
+  proposedFixes?: string[]
+}
+
+export type FixNarrationLevel = 'info' | 'progress' | 'success' | 'warning' | 'error'
+
+export type FixNarrationItem = {
+  id: string
+  title: string
+  description?: string
+  level: FixNarrationLevel
+  timestamp: number
+}
+
+export type FixConfidenceLevel = 'high' | 'medium' | 'low'
+
+export type FixConfidenceSignals = {
+  stepsSucceeded: number
+  stepsFailed: number
+  verificationPassed: boolean
+  partialVerification: boolean
+  highImpactSkipped: number
+  errorsDetected: number
+}
+
+export type FixConfidenceScore = {
+  level: FixConfidenceLevel
+  score: number
+  reasons: string[]
+  signals: FixConfidenceSignals
+}
+
+export type FixSummary = {
+  title: string
+  highlights: string[]
+  result: string
+  remainingIssues?: string[]
+  confidence: string
 }
 
 export type FixBlockModel = {
@@ -159,11 +203,25 @@ export type FixBlockModel = {
   cwd: string
   exitCode?: number | null
   applyRunId?: string
+  applyPlanRunId?: string
   status: 'planning' | 'ready' | 'running' | 'done' | 'error'
+  phase?: 'detecting' | 'planning' | 'executing' | 'verifying' | 'done' | 'error'
   whatBroke: string
   whySafe: string
   steps: FixStepModel[]
   ts: number
+  statusText?: string
+  latestOutput?: string
+  verificationText?: string
+  verificationStatus?: 'pending' | 'passed' | 'failed'
+  verificationChecks?: string[]
+  issues?: FixIssueModel[]
+  narration?: FixNarrationItem[]
+  changedFiles?: string[]
+  diffHints?: string[]
+  confidence?: FixConfidenceScore
+  summary?: FixSummary
+  explanation?: string
   error?: string
 }
 

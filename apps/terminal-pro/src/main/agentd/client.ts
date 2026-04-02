@@ -1,47 +1,45 @@
 // @ts-nocheck
+import { HttpAgentdClient } from '../../../../../packages/runtime-feature-agentd/dist/index.js'
 
 export function createAgentdClient(deps) {
   const { AGENTD_BASE_URL, AGENTD_AUTH_TOKEN, getLicenseToken } = deps
 
-  function buildAgentdHeaders(opts) {
-    const headers = {
-      'content-type': 'application/json',
-      ...(opts?.headers || {}),
-    }
-    if (AGENTD_AUTH_TOKEN) {
-      headers.authorization = `Bearer ${AGENTD_AUTH_TOKEN}`
-    }
-    const licenseToken = getLicenseToken()
-    if (opts?.includeLicenseToken && licenseToken) {
-      headers['x-rinawarp-license-token'] = licenseToken
-    }
-    return headers
-  }
-
-  async function agentdJson(path, init) {
-    const res = await fetch(`${AGENTD_BASE_URL}${path}`, {
-      method: init.method,
-      headers: buildAgentdHeaders({
-        includeLicenseToken: init.includeLicenseToken,
-        headers: init.headers,
-      }),
-      body: init.body ? JSON.stringify(init.body) : undefined,
-    })
-    let data = null
-    try {
-      data = await res.json()
-    } catch {
-      data = null
-    }
-    if (!res.ok) {
-      const msg = data?.error || `${init.method} ${path} failed (${res.status})`
-      throw new Error(msg)
-    }
-    return data
-  }
+  const client = new HttpAgentdClient(
+    {
+      baseUrl: AGENTD_BASE_URL,
+      authToken: AGENTD_AUTH_TOKEN,
+      fetchImpl: fetch,
+    },
+    {
+      getSnapshot() {
+        const licenseToken = getLicenseToken()
+        return {
+          tier: 'starter',
+          hasToken: Boolean(licenseToken),
+          licenseToken,
+          expiresAt: null,
+          customerId: null,
+          status: 'unknown',
+        }
+      },
+      refresh() {
+        throw new Error('refresh() is not supported in the agentd adapter')
+      },
+      applyVerifiedLicense() {
+        throw new Error('applyVerifiedLicense() is not supported in the agentd adapter')
+      },
+      resetToStarter() {
+        throw new Error('resetToStarter() is not supported in the agentd adapter')
+      },
+    },
+  )
 
   return {
-    buildAgentdHeaders,
-    agentdJson,
+    buildAgentdHeaders(opts) {
+      return client.buildHeaders(opts)
+    },
+    agentdJson(path, init) {
+      return client.json(path, init)
+    },
   }
 }

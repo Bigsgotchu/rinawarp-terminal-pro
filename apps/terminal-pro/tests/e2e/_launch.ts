@@ -5,7 +5,6 @@ import { _electron as electron, type ElectronApplication } from 'playwright'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const APP_ROOT = path.resolve(__dirname, '../..')
-const MAIN_ENTRY = path.join(APP_ROOT, 'dist-electron', 'main.js')
 const ELECTRON_PATH = path.join(APP_ROOT, 'node_modules/electron/dist/electron')
 const PACKAGED_LINUX_BINARY = path.join(APP_ROOT, 'dist-electron', 'installer', 'linux-unpacked', 'rinawarp-terminal-pro')
 
@@ -18,6 +17,8 @@ function buildLaunchEnv(extraEnv?: Record<string, string>): NodeJS.ProcessEnv {
     ...process.env,
     RINAWARP_ENV: 'dev',
     RINAWARP_E2E: '1',
+    ELECTRON_ENABLE_LOGGING: '1',
+    ELECTRON_ENABLE_STACK_DUMPING: '1',
     ...extraEnv,
     RINAWARP_E2E_USER_DATA_SUFFIX: userDataSuffix,
   }
@@ -32,7 +33,7 @@ export async function launchApp(extraEnv?: Record<string, string>): Promise<Elec
 
   return electron.launch({
     executablePath: ELECTRON_PATH,
-    args: [...(isLinux ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] : []), MAIN_ENTRY],
+    args: [...(isLinux ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] : []), APP_ROOT],
     cwd: APP_ROOT,
     env,
   })

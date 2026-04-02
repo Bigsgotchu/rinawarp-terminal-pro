@@ -1,27 +1,35 @@
 // @ts-nocheck
-export function createBuildPlanHelpers(deps) {
-    const { fs, path, playbooks, topCpuCmdSafeShort } = deps;
+import { hasSharedWorkspaceFile, readSharedWorkspaceTextFile } from '../runtime/runtimeAccess.js'
+import type { BuildPlanHelperDeps } from '../startup/runtimeTypes.js'
+
+export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
+    const { playbooks, topCpuCmdSafeShort } = deps;
     const SELF_CHECK_PATTERN = /\b(scan yourself|check yourself|self-check|inspect current state|check the workbench|diagnose the app|what is broken right now)\b/i;
-    function detectBuildKind(projectRoot) {
-        const has = (p) => fs.existsSync(path.join(projectRoot, p));
-        if (has('package.json'))
+    async function hasProjectFile(projectRoot, relativePath) {
+        return hasSharedWorkspaceFile(projectRoot, relativePath);
+    }
+    async function readProjectTextFile(projectRoot, relativePath) {
+        return readSharedWorkspaceTextFile(projectRoot, relativePath);
+    }
+    async function detectBuildKind(projectRoot) {
+        if (await hasProjectFile(projectRoot, 'package.json'))
             return 'node';
-        if (has('pyproject.toml') || has('requirements.txt'))
+        if ((await hasProjectFile(projectRoot, 'pyproject.toml')) || (await hasProjectFile(projectRoot, 'requirements.txt')))
             return 'python';
-        if (has('Cargo.toml'))
+        if (await hasProjectFile(projectRoot, 'Cargo.toml'))
             return 'rust';
-        if (has('go.mod'))
+        if (await hasProjectFile(projectRoot, 'go.mod'))
             return 'go';
         return 'unknown';
     }
-    function readNodeScripts(projectRoot) {
+    async function readNodeScripts(projectRoot) {
         if (!projectRoot)
             return new Set();
         try {
-            const packageJsonPath = path.join(projectRoot, 'package.json');
-            if (!fs.existsSync(packageJsonPath))
+            const packageJson = await readProjectTextFile(projectRoot, 'package.json');
+            if (!packageJson)
                 return new Set();
-            const parsed = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+            const parsed = JSON.parse(packageJson);
             return new Set(Object.keys(parsed.scripts || {}).filter((key) => typeof key === 'string' && key.trim().length > 0));
         }
         catch {
@@ -35,14 +43,14 @@ export function createBuildPlanHelpers(deps) {
         }
         return null;
     }
-    function buildStepsForKind(kind, projectRoot, workflow = 'build') {
+    async function buildStepsForKind(kind, projectRoot, workflow = 'build') {
         switch (kind) {
             case 'node': {
-                const scripts = readNodeScripts(projectRoot);
+                const scripts = await readNodeScripts(projectRoot);
                 const buildScript = firstAvailableScript(scripts, ['build', 'build:electron']);
                 const testScript = firstAvailableScript(scripts, ['test', 'test:agent', 'test:unit', 'test:streaming']);
                 const deployScript = firstAvailableScript(scripts, ['deploy', 'publish']);
-                const hasElectronBuilder = fs.existsSync(path.join(projectRoot, 'electron-builder.yml'));
+                const hasElectronBuilder = await hasProjectFile(projectRoot, 'electron-builder.yml');
                 const installStep = {
                     id: 'install',
                     tool: 'terminal',
@@ -147,10 +155,10 @@ export function createBuildPlanHelpers(deps) {
                 ];
         }
     }
-    function makePlan(intentRaw, projectRoot) {
+    async function makePlan(intentRaw, projectRoot) {
         const intent = (intentRaw || '').trim().toLowerCase();
         const id = `plan_${Date.now()}`;
-        const buildKind = projectRoot ? detectBuildKind(projectRoot) : 'unknown';
+        const buildKind = projectRoot ? await detectBuildKind(projectRoot) : 'unknown';
         for (const playbook of playbooks) {
             if (playbook.signals.some((s) => intent.includes(s))) {
                 const steps = playbook.gatherCommands.map((cmd, i) => ({
@@ -183,7 +191,7 @@ export function createBuildPlanHelpers(deps) {
             const workflow = intent.includes('test') && !intent.includes('build')
                 ? 'test'
                 : 'build';
-            const steps = buildStepsForKind(buildKind, projectRoot, workflow);
+            const steps = await buildStepsForKind(buildKind, projectRoot, workflow);
             if (steps.length > 0) {
                 return {
                     id,
@@ -196,7 +204,7 @@ export function createBuildPlanHelpers(deps) {
             }
         }
         if (intent.includes('deploy')) {
-            const steps = buildStepsForKind(buildKind, projectRoot, 'deploy');
+            const steps = await buildStepsForKind(buildKind, projectRoot, 'deploy');
             if (steps.length > 0) {
                 return {
                     id,

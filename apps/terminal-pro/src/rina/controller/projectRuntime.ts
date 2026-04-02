@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { AgentPlan } from '../types.js'
+import { readSharedWorkspaceTextFile } from '../../main/runtime/runtimeAccess.js'
 
 type ProjectMemoryLike = {
   loadProject: (root: string) => {
@@ -20,6 +21,10 @@ type CommandMemoryLike = {
     totalRuns: number
   }
   topCommands: (limit: number) => unknown[]
+}
+
+async function readWorkspaceTextFile(workspaceRoot: string, relativePath: string): Promise<string | null> {
+  return readSharedWorkspaceTextFile(workspaceRoot, relativePath)
 }
 
 export function getPlansForWorkspace(workspaceRoot: string, projectMemory: ProjectMemoryLike): AgentPlan[] {
@@ -56,14 +61,14 @@ export function getPlansForWorkspace(workspaceRoot: string, projectMemory: Proje
   return plans
 }
 
-export function getProjectCommand(args: {
+export async function getProjectCommand(args: {
   workspaceRoot: string
   intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'
   projectMemory: ProjectMemoryLike
-}): string {
+}): Promise<string> {
   const project = args.workspaceRoot ? args.projectMemory.loadProject(args.workspaceRoot) : null
   const custom = project?.customCommands || {}
-  const packageScripts = readPackageScripts(args.workspaceRoot)
+  const packageScripts = await readPackageScripts(args.workspaceRoot)
 
   if (args.intent === 'build') {
     return project?.buildCommand || custom.build || packageScripts.build || 'npm run build'
@@ -84,13 +89,13 @@ export function getProjectCommand(args: {
   return custom.analyze || custom.lint || packageScripts.lint || 'npm run lint'
 }
 
-export function readPackageScripts(workspaceRoot: string): Record<string, string> {
+export async function readPackageScripts(workspaceRoot: string): Promise<Record<string, string>> {
   if (!workspaceRoot) return {}
 
-  const packageJsonPath = path.join(workspaceRoot, 'package.json')
   try {
-    if (!fs.existsSync(packageJsonPath)) return {}
-    const parsed = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as { scripts?: Record<string, string> }
+    const packageJsonText = await readWorkspaceTextFile(workspaceRoot, 'package.json')
+    if (!packageJsonText) return {}
+    const parsed = JSON.parse(packageJsonText) as { scripts?: Record<string, string> }
     return parsed.scripts && typeof parsed.scripts === 'object' ? parsed.scripts : {}
   } catch {
     return {}
@@ -169,4 +174,3 @@ export function buildContext(workspaceRoot: string, mode: 'auto' | 'assist' | 'e
     mode,
   })
 }
-

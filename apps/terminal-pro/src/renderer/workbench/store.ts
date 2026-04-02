@@ -6,6 +6,13 @@ export type {
   DrawerView,
   ExecutionTraceBlock,
   FixBlockModel,
+  FixConfidenceLevel,
+  FixConfidenceScore,
+  FixConfidenceSignals,
+  FixIssueModel,
+  FixNarrationItem,
+  FixNarrationLevel,
+  FixSummary,
   FixStepModel,
   LicenseTier,
   MessageBlock,
@@ -25,6 +32,8 @@ export type {
 
 import type { WorkbenchAction, WorkbenchState } from './types.js'
 import { deriveDeploymentState } from './deploymentState.js'
+import { withFixConfidence } from './fixConfidence.js'
+import { withFixSummary } from './fixSummary.js'
 
 type Listener = (state: WorkbenchState) => void
 
@@ -258,8 +267,9 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
     case 'fix/upsert': {
       const index = state.fixBlocks.findIndex((fix) => fix.id === action.fix.id)
       const fixBlocks = [...state.fixBlocks]
-      if (index >= 0) fixBlocks[index] = action.fix
-      else fixBlocks.unshift(action.fix)
+      const nextFix = withFixSummary(withFixConfidence(action.fix))
+      if (index >= 0) fixBlocks[index] = nextFix
+      else fixBlocks.unshift(nextFix)
       return { ...state, fixBlocks: fixBlocks.slice(0, 50) }
     }
 

@@ -1,7 +1,9 @@
-import * as electron from 'electron'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import fs from 'node:fs'
 
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
 const { app } = electron
 
 const POSTHOG_API_KEY = process.env.RINAWARP_POSTHOG_KEY || process.env.POSTHOG_API_KEY || ''

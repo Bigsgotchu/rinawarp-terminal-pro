@@ -1,5 +1,7 @@
 export {}
 
+import type { FixProjectResult } from '../main/assistant/fixProjectFlow.js'
+
 interface ElectronAPI {
   ipcRenderer: {
     on(channel: string, callback: (...args: any[]) => void): void
@@ -215,6 +217,7 @@ declare global {
       workspaceDefault(): Promise<{ ok: boolean; path?: string }>
       setMode(mode: string): Promise<{ ok: boolean; mode: string }>
       getMode(): Promise<string>
+      fixProject(projectRoot: string): Promise<FixProjectResult>
       codeListFiles(args?: {
         projectRoot?: string
         limit?: number

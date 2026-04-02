@@ -2,6 +2,7 @@ import { bubbleBlock } from '../replies/renderFragments.js'
 import type { FixPlanResponse, FixPlanStep, PlanCapabilityRequirement } from '../replies/renderPlanReplies.js'
 import type { RinaReplyResult } from '../replies/renderRinaReply.js'
 import { type WorkbenchStore, type WorkbenchState, type MessageBlock } from '../workbench/store.js'
+import type { FixProjectResult } from '../../main/assistant/fixProjectFlow.js'
 
 type ExecutionResult = {
   ok?: boolean
@@ -330,9 +331,120 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
     }
   }
 
+  const startFixProjectFlow = async (
+    store: WorkbenchStore,
+    args: {
+      workspaceRoot: string
+      workspaceKey: string
+      mountPendingFixBlock: (projectRoot: string) => string
+      mountFixBlock: (result: FixProjectResult, projectRoot: string, fixId?: string) => string
+    }
+  ): Promise<boolean> => {
+    const pendingFixId = args.mountPendingFixBlock(args.workspaceRoot)
+
+    store.dispatch({
+      type: 'chat/add',
+      msg: {
+        id: `rina:fix-project-start:${Date.now()}`,
+        role: 'rina',
+        content: [bubbleBlock('Analyzing your project now. I’m scanning the workspace, selecting the safest repair steps, and preparing a proof-backed run. No files change until the plan is ready.')],
+        ts: Date.now(),
+        workspaceKey: args.workspaceKey,
+      },
+    })
+
+    const fixResult = (await rina.fixProject(args.workspaceRoot)) as FixProjectResult
+
+    if (!fixResult.success || !Array.isArray(fixResult.executableSteps) || fixResult.executableSteps.length === 0) {
+      const pendingFix = store.getState().fixBlocks.find((entry) => entry.id === pendingFixId)
+      if (pendingFix) {
+        store.dispatch({
+          type: 'fix/upsert',
+          fix: {
+            ...pendingFix,
+            status: 'error',
+            phase: 'error',
+            statusText: 'Automatic repair could not prepare a safe plan.',
+            verificationStatus: 'failed',
+            verificationText: fixResult.explanation || fixResult.haltReason || 'No safe executable repair steps were available.',
+            error: fixResult.haltReason || undefined,
+          },
+        })
+      }
+      store.dispatch({
+        type: 'chat/add',
+        msg: {
+          id: `rina:fix-project-halt:${Date.now()}`,
+          role: 'rina',
+          content: [bubbleBlock(fixResult.explanation || fixResult.haltReason || 'Rina could not prepare a safe repair plan.')],
+          ts: Date.now(),
+          workspaceKey: args.workspaceKey,
+        },
+      })
+      return false
+    }
+
+    const fixId = args.mountFixBlock(fixResult, args.workspaceRoot, pendingFixId)
+    const planSteps = deps.normalizePlanSteps(
+      fixResult.executableSteps.map((step) => ({
+        stepId: step.id,
+        tool: 'terminal.write',
+        input: {
+          command: step.command,
+          cwd: args.workspaceRoot,
+          timeoutMs: 60_000,
+        },
+        risk: step.risk,
+        description: step.description || step.command,
+      }))
+    )
+
+    const execResult = (await rina.executePlanStream({
+      plan: planSteps,
+      projectRoot: args.workspaceRoot,
+      confirmed: false,
+      confirmationText: '',
+    })) as ExecutionResult
+
+    if (deps.didExecutionStart(execResult) && execResult.runId) {
+      const fix = store.getState().fixBlocks.find((entry) => entry.id === fixId)
+      if (fix) {
+        store.dispatch({
+          type: 'fix/upsert',
+          fix: {
+            ...fix,
+            applyRunId: execResult.runId,
+            applyPlanRunId: execResult.planRunId,
+            status: 'running',
+            phase: 'executing',
+            statusText: 'Executing the repair plan and streaming terminal proof live…',
+            error: undefined,
+          },
+        })
+      }
+      return true
+    }
+
+    const fix = store.getState().fixBlocks.find((entry) => entry.id === fixId)
+    if (fix) {
+      store.dispatch({
+        type: 'fix/upsert',
+        fix: {
+          ...fix,
+          status: 'error',
+          phase: 'error',
+          statusText: 'Repair run did not start.',
+          error: execResult?.error || execResult?.haltReason || 'The repair run did not start.',
+        },
+      })
+    }
+    return false
+  }
+
   return {
     commitStartedExecutionResult,
     startPlannedExecution,
+    startFixProjectFlow,
     sendPromptToRina,
   }
 }

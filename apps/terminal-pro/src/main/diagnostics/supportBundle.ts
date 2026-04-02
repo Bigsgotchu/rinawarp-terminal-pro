@@ -1,7 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import { app } from 'electron/main'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
+const { app } = electron
 import type { DiagnosticsRendererSnapshot } from '../context.js'
 
 type FileInfo = {
@@ -16,7 +19,7 @@ type DiagnosticsBundleDeps = {
   resolveResourcePath: (relPath: string, devBase: 'app' | 'repo') => string
   lastLoadedThemePath: string | null
   lastLoadedPolicyPath: string | null
-  getDefaultPtyCwd: () => string
+  getDefaultCwd: () => string
   showSaveDialogForBundle: (defaultPath: string) => Promise<{ canceled: boolean; filePath?: string }>
   zipFiles: (files: Array<{ name: string; data: Buffer }>) => Buffer
 }
@@ -131,7 +134,7 @@ export async function supportBundleForIpcWithSnapshot(
       name: 'summary.txt',
       data: Buffer.from(
         [
-          `Workspace root: ${String(snapshot?.workspaceRoot || deps.getDefaultPtyCwd() || '')}`,
+          `Workspace root: ${String(snapshot?.workspaceRoot || deps.getDefaultCwd() || '')}`,
           `App path: ${diagnostics.app.appPath}`,
           `Resources path: ${diagnostics.app.resourcesPath}`,
           `App version: ${snapshot?.appVersion || app.getVersion()}`,

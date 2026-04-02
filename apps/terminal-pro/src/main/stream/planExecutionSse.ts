@@ -1,6 +1,112 @@
-// @ts-nocheck
+import type { RiskLevel } from '../ipc/agentExecutionFlow.js'
+import type { SafeSendFn } from '../startup/runtimeTypes.js'
 
-export async function pipeAgentdSseToRenderer(args) {
+type StructuredSessionStoreLike = {
+  beginCommand(args: Record<string, unknown>): void
+  appendChunk(streamId: string, stream: string, data: string): void
+  endCommand(args: Record<string, unknown>): void
+}
+
+type E2ePlanPayload = {
+  plan?: Array<{
+    stepId?: string
+    description?: string
+    input?: {
+      command?: string
+      cwd?: string
+      [key: string]: unknown
+    }
+    [key: string]: unknown
+  }>
+  confirmed: boolean
+  confirmationText: string
+  projectRoot: string
+}
+
+type StartStreamingStepResult = {
+  ok: boolean
+  cancelled: boolean
+  error?: string | null
+}
+
+type SsePlanStepPayload = {
+  stepId?: string
+  id?: string
+  input?: {
+    command?: string
+    cwd?: string
+    [key: string]: unknown
+  }
+  risk_level?: string
+  risk?: string
+}
+
+type SseReport = {
+  haltedBecause?: string
+  steps?: Array<{
+    result?: {
+      error?: string
+      meta?: {
+        exitCode?: number | null
+      }
+    }
+  }>
+}
+
+type SsePayload = {
+  streamId?: string
+  stream?: string
+  data?: unknown
+  ok?: boolean
+  reason?: string
+  report?: SseReport
+  step?: SsePlanStepPayload
+}
+
+type PipeAgentdSseToRendererDeps = {
+  eventSender: {
+    send(channel: string, payload?: unknown): void
+    isDestroyed(): boolean
+  }
+  localPlanRunId: string
+  agentdPlanRunId: string
+  runId: string
+  e2ePlanPayloads: Map<unknown, unknown>
+  createStreamId: () => string
+  streamToPlanRun: Map<string, string>
+  safeSend: SafeSendFn
+  riskFromPlanStep: (step: unknown) => RiskLevel
+  startStreamingStepViaEngine: (args: {
+    webContents: {
+      send(channel: string, payload?: unknown): void
+      isDestroyed(): boolean
+    }
+    streamId: string
+    step: {
+      id: string
+      tool: 'terminal'
+      command: string
+      risk: RiskLevel
+      description: string
+    }
+    confirmed: boolean
+    confirmationText: string
+    projectRoot: string
+  }) => Promise<StartStreamingStepResult>
+  AGENTD_BASE_URL: string
+  buildAgentdHeaders: (opts?: {
+    includeLicenseToken?: boolean
+    headers?: Record<string, string>
+  }) => Record<string, string>
+  withStructuredSessionWrite: (fn: () => void) => void
+  structuredSessionStore: () => unknown
+  forRendererDisplay: (text: unknown) => string
+  redactChunkIfNeeded: (text: unknown) => string
+}
+
+export async function pipeAgentdSseToRenderer(
+  args: PipeAgentdSseToRendererDeps,
+) {
   const {
     eventSender,
     localPlanRunId,
@@ -19,9 +125,13 @@ export async function pipeAgentdSseToRenderer(args) {
     forRendererDisplay,
     redactChunkIfNeeded,
   } = args
+  const getStructuredSessionStore = () =>
+    structuredSessionStore() as StructuredSessionStoreLike | null | undefined
 
   if (agentdPlanRunId.startsWith('e2e_plan_')) {
-    const payload = e2ePlanPayloads.get(agentdPlanRunId)
+    const payload = e2ePlanPayloads.get(agentdPlanRunId) as
+      | E2ePlanPayload
+      | undefined
     e2ePlanPayloads.delete(agentdPlanRunId)
     if (!payload) return 'missing_e2e_plan_payload'
     for (const rawStep of payload.plan || []) {
@@ -69,7 +179,7 @@ export async function pipeAgentdSseToRenderer(args) {
   const decoder = new TextDecoder()
   const reader = response.body.getReader()
   let buffer = ''
-  let haltedBecause
+  let haltedBecause: string | undefined
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -87,7 +197,7 @@ export async function pipeAgentdSseToRenderer(args) {
         if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
       }
       const payloadText = dataLines.join('\n')
-      const payload = payloadText ? JSON.parse(payloadText) : {}
+      const payload = payloadText ? (JSON.parse(payloadText) as SsePayload) : {}
       if (eventName === 'plan_step_start') {
         const streamId = payload.streamId
         if (typeof streamId === 'string') {
@@ -95,7 +205,7 @@ export async function pipeAgentdSseToRenderer(args) {
           withStructuredSessionWrite(() => {
             const command = String(payload?.step?.input?.command || '')
             const cwd = String(payload?.step?.input?.cwd || '')
-            structuredSessionStore()?.beginCommand({
+            getStructuredSessionStore()?.beginCommand({
               streamId,
               command,
               cwd: cwd || undefined,
@@ -122,10 +232,16 @@ export async function pipeAgentdSseToRenderer(args) {
           stream: payload.stream,
           data: forRendererDisplay(payload.data),
         })
-        if (typeof payload.streamId === 'string') {
+        const chunkStreamId =
+          typeof payload.streamId === 'string' ? payload.streamId : null
+        if (chunkStreamId) {
           withStructuredSessionWrite(() => {
             const mapped = payload.stream === 'stderr' ? 'stderr' : payload.stream === 'meta' ? 'meta' : 'stdout'
-            structuredSessionStore()?.appendChunk(payload.streamId, mapped, redactChunkIfNeeded(String(payload.data || '')))
+            getStructuredSessionStore()?.appendChunk(
+              chunkStreamId,
+              mapped,
+              redactChunkIfNeeded(String(payload.data || '')),
+            )
           })
         }
         continue
@@ -148,7 +264,7 @@ export async function pipeAgentdSseToRenderer(args) {
         })
         if (typeof payload.streamId === 'string') {
           withStructuredSessionWrite(() => {
-            structuredSessionStore()?.endCommand({
+            getStructuredSessionStore()?.endCommand({
               streamId: payload.streamId,
               ok: !!payload.ok,
               code: typeof exitCode === 'number' ? exitCode : null,

@@ -1,6 +1,6 @@
-// @ts-nocheck
+import type { DoctorPlanArgs } from '../startup/runtimeTypes.js'
 
-function createDoctorPlanStep(stepId, command, cwd) {
+function createDoctorPlanStep(stepId: string, command: string, cwd: string) {
   return {
     stepId,
     tool: 'terminal.write',
@@ -8,7 +8,7 @@ function createDoctorPlanStep(stepId, command, cwd) {
   }
 }
 
-export async function doctorPlanForIpc(args) {
+export async function doctorPlanForIpc(args: DoctorPlanArgs) {
   const cwd = args.projectRoot
   const steps = [
     createDoctorPlanStep('uptime', 'uptime', cwd),

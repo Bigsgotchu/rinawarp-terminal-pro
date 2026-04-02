@@ -1,6 +1,8 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import * as electron from 'electron'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
 
 const { app } = electron
 

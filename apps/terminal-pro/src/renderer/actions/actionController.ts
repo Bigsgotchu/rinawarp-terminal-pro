@@ -16,6 +16,17 @@ export type WorkbenchActionCleanup = () => void
 export type WorkbenchActionControllerDeps<TFixBlockManager extends WorkbenchActionFixBlockManager = WorkbenchActionFixBlockManager> = {
   trackRendererEvent: (event: string, properties?: Record<string, unknown>) => Promise<void>
   sendPromptToRina: (store: WorkbenchStore, prompt: string) => Promise<void>
+  startFixProjectFlow: (
+    store: WorkbenchStore,
+    args: {
+      workspaceRoot: string
+      workspaceKey: string
+      mountPendingFixBlock: (projectRoot: string) => string
+      mountFixBlock: (result: any, projectRoot: string, fixId?: string) => string
+    }
+  ) => Promise<boolean>
+  mountPendingFixProjectBlock: (projectRoot: string) => string
+  mountFixProjectBlock: (result: any, projectRoot: string, fixId?: string) => string
   scrollToRun: (runId: string) => void
   scrollToMessage: (messageId: string) => void
   autoApplyFixFromStore: (
@@ -90,6 +101,9 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
     scrollToRun: deps.scrollToRun,
     scrollToMessage: deps.scrollToMessage,
     submitUserTurn,
+    startFixProjectFlow: deps.startFixProjectFlow,
+    mountPendingFixProjectBlock: deps.mountPendingFixProjectBlock,
+    mountFixProjectBlock: deps.mountFixProjectBlock,
   })
   const handleClipboardAction = createClipboardActionHandler(store, {
     buildTrustSnapshot: deps.buildTrustSnapshot,

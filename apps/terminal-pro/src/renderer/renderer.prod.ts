@@ -139,7 +139,7 @@ export async function initProductionRenderer(): Promise<void> {
     renderAgentStepBlock: agentStepBlock,
   })
   const fixBlockManager = new FixBlockManager(store)
-  const { commitStartedExecutionResult, sendPromptToRina } = createAgentExecutionFlow({
+  const { commitStartedExecutionResult, sendPromptToRina, startFixProjectFlow } = createAgentExecutionFlow({
     getWorkspaceKey: getWorkspaceKeyFromStore,
     getAgentWorkspaceRoot: getAgentWorkspaceRootFromStore,
     trackRendererFunnel,
@@ -173,6 +173,17 @@ export async function initProductionRenderer(): Promise<void> {
     deps: {
       trackRendererEvent,
       sendPromptToRina,
+      startFixProjectFlow,
+      mountPendingFixProjectBlock: (projectRoot) => {
+        const fix = fixBlockManager.createPendingFixProjectBlock(projectRoot)
+        agentPanel.mountFixBlock(fix)
+        return fix.id
+      },
+      mountFixProjectBlock: (result, projectRoot, fixId) => {
+        const fix = fixBlockManager.createFixProjectBlock(result, projectRoot, fixId)
+        agentPanel.mountFixBlock(fix)
+        return fix.id
+      },
       scrollToRun,
       scrollToMessage,
       autoApplyFixFromStore,

@@ -1,10 +1,12 @@
-import * as electron from 'electron'
+import { createRequire } from 'node:module'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import type { CheckoutResponse, LicenseInfo, LicenseStatus, LicenseTier, LicenseVerifyResponse } from './types.js'
 import { getFeaturesForTier, getLimitsForTier } from './tierHelpers.js'
 
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
 const { app } = electron
 
 const LICENSE_CACHE_FILE = 'license-cache.json'

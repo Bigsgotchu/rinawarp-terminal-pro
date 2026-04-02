@@ -4,10 +4,14 @@
  * Handles authentication between the desktop app and website auth system
  */
 
-import type { IpcMain, BrowserWindow } from 'electron'
-import { app } from 'electron'
+import { createRequire } from 'node:module'
+import type { BrowserWindow, IpcMain } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
+
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
+const { app } = electron
 
 export interface AuthConfig {
   apiBaseUrl: string

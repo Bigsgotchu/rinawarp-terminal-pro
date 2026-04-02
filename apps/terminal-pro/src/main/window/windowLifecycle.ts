@@ -1,7 +1,54 @@
-// @ts-nocheck
 import { buildConversationReply, routeConversationTurn } from '../orchestration/conversationRouter.js'
+import type {
+  DevtoolsToggleTarget,
+  DevtoolsToggleResult,
+  RunsListResult,
+  WindowLifecycleDeps,
+  WindowLifecycleHelpers,
+} from '../startup/runtimeTypes.js'
 
-export function createWindowLifecycle(deps) {
+type AgentMode = 'auto' | 'assist' | 'explain'
+
+type AgentRunOptions = {
+  workspaceRoot?: string
+  mode?: AgentMode | string
+}
+
+type ControllerStatus = {
+  workspaceRoot?: string
+}
+
+type ControllerStats = {
+  conversation?: { entries?: number }
+  commands?: { learned?: number }
+  longterm?: { sessions?: number }
+}
+
+type RinaControllerLike = {
+  setWorkspaceRoot(root: string): unknown
+  setMode(mode: AgentMode): unknown
+  getStatus(): ControllerStatus
+  getStats(): ControllerStats
+  getTools(): unknown
+  isAgentRunning(): boolean
+  getMode(): unknown
+  getPlans(): unknown
+}
+
+function isAgentMode(mode: unknown): mode is AgentMode {
+  return mode === 'auto' || mode === 'assist' || mode === 'explain'
+}
+
+function getLatestRun(runsResult: RunsListResult | { ok: boolean; runs: never[] }) {
+  if ('runs' in runsResult && Array.isArray(runsResult.runs)) {
+    return runsResult.runs[0] ?? null
+  }
+  return null
+}
+
+export function createWindowLifecycle(
+  deps: WindowLifecycleDeps,
+): WindowLifecycleHelpers {
   const {
     BrowserWindow,
     path,
@@ -42,19 +89,34 @@ export function createWindowLifecycle(deps) {
     resolveProjectRootSafe,
     normalizeRinaResponse,
   } = deps
+  const controller = rinaController as unknown as RinaControllerLike
 
   function createWindow() {
-    const win = new BrowserWindow({
-      width: 1400,
-      height: 800,
-      icon: path.join(__dirname, '../../assets/icon.png'),
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.cjs'),
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: true,
-      },
-    })
+    let win
+    try {
+      if (process.env.RINAWARP_E2E === '1') {
+        process.env.RINAWARP_E2E_WINDOW_PHASE = 'creating'
+      }
+      win = new BrowserWindow({
+        width: 1400,
+        height: 800,
+        icon: path.join(__dirname, '../../assets/icon.png'),
+        webPreferences: {
+          preload: path.join(__dirname, 'preload.cjs'),
+          contextIsolation: true,
+          nodeIntegration: false,
+          sandbox: true,
+        },
+      })
+      if (process.env.RINAWARP_E2E === '1') {
+        process.env.RINAWARP_E2E_WINDOW_PHASE = 'created'
+      }
+    } catch (error) {
+      if (process.env.RINAWARP_E2E === '1') {
+        process.env.RINAWARP_E2E_WINDOW_PHASE = `error:${error instanceof Error ? error.message : String(error)}`
+      }
+      throw error
+    }
 
     setDaemonFunctions({
       daemonStatus,
@@ -62,21 +124,21 @@ export function createWindowLifecycle(deps) {
       daemonTaskAdd,
       daemonStart,
       daemonStop,
-      runAgent: async (prompt, opts) => {
+      runAgent: async (prompt: unknown, opts?: AgentRunOptions) => {
         const rawPrompt = String(prompt || '')
         if (opts?.workspaceRoot) {
           try {
-            rinaController.setWorkspaceRoot(resolveProjectRootSafe(String(opts.workspaceRoot)))
+            controller.setWorkspaceRoot(resolveProjectRootSafe(String(opts.workspaceRoot)))
           } catch {}
         }
-        if (opts?.mode === 'auto' || opts?.mode === 'assist' || opts?.mode === 'explain') {
-          rinaController.setMode(opts.mode)
+        if (isAgentMode(opts?.mode)) {
+          controller.setMode(opts.mode)
         }
-        const runsResult = typeof runsListForIpc === 'function' ? await runsListForIpc(12) : { ok: false, runs: [] }
-        const latestRun = Array.isArray(runsResult?.runs) ? runsResult.runs[0] : null
+        const runsResult = typeof runsListForIpc === 'function' ? await runsListForIpc({ limit: 12 }) : { ok: false, runs: [] }
+        const latestRun = getLatestRun(runsResult)
         const routedTurn = routeConversationTurn({
           rawText: rawPrompt,
-          workspaceId: rinaController.getStatus()?.workspaceRoot || opts?.workspaceRoot || '',
+          workspaceId: controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || '',
           latestRun: latestRun
             ? {
                 runId: latestRun.latestReceiptId || latestRun.sessionId,
@@ -89,27 +151,28 @@ export function createWindowLifecycle(deps) {
             : null,
         })
         if (routedTurn.allowedNextAction !== 'execute' && routedTurn.allowedNextAction !== 'plan') {
+          const reply = await buildConversationReply({
+            routedTurn,
+            workspaceLabel: controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || 'this workspace',
+            latestRun,
+          })
           return normalizeRinaResponse({
             ok: true,
             intent: routedTurn.mode,
             output: {
-              message: buildConversationReply({
-                routedTurn,
-                workspaceLabel: rinaController.getStatus()?.workspaceRoot || opts?.workspaceRoot || 'this workspace',
-                latestRun,
-              }).message,
+              message: reply.message,
               routedTurn,
             },
           })
         }
         return normalizeRinaResponse(await handleRinaMessage(rawPrompt))
       },
-      conversationRoute: async (prompt, opts) => {
-        const runsResult = typeof runsListForIpc === 'function' ? await runsListForIpc(12) : { ok: false, runs: [] }
-        const latestRun = Array.isArray(runsResult?.runs) ? runsResult.runs[0] : null
+      conversationRoute: async (prompt: unknown, opts?: AgentRunOptions) => {
+        const runsResult = typeof runsListForIpc === 'function' ? await runsListForIpc({ limit: 12 }) : { ok: false, runs: [] }
+        const latestRun = getLatestRun(runsResult)
         return routeConversationTurn({
           rawText: String(prompt || ''),
-          workspaceId: rinaController.getStatus()?.workspaceRoot || opts?.workspaceRoot || '',
+          workspaceId: controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || '',
           latestRun: latestRun
             ? {
                 runId: latestRun.latestReceiptId || latestRun.sessionId,
@@ -123,11 +186,11 @@ export function createWindowLifecycle(deps) {
         })
       },
       getStatus: async () => {
-        const stats = rinaController.getStats()
+        const stats = controller.getStats()
         return {
-          ...rinaController.getStatus(),
-          tools: rinaController.getTools(),
-          agentRunning: rinaController.isAgentRunning(),
+          ...controller.getStatus(),
+          tools: controller.getTools(),
+          agentRunning: controller.isAgentRunning(),
           memoryStats: {
             conversationCount: stats.conversation?.entries ?? 0,
             learnedCommandsCount: stats.commands?.learned ?? 0,
@@ -135,15 +198,15 @@ export function createWindowLifecycle(deps) {
           },
         }
       },
-      getMode: async () => rinaController.getMode(),
-      setMode: async (mode) => {
-        if (mode === 'auto' || mode === 'assist' || mode === 'explain') {
-          return rinaController.setMode(mode)
+      getMode: async () => controller.getMode(),
+      setMode: async (mode: unknown) => {
+        if (isAgentMode(mode)) {
+          return controller.setMode(mode)
         }
         return { ok: false, error: `Invalid mode: ${String(mode)}` }
       },
-      getPlans: async () => rinaController.getPlans(),
-      getTools: async () => rinaController.getTools(),
+      getPlans: async () => controller.getPlans(),
+      getTools: async () => controller.getTools(),
       runsList: runsListForIpc,
       runsTail: runsTailForIpc,
       runsArtifacts: runsArtifactsForIpc,
@@ -168,7 +231,7 @@ export function createWindowLifecycle(deps) {
     registerIpcHandlers(win)
     registerSecureAgentIpc(ipcMain, { getLicenseTier })
 
-    const webContentsId = win.webContents.id
+    const webContentsId = win.webContents.id ?? -1
     win.loadFile(path.join(__dirname, 'renderer', 'renderer.html'))
     win.once('closed', () => {
       try {
@@ -176,7 +239,7 @@ export function createWindowLifecycle(deps) {
       } catch {}
     })
 
-    thinkingStream.on('thinking', (step) => {
+    thinkingStream.on('thinking', (step: unknown) => {
       safeSend(win.webContents, 'rina:thinking', step)
     })
 
@@ -189,7 +252,9 @@ export function createWindowLifecycle(deps) {
     }
   }
 
-  async function devtoolsToggleForIpc(wc) {
+  async function devtoolsToggleForIpc(
+    wc: DevtoolsToggleTarget,
+  ): Promise<DevtoolsToggleResult> {
     if (wc.isDestroyed()) return { ok: false, error: 'window destroyed' }
     try {
       if (wc.isDevToolsOpened()) {
@@ -198,8 +263,11 @@ export function createWindowLifecycle(deps) {
       }
       wc.openDevTools({ mode: 'detach' })
       return { ok: true, open: true }
-    } catch (err) {
-      return { ok: false, error: err && err.message ? err.message : 'failed to toggle devtools' }
+    } catch (err: unknown) {
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : 'failed to toggle devtools',
+      }
     }
   }
 

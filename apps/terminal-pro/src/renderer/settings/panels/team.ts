@@ -247,7 +247,7 @@ export async function mountTeamPanel(container: HTMLElement): Promise<void> {
       <div class="rw-row rw-space">
         <div>
           <div class="rw-label">Seat admin</div>
-          <div class="rw-muted">Seat usage comes from the workspace state. Team checkout below is how you increase the paid seat count; billing enforcement makes full workspaces stop over-inviting.</div>
+          <div class="rw-muted">Seat usage comes from the workspace state. Power checkout below is how you unlock the paid team-grade path; billing enforcement makes full workspaces stop over-inviting.</div>
         </div>
       </div>
       <div class="rw-team-stats">
@@ -307,18 +307,18 @@ export async function mountTeamPanel(container: HTMLElement): Promise<void> {
     <div class="rw-card">
       <div class="rw-row rw-space">
         <div>
-          <div class="rw-label">Team checkout</div>
-          <div class="rw-muted">Self-serve Team checkout uses the live $49 per-user monthly price and carries your workspace id so billing and seats can converge cleanly.</div>
+          <div class="rw-label">Power checkout</div>
+          <div class="rw-muted">Self-serve Power checkout uses the live $40 monthly plan, carries your workspace id, and keeps the team-grade rollout path available when you need it.</div>
         </div>
-        <div class="rw-pill">$49 / user / month</div>
+        <div class="rw-pill">$40 / month</div>
       </div>
       <div class="rw-row rw-gap">
         <input class="rw-input" id="rw-team-checkout-email" type="email" placeholder="billing@company.com" value="${esc(currentUser.includes('@') ? currentUser : '')}" />
         <input class="rw-input rw-input-sm" id="rw-team-checkout-seats" type="number" min="1" max="500" value="${Math.max(2, seatsAllowed)}" />
       </div>
       <div class="rw-row rw-gap">
-        <button type="button" class="rw-btn rw-btn-primary" id="rw-team-checkout">Start Team checkout</button>
-        <button type="button" class="rw-btn rw-btn-ghost" id="rw-team-open-page">Open Team page</button>
+        <button type="button" class="rw-btn rw-btn-primary" id="rw-team-checkout">Start Power checkout</button>
+        <button type="button" class="rw-btn rw-btn-ghost" id="rw-team-open-page">Open pricing page</button>
       </div>
       <div id="rw-team-checkout-status" class="rw-muted" aria-live="polite"></div>
     </div>
@@ -443,7 +443,7 @@ export async function mountTeamPanel(container: HTMLElement): Promise<void> {
       setStatusError(checkoutStatusEl, 'Enter the billing email for this Team subscription.')
       return
     }
-    setStatusPending(checkoutStatusEl, 'Opening Team checkout in Stripe…')
+    setStatusPending(checkoutStatusEl, 'Opening Power checkout in Stripe…')
     const result = await rina?.licenseCheckout?.({
       email,
       tier: 'team',
@@ -453,7 +453,7 @@ export async function mountTeamPanel(container: HTMLElement): Promise<void> {
     if (!result?.ok) {
       setStatusError(
         checkoutStatusEl,
-        result?.error || 'Team checkout could not be created. Try the Team page or check Stripe config.'
+        result?.error || 'Power checkout could not be created. Try the pricing page or check Stripe config.'
       )
       return
     }

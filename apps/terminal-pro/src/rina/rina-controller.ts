@@ -110,8 +110,8 @@ class RinaController {
     return getPlansForWorkspace(this.workspaceRoot, projectMemory)
   }
 
-  private getProjectCommand(intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'): string {
-    return getProjectCommand({
+  private async getProjectCommand(intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'): Promise<string> {
+    return await getProjectCommand({
       workspaceRoot: this.workspaceRoot,
       intent,
       projectMemory,
@@ -119,7 +119,7 @@ class RinaController {
   }
 
   private async executeIntentCommand(intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'): Promise<RinaResponse> {
-    const command = this.getProjectCommand(intent)
+    const command = await this.getProjectCommand(intent)
     const result = await this.tools.terminal.runCommand(command, this.mode)
     return {
       ok: result.ok,

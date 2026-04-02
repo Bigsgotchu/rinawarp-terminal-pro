@@ -1,4 +1,5 @@
 import path from 'node:path'
+import type { OwnerMemoryStoreDeps } from '../startup/runtimeTypes.js'
 
 type TonePreference = 'concise' | 'balanced' | 'detailed'
 type HumorPreference = 'low' | 'medium' | 'high'
@@ -67,16 +68,7 @@ type OwnerIdentity = {
   email: string | null
 }
 
-export function createOwnerMemoryStore(deps: {
-  app: { getPath(name: string): string }
-  path?: typeof path
-  readJsonIfExists: <T = unknown>(filePath: string) => T | null
-  writeJsonFile: (filePath: string, value: unknown) => void
-  getCurrentLicenseCustomerId: () => string | null
-  getCachedEmail: () => string | null
-  getDeviceId: () => string
-  listRecentRuns?: (limit?: number) => RecentRunSignal[]
-}) {
+export function createOwnerMemoryStore(deps: OwnerMemoryStoreDeps) {
   const pathApi = deps.path || path
 
   const filePath = () => pathApi.join(deps.app.getPath('userData'), 'rina-memory-v1.json')
@@ -86,7 +78,7 @@ export function createOwnerMemoryStore(deps: {
   }
 
   function readFile(): MemoryFile {
-    const parsed = deps.readJsonIfExists<MemoryFile>(filePath())
+    const parsed = deps.readJsonIfExists(filePath()) as MemoryFile | null
     if (!parsed || parsed.version !== 1 || typeof parsed.owners !== 'object' || parsed.owners === null) {
       return emptyFile()
     }

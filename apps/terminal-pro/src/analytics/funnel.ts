@@ -1,8 +1,10 @@
-import * as electron from 'electron'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import fs from 'node:fs'
 import { trackEvent, type AnalyticsDispatchResult, type AnalyticsEvent } from './core.js'
 
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
 const { app } = electron
 
 type FunnelMeta = {

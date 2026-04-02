@@ -1,5 +1,6 @@
 import { createRequire } from "node:module"
 import { spawn, ChildProcessWithoutNullStreams } from "child_process"
+import { resolveSharedWorkspaceCwd } from "../runtime/runtimeAccess.js"
 
 const require = createRequire(import.meta.url)
 const electron = require("electron")
@@ -10,11 +11,11 @@ let lastShellPid: number | null = null
 let lastShellCwd: string | null = null
 let lastShellStartedAt: string | null = null
 
-type RegisterPtyHandlersArgs = {
-  resolvePtyCwd: (input?: string) => string
+function resolvePtyCwd(input?: string): string {
+  return resolveSharedWorkspaceCwd(input)
 }
 
-export function registerPtyHandlers(args: RegisterPtyHandlersArgs) {
+export function registerPtyHandlers() {
   ipcMain.handle("rina:pty:start", (event: Electron.IpcMainInvokeEvent, payload?: { cwd?: string | null }) => {
     const win = BrowserWindow.fromWebContents(event.sender)
 
@@ -23,7 +24,7 @@ export function registerPtyHandlers(args: RegisterPtyHandlersArgs) {
     }
 
     const shellPath = process.env.SHELL || "/bin/bash"
-    const cwd = args.resolvePtyCwd(payload?.cwd || undefined)
+    const cwd = resolvePtyCwd(payload?.cwd || undefined)
     lastShellCwd = cwd
     lastShellStartedAt = new Date().toISOString()
     shell = spawn(shellPath, [], {

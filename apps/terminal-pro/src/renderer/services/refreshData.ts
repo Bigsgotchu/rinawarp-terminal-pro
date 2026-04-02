@@ -140,13 +140,9 @@ export function createRefreshActions(deps: RefreshDeps) {
   const refreshCode = async (store: WorkbenchStore): Promise<void> => {
     try {
       const workspaceRoot = deps.getAgentWorkspaceRoot(store)
-      const files = (await rina.codeListFiles?.(
-        workspaceRoot ? { projectRoot: workspaceRoot, limit: 100 } : { limit: 100 }
-      )) as {
-        ok?: boolean
-        files?: string[]
-      } | undefined
-      if (files?.ok && Array.isArray(files.files)) {
+      const request: CodeListFilesArgs = { projectRoot: workspaceRoot ?? '', limit: 100 }
+      const files = (await rina.codeListFiles?.(request)) as CodeListFilesResult | undefined
+      if (files && Array.isArray(files.files)) {
         store.dispatch({ type: 'code/setFiles', files: files.files })
       }
     } catch (error) {
@@ -271,3 +267,4 @@ export function createRefreshActions(deps: RefreshDeps) {
     refreshCapabilityPacks,
   }
 }
+import type { CodeListFilesArgs, CodeListFilesResult } from '../../main/startup/runtimeTypes.js'

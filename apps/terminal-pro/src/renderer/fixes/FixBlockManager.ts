@@ -1,6 +1,7 @@
 import { buildFixIntent, summarizeFailure, type FailedStepContext } from './fixHelpers.js'
 import type { FixPlanStep } from '../replies/renderPlanReplies.js'
-import { WorkbenchStore, type FixBlockModel, type FixStepModel } from '../workbench/store.js'
+import { WorkbenchStore, type FixBlockModel, type FixIssueModel, type FixStepModel } from '../workbench/store.js'
+import type { FixProjectResult } from '../../main/assistant/fixProjectFlow.js'
 
 export class FixBlockManager {
   private store: WorkbenchStore
@@ -61,6 +62,70 @@ export class FixBlockManager {
     await this.openUpgradeModal()
   }
 
+  createPendingFixProjectBlock(projectRoot: string): FixBlockModel {
+    const fixId = `fix:project:${Date.now()}`
+    return {
+      id: fixId,
+      runId: fixId,
+      streamId: fixId,
+      command: 'fix project',
+      cwd: projectRoot,
+      status: 'planning',
+      phase: 'detecting',
+      whatBroke: 'RinaWarp is inspecting this workspace to find the safest repairable issues first.',
+      whySafe: 'This phase is read-only. It only scans the project and builds a repair plan before any changes run.',
+      steps: [],
+      ts: Date.now(),
+      statusText: 'Analyzing your project. This step is read-only while RinaWarp prepares the safest repair plan.',
+      verificationStatus: 'pending',
+      verificationText: 'Verification targets will appear once the repair plan is ready.',
+      narration: [],
+      changedFiles: [],
+      diffHints: [],
+    }
+  }
+
+  createFixProjectBlock(result: FixProjectResult, projectRoot: string, fixId?: string): FixBlockModel {
+    const blockId = fixId || `fix:project:${Date.now()}`
+    const issues: FixIssueModel[] = result.plan.issues.map((issue) => ({
+      kind: issue.kind,
+      summary: issue.summary,
+      evidence: issue.evidence,
+      proposedFixes: issue.proposedFixes,
+    }))
+    const commandSummary = result.executableSteps.map((step) => step.command).join(' && ') || 'fix project'
+    return {
+      id: blockId,
+      runId: blockId,
+      streamId: blockId,
+      command: commandSummary,
+      cwd: projectRoot,
+      status: 'ready',
+      phase: 'planning',
+      whatBroke:
+        result.plan.issues.map((issue) => issue.summary).join(' ') ||
+        'RinaWarp identified a repairable project issue set.',
+      whySafe: result.plan.reasoning || 'These steps were filtered through the project repair planner and policy gate.',
+      steps: result.executableSteps.map((step, index) => ({
+        title: step.description || `Step ${index + 1}`,
+        command: step.command,
+        cwd: projectRoot,
+        risk: step.risk === 'high-impact' ? 'dangerous' : step.risk === 'safe-write' ? 'moderate' : 'safe',
+        status: 'pending',
+      })),
+      ts: Date.now(),
+      statusText: 'Repair plan ready. Starting a proof-backed repair run now…',
+      verificationStatus: result.verification.status,
+      verificationText: result.verification.message,
+      verificationChecks: result.verification.checks,
+      issues,
+      narration: [],
+      changedFiles: [],
+      diffHints: [],
+      explanation: result.explanation,
+    }
+  }
+
   private buildFixBlockModel(ctx: FailedStepContext, outputTail: string, exitCode: number | null): FixBlockModel {
     return {
       id: `fix:${ctx.runId || ctx.streamId}`,
@@ -74,6 +139,9 @@ export class FixBlockManager {
       whySafe: 'RinaWarp is generating the lowest-risk runnable fix plan it can justify from the failed receipt context.',
       steps: [],
       ts: Date.now(),
+      narration: [],
+      changedFiles: [],
+      diffHints: [],
     }
   }
 

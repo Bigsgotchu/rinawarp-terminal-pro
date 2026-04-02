@@ -1,13 +1,16 @@
-// @ts-nocheck
 import { formatDiagnosisForChat, formatFindingsForChat, formatFixOptionsForChat, formatOutcomeForChat, normalizeRinaResponse, summarizeRinaOutput } from './chatDoctorFormatting.js';
 import { classifyIntent } from './chatDoctorIntent.js';
 import { doctorPlanForIpc } from './chatDoctorPlan.js';
+import type {
+    ChatDoctorIpcHelpers,
+    CreateChatDoctorIpcHelpersDeps,
+} from '../startup/runtimeTypes.js';
 
-export function createChatDoctorIpcHelpers(deps) {
+export function createChatDoctorIpcHelpers(deps: CreateChatDoctorIpcHelpersDeps): ChatDoctorIpcHelpers {
     const {
         redactText,
         resolveProjectRootSafe,
-        getDefaultPtyCwd,
+        getDefaultCwd,
         defaultProfileForProject,
         loadProjectRules,
         rulesToSystemBlock,
@@ -17,16 +20,17 @@ export function createChatDoctorIpcHelpers(deps) {
         doctorExportTranscript,
     } = deps;
     const conversations = new Map();
+    const chatHandle = typeof chatRouter === 'function' ? chatRouter : chatRouter.handle.bind(chatRouter);
     async function doctorTranscriptGetForIpc() {
         return doctorGetTranscript();
     }
-    async function doctorTranscriptExportForIpc(format) {
+    async function doctorTranscriptExportForIpc(format?: string) {
         return doctorExportTranscript(format);
     }
-    function getConversation(win) {
+    function getConversation(win: unknown) {
         return conversations.get(win) ?? null;
     }
-    function setConversation(win, state) {
+    function setConversation(win: unknown, state: unknown | null | undefined) {
         if (state) {
             conversations.set(win, state);
         }
@@ -34,12 +38,12 @@ export function createChatDoctorIpcHelpers(deps) {
             conversations.delete(win);
         }
     }
-    async function chatSendForIpc(text, projectRoot) {
+    async function chatSendForIpc(text: unknown, projectRoot?: string) {
         const safeText = redactText(String(text || '')).redactedText;
-        const root = resolveProjectRootSafe(projectRoot || getDefaultPtyCwd());
+        const root = resolveProjectRootSafe(projectRoot || getDefaultCwd());
         const profile = defaultProfileForProject(root);
         const rules = loadProjectRules(root, { parentLevels: 2 });
-        return await chatRouter.handle(safeText, {
+        return await chatHandle(safeText, {
             projectRoot: root,
             rulesBlock: rulesToSystemBlock(rules),
             rulesWarnings: rules.warnings,

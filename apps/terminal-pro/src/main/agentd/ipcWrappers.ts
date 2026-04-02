@@ -1,4 +1,7 @@
-// @ts-nocheck
+import type {
+  AgentdIpcWrapperDeps,
+  AgentdIpcWrappers,
+} from '../startup/runtimeTypes.js'
 
 import {
   createAccountIpcHandlers,
@@ -8,7 +11,9 @@ import {
   createTeamIpcHandlers,
 } from './agentdIpcHandlers.js'
 
-export function createAgentdIpcWrappers(deps) {
+export function createAgentdIpcWrappers(
+  deps: AgentdIpcWrapperDeps,
+): AgentdIpcWrappers {
   return {
     ...createDaemonIpcHandlers(deps),
     ...createPlanIpcHandlers(deps),

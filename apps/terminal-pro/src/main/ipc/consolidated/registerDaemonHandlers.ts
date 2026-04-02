@@ -1,4 +1,13 @@
 import type { ConsolidatedIpcArgs } from './types.js'
+import type {
+  CodeListFilesArgs,
+  CodeReadFileArgs,
+} from '../../startup/runtimeTypes.js'
+import {
+  listSharedWorkspaceFiles,
+  readSharedWorkspaceTextFile,
+  resolveSharedWorkspaceCwd,
+} from '../../runtime/runtimeAccess.js'
 
 export function registerDaemonHandlers({
   ipcMain,
@@ -20,6 +29,38 @@ export function registerDaemonHandlers({
   getPlans,
   getTools,
 }: ConsolidatedIpcArgs): void {
+  const workspaceListFiles = async (args: CodeListFilesArgs) => {
+    const files = await listSharedWorkspaceFiles(args.projectRoot, {
+      limit: args.limit,
+      query: args.query,
+    })
+
+    if (files) {
+      return { files }
+    }
+
+    if (!codeListFiles) {
+      throw new Error('Workspace service unavailable')
+    }
+
+    return codeListFiles(args)
+  }
+
+  const workspaceReadFile = async (args: CodeReadFileArgs) => {
+    const projectRoot = resolveSharedWorkspaceCwd(args.projectRoot)
+    const content = await readSharedWorkspaceTextFile(projectRoot, args.relativePath)
+
+    if (content !== null) {
+      return { content }
+    }
+
+    if (!codeReadFile) {
+      throw new Error('Workspace service unavailable')
+    }
+
+    return codeReadFile(args)
+  }
+
   ipcMain.handle('daemon:status', async () => {
     try {
       return await daemonStatus()
@@ -103,24 +144,24 @@ export function registerDaemonHandlers({
 
   if (codeListFiles) {
     ipcMain.removeHandler('rina:code:listFiles')
-    ipcMain.handle('rina:code:listFiles', async (_event, args) => {
+    ipcMain.handle('rina:code:listFiles', async (_event, args: CodeListFilesArgs) => {
       try {
-        return await codeListFiles(args)
+        return await workspaceListFiles(args)
       } catch (error) {
         console.error('[IPC] rina:code:listFiles error:', error)
-        return { ok: false, error: String(error) }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })
   }
 
   if (codeReadFile) {
     ipcMain.removeHandler('rina:code:readFile')
-    ipcMain.handle('rina:code:readFile', async (_event, args) => {
+    ipcMain.handle('rina:code:readFile', async (_event, args: CodeReadFileArgs) => {
       try {
-        return await codeReadFile(args)
+        return await workspaceReadFile(args)
       } catch (error) {
         console.error('[IPC] rina:code:readFile error:', error)
-        return { ok: false, error: String(error) }
+        throw error instanceof Error ? error : new Error(String(error))
       }
     })
   }

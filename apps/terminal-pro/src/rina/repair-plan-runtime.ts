@@ -2,6 +2,15 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { execCommand } from './execution/legacyShell.js'
 import type { ErrorDetection, ProjectContext, RepairPlan, RepairStep } from './repair-planner.js'
+import { hasSharedWorkspaceFile, readSharedWorkspaceTextFile } from '../main/runtime/runtimeAccess.js'
+
+async function hasProjectFile(projectRoot: string, relativePath: string): Promise<boolean> {
+  return hasSharedWorkspaceFile(projectRoot, relativePath)
+}
+
+async function readProjectTextFile(projectRoot: string, relativePath: string): Promise<string | null> {
+  return readSharedWorkspaceTextFile(projectRoot, relativePath)
+}
 
 export async function scanProjectContext(projectRoot: string): Promise<ProjectContext> {
   const context: ProjectContext = {
@@ -15,22 +24,22 @@ export async function scanProjectContext(projectRoot: string): Promise<ProjectCo
     typescript: false,
   }
 
-  const packageJsonPath = path.join(projectRoot, 'package.json')
-  if (fs.existsSync(packageJsonPath)) {
+  if (await hasProjectFile(projectRoot, 'package.json')) {
     context.hasPackageJson = true
     context.type = 'node'
 
     try {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
-      if (fs.existsSync(path.join(projectRoot, 'pnpm-lock.yaml'))) {
+      const packageJsonText = await readProjectTextFile(projectRoot, 'package.json')
+      const packageJson = packageJsonText ? JSON.parse(packageJsonText) : {}
+      if (await hasProjectFile(projectRoot, 'pnpm-lock.yaml')) {
         context.packageManager = 'pnpm'
-      } else if (fs.existsSync(path.join(projectRoot, 'yarn.lock'))) {
+      } else if (await hasProjectFile(projectRoot, 'yarn.lock')) {
         context.packageManager = 'yarn'
       } else {
         context.packageManager = 'npm'
       }
 
-      context.typescript = fs.existsSync(path.join(projectRoot, 'tsconfig.json'))
+      context.typescript = await hasProjectFile(projectRoot, 'tsconfig.json')
       context.buildCommand = packageJson.scripts?.build
       context.testCommand = packageJson.scripts?.test
       context.startCommand = packageJson.scripts?.start || packageJson.scripts?.dev
@@ -46,16 +55,14 @@ export async function scanProjectContext(projectRoot: string): Promise<ProjectCo
     }
   }
 
-  const pyprojectPath = path.join(projectRoot, 'pyproject.toml')
-  const requirementsPath = path.join(projectRoot, 'requirements.txt')
-  if (fs.existsSync(pyprojectPath) || fs.existsSync(requirementsPath)) context.type = 'python'
-  if (fs.existsSync(path.join(projectRoot, 'Cargo.toml'))) context.type = 'rust'
-  if (fs.existsSync(path.join(projectRoot, 'go.mod'))) context.type = 'go'
+  if ((await hasProjectFile(projectRoot, 'pyproject.toml')) || (await hasProjectFile(projectRoot, 'requirements.txt'))) context.type = 'python'
+  if (await hasProjectFile(projectRoot, 'Cargo.toml')) context.type = 'rust'
+  if (await hasProjectFile(projectRoot, 'go.mod')) context.type = 'go'
 
-  context.hasDockerfile = fs.existsSync(path.join(projectRoot, 'Dockerfile'))
+  context.hasDockerfile = await hasProjectFile(projectRoot, 'Dockerfile')
   if (
-    fs.existsSync(path.join(projectRoot, 'docker-compose.yml')) ||
-    fs.existsSync(path.join(projectRoot, 'docker-compose.yaml'))
+    (await hasProjectFile(projectRoot, 'docker-compose.yml')) ||
+    (await hasProjectFile(projectRoot, 'docker-compose.yaml'))
   ) {
     context.type = 'docker'
   }
@@ -88,11 +95,11 @@ export async function analyzeErrors(projectRoot: string): Promise<ErrorDetection
   let severity: 'low' | 'medium' | 'high' = 'low'
 
   try {
-    const packageJsonPath = path.join(projectRoot, 'package.json')
-    if (fs.existsSync(packageJsonPath)) {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+    if (await hasProjectFile(projectRoot, 'package.json')) {
+      const packageJsonText = await readProjectTextFile(projectRoot, 'package.json')
+      const packageJson = packageJsonText ? JSON.parse(packageJsonText) : {}
       const buildCmd = packageJson.scripts?.build || packageJson.scripts?.build
-      if (buildCmd && fs.existsSync(path.join(projectRoot, 'tsconfig.json'))) {
+      if (buildCmd && (await hasProjectFile(projectRoot, 'tsconfig.json'))) {
         try {
           const tscOutput = await execCommand('npx tsc --noEmit 2>&1', {
             cwd: projectRoot,
@@ -126,11 +133,11 @@ export async function analyzeErrors(projectRoot: string): Promise<ErrorDetection
   }
 
   const hasLockFile =
-    fs.existsSync(path.join(projectRoot, 'package-lock.json')) ||
-    fs.existsSync(path.join(projectRoot, 'pnpm-lock.yaml')) ||
-    fs.existsSync(path.join(projectRoot, 'yarn.lock'))
+    (await hasProjectFile(projectRoot, 'package-lock.json')) ||
+    (await hasProjectFile(projectRoot, 'pnpm-lock.yaml')) ||
+    (await hasProjectFile(projectRoot, 'yarn.lock'))
 
-  if (!hasLockFile && fs.existsSync(path.join(projectRoot, 'package.json'))) {
+  if (!hasLockFile && (await hasProjectFile(projectRoot, 'package.json'))) {
     suggestions.push('No lock file found - consider running npm install to generate one')
   }
 

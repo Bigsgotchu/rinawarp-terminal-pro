@@ -4,14 +4,14 @@ export function createRuntimeDiagnosticsHelpers(deps) {
         os,
         process,
         topCpuCmdSafe,
-        getDefaultPtyCwd,
+        getDefaultCwd,
         terminalWriteSafetyFields,
         executeViaEngine,
         engine,
         getLicenseTier,
     } = deps;
-    async function runCommandOnceViaEngine(command, timeoutMs) {
-        const projectRoot = getDefaultPtyCwd();
+    async function runCommandOnceViaEngine(command, timeoutMs, cwd, risk = 'read') {
+        const projectRoot = cwd || getDefaultCwd();
         const plan = [
             {
                 tool: 'terminal.write',
@@ -23,7 +23,7 @@ export function createRuntimeDiagnosticsHelpers(deps) {
                 },
                 stepId: 'diagnostic',
                 description: `Diagnostic command: ${command}`,
-                ...terminalWriteSafetyFields('read'),
+                ...terminalWriteSafetyFields(risk),
                 verification_plan: { steps: [] },
             },
         ];
@@ -40,8 +40,8 @@ export function createRuntimeDiagnosticsHelpers(deps) {
         }
         return result.output ?? '';
     }
-    function runCommandOnce(command, timeoutMs) {
-        return runCommandOnceViaEngine(command, timeoutMs);
+    function runCommandOnce(command, timeoutMs, cwd, risk = 'read') {
+        return runCommandOnceViaEngine(command, timeoutMs, cwd, risk);
     }
     function runGatherCommand(cmd) {
         return new Promise(async (resolve) => {

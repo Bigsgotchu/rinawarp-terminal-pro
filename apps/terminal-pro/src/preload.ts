@@ -1,4 +1,10 @@
-import * as electron from 'electron'
+import type {
+  CodeListFilesArgs,
+  CodeListFilesResult,
+  CodeReadFileArgs,
+  CodeReadFileResult,
+} from './main/startup/runtimeTypes.js'
+const electron = require('electron') as typeof import('electron')
 const { contextBridge, ipcRenderer, shell } = electron
 
 // ============================================================
@@ -39,6 +45,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:pty:metrics',
   // Canonical plan/run/proof path. New renderer work should use these channels.
   'rina:agent:plan',
+  'rina:fixProject',
   'rina:executePlanStream',
   'rina:capabilities:execute',
   'rina:analytics:funnel',
@@ -297,8 +304,8 @@ contextBridge.exposeInMainWorld('rina', {
   runsTail: (args: { runId: string; sessionId: string; maxLines?: number; maxBytes?: number }) => ipcRenderer.invoke('rina:runs:tail', args),
   runsArtifacts: (args: { runId: string; sessionId: string }) => ipcRenderer.invoke('rina:runs:artifacts', args),
   revealRunReceipt: (receiptId: string) => ipcRenderer.invoke('rina:revealRunReceipt', receiptId),
-  codeListFiles: (args?: { projectRoot?: string; limit?: number; query?: string }) => ipcRenderer.invoke('rina:code:listFiles', args),
-  codeReadFile: (args: { projectRoot?: string; filePath: string }) => ipcRenderer.invoke('rina:code:readFile', args),
+  codeListFiles: (args: CodeListFilesArgs) => ipcRenderer.invoke('rina:code:listFiles', args) as Promise<CodeListFilesResult>,
+  codeReadFile: (args: CodeReadFileArgs) => ipcRenderer.invoke('rina:code:readFile', args) as Promise<CodeReadFileResult>,
 
   // Telemetry helpers
   trackSessionStart: () => ipcRenderer.invoke('telemetry:sessionStart'),
@@ -308,6 +315,7 @@ contextBridge.exposeInMainWorld('rina', {
   trackQuickFix: () => ipcRenderer.invoke('telemetry:quickFix'),
 
   agentPlan: (args: { intentText: string; projectRoot: string }) => ipcRenderer.invoke('rina:agent:plan', args),
+  fixProject: (projectRoot: string) => ipcRenderer.invoke('rina:fixProject', projectRoot),
   executePlanStream: (args: {
     plan: any[]
     projectRoot: string

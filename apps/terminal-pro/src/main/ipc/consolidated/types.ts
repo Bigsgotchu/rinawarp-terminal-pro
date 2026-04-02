@@ -1,4 +1,10 @@
 import type { IpcMain } from 'electron'
+import type {
+  CodeListFilesArgs,
+  CodeListFilesResult,
+  CodeReadFileArgs,
+  CodeReadFileResult,
+} from '../../startup/runtimeTypes.js'
 
 export interface LicenseVerifyResponse {
   valid: boolean
@@ -51,6 +57,6 @@ export interface ConsolidatedIpcArgs {
   runsList?: (args?: { limit?: number }) => Promise<any>
   runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
   runsArtifacts?: (args?: { runId?: string; sessionId?: string }) => Promise<any>
-  codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
-  codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
+  codeListFiles?: (args: CodeListFilesArgs) => Promise<CodeListFilesResult>
+  codeReadFile?: (args: CodeReadFileArgs) => Promise<CodeReadFileResult>
 }

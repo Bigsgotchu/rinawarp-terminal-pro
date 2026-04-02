@@ -127,6 +127,26 @@
   color: rgba(255, 212, 230, 0.88);
 }
 
+.rw-prompt-chip[data-intent-key="fix"] {
+  border-color: rgba(255, 79, 163, 0.24);
+  background:
+    linear-gradient(135deg, rgba(255, 79, 163, 0.12), rgba(255, 127, 80, 0.08)),
+    rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 24px rgba(255, 79, 163, 0.08);
+}
+
+.rw-prompt-chip[data-intent-key="fix"]:hover {
+  border-color: rgba(255, 79, 163, 0.36);
+  background:
+    linear-gradient(135deg, rgba(255, 79, 163, 0.16), rgba(255, 127, 80, 0.1)),
+    rgba(255, 255, 255, 0.05);
+}
+
+.rw-prompt-chip[data-intent-key="fix"] .rw-prompt-chip-label {
+  color: #fff1f7;
+  font-weight: 700;
+}
+
 #agent-output,
 #agent-plan-container,
 #diagnostics-output,

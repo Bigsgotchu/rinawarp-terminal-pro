@@ -78,8 +78,8 @@ export function auditEntriesFallback(error) {
   }
 }
 
-export function buildE2EPlan(makePlan, payload, terminalWriteSafetyFields) {
-  const localPlan = makePlan(payload.intentText, payload.projectRoot)
+export async function buildE2EPlan(makePlan, payload, terminalWriteSafetyFields) {
+  const localPlan = await makePlan(payload.intentText, payload.projectRoot)
 
   return {
     id: localPlan.id,

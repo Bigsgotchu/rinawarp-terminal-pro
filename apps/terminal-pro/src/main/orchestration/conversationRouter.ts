@@ -18,7 +18,7 @@ import type {
 
 export type { AllowedNextAction, BuildConversationReplyArgs, ConversationMode, ConversationRunReference, RouteConversationTurnArgs, RoutedTurn } from './conversationTypes.js'
 
-export function buildConversationReply(args: BuildConversationReplyArgs): { intent: string; message: string } {
+export async function buildConversationReply(args: BuildConversationReplyArgs): Promise<{ intent: string; message: string }> {
   return buildConversationReplyImpl(args)
 }
 

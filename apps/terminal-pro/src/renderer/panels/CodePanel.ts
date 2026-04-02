@@ -1,3 +1,4 @@
+import type { CodeListFilesArgs, CodeListFilesResult } from '../../main/startup/runtimeTypes.js'
 import { BasePanel } from '../components/basePanel.js'
 import { WorkbenchStore } from '../workbench/store.js'
 
@@ -18,14 +19,9 @@ export class CodePanel extends BasePanel {
   async refresh(): Promise<void> {
     try {
       const workspaceRoot = this.store ? this.deps.getWorkspaceRoot(this.store) : null
-      const request = workspaceRoot ? { projectRoot: workspaceRoot, limit: 100 } : { projectRoot: undefined, limit: 100 }
-      const files = (await window.rina.codeListFiles?.(request)) as
-        | {
-        ok: boolean
-        files?: string[]
-      }
-        | undefined
-      if (files?.ok && Array.isArray(files.files)) {
+      const request: CodeListFilesArgs = { projectRoot: workspaceRoot ?? '', limit: 100 }
+      const files = (await window.rina.codeListFiles?.(request)) as CodeListFilesResult | undefined
+      if (files && Array.isArray(files.files)) {
         this.clearContent()
         files.files.forEach((file: string) => {
           const row = document.createElement('div')

@@ -1,7 +1,9 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import * as electron from 'electron'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const electron = require('electron/main') as typeof import('electron')
 const { app } = electron
 import type { DiagnosticsFileInfo } from './context.js'
 

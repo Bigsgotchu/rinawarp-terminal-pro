@@ -1,5 +1,7 @@
 // @ts-nocheck
-export function createSessionHelpers(deps) {
+import type { SessionHelperDeps } from '../startup/runtimeTypes.js'
+
+export function createSessionHelpers(deps: SessionHelperDeps) {
     const { redactText, getStructuredSessionStore, sessionState } = deps;
     function withStructuredSessionWrite(fn) {
         if (!getStructuredSessionStore())

@@ -1,9 +1,35 @@
-// @ts-nocheck
-
 import { createPlanExecutionRuntime } from './planExecutionRuntime.js'
 import { pipeAgentdSseToRenderer as pipeAgentdSseToRendererImpl } from './planExecutionSse.js'
+import type { PlanRunState } from '../ipc/agentExecutionFlow.js'
+import type {
+  PipeAgentdSseToRendererArgs,
+  PlanExecutionHelperDeps,
+  PlanExecutionHelpers,
+  PlanExecutionStreamControlResult,
+  PlanExecutionStreamResult,
+  PlanExecutionTerminalSafety,
+} from '../startup/runtimeTypes.js'
 
-export function createPlanExecutionHelpers(deps) {
+type PlanExecutionRuntimeResult = {
+  newPlanRunId: () => string
+  terminalWriteSafetyFields: (stepRisk: unknown) => PlanExecutionTerminalSafety
+  startStreamingStepViaEngine: (args: unknown) => Promise<{
+    ok: boolean
+    cancelled: boolean
+    error?: string | null
+  }>
+  cancelStream: (
+    streamId: string,
+  ) => Promise<PlanExecutionStreamControlResult>
+  hardKillStream: (
+    streamId: string,
+  ) => Promise<PlanExecutionStreamControlResult>
+  executeStepStreamForIpc: (args: unknown) => Promise<PlanExecutionStreamResult>
+}
+
+export function createPlanExecutionHelpers(
+  deps: PlanExecutionHelperDeps,
+): PlanExecutionHelpers {
   const {
     engine,
     executeViaEngine,
@@ -29,8 +55,8 @@ export function createPlanExecutionHelpers(deps) {
     addTranscriptEntry,
   } = deps
 
-  const runningPlanRuns = new Map()
-  const streamToPlanRun = new Map()
+  const runningPlanRuns: PlanExecutionHelpers['runningPlanRuns'] = new Map()
+  const streamToPlanRun = new Map<string, string>()
   const runtime = createPlanExecutionRuntime({
     engine,
     executeViaEngine,
@@ -55,7 +81,7 @@ export function createPlanExecutionHelpers(deps) {
     runningPlanRuns,
     streamToPlanRun,
     addTranscriptEntry,
-  })
+  }) as PlanExecutionRuntimeResult
   const {
     newPlanRunId,
     terminalWriteSafetyFields,
@@ -65,7 +91,9 @@ export function createPlanExecutionHelpers(deps) {
     executeStepStreamForIpc,
   } = runtime
 
-  async function pipeAgentdSseToRenderer(args) {
+  async function pipeAgentdSseToRenderer(
+    args: PipeAgentdSseToRendererArgs,
+  ) {
     return pipeAgentdSseToRendererImpl({
       ...args,
       e2ePlanPayloads: deps.e2ePlanPayloads,
@@ -83,13 +111,15 @@ export function createPlanExecutionHelpers(deps) {
     })
   }
 
-  async function planStopForIpc(planRunId) {
+  async function planStopForIpc(
+    planRunId: string,
+  ): Promise<PlanExecutionStreamControlResult> {
     const state = runningPlanRuns.get(planRunId)
     if (!state) {
       return { ok: false, message: 'No running plan for that planRunId.' }
     }
     state.stopped = true
-    const failures = []
+    const failures: string[] = []
     if (state.agentdPlanRunId) {
       try {
         await agentdJson('/v1/cancel', {
@@ -115,11 +145,15 @@ export function createPlanExecutionHelpers(deps) {
     }
   }
 
-  async function streamCancelForIpc(streamId) {
+  async function streamCancelForIpc(
+    streamId: string,
+  ): Promise<PlanExecutionStreamControlResult> {
     return cancelStream(streamId)
   }
 
-  async function streamKillForIpc(streamId) {
+  async function streamKillForIpc(
+    streamId: string,
+  ): Promise<PlanExecutionStreamControlResult> {
     return hardKillStream(streamId)
   }
 

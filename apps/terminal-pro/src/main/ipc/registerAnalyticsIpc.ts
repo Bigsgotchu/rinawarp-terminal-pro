@@ -3,77 +3,132 @@
  *
  * Exposes analytics functions to the renderer process.
  */
+import type { IpcMain, IpcMainInvokeEvent } from 'electron'
 
-import * as electron from 'electron'
-const { ipcMain } = electron
-import {
-  trackFunnelStep,
-  trackEvent,
-  getUsageStatus,
-  isUsageTrackingEnabled,
-  enableUsageTracking,
-  disableUsageTracking,
-  trackCommandExecuted,
-  trackAISuggestionUsed,
-  trackSelfHealingRun,
-  trackTerminalSessionStart,
-} from '../../analytics.js'
+type AnalyticsResult = {
+  accepted: boolean
+  enabled: boolean
+  degraded?: boolean
+  error?: string
+}
 
-export function registerAnalyticsIpc(): void {
-  function toIpcResult(
-    result:
-      | { accepted: boolean; enabled: boolean; degraded?: boolean; error?: string }
-      | undefined,
-    event: string
-  ) {
-    return {
-      ok: Boolean(result?.accepted),
-      accepted: Boolean(result?.accepted),
-      enabled: Boolean(result?.enabled),
-      degraded: Boolean(result?.degraded),
-      event,
-      error: result?.error,
+type AnalyticsIpcResult = {
+  ok: boolean
+  accepted: boolean
+  enabled: boolean
+  degraded: boolean
+  event: string
+  error?: string
+}
+
+type FunnelStep = 'signup' | 'first_run' | 'first_block' | 'upgrade_view' | 'paid'
+
+type AnalyticsDeps = {
+  ipcMain: IpcMain
+  trackFunnelStep: (step: string, properties?: Record<string, unknown>) => AnalyticsResult | undefined
+  trackEvent: (event: string, properties?: Record<string, unknown>) => AnalyticsResult | undefined
+  getUsageStatus: () => unknown
+  isUsageTrackingEnabled: () => boolean
+  enableUsageTracking: () => AnalyticsResult | undefined
+  disableUsageTracking: () => void
+  trackCommandExecuted: () => AnalyticsResult | undefined
+  trackAISuggestionUsed: () => AnalyticsResult | undefined
+  trackSelfHealingRun: () => AnalyticsResult | undefined
+  trackTerminalSessionStart: () => AnalyticsResult | undefined
+  logger?: Pick<Console, 'log'>
+}
+
+const VALID_FUNNEL_STEPS: ReadonlySet<FunnelStep> = new Set([
+  'signup',
+  'first_run',
+  'first_block',
+  'upgrade_view',
+  'paid',
+])
+
+type IpcHandler = Parameters<IpcMain['handle']>[1]
+
+function toIpcResult(result: AnalyticsResult | undefined, event: string): AnalyticsIpcResult {
+  return {
+    ok: Boolean(result?.accepted),
+    accepted: Boolean(result?.accepted),
+    enabled: Boolean(result?.enabled),
+    degraded: Boolean(result?.degraded),
+    event,
+    error: result?.error,
+  }
+}
+
+function invalidFunnelStepResult(step: string): AnalyticsIpcResult {
+  return {
+    ok: false,
+    accepted: false,
+    enabled: true,
+    degraded: false,
+    event: `funnel:${step}`,
+    error: 'Invalid funnel step',
+  }
+}
+
+function isValidFunnelStep(step: string): step is FunnelStep {
+  return VALID_FUNNEL_STEPS.has(step as FunnelStep)
+}
+
+function replaceHandler(ipcMain: IpcMain, channel: string, handler: IpcHandler): void {
+  ipcMain.removeHandler(channel)
+  ipcMain.handle(channel, handler)
+}
+
+export function registerAnalyticsIpc(deps: AnalyticsDeps): void {
+  const {
+    ipcMain,
+    trackFunnelStep,
+    trackEvent,
+    getUsageStatus,
+    isUsageTrackingEnabled,
+    enableUsageTracking,
+    disableUsageTracking,
+    trackCommandExecuted,
+    trackAISuggestionUsed,
+    trackSelfHealingRun,
+    trackTerminalSessionStart,
+    logger = console,
+  } = deps
+
+  const handleFunnelStep = async (
+    _event: IpcMainInvokeEvent,
+    step: string,
+    properties?: Record<string, unknown>,
+  ): Promise<AnalyticsIpcResult> => {
+    if (!isValidFunnelStep(step)) {
+      return invalidFunnelStepResult(step)
     }
+    return toIpcResult(trackFunnelStep(step, properties), `funnel:${step}`)
   }
 
-  // Track funnel step from renderer
-  ipcMain.handle('analytics:trackFunnelStep', async (_event, step: string) => {
-    const validSteps = ['signup', 'first_run', 'first_block', 'upgrade_view', 'paid']
-    if (validSteps.includes(step)) {
-      return toIpcResult(trackFunnelStep(step as any), `funnel:${step}`)
-    }
-    return {
-      ok: false,
-      accepted: false,
-      enabled: true,
-      degraded: false,
-      event: `funnel:${step}`,
-      error: 'Invalid funnel step',
-    }
-  })
+  replaceHandler(ipcMain, 'analytics:trackFunnelStep', handleFunnelStep)
+  replaceHandler(ipcMain, 'rina:analytics:funnel', handleFunnelStep)
 
-  // Track generic event from renderer
-  ipcMain.handle('analytics:trackEvent', async (_event, event: string, properties?: Record<string, unknown>) => {
-    return toIpcResult(trackEvent(event as any, properties), event)
-  })
+  replaceHandler(
+    ipcMain,
+    'analytics:trackEvent',
+    async (_event: IpcMainInvokeEvent, event: string, properties?: Record<string, unknown>): Promise<AnalyticsIpcResult> =>
+      toIpcResult(trackEvent(event, properties), event),
+  )
 
-  // Get usage status (for license panel)
-  ipcMain.handle('analytics:getUsageStatus', async () => {
+  replaceHandler(ipcMain, 'analytics:getUsageStatus', async () => {
     return getUsageStatus()
   })
 
-  // Check if usage tracking is enabled
-  ipcMain.handle('analytics:isUsageTrackingEnabled', async () => {
+  replaceHandler(ipcMain, 'analytics:isUsageTrackingEnabled', async () => {
     return isUsageTrackingEnabled()
   })
 
-  // Enable usage tracking (opt-in)
-  ipcMain.handle('analytics:enableUsageTracking', async () => {
+  replaceHandler(ipcMain, 'analytics:enableUsageTracking', async () => {
     return toIpcResult(enableUsageTracking(), 'usage_tracking_enabled')
   })
 
-  // Disable usage tracking
-  ipcMain.handle('analytics:disableUsageTracking', async () => {
+  replaceHandler(ipcMain, 'analytics:disableUsageTracking', async () => {
     disableUsageTracking()
     return {
       ok: true,
@@ -84,25 +139,21 @@ export function registerAnalyticsIpc(): void {
     }
   })
 
-  // Track command executed (called from PTY)
-  ipcMain.handle('analytics:trackCommandExecuted', async () => {
+  replaceHandler(ipcMain, 'analytics:trackCommandExecuted', async () => {
     return toIpcResult(trackCommandExecuted(), 'command_executed')
   })
 
-  // Track AI suggestion used
-  ipcMain.handle('analytics:trackAISuggestionUsed', async () => {
+  replaceHandler(ipcMain, 'analytics:trackAISuggestionUsed', async () => {
     return toIpcResult(trackAISuggestionUsed(), 'ai_suggestion_used')
   })
 
-  // Track self-healing run
-  ipcMain.handle('analytics:trackSelfHealingRun', async () => {
+  replaceHandler(ipcMain, 'analytics:trackSelfHealingRun', async () => {
     return toIpcResult(trackSelfHealingRun(), 'self_healing_run')
   })
 
-  // Track terminal session start
-  ipcMain.handle('analytics:trackTerminalSessionStart', async () => {
+  replaceHandler(ipcMain, 'analytics:trackTerminalSessionStart', async () => {
     return toIpcResult(trackTerminalSessionStart(), 'terminal_session_tracked')
   })
 
-  console.log('[IPC] Analytics handlers registered')
+  logger.log('[IPC] Analytics handlers registered')
 }

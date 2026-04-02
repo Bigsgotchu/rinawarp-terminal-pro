@@ -1,25 +1,36 @@
-import * as fs from 'fs'
-import * as path from 'path'
-
 import { resolveDiagnosticContext, shouldAskClarifyingQuestion } from '../utils/diagnosticContext.js'
+import { hasSharedWorkspaceFile, readSharedWorkspaceTextFile } from '../runtime/runtimeAccess.js'
 import type {
   BuildConversationReplyArgs,
   ConversationRunReference,
   RouteConversationTurnArgs,
 } from './conversationTypes.js'
 
-export function detectDeployCapability(workspaceRoot: string | null): boolean {
+async function hasWorkspaceFile(workspaceRoot: string, candidate: string): Promise<boolean> {
+  return hasSharedWorkspaceFile(workspaceRoot, candidate)
+}
+
+async function readWorkspaceTextFile(workspaceRoot: string, candidate: string): Promise<string | null> {
+  return readSharedWorkspaceTextFile(workspaceRoot, candidate)
+}
+
+export async function detectDeployCapability(workspaceRoot: string | null): Promise<boolean> {
   if (!workspaceRoot) return false
-  const has = (candidate: string) => fs.existsSync(path.join(workspaceRoot, candidate))
-  if (has('package.json')) {
+  if (await hasWorkspaceFile(workspaceRoot, 'package.json')) {
     try {
-      const packageJson = JSON.parse(fs.readFileSync(path.join(workspaceRoot, 'package.json'), 'utf8'))
-      if (packageJson.scripts && (packageJson.scripts.deploy || packageJson.scripts.publish)) return true
+      const packageJsonText = await readWorkspaceTextFile(workspaceRoot, 'package.json')
+      if (packageJsonText) {
+        const packageJson = JSON.parse(packageJsonText)
+        if (packageJson.scripts && (packageJson.scripts.deploy || packageJson.scripts.publish)) return true
+      }
     } catch {}
-    if (has('electron-builder.yml') || has('electron-builder.json')) return true
-    if (has('vercel.json') || has('netlify.toml')) return true
+    if (
+      (await hasWorkspaceFile(workspaceRoot, 'electron-builder.yml')) ||
+      (await hasWorkspaceFile(workspaceRoot, 'electron-builder.json'))
+    ) return true
+    if ((await hasWorkspaceFile(workspaceRoot, 'vercel.json')) || (await hasWorkspaceFile(workspaceRoot, 'netlify.toml'))) return true
   }
-  if (has('Dockerfile')) return true
+  if (await hasWorkspaceFile(workspaceRoot, 'Dockerfile')) return true
   return false
 }
 
@@ -35,7 +46,7 @@ export function resolveSelfCheckContext(args: RouteConversationTurnArgs): {
   })
 }
 
-export function buildConversationReply(args: BuildConversationReplyArgs): { intent: string; message: string } {
+export async function buildConversationReply(args: BuildConversationReplyArgs): Promise<{ intent: string; message: string }> {
   const { routedTurn, workspaceLabel, latestRun } = args
 
   switch (routedTurn.mode) {
@@ -65,7 +76,10 @@ export function buildConversationReply(args: BuildConversationReplyArgs): { inte
     case 'help':
       return {
         intent: 'help',
-        message: buildHelpReply({ workspaceLabel, canDeploy: detectDeployCapability(routedTurn.workspaceId || null) }),
+        message: buildHelpReply({
+          workspaceLabel,
+          canDeploy: await detectDeployCapability(routedTurn.workspaceId || null),
+        }),
       }
     case 'inspect':
       return {

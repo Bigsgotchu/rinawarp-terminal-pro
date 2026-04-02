@@ -1,5 +1,7 @@
 // @ts-nocheck
-export function createRunsIpcHelpers(deps) {
+import type { RunsIpcHelperDeps } from '../startup/runtimeTypes.js'
+
+export function createRunsIpcHelpers(deps: RunsIpcHelperDeps) {
     const { app, fs, path, shell, listStructuredRunsFromSessionsRoot, readStructuredRunTailFromSessionsRoot, summarizeStructuredRunArtifactsFromSessionsRoot } = deps;
     function structuredSessionsRoot() {
         return path.join(app.getPath('userData'), 'structured-session-v1', 'sessions');

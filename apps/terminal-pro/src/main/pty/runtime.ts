@@ -1,5 +1,42 @@
-// @ts-nocheck
-export function createPtyRuntimeHelpers(deps) {
+import type {
+    PtyRuntimeHelperDeps,
+    PtyRuntimeHelpers,
+    PtySessionState,
+    SafeSendTarget,
+} from '../startup/runtimeTypes.js'
+
+type CommandBoundary = {
+    command?: unknown;
+    output?: string;
+};
+
+type StructuredSessionStoreLike = {
+    beginCommand(args: {
+        sessionId?: string;
+        streamId: string;
+        command: string;
+        cwd: string;
+        risk: string;
+        source: string;
+    }): void;
+    appendChunk(streamId: string, kind: string, text: string): void;
+    endCommand(args: {
+        streamId: string;
+        ok: boolean;
+        code: number | null;
+        cancelled: boolean;
+    }): void;
+};
+
+type WebContentsLookup = {
+    fromId(id: number): (SafeSendTarget & {
+        isDestroyed(): boolean;
+    }) | undefined;
+};
+
+type PtyModule = typeof import('node-pty');
+
+export function createPtyRuntimeHelpers(deps: PtyRuntimeHelperDeps): PtyRuntimeHelpers {
     const {
         path,
         process,
@@ -15,28 +52,34 @@ export function createPtyRuntimeHelpers(deps) {
         ptyResizeTimers,
         webContents,
     } = deps;
-    let ptyModulePromise = null;
-    function redactChunkIfNeeded(text) {
+    let ptyModulePromise: Promise<PtyModule | null> | null = null;
+    function accessStructuredSessionStore(): StructuredSessionStoreLike | null {
+        return (deps.getStructuredSessionStore() as StructuredSessionStoreLike | null) ?? null;
+    }
+    function getCommandBoundaries(transcriptBuffer: string, shellKind: string): CommandBoundary[] {
+        return (detectCommandBoundaries(transcriptBuffer, shellKind) as CommandBoundary[]) ?? [];
+    }
+    function redactChunkIfNeeded(text: unknown): string {
         return redactText(String(text ?? '')).redactedText;
     }
-    function forRendererDisplay(text) {
+    function forRendererDisplay(text: unknown): string {
         return String(text ?? '');
     }
-    function redactForModel(text) {
+    function redactForModel(text: unknown): string {
         return redactText(String(text ?? '')).redactedText;
     }
-    function getPtyModule() {
+    function getPtyModule(): Promise<PtyModule | null> {
         if (!ptyModulePromise) {
             ptyModulePromise = import('node-pty').then((mod) => mod).catch(() => null);
         }
         return ptyModulePromise;
     }
-    function getDefaultShell() {
+    function getDefaultShell(): string {
         if (process.platform === 'win32')
             return process.env.COMSPEC || 'cmd.exe';
         return process.env.SHELL || '/bin/bash';
     }
-    function shellToKind(shell) {
+    function shellToKind(shell: unknown): string {
         const s = path.basename(String(shell || '')).toLowerCase();
         if (s.includes('pwsh') || s.includes('powershell'))
             return 'pwsh';
@@ -48,14 +91,14 @@ export function createPtyRuntimeHelpers(deps) {
             return 'bash';
         return 'unknown';
     }
-    function createStreamId() {
+    function createStreamId(): string {
         return `st_${Date.now()}_${Math.random().toString(16).slice(2)}`;
     }
-    function createStableBoundaryStreamId(webContentsId, index) {
+    function createStableBoundaryStreamId(webContentsId: number, index: number): string {
         return `pty_${webContentsId}_${index}_${Math.random().toString(16).slice(2, 10)}`;
     }
-    function finalizePtyBoundaries(targetWebContents, session, flushAll = false) {
-        const boundaries = detectCommandBoundaries(session.transcriptBuffer, session.shellKind);
+    function finalizePtyBoundaries(targetWebContents: SafeSendTarget & { id: number }, session: PtySessionState, flushAll = false): void {
+        const boundaries = getCommandBoundaries(session.transcriptBuffer, session.shellKind);
         if (!boundaries.length)
             return;
         const limit = flushAll ? boundaries.length : Math.max(0, boundaries.length - 1);
@@ -70,7 +113,7 @@ export function createPtyRuntimeHelpers(deps) {
             ptyStreamOwners.set(streamId, targetWebContents.id);
             const sid = ensureStructuredSession({ source: 'pty_live_capture', projectRoot: session.cwd });
             withStructuredSessionWrite(() => {
-                const store = getStructuredSessionStore();
+                const store = accessStructuredSessionStore();
                 store?.beginCommand({
                     sessionId: sid || undefined,
                     streamId,
@@ -113,7 +156,7 @@ export function createPtyRuntimeHelpers(deps) {
             shell: session.shellKind,
         });
     }
-    function closePtyForWebContents(webContentsId) {
+    function closePtyForWebContents(webContentsId: number): void {
         const timer = ptyResizeTimers.get(webContentsId);
         if (timer) {
             clearTimeout(timer);
@@ -123,7 +166,7 @@ export function createPtyRuntimeHelpers(deps) {
         if (!session)
             return;
         const ptyProcess = session.proc;
-        const activeWebContents = webContents.fromId(webContentsId);
+        const activeWebContents = (webContents as WebContentsLookup).fromId(webContentsId);
         let processStillRunning = true;
         const exitHandler = () => {
             processStillRunning = false;

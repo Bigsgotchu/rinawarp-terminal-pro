@@ -14,6 +14,12 @@ import { registerLicenseIpc } from './registerLicenseIpc.js'
 import { registerAuthIpc, setAuthConfig, setCachedToken } from './registerAuthIpc.js'
 import { registerTelemetryIpc } from './registerTelemetryIpc.js'
 import type { LicenseVerifyResponse } from '../../license.js'
+import type {
+  CodeListFilesArgs,
+  CodeListFilesResult,
+  CodeReadFileArgs,
+  CodeReadFileResult,
+} from '../startup/runtimeTypes.js'
 export { setAuthConfig, setCachedToken } from './registerAuthIpc.js'
 
 const require = createRequire(import.meta.url)
@@ -39,8 +45,8 @@ let daemonFunctions: {
   runsList?: (args?: { limit?: number }) => Promise<any>
   runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
   runsArtifacts?: (args?: { runId?: string; sessionId?: string }) => Promise<any>
-  codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
-  codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
+  codeListFiles?: (args: CodeListFilesArgs) => Promise<CodeListFilesResult>
+  codeReadFile?: (args: CodeReadFileArgs) => Promise<CodeReadFileResult>
 } | null = null
 
 let licenseFunctions: {
@@ -89,8 +95,8 @@ export function setDaemonFunctions(daemon: {
   runsList?: (args?: { limit?: number }) => Promise<any>
   runsTail?: (args?: { runId?: string; sessionId?: string; maxLines?: number; maxBytes?: number }) => Promise<any>
   runsArtifacts?: (args?: { runId?: string; sessionId?: string }) => Promise<any>
-  codeListFiles?: (args?: { projectRoot?: string; limit?: number }) => Promise<any>
-  codeReadFile?: (args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) => Promise<any>
+  codeListFiles?: (args: CodeListFilesArgs) => Promise<CodeListFilesResult>
+  codeReadFile?: (args: CodeReadFileArgs) => Promise<CodeReadFileResult>
 }): void {
   daemonFunctions = daemon
 }

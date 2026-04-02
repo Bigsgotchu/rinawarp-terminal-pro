@@ -15,7 +15,7 @@ export function createNavigationActionHandler(
   store: WorkbenchStore,
   deps: Pick<
     WorkbenchActionControllerDeps,
-    'trackRendererEvent' | 'scrollToRun' | 'scrollToMessage'
+    'trackRendererEvent' | 'scrollToRun' | 'scrollToMessage' | 'startFixProjectFlow' | 'mountPendingFixProjectBlock' | 'mountFixProjectBlock'
   > & { submitUserTurn: (prompt: string, source: UserTurnSource) => Promise<boolean> }
 ): (target: HTMLElement) => Promise<boolean> {
   const navigateTo = createWorkbenchNavigator(store, { trackRendererEvent: deps.trackRendererEvent })
@@ -81,6 +81,20 @@ export function createNavigationActionHandler(
         workspace_key: store.getState().workspaceKey,
         source,
       })
+      if (promptChip.dataset.intentKey === 'fix') {
+        const workspaceRoot = store.getState().workspaceKey
+        if (!workspaceRoot) {
+          store.dispatch({ type: 'ui/setStatusSummary', text: 'Choose a workspace before running Fix Project.' })
+          return true
+        }
+        await deps.startFixProjectFlow(store, {
+          workspaceRoot,
+          workspaceKey: store.getState().workspaceKey,
+          mountPendingFixBlock: deps.mountPendingFixProjectBlock,
+          mountFixBlock: deps.mountFixProjectBlock,
+        })
+        return true
+      }
       await deps.submitUserTurn(promptChip.dataset.agentPrompt, source)
       return true
     }
