@@ -67,6 +67,7 @@
     "report:revenue-daily": "bash scripts/revenue-daily-report.sh",
     "revenue:diagnose": "bash scripts/revenue-diagnose.sh",
     "marketing:utm": "bash scripts/utm-links.sh",
+    "demo:record:fix-project": "npm --workspace apps/terminal-pro run build:electron && bash scripts/record-fix-project-demo.sh",
     "final:mile": "bash scripts/final-mile.sh",
     "scan:app": "bash scripts/app-deep-scan.sh",
     "verify:appimage:ci": "bash deploy/verify-appimage-ci.sh",
