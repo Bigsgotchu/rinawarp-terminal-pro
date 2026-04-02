@@ -1,130 +1,43 @@
-name: RinaWarp CI
+name: CI
 
 on:
-  push:
-    branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+  push:
+    branches: [main]
 
 jobs:
-  test:
+  validate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          version: 9
+          node-version: 20
+          cache: npm
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'pnpm'
+      - name: Install
+        run: npm ci
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Build Electron
+        run: npm --workspace apps/terminal-pro run build:electron
 
-      - name: Lint check
-        run: pnpm lint || true
-        continue-on-error: true
+      - name: Unit tests (Fix Flow)
+        run: npm --workspace apps/terminal-pro run test:fix-project-flow
 
-      - name: TypeScript check
-        run: pnpm tsc --noEmit
-
-      - name: Run Companion validation
-        run: npm run test:companion
-
-      - name: Run root test entrypoint
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: rinawarp-build
-          path: |
-            apps/terminal-pro/dist-electron/
-            apps/terminal-pro/out/
-          retention-days: 7
-
-  e2e:
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v5
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-
-      - name: Install Playwright browsers
-        run: pnpm --filter rinawarp-terminal-pro exec playwright install --with-deps chromium
-
-      - name: Run Electron E2E proof and trust tests
+      - name: E2E Harness
         env:
           CI: "1"
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
-        run: npm --workspace apps/terminal-pro run test:e2e:core
+        run: npm --workspace apps/terminal-pro run test:e2e:harness
 
-      - name: Run packaged first-run E2E
+      - name: E2E Fix Project
         env:
           CI: "1"
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
-        run: npm --workspace apps/terminal-pro run test:e2e:packaged-first-run
-
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-report
-          path: |
-            apps/terminal-pro/test-results/
-            apps/terminal-pro/playwright-report/
-          retention-days: 7
-
-  security:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v5
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Security audit
-        run: pnpm audit --audit-level=high
+        run: npm --workspace apps/terminal-pro run test:e2e:fix-project

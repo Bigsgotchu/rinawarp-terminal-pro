@@ -1,0 +1,116 @@
+name: Release Desktop
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Detect release channel
+        id: channel
+        run: echo "channel=$(bash scripts/detect-release-channel.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Detect version bump
+        id: bump
+        run: echo "type=$(bash scripts/detect-version-bump.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Apply base version
+        id: base
+        run: |
+          VERSION=$(bash scripts/apply-version-bump.sh "${{ steps.bump.outputs.type }}")
+          echo "base=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Apply pre-release version
+        id: version
+        run: |
+          VERSION=$(bash scripts/apply-pre-release-version.sh "${{ steps.base.outputs.base }}" "${{ steps.channel.outputs.channel }}")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v$VERSION" >> "$GITHUB_ENV"
+
+      - name: Generate changelog
+        run: bash scripts/generate-changelog.sh "${{ steps.version.outputs.version }}"
+
+      - name: Extract release notes
+        run: bash scripts/extract-latest-notes.sh > RELEASE_NOTES.md
+
+      - name: Commit release metadata
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json apps/terminal-pro/package.json CHANGELOG.md
+          git commit -m "release: v${{ steps.version.outputs.version }}"
+
+      - name: Create release tag
+        run: git tag "v${{ steps.version.outputs.version }}"
+
+      - name: Push release commit and tag
+        run: |
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Validate release
+        run: bash scripts/validate-release.sh "${{ steps.version.outputs.version }}"
+
+      - name: Build Electron
+        run: npm --workspace apps/terminal-pro run build:electron
+
+      - name: Package Linux
+        run: npm --workspace apps/terminal-pro run package:linux
+
+      - name: Package Windows
+        run: npm --workspace apps/terminal-pro run package:win
+
+      - name: Smoke check artifacts
+        run: bash scripts/release-smoke.sh
+
+      - name: Publish Desktop
+        run: npm run release:publish:desktop
+        env:
+          RINAWARP_ALLOW_DIRTY_RELEASE: 0
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: ${{ steps.channel.outputs.channel }} release v${{ steps.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            apps/terminal-pro/dist-electron/installer/*.AppImage
+            apps/terminal-pro/dist-electron/installer/*.deb
+            apps/terminal-pro/dist-electron/installer/*.exe
+            apps/terminal-pro/dist-electron/installer/*.exe.blockmap
+            apps/terminal-pro/dist-electron/installer/SHASUMS256.txt
+            apps/terminal-pro/dist-electron/installer/latest.json
+            apps/terminal-pro/dist-electron/installer/latest.yml
+            apps/terminal-pro/dist-electron/installer/latest-linux.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts and changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-builds
+          path: |
+            apps/terminal-pro/**/dist/**
+            RELEASE_NOTES.md
+            CHANGELOG.md

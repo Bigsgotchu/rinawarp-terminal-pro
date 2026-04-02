@@ -10,11 +10,11 @@ if [[ -z "$next_version" ]]; then
   exit 1
 fi
 
-node <<'NODE' "$next_version"
+node - "$next_version" <<'NODE'
 const fs = require('fs')
 const path = require('path')
 
-const nextVersion = process.argv[1]
+const nextVersion = process.argv[2]
 const files = [
   path.join(process.cwd(), 'package.json'),
   path.join(process.cwd(), 'apps/terminal-pro/package.json'),

@@ -6,8 +6,34 @@ APP_DIR="$ROOT_DIR/apps/terminal-pro"
 INSTALLER_DIR="$APP_DIR/dist-electron/installer"
 VERSION="$(node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('$APP_DIR/package.json','utf8')); process.stdout.write(pkg.version)")"
 PUBLIC_INSTALLERS_BUCKET="rinawarp-installers"
+ALLOW_DIRTY_RELEASE="${RINAWARP_ALLOW_DIRTY_RELEASE:-0}"
 
 cd "$ROOT_DIR"
+
+if command -v git >/dev/null 2>&1; then
+  DIRTY_OUTPUT="$(
+    git status --short --untracked-files=all -- \
+      apps/terminal-pro/package.json \
+      apps/terminal-pro/src \
+      apps/terminal-pro/scripts \
+      apps/terminal-pro/tests \
+      apps/terminal-pro/test \
+      packages \
+      docs \
+      scripts \
+      website \
+      package.json \
+      tsconfig.json \
+      2>/dev/null || true
+  )"
+  if [[ -n "$DIRTY_OUTPUT" && "$ALLOW_DIRTY_RELEASE" != "1" ]]; then
+    echo "[publish:desktop-release] Refusing to publish v$VERSION from a dirty workspace." >&2
+    echo "[publish:desktop-release] These changes may deserve a new version bump before release:" >&2
+    echo "$DIRTY_OUTPUT" >&2
+    echo "[publish:desktop-release] If you intentionally want to reuse this version, rerun with RINAWARP_ALLOW_DIRTY_RELEASE=1." >&2
+    exit 1
+  fi
+fi
 
 corepack pnpm --filter rinawarp-terminal-pro run release:metadata
 
