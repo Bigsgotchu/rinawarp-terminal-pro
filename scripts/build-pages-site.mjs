@@ -11,6 +11,9 @@ const packageJson = JSON.parse(await readFile(path.join(repoRoot, "apps", "termi
 const INSTALLERS_BASE = "https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev";
 const UPDATES_BASE = "https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev";
 const PRIMARY_UPDATES_BASE = "https://rinawarptech.com/releases";
+const DEMO_MP4_URL = `${INSTALLERS_BASE}/demo/rinawarp-fix-project-demo.mp4`;
+const DEMO_WEBM_URL = `${INSTALLERS_BASE}/demo/rinawarp-fix-project-demo.webm`;
+const DEMO_POSTER_URL = `${INSTALLERS_BASE}/demo/rinawarp-fix-project-demo-poster.jpg`;
 const VERSION = String(packageJson.version);
 const ASSET_VERSION = "20260329-brand-refresh";
 const GA_MEASUREMENT_ID = "G-YGX1R0MEB6";
@@ -310,6 +313,11 @@ main { flex: 1; }
   box-shadow: var(--shadow);
 }
 .screenshot-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.screenshot-frame video {
   display: block;
   width: 100%;
   height: auto;
@@ -1005,27 +1013,22 @@ const pages = [
     route: "",
     path: "/",
     page: "home",
-    title: "RinaWarp Terminal Pro | Proof-First AI Terminal",
-    description: "RinaWarp Terminal Pro is a proof-first AI terminal for developers who want trusted execution, receipts, recovery, and a cleaner chat-to-command workflow.",
-    eyebrow: "Proof-first agent execution",
-    heading: "Talk to Rina naturally. Ship with proof.",
-    copy: "A desktop AI workbench that keeps proof, receipts, and recovery attached to real work. Ask naturally, let Rina act through one trusted path, and inspect the details only when you need them.",
+    title: "Fix Your Broken Project Automatically | RinaWarp",
+    description: "RinaWarp detects, repairs, and verifies broken developer projects automatically. Click Fix Project, watch the repair flow, and see proof that it worked.",
+    eyebrow: "Fix Project",
+    heading: "Fix your broken project automatically.",
+    copy: "RinaWarp detects, repairs, and verifies your codebase in minutes. It does not stop at suggestions. It shows the plan, runs the repair, and proves what changed.",
     content: `
       <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">Trust</div><h3>Claims stay tied to proof</h3><p>Run IDs, receipts, tails, and recovery state stay attached to the work instead of disappearing behind agent vibes.</p></article>
-        <article class="card"><div class="kicker">Conversation</div><h3>Rina handles real human input</h3><p>Vague asks, follow-ups, frustration, and mixed conversation are part of the job. Rina stays coherent and grounded.</p></article>
-        <article class="card"><div class="kicker">Recovery</div><h3>Interrupted work still makes sense</h3><p>When a run is interrupted or a session restarts, restored work remains understandable and actionable.</p></article>
+        <article class="card"><div class="kicker">Detect</div><h3>Find what is actually broken</h3><p>RinaWarp scans the project, explains the issue, and shows a readable repair plan before risky changes run.</p></article>
+        <article class="card"><div class="kicker">Fix</div><h3>Run the repair visibly</h3><p>The product shows live narration, step tracking, and terminal output instead of vague AI claims about what it might have done.</p></article>
+        <article class="card"><div class="kicker">Verify</div><h3>Prove the project works</h3><p>After the repair flow finishes, RinaWarp verifies the result, summarizes what changed, and attaches confidence to the outcome.</p></article>
       </div></section>
-      <section class="section"><h2 class="section-title">Actual product screenshots</h2><p class="section-copy">Real captures from the current product, not concept art.</p><div class="screenshot-grid">
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-empty-state.png" alt="RinaWarp Terminal Pro empty agent state screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Start clean.</strong> The empty state stays focused instead of dumping a wall of setup noise into the thread.</div></article>
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active thread screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Stay in the conversation.</strong> Active work reads like a transcript with proof attached, not a pile of disconnected cards.</div></article>
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/diagnostics-inspector.png" alt="RinaWarp Terminal Pro diagnostics inspector screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Inspect the details only when needed.</strong> Diagnostics are there for confidence and recovery, not as the primary surface.</div></article>
-      </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">Short product demo</h2><p class="section-copy">Start clean, move into a real thread, and inspect proof when needed.</p><div class="screenshot-frame"><img src="/assets/img/rinawarp-demo.gif" alt="Animated demo of RinaWarp Terminal Pro conversation and proof workflow" width="1200" height="662" loading="lazy" decoding="async"></div></div></section>
-      <section class="section"><h2 class="section-title">Best fit for teams and developers who care about trust</h2><p class="section-copy">Best when the work matters enough that you want the agent to stay understandable before, during, and after execution.</p><div class="fit-grid">
-        <article class="fit-card"><h3>Build and release work</h3><p>Use it when you want the thread, receipts, and recovery state to stay connected to real build and deploy work instead of disappearing into shell history.</p></article>
-        <article class="fit-card"><h3>Messy real-world requests</h3><p>It is built for vague asks, follow-ups, and mixed conversation, not just perfect command-style prompts.</p></article>
-        <article class="fit-card"><h3>People who distrust black-box AI</h3><p>If you are tired of agents sounding confident without showing the proof, this is the right product story.</p></article>
+      <section class="section"><div class="panel stack"><h2 id="demo" class="section-title">Watch the real fix flow</h2><p class="section-copy">This is a real RinaWarp session recorded against a genuinely broken workspace. It shows the exact moment the product should sell: broken project, one click, visible repair, proof attached.</p><div class="screenshot-frame"><video controls preload="metadata" poster="${DEMO_POSTER_URL}" playsinline><source src="${DEMO_WEBM_URL}" type="video/webm"><source src="${DEMO_MP4_URL}" type="video/mp4"></video></div><p class="section-copy">21 seconds. Real broken workspace. Recorded in RinaWarp Terminal Pro.</p></div></section>
+      <section class="section"><h2 class="section-title">See the before and after clearly</h2><p class="section-copy">This is not generic AI chat. The product earns trust by showing the broken state, the repair flow, and the verified result in one surface.</p><div class="fit-grid">
+        <article class="fit-card"><h3>Broken project</h3><p>Dependencies are missing, the build fails, and local setup is dead.</p></article>
+        <article class="fit-card"><h3>One visible click</h3><p>You hit Fix Project and the app starts analyzing, planning, executing, and narrating the repair immediately.</p></article>
+        <article class="fit-card"><h3>Proof attached</h3><p>The final state shows what changed, what verified, and how confident the system should be about the result.</p></article>
       </div></section>
       <section class="section"><h2 class="section-title">What the product actually looks like in use</h2><p class="section-copy">The first trust win is visual: the thread stays readable, the proof stays attached, and recovery does not hide what happened. This is the shape customers see when RinaWarp is doing real work.</p><div class="proof-demo">
         <div class="transcript-demo">
@@ -1046,11 +1049,11 @@ const pages = [
         </div>
       </div></section>
       <section class="section"><div class="panel stack">
-        <h2 class="section-title">Ask → Plan → Execute → Prove → Recover</h2>
-        <p class="section-copy">Open the app, ask for real work, and keep proof attached from start to finish.</p>
+        <h2 class="section-title">Problem → Click → Fix → Proof</h2>
+        <p class="section-copy">Open the app, click Fix Project, and watch the broken repo move back toward working without losing visibility into what happened.</p>
         <div class="cta-row">
-          <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download the app</a>
-          <a href="/pricing/" class="btn btn-secondary">See plans</a>
+          <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Fix My Project</a>
+          <a href="/#demo" class="btn btn-secondary">Watch Demo</a>
         </div>
       </div></section>
       <section class="section"><div class="panel stack">
@@ -1529,10 +1532,21 @@ await writeFile(path.join(outdir, "assets", "img", "rinawarp-mark.svg"), BRAND_M
 await writeFile(path.join(outdir, "assets", "img", "rinawarp-logo.svg"), BRAND_MARK_SVG, "utf8");
 await copyFile(BRAND_LOGO_PATH, path.join(outdir, "assets", "img", "rinawarp-logo.png"));
 await copyFile(BRAND_ICON_PATH, path.join(outdir, "assets", "img", "icon.png"));
-for (const [filename, sourcePath] of SCREENSHOT_SOURCES) {
-  await copyFile(sourcePath, path.join(outdir, "assets", "img", filename));
+async function copyIfPresent(sourcePath, destinationPath) {
+  try {
+    await copyFile(sourcePath, destinationPath);
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      console.warn(`[build:pages-site] Skipping missing asset: ${sourcePath}`);
+      return;
+    }
+    throw error;
+  }
 }
-await copyFile(DEMO_GIF_PATH, path.join(outdir, "assets", "img", "rinawarp-demo.gif"));
+for (const [filename, sourcePath] of SCREENSHOT_SOURCES) {
+  await copyIfPresent(sourcePath, path.join(outdir, "assets", "img", filename));
+}
+await copyIfPresent(DEMO_GIF_PATH, path.join(outdir, "assets", "img", "rinawarp-demo.gif"));
 await writeFile(path.join(outdir, "_redirects"), REDIRECTS, "utf8");
 await writeFile(path.join(outdir, "robots.txt"), ROBOTS_TXT, "utf8");
 await writeFile(path.join(outdir, "sitemap.xml"), SITEMAP_XML, "utf8");
