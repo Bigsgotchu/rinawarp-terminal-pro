@@ -22,6 +22,7 @@ const SCREENSHOT_SOURCES = [
   ["agent-active-thread.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-active-thread.png")],
   ["diagnostics-inspector.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "diagnostics-inspector.png")],
   ["settings-memory.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "settings-memory.png")],
+  ["proof-after-fixed-project.png", path.join(repoRoot, "output", "playwright", "rinawarp-live-after-status.png")],
 ];
 const BRAND_MARK_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-mark.svg");
 const BRAND_LOGO_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-logo.png");
@@ -119,10 +120,21 @@ nav {
   padding: 6px 10px;
   border-radius: 999px;
 }
+.nav-links a.nav-cta {
+  padding: 9px 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: #04121a;
+  font-weight: 700;
+}
 .nav-links a.active,
 .nav-links a:hover {
   color: var(--text);
   background: rgba(255,255,255,0.04);
+}
+.nav-links a.nav-cta.active,
+.nav-links a.nav-cta:hover {
+  color: #04121a;
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
 }
 main { flex: 1; }
 .hero,
@@ -132,6 +144,16 @@ main { flex: 1; }
   padding: 26px 24px;
 }
 .hero { padding-top: 56px; }
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 24px;
+  align-items: center;
+}
+.hero-body {
+  display: grid;
+  gap: 14px;
+}
 .eyebrow, .kicker, .pill, .note, .auth-subtitle, .footer-links {
   color: var(--muted);
 }
@@ -154,6 +176,84 @@ main { flex: 1; }
   font-size: 0.95rem;
 }
 .hero-copy { max-width: 64ch; margin-top: 14px; }
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+.hero-support {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.hero-proof-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.hero-proof-item {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+.hero-proof-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+.hero-proof-value {
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.hero-media {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(98, 246, 229, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(255, 79, 216, 0.14), transparent 32%),
+    linear-gradient(180deg, rgba(7, 17, 26, 0.96), rgba(10, 21, 32, 0.92));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+}
+.hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 28%);
+}
+.hero-media .screenshot-frame {
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  box-shadow: none;
+}
+[data-page="home"] .hero {
+  padding-top: 42px;
+  padding-bottom: 12px;
+}
+[data-page="home"] .hero h1,
+[data-page="download"] .hero h1 {
+  max-width: 10ch;
+  font-size: clamp(2.4rem, 5vw, 4.7rem);
+}
+[data-page="home"] .hero-copy,
+[data-page="download"] .hero-copy {
+  max-width: 48ch;
+  font-size: 1.02rem;
+}
+[data-page="home"] .hero-media video,
+[data-page="download"] .hero-media video {
+  min-height: 100%;
+  object-fit: cover;
+}
 .cta-row, .link-row, .stack, .signal-list, .feature-list, .auth-container, .auth-card, .panel {
   display: grid;
   gap: 12px;
@@ -422,6 +522,10 @@ footer {
   .cta-row, .link-row { grid-auto-flow: row; }
   .proof-demo { grid-template-columns: 1fr; }
   .logo-wordmark { height: 24px; }
+  .hero-layout { grid-template-columns: 1fr; }
+  .hero-proof-strip { grid-template-columns: 1fr; }
+  [data-page="home"] .hero,
+  [data-page="download"] .hero { padding-top: 28px; }
 }
 `;
 
@@ -501,6 +605,20 @@ function clearToken() {
   localStorage.removeItem('user_email');
 }
 
+function getReferralCode() {
+  return localStorage.getItem('referral_code') || '';
+}
+
+function setReferralCode(code) {
+  if (!code) return;
+  localStorage.setItem('referral_code', code);
+}
+
+const referralCodeFromUrl = new URLSearchParams(window.location.search).get('ref') || '';
+if (referralCodeFromUrl) {
+  setReferralCode(referralCodeFromUrl.trim().toUpperCase());
+}
+
 if (page === 'pricing') {
   document.querySelectorAll('[data-checkout-cycle]')?.forEach((button) => {
     button.addEventListener('click', async () => {
@@ -522,10 +640,11 @@ if (page === 'pricing') {
         localStorage.setItem('checkout_email', email);
         localStorage.setItem('checkout_tier', 'pro');
         localStorage.setItem('checkout_billing_cycle', billingCycle);
+        const referralCode = getReferralCode();
         const payload = await withJson(await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, tier: 'pro', billingCycle }),
+          body: JSON.stringify({ email, tier: 'pro', billingCycle, referralCode }),
         }));
         if (!payload.checkoutUrl) throw new Error('Checkout could not be created.');
         window.location.href = payload.checkoutUrl;
@@ -559,10 +678,11 @@ if (page === 'team') {
       localStorage.setItem('checkout_tier', 'team');
       localStorage.setItem('checkout_seats', String(seats));
       if (workspaceId) localStorage.setItem('checkout_workspace_id', workspaceId);
+      const referralCode = getReferralCode();
       const payload = await withJson(await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, tier: 'team', seats, workspaceId }),
+        body: JSON.stringify({ email, tier: 'team', seats, workspaceId, referralCode }),
       }));
       if (!payload.checkoutUrl) throw new Error('Checkout could not be created.');
       window.location.href = payload.checkoutUrl;
@@ -583,7 +703,7 @@ if (page === 'success') {
   const sessionEl = document.getElementById('success-session-id');
   if (sessionEl) sessionEl.textContent = sessionId || 'Pending';
   const planEl = document.getElementById('success-plan');
-  if (planEl) planEl.textContent = tier === 'team' ? 'Team / Business' : 'Pro Early Access';
+  if (planEl) planEl.textContent = tier === 'team' ? 'Power / Team' : 'Pro';
   const seatEl = document.getElementById('success-seats');
   if (seatEl) seatEl.textContent = tier === 'team' ? (seats || 'Seat count saved in checkout') : '1';
   const workspaceEl = document.getElementById('success-workspace');
@@ -752,6 +872,67 @@ if (page === 'account') {
         document.getElementById('account-tier').textContent = 'UNKNOWN';
         document.getElementById('account-tier-note').textContent = 'Could not load billing state.';
       }
+
+      try {
+        const referral = await withJson(await fetch('/api/referrals/me', {
+          headers: { Authorization: 'Bearer ' + token },
+        }));
+        document.getElementById('account-referral').hidden = false;
+        document.getElementById('account-invite-link').value = referral.inviteUrl || '';
+        document.getElementById('account-referral-code').textContent = referral.code || '—';
+        document.getElementById('account-referral-stats').textContent =
+          (referral.stats?.checkouts || 0) + ' checkout(s) started • ' + (referral.stats?.conversions || 0) + ' paid conversion(s)';
+      } catch {
+        document.getElementById('account-referral').hidden = true;
+      }
+
+      try {
+        const adminCard = document.getElementById('account-referral-admin');
+        const form = document.getElementById('account-referral-admin-form');
+        const output = document.getElementById('account-referral-admin-output');
+        if (adminCard && form && output) {
+          adminCard.hidden = false;
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const code = String(formData.get('code') || '').trim();
+            const email = String(formData.get('email') || '').trim();
+            setStatus('account-referral-admin-status', 'Looking up referral activity...');
+            try {
+              const params = new URLSearchParams();
+              if (code) params.set('code', code);
+              if (email) params.set('email', email);
+              const payload = await withJson(await fetch('/api/referrals/admin?' + params.toString(), {
+                headers: { Authorization: 'Bearer ' + token },
+              }));
+              if (!payload.found) {
+                output.textContent = 'No referral record found for that code or email.';
+                setStatus('account-referral-admin-status', 'Lookup finished.', 'success');
+                return;
+              }
+              const lines = [
+                'Referral code: ' + (payload.referral?.code || '—'),
+                'Owner email: ' + (payload.referral?.email || '—'),
+                'Events: ' + (payload.stats?.events || 0),
+                'Checkouts: ' + (payload.stats?.checkouts || 0),
+                'Conversions: ' + (payload.stats?.conversions || 0),
+                '',
+                'Recent events:',
+                ...((payload.events || []).map((entry) =>
+                  '- ' + String(entry.event_type || 'event') + ' · ' + String(entry.referred_email || '—') + ' · ' + String(entry.source || '—')
+                )),
+              ];
+              output.textContent = lines.join('\\n');
+              setStatus('account-referral-admin-status', 'Lookup finished.', 'success');
+            } catch (error) {
+              output.textContent = '';
+              setStatus('account-referral-admin-status', error instanceof Error ? error.message : 'Lookup failed.', 'error');
+            }
+          });
+        }
+      } catch {
+        document.getElementById('account-referral-admin')?.setAttribute('hidden', 'hidden');
+      }
     } catch {
       clearToken();
       if (authGate) authGate.hidden = false;
@@ -762,6 +943,18 @@ if (page === 'account') {
   document.getElementById('logout-btn')?.addEventListener('click', () => {
     clearToken();
     window.location.reload();
+  });
+
+  document.getElementById('copy-invite-link-btn')?.addEventListener('click', async () => {
+    const input = document.getElementById('account-invite-link');
+    const value = input?.value?.trim();
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus('account-referral-status', 'Invite link copied.', 'success');
+    } catch {
+      setStatus('account-referral-status', 'Could not copy the invite link right now.', 'error');
+    }
   });
 
   document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
@@ -852,6 +1045,7 @@ function seo(path, title, description) {
 function buildStructuredData(path, title, description) {
   const canonical = `https://rinawarptech.com${path}`;
   const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
+  const offerPrice = normalizedPath === "/team" ? "40" : "15";
   const graph = [
     {
       "@context": "https://schema.org",
@@ -875,7 +1069,7 @@ function buildStructuredData(path, title, description) {
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
-        price: "20",
+        price: offerPrice,
         availability: "https://schema.org/InStock",
       },
     },
@@ -948,19 +1142,23 @@ function nav(active) {
   const items = [
     ["/", "Home", "home"],
     ["/pricing/", "Pricing", "pricing"],
-    ["/team/", "Team", "team"],
     ["/download/", "Download", "download"],
-    ["/docs/", "Docs", "docs"],
-    ["/agents", "Packs", "agents"],
+    ["/team/", "Team", "team"],
     ["/feedback/", "Support", "feedback"],
-    ["/account/", "Account", "account"],
   ];
   return items
-    .map(([href, label, key]) => `<a href="${href}"${active === key ? ' class="active" aria-current="page"' : ''}>${label}</a>`)
+    .map(([href, label, key]) => {
+      const classes = [];
+      if (active === key) classes.push("active");
+      if (key === "download") classes.push("nav-cta");
+      const classAttr = classes.length ? ` class="${classes.join(" ")}"` : "";
+      const currentAttr = active === key ? ' aria-current="page"' : "";
+      return `<a href="${href}"${classAttr}${currentAttr}>${label}</a>`;
+    })
     .join("");
 }
 
-function shell({ path, page, title, description, eyebrow, heading, copy, content }) {
+function shell({ path, page, title, description, eyebrow, heading, copy, heroActions = "", heroSupport = "", heroProof = "", heroMedia = "", content }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -982,9 +1180,17 @@ function shell({ path, page, title, description, eyebrow, heading, copy, content
     </header>
     <main id="main-content" tabindex="-1">
       <section class="hero">
-        <span class="eyebrow">${eyebrow}</span>
-        <h1>${heading}</h1>
-        <p class="hero-copy">${copy}</p>
+        <div class="hero-layout">
+          <div class="hero-body">
+            <span class="eyebrow">${eyebrow}</span>
+            <h1>${heading}</h1>
+            <p class="hero-copy">${copy}</p>
+            ${heroActions ? `<div class="hero-actions">${heroActions}</div>` : ""}
+            ${heroSupport ? `<p class="hero-support">${heroSupport}</p>` : ""}
+            ${heroProof ? `<div class="hero-proof-strip">${heroProof}</div>` : ""}
+          </div>
+          ${heroMedia ? `<div class="hero-media">${heroMedia}</div>` : ""}
+        </div>
       </section>
       ${content}
     </main>
@@ -1017,56 +1223,64 @@ const pages = [
     description: "RinaWarp detects, repairs, and verifies broken developer projects automatically. Click Fix Project, watch the repair flow, and see proof that it worked.",
     eyebrow: "Fix Project",
     heading: "Fix your broken project automatically.",
-    copy: "RinaWarp detects, repairs, and verifies your codebase in minutes. It does not stop at suggestions. It shows the plan, runs the repair, and proves what changed.",
+    copy: "AI that reads your code, fixes issues, and verifies it works. Open the project, click Fix Project, and watch the repair happen live.",
+    heroActions: `
+      <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Now</a>
+      <a href="/pricing/" class="btn btn-secondary">See pricing</a>
+      <a href="/#demo" class="btn btn-secondary">Watch demo</a>
+    `,
+    heroSupport: "Broken build, dead install, bad config, crashed dev server. The first screen should make the outcome obvious.",
+    heroProof: `
+      <div class="hero-proof-item"><span class="hero-proof-label">Outcome</span><span class="hero-proof-value">Broken project to verified working result</span></div>
+      <div class="hero-proof-item"><span class="hero-proof-label">Proof</span><span class="hero-proof-value">What changed, what worked, confidence attached</span></div>
+      <div class="hero-proof-item"><span class="hero-proof-label">Demo</span><span class="hero-proof-value">21-second real repair flow above the fold</span></div>
+    `,
+    heroMedia: `
+      <div class="screenshot-frame">
+        <video id="demo" controls preload="metadata" poster="${DEMO_POSTER_URL}" playsinline>
+          <source src="${DEMO_WEBM_URL}" type="video/webm">
+          <source src="${DEMO_MP4_URL}" type="video/mp4">
+        </video>
+      </div>
+    `,
     content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">Detect</div><h3>Find what is actually broken</h3><p>RinaWarp scans the project, explains the issue, and shows a readable repair plan before risky changes run.</p></article>
-        <article class="card"><div class="kicker">Fix</div><h3>Run the repair visibly</h3><p>The product shows live narration, step tracking, and terminal output instead of vague AI claims about what it might have done.</p></article>
-        <article class="card"><div class="kicker">Verify</div><h3>Prove the project works</h3><p>After the repair flow finishes, RinaWarp verifies the result, summarizes what changed, and attaches confidence to the outcome.</p></article>
-      </div></section>
-      <section class="section"><div class="panel stack"><h2 id="demo" class="section-title">Watch the real fix flow</h2><p class="section-copy">This is a real RinaWarp session recorded against a genuinely broken workspace. It shows the exact moment the product should sell: broken project, one click, visible repair, proof attached.</p><div class="screenshot-frame"><video controls preload="metadata" poster="${DEMO_POSTER_URL}" playsinline><source src="${DEMO_WEBM_URL}" type="video/webm"><source src="${DEMO_MP4_URL}" type="video/mp4"></video></div><p class="section-copy">21 seconds. Real broken workspace. Recorded in RinaWarp Terminal Pro.</p></div></section>
-      <section class="section"><h2 class="section-title">See the before and after clearly</h2><p class="section-copy">This is not generic AI chat. The product earns trust by showing the broken state, the repair flow, and the verified result in one surface.</p><div class="fit-grid">
-        <article class="fit-card"><h3>Broken project</h3><p>Dependencies are missing, the build fails, and local setup is dead.</p></article>
-        <article class="fit-card"><h3>One visible click</h3><p>You hit Fix Project and the app starts analyzing, planning, executing, and narrating the repair immediately.</p></article>
-        <article class="fit-card"><h3>Proof attached</h3><p>The final state shows what changed, what verified, and how confident the system should be about the result.</p></article>
-      </div></section>
-      <section class="section"><h2 class="section-title">What the product actually looks like in use</h2><p class="section-copy">The first trust win is visual: the thread stays readable, the proof stays attached, and recovery does not hide what happened. This is the shape customers see when RinaWarp is doing real work.</p><div class="proof-demo">
-        <div class="transcript-demo">
-          <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>RinaWarp Terminal Pro</span></div>
-          <div class="demo-chat">
-            <div class="demo-message user">Build the app, show me what failed, and tell me the safest next move.</div>
-            <div class="demo-message assistant">I checked the workspace, ran the build through the trusted path, and attached the proof below. The failure is in one TypeScript import, so the next move is a scoped fix instead of retrying the whole pipeline blindly.</div>
-            <div class="demo-proof">
-              <div class="demo-proof-header"><span>Build receipt</span><span class="demo-proof-tag">Run ID rw_8f4c1d</span></div>
-              <div class="demo-proof-lines"><span>npm run build</span><span>src/main/update/updateService.ts: missing export \`publishRelease\`</span><span>receipt attached • recovery available • output tail preserved</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="proof-notes">
-          <div class="proof-note"><strong>Cleaner than terminal archaeology</strong><p>You do not have to reconstruct what happened from disconnected tabs, old scrollback, and a vague success claim.</p></div>
-          <div class="proof-note"><strong>Best fit for build, test, deploy, and recovery</strong><p>The strongest buyer story is not generic AI chat. It is doing real work with proof that stays attached.</p></div>
-          <div class="proof-note"><strong>Honest early-access boundary</strong><p>RinaWarp is strongest when you want trusted execution and understandable recovery, not when you want a magic black box.</p></div>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Broken projects waste hours</h2>
+        <p class="section-copy">A broken install, failed build, bad config, or dead dev server all create the same problem: progress stops. RinaWarp is built to get the project working again without turning the website into a wall of explanation.</p>
+        <div class="grid three-up">
+          <article class="card"><h3>Missing dependencies</h3><p>Get stalled installs moving again.</p></article>
+          <article class="card"><h3>Broken builds</h3><p>Recover from config and compile failures faster.</p></article>
+          <article class="card"><h3>Dev server crashes</h3><p>Diagnose, repair, and verify the path back to running.</p></article>
         </div>
       </div></section>
       <section class="section"><div class="panel stack">
-        <h2 class="section-title">Problem → Click → Fix → Proof</h2>
-        <p class="section-copy">Open the app, click Fix Project, and watch the broken repo move back toward working without losing visibility into what happened.</p>
+        <h2 class="section-title">Verified success</h2>
+        <p class="section-copy">This is the app after a real repair. One strong proof screen is more convincing than a dozen feature blocks.</p>
+        <div class="screenshot-frame"><img src="/assets/img/proof-after-fixed-project.png" alt="RinaWarp showing the project fixed with verified status after repair" width="1356" height="697" loading="lazy" decoding="async"></div>
+      </div></section>
+      <section id="products" class="section"><h2 class="section-title">How it works</h2><p class="section-copy">The flow should feel obvious in seconds, not after a long read.</p><div class="grid three-up">
+        <article class="card"><div class="kicker">1</div><h3>Open your project</h3><p>Start inside the real broken repo.</p></article>
+        <article class="card"><div class="kicker">2</div><h3>Click Fix Project</h3><p>RinaWarp analyzes the workspace and runs the repair.</p></article>
+        <article class="card"><div class="kicker">3</div><h3>Check the result</h3><p>See what changed, what worked, and how confident the fix is.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Trust the result</h2>
+        <p class="section-copy">The trust story is simple: show the change, show the verification, show the confidence.</p>
+        <div class="grid three-up">
+          <article class="card"><div class="kicker">What changed</div><h3>Readable summary</h3><p>Dependency installs, config edits, and fixes stay visible.</p></article>
+          <article class="card"><div class="kicker">What worked</div><h3>Verified outcome</h3><p>The app confirms whether the recovery actually succeeded.</p></article>
+          <article class="card"><div class="kicker">Confidence</div><h3>Honest score</h3><p>You see how safe the result looks before you move on.</p></article>
+        </div>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Start free. Upgrade when you need more.</h2>
+        <p class="section-copy">The homepage only needs one pricing idea: try it on a broken project, then pay if it saves you time.</p>
         <div class="cta-row">
-          <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Fix My Project</a>
-          <a href="/#demo" class="btn btn-secondary">Watch Demo</a>
+          <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final_cta" data-analytics-prop-target="download">Download Now</a>
+          <a href="/pricing/" class="btn btn-secondary">See pricing</a>
+          <a href="/#demo" class="btn btn-secondary">Watch demo</a>
         </div>
       </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Start with a definition, not just a pitch</h2>
-        <p class="section-copy">Search works better when the product has pages that define the category plainly and compare it honestly, not only launch copy.</p>
-        <div class="link-row">
-          <a href="/what-is-rinawarp/" class="btn btn-secondary">What is RinaWarp Terminal Pro?</a>
-          <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">What is a proof-first AI terminal?</a>
-          <a href="/rinawarp-vs-ai-terminals/" class="btn btn-secondary">RinaWarp vs generic AI terminals</a>
-          <a href="/rinawarp-vs-warp/" class="btn btn-secondary">RinaWarp vs Warp</a>
-        </div>
-      </div></section>
-      <section class="section"><div class="founder-note"><blockquote>We would rather show the rough edges plainly than claim trust we have not earned yet. That is why the site calls out proof, restore, checksums, and platform limits directly instead of hiding them behind generic AI marketing.</blockquote><cite>Founder note from RinaWarp Technologies, LLC</cite></div></section>
     `
   },
   {
@@ -1074,25 +1288,29 @@ const pages = [
     path: "/pricing",
     page: "pricing",
     title: "RinaWarp Terminal Pro Pricing | AI Terminal Plans",
-    description: "See RinaWarp Terminal Pro pricing for individual and team AI terminal plans with trusted execution, receipts, recovery, and Early Access support.",
-    eyebrow: "Early Access pricing",
-    heading: "Start free. Upgrade for proof-backed execution.",
-    copy: "The ladder is simple: free to feel the workbench, Pro for real execution, Team for seat-based rollout.",
+    description: "See RinaWarp Terminal Pro pricing for individual and team plans with trusted execution, receipts, recovery, and proof-backed repair workflows.",
+    eyebrow: "Pricing",
+    heading: "Start fixing your projects for free.",
+    copy: "Try it free. If it fixes your project, upgrade. One fix can save hours, so the next step should feel obvious.",
     content: `
       <section class="section"><div class="pricing-grid">
-        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Use the shell, try the agent-first flow, and make sure the product feels real before you pay.</p><ul class="feature-list"><li>Agent-first desktop workbench</li><li>Limited chats and proof-backed runs</li><li>Core inspectors and workspace-aware proof UI</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a></article>
-        <article class="card pricing-card featured"><span class="pill">Pro Early Access</span><div class="price">$20 <span>/ month</span></div><p>For people who want Rina to take real action, keep proof attached, recover safely, and feel like a collaborator instead of a demo.</p><ul class="feature-list"><li>Trusted build, test, deploy, and fix flows</li><li>Recovery and proof-backed summaries</li><li>Rina cards, explicit preferences, and higher limits</li><li>Priority Early Access support</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Monthly</button><button class="btn btn-secondary" data-checkout-cycle="annual" type="button">Start Annual</button></div><p id="checkout-status" class="status-message" aria-live="polite">Monthly: $20. Annual: $192. Checkout opens in Stripe.</p></div></article>
-        <article class="card pricing-card"><span class="pill">Team / Business</span><div class="price">$49 <span>/ user / month</span></div><p>For teams that need seats, role boundaries, invite management, audit visibility, and a truth-based path from checkout into workspace rollout.</p><ul class="feature-list"><li>Seat-based checkout and workspace-linked team rollout</li><li>Role-aware invite management and audit direction</li><li>Team memory, multi-agent limits, and proof-backed workflows</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team</a></article>
+        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Try the workflow on a broken project first. If it fixes the repo, you will know quickly.</p><ul class="feature-list"><li>Try the Fix Project workflow</li><li>Visible repair steps and proof-backed runs</li><li>Best for first-time use and simple fixes</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Try it free</a></article>
+        <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>Upgrade when you are blocked and want the fastest path from broken project to verified result.</p><ul class="feature-list"><li>Unlimited fixes on real projects</li><li>Trusted build, test, deploy, and repair flows</li><li>What changed, what worked, and confidence summaries</li><li>Priority support while the product keeps hardening</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Pro checkout</button></div><p id="checkout-status" class="status-message" aria-live="polite">Pro is $15 per month. Checkout opens in Stripe.</p></div></article>
+        <article class="card pricing-card"><span class="pill">Power / Team</span><div class="price">$40 <span>/ user / month</span></div><p>For teams that want seat-based rollout, shared proof, role boundaries, and a cleaner path to fixing broken projects together.</p><ul class="feature-list"><li>Seat-based checkout and workspace rollout</li><li>Role-aware invite management and audit direction</li><li>Shared proof-backed workflows for teams</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team checkout</a></article>
       </div></section>
-      <section class="section"><div class="screenshot-grid">
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/settings-memory.png" alt="RinaWarp Terminal Pro settings memory screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Paid feels tangible.</strong> The product already has real settings and workbench surfaces, not just a paywall on top of an empty shell.</div></article>
-        <article class="screenshot-card"><div class="screenshot-frame"><img src="/assets/img/agent-active-thread.png" alt="RinaWarp Terminal Pro active proof thread screenshot" width="1400" height="773" loading="lazy" decoding="async"></div><div class="screenshot-caption"><strong>Pro is for real execution.</strong> The buyer should understand the difference between chatting and proof-backed work before they hit Stripe.</div></article>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Why people pay for Pro</h2>
+        <div class="grid three-up">
+          <article class="card"><div class="kicker">Unlimited</div><h3>Fix more than one repo</h3><p>Pro is for people who hit broken installs, failed builds, and config damage often enough that speed matters.</p></article>
+          <article class="card"><div class="kicker">Confidence</div><h3>Trust the outcome</h3><p>The value is not only the repair. It is knowing what changed and whether the result really worked.</p></article>
+          <article class="card"><div class="kicker">Support</div><h3>Get help if the edge case is rough</h3><p>Support exists so the product keeps getting better on real broken projects, not just polished demos.</p></article>
+        </div>
       </div></section>
       <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The practical questions people ask right before paying.</p><div class="faq-grid">
-        <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp, where you can download the app, sign in or restore access, and confirm the paid tier from the account surface and desktop settings.</p></article>
-        <article class="faq-item"><h3>How does restore work?</h3><p>Paid access is anchored to the billing email. If a device loses entitlement state, use the restore path in the app or account page before contacting support.</p></article>
-        <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Billing is handled through Stripe, and the billing portal is the canonical place to manage cancellation, plan changes, and payment method updates.</p></article>
-        <article class="faq-item"><h3>What does Early Access mean here?</h3><p>It means the product is paid and supportable today, but platform edges like signing and broader rollout are still being tightened in public rather than hidden behind vague promises.</p></article>
+        <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp so you can download the app, restore access if needed, and start fixing projects immediately.</p></article>
+        <article class="faq-item"><h3>How does restore work?</h3><p>Paid access is tied to your billing email. If a device loses entitlement state, use the restore path in the app or account page first.</p></article>
+        <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Billing is handled through Stripe, and the billing portal is the place to cancel, change plans, or update payment details.</p></article>
+        <article class="faq-item"><h3>Why is there only one Pro button?</h3><p>The pricing page only advertises plans that are active in the current checkout catalog. If annual returns later, it should come back with a live Stripe price first.</p></article>
       </div></section>
     `
   },
@@ -1100,23 +1318,27 @@ const pages = [
     route: "team",
     path: "/team",
     page: "team",
-    title: "RinaWarp Team | Team AI Terminal for Developers",
-    description: "RinaWarp Team gives growing teams a seat-based AI terminal with trusted execution, invite management, audit visibility, and workspace-aware rollout.",
+    title: "RinaWarp Power | Team AI Terminal for Developers",
+    description: "RinaWarp Power gives growing teams a seat-based AI terminal with trusted execution, invite management, audit visibility, and workspace-aware rollout.",
     eyebrow: "Team plan",
-    heading: "RinaWarp Team is seat-based, proof-backed, and ready for real rollout.",
-    copy: "The Team plan is for teams that need multi-seat rollout, role boundaries, proof-backed execution, and a cleaner path from checkout to workspace administration.",
+    heading: "Fix broken projects together.",
+    copy: "We built this because broken projects waste hours. The Power plan makes fixes, proof, and rollout easier to share across a team.",
     content: `
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Why we built Power</h2>
+        <p class="section-copy">Broken projects waste team time fast. This tool exists so the team can fix them faster, see what changed, and roll it out without extra coordination overhead.</p>
+      </div></section>
       <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">Pricing</div><h3>$49 per user / month</h3><p>Team pricing is seat-based so billing, workspace limits, and invite pressure stay aligned instead of drifting apart.</p></article>
-        <article class="card"><div class="kicker">Roles</div><h3>Owner, admin, and member boundaries</h3><p>The product stack already includes role-aware workspace and invite primitives, so Team maps to real behavior instead of generic account fluff.</p></article>
-        <article class="card"><div class="kicker">Support</div><h3>Priority rollout help</h3><p>We still help with the first rollout, but the checkout path, invite controls, and audit surface no longer depend on founder DMs to exist.</p></article>
+        <article class="card"><div class="kicker">Pricing</div><h3>$40 per user / month</h3><p>Seat-based pricing keeps billing, workspace limits, and rollout pressure aligned as the team grows.</p></article>
+        <article class="card"><div class="kicker">Roles</div><h3>Owner, admin, and member boundaries</h3><p>Roles and invite controls exist so the team can adopt RinaWarp without guessing who can do what.</p></article>
+        <article class="card"><div class="kicker">Support</div><h3>Priority rollout help</h3><p>We help teams get to a clean first rollout and keep moving when a project failure blocks the whole group.</p></article>
       </div></section>
       <section class="section"><div class="panel stack">
-        <h2 class="section-title">What Team includes now</h2>
+        <h2 class="section-title">What Power includes</h2>
         <div class="grid three-up">
-          <article class="card"><h3>Proof-backed team workflows</h3><p>Shared expectations around receipts, run proof, recovery, and safer execution than generic AI terminal tooling.</p></article>
-          <article class="card"><h3>Seat and invite management</h3><p>Roles, invite flows, seat tracking, and team state already exist in the product stack and now have a direct checkout path.</p></article>
-          <article class="card"><h3>Workspace audit visibility</h3><p>Workspace events and audit history are already part of the backend surface, which means Team can ship with inspectable admin behavior instead of blind trust.</p></article>
+          <article class="card"><h3>Proof-backed team workflows</h3><p>Everyone can see the repair path, the outcome, and the evidence instead of sharing guesses in chat.</p></article>
+          <article class="card"><h3>Seat and invite management</h3><p>Roles, invites, seat tracking, and workspace state are built into the rollout path.</p></article>
+          <article class="card"><h3>Workspace visibility</h3><p>Audit and workspace state are there so the team can trust the product operationally, not only emotionally.</p></article>
         </div>
         <form id="team-checkout-form" class="stack">
           <label>Billing email<input type="email" name="email" placeholder="team@company.com" required></label>
@@ -1128,7 +1350,7 @@ const pages = [
             <button type="submit" class="btn btn-primary">Start Team checkout</button>
             <a href="/feedback/?topic=team" class="btn btn-secondary">Talk to support first</a>
           </div>
-          <p id="team-checkout-status" class="status-message" aria-live="polite">Checkout opens in Stripe and uses automatic tax based on billing address.</p>
+          <p id="team-checkout-status" class="status-message" aria-live="polite">Power / Team is $40 per seat each month. Checkout opens in Stripe and uses automatic tax based on billing address.</p>
         </form>
         <div class="cta-row">
           <a href="mailto:hello@rinawarptech.com?subject=RinaWarp%20Team%20Plan" class="btn btn-secondary">Email the founder</a>
@@ -1142,14 +1364,46 @@ const pages = [
     page: "download",
     title: "Download RinaWarp Terminal Pro | Verified AI Terminal Releases",
     description: "Download verified RinaWarp Terminal Pro releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.",
-    eyebrow: "Early Access releases",
-    heading: "Download RinaWarp Terminal Pro.",
-    copy: "Choose your installer, inspect the live manifest, and verify the release before you run it.",
+    eyebrow: "Download",
+    heading: "Fix your project in under 30 seconds.",
+    copy: "Download RinaWarp and let it fix your code automatically. Open the broken repo, click Fix Project, and see the proof.",
+    heroActions: `
+      <a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download for Windows</a>
+      <a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download for Linux</a>
+      <a href="/pricing/" class="btn btn-secondary">See pricing</a>
+    `,
+    heroSupport: "Windows and Linux are live. Checksums and release manifests are published so the trust story stays explicit.",
+    heroProof: `
+      <div class="hero-proof-item"><span class="hero-proof-label">Step 1</span><span class="hero-proof-value">Download and open the broken repo</span></div>
+      <div class="hero-proof-item"><span class="hero-proof-label">Step 2</span><span class="hero-proof-value">Click Fix Project and watch the repair</span></div>
+      <div class="hero-proof-item"><span class="hero-proof-label">Step 3</span><span class="hero-proof-value">Check proof, verification, and confidence</span></div>
+    `,
+    heroMedia: `
+      <div class="screenshot-frame">
+        <video controls preload="metadata" poster="${DEMO_POSTER_URL}" playsinline>
+          <source src="${DEMO_WEBM_URL}" type="video/webm">
+          <source src="${DEMO_MP4_URL}" type="video/mp4">
+        </video>
+      </div>
+    `,
     content: `
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">How it works</h2>
+        <div class="grid three-up">
+          <article class="card"><div class="kicker">1</div><h3>Download</h3><p>Install RinaWarp on Windows or Linux and open the repo that is blocking you.</p></article>
+          <article class="card"><div class="kicker">2</div><h3>Open the project</h3><p>Let the app inspect the actual workspace instead of explaining the problem from memory.</p></article>
+          <article class="card"><div class="kicker">3</div><h3>Click Fix Project</h3><p>Watch the repair happen, then check the proof to confirm the project is working again.</p></article>
+        </div>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">See it fix a real project</h2>
+        <p class="section-copy">One real RinaWarp screen is enough here. The goal is fast belief, not more clutter.</p>
+        <div class="screenshot-frame"><img src="/assets/img/proof-after-fixed-project.png" alt="Project after RinaWarp repair showing verified success" width="1356" height="697" loading="lazy" decoding="async"></div>
+      </div></section>
       <section class="section"><div class="download-grid">
-        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and is the easiest way to get running on a clean machine, but you should expect to install newer <strong>.deb</strong> packages manually. <strong>AppImage</strong> is the Linux path for <strong>in-app updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install.</p></article>
-        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a></div><p class="note"><strong>Plain trust note:</strong> Windows signing is still a follow-up investment. Depending on your system, SmartScreen may ask for extra confirmation before the installer runs. We would rather say that directly than pretend the trust path is finished.</p></article>
-        <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS signing is not enabled yet. We would rather say that plainly than ship a rough installer path we cannot support.</p><div class="link-row"><a href="/feedback/" class="btn btn-secondary">Ask about macOS</a></div></article>
+        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the fastest way to get running on Debian and Ubuntu. <strong>AppImage</strong> is the better choice if you want the in-app update path later.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Update note:</strong> If you install with <code>.deb</code>, update with the next <code>.deb</code>. If you want automatic in-app updates, use AppImage and keep that as your main install.</p></article>
+        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows is the simplest path if you want to download, open the repo, and try the repair flow right away.</p><div class="link-row"><a href="/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a></div><p class="note"><strong>Trust note:</strong> Windows signing is still a follow-up investment. SmartScreen may ask for extra confirmation, and we would rather say that plainly than hide it.</p></article>
+        <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS is not live yet because we do not want to ship a rough installer path we cannot support well.</p><div class="link-row"><a href="/feedback/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
       <section class="section"><div class="panel stack"><div class="card trust-note"><h3>Verification matters more than vibes</h3><p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p></div><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="/releases/latest.json" class="btn btn-secondary">Open latest.json</a><a href="/releases/latest.yml" class="btn btn-secondary">Open latest.yml</a><a href="/releases/latest-linux.yml" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The canonical updater feed lives on <code>rinawarptech.com/releases/*</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
     `
@@ -1287,19 +1541,48 @@ const pages = [
     `
   },
   {
+    route: "agents",
+    path: "/agents",
+    page: "docs",
+    title: "RinaWarp Agents | Agents That Analyze and Fix Code",
+    description: "Explore RinaWarp agents for deployment, diagnostics, security, and repeated code-fix workflows that help analyze and fix projects automatically.",
+    eyebrow: "Agents",
+    heading: "Agents that analyze and fix your code automatically.",
+    copy: "These agents extend what Rina can fix inside the desktop app. Think deployment helpers, diagnostics, security, and repeated repair workflows, not abstract system architecture.",
+    content: `
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">What agents are for</h2>
+        <p class="section-copy">Agents should tie directly to outcomes: analyze the repo, diagnose the failure, run the repair workflow, and keep proof attached so the result is easier to trust.</p>
+      </div></section>
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Deployment agents</h3><p>Handle repeated deploy and environment workflows without turning every release into manual terminal archaeology.</p></article>
+        <article class="card"><h3>Diagnostics agents</h3><p>Inspect failures, gather the useful context, and move the project toward a fix faster.</p></article>
+        <article class="card"><h3>Security and repair agents</h3><p>Help with repeated code-fix flows where clear steps, visible changes, and proof matter.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Need an agent we do not ship yet?</h2>
+        <p class="section-copy">Tell us what broke and what you want Rina to fix. We are prioritizing real deploy, diagnostics, security, and code-fix workflows over random breadth.</p>
+        <div class="cta-row">
+          <a href="/feedback/" class="btn btn-primary">Request an agent</a>
+          <a href="/download/" class="btn btn-secondary">Try RinaWarp now</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
     route: "feedback",
     path: "/feedback",
     page: "feedback",
     title: "RinaWarp Support | Help, Feedback, and Contact",
     description: "Contact RinaWarp for product support, billing help, restore issues, feedback, launch questions, and capability requests.",
     eyebrow: "Support & feedback",
-    heading: "Tell us what happened.",
-    copy: "Launch questions, feature requests, bug reports, and capability requests are all welcome. If something broke, give us the clearest description you can and we’ll use it to tighten the product.",
+    heading: "Help us fix more broken projects.",
+    copy: "Tell us what broke and we’ll make it more fixable. Good reports turn directly into better fixes, better trust, and better recovery paths.",
     content: `
       <section class="section"><div class="grid three-up">
-        <article class="card"><h3>Support</h3><p>If you are stuck on a paid workflow or launch issue, email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p></article>
-        <article class="card"><h3>General contact</h3><p>For partnership, launch, or founder access questions, email <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>.</p></article>
-        <article class="card"><h3>Fastest useful bug report</h3><p>Tell us what you asked Rina to do, what you expected, what actually happened, and whether a run or recovery card was visible.</p></article>
+        <article class="card"><h3>Support</h3><p>If you are blocked on billing, restore, or launch issues, email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p></article>
+        <article class="card"><h3>General contact</h3><p>For partnerships, launch questions, or founder access, email <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>.</p></article>
+        <article class="card"><h3>Best report format</h3><p>Tell us what was broken, what you asked Rina to do, what changed, and whether the final proof matched reality.</p></article>
       </div></section>
       <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Topic<select name="topic"><option value="support">Support</option><option value="bug">Bug report</option><option value="billing">Billing</option><option value="team">Team plan</option><option value="feature">Feature request</option><option value="launch">Launch / partnership</option></select></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message" aria-live="polite"></p></form></div></section>
     `
@@ -1367,7 +1650,7 @@ const pages = [
     description: "Sign in to your RinaWarp account.",
     eyebrow: "Welcome back",
     heading: "Sign in to your account",
-    copy: "Use your RinaWarp account to manage billing, recover access on a new device, and keep your Early Access install connected.",
+    copy: "Use your RinaWarp account to manage billing, recover access on a new device, and keep your install connected.",
     content: `<section class="section"><div class="auth-container"><div class="auth-card stack"><h2 class="section-title">Sign In</h2><form id="login-form"><label>Email<input type="email" name="email" placeholder="you@company.com" required></label><label>Password<input type="password" name="password" placeholder="Enter your password" required></label><button type="submit" class="btn btn-primary">Sign In</button><p id="login-status" class="status-message"></p></form><div class="link-row"><a class="btn btn-secondary" href="/register/">Create account</a><a class="btn btn-secondary" href="/forgot-password/">Forgot password</a></div></div></div></section>`
   },
   {
@@ -1408,10 +1691,10 @@ const pages = [
     path: "/account",
     page: "account",
     title: "RinaWarp Account | Billing, Restore, and Access",
-    description: "Manage your RinaWarp account, billing, restore flow, and Early Access access in one place.",
+    description: "Manage your RinaWarp account, billing, restore flow, and paid access in one place.",
     eyebrow: "Account",
     heading: "Your account",
-    copy: "Manage your RinaWarp Terminal Pro account, billing, restore flow, and Early Access support boundaries.",
+    copy: "Manage your RinaWarp Terminal Pro account, billing, restore flow, and support boundaries.",
     content: `
       <section class="section"><div class="auth-container stack">
         <div class="auth-card stack" id="account-gate" hidden>
@@ -1425,6 +1708,26 @@ const pages = [
           <div class="pill" id="account-tier">—</div>
           <p id="account-tier-note" class="section-copy">We verify your signed-in tier and billing state before showing live controls.</p>
           <div class="link-row"><button class="btn btn-primary" id="billing-portal-btn" type="button">Open billing portal</button><button class="btn btn-secondary" id="logout-btn" type="button">Sign out</button></div>
+        </div>
+        <div class="auth-card stack" id="account-referral" hidden>
+          <h2 class="section-title">Invite someone who has a broken project</h2>
+          <p class="section-copy">Share your link right after a win. We track started checkouts and paid conversions here so the loop is real, not hand-wavy.</p>
+          <div class="pill">Referral code: <span id="account-referral-code">—</span></div>
+          <label>Invite link<input id="account-invite-link" type="text" value="" readonly></label>
+          <div class="link-row"><button class="btn btn-primary" id="copy-invite-link-btn" type="button">Copy invite link</button></div>
+          <p id="account-referral-stats" class="section-copy">0 checkout(s) started • 0 paid conversion(s)</p>
+          <p id="account-referral-status" class="status-message" aria-live="polite"></p>
+        </div>
+        <div class="auth-card stack" id="account-referral-admin" hidden>
+          <h2 class="section-title">Referral lookup</h2>
+          <p class="section-copy">Support can look up a referral code or owner email here without querying the database manually.</p>
+          <form id="account-referral-admin-form" class="stack">
+            <label>Referral code<input type="text" name="code" placeholder="A44K5"></label>
+            <label>Owner email<input type="email" name="email" placeholder="founder@company.com"></label>
+            <button class="btn btn-secondary" type="submit">Lookup referral</button>
+            <p id="account-referral-admin-status" class="status-message" aria-live="polite"></p>
+          </form>
+          <pre id="account-referral-admin-output" class="status-message" style="white-space:pre-wrap"></pre>
         </div>
         <div class="auth-card stack" id="restore">
           <h2 class="section-title">Restore Pro access</h2>
@@ -1447,7 +1750,7 @@ const pages = [
       <section class="section"><div class="grid three-up">
         <article class="card"><div class="kicker">1. Install</div><h3>Download the app</h3><p>Use the Windows installer or choose the Linux path that matches how you want updates to work: <strong>.deb</strong> for the easiest Debian/Ubuntu install, or <strong>AppImage</strong> if you want Linux in-app updates.</p><div class="link-row"><a href="/download/" class="btn btn-primary">Open download page</a></div></article>
         <article class="card"><div class="kicker">2. Restore</div><h3>Use your billing email</h3><p>Open Account in the app and restore paid access using <strong data-success-email>the billing email you used at checkout</strong>.</p><div class="link-row"><a id="success-restore-link" href="/account/" class="btn btn-secondary">Open account help</a></div></article>
-        <article class="card"><div class="kicker">3. Verify</div><h3>Make sure the tier shows up</h3><p>Your plan should show as <strong id="success-plan">Pro Early Access</strong>. If it does not, use billing restore or contact support.</p><div class="link-row"><a href="/feedback/?topic=billing" class="btn btn-secondary">Get billing help</a></div></article>
+        <article class="card"><div class="kicker">3. Verify</div><h3>Make sure the tier shows up</h3><p>Your plan should show as <strong id="success-plan">Pro</strong>. If it does not, use billing restore or contact support.</p><div class="link-row"><a href="/feedback/?topic=billing" class="btn btn-secondary">Get billing help</a></div></article>
       </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Checkout receipt details</h2>

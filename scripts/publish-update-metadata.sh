@@ -7,6 +7,8 @@ INSTALLER_DIR="$APP_DIR/dist-electron/installer"
 PUBLIC_INSTALLERS_BASE="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev"
 PUBLIC_UPDATES_BUCKET="rinawarp-updates"
 TMP_DIR="$(mktemp -d)"
+VERSION="$(node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('$APP_DIR/package.json','utf8')); process.stdout.write(pkg.version)")"
+CHANNEL="$(node -e "const version=process.argv[1]; process.stdout.write(/-alpha\\./.test(version) ? 'alpha' : /-beta\\./.test(version) ? 'beta' : 'stable')" "$VERSION")"
 
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -17,13 +19,14 @@ cd "$ROOT_DIR"
 
 corepack pnpm --filter rinawarp-terminal-pro exec node scripts/generate-update-metadata.mjs
 
-PUBLIC_INSTALLERS_BASE="$PUBLIC_INSTALLERS_BASE" INSTALLER_DIR="$INSTALLER_DIR" TMP_DIR="$TMP_DIR" node <<'EOF'
+PUBLIC_INSTALLERS_BASE="$PUBLIC_INSTALLERS_BASE" INSTALLER_DIR="$INSTALLER_DIR" TMP_DIR="$TMP_DIR" CHANNEL="$CHANNEL" node <<'EOF'
 const fs = require('fs')
 const path = require('path')
 
 const installerDir = process.env.INSTALLER_DIR
 const tmpDir = process.env.TMP_DIR
 const installersBase = process.env.PUBLIC_INSTALLERS_BASE.replace(/\/+$/, '')
+const channel = process.env.CHANNEL || 'stable'
 
 function rewriteJson(relativePath) {
   const source = path.join(installerDir, relativePath)
@@ -72,26 +75,40 @@ function rewriteYml(relativePath) {
   fs.writeFileSync(target, rewritten)
 }
 
-rewriteJson('latest.json')
-rewriteJson(path.join('stable', 'latest.json'))
-rewriteYml('latest.yml')
-rewriteYml('latest-linux.yml')
-rewriteYml(path.join('stable', 'latest.yml'))
-rewriteYml(path.join('stable', 'latest-linux.yml'))
+rewriteJson(path.join(channel, 'latest.json'))
+rewriteYml(path.join(channel, 'latest.yml'))
+rewriteYml(path.join(channel, 'latest-linux.yml'))
+if (channel === 'stable') {
+  rewriteJson('latest.json')
+  rewriteJson(path.join('stable', 'latest.json'))
+  rewriteYml('latest.yml')
+  rewriteYml('latest-linux.yml')
+  rewriteYml(path.join('stable', 'latest.yml'))
+  rewriteYml(path.join('stable', 'latest-linux.yml'))
+}
 EOF
 
-npx wrangler r2 object put rinawarp-cdn/releases/latest.json --file "$INSTALLER_DIR/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
 npx wrangler r2 object put rinawarp-cdn/releases/SHASUMS256.txt --file "$INSTALLER_DIR/SHASUMS256.txt" --remote --content-type "text/plain; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put rinawarp-cdn/releases/latest.yml --file "$INSTALLER_DIR/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put rinawarp-cdn/releases/latest-linux.yml --file "$INSTALLER_DIR/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put rinawarp-cdn/releases/stable/latest.json --file "$INSTALLER_DIR/stable/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put rinawarp-cdn/releases/stable/latest.yml --file "$INSTALLER_DIR/stable/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put rinawarp-cdn/releases/stable/latest-linux.yml --file "$INSTALLER_DIR/stable/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/latest.json" --file "$TMP_DIR/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/latest.yml" --file "$TMP_DIR/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/latest-linux.yml" --file "$TMP_DIR/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/stable/latest.json" --file "$TMP_DIR/stable/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/stable/latest.yml" --file "$TMP_DIR/stable/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/stable/latest-linux.yml" --file "$TMP_DIR/stable/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+npx wrangler r2 object put "rinawarp-cdn/releases/$CHANNEL/latest.json" --file "$INSTALLER_DIR/$CHANNEL/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+npx wrangler r2 object put "rinawarp-cdn/releases/$CHANNEL/latest.yml" --file "$INSTALLER_DIR/$CHANNEL/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+npx wrangler r2 object put "rinawarp-cdn/releases/$CHANNEL/latest-linux.yml" --file "$INSTALLER_DIR/$CHANNEL/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/$CHANNEL/latest.json" --file "$TMP_DIR/$CHANNEL/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/$CHANNEL/latest.yml" --file "$TMP_DIR/$CHANNEL/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/$CHANNEL/latest-linux.yml" --file "$TMP_DIR/$CHANNEL/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
 
-echo "[publish:update-metadata] Uploaded latest.yml and latest-linux.yml to R2"
+if [[ "$CHANNEL" == "stable" ]]; then
+  npx wrangler r2 object put rinawarp-cdn/releases/latest.json --file "$INSTALLER_DIR/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put rinawarp-cdn/releases/latest.yml --file "$INSTALLER_DIR/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put rinawarp-cdn/releases/latest-linux.yml --file "$INSTALLER_DIR/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put rinawarp-cdn/releases/stable/latest.json --file "$INSTALLER_DIR/stable/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put rinawarp-cdn/releases/stable/latest.yml --file "$INSTALLER_DIR/stable/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put rinawarp-cdn/releases/stable/latest-linux.yml --file "$INSTALLER_DIR/stable/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/latest.json" --file "$TMP_DIR/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/latest.yml" --file "$TMP_DIR/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/latest-linux.yml" --file "$TMP_DIR/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/stable/latest.json" --file "$TMP_DIR/stable/latest.json" --remote --content-type "application/json; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/stable/latest.yml" --file "$TMP_DIR/stable/latest.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+  npx wrangler r2 object put "$PUBLIC_UPDATES_BUCKET/stable/latest-linux.yml" --file "$TMP_DIR/stable/latest-linux.yml" --remote --content-type "application/x-yaml; charset=utf-8" --cache-control "public, max-age=60, must-revalidate" --config website/wrangler.toml
+fi
+
+echo "[publish:update-metadata] Uploaded $CHANNEL update metadata to R2"

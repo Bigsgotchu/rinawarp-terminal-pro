@@ -1,114 +1,105 @@
-# Show HN Draft - RinaWarp Terminal Pro
+# Show HN Draft - RinaWarp
 
 ## Title
 
-**RinaWarp – agent-first desktop app that diagnoses system errors and shows proof**
-
-*(Avoid "First AI" claims - HN readers are skeptical of hype. Be factual.)*
-
----
+**Show HN: RinaWarp - desktop app that fixes broken projects automatically**
 
 ## Post Body
 
-I built RinaWarp to help developers debug system problems without hours of trial and error.
+I built RinaWarp around one very specific job:
 
-You tell Rina what is broken in plain language. She explains what it means, suggests a safe plan, runs the work in the background, and leaves proof attached to the thread. You approve any high-impact change before it runs.
+fix a broken project automatically, then prove what changed.
 
-### Example
+Most AI dev tools stop at suggestions or chat. RinaWarp is built around a tighter loop:
 
-```
-You: docker build is failing, fix the safest thing first
+- detect what is broken
+- show a repair plan
+- execute the repair with live output
+- verify whether the project actually works
+- attach proof, changed files, and a confidence score to the result
 
-Rina: Docker cannot reach the registry.
-Plan: verify auth, then try docker login if needed.
-Action: docker login
-Proof: runId + receipt + execution trace
-```
+The main flow is called `Fix Project`.
 
-### Why this matters
+### What it looks like
 
-Developers lose time to system issues:
-- Broken environments
-- Dependency conflicts
-- Container failures
-- Obscure error codes
+Broken project:
 
-RinaWarp helps you fix these and get back to work.
-
-### Install
-
-```bash
-curl -fsSL https://rinawarptech.com/install | bash
+```text
+> npm run build
+Module not found: react-scripts
 ```
 
-Linux/macOS. No dependencies. v1.0.4
+RinaWarp:
 
-### Security
+```text
+> rina fix
+Installing missing dependency
+Updating project config
+Rebuilding project
+Build successful
+```
 
-- Commands shown before execution
-- High-risk commands require approval
-- No telemetry by default
-- Audit logs optional
+Then the app summarizes the result in plain language, for example:
 
----
+```text
+Fixed 3 issues
+- Installed missing dependencies
+- Updated project configuration
+- Resolved build errors
+
+Project now builds successfully.
+Confidence: High
+```
+
+### Why I built it
+
+I wanted something that felt less like "AI pair programmer chat" and more like:
+
+"this just saved me hours"
+
+The product is strongest when you have a broken local repo, messy setup drift, config issues, missing dependencies, or build failures and you want one button that starts moving immediately.
+
+### Current focus
+
+Right now I'm testing this against real broken repos and tightening whatever fails in practice.
+
+I care most about three questions:
+
+1. Did it fix something real?
+2. Where did it fail?
+3. Was anything confusing?
+
+### Demo / site
+
+- Site: `https://rinawarptech.com`
+- Download: `https://rinawarptech.com/download`
 
 ## Prepared Responses
 
-### Q: What AI model do you use?
+### Q: How is this different from Cursor / Claude Code / ChatGPT?
 
-A: RinaWarp uses a combination of local analysis (for fast diagnostics) and cloud AI (for complex problem-solving). The system is transparent about which mode it's using.
+A: The point is not "better chat." The point is a tighter repair loop: detect, fix, verify, prove. The product is optimized around fixing broken projects, not around being a general-purpose coding assistant first.
 
-### Q: How is this different from Claude Code or Cursor?
+### Q: Does it auto-run dangerous commands?
 
-A: RinaWarp focuses specifically on system-level diagnostics and execution trust rather than writing new code. The thread is primary, execution happens in the background, and proof stays attached to the work.
+A: No. High-impact steps are gated. The UI shows the plan first, streams the execution live, and keeps proof attached to the result.
 
-### Q: Does this work offline?
+### Q: What kinds of projects does it work best on?
 
-A: Basic diagnostics work offline. For complex problem-solving, it can optionally use cloud AI. You control the balance between local-only and cloud-assisted mode.
+A: Right now the sweet spot is Node, React, Next.js, Electron, and TypeScript repos with broken local setup, dependency issues, config drift, and build/test failures.
 
-### Q: What data leaves my machine?
+### Q: Is this a cloud service or local app?
 
-A: By default, only diagnostic metadata (error codes, system stats) is sent to the AI. No file contents, no secrets, no personal data. Fully local mode is available.
+A: The main product is a desktop app. The experience is built around local project inspection, execution visibility, and proof-backed results.
 
-### Q: How do I verify the downloads?
+### Q: What are you learning from launch?
 
-A: Every release includes GPG-signed checksums:
-```bash
-curl -fsSL https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/download/v1.0.4/RINAWARP_GPG_PUBLIC_KEY.asc | gpg --import
-gpg --verify SHASUMS256.txt.asc SHASUMS256.txt
-```
+A: Whether people actually trust and reuse a one-button repair workflow. The main metric is simple: does it fix real broken repos for real people.
 
----
+## Launch Rule
 
-## HN Tips
+Keep the story simple:
 
-1. **Post early morning PT** (7-9am) for front page potential
-2. **Respond quickly** - First hour is critical
-3. **No placeholders** - Don't include broken image links
-4. **Be factual** - HN audience values restraint over hype
-5. **Position as diagnostic tool** - Not "autonomous fixer of everything"
+**Fix your broken project automatically.**
 
----
-
-## Distribution Strategy (Beyond HN)
-
-Don't rely on HN alone. Plan for:
-
-1. **GitHub Launch** - Post to relevant repos, engage in developer communities
-2. **Twitter/X** - Share demo clips, engage with developer influencers
-3. **Reddit** - Post to r/programming, r/devops, r/docker
-4. **Product Hunt** - Launch there after HN gains traction
-
-Traffic diversity matters. HN alone is volatile.
-
----
-
-## Positioning for Credibility
-
-HN audiences are skeptical of AI claims. Position RinaWarp as:
-
-✅ **A diagnostic tool that helps humans fix problems**
-
-❌ **NOT an autonomous fixer of everything**
-
-This builds credibility and sets accurate expectations.
+Everything else is supporting detail.

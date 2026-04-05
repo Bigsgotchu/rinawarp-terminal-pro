@@ -32,12 +32,12 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     keywords: 'capability packs, AI agents, marketplace, RinaWarp, developer tools, automation',
   },
   '/pricing': {
-    title: 'RinaWarp Terminal Pro Pricing | AI Terminal Plans',
+    title: 'RinaWarp Pricing | Fix Your Broken Project Automatically',
     description:
-      'See RinaWarp Terminal Pro pricing for individual and team AI terminal plans with trusted execution, receipts, recovery, and Early Access support.',
+      'See RinaWarp pricing for Free, Pro, Power, and one-fix checkout plans built around one promise: fix your broken project automatically with proof.',
     canonical: 'https://rinawarptech.com/pricing',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'pricing, subscription, RinaWarp, plans, proof-backed AI, agent workbench',
+    keywords: 'pricing, fix project, developer tool pricing, RinaWarp, AI repair, proof-backed fixes',
   },
   '/download': {
     title: 'Download RinaWarp Terminal Pro | Verified AI Terminal Releases',

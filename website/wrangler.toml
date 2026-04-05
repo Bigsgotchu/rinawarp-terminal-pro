@@ -8,15 +8,15 @@ pattern = "rinawarptech.com/v1/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
-pattern = "rinawarptech.com/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
 pattern = "rinawarptech.com/agents"
 zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "rinawarptech.com/api/stripe/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/releases/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
@@ -52,47 +52,19 @@ pattern = "rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/api/referrals/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/api/vscode/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
-pattern = "rinawarptech.com/download"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/download/"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/download/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "rinawarptech.com/releases/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "www.rinawarptech.com/download"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "www.rinawarptech.com/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "www.rinawarptech.com/download/"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "www.rinawarptech.com/download/*"
+pattern = "www.rinawarptech.com/api/stripe/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "www.rinawarptech.com/releases/*"
-zone_name = "rinawarptech.com"
-
-[[routes]]
-pattern = "www.rinawarptech.com/api/stripe/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
@@ -125,6 +97,10 @@ zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "www.rinawarptech.com/api/auth/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/referrals/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]

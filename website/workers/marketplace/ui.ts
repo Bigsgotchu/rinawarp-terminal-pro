@@ -320,14 +320,14 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
 
   <main id="main-content" tabindex="-1">
     <div class="hero">
-      <span class="eyebrow">Capability packs</span>
-      <h1>Capability packs for the proof-first workbench.</h1>
-      <p class="subtitle">These packs extend what Rina can do inside the desktop app. Think deployment helpers, diagnostics, security, and repeated workflows, not a detached plugin bazaar.</p>
+      <span class="eyebrow">Agents</span>
+      <h1>Agents that analyze and fix your code automatically.</h1>
+      <p class="subtitle">These packs extend what Rina can fix inside the desktop app. Think deployment helpers, diagnostics, security, and repeated repair workflows, not a detached plugin bazaar.</p>
     </div>
     
     <div class="container">
       <div class="summary">
-        <span>${apiAvailable ? (selectedAgent ? `Showing recommended pack: ${escapeHtml(selectedAgent)}.` : 'Curated marketplace live.') : 'Marketplace data is temporarily unavailable.'}</span>
+        <span>${apiAvailable ? (selectedAgent ? `Showing recommended agent: ${escapeHtml(selectedAgent)}.` : 'Focused code-fix agents are live.') : 'Agent data is temporarily unavailable.'}</span>
         <span class="agent-count">${agents.length} agents</span>
       </div>
       
@@ -342,9 +342,9 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
       }
       
       <div class="cta">
-        <h2>Need a pack we do not ship yet?</h2>
-        <p>Tell us what workflow you want to trust Rina with. We are prioritizing real deploy, diagnostics, and operator flows over random breadth.</p>
-        <a href="/feedback">Request a capability pack</a>
+        <h2>Need an agent we do not ship yet?</h2>
+        <p>Tell us what broke and what you want Rina to fix. We are prioritizing deploy, diagnostics, security, and repeated code-fix workflows over random breadth.</p>
+        <a href="/feedback">Request an agent</a>
       </div>
     </div>
   </main>

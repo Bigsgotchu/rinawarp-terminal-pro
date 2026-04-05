@@ -59,6 +59,188 @@ function rwRedirect(location: string, status = 302): Response {
   return new Response(null, { status, headers })
 }
 
+function getDb(env: any): D1Database | null {
+  return env.RINAWARP_DB || null
+}
+
+function nowSeconds(): number {
+  return Math.floor(Date.now() / 1000)
+}
+
+function generateReferralCode(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(5)))
+    .map((value) => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[value % 32])
+    .join('')
+}
+
+function normalizeReferralCode(value: unknown): string {
+  return String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 24)
+}
+
+function isReferralAdminEmail(email: string): boolean {
+  const normalized = String(email || '').trim().toLowerCase()
+  return normalized === 'support@rinawarptech.com' || normalized === 'hello@rinawarptech.com'
+}
+
+async function getAuthenticatedUserFromRequest(request: Request, env: any): Promise<{ userId: string; email: string } | null> {
+  const token = extractToken(request.headers.get('Authorization'))
+  if (!token || !env.AUTH_SECRET) return null
+  const payload = await verifyToken(token, env.AUTH_SECRET)
+  const userId = String(payload?.userId || '').trim()
+  const email = String(payload?.email || '').trim().toLowerCase()
+  if (!userId || !email) return null
+  return { userId, email }
+}
+
+async function ensureReferralIdentity(env: any, userId: string): Promise<{ code: string; inviteUrl: string } | null> {
+  const db = getDb(env)
+  if (!db) return null
+  try {
+    const existing = await db.prepare(
+      'SELECT code FROM referral_codes WHERE user_id = ?'
+    ).bind(userId).first<{ code: string }>()
+
+    if (existing?.code) {
+      return {
+        code: existing.code,
+        inviteUrl: `https://rinawarptech.com/download/?ref=${encodeURIComponent(existing.code)}`,
+      }
+    }
+
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const code = generateReferralCode()
+      try {
+        const ts = nowSeconds()
+        await db.prepare(
+          'INSERT INTO referral_codes (id, user_id, code, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
+        ).bind(`refcode_${crypto.randomUUID()}`, userId, code, ts, ts).run()
+
+        return {
+          code,
+          inviteUrl: `https://rinawarptech.com/download/?ref=${encodeURIComponent(code)}`,
+        }
+      } catch (error) {
+        console.warn('[referrals] could not create referral code on attempt', attempt + 1, error)
+      }
+    }
+  } catch (error) {
+    console.warn('[referrals] referral identity unavailable', error)
+  }
+
+  return null
+}
+
+async function getReferralSummary(env: any, userId: string): Promise<{
+  code: string
+  inviteUrl: string
+  stats: { clicks: number; checkouts: number; conversions: number }
+} | null> {
+  const identity = await ensureReferralIdentity(env, userId)
+  const db = getDb(env)
+  if (!identity || !db) return null
+  try {
+    const stats = await db.prepare(`
+      SELECT
+        SUM(CASE WHEN event_type = 'checkout_started' THEN 1 ELSE 0 END) AS checkouts,
+        SUM(CASE WHEN event_type = 'checkout_completed' THEN 1 ELSE 0 END) AS conversions,
+        COUNT(*) AS clicks
+      FROM referral_events
+      WHERE referrer_user_id = ?
+    `).bind(userId).first<{ checkouts?: number; conversions?: number; clicks?: number }>()
+
+    return {
+      code: identity.code,
+      inviteUrl: identity.inviteUrl,
+      stats: {
+        clicks: Number(stats?.clicks || 0),
+        checkouts: Number(stats?.checkouts || 0),
+        conversions: Number(stats?.conversions || 0),
+      },
+    }
+  } catch (error) {
+    console.warn('[referrals] referral summary unavailable', error)
+    return {
+      code: identity.code,
+      inviteUrl: identity.inviteUrl,
+      stats: { clicks: 0, checkouts: 0, conversions: 0 },
+    }
+  }
+}
+
+async function maybeTrackReferralEvent(env: any, input: {
+  referralCode?: string | null
+  eventType: 'checkout_started' | 'checkout_completed'
+  referredEmail?: string | null
+  checkoutSessionId?: string | null
+  source?: string | null
+  metadata?: Record<string, unknown>
+}): Promise<void> {
+  const db = getDb(env)
+  const code = normalizeReferralCode(input.referralCode)
+  if (!db || !code) return
+  try {
+    const referral = await db.prepare(
+      'SELECT user_id FROM referral_codes WHERE code = ?'
+    ).bind(code).first<{ user_id: string }>()
+
+    if (!referral?.user_id) return
+
+    const ts = nowSeconds()
+    if (input.eventType === 'checkout_completed' && input.checkoutSessionId) {
+      const updated = await db.prepare(`
+      UPDATE referral_events
+      SET event_type = 'checkout_completed',
+          checkout_session_id = COALESCE(checkout_session_id, ?),
+          metadata_json = ?,
+          converted_at = ?,
+          referred_email = COALESCE(referred_email, ?)
+      WHERE referral_code = ?
+        AND referrer_user_id = ?
+        AND (
+          checkout_session_id = ?
+          OR (checkout_session_id IS NULL AND event_type = 'checkout_started')
+        )
+    `).bind(
+      input.checkoutSessionId,
+      JSON.stringify(input.metadata || {}),
+      ts,
+      String(input.referredEmail || '').trim().toLowerCase() || null,
+      code,
+      referral.user_id,
+      input.checkoutSessionId,
+    ).run()
+
+      if (Number(updated.meta?.changes || 0) > 0) {
+        return
+      }
+    }
+
+    await db.prepare(`
+      INSERT INTO referral_events (
+        id, referral_code, referrer_user_id, referred_email, event_type,
+        checkout_session_id, source, metadata_json, created_at, converted_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      `refevt_${crypto.randomUUID()}`,
+      code,
+      referral.user_id,
+      String(input.referredEmail || '').trim().toLowerCase() || null,
+      input.eventType,
+      input.checkoutSessionId || null,
+      String(input.source || 'website').trim() || 'website',
+      JSON.stringify(input.metadata || {}),
+      ts,
+      input.eventType === 'checkout_completed' ? ts : null,
+    ).run()
+  } catch (error) {
+    console.warn('[referrals] referral event tracking unavailable', error)
+  }
+}
+
 function primaryReleaseUrl(origin: string, fileName: string): string {
   return `${origin}/releases/${fileName.replace(/^\/+/, '')}`
 }
@@ -91,6 +273,55 @@ async function getReleaseManifest(env: any): Promise<any | null> {
   const object = await env.RINAWARP_CDN?.get('releases/latest.json')
   if (!object) return null
   return JSON.parse(await object.text())
+}
+
+async function getChannelReleaseManifest(env: any, channel: 'stable' | 'beta' | 'alpha'): Promise<any | null> {
+  const object = await env.RINAWARP_CDN?.get(`releases/${channel}/latest.json`)
+  if (!object) return null
+  return JSON.parse(await object.text())
+}
+
+function buildChannelDownloadSummary(origin: string, channel: 'stable' | 'beta' | 'alpha', manifest: any): {
+  version: string
+  url: string
+  manifestUrl: string
+  publishedAt: string | null
+  downloads: { linux?: string; deb?: string; windows?: string }
+} | null {
+  const version = typeof manifest?.version === 'string' ? manifest.version : ''
+  if (!version) return null
+  const linuxPath = manifest?.files?.linux?.path ?? null
+  const debPath = manifest?.files?.deb?.path ?? null
+  const windowsPath = manifest?.files?.windows?.path ?? null
+  const downloads = {
+    ...(linuxPath ? { linux: toAbsoluteArtifactUrl(origin, linuxPath) || undefined } : {}),
+    ...(debPath ? { deb: toAbsoluteArtifactUrl(origin, debPath) || undefined } : {}),
+    ...(windowsPath ? { windows: toAbsoluteArtifactUrl(origin, windowsPath) || undefined } : {}),
+  }
+  return {
+    version,
+    url: downloads.windows || downloads.linux || downloads.deb || `${origin}/download/`,
+    manifestUrl: `${origin}/releases/${channel}/latest.json`,
+    publishedAt: typeof manifest?.pub_date === 'string' ? manifest.pub_date : null,
+    downloads,
+  }
+}
+
+async function renderReleasesJson(env: any, origin: string): Promise<Response> {
+  const [stable, beta, alpha] = await Promise.all([
+    getChannelReleaseManifest(env, 'stable'),
+    getChannelReleaseManifest(env, 'beta'),
+    getChannelReleaseManifest(env, 'alpha'),
+  ])
+  const payload = {
+    stable: buildChannelDownloadSummary(origin, 'stable', stable),
+    beta: buildChannelDownloadSummary(origin, 'beta', beta),
+    alpha: buildChannelDownloadSummary(origin, 'alpha', alpha),
+  }
+  const headers = rwHeaders()
+  headers.set('Content-Type', 'application/json; charset=utf-8')
+  headers.set('Cache-Control', 'public, max-age=60, must-revalidate')
+  return new Response(JSON.stringify(payload, null, 2), { status: 200, headers })
 }
 
 function pickArtifactPath(manifest: any, kind: string): string | null {
@@ -2687,6 +2918,10 @@ export default {
       return renderSitemapXml(url.origin)
     }
 
+    if (path === '/releases.json') {
+      return renderReleasesJson(env, url.origin)
+    }
+
     if (path.startsWith('/downloads/terminal-pro/')) {
       const artifactName = path.split('/').pop()
       if (artifactName?.endsWith('.AppImage')) {
@@ -2960,6 +3195,14 @@ async function handleApiRequest(
     return handleAuthRequest(request, env, path)
   }
 
+  if (path === '/api/referrals/me' && request.method === 'GET') {
+    return handleReferralMeRequest(request, env, corsHeaders)
+  }
+
+  if (path === '/api/referrals/admin' && request.method === 'GET') {
+    return handleReferralAdminRequest(request, env, corsHeaders)
+  }
+
   return new Response(JSON.stringify({ error: 'Not found', path }), {
     status: 404,
     headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -2989,6 +3232,20 @@ async function handleStripeWebhook(request: Request, env: any, corsHeaders: Reco
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
       const customerEmail = session.customer_details?.email || session.customer_email
+      const referralCode = normalizeReferralCode(session.metadata?.referral_code)
+      await maybeTrackReferralEvent(env, {
+        referralCode,
+        eventType: 'checkout_completed',
+        referredEmail: customerEmail,
+        checkoutSessionId: session.id,
+        source: 'stripe_webhook',
+        metadata: {
+          tier: session.metadata?.tier || null,
+          workspaceId: session.metadata?.workspace_id || null,
+          amountTotal: session.amount_total || null,
+          currency: session.currency || null,
+        },
+      })
       console.log(`Payment completed: ${customerEmail}`)
     }
 
@@ -2998,6 +3255,171 @@ async function handleStripeWebhook(request: Request, env: any, corsHeaders: Reco
   } catch (err: any) {
     console.error('Webhook error:', err)
     return new Response(`Webhook error: ${err.message}`, { status: 400, headers: corsHeaders })
+  }
+}
+
+async function handleReferralMeRequest(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
+  const user = await getAuthenticatedUserFromRequest(request, env)
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const summary = await getReferralSummary(env, user.userId)
+  if (!summary) {
+    return new Response(JSON.stringify({ error: 'Referral identity is unavailable right now.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  return new Response(JSON.stringify({
+    ok: true,
+    email: user.email,
+    code: summary.code,
+    inviteUrl: summary.inviteUrl,
+    stats: summary.stats,
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleReferralAdminRequest(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
+  const user = await getAuthenticatedUserFromRequest(request, env)
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+  if (!isReferralAdminEmail(user.email)) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Referral database is unavailable right now.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const url = new URL(request.url)
+  const code = normalizeReferralCode(url.searchParams.get('code'))
+  const email = String(url.searchParams.get('email') || '').trim().toLowerCase()
+
+  try {
+    if (!code && !email) {
+      const stats = await db.prepare(`
+        SELECT
+          SUM(CASE WHEN event_type = 'checkout_started' THEN 1 ELSE 0 END) AS checkouts,
+          SUM(CASE WHEN event_type = 'checkout_completed' THEN 1 ELSE 0 END) AS conversions,
+          COUNT(*) AS events
+        FROM referral_events
+      `).first<{ checkouts?: number; conversions?: number; events?: number }>()
+
+      const events = await db.prepare(`
+        SELECT referral_code, event_type, referred_email, checkout_session_id, source, created_at, converted_at
+        FROM referral_events
+        ORDER BY created_at DESC
+        LIMIT 20
+      `).all<{
+        referral_code?: string
+        event_type: string
+        referred_email?: string
+        checkout_session_id?: string
+        source?: string
+        created_at: number
+        converted_at?: number
+      }>()
+
+      return new Response(JSON.stringify({
+        ok: true,
+        found: true,
+        mode: 'recent',
+        stats: {
+          events: Number(stats?.events || 0),
+          checkouts: Number(stats?.checkouts || 0),
+          conversions: Number(stats?.conversions || 0),
+        },
+        events: Array.isArray(events.results) ? events.results : [],
+      }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const referral = code
+      ? await db.prepare(`
+          SELECT rc.code, rc.user_id, u.email, u.name
+          FROM referral_codes rc
+          LEFT JOIN users u ON u.id = rc.user_id
+          WHERE rc.code = ?
+        `).bind(code).first<{ code: string; user_id: string; email?: string; name?: string }>()
+      : await db.prepare(`
+          SELECT rc.code, rc.user_id, u.email, u.name
+          FROM referral_codes rc
+          LEFT JOIN users u ON u.id = rc.user_id
+          WHERE lower(u.email) = ?
+        `).bind(email).first<{ code: string; user_id: string; email?: string; name?: string }>()
+
+    if (!referral?.code) {
+      return new Response(JSON.stringify({ ok: true, found: false }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const stats = await db.prepare(`
+      SELECT
+        SUM(CASE WHEN event_type = 'checkout_started' THEN 1 ELSE 0 END) AS checkouts,
+        SUM(CASE WHEN event_type = 'checkout_completed' THEN 1 ELSE 0 END) AS conversions,
+        COUNT(*) AS events
+      FROM referral_events
+      WHERE referral_code = ?
+    `).bind(referral.code).first<{ checkouts?: number; conversions?: number; events?: number }>()
+
+    const events = await db.prepare(`
+      SELECT event_type, referred_email, checkout_session_id, source, created_at, converted_at
+      FROM referral_events
+      WHERE referral_code = ?
+      ORDER BY created_at DESC
+      LIMIT 10
+    `).bind(referral.code).all<{
+      event_type: string
+      referred_email?: string
+      checkout_session_id?: string
+      source?: string
+      created_at: number
+      converted_at?: number
+    }>()
+
+    return new Response(JSON.stringify({
+      ok: true,
+      found: true,
+      referral: {
+        code: referral.code,
+        userId: referral.user_id,
+        email: referral.email || null,
+        name: referral.name || null,
+      },
+      stats: {
+        events: Number(stats?.events || 0),
+        checkouts: Number(stats?.checkouts || 0),
+        conversions: Number(stats?.conversions || 0),
+      },
+      events: Array.isArray(events.results) ? events.results : [],
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Referral lookup failed.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
   }
 }
 
@@ -3515,7 +3937,7 @@ async function handleCheckoutRequest(
 ): Promise<Response> {
   try {
     const body = await request.json()
-    const { email, tier = 'pro', billingCycle = 'monthly', seats, workspaceId, returnTo } = body
+    const { email, tier = 'pro', billingCycle = 'monthly', seats, workspaceId, returnTo, referralCode } = body
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -3553,9 +3975,10 @@ async function handleCheckoutRequest(
         ? 'power'
         : normalizedTier === 'fix'
           ? 'pay_per_fix'
-        : normalizedBillingCycle === 'annual'
+          : normalizedBillingCycle === 'annual'
           ? 'pro_annual'
           : 'pro_monthly'
+    const normalizedReferralCode = normalizeReferralCode(referralCode)
 
     const successUrl = new URL('https://rinawarptech.com/success/')
     if (String(returnTo || '').trim()) {
@@ -3576,6 +3999,19 @@ async function handleCheckoutRequest(
       })
     }
 
+    await maybeTrackReferralEvent(env, {
+      referralCode: normalizedReferralCode,
+      eventType: 'checkout_started',
+      referredEmail: email,
+      source: 'website_checkout',
+      metadata: {
+        tier: normalizedTier === 'team' ? 'power' : normalizedTier,
+        billingCycle: normalizedBillingCycle,
+        seats: Number(quantity),
+        workspaceId: String(workspaceId || '').trim() || null,
+      },
+    })
+
     // If Stripe secret key is available, create a real checkout session
     if (env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.startsWith('sk_')) {
       try {
@@ -3594,8 +4030,10 @@ async function handleCheckoutRequest(
             'automatic_tax[enabled]': 'true',
             'tax_id_collection[enabled]': 'true',
             'metadata[tier]': normalizedTier === 'team' ? 'power' : normalizedTier,
+            ...(normalizedReferralCode ? { 'metadata[referral_code]': normalizedReferralCode } : {}),
             ...(String(workspaceId || '').trim() ? { 'metadata[workspace_id]': String(workspaceId).trim() } : {}),
             ...(normalizedTier !== 'fix' && (normalizedTier === 'power' || normalizedTier === 'team') ? { 'subscription_data[metadata][tier]': 'power' } : {}),
+            ...(normalizedTier !== 'fix' && normalizedReferralCode ? { 'subscription_data[metadata][referral_code]': normalizedReferralCode } : {}),
             ...(normalizedTier !== 'fix' && (normalizedTier === 'power' || normalizedTier === 'team') && String(workspaceId || '').trim()
               ? { 'subscription_data[metadata][workspace_id]': String(workspaceId).trim() }
               : {}),
