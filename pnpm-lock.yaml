@@ -62,6 +62,30 @@ importers:
       '@rinawarp/doctor':
         specifier: workspace:*
         version: link:../../packages/rina-doctor
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../../packages/runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../../packages/runtime-core
+      '@rinawarp/runtime-feature-agentd':
+        specifier: workspace:*
+        version: link:../../packages/runtime-feature-agentd
+      '@rinawarp/runtime-feature-diagnostics':
+        specifier: workspace:*
+        version: link:../../packages/runtime-feature-diagnostics
+      '@rinawarp/runtime-feature-licensing':
+        specifier: workspace:*
+        version: link:../../packages/runtime-feature-licensing
+      '@rinawarp/runtime-feature-team':
+        specifier: workspace:*
+        version: link:../../packages/runtime-feature-team
+      '@rinawarp/runtime-feature-workspace':
+        specifier: workspace:*
+        version: link:../../packages/runtime-feature-workspace
+      '@rinawarp/runtime-platform-electron':
+        specifier: workspace:*
+        version: link:../../packages/runtime-platform-electron
       '@rinawarp/safety':
         specifier: workspace:*
         version: link:../../packages/rinawarp-safety
@@ -306,6 +330,77 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.15
+
+  packages/runtime-contracts:
+    dependencies:
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
+
+  packages/runtime-core: {}
+
+  packages/runtime-feature-agentd:
+    dependencies:
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
+
+  packages/runtime-feature-diagnostics:
+    dependencies:
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
+
+  packages/runtime-feature-ipc:
+    dependencies:
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
+
+  packages/runtime-feature-licensing:
+    dependencies:
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
+
+  packages/runtime-feature-team:
+    dependencies:
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
+
+  packages/runtime-feature-workspace:
+    dependencies:
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
+
+  packages/runtime-platform-electron:
+    dependencies:
+      '@rinawarp/runtime-contracts':
+        specifier: workspace:*
+        version: link:../runtime-contracts
+      '@rinawarp/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
 
 packages:
 
