@@ -12,6 +12,14 @@ export type ConversationMode =
   | 'memory_update'
   | 'unclear'
 
+export type InteractionType =
+  | 'small_talk'
+  | 'task_request'
+  | 'question'
+  | 'status_check'
+  | 'control'
+  | 'mixed'
+
 export type TurnType = 'greeting' | 'help' | 'follow_up' | 'diagnose' | 'action' | 'explain' | 'frustration' | 'clarify_needed'
 
 export type ReplyMode = 'reply_only' | 'explain_verified' | 'ask_once' | 'plan' | 'run'

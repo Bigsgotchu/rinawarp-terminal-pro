@@ -1,6 +1,7 @@
 import { buildConversationReply, routeConversationTurn } from './conversationRouter.js'
 import { assertAgentTransition } from './agentStateMachine.js'
 import { createRuleBasedMemoryExtractor } from './memoryExtractor.js'
+import { classifyInteraction, createRinaPersonalityAdapter, mapOutcomeToTaskStatus } from './personalityAdapter.js'
 import { createInMemoryTaskController } from './taskController.js'
 import type {
   AgentState,
@@ -106,6 +107,7 @@ type UnifiedTurnDeps = {
 
 const memoryExtractor = createRuleBasedMemoryExtractor()
 const taskController = createInMemoryTaskController()
+const personalityAdapter = createRinaPersonalityAdapter()
 
 function retrieveRelevantMemories(rawText: string, memoryStore: MemoryStoreLike, workspaceId?: string, sessionId?: string) {
   return memoryStore.retrieveRelevantMemory
@@ -132,23 +134,6 @@ function mergeConstraints(rawText: string, memoryStore: MemoryStoreLike, workspa
 
 function getOperationalMemoryBackend(memoryStore: MemoryStoreLike): 'sqlite' | 'json-fallback' {
   return memoryStore.getState().memory.operationalStore?.backend === 'json-fallback' ? 'json-fallback' : 'sqlite'
-}
-
-function buildConstraintLead(constraints: string[]): string {
-  if (constraints.length === 0) return ''
-  const labels = constraints.map((constraint) => {
-    switch (constraint) {
-      case 'do_not_touch_tests':
-        return 'I’ll leave tests alone unless you explicitly want them changed'
-      case 'use_pnpm':
-        return 'I’ll keep pnpm as the default'
-      case 'prefer_concise':
-        return 'I’ll keep this concise'
-      default:
-        return constraint.replace(/_/g, ' ')
-    }
-  })
-  return `${labels.join('. ')}. `
 }
 
 function createEventFactory(sessionId: string, correlationId: string, taskId?: string) {
@@ -184,7 +169,7 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
   const correlationId = `corr_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`
   const buildEvent = createEventFactory(sessionId, correlationId)
   const timelineEvents: AgentTimelineEvent[] = []
-  const recentMessages = deps.memoryStore.getRecentMessages?.(sessionId) || []
+  const tonePreference = deps.memoryStore.getState().memory.profile?.tonePreference
   let agentState: AgentState = 'idle'
   const moveState = (next: AgentState, taskId?: string) => {
     agentState = assertAgentTransition(agentState, next)
@@ -229,9 +214,9 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
     workspaceId: deps.workspaceId,
     latestRun: deps.latestRun || null,
   })
-  const memoryHints = retrieveRelevantMemories(rawText, deps.memoryStore, deps.workspaceId, sessionId)
+  const relevantMemories = retrieveRelevantMemories(rawText, deps.memoryStore, deps.workspaceId, sessionId)
     .filter((entry) => !entry.status || entry.status === 'approved')
-    .map((entry) => entry.content)
+  const memoryHints = relevantMemories.map((entry) => entry.content)
   const constraints = [...new Set([...(routedTurn.constraints || []), ...mergeConstraints(rawText, deps.memoryStore, deps.workspaceId, sessionId)])]
   if (constraints.length > 0) {
     timelineEvents.push(buildEvent({
@@ -258,10 +243,20 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
   }))
   moveState('responding')
 
-  const memoryLead = memoryHints.length > 0 || recentMessages.length > 0
-    ? `${buildConstraintLead(constraints)}${constraints.includes('use_pnpm') || constraints.includes('do_not_touch_tests') || constraints.includes('prefer_concise') ? '' : recentMessages.length > 0 ? 'I’m continuing from our recent context here. ' : 'I’m using what I remember about this workspace and your preferences. '}`
-    : buildConstraintLead(constraints)
-  let assistantReply = `${memoryLead}${conversationReply.message}`.trim()
+  const interaction = classifyInteraction(rawText)
+  let assistantReply = personalityAdapter.generate({
+    userMessage: rawText,
+    systemReply: conversationReply.message,
+    context: {
+      interaction,
+      hasActiveTask: Boolean(routedTurn.requiresAction),
+      lastTaskStatus: mapOutcomeToTaskStatus(routedTurn.context?.latestOutcome),
+      recoveredSession: Boolean(deps.latestRun?.interrupted),
+      memory: memoryHints,
+      constraints,
+      tonePreference,
+    },
+  }).trim()
   let planPreview: ConversationPlanPreview | undefined
   let permissionRequest: { required: boolean; reason: string; actions: string[] } | undefined
   let task: Awaited<ReturnType<typeof taskController.start>> | undefined
@@ -293,8 +288,34 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
         reason: permissionRequest.reason,
         actions: permissionRequest.actions,
       }))
+      assistantReply = personalityAdapter.generate({
+        userMessage: rawText,
+        systemReply: conversationReply.message,
+        context: {
+          interaction,
+          hasActiveTask: false,
+          lastTaskStatus: mapOutcomeToTaskStatus(routedTurn.context?.latestOutcome),
+          recoveredSession: Boolean(deps.latestRun?.interrupted),
+          memory: memoryHints,
+          constraints,
+          tonePreference,
+        },
+      }).trim()
     } else {
       moveState('executing', task.id)
+      assistantReply = personalityAdapter.generate({
+        userMessage: rawText,
+        systemReply: conversationReply.message,
+        context: {
+          interaction,
+          hasActiveTask: true,
+          lastTaskStatus: 'running',
+          recoveredSession: Boolean(deps.latestRun?.interrupted),
+          memory: memoryHints,
+          constraints,
+          tonePreference,
+        },
+      }).trim()
     }
   } else {
     moveState('completed')
