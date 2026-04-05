@@ -261,7 +261,7 @@ export function bindRendererEvents(args: {
                 }
               : {
                   title: 'Repair step completed',
-                  description: 'The command finished. RinaWarp is moving to verification.',
+                  description: 'That repair step finished. I’m verifying the result now.',
                   level: 'success' as const,
                 }
           store.dispatch({
@@ -317,12 +317,12 @@ export function bindRendererEvents(args: {
         const verificationNarration = payload.ok
           ? {
               title: 'Verification passed',
-              description: 'The repair cleared verification and the proof trail is attached.',
+              description: 'Verification passed. The repair looks solid.',
               level: 'success' as const,
             }
           : {
               title: 'Verification needs review',
-              description: payload.haltedBecause || 'The repair stopped before the proof trail fully cleared.',
+              description: payload.haltedBecause || 'The repair stopped before I could fully clear it.',
               level: 'warning' as const,
             }
         store.dispatch({
@@ -334,8 +334,8 @@ export function bindRendererEvents(args: {
             statusText: payload.ok ? 'Project repaired with verification proof attached.' : `Repair halted: ${payload.haltedBecause || 'unknown reason'}`,
             verificationStatus: payload.ok ? 'passed' : 'failed',
             verificationText: payload.ok
-              ? 'Verification passed. This workspace cleared the repair run and the proof trail is ready.'
-              : payload.haltedBecause || 'Repair stopped before the proof trail could clear.',
+              ? 'Verification passed. This workspace cleared the repair run.'
+              : payload.haltedBecause || 'Repair stopped before I could clear the result.',
             narration: appendNarration(fix.narration, verificationNarration, fix.id),
           },
         })

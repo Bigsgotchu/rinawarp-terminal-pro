@@ -5,7 +5,11 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ role, text }: MessageBubbleProps) {
   return (
-    <div className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div
+      className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
+      data-thread-message=""
+      data-thread-role={role}
+    >
       <div
         className={`max-w-[75%] px-4 py-3 rounded-2xl shadow-lg ${
           role === 'user'

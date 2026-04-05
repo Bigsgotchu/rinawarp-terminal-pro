@@ -158,5 +158,6 @@ export interface RinaAPI {
 declare global {
   interface Window {
     rina: RinaAPI
+    RINAWARP_READY?: boolean
   }
 }

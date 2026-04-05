@@ -18,6 +18,7 @@ function copyFile(src, dest) {
 
 function copyDir(srcDir, destDir) {
   if (!fs.existsSync(srcDir)) return
+  if (path.resolve(srcDir) === path.resolve(destDir)) return
   fs.mkdirSync(destDir, { recursive: true })
 
   for (const entry of fs.readdirSync(srcDir, { withFileTypes: true })) {
@@ -33,7 +34,7 @@ function copyDir(srcDir, destDir) {
 }
 
 // Canonical desktop shell. Copy Vite-built React app
-const srcRendererDir = path.join(projectRoot, 'dist-electron', 'renderer')
+const srcRendererDir = path.join(projectRoot, 'dist-renderer')
 const outRendererDir = path.join(outDir, 'renderer')
 
 if (!fs.existsSync(srcRendererDir)) {
@@ -42,14 +43,22 @@ if (!fs.existsSync(srcRendererDir)) {
 }
 
 fs.mkdirSync(outDir, { recursive: true })
+removeStaleOutput(outRendererDir)
 copyDir(srcRendererDir, outRendererDir)
+copyOptional(path.join(srcRendererDir, 'index.html'), path.join(outRendererDir, 'renderer.html'))
 
 copyDir(path.join(projectRoot, 'src', 'assets'), path.join(outDir, 'assets'))
 copyDir(path.join(projectRoot, 'themes'), path.join(outDir, 'themes'))
 copyDir(path.join(repoRoot, 'policy'), path.join(outDir, 'policy'))
 
-// Copy renderer CSS files
-copyDir(path.join(projectRoot, 'src', 'renderer'), path.join(outDir, 'renderer'))
+// Copy only the legacy renderer style assets we still reference at runtime.
+copyOptional(path.join(projectRoot, 'src', 'renderer', 'renderer.css'), path.join(outRendererDir, 'renderer.css'))
+copyOptional(path.join(projectRoot, 'src', 'renderer', 'styles.css'), path.join(outRendererDir, 'styles.css'))
+copyDir(path.join(projectRoot, 'src', 'renderer', 'styles'), path.join(outRendererDir, 'styles'))
+copyOptional(
+  path.join(projectRoot, 'src', 'renderer', 'workbench', 'theme.tokens.css'),
+  path.join(outRendererDir, 'workbench', 'theme.tokens.css')
+)
 
 function copyOptional(src, dest) {
   if (!fs.existsSync(src)) {

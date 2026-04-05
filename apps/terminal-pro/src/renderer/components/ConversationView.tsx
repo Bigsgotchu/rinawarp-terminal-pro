@@ -41,8 +41,31 @@ export function ConversationView({ onResumeFix, onViewDetails }: ConversationVie
     return unsubscribe
   }, [])
 
+  useEffect(() => {
+    const handleSeedMessages = (event: Event) => {
+      const detail = (event as CustomEvent<{ messages?: Array<{ id?: string; role?: 'user' | 'rina'; text?: string; timestamp?: string | number }> }>).detail
+      const seeded = Array.isArray(detail?.messages)
+        ? detail.messages
+            .map((message, index) => ({
+              id: String(message.id || `seed-${Date.now()}-${index}`),
+              role: message.role === 'user' ? 'user' : 'rina',
+              text: String(message.text || '').trim(),
+              timestamp: new Date(message.timestamp || Date.now()),
+            }))
+            .filter((message) => message.text.length > 0)
+        : []
+      if (!seeded.length) return
+      setMessages((prev) => [...prev, ...seeded])
+    }
+
+    window.addEventListener('rina:e2e:append-messages', handleSeedMessages as EventListener)
+    return () => {
+      window.removeEventListener('rina:e2e:append-messages', handleSeedMessages as EventListener)
+    }
+  }, [])
+
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+    <div id="agent-output" className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-2">
       <RecoveryCard onResumeFix={onResumeFix} onViewDetails={onViewDetails} />
       <div className="space-y-1">
         {messages.map((message) => (

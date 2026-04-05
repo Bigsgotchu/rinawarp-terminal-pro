@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ChatScreen } from './components/ChatScreen'
+import './ready'
 
 function App() {
   const [showDetailsDrawer, setShowDetailsDrawer] = useState(false)

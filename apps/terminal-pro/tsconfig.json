@@ -29,7 +29,7 @@
     "removeComments": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
-  "exclude": ["src/**/*.test.ts", "src/**/smoke-test.ts", "src/**/*-test.ts", "dist", "node_modules"],
+  "exclude": ["src/**/*.test.ts", "src/**/smoke-test.ts", "src/**/*-test.ts", "src/renderer/**/*", "dist", "node_modules"],
   "references": [
     { "path": "../../packages/rinawarp-context" },
     { "path": "../../packages/rinawarp-tools" },

@@ -12,7 +12,7 @@ export function ChatScreen({ onResumeFix, onViewDetails, showDetailsDrawer }: Ch
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
       <HeaderBar />
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
         <ConversationView onResumeFix={onResumeFix} onViewDetails={onViewDetails} />
       </div>
       <InputBar />

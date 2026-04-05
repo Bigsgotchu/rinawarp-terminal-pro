@@ -3,10 +3,11 @@ import path from 'path'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   root: 'src/renderer',
   build: {
-    outDir: '../../../dist-electron/renderer',
+    outDir: '../../dist-renderer',
     emptyOutDir: true,
   },
   css: {

@@ -18,7 +18,10 @@ export function RecoveryCard({ onResumeFix, onViewDetails }: RecoveryCardProps) 
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-xl p-5 mb-6 shadow-lg backdrop-blur-sm">
+    <div
+      className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-xl p-5 mb-6 shadow-lg backdrop-blur-sm"
+      data-agent-section="recovery"
+    >
       <div className="flex items-start gap-3">
         <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
           <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

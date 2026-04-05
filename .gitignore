@@ -21,7 +21,9 @@ website/.pages-dist/
 
 # Terminal Pro build artifacts
 apps/terminal-pro/dist/
+apps/terminal-pro/dist-renderer/
 apps/terminal-pro/dist-electron/
+apps/dist-electron/
 apps/terminal-pro/out/
 apps/terminal-pro/.vite/
 apps/terminal-pro/test-results/

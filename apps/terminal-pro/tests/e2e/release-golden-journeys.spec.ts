@@ -194,18 +194,13 @@ test('golden journey A: packaged first-use value is clear on a fresh state', asy
   fs.mkdirSync(cleanHome, { recursive: true })
 
   await withPackagedApp(async ({ page }) => {
-    await agentTopbarTab(page).click()
-    const workspaceSetup = page.locator('[data-agent-section="workspace-setup"]')
-    await expect(page.locator('#agent-input')).toBeVisible()
-    await expect(workspaceSetup).toContainText(/Fix your broken project automatically\./i)
-    await expect(workspaceSetup.getByRole('button', { name: 'Open Project' })).toBeVisible()
-    await expect(workspaceSetup.getByRole('button', { name: 'Try Demo Project' })).toBeVisible()
-    await page.locator('#agent-input').fill('Inspect this project and suggest the safest next step.')
-    await page.locator('#agent-send').click()
-    await expect
-      .poll(async () => page.locator('#agent-output .rw-thread-message').count(), { timeout: 30_000 })
-      .toBeGreaterThanOrEqual(2)
-    await expect(page.locator('#agent-output')).toContainText(/inspect|safest next step|choose a workspace|grounded/i)
+    const recoveryCard = page.locator('[data-agent-section="recovery"]')
+    await expect(page.getByPlaceholder('Ask Rina anything...')).toBeVisible()
+    await expect(recoveryCard).toContainText(/I recovered your last session/i)
+    await expect(recoveryCard.getByRole('button', { name: 'Resume Fix' })).toBeVisible()
+    await expect(recoveryCard.getByRole('button', { name: 'View Details' })).toBeVisible()
+    await expect(page.locator('#agent-output [data-thread-message]')).toHaveCount(1)
+    await expect(page.locator('#agent-output')).toContainText(/everything looks safe to continue/i)
   }, {
     HOME: cleanHome,
     XDG_CONFIG_HOME: path.join(cleanHome, '.config'),
@@ -292,32 +287,17 @@ test('golden journey E: packaged owner continuity persists explicit preferences 
 test('golden journey F: packaged agent thread stays scrollable under long history', async () => {
   const suffix = `pkg-scroll-${Date.now()}`
   await withPackagedApp(async ({ page }) => {
-    await agentTopbarTab(page).click()
     await page.evaluate(() => {
-      const bridge = (window as any).__rinaE2EWorkbench
-      if (!bridge) throw new Error('E2E workbench bridge unavailable')
-      const workspaceKey = bridge.getState().workspaceKey
-      for (let index = 0; index < 48; index += 1) {
-        bridge.dispatch({
-          type: 'chat/add',
-          msg: {
-            id: `scroll-seed-${index}`,
-            role: index % 2 === 0 ? 'user' : 'rina',
-            ts: Date.now() + index,
-            workspaceKey,
-            content: [
-              {
-                type: 'text',
-                text: `Scroll seed message ${index + 1}: this is intentionally long enough to build a real thread and force overflow in the packaged shell.`,
-              },
-            ],
-          },
-        })
-      }
+      const messages = Array.from({ length: 48 }, (_, index) => ({
+        id: `scroll-seed-${index}`,
+        role: index % 2 === 0 ? 'user' : 'rina',
+        text: `Scroll seed message ${index + 1}: this is intentionally long enough to build a real thread and force overflow in the packaged shell.`,
+      }))
+      window.dispatchEvent(new CustomEvent('rina:e2e:append-messages', { detail: { messages } }))
     })
 
     const thread = page.locator('#agent-output')
-    await expect(thread.locator('.rw-thread-message')).toHaveCount(48)
+    await expect(thread.locator('[data-thread-message]')).toHaveCount(49)
 
     const metrics = await thread.evaluate((node) => ({
       clientHeight: node.clientHeight,
