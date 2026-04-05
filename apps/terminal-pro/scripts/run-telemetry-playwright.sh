@@ -30,4 +30,8 @@ if ! curl -fsS "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
   exit 1
 fi
 
-RINAWARP_TELEMETRY_WS_URL="${WS_URL}" bash scripts/run-electron-playwright.sh e2e/telemetry.test.ts "$@"
+if [[ "$#" -gt 0 ]]; then
+  RINAWARP_TELEMETRY_WS_URL="${WS_URL}" bash scripts/run-electron-playwright.sh "$@"
+else
+  RINAWARP_TELEMETRY_WS_URL="${WS_URL}" bash scripts/run-electron-playwright.sh tests/e2e/telemetry.test.ts
+fi
