@@ -132,6 +132,12 @@ export type AgentTimelineEvent =
   | (BaseTimelineEvent & { type: 'message.received'; message: string; workspaceId?: string })
   | (BaseTimelineEvent & { type: 'agent.mode.changed'; mode: AgentState })
   | (BaseTimelineEvent & { type: 'intent.resolved'; intent: ConversationMode; confidence: number; requiresAction: boolean })
+  | (BaseTimelineEvent & {
+      type: 'memory.context.applied'
+      backend: 'sqlite' | 'json-fallback'
+      constraintCount: number
+      constraints: string[]
+    })
   | (BaseTimelineEvent & { type: 'plan.created'; planId: string; goal: string; stepCount: number })
   | (BaseTimelineEvent & { type: 'permission.required'; reason: string; actions: string[] })
   | (BaseTimelineEvent & { type: 'task.completed'; summary: string })

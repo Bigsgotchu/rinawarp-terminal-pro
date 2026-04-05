@@ -34,7 +34,18 @@ export class AgentPanel extends BasePanel {
   }
 
   showTimelineEvent(event: unknown): void {
-    const entry = event as { type?: string; mode?: string; intent?: string; reason?: string; goal?: string; stepCount?: number; summary?: string; error?: string }
+    const entry = event as {
+      type?: string
+      mode?: string
+      intent?: string
+      reason?: string
+      goal?: string
+      stepCount?: number
+      summary?: string
+      error?: string
+      backend?: 'sqlite' | 'json-fallback'
+      constraintCount?: number
+    }
     switch (entry.type) {
       case 'agent.mode.changed':
         this.appendAgentOutput([this.deps.renderAgentStepBlock('running', `Rina is ${entry.mode || 'working'}...`)])
@@ -42,6 +53,15 @@ export class AgentPanel extends BasePanel {
       case 'intent.resolved':
         this.appendAgentOutput([this.deps.renderAgentStepBlock('start', `Intent: ${entry.intent || 'unknown'}`)])
         return
+      case 'memory.context.applied': {
+        const backend = entry.backend === 'json-fallback' ? 'JSON fallback' : 'SQLite'
+        const count = Number(entry.constraintCount || 0)
+        const summary = count <= 1
+          ? `Using remembered execution constraint from ${backend} memory.`
+          : `Using ${count} remembered execution constraints from ${backend} memory.`
+        this.appendAgentOutput([this.deps.renderAgentStepBlock('start', summary)])
+        return
+      }
       case 'plan.created':
         this.appendAgentOutput([this.deps.renderAgentStepBlock('start', `Plan ready: ${entry.goal || 'task'} (${entry.stepCount || 0} steps)`)]);
         return

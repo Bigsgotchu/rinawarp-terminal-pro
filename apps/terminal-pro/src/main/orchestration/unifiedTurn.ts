@@ -24,6 +24,9 @@ type MemoryStoreLike = {
         content: string
         workspaceId?: string
       }>
+      operationalStore?: {
+        backend?: 'sqlite' | 'json-fallback'
+      }
     }
   }
   updateProfile: (input: {
@@ -127,6 +130,10 @@ function mergeConstraints(rawText: string, memoryStore: MemoryStoreLike, workspa
   return Array.from(constraints)
 }
 
+function getOperationalMemoryBackend(memoryStore: MemoryStoreLike): 'sqlite' | 'json-fallback' {
+  return memoryStore.getState().memory.operationalStore?.backend === 'json-fallback' ? 'json-fallback' : 'sqlite'
+}
+
 function buildConstraintLead(constraints: string[]): string {
   if (constraints.length === 0) return ''
   const labels = constraints.map((constraint) => {
@@ -226,6 +233,14 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
     .filter((entry) => !entry.status || entry.status === 'approved')
     .map((entry) => entry.content)
   const constraints = [...new Set([...(routedTurn.constraints || []), ...mergeConstraints(rawText, deps.memoryStore, deps.workspaceId, sessionId)])]
+  if (constraints.length > 0) {
+    timelineEvents.push(buildEvent({
+      type: 'memory.context.applied',
+      backend: getOperationalMemoryBackend(deps.memoryStore),
+      constraintCount: constraints.length,
+      constraints,
+    }))
+  }
   const conversationReply = await buildConversationReply({
     routedTurn: {
       ...routedTurn,
