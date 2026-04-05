@@ -20,7 +20,7 @@ cd "$(dirname "$0")/../website"
 echo ""
 echo "Step 1: Deploying RinaWarp Marketplace Worker..."
 echo "-----------------------------------------"
-npx wrangler deploy --env production
+npx wrangler deploy --config wrangler.toml
 
 echo ""
 echo "Step 2: Checking Pages project status..."

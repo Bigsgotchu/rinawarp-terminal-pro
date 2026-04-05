@@ -286,3 +286,69 @@ test('golden journey E: packaged owner continuity persists explicit preferences 
     await expect(page.locator('#rw-memory-preferred-name')).toHaveValue('Karina')
   }, env)
 })
+
+test('golden journey F: packaged agent thread stays scrollable under long history', async () => {
+  const suffix = `pkg-scroll-${Date.now()}`
+  await withPackagedApp(async ({ page }) => {
+    await agentTopbarTab(page).click()
+    await page.evaluate(() => {
+      const bridge = (window as any).__rinaE2EWorkbench
+      if (!bridge) throw new Error('E2E workbench bridge unavailable')
+      const workspaceKey = bridge.getState().workspaceKey
+      for (let index = 0; index < 48; index += 1) {
+        bridge.dispatch({
+          type: 'chat/add',
+          msg: {
+            id: `scroll-seed-${index}`,
+            role: index % 2 === 0 ? 'user' : 'rina',
+            ts: Date.now() + index,
+            workspaceKey,
+            content: [
+              {
+                type: 'text',
+                text: `Scroll seed message ${index + 1}: this is intentionally long enough to build a real thread and force overflow in the packaged shell.`,
+              },
+            ],
+          },
+        })
+      }
+    })
+
+    const thread = page.locator('#agent-output')
+    await expect(thread.locator('.rw-thread-message')).toHaveCount(48)
+
+    const metrics = await thread.evaluate((node) => ({
+      clientHeight: node.clientHeight,
+      scrollHeight: node.scrollHeight,
+    }))
+    expect(metrics.scrollHeight).toBeGreaterThan(metrics.clientHeight)
+
+    await thread.evaluate((node) => {
+      node.scrollTop = 0
+    })
+
+    await thread.hover()
+    await page.mouse.wheel(0, 1600)
+
+    await expect
+      .poll(
+        async () =>
+          await thread.evaluate((node) => ({
+            scrollTop: node.scrollTop,
+            maxScrollTop: Math.max(0, node.scrollHeight - node.clientHeight),
+          })),
+        { timeout: 10_000 }
+      )
+      .toMatchObject({
+        scrollTop: expect.any(Number),
+        maxScrollTop: expect.any(Number),
+      })
+
+    const afterWheel = await thread.evaluate((node) => ({
+      scrollTop: node.scrollTop,
+      maxScrollTop: Math.max(0, node.scrollHeight - node.clientHeight),
+    }))
+    expect(afterWheel.maxScrollTop).toBeGreaterThan(0)
+    expect(afterWheel.scrollTop).toBeGreaterThan(0)
+  }, { RINAWARP_E2E_USER_DATA_SUFFIX: suffix })
+})
