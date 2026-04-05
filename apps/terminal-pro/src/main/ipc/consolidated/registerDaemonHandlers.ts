@@ -1,13 +1,10 @@
-import type { ConsolidatedIpcArgs } from './types.js'
-import type {
-  CodeListFilesArgs,
-  CodeReadFileArgs,
-} from '../../startup/runtimeTypes.js'
 import {
   listSharedWorkspaceFiles,
   readSharedWorkspaceTextFile,
   resolveSharedWorkspaceCwd,
 } from '../../runtime/runtimeAccess.js'
+import type { CodeListFilesArgs, CodeReadFileArgs } from '../../startup/runtimeTypes.js'
+import type { ConsolidatedIpcArgs } from './types.js'
 
 export function registerDaemonHandlers({
   ipcMain,
@@ -15,12 +12,12 @@ export function registerDaemonHandlers({
   daemonTasks,
   daemonTaskAdd,
   daemonStart,
-    daemonStop,
-    runsList,
-    runsTail,
-    runsArtifacts,
-    codeListFiles,
-    codeReadFile,
+  daemonStop,
+  runsList,
+  runsTail,
+  runsArtifacts,
+  codeListFiles,
+  codeReadFile,
   runAgent,
   conversationRoute,
   handleConversationTurn,
@@ -255,7 +252,8 @@ export function registerDaemonHandlers({
     ipcMain.removeHandler('rina:setMode')
     ipcMain.handle('rina:setMode', async (_event, mode) => {
       try {
-        return await setMode(String(mode || ''))
+        await setMode(String(mode || ''))
+        return { ok: true, mode }
       } catch (error) {
         console.error('[IPC] rina:setMode error:', error)
         return { ok: false, error: String(error) }

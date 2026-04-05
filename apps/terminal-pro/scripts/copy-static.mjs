@@ -32,17 +32,17 @@ function copyDir(srcDir, destDir) {
   }
 }
 
-// Canonical desktop shell. Do not add parallel HTML entrypoints under src/ui.
-const srcHtml = path.join(projectRoot, 'src', 'renderer.html')
-const outHtml = path.join(outDir, 'renderer', 'renderer.html')
+// Canonical desktop shell. Copy Vite-built React app
+const srcRendererDir = path.join(projectRoot, 'dist-electron', 'renderer')
+const outRendererDir = path.join(outDir, 'renderer')
 
-if (!fs.existsSync(srcHtml)) {
-  console.error(`Missing: ${srcHtml}`)
+if (!fs.existsSync(srcRendererDir)) {
+  console.error(`Missing: ${srcRendererDir} - did you run 'npm run build:renderer'?`)
   process.exit(1)
 }
 
 fs.mkdirSync(outDir, { recursive: true })
-copyFile(srcHtml, outHtml)
+copyDir(srcRendererDir, outRendererDir)
 
 copyDir(path.join(projectRoot, 'src', 'assets'), path.join(outDir, 'assets'))
 copyDir(path.join(projectRoot, 'themes'), path.join(outDir, 'themes'))
@@ -78,14 +78,8 @@ removeStaleOutput(path.join(outDir, 'renderer.js.map'))
 removeStaleOutput(path.join(outDir, 'renderer.d.ts'))
 removeStaleOutput(path.join(outDir, 'renderer.d.ts.map'))
 
-copyOptional(
-  resolveNodeModulePath('@xterm', 'xterm', 'lib', 'xterm.js'),
-  path.join(outDir, 'vendor', 'xterm.js')
-)
-copyOptional(
-  resolveNodeModulePath('@xterm', 'xterm', 'css', 'xterm.css'),
-  path.join(outDir, 'vendor', 'xterm.css')
-)
+copyOptional(resolveNodeModulePath('@xterm', 'xterm', 'lib', 'xterm.js'), path.join(outDir, 'vendor', 'xterm.js'))
+copyOptional(resolveNodeModulePath('@xterm', 'xterm', 'css', 'xterm.css'), path.join(outDir, 'vendor', 'xterm.css'))
 copyOptional(
   resolveNodeModulePath('@xterm', 'addon-fit', 'lib', 'addon-fit.js'),
   path.join(outDir, 'vendor', 'xterm-addon-fit.js')

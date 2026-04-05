@@ -5,6 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "types": ["node"],
+    "jsx": "react-jsx",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -27,8 +28,8 @@
     "sourceMap": true,
     "removeComments": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"],
-  "exclude": ["src/**/*.tsx", "src/**/*.test.ts", "src/**/smoke-test.ts", "src/**/*-test.ts", "dist", "node_modules"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/smoke-test.ts", "src/**/*-test.ts", "dist", "node_modules"],
   "references": [
     { "path": "../../packages/rinawarp-context" },
     { "path": "../../packages/rinawarp-tools" },
