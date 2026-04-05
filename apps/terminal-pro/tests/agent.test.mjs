@@ -1,15 +1,18 @@
 // Agent Tests - Uses Node's built-in test runner
 // Run: node --test tests/agent.test.ts
 
-import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { buildConversationReply, routeConversationTurn } from '../dist-electron/main/orchestration/conversationRouter.js'
+import { describe, it } from 'node:test'
+import {
+  buildConversationReply,
+  routeConversationTurn,
+} from '../dist-electron/main/orchestration/conversationRouter.js'
 
 describe('Agent Tests', () => {
   it('should process simple agent commands', async () => {
     // Test basic agent processing
     const testInput = 'say hello'
-    
+
     // Basic validation - the input should be a non-empty string
     assert.strictEqual(testInput.length > 0, true)
     assert.ok(testInput.includes('hello'))
@@ -21,12 +24,10 @@ describe('Agent Tests', () => {
       text: 'Test response',
       actions: ['action1', 'action2'],
       plan: {
-        steps: [
-          { name: 'Step 1', status: 'pending' }
-        ]
-      }
+        steps: [{ name: 'Step 1', status: 'pending' }],
+      },
     }
-    
+
     // Validate response has required fields
     assert.ok(mockResponse.text)
     assert.strictEqual(typeof mockResponse.text, 'string')
@@ -36,13 +37,13 @@ describe('Agent Tests', () => {
   it('should handle execution trace block creation', async () => {
     // Test the execution trace block structure
     const mockCommand = 'ls -la'
-    
+
     // Simulate the structure that the execution trace renderer creates
     const block = {
       className: 'execution-trace-block',
-      innerHTML: `command: $ ${mockCommand}`
+      innerHTML: `command: $ ${mockCommand}`,
     }
-    
+
     assert.ok(block.innerHTML.includes(mockCommand))
   })
 
@@ -50,11 +51,11 @@ describe('Agent Tests', () => {
     const args = {
       rawText: 'scan yourself',
       workspaceId: '/some/workspace',
-      latestRun: { runId: 'run_123', sessionId: 'session_456' }
+      latestRun: { runId: 'run_123', sessionId: 'session_456' },
     }
-    
+
     const result = routeConversationTurn(args)
-    
+
     assert.strictEqual(result.mode, 'self_check')
     assert.strictEqual(result.allowedNextAction, 'execute')
     assert.ok(result.executionCandidate)
@@ -65,11 +66,11 @@ describe('Agent Tests', () => {
     const args = {
       rawText: 'scan yourself',
       workspaceId: null,
-      latestRun: null
+      latestRun: null,
     }
-    
+
     const result = routeConversationTurn(args)
-    
+
     assert.strictEqual(result.mode, 'self_check')
     assert.strictEqual(result.allowedNextAction, 'clarify')
     assert.ok(result.clarification)
@@ -80,7 +81,7 @@ describe('Agent Tests', () => {
     const result = routeConversationTurn({
       rawText: 'rina hi',
       workspaceId: '/home/karina',
-      latestRun: { runId: 'run_123', sessionId: 'session_456' }
+      latestRun: { runId: 'run_123', sessionId: 'session_456' },
     })
 
     assert.strictEqual(result.mode, 'chat')
@@ -89,7 +90,7 @@ describe('Agent Tests', () => {
     const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: '/home/karina',
-      latestRun: { runId: 'run_123', sessionId: 'session_456' }
+      latestRun: { runId: 'run_123', sessionId: 'session_456' },
     })
 
     assert.match(reply.message, /Hi\./)
@@ -100,7 +101,7 @@ describe('Agent Tests', () => {
     const result = routeConversationTurn({
       rawText: 'how are you',
       workspaceId: '/home/karina',
-      latestRun: { runId: 'run_123', sessionId: 'session_456', interrupted: true }
+      latestRun: { runId: 'run_123', sessionId: 'session_456', interrupted: true },
     })
 
     assert.strictEqual(result.mode, 'question')
@@ -108,7 +109,7 @@ describe('Agent Tests', () => {
     const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: '/home/karina',
-      latestRun: { runId: 'run_123', sessionId: 'session_456', interrupted: true }
+      latestRun: { runId: 'run_123', sessionId: 'session_456', interrupted: true },
     })
 
     assert.match(reply.message, /I.m good/i)
@@ -119,7 +120,7 @@ describe('Agent Tests', () => {
     const result = routeConversationTurn({
       rawText: 'hi rina why isnt setting working',
       workspaceId: '/home/karina/Downloads',
-      latestRun: { runId: 'run_123', sessionId: 'session_456' }
+      latestRun: { runId: 'run_123', sessionId: 'session_456' },
     })
 
     assert.strictEqual(result.mode, 'question')
@@ -128,7 +129,7 @@ describe('Agent Tests', () => {
     const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: '/home/karina/Downloads',
-      latestRun: { runId: 'run_123', sessionId: 'session_456' }
+      latestRun: { runId: 'run_123', sessionId: 'session_456' },
     })
 
     assert.doesNotMatch(reply.message, /need one anchor/i)
@@ -138,7 +139,7 @@ describe('Agent Tests', () => {
     const result = routeConversationTurn({
       rawText: 'what can u do',
       workspaceId: '/home/karina/Documents/rinawarp-terminal-pro',
-      latestRun: null
+      latestRun: null,
     })
 
     assert.strictEqual(result.mode, 'help')
@@ -147,7 +148,7 @@ describe('Agent Tests', () => {
     const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: 'rinawarp-terminal-pro',
-      latestRun: null
+      latestRun: null,
     })
 
     assert.match(reply.message, /I can help/i)
@@ -158,7 +159,7 @@ describe('Agent Tests', () => {
     const result = routeConversationTurn({
       rawText: 'why did the build fail',
       workspaceId: '/home/karina/Documents/rinawarp-terminal-pro',
-      latestRun: null
+      latestRun: null,
     })
 
     assert.strictEqual(result.mode, 'question')
@@ -167,10 +168,10 @@ describe('Agent Tests', () => {
     const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: 'rinawarp-terminal-pro',
-      latestRun: null
+      latestRun: null,
     })
 
-    assert.match(reply.message, /I haven’t run anything here yet|I haven't run anything here yet/i)
+    assert.match(reply.message, /Nothing has run yet|I can inspect/i)
     assert.doesNotMatch(reply.message, /starting a verification run/i)
   })
 
@@ -178,7 +179,7 @@ describe('Agent Tests', () => {
     const result = routeConversationTurn({
       rawText: 'fix the build',
       workspaceId: '/home/karina/Documents/rinawarp-terminal-pro',
-      latestRun: null
+      latestRun: null,
     })
 
     assert.strictEqual(result.mode, 'execute')
