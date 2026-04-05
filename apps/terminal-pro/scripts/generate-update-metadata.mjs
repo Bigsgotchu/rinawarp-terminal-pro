@@ -61,8 +61,8 @@ function resolveArtifacts(version) {
   const linuxName = findArtifact(patterns.linux) || ''
   const debName = findArtifact(patterns.deb) || ''
   const windowsName = findArtifact(patterns.windows) || ''
-  if (!linuxName || !windowsName) {
-    throw new Error(`Missing required artifacts for ${version}. Expected AppImage and .exe in ${installerDir}`)
+  if (!linuxName) {
+    throw new Error(`Missing required AppImage for ${version}. Expected .AppImage in ${installerDir}`)
   }
   return {
     linux: {
@@ -75,10 +75,12 @@ function resolveArtifacts(version) {
           path: path.join(installerDir, debName),
         }
       : null,
-    windows: {
-      name: windowsName,
-      path: path.join(installerDir, windowsName),
-    },
+    windows: windowsName
+      ? {
+          name: windowsName,
+          path: path.join(installerDir, windowsName),
+        }
+      : null,
   }
 }
 
@@ -137,12 +139,16 @@ function buildLatestJson(version, pubDate, artifacts) {
             },
           }
         : {}),
-      windows: {
-        name: artifacts.windows.name,
-        path: `releases/${version}/${artifacts.windows.name}`,
-        sha256: artifacts.windows.sha256,
-        bytes: artifacts.windows.bytes,
-      },
+      ...(artifacts.windows
+        ? {
+            windows: {
+              name: artifacts.windows.name,
+              path: `releases/${version}/${artifacts.windows.name}`,
+              sha256: artifacts.windows.sha256,
+              bytes: artifacts.windows.bytes,
+            },
+          }
+        : {}),
     },
     platforms: {
       'linux-x86_64': {
@@ -157,7 +163,7 @@ function buildChecksums(artifacts) {
   return [
     `${artifacts.linux.sha256}  ${artifacts.linux.name}`,
     ...(artifacts.deb ? [`${artifacts.deb.sha256}  ${artifacts.deb.name}`] : []),
-    `${artifacts.windows.sha256}  ${artifacts.windows.name}`,
+    ...(artifacts.windows ? [`${artifacts.windows.sha256}  ${artifacts.windows.name}`] : []),
   ].join('\n') + '\n'
 }
 
@@ -183,14 +189,6 @@ async function main() {
 
   ensureOutputDirs()
 
-  const latestYml = toYaml({
-    version,
-    pubDate,
-    fileName: artifacts.windows.name,
-    size: artifacts.windows.bytes,
-    sha512: artifacts.windows.sha512,
-  })
-
   const latestLinuxYml = toYaml({
     version,
     pubDate,
@@ -202,7 +200,20 @@ async function main() {
   const latestJson = buildLatestJson(version, pubDate, artifacts)
   const checksums = buildChecksums(artifacts)
 
-  writeUpdaterMetadata({ latestYml, latestLinuxYml, latestJson, checksums })
+  writeUpdaterMetadata({
+    latestYml: artifacts.windows
+      ? toYaml({
+          version,
+          pubDate,
+          fileName: artifacts.windows.name,
+          size: artifacts.windows.bytes,
+          sha512: artifacts.windows.sha512,
+        })
+      : latestLinuxYml,
+    latestLinuxYml,
+    latestJson,
+    checksums,
+  })
 
   console.log(`Generated updater metadata for v${version}`)
   console.log(`- ${path.join(installerDir, 'latest.yml')}`)
