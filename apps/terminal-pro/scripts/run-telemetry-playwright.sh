@@ -33,7 +33,7 @@ fi
 if [[ "$#" -gt 0 ]]; then
   target_args=("$@")
 else
-  target_args=("tests/e2e/telemetry.test.ts")
+  target_args=("telemetry.test.ts")
 fi
 
 env -u ELECTRON_RUN_AS_NODE \
