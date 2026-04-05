@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+app_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 normalized_args=()
 needs_packaged_build=0
 for arg in "$@"; do
@@ -24,7 +26,6 @@ for arg in "$@"; do
 done
 
 if [[ "$needs_packaged_build" == "1" ]]; then
-  app_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
   packaged_asar="$app_root/dist-electron/installer/linux-unpacked/resources/app.asar"
   built_main="$app_root/dist-electron/main.js"
   if [[ ! -f "$packaged_asar" || ! -f "$built_main" || "$built_main" -nt "$packaged_asar" ]]; then
@@ -32,6 +33,8 @@ if [[ "$needs_packaged_build" == "1" ]]; then
     (cd "$app_root" && npx electron-builder --linux dir --publish never)
   fi
 fi
+
+cd "$app_root"
 
 if [[ "$(uname -s)" == "Linux" ]] && command -v xvfb-run >/dev/null 2>&1; then
   env -u ELECTRON_RUN_AS_NODE \
