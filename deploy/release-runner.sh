@@ -36,6 +36,8 @@ npm --prefix apps/terminal-pro run install:electron-native
 if [[ "$platform" == Linux* ]]; then
   echo "[release] Packaging via apps/terminal-pro:$target_label"
   npx pnpm --dir apps/terminal-pro exec electron-builder --linux AppImage --publish never
+  echo "[release] Refreshing updater metadata"
+  npm --prefix apps/terminal-pro run release:metadata
   bash deploy/verify-appimage-ci.sh
 else
   echo "[release] Packaging via apps/terminal-pro:$target_label"
