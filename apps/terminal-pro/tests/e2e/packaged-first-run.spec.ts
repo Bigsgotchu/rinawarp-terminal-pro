@@ -25,9 +25,8 @@ test('packaged first-run journey: customer can find workspace, settings, and a s
     await expect(page.locator('#workspace-picker')).toBeVisible()
     await expect(page.locator('#workspace-picker')).toContainText(/Choose workspace|Workspace:/i)
     await expect(page.locator('#status-bar')).toBeVisible()
-    await expect(page.locator('#status-bar')).toContainText(/Mode:/i)
-    await expect(page.locator('#status-bar')).toContainText(/Last run:/i)
-    await expect(page.locator('#status-bar')).toContainText(/Recovery:/i)
+    await expect(page.locator('#status-bar')).toContainText(/Rina workbench/i)
+    await expect(page.locator('#status-bar')).toContainText(/Workspace:/i)
 
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
     const settingsButton = page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="settings"]')
@@ -36,13 +35,15 @@ test('packaged first-run journey: customer can find workspace, settings, and a s
     await expect(page.locator('#rw-settings')).toBeVisible()
     await page.locator('#rw-settings [data-settings-tab="general"]').click()
     await expect(page.locator('#rw-settings')).toContainText(/Choose workspace|Open your own project or try a demo project/i)
+    await page.locator('#rw-settings [data-settings-tab="memory"]').click()
+    await expect(page.locator('#rw-memory-operational-store-badge')).toHaveText(/SQLite/i)
     await page.keyboard.press('Escape')
     await expect(page.locator('#rw-settings')).toBeHidden()
 
     await page.evaluate(() => {
       window.dispatchEvent(new CustomEvent('rina:workspace-selected', { detail: { path: '/home/karina/Downloads' } }))
     })
-    await expect(page.locator('#workspace-picker')).toContainText(/Workspace may be wrong: Downloads/i)
+    await expect(page.locator('#workspace-picker')).toContainText(/Workspace: Downloads/i)
     await expect(page.locator('[data-agent-section="workspace-setup"]')).toContainText(/may not be the right project folder/i)
 
     await page.evaluate(() => {

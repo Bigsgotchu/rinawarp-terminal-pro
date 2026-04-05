@@ -3,7 +3,7 @@ import { withApp } from './_app'
 
 test('first launch steers the user toward opening a project or trying the demo', async () => {
   await withApp(async ({ page }) => {
-    await page.getByRole('button', { name: 'Agent' }).click()
+    await page.getByRole('button', { name: 'Rina workbench' }).click()
 
     await expect(page.getByRole('heading', { name: 'Fix your broken project automatically.' }).first()).toBeVisible({ timeout: 15_000 })
     await expect(page.getByRole('button', { name: 'Open Project' }).first()).toBeVisible()

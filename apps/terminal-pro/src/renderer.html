@@ -23,9 +23,8 @@
     <main class="rw-workbench-shell">
       <header class="rw-workbench-topbar">
         <nav class="rw-workbench-tabs" aria-label="Workbench">
-          <button class="rw-workbench-tab rw-workbench-tab-primary active" data-tab="agent" type="button" aria-label="Agent">Agent</button>
-          <span class="rw-workbench-tab-group-label">Inspect</span>
-          <button class="rw-workbench-tab rw-workbench-tab-secondary" data-tab="runs" type="button" aria-label="Runs Inspector">Runs</button>
+          <button class="rw-workbench-tab rw-workbench-tab-primary active" data-tab="agent" type="button" aria-label="Rina workbench">Rina</button>
+          <button class="rw-workbench-tab rw-workbench-tab-secondary" data-tab="runs" type="button" aria-label="Run history">History</button>
         </nav>
         <div class="rw-workbench-topbar-workspace">
           <button
@@ -40,7 +39,7 @@
           </button>
         </div>
         <div class="rw-workbench-topbar-actions">
-          <button id="recovery-toggle" class="rw-topbar-action rw-topbar-action-secondary" data-tab="runs" type="button" hidden>Recovered runs</button>
+          <button id="recovery-toggle" class="rw-topbar-action rw-topbar-action-secondary" data-tab="runs" type="button" hidden>Recovered work</button>
           <button class="rw-topbar-action" data-tab="settings" data-action="open-settings" type="button" aria-label="Settings" hidden aria-hidden="true">Settings</button>
         </div>
       </header>
@@ -149,12 +148,12 @@
                 id="agent-input"
                 class="rw-agent-input"
                 rows="3"
-                placeholder="Tell Rina what to do."
+                placeholder="Ask anything…"
                 spellcheck="false"
               ></textarea>
               <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
               <div class="rw-agent-composer-actions">
-                <div class="rw-agent-hint">Ask in plain language. Enter sends.</div>
+                <div class="rw-agent-hint">Try Fix my project or Check project health. Enter sends.</div>
                 <button id="agent-send" class="rw-agent-send" type="button">Ask Rina</button>
               </div>
             </div>

@@ -7,6 +7,23 @@ type MemoryWorkspaceState = {
   updatedAt: string
 }
 
+export type OperationalMemoryView = {
+  id: string
+  scope: 'session' | 'user' | 'project' | 'episode'
+  kind: 'preference' | 'constraint' | 'project_fact' | 'task_outcome' | 'conversation_fact'
+  status?: 'approved' | 'suggested' | 'rejected'
+  content: string
+  salience: number
+  confidence?: number
+  workspaceId?: string
+  source?: 'behavior' | 'conversation' | 'user_explicit' | 'assistant_inferred' | 'task_outcome' | 'system_derived'
+  tags?: string[]
+  createdAt: string
+  updatedAt: string
+  lastUsedAt?: string
+  metadata?: Record<string, unknown>
+}
+
 function esc(value: unknown): string {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -20,6 +37,72 @@ export function linesFromConventions(entries: Array<{ key: string; value: string
 
 export function linesFromStrings(entries: string[] | undefined): string {
   return Array.isArray(entries) ? entries.join('\n') : ''
+}
+
+export function describeOperationalReason(metadata: Record<string, unknown> | undefined, tags: string[] | undefined): string {
+  const rememberedBecause = typeof metadata?.rememberedBecause === 'string' ? metadata.rememberedBecause : ''
+  if (rememberedBecause) return rememberedBecause
+  const tagSummary = Array.isArray(tags) && tags.length > 0 ? tags.join(', ') : ''
+  return tagSummary ? `Tagged for: ${tagSummary}.` : 'Stored for future agent context.'
+}
+
+export function groupOperationalMemories(
+  items: OperationalMemoryView[],
+): Record<'approved' | 'suggested' | 'rejected', OperationalMemoryView[]> {
+  const grouped: Record<'approved' | 'suggested' | 'rejected', OperationalMemoryView[]> = {
+    approved: [],
+    suggested: [],
+    rejected: [],
+  }
+
+  for (const item of items) {
+    grouped[(item.status || 'approved') as 'approved' | 'suggested' | 'rejected'].push(item)
+  }
+
+  return grouped
+}
+
+export function formatOperationalHeader(status: 'approved' | 'suggested' | 'rejected', count: number): string {
+  const label =
+    status === 'approved'
+      ? 'Approved memory'
+      : status === 'suggested'
+        ? 'Suggested memory'
+        : 'Rejected memory'
+  const description =
+    status === 'approved'
+      ? 'Active memory that can guide Rina during future turns.'
+      : status === 'suggested'
+        ? 'Review candidates that should be approved before they influence behavior.'
+        : 'Hidden from normal retrieval unless reviewed again.'
+  return `
+    <div class="rw-row rw-space">
+      <div>
+        <div class="rw-label">${label}</div>
+        <div class="rw-muted">${description}</div>
+      </div>
+      <div class="rw-pill">${count}</div>
+    </div>
+  `
+}
+
+export function describeOperationalStore(store: { backend?: 'sqlite' | 'json-fallback'; reason?: string } | undefined): {
+  badge: string
+  summary: string
+} {
+  if (store?.backend === 'json-fallback') {
+    return {
+      badge: 'JSON fallback',
+      summary: store.reason
+        ? `SQLite is unavailable in this environment, so operational memory is using the local JSON fallback. ${store.reason}`
+        : 'SQLite is unavailable in this environment, so operational memory is using the local JSON fallback.',
+    }
+  }
+
+  return {
+    badge: 'SQLite',
+    summary: 'Operational memory is using the local SQLite store.',
+  }
 }
 
 export function renderWorkspaceSummary(workspaceId: string, state: MemoryWorkspaceState | undefined): string {
@@ -147,6 +230,16 @@ export function renderMemoryPanelShell(): string {
         <div class="rw-pill">Owner review</div>
       </div>
       <div id="rw-memory-inferred-list" class="rw-flex rw-gap"></div>
+    </div>
+    <div class="rw-card rw-flex rw-gap">
+      <div class="rw-row rw-space">
+        <div>
+          <div class="rw-label">Operational memory</div>
+          <div id="rw-memory-operational-store-summary" class="rw-muted">Local-first memory entries the agent actually uses during turns.</div>
+        </div>
+        <div id="rw-memory-operational-store-badge" class="rw-pill">SQLite</div>
+      </div>
+      <div id="rw-memory-operational-list" class="rw-flex rw-gap"></div>
     </div>
     <div id="rw-memory-feedback" class="rw-muted"></div>
   `

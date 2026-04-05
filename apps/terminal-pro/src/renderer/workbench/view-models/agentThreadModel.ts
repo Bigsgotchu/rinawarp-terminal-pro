@@ -33,6 +33,9 @@ export type AgentEmptyCardViewModel = {
 
 export type RecoveryStripViewModel = {
   restoredCount: number
+  title: string
+  badge: string
+  meta?: string
   summary: string
   expanded: boolean
   compact: boolean
@@ -77,7 +80,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
       : workspaceState.status === 'weak'
         ? 'This folder may not be the project root yet.'
         : restoredRuns.length > 0
-          ? 'Ready when you are. I recovered the thread of what was happening and kept the proof nearby.'
+          ? 'We recovered your last work.'
           : lastRun && isRunSuccessWithProof(lastRun)
             ? 'Ready when you are. I know the workspace, and the last verified run ended cleanly.'
             : lastRun
@@ -89,7 +92,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
       : workspaceState.status === 'weak'
         ? workspaceState.reason
         : restoredRuns.length > 0
-          ? `There ${restoredRuns.length === 1 ? 'is' : 'are'} ${restoredRuns.length} recovered run${restoredRuns.length === 1 ? '' : 's'} ready to inspect or resume. Pick a lane and I’ll keep it clean.`
+          ? 'Your project is safe and ready to continue. Nothing was lost.'
           : lastRun
             ? `I can build, test, deploy, or inspect what just happened in ${workspaceState.displayValue}. No drama, just proof when it counts.`
             : `Build, test, fix, or ship in ${workspaceState.displayValue}.`
@@ -117,13 +120,13 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
     heading,
     copy,
     workspaceDisplay: workspaceState.displayValue,
-    modeLabel: currentMode(state),
+    modeLabel: 'Rina workbench',
     runLabel:
       restoredRuns.length > 0
-        ? `Recovery · ${restoredRuns.length} items restored`
+        ? 'Recovered work is ready'
         : lastRun
           ? `Last run · ${formatRunStatus(lastRun)}`
-          : 'Last run · none yet',
+          : 'Ready for the first fix',
     weakWorkspace: workspaceState.status === 'weak',
     weakWorkspaceReason: workspaceState.reason,
     actions,
@@ -158,7 +161,6 @@ export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyC
             healthCheck: 'guided-fix',
           },
         },
-        { label: 'Open another project', className: actionClass('secondary'), dataset: { pickWorkspace: 'guided-fix' } },
       ],
       stats: [
         { label: '1', value: 'Open project' },

@@ -131,7 +131,7 @@ function promptForIntent(intentLabel: string): string {
 }
 
 async function assertProofBackedIntentRun(page: Page, intentLabel: string): Promise<void> {
-  await page.getByRole('button', { name: 'Agent' }).click()
+  await page.getByRole('button', { name: 'Rina workbench' }).click()
   await ensureProjectContext(page)
   const thread = page.locator('#agent-output')
   await expect(page.locator('#agent-input')).toBeVisible()
@@ -198,7 +198,7 @@ test('killer intent recovery: restored interrupted run offers resume and inspect
     const page = await waitForFirstWindow(app)
     await page.waitForLoadState('domcontentloaded')
     await waitForAppReady(page)
-    await page.getByRole('button', { name: 'Agent' }).click()
+    await page.getByRole('button', { name: 'Rina workbench' }).click()
 
     const thread = page.locator('#agent-output')
     const recovery = page.locator('#agent-recovery')
@@ -236,7 +236,7 @@ test('killer intent deploy capability path stays proof-backed when Pro is unlock
     const page = await waitForFirstWindow(app)
     await page.waitForLoadState('domcontentloaded')
     await waitForAppReady(page)
-    await page.getByRole('button', { name: 'Agent' }).click()
+    await page.getByRole('button', { name: 'Rina workbench' }).click()
     await ensureProjectContext(page)
     const thread = page.locator('#agent-output')
     await expect(page.locator('#agent-input')).toBeVisible()

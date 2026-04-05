@@ -170,6 +170,37 @@ export type MemoryState = {
       createdAt: string;
       updatedAt: string;
     }>;
+    operationalMemories?: Array<{
+      id: string;
+      scope: "session" | "user" | "project" | "episode";
+      kind:
+        | "preference"
+        | "constraint"
+        | "project_fact"
+        | "task_outcome"
+        | "conversation_fact";
+      content: string;
+      status?: "approved" | "suggested" | "rejected";
+      salience: number;
+      confidence?: number;
+      workspaceId?: string;
+      source?:
+        | "behavior"
+        | "conversation"
+        | "user_explicit"
+        | "assistant_inferred"
+        | "task_outcome"
+        | "system_derived";
+      tags?: string[];
+      createdAt: string;
+      updatedAt: string;
+      lastUsedAt?: string;
+      metadata?: Record<string, unknown>;
+    }>;
+    operationalStore?: {
+      backend: "sqlite" | "json-fallback";
+      reason?: string;
+    };
     updatedAt: string;
   };
 };
@@ -211,6 +242,11 @@ export type MemoryIpcDeps = {
     id: string,
     status: "approved" | "dismissed",
   ) => MemoryState;
+  setOperationalMemoryStatus: (
+    id: string,
+    status: "approved" | "rejected",
+  ) => MemoryState;
+  deleteOperationalMemory: (id: string) => MemoryState;
   deleteEntry: (args: MemoryDeleteEntryArgs) => MemoryState;
 };
 
@@ -221,7 +257,120 @@ export type OwnerMemoryStore = {
   resetWorkspace: MemoryIpcDeps["resetWorkspace"];
   resetAll: MemoryIpcDeps["resetAll"];
   setInferredMemoryStatus: MemoryIpcDeps["setInferredMemoryStatus"];
+  setOperationalMemoryStatus: MemoryIpcDeps["setOperationalMemoryStatus"];
+  deleteOperationalMemory: MemoryIpcDeps["deleteOperationalMemory"];
   deleteEntry: MemoryIpcDeps["deleteEntry"];
+  upsertOperationalMemory: (input: {
+    scope: "session" | "user" | "project" | "episode";
+    kind:
+      | "preference"
+      | "constraint"
+      | "project_fact"
+      | "task_outcome"
+      | "conversation_fact";
+    content: string;
+    workspaceId?: string;
+    source?: "behavior" | "conversation";
+    salience?: number;
+    tags?: string[];
+    metadata?: Record<string, unknown>;
+  }) => MemoryState;
+  retrieveRelevantMemories: (input: {
+    query: string;
+    workspaceId?: string;
+    limit?: number;
+  }) => Array<{
+    id: string;
+    scope: "session" | "user" | "project" | "episode";
+    kind:
+      | "preference"
+      | "constraint"
+      | "project_fact"
+      | "task_outcome"
+      | "conversation_fact";
+    content: string;
+    salience: number;
+    workspaceId?: string;
+    source?: "behavior" | "conversation";
+    tags?: string[];
+    createdAt: string;
+    updatedAt: string;
+    lastUsedAt?: string;
+    metadata?: Record<string, unknown>;
+  }>;
+  recordConversationTurn: (input: {
+    sessionId?: string;
+    workspaceId?: string;
+    userMessage: string;
+    assistantReply: string;
+  }) => MemoryState;
+  recordTaskOutcome: (input: {
+    workspaceId?: string;
+    taskTitle: string;
+    summary: string;
+    success: boolean;
+  }) => MemoryState;
+  retrieveRelevantMemory?: (input: {
+    userId?: string;
+    workspaceId?: string;
+    sessionId?: string;
+    query: string;
+    limit?: number;
+  }) => Array<{
+    id: string;
+    scope: "session" | "user" | "project" | "episode";
+    kind:
+      | "preference"
+      | "constraint"
+      | "project_fact"
+      | "task_outcome"
+      | "conversation_fact";
+    content: string;
+    salience: number;
+    workspaceId?: string;
+    source?: "behavior" | "conversation";
+    tags?: string[];
+    createdAt: string;
+    updatedAt: string;
+    lastUsedAt?: string;
+    metadata?: Record<string, unknown>;
+  }>;
+  processTurnMemory?: (input: {
+    userId?: string;
+    workspaceId?: string | null;
+    sessionId?: string | null;
+    userMessage: string;
+    assistantMessage?: string;
+    taskResult?: {
+      success: boolean;
+      summary: string;
+      filesChanged?: string[];
+      commandsRun?: string[];
+    };
+  }) => Promise<Array<{
+    id: string;
+    scope: "session" | "user" | "project" | "episode";
+    kind:
+      | "preference"
+      | "constraint"
+      | "project_fact"
+      | "task_outcome"
+      | "conversation_fact";
+    content: string;
+    salience: number;
+    workspaceId?: string;
+    source?: "behavior" | "conversation";
+    tags?: string[];
+    createdAt: string;
+    updatedAt: string;
+    lastUsedAt?: string;
+    metadata?: Record<string, unknown>;
+  }>>;
+  getRecentMessages?: (sessionId: string) => Array<{
+    role: "user" | "assistant";
+    text: string;
+    createdAt: string;
+  }>;
 };
 
 export type OwnerMemoryStoreDeps = {
@@ -557,11 +706,17 @@ export type BuildPlanKind = "node" | "python" | "rust" | "go" | "unknown";
 export type BuildPlanWorkflow = "build" | "test" | "deploy";
 
 export type BuildPlanStep = {
-  id: string;
+  stepId: string;
   tool: "terminal" | "selfCheck";
-  command: string;
-  risk: "read" | "safe-write" | "high-impact";
-  description?: string;
+  input: {
+    command: string;
+    cwd?: string;
+    timeoutMs?: number;
+  };
+  risk: "inspect" | "safe-write" | "high-impact";
+  risk_level: "low" | "medium" | "high";
+  requires_confirmation: boolean;
+  description: string;
 };
 
 export type BuildPlan = {
@@ -903,6 +1058,9 @@ export type WindowLifecycleDeps = {
   runsArtifactsForIpc: RunsIpcHelpers["runsArtifactsForIpc"];
   codeListFilesForIpc: WorkspaceRuntimeHelpers["codeListFilesForIpc"];
   codeReadFileForIpc: WorkspaceRuntimeHelpers["codeReadFileForIpc"];
+  ownerMemoryStore: OwnerMemoryStore;
+  makePlan: BuildPlanHelpers["makePlan"];
+  evaluatePolicyGate: PolicyGateHelpers["evaluatePolicyGate"];
   handleRinaMessage: AnyFn;
   rinaController: AnyFn;
   resolveProjectRootSafe: ProjectRootResolver;

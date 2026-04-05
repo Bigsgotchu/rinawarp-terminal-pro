@@ -16,7 +16,7 @@ async function ensureProjectContext(page: Page): Promise<void> {
 
 test('plan mode: review-first prompt produces a proof-backed plan summary and run output', async () => {
   await withApp(async ({ page }) => {
-    await page.getByRole('button', { name: 'Agent' }).click()
+    await page.getByRole('button', { name: 'Rina workbench' }).click()
     await ensureProjectContext(page)
 
     const thread = page.locator('#agent-output')

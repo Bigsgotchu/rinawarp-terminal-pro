@@ -17,6 +17,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:setMode',
   'rina:runAgent',
   'rina:conversation:route',
+  'rina:conversation:turn',
   'rina:getPlans',
   'rina:getTools',
   // Telemetry channels
@@ -58,6 +59,8 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:memory:updateWorkspace',
   'rina:memory:deleteEntry',
   'rina:memory:setInferredStatus',
+  'rina:memory:setOperationalStatus',
+  'rina:memory:deleteOperational',
   'rina:memory:resetWorkspace',
   'rina:memory:resetAll',
   'rina:brain:stats',
@@ -118,6 +121,7 @@ const ALLOWED_ON_CHANNELS = new Set([
   'rina:plan:run:end',
   'rina:thinking',
   'rina:brain:event',
+  'rina:timeline:event',
 ])
 
 const ALLOWED_SEND_CHANNELS = new Set<string>([
@@ -258,6 +262,8 @@ contextBridge.exposeInMainWorld('rina', {
     ipcRenderer.invoke('rina:runAgent', command, opts),
   conversationRoute: (command: string, opts?: { workspaceRoot?: string | null }) =>
     ipcRenderer.invoke('rina:conversation:route', command, opts),
+  handleConversationTurn: (command: string, opts?: { workspaceRoot?: string | null }) =>
+    ipcRenderer.invoke('rina:conversation:turn', command, opts),
   getTools: () => ipcRenderer.invoke('rina:getTools'),
 
   // PTY terminal (if available)
@@ -292,6 +298,7 @@ contextBridge.exposeInMainWorld('rina', {
   onPlanRunStart: (cb: (p: { planRunId: string }) => void) => subscribe('rina:plan:run:start', cb),
   onPlanRunEnd: (cb: (p: { planRunId: string; ok: boolean; haltedBecause?: string }) => void) =>
     subscribe('rina:plan:run:end', cb),
+  onTimelineEvent: (cb: (event: any) => void) => subscribe('rina:timeline:event', cb),
 
   // Brain events
   getBrainStats: () => ipcRenderer.invoke('rina:brain:stats'),
@@ -341,6 +348,9 @@ contextBridge.exposeInMainWorld('rina', {
   memoryDeleteEntry: (input: any) => ipcRenderer.invoke('rina:memory:deleteEntry', input),
   memorySetInferredStatus: (id: string, status: 'approved' | 'dismissed') =>
     ipcRenderer.invoke('rina:memory:setInferredStatus', id, status),
+  memorySetOperationalStatus: (id: string, status: 'approved' | 'rejected') =>
+    ipcRenderer.invoke('rina:memory:setOperationalStatus', id, status),
+  memoryDeleteOperational: (id: string) => ipcRenderer.invoke('rina:memory:deleteOperational', id),
   memoryResetWorkspace: (workspaceId: string) => ipcRenderer.invoke('rina:memory:resetWorkspace', workspaceId),
   memoryResetAll: () => ipcRenderer.invoke('rina:memory:resetAll'),
   pickWorkspace: () => ipcRenderer.invoke('rina:workspace:pick'),

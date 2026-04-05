@@ -80,9 +80,8 @@ test('agent empty state shows Rina presence, trust hierarchy, and suggested acti
     await expect(welcomeCard.getByRole('button', { name: 'Try Demo Project' })).toBeVisible()
     await expect(page.locator('#workspace-picker')).toBeVisible()
     await expect(page.locator('#status-bar')).toContainText(/Workspace:/i)
-    await expect(page.locator('#status-bar')).toContainText(/Mode:/i)
-    await expect(page.locator('#status-bar')).toContainText(/Last run:/i)
-    await expect(page.locator('#status-bar')).toContainText(/Recovery:/i)
+    await expect(page.locator('#status-bar')).toContainText(/Rina workbench/i)
+    await expect(page.locator('#status-bar')).toContainText(/Choose a project folder to give Rina stronger context/i)
 
     const starterPrompts = page.locator('#agent-starter-prompts')
     await expect(starterPrompts).toBeEmpty()
@@ -122,10 +121,11 @@ test('agent empty state surfaces recovery summary when interrupted work is resto
     await agentTopbarTab(page).click()
 
     const recovery = page.locator('#agent-recovery')
-    await expect(recovery).toContainText(/I recovered your last session safely/i, { timeout: 20_000 })
-    await expect(recovery).toContainText(/Recovered task/i, { timeout: 20_000 })
-    await expect(recovery).toContainText(/It is usually safe to resume/i, { timeout: 20_000 })
-    await expect(recovery.getByRole('button', { name: /Resume/i })).toBeVisible()
+    await expect(recovery).toContainText(/Resume your last fix/i, { timeout: 20_000 })
+    await expect(recovery).toContainText(/Your project is safe and ready to continue/i, { timeout: 20_000 })
+    await expect(recovery.getByRole('button', { name: /Resume fix/i })).toBeVisible()
+    await expect(page.locator('.rw-agent-welcome-card')).toBeHidden()
+    await expect(page.locator('.rw-agent-composer')).toBeHidden()
   } finally {
     await app.close()
   }
@@ -139,7 +139,7 @@ test('agent first-run flow treats Downloads as weak context and shows workspace 
       window.dispatchEvent(new CustomEvent('rina:workspace-selected', { detail: { path: '/home/karina/Downloads' } }))
     })
 
-    await expect(page.locator('#workspace-picker')).toContainText(/Workspace may be wrong: Downloads/i)
+    await expect(page.locator('#workspace-picker')).toContainText(/Workspace: Downloads/i)
     const setup = page.locator('[data-agent-section="workspace-setup"]')
     await expect(setup).toContainText(/Downloads may not be the right project folder/i)
     await expect(setup.getByRole('button', { name: 'Open Project' })).toBeVisible()

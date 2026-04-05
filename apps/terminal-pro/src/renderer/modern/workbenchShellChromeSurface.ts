@@ -24,6 +24,7 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   if (workbench) {
     workbench.classList.toggle('agent-focused', model.agentFocused)
     workbench.classList.toggle('drawer-open', model.drawerOpen)
+    workbench.classList.toggle('recovery-focused', model.recoveryFocused)
     if (model.drawer) workbench.dataset.drawer = model.drawer
     else delete workbench.dataset.drawer
   }
@@ -31,9 +32,16 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   const app = doc.getElementById('rw-app')
   if (app) {
     app.classList.toggle('drawer-open', model.drawerOpen)
+    app.classList.toggle('recovery-focused', model.recoveryFocused)
     if (model.drawer) app.dataset.drawer = model.drawer
     else delete app.dataset.drawer
   }
+
+  const shell = doc.querySelector<HTMLElement>('.rw-workbench-shell')
+  if (shell) shell.classList.toggle('recovery-focused', model.recoveryFocused)
+
+  const statusBar = doc.getElementById('status-bar')
+  if (statusBar) statusBar.hidden = model.recoveryFocused
 
   for (const [name, active] of Object.entries(model.activeCenterViews)) {
     doc.querySelector<HTMLElement>(`[data-view="${name}"]`)?.classList.toggle('active', active)
@@ -62,7 +70,10 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   }
 
   const activityStatus = doc.getElementById('activity-status')
-  if (activityStatus) activityStatus.textContent = model.status.activityText
+  if (activityStatus) {
+    activityStatus.textContent = model.status.activityText
+    activityStatus.hidden = model.status.activityText.trim().length === 0
+  }
 
   const summary = doc.getElementById('status-summary')
   if (summary) summary.textContent = model.status.summaryText

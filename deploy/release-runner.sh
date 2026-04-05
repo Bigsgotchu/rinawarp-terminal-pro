@@ -30,6 +30,8 @@ esac
 
 echo "[release] Building Electron app"
 npm --prefix apps/terminal-pro run build:electron
+echo "[release] Rebuilding Electron native dependencies"
+npm --prefix apps/terminal-pro run install:electron-native
 
 if [[ "$platform" == Linux* ]]; then
   echo "[release] Packaging via apps/terminal-pro:$target_label"

@@ -49,16 +49,14 @@ export type WorkbenchShellFrameModel = {
 export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
   return {
     activityItems: [
-      { id: 'marketplace', label: 'Capabilities', glyph: 'C', ariaLabel: 'Capabilities', tab: 'marketplace', placement: 'primary' },
-      { id: 'diagnostics', label: 'Diagnostics', glyph: 'D', ariaLabel: 'Diagnostics', tab: 'diagnostics', placement: 'primary' },
       { id: 'settings', label: 'Settings', glyph: 'S', ariaLabel: 'Settings', tab: 'settings', placement: 'footer' },
     ],
     tabs: [
-      { id: 'agent', label: 'Agent', ariaLabel: 'Agent', tone: 'primary', active: true },
-      { id: 'runs', label: 'Runs', ariaLabel: 'Runs Inspector', tone: 'secondary' },
+      { id: 'agent', label: 'Rina', ariaLabel: 'Rina workbench', tone: 'primary', active: true },
+      { id: 'runs', label: 'History', ariaLabel: 'Run history', tone: 'secondary' },
     ],
     actions: [
-      { id: 'recovery-toggle', tab: 'runs', label: 'Recovered runs', ariaLabel: 'Recovered runs', tone: 'secondary', hidden: true },
+      { id: 'recovery-toggle', tab: 'runs', label: 'Recovered work', ariaLabel: 'Recovered work', tone: 'secondary', hidden: true },
       {
         action: 'open-settings',
         tab: 'settings',
@@ -153,12 +151,12 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
                 id="agent-input"
                 class="rw-agent-input"
                 rows="3"
-                placeholder="Tell Rina what to do."
+                placeholder="Ask anything…"
                 spellcheck="false"
               ></textarea>
               <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
               <div class="rw-agent-composer-actions">
-                <div class="rw-agent-hint">Ask in plain language. Enter sends.</div>
+                <div class="rw-agent-hint">Try Fix my project or Check project health. Enter sends.</div>
                 <button id="agent-send" class="rw-agent-send" type="button">Ask Rina</button>
               </div>
             </div>

@@ -38,6 +38,7 @@ import {
   composeCapabilityLead,
   composeExecutionHaltLead,
   composeExecutionPlanLead,
+  composeMemoryContextNote,
   composePlanModeLead,
   composeRinaReplyLead,
 } from './services/responseComposer.js'
@@ -162,6 +163,7 @@ export async function initProductionRenderer(): Promise<void> {
     composePlanModeLead,
     composeCapabilityLead,
     composeExecutionHaltLead,
+    composeMemoryContextNote,
     didExecutionStart,
   })
   const { runFixStepFromStore, autoApplyFixFromStore } = createFixExecutionActions({

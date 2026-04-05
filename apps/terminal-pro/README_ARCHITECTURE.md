@@ -133,8 +133,25 @@ These define how the project builds, packages, and starts:
 - [`package.json`](./package.json)
 - [`tsconfig.json`](./tsconfig.json)
 - [`electron-builder.yml`](./electron-builder.yml)
+- [`scripts/install-electron-native.sh`](./scripts/install-electron-native.sh)
 - [`src/main.ts`](./src/main.ts)
 - [`src/preload.ts`](./src/preload.ts)
+
+### Native Packaging Note
+
+`terminal-pro` now includes a local-first SQLite memory path backed by `better-sqlite3`. For packaged Electron builds, that native module must be rebuilt against the exact Electron version before `electron-builder` runs.
+
+The supported release flow is:
+
+1. `npm --workspace apps/terminal-pro run build:electron`
+2. `npm --workspace apps/terminal-pro run install:electron-native`
+3. `npm --workspace apps/terminal-pro run build:packaged-linux`
+
+If a build environment cannot fetch Electron headers live, provide a predownloaded tarball through:
+
+- `RINAWARP_ELECTRON_HEADERS_TARBALL=/path/to/node-v<ELECTRON_VERSION>-headers.tar.gz`
+
+The packaged first-run coverage now asserts that Settings > Memory shows `SQLite`, which is the release-time signal that the packaged app is using the native memory backend instead of the JSON fallback.
 
 ### 2. Composition Layer
 

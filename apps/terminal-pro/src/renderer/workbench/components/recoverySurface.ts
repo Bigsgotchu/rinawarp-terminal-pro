@@ -15,8 +15,13 @@ export function renderRecoveryStrip(model: RecoveryStripViewModel): HTMLElement 
     el(
       'div',
       { class: 'rw-recovery-strip-head' },
-      el('div', { class: 'rw-recovery-strip-title' }, 'I recovered your last session safely'),
-      el('div', { class: 'rw-recovery-strip-badge' }, `${model.restoredCount} items restored`)
+      el(
+        'div',
+        { class: 'rw-recovery-strip-head-copy' },
+        el('div', { class: 'rw-recovery-strip-title' }, model.title),
+        model.meta ? el('div', { class: 'rw-recovery-strip-meta' }, model.meta) : null
+      ),
+      el('div', { class: 'rw-recovery-strip-badge' }, model.badge)
     ),
     el('p', { class: 'rw-recovery-strip-copy' }, model.summary),
     el('div', { class: 'rw-inline-actions rw-inline-actions-recovery' }, ...model.actions.map(renderActionButton))
@@ -35,6 +40,6 @@ export function renderRecoveryToggleButton(container: HTMLButtonElement, restore
   container.hidden = false
   container.dataset.recoveryToggle = 'topbar'
   container.dataset.recoveryExpanded = String(expanded)
-  container.textContent = expanded ? 'Hide recovery' : 'Recovered session'
-  container.title = expanded ? 'Collapse recovered-session details' : `${restoredCount} restored run${restoredCount === 1 ? '' : 's'} available`
+  container.textContent = expanded ? 'Hide history' : 'Recovered work'
+  container.title = expanded ? 'Collapse recovered-work details' : `${restoredCount} restored run${restoredCount === 1 ? '' : 's'} available`
 }

@@ -34,9 +34,10 @@ export function mountAgentHero(container: HTMLElement, model: AgentHeroViewModel
     el(
       'div',
       { class: 'rw-agent-welcome-card' },
-      el('div', { class: 'rw-agent-kicker' }, 'Rina workbench'),
+      el('div', { class: 'rw-agent-kicker' }, model.modeLabel),
       el('h2', undefined, model.heading),
       el('p', undefined, model.copy),
+      el('div', { class: 'rw-agent-welcome-subline' }, model.runLabel),
       model.weakWorkspace
         ? el(
             'div',
@@ -86,7 +87,7 @@ export function renderAgentCard(model: AgentEmptyCardViewModel): HTMLElement {
         )
       : null,
     model.prompts?.length ? el('div', { class: 'rw-agent-empty-prompts' }, ...model.prompts.map((prompt) => renderStarterPromptChip(prompt))) : null,
-    model.footerCopy ? el('div', { class: 'rw-agent-empty-copy' }, model.footerCopy) : null
+    model.footerCopy ? el('div', { class: 'rw-agent-empty-footer' }, model.footerCopy) : null
   )
 }
 

@@ -158,6 +158,7 @@ const REDACT_BEFORE_PERSIST = true;
 const REDACT_BEFORE_MODEL = true;
 import { doctorInspect, doctorCollect, doctorInterpret, doctorVerify, doctorExecuteFix, doctorGetTranscript, doctorExportTranscript, } from './doctor-bridge.js';
 import { chatRouter } from './chat-router.js';
+markBootMilestone('runtime construction start');
 const runtime = createMainRuntime({
     platform: {
         app,
@@ -290,7 +291,9 @@ const runtime = createMainRuntime({
         registerPostStartupIpcAndServices,
     },
 });
+markBootMilestone('runtime constructed');
 runtime.registration.registerTeamStateIpc();
+markBootMilestone('team state IPC registered');
 let frameworkRuntime = null;
 app.whenReady().then(async () => {
     try {

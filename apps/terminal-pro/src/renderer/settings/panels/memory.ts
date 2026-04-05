@@ -1,4 +1,13 @@
-import { linesFromConventions, linesFromStrings, renderMemoryPanelShell, renderWorkspaceSummary } from './memorySurface.js'
+import {
+  describeOperationalStore,
+  describeOperationalReason,
+  formatOperationalHeader,
+  groupOperationalMemories,
+  linesFromConventions,
+  linesFromStrings,
+  renderMemoryPanelShell,
+  renderWorkspaceSummary,
+} from './memorySurface.js'
 
 type MemoryState = {
   owner: {
@@ -39,6 +48,26 @@ type MemoryState = {
       createdAt: string
       updatedAt: string
     }>
+    operationalMemories?: Array<{
+      id: string
+      scope: 'session' | 'user' | 'project' | 'episode'
+      kind: 'preference' | 'constraint' | 'project_fact' | 'task_outcome' | 'conversation_fact'
+      status?: 'approved' | 'suggested' | 'rejected'
+      content: string
+      salience: number
+      confidence?: number
+      workspaceId?: string
+      source?: 'behavior' | 'conversation' | 'user_explicit' | 'assistant_inferred' | 'task_outcome' | 'system_derived'
+      tags?: string[]
+      createdAt: string
+      updatedAt: string
+      lastUsedAt?: string
+      metadata?: Record<string, unknown>
+    }>
+    operationalStore?: {
+      backend: 'sqlite' | 'json-fallback'
+      reason?: string
+    }
     updatedAt: string
   }
 }
@@ -63,6 +92,8 @@ type MemoryApi = {
     key?: string
   }) => Promise<MemoryState>
   memorySetInferredStatus?: (id: string, status: 'approved' | 'dismissed') => Promise<MemoryState>
+  memorySetOperationalStatus?: (id: string, status: 'approved' | 'rejected') => Promise<MemoryState>
+  memoryDeleteOperational?: (id: string) => Promise<MemoryState>
   memoryResetWorkspace?: (workspaceId: string) => Promise<MemoryState>
   memoryResetAll?: () => Promise<MemoryState>
   workspaceDefault?: () => Promise<{ ok?: boolean; path?: string }>
@@ -102,6 +133,8 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     !rina?.memoryUpdateProfile ||
     !rina?.memoryUpdateWorkspace ||
     !rina?.memorySetInferredStatus ||
+    !rina?.memorySetOperationalStatus ||
+    !rina?.memoryDeleteOperational ||
     !rina?.memoryDeleteEntry ||
     !rina?.memoryResetWorkspace ||
     !rina?.memoryResetAll ||
@@ -121,6 +154,9 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
   const workspaceStatus = container.querySelector<HTMLElement>('#rw-memory-workspace-status')!
   const workspaceSummary = container.querySelector<HTMLElement>('#rw-memory-workspace-summary')!
   const inferredList = container.querySelector<HTMLElement>('#rw-memory-inferred-list')!
+  const operationalList = container.querySelector<HTMLElement>('#rw-memory-operational-list')!
+  const operationalStoreBadge = container.querySelector<HTMLElement>('#rw-memory-operational-store-badge')!
+  const operationalStoreSummary = container.querySelector<HTMLElement>('#rw-memory-operational-store-summary')!
   const responseStyleInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-response-style')!
   const proofStyleInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-proof-style')!
   const conventionsInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-conventions')!
@@ -171,68 +207,149 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     proofStyleInput.value = linesFromStrings(workspaceMemory?.preferredProofStyle)
     conventionsInput.value = linesFromConventions(workspaceMemory?.conventions)
     inferredList.innerHTML = ''
+    operationalList.innerHTML = ''
     const inferred = Array.isArray(currentState.memory.inferredMemories) ? currentState.memory.inferredMemories : []
     if (inferred.length === 0) {
       inferredList.innerHTML = `<div class="rw-muted">No inferred memories are waiting for review yet.</div>`
+    } else {
+      for (const entry of inferred) {
+        const row = document.createElement('div')
+        row.className = 'rw-card'
+        row.innerHTML = `
+          <div class="rw-row rw-space">
+            <div>
+              <div class="rw-label">${entry.summary}</div>
+              <div class="rw-muted">${entry.kind} • ${entry.source} • confidence ${Math.round(entry.confidence * 100)}%</div>
+            </div>
+            <div class="rw-pill">${entry.status}</div>
+          </div>
+          <div class="rw-row">
+            <div class="rw-muted">${entry.workspaceId || 'Global suggestion'}</div>
+          </div>
+        `
+        const actions = document.createElement('div')
+        actions.className = 'rw-row rw-gap'
+        if (entry.status !== 'approved') {
+          const approveButton = document.createElement('button')
+          approveButton.type = 'button'
+          approveButton.className = 'rw-btn'
+          approveButton.textContent = 'Approve'
+          approveButton.addEventListener('click', async () => {
+            await rina.memorySetInferredStatus?.(entry.id, 'approved')
+            setFeedback('Inferred memory approved.')
+            await render()
+          })
+          actions.appendChild(approveButton)
+        }
+        if (entry.status !== 'dismissed') {
+          const dismissButton = document.createElement('button')
+          dismissButton.type = 'button'
+          dismissButton.className = 'rw-btn rw-btn-ghost'
+          dismissButton.textContent = 'Dismiss'
+          dismissButton.addEventListener('click', async () => {
+            await rina.memorySetInferredStatus?.(entry.id, 'dismissed')
+            setFeedback('Inferred memory dismissed.')
+            await render()
+          })
+          actions.appendChild(dismissButton)
+        }
+        const removeButton = document.createElement('button')
+        removeButton.type = 'button'
+        removeButton.className = 'rw-btn rw-btn-ghost'
+        removeButton.textContent = 'Delete'
+        removeButton.addEventListener('click', async () => {
+          await rina.memoryDeleteEntry?.({
+            scope: 'profile',
+            field: 'inferredMemories',
+            value: entry.id,
+          })
+          setFeedback('Inferred memory deleted.')
+          await render()
+        })
+        actions.appendChild(removeButton)
+        row.appendChild(actions)
+        inferredList.appendChild(row)
+      }
+    }
+
+    const operational = Array.isArray(currentState.memory.operationalMemories) ? currentState.memory.operationalMemories : []
+    const operationalStore = describeOperationalStore(currentState.memory.operationalStore)
+    operationalStoreBadge.textContent = operationalStore.badge
+    operationalStoreSummary.textContent = operationalStore.summary
+    if (operational.length === 0) {
+      operationalList.innerHTML = `<div class="rw-muted">No operational memory has been stored yet.</div>`
       return
     }
-    for (const entry of inferred) {
-      const row = document.createElement('div')
-      row.className = 'rw-card'
-      row.innerHTML = `
-        <div class="rw-row rw-space">
-          <div>
-            <div class="rw-label">${entry.summary}</div>
-            <div class="rw-muted">${entry.kind} • ${entry.source} • confidence ${Math.round(entry.confidence * 100)}%</div>
+
+    const buckets = groupOperationalMemories(operational)
+
+    for (const status of ['suggested', 'approved', 'rejected'] as const) {
+      const items = buckets[status]
+      if (items.length === 0) continue
+
+      const section = document.createElement('div')
+      section.className = 'rw-flex rw-gap'
+      section.innerHTML = formatOperationalHeader(status, items.length)
+
+      for (const entry of items) {
+        const row = document.createElement('div')
+        row.className = 'rw-card'
+        row.innerHTML = `
+          <div class="rw-row rw-space">
+            <div>
+              <div class="rw-label">${entry.content}</div>
+              <div class="rw-muted">${entry.kind} • ${entry.scope} • ${entry.source || 'unknown'} • salience ${Math.round(entry.salience * 100)}%${typeof entry.confidence === 'number' ? ` • confidence ${Math.round(entry.confidence * 100)}%` : ''}</div>
+            </div>
+            <div class="rw-pill">${entry.status || 'approved'}</div>
           </div>
-          <div class="rw-pill">${entry.status}</div>
-        </div>
-        <div class="rw-row">
-          <div class="rw-muted">${entry.workspaceId || 'Global suggestion'}</div>
-        </div>
-      `
-      const actions = document.createElement('div')
-      actions.className = 'rw-row rw-gap'
-      if (entry.status !== 'approved') {
-        const approveButton = document.createElement('button')
-        approveButton.type = 'button'
-        approveButton.className = 'rw-btn'
-        approveButton.textContent = 'Approve'
-        approveButton.addEventListener('click', async () => {
-          await rina.memorySetInferredStatus?.(entry.id, 'approved')
-          setFeedback('Inferred memory approved.')
+          <div class="rw-row">
+            <div class="rw-muted">${entry.workspaceId || 'Global'}${entry.lastUsedAt ? ` • used ${new Date(entry.lastUsedAt).toLocaleString()}` : ''}</div>
+          </div>
+          <div class="rw-row">
+            <div class="rw-muted">${describeOperationalReason(entry.metadata, entry.tags)}</div>
+          </div>
+        `
+        const actions = document.createElement('div')
+        actions.className = 'rw-row rw-gap'
+        if (entry.status !== 'approved') {
+          const approveButton = document.createElement('button')
+          approveButton.type = 'button'
+          approveButton.className = 'rw-btn'
+          approveButton.textContent = 'Approve'
+          approveButton.addEventListener('click', async () => {
+            await rina.memorySetOperationalStatus?.(entry.id, 'approved')
+            setFeedback('Operational memory approved.')
+            await render()
+          })
+          actions.appendChild(approveButton)
+        }
+        if (entry.status !== 'rejected') {
+          const rejectButton = document.createElement('button')
+          rejectButton.type = 'button'
+          rejectButton.className = 'rw-btn rw-btn-ghost'
+          rejectButton.textContent = 'Reject'
+          rejectButton.addEventListener('click', async () => {
+            await rina.memorySetOperationalStatus?.(entry.id, 'rejected')
+            setFeedback('Operational memory rejected.')
+            await render()
+          })
+          actions.appendChild(rejectButton)
+        }
+        const removeButton = document.createElement('button')
+        removeButton.type = 'button'
+        removeButton.className = 'rw-btn rw-btn-ghost'
+        removeButton.textContent = 'Delete'
+        removeButton.addEventListener('click', async () => {
+          await rina.memoryDeleteOperational?.(entry.id)
+          setFeedback('Operational memory deleted.')
           await render()
         })
-        actions.appendChild(approveButton)
+        actions.appendChild(removeButton)
+        row.appendChild(actions)
+        section.appendChild(row)
       }
-      if (entry.status !== 'dismissed') {
-        const dismissButton = document.createElement('button')
-        dismissButton.type = 'button'
-        dismissButton.className = 'rw-btn rw-btn-ghost'
-        dismissButton.textContent = 'Dismiss'
-        dismissButton.addEventListener('click', async () => {
-          await rina.memorySetInferredStatus?.(entry.id, 'dismissed')
-          setFeedback('Inferred memory dismissed.')
-          await render()
-        })
-        actions.appendChild(dismissButton)
-      }
-      const removeButton = document.createElement('button')
-      removeButton.type = 'button'
-      removeButton.className = 'rw-btn rw-btn-ghost'
-      removeButton.textContent = 'Delete'
-      removeButton.addEventListener('click', async () => {
-        await rina.memoryDeleteEntry?.({
-          scope: 'profile',
-          field: 'inferredMemories',
-          value: entry.id,
-        })
-        setFeedback('Inferred memory deleted.')
-        await render()
-      })
-      actions.appendChild(removeButton)
-      row.appendChild(actions)
-      inferredList.appendChild(row)
+
+      operationalList.appendChild(section)
     }
   }
 

@@ -75,7 +75,6 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
         <header class="rw-workbench-topbar">
           <nav class="rw-workbench-tabs" aria-label="Workbench">
             ${renderTab(model.tabs[0])}
-            <span class="rw-workbench-tab-group-label">Inspect</span>
             ${model.tabs.slice(1).map(renderTab).join('')}
           </nav>
           <div class="rw-workbench-topbar-workspace">

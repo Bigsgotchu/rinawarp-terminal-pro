@@ -35,6 +35,10 @@ const MEMORY_WORDS =
 const SETTINGS_WORDS = /\b(settings|preferences|memory panel|theme|density|owner settings)\b/i
 const RECOVERY_WORDS = /\b(resume|recover|restored|interrupted|pick up where we left off)\b/i
 const OFF_BOUNDARY_WORDS = /\b(poem|horoscope|astrology|tell me a bedtime story)\b/i
+const MIXED_ACTION_WORDS = /\b(and explain|explain what happened|tell me what happened|what happened|what broke|why it broke|why it failed)\b/i
+const TEST_BOUNDARY_WORDS = /\b(don't touch tests|do not touch tests|don't edit tests|do not edit tests|without touching tests|without editing tests)\b/i
+const PACKAGE_MANAGER_WORDS = /\b(use pnpm|prefer pnpm|use npm|prefer npm|use yarn|prefer yarn|use bun|prefer bun)\b/i
+const VERBOSITY_WORDS = /\b(keep responses short|keep it short|be concise|prefer concise|short answers)\b/i
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
@@ -66,6 +70,20 @@ function classifyExecutionGoal(rawText: string): RoutedTurn['executionCandidate'
   if (/\bdiagnos(?:e|tics?)\b/.test(normalized)) return { goal: 'diagnose', risk: 'low' }
   if (/\blint|analy[sz]e\b/.test(normalized)) return { goal: 'inspect', risk: 'low' }
   return null
+}
+
+function extractConstraints(rawText: string): string[] {
+  const normalized = rawText.toLowerCase()
+  const constraints = new Set<string>()
+  if (TEST_BOUNDARY_WORDS.test(normalized)) constraints.add('do_not_touch_tests')
+  if (VERBOSITY_WORDS.test(normalized)) constraints.add('prefer_concise')
+  if (PACKAGE_MANAGER_WORDS.test(normalized)) {
+    if (normalized.includes('pnpm')) constraints.add('use_pnpm')
+    if (/\buse npm\b|\bprefer npm\b/.test(normalized)) constraints.add('use_npm')
+    if (normalized.includes('yarn')) constraints.add('use_yarn')
+    if (normalized.includes('bun')) constraints.add('use_bun')
+  }
+  return Array.from(constraints)
 }
 
 function classifyTurnType(rawText: string, lower: string, latestRun?: RouteConversationTurnArgs['latestRun'] | null): TurnType {
@@ -143,6 +161,33 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
   const latestRun = args.latestRun || null
   const context = buildConversationContext(args)
   const turnType = classifyTurnType(conversationalText || rawText, lower, latestRun)
+  const constraints = extractConstraints(conversationalText || rawText)
+  const executionCandidate = classifyExecutionGoal(conversationalText || rawText)
+
+  if (EXECUTION_KEYWORDS.test(lower) && MIXED_ACTION_WORDS.test(lower)) {
+    return {
+      rawText,
+      mode: 'mixed',
+      turnType: 'action',
+      confidence: 0.9,
+      workspaceId: args.workspaceId,
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
+      allowedNextAction: executionCandidate?.risk === 'medium' ? 'plan' : 'execute',
+      requiresAction: true,
+      userGoal: conversationalText || rawText,
+      constraints,
+      executionCandidate: executionCandidate || undefined,
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'action',
+        mode: executionCandidate?.risk === 'medium' ? 'plan' : 'run',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: executionCandidate?.risk !== 'medium',
+        tone: 'supportive',
+      }),
+    }
+  }
 
   if (SELF_CHECK_TRIGGERS.test(conversationalText)) {
     const ctx = resolveSelfCheckContext(args)
@@ -155,6 +200,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
         workspaceId: args.workspaceId,
         references: {},
         allowedNextAction: 'clarify',
+        requiresAction: false,
+        constraints,
         clarification: {
           required: true,
           reason: 'no_context',
@@ -179,6 +226,9 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: ctx.lastRunId || undefined, receiptId: latestRun?.latestReceiptId || undefined },
       allowedNextAction: 'execute',
+      requiresAction: true,
+      userGoal: conversationalText || rawText,
+      constraints,
       executionCandidate: { goal: 'self-check', risk: 'low' as const },
       context,
       replyPlan: buildReplyPlan({
@@ -200,6 +250,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'clarify',
+      requiresAction: false,
+      constraints,
       clarification: {
         required: true,
           reason: 'empty_turn',
@@ -225,6 +277,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
+      requiresAction: false,
+      constraints,
       context,
       replyPlan: buildReplyPlan({
         turnType: 'greeting',
@@ -245,6 +299,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
+      requiresAction: false,
+      constraints,
       context,
       replyPlan: buildReplyPlan({
         turnType: 'help',
@@ -265,6 +321,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'reply_only',
+      requiresAction: false,
+      constraints,
       context,
       replyPlan: buildReplyPlan({
         turnType,
@@ -285,6 +343,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'reply_only',
+      requiresAction: false,
+      constraints,
       context,
       replyPlan: buildReplyPlan({
         turnType,
@@ -309,6 +369,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
         restoredSessionId: latestRun?.interrupted ? latestRun.sessionId : undefined,
       },
       allowedNextAction: latestRun?.interrupted ? 'reply_only' : 'inspect',
+      requiresAction: false,
+      constraints,
       context,
       replyPlan: buildReplyPlan({
         turnType: 'follow_up',
@@ -334,6 +396,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
         restoredSessionId: latestRun?.interrupted ? latestRun.sessionId : undefined,
       },
       allowedNextAction: latestRun?.runId ? 'reply_only' : 'clarify',
+      requiresAction: false,
+      constraints,
       clarification: latestRun?.runId
         ? undefined
         : {
@@ -361,6 +425,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: {},
       allowedNextAction: 'reply_only',
+      requiresAction: false,
+      constraints,
       context,
       replyPlan: buildReplyPlan({
         turnType: 'clarify_needed',
@@ -381,7 +447,9 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
-      executionCandidate: classifyExecutionGoal(rawText) || undefined,
+      requiresAction: false,
+      constraints,
+      executionCandidate: executionCandidate || undefined,
       context,
       replyPlan: buildReplyPlan({
         turnType: 'explain',
@@ -402,6 +470,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: args.workspaceId ? 'inspect' : 'clarify',
+      requiresAction: false,
+      constraints,
       clarification: args.workspaceId
         ? undefined
         : {
@@ -429,6 +499,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
+      requiresAction: false,
+      constraints,
       context,
       replyPlan: buildReplyPlan({
         turnType: latestRun?.runId ? 'follow_up' : 'greeting',
@@ -450,7 +522,9 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',
-      executionCandidate: classifyExecutionGoal(rawText) || undefined,
+      requiresAction: false,
+      constraints,
+      executionCandidate: executionCandidate || undefined,
       context,
       replyPlan: buildReplyPlan({
         turnType: turnType === 'frustration' ? 'frustration' : 'explain',
@@ -464,7 +538,6 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
   }
 
   if (EXECUTION_KEYWORDS.test(lower)) {
-    const executionCandidate = classifyExecutionGoal(conversationalText || rawText)
     if (executionCandidate?.goal === 'deploy_project' && !detectDeployCapability(args.workspaceId || null)) {
       return {
         rawText,
@@ -474,9 +547,12 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
         workspaceId: args.workspaceId,
         references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
         allowedNextAction: 'plan',
+        requiresAction: true,
+        userGoal: conversationalText || rawText,
+        constraints,
         executionCandidate: {
           ...executionCandidate,
-          constraints: ['deployment_target_required'],
+          constraints: ['deployment_target_required', ...constraints],
         },
         context,
         replyPlan: buildReplyPlan({
@@ -496,6 +572,9 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: executionCandidate?.risk === 'medium' ? 'plan' : 'execute',
+      requiresAction: true,
+      userGoal: conversationalText || rawText,
+      constraints,
       executionCandidate: executionCandidate || undefined,
       context,
       replyPlan: buildReplyPlan({
@@ -516,6 +595,8 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     workspaceId: args.workspaceId,
     references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
     allowedNextAction: args.workspaceId ? 'inspect' : 'clarify',
+    requiresAction: false,
+    constraints,
     clarification: args.workspaceId
       ? undefined
       : {
