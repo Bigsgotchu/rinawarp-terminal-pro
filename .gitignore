@@ -57,6 +57,8 @@ test-results/
 *.test.ts
 *.spec.js
 *.spec.ts
+!apps/terminal-pro/tests/e2e/*.test.ts
+!apps/terminal-pro/tests/e2e/*.spec.ts
 coverage/
 RinaWarp-Terminal-Pro-*.AppImage
 *.deb
