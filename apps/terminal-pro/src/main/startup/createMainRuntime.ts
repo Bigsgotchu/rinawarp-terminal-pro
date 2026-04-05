@@ -57,6 +57,8 @@ function createMemoryIpcDeps(ipcMain: unknown, ownerMemoryStore: OwnerMemoryStor
         resetWorkspace: (workspaceId) => ownerMemoryStore.resetWorkspace(workspaceId),
         resetAll: () => ownerMemoryStore.resetAll(),
         setInferredMemoryStatus: (id, status) => ownerMemoryStore.setInferredMemoryStatus(id, status),
+        setOperationalMemoryStatus: (id, status) => ownerMemoryStore.setOperationalMemoryStatus(id, status),
+        deleteOperationalMemory: (id) => ownerMemoryStore.deleteOperationalMemory(id),
         deleteEntry: (input) => ownerMemoryStore.deleteEntry(input),
     };
 }
@@ -329,6 +331,9 @@ export function createMainRuntime(runtimeDeps: CreateMainRuntimeDeps): MainRunti
         runsArtifactsForIpc,
         codeListFilesForIpc,
         codeReadFileForIpc,
+        ownerMemoryStore,
+        makePlan,
+        evaluatePolicyGate,
         handleRinaMessage: deps.handleRinaMessage,
         rinaController: deps.rinaController,
         resolveProjectRootSafe: deps.resolveProjectRootSafe,

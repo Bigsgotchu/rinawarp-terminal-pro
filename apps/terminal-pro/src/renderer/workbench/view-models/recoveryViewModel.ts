@@ -63,28 +63,25 @@ export function buildRecoverySummaryCardModel(state: WorkbenchState): AgentEmpty
   const recovery = getRecoveryGuidance(latest)
   return {
     sectionKey: 'recovery-summary',
-    label: 'Recovered session',
-    title: `${restoredRuns.length} recovered item${restoredRuns.length === 1 ? '' : 's'} are ready when you are.`,
-    copy: formatRecoveryNarrative(recovery, { prefix: 'Recovered task' }),
+    label: 'Recovered work',
+    title: 'We recovered your last work.',
+    copy: 'Your project is safe and ready to continue.',
     className: 'rw-agent-empty-recovery',
     stats: [
+      { label: 'Trust', value: 'Nothing was lost' },
+      { label: 'Recovered', value: `${restoredRuns.length} item${restoredRuns.length === 1 ? '' : 's'}` },
       { label: 'Latest', value: formatRunStatus(latest) },
-      { label: 'Receipt', value: formatProofBadge(latest) },
       { label: 'Updated', value: formatRunDate(latest.updatedAt) },
-      { label: 'Next', value: recovery.bestNextActionLabel },
     ],
     actions: [
       ...(recovery.resumeSafe
-        ? [{ label: recovery.resumeLabel, className: actionClass('primary'), dataset: { runResume: latest.id } }]
+        ? [{ label: 'Resume where you left off', className: actionClass('primary'), dataset: { runResume: latest.id } }]
         : []),
       {
-        label: recovery.rerunLabel,
+        label: 'View details',
         className: actionClass(recovery.resumeSafe ? 'secondary' : 'primary'),
-        dataset: { runRerun: latest.id },
+        dataset: { runReveal: latest.latestReceiptId || latest.id },
       },
-      { label: recovery.receiptLabel, className: actionClass('secondary'), dataset: { runReveal: latest.latestReceiptId || latest.id } },
-      { label: 'Open Runs', className: actionClass('quiet'), dataset: { tab: 'runs' } },
-      { label: 'Inspect run', className: actionClass('quiet'), dataset: { openRun: latest.id } },
     ],
   }
 }
@@ -98,31 +95,27 @@ export function buildRecoveryStripViewModel(state: WorkbenchState, compact: bool
   const latestRecovery = getRecoveryGuidance(latestRun)
   return {
     restoredCount: restoredRuns.length,
+    title: latestRecovery?.resumeSafe ? 'Resume your last fix' : 'Review your last fix',
+    badge: 'Nothing was lost',
+    meta: undefined,
     expanded: state.ui.recoveryExpanded,
     compact,
-    summary: latestRecovery
-      ? `Receipts are intact. ${formatRecoveryNarrative(latestRecovery, { prefix: 'Recovered task' })}`
-      : `Receipts are intact. ${latestRun.command || latestRun.title || 'Recovered session activity'}.`,
+    summary: latestRecovery?.resumeSafe
+      ? 'Your project is safe and ready to continue.'
+      : 'Your project is safe. Review the latest run before continuing.',
     actions: [
       ...(latestRecovery?.resumeSafe
-        ? [{ label: latestRecovery.resumeLabel, className: actionClass('primary'), dataset: { runResume: latestRun.id } }]
+        ? [{ label: 'Resume fix', className: actionClass('primary'), dataset: { runResume: latestRun.id } }]
         : []),
-      {
-        label: latestRecovery?.rerunLabel || 'Rerun task',
-        className: actionClass(latestRecovery?.resumeSafe ? 'secondary' : 'primary'),
-        dataset: { runRerun: latestRun.id },
-      },
-      {
-        label: latestRecovery?.receiptLabel || 'Open receipt',
-        className: actionClass('secondary'),
-        dataset: { runReveal: latestRun.latestReceiptId || latestRun.id },
-      },
-      {
-        label: state.ui.recoveryExpanded ? 'Hide details' : 'Show details',
-        className: actionClass('quiet'),
-        dataset: { recoveryToggle: state.ui.recoveryExpanded ? 'collapse' : 'expand' },
-      },
-      { label: 'Open Runs', className: actionClass('quiet'), dataset: { tab: 'runs' } },
+      ...(!latestRecovery?.resumeSafe
+        ? [
+            {
+              label: 'View details',
+              className: actionClass('primary'),
+              dataset: { runReveal: latestRun.latestReceiptId || latestRun.id },
+            },
+          ]
+        : []),
     ],
   }
 }

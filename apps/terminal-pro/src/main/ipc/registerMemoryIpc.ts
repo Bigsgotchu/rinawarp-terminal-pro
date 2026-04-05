@@ -39,6 +39,26 @@ type MemoryState = {
       createdAt: string
       updatedAt: string
     }>
+    operationalMemories?: Array<{
+      id: string
+      scope: 'session' | 'user' | 'project' | 'episode'
+      kind: 'preference' | 'constraint' | 'project_fact' | 'task_outcome' | 'conversation_fact'
+      status?: 'approved' | 'suggested' | 'rejected'
+      content: string
+      salience: number
+      confidence?: number
+      workspaceId?: string
+      source?: 'behavior' | 'conversation' | 'user_explicit' | 'assistant_inferred' | 'task_outcome' | 'system_derived'
+      tags?: string[]
+      createdAt: string
+      updatedAt: string
+      lastUsedAt?: string
+      metadata?: Record<string, unknown>
+    }>
+    operationalStore?: {
+      backend: 'sqlite' | 'json-fallback'
+      reason?: string
+    }
     updatedAt: string
   }
 }
@@ -59,6 +79,8 @@ export function registerMemoryIpc(deps: {
   resetWorkspace: (workspaceId: string) => MemoryState
   resetAll: () => MemoryState
   setInferredMemoryStatus: (id: string, status: 'approved' | 'dismissed') => MemoryState
+  setOperationalMemoryStatus: (id: string, status: 'approved' | 'rejected') => MemoryState
+  deleteOperationalMemory: (id: string) => MemoryState
   deleteEntry: (args: {
     scope: 'profile' | 'workspace'
     field: 'likes' | 'dislikes' | 'preferredResponseStyle' | 'preferredProofStyle' | 'conventions' | 'inferredMemories'
@@ -72,6 +94,8 @@ export function registerMemoryIpc(deps: {
   deps.ipcMain.removeHandler('rina:memory:updateWorkspace')
   deps.ipcMain.removeHandler('rina:memory:deleteEntry')
   deps.ipcMain.removeHandler('rina:memory:setInferredStatus')
+  deps.ipcMain.removeHandler('rina:memory:setOperationalStatus')
+  deps.ipcMain.removeHandler('rina:memory:deleteOperational')
   deps.ipcMain.removeHandler('rina:memory:resetWorkspace')
   deps.ipcMain.removeHandler('rina:memory:resetAll')
 
@@ -82,6 +106,10 @@ export function registerMemoryIpc(deps: {
   deps.ipcMain.handle('rina:memory:setInferredStatus', async (_event, id, status) =>
     deps.setInferredMemoryStatus(String(id || ''), status === 'dismissed' ? 'dismissed' : 'approved')
   )
+  deps.ipcMain.handle('rina:memory:setOperationalStatus', async (_event, id, status) =>
+    deps.setOperationalMemoryStatus(String(id || ''), status === 'rejected' ? 'rejected' : 'approved')
+  )
+  deps.ipcMain.handle('rina:memory:deleteOperational', async (_event, id) => deps.deleteOperationalMemory(String(id || '')))
   deps.ipcMain.handle('rina:memory:resetWorkspace', async (_event, workspaceId) => deps.resetWorkspace(String(workspaceId || '')))
   deps.ipcMain.handle('rina:memory:resetAll', async () => deps.resetAll())
 }

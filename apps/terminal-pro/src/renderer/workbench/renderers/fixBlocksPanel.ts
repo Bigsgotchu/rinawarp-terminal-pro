@@ -1,6 +1,8 @@
 import type { FixBlockModel, WorkbenchState } from '../store.js'
 import { el, mount } from '../dom.js'
 
+type AgentViewState = 'idle' | 'recovered' | 'running' | 'completed'
+
 function phaseLabel(fix: FixBlockModel): string {
   switch (fix.phase) {
     case 'detecting':
@@ -437,283 +439,289 @@ function renderFixStep(
   )
 }
 
-function renderFixBlock(fix: FixBlockModel): HTMLElement {
-  const visibleSteps = fix.steps.slice(0, 5)
-  const hiddenStepCount = Math.max(0, fix.steps.length - visibleSteps.length)
-  const riskCounts = stepRiskCounts(fix.steps)
-  const hasProofRun = Boolean(fix.applyRunId)
-  const hasReceiptTrail = Boolean(fix.applyPlanRunId || fix.runId)
-  const isRepairActive = fix.phase === 'detecting' || fix.phase === 'planning' || fix.phase === 'executing' || fix.phase === 'verifying'
-  const showManualStepActions = fix.phase === 'planning' || fix.phase === 'error'
-  const issueHeading =
-    fix.phase === 'done'
-      ? 'Project fixed successfully'
-      : fix.phase === 'error'
-        ? 'Some issues could not be fixed automatically'
-        : 'We found issues and can fix them'
+function getAgentViewState(fix: FixBlockModel): AgentViewState {
+  if (fix.phase === 'done' || fix.phase === 'error') return 'completed'
+  if (fix.phase === 'detecting' || fix.phase === 'planning' || fix.phase === 'executing' || fix.phase === 'verifying' || fix.status === 'running') {
+    return 'running'
+  }
+  return 'recovered'
+}
 
-  const body = el(
+function renderAgentPanelHeader(fix: FixBlockModel): HTMLElement {
+  const workspaceName = fix.cwd.split('/').filter(Boolean).pop() || fix.cwd || 'workspace'
+  return el(
     'div',
-    { class: 'fix-body' },
-    el(
-      'div',
-      { class: 'fix-hero' },
-      el('div', { class: 'fix-label' }, 'Fix Project'),
-      el('div', { class: 'fix-hero-title' }, issueHeading),
-      el('div', { class: 'fix-copy' }, fix.whatBroke)
-    ),
-    renderPhaseTimeline(fix),
-    el('div', undefined, el('div', { class: 'fix-label' }, 'Why this is safe'), el('div', { class: 'fix-copy' }, fix.whySafe)),
-    el(
-      'div',
-      { class: 'fix-overview' },
-      el(
-        'div',
-        { class: 'fix-overview-card' },
-        el('div', { class: 'fix-label' }, 'Plan'),
-        el('div', { class: 'fix-overview-value' }, `${fix.steps.length} step${fix.steps.length === 1 ? '' : 's'}`),
-        el('div', { class: 'fix-overview-copy' }, 'Review the plan, then watch the streamed run prove the repair.')
-      ),
-      el(
-        'div',
-        { class: 'fix-overview-card' },
-        el('div', { class: 'fix-label' }, 'Run'),
-        el('div', { class: 'fix-overview-value' }, fix.applyRunId || fix.runId || fix.streamId),
-        el('div', { class: 'fix-overview-copy' }, fix.applyRunId ? 'Proof-backed run attached.' : 'Repair run will attach once execution starts.')
-      ),
-      el(
-        'div',
-        { class: 'fix-overview-card' },
-        el('div', { class: 'fix-label' }, 'Workspace'),
-        el('div', { class: 'fix-overview-value' }, fix.cwd),
-        el('div', { class: 'fix-overview-copy' }, 'This repair stays scoped to the current project root.')
-      )
-    ),
-    el(
-      'div',
-      undefined,
-      el('div', { class: 'fix-label' }, fix.phase === 'done' ? 'Proof of repair' : 'Proof path'),
-      renderProofSummary(fix)
-    ),
-    fix.steps.length > 0
-      ? el(
-          'div',
-          undefined,
-          el('div', { class: 'fix-label' }, 'Repair summary'),
-          renderPlanSummary(fix)
-        )
-      : null,
-    fix.issues?.length
-      ? el(
-          'div',
-          undefined,
-          el('div', { class: 'fix-label' }, 'Issues found'),
-          el('div', { class: 'fix-issues' }, ...fix.issues.map((issue) => renderIssueCard(issue)))
-        )
-      : null,
-    riskCounts.dangerous > 0 && fix.phase !== 'done'
-      ? el(
-          'div',
-          { class: 'fix-warning-banner' },
-          'This plan includes project-modifying steps. Review the high-impact items before treating this run as routine.'
-        )
-      : null,
-    renderNextStepGuidance(fix),
-    renderNarration(fix),
-    el(
-      'div',
-      undefined,
-      el('div', { class: 'fix-label' }, fix.phase === 'executing' || fix.phase === 'verifying' || fix.phase === 'done' ? 'Repair steps' : 'Planned steps')
-    ),
-    renderVerificationChecks(fix),
+    { class: 'agent-panel-header' },
+    el('div', { class: 'agent-panel-title' }, 'Rina - Terminal Workbench'),
+    el('div', { class: 'agent-panel-subtitle' }, `Workspace: ${workspaceName}`)
   )
+}
 
-  if (fix.statusText) {
-    body.appendChild(el('div', { class: `fix-status-banner ${fix.phase === 'executing' || fix.phase === 'verifying' ? 'is-active' : fix.phase === 'done' ? 'is-success' : fix.phase === 'error' ? 'is-error' : ''}`.trim() }, fix.statusText))
-  }
+function renderAgentPanelContext(fix: FixBlockModel, viewState: AgentViewState): HTMLElement {
+  const title =
+    viewState === 'completed'
+      ? fix.phase === 'done'
+        ? 'Your project is working again'
+        : 'The repair needs a quick review'
+      : viewState === 'running'
+        ? 'Fixing your project...'
+        : 'We recovered your last work'
 
-  if (fix.latestOutput) {
-    body.appendChild(
-      el(
-        'div',
-        { class: 'fix-terminal-shell' },
-        el('div', { class: 'fix-label' }, 'Execution stream'),
-        el('div', { class: 'fix-terminal-title' }, 'Live terminal output'),
-        undefined,
-        el('pre', { class: 'fix-terminal-output' }, fix.latestOutput)
-      )
+  const copy =
+    viewState === 'completed'
+      ? fix.phase === 'done'
+        ? 'The repair finished with proof attached and the project is ready for the next step.'
+        : 'The safe repair flow stopped before full success, but the work and proof trail are still intact.'
+      : viewState === 'running'
+        ? fix.statusText || 'RinaWarp is repairing the project and streaming each safe step as it runs.'
+        : 'Your project is safe and ready to continue.'
+
+  return el(
+    'div',
+    { class: 'agent-context' },
+    el('div', { class: 'agent-block-kicker' }, viewState === 'recovered' ? 'Recovered session' : viewState === 'running' ? 'Live execution' : 'Result'),
+    el('h3', { class: 'agent-block-title' }, title),
+    el('p', { class: 'agent-block-copy' }, copy),
+    viewState === 'recovered'
+      ? el('div', { class: 'agent-context-trust' }, 'Nothing was lost')
+      : null
+  )
+}
+
+function renderAgentPrimaryAction(fix: FixBlockModel, viewState: AgentViewState): HTMLElement {
+  const actions: HTMLElement[] = []
+
+  if (viewState === 'recovered') {
+    actions.push(
+      el('button', { class: 'primary-btn fix-auto-apply', dataset: { fixId: fix.id, fixAutoApply: '' } }, 'Resume where you left off'),
+      el('button', { class: 'secondary-btn', dataset: { fixReveal: '', fixId: fix.id } }, 'View details')
     )
-  }
-
-  const actionsContainer = el('div', { class: 'fix-steps' })
-  if (fix.steps.length > 0) {
-    for (const [index, step] of visibleSteps.entries()) {
-      actionsContainer.appendChild(renderFixStep(step, fix.id, index, { showRunButton: showManualStepActions }))
-    }
-    if (hiddenStepCount > 0) {
-      actionsContainer.appendChild(
-        el(
-          'div',
-          { class: 'fix-status-note' },
-          `Showing the first ${visibleSteps.length} steps. ${hiddenStepCount} more step${hiddenStepCount === 1 ? '' : 's'} remain in this repair run and will appear in the receipt trail.`
-        )
-      )
-    }
-    if (!showManualStepActions) {
-      actionsContainer.appendChild(
-        el(
-          'div',
-          { class: 'fix-status-note' },
-          fix.phase === 'done'
-            ? 'This repair already ran. Review the proof and receipt trail before rerunning individual steps.'
-            : 'Step controls stay hidden while the repair is active so the live run remains the main source of truth.'
-        )
-      )
-    }
-  } else {
-    actionsContainer.appendChild(el('div', { class: 'fix-status-note' }, 'Planning runnable actions…'))
-  }
-  body.appendChild(actionsContainer)
-
-  const footerActions = [el(
-    'button',
-    { class: 'fix-btn primary fix-auto-apply', dataset: { fixId: fix.id }, disabled: fix.steps.length === 0 || fix.phase === 'detecting' },
-    fix.phase === 'planning' ? 'Fix Automatically (Pro)' : fix.phase === 'done' ? 'Run Repair Again (Pro)' : 'Re-run Safe Fix (Pro)'
-  )]
-
-  if (fix.phase === 'done') {
-    footerActions.unshift(
-      el('button', { class: 'fix-btn primary', dataset: { pickWorkspace: 'fix-success' } }, 'Fix another project')
+  } else if (viewState === 'running') {
+    actions.push(
+      el('button', { class: 'secondary-btn', dataset: { fixReveal: '', fixId: fix.id } }, 'View details')
     )
-    footerActions.splice(
-      1,
-      0,
+  } else if (fix.phase === 'done') {
+    actions.push(
+      el('button', { class: 'primary-btn', dataset: { pickWorkspace: 'fix-success' } }, 'Fix another project'),
       el(
         'button',
         {
-          class: 'fix-btn',
+          class: 'secondary-btn',
           dataset: {
             agentPrompt: 'Check this project health. Find outdated dependencies, configuration risks, and the safest next fixes without changing files yet.',
             healthCheck: 'fix-success',
           },
         },
-        'Re-run health check'
+        'Check health'
       )
     )
-  }
-
-  if (hasReceiptTrail) {
-    footerActions.push(
-      el('button', { class: 'fix-btn', dataset: { fixReveal: '', fixId: fix.id } }, fix.phase === 'done' ? 'View Receipt' : 'Review Receipt')
+  } else {
+    actions.push(
+      el('button', { class: 'primary-btn', dataset: { fixReveal: '', fixId: fix.id } }, 'View details'),
+      el('button', { class: 'secondary-btn fix-auto-apply', dataset: { fixAutoApply: '', fixId: fix.id } }, 'Try repair again')
     )
   }
 
-  if (hasProofRun) {
-    footerActions.push(el('button', { class: 'fix-btn', dataset: { fixProof: '', fixId: fix.id } }, fix.phase === 'done' ? 'Export Proof' : 'Prepare Proof Bundle'))
-  }
+  return el('div', { class: 'agent-primary-action' }, ...actions)
+}
 
-  if (!isRepairActive || hasProofRun) {
-    footerActions.push(el('button', { class: 'fix-btn', dataset: { fixFolder: '' } }, 'Open Runs Folder'))
-  }
+function renderAgentExecution(fix: FixBlockModel, viewState: AgentViewState): HTMLElement | null {
+  if (viewState !== 'running') return null
 
-  body.appendChild(el('div', { class: 'fix-block-footer' }, ...footerActions))
+  const narration = Array.isArray(fix.narration) ? fix.narration.filter((item) => item?.title).slice(-2) : []
+  const visibleSteps = fix.steps.slice(0, 5)
 
-  if (fix.phase === 'done') {
-    body.appendChild(
-      el(
-        'div',
-        { class: 'fix-outcome-summary' },
-        el('div', { class: 'fix-label' }, 'Share the win'),
-        el('div', { class: 'fix-copy' }, 'This just saved you time. Want to share it while the result still feels fresh?'),
-        el(
+  return el(
+    'div',
+    { class: 'agent-execution' },
+    el('div', { class: 'agent-block-kicker' }, 'Live execution'),
+    el('h3', { class: 'agent-block-title' }, 'Fixing your project...'),
+    narration.length > 0
+      ? el(
           'div',
-          { class: 'fix-summary-grid' },
-          el(
-            'div',
-            { class: 'fix-summary-chip is-safe' },
-            el('span', { class: 'fix-summary-count' }, '✔'),
-            el('span', undefined, 'Project fixed')
-          ),
-          el(
-            'div',
-            { class: 'fix-summary-chip is-caution' },
-            el('span', { class: 'fix-summary-count' }, String((fix.summary?.highlights || []).length || 1)),
-            el('span', undefined, 'Wins to share')
-          ),
-          el(
-            'div',
-            { class: 'fix-summary-chip is-safe' },
-            el('span', { class: 'fix-summary-count' }, fix.confidence?.score != null ? `${fix.confidence.score}%` : 'High'),
-            el('span', undefined, 'Confidence')
+          { class: 'agent-execution-narration' },
+          ...narration.map((item) =>
+            el(
+              'div',
+              { class: `agent-execution-note is-${item.level}` },
+              el('div', { class: 'agent-execution-note-title' }, item.title),
+              item.description ? el('div', { class: 'agent-execution-note-copy' }, item.description) : null
+            )
           )
-        ),
-        el(
-          'div',
-          { class: 'fix-block-footer' },
-          el('button', { class: 'fix-btn primary', dataset: { shareFix: fix.id } }, 'Share this fix'),
-          el('button', { class: 'fix-btn', dataset: { copyFixSummary: fix.id } }, 'Copy summary'),
-          el('button', { class: 'fix-btn', dataset: { copyFixShareImage: fix.id } }, 'Copy share image'),
-          el('button', { class: 'fix-btn', dataset: { copyInviteLink: '' } }, 'Copy invite link')
         )
-      )
-    )
+      : null,
+    el(
+      'div',
+      { class: 'agent-execution-steps' },
+      ...(visibleSteps.length > 0
+        ? visibleSteps.map((step) =>
+            el(
+              'div',
+              { class: `execution-step ${step.status === 'running' ? 'active' : step.status === 'done' ? 'done' : ''}`.trim() },
+              `${step.status === 'done' ? '✔' : step.status === 'running' ? '•' : '○'} ${step.title || step.command}`
+            )
+          )
+        : [el('div', { class: 'execution-step active' }, '• Inspecting the project and preparing a safe repair plan')])
+    ),
+    fix.latestOutput
+      ? el(
+          'details',
+          { class: 'agent-execution-log' },
+          el('summary', { class: 'agent-history-summary' }, 'Live terminal output'),
+          el('pre', { class: 'fix-terminal-output' }, fix.latestOutput)
+        )
+      : null
+  )
+}
+
+function renderAgentResult(fix: FixBlockModel, viewState: AgentViewState): HTMLElement | null {
+  if (viewState !== 'completed') return null
+
+  const summaryItems =
+    (fix.summary?.highlights || []).length > 0
+      ? (fix.summary?.highlights || []).slice(0, 4)
+      : (Array.isArray(fix.issues) ? fix.issues.map((issue) => summarizeIssueOutcome(issue)) : []).slice(0, 4)
+
+  const confidence = fix.confidence?.score != null ? `${fix.confidence.level.charAt(0).toUpperCase()}${fix.confidence.level.slice(1)} (${fix.confidence.score}%)` : fix.summary?.confidence || 'Working proof attached'
+
+  return el(
+    'div',
+    { class: 'agent-result' },
+    el('div', { class: 'agent-block-kicker' }, fix.phase === 'done' ? 'Result' : 'Needs review'),
+    el('h3', { class: 'agent-block-title' }, fix.phase === 'done' ? 'Project fixed' : 'Automatic repair stopped early'),
+    fix.phase === 'done'
+      ? el('p', { class: 'agent-block-copy' }, 'Before: Broken. After: Working.')
+      : el('p', { class: 'agent-block-copy' }, 'Before: Broken. After: Safer, but still needs a quick manual review.'),
+    summaryItems.length > 0
+      ? el(
+          'ul',
+          { class: 'agent-result-list' },
+          ...summaryItems.map((item) => el('li', undefined, `✔ ${item}`))
+        )
+      : null,
+    el(
+      'div',
+      { class: 'agent-result-confidence' },
+      el('span', undefined, 'Confidence:'),
+      el('strong', undefined, confidence)
+    ),
+    fix.verificationText ? el('div', { class: `fix-result-note ${fix.verificationStatus === 'passed' ? 'success' : fix.verificationStatus === 'failed' ? 'error' : ''}`.trim() }, fix.verificationText) : null,
+    fix.phase === 'done'
+      ? el(
+          'div',
+          { class: 'agent-primary-action' },
+          el('button', { class: 'primary-btn', dataset: { shareFix: fix.id } }, 'Share this fix'),
+          el('button', { class: 'secondary-btn', dataset: { copyFixSummary: fix.id } }, 'Copy summary')
+        )
+      : null
+  )
+}
+
+function renderAgentHistory(fix: FixBlockModel): HTMLElement {
+  const outcomeSummary = renderOutcomeSummary(fix)
+  const changedFilesSummary = renderChangedFilesSummary(fix)
+  const hasHistoryContent = Boolean(
+    outcomeSummary ||
+      changedFilesSummary ||
+      (fix.issues && fix.issues.length > 0) ||
+      fix.steps.length > 0 ||
+      fix.applyRunId ||
+      fix.runId
+  )
+
+  if (!hasHistoryContent) {
+    return el('div')
   }
 
-  if (fix.status === 'running') {
-    body.appendChild(el('div', { class: 'fix-status-note active' }, 'Repair is running now. Watch the step list and terminal stream for proof.'))
-  }
-  if (fix.verificationText) {
-    body.appendChild(
+  const historyBody = el(
+    'div',
+    { class: 'agent-history-body' },
+    outcomeSummary || el('div', { class: 'fix-status-note' }, 'No result summary yet.'),
+    changedFilesSummary,
+    fix.issues?.length
+      ? el(
+          'div',
+          { class: 'fix-issues' },
+          ...fix.issues.map((issue) => renderIssueCard(issue))
+        )
+      : null,
+    fix.steps.length > 0
+      ? el(
+          'div',
+          { class: 'fix-steps' },
+          ...fix.steps.slice(0, 5).map((step, index) => renderFixStep(step, fix.id, index, { showRunButton: false }))
+        )
+      : null,
+    el(
+      'div',
+      { class: 'agent-history-actions' },
+      el('button', { class: 'secondary-btn', dataset: { fixReveal: '', fixId: fix.id } }, 'Open receipt'),
+      fix.applyRunId ? el('button', { class: 'secondary-btn', dataset: { fixProof: '', fixId: fix.id } }, 'Export proof') : null,
+      el('button', { class: 'secondary-btn', dataset: { tab: 'runs' } }, 'Open runs')
+    )
+  )
+
+  return el(
+    'details',
+    { class: 'agent-history collapsed' },
+    el('summary', { class: 'agent-history-summary' }, 'Recent work'),
+    historyBody
+  )
+}
+
+function renderAgentInputActions(fix: FixBlockModel): HTMLElement {
+  const projectPrompt = fix.cwd && fix.cwd !== '.'
+    ? 'Figure out what is broken and fix the safest parts first.'
+    : 'Help me fix this project.'
+
+  return el(
+    'div',
+    { class: 'agent-input-panel' },
+    el('div', { class: 'agent-input-placeholder' }, 'Ask anything...'),
+    el(
+      'div',
+      { class: 'agent-input-actions' },
       el(
-        'div',
-        { class: `fix-result-note ${fix.verificationStatus === 'failed' ? 'error' : fix.verificationStatus === 'passed' ? 'success' : ''}` },
-        fix.verificationText
+        'button',
+        {
+          class: 'primary-btn',
+          dataset: {
+            agentPrompt: projectPrompt,
+            intentKey: 'fix',
+            tierHint: 'Start here',
+            tierTone: 'available',
+          },
+        },
+        'Fix my project'
+      ),
+      el(
+        'button',
+        {
+          class: 'secondary-btn',
+          dataset: {
+            agentPrompt: 'Check this project health. Find outdated dependencies, configuration risks, and the safest next fixes without changing files yet.',
+            healthCheck: 'agent-panel',
+          },
+        },
+        'Check health'
       )
     )
-  }
-  const outcomeSummary = renderOutcomeSummary(fix)
-  if (outcomeSummary) {
-    body.appendChild(outcomeSummary)
-  }
-  const changedFilesSummary = renderChangedFilesSummary(fix)
-  if (changedFilesSummary) {
-    body.appendChild(changedFilesSummary)
-  }
-  if (fix.phase === 'done' || fix.phase === 'error') {
-    body.appendChild(
-      el(
-        'div',
-        { class: 'fix-status-note' },
-        fix.phase === 'done'
-          ? 'The repair finished with proof attached. Open another project and do it again while the flow is still fresh.'
-          : 'The repair surfaced a reviewable outcome. Use the receipt and proof trail to inspect what ran and what still needs attention.'
-      )
-    )
-  }
-  if (fix.explanation) {
-    body.appendChild(
-      el(
-        'div',
-        undefined,
-        el('div', { class: 'fix-label' }, 'Explanation'),
-        el('div', { class: 'fix-copy' }, fix.explanation)
-      )
-    )
-  }
-  if (fix.error) {
-    body.appendChild(el('div', { class: 'fix-result-note error' }, fix.error))
-  }
+  )
+}
+
+function renderFixBlock(fix: FixBlockModel): HTMLElement {
+  const viewState = getAgentViewState(fix)
 
   return el(
     'section',
-    { class: `fix-block ${fix.phase ? `is-${fix.phase}` : ''}`.trim(), dataset: { fixId: fix.id } },
-    el(
-      'div',
-      { class: 'fix-block-head' },
-      el('div', { class: 'fix-block-title' }, 'Fix Project'),
-      el('div', { class: `fix-badge ${phaseTone(fix)}` }, phaseLabel(fix))
-    ),
-    body
+    { class: `fix-block agent-panel ${fix.phase ? `is-${fix.phase}` : ''}`.trim(), dataset: { fixId: fix.id, agentViewState: viewState } },
+    renderAgentPanelHeader(fix),
+    renderAgentPanelContext(fix, viewState),
+    renderAgentPrimaryAction(fix, viewState),
+    renderAgentExecution(fix, viewState),
+    renderAgentResult(fix, viewState),
+    renderAgentHistory(fix),
+    renderAgentInputActions(fix)
   )
 }
 

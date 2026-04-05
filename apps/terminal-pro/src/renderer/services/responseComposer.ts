@@ -7,6 +7,10 @@ type MemoryState = {
     mode: 'licensed' | 'local-fallback'
   }
   memory: {
+    operationalStore?: {
+      backend: 'sqlite' | 'json-fallback'
+      reason?: string
+    }
     profile: {
       preferredName?: string
       tonePreference?: 'concise' | 'balanced' | 'detailed'
@@ -54,6 +58,11 @@ type ComposeExecutionHaltLeadArgs = {
   memoryState?: MemoryState | null
 }
 
+type ComposeMemoryContextNoteArgs = {
+  memoryState?: MemoryState | null
+  constraints?: string[]
+}
+
 function classifyIntent(command: string): 'build' | 'test' | 'deploy' | 'fix' | 'self_check' | 'command' {
   const normalized = command.toLowerCase()
   if (/\b(scan yourself|check yourself|self-check|inspect current state|check the workbench)\b/.test(normalized)) return 'self_check'
@@ -92,6 +101,18 @@ function getApprovedInferenceSummaries(memoryState?: MemoryState | null): string
 
 function hasApprovedInference(memoryState: MemoryState | null | undefined, pattern: RegExp): boolean {
   return getApprovedInferenceSummaries(memoryState).some((summary) => pattern.test(summary))
+}
+
+export function composeMemoryContextNote({ memoryState, constraints }: ComposeMemoryContextNoteArgs): string | null {
+  const activeConstraints = Array.isArray(constraints)
+    ? constraints.map((entry) => String(entry || '').trim()).filter(Boolean)
+    : []
+  if (activeConstraints.length === 0) return null
+
+  const backend = memoryState?.memory.operationalStore?.backend === 'json-fallback' ? 'JSON fallback' : 'SQLite'
+  return activeConstraints.length === 1
+    ? `Using remembered constraint from ${backend} memory for this turn.`
+    : `Using ${activeConstraints.length} remembered constraints from ${backend} memory for this turn.`
 }
 
 export function composeRinaReplyLead({ result, memoryState }: ComposeReplyLeadArgs): string | null {

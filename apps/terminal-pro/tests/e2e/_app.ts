@@ -21,7 +21,7 @@ export async function waitForAppReady(page: Page, timeoutMs = 30_000): Promise<v
 
 async function getMainProcessWindowState(
   app: ElectronApplication
-): Promise<{ appReady: boolean; windowCount: number; milestones: string[]; windowPhase: string; appPath: string }> {
+): Promise<{ appReady: boolean; windowCount: number; milestones: string[]; windowPhase: string; appPath: string; memoryPhase: string }> {
   try {
     return await app.evaluate(({ app: electronApp, BrowserWindow }) => ({
       appReady: electronApp.isReady(),
@@ -33,15 +33,16 @@ async function getMainProcessWindowState(
       windowPhase: process.env.RINAWARP_E2E_WINDOW_PHASE || '',
       appPath: electronApp.getAppPath(),
       mainLoaded: process.env.RINAWARP_E2E_MAIN_LOADED === '1',
+      memoryPhase: process.env.RINAWARP_E2E_MEMORY_PHASE || '',
     }))
   } catch {
-    return { appReady: false, windowCount: -1, milestones: [], windowPhase: '', appPath: '', mainLoaded: false }
+    return { appReady: false, windowCount: -1, milestones: [], windowPhase: '', appPath: '', mainLoaded: false, memoryPhase: '' }
   }
 }
 
 export async function waitForFirstWindow(app: ElectronApplication, timeoutMs = 60_000): Promise<Page> {
   const deadline = Date.now() + timeoutMs
-  let lastWindowState = { appReady: false, windowCount: -1, milestones: [] as string[], windowPhase: '', appPath: '', mainLoaded: false }
+  let lastWindowState = { appReady: false, windowCount: -1, milestones: [] as string[], windowPhase: '', appPath: '', mainLoaded: false, memoryPhase: '' }
   let lastLoggedAt = 0
 
   while (Date.now() < deadline) {
@@ -58,14 +59,14 @@ export async function waitForFirstWindow(app: ElectronApplication, timeoutMs = 6
     if (Date.now() - lastLoggedAt >= 5_000) {
       console.log(
         `[E2E boot] waiting for first window: playwright=${windows.length} main=${lastWindowState.windowCount} appReady=${lastWindowState.appReady} milestones=${lastWindowState.milestones.join(' > ')}`
-          + ` windowPhase=${lastWindowState.windowPhase || 'unknown'} appPath=${lastWindowState.appPath || 'unknown'} mainLoaded=${lastWindowState.mainLoaded}`
+          + ` windowPhase=${lastWindowState.windowPhase || 'unknown'} memoryPhase=${lastWindowState.memoryPhase || 'unknown'} appPath=${lastWindowState.appPath || 'unknown'} mainLoaded=${lastWindowState.mainLoaded}`
       )
       lastLoggedAt = Date.now()
     }
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
   throw new Error(
-    `Timed out waiting for first Electron window after ${timeoutMs}ms (playwright=0, main=${lastWindowState.windowCount}, appReady=${lastWindowState.appReady}, milestones=${lastWindowState.milestones.join(' > ')}, windowPhase=${lastWindowState.windowPhase || 'unknown'}, appPath=${lastWindowState.appPath || 'unknown'}, mainLoaded=${lastWindowState.mainLoaded})`
+    `Timed out waiting for first Electron window after ${timeoutMs}ms (playwright=0, main=${lastWindowState.windowCount}, appReady=${lastWindowState.appReady}, milestones=${lastWindowState.milestones.join(' > ')}, windowPhase=${lastWindowState.windowPhase || 'unknown'}, memoryPhase=${lastWindowState.memoryPhase || 'unknown'}, appPath=${lastWindowState.appPath || 'unknown'}, mainLoaded=${lastWindowState.mainLoaded})`
   )
 }
 

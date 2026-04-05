@@ -146,7 +146,7 @@ test('visual QA captures recovery state', async () => {
     await page.waitForLoadState('domcontentloaded')
     await waitForAppReady(page)
     await agentTopbarTab(page).click()
-    await expect(page.locator('#agent-recovery')).toContainText(/I recovered your last session safely/i)
+    await expect(page.locator('#agent-recovery')).toContainText(/Resume your last fix/i)
     await capture(page, 'agent-recovery')
   } finally {
     await app.close()

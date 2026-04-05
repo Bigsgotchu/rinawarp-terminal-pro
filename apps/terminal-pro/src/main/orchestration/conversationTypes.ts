@@ -4,6 +4,7 @@ export type ConversationMode =
   | 'question'
   | 'inspect'
   | 'execute'
+  | 'mixed'
   | 'self_check'
   | 'follow_up'
   | 'recovery'
@@ -67,6 +68,9 @@ export type RoutedTurn = {
     reason?: string
     question?: string
   }
+  requiresAction?: boolean
+  userGoal?: string
+  constraints?: string[]
   executionCandidate?: {
     goal: string
     target?: string
@@ -75,6 +79,87 @@ export type RoutedTurn = {
   }
   context?: ConversationContext
   replyPlan?: ReplyPlan
+}
+
+export type ConversationPlanStep = {
+  stepId: string
+  tool: string
+  input: {
+    command: string
+    cwd?: string
+    timeoutMs?: number
+  }
+  risk: 'inspect' | 'safe-write' | 'high-impact'
+  risk_level: 'low' | 'medium' | 'high'
+  requires_confirmation: boolean
+  description: string
+}
+
+export type ConversationPlanPreview = {
+  id: string
+  reasoning: string
+  steps: ConversationPlanStep[]
+}
+
+export type IntentResult = {
+  type: ConversationMode
+  confidence: number
+  requiresAction: boolean
+  userGoal?: string
+  constraints?: string[]
+}
+
+export type AgentState =
+  | 'idle'
+  | 'thinking'
+  | 'responding'
+  | 'planning'
+  | 'awaiting_permission'
+  | 'executing'
+  | 'completed'
+  | 'error'
+
+export type BaseTimelineEvent = {
+  id: string
+  sessionId: string
+  taskId?: string
+  stepId?: string
+  correlationId: string
+  timestamp: string
+}
+
+export type AgentTimelineEvent =
+  | (BaseTimelineEvent & { type: 'message.received'; message: string; workspaceId?: string })
+  | (BaseTimelineEvent & { type: 'agent.mode.changed'; mode: AgentState })
+  | (BaseTimelineEvent & { type: 'intent.resolved'; intent: ConversationMode; confidence: number; requiresAction: boolean })
+  | (BaseTimelineEvent & { type: 'plan.created'; planId: string; goal: string; stepCount: number })
+  | (BaseTimelineEvent & { type: 'permission.required'; reason: string; actions: string[] })
+  | (BaseTimelineEvent & { type: 'task.completed'; summary: string })
+  | (BaseTimelineEvent & { type: 'task.failed'; error: string })
+
+export type ConversationTurnResult = RoutedTurn & {
+  assistantReply: string
+  planPreview?: ConversationPlanPreview
+  taskStarted?: boolean
+  permissionRequest?: {
+    required: boolean
+    reason: string
+    actions?: string[]
+  }
+}
+
+export interface HandleUserTurnResult {
+  assistantReply: string
+  intent: IntentResult
+  task?: {
+    id: string
+    started: boolean
+    planPreview?: ConversationPlanPreview
+  }
+  permissionRequest?: {
+    reason: string
+    actions: string[]
+  }
 }
 
 export type ConversationRunReference = {

@@ -30,6 +30,211 @@
   box-shadow: var(--rw-shadow-soft, 0 10px 24px rgba(0, 0, 0, 0.16));
 }
 
+.agent-panel {
+  inline-size: min(100%, 800px);
+  margin: 0 auto;
+  padding: 32px 24px;
+  border-radius: 24px;
+  gap: 32px;
+  background:
+    linear-gradient(180deg, rgba(18, 22, 31, 0.96), rgba(10, 14, 22, 0.94)),
+    radial-gradient(circle at top left, rgba(255, 79, 163, 0.12), transparent 40%),
+    radial-gradient(circle at top right, rgba(0, 229, 204, 0.08), transparent 28%);
+}
+
+.agent-panel-header,
+.agent-context,
+.agent-primary-action,
+.agent-execution,
+.agent-result,
+.agent-history,
+.agent-input-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.agent-panel-title {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.agent-panel-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.agent-block-kicker {
+  color: var(--rw-hot-pink, #ff4fa3);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.agent-block-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.75rem;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.agent-block-copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.agent-context-trust,
+.agent-result-confidence {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  inline-size: fit-content;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 204, 0.18);
+  background: rgba(0, 229, 204, 0.08);
+  color: #dffff9;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.agent-primary-action,
+.agent-input-actions,
+.agent-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.primary-btn,
+.secondary-btn {
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.primary-btn {
+  border: 1px solid rgba(255, 79, 163, 0.4);
+  background: linear-gradient(135deg, rgba(255, 79, 163, 0.9), rgba(255, 127, 80, 0.82));
+  color: #fff7fb;
+}
+
+.secondary-btn {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-primary);
+}
+
+.primary-btn:hover,
+.secondary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.agent-execution,
+.agent-result,
+.agent-history {
+  padding: 20px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02);
+}
+
+.agent-execution-steps {
+  display: grid;
+  gap: 8px;
+}
+
+.execution-step {
+  opacity: 0.7;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.execution-step.active,
+.execution-step.done {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.agent-execution-narration {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-execution-note {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+}
+
+.agent-execution-note-title {
+  color: var(--text-primary);
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.agent-execution-note-copy {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.agent-result-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.agent-history {
+  gap: 0;
+}
+
+.agent-history summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.agent-history summary::-webkit-details-marker {
+  display: none;
+}
+
+.agent-history-summary {
+  color: var(--text-primary);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.agent-history-body {
+  display: grid;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.agent-input-panel {
+  padding: 20px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02);
+}
+
+.agent-input-placeholder {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
 .fix-block.is-executing {
   border-color: rgba(124, 199, 255, 0.34);
   box-shadow: 0 0 0 1px rgba(124, 199, 255, 0.08), 0 18px 40px rgba(9, 17, 33, 0.42);

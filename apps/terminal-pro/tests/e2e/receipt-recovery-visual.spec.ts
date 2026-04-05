@@ -150,7 +150,7 @@ async function seedStructuredReceipt(
 }
 
 async function openAgent(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Agent' }).click()
+  await page.getByRole('button', { name: 'Rina workbench' }).click()
   await expect(page.locator('#agent-input')).toBeVisible()
 }
 

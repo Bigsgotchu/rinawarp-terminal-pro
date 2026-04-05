@@ -88,9 +88,13 @@ function renderRecoveryToggle(state: WorkbenchState): void {
   renderRecoveryToggleButton(button, state.runs.filter((run) => run.restored).length, state.ui.recoveryExpanded)
 }
 
-function renderHero(state: WorkbenchState): void {
+function renderHero(state: WorkbenchState, hidden = false): void {
   const hero = document.querySelector<HTMLElement>('.rw-agent-hero')
   if (!hero) return
+  if (hidden) {
+    clear(hero)
+    return
+  }
   mountAgentHero(hero, buildAgentHeroViewModel(state))
 }
 
@@ -101,7 +105,7 @@ function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
   return el(
     'section',
     {
-      class: ['rw-agent-empty-state-shell', retentionCard ? '' : 'is-single-column'].filter(Boolean).join(' '),
+      class: ['rw-agent-empty-state-shell', retentionCard ? 'has-secondary-card' : 'is-single-column'].filter(Boolean).join(' '),
       dataset: { agentSection: 'empty-state' },
     },
     el(
@@ -115,7 +119,7 @@ function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
       ? el(
           'div',
           {
-            class: 'rw-agent-empty-column rw-agent-empty-column-side',
+            class: 'rw-agent-empty-column rw-agent-empty-column-secondary',
           },
           renderAgentCard(retentionCard)
         )
@@ -132,6 +136,7 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
   const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
   const hasThreadContent = threadMessages.length > 0
+  const recoveryFocus = recoveryMessages.length > 0 && !hasThreadContent
   const shouldCompactRecovery = recoveryMessages.length > 0 && !state.ui.recoveryExpanded
   const shouldShowRecoveryStrip = recoveryMessages.length > 0 && (shouldCompactRecovery || hasThreadContent)
 
@@ -161,13 +166,13 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
     }
   }
   renderRecoveryToggle(state)
-  renderHero(state)
+  renderHero(state, recoveryFocus)
 
   const shell = document.createDocumentFragment()
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
   const retentionCard = buildRetentionLoopCardModel(state)
 
-  if (!hasThreadContent) {
+  if (!hasThreadContent && !recoveryFocus) {
     shell.appendChild(buildEmptyStateNode(state))
   }
   if (hasThreadContent && workspaceSetup) {
@@ -210,6 +215,7 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   agentBody?.classList.toggle('is-empty', !hasThreadContent)
   agentBody?.classList.toggle('has-thread-content', hasThreadContent)
   agentBody?.classList.toggle('has-recovery-strip', recoveryMessages.length > 0)
+  agentBody?.classList.toggle('is-recovery-focus', recoveryFocus)
   root.scrollTop = hasThreadContent ? root.scrollHeight : 0
   renderComposerStarterPrompts(state, hasThreadContent)
   syncStarterPromptChips(state)

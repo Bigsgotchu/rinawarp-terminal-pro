@@ -5,6 +5,32 @@ import type { BuildPlanHelperDeps } from '../startup/runtimeTypes.js'
 export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
     const { playbooks, topCpuCmdSafeShort } = deps;
     const SELF_CHECK_PATTERN = /\b(scan yourself|check yourself|self-check|inspect current state|check the workbench|diagnose the app|what is broken right now)\b/i;
+    const DEFAULT_TIMEOUT_MS = 60_000;
+    function toPlanStep({
+        stepId,
+        tool = 'terminal',
+        command,
+        cwd = '',
+        risk = 'inspect',
+        description,
+        timeoutMs = DEFAULT_TIMEOUT_MS,
+    }) {
+        const riskLevel = risk === 'high-impact' ? 'high' : risk === 'safe-write' ? 'medium' : 'low';
+        return {
+            stepId,
+            tool,
+            input: {
+                command,
+                cwd: cwd || projectRootCache,
+                timeoutMs,
+            },
+            risk,
+            risk_level: riskLevel,
+            requires_confirmation: risk !== 'inspect',
+            description,
+        };
+    }
+    let projectRootCache = '';
     async function hasProjectFile(projectRoot, relativePath) {
         return hasSharedWorkspaceFile(projectRoot, relativePath);
     }
@@ -44,6 +70,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
         return null;
     }
     async function buildStepsForKind(kind, projectRoot, workflow = 'build') {
+        projectRootCache = projectRoot || '';
         switch (kind) {
             case 'node': {
                 const scripts = await readNodeScripts(projectRoot);
@@ -51,107 +78,130 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 const testScript = firstAvailableScript(scripts, ['test', 'test:agent', 'test:unit', 'test:streaming']);
                 const deployScript = firstAvailableScript(scripts, ['deploy', 'publish']);
                 const hasElectronBuilder = await hasProjectFile(projectRoot, 'electron-builder.yml');
-                const installStep = {
-                    id: 'install',
-                    tool: 'terminal',
-                    command: 'npm ci',
+                const installCommand = await hasProjectFile(projectRoot, 'pnpm-lock.yaml') ? 'pnpm install --frozen-lockfile' : 'npm ci';
+                const inspectPackageStep = toPlanStep({
+                    stepId: 'inspect_package_json',
+                    command: 'cat package.json',
+                    cwd: projectRoot,
+                    risk: 'inspect',
+                    description: 'Inspect package scripts and workspace metadata',
+                });
+                const inspectStatusStep = toPlanStep({
+                    stepId: 'inspect_git_status',
+                    command: 'git status --short',
+                    cwd: projectRoot,
+                    risk: 'inspect',
+                    description: 'Inspect workspace state before execution',
+                });
+                const installStep = toPlanStep({
+                    stepId: 'install_dependencies',
+                    command: installCommand,
+                    cwd: projectRoot,
                     risk: 'safe-write',
-                    description: 'Install dependencies',
-                };
+                    description: 'Install dependencies through the workspace package manager',
+                    timeoutMs: 120_000,
+                });
                 if (workflow === 'test') {
                     return [
-                        { id: 'node_version', tool: 'terminal', command: 'node -v', risk: 'read' },
-                        { id: 'npm_version', tool: 'terminal', command: 'npm -v', risk: 'read' },
+                        inspectStatusStep,
+                        inspectPackageStep,
+                        toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
+                        toPlanStep({ stepId: 'npm_version', command: installCommand.startsWith('pnpm') ? 'pnpm -v' : 'npm -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect package-manager version' }),
                         installStep,
-                        {
-                            id: 'test',
-                            tool: 'terminal',
-                            command: testScript ? `npm run ${testScript}` : 'npm test',
-                            risk: 'read',
-                            description: 'Run tests',
-                        },
+                        toPlanStep({
+                            stepId: 'run_tests',
+                            command: testScript ? `${installCommand.startsWith('pnpm') ? 'pnpm' : 'npm'} run ${testScript}` : installCommand.startsWith('pnpm') ? 'pnpm test' : 'npm test',
+                            cwd: projectRoot,
+                            risk: 'inspect',
+                            description: 'Run the current test gate',
+                            timeoutMs: 120_000,
+                        }),
                     ];
                 } else if (workflow === 'deploy') {
-                    const deployCommand = deployScript ? `npm run ${deployScript}` : hasElectronBuilder ? 'npx electron-builder --publish never' : 'echo "No deploy target detected"';
+                    const runner = installCommand.startsWith('pnpm') ? 'pnpm' : 'npm';
+                    const deployCommand = deployScript ? `${runner} run ${deployScript}` : hasElectronBuilder ? 'npx electron-builder --publish never' : 'echo "No deploy target detected"';
                     return [
-                        { id: 'node_version', tool: 'terminal', command: 'node -v', risk: 'read' },
-                        { id: 'npm_version', tool: 'terminal', command: 'npm -v', risk: 'read' },
+                        inspectStatusStep,
+                        inspectPackageStep,
+                        toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
                         installStep,
-                        {
-                            id: 'build',
-                            tool: 'terminal',
-                            command: buildScript ? `npm run ${buildScript}` : 'npm run build',
+                        toPlanStep({
+                            stepId: 'build_for_deploy',
+                            command: buildScript ? `${runner} run ${buildScript}` : `${runner} run build`,
+                            cwd: projectRoot,
                             risk: 'safe-write',
-                            description: 'Build project for deployment',
-                        },
-                        {
-                            id: 'deploy',
-                            tool: 'terminal',
+                            description: 'Build the project for deployment',
+                            timeoutMs: 120_000,
+                        }),
+                        toPlanStep({
+                            stepId: 'deploy_project',
                             command: deployCommand,
-                            risk: 'safe-write',
-                            description: 'Deploy project',
-                        },
+                            cwd: projectRoot,
+                            risk: 'high-impact',
+                            description: 'Run the deploy command on the trusted path',
+                            timeoutMs: 180_000,
+                        }),
                     ];
                 } else {
+                    const runner = installCommand.startsWith('pnpm') ? 'pnpm' : 'npm';
                     return [
-                        { id: 'node_version', tool: 'terminal', command: 'node -v', risk: 'read' },
-                        { id: 'npm_version', tool: 'terminal', command: 'npm -v', risk: 'read' },
+                        inspectStatusStep,
+                        inspectPackageStep,
+                        toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
                         installStep,
-                        {
-                            id: 'build',
-                            tool: 'terminal',
-                            command: buildScript ? `npm run ${buildScript}` : 'npm run build',
+                        toPlanStep({
+                            stepId: 'build_project',
+                            command: buildScript ? `${runner} run ${buildScript}` : `${runner} run build`,
+                            cwd: projectRoot,
                             risk: 'safe-write',
-                            description: 'Build project',
-                        },
+                            description: workflow === 'build' ? 'Build the current project' : 'Run the primary build workflow',
+                            timeoutMs: 120_000,
+                        }),
                     ];
                 }
             }
             case 'python':
                 return [
-                    { id: 'py_version', tool: 'terminal', command: 'python -V', risk: 'read' },
-                    { id: 'pip_version', tool: 'terminal', command: 'pip -V', risk: 'read' },
-                    {
-                        id: 'install',
-                        tool: 'terminal',
-                        command: 'pip install -r requirements.txt',
-                        risk: 'safe-write',
-                        description: 'Install dependencies',
-                    },
-                    {
-                        id: workflow === 'test' ? 'test' : 'build',
-                        tool: 'terminal',
+                    toPlanStep({ stepId: 'inspect_python_version', command: 'python -V', cwd: projectRoot, risk: 'inspect', description: 'Inspect Python version' }),
+                    toPlanStep({ stepId: 'inspect_pip_version', command: 'pip -V', cwd: projectRoot, risk: 'inspect', description: 'Inspect pip version' }),
+                    toPlanStep({ stepId: 'install_dependencies', command: 'pip install -r requirements.txt', cwd: projectRoot, risk: 'safe-write', description: 'Install Python dependencies', timeoutMs: 120_000 }),
+                    toPlanStep({
+                        stepId: workflow === 'test' ? 'run_tests' : 'validate_project',
                         command: workflow === 'test' ? 'pytest -q' : 'python -m compileall .',
-                        risk: 'read',
-                        description: workflow === 'test' ? 'Run tests' : 'Validate project',
-                    },
+                        cwd: projectRoot,
+                        risk: 'inspect',
+                        description: workflow === 'test' ? 'Run tests' : 'Validate the project',
+                        timeoutMs: 120_000,
+                    }),
                 ];
             case 'rust':
                 return [
-                    { id: 'rust_version', tool: 'terminal', command: 'rustc -V', risk: 'read' },
-                    {
-                        id: workflow === 'test' ? 'test' : 'build',
-                        tool: 'terminal',
+                    toPlanStep({ stepId: 'inspect_rust_version', command: 'rustc -V', cwd: projectRoot, risk: 'inspect', description: 'Inspect Rust version' }),
+                    toPlanStep({
+                        stepId: workflow === 'test' ? 'run_tests' : 'build_project',
                         command: workflow === 'test' ? 'cargo test' : 'cargo build',
-                        risk: workflow === 'test' ? 'read' : 'safe-write',
-                        description: workflow === 'test' ? 'Run tests' : 'Build project',
-                    },
+                        cwd: projectRoot,
+                        risk: workflow === 'test' ? 'inspect' : 'safe-write',
+                        description: workflow === 'test' ? 'Run cargo test' : 'Build the Rust project',
+                        timeoutMs: 120_000,
+                    }),
                 ];
             case 'go':
                 return [
-                    { id: 'go_version', tool: 'terminal', command: 'go version', risk: 'read' },
-                    {
-                        id: workflow === 'test' ? 'test' : 'build',
-                        tool: 'terminal',
+                    toPlanStep({ stepId: 'inspect_go_version', command: 'go version', cwd: projectRoot, risk: 'inspect', description: 'Inspect Go version' }),
+                    toPlanStep({
+                        stepId: workflow === 'test' ? 'run_tests' : 'build_project',
                         command: workflow === 'test' ? 'go test ./...' : 'go build ./...',
-                        risk: 'read',
-                        description: workflow === 'test' ? 'Run tests' : 'Build project',
-                    },
+                        cwd: projectRoot,
+                        risk: workflow === 'test' ? 'inspect' : 'safe-write',
+                        description: workflow === 'test' ? 'Run go test' : 'Build the Go project',
+                        timeoutMs: 120_000,
+                    }),
                 ];
             default:
                 return [
-                    { id: 'git_status', tool: 'terminal', command: 'git status', risk: 'read' },
-                    { id: 'list_files', tool: 'terminal', command: 'ls -la', risk: 'read' },
+                    toPlanStep({ stepId: 'inspect_git_status', command: 'git status --short', cwd: projectRoot, risk: 'inspect', description: 'Inspect workspace state' }),
+                    toPlanStep({ stepId: 'inspect_files', command: 'ls -la', cwd: projectRoot, risk: 'inspect', description: 'Inspect workspace files' }),
                 ];
         }
     }
@@ -162,10 +212,16 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
         for (const playbook of playbooks) {
             if (playbook.signals.some((s) => intent.includes(s))) {
                 const steps = playbook.gatherCommands.map((cmd, i) => ({
-                    id: `s${i + 1}`,
+                    stepId: `s${i + 1}`,
                     tool: 'terminal',
-                    command: cmd.command,
-                    risk: 'read',
+                    input: {
+                        command: cmd.command,
+                        cwd: projectRoot,
+                        timeoutMs: DEFAULT_TIMEOUT_MS,
+                    },
+                    risk: 'inspect',
+                    risk_level: 'low',
+                    requires_confirmation: false,
                     description: cmd.description,
                 }));
                 return {
@@ -181,9 +237,9 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
             return {
                 id,
                 intent: intentRaw,
-                reasoning: "Running Rina self-check against policy checklist.",
-                steps: [
-                    { id: 's1', tool: 'selfCheck', command: 'executeSelfCheck', risk: 'read', description: 'Run self-check tool' },
+                    reasoning: "Running Rina self-check against policy checklist.",
+                    steps: [
+                    toPlanStep({ stepId: 's1', tool: 'selfCheck', command: 'executeSelfCheck', cwd: projectRoot, risk: 'inspect', description: 'Run self-check tool' }),
                 ],
             };
         }
@@ -219,9 +275,9 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
             intent: intentRaw,
             reasoning: "I'll run diagnostics to understand what's happening.",
             steps: [
-                { id: 's1', tool: 'terminal', command: 'uptime', risk: 'read' },
-                { id: 's2', tool: 'terminal', command: 'free -h', risk: 'read' },
-                { id: 's3', tool: 'terminal', command: topCpuCmdSafeShort, risk: 'read' },
+                toPlanStep({ stepId: 's1', command: 'uptime', cwd: projectRoot, risk: 'inspect', description: 'Inspect uptime' }),
+                toPlanStep({ stepId: 's2', command: 'free -h', cwd: projectRoot, risk: 'inspect', description: 'Inspect memory pressure' }),
+                toPlanStep({ stepId: 's3', command: topCpuCmdSafeShort, cwd: projectRoot, risk: 'inspect', description: 'Inspect the hottest CPU processes' }),
             ],
         };
     }

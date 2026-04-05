@@ -88,6 +88,25 @@ export async function buildConversationReply(args: BuildConversationReplyArgs): 
           latestRun?.runId ? ' with the latest run proof alongside it' : ''
         } before we change anything.`,
       }
+    case 'mixed': {
+      const constraintText = Array.isArray(routedTurn.constraints) && routedTurn.constraints.length > 0
+        ? ` I’m keeping ${routedTurn.constraints
+            .map((constraint) =>
+              constraint === 'do_not_touch_tests'
+                ? 'tests out of scope'
+                : constraint === 'use_pnpm'
+                  ? 'pnpm as the package-manager default'
+                  : constraint === 'prefer_concise'
+                    ? 'the reply concise'
+                    : constraint.replace(/_/g, ' ')
+            )
+            .join(', ')}.`
+        : ''
+      return {
+        intent: 'mixed',
+        message: `I can handle that.${constraintText} I’ll explain what I’m seeing, line up the safest execution path, and keep the timeline visible as I go.`,
+      }
+    }
     case 'follow_up':
       return {
         intent: 'follow_up',

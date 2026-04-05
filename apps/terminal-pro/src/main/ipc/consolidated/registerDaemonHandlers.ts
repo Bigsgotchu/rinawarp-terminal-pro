@@ -15,15 +15,16 @@ export function registerDaemonHandlers({
   daemonTasks,
   daemonTaskAdd,
   daemonStart,
-  daemonStop,
-  runsList,
-  runsTail,
-  runsArtifacts,
-  codeListFiles,
-  codeReadFile,
-    runAgent,
-    conversationRoute,
-    getStatus,
+    daemonStop,
+    runsList,
+    runsTail,
+    runsArtifacts,
+    codeListFiles,
+    codeReadFile,
+  runAgent,
+  conversationRoute,
+  handleConversationTurn,
+  getStatus,
   getMode,
   setMode,
   getPlans,
@@ -195,6 +196,31 @@ export function registerDaemonHandlers({
             required: true,
             reason: String(error),
             question: 'I can help with that, but I need one anchor: do you mean the current workspace or the last run?',
+          },
+        }
+      }
+    })
+  }
+
+  if (handleConversationTurn) {
+    ipcMain.removeHandler('rina:conversation:turn')
+    ipcMain.handle('rina:conversation:turn', async (_event, prompt, opts) => {
+      try {
+        return await handleConversationTurn(String(prompt || ''), opts)
+      } catch (error) {
+        console.error('[IPC] rina:conversation:turn error:', error)
+        return {
+          rawText: String(prompt || ''),
+          mode: 'unclear',
+          confidence: 0,
+          references: {},
+          allowedNextAction: 'clarify',
+          requiresAction: false,
+          assistantReply: 'I can help with that, but I need one anchor first.',
+          clarification: {
+            required: true,
+            reason: String(error),
+            question: 'Do you mean the current workspace or the last run?',
           },
         }
       }

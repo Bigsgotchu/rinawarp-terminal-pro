@@ -37,6 +37,7 @@ let daemonFunctions: {
   daemonStop: () => Promise<any>
   runAgent?: (prompt: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) => Promise<any>
   conversationRoute?: (prompt: string, opts?: { workspaceRoot?: string | null }) => Promise<any>
+  handleConversationTurn?: (prompt: string, opts?: { workspaceRoot?: string | null }) => Promise<any>
   getStatus?: () => Promise<any>
   getMode?: () => Promise<any>
   setMode?: (mode: string) => Promise<any>
@@ -87,6 +88,7 @@ export function setDaemonFunctions(daemon: {
   daemonStop: () => Promise<any>
   runAgent?: (prompt: string, opts?: { workspaceRoot?: string | null; mode?: 'auto' | 'assist' | 'explain' }) => Promise<any>
   conversationRoute?: (prompt: string, opts?: { workspaceRoot?: string | null }) => Promise<any>
+  handleConversationTurn?: (prompt: string, opts?: { workspaceRoot?: string | null }) => Promise<any>
   getStatus?: () => Promise<any>
   getMode?: () => Promise<any>
   setMode?: (mode: string) => Promise<any>

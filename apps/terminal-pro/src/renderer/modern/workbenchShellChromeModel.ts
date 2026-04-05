@@ -1,5 +1,5 @@
 import type { DrawerView, TabKey, WorkbenchState } from '../workbench/store.js'
-import { getTruthHudState, getWorkspaceContextState } from '../workbench/renderers/selectors.js'
+import { getWorkspaceContextState } from '../workbench/renderers/selectors.js'
 
 export type StatusBarModel = {
   modeText: string
@@ -20,29 +20,18 @@ export type WorkbenchShellChromeModel = {
   agentFocused: boolean
   drawerOpen: boolean
   drawer: DrawerView | null
+  recoveryFocused: boolean
   status: StatusBarModel
   autonomyEnabled: boolean
 }
 
-function humanizeRunStatus(status: string | null): string {
-  if (!status) return 'Unverified'
-  return status
-    .split(/\s+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-}
-
 export function getStatusBarModel(state: WorkbenchState): StatusBarModel {
-  const hudState = getTruthHudState(state)
   const workspaceState = getWorkspaceContextState(state)
-  const mode = hudState.mode || 'assist'
-  const lastRunStatus = humanizeRunStatus(hudState.lastRunStatus)
-  const recoveryText = hudState.recoveryReadyCount > 0 ? `${hudState.recoveryReadyCount} items restored` : 'No recovery'
   const workspacePickerText =
-    workspaceState.status === 'missing'
-      ? 'Choose workspace'
-      : workspaceState.status === 'weak'
-        ? `Workspace may be wrong: ${workspaceState.displayValue}`
+    workspaceState.status === 'weak'
+      ? `Workspace: ${workspaceState.displayValue}`
+      : workspaceState.status === 'missing'
+        ? 'Workspace: choose project'
         : `Workspace: ${workspaceState.displayValue}`
 
   let summaryText: string
@@ -53,18 +42,22 @@ export function getStatusBarModel(state: WorkbenchState): StatusBarModel {
   else summaryText = 'Rina is ready to work in this project.'
 
   return {
-    modeText: `Mode: ${mode.charAt(0).toUpperCase()}${mode.slice(1)}`,
+    modeText: 'Rina workbench',
     workspaceText: `Workspace: ${workspaceState.displayValue}`,
     workspaceTitle: workspaceState.title,
     workspacePickerText,
     workspacePickerTitle: workspaceState.title,
     workspacePickerWeak: workspaceState.status !== 'project',
-    activityText: `Last run: ${lastRunStatus} • Recovery: ${recoveryText}`,
+    activityText: '',
     summaryText,
   }
 }
 
 export function buildWorkbenchShellChromeModel(state: WorkbenchState): WorkbenchShellChromeModel {
+  const visibleMessages = state.chat.filter((message) => message.workspaceKey === state.workspaceKey).slice(-200)
+  const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
+  const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
+  const recoveryFocused = state.activeTab === 'agent' && recoveryMessages.length > 0 && threadMessages.length === 0
   const drawerOpen = state.activeTab === 'agent' && Boolean(state.ui.openDrawer)
   const activeTabs: Record<string, boolean> = {}
   const tabCandidates: TabKey[] = ['agent', 'runs', 'settings']
@@ -96,6 +89,7 @@ export function buildWorkbenchShellChromeModel(state: WorkbenchState): Workbench
     agentFocused: state.activeTab === 'agent',
     drawerOpen,
     drawer: state.ui.openDrawer,
+    recoveryFocused,
     status: getStatusBarModel(state),
     autonomyEnabled: Boolean(state.runtime.autonomyEnabled),
   }

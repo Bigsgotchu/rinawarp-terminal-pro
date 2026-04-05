@@ -30,7 +30,7 @@ if [[ "$needs_packaged_build" == "1" ]]; then
   built_main="$app_root/dist-electron/main.js"
   if [[ ! -f "$packaged_asar" || ! -f "$built_main" || "$built_main" -nt "$packaged_asar" ]]; then
     echo "[E2E boot] packaged artifact missing or stale; rebuilding linux-unpacked"
-    (cd "$app_root" && npx electron-builder --linux dir --publish never)
+    (cd "$app_root" && npm run install:electron-native && npx electron-builder --linux dir --publish never)
   fi
 fi
 

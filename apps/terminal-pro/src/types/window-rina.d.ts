@@ -423,7 +423,7 @@ declare global {
         opts?: { workspaceRoot?: string | null }
       ): Promise<{
         rawText: string
-        mode: 'chat' | 'question' | 'inspect' | 'execute' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+        mode: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
         turnType?: 'greeting' | 'help' | 'follow_up' | 'diagnose' | 'action' | 'explain' | 'frustration' | 'clarify_needed'
         confidence: number
         workspaceId?: string
@@ -434,6 +434,13 @@ declare global {
           restoredSessionId?: string
         }
         allowedNextAction: 'reply_only' | 'inspect' | 'plan' | 'execute' | 'clarify'
+        requiresAction?: boolean
+        userGoal?: string
+        constraints?: string[]
+        assistantReply?: string
+        planPreview?: { id?: string; reasoning?: string; steps?: Array<any> }
+        taskStarted?: boolean
+        permissionRequest?: { required: boolean; reason: string }
         clarification?: {
           required: boolean
           reason?: string
@@ -466,6 +473,45 @@ declare global {
           mode: 'reply_only' | 'explain_verified' | 'ask_once' | 'plan' | 'run'
           tone: 'normal' | 'supportive' | 'corrective'
           shouldStartRun: boolean
+        }
+      }>
+      handleConversationTurn(
+        text: string,
+        opts?: { workspaceRoot?: string | null }
+      ): Promise<{
+        assistantReply: string
+        intent: {
+          type: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'self_check' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+          confidence: number
+          requiresAction: boolean
+          userGoal?: string
+          constraints?: string[]
+        }
+        task?: {
+          id: string
+          started: boolean
+          planPreview?: { id?: string; reasoning?: string; steps?: Array<any> }
+        }
+        permissionRequest?: { reason: string; actions: string[] }
+        routedTurn: {
+          rawText: string
+          mode: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+          confidence: number
+          references: {
+            runId?: string
+            receiptId?: string
+            priorMessageId?: string
+            restoredSessionId?: string
+          }
+          allowedNextAction: 'reply_only' | 'inspect' | 'plan' | 'execute' | 'clarify'
+          requiresAction?: boolean
+          userGoal?: string
+          constraints?: string[]
+          clarification?: {
+            required: boolean
+            reason?: string
+            question?: string
+          }
         }
       }>
       memoryGetState(): Promise<{
@@ -504,6 +550,26 @@ declare global {
             createdAt: string
             updatedAt: string
           }>
+          operationalMemories?: Array<{
+            id: string
+            scope: 'session' | 'user' | 'project' | 'episode'
+            kind: 'preference' | 'constraint' | 'project_fact' | 'task_outcome' | 'conversation_fact'
+            status?: 'approved' | 'suggested' | 'rejected'
+            content: string
+            salience: number
+            confidence?: number
+            workspaceId?: string
+            source?: 'behavior' | 'conversation' | 'user_explicit' | 'assistant_inferred' | 'task_outcome' | 'system_derived'
+            tags?: string[]
+            createdAt: string
+            updatedAt: string
+            lastUsedAt?: string
+            metadata?: Record<string, unknown>
+          }>
+          operationalStore?: {
+            backend: 'sqlite' | 'json-fallback'
+            reason?: string
+          }
           updatedAt: string
         }
       }>
@@ -528,6 +594,8 @@ declare global {
         key?: string
       }): Promise<any>
       memorySetInferredStatus(id: string, status: 'approved' | 'dismissed'): Promise<any>
+      memorySetOperationalStatus(id: string, status: 'approved' | 'rejected'): Promise<any>
+      memoryDeleteOperational(id: string): Promise<any>
       memoryResetWorkspace(workspaceId: string): Promise<any>
       memoryResetAll(): Promise<any>
       themesList(): Promise<{ themes: Array<any> }>
@@ -604,6 +672,7 @@ declare global {
       onPlanStepStart(cb: (p: any) => void): () => void
       onPlanRunStart(cb: (p: { planRunId: string }) => void): () => void
       onPlanRunEnd(cb: (p: { planRunId: string; ok: boolean; haltedBecause?: string }) => void): () => void
+      onTimelineEvent(cb: (event: any) => void): () => void
       onCustomEvent(eventName: string, cb: (payload: any) => void): void
     }
   }

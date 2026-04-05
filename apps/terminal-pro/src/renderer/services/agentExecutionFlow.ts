@@ -1,4 +1,4 @@
-import { bubbleBlock } from '../replies/renderFragments.js'
+import { bubbleBlock, copyBlock } from '../replies/renderFragments.js'
 import type { FixPlanResponse, FixPlanStep, PlanCapabilityRequirement } from '../replies/renderPlanReplies.js'
 import type { RinaReplyResult } from '../replies/renderRinaReply.js'
 import { type WorkbenchStore, type WorkbenchState, type MessageBlock } from '../workbench/store.js'
@@ -16,12 +16,43 @@ type ExecutionResult = {
 }
 
 type ConversationRouteResult = {
+  assistantReply?: string
+  intent?: {
+    type:
+      | 'chat'
+      | 'help'
+      | 'question'
+      | 'inspect'
+      | 'execute'
+      | 'mixed'
+      | 'self_check'
+      | 'follow_up'
+      | 'recovery'
+      | 'settings'
+      | 'memory_update'
+      | 'unclear'
+    confidence: number
+    requiresAction: boolean
+    userGoal?: string
+    constraints?: string[]
+  }
+  task?: {
+    id: string
+    started: boolean
+    planPreview?: FixPlanResponse
+  }
+  permissionRequest?: { reason: string; actions: string[] }
+  routedTurn?: RoutedTurnLike
+}
+
+type RoutedTurnLike = {
   mode:
     | 'chat'
     | 'help'
     | 'question'
     | 'inspect'
     | 'execute'
+    | 'mixed'
     | 'self_check'
     | 'follow_up'
     | 'recovery'
@@ -29,6 +60,10 @@ type ConversationRouteResult = {
     | 'memory_update'
     | 'unclear'
   allowedNextAction: 'reply_only' | 'inspect' | 'plan' | 'execute' | 'clarify'
+  requiresAction?: boolean
+  constraints?: string[]
+  planPreview?: FixPlanResponse
+  permissionRequest?: { required?: boolean; reason: string }
 }
 
 type AgentExecutionFlowDeps = {
@@ -67,6 +102,7 @@ type AgentExecutionFlowDeps = {
     memoryState?: any
   }) => string
   composeExecutionHaltLead: (args: { prompt: string; reason?: string; memoryState?: any }) => string
+  composeMemoryContextNote: (args: { memoryState?: any; constraints?: string[] }) => string | null
   didExecutionStart: (result: { runId?: string; code?: string; ok?: boolean } | null | undefined) => boolean
 }
 
@@ -225,12 +261,31 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
 
     try {
       const memoryState = typeof rina.memoryGetState === 'function' ? await rina.memoryGetState().catch(() => null) : null
-      const routedTurn = (typeof rina.conversationRoute === 'function'
-        ? await rina.conversationRoute(trimmed, { workspaceRoot })
+      const routedTurn = (typeof rina.handleConversationTurn === 'function'
+        ? await rina.handleConversationTurn(trimmed, { workspaceRoot })
+        : typeof rina.conversationRoute === 'function'
+          ? await rina.conversationRoute(trimmed, { workspaceRoot })
         : null) as ConversationRouteResult | null
+      const turn = (routedTurn?.routedTurn || routedTurn || null) as RoutedTurnLike | null
+      if (routedTurn?.assistantReply) {
+        const memoryNote = deps.composeMemoryContextNote({
+          memoryState,
+          constraints: routedTurn.intent?.constraints || turn?.constraints,
+        })
+        store.dispatch({
+          type: 'chat/add',
+          msg: {
+            id: `rina:reply:${Date.now()}`,
+            role: 'rina',
+            content: [bubbleBlock(routedTurn.assistantReply), ...(memoryNote ? [copyBlock(memoryNote, 'muted')] : [])],
+            ts: Date.now(),
+            workspaceKey,
+          },
+        })
+      }
       const executionAllowed =
-        !routedTurn ||
-        routedTurn?.allowedNextAction === 'execute' || routedTurn?.allowedNextAction === 'plan'
+        !turn ||
+        turn?.allowedNextAction === 'execute' || turn?.allowedNextAction === 'plan'
       let capabilityDecision = null as ReturnType<AgentExecutionFlowDeps['resolvePromptCapability']>
       if (executionAllowed) {
         const promptCapabilityMatch = deps.matchPromptCapability(trimmed)
@@ -270,13 +325,10 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
       }
 
       if (workspaceRoot && deps.isExecutionPrompt(trimmed) && executionAllowed) {
-        const plan = (await rina.agentPlan({
-          intentText: trimmed,
-          projectRoot: workspaceRoot,
-        })) as FixPlanResponse
+        const plan = (routedTurn?.task?.planPreview || turn?.planPreview || null) as FixPlanResponse | null
         const planSteps = Array.isArray(plan?.steps) ? plan.steps : []
 
-        if (planSteps.length > 0) {
+        if (plan && planSteps.length > 0) {
           const normalizedPlanSteps = deps.normalizePlanSteps(planSteps)
           const planCapabilityRequirements = deps.resolvePlanCapabilityRequirements(store.getState(), normalizedPlanSteps)
           await startPlannedExecution(store, {
@@ -287,10 +339,14 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
             planSteps: normalizedPlanSteps,
             capabilityRequirements: planCapabilityRequirements,
             memoryState,
-            reviewOnly: routedTurn?.allowedNextAction === 'plan',
+            reviewOnly: turn?.allowedNextAction === 'plan' || Boolean(routedTurn?.permissionRequest?.reason || turn?.permissionRequest?.reason),
           })
           return
         }
+      }
+
+      if (routedTurn?.assistantReply) {
+        return
       }
 
       const result = (await rina.runAgent(trimmed, {

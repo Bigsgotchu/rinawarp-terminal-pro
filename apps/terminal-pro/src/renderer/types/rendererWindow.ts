@@ -20,12 +20,19 @@ export interface RinaRendererWindow {
       opts?: { workspaceRoot?: string | null }
     ) => Promise<{
       rawText: string
-      mode: 'chat' | 'question' | 'inspect' | 'execute' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+      mode: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
       turnType?: 'greeting' | 'help' | 'follow_up' | 'diagnose' | 'action' | 'explain' | 'frustration' | 'clarify_needed'
       confidence: number
       workspaceId?: string
       references: { runId?: string; receiptId?: string; priorMessageId?: string; restoredSessionId?: string }
       allowedNextAction: 'reply_only' | 'inspect' | 'plan' | 'execute' | 'clarify'
+      requiresAction?: boolean
+      userGoal?: string
+      constraints?: string[]
+      assistantReply?: string
+      planPreview?: FixPlanResponse
+      taskStarted?: boolean
+      permissionRequest?: { required: boolean; reason: string }
       clarification?: { required: boolean; reason?: string; question?: string }
       executionCandidate?: { goal: string; target?: string; constraints?: string[]; risk: 'low' | 'medium' | 'high' }
       context?: {
@@ -45,6 +52,36 @@ export interface RinaRendererWindow {
         mode: 'reply_only' | 'explain_verified' | 'ask_once' | 'plan' | 'run'
         tone: 'normal' | 'supportive' | 'corrective'
         shouldStartRun: boolean
+      }
+    }>
+    handleConversationTurn: (
+      command: string,
+      opts?: { workspaceRoot?: string | null }
+    ) => Promise<{
+      assistantReply: string
+      intent: {
+        type: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'self_check' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+        confidence: number
+        requiresAction: boolean
+        userGoal?: string
+        constraints?: string[]
+      }
+      task?: {
+        id: string
+        started: boolean
+        planPreview?: FixPlanResponse
+      }
+      permissionRequest?: { reason: string; actions: string[] }
+      routedTurn: {
+        rawText: string
+        mode: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+        confidence: number
+        allowedNextAction: 'reply_only' | 'inspect' | 'plan' | 'execute' | 'clarify'
+        requiresAction?: boolean
+        userGoal?: string
+        constraints?: string[]
+        references: { runId?: string; receiptId?: string; priorMessageId?: string; restoredSessionId?: string }
+        clarification?: { required: boolean; reason?: string; question?: string }
       }
     }>
     agentPlan: (args: { intentText: string; projectRoot: string }) => Promise<FixPlanResponse>
@@ -102,6 +139,7 @@ export interface RinaRendererWindow {
     onPlanStepStart: (cb: (evt: unknown) => void) => () => void
     onPlanRunStart: (cb: (p: { planRunId: string }) => void) => () => void
     onPlanRunEnd: (cb: (p: { planRunId: string; ok: boolean; haltedBecause?: string }) => void) => () => void
+    onTimelineEvent: (cb: (evt: unknown) => void) => () => void
     onCustomEvent: (eventName: string, cb: (evt: unknown) => void) => void
     licenseRefresh: () => Promise<{
       tier?: string

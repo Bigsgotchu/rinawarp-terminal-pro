@@ -1,4 +1,4 @@
-import { buildConversationReply, routeConversationTurn } from '../orchestration/conversationRouter.js'
+import { handleUnifiedConversationTurn } from '../orchestration/unifiedTurn.js'
 import type {
   DevtoolsToggleTarget,
   DevtoolsToggleResult,
@@ -84,6 +84,8 @@ export function createWindowLifecycle(
     runsArtifactsForIpc,
     codeListFilesForIpc,
     codeReadFileForIpc,
+    ownerMemoryStore,
+    makePlan,
     handleRinaMessage,
     rinaController,
     resolveProjectRootSafe,
@@ -136,54 +138,134 @@ export function createWindowLifecycle(
         }
         const runsResult = typeof runsListForIpc === 'function' ? await runsListForIpc({ limit: 12 }) : { ok: false, runs: [] }
         const latestRun = getLatestRun(runsResult)
-        const routedTurn = routeConversationTurn({
+        const workspaceId = controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || ''
+        const resolvedLatestRun = latestRun
+          ? {
+              runId: latestRun.latestReceiptId || latestRun.sessionId,
+              sessionId: latestRun.sessionId,
+              latestCommand: latestRun.latestCommand,
+              latestExitCode: latestRun.latestExitCode,
+              latestReceiptId: latestRun.latestReceiptId,
+              interrupted: Boolean(latestRun.interrupted),
+            }
+          : null
+        const unified = await handleUnifiedConversationTurn({
           rawText: rawPrompt,
-          workspaceId: controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || '',
-          latestRun: latestRun
-            ? {
-                runId: latestRun.latestReceiptId || latestRun.sessionId,
-                sessionId: latestRun.sessionId,
-                latestCommand: latestRun.latestCommand,
-                latestExitCode: latestRun.latestExitCode,
-                latestReceiptId: latestRun.latestReceiptId,
-                interrupted: Boolean(latestRun.interrupted),
-              }
-            : null,
+          workspaceId,
+          latestRun: resolvedLatestRun,
+          buildPlan: async (intentText: string, projectRoot: string) => await makePlan(intentText, projectRoot),
+          memoryStore: ownerMemoryStore,
         })
-        if (routedTurn.allowedNextAction !== 'execute' && routedTurn.allowedNextAction !== 'plan') {
-          const reply = await buildConversationReply({
-            routedTurn,
-            workspaceLabel: controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || 'this workspace',
-            latestRun,
-          })
+        for (const event of unified.timelineEvents) {
+          safeSend(win.webContents, 'rina:timeline:event', event)
+        }
+        if (!unified.turn.requiresAction || unified.turn.allowedNextAction === 'reply_only' || unified.turn.allowedNextAction === 'clarify') {
           return normalizeRinaResponse({
             ok: true,
-            intent: routedTurn.mode,
+            intent: unified.turn.mode,
             output: {
-              message: reply.message,
-              routedTurn,
+              message: unified.turn.assistantReply,
+              routedTurn: unified.turn,
             },
           })
         }
-        return normalizeRinaResponse(await handleRinaMessage(rawPrompt))
+        if (unified.turn.permissionRequest?.required || unified.turn.allowedNextAction === 'plan') {
+          return normalizeRinaResponse({
+            ok: true,
+            intent: unified.turn.mode,
+            requiresConfirmation: true,
+            output: {
+              message: unified.turn.assistantReply,
+              plan: unified.turn.planPreview,
+              routedTurn: unified.turn,
+              permissionRequest: unified.turn.permissionRequest,
+            },
+          })
+        }
+        const legacyResult = await handleRinaMessage(rawPrompt)
+        if ((legacyResult as { ok?: boolean }).ok === true) {
+          ownerMemoryStore.recordTaskOutcome({
+            workspaceId,
+            taskTitle: rawPrompt,
+            summary: unified.turn.assistantReply,
+            success: true,
+          })
+          safeSend(win.webContents, 'rina:timeline:event', {
+            id: `evt_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+            type: 'task.completed',
+            sessionId: resolvedLatestRun?.sessionId || workspaceId || 'session_local',
+            correlationId: unified.timelineEvents[0]?.correlationId || `corr_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            taskId: unified.result.task?.id,
+            summary: unified.turn.assistantReply,
+          })
+        } else {
+          safeSend(win.webContents, 'rina:timeline:event', {
+            id: `evt_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+            type: 'task.failed',
+            sessionId: resolvedLatestRun?.sessionId || workspaceId || 'session_local',
+            correlationId: unified.timelineEvents[0]?.correlationId || `corr_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            taskId: unified.result.task?.id,
+            error: String((legacyResult as { error?: string })?.error || 'Task failed.'),
+          })
+        }
+        return normalizeRinaResponse(legacyResult)
       },
       conversationRoute: async (prompt: unknown, opts?: AgentRunOptions) => {
         const runsResult = typeof runsListForIpc === 'function' ? await runsListForIpc({ limit: 12 }) : { ok: false, runs: [] }
         const latestRun = getLatestRun(runsResult)
-        return routeConversationTurn({
+        const workspaceId = controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || ''
+        const resolvedLatestRun = latestRun
+          ? {
+              runId: latestRun.latestReceiptId || latestRun.sessionId,
+              sessionId: latestRun.sessionId,
+              latestCommand: latestRun.latestCommand,
+              latestExitCode: latestRun.latestExitCode,
+              latestReceiptId: latestRun.latestReceiptId,
+              interrupted: Boolean(latestRun.interrupted),
+            }
+          : null
+        const unified = await handleUnifiedConversationTurn({
           rawText: String(prompt || ''),
-          workspaceId: controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || '',
-          latestRun: latestRun
-            ? {
-                runId: latestRun.latestReceiptId || latestRun.sessionId,
-                sessionId: latestRun.sessionId,
-                latestCommand: latestRun.latestCommand,
-                latestExitCode: latestRun.latestExitCode,
-                latestReceiptId: latestRun.latestReceiptId,
-                interrupted: Boolean(latestRun.interrupted),
-              }
-            : null,
+          workspaceId,
+          latestRun: resolvedLatestRun,
+          buildPlan: async (intentText: string, projectRoot: string) => await makePlan(intentText, projectRoot),
+          memoryStore: ownerMemoryStore,
         })
+        for (const event of unified.timelineEvents) {
+          safeSend(win.webContents, 'rina:timeline:event', event)
+        }
+        return unified.turn
+      },
+      handleConversationTurn: async (prompt: unknown, opts?: AgentRunOptions) => {
+        const runsResult = typeof runsListForIpc === 'function' ? await runsListForIpc({ limit: 12 }) : { ok: false, runs: [] }
+        const latestRun = getLatestRun(runsResult)
+        const workspaceId = controller.getStatus()?.workspaceRoot || opts?.workspaceRoot || ''
+        const resolvedLatestRun = latestRun
+          ? {
+              runId: latestRun.latestReceiptId || latestRun.sessionId,
+              sessionId: latestRun.sessionId,
+              latestCommand: latestRun.latestCommand,
+              latestExitCode: latestRun.latestExitCode,
+              latestReceiptId: latestRun.latestReceiptId,
+              interrupted: Boolean(latestRun.interrupted),
+            }
+          : null
+        const unified = await handleUnifiedConversationTurn({
+          rawText: String(prompt || ''),
+          workspaceId,
+          latestRun: resolvedLatestRun,
+          buildPlan: async (intentText: string, projectRoot: string) => await makePlan(intentText, projectRoot),
+          memoryStore: ownerMemoryStore,
+        })
+        for (const event of unified.timelineEvents) {
+          safeSend(win.webContents, 'rina:timeline:event', event)
+        }
+        return {
+          ...unified.result,
+          routedTurn: unified.turn,
+        }
       },
       getStatus: async () => {
         const stats = controller.getStats()
