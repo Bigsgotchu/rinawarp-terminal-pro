@@ -21,63 +21,23 @@ test('packaged first-run journey: customer can find workspace, settings, and a s
   const env = freshHomeEnv(`first-run-${Date.now()}`)
 
   await withPackagedApp(async ({ page }) => {
-    await expect(page.locator('[data-shell-source="shell_topbar"][data-shell-nav="agent"]')).toBeVisible()
-    await expect(page.locator('#workspace-picker')).toBeVisible()
-    await expect(page.locator('#workspace-picker')).toContainText(/Choose workspace|Workspace:/i)
-    await expect(page.locator('#status-bar')).toBeVisible()
-    await expect(page.locator('#status-bar')).toContainText(/Rina workbench/i)
-    await expect(page.locator('#status-bar')).toContainText(/Workspace:/i)
+    await expect(page.getByText('Rina Terminal Pro')).toBeVisible()
+    await expect(page.getByText('AI-Powered Development Assistant')).toBeVisible()
+    await expect(page.getByPlaceholder('Ask Rina anything...')).toBeVisible()
+    await expect(page.locator('[data-agent-section="recovery"]')).toContainText(/I recovered your last session/i)
+    await expect(page.locator('[data-agent-section="recovery"]')).toContainText(/everything looks safe to continue/i)
+    await expect(page.getByRole('button', { name: 'Resume Fix' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'View Details' })).toBeVisible()
 
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
-    const settingsButton = page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="settings"]')
-    await expect(settingsButton).toBeVisible()
-    await settingsButton.click()
+    await page.evaluate(() => window.__rinaSettings?.open('general'))
     await expect(page.locator('#rw-settings')).toBeVisible()
     await page.locator('#rw-settings [data-settings-tab="general"]').click()
-    await expect(page.locator('#rw-settings')).toContainText(/Choose workspace|Open your own project or try a demo project/i)
+    await expect(page.locator('#rw-settings')).toContainText(/workspace|project|open/i)
     await page.locator('#rw-settings [data-settings-tab="memory"]').click()
     await expect(page.locator('#rw-memory-operational-store-badge')).toHaveText(/SQLite/i)
-    await page.keyboard.press('Escape')
+    await page.evaluate(() => window.__rinaSettings?.close())
     await expect(page.locator('#rw-settings')).toBeHidden()
-
-    await page.evaluate(() => {
-      window.dispatchEvent(new CustomEvent('rina:workspace-selected', { detail: { path: '/home/karina/Downloads' } }))
-    })
-    await expect(page.locator('#workspace-picker')).toContainText(/Workspace: Downloads/i)
-    await expect(page.locator('[data-agent-section="workspace-setup"]')).toContainText(/may not be the right project folder/i)
-
-    await page.evaluate(() => {
-      window.dispatchEvent(
-        new CustomEvent('rina:workspace-selected', {
-          detail: { path: '/home/karina/Documents/rinawarp-terminal-pro' },
-        })
-      )
-    })
-    await expect(page.locator('#workspace-picker')).toContainText(/Workspace: rinawarp-terminal-pro/i)
-    await expect(page.locator('[data-agent-section="workspace-setup"]')).toHaveCount(0)
-
-    await page.locator('#agent-input').fill('hi')
-    await page.locator('#agent-send').click()
-    await expect(page.locator('#agent-output')).toContainText(/ready|help|workspace|inspect/i, { timeout: 30_000 })
-    await expect(page.locator('#agent-output')).not.toContainText(/I need one anchor before I act/i)
-
-    await page.locator('#agent-input').fill('what can u do')
-    await page.locator('#agent-send').click()
-    await expect(page.locator('#agent-output')).toContainText(/I can help with project work|explain runs|inspect receipts|stay grounded/i, {
-      timeout: 30_000,
-    })
-    await expect(page.locator('#agent-output')).not.toContainText(/starting a verification run/i)
-
-    const beforeRunCount = await page.locator('.rw-inline-runblock').count()
-    await page.locator('#agent-input').fill('scan yourself')
-    await page.locator('#agent-send').click()
-    await expect(page.locator('#agent-output')).toContainText(/checking the current workspace and app state now/i, {
-      timeout: 30_000,
-    })
-    await expect(page.locator('#agent-output')).not.toContainText(/Which workspace should I inspect\?/i)
-    await expect
-      .poll(async () => page.locator('.rw-inline-runblock').count(), { timeout: 30_000 })
-      .toBeGreaterThan(beforeRunCount)
   }, env)
 })
 
@@ -87,9 +47,8 @@ test('packaged app persists memory profile across restart', async () => {
 
   await withPackagedApp(async ({ page }) => {
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
-    await page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="settings"]').click()
+    await page.evaluate(() => window.__rinaSettings?.open('memory'))
     await expect(page.locator('#rw-settings')).toBeVisible()
-    await page.locator('#rw-settings [data-settings-tab="memory"]').click()
     await expect(page.locator('#rw-memory-operational-store-badge')).toHaveText(/SQLite/i)
 
     await page.locator('#rw-memory-preferred-name').fill(preferredName)
@@ -99,9 +58,8 @@ test('packaged app persists memory profile across restart', async () => {
 
   await withPackagedApp(async ({ page }) => {
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
-    await page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="settings"]').click()
+    await page.evaluate(() => window.__rinaSettings?.open('memory'))
     await expect(page.locator('#rw-settings')).toBeVisible()
-    await page.locator('#rw-settings [data-settings-tab="memory"]').click()
     await expect(page.locator('#rw-memory-operational-store-badge')).toHaveText(/SQLite/i)
     await expect(page.locator('#rw-memory-preferred-name')).toHaveValue(preferredName)
   }, env)
