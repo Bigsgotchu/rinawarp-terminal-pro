@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+normalized_args=()
 needs_packaged_build=0
 for arg in "$@"; do
+  normalized_arg="$arg"
+  normalized_arg="${normalized_arg#apps/terminal-pro/tests/e2e/}"
+  normalized_arg="${normalized_arg#tests/e2e/}"
+  normalized_arg="${normalized_arg#e2e/}"
+  normalized_args+=("$normalized_arg")
+
   case "$arg" in
     *packaged-first-run.spec.ts*|*release-golden-journeys.spec.ts*)
       needs_packaged_build=1
@@ -24,8 +31,8 @@ if [[ "$(uname -s)" == "Linux" ]] && command -v xvfb-run >/dev/null 2>&1; then
   env -u ELECTRON_RUN_AS_NODE \
     CI="${CI:-1}" \
     ELECTRON_DISABLE_SANDBOX="${ELECTRON_DISABLE_SANDBOX:-1}" \
-    xvfb-run -a npx playwright test "$@" -c tests/playwright.config.ts --reporter=line
+    xvfb-run -a npx playwright test "${normalized_args[@]}" -c tests/playwright.config.ts --reporter=line
   exit 0
 fi
 
-env -u ELECTRON_RUN_AS_NODE npx playwright test "$@" -c tests/playwright.config.ts --reporter=line
+env -u ELECTRON_RUN_AS_NODE npx playwright test "${normalized_args[@]}" -c tests/playwright.config.ts --reporter=line
