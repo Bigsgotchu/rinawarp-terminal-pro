@@ -80,3 +80,29 @@ test('packaged first-run journey: customer can find workspace, settings, and a s
       .toBeGreaterThan(beforeRunCount)
   }, env)
 })
+
+test('packaged app persists memory profile across restart', async () => {
+  const env = freshHomeEnv(`restart-persistence-${Date.now()}`)
+  const preferredName = `Karina ${Date.now()}`
+
+  await withPackagedApp(async ({ page }) => {
+    await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
+    await page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="settings"]').click()
+    await expect(page.locator('#rw-settings')).toBeVisible()
+    await page.locator('#rw-settings [data-settings-tab="memory"]').click()
+    await expect(page.locator('#rw-memory-operational-store-badge')).toHaveText(/SQLite/i)
+
+    await page.locator('#rw-memory-preferred-name').fill(preferredName)
+    await page.locator('#rw-memory-save-profile').click()
+    await expect(page.locator('#rw-memory-feedback')).toContainText(/profile memory saved/i)
+  }, env)
+
+  await withPackagedApp(async ({ page }) => {
+    await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
+    await page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="settings"]').click()
+    await expect(page.locator('#rw-settings')).toBeVisible()
+    await page.locator('#rw-settings [data-settings-tab="memory"]').click()
+    await expect(page.locator('#rw-memory-operational-store-badge')).toHaveText(/SQLite/i)
+    await expect(page.locator('#rw-memory-preferred-name')).toHaveValue(preferredName)
+  }, env)
+})
