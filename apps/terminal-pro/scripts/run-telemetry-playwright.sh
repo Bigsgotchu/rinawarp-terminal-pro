@@ -40,4 +40,4 @@ env -u ELECTRON_RUN_AS_NODE \
   CI="${CI:-1}" \
   ELECTRON_DISABLE_SANDBOX="${ELECTRON_DISABLE_SANDBOX:-1}" \
   RINAWARP_TELEMETRY_WS_URL="${WS_URL}" \
-  xvfb-run -a npx playwright test "${target_args[@]}" -c playwright.config.ts --reporter=line
+  xvfb-run -a "${ROOT_DIR}/node_modules/.bin/playwright" test "${target_args[@]}" -c playwright.config.ts --reporter=line
