@@ -1,0 +1,131 @@
+## 1.1.12 (2026-04-02)
+
+### 🚀 Features
+None
+
+### 🐛 Fixes
+- align e2e paths with playwright testDir
+- point packaged e2e to testDir path
+- unblock CI tests and audit
+
+
+### 🧩 Other
+- Make homepage demo deployable
+- Add real fix-project demo recording flow
+- refactor(agentd): split ipc wrappers into channels, mappers, and handler groups
+- Refactor chat doctor helpers and update CI actions
+- ci: install playwright from terminal workspace
+- ci: fix playwright install and packaged smoke
+- ci: make check-e2e-launch executable
+- ci: add repo hygiene check stub
+- ci: trigger desktop workflows on script changes
+- ci: add clean-builds script
+- ci: fix eslint smoke packaging steps
+- test: align no-proof response copy
+- chore: replace deprecated tooling and deps
+- ci: add node types for shared packages
+- ci: fix ipc check and preload deps
+- ci: switch desktop workflows to pnpm
+- ci: build electron before agent tests
+- chore: refresh pnpm lockfile
+- Add chat streaming and bump 0.1.1
+- Add chat patch preview
+- Allow chat apply shortcut
+- Add fix preview flow
+- Add workspace summary actions
+- Make fix flow non-blocking
+- Add Companion inline completion
+- Add Companion fix actions
+- Document Companion consolidation plan
+- Prepare Companion 0.1.0 release
+- Improve Companion local reasoning
+- Prepare Companion 0.0.3 pre-release
+- Polish Companion onboarding and release trust flow
+- Prepare Companion 0.0.2 pre-release
+- Refine Companion activity icon to match logo
+- Use RinaWarp brand mark for Companion icon
+- Polish Companion Marketplace listing copy
+- Document Companion Marketplace smoke test
+- Switch Companion to managed Marketplace publisher
+- Switch Companion to RinawarpTech publisher
+- Align Companion with Marketplace publisher
+- Add Node 18 shim for Companion publish
+- Force Companion VSCE scripts onto Node 22
+- Pin Companion VSCE CLI version
+- Fix Companion activity bar icon
+- Re-verify Companion VSIX packaging
+- Close Companion purchase-return verification
+- Add safe Companion purchase-return verification
+- Record Companion billing portal verification
+- Finalize Companion post-reconnect verification
+- Route whole site through marketplace worker
+- Unify account page state and VS Code handoff
+- Return Companion auth from logged-in account page
+- Preserve Companion callback through account page
+- Fix Companion login callback return URL
+- Route vscode API traffic to marketplace worker
+- Broaden Companion entitlement payload parsing
+- Fix Companion view identity and chat manifest
+- Update Companion verification evidence
+- Position Companion as chat-first VS Code surface
+- Harden Companion entitlement refresh UX
+- Clarify remaining Companion live verification gaps
+- Record live Companion callback verification
+- Document Linux vscode callback handler fix
+- Record Companion VS Code verification results
+- Add Companion manual verification runbook
+- Refine Companion packaging release gate
+- Document current Companion pre-release posture
+- Add Companion pre-release go-no-go gate
+- Define platform operating model for Terminal Pro and Companion
+- Merge branch 'integrate/cline-task-1'
+- Add conversation route metadata for diagnostics
+- Integrate safe branch consolidation follow-ups
+- Fix live Google Analytics site tracking
+- Fix GitHub workflow repo-root paths
+- WIP: checkpoint companion scaffold and branch consolidation notes
+- Add RinaWarp vs Warp comparison page
+- Tighten website search snippets and page metadata
+- Clean up legacy SEO redirects and sitemap
+- Strengthen website SEO and search discovery
+- Release Terminal Pro 1.1.11 icon refresh
+- Refresh brand icons for website and desktop app
+- Simplify website header branding and mobile meta
+- Polish website shell accessibility and media loading
+- Unify packs shell and align team pricing story
+- Tighten website above-the-fold copy
+- Unify worker page styling with website shell
+- Slim website design and add real demo media
+- Clarify website audience fit and trust note
+- Add real product screenshots to website
+- Improve website conversion and trust surfaces
+- Add company completion status checklist
+- Add founder-led support inbox workflow
+- Add 1.1.10 48-hour launch review
+- Add post-release operations commands
+- Finalize 1.1.10 release signoff
+- Add 1.1.10 release handoff checklist
+- Document safe desktop release sequence
+- Prepare Terminal Pro 1.1.10 release safely
+- Add Terminal Pro activation analytics events
+- Add website funnel event instrumentation
+- Add metrics instrumentation plan
+- Normalize canonical website domain to rinawarptech.com
+- Add repo-safe company operating docs
+- Refresh packaged golden journey copy expectations
+- Refine Terminal Pro transcript styling and reply density
+- Simplify Terminal Pro agent startup and chat transcript
+- Polish Terminal Pro shell hierarchy and inspector readability
+- Align Terminal Pro E2E audit contracts with current UI
+- Add Companion validation baseline and readiness wiring
+- docs(release): add feature reality matrix guard
+- fix(ci): refresh pnpm lockfile for deploy capabilities
+- merge(main): unify divergent main history into v1.1.9 release lineage
+- auto-commit for c0621ca9-3e9b-474a-8d95-86a607c1d06d
+- auto-commit for 3b504cf2-5bb4-46b2-b36e-9c63e0d9770f
+- auto-commit for 09527076-1c36-4450-af85-c86f67edbcba
+- auto-commit for 72c24eb2-7cd0-4a47-b1c6-6840c7af0bbc
+- auto-commit for facf973a-4f41-4982-bf2c-6b582fd1f1ed
+- auto-commit for fae06ec1-4ccc-4af2-8778-02a13b5563b0
+- Initial commit
+
