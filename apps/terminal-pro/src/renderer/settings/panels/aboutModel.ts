@@ -10,7 +10,7 @@ export type AboutUpdateState = {
   downloadedAt: string | null
   supported: boolean
   installReady: boolean
-  channel: 'stable' | 'beta' | 'nightly'
+  channel: 'stable' | 'beta' | 'alpha'
 }
 
 export type AboutPanelModel = {

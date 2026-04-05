@@ -4,6 +4,7 @@ import { analyzeFailure, formatFailureNarrative, getRecoveryGuidance } from '../
 import { currentMode } from '../renderers/runtime.js'
 import { getWorkspaceContextState, lastRelevantRun } from '../renderers/selectors.js'
 import { hasRunProof, isRunSuccessWithProof } from '../proof.js'
+import { getRetentionSummary } from '../../services/retentionLoop.js'
 import { type StarterPromptViewModel } from './suggestedActionsViewModel.js'
 
 export type AgentHeroViewModel = {
@@ -25,6 +26,7 @@ export type AgentEmptyCardViewModel = {
   className?: string
   actions?: Array<{ label: string; className: string; dataset: Record<string, string | undefined> }>
   stats?: Array<{ label: string; value: string }>
+  listItems?: Array<{ label: string; value: string; tone?: 'success' | 'warning' | 'default' }>
   prompts?: StarterPromptViewModel[]
   footerCopy?: string
 }
@@ -71,7 +73,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
   const restoredRuns = state.runs.filter((run) => run.restored)
   const heading =
     workspaceState.status === 'missing'
-      ? 'Start by choosing the project or folder you want Rina to work in.'
+      ? 'Fix your broken project automatically.'
       : workspaceState.status === 'weak'
         ? 'This folder may not be the project root yet.'
         : restoredRuns.length > 0
@@ -80,10 +82,10 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
             ? 'Ready when you are. I know the workspace, and the last verified run ended cleanly.'
             : lastRun
               ? 'Ready when you are. I know where we are, and I can pick up from the last run without pretending.'
-              : 'What should we work on?'
+              : 'Open a project and click Fix Project.'
   const copy =
     workspaceState.status === 'missing'
-      ? 'Choose a workspace first so build, test, fix, and deploy actions happen in the right place from the start.'
+      ? 'Open a project and click Fix Project. RinaWarp reads the code, repairs the safest issues first, and verifies the result.'
       : workspaceState.status === 'weak'
         ? workspaceState.reason
         : restoredRuns.length > 0
@@ -94,14 +96,21 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
 
   const actions =
     workspaceState.status === 'project'
-      ? []
-      : [
-          { label: 'Choose workspace', className: actionClass('primary'), dataset: { pickWorkspace: 'hero' } },
+      ? [
           {
-            label: 'Learn how workspaces work',
-            className: actionClass('secondary'),
-            dataset: { agentPrompt: 'Explain how workspaces work and how I should choose the right project folder.' },
+            label: 'Fix Project',
+            className: actionClass('primary'),
+            dataset: {
+              agentPrompt: 'Figure out what is broken and fix the safest parts first.',
+              intentKey: 'fix',
+              tierHint: 'Start here',
+              tierTone: 'available',
+            },
           },
+        ]
+      : [
+          { label: 'Open Project', className: actionClass('primary'), dataset: { pickWorkspace: 'hero' } },
+          { label: 'Try Demo Project', className: actionClass('secondary'), dataset: { loadDemoProject: 'hero' } },
         ]
 
   return {
@@ -123,29 +132,115 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
 
 export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyCardViewModel | null {
   const workspaceState = getWorkspaceContextState(state)
-  if (workspaceState.status === 'project') return null
+  if (workspaceState.status === 'project') {
+    return {
+      sectionKey: 'guided-fix',
+      label: 'Start here',
+      title: 'Click Fix Project to repair this project.',
+      copy: 'No setup tour. No settings maze. Start the guided repair and watch RinaWarp analyze, fix, and verify the project in one flow.',
+      className: 'rw-agent-onboarding-card',
+      actions: [
+        {
+          label: 'Fix Project',
+          className: actionClass('primary'),
+          dataset: {
+            agentPrompt: 'Figure out what is broken and fix the safest parts first.',
+            intentKey: 'fix',
+            tierHint: 'Guided fix',
+            tierTone: 'available',
+          },
+        },
+        {
+          label: 'Check project health',
+          className: actionClass('secondary'),
+          dataset: {
+            agentPrompt: 'Check this project health. Find outdated dependencies, configuration risks, and the safest next fixes without changing files yet.',
+            healthCheck: 'guided-fix',
+          },
+        },
+        { label: 'Open another project', className: actionClass('secondary'), dataset: { pickWorkspace: 'guided-fix' } },
+      ],
+      stats: [
+        { label: '1', value: 'Open project' },
+        { label: '2', value: 'Click Fix Project' },
+        { label: '3', value: 'Watch it verify' },
+      ],
+      footerCopy: `Current project: ${workspaceState.displayValue}`,
+    }
+  }
   return {
     sectionKey: 'workspace-setup',
-    label: workspaceState.status === 'missing' ? 'Choose workspace' : 'Workspace check',
+    label: workspaceState.status === 'missing' ? 'First launch' : 'Workspace check',
     title:
       workspaceState.status === 'missing'
-        ? 'Start by choosing the project or folder you want Rina to work in.'
+        ? 'Fix your broken project automatically.'
         : `${workspaceState.displayValue} may not be the right project folder.`,
     copy:
       workspaceState.status === 'missing'
-        ? 'Without a real workspace, Rina cannot safely build, test, fix, or deploy for you yet.'
+        ? 'Open your own project or try a demo project. The fastest path to understanding RinaWarp is watching one successful fix.'
         : workspaceState.reason,
-    className: `rw-agent-workspace-setup is-${workspaceState.status}`,
+    className: `rw-agent-workspace-setup rw-agent-onboarding-card is-${workspaceState.status}`,
     actions: [
-      { label: 'Choose workspace', className: actionClass('primary'), dataset: { pickWorkspace: 'workspace-setup' } },
-      { label: 'Open workspace settings', className: actionClass('secondary'), dataset: { openSettingsTab: 'general' } },
-      {
-        label: 'Learn how workspaces work',
-        className: actionClass('quiet'),
-        dataset: { agentPrompt: 'Explain how workspaces work and how I should choose the right project folder.' },
-      },
+      { label: 'Open Project', className: actionClass('primary'), dataset: { pickWorkspace: 'workspace-setup' } },
+      { label: 'Try Demo Project', className: actionClass('secondary'), dataset: { loadDemoProject: 'workspace-setup' } },
     ],
-    footerCopy: workspaceState.rootMarkers.length > 0 ? `Detected project markers: ${workspaceState.rootMarkers.join(', ')}` : undefined,
+    stats:
+      workspaceState.status === 'missing'
+        ? [
+            { label: '30 sec', value: 'First fix target' },
+            { label: 'Live', value: 'Execution proof' },
+            { label: 'Verified', value: 'Success summary' },
+          ]
+        : undefined,
+    footerCopy: workspaceState.rootMarkers.length > 0 ? `Detected project markers: ${workspaceState.rootMarkers.join(', ')}` : 'You can switch projects later. The goal is just to get to the first successful fix quickly.',
+  }
+}
+
+export function buildRetentionLoopCardModel(state: WorkbenchState): AgentEmptyCardViewModel | null {
+  const workspaceState = getWorkspaceContextState(state)
+  const retention = getRetentionSummary(state.workspaceKey)
+  if (retention.trackedProjects === 0 && workspaceState.status !== 'project') return null
+
+  return {
+    sectionKey: 'retention-loop',
+    label: 'Come back here first',
+    title:
+      workspaceState.status === 'project'
+        ? 'Keep this project healthy between fixes.'
+        : 'Recent projects and proof stay ready for the next breakage.',
+    copy:
+      workspaceState.status === 'project'
+        ? 'Run a quick health check before things drift. The best habit is opening RinaWarp before a small issue becomes a broken build.'
+        : 'RinaWarp remembers what you fixed, what looked healthy, and where to jump back in when something breaks again.',
+    className: 'rw-agent-retention-card',
+    actions:
+      workspaceState.status === 'project'
+        ? [
+            {
+              label: 'Check my project health',
+              className: actionClass('primary'),
+              dataset: {
+                agentPrompt: 'Check this project health. Find outdated dependencies, configuration risks, and the safest next fixes without changing files yet.',
+                healthCheck: 'retention-card',
+              },
+            },
+            { label: 'Review runs', className: actionClass('secondary'), dataset: { tab: 'runs' } },
+          ]
+        : [{ label: 'Open project', className: actionClass('primary'), dataset: { pickWorkspace: 'retention-card' } }],
+    stats: [
+      { label: `${retention.totalMinutesSaved} min`, value: 'Estimated time saved' },
+      { label: String(retention.totalSuccessfulFixes), value: 'Verified fixes' },
+      { label: String(retention.trackedProjects), value: 'Projects remembered' },
+    ],
+    listItems: retention.recentProjects.map((project) => ({
+      label: project.name,
+      value: project.active ? `${project.statusLabel} · current project` : project.statusLabel,
+      tone: project.statusTone,
+    })),
+    footerCopy:
+      workspaceState.status === 'project'
+        ? 'Open app, check health, fix fast, move on. That is the loop.'
+        : 'Recent projects appear here automatically after you open or fix them.',
   }
 }
 

@@ -2,7 +2,7 @@ import type { App } from 'electron'
 import type { shell } from 'electron'
 import electronUpdater from 'electron-updater'
 
-export type UpdateChannel = 'stable' | 'beta' | 'nightly'
+export type UpdateChannel = 'stable' | 'beta' | 'alpha'
 
 export type UpdateConfig = {
   channel: UpdateChannel
@@ -38,7 +38,26 @@ export type ReleaseInfo = {
 type ReleaseManifest = {
   version?: string
   pub_date?: string
+  files?: {
+    linux?: { path?: string }
+    deb?: { path?: string }
+    windows?: { path?: string }
+  }
 }
+
+type ChannelReleaseInfo = {
+  version: string
+  url: string
+  manifestUrl: string
+  publishedAt: string | null
+  downloads: {
+    linux?: string
+    deb?: string
+    windows?: string
+  }
+}
+
+type ReleaseChannelsManifest = Partial<Record<UpdateChannel, ChannelReleaseInfo>>
 
 type CreateUpdateServiceDeps = {
   app: App
@@ -47,6 +66,7 @@ type CreateUpdateServiceDeps = {
 
 const SITE_BASE = 'https://rinawarptech.com'
 const UPDATES_BASE = 'https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev'
+const CHANNELS_MANIFEST_URL = `${SITE_BASE}/releases.json`
 
 function compareVersions(left: string, right: string): number {
   const leftParts = left.split(/[.-]/).map((part) => (/^\d+$/.test(part) ? Number(part) : part))
@@ -76,8 +96,24 @@ function urlsForChannel(channel: UpdateChannel): { manifestUrl: string; feedUrl:
   return {
     manifestUrl: `${UPDATES_BASE}/${channel}/latest.json`,
     feedUrl: `${UPDATES_BASE}/${channel}`,
-    releaseUrl: `${SITE_BASE}/download?channel=${channel}`,
+    releaseUrl: `${SITE_BASE}/download/?channel=${channel}`,
   }
+}
+
+function toAbsoluteSiteUrl(path: string | undefined): string | undefined {
+  if (!path) return undefined
+  if (/^https?:\/\//i.test(path)) return path
+  return `${SITE_BASE}/${path.replace(/^\/+/, '')}`
+}
+
+function pickPlatformDownload(info: ChannelReleaseInfo): string {
+  if (process.platform === 'win32' && info.downloads.windows) return info.downloads.windows
+  if (process.platform === 'linux') {
+    if (linuxAutoUpdateSupported() && info.downloads.linux) return info.downloads.linux
+    if (info.downloads.deb) return info.downloads.deb
+    if (info.downloads.linux) return info.downloads.linux
+  }
+  return info.url
 }
 
 function linuxAutoUpdateSupported(): boolean {
@@ -118,6 +154,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
   }
 
   let cachedReleaseManifest: ReleaseManifest | null = null
+  let cachedChannelsManifest: ReleaseChannelsManifest | null = null
   const updater = electronUpdater.autoUpdater
 
   updater.autoInstallOnAppQuit = true
@@ -157,10 +194,46 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
     }
   }
 
+  async function fetchChannelsManifest(): Promise<ReleaseChannelsManifest | null> {
+    try {
+      const response = await fetch(CHANNELS_MANIFEST_URL, { headers: { Accept: 'application/json' } })
+      if (!response.ok) return null
+      const parsed = (await response.json()) as ReleaseChannelsManifest
+      cachedChannelsManifest = parsed
+      return parsed
+    } catch {
+      return null
+    }
+  }
+
+  async function getChannelRelease(channel: UpdateChannel): Promise<ChannelReleaseInfo | null> {
+    const channels = cachedChannelsManifest || (await fetchChannelsManifest())
+    return channels?.[channel] ?? null
+  }
+
   async function manualCheck(): Promise<UpdateState> {
     refreshStaticState()
-    const manifest = await fetchManifest()
+    const channelRelease = await getChannelRelease(config.channel)
     const checkedAt = new Date().toISOString()
+    if (channelRelease?.version) {
+      const latestVersion = String(channelRelease.version)
+      const hasUpdate = compareVersions(latestVersion, deps.app.getVersion()) > 0
+      state = {
+        ...state,
+        status: hasUpdate ? 'update_available' : state.supported ? 'up_to_date' : 'unsupported',
+        latestVersion,
+        checkedAt,
+        manifestUrl: channelRelease.manifestUrl || state.manifestUrl,
+        releaseUrl: pickPlatformDownload(channelRelease),
+        error: state.supported ? null : state.error,
+        installReady: false,
+        downloadProgress: null,
+        downloadedAt: null,
+      }
+      return state
+    }
+
+    const manifest = await fetchManifest()
     if (!manifest?.version) {
       state = {
         ...state,
@@ -307,13 +380,16 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
 
   async function openUpdateDownload(): Promise<{ ok: boolean; url: string; error?: string }> {
     refreshStaticState()
+    const channelRelease = await getChannelRelease(config.channel)
+    const releaseUrl = channelRelease ? pickPlatformDownload(channelRelease) : state.releaseUrl
     try {
-      await deps.shell.openExternal(state.releaseUrl)
-      return { ok: true, url: state.releaseUrl }
+      await deps.shell.openExternal(releaseUrl)
+      state = { ...state, releaseUrl }
+      return { ok: true, url: releaseUrl }
     } catch (error) {
       return {
         ok: false,
-        url: state.releaseUrl,
+        url: releaseUrl,
         error: error instanceof Error ? error.message : String(error),
       }
     }
@@ -335,6 +411,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
   }
 
   async function getReleaseInfo(): Promise<ReleaseInfo> {
+    const channelRelease = await getChannelRelease(config.channel)
     const manifest = cachedReleaseManifest || (await fetchManifest())
     return {
       version: deps.app.getVersion(),
@@ -345,7 +422,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
       signedBy: state.supported
         ? 'Automatic updates use signed platform installers plus published release metadata.'
         : 'Manual verification uses the published release metadata and checksums.',
-      publishedAt: manifest?.pub_date || null,
+      publishedAt: channelRelease?.publishedAt || manifest?.pub_date || null,
     }
   }
 

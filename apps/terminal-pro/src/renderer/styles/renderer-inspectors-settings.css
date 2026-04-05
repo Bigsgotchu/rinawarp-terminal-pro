@@ -460,6 +460,44 @@ textarea.rw-input {
   padding: 6px 10px !important;
 }
 
+#rw-update-notice {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1200;
+}
+
+.rw-update-notice-card {
+  min-inline-size: min(420px, calc(100vw - 36px));
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--rw-border, rgba(255,255,255,0.12));
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--rw-surface-2, rgba(20,20,28,0.96)) 92%, black);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.34);
+}
+
+.rw-update-notice-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.rw-update-notice-copy strong {
+  font-size: 0.95rem;
+}
+
+.rw-update-notice-copy span {
+  color: var(--rw-muted, rgba(255,255,255,0.72));
+  font-size: 0.86rem;
+}
+
+.rw-update-notice-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @media (max-inline-size: 1180px) {
   .rw-workbench {
     grid-template-columns: minmax(0, 1fr) 320px;

@@ -190,6 +190,7 @@ export function buildRegistrationRuntime(args: {
   updateIpcDeps: UpdateIpcDeps;
   workspacePickForIpc: RegisterRinaIpcDeps["workspacePickForIpc"];
   workspaceDefaultForIpc: RegisterRinaIpcDeps["workspaceDefaultForIpc"];
+  workspaceDemoForIpc: RegisterRinaIpcDeps["workspaceDemoForIpc"];
   fixProjectForIpc: AnyFn;
   newPlanRunId: PlanExecutionHelpers["newPlanRunId"];
   ensureStructuredSession: SessionHelpers["ensureStructuredSession"];
@@ -257,6 +258,7 @@ export function buildRegistrationRuntime(args: {
         args.diagnostics.supportBundleForIpcWithSnapshot,
       workspacePickForIpc: args.workspacePickForIpc,
       workspaceDefaultForIpc: args.workspaceDefaultForIpc,
+      workspaceDemoForIpc: args.workspaceDemoForIpc,
     },
     registerTeamIpc: args.deps.registerTeamIpc,
     teamIpcDeps: {

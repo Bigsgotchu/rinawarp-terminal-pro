@@ -200,6 +200,7 @@ export interface RinaRendererWindow {
     revealRunReceipt: (receiptId: string) => Promise<{ ok: boolean; error?: string; receipt?: any }>
     codeListFiles?: (args: CodeListFilesArgs) => Promise<CodeListFilesResult>
     codeReadFile?: (args: CodeReadFileArgs) => Promise<CodeReadFileResult>
+    demoWorkspace?: () => Promise<{ ok: boolean; path?: string; source?: string; error?: string }>
     workspaceDefault?: () => Promise<{ ok: boolean; path?: string }>
     autonomy: { enabled: boolean; level: string }
   }

@@ -71,6 +71,20 @@ export function renderAgentCard(model: AgentEmptyCardViewModel): HTMLElement {
           )
         )
       : null,
+    model.listItems?.length
+      ? el(
+          'div',
+          { class: 'rw-agent-empty-list' },
+          ...model.listItems.map((item) =>
+            el(
+              'div',
+              { class: `rw-agent-empty-list-item is-${item.tone || 'default'}`.trim() },
+              el('span', { class: 'rw-agent-empty-list-label' }, item.label),
+              el('span', { class: 'rw-agent-empty-list-value' }, item.value)
+            )
+          )
+        )
+      : null,
     model.prompts?.length ? el('div', { class: 'rw-agent-empty-prompts' }, ...model.prompts.map((prompt) => renderStarterPromptChip(prompt))) : null,
     model.footerCopy ? el('div', { class: 'rw-agent-empty-copy' }, model.footerCopy) : null
   )

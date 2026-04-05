@@ -13,6 +13,7 @@ import { renderRecoveryStrip, renderRecoveryToggleButton } from '../components/r
 import {
   buildAgentHeroViewModel,
   buildInlineRunViewModel,
+  buildRetentionLoopCardModel,
   buildWorkspaceSetupCardModel,
 } from '../view-models/agentThreadModel.js'
 import { buildRecoveryStripViewModel } from '../view-models/recoveryViewModel.js'
@@ -95,11 +96,12 @@ function renderHero(state: WorkbenchState): void {
 
 function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
+  const retentionCard = buildRetentionLoopCardModel(state)
   if (!workspaceSetup) return el('section', { class: 'rw-agent-empty-state-shell', dataset: { agentSection: 'empty-state' } })
   return el(
     'section',
     {
-      class: 'rw-agent-empty-state-shell is-single-column',
+      class: ['rw-agent-empty-state-shell', retentionCard ? '' : 'is-single-column'].filter(Boolean).join(' '),
       dataset: { agentSection: 'empty-state' },
     },
     el(
@@ -108,7 +110,16 @@ function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
         class: 'rw-agent-empty-column rw-agent-empty-column-main',
       },
       renderAgentCard(workspaceSetup)
-    )
+    ),
+    retentionCard
+      ? el(
+          'div',
+          {
+            class: 'rw-agent-empty-column rw-agent-empty-column-side',
+          },
+          renderAgentCard(retentionCard)
+        )
+      : null
   )
 }
 
@@ -154,11 +165,15 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
 
   const shell = document.createDocumentFragment()
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
+  const retentionCard = buildRetentionLoopCardModel(state)
 
   if (!hasThreadContent) {
     shell.appendChild(buildEmptyStateNode(state))
   }
-  if (hasThreadContent && workspaceSetup) shell.appendChild(renderAgentCard(workspaceSetup))
+  if (hasThreadContent && workspaceSetup) {
+    shell.appendChild(renderAgentCard(workspaceSetup))
+    if (retentionCard) shell.appendChild(renderAgentCard(retentionCard))
+  }
   if (hasThreadContent) {
     for (const message of dedupeAdjacentThreadMessages(threadMessages)) {
       const isRecoveryMessage = message.id.startsWith('system:runs:restore:')

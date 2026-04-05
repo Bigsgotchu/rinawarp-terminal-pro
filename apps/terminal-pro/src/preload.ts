@@ -36,6 +36,7 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:code:listFiles',
   'rina:code:readFile',
   'rina:workspace:pick',
+  'rina:workspace:demo',
   'rina:workspace:default',
   // PTY (if available)
   'rina:pty:start',
@@ -343,6 +344,7 @@ contextBridge.exposeInMainWorld('rina', {
   memoryResetWorkspace: (workspaceId: string) => ipcRenderer.invoke('rina:memory:resetWorkspace', workspaceId),
   memoryResetAll: () => ipcRenderer.invoke('rina:memory:resetAll'),
   pickWorkspace: () => ipcRenderer.invoke('rina:workspace:pick'),
+  demoWorkspace: () => ipcRenderer.invoke('rina:workspace:demo'),
   workspaceDefault: () => ipcRenderer.invoke('rina:workspace:default'),
   themesList: () => ipcRenderer.invoke('themes:list'),
   themesGet: () => ipcRenderer.invoke('themes:get'),

@@ -1,5 +1,5 @@
 export type UpdateConfig = {
-  channel: 'stable' | 'beta' | 'nightly'
+  channel: 'stable' | 'beta' | 'alpha'
   autoCheck: boolean
   autoDownload: boolean
 }
@@ -26,7 +26,7 @@ export type UpdateState = {
   downloadedAt: string | null
   supported: boolean
   installReady: boolean
-  channel: 'stable' | 'beta' | 'nightly'
+  channel: 'stable' | 'beta' | 'alpha'
 }
 
 export type UpdatesConfigModel = {

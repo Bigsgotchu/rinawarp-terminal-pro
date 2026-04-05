@@ -41,19 +41,19 @@ export function buildSuggestedActionsCardModel(state: WorkbenchState): AgentEmpt
     label: 'Suggested actions',
     title:
       workspaceState.status === 'project'
-        ? 'Pick a lane and I’ll keep the proof attached.'
-        : 'Choose the right project folder first, then I can help with the work.',
+        ? 'Start with Fix Project and get to a successful result fast.'
+        : 'Open a project first, then start with a guided fix.',
     copy:
       workspaceState.status === 'project'
-        ? 'Start with the obvious move, or tell me what changed and I’ll map the next safe step.'
+        ? 'The fastest path to the aha moment is watching one repair complete end to end with proof.'
         : workspaceState.reason,
     className: 'rw-agent-empty-actions',
     actions:
       workspaceState.status === 'project'
         ? []
         : [
-            { label: 'Choose workspace', className: actionClass('primary'), dataset: { pickWorkspace: 'suggested-actions' } },
-            { label: 'Open workspace settings', className: actionClass('secondary'), dataset: { openSettingsTab: 'general' } },
+            { label: 'Open project', className: actionClass('primary'), dataset: { pickWorkspace: 'suggested-actions' } },
+            { label: 'Try demo project', className: actionClass('secondary'), dataset: { loadDemoProject: 'suggested-actions' } },
           ],
     prompts: getStarterPromptViewModels(state),
   }

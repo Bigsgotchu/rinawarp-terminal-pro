@@ -48,7 +48,7 @@ export function renderUpdatesPanelShell(): string {
           <li><strong>Windows NSIS</strong>: check, download, and install from the app</li>
           <li><strong>Linux AppImage</strong>: check, download, and apply on restart</li>
           <li><strong>Linux .deb</strong>: manual/package-manager update path</li>
-          <li><strong>Beta / Nightly</strong>: preview channels still use manual download until their release feeds are promoted</li>
+          <li><strong>Beta / Alpha</strong>: preview channels check the public channel feed and open the matching download when an update is ready</li>
         </ul>
         <p>The release site publishes public manifests and checksums so the app and the website point to the same artifact truth.</p>
       </div>
@@ -68,11 +68,11 @@ export function renderUpdateConfig(config: UpdateConfig): string {
         </label>
         <label class="rw-radio">
           <input type="radio" name="updateChannel" value="beta" ${model.channel === 'beta' ? 'checked' : ''}>
-          <span>Beta (Manual preview)</span>
+          <span>Beta (Early access)</span>
         </label>
         <label class="rw-radio">
-          <input type="radio" name="updateChannel" value="nightly" ${model.channel === 'nightly' ? 'checked' : ''}>
-          <span>Nightly (Manual preview)</span>
+          <input type="radio" name="updateChannel" value="alpha" ${model.channel === 'alpha' ? 'checked' : ''}>
+          <span>Alpha (Experimental)</span>
         </label>
       </div>
     </div>

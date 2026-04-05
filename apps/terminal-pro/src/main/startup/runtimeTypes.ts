@@ -501,6 +501,7 @@ export type RegisterRinaIpcDeps = {
   ) => Promise<unknown> | unknown;
   workspacePickForIpc: () => Promise<unknown> | unknown;
   workspaceDefaultForIpc: (senderId: number) => Promise<unknown> | unknown;
+  workspaceDemoForIpc: () => Promise<unknown> | unknown;
 };
 
 export type FixProjectFlowDeps = {
@@ -523,6 +524,7 @@ export type FixProjectFlowDeps = {
 export type WorkspaceElectronIpcHelpers = {
   workspacePickForIpc: RegisterRinaIpcDeps["workspacePickForIpc"];
   workspaceDefaultForIpc: RegisterRinaIpcDeps["workspaceDefaultForIpc"];
+  workspaceDemoForIpc: RegisterRinaIpcDeps["workspaceDemoForIpc"];
 };
 
 export type WorkspaceElectronIpcHelperDeps = {

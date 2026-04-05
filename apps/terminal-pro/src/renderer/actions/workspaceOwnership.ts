@@ -45,6 +45,36 @@ export async function requestWorkspaceSelection(options?: {
   }
 }
 
+export async function requestDemoWorkspaceSelection(options?: {
+  source?: string
+  onStatus?: (message: string) => void
+}): Promise<{ ok: boolean; path?: string; error?: string }> {
+  const source = options?.source || 'unknown'
+  recordDebugEvent('ui', 'workspace.demo', { source })
+  options?.onStatus?.('Preparing a demo project...')
+  try {
+    const result = await window.rina.demoWorkspace?.()
+    if (!result?.ok || !result.path) {
+      const message = result?.error || 'Could not prepare the demo project.'
+      options?.onStatus?.(message)
+      return { ok: false, error: message }
+    }
+    const path = String(result.path)
+    recordDebugEvent('ui', 'workspace.selected.demo', { path, source })
+    options?.onStatus?.('Demo project ready.')
+    window.dispatchEvent(
+      new CustomEvent('rina:workspace-selected', {
+        detail: { path, source: `demo:${source}` },
+      })
+    )
+    return { ok: true, path }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not prepare the demo project.'
+    options?.onStatus?.(message)
+    return { ok: false, error: message }
+  }
+}
+
 export function applyWorkspaceSelection(
   store: WorkbenchStore,
   path: string | undefined,

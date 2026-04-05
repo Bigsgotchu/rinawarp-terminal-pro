@@ -17,6 +17,7 @@ type RegisterRinaIpcDeps = {
   ) => Promise<unknown> | unknown
   workspacePickForIpc: () => Promise<unknown> | unknown
   workspaceDefaultForIpc: (senderId: number) => Promise<unknown> | unknown
+  workspaceDemoForIpc: () => Promise<unknown> | unknown
 }
 
 type IpcHandler = Parameters<IpcMain['handle']>[1]
@@ -43,6 +44,7 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
     supportBundleForIpcWithSnapshot,
     workspacePickForIpc,
     workspaceDefaultForIpc,
+    workspaceDemoForIpc,
   } = deps
 
   replaceHandler(ipcMain, 'rina:openRunsFolder', async () => openRunsFolderForIpc())
@@ -72,6 +74,8 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
   )
 
   replaceHandler(ipcMain, 'rina:workspace:pick', async () => workspacePickForIpc())
+
+  replaceHandler(ipcMain, 'rina:workspace:demo', async () => workspaceDemoForIpc())
 
   replaceHandler(ipcMain, 'rina:workspace:default', async (event: IpcMainInvokeEvent) =>
     workspaceDefaultForIpc(event.sender.id),

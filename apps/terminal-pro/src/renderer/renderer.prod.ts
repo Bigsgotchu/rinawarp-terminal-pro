@@ -50,6 +50,8 @@ import {
   setTransientStatusSummary,
 } from './services/rendererCoreHelpers.js'
 import { createRefreshActions } from './services/refreshData.js'
+import { initRetentionLoop } from './services/retentionLoop.js'
+import { initUpdateNotice } from './services/updateNotice.js'
 import { didExecutionStart, isExecutionPrompt, normalizePlanSteps } from './services/planHelpers.js'
 import {
   bindRendererTelemetrySessionEnd,
@@ -117,6 +119,8 @@ export async function initProductionRenderer(): Promise<void> {
     getAgentWorkspaceRoot: getAgentWorkspaceRootFromStore,
   })
   initSettingsUi()
+  initUpdateNotice()
+  const unbindRetentionLoop = initRetentionLoop(store)
   installDensityBridge()
   const workbenchShell = createWorkbenchShell({
     store,
@@ -213,6 +217,7 @@ export async function initProductionRenderer(): Promise<void> {
       refreshScheduler.stop()
       unbindRendererEvents()
       unbindDebugEvidence()
+      unbindRetentionLoop()
       unbindRendererTelemetrySessionEnd()
       workbenchShell.unmount()
       unregisterShortcuts()

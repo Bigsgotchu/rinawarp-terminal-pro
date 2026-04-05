@@ -170,7 +170,7 @@ export function createMainRuntime(runtimeDeps: CreateMainRuntimeDeps): MainRunti
         showSaveDialogForBundle,
         zipFiles,
     });
-    const { workspacePickForIpc, workspaceDefaultForIpc } = deps.createWorkspaceElectronIpcHelpers({
+    const { workspacePickForIpc, workspaceDefaultForIpc, workspaceDemoForIpc } = deps.createWorkspaceElectronIpcHelpers({
         dialog: deps.dialog,
         ptySessions,
         getDefaultCwd: () => workspaceService.getDefaultCwd(),
@@ -434,6 +434,7 @@ export function createMainRuntime(runtimeDeps: CreateMainRuntimeDeps): MainRunti
         updateIpcDeps,
         workspacePickForIpc,
         workspaceDefaultForIpc,
+        workspaceDemoForIpc,
         fixProjectForIpc,
         newPlanRunId,
         ensureStructuredSession,

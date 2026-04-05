@@ -8,6 +8,12 @@ const installerDir = path.join(appRoot, 'dist-electron', 'installer')
 const packageJson = JSON.parse(fs.readFileSync(path.join(appRoot, 'package.json'), 'utf8'))
 const version = String(packageJson.version)
 
+function releaseChannelFor(version) {
+  if (/-alpha\./.test(version)) return 'alpha'
+  if (/-beta\./.test(version)) return 'beta'
+  return 'stable'
+}
+
 function findArtifact(patterns) {
   for (const pattern of patterns) {
     const found = fs.readdirSync(installerDir).find((entry) => pattern.test(entry))
@@ -99,6 +105,8 @@ async function collectArtifactMetadata(version) {
 function ensureOutputDirs() {
   fs.mkdirSync(installerDir, { recursive: true })
   fs.mkdirSync(path.join(installerDir, 'stable'), { recursive: true })
+  fs.mkdirSync(path.join(installerDir, 'beta'), { recursive: true })
+  fs.mkdirSync(path.join(installerDir, 'alpha'), { recursive: true })
 }
 
 function buildLatestJson(version, pubDate, artifacts) {
@@ -154,14 +162,19 @@ function buildChecksums(artifacts) {
 }
 
 function writeUpdaterMetadata({ latestYml, latestLinuxYml, latestJson, checksums }) {
-  const stableDir = path.join(installerDir, 'stable')
-  fs.writeFileSync(path.join(installerDir, 'latest.yml'), latestYml, 'utf8')
-  fs.writeFileSync(path.join(installerDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
-  fs.writeFileSync(path.join(installerDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
+  const channel = releaseChannelFor(version)
+  const channelDir = path.join(installerDir, channel)
+
   fs.writeFileSync(path.join(installerDir, 'SHASUMS256.txt'), checksums, 'utf8')
-  fs.writeFileSync(path.join(stableDir, 'latest.yml'), latestYml, 'utf8')
-  fs.writeFileSync(path.join(stableDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
-  fs.writeFileSync(path.join(stableDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
+  fs.writeFileSync(path.join(channelDir, 'latest.yml'), latestYml, 'utf8')
+  fs.writeFileSync(path.join(channelDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
+  fs.writeFileSync(path.join(channelDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
+
+  if (channel === 'stable') {
+    fs.writeFileSync(path.join(installerDir, 'latest.yml'), latestYml, 'utf8')
+    fs.writeFileSync(path.join(installerDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
+    fs.writeFileSync(path.join(installerDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
+  }
 }
 
 async function main() {

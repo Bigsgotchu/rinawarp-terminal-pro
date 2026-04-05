@@ -26,7 +26,7 @@ export function registerUpdateIpc(deps: RegisterUpdateIpcDeps): void {
       const raw = deps.fs.readFileSync(configFile(), 'utf8')
       const parsed = JSON.parse(raw) as Partial<UpdateConfig>
       return {
-        channel: parsed.channel === 'beta' || parsed.channel === 'nightly' ? parsed.channel : 'stable',
+        channel: parsed.channel === 'beta' || parsed.channel === 'alpha' ? parsed.channel : 'stable',
         autoCheck: parsed.autoCheck !== false,
         autoDownload: parsed.autoDownload === true,
       }
@@ -56,7 +56,7 @@ export function registerUpdateIpc(deps: RegisterUpdateIpcDeps): void {
   deps.ipcMain.removeHandler('app:updateConfig:set')
   deps.ipcMain.handle('app:updateConfig:set', async (_event, input) => {
     const next = {
-      channel: input?.channel === 'beta' || input?.channel === 'nightly' ? input.channel : 'stable',
+      channel: input?.channel === 'beta' || input?.channel === 'alpha' ? input.channel : 'stable',
       autoCheck: input?.autoCheck !== false,
       autoDownload: input?.autoDownload === true,
     } satisfies UpdateConfig

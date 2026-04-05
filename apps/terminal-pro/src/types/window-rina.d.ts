@@ -214,6 +214,7 @@ declare global {
       showDirectoryPicker(): Promise<string | null>
       openDirectory(): Promise<{ ok: boolean; path?: string }>
       pickWorkspace(): Promise<{ ok: boolean; path?: string }>
+      demoWorkspace(): Promise<{ ok: boolean; path?: string; source?: string; error?: string }>
       workspaceDefault(): Promise<{ ok: boolean; path?: string }>
       setMode(mode: string): Promise<{ ok: boolean; mode: string }>
       getMode(): Promise<string>
@@ -538,12 +539,12 @@ declare global {
       toggleDevtools(): Promise<{ ok: boolean; open?: boolean; error?: string }>
       appVersion(): Promise<string>
       updateConfig(): Promise<{
-        channel: 'stable' | 'beta' | 'nightly'
+        channel: 'stable' | 'beta' | 'alpha'
         autoCheck: boolean
         autoDownload: boolean
       }>
       setUpdateConfig(config: {
-        channel: 'stable' | 'beta' | 'nightly'
+        channel: 'stable' | 'beta' | 'alpha'
         autoCheck: boolean
         autoDownload: boolean
       }): Promise<{ ok: boolean; config: any }>
@@ -577,7 +578,7 @@ declare global {
         downloadedAt: string | null
         supported: boolean
         installReady: boolean
-        channel: 'stable' | 'beta' | 'nightly'
+        channel: 'stable' | 'beta' | 'alpha'
       }>
       checkForUpdate(): Promise<{
         status: 'idle' | 'checking' | 'up_to_date' | 'update_available' | 'downloading' | 'downloaded' | 'unsupported' | 'error'
@@ -591,7 +592,7 @@ declare global {
         downloadedAt: string | null
         supported: boolean
         installReady: boolean
-        channel: 'stable' | 'beta' | 'nightly'
+        channel: 'stable' | 'beta' | 'alpha'
       }>
       openUpdateDownload(): Promise<{ ok: boolean; url: string; error?: string }>
       installUpdate(): Promise<{ ok: boolean; immediate: boolean; error?: string }>

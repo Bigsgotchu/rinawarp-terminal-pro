@@ -166,7 +166,7 @@ function renderOutcomeSummary(fix: FixBlockModel): HTMLElement | null {
       el(
         'div',
         { class: 'fix-summary-title-wrap' },
-        el('div', { class: 'fix-label' }, 'Repair summary'),
+        el('div', { class: 'fix-label' }, fix.phase === 'done' ? 'What we fixed' : 'Repair summary'),
         computedSummary?.title ? el('div', { class: 'fix-summary-title' }, computedSummary.title) : null
       ),
       el(
@@ -581,6 +581,27 @@ function renderFixBlock(fix: FixBlockModel): HTMLElement {
     fix.phase === 'planning' ? 'Fix Automatically (Pro)' : fix.phase === 'done' ? 'Run Repair Again (Pro)' : 'Re-run Safe Fix (Pro)'
   )]
 
+  if (fix.phase === 'done') {
+    footerActions.unshift(
+      el('button', { class: 'fix-btn primary', dataset: { pickWorkspace: 'fix-success' } }, 'Fix another project')
+    )
+    footerActions.splice(
+      1,
+      0,
+      el(
+        'button',
+        {
+          class: 'fix-btn',
+          dataset: {
+            agentPrompt: 'Check this project health. Find outdated dependencies, configuration risks, and the safest next fixes without changing files yet.',
+            healthCheck: 'fix-success',
+          },
+        },
+        'Re-run health check'
+      )
+    )
+  }
+
   if (hasReceiptTrail) {
     footerActions.push(
       el('button', { class: 'fix-btn', dataset: { fixReveal: '', fixId: fix.id } }, fix.phase === 'done' ? 'View Receipt' : 'Review Receipt')
@@ -596,6 +617,47 @@ function renderFixBlock(fix: FixBlockModel): HTMLElement {
   }
 
   body.appendChild(el('div', { class: 'fix-block-footer' }, ...footerActions))
+
+  if (fix.phase === 'done') {
+    body.appendChild(
+      el(
+        'div',
+        { class: 'fix-outcome-summary' },
+        el('div', { class: 'fix-label' }, 'Share the win'),
+        el('div', { class: 'fix-copy' }, 'This just saved you time. Want to share it while the result still feels fresh?'),
+        el(
+          'div',
+          { class: 'fix-summary-grid' },
+          el(
+            'div',
+            { class: 'fix-summary-chip is-safe' },
+            el('span', { class: 'fix-summary-count' }, '✔'),
+            el('span', undefined, 'Project fixed')
+          ),
+          el(
+            'div',
+            { class: 'fix-summary-chip is-caution' },
+            el('span', { class: 'fix-summary-count' }, String((fix.summary?.highlights || []).length || 1)),
+            el('span', undefined, 'Wins to share')
+          ),
+          el(
+            'div',
+            { class: 'fix-summary-chip is-safe' },
+            el('span', { class: 'fix-summary-count' }, fix.confidence?.score != null ? `${fix.confidence.score}%` : 'High'),
+            el('span', undefined, 'Confidence')
+          )
+        ),
+        el(
+          'div',
+          { class: 'fix-block-footer' },
+          el('button', { class: 'fix-btn primary', dataset: { shareFix: fix.id } }, 'Share this fix'),
+          el('button', { class: 'fix-btn', dataset: { copyFixSummary: fix.id } }, 'Copy summary'),
+          el('button', { class: 'fix-btn', dataset: { copyFixShareImage: fix.id } }, 'Copy share image'),
+          el('button', { class: 'fix-btn', dataset: { copyInviteLink: '' } }, 'Copy invite link')
+        )
+      )
+    )
+  }
 
   if (fix.status === 'running') {
     body.appendChild(el('div', { class: 'fix-status-note active' }, 'Repair is running now. Watch the step list and terminal stream for proof.'))
@@ -623,7 +685,7 @@ function renderFixBlock(fix: FixBlockModel): HTMLElement {
         'div',
         { class: 'fix-status-note' },
         fix.phase === 'done'
-          ? 'The repair finished with proof attached. Use the receipt or exported bundle if you need to review what changed.'
+          ? 'The repair finished with proof attached. Open another project and do it again while the flow is still fresh.'
           : 'The repair surfaced a reviewable outcome. Use the receipt and proof trail to inspect what ran and what still needs attention.'
       )
     )

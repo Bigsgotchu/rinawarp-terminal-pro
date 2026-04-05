@@ -2,8 +2,9 @@ import type { WorkbenchActionControllerDeps } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
 import type { UserTurnSource } from './conversationOwner.js'
 import { recordDebugEvent } from '../services/debugEvidence.js'
+import { recordProjectHealthCheck } from '../services/retentionLoop.js'
 import { createWorkbenchNavigator } from './navigationOwner.js'
-import { requestWorkspaceSelection } from './workspaceOwnership.js'
+import { requestDemoWorkspaceSelection, requestWorkspaceSelection } from './workspaceOwnership.js'
 
 function promptSourceFor(target: HTMLElement): UserTurnSource {
   if (target.dataset.intentKey) return 'starter_chip'
@@ -51,9 +52,25 @@ export function createNavigationActionHandler(
 
     const pickWorkspaceBtn = target.closest<HTMLElement>('[data-pick-workspace]')
     if (pickWorkspaceBtn) {
-      await requestWorkspaceSelection({
+      const result = await requestWorkspaceSelection({
         source: pickWorkspaceBtn.dataset.pickWorkspace || 'unknown',
       })
+      if (result.ok) {
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Project loaded. Click Fix Project to repair it now.' })
+      }
+      return true
+    }
+
+    const demoWorkspaceBtn = target.closest<HTMLElement>('[data-load-demo-project]')
+    if (demoWorkspaceBtn) {
+      const result = await requestDemoWorkspaceSelection({
+        source: demoWorkspaceBtn.dataset.loadDemoProject || 'unknown',
+      })
+      if (result.ok) {
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Demo project ready. Click Fix Project to watch it recover.' })
+      } else {
+        store.dispatch({ type: 'ui/setStatusSummary', text: result.error || 'Could not prepare the demo project.' })
+      }
       return true
     }
 
@@ -73,6 +90,9 @@ export function createNavigationActionHandler(
     if (promptChip?.dataset.agentPrompt) {
       const source = promptSourceFor(promptChip)
       const label = promptChip.textContent?.trim() || promptChip.dataset.agentPrompt
+      if (promptChip.dataset.healthCheck) {
+        recordProjectHealthCheck(store.getState().workspaceKey)
+      }
       recordDebugEvent('ui', 'starter-prompt.select', { label })
       store.dispatch({ type: 'analytics/track', event: 'starter_intent_selected', label })
       void deps.trackRendererEvent('starter_intent_selected', {
