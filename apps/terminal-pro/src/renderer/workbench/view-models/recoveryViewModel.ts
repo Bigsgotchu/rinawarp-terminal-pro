@@ -18,25 +18,25 @@ export function buildRecentProofCardModel(state: WorkbenchState): AgentEmptyCard
   if (!run) {
     return {
       sectionKey: 'recent-proof',
-      label: 'Recent proof',
+      label: 'Recent run',
       title: workspaceState === '__none__' ? 'No verified work yet in the selected folder.' : 'No verified work yet in this workspace.',
-      copy: 'The first real run will land here with its status, receipt trail, and the quickest way back into the inspector.',
+      copy: 'Your first real run will show up here with the latest status and a quick path back into the details.',
       className: 'rw-agent-empty-proof',
     }
   }
 
   const receiptId = run.latestReceiptId || run.sessionId || run.id
   const summary = isRunSuccessWithProof(run)
-    ? 'The last run finished with verified proof.'
+    ? 'The last run finished cleanly.'
     : run.status === 'running'
-      ? 'The last run is still live and the proof is still moving.'
+      ? 'The last run is still in progress.'
       : run.status === 'failed' || run.status === 'interrupted'
-        ? 'The last run needs attention, and the receipt trail is ready to inspect.'
-        : 'The last run returned, but the proof is still settling.'
+        ? 'The last run needs attention. You can review it or continue from there.'
+        : 'The last run finished, and the details are ready if you want them.'
 
   return {
     sectionKey: 'recent-proof',
-    label: 'Recent proof',
+    label: 'Recent run',
     title: run.title || 'Latest run',
     copy: summary,
     className: 'rw-agent-empty-proof',
@@ -47,9 +47,14 @@ export function buildRecentProofCardModel(state: WorkbenchState): AgentEmptyCard
       { label: 'Duration', value: formatRunDuration(run) || formatExitState(run) },
     ],
     actions: [
-      { label: 'Rerun', className: actionClass('primary'), dataset: { runRerun: run.id } },
-      { label: 'Receipt', className: actionClass('secondary'), dataset: { runReveal: receiptId } },
-      { label: 'Inspect run', className: actionClass('quiet'), dataset: { openRun: run.id } },
+      ...(run.status === 'interrupted'
+        ? [{ label: 'Resume Fix', className: actionClass('primary'), dataset: { runResume: run.id } }]
+        : []),
+      {
+        label: 'View details',
+        className: actionClass(run.status === 'interrupted' ? 'secondary' : 'primary'),
+        dataset: { runReveal: receiptId },
+      },
     ],
   }
 }
@@ -64,18 +69,18 @@ export function buildRecoverySummaryCardModel(state: WorkbenchState): AgentEmpty
   return {
     sectionKey: 'recovery-summary',
     label: 'Recovered work',
-    title: 'We recovered your last work.',
-    copy: 'Your project is safe and ready to continue.',
+    title: 'Recovered your last session.',
+    copy: `${restoredRuns.length} item${restoredRuns.length === 1 ? '' : 's'} restored. Everything looks safe to continue.`,
     className: 'rw-agent-empty-recovery',
     stats: [
-      { label: 'Trust', value: 'Nothing was lost' },
+      { label: 'Status', value: 'Safe to continue' },
       { label: 'Recovered', value: `${restoredRuns.length} item${restoredRuns.length === 1 ? '' : 's'}` },
       { label: 'Latest', value: formatRunStatus(latest) },
       { label: 'Updated', value: formatRunDate(latest.updatedAt) },
     ],
     actions: [
       ...(recovery.resumeSafe
-        ? [{ label: 'Resume where you left off', className: actionClass('primary'), dataset: { runResume: latest.id } }]
+        ? [{ label: 'Resume Fix', className: actionClass('primary'), dataset: { runResume: latest.id } }]
         : []),
       {
         label: 'View details',
@@ -95,14 +100,14 @@ export function buildRecoveryStripViewModel(state: WorkbenchState, compact: bool
   const latestRecovery = getRecoveryGuidance(latestRun)
   return {
     restoredCount: restoredRuns.length,
-    title: latestRecovery?.resumeSafe ? 'Resume your last fix' : 'Review your last fix',
-    badge: 'Nothing was lost',
+    title: 'Recovered your last session',
+    badge: 'Safe to continue',
     meta: undefined,
     expanded: state.ui.recoveryExpanded,
     compact,
     summary: latestRecovery?.resumeSafe
-      ? 'Your project is safe and ready to continue.'
-      : 'Your project is safe. Review the latest run before continuing.',
+      ? 'Everything looks safe to continue.'
+      : 'Everything is safe. Review the latest run before continuing.',
     actions: [
       ...(latestRecovery?.resumeSafe
         ? [{ label: 'Resume fix', className: actionClass('primary'), dataset: { runResume: latestRun.id } }]

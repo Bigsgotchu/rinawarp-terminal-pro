@@ -86,7 +86,7 @@ describe('Agent Tests', () => {
     assert.strictEqual(result.mode, 'chat')
     assert.strictEqual(result.allowedNextAction, 'reply_only')
 
-    const reply = buildConversationReply({
+    const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: '/home/karina',
       latestRun: { runId: 'run_123', sessionId: 'session_456' }
@@ -94,6 +94,25 @@ describe('Agent Tests', () => {
 
     assert.match(reply.message, /Hi\./)
     assert.doesNotMatch(reply.message, /need one anchor/i)
+  })
+
+  it('should answer check-ins naturally instead of talking about proof first', async () => {
+    const result = routeConversationTurn({
+      rawText: 'how are you',
+      workspaceId: '/home/karina',
+      latestRun: { runId: 'run_123', sessionId: 'session_456', interrupted: true }
+    })
+
+    assert.strictEqual(result.mode, 'question')
+
+    const reply = await buildConversationReply({
+      routedTurn: result,
+      workspaceLabel: '/home/karina',
+      latestRun: { runId: 'run_123', sessionId: 'session_456', interrupted: true }
+    })
+
+    assert.match(reply.message, /I.m good/i)
+    assert.doesNotMatch(reply.message, /proof/i)
   })
 
   it('should treat greeting-prefixed questions as questions instead of unclear inspect prompts', async () => {
@@ -106,7 +125,7 @@ describe('Agent Tests', () => {
     assert.strictEqual(result.mode, 'question')
     assert.strictEqual(result.allowedNextAction, 'reply_only')
 
-    const reply = buildConversationReply({
+    const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: '/home/karina/Downloads',
       latestRun: { runId: 'run_123', sessionId: 'session_456' }
@@ -125,7 +144,7 @@ describe('Agent Tests', () => {
     assert.strictEqual(result.mode, 'help')
     assert.strictEqual(result.allowedNextAction, 'reply_only')
 
-    const reply = buildConversationReply({
+    const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: 'rinawarp-terminal-pro',
       latestRun: null
@@ -145,13 +164,13 @@ describe('Agent Tests', () => {
     assert.strictEqual(result.mode, 'question')
     assert.strictEqual(result.allowedNextAction, 'reply_only')
 
-    const reply = buildConversationReply({
+    const reply = await buildConversationReply({
       routedTurn: result,
       workspaceLabel: 'rinawarp-terminal-pro',
       latestRun: null
     })
 
-    assert.match(reply.message, /I don't have proof yet/i)
+    assert.match(reply.message, /I haven’t run anything here yet|I haven't run anything here yet/i)
     assert.doesNotMatch(reply.message, /starting a verification run/i)
   })
 

@@ -48,6 +48,7 @@ export function resolveSelfCheckContext(args: RouteConversationTurnArgs): {
 
 export async function buildConversationReply(args: BuildConversationReplyArgs): Promise<{ intent: string; message: string }> {
   const { routedTurn, workspaceLabel, latestRun } = args
+  const rawText = normalizeWhitespace(routedTurn.rawText || '').toLowerCase()
 
   switch (routedTurn.mode) {
     case 'self_check': {
@@ -71,7 +72,9 @@ export async function buildConversationReply(args: BuildConversationReplyArgs): 
     case 'question':
       return {
         intent: 'question',
-        message: buildVerifiedRunSentence(latestRun),
+        message: /\b(how are you|how's it going|hows it going|what's up|whats up)\b/.test(rawText)
+          ? buildChatReply(rawText, latestRun)
+          : buildVerifiedRunSentence(latestRun, rawText),
       }
     case 'help':
       return {
@@ -136,7 +139,7 @@ export async function buildConversationReply(args: BuildConversationReplyArgs): 
     case 'chat':
       return {
         intent: 'chat',
-        message: 'Hi. I’m here and ready. I can talk through the workspace, explain the latest run, or help line up the next move.',
+        message: buildChatReply(rawText, latestRun),
       }
     case 'unclear':
       return {
@@ -157,19 +160,39 @@ function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
 }
 
-function buildVerifiedRunSentence(latestRun?: ConversationRunReference | null): string {
+function buildChatReply(rawText: string, latestRun?: ConversationRunReference | null): string {
+  if (/\b(how are you|how's it going|hows it going|what's up|whats up)\b/.test(rawText)) {
+    if (latestRun?.interrupted) {
+      return 'I’m good. I recovered the last session cleanly, and we can continue from there whenever you want.'
+    }
+    return 'I’m good. I’m here with you. Want to keep chatting, or should I pick up the workspace from where we left off?'
+  }
+
+  if (/\b(hi|hello|hey|yo|sup|good morning|good afternoon|good evening)\b/.test(rawText)) {
+    return latestRun?.interrupted
+      ? 'Hi. I recovered the last session successfully. Want me to continue where we left off?'
+      : 'Hi. I’m here and ready. Want to talk something through or jump into the next task?'
+  }
+
+  return 'I’m here and ready. We can talk through the workspace, review what happened last, or line up the next move together.'
+}
+
+function buildVerifiedRunSentence(latestRun?: ConversationRunReference | null, rawText = ''): string {
   if (!latestRun?.runId) {
-    return "I don't have proof yet because no verified run exists. If you want, I can inspect the code directly in the workspace or line up a plan without pretending a run already happened."
+    if (/\b(why|what happened|what broke|what failed)\b/.test(rawText)) {
+      return 'I haven’t run anything here yet, so I can’t tell you what broke from a real run. I can inspect the workspace now and tell you the safest next step.'
+    }
+    return 'I haven’t run anything here yet, but I can inspect the workspace now and tell you what looks safest before we change anything.'
   }
   if (latestRun.interrupted) {
-    return 'The latest run was interrupted before it finished cleanly. I can inspect it or help you resume from there.'
+    return 'The last run was interrupted before it finished cleanly. I can walk you through what happened or help you resume from there.'
   }
   if (typeof latestRun.latestExitCode === 'number') {
     return latestRun.latestExitCode === 0
-      ? 'The last verified run finished cleanly. I can show you the proof trail or rerun it on the trusted path if you want.'
-      : 'The last verified run failed. I can inspect the failure first and then line up the safest next fix.'
+      ? 'The last run finished cleanly. If you want, I can show the details or help you move on to the next step.'
+      : 'The last run failed. I can inspect what happened first and then line up the safest fix.'
   }
-  return 'The latest run is still proof-pending. I can inspect the current state before we say anything stronger.'
+  return 'The last run is still settling. I can inspect the current state before we say anything stronger.'
 }
 
 function buildHelpReply(args: { workspaceLabel?: string; canDeploy: boolean }): string {

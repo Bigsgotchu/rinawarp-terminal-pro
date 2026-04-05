@@ -80,7 +80,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
       : workspaceState.status === 'weak'
         ? 'This folder may not be the project root yet.'
         : restoredRuns.length > 0
-          ? 'We recovered your last work.'
+          ? 'Recovered your last session.'
           : lastRun && isRunSuccessWithProof(lastRun)
             ? 'Ready when you are. I know the workspace, and the last verified run ended cleanly.'
             : lastRun
@@ -92,7 +92,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
       : workspaceState.status === 'weak'
         ? workspaceState.reason
         : restoredRuns.length > 0
-          ? 'Your project is safe and ready to continue. Nothing was lost.'
+          ? 'Everything looks safe to continue. Want to pick up where you left off?'
           : lastRun
             ? `I can build, test, deploy, or inspect what just happened in ${workspaceState.displayValue}. No drama, just proof when it counts.`
             : `Build, test, fix, or ship in ${workspaceState.displayValue}.`

@@ -121,8 +121,8 @@ test('agent empty state surfaces recovery summary when interrupted work is resto
     await agentTopbarTab(page).click()
 
     const recovery = page.locator('#agent-recovery')
-    await expect(recovery).toContainText(/Resume your last fix/i, { timeout: 20_000 })
-    await expect(recovery).toContainText(/Your project is safe and ready to continue/i, { timeout: 20_000 })
+    await expect(recovery).toContainText(/Recovered your last session/i, { timeout: 20_000 })
+    await expect(recovery).toContainText(/Everything looks safe to continue/i, { timeout: 20_000 })
     await expect(recovery.getByRole('button', { name: /Resume fix/i })).toBeVisible()
     await expect(page.locator('.rw-agent-welcome-card')).toBeHidden()
     await expect(page.locator('.rw-agent-composer')).toBeHidden()
