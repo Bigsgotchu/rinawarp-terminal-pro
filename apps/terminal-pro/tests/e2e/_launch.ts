@@ -17,6 +17,7 @@ function buildLaunchEnv(extraEnv?: Record<string, string>): NodeJS.ProcessEnv {
     ...process.env,
     RINAWARP_ENV: 'dev',
     RINAWARP_E2E: '1',
+    E2E_TEST: 'true',
     ELECTRON_ENABLE_LOGGING: '1',
     ELECTRON_ENABLE_STACK_DUMPING: '1',
     ...extraEnv,
