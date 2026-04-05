@@ -42,7 +42,11 @@ jobs:
           CI: "1"
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
-        run: npm run test:e2e:harness
+        run: |
+          pwd
+          ls tests/e2e/harness-window-ready.spec.ts
+          ./node_modules/.bin/playwright test tests/e2e/harness-window-ready.spec.ts -c playwright.config.ts --list
+          npm run test:e2e:harness
 
       - name: E2E Fix Project
         working-directory: apps/terminal-pro
@@ -80,4 +84,8 @@ jobs:
           CI: "1"
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
-        run: npm run test:e2e:telemetry
+        run: |
+          pwd
+          ls tests/e2e/telemetry.test.ts
+          ./node_modules/.bin/playwright test tests/e2e/telemetry.test.ts -c playwright.config.ts --list
+          npm run test:e2e:telemetry
