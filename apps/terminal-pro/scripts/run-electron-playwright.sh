@@ -15,7 +15,7 @@ for arg in "$@"; do
   normalized_arg="${normalized_arg#apps/terminal-pro/tests/e2e/}"
   normalized_arg="${normalized_arg#tests/e2e/}"
   normalized_arg="${normalized_arg#e2e/}"
-  normalized_arg="tests/e2e/${normalized_arg}"
+  normalized_arg="$(basename "$normalized_arg")"
   normalized_args+=("$normalized_arg")
 
   case "$arg" in
