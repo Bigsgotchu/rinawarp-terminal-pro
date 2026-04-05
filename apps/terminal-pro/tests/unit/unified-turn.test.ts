@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import { assertAgentTransition } from '../../src/main/orchestration/agentStateMachine.js'
+import {
+  buildConstraintSentence,
+  composeRinaReply,
+  naturalizeReply,
+  selectInteractionMode,
+} from '../../src/main/orchestration/personalityAdapter.js'
 import { handleUnifiedConversationTurn } from '../../src/main/orchestration/unifiedTurn.js'
 import { createBuildPlanHelpers } from '../../src/main/planning/buildPlan.js'
 
@@ -136,7 +142,7 @@ describe('unified conversation turn', () => {
       memoryStore,
     })
 
-    expect(result.turn.assistantReply).toMatch(/Got it\. I’ll take care of that|Got it\. I'll take care of that/)
+    expect(result.turn.assistantReply).toMatch(/Got it\. I’m on it\.|Got it\. I'm on it\./)
     expect(result.turn.assistantReply).toMatch(/avoid touching tests/i)
   })
 })
@@ -156,6 +162,59 @@ describe('build plan helpers', () => {
     expect(plan.steps[0]?.input?.command).toBeTruthy()
     expect(plan.steps[0]?.risk_level).toBeTruthy()
     expect(typeof plan.steps[0]?.requires_confirmation).toBe('boolean')
+  })
+})
+
+describe('elite personality runtime', () => {
+  it('selects social mode for casual check-ins', () => {
+    expect(
+      selectInteractionMode({
+        message: 'how are you',
+        recoveredSession: true,
+        requiresAction: false,
+      })
+    ).toBe('social')
+  })
+
+  it('matches the small talk after recovery snapshot', () => {
+    const reply = composeRinaReply({
+      userMessage: 'how are you',
+      requiresAction: false,
+      recoveredSession: true,
+      lastTaskStatus: 'failed',
+      rememberedPreferences: [],
+      rememberedConstraints: [],
+      hasActiveTask: false,
+    })
+
+    expect(reply).toBe('I’m good. I recovered your last session cleanly. Want to continue where we left off?')
+  })
+
+  it('matches the remembered constraint snapshot', () => {
+    const reply = composeRinaReply({
+      userMessage: 'fix it',
+      systemReply: 'Got it. I’m on it.',
+      requiresAction: true,
+      recoveredSession: false,
+      rememberedPreferences: ['pnpm'],
+      rememberedConstraints: ['test_approval'],
+      hasActiveTask: true,
+    })
+
+    expect(reply).toBe('Got it. I’m on it. I’ll use pnpm, and avoid touching tests without asking.')
+  })
+
+  it('naturalizes robotic phrasing', () => {
+    expect(naturalizeReply('I do not have proof yet. Receipt unavailable.')).toBe('I haven’t checked that yet. result unavailable.')
+  })
+
+  it('builds one natural constraint sentence', () => {
+    expect(
+      buildConstraintSentence({
+        rememberedPreferences: ['pnpm', 'concise'],
+        rememberedConstraints: ['test_approval'],
+      })
+    ).toBe('I’ll use pnpm, keep this short, and avoid touching tests without asking.')
   })
 })
 

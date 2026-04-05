@@ -1,7 +1,7 @@
 import { buildConversationReply, routeConversationTurn } from './conversationRouter.js'
 import { assertAgentTransition } from './agentStateMachine.js'
 import { createRuleBasedMemoryExtractor } from './memoryExtractor.js'
-import { classifyInteraction, createRinaPersonalityAdapter, mapOutcomeToTaskStatus } from './personalityAdapter.js'
+import { composeRinaReplyFromMemory, mapOutcomeToTaskStatus } from './personalityAdapter.js'
 import { createInMemoryTaskController } from './taskController.js'
 import type {
   AgentState,
@@ -107,7 +107,6 @@ type UnifiedTurnDeps = {
 
 const memoryExtractor = createRuleBasedMemoryExtractor()
 const taskController = createInMemoryTaskController()
-const personalityAdapter = createRinaPersonalityAdapter()
 
 function retrieveRelevantMemories(rawText: string, memoryStore: MemoryStoreLike, workspaceId?: string, sessionId?: string) {
   return memoryStore.retrieveRelevantMemory
@@ -243,19 +242,16 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
   }))
   moveState('responding')
 
-  const interaction = classifyInteraction(rawText)
-  let assistantReply = personalityAdapter.generate({
+  let assistantReply = composeRinaReplyFromMemory({
     userMessage: rawText,
     systemReply: conversationReply.message,
-    context: {
-      interaction,
-      hasActiveTask: Boolean(routedTurn.requiresAction),
-      lastTaskStatus: mapOutcomeToTaskStatus(routedTurn.context?.latestOutcome),
-      recoveredSession: Boolean(deps.latestRun?.interrupted),
-      memory: memoryHints,
-      constraints,
-      tonePreference,
-    },
+    requiresAction: Boolean(routedTurn.requiresAction),
+    recoveredSession: Boolean(deps.latestRun?.interrupted),
+    lastTaskStatus: mapOutcomeToTaskStatus(routedTurn.context?.latestOutcome),
+    memory: memoryHints,
+    constraints,
+    hasActiveTask: Boolean(routedTurn.requiresAction),
+    tonePreference,
   }).trim()
   let planPreview: ConversationPlanPreview | undefined
   let permissionRequest: { required: boolean; reason: string; actions: string[] } | undefined
@@ -288,33 +284,29 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
         reason: permissionRequest.reason,
         actions: permissionRequest.actions,
       }))
-      assistantReply = personalityAdapter.generate({
+      assistantReply = composeRinaReplyFromMemory({
         userMessage: rawText,
         systemReply: conversationReply.message,
-        context: {
-          interaction,
-          hasActiveTask: false,
-          lastTaskStatus: mapOutcomeToTaskStatus(routedTurn.context?.latestOutcome),
-          recoveredSession: Boolean(deps.latestRun?.interrupted),
-          memory: memoryHints,
-          constraints,
-          tonePreference,
-        },
+        requiresAction: Boolean(routedTurn.requiresAction),
+        recoveredSession: Boolean(deps.latestRun?.interrupted),
+        lastTaskStatus: mapOutcomeToTaskStatus(routedTurn.context?.latestOutcome),
+        memory: memoryHints,
+        constraints,
+        hasActiveTask: false,
+        tonePreference,
       }).trim()
     } else {
       moveState('executing', task.id)
-      assistantReply = personalityAdapter.generate({
+      assistantReply = composeRinaReplyFromMemory({
         userMessage: rawText,
         systemReply: conversationReply.message,
-        context: {
-          interaction,
-          hasActiveTask: true,
-          lastTaskStatus: 'running',
-          recoveredSession: Boolean(deps.latestRun?.interrupted),
-          memory: memoryHints,
-          constraints,
-          tonePreference,
-        },
+        requiresAction: Boolean(routedTurn.requiresAction),
+        recoveredSession: Boolean(deps.latestRun?.interrupted),
+        lastTaskStatus: 'running',
+        memory: memoryHints,
+        constraints,
+        hasActiveTask: true,
+        tonePreference,
       }).trim()
     }
   } else {
