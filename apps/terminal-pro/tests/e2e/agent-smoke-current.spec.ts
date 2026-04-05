@@ -1,14 +1,35 @@
 import { expect, test } from '@playwright/test'
 import { withApp } from './_app'
 
+async function ensureProjectContext(page: import('@playwright/test').Page): Promise<void> {
+  const demoButton = page.getByRole('button', { name: 'Try Demo Project' }).first()
+  if (await demoButton.isVisible().catch(() => false)) {
+    await demoButton.click()
+    await expect(page.getByRole('button', { name: 'Fix Project' }).first()).toBeVisible({ timeout: 30_000 })
+  }
+}
+
+async function triggerBuildIntent(page: import('@playwright/test').Page): Promise<void> {
+  const buildButton = page.getByRole('button', { name: 'Build this project' }).first()
+  if (await buildButton.isVisible().catch(() => false)) {
+    await buildButton.click()
+    return
+  }
+  const input = page.locator('#agent-input')
+  await expect(input).toBeVisible()
+  await input.fill('Build this project and tell me what fails.')
+  await page.locator('#agent-send').click()
+}
+
 test('agent smoke: prompt chip adds new thread activity', async () => {
   await withApp(async ({ page }) => {
     const thread = page.locator('#agent-output')
     await expect(thread).toBeVisible()
+    await ensureProjectContext(page)
 
     const beforeCount = await thread.locator('.rw-thread-message').count()
 
-    await page.getByRole('button', { name: 'Build this project' }).click()
+    await triggerBuildIntent(page)
 
     await expect
       .poll(async () => {
@@ -38,7 +59,7 @@ test('agent smoke: help prompt is handled by Rina instead of shelling plain Engl
       return nodes.slice(previous as number).map((node) => node.textContent?.trim() || '')
     }, beforeCount)
 
-    expect(newMessages.join('\n')).toContain('Available commands:')
+    expect(newMessages.join('\n')).toMatch(/I can help with project work|I can help build and test now|choose the safest next step/i)
     expect(newMessages.join('\n')).not.toContain('Command failed: What can you do?')
   })
 })
@@ -46,12 +67,13 @@ test('agent smoke: help prompt is handled by Rina instead of shelling plain Engl
 test('agent smoke: build prompt executes a real project command', async () => {
   await withApp(async ({ page }) => {
     const thread = page.locator('#agent-output')
+    await ensureProjectContext(page)
     const beforeCount = await thread.locator('.rw-thread-message').count()
     const beforeRunIds = new Set(
       await thread.locator('.rw-inline-runblock').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-run-id') || ''))
     )
 
-    await page.getByRole('button', { name: 'Build this project' }).click()
+    await triggerBuildIntent(page)
 
     await expect
       .poll(async () => {

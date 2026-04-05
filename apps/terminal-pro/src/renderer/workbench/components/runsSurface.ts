@@ -94,8 +94,6 @@ export function renderRunBlock(model: RunsRunModel): HTMLElement {
     class: ['rw-run-block', 'rw-run-block', model.status === 'running' ? 'is-running' : ''].filter(Boolean).join(' '),
     dataset: { sessionId: model.sessionId, runId: model.id },
   })
-  article.style.borderRadius = '0'
-  article.style.boxShadow = 'none'
   article.appendChild(
     el(
       'div',

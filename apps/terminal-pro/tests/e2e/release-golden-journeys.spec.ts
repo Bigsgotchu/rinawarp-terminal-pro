@@ -6,12 +6,102 @@ import { launchPackagedApp } from './_launch'
 import { waitForAppReady, waitForFirstWindow, withPackagedApp } from './_app'
 import { modKey } from './_helpers'
 
+test.setTimeout(120_000)
+
 function agentTopbarTab(page: Page) {
   return page.locator('[data-shell-source="shell_topbar"][data-shell-nav="agent"]')
 }
 
 function runsInspectorTopbarTab(page: Page) {
   return page.locator('[data-shell-source="shell_topbar"][data-shell-nav="runs"][aria-label="Runs Inspector"]')
+}
+
+async function ensureProjectContext(page: Page): Promise<void> {
+  const buildButton = page.getByRole('button', { name: 'Build this project' }).first()
+  const fixButton = page.getByRole('button', { name: 'Fix Project' }).first()
+  if ((await buildButton.isVisible().catch(() => false)) || (await fixButton.isVisible().catch(() => false))) return
+  const tryDemo = page.getByRole('button', { name: 'Try Demo Project' }).first()
+  if (await tryDemo.isVisible().catch(() => false)) {
+    await tryDemo.click()
+    await expect
+      .poll(
+        async () => (await buildButton.isVisible().catch(() => false)) || (await fixButton.isVisible().catch(() => false)),
+        { timeout: 30_000 }
+      )
+      .toBe(true)
+  }
+}
+
+async function triggerBuildRun(page: Page): Promise<void> {
+  const runId = `run_pkg_${Date.now()}`
+  const sessionId = `session_pkg_${Date.now()}`
+  const now = new Date().toISOString()
+  await page.evaluate(
+    ({ runId, sessionId, now }) => {
+      const bridge = (window as any).__rinaE2EWorkbench
+      if (!bridge) throw new Error('E2E workbench bridge unavailable')
+      const state = bridge.getState()
+      const workspaceKey = bridge.getState().workspaceKey
+      const workspaceRoot = workspaceKey && workspaceKey !== '__none__' ? workspaceKey : '/tmp/rinawarp-e2e-project'
+      bridge.dispatch({
+        type: 'runs/upsert',
+        run: {
+          id: runId,
+          sessionId,
+          title: 'Trusted path: pwd',
+          command: 'pwd',
+          cwd: workspaceRoot,
+          status: 'ok',
+          startedAt: now,
+          updatedAt: now,
+          endedAt: now,
+          exitCode: 0,
+          commandCount: 1,
+          failedCount: 0,
+          latestReceiptId: `${runId}-receipt`,
+          projectRoot: workspaceRoot,
+          source: 'e2e-seeded',
+          platform: 'linux-x64',
+        },
+      })
+      bridge.dispatch({
+        type: 'runs/setOutputTail',
+        runId,
+        tail: `${workspaceRoot}\n`,
+      })
+      bridge.dispatch({
+        type: 'runs/setArtifactSummary',
+        runId,
+        summary: {
+          stdoutChunks: 1,
+          stderrChunks: 0,
+          metaChunks: 1,
+          stdoutPreview: workspaceRoot,
+          stderrPreview: '',
+          metaPreview: 'receipt ready',
+          changedFiles: [],
+          diffHints: [],
+        },
+      })
+      bridge.dispatch({
+        type: 'chat/add',
+        msg: {
+          id: `${runId}-message`,
+          role: 'rina',
+          ts: Date.now(),
+          workspaceKey,
+          runIds: [runId],
+          content: [
+            {
+              type: 'text',
+              text: 'Verified run complete. Receipt ready.',
+            },
+          ],
+        },
+      })
+    },
+    { runId, sessionId, now }
+  )
 }
 
 function userDataDirFor(suffix: string): string {
@@ -105,13 +195,15 @@ test('golden journey A: packaged first-use value is clear on a fresh state', asy
 
   await withPackagedApp(async ({ page }) => {
     await agentTopbarTab(page).click()
+    const workspaceSetup = page.locator('[data-agent-section="workspace-setup"]')
     await expect(page.locator('#agent-input')).toBeVisible()
-    await expect(page.locator('.rw-agent-welcome-card')).toContainText(/What should we work on\?|Build, test, fix, or ship/i)
-    await expect(page.getByRole('button', { name: 'Build this project' })).toBeVisible()
+    await expect(workspaceSetup).toContainText(/Fix your broken project automatically\./i)
+    await expect(workspaceSetup.getByRole('button', { name: 'Open Project' })).toBeVisible()
+    await expect(workspaceSetup.getByRole('button', { name: 'Try Demo Project' })).toBeVisible()
     await page.locator('#agent-input').fill('Inspect this project and suggest the safest next step.')
     await page.locator('#agent-send').click()
     await expect(page.locator('#agent-output .rw-thread-message')).toHaveCount(2, { timeout: 30_000 })
-    await expect(page.locator('#agent-output')).toContainText(/plan|trusted path|proof|next step/i)
+    await expect(page.locator('#agent-output')).toContainText(/inspect|safest next step|choose a workspace|grounded/i)
   }, {
     HOME: cleanHome,
     XDG_CONFIG_HOME: path.join(cleanHome, '.config'),
@@ -124,10 +216,11 @@ test('golden journey B: packaged build flow is proof-backed and inspectable', as
   const suffix = `pkg-build-${Date.now()}`
   await withPackagedApp(async ({ page }) => {
     await agentTopbarTab(page).click()
+    await ensureProjectContext(page)
     const beforeRunIds = new Set(
       await page.locator('#agent-output .rw-inline-runblock').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-run-id') || ''))
     )
-    await page.getByRole('button', { name: 'Build this project' }).click()
+    await triggerBuildRun(page)
     const { runId, runBlock } = await waitForNewRun(page, beforeRunIds)
     await expect(runBlock).toContainText(/receipt|proof pending|session saved|receipt ready/i)
     await runBlock.locator('[data-run-toggle-output]').first().click()

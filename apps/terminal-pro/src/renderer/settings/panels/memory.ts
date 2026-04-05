@@ -91,6 +91,8 @@ function parseConventions(value: string): Array<{ key: string; value: string }> 
     .filter(Boolean) as Array<{ key: string; value: string }>
 }
 
+const LOCAL_WORKSPACE_MEMORY_ID = '__local_workspace_defaults__'
+
 export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
   container.innerHTML = renderMemoryPanelShell()
 
@@ -140,11 +142,14 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     return result?.ok && result.path ? result.path : ''
   }
 
+  const getEffectiveWorkspaceId = (): string => currentWorkspaceId || LOCAL_WORKSPACE_MEMORY_ID
+
   const render = async () => {
     currentWorkspaceId = await loadWorkspaceId()
     currentState = await rina.memoryGetState!()
     const profile = currentState.memory.profile || {}
-    const workspaceMemory = currentWorkspaceId ? currentState.memory.workspaces[currentWorkspaceId] : undefined
+    const effectiveWorkspaceId = getEffectiveWorkspaceId()
+    const workspaceMemory = currentState.memory.workspaces[effectiveWorkspaceId]
     ownerMeta.innerHTML = `
       <div>
         <div class="rw-label">Owner identity</div>
@@ -157,9 +162,11 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     humorSelect.value = profile.humorPreference || 'medium'
     likesInput.value = linesFromStrings(profile.likes)
     dislikesInput.value = linesFromStrings(profile.dislikes)
-    workspacePath.textContent = currentWorkspaceId || 'No workspace resolved'
-    workspaceStatus.textContent = currentWorkspaceId ? 'Workspace scoped' : 'No workspace'
-    workspaceSummary.innerHTML = currentWorkspaceId ? renderWorkspaceSummary(currentWorkspaceId, workspaceMemory) : `<div class="rw-muted">Open a workspace to attach workspace memory.</div>`
+    workspacePath.textContent = currentWorkspaceId || 'Local workspace defaults'
+    workspaceStatus.textContent = currentWorkspaceId ? 'Workspace scoped' : 'Local defaults'
+    workspaceSummary.innerHTML = currentWorkspaceId
+      ? renderWorkspaceSummary(currentWorkspaceId, workspaceMemory)
+      : renderWorkspaceSummary('Local workspace defaults', workspaceMemory)
     responseStyleInput.value = linesFromStrings(workspaceMemory?.preferredResponseStyle)
     proofStyleInput.value = linesFromStrings(workspaceMemory?.preferredProofStyle)
     conventionsInput.value = linesFromConventions(workspaceMemory?.conventions)
@@ -242,12 +249,9 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
   })
 
   saveWorkspaceButton.addEventListener('click', async () => {
-    if (!currentWorkspaceId) {
-      setFeedback('No workspace is resolved yet.')
-      return
-    }
-    await rina.memoryUpdateWorkspace?.(currentWorkspaceId, {
-      label: currentWorkspaceId.split('/').pop() || currentWorkspaceId,
+    const workspaceId = getEffectiveWorkspaceId()
+    await rina.memoryUpdateWorkspace?.(workspaceId, {
+      label: currentWorkspaceId ? currentWorkspaceId.split('/').pop() || currentWorkspaceId : 'Local workspace defaults',
       preferredResponseStyle: splitLines(responseStyleInput.value),
       preferredProofStyle: splitLines(proofStyleInput.value),
       conventions: parseConventions(conventionsInput.value),
@@ -257,11 +261,7 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
   })
 
   resetWorkspaceButton.addEventListener('click', async () => {
-    if (!currentWorkspaceId) {
-      setFeedback('No workspace is resolved yet.')
-      return
-    }
-    await rina.memoryResetWorkspace?.(currentWorkspaceId)
+    await rina.memoryResetWorkspace?.(getEffectiveWorkspaceId())
     setFeedback('Workspace memory reset.')
     await render()
   })

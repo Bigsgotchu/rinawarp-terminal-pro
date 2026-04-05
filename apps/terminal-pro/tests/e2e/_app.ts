@@ -121,6 +121,20 @@ export async function withPackagedApp<T>(
 ): Promise<T> {
   const app = await launchPackagedApp(extraEnv)
   try {
+    const electronProcess = typeof (app as any).process === 'function' ? (app as any).process() : null
+    console.log(`[E2E packaged boot] electron child process bridge ${electronProcess ? 'available' : 'missing'}`)
+    if (electronProcess?.stdout) {
+      electronProcess.stdout.on('data', (chunk: Buffer | string) => {
+        const text = String(chunk).trim()
+        if (text) console.log(`[Packaged Main stdout] ${text}`)
+      })
+    }
+    if (electronProcess?.stderr) {
+      electronProcess.stderr.on('data', (chunk: Buffer | string) => {
+        const text = String(chunk).trim()
+        if (text) console.error(`[Packaged Main stderr] ${text}`)
+      })
+    }
     const page = await waitForFirstWindow(app, 90_000)
     page.on('requestfailed', (request) => {
       console.log(`[Packaged Request Failed] ${request.url()} - ${request.failure()?.errorText}`)
