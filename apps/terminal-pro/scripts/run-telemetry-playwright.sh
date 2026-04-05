@@ -31,7 +31,13 @@ if ! curl -fsS "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
 fi
 
 if [[ "$#" -gt 0 ]]; then
-  RINAWARP_TELEMETRY_WS_URL="${WS_URL}" bash scripts/run-electron-playwright.sh "$@"
+  target_args=("$@")
 else
-  RINAWARP_TELEMETRY_WS_URL="${WS_URL}" bash scripts/run-electron-playwright.sh tests/e2e/telemetry.test.ts
+  target_args=("tests/e2e/telemetry.test.ts")
 fi
+
+env -u ELECTRON_RUN_AS_NODE \
+  CI="${CI:-1}" \
+  ELECTRON_DISABLE_SANDBOX="${ELECTRON_DISABLE_SANDBOX:-1}" \
+  RINAWARP_TELEMETRY_WS_URL="${WS_URL}" \
+  xvfb-run -a npx playwright test "${target_args[@]}" -c tests/playwright.config.ts --reporter=line
