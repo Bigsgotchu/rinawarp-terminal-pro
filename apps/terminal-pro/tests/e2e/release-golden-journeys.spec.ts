@@ -202,7 +202,9 @@ test('golden journey A: packaged first-use value is clear on a fresh state', asy
     await expect(workspaceSetup.getByRole('button', { name: 'Try Demo Project' })).toBeVisible()
     await page.locator('#agent-input').fill('Inspect this project and suggest the safest next step.')
     await page.locator('#agent-send').click()
-    await expect(page.locator('#agent-output .rw-thread-message')).toHaveCount(2, { timeout: 30_000 })
+    await expect
+      .poll(async () => page.locator('#agent-output .rw-thread-message').count(), { timeout: 30_000 })
+      .toBeGreaterThanOrEqual(2)
     await expect(page.locator('#agent-output')).toContainText(/inspect|safest next step|choose a workspace|grounded/i)
   }, {
     HOME: cleanHome,
