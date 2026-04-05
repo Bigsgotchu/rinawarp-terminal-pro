@@ -37,6 +37,7 @@
     "test:e2e:proof": "bash scripts/run-electron-playwright.sh e2e/agent-runproof.spec.ts",
     "test:e2e:harness": "npm run build:electron && bash scripts/run-electron-playwright.sh e2e/harness-window-ready.spec.ts",
     "test:e2e:fix-project": "npm run build:electron && bash scripts/run-electron-playwright.sh e2e/fix-project.spec.ts",
+    "test:e2e:telemetry": "npm run build:electron && bash scripts/run-telemetry-playwright.sh",
     "test:e2e:conversation": "bash scripts/run-electron-playwright.sh e2e/rina-conversation-resilience.spec.ts",
     "test:e2e:first-run": "bash scripts/run-electron-playwright.sh e2e/agent-empty-state.spec.ts e2e/ipc-contracts.spec.ts",
     "test:e2e:packaged-first-run": "npm run build:packaged-linux && bash scripts/run-electron-playwright.sh e2e/packaged-first-run.spec.ts",
