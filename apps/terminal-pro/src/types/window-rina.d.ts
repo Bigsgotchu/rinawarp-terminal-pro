@@ -185,7 +185,7 @@ declare global {
           description: string
           category: 'system' | 'deploy' | 'device' | 'security' | 'workspace'
           source: 'builtin' | 'marketplace' | 'installed'
-          tier: 'starter' | 'pro' | 'paid'
+          tier: 'free' | 'pro' | 'paid'
           installState: 'builtin' | 'available' | 'installed' | 'upgrade-required'
           permissions: Array<'read-only' | 'workspace-write' | 'network' | 'cloud' | 'device'>
           actions: Array<{

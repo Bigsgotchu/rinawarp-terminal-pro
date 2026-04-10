@@ -191,8 +191,8 @@ export function registerSecureAgentIpc(ipcMain: IpcMain, deps?: { getLicenseTier
         const marketplace = await fetchMarketplaceAgents()
         const fallbackAgent = marketplace.agents?.find((agent) => agent.name === options.name)
         if (fallbackAgent) {
-          const currentTier = String(deps?.getLicenseTier?.() || 'starter').toLowerCase()
-          const premiumUnlocked = currentTier !== 'starter'
+          const currentTier = String(deps?.getLicenseTier?.() || 'free').toLowerCase()
+          const premiumUnlocked = currentTier !== 'free' && currentTier !== 'starter'
           if (fallbackAgent.price && fallbackAgent.price > 0 && !premiumUnlocked) {
             return {
               ok: false,

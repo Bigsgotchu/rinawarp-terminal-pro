@@ -14,7 +14,7 @@ export function createAgentdClient(deps) {
       getSnapshot() {
         const licenseToken = getLicenseToken()
         return {
-          tier: 'starter',
+          tier: 'free',
           hasToken: Boolean(licenseToken),
           licenseToken,
           expiresAt: null,

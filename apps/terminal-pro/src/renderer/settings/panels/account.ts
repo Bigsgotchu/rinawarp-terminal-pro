@@ -107,7 +107,7 @@ function escapeAttr(value: string): string {
 function notifyLicenseUpdated(tier: string | null | undefined): void {
   window.dispatchEvent(
     new CustomEvent('rina:license-updated', {
-      detail: { tier: String(tier || 'starter').toLowerCase() },
+      detail: { tier: String(tier || 'free').toLowerCase() },
     })
   )
 }

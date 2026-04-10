@@ -87,7 +87,7 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     runArtifactSummaryByRunId: {},
     workspaceKey:
       activeWorkspaceKey !== '__none__' ? activeWorkspaceKey : typeof snapshot?.workspaceKey === 'string' ? snapshot.workspaceKey : activeWorkspaceKey,
-    license: { tier: 'starter', lastCheckedAt: null },
+    license: { tier: 'free', lastCheckedAt: null },
     chat: [],
     executionTrace: { blocks: [] },
     fixBlocks: [],

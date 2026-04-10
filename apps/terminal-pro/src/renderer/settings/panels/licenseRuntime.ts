@@ -23,6 +23,20 @@ export type RestoreHandlerOpts = {
 
 type RestoreMethod = 'email_lookup' | 'customer_id'
 
+function normalizeLicenseTierForUi(value: unknown): string {
+  const tier = String(value || 'free').trim().toLowerCase()
+  if (tier === 'starter' || tier === 'fix') return 'free'
+  if (tier === 'creator') return 'pro'
+  if (tier === 'power') return 'team'
+  if (tier === 'founder' || tier === 'pioneer') return 'enterprise'
+  return tier || 'free'
+}
+
+function hasPaidTier(value: unknown): boolean {
+  const tier = normalizeLicenseTierForUi(value)
+  return tier === 'pro' || tier === 'team' || tier === 'enterprise'
+}
+
 export function trackLicenseAnalytics(event: string, properties?: Record<string, unknown>): void {
   try {
     const funnelSteps = ['signup', 'first_run', 'first_block', 'upgrade_view', 'paid']
@@ -42,13 +56,13 @@ export async function fetchLicenseState(): Promise<LicenseState> {
   try {
     const state = await (window as any).rina.licenseState()
     return {
-      tier: state.tier || 'starter',
+      tier: normalizeLicenseTierForUi(state.tier),
       status: state.status || 'unknown',
       expires_at: state.expires_at || null,
       has_token: state.has_token || false,
     }
   } catch {
-    return { tier: 'starter', status: 'unknown', expires_at: null, has_token: false }
+    return { tier: 'free', status: 'unknown', expires_at: null, has_token: false }
   }
 }
 
@@ -115,7 +129,7 @@ export async function verifyAndApplyLicense(
 
   window.dispatchEvent(
     new CustomEvent('rina:license-updated', {
-      detail: { tier: String(verifyResult.tier || verifyResult.effective_tier || 'starter').toLowerCase() },
+      detail: { tier: normalizeLicenseTierForUi(verifyResult.tier || verifyResult.effective_tier || 'free') },
     })
   )
 
@@ -281,8 +295,7 @@ export async function refreshLicenseStateWithRetry(): Promise<boolean> {
 
   while (Date.now() < deadline) {
     const state = refresh ? await refresh() : await readState()
-    const tier = String(state?.tier || 'starter').toLowerCase()
-    if (tier !== 'starter') return true
+    if (hasPaidTier(state?.tier)) return true
     await new Promise((resolve) => setTimeout(resolve, 3000))
   }
 
@@ -359,7 +372,7 @@ export function attachUpgradeHandler(container: HTMLElement, remount: (container
         const currentState = ((window as any).rina.licenseState ? await (window as any).rina.licenseState() : null) || null
         window.dispatchEvent(
           new CustomEvent('rina:license-updated', {
-            detail: { tier: String(currentState?.tier || 'starter').toLowerCase() },
+            detail: { tier: normalizeLicenseTierForUi(currentState?.tier || 'free') },
           })
         )
         await remount(container)

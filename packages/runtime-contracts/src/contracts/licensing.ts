@@ -1,4 +1,5 @@
 export type LicenseTier =
+  | "free"
   | "starter"
   | "creator"
   | "pro"
@@ -11,6 +12,7 @@ export type LicenseStatus =
   | "active"
   | "expired"
   | "invalid"
+  | "free"
   | "starter"
   | "unknown";
 

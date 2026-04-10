@@ -1,7 +1,7 @@
 // @ts-nocheck
 export function createLicenseState(deps) {
     const { app, fs, verifyLicense, writeJsonFile, readJsonIfExists, entitlementFile } = deps;
-    let currentLicenseTier = 'starter';
+    let currentLicenseTier = 'free';
     let currentLicenseToken = null;
     let currentLicenseExpiresAt = null;
     let currentLicenseCustomerId = null;
@@ -9,19 +9,23 @@ export function createLicenseState(deps) {
     const LIFETIME_TIERS = new Set(['founder', 'pioneer']);
     function mapApiTierToLicenseTier(apiTier) {
         const t = apiTier.trim().toLowerCase();
+        if (t === 'free' || t === 'starter' || t === 'fix')
+            return 'free';
         if (t === 'pro')
             return 'pro';
         if (t === 'creator')
-            return 'creator';
+            return 'pro';
+        if (t === 'power')
+            return 'team';
         if (t === 'pioneer')
-            return 'pioneer';
+            return 'enterprise';
         if (t === 'founder')
-            return 'founder';
+            return 'enterprise';
         if (t === 'enterprise')
             return 'enterprise';
         if (t === 'team')
             return 'team';
-        return 'starter';
+        return 'free';
     }
     function applyVerifiedLicense(data) {
         const tier = mapApiTierToLicenseTier(data.tier);
@@ -33,7 +37,7 @@ export function createLicenseState(deps) {
         return tier;
     }
     function resetLicenseToStarter() {
-        currentLicenseTier = 'starter';
+        currentLicenseTier = 'free';
         currentLicenseToken = null;
         currentLicenseExpiresAt = null;
         currentLicenseCustomerId = null;

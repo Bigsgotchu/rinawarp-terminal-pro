@@ -1,7 +1,7 @@
 import type { WorkbenchState } from '../store.js'
 
 export function buildMarketplacePanelModel(state: WorkbenchState) {
-  const isStarter = state.license.tier === 'starter'
+  const isStarter = state.license.tier === 'starter' || state.license.tier === 'free'
   const capabilityMap = new Map(state.capabilities.packs.map((pack) => [pack.key, pack]))
   const installedCount = state.marketplace.agents.filter((agent) => state.marketplace.installed.includes(agent.name)).length
   const lockedCount = state.marketplace.agents.filter((agent) => Number(agent.price || 0) > 0 && isStarter && !state.marketplace.installed.includes(agent.name)).length

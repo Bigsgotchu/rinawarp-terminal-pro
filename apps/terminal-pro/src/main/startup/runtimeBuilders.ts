@@ -171,13 +171,15 @@ export function createAgentdRuntime(args: {
 
 function normalizeLicenseTier(value: unknown): LicenseTier {
   const normalized = String(value || "").trim().toLowerCase();
-  if (normalized === "creator") return "creator";
+  if (normalized === "free" || normalized === "starter" || normalized === "fix") return "free";
+  if (normalized === "creator") return "pro";
   if (normalized === "pro") return "pro";
+  if (normalized === "power") return "team";
   if (normalized === "team") return "team";
   if (normalized === "enterprise") return "enterprise";
-  if (normalized === "founder") return "founder";
-  if (normalized === "pioneer") return "pioneer";
-  return "starter";
+  if (normalized === "founder") return "enterprise";
+  if (normalized === "pioneer") return "enterprise";
+  return "free";
 }
 
 function normalizeLicenseStatus(value: unknown): LicenseStatus | undefined {
@@ -185,7 +187,7 @@ function normalizeLicenseStatus(value: unknown): LicenseStatus | undefined {
   if (normalized === "active") return "active";
   if (normalized === "expired") return "expired";
   if (normalized === "invalid") return "invalid";
-  if (normalized === "starter") return "starter";
+  if (normalized === "free" || normalized === "starter") return "free";
   if (normalized === "unknown") return "unknown";
   return undefined;
 }

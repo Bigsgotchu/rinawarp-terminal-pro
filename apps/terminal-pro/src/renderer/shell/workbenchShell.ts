@@ -43,10 +43,10 @@ export function createWorkbenchShell(args: CreateWorkbenchShellArgs) {
   }) as EventListener
 
   const handleLicenseUpdated = ((event: Event) => {
-    const tier = String((event as CustomEvent<{ tier?: string }>).detail?.tier || 'starter').toLowerCase()
+    const tier = String((event as CustomEvent<{ tier?: string }>).detail?.tier || 'free').toLowerCase()
     args.store.dispatch({
       type: 'license/set',
-      tier: (tier as any) || 'starter',
+      tier: (tier as any) || 'free',
       lastCheckedAt: Date.now(),
     })
   }) as EventListener

@@ -51,7 +51,7 @@ export async function finalizeRendererBoot(store: WorkbenchStore): Promise<void>
     const license = await withTimeout(window.rina.licenseState(), 5_000, 'licenseState')
     store.dispatch({
       type: 'license/set',
-      tier: ((license?.tier || 'starter').toLowerCase() as LicenseTier) || 'starter',
+      tier: ((license?.tier || 'free').toLowerCase() as LicenseTier) || 'free',
       lastCheckedAt: Date.now(),
     })
   } catch (error) {

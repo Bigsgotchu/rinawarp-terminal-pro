@@ -1437,7 +1437,7 @@ function renderPricing(): Response {
             <li>Medium-confidence fixes included</li>
             <li>No high-impact changes</li>
           </ul>
-          <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Get started</a>
+          <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Choose installer</a>
         </article>
         <article class="card pricing-card featured">
           <span class="pill">Pro</span>

@@ -108,8 +108,12 @@ async function postJsonWithFallback<T>(args: {
 
 function coerceTier(rawTier: string | undefined): LicenseTier {
   const tier = String(rawTier || 'free').trim().toLowerCase()
+  if (tier === 'free' || tier === 'starter' || tier === 'fix') return 'free'
   if (tier === 'pro') return 'pro'
+  if (tier === 'creator') return 'pro'
+  if (tier === 'power') return 'team'
   if (tier === 'team') return 'team'
+  if (tier === 'founder' || tier === 'pioneer') return 'enterprise'
   if (tier === 'enterprise') return 'enterprise'
   return 'free'
 }

@@ -117,7 +117,8 @@ export function resolvePromptCapability(state: WorkbenchState, prompt: string): 
   if (!match) return null
   const pack = state.capabilities.packs.find((entry) => entry.key === match.key)
   if (!pack) return null
-  if (state.license.tier === 'starter' && pack.tier !== 'starter') {
+  const isFreeTier = state.license.tier === 'free' || state.license.tier === 'starter'
+  if (isFreeTier && pack.tier !== 'starter') {
     return { state: 'locked', pack, reason: match.reason }
   }
   if (pack.installState === 'upgrade-required') {
@@ -146,13 +147,14 @@ export function buildCapabilityDecisionContent(decision: CapabilityDecision): Me
 
 export function resolvePlanCapabilityRequirements(state: WorkbenchState, steps: FixPlanStep[]): PlanCapabilityRequirement[] {
   const requirements = new Map<string, PlanCapabilityRequirement>()
+  const isFreeTier = state.license.tier === 'free' || state.license.tier === 'starter'
   for (const step of steps) {
     const match = matchPlanStepCapability(step)
     if (!match) continue
     const pack = state.capabilities.packs.find((entry) => entry.key === match.key)
     if (!pack) continue
     const nextState: PlanCapabilityRequirement['state'] =
-      state.license.tier === 'starter' && pack.tier !== 'starter'
+      isFreeTier && pack.tier !== 'starter'
         ? 'locked'
         : pack.installState === 'upgrade-required'
           ? 'locked'

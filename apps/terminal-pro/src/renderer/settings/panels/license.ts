@@ -26,7 +26,7 @@ export async function mountLicensePanel(container: HTMLElement): Promise<void> {
   const cachedEmail = String(((window as any).rina.licenseCachedEmail ? await (window as any).rina.licenseCachedEmail() : { email: '' })?.email || '')
     .trim()
     .toLowerCase()
-  const isPro = licenseState.tier !== 'starter'
+  const isPro = licenseState.tier === 'pro' || licenseState.tier === 'team' || licenseState.tier === 'enterprise'
   const expiryText = formatExpiry(licenseState.expires_at)
   const tierText = formatTier(licenseState.tier)
   const statusText = formatStatus(licenseState.status)

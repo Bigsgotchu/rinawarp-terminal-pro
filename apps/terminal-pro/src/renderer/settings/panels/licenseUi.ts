@@ -14,9 +14,15 @@ export function formatExpiry(timestamp: number | null): string {
 
 export function formatTier(tier: string): string {
   const tierNames: Record<string, string> = {
+    free: 'Free',
     pro: 'Pro',
-    starter: 'Starter',
+    starter: 'Free',
+    power: 'Team',
+    team: 'Team',
+    enterprise: 'Enterprise',
+    creator: 'Pro',
     founder: 'Founder',
+    pioneer: 'Enterprise',
     lifetime: 'Lifetime',
   }
   return tierNames[tier.toLowerCase()] || tier

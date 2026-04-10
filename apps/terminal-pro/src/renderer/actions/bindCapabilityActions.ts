@@ -39,7 +39,8 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
       if (!agentName) return true
       resetUserTurnSubmitGuard()
 
-      const premiumLocked = store.getState().license.tier === 'starter'
+      const currentTier = String(store.getState().license.tier || 'free').toLowerCase()
+      const premiumLocked = (currentTier === 'free' || currentTier === 'starter')
         && store.getState().marketplace.agents.find((agent) => agent.name === agentName)?.price
       if (premiumLocked) {
         await fixBlockManager.ensureProAccess()

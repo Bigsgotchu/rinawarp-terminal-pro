@@ -184,7 +184,7 @@ export async function mountTeamPanel(container: HTMLElement): Promise<void> {
   const rina = getRina()
   const { teamState, teamPlan, workspaceId, workspace, invites, audit } = await loadTeamData()
   const tierState = await rina?.licenseState?.().catch(() => null)
-  const tier = String(tierState?.tier || 'starter').trim().toLowerCase()
+  const tier = String(tierState?.tier || 'free').trim().toLowerCase()
   const currentUser = String(teamState?.currentUser || 'owner@local')
   const currentRole = String(teamState?.currentRole || 'owner')
   const members = Array.isArray(teamState?.members) ? teamState.members : []

@@ -13,6 +13,11 @@ export class FixBlockManager {
     this.store = store
   }
 
+  private isPaidTier(value: unknown): boolean {
+    const tier = String(value || 'free').trim().toLowerCase()
+    return tier !== 'free' && tier !== 'starter' && tier !== 'fix'
+  }
+
   recordPlanStepStart(payload: unknown): void {
     const stepPayload = payload as {
       runId?: string
@@ -53,7 +58,7 @@ export class FixBlockManager {
 
   async ensureProAccess(): Promise<boolean> {
     const license = await window.rina.licenseState()
-    if ((license?.tier || 'starter').toLowerCase() !== 'starter') return true
+    if (this.isPaidTier(license?.tier)) return true
     await this.openUpgradeModal()
     return this.refreshProWithRetry()
   }
@@ -197,8 +202,7 @@ export class FixBlockManager {
     const deadline = Date.now() + deadlineMs
     while (Date.now() < deadline) {
       const state = window.rina.licenseRefresh ? await window.rina.licenseRefresh() : await window.rina.licenseState()
-      const tier = (state?.tier || 'starter').toLowerCase()
-      if (tier !== 'starter') return true
+      if (this.isPaidTier(state?.tier)) return true
       await new Promise((resolve) => setTimeout(resolve, 3_000))
     }
     return false

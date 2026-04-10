@@ -20,7 +20,8 @@ function actionClass(role: 'primary' | 'secondary' | 'attention' | 'quiet'): str
 }
 
 export function getStarterPromptViewModels(state: WorkbenchState): StarterPromptViewModel[] {
-  const isStarter = (state.license.tier || 'starter') === 'starter'
+  const currentTier = String(state.license.tier || 'free').toLowerCase()
+  const isStarter = currentTier === 'starter' || currentTier === 'free'
   const meta = (intent: StarterIntentKey): { hint: string; tone: 'available' | 'enhanced' } => {
     if (intent === 'build' || intent === 'test') return { hint: isStarter ? 'Available now' : 'Included', tone: 'available' }
     return { hint: isStarter ? 'Pro adds more' : 'Unlocked', tone: 'enhanced' }
