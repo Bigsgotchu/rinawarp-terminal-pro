@@ -2,13 +2,21 @@ name: Release Desktop
 
 on:
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Optional existing version to package and publish, for example 1.1.14"
+        required: false
+        type: string
 
 jobs:
-  release:
+  prepare:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      channel: ${{ steps.channel.outputs.channel }}
+      release_ref: ${{ steps.release_ref.outputs.ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,33 +40,39 @@ jobs:
 
       - name: Detect release channel
         id: channel
+        shell: bash
         run: echo "channel=$(bash scripts/detect-release-channel.sh)" >> "$GITHUB_OUTPUT"
 
-      - name: Detect version bump
-        id: bump
-        run: echo "type=$(bash scripts/detect-version-bump.sh)" >> "$GITHUB_OUTPUT"
-
-      - name: Apply base version
-        id: base
-        run: |
-          VERSION=$(bash scripts/apply-version-bump.sh "${{ steps.bump.outputs.type }}")
-          echo "base=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Apply pre-release version
+      - name: Resolve release version
         id: version
+        shell: bash
         run: |
-          VERSION=$(bash scripts/apply-pre-release-version.sh "${{ steps.base.outputs.base }}" "${{ steps.channel.outputs.channel }}")
+          if [[ -n "${{ inputs.release_version }}" ]]; then
+            VERSION="${{ inputs.release_version }}"
+            CURRENT_VERSION="$(node -p "require('./apps/terminal-pro/package.json').version")"
+            if [[ "$CURRENT_VERSION" != "$VERSION" ]]; then
+              echo "Requested release version $VERSION does not match apps/terminal-pro/package.json ($CURRENT_VERSION)" >&2
+              exit 1
+            fi
+          else
+            BUMP_TYPE="$(bash scripts/detect-version-bump.sh)"
+            BASE_VERSION="$(bash scripts/apply-version-bump.sh "$BUMP_TYPE")"
+            VERSION="$(bash scripts/apply-pre-release-version.sh "$BASE_VERSION" "${{ steps.channel.outputs.channel }}")"
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v$VERSION" >> "$GITHUB_ENV"
 
       - name: Generate changelog
+        if: ${{ inputs.release_version == '' }}
         run: bash scripts/generate-changelog.sh "${{ steps.version.outputs.version }}"
 
       - name: Extract release notes
+        shell: bash
         run: bash scripts/extract-latest-notes.sh > RELEASE_NOTES.md
 
       - name: Commit release metadata
+        if: ${{ inputs.release_version == '' }}
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -66,16 +80,61 @@ jobs:
           git add package.json apps/terminal-pro/package.json CHANGELOG.md
           git commit -m "release: v${{ steps.version.outputs.version }}"
 
-      - name: Create release tag
-        run: git tag "v${{ steps.version.outputs.version }}"
+      - name: Ensure release tag
+        shell: bash
+        run: |
+          if git rev-parse -q --verify "refs/tags/v${{ steps.version.outputs.version }}" >/dev/null; then
+            echo "Tag already exists"
+          else
+            git tag "v${{ steps.version.outputs.version }}"
+          fi
 
       - name: Push release commit and tag
+        shell: bash
         run: |
           git push origin "HEAD:${GITHUB_REF_NAME}"
           git push origin "v${{ steps.version.outputs.version }}"
 
+      - name: Capture release ref
+        id: release_ref
+        shell: bash
+        run: echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Validate release
         run: bash scripts/validate-release.sh "${{ steps.version.outputs.version }}"
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: |
+            RELEASE_NOTES.md
+            CHANGELOG.md
+
+  package-linux:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_ref }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Electron
         run: npm --workspace apps/terminal-pro run build:electron
@@ -83,8 +142,110 @@ jobs:
       - name: Package Linux
         run: npm --workspace apps/terminal-pro run package:linux
 
+      - name: Upload Linux installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux-installers
+          path: |
+            apps/terminal-pro/dist-electron/installer/*.AppImage
+            apps/terminal-pro/dist-electron/installer/*.deb
+            apps/terminal-pro/dist-electron/installer/SHASUMS256.txt
+            apps/terminal-pro/dist-electron/installer/latest.json
+            apps/terminal-pro/dist-electron/installer/latest.yml
+            apps/terminal-pro/dist-electron/installer/latest-linux.yml
+            apps/terminal-pro/dist-electron/installer/stable/latest.json
+            apps/terminal-pro/dist-electron/installer/stable/latest.yml
+            apps/terminal-pro/dist-electron/installer/stable/latest-linux.yml
+
+  package-windows:
+    needs: prepare
+    runs-on: windows-latest
+    steps:
+      - name: Checkout release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_ref }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Electron
+        shell: bash
+        run: npm --workspace apps/terminal-pro run build:electron
+
       - name: Package Windows
+        shell: bash
         run: npm --workspace apps/terminal-pro run package:win
+
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows-installers
+          path: |
+            apps/terminal-pro/dist-electron/installer/*.exe
+            apps/terminal-pro/dist-electron/installer/*.exe.blockmap
+
+  publish:
+    needs: [prepare, package-linux, package-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_ref }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Download Linux installers
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-linux-installers
+          path: apps/terminal-pro/dist-electron/installer
+
+      - name: Download Windows installers
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-windows-installers
+          path: apps/terminal-pro/dist-electron/installer
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: .
 
       - name: Smoke check artifacts
         run: bash scripts/release-smoke.sh
@@ -97,8 +258,8 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: ${{ steps.channel.outputs.channel }} release v${{ steps.version.outputs.version }}
+          tag_name: v${{ needs.prepare.outputs.version }}
+          name: ${{ needs.prepare.outputs.channel }} release v${{ needs.prepare.outputs.version }}
           body_path: RELEASE_NOTES.md
           files: |
             apps/terminal-pro/dist-electron/installer/*.AppImage
@@ -112,7 +273,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts and changelog
+      - name: Upload final desktop bundle
         uses: actions/upload-artifact@v4
         with:
           name: desktop-builds
