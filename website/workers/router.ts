@@ -2915,6 +2915,12 @@ export default {
   async fetch(request: Request, env: any): Promise<Response> {
     const url = new URL(request.url)
     const path = url.pathname
+    const downloadPath =
+      path === '/v1/download' || path === '/v1/download/'
+        ? '/download/'
+        : path.startsWith('/v1/download/')
+          ? `/download/${path.slice('/v1/download/'.length)}`
+          : path
     const host = url.hostname.toLowerCase()
 
     if (host === 'www.rinawarptech.com' && !path.startsWith('/api/')) {
@@ -2972,14 +2978,6 @@ export default {
       return renderReleasesJson(env, url.origin)
     }
 
-    if (path === '/v1/download' || path === '/v1/download/') {
-      return rwRedirect(`${url.origin}/download/`, 302)
-    }
-
-    if (path.startsWith('/v1/download/')) {
-      return rwRedirect(`${url.origin}/download/${path.slice('/v1/download/'.length)}`, 302)
-    }
-
     if (path.startsWith('/downloads/terminal-pro/')) {
       const artifactName = path.split('/').pop()
       if (artifactName?.endsWith('.AppImage')) {
@@ -3002,17 +3000,17 @@ export default {
       return rwRedirect(`${url.origin}/download/${path.slice('/downloads/'.length)}`, 301)
     }
 
-    if (path === '/download' || path === '/download/') {
+    if (downloadPath === '/download' || downloadPath === '/download/') {
       return await renderDownload(env, url.origin)
     }
 
-    if (path.startsWith('/download/')) {
+    if (downloadPath.startsWith('/download/')) {
       const manifest = await getReleaseManifest(env)
       if (!manifest) {
         return rwText(404, 'latest.json not found')
       }
 
-      const kind = normalizeArtifactKind(path.slice('/download/'.length))
+      const kind = normalizeArtifactKind(downloadPath.slice('/download/'.length))
       const artifactPath = pickArtifactPath(manifest, kind) ?? await findLatestArtifactPath(env, kind)
       if (!artifactPath) {
         return rwText(404, 'Artifact not available')
