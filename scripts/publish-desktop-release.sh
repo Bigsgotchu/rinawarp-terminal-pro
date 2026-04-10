@@ -48,11 +48,6 @@ if [[ ! -f "$linux_file" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$windows_file" ]]; then
-  echo "[publish:desktop-release] Missing $windows_file" >&2
-  exit 1
-fi
-
 npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage" --file "$linux_file" --remote --content-type "application/vnd.appimage" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
 npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage" --file "$linux_file" --remote --content-type "application/vnd.appimage" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
 
@@ -61,12 +56,16 @@ if [[ -f "$linux_deb_file" ]]; then
   npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.deb" --file "$linux_deb_file" --remote --content-type "application/vnd.debian.binary-package" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
 fi
 
-npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe" --file "$windows_file" --remote --content-type "application/x-msdownload" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe" --file "$windows_file" --remote --content-type "application/x-msdownload" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+if [[ -f "$windows_file" ]]; then
+  npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe" --file "$windows_file" --remote --content-type "application/x-msdownload" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+  npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe" --file "$windows_file" --remote --content-type "application/x-msdownload" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
 
-if [[ -f "$windows_blockmap" ]]; then
-  npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap" --file "$windows_blockmap" --remote --content-type "application/octet-stream" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-  npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap" --file "$windows_blockmap" --remote --content-type "application/octet-stream" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+  if [[ -f "$windows_blockmap" ]]; then
+    npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap" --file "$windows_blockmap" --remote --content-type "application/octet-stream" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+    npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap" --file "$windows_blockmap" --remote --content-type "application/octet-stream" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+  fi
+else
+  echo "[publish:desktop-release] No Windows installer for v$VERSION on this host; preserving previous Windows download metadata."
 fi
 
 npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/SHASUMS256.txt" --file "$checksums_file" --remote --content-type "text/plain; charset=utf-8" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
