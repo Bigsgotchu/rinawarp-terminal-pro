@@ -2972,6 +2972,14 @@ export default {
       return renderReleasesJson(env, url.origin)
     }
 
+    if (path === '/v1/download' || path === '/v1/download/') {
+      return rwRedirect(`${url.origin}/download/`, 302)
+    }
+
+    if (path.startsWith('/v1/download/')) {
+      return rwRedirect(`${url.origin}/download/${path.slice('/v1/download/'.length)}`, 302)
+    }
+
     if (path.startsWith('/downloads/terminal-pro/')) {
       const artifactName = path.split('/').pop()
       if (artifactName?.endsWith('.AppImage')) {

@@ -1775,6 +1775,14 @@ async function writeRoute(route, html) {
 }
 
 const REDIRECTS = `
+/download/windows /v1/download/windows 302
+/download/windows/ /v1/download/windows 302
+/download/linux /v1/download/linux 302
+/download/linux/ /v1/download/linux 302
+/download/linux/deb /v1/download/linux/deb 302
+/download/linux/deb/ /v1/download/linux/deb 302
+/download/checksums /v1/download/checksums 302
+/download/checksums/ /v1/download/checksums 302
 /downloads/terminal-pro/linux/*.AppImage /download/linux 301
 /downloads/terminal-pro/linux/*.deb /download/linux/deb 301
 /downloads/terminal-pro/windows/*.exe /download/windows 301
