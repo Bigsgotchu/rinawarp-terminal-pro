@@ -1775,14 +1775,6 @@ async function writeRoute(route, html) {
 }
 
 const REDIRECTS = `
-/download/windows ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe 302
-/download/windows/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.exe 302
-/download/linux ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage 302
-/download/linux/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.AppImage 302
-/download/linux/deb ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb 302
-/download/linux/deb/ ${INSTALLERS_BASE}/releases/${VERSION}/RinaWarp-Terminal-Pro-${VERSION}.deb 302
-/download/checksums ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
-/download/checksums/ ${INSTALLERS_BASE}/releases/${VERSION}/SHASUMS256.txt 302
 /downloads/terminal-pro/linux/*.AppImage /download/linux 301
 /downloads/terminal-pro/linux/*.deb /download/linux/deb 301
 /downloads/terminal-pro/windows/*.exe /download/windows 301

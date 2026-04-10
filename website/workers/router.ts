@@ -346,6 +346,56 @@ function pickArtifactPath(manifest: any, kind: string): string | null {
   return null
 }
 
+function compareReleaseVersions(a: string, b: string): number {
+  const parse = (value: string) => {
+    const [core, prerelease = ''] = value.split('-', 2)
+    const parts = core.split('.').map((part) => Number.parseInt(part, 10) || 0)
+    return { parts, prerelease }
+  }
+
+  const left = parse(a)
+  const right = parse(b)
+  for (let index = 0; index < Math.max(left.parts.length, right.parts.length); index += 1) {
+    const delta = (left.parts[index] || 0) - (right.parts[index] || 0)
+    if (delta !== 0) return delta
+  }
+
+  if (!left.prerelease && right.prerelease) return 1
+  if (left.prerelease && !right.prerelease) return -1
+  return left.prerelease.localeCompare(right.prerelease)
+}
+
+async function findLatestArtifactPath(env: any, kind: string): Promise<string | null> {
+  const bucket = env.RINAWARP_CDN
+  if (!bucket || !['windows', 'linux-deb', 'linux'].includes(kind)) return null
+
+  const extensions: Record<string, string> = {
+    windows: '.exe',
+    'linux-deb': '.deb',
+    linux: '.AppImage',
+  }
+
+  const extension = extensions[kind]
+  let cursor: string | undefined
+  let best: { version: string; key: string } | null = null
+
+  do {
+    const page = await bucket.list({ prefix: 'releases/', cursor, limit: 1000 })
+    for (const object of page.objects || []) {
+      const match = object.key.match(/^releases\/([^/]+)\/RinaWarp-Terminal-Pro-\1(\.AppImage|\.deb|\.exe)$/)
+      if (!match) continue
+      if (match[2] !== extension) continue
+      const version = match[1]
+      if (!best || compareReleaseVersions(version, best.version) > 0) {
+        best = { version, key: object.key }
+      }
+    }
+    cursor = page.truncated ? page.cursor : undefined
+  } while (cursor)
+
+  return best?.key ?? null
+}
+
 function toAbsoluteArtifactUrl(origin: string, artifactPath: string | null): string | null {
   if (!artifactPath) return null
   if (/^https?:\/\//i.test(artifactPath)) return artifactPath
@@ -2955,7 +3005,7 @@ export default {
       }
 
       const kind = normalizeArtifactKind(path.slice('/download/'.length))
-      const artifactPath = pickArtifactPath(manifest, kind)
+      const artifactPath = pickArtifactPath(manifest, kind) ?? await findLatestArtifactPath(env, kind)
       if (!artifactPath) {
         return rwText(404, 'Artifact not available')
       }
