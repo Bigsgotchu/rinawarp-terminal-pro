@@ -11,6 +11,8 @@ env:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      RINAWARP_ENV: dev
 
     steps:
       - name: Checkout
@@ -61,6 +63,8 @@ jobs:
 
   telemetry-e2e:
     runs-on: ubuntu-latest
+    env:
+      RINAWARP_ENV: dev
 
     steps:
       - name: Checkout
