@@ -20,6 +20,17 @@ describeTelemetry('Telemetry Reporting', () => {
   let ws: WebSocket | null = null
   let latestMetrics: any = {}
 
+  async function waitForMetricIncrease(key: keyof typeof latestMetrics, previousValue: number, timeoutMs = 5_000): Promise<void> {
+    const deadline = Date.now() + timeoutMs
+    while (Date.now() < deadline) {
+      if ((latestMetrics[key] || 0) > previousValue) {
+        return
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+    expect(latestMetrics[key] || 0).toBeGreaterThan(previousValue)
+  }
+
   test.beforeAll(async () => {
     // Connect to telemetry WebSocket server
     ws = new WebSocket(telemetryWsUrl)
@@ -87,15 +98,13 @@ describeTelemetry('Telemetry Reporting', () => {
       const initialCommands = latestMetrics.commandsRun || 0
       
       // Track command execution
-      await page.evaluate(() => {
+      const result = await page.evaluate(() => {
         return (window as any).rina?.trackCommandRun?.()
       })
-      
-      // Wait for metrics to update
-      await new Promise((r) => setTimeout(r, 500))
+      expect(result?.accepted ?? result?.ok).toBeTruthy()
       
       // Verify command was tracked
-      expect(latestMetrics.commandsRun).toBeGreaterThan(initialCommands)
+      await waitForMetricIncrease('commandsRun', initialCommands)
     })
   })
 
@@ -105,15 +114,13 @@ describeTelemetry('Telemetry Reporting', () => {
       const initialMessages = latestMetrics.aiMessages || 0
       
       // Track AI message
-      await page.evaluate(() => {
+      const result = await page.evaluate(() => {
         return (window as any).rina?.trackAiMessage?.()
       })
-      
-      // Wait for metrics to update
-      await new Promise((r) => setTimeout(r, 500))
+      expect(result?.accepted ?? result?.ok).toBeTruthy()
       
       // Verify AI message was tracked
-      expect(latestMetrics.aiMessages).toBeGreaterThan(initialMessages)
+      await waitForMetricIncrease('aiMessages', initialMessages)
     })
   })
 
@@ -123,15 +130,13 @@ describeTelemetry('Telemetry Reporting', () => {
       const initialQuickFixes = latestMetrics.quickFixes || 0
       
       // Track quick fix
-      await page.evaluate(() => {
+      const result = await page.evaluate(() => {
         return (window as any).rina?.trackQuickFix?.()
       })
-      
-      // Wait for metrics to update
-      await new Promise((r) => setTimeout(r, 500))
+      expect(result?.accepted ?? result?.ok).toBeTruthy()
       
       // Verify quick fix was tracked
-      expect(latestMetrics.quickFixes).toBeGreaterThan(initialQuickFixes)
+      await waitForMetricIncrease('quickFixes', initialQuickFixes)
     })
   })
 

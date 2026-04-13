@@ -63,8 +63,6 @@ test('Fix Project IPC produces a repair plan for a broken local workspace', asyn
   const workspaceName = path.basename(workspaceRoot)
 
   await withApp(async ({ page }) => {
-    await page.getByRole('button', { name: 'Rina workbench' }).click()
-
     await page.evaluate((root) => {
       window.dispatchEvent(new CustomEvent('rina:workspace-selected', { detail: { path: root } }))
     }, workspaceRoot)
