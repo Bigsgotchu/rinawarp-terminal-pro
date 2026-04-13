@@ -11,6 +11,7 @@ headers_tarball="$cache_root/node-v$electron_version-headers.tar.gz"
 headers_url="${RINAWARP_ELECTRON_HEADERS_URL:-https://www.electronjs.org/headers/v$electron_version/node-v$electron_version-headers.tar.gz}"
 provided_headers_tarball="${RINAWARP_ELECTRON_HEADERS_TARBALL:-}"
 module_dir="$(node -p "require('node:path').dirname(require.resolve('better-sqlite3/package.json'))")"
+node_gyp_package="${RINAWARP_NODE_GYP_PACKAGE:-node-gyp@11.2.0}"
 
 mkdir -p "$cache_root"
 
@@ -25,7 +26,8 @@ fi
 install_version_file="$headers_root/installVersion"
 if [[ ! -f "$install_version_file" ]]; then
   echo "[native] Preparing Electron header cache for $electron_version"
-  npx node-gyp install \
+  echo "[native] Using $node_gyp_package for Electron headers"
+  npx --yes --package="$node_gyp_package" node-gyp install \
     --target="$electron_version" \
     --dist-url=https://electronjs.org/headers \
     --devdir="$cache_root" \
@@ -35,7 +37,8 @@ fi
 echo "[native] Rebuilding better-sqlite3 for Electron $electron_version"
 (
   cd "$module_dir"
-  npx node-gyp rebuild \
+  echo "[native] Using $node_gyp_package for better-sqlite3 rebuild"
+  npx --yes --package="$node_gyp_package" node-gyp rebuild \
     --release \
     --runtime=electron \
     --target="$electron_version" \
