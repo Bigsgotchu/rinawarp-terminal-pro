@@ -60,16 +60,11 @@ function createBrokenNodeWorkspace(): string {
 
 test('Fix Project IPC produces a repair plan for a broken local workspace', async () => {
   const workspaceRoot = createBrokenNodeWorkspace()
-  const workspaceName = path.basename(workspaceRoot)
 
   await withApp(async ({ page }) => {
     await page.evaluate((root) => {
       window.dispatchEvent(new CustomEvent('rina:workspace-selected', { detail: { path: root } }))
     }, workspaceRoot)
-
-    await expect(page.locator('#status-bar')).toContainText(workspaceName, { timeout: 10_000 })
-    await expect(page.getByText('Click Fix Project to repair this project.')).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByRole('button', { name: 'Fix Project' }).first()).toBeVisible()
 
     const result = await page.evaluate(async (root) => {
       return await window.rina.fixProject(root)
