@@ -93,6 +93,7 @@ jobs:
           fi
 
       - name: Push release commit and tag
+        if: ${{ inputs.release_version == '' }}
         shell: bash
         run: |
           git push origin "HEAD:${GITHUB_REF_NAME}"
