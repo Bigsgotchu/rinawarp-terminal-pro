@@ -7,6 +7,7 @@ const __dirname = path.dirname(__filename)
 const APP_ROOT = path.resolve(__dirname, '../..')
 const ELECTRON_PATH = path.join(APP_ROOT, 'node_modules/electron/dist/electron')
 const PACKAGED_APP_ASAR = path.join(APP_ROOT, 'dist-electron', 'installer', 'linux-unpacked', 'resources', 'app.asar')
+const PACKAGED_EXECUTABLE_LINUX = path.join(APP_ROOT, 'dist-electron', 'installer', 'linux-unpacked', 'rinawarp-terminal-pro')
 
 function buildLaunchEnv(extraEnv?: Record<string, string>): NodeJS.ProcessEnv {
   const userDataSuffix =
@@ -54,8 +55,19 @@ export async function launchPackagedApp(extraEnv?: Record<string, string>): Prom
     env.XDG_DATA_HOME = env.XDG_DATA_HOME || path.join(String(env.HOME), '.local', 'share')
   }
 
-  // Linux packaged wrapper binaries are not reliably attachable through Playwright's Electron driver
-  // on this host. For behavioral packaged E2E, we rebuild the packaged artifact first and then launch
-  // the current app through the stable Electron host while preserving the packaged-specific userData env.
-  return launchApp(env as Record<string, string>)
+  if (isLinux) {
+    return electron.launch({
+      executablePath: PACKAGED_EXECUTABLE_LINUX,
+      args: [],
+      cwd: APP_ROOT,
+      env,
+    })
+  }
+
+  return electron.launch({
+    executablePath: ELECTRON_PATH,
+    args: [PACKAGED_APP_ASAR],
+    cwd: APP_ROOT,
+    env,
+  })
 }

@@ -15,6 +15,24 @@ files:
   - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
   - "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}"
 
+extraFiles:
+  - from: ../../packages/runtime-contracts/dist
+    to: packages/runtime-contracts/dist
+  - from: ../../packages/runtime-core/dist
+    to: packages/runtime-core/dist
+  - from: ../../packages/runtime-feature-agentd/dist
+    to: packages/runtime-feature-agentd/dist
+  - from: ../../packages/runtime-feature-diagnostics/dist
+    to: packages/runtime-feature-diagnostics/dist
+  - from: ../../packages/runtime-feature-licensing/dist
+    to: packages/runtime-feature-licensing/dist
+  - from: ../../packages/runtime-feature-team/dist
+    to: packages/runtime-feature-team/dist
+  - from: ../../packages/runtime-feature-workspace/dist
+    to: packages/runtime-feature-workspace/dist
+  - from: ../../packages/runtime-platform-electron/dist
+    to: packages/runtime-platform-electron/dist
+
 asar: true
 
 afterSign: build/afterSign.cjs
