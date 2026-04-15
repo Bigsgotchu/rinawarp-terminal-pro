@@ -52,7 +52,7 @@ export function diagnosticsPathsForIpc(deps: DiagnosticsBundleDeps) {
   ]
   const rendererPath = rendererCandidates.find((candidate) => fileInfo(candidate).exists) || rendererCandidates[0]
   const themeRegistryPath = deps.resolveResourcePath('themes/themes.json', 'app')
-  const policyPath = deps.resolveResourcePath('policy/rinawarp-policy.yaml', 'app')
+  const policyPath = deps.resolveResourcePath('dist-electron/policy/rinawarp-policy.yaml', 'app')
   const notes: string[] = []
   if (!fileInfo(rendererPath).exists) {
     notes.push(`Renderer asset not found at expected packaged paths: ${rendererCandidates.join(', ')}`)

@@ -33,7 +33,7 @@ test('loads policy from app-bundled path and sets active policy path during gate
   })
 
   assert.deepEqual(resolvedCalls[0], {
-    relPath: 'policy/rinawarp-policy.yaml',
+    relPath: 'dist-electron/policy/rinawarp-policy.yaml',
     devBase: 'app',
   })
   assert.equal(ctx.lastLoadedPolicyPath, policyPath)

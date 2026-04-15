@@ -42,7 +42,7 @@ export function createPolicyGate(deps: PolicyGateDeps) {
                 rules: [],
                 fallback: { action: 'require_approval', approval: 'click', message: 'Unclassified command requires approval.' },
             });
-        const policyPath = resolveResourcePath('policy/rinawarp-policy.yaml', 'app');
+        const policyPath = resolveResourcePath('dist-electron/policy/rinawarp-policy.yaml', 'app');
         warnIfUnexpectedPackagedResource('policy yaml', policyPath);
         let text = '';
         ctx.lastLoadedPolicyPath = null;

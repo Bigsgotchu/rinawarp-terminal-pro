@@ -41,6 +41,9 @@ jobs:
         working-directory: apps/terminal-pro
         run: npm run test:fix-project-flow
 
+      - name: Policy gate regression
+        run: npm --prefix apps/terminal-pro run test:policy-gate
+
       - name: E2E Harness
         working-directory: apps/terminal-pro
         env:
