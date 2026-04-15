@@ -24,6 +24,7 @@
     "test:plan-risk": "npm run build:electron && node --test test/plan-risk.test.mjs",
     "test:plan-fallback": "npm run build:electron && node --test test/plan-fallback.test.mjs",
     "test:fix-project-flow": "npm run build:electron && node --test test/fix-project-flow.test.mjs",
+    "test:policy-gate": "npm run build:electron && node --test test/policy-gate-loading.test.mjs",
     "test:agent": "npm run build:electron && node --test tests/agent.test.mjs",
     "test:cli": "node --test tests/cli.test.mjs",
     "test:streaming": "node --test tests/streaming.test.mjs",
