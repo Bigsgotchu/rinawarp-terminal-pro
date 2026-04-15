@@ -52,10 +52,14 @@ export function diagnosticsPathsForIpc(deps: DiagnosticsBundleDeps) {
   ]
   const rendererPath = rendererCandidates.find((candidate) => fileInfo(candidate).exists) || rendererCandidates[0]
   const themeRegistryPath = deps.resolveResourcePath('themes/themes.json', 'app')
-  const policyPath = deps.resolveResourcePath('policy/rinawarp-policy.yaml', 'repo')
+  const policyPath = deps.resolveResourcePath('policy/rinawarp-policy.yaml', 'app')
   const notes: string[] = []
   if (!fileInfo(rendererPath).exists) {
     notes.push(`Renderer asset not found at expected packaged paths: ${rendererCandidates.join(', ')}`)
+  }
+  const policyResolved = fileInfo(policyPath)
+  if (policyResolved.exists && !deps.lastLoadedPolicyPath) {
+    notes.push('Policy file resolves on disk but is not active yet. Policy gate may not be initialized, or policy load failed.')
   }
   return {
     app: {
@@ -76,7 +80,7 @@ export function diagnosticsPathsForIpc(deps: DiagnosticsBundleDeps) {
       preload: fileInfo(preloadPath),
       renderer: fileInfo(rendererPath),
       themeRegistry: fileInfo(themeRegistryPath),
-      policyYaml: fileInfo(policyPath),
+      policyYaml: policyResolved,
     },
     active: {
       themeRegistryPath: deps.lastLoadedThemePath,

@@ -4,6 +4,7 @@ import type { PolicyGateDeps } from '../startup/runtimeTypes.js'
 export function createPolicyGate(deps: PolicyGateDeps) {
     const { fs, ctx, resolveResourcePath, warnIfUnexpectedPackagedResource, sessionState, getCurrentRole } = deps;
     let cachedPolicy;
+    let lastPolicyLoadError = null;
     function currentPolicyEnv() {
         const raw = (process.env.RINAWARP_ENV || process.env.NODE_ENV || 'dev').toLowerCase();
         if (raw.includes('prod'))
@@ -41,15 +42,29 @@ export function createPolicyGate(deps: PolicyGateDeps) {
                 rules: [],
                 fallback: { action: 'require_approval', approval: 'click', message: 'Unclassified command requires approval.' },
             });
-        let text = '';
-        const policyPath = resolveResourcePath('policy/rinawarp-policy.yaml', 'repo');
+        const policyPath = resolveResourcePath('policy/rinawarp-policy.yaml', 'app');
         warnIfUnexpectedPackagedResource('policy yaml', policyPath);
-        if (fs.existsSync(policyPath)) {
+        let text = '';
+        ctx.lastLoadedPolicyPath = null;
+        lastPolicyLoadError = null;
+        try {
+            if (!fs.existsSync(policyPath)) {
+                lastPolicyLoadError = `Policy file not found at resolved path: ${policyPath}`;
+                cachedPolicy = null;
+                return loadPolicy();
+            }
             text = fs.readFileSync(policyPath, 'utf8');
+            if (!String(text || '').trim()) {
+                lastPolicyLoadError = `Policy file is empty: ${policyPath}`;
+                cachedPolicy = null;
+                return loadPolicy();
+            }
             ctx.lastLoadedPolicyPath = policyPath;
         }
-        else {
-            ctx.lastLoadedPolicyPath = null;
+        catch (error) {
+            lastPolicyLoadError = error instanceof Error ? error.message : String(error);
+            cachedPolicy = null;
+            return loadPolicy();
         }
         if (!text) {
             cachedPolicy = null;
@@ -81,6 +96,7 @@ export function createPolicyGate(deps: PolicyGateDeps) {
         if (process.env.RW_DEBUG === '1') {
             console.warn('[PROOFTRACE] loadPolicy', {
                 policyPath,
+                policyError: lastPolicyLoadError || null,
                 rules: rules.map((rule) => ({ id: rule.id, action: rule.action, envAny: rule.envAny })),
                 fallback: cachedPolicy.fallback,
             });
@@ -154,6 +170,7 @@ export function createPolicyGate(deps: PolicyGateDeps) {
             matchedRuleId: match?.id,
         };
     }
+    loadPolicy();
     return {
         evaluatePolicyGate,
         explainPolicy,
