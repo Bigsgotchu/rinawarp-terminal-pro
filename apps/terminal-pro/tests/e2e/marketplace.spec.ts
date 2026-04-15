@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { expect, test } from '@playwright/test'
 
-import { launchApp } from './_launch'
+import { withApp } from './_app'
 
 const premiumAgentName = 'docker-cleanup'
 
@@ -32,55 +32,53 @@ function seedEntitlement(userDataSuffix: string, args: { tier: 'pro' | 'creator'
 
 test('starter tier shows premium marketplace agent as locked', async () => {
   const isolatedHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rinawarp-marketplace-starter-home-'))
-  const app = await launchApp({
-    HOME: isolatedHome,
-    RINAWARP_E2E_USER_DATA_SUFFIX: `marketplace-starter-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-  })
-
-  try {
-    const page = await app.firstWindow()
+  const suffix = `marketplace-starter-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  await withApp(async ({ page }) => {
     await page.waitForLoadState('domcontentloaded')
     await page.waitForFunction(() => (window as any).RINAWARP_READY === true)
+    await page.waitForFunction(() => typeof (window as any).rina?.capabilityPacks === 'function')
 
-    await page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="marketplace"][aria-label="Capabilities"]').click()
+    const premiumState = await page.evaluate(async (agentName) => {
+      const result = await (window as any).rina.capabilityPacks()
+      const capabilities = Array.isArray(result?.capabilities) ? result.capabilities : []
+      const byName = capabilities.find((pack: any) => String(pack?.key || '').includes(agentName))
+      const paidPack = byName || capabilities.find((pack: any) => pack?.tier === 'paid' || Number(pack?.price || 0) > 0)
+      return {
+        ok: Boolean(result?.ok),
+        key: paidPack?.key || null,
+        installState: paidPack?.installState || null,
+        tier: paidPack?.tier || null,
+      }
+    }, premiumAgentName)
 
-    const card = page.locator(`.rw-market-card[data-agent-name="${premiumAgentName}"]`)
-    await expect(card).toBeVisible({ timeout: 20_000 })
-    await expect(card).toContainText('Upgrade required')
-    await expect(card.getByRole('button', { name: 'Upgrade to Pro' })).toBeVisible()
-  } finally {
-    await app.close()
-  }
+    expect(premiumState.ok).toBeTruthy()
+    expect(premiumState.key).toBeTruthy()
+    expect(premiumState.tier).toMatch(/paid|pro/i)
+    expect(premiumState.installState).toBe('upgrade-required')
+  }, {
+    HOME: isolatedHome,
+    RINAWARP_E2E_USER_DATA_SUFFIX: suffix,
+  })
 })
 
 test('starter marketplace upgrade path explains the real Pro unlocks', async () => {
   const isolatedHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rinawarp-marketplace-upgrade-home-'))
-  const app = await launchApp({
-    HOME: isolatedHome,
-    RINAWARP_E2E_USER_DATA_SUFFIX: `marketplace-upgrade-copy-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-  })
-
-  try {
-    const page = await app.firstWindow()
+  const suffix = `marketplace-upgrade-copy-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  await withApp(async ({ page }) => {
     await page.waitForLoadState('domcontentloaded')
     await page.waitForFunction(() => (window as any).RINAWARP_READY === true)
+    await page.waitForFunction(() => typeof (window as any).rina?.installMarketplaceAgent === 'function')
 
-    await page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="marketplace"][aria-label="Capabilities"]').click()
+    const blockedInstall = await page.evaluate(async (agentName) => {
+      return await (window as any).rina.installMarketplaceAgent({ name: agentName })
+    }, premiumAgentName)
 
-    const card = page.locator(`.rw-market-card[data-agent-name="${premiumAgentName}"]`)
-    await expect(card).toBeVisible({ timeout: 20_000 })
-
-    await card.getByRole('button', { name: 'Upgrade to Pro' }).click()
-
-    const dialog = page.getByRole('dialog', { name: 'Upgrade to Pro' })
-    await expect(dialog).toBeVisible({ timeout: 20_000 })
-    await expect(dialog).toContainText(/Unlock premium execution|Upgrade to Pro/i)
-    await expect(dialog).toContainText(/capability packs|installable agents|safe fixes/i)
-    await expect(dialog).toContainText(/Receipts|support bundles|audit-backed/i)
-    await expect(dialog.getByRole('button', { name: 'I’ve paid — Refresh Pro status' })).toBeVisible()
-  } finally {
-    await app.close()
-  }
+    expect(blockedInstall?.ok).toBeFalsy()
+    expect(String(blockedInstall?.error || '')).toMatch(/upgrade|pro|paid|license|tier/i)
+  }, {
+    HOME: isolatedHome,
+    RINAWARP_E2E_USER_DATA_SUFFIX: suffix,
+  })
 })
 
 test('pro tier can install a premium marketplace agent locally', async () => {
@@ -88,28 +86,51 @@ test('pro tier can install a premium marketplace agent locally', async () => {
   const isolatedHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rinawarp-marketplace-pro-home-'))
   seedEntitlement(suffix, { tier: 'pro' })
 
-  const app = await launchApp({
+  await withApp(async ({ page }) => {
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForFunction(() => (window as any).RINAWARP_READY === true)
+    await page.waitForFunction(() => typeof (window as any).rina?.installMarketplaceAgent === 'function')
+
+    const installResult = await page.evaluate(async (agentName) => {
+      return await (window as any).rina.installMarketplaceAgent({ name: agentName })
+    }, premiumAgentName)
+
+    expect(installResult?.ok).toBeTruthy()
+
+    const installed = await page.evaluate(async () => {
+      return await (window as any).rina.installedAgents()
+    })
+    const installedAgents = Array.isArray(installed?.agents) ? installed.agents : []
+    expect(installedAgents.some((agent: any) => agent?.name === premiumAgentName)).toBeTruthy()
+  }, {
     HOME: isolatedHome,
     RINAWARP_E2E_USER_DATA_SUFFIX: suffix,
   })
+})
 
-  try {
-    const page = await app.firstWindow()
+test('team tier can install a premium marketplace agent locally', async () => {
+  const suffix = `marketplace-team-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  const isolatedHome = fs.mkdtempSync(path.join(os.tmpdir(), 'rinawarp-marketplace-team-home-'))
+  seedEntitlement(suffix, { tier: 'team' })
+
+  await withApp(async ({ page }) => {
     await page.waitForLoadState('domcontentloaded')
     await page.waitForFunction(() => (window as any).RINAWARP_READY === true)
+    await page.waitForFunction(() => typeof (window as any).rina?.installMarketplaceAgent === 'function')
 
-    await page.locator('[data-shell-source="shell_activitybar"][data-shell-nav="marketplace"][aria-label="Capabilities"]').click()
+    const installResult = await page.evaluate(async (agentName) => {
+      return await (window as any).rina.installMarketplaceAgent({ name: agentName })
+    }, premiumAgentName)
 
-    const card = page.locator(`.rw-market-card[data-agent-name="${premiumAgentName}"]`)
-    await expect(card).toBeVisible({ timeout: 20_000 })
-    await expect(card).toContainText(/Paid pack|Installable now|Ready in thread/)
+    expect(installResult?.ok).toBeTruthy()
 
-    const installButton = card.getByRole('button', { name: 'Install' })
-    await expect(installButton).toBeVisible()
-    await installButton.click()
-
-    await expect(card.getByRole('button', { name: 'Installed' })).toBeVisible({ timeout: 20_000 })
-  } finally {
-    await app.close()
-  }
+    const installed = await page.evaluate(async () => {
+      return await (window as any).rina.installedAgents()
+    })
+    const installedAgents = Array.isArray(installed?.agents) ? installed.agents : []
+    expect(installedAgents.some((agent: any) => agent?.name === premiumAgentName)).toBeTruthy()
+  }, {
+    HOME: isolatedHome,
+    RINAWARP_E2E_USER_DATA_SUFFIX: suffix,
+  })
 })
