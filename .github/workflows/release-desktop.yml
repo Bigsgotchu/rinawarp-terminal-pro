@@ -149,6 +149,9 @@ jobs:
       - name: Package Linux
         run: npm --workspace apps/terminal-pro run package:linux
 
+      - name: Packaged policy diagnostics proof
+        run: bash apps/terminal-pro/scripts/run-electron-playwright.sh e2e/policy-diagnostics-proof.spec.ts
+
       - name: Upload Linux installers
         uses: actions/upload-artifact@v4
         with:

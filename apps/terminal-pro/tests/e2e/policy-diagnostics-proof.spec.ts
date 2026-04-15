@@ -9,7 +9,9 @@ test.setTimeout(120_000)
 test('packaged diagnostics and policy gate proof export', async () => {
   const __filename = fileURLToPath(import.meta.url)
   const __dirname = path.dirname(__filename)
-  const evidenceDir = path.resolve(__dirname, '../../../../artifacts/release-evidence/1.1.14')
+  const packageJsonPath = path.resolve(__dirname, '../../package.json')
+  const version = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))?.version || 'unknown'
+  const evidenceDir = path.resolve(__dirname, `../../../../artifacts/release-evidence/${version}`)
   fs.mkdirSync(evidenceDir, { recursive: true })
 
   await withPackagedApp(async ({ page }) => {
@@ -43,9 +45,9 @@ test('packaged diagnostics and policy gate proof export', async () => {
     expect(typeof supportBundle?.path).toBe('string')
     expect(fs.existsSync(String(supportBundle.path))).toBe(true)
 
-    fs.writeFileSync(path.join(evidenceDir, 'diagnostics.packaged-sim.json'), JSON.stringify(diagnostics, null, 2), 'utf8')
-    fs.writeFileSync(path.join(evidenceDir, 'policy-block-result.packaged-sim.json'), JSON.stringify(blocked, null, 2), 'utf8')
-    fs.writeFileSync(path.join(evidenceDir, 'support-bundle-result.packaged-sim.json'), JSON.stringify(supportBundle, null, 2), 'utf8')
+    fs.writeFileSync(path.join(evidenceDir, 'diagnostics.packaged.json'), JSON.stringify(diagnostics, null, 2), 'utf8')
+    fs.writeFileSync(path.join(evidenceDir, 'policy-block-result.packaged.json'), JSON.stringify(blocked, null, 2), 'utf8')
+    fs.writeFileSync(path.join(evidenceDir, 'support-bundle-result.packaged.json'), JSON.stringify(supportBundle, null, 2), 'utf8')
 
     const copiedBundlePath = path.join(evidenceDir, path.basename(String(supportBundle.path)))
     fs.copyFileSync(String(supportBundle.path), copiedBundlePath)
