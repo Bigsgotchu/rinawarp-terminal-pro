@@ -998,6 +998,8 @@ if (page === 'account') {
 function seo(path, title, description) {
   const canonical = `https://rinawarptech.com${path}`;
   const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png";
+  const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
+  const isMatterPage = normalizedPath === "/products" || normalizedPath.startsWith("/matter-intelligence");
   const noindexPaths = new Set(["/account", "/login", "/register", "/forgot-password", "/reset-password", "/success/"]);
   const robots = noindexPaths.has(path) ? 'noindex, nofollow' : 'index, follow';
   const structuredData = buildStructuredData(path, title, description);
@@ -1012,7 +1014,7 @@ function seo(path, title, description) {
   <meta property="og:description" content="${description}">
   <meta property="og:url" content="${canonical}">
   <meta property="og:image" content="${ogImage}">
-  <meta property="og:site_name" content="RinaWarp Terminal Pro">
+  <meta property="og:site_name" content="${isMatterPage ? "RinaWarp" : "RinaWarp Terminal Pro"}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
@@ -1045,6 +1047,7 @@ function seo(path, title, description) {
 function buildStructuredData(path, title, description) {
   const canonical = `https://rinawarptech.com${path}`;
   const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
+  const isMatterPage = normalizedPath === "/products" || normalizedPath.startsWith("/matter-intelligence");
   const offerPrice = normalizedPath === "/team" ? "40" : "15";
   const graph = [
     {
@@ -1056,10 +1059,14 @@ function buildStructuredData(path, title, description) {
     },
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: "RinaWarp Terminal Pro",
-      applicationCategory: "DeveloperApplication",
-      operatingSystem: "Windows, Linux",
+      "@type": isMatterPage ? "SoftwareApplication" : "SoftwareApplication",
+      name: isMatterPage
+        ? normalizedPath === "/products"
+          ? "RinaWarp"
+          : "RinaWarp Matter Intelligence"
+        : "RinaWarp Terminal Pro",
+      applicationCategory: isMatterPage ? "BusinessApplication" : "DeveloperApplication",
+      operatingSystem: isMatterPage ? "Web, Windows, Linux" : "Windows, Linux",
       url: canonical,
       description,
       publisher: {
@@ -1069,7 +1076,11 @@ function buildStructuredData(path, title, description) {
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
-        price: offerPrice,
+        price: isMatterPage
+          ? normalizedPath === "/matter-intelligence/pricing"
+            ? "99"
+            : "0"
+          : offerPrice,
         availability: "https://schema.org/InStock",
       },
     },
@@ -1141,10 +1152,14 @@ function buildStructuredData(path, title, description) {
 function nav(active) {
   const items = [
     ["/", "Home", "home"],
+    ["/products/", "Products", "products"],
+    ["/matter-intelligence/", "Matter Intelligence", "products"],
     ["/pricing/", "Pricing", "pricing"],
     ["/download/", "Download", "download"],
-    ["/team/", "Team", "team"],
-    ["/feedback/", "Support", "feedback"],
+    ["/docs/", "Docs", "docs"],
+    ["/agents/", "Agents", "docs"],
+    ["/support/", "Support", "feedback"],
+    ["/account/", "Account", "account"],
   ];
   return items
     .map(([href, label, key]) => {
@@ -1172,8 +1187,8 @@ function shell({ path, page, title, description, eyebrow, heading, copy, heroAct
   <div class="site-shell">
     <header>
       <nav aria-label="Main navigation">
-        <a href="/" class="logo" aria-label="RinaWarp Terminal Pro home">
-          <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp Terminal Pro logo">
+        <a href="/" class="logo" aria-label="RinaWarp home">
+          <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp logo">
         </a>
         <div class="nav-links">${nav(page)}</div>
       </nav>
@@ -1198,10 +1213,11 @@ function shell({ path, page, title, description, eyebrow, heading, copy, heroAct
       <div class="footer-inner">
         <div>© 2026 RinaWarp Technologies, LLC. Proof-first AI workbench.</div>
         <div class="footer-links">
+          <a href="/products/">Products</a>
           <a href="/docs/">Docs</a>
           <a href="/pricing/">Pricing</a>
           <a href="/download/">Download</a>
-          <a href="/feedback/">Support</a>
+          <a href="/support/">Support</a>
           <a href="/terms/">Terms</a>
           <a href="/privacy/">Privacy</a>
           <a href="/early-access/">Early Access</a>
@@ -1284,6 +1300,203 @@ const pages = [
     `
   },
   {
+    route: "products",
+    path: "/products",
+    page: "products",
+    title: "RinaWarp Products | Terminal Pro and Matter Intelligence",
+    description: "Explore RinaWarp Terminal Pro for broken projects and RinaWarp Matter Intelligence for sensitive legal, finance, and compliance workflows.",
+    eyebrow: "Products",
+    heading: "RinaWarp products",
+    copy: "Terminal Pro stays focused on fixing broken projects automatically. Matter Intelligence is a separate product line for sensitive legal, finance, and compliance workflows.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card" style="grid-column: span 2;">
+          <div class="kicker">RinaWarp Terminal Pro</div>
+          <h3>Fix broken projects automatically.</h3>
+          <p>AI that reads your code, fixes issues, and verifies the result. Built for broken installs, failed builds, bad config, and crashed dev servers.</p>
+          <div class="link-row">
+            <a href="/" class="btn btn-primary">View Terminal Pro</a>
+            <a href="/pricing/" class="btn btn-secondary">See pricing</a>
+            <a href="/download/" class="btn btn-secondary">Download</a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="kicker">RinaWarp Matter Intelligence</div>
+          <h3>Institutional memory for sensitive matters.</h3>
+          <p>AI for legal, finance, and compliance teams that connects matter documents, email, transcripts, obligations, and decisions into one evidence-grounded workspace.</p>
+          <div class="link-row">
+            <a href="/matter-intelligence/" class="btn btn-primary">Explore Matter Intelligence</a>
+            <a href="/matter-intelligence/demo/" class="btn btn-secondary">Request demo</a>
+          </div>
+        </article>
+      </div></section>
+    `
+  },
+  {
+    route: "matter-intelligence",
+    path: "/matter-intelligence",
+    page: "products",
+    title: "RinaWarp Matter Intelligence | Institutional Memory for Sensitive Matters",
+    description: "RinaWarp Matter Intelligence gives legal, finance, and compliance teams cited answers and reviewer-ready drafts grounded in matter evidence.",
+    eyebrow: "RinaWarp Matter Intelligence",
+    heading: "Institutional memory for sensitive matters.",
+    copy: "RinaWarp Matter Intelligence helps legal, finance, and compliance teams reconstruct what happened, what changed, what deadlines exist, and which evidence supports the answer.",
+    heroActions: `
+      <a href="/matter-intelligence/demo/" class="btn btn-primary">Request demo</a>
+      <a href="/matter-intelligence/pricing/" class="btn btn-secondary">See pricing</a>
+    `,
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><div class="kicker">Ask any matter</div><h3>Find prior decisions fast</h3><p>Find prior decisions, obligations, deadlines, approvals, and open risks in one place.</p></article>
+        <article class="card"><div class="kicker">See the evidence</div><h3>Every answer is grounded</h3><p>Every answer is grounded in source-linked documents, messages, and timeline events.</p></article>
+        <article class="card"><div class="kicker">Generate drafts</div><h3>Reviewer-ready status memos</h3><p>Create status memos and decision recaps with citations before anything leaves the workspace.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Built for regulated workflows</h2>
+        <div class="grid three-up">
+          <article class="card"><h3>Legal matters</h3><p>Keep matter history, evidence, and decisions connected over time.</p></article>
+          <article class="card"><h3>Finance investigations</h3><p>Reconstruct facts, approvals, and changes without scattered context.</p></article>
+          <article class="card"><h3>Compliance reviews</h3><p>Support internal reviews, audit prep, and sensitive internal cases.</p></article>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "matter-intelligence/pricing",
+    path: "/matter-intelligence/pricing",
+    page: "products",
+    title: "Matter Intelligence Pricing | RinaWarp",
+    description: "See Solo, Team, and Enterprise pricing for RinaWarp Matter Intelligence.",
+    eyebrow: "Pricing",
+    heading: "Pricing for Matter Intelligence",
+    copy: "Start with clear pricing and a guided onboarding path. The product and trust model stay separate from Terminal Pro.",
+    content: `
+      <section class="section"><div class="pricing-grid">
+        <article class="card pricing-card"><span class="pill">Solo</span><div class="price">$99 <span>/ month</span></div><p>For independent legal, finance, or compliance professionals working on sensitive matters.</p><ul class="feature-list"><li>1 user</li><li>Up to 25 active matters</li><li>Outlook + SharePoint connectors</li><li>Cited answers</li><li>Status memo drafts</li></ul><a href="/matter-intelligence/demo/" class="btn btn-primary">Request guided access</a></article>
+        <article class="card pricing-card featured"><span class="pill">Team</span><div class="price">$399 <span>/ month</span></div><p>For small teams that need shared matter memory, reviewer workflows, and audit visibility.</p><ul class="feature-list"><li>Up to 5 users</li><li>Shared workspace</li><li>Matter timeline</li><li>Review queue</li><li>Admin controls</li><li>Audit log</li></ul><a href="/matter-intelligence/demo/" class="btn btn-primary">Request setup</a></article>
+        <article class="card pricing-card"><span class="pill">Enterprise</span><div class="price">Custom</div><p>For teams that need SSO, private deployment, retention controls, or custom integrations.</p><ul class="feature-list"><li>SSO</li><li>Custom retention</li><li>Advanced governance</li><li>Private deployment options</li><li>Priority support</li></ul><a href="/matter-intelligence/contact/" class="btn btn-secondary">Talk to sales</a></article>
+      </div></section>
+    `
+  },
+  {
+    route: "matter-intelligence/security",
+    path: "/matter-intelligence/security",
+    page: "products",
+    title: "Matter Intelligence Security | RinaWarp",
+    description: "Review data sources, access controls, retention expectations, and support contacts for RinaWarp Matter Intelligence.",
+    eyebrow: "Security",
+    heading: "Security and data handling",
+    copy: "RinaWarp Matter Intelligence is designed for sensitive work. This page explains what data enters the system, what is stored, and how access is controlled.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Data sources</h3><p>Outlook mail, selected SharePoint files, matter notes, metadata, generated summaries, and drafts.</p></article>
+        <article class="card"><h3>Data controls</h3><p>Matter-scoped access, role-based permissions, exclusion controls, retention expectations, and audit logging.</p></article>
+        <article class="card"><h3>Model usage</h3><p>Generated responses are grounded in retrieved matter evidence. Customers should review outputs before relying on them.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Security contact</h2><p>Email <a href="mailto:security@rinawarptech.com">security@rinawarptech.com</a> for security and data handling questions.</p></div></section>
+    `
+  },
+  {
+    route: "matter-intelligence/demo",
+    path: "/matter-intelligence/demo",
+    page: "products",
+    title: "Request a Matter Intelligence Demo | RinaWarp",
+    description: "Request a RinaWarp Matter Intelligence demo to see cited answers and status memo generation for one sensitive matter workflow.",
+    eyebrow: "Demo",
+    heading: "See one matter workflow in action.",
+    copy: "Connect Outlook and SharePoint for one matter. Ask what changed since last review. Get a cited answer and a grounded status memo draft.",
+    content: `
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Request a guided demo</h2>
+        <p class="section-copy">Use the live Matter Intelligence intake flow so we can scope the workflow, deployment needs, and trust questions before access is granted.</p>
+        <div class="cta-row">
+          <a href="/matter-intelligence/contact/" class="btn btn-primary">Request demo</a>
+          <a href="/matter-intelligence/security/" class="btn btn-secondary">Review security</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "matter-intelligence/download",
+    path: "/matter-intelligence/download",
+    page: "products",
+    title: "Matter Intelligence Access | RinaWarp",
+    description: "Learn how guided access, onboarding, billing, and workspace setup work for RinaWarp Matter Intelligence.",
+    eyebrow: "Access",
+    heading: "Get access to Matter Intelligence.",
+    copy: "Matter Intelligence has its own access path. It is intentionally separate from the Terminal Pro installer and billing flow.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><div class="kicker">1</div><h3>Request or buy access</h3><p>Start with guided onboarding or the live paid path we are validating for early customers.</p></article>
+        <article class="card"><div class="kicker">2</div><h3>Provision workspace</h3><p>Create the workspace, confirm entitlements, and assign the right members before data connectors go live.</p></article>
+        <article class="card"><div class="kicker">3</div><h3>Connect sources</h3><p>Connect Microsoft 365, create the first matter, and prove the cited-answer workflow on real data.</p></article>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <div class="cta-row">
+          <a href="/matter-intelligence/demo/" class="btn btn-primary">Request demo</a>
+          <a href="/matter-intelligence/pricing/" class="btn btn-secondary">See pricing</a>
+          <a href="/matter-intelligence/contact/" class="btn btn-secondary">Talk to sales</a>
+        </div>
+      </div></section>
+    `
+  },
+  {
+    route: "matter-intelligence/docs",
+    path: "/matter-intelligence/docs",
+    page: "products",
+    title: "Matter Intelligence Docs | RinaWarp",
+    description: "Start with one matter, connected evidence, and a cited status memo workflow in RinaWarp Matter Intelligence.",
+    eyebrow: "Docs",
+    heading: "Start with one matter and one trusted workflow.",
+    copy: "The launch workflow is intentionally narrow: connect the right sources, ask one matter question, and produce one grounded status memo.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><div class="kicker">1</div><h3>Connect Outlook and SharePoint</h3><p>Limit the scope to the sources needed for the first matter.</p></article>
+        <article class="card"><div class="kicker">2</div><h3>Ask what changed</h3><p>Use one concrete question to prove the evidence-grounded retrieval path.</p></article>
+        <article class="card"><div class="kicker">3</div><h3>Draft a status memo</h3><p>Generate a reviewer-ready draft with citations before anything leaves the workspace.</p></article>
+      </div></section>
+    `
+  },
+  {
+    route: "matter-intelligence/contact",
+    path: "/matter-intelligence/contact",
+    page: "products",
+    title: "Contact Matter Intelligence | RinaWarp",
+    description: "Talk to RinaWarp about Matter Intelligence sales, onboarding, and security review.",
+    eyebrow: "Contact",
+    heading: "Talk to RinaWarp about Matter Intelligence.",
+    copy: "Use this route for sales, onboarding, security review, and deployment questions related to Matter Intelligence. Terminal Pro support stays on the main support path.",
+    content: `
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Sales</h3><p><a href="mailto:hello@rinawarptech.com?subject=Matter%20Intelligence%20sales">hello@rinawarptech.com</a></p></article>
+        <article class="card"><h3>Security</h3><p><a href="mailto:security@rinawarptech.com?subject=Matter%20Intelligence%20security">security@rinawarptech.com</a></p></article>
+        <article class="card"><h3>Onboarding</h3><p>Use demo and contact requests to scope rollout, access, and data connector setup.</p></article>
+      </div></section>
+    `
+  },
+  {
+    route: "matter-intelligence/terms",
+    path: "/matter-intelligence/terms",
+    page: "products",
+    title: "Matter Intelligence Terms | RinaWarp",
+    description: "Read the product-specific terms for RinaWarp Matter Intelligence.",
+    eyebrow: "Terms",
+    heading: "Terms for RinaWarp Matter Intelligence.",
+    copy: "These terms apply to the Matter Intelligence product line and are separate from the Terminal Pro Early Access terms.",
+    content: `<section class="section"><div class="panel stack"><p>RinaWarp Matter Intelligence is provided by <strong>RinaWarp Technologies, LLC</strong> for professional use in legal, finance, compliance, and related sensitive workflows. Customers are responsible for reviewing generated outputs before relying on them.</p></div></section>`
+  },
+  {
+    route: "matter-intelligence/privacy",
+    path: "/matter-intelligence/privacy",
+    page: "products",
+    title: "Matter Intelligence Privacy | RinaWarp",
+    description: "Read the product-specific privacy summary for RinaWarp Matter Intelligence.",
+    eyebrow: "Privacy",
+    heading: "Privacy for RinaWarp Matter Intelligence.",
+    copy: "Matter Intelligence handles more sensitive workflows than Terminal Pro, so this page is intentionally product-specific.",
+    content: `<section class="section"><div class="panel stack"><p>Depending on customer configuration, Matter Intelligence may process Outlook mail, SharePoint files, matter notes, metadata, generated summaries, and workspace activity required to produce grounded responses.</p><p>Questions about Matter Intelligence privacy can be sent to <a href="mailto:security@rinawarptech.com">security@rinawarptech.com</a>.</p></div></section>`
+  },
+  {
     route: "pricing",
     path: "/pricing",
     page: "pricing",
@@ -1296,7 +1509,7 @@ const pages = [
       <section class="section"><div class="pricing-grid">
         <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Try the workflow on a broken project first. If it fixes the repo, you will know quickly.</p><ul class="feature-list"><li>Try the Fix Project workflow</li><li>Visible repair steps and proof-backed runs</li><li>Best for first-time use and simple fixes</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Choose installer</a></article>
         <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>Upgrade when you are blocked and want the fastest path from broken project to verified result.</p><ul class="feature-list"><li>Unlimited fixes on real projects</li><li>Trusted build, test, deploy, and repair flows</li><li>What changed, what worked, and confidence summaries</li><li>Priority support while the product keeps hardening</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Pro checkout</button></div><p id="checkout-status" class="status-message" aria-live="polite">Pro is $15 per month. Checkout opens in Stripe.</p></div></article>
-        <article class="card pricing-card"><span class="pill">Power / Team</span><div class="price">$40 <span>/ user / month</span></div><p>For teams that want seat-based rollout, shared proof, role boundaries, and a cleaner path to fixing broken projects together.</p><ul class="feature-list"><li>Seat-based checkout and workspace rollout</li><li>Role-aware invite management and audit direction</li><li>Shared proof-backed workflows for teams</li><li>Priority support and migration help</li></ul><a href="/team/" class="btn btn-secondary">Start Team checkout</a></article>
+        <article class="card pricing-card"><span class="pill">Power / Team</span><div class="price">$40 <span>/ user / month</span></div><p>For teams that want seat-based rollout, shared proof, role boundaries, and a cleaner path to fixing broken projects together.</p><ul class="feature-list"><li>Seat-based checkout and workspace rollout</li><li>Role-aware invite management and audit direction</li><li>Shared proof-backed workflows for teams</li><li>Priority support and migration help</li></ul><a href="/pricing/" class="btn btn-secondary">Start Team checkout</a></article>
       </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Why people pay for Pro</h2>
@@ -1311,50 +1524,6 @@ const pages = [
         <article class="faq-item"><h3>How does restore work?</h3><p>Paid access is tied to your billing email. If a device loses entitlement state, use the restore path in the app or account page first.</p></article>
         <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Billing is handled through Stripe, and the billing portal is the place to cancel, change plans, or update payment details.</p></article>
         <article class="faq-item"><h3>Why is there only one Pro button?</h3><p>The pricing page only advertises plans that are active in the current checkout catalog. If annual returns later, it should come back with a live Stripe price first.</p></article>
-      </div></section>
-    `
-  },
-  {
-    route: "team",
-    path: "/team",
-    page: "team",
-    title: "RinaWarp Power | Team AI Terminal for Developers",
-    description: "RinaWarp Power gives growing teams a seat-based AI terminal with trusted execution, invite management, audit visibility, and workspace-aware rollout.",
-    eyebrow: "Team plan",
-    heading: "Fix broken projects together.",
-    copy: "We built this because broken projects waste hours. The Power plan makes fixes, proof, and rollout easier to share across a team.",
-    content: `
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Why we built Power</h2>
-        <p class="section-copy">Broken projects waste team time fast. This tool exists so the team can fix them faster, see what changed, and roll it out without extra coordination overhead.</p>
-      </div></section>
-      <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">Pricing</div><h3>$40 per user / month</h3><p>Seat-based pricing keeps billing, workspace limits, and rollout pressure aligned as the team grows.</p></article>
-        <article class="card"><div class="kicker">Roles</div><h3>Owner, admin, and member boundaries</h3><p>Roles and invite controls exist so the team can adopt RinaWarp without guessing who can do what.</p></article>
-        <article class="card"><div class="kicker">Support</div><h3>Priority rollout help</h3><p>We help teams get to a clean first rollout and keep moving when a project failure blocks the whole group.</p></article>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">What Power includes</h2>
-        <div class="grid three-up">
-          <article class="card"><h3>Proof-backed team workflows</h3><p>Everyone can see the repair path, the outcome, and the evidence instead of sharing guesses in chat.</p></article>
-          <article class="card"><h3>Seat and invite management</h3><p>Roles, invites, seat tracking, and workspace state are built into the rollout path.</p></article>
-          <article class="card"><h3>Workspace visibility</h3><p>Audit and workspace state are there so the team can trust the product operationally, not only emotionally.</p></article>
-        </div>
-        <form id="team-checkout-form" class="stack">
-          <label>Billing email<input type="email" name="email" placeholder="team@company.com" required></label>
-          <div class="link-row">
-            <label>Seats<input type="number" name="seats" min="2" max="500" value="5" required></label>
-            <label>Workspace ID (optional)<input type="text" name="workspaceId" placeholder="ws_..." /></label>
-          </div>
-          <div class="cta-row">
-            <button type="submit" class="btn btn-primary">Start Team checkout</button>
-            <a href="/feedback/?topic=team" class="btn btn-secondary">Talk to support first</a>
-          </div>
-          <p id="team-checkout-status" class="status-message" aria-live="polite">Power / Team is $40 per seat each month. Checkout opens in Stripe and uses automatic tax based on billing address.</p>
-        </form>
-        <div class="cta-row">
-          <a href="mailto:hello@rinawarptech.com?subject=RinaWarp%20Team%20Plan" class="btn btn-secondary">Email the founder</a>
-        </div>
       </div></section>
     `
   },
@@ -1403,7 +1572,7 @@ const pages = [
       <section class="section"><div class="download-grid">
         <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the fastest way to get running on Debian and Ubuntu. <strong>AppImage</strong> is the better choice if you want the in-app update path later.</p><div class="link-row"><a href="/download/linux/deb" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="/download/linux" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Update note:</strong> If you install with <code>.deb</code>, update with the next <code>.deb</code>. If you want automatic in-app updates, use AppImage and keep that as your main install.</p></article>
         <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows is the simplest path if you want to download, open the repo, and try the repair flow right away.</p><div class="link-row"><a href="/download/windows" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a></div><p class="note"><strong>Trust note:</strong> Windows signing is still a follow-up investment. SmartScreen may ask for extra confirmation, and we would rather say that plainly than hide it.</p></article>
-        <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS is not live yet because we do not want to ship a rough installer path we cannot support well.</p><div class="link-row"><a href="/feedback/" class="btn btn-secondary">Ask about macOS</a></div></article>
+        <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS is not live yet because we do not want to ship a rough installer path we cannot support well.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
       <section class="section"><div class="panel stack"><div class="card trust-note"><h3>Verification matters more than vibes</h3><p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p></div><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="/releases/latest.json" class="btn btn-secondary">Open latest.json</a><a href="/releases/latest.yml" class="btn btn-secondary">Open latest.yml</a><a href="/releases/latest-linux.yml" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The canonical updater feed lives on <code>rinawarptech.com/releases/*</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
     `
@@ -1563,15 +1732,15 @@ const pages = [
         <h2 class="section-title">Need an agent we do not ship yet?</h2>
         <p class="section-copy">Tell us what broke and what you want Rina to fix. We are prioritizing real deploy, diagnostics, security, and code-fix workflows over random breadth.</p>
         <div class="cta-row">
-          <a href="/feedback/" class="btn btn-primary">Request an agent</a>
+          <a href="/support/" class="btn btn-primary">Request an agent</a>
           <a href="/download/" class="btn btn-secondary">Try RinaWarp now</a>
         </div>
       </div></section>
     `
   },
   {
-    route: "feedback",
-    path: "/feedback",
+    route: "support",
+    path: "/support",
     page: "feedback",
     title: "RinaWarp Support | Help, Feedback, and Contact",
     description: "Contact RinaWarp for product support, billing help, restore issues, feedback, launch questions, and capability requests.",
@@ -1596,7 +1765,28 @@ const pages = [
     eyebrow: "Terms",
     heading: "Terms for RinaWarp Terminal Pro Early Access.",
     copy: "These terms are intentionally plain. Early Access means real software, real support, and honest boundaries while the product is still hardening.",
-    content: `<section class="section"><div class="panel stack"><h2 class="section-title">Use of the product</h2><p>RinaWarp Terminal Pro is provided by <strong>RinaWarp Technologies, LLC</strong> for professional and personal workflow use. You are responsible for reviewing outputs, especially for builds, deploys, file changes, and other high-impact actions.</p><p>Paid access is currently sold as an Early Access subscription. Billing is handled through Stripe.</p><p>Early Access support is provided on a reasonable-effort basis. We aim to be responsive and honest, but we do not promise enterprise-grade response times yet.</p></div></section>`
+    content: `
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Use of the product</h2>
+        <p>RinaWarp Terminal Pro is provided by <strong>RinaWarp Technologies, LLC</strong> for professional and personal workflow use. You are responsible for reviewing outputs, especially for builds, deploys, file changes, and other high-impact actions.</p>
+        <p>You remain responsible for repositories, infrastructure, secrets, and release decisions. RinaWarp assists execution but does not replace human review for production-impact actions.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Billing and subscriptions</h2>
+        <p>Paid access is sold as an Early Access subscription through Stripe. Subscriptions renew automatically until canceled, and paid features remain available through the current paid period unless otherwise stated.</p>
+        <p>If billing is canceled or payment fails, paid features may be limited or removed at the end of the applicable billing period. For billing issues, contact <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a> with your billing email.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Acceptable use</h2>
+        <p>Do not use the product for unlawful activity, credential theft, malware operations, unauthorized system access, or abuse of third-party systems. We may suspend access for abuse, fraud, non-payment, or security risk.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Warranties, liability, and support boundaries</h2>
+        <p>The product is provided “as is” and “as available” to the maximum extent allowed by law. We do not guarantee uninterrupted operation or that every suggested action is correct for your environment.</p>
+        <p>To the maximum extent allowed by law, RinaWarp Technologies, LLC is not liable for indirect, incidental, special, consequential, or punitive damages, or for lost revenue, data, or goodwill from product use.</p>
+        <p>Early Access support is provided on a reasonable-effort basis. We aim to be responsive and honest, but we do not promise enterprise-grade response times yet.</p>
+      </div></section>
+    `
   },
   {
     route: "privacy",
@@ -1607,7 +1797,28 @@ const pages = [
     eyebrow: "Privacy",
     heading: "Privacy and product data.",
     copy: "RinaWarp should feel trustworthy not only in execution, but in how we handle purchase, support, and product data.",
-    content: `<section class="section"><div class="panel stack"><h2 class="section-title">What we collect</h2><p>We may collect billing information through Stripe, support and feedback submissions you send to us, and limited product telemetry needed to understand reliability, updates, and launch issues.</p><p>Questions about privacy, billing, or support can be sent to <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p></div></section>`
+    content: `
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">What we collect</h2>
+        <p>We may collect billing information through Stripe, support and feedback submissions, website analytics, and limited product telemetry needed to understand reliability, updates, and launch issues.</p>
+        <p>Desktop telemetry is intended for product health and workflow outcomes, not full repository content by default.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Execution model and data flow</h2>
+        <p>Terminal Pro runs commands and file operations on your machine in your local environment unless you explicitly trigger a cloud workflow.</p>
+        <p>Support bundles or diagnostics are transmitted when you intentionally submit them. We use submitted diagnostics to debug issues and improve reliability.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Retention and processors</h2>
+        <p>We retain data for operations, legal obligations, support continuity, and abuse prevention, then delete or anonymize where practical.</p>
+        <p>Stripe processes billing data. Infrastructure and analytics providers may process operational metadata on our behalf under contractual controls.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Your rights and contact</h2>
+        <p>You can request access, correction, or deletion of personal data we control, subject to legal and operational constraints.</p>
+        <p>Questions about privacy, billing, or support can be sent to <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p>
+      </div></section>
+    `
   },
   {
     route: "early-access",
@@ -1627,7 +1838,7 @@ const pages = [
         <div class="link-row">
           <a href="/pricing/" class="btn btn-primary">See pricing</a>
           <a href="/download/" class="btn btn-secondary">Download Terminal Pro</a>
-          <a href="/feedback/" class="btn btn-secondary">Contact support</a>
+          <a href="/support/" class="btn btn-secondary">Contact support</a>
         </div>
       </div></section>
       <section class="section"><div class="grid three-up">
@@ -1750,7 +1961,7 @@ const pages = [
       <section class="section"><div class="grid three-up">
         <article class="card"><div class="kicker">1. Install</div><h3>Download the app</h3><p>Use the Windows installer or choose the Linux path that matches how you want updates to work: <strong>.deb</strong> for the easiest Debian/Ubuntu install, or <strong>AppImage</strong> if you want Linux in-app updates.</p><div class="link-row"><a href="/download/" class="btn btn-primary">Open download page</a></div></article>
         <article class="card"><div class="kicker">2. Restore</div><h3>Use your billing email</h3><p>Open Account in the app and restore paid access using <strong data-success-email>the billing email you used at checkout</strong>.</p><div class="link-row"><a id="success-restore-link" href="/account/" class="btn btn-secondary">Open account help</a></div></article>
-        <article class="card"><div class="kicker">3. Verify</div><h3>Make sure the tier shows up</h3><p>Your plan should show as <strong id="success-plan">Pro</strong>. If it does not, use billing restore or contact support.</p><div class="link-row"><a href="/feedback/?topic=billing" class="btn btn-secondary">Get billing help</a></div></article>
+        <article class="card"><div class="kicker">3. Verify</div><h3>Make sure the tier shows up</h3><p>Your plan should show as <strong id="success-plan">Pro</strong>. If it does not, use billing restore or contact support.</p><div class="link-row"><a href="/support/?topic=billing" class="btn btn-secondary">Get billing help</a></div></article>
       </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Checkout receipt details</h2>
@@ -1791,8 +2002,18 @@ const REDIRECTS = `
 /downloads/* /download/:splat 301
 /terminal-pro / 301
 /terminal-pro.html / 301
-/contact /feedback/ 301
-/contact.html /feedback/ 301
+/contact /support/ 301
+/contact.html /support/ 301
+/feedback /support/ 301
+/feedback/ /support/ 301
+/team /pricing/ 301
+/team/ /pricing/ 301
+/about /products/ 301
+/about/ /products/ 301
+/about-rinawarp /products/ 301
+/about-rinawarp/ /products/ 301
+/music-video-creator /products/ 301
+/music-video-creator/ /products/ 301
 /affiliates.html /pricing/ 301
 `.trim() + "\n";
 
@@ -1811,19 +2032,24 @@ Sitemap: https://rinawarptech.com/sitemap.xml
 const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://rinawarptech.com/</loc></url>
+  <url><loc>https://rinawarptech.com/products/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/pricing/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/security/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/demo/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/download/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/docs/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/contact/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/terms/</loc></url>
+  <url><loc>https://rinawarptech.com/matter-intelligence/privacy/</loc></url>
   <url><loc>https://rinawarptech.com/pricing/</loc></url>
-  <url><loc>https://rinawarptech.com/team/</loc></url>
   <url><loc>https://rinawarptech.com/download/</loc></url>
   <url><loc>https://rinawarptech.com/docs/</loc></url>
-  <url><loc>https://rinawarptech.com/feedback/</loc></url>
+  <url><loc>https://rinawarptech.com/support/</loc></url>
   <url><loc>https://rinawarptech.com/early-access/</loc></url>
   <url><loc>https://rinawarptech.com/terms/</loc></url>
   <url><loc>https://rinawarptech.com/privacy/</loc></url>
   <url><loc>https://rinawarptech.com/agents</loc></url>
-  <url><loc>https://rinawarptech.com/what-is-rinawarp/</loc></url>
-  <url><loc>https://rinawarptech.com/what-is-a-proof-first-ai-terminal/</loc></url>
-  <url><loc>https://rinawarptech.com/rinawarp-vs-ai-terminals/</loc></url>
-  <url><loc>https://rinawarptech.com/rinawarp-vs-warp/</loc></url>
 </urlset>
 `;
 

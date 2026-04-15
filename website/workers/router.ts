@@ -8,7 +8,8 @@ import { apiRouter } from './api/index'
 import { marketplaceUI } from './marketplace/ui'
 import { injectSeoTags } from './seo'
 import { handleAuthRequest } from './api/auth'
-import { extractToken, verifyToken } from './lib/auth'
+import { createToken, extractToken, verifyToken } from './lib/auth'
+import type { D1Database } from './lib/cloudflare-types'
 
 const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -62,6 +63,8 @@ function rwRedirect(location: string, status = 302): Response {
 function getDb(env: any): D1Database | null {
   return env.RINAWARP_DB || null
 }
+
+let matterIntelligenceTablesInitialized = false
 
 function nowSeconds(): number {
   return Math.floor(Date.now() / 1000)
@@ -457,10 +460,11 @@ async function serveDownloadObject(env: any, objectKey: string): Promise<Respons
   return new Response(object.body, { headers })
 }
 
-type SitePage = 'home' | 'pricing' | 'download' | 'docs' | 'agents' | 'feedback' | 'legal' | 'login' | 'register' | 'account'
+type SitePage = 'home' | 'products' | 'pricing' | 'download' | 'docs' | 'agents' | 'feedback' | 'legal' | 'login' | 'register' | 'account'
 
 type SiteAnalyticsEvent =
   | 'site_home_viewed'
+  | 'site_products_viewed'
   | 'site_pricing_viewed'
   | 'site_download_viewed'
   | 'site_download_clicked'
@@ -470,33 +474,34 @@ const SITE_STYLES = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     color-scheme: dark;
-    --bg: #0b1020;
-    --surface: rgba(10, 21, 32, 0.84);
-    --surface-strong: #0d1c2a;
-    --surface-soft: rgba(255, 255, 255, 0.04);
-    --line: rgba(148, 163, 184, 0.16);
-    --line-strong: rgba(98, 246, 229, 0.28);
-    --text: #edf6ff;
-    --muted: #a3b6c9;
-    --accent: #62f6e5;
-    --accent-2: #ff4fd8;
-    --accent-warm: #ff9b6b;
-    --accent-soft: #8fefff;
+    --bg: #0b0b10;
+    --surface: rgba(18, 19, 26, 0.88);
+    --surface-strong: #181b22;
+    --surface-soft: rgba(255, 255, 255, 0.035);
+    --line: rgba(184, 190, 208, 0.14);
+    --line-strong: rgba(31, 214, 193, 0.28);
+    --text: #f7f7fa;
+    --muted: #b8bed0;
+    --accent: #1fd6c1;
+    --accent-2: #ff4fa3;
+    --accent-warm: #ff7a6b;
+    --accent-blue: #4ea1ff;
+    --accent-soft: #7fd6ff;
     --success: #22c55e;
     --danger: #fb7185;
-    --shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
-    --radius: 18px;
-    --radius-sm: 12px;
-    --content: 1080px;
+    --shadow: 0 30px 80px rgba(0, 0, 0, 0.38);
+    --radius: 28px;
+    --radius-sm: 18px;
+    --content: 1180px;
   }
   body {
     min-height: 100vh;
     color: var(--text);
-    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    font-family: "Inter", "Segoe UI", sans-serif;
     background:
-      radial-gradient(circle at top, rgba(255, 79, 216, 0.11), transparent 30%),
-      radial-gradient(circle at 85% 12%, rgba(98, 246, 229, 0.10), transparent 22%),
-      linear-gradient(180deg, #090d18 0%, #0b1020 100%);
+      radial-gradient(circle at top, rgba(255, 79, 163, 0.16), transparent 28%),
+      radial-gradient(circle at 88% 10%, rgba(31, 214, 193, 0.12), transparent 20%),
+      linear-gradient(180deg, #050505 0%, #0b0b10 38%, #101219 100%);
   }
   a { color: inherit; text-decoration: none; }
   .skip-link {
@@ -520,7 +525,7 @@ const SITE_STYLES = `
     top: 0;
     z-index: 10;
     backdrop-filter: blur(20px);
-    background: rgba(7, 17, 26, 0.78);
+    background: rgba(8, 8, 12, 0.74);
     border-bottom: 1px solid var(--line);
   }
   nav {
@@ -547,13 +552,13 @@ const SITE_STYLES = `
   .nav-links {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     color: var(--muted);
   }
   .nav-links a {
-    padding: 6px 10px;
+    padding: 8px 12px;
     border-radius: 999px;
     transition: color 0.2s ease, background 0.2s ease;
   }
@@ -565,19 +570,19 @@ const SITE_STYLES = `
   .hero {
     max-width: var(--content);
     margin: 0 auto;
-    padding: 56px 24px 26px;
+    padding: 76px 24px 40px;
     display: grid;
-    gap: 14px;
+    gap: 22px;
   }
   .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
-    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.96fr);
+    gap: 34px;
     align-items: center;
   }
   .hero-panel {
     display: grid;
-    gap: 14px;
+    gap: 18px;
   }
   .eyebrow {
     display: inline-flex;
@@ -594,17 +599,18 @@ const SITE_STYLES = `
     padding: 6px 10px;
   }
   h1 {
-    font-size: clamp(1.85rem, 3vw, 3.2rem);
-    line-height: 1.02;
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    font-size: clamp(2.6rem, 6vw, 5.2rem);
+    line-height: 0.94;
     letter-spacing: -0.04em;
-    max-width: 12ch;
+    max-width: 10ch;
   }
   .hero-copy,
   .lede {
     color: var(--muted);
-    font-size: 0.95rem;
-    line-height: 1.58;
-    max-width: 64ch;
+    font-size: 1.02rem;
+    line-height: 1.7;
+    max-width: 58ch;
   }
   .cta-row,
   .link-row {
@@ -617,8 +623,8 @@ const SITE_STYLES = `
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 44px;
-    padding: 0 16px;
+    min-height: 48px;
+    padding: 0 18px;
     border-radius: 999px;
     text-decoration: none;
     font-weight: 650;
@@ -628,8 +634,8 @@ const SITE_STYLES = `
   .btn:hover { transform: translateY(-1px); }
   .btn-primary {
     color: #08121b;
-    background: linear-gradient(135deg, #62f6e5 0%, #8fefff 24%, #ff9b6b 62%, #ff4fd8 100%);
-    box-shadow: 0 12px 26px rgba(255, 79, 216, 0.18);
+    background: linear-gradient(135deg, #ff4fa3 0%, #ff7a6b 48%, #1fd6c1 100%);
+    box-shadow: 0 18px 36px rgba(255, 79, 163, 0.22);
   }
   .btn-secondary {
     color: var(--text);
@@ -645,19 +651,20 @@ const SITE_STYLES = `
   .section {
     max-width: var(--content);
     margin: 0 auto;
-    padding: 26px 24px;
+    padding: 44px 24px;
   }
   .section-title {
-    font-size: 1.28rem;
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    font-size: clamp(1.5rem, 2vw, 2.4rem);
+    margin-bottom: 10px;
+    letter-spacing: -0.03em;
   }
   .section-copy {
     color: var(--muted);
-    max-width: 62ch;
-    line-height: 1.58;
-    font-size: 0.95rem;
-    margin-bottom: 18px;
+    max-width: 56ch;
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 22px;
   }
   .grid {
     display: grid;
@@ -669,7 +676,7 @@ const SITE_STYLES = `
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
-    padding: 18px;
+    padding: 24px;
     box-shadow: var(--shadow);
   }
   .card h3,
@@ -802,16 +809,17 @@ const SITE_STYLES = `
   }
   .terminal-preview {
     display: grid;
-    gap: 10px;
-    padding: 18px;
-    border-radius: 20px;
-    border: 1px solid rgba(98, 246, 229, 0.22);
+    gap: 12px;
+    padding: 22px;
+    border-radius: 26px;
+    border: 1px solid rgba(31, 214, 193, 0.22);
     background:
-      radial-gradient(circle at top right, rgba(255, 79, 216, 0.12), transparent 34%),
-      linear-gradient(180deg, rgba(3, 8, 16, 0.98), rgba(9, 18, 28, 0.94));
+      radial-gradient(circle at top right, rgba(255, 79, 163, 0.16), transparent 34%),
+      radial-gradient(circle at 0% 100%, rgba(78, 161, 255, 0.10), transparent 28%),
+      linear-gradient(180deg, rgba(8, 8, 12, 0.98), rgba(17, 19, 27, 0.96));
     box-shadow:
-      0 0 20px rgba(255, 79, 216, 0.18),
-      0 0 26px rgba(98, 246, 229, 0.08);
+      0 0 24px rgba(255, 79, 163, 0.18),
+      0 0 36px rgba(31, 214, 193, 0.08);
   }
   .terminal-line {
     font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
@@ -827,10 +835,10 @@ const SITE_STYLES = `
     gap: 14px;
     padding: 18px;
     border-radius: 20px;
-    border: 1px solid rgba(98, 246, 229, 0.22);
+    border: 1px solid rgba(31, 214, 193, 0.22);
     background:
-      radial-gradient(circle at top right, rgba(255, 79, 216, 0.12), transparent 34%),
-      linear-gradient(180deg, rgba(3, 8, 16, 0.98), rgba(9, 18, 28, 0.94));
+      radial-gradient(circle at top right, rgba(255, 79, 163, 0.14), transparent 34%),
+      linear-gradient(180deg, rgba(8, 8, 12, 0.98), rgba(17, 19, 27, 0.96));
     box-shadow:
       0 0 20px rgba(255, 79, 216, 0.18),
       0 0 26px rgba(98, 246, 229, 0.08);
@@ -863,8 +871,111 @@ const SITE_STYLES = `
     gap: 18px;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
+  .hero-visual {
+    display: grid;
+    gap: 14px;
+    padding: 24px;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      radial-gradient(circle at top right, rgba(255, 79, 163, 0.16), transparent 34%),
+      radial-gradient(circle at 0% 100%, rgba(31, 214, 193, 0.12), transparent 24%),
+      linear-gradient(180deg, rgba(11, 11, 16, 0.98), rgba(24, 27, 34, 0.96));
+    box-shadow: var(--shadow);
+  }
+  .hero-visual strong {
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+  }
+  .hero-visual p {
+    color: var(--muted);
+    line-height: 1.65;
+  }
+  .visual-stack {
+    display: grid;
+    gap: 12px;
+  }
+  .visual-row {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+  .visual-card {
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .visual-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.98rem;
+  }
+  .visual-card p,
+  .visual-card span {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+  .duo-grid {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+  .product-showcase {
+    position: relative;
+    overflow: hidden;
+    padding: 28px;
+    border-radius: 28px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(circle at top right, rgba(255, 79, 163, 0.12), transparent 32%),
+      linear-gradient(180deg, rgba(18, 19, 26, 0.96), rgba(11, 11, 16, 0.96));
+    box-shadow: var(--shadow);
+  }
+  .product-showcase::after {
+    content: "";
+    position: absolute;
+    inset: auto -40px -80px auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(31, 214, 193, 0.14), transparent 70%);
+    pointer-events: none;
+  }
+  .product-showcase h2 {
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+    margin-bottom: 10px;
+  }
+  .product-showcase p {
+    color: var(--muted);
+    line-height: 1.68;
+  }
+  .signal-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .signal-card {
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.035);
+  }
+  .signal-card strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+  .signal-card p {
+    color: var(--muted);
+    line-height: 1.58;
+  }
   .step-card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
     border: 1px solid var(--line);
     border-radius: 18px;
     padding: 18px;
@@ -882,7 +993,7 @@ const SITE_STYLES = `
     margin-bottom: 12px;
     font-weight: 700;
     color: #08121b;
-    background: linear-gradient(135deg, #ff4fd8, #ff9b6b, #62f6e5, #8fefff);
+    background: linear-gradient(135deg, #ff4fa3, #ff7a6b, #1fd6c1, #4ea1ff);
   }
   .fix-before-after {
     display: grid;
@@ -1007,6 +1118,27 @@ const SITE_STYLES = `
     color: var(--success);
     margin-right: 10px;
   }
+  .section-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .section-subnav a {
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.95rem;
+    text-decoration: none;
+  }
+  .section-subnav a.active,
+  .section-subnav a:hover {
+    color: var(--text);
+    border-color: rgba(143, 239, 255, 0.38);
+    background: rgba(143, 239, 255, 0.1);
+  }
   .download-grid {
     display: grid;
     gap: 18px;
@@ -1129,7 +1261,15 @@ function navAccountLink(active: SitePage): string {
 }
 
 function robotsMetaForPath(path: string): string {
-  const noindexPaths = new Set(['/account', '/login', '/register', '/forgot-password', '/reset-password', '/success'])
+  const noindexPaths = new Set([
+    '/account',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/success',
+    '/feedback',
+  ])
   if (noindexPaths.has(path)) return '<meta name="robots" content="noindex, nofollow">'
   return '<meta name="robots" content="index, follow">'
 }
@@ -1145,19 +1285,24 @@ function renderRobotsTxt(origin: string): Response {
 function renderSitemapXml(origin: string): Response {
   const urls = [
     '/',
+    '/products',
     '/pricing',
-    '/team',
     '/download',
+    '/support',
+    '/matter-intelligence',
+    '/matter-intelligence/pricing',
+    '/matter-intelligence/security',
+    '/matter-intelligence/demo',
+    '/matter-intelligence/download',
+    '/matter-intelligence/docs',
+    '/matter-intelligence/contact',
+    '/matter-intelligence/terms',
+    '/matter-intelligence/privacy',
     '/docs',
-    '/feedback',
     '/early-access',
     '/terms',
     '/privacy',
     '/agents',
-    '/what-is-rinawarp',
-    '/what-is-a-proof-first-ai-terminal',
-    '/rinawarp-vs-ai-terminals',
-    '/rinawarp-vs-warp',
   ]
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
     .map((pathname) => `  <url><loc>${origin}${pathname}</loc></url>`)
@@ -1170,9 +1315,31 @@ function renderSitemapXml(origin: string): Response {
 
 function pageViewEventForPath(path: string): SiteAnalyticsEvent | null {
   if (path === '/') return 'site_home_viewed'
+  if (path === '/products') return 'site_products_viewed'
   if (path === '/pricing') return 'site_pricing_viewed'
   if (path === '/download') return 'site_download_viewed'
   return null
+}
+
+function matterIntelligenceSubnav(activePath: string): string {
+  const items = [
+    ['/matter-intelligence', 'Overview'],
+    ['/matter-intelligence/pricing', 'Pricing'],
+    ['/matter-intelligence/security', 'Security'],
+    ['/matter-intelligence/demo', 'Demo'],
+    ['/matter-intelligence/download', 'Download'],
+  ] as const
+
+  return `
+    <div class="section-subnav" aria-label="Matter Intelligence section navigation">
+      ${items
+        .map(([href, label]) => {
+          const active = href === activePath
+          return `<a href="${href}"${active ? ' class="active" aria-current="page"' : ''}>${label}</a>`
+        })
+        .join('')}
+    </div>
+  `
 }
 
 function renderAnalyticsBootstrap(path: string): string {
@@ -1243,6 +1410,9 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="msapplication-TileColor" content="#ff4fd8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev" crossorigin>
   <link rel="preconnect" href="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev" crossorigin>
   ${seo}
@@ -1259,13 +1429,13 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
         </a>
         <div class="nav-links">
           ${navLink('/', 'Home', active, 'home')}
-          <a href="/#products">Products</a>
+          ${navLink('/products', 'Products', active, 'products')}
+          <a href="/matter-intelligence">Matter Intelligence</a>
           ${navLink('/pricing', 'Pricing', active, 'pricing')}
-          <a href="/team">Team</a>
           ${navLink('/download', 'Download', active, 'download')}
           ${navLink('/docs', 'Docs', active, 'docs')}
           ${navLink('/agents', 'Agents', active, 'agents')}
-          ${navLink('/feedback', 'Support', active, 'feedback')}
+          ${navLink('/support', 'Support', active, 'feedback')}
           ${navAccountLink(active)}
         </div>
       </nav>
@@ -1278,11 +1448,11 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
       <div class="footer-inner">
         <div>© 2026 RinaWarp Technologies, LLC. One platform, two product surfaces.</div>
         <div class="footer-links">
-          <a href="/#products">Products</a>
+          <a href="/products">Products</a>
           <a href="/docs">Docs</a>
           <a href="/pricing">Pricing</a>
           <a href="/download">Download</a>
-          <a href="/feedback">Support</a>
+          <a href="/support">Support</a>
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy</a>
           <a href="/early-access">Early Access</a>
@@ -1308,11 +1478,15 @@ function renderHomepage(): Response {
         <div class="hero-panel">
           <span class="eyebrow">Fix Project</span>
           <h1>Fix your broken project automatically.</h1>
-          <p class="hero-copy">RinaWarp detects, repairs, and verifies your codebase in minutes. It does not stop at suggestions. It shows the plan, runs the repair, and proves what changed.</p>
-          <p class="lede">Like having a senior engineer fix your project instantly.</p>
+          <p class="hero-copy">RinaWarp reads your code, repairs the issue, and shows what changed, what worked, and how confident the result is.</p>
           <div class="cta-row">
-            <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Fix My Project</a>
-            <a href="/#demo" class="btn btn-secondary btn-secondary-strong">Watch Demo</a>
+            <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download now</a>
+            <a href="/pricing" class="btn btn-secondary btn-secondary-strong">See pricing</a>
+          </div>
+          <div class="trust-row">
+            <span class="trust-chip">Proof-backed repair</span>
+            <span class="trust-chip">Verified results</span>
+            <span class="trust-chip">Built for real repos</span>
           </div>
         </div>
         <div class="terminal-preview" aria-label="Fix Project terminal preview">
@@ -1320,7 +1494,7 @@ function renderHomepage(): Response {
             <span class="demo-dot"></span>
             <span class="demo-dot"></span>
             <span class="demo-dot"></span>
-            <span>Fix Project preview</span>
+            <span>RinaWarp Terminal Pro</span>
           </div>
           <span class="terminal-line dim">&gt; npm run build</span>
           <span class="terminal-line fail">Module not found: react-scripts</span>
@@ -1329,6 +1503,17 @@ function renderHomepage(): Response {
           <span class="terminal-line ok">Updating project config</span>
           <span class="terminal-line ok">Rebuilding project</span>
           <span class="terminal-line ok">Build successful</span>
+          <div class="demo-proof">
+            <div class="demo-proof-header">
+              <span>Repair summary</span>
+              <span class="demo-proof-tag">Confidence 94%</span>
+            </div>
+            <div class="demo-proof-lines">
+              <span>What changed: installed react-scripts</span>
+              <span>What worked: production build passed</span>
+              <span>Receipt: proof attached to run output</span>
+            </div>
+          </div>
           <span class="terminal-caption">Show → Execute → Prove</span>
         </div>
       </div>
@@ -1336,6 +1521,26 @@ function renderHomepage(): Response {
   `
 
   const content = `
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card">
+          <div class="kicker">What changed</div>
+          <h3>Readable repair diff</h3>
+          <p>See exactly which dependency, file, or config changed before you trust the result.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">What worked</div>
+          <h3>Real verification</h3>
+          <p>Builds, tests, and follow-up checks are run after the repair so success is not just a claim.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Confidence</div>
+          <h3>Proof attached</h3>
+          <p>Every repair ends with receipts, status, and a confidence signal you can inspect without digging.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="section">
       <h2 class="section-title" id="demo">Watch the real fix flow</h2>
       <p class="section-copy">This is a real RinaWarp session recorded against a genuinely broken workspace. It shows the exact moment the product should sell: broken project, one click, visible repair, proof attached.</p>
@@ -1449,6 +1654,17 @@ Build successful</code>
       </div>
     </section>
 
+    <section class="section" id="products">
+      <div class="panel">
+        <div class="kicker">Explore the product line</div>
+        <h2 class="section-title">RinaWarp now has two distinct product tracks.</h2>
+        <p class="section-copy">Terminal Pro stays focused on fixing broken projects automatically. Matter Intelligence has its own product hub, positioning, and trust surfaces so the stories never blur.</p>
+        <div class="cta-row">
+          <a href="/products" class="btn btn-secondary btn-secondary-strong">Explore RinaWarp products</a>
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="panel final-cta">
         <div class="kicker">Stop debugging. Start fixing.</div>
@@ -1465,16 +1681,873 @@ Build successful</code>
   return renderPage('/', 'home', hero, content)
 }
 
+function renderProducts(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Product hub</span>
+          <h1>RinaWarp Products</h1>
+          <p class="hero-copy">RinaWarp is growing into a two-product company. Each product has its own buyer, workflow, pricing, and trust story.</p>
+          <div class="trust-row">
+            <span class="trust-chip">Terminal Pro stays focused</span>
+            <span class="trust-chip">Matter Intelligence stays separate</span>
+            <span class="trust-chip">One brand, two revenue paths</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="RinaWarp product family preview">
+          <strong>Two product tracks. Two different buying moments.</strong>
+          <div class="visual-stack">
+            <div class="visual-card">
+              <strong>Terminal Pro</strong>
+              <span>Broken repo in. Verified repair out.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Matter Intelligence</strong>
+              <span>Scattered evidence in. Cited answer and status memo out.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="duo-grid">
+        <article class="product-showcase stack">
+          <span class="pill">Developer product</span>
+          <h2>RinaWarp Terminal Pro</h2>
+          <p>Fix broken projects automatically.</p>
+          <p>AI that reads your code, fixes issues, and verifies the result. Built for broken installs, failed builds, bad config, and crashed dev servers.</p>
+          <div class="signal-grid">
+            <div class="signal-card">
+              <strong>What changed</strong>
+              <p>Readable repair diff and execution narrative.</p>
+            </div>
+            <div class="signal-card">
+              <strong>What worked</strong>
+              <p>Builds, tests, and checks after the fix.</p>
+            </div>
+          </div>
+          <div class="cta-row">
+            <a href="/" class="btn btn-primary">View Terminal Pro</a>
+            <a href="/pricing" class="btn btn-secondary">See pricing</a>
+            <a href="/download" class="btn btn-secondary">Download</a>
+          </div>
+        </article>
+        <article class="product-showcase stack">
+          <span class="pill">Trust product</span>
+          <h2>RinaWarp Matter Intelligence</h2>
+          <p>Institutional memory for sensitive matters.</p>
+          <p>AI for legal, finance, and compliance teams that connects matter documents, email, transcripts, obligations, and decisions into one evidence-grounded workspace.</p>
+          <div class="signal-grid">
+            <div class="signal-card">
+              <strong>Ask any matter</strong>
+              <p>Recover decisions, obligations, deadlines, and open risks.</p>
+            </div>
+            <div class="signal-card">
+              <strong>See the evidence</strong>
+              <p>Answers stay grounded in linked source material.</p>
+            </div>
+          </div>
+          <div class="cta-row">
+            <a href="/matter-intelligence" class="btn btn-primary">Explore Matter Intelligence</a>
+            <a href="/matter-intelligence/demo" class="btn btn-secondary">Request demo</a>
+          </div>
+        </article>
+      </div>
+    </section>
+  `
+
+  return renderPage('/products', 'products', hero, content)
+}
+
+function renderMatterIntelligenceOverview(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">RinaWarp Matter Intelligence</span>
+          <h1>Institutional memory for sensitive matters.</h1>
+          <p class="hero-copy">RinaWarp Matter Intelligence helps legal, finance, and compliance teams reconstruct what happened, what changed, what deadlines exist, and which evidence supports the answer.</p>
+          <p class="lede">Connect Outlook and SharePoint. Open a matter. Ask a question. Get a cited answer and a draft status memo grounded in the source material.</p>
+          <div class="cta-row">
+            <a href="/matter-intelligence/demo" class="btn btn-primary">Request demo</a>
+            <a href="/matter-intelligence/pricing" class="btn btn-secondary">See pricing</a>
+          </div>
+          <div class="trust-row">
+            <span class="trust-chip">Source-linked answers</span>
+            <span class="trust-chip">Matter-scoped memory</span>
+            <span class="trust-chip">Reviewer-ready drafts</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence evidence-grounded preview">
+          <strong>Connected matter workspace</strong>
+          <div class="visual-card">
+            <strong>Question</strong>
+            <p>What changed since the last review?</p>
+          </div>
+          <div class="visual-row">
+            <div class="visual-card">
+              <strong>Cited answer</strong>
+              <span>Three new obligations, one approval, one missed date now visible.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Status memo</strong>
+              <span>Draft recap generated with source-backed evidence references.</span>
+            </div>
+          </div>
+          <div class="visual-card">
+            <strong>Connected sources</strong>
+            <span>Outlook mail, SharePoint files, notes, and timeline events.</span>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('/matter-intelligence')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <h2 class="section-title">What it does</h2>
+      <div class="signal-grid">
+        <article class="signal-card">
+          <h3>Ask any matter</h3>
+          <p>Find prior decisions, obligations, deadlines, approvals, and open risks in one place.</p>
+        </article>
+        <article class="signal-card">
+          <h3>See the evidence</h3>
+          <p>Every answer is grounded in source-linked documents, messages, and timeline events.</p>
+        </article>
+        <article class="signal-card">
+          <h3>Generate reviewer-ready drafts</h3>
+          <p>Create status memos and decision recaps with citations before anything leaves the workspace.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="duo-grid">
+        <article class="product-showcase stack">
+          <div class="kicker">Built for regulated workflows</div>
+          <h2>Designed for teams where context loss is expensive.</h2>
+          <ul class="feature-list">
+            <li>Legal matters</li>
+            <li>Finance investigations</li>
+            <li>Internal compliance reviews</li>
+            <li>Audit preparation</li>
+            <li>Sensitive internal cases</li>
+          </ul>
+        </article>
+        <article class="product-showcase stack">
+          <div class="kicker">Why teams buy it</div>
+          <h2>Keep the memory of the matter intact over time.</h2>
+          <p>Sensitive work breaks when context is scattered. Matter Intelligence helps teams spend less time reconstructing history and more time making decisions with grounded evidence.</p>
+          <div class="signal-grid">
+            <div class="signal-card">
+              <strong>Less reconstruction</strong>
+              <p>Recover prior decisions without digging through disconnected folders and email threads.</p>
+            </div>
+            <div class="signal-card">
+              <strong>More reviewer confidence</strong>
+              <p>Generate draft memos that already point back to the underlying evidence.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  `
+
+  return renderPage('/matter-intelligence', 'products', hero, content)
+}
+
+function renderMatterIntelligencePricing(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Pricing</span>
+          <h1>Pricing for Matter Intelligence</h1>
+          <p class="hero-copy">Keep the purchase story simple: self-serve for solo use, guided setup for team workflows, and sales-led onboarding for enterprise trust requirements.</p>
+          <div class="trust-row">
+            <span class="trust-chip">Solo self-serve</span>
+            <span class="trust-chip">Team guided setup</span>
+            <span class="trust-chip">Enterprise trust controls</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence pricing summary">
+          <strong>Two go-to-market motions</strong>
+          <div class="visual-row">
+            <div class="visual-card">
+              <strong>Solo</strong>
+              <span>Self-serve monthly start for independent professionals.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Team / Enterprise</strong>
+              <span>Founder-led setup for shared workspaces, governance, and rollout.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('/matter-intelligence/pricing')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card">
+          <div class="kicker">Launch shape</div>
+          <h3>Keep the offer intentionally narrow</h3>
+          <p>Start with one matter, one connected workflow, one cited answer, and one status memo that proves the system works.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Solo</div>
+          <h3>Fastest path to revenue</h3>
+          <p>Give independent professionals a clear monthly plan and a low-friction demo or trial start.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Team</div>
+          <h3>Sales-led when trust matters more</h3>
+          <p>Use guided setup where shared workspace controls and deployment questions are part of the sale.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="pricing-grid">
+        <article class="card pricing-card">
+          <span class="pill">Solo</span>
+          <div class="price">$99 <span>/ month</span></div>
+          <p>For independent legal, finance, or compliance professionals working on sensitive matters.</p>
+          <ul class="feature-list">
+            <li>1 user</li>
+            <li>Up to 25 active matters</li>
+            <li>Outlook + SharePoint connectors</li>
+            <li>Ask Matter</li>
+            <li>Cited answers</li>
+            <li>Status memo drafts</li>
+          </ul>
+          <a href="/matter-intelligence/demo" class="btn btn-primary">Start trial</a>
+        </article>
+        <article class="card pricing-card featured">
+          <span class="pill">Team</span>
+          <div class="price">$399 <span>/ month</span></div>
+          <p>For small teams that need shared matter memory, reviewer workflows, and audit visibility.</p>
+          <ul class="feature-list">
+            <li>Up to 5 users</li>
+            <li>Shared workspace</li>
+            <li>Matter timeline</li>
+            <li>Review queue</li>
+            <li>Admin controls</li>
+            <li>Audit log</li>
+          </ul>
+          <a href="/matter-intelligence/demo" class="btn btn-primary">Request setup</a>
+        </article>
+        <article class="card pricing-card">
+          <span class="pill">Enterprise</span>
+          <div class="price">Custom</div>
+          <p>For teams that need SSO, private deployment, retention controls, or custom integrations.</p>
+          <ul class="feature-list">
+            <li>SSO</li>
+            <li>Custom retention</li>
+            <li>Advanced governance</li>
+            <li>Private deployment options</li>
+            <li>Priority support</li>
+          </ul>
+          <a href="/matter-intelligence/contact" class="btn btn-secondary">Talk to sales</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="duo-grid">
+        <article class="panel stack">
+          <div class="kicker">What customers are buying</div>
+          <h2 class="section-title">Not generic AI. A matter-specific workflow with evidence.</h2>
+          <p>Pricing works best when the scope is clear: connect the right sources, ask a matter question, get a cited answer, and draft a reviewer-ready memo.</p>
+        </article>
+        <article class="panel stack">
+          <div class="kicker">Commercial design</div>
+          <h2 class="section-title">Simple pricing outside, stronger controls inside.</h2>
+          <p>Solo is simple enough to understand quickly. Team and Enterprise absorb the complexity of governance, rollout, and deployment without cluttering the core pricing table.</p>
+        </article>
+      </div>
+    </section>
+  `
+
+  return renderPage('/matter-intelligence/pricing', 'products', hero, content)
+}
+
+function renderMatterIntelligenceSecurity(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Security and data handling</span>
+          <h1>Designed for sensitive work.</h1>
+          <p class="hero-copy">This page explains what data enters the system, what is stored, and how access is controlled.</p>
+          <div class="trust-row">
+            <span class="trust-chip">Matter-scoped access</span>
+            <span class="trust-chip">Audit visibility</span>
+            <span class="trust-chip">Retention controls</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence security summary">
+          <strong>Trust page, not hand-waving</strong>
+          <div class="visual-stack">
+            <div class="visual-card">
+              <strong>Inputs</strong>
+              <span>Outlook, SharePoint, notes, matter metadata, generated drafts.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Controls</strong>
+              <span>Role-based permissions, exclusions, retention, deletion, audit logging.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('/matter-intelligence/security')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="duo-grid">
+        <article class="product-showcase stack">
+          <h2>Data sources</h2>
+          <ul class="feature-list">
+            <li>Outlook mail and selected folders</li>
+            <li>SharePoint files and selected libraries</li>
+            <li>User-created matter notes and metadata</li>
+            <li>Generated summaries and drafts</li>
+          </ul>
+        </article>
+        <article class="product-showcase stack">
+          <h2>Data controls</h2>
+          <ul class="feature-list">
+            <li>Matter-scoped access</li>
+            <li>Role-based permissions</li>
+            <li>Exclusion controls for folders, files, and fields</li>
+            <li>Retention and deletion controls</li>
+            <li>Audit logging for retrieval and generation actions</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="signal-grid">
+        <article class="signal-card">
+          <strong>Model usage</strong>
+          <p>Generated responses are grounded in retrieved matter evidence. Customers should review outputs before relying on them.</p>
+        </article>
+        <article class="signal-card">
+          <strong>Support</strong>
+          <p>For security questions, contact <a href="mailto:security@rinawarptech.com">security@rinawarptech.com</a>.</p>
+        </article>
+      </div>
+    </section>
+  `
+
+  return renderPage('/matter-intelligence/security', 'products', hero, content)
+}
+
+function renderMatterIntelligenceDemo(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Request demo</span>
+          <h1>See one matter from source evidence to cited memo.</h1>
+          <p class="hero-copy">The launch workflow is intentionally narrow: connect Outlook and SharePoint for one matter, ask what changed since last review, get a cited answer, and generate one status memo.</p>
+          <div class="cta-row">
+            <a href="mailto:hello@rinawarptech.com?subject=Matter%20Intelligence%20demo" class="btn btn-primary">Request demo</a>
+            <a href="/matter-intelligence/contact" class="btn btn-secondary">Contact sales</a>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence demo storyline">
+          <strong>Launch demo flow</strong>
+          <div class="visual-stack">
+            <div class="visual-card">
+              <strong>1. Connect sources</strong>
+              <span>Outlook and SharePoint for one live matter.</span>
+            </div>
+            <div class="visual-card">
+              <strong>2. Ask what changed</strong>
+              <span>Recover obligations, approvals, and deadlines since last review.</span>
+            </div>
+            <div class="visual-card">
+              <strong>3. Generate the memo</strong>
+              <span>Produce a cited reviewer-ready status draft.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('/matter-intelligence/demo')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="duo-grid">
+        <article class="product-showcase stack">
+          <h2>What we will show</h2>
+          <ul class="feature-list">
+            <li>Connect Outlook and SharePoint for one matter</li>
+            <li>Ask what changed since last review</li>
+            <li>See a cited answer grounded in retrieved evidence</li>
+            <li>Generate one reviewer-ready status memo</li>
+          </ul>
+        </article>
+        <article class="product-showcase stack">
+          <h2>Book a demo</h2>
+          <p>Send the team enough context to make the first conversation useful: your workflow, your team size, and whether you want Solo, Team, or Enterprise onboarding.</p>
+          <form id="mi-demo-form">
+            <label for="mi-demo-name">Name
+              <input id="mi-demo-name" name="name" type="text" placeholder="Your name" required>
+            </label>
+            <label for="mi-demo-email">Email
+              <input id="mi-demo-email" name="email" type="email" placeholder="you@company.com" required>
+            </label>
+            <label for="mi-demo-company">Company
+              <input id="mi-demo-company" name="company" type="text" placeholder="Company or team name">
+            </label>
+            <label for="mi-demo-team-size">Team size
+              <select id="mi-demo-team-size" name="teamSize">
+                <option value="1">1</option>
+                <option value="2-5">2-5</option>
+                <option value="6-20">6-20</option>
+                <option value="20+">20+</option>
+              </select>
+            </label>
+            <label for="mi-demo-plan">Plan interest
+              <select id="mi-demo-plan" name="planInterest">
+                <option value="solo">Solo</option>
+                <option value="team">Team</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </label>
+            <label for="mi-demo-message">Workflow
+              <textarea id="mi-demo-message" name="message" placeholder="What kind of matter workflow do you want to see?" required></textarea>
+            </label>
+            <button type="submit" class="btn btn-primary">Request demo</button>
+            <p id="mi-demo-status" class="status-message" aria-live="polite"></p>
+          </form>
+          <div class="cta-row">
+            <a href="mailto:hello@rinawarptech.com?subject=Matter%20Intelligence%20demo" class="btn btn-primary">Request demo</a>
+            <a href="/matter-intelligence/contact" class="btn btn-secondary">Contact sales</a>
+          </div>
+        </article>
+      </div>
+    </section>
+  `
+  const script = `
+    const demoForm = document.getElementById('mi-demo-form');
+    const demoStatus = document.getElementById('mi-demo-status');
+    demoForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      demoStatus.textContent = 'Sending demo request...';
+      demoStatus.className = 'status-message';
+      const formData = new FormData(demoForm);
+      const payload = Object.fromEntries(formData);
+      try {
+        const response = await fetch('/api/matter-intelligence/lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, requestType: 'demo', sourcePath: '/matter-intelligence/demo' }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Demo request could not be sent.');
+        demoForm.reset();
+        demoStatus.textContent = 'Thanks. Your demo request is in and the team will follow up.';
+        demoStatus.className = 'status-message success';
+      } catch (error) {
+        demoStatus.textContent = error instanceof Error ? error.message : 'Demo request could not be sent.';
+        demoStatus.className = 'status-message error';
+      }
+    });
+  `
+
+  return renderPage('/matter-intelligence/demo', 'products', hero, content, script)
+}
+
+function renderMatterIntelligenceDownload(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Access and download</span>
+          <h1>Get access to Matter Intelligence.</h1>
+          <p class="hero-copy">Matter Intelligence has its own access path. It is intentionally separate from the Terminal Pro installer and billing flow.</p>
+          <div class="trust-row">
+            <span class="trust-chip">Separate entitlement path</span>
+            <span class="trust-chip">Guided onboarding</span>
+            <span class="trust-chip">Workspace-first setup</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence onboarding path">
+          <strong>Access flow</strong>
+          <div class="visual-stack">
+            <div class="visual-card">
+              <strong>Start</strong>
+              <span>Trial, checkout, or founder-led setup.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Provision</strong>
+              <span>Create workspace, assign members, and confirm entitlements.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Use</strong>
+              <span>Connect Microsoft 365 and create the first matter.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('/matter-intelligence/download')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="duo-grid">
+        <article class="product-showcase stack">
+          <h2>Current access model</h2>
+          <p>Early customers are onboarded through a guided setup. That keeps account creation, entitlements, workspace creation, and connector setup aligned instead of mixing them with the Terminal Pro download path.</p>
+          <div class="cta-row">
+            <a href="/matter-intelligence/demo" class="btn btn-primary">Request demo</a>
+            <a href="/matter-intelligence/contact" class="btn btn-secondary">Talk to sales</a>
+          </div>
+          <div class="cta-row">
+            <a href="/matter-intelligence/pricing" class="btn btn-secondary" id="mi-start-solo">Start Solo checkout</a>
+            <a href="/account" class="btn btn-secondary" id="mi-open-entitlements">Open account</a>
+          </div>
+        </article>
+        <article class="product-showcase stack">
+          <h2>What happens after approval</h2>
+          <ul class="feature-list">
+            <li>Account creation</li>
+            <li>Billing or trial start</li>
+            <li>Workspace creation</li>
+            <li>Desktop access or onboarding instructions</li>
+            <li>Microsoft 365 connector setup</li>
+            <li>First matter created</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  `
+  const script = `
+    const soloLink = document.getElementById('mi-start-solo');
+    soloLink?.addEventListener('click', async (event) => {
+      event.preventDefault();
+      const email = window.prompt('Enter the billing email for your Matter Intelligence workspace:');
+      if (!email) return;
+      const response = await fetch('/api/matter-intelligence/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, tier: 'solo', product: 'matter-intelligence' }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload.checkoutUrl) {
+        window.location.href = payload.checkoutUrl;
+        return;
+      }
+      window.alert(payload.error || 'Matter Intelligence checkout is not available right now.');
+    });
+  `
+
+  return renderPage('/matter-intelligence/download', 'products', hero, content, script)
+}
+
+function renderMatterIntelligenceDocs(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Onboarding docs</span>
+          <h1>Start with one matter and one trusted workflow.</h1>
+          <p class="hero-copy">The first release is not a broad promise. It is a focused workflow for reconstructing what changed and generating one cited memo from connected matter evidence.</p>
+          <div class="trust-row">
+            <span class="trust-chip">Connect sources</span>
+            <span class="trust-chip">Ask what changed</span>
+            <span class="trust-chip">Draft with citations</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence onboarding steps">
+          <strong>First working session</strong>
+          <div class="visual-stack">
+            <div class="visual-card">
+              <strong>Connect</strong>
+              <span>Limit the sources to the exact folders and libraries that belong to the matter.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Review</strong>
+              <span>Use one matter workspace to ask what changed and what now matters.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Draft</strong>
+              <span>Generate one reviewer-ready status memo before anything leaves the workspace.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="signal-grid">
+        <article class="signal-card">
+          <div class="kicker">1. Connect sources</div>
+          <h3>Outlook and SharePoint</h3>
+          <p>Select the folders, libraries, and sources that belong to the matter you want to review.</p>
+        </article>
+        <article class="signal-card">
+          <div class="kicker">2. Open the matter</div>
+          <h3>Ask what changed</h3>
+          <p>Use a single matter workspace to recover decisions, obligations, deadlines, and open risks without reconstructing history by hand.</p>
+        </article>
+        <article class="signal-card">
+          <div class="kicker">3. Draft the memo</div>
+          <h3>Review before anything leaves</h3>
+          <p>Use the cited answer and draft status memo as a reviewer-ready starting point, not as an unchecked final output.</p>
+        </article>
+      </div>
+    </section>
+  `
+
+  return renderPage('/matter-intelligence/docs', 'products', hero, content)
+}
+
+function renderMatterIntelligenceContact(): Response {
+  const hero = `
+    <section class="hero">
+      <span class="eyebrow">Contact</span>
+      <h1>Talk to RinaWarp about Matter Intelligence.</h1>
+      <p class="hero-copy">Use this route for sales, onboarding, security review, and deployment questions related to Matter Intelligence. Terminal Pro support stays on the main support path.</p>
+      ${matterIntelligenceSubnav('')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="duo-grid">
+        <article class="product-showcase stack">
+          <h2>Sales and onboarding</h2>
+          <p>Use this form for pricing, rollout, and first-trial planning. Terminal Pro support should stay on the main support route.</p>
+          <form id="mi-contact-form">
+            <label for="mi-contact-name">Name
+              <input id="mi-contact-name" name="name" type="text" placeholder="Your name" required>
+            </label>
+            <label for="mi-contact-email">Email
+              <input id="mi-contact-email" name="email" type="email" placeholder="you@company.com" required>
+            </label>
+            <label for="mi-contact-company">Company
+              <input id="mi-contact-company" name="company" type="text" placeholder="Company or department">
+            </label>
+            <label for="mi-contact-plan">Plan interest
+              <select id="mi-contact-plan" name="planInterest">
+                <option value="solo">Solo</option>
+                <option value="team">Team</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </label>
+            <label for="mi-contact-message">Message
+              <textarea id="mi-contact-message" name="message" placeholder="Tell us about the workflow, deployment, or sales question." required></textarea>
+            </label>
+            <button type="submit" class="btn btn-primary">Send request</button>
+            <p id="mi-contact-status" class="status-message" aria-live="polite"></p>
+          </form>
+        </article>
+        <article class="product-showcase stack">
+          <h2>Security review</h2>
+          <p>Email <a href="mailto:security@rinawarptech.com?subject=Matter%20Intelligence%20security">security@rinawarptech.com</a> for data handling and security questions.</p>
+          <div class="signal-grid">
+            <div class="signal-card">
+              <strong>Sales</strong>
+              <p><a href="mailto:hello@rinawarptech.com?subject=Matter%20Intelligence%20sales">hello@rinawarptech.com</a></p>
+            </div>
+            <div class="signal-card">
+              <strong>Security</strong>
+              <p><a href="mailto:security@rinawarptech.com?subject=Matter%20Intelligence%20security">security@rinawarptech.com</a></p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  `
+  const script = `
+    const contactForm = document.getElementById('mi-contact-form');
+    const contactStatus = document.getElementById('mi-contact-status');
+    contactForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      contactStatus.textContent = 'Sending request...';
+      contactStatus.className = 'status-message';
+      const formData = new FormData(contactForm);
+      const payload = Object.fromEntries(formData);
+      try {
+        const response = await fetch('/api/matter-intelligence/lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, requestType: 'contact', sourcePath: '/matter-intelligence/contact' }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Request could not be sent.');
+        contactForm.reset();
+        contactStatus.textContent = 'Thanks. Your request is in and the team will follow up.';
+        contactStatus.className = 'status-message success';
+      } catch (error) {
+        contactStatus.textContent = error instanceof Error ? error.message : 'Request could not be sent.';
+        contactStatus.className = 'status-message error';
+      }
+    });
+  `
+
+  return renderPage('/matter-intelligence/contact', 'products', hero, content, script)
+}
+
+function renderMatterIntelligenceTerms(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Terms</span>
+          <h1>Terms for RinaWarp Matter Intelligence.</h1>
+          <p class="hero-copy">These terms apply to the Matter Intelligence product line and are separate from the Terminal Pro Early Access terms.</p>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence legal summary">
+          <strong>Separate product terms</strong>
+          <div class="visual-stack">
+            <div class="visual-card">
+              <strong>Professional use</strong>
+              <span>Designed for legal, finance, compliance, and similar sensitive workflows.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Customer review still matters</strong>
+              <span>Generated outputs should be reviewed before teams rely on them.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="duo-grid">
+      <div class="product-showcase stack">
+        <h2 class="section-title">Use of the product</h2>
+        <p>RinaWarp Matter Intelligence is provided by <strong>RinaWarp Technologies, LLC</strong> for professional use in legal, finance, compliance, and related sensitive workflows. Customers are responsible for reviewing generated outputs before relying on them.</p>
+      </div>
+      <div class="product-showcase stack">
+        <h2 class="section-title">Data and access</h2>
+        <p>Access may be limited by workspace membership, product entitlements, trial status, and retention settings. Customers should configure access according to their internal approval and governance requirements.</p>
+      </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Commercial terms</h2>
+        <p>Billing, renewals, and deployment arrangements may vary by plan. Solo may be self-serve, while Team and Enterprise onboarding may be handled through direct setup with RinaWarp.</p>
+      </div>
+    </section>
+  `
+
+  return renderPage('/matter-intelligence/terms', 'products', hero, content)
+}
+
+function renderMatterIntelligencePrivacy(): Response {
+  const hero = `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-panel">
+          <span class="eyebrow">Privacy</span>
+          <h1>Privacy for RinaWarp Matter Intelligence.</h1>
+          <p class="hero-copy">Matter Intelligence handles more sensitive workflows than Terminal Pro, so this page is intentionally product-specific.</p>
+        </div>
+        <div class="hero-visual" aria-label="Matter Intelligence privacy summary">
+          <strong>Product-specific privacy</strong>
+          <div class="visual-stack">
+            <div class="visual-card">
+              <strong>Scoped inputs</strong>
+              <span>Only the sources and matter data the customer chooses to connect.</span>
+            </div>
+            <div class="visual-card">
+              <strong>Operational use</strong>
+              <span>Used for retrieval, generation, permissions, auditability, and retention workflows.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${matterIntelligenceSubnav('')}
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="duo-grid">
+      <div class="product-showcase stack">
+        <h2 class="section-title">What enters the system</h2>
+        <p>Depending on customer configuration, Matter Intelligence may process Outlook mail, SharePoint files, matter notes, metadata, generated summaries, and workspace activity required to produce grounded responses.</p>
+      </div>
+      <div class="product-showcase stack">
+        <h2 class="section-title">How it is used</h2>
+        <p>Data is used to retrieve relevant matter evidence, generate cited answers and drafts, operate the workspace, enforce permissions, and support auditability and customer-requested retention controls.</p>
+      </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Contact</h2>
+        <p>Questions about Matter Intelligence privacy can be sent to <a href="mailto:security@rinawarptech.com">security@rinawarptech.com</a>.</p>
+      </div>
+    </section>
+  `
+
+  return renderPage('/matter-intelligence/privacy', 'products', hero, content)
+}
+
 function renderPricing(): Response {
   const hero = `
     <section class="hero">
       <span class="eyebrow">Fix Project pricing</span>
       <h1>Fix your broken project automatically.</h1>
-      <p class="hero-copy">RinaWarp sells one outcome: visible repair with proof attached. Start free, upgrade when you want unlimited fixes, and move to Power when you need bigger project coverage and team-grade depth.</p>
+      <p class="hero-copy">One promise, three tiers, and a checkout path that stays honest about restore, billing, and proof-backed execution.</p>
+      <div class="trust-row">
+        <span class="trust-chip">Visible repair</span>
+        <span class="trust-chip">Proof-backed results</span>
+        <span class="trust-chip">Restore by billing email</span>
+      </div>
     </section>
   `
 
   const content = `
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card">
+          <div class="kicker">Start free</div>
+          <h3>Prove the workflow first</h3>
+          <p>Run the product on smaller broken repos before you pay for ongoing repair volume.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Upgrade fast</div>
+          <h3>Unlock unlimited fixes</h3>
+          <p>Move to Pro when you want faster execution, deeper repair coverage, and fewer guardrails.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Stay recoverable</div>
+          <h3>Billing stays understandable</h3>
+          <p>Checkout, restore, and portal management stay tied to the same billing-email truth.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="section">
       <div class="pricing-grid">
         <article class="card pricing-card">
@@ -1519,6 +2592,21 @@ function renderPricing(): Response {
             <li>Team-grade rollout path and priority support</li>
           </ul>
           <button class="btn btn-secondary" data-checkout-tier="power" type="button">Start Power</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid two-up">
+        <article class="panel stack">
+          <div class="kicker">Why the plans are simple</div>
+          <h2 class="section-title">The site sells one outcome, not a pricing maze.</h2>
+          <p>Free proves the repair loop. Pro is the default paid plan for serious individual use. Power exists for larger projects and heavier ongoing workflows.</p>
+        </article>
+        <article class="panel stack">
+          <div class="kicker">What changes after checkout</div>
+          <h2 class="section-title">Access, restore, and billing stay connected.</h2>
+          <p>After payment, users come back to RinaWarp, download or reopen the app, and confirm entitlement state from the account or desktop restore surface.</p>
         </article>
       </div>
     </section>
@@ -1675,7 +2763,7 @@ function renderSuccess(returnTo: string = '', sessionId: string = ''): Response 
           <p class="auth-subtitle">If billing or restore state looks wrong, use the same billing email from checkout in the account restore flow or contact support.</p>
           <div class="link-row">
             <a href="/pricing" class="btn btn-secondary">See plans</a>
-            <a href="/feedback" class="btn btn-secondary">Contact support</a>
+            <a href="/support" class="btn btn-secondary">Contact support</a>
           </div>
         </div>
       </div>
@@ -1833,7 +2921,7 @@ function renderFeedback(): Response {
     });
   `
 
-  return renderPage('/feedback', 'feedback', hero, content, script)
+  return renderPage('/support', 'feedback', hero, content, script)
 }
 
 function renderTerms(): Response {
@@ -1841,7 +2929,7 @@ function renderTerms(): Response {
     <section class="hero">
       <span class="eyebrow">Terms</span>
       <h1>Terms for RinaWarp Terminal Pro Early Access.</h1>
-      <p class="hero-copy">These terms are intentionally plain. Early Access means real software, real support, and honest boundaries while the product is still hardening.</p>
+      <p class="hero-copy">These terms are intentionally plain, but specific enough for real purchase decisions and high-impact desktop workflows.</p>
     </section>
   `
 
@@ -1851,6 +2939,7 @@ function renderTerms(): Response {
         <h2 class="section-title">Use of the product</h2>
         <p>RinaWarp Terminal Pro is provided by <strong>RinaWarp Technologies, LLC</strong> for professional and personal workflow use. You are responsible for reviewing outputs, especially for builds, deploys, file changes, and other high-impact actions.</p>
         <p>Early Access access may change as the product evolves. We may improve, remove, or harden features as part of normal product development.</p>
+        <p>You remain responsible for your repositories, infrastructure, secrets, and release decisions. RinaWarp assists execution but does not replace human review for production-impact actions.</p>
       </div>
     </section>
 
@@ -1858,15 +2947,26 @@ function renderTerms(): Response {
       <div class="panel stack">
         <h2 class="section-title">Billing and subscriptions</h2>
         <p>Paid access is currently sold as an Early Access subscription. Billing is handled through Stripe. If billing is canceled or payment fails, paid features may be limited or removed at the end of the applicable billing period.</p>
-        <p>If something goes wrong with billing or entitlement state, contact <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a> and include the billing email used at checkout.</p>
+        <p>Subscriptions renew automatically until canceled. You can manage billing through the account portal. If something goes wrong with billing or entitlement state, contact <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a> and include the billing email used at checkout.</p>
+        <p>Refund handling is case-by-case during Early Access. Cancellation stops future renewals and paid features remain available through the current paid period unless otherwise stated in writing.</p>
       </div>
     </section>
 
     <section class="section">
       <div class="panel stack">
-        <h2 class="section-title">Support and acceptable use</h2>
-        <p>Please do not use the product for illegal activity, abuse of third-party systems, credential theft, or intentional harm. We may suspend access for abusive or fraudulent use.</p>
+        <h2 class="section-title">Acceptable use and restrictions</h2>
+        <p>Do not use RinaWarp for unlawful activity, credential theft, malware operations, unauthorized system access, or abuse of third-party services.</p>
+        <p>You may not attempt to bypass entitlement checks, tamper with update or licensing flows, or use the product to violate contracts or legal obligations tied to customer or employer systems.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Warranties, liability, support, and termination</h2>
+        <p>The product is provided “as is” and “as available” to the maximum extent allowed by law. We do not guarantee uninterrupted operation or that every suggested action is correct for your environment.</p>
+        <p>To the maximum extent allowed by law, RinaWarp Technologies, LLC is not liable for indirect, incidental, special, consequential, or punitive damages, or for lost revenue, data, or goodwill from product use.</p>
         <p>Early Access support is provided on a reasonable-effort basis. We aim to be responsive and honest, but we do not promise enterprise-grade response times yet.</p>
+        <p>We may suspend or terminate access for abuse, fraud, non-payment, or security risk. Continued use after policy updates means you accept the updated terms.</p>
       </div>
     </section>
   `
@@ -1879,7 +2979,7 @@ function renderPrivacy(): Response {
     <section class="hero">
       <span class="eyebrow">Privacy</span>
       <h1>Privacy and product data.</h1>
-      <p class="hero-copy">RinaWarp should feel trustworthy not only in execution, but in how we handle purchase, support, and product data.</p>
+      <p class="hero-copy">RinaWarp should feel trustworthy in execution and in data handling. This page defines what is local, what can be sent off-device, and why.</p>
     </section>
   `
 
@@ -1889,21 +2989,38 @@ function renderPrivacy(): Response {
         <h2 class="section-title">What we collect</h2>
         <p>We may collect billing information through Stripe, support and feedback submissions you send to us, and limited product telemetry needed to understand reliability, updates, and launch issues.</p>
         <p>We do not market the product as a hidden-memory or “store everything forever” system. Early Access personalization should remain explicit, inspectable, and owner-controlled.</p>
+        <p>Website analytics may include page views, referrers, and interaction events. Desktop telemetry may include app version, platform, high-level workflow state, and error diagnostics required to improve reliability.</p>
       </div>
     </section>
 
     <section class="section">
       <div class="panel stack">
-        <h2 class="section-title">How we use it</h2>
+        <h2 class="section-title">Desktop execution and telemetry scope</h2>
+        <p>Terminal Pro runs commands on your machine in your local environment. Command execution, file operations, and subprocesses happen where you run the app unless a specific cloud workflow is explicitly triggered.</p>
+        <p>Telemetry is intended to capture product health and workflow outcomes, not full repository content. Support bundles or diagnostics are only transmitted when you intentionally submit them.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">How we use and retain data</h2>
         <p>We use information to operate the service, process billing, restore access, respond to support requests, improve reliability, and understand where the product is failing or succeeding.</p>
-        <p>If you send diagnostics or feedback, we may use that information to debug issues and improve the product.</p>
+        <p>If you send diagnostics or feedback, we may use that information to debug issues and improve the product. We retain data for as long as needed for operations, legal obligations, support continuity, and abuse prevention, then delete or anonymize where practical.</p>
       </div>
     </section>
 
     <section class="section">
       <div class="panel stack">
-        <h2 class="section-title">Contact</h2>
-        <p>Questions about privacy, billing, or support can be sent to <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p>
+        <h2 class="section-title">Processors, transfers, and updates</h2>
+        <p>Stripe processes billing data for payments and subscriptions. Infrastructure and analytics providers may process operational metadata on our behalf under contractual controls.</p>
+        <p>Data may be processed in countries outside your home jurisdiction. If we materially change this policy, we will update this page and change the effective date in site deployment notes.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Your rights and contact</h2>
+        <p>You can request access, correction, or deletion of personal data we control, subject to legal and operational constraints. Questions about privacy, billing, or support can be sent to <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p>
       </div>
     </section>
   `
@@ -1930,7 +3047,7 @@ function renderEarlyAccess(version?: string): Response {
         <div class="link-row">
           <a href="/pricing" class="btn btn-primary">See pricing</a>
           <a href="/download" class="btn btn-secondary">Download Terminal Pro</a>
-          <a href="/feedback" class="btn btn-secondary">Contact support</a>
+          <a href="/support" class="btn btn-secondary">Contact support</a>
         </div>
       </div>
     </section>
@@ -1978,10 +3095,35 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
       <span class="eyebrow">Early Access releases</span>
       <h1>Download RinaWarp Terminal Pro.</h1>
       <p class="hero-copy">Choose your installer, inspect the live manifest, and verify the release before you run it.</p>
+      <div class="trust-row">
+        <span class="trust-chip">Canonical feeds</span>
+        <span class="trust-chip">Published checksums</span>
+        <span class="trust-chip">Plain platform notes</span>
+      </div>
     </section>
   `
 
   const content = `
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card">
+          <div class="kicker">Current release</div>
+          <h3>${manifest?.version ? `Version ${String(manifest.version)}` : 'Live release'}</h3>
+          <p>The website, installers, and updater feeds are expected to point at the same public release truth.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Best Linux path</div>
+          <h3>Choose .deb or AppImage on purpose</h3>
+          <p>Use <code>.deb</code> for the simplest manual install path. Use AppImage if you want Linux in-app update behavior.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Trust before install</div>
+          <h3>Verify first</h3>
+          <p>If the release feed, checksum, or installer story feels inconsistent, stop and verify before running anything.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="section">
       <div class="download-grid">
         <article class="card platform-card">
@@ -2009,7 +3151,7 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
           <h3>Coming after signing</h3>
           <p>macOS signing is not enabled yet. We would rather say that plainly than ship a rough installer path we cannot support.</p>
           <div class="link-row">
-            <a href="/feedback" class="btn btn-secondary">Ask about macOS</a>
+            <a href="/support" class="btn btn-secondary">Ask about macOS</a>
           </div>
         </article>
       </div>
@@ -2043,6 +3185,21 @@ curl ${latestLinuxYmlUrl}
 # Verify the local file hash
 sha256sum -c SHASUMS256.txt</div>
         <p class="note">If the checksum does not match, do not run the file. Reach out to support instead.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid two-up">
+        <article class="panel stack">
+          <div class="kicker">Release center</div>
+          <h2 class="section-title">Why this page is intentionally explicit</h2>
+          <p>Download pages for trust products should not act like generic growth pages. The job here is to make installer choice, release truth, and verification steps obvious.</p>
+        </article>
+        <article class="panel stack">
+          <div class="kicker">Need help?</div>
+          <h2 class="section-title">Get a human answer before you risk the install.</h2>
+          <p>If a release note, platform note, or updater path is unclear, contact <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a> before continuing.</p>
+        </article>
       </div>
     </section>
   `
@@ -2932,8 +4089,16 @@ export default {
     const legacyRedirects: Record<string, string> = {
       '/terminal-pro': '/',
       '/terminal-pro.html': '/',
-      '/contact': '/feedback/',
-      '/contact.html': '/feedback/',
+      '/contact': '/support/',
+      '/contact.html': '/support/',
+      '/feedback': '/support/',
+      '/feedback/': '/support/',
+      '/team': '/pricing/',
+      '/team/': '/pricing/',
+      '/about': '/products/',
+      '/about/': '/products/',
+      '/about-rinawarp': '/products/',
+      '/about-rinawarp/': '/products/',
       '/affiliates.html': '/pricing/',
     }
 
@@ -3047,13 +4212,53 @@ export default {
       return renderHomepage()
     }
 
+    if (path === '/products' || path === '/products/') {
+      return renderProducts()
+    }
+
+    if (path === '/matter-intelligence' || path === '/matter-intelligence/') {
+      return renderMatterIntelligenceOverview()
+    }
+
+    if (path === '/matter-intelligence/pricing' || path === '/matter-intelligence/pricing/') {
+      return renderMatterIntelligencePricing()
+    }
+
+    if (path === '/matter-intelligence/security' || path === '/matter-intelligence/security/') {
+      return renderMatterIntelligenceSecurity()
+    }
+
+    if (path === '/matter-intelligence/demo' || path === '/matter-intelligence/demo/') {
+      return renderMatterIntelligenceDemo()
+    }
+
+    if (path === '/matter-intelligence/download' || path === '/matter-intelligence/download/') {
+      return renderMatterIntelligenceDownload()
+    }
+
+    if (path === '/matter-intelligence/docs' || path === '/matter-intelligence/docs/') {
+      return renderMatterIntelligenceDocs()
+    }
+
+    if (path === '/matter-intelligence/contact' || path === '/matter-intelligence/contact/') {
+      return renderMatterIntelligenceContact()
+    }
+
+    if (path === '/matter-intelligence/terms' || path === '/matter-intelligence/terms/') {
+      return renderMatterIntelligenceTerms()
+    }
+
+    if (path === '/matter-intelligence/privacy' || path === '/matter-intelligence/privacy/') {
+      return renderMatterIntelligencePrivacy()
+    }
+
     // Pricing page
     if (path === '/pricing' || path === '/pricing/') {
       return renderPricing()
     }
 
-    // Feedback page
-    if (path === '/feedback' || path === '/feedback/') {
+    // Support page
+    if (path === '/support' || path === '/support/') {
       return renderFeedback()
     }
 
@@ -3121,8 +4326,26 @@ export default {
       return marketplaceUI(request, env)
     }
 
-    // Pass through to origin for everything else (docs, download, etc.)
-    return fetch(request)
+    const lowerPath = path.toLowerCase()
+    const staleGonePaths = new Set<string>([
+      '/music-video-creator',
+      '/music-video-creator/',
+      '/music-video-creator.html',
+    ])
+    if (staleGonePaths.has(lowerPath)) {
+      return rwText(410, 'Gone')
+    }
+
+    const passThroughPrefixes = ['/assets/', '/favicon', '/.well-known/', '/apple-touch-icon']
+    const passThroughExtensions = ['.png', '.jpg', '.jpeg', '.svg', '.webp', '.gif', '.css', '.js', '.ico', '.txt', '.xml']
+    if (
+      passThroughPrefixes.some((prefix) => lowerPath.startsWith(prefix)) ||
+      passThroughExtensions.some((extension) => lowerPath.endsWith(extension))
+    ) {
+      return fetch(request)
+    }
+
+    return rwText(404, 'Not found')
   },
 }
 
@@ -3218,6 +4441,10 @@ async function handleApiRequest(
     return handleAuthRequest(new Request(new URL('/api/auth/me', request.url).toString(), request), env, '/api/auth/me')
   }
 
+  if (path === '/api/me/entitlements' && request.method === 'GET') {
+    return handleMeEntitlements(request, env, corsHeaders)
+  }
+
   if (path === '/api/vscode/entitlements' && request.method === 'GET') {
     return handleVscodeEntitlements(request, env, corsHeaders)
   }
@@ -3234,6 +4461,66 @@ async function handleApiRequest(
   // Checkout session creation
   if (path === '/api/checkout' && request.method === 'POST') {
     return handleCheckoutRequest(request, env, corsHeaders)
+  }
+
+  if (path === '/api/matter-intelligence/checkout' && request.method === 'POST') {
+    const body = await request.json().catch(() => ({}))
+    const patched = new Request(request.url, {
+      method: 'POST',
+      headers: request.headers,
+      body: JSON.stringify({ ...body, product: 'matter-intelligence' }),
+    })
+    return handleCheckoutRequest(patched, env, corsHeaders)
+  }
+
+  if (path === '/api/matter-intelligence/customer-portal' && request.method === 'POST') {
+    const body = await request.json().catch(() => ({}))
+    const patched = new Request(request.url, {
+      method: 'POST',
+      headers: request.headers,
+      body: JSON.stringify({ ...body, product: 'matter-intelligence' }),
+    })
+    return handlePortalRequest(patched, env, corsHeaders)
+  }
+
+  if (path === '/api/auth/desktop-session' && request.method === 'POST') {
+    return handleDesktopSessionRequest(request, env, corsHeaders)
+  }
+
+  if (path === '/api/matters' && request.method === 'GET') {
+    return handleMatterIntelligenceListMatters(request, env, corsHeaders)
+  }
+
+  if (path === '/api/matters' && request.method === 'POST') {
+    return handleMatterIntelligenceCreateMatter(request, env, corsHeaders)
+  }
+
+  if (path.startsWith('/api/matters/') && request.method === 'GET') {
+    return handleMatterIntelligenceGetMatter(request, env, corsHeaders, path.slice('/api/matters/'.length))
+  }
+
+  if (path === '/api/connectors/microsoft/start' && request.method === 'POST') {
+    return handleMatterIntelligenceMicrosoftStart(request, env, corsHeaders)
+  }
+
+  if (path === '/api/connectors/microsoft/sync' && request.method === 'POST') {
+    return handleMatterIntelligenceMicrosoftSync(request, env, corsHeaders)
+  }
+
+  if (path === '/api/sync' && request.method === 'POST') {
+    return handleMatterIntelligenceMicrosoftSync(request, env, corsHeaders)
+  }
+
+  if (path === '/api/search' && request.method === 'GET') {
+    return handleMatterIntelligenceSearch(request, env, corsHeaders)
+  }
+
+  if (path === '/api/drafts/status-memo' && request.method === 'POST') {
+    return handleMatterIntelligenceStatusMemoDraft(request, env, corsHeaders)
+  }
+
+  if (path === '/api/matter-intelligence/lead' && request.method === 'POST') {
+    return handleMatterIntelligenceLeadRequest(request, env, corsHeaders)
   }
 
   // Stripe webhook
@@ -3630,6 +4917,838 @@ async function lookupLicenseByEmail(email: string, env: any): Promise<{
   }
 }
 
+async function lookupProductEntitlementsByEmail(email: string, env: any): Promise<{
+  email: string
+  terminal_pro: { active: boolean; plan: string | null; status: string }
+  matter_intelligence: { active: boolean; plan: string | null; status: string }
+}> {
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+  const empty = {
+    email: normalizedEmail,
+    terminal_pro: { active: false, plan: null, status: 'not_found' },
+    matter_intelligence: { active: false, plan: null, status: 'not_found' },
+  }
+
+  if (!normalizedEmail || !(env.STRIPE_SECRET_KEY && env.STRIPE_SECRET_KEY.startsWith('sk_'))) {
+    return empty
+  }
+
+  const customerResponse = await fetch(
+    `https://api.stripe.com/v1/customers/search?query=email:'${encodeURIComponent(normalizedEmail)}'`,
+    {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+    }
+  )
+  const customerData = await customerResponse.json()
+  const customer = Array.isArray(customerData.data) ? customerData.data[0] : null
+  if (!customer?.id) return empty
+
+  const subscriptionsResponse = await fetch('https://api.stripe.com/v1/subscriptions?' + new URLSearchParams({
+    customer: String(customer.id),
+    status: 'all',
+    limit: '20',
+  }).toString(), {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  })
+
+  const subscriptionsData = await subscriptionsResponse.json()
+  const subscriptions = Array.isArray(subscriptionsData.data) ? subscriptionsData.data : []
+  const activeStatuses = new Set(['active', 'trialing', 'past_due', 'unpaid'])
+
+  const terminalPriceToPlan: Record<string, string> = {}
+  const matterPriceToPlan: Record<string, string> = {}
+
+  const terminalPrices = {
+    pro: [env.STRIPE_PRO_MONTHLY_PRICE_ID, env.STRIPE_PRO_PRICE_ID, env.STRIPE_PRO_ANNUAL_PRICE_ID],
+    team: [env.STRIPE_TEAM_PRICE_ID, env.STRIPE_POWER_PRICE_ID, env.STRIPE_FOUNDER_PRICE_ID],
+  }
+  const matterPrices = {
+    solo: [env.STRIPE_MI_SOLO_PRICE_ID, env.STRIPE_MATTER_INTELLIGENCE_SOLO_PRICE_ID],
+    team: [env.STRIPE_MI_TEAM_PRICE_ID, env.STRIPE_MATTER_INTELLIGENCE_TEAM_PRICE_ID],
+    enterprise: [env.STRIPE_MI_ENTERPRISE_PRICE_ID, env.STRIPE_MATTER_INTELLIGENCE_ENTERPRISE_PRICE_ID],
+  }
+
+  for (const priceId of terminalPrices.pro.map((value: unknown) => String(value || '').trim()).filter(Boolean)) terminalPriceToPlan[priceId] = 'pro'
+  for (const priceId of terminalPrices.team.map((value: unknown) => String(value || '').trim()).filter(Boolean)) terminalPriceToPlan[priceId] = 'team'
+  for (const priceId of matterPrices.solo.map((value: unknown) => String(value || '').trim()).filter(Boolean)) matterPriceToPlan[priceId] = 'solo'
+  for (const priceId of matterPrices.team.map((value: unknown) => String(value || '').trim()).filter(Boolean)) matterPriceToPlan[priceId] = 'team'
+  for (const priceId of matterPrices.enterprise.map((value: unknown) => String(value || '').trim()).filter(Boolean)) matterPriceToPlan[priceId] = 'enterprise'
+
+  const result = {
+    email: normalizedEmail,
+    terminal_pro: { active: false, plan: null as string | null, status: 'not_found' },
+    matter_intelligence: { active: false, plan: null as string | null, status: 'not_found' },
+  }
+
+  for (const subscription of subscriptions) {
+    const status = String(subscription?.status || '').toLowerCase()
+    const active = activeStatuses.has(status)
+    const priceId = String(subscription?.items?.data?.[0]?.price?.id || '').trim()
+    if (!priceId) continue
+
+    if (terminalPriceToPlan[priceId]) {
+      result.terminal_pro = {
+        active,
+        plan: terminalPriceToPlan[priceId],
+        status: status || 'unknown',
+      }
+    }
+
+    if (matterPriceToPlan[priceId]) {
+      result.matter_intelligence = {
+        active,
+        plan: matterPriceToPlan[priceId],
+        status: status || 'unknown',
+      }
+    }
+  }
+
+  return result
+}
+
+async function handleMeEntitlements(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const token = extractToken(request.headers.get('Authorization'))
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'No token provided' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const payload = await verifyToken(token, env.AUTH_SECRET)
+  if (!payload) {
+    return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const email = String(payload.email || '').trim().toLowerCase()
+  if (!email) {
+    return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const entitlements = await lookupProductEntitlementsByEmail(email, env)
+
+  return new Response(JSON.stringify({
+    email,
+    entitlements: {
+      terminalPro: entitlements.terminal_pro,
+      matterIntelligence: entitlements.matter_intelligence,
+    },
+    active:
+      Boolean(entitlements.terminal_pro.active) || Boolean(entitlements.matter_intelligence.active),
+    updatedAt: new Date().toISOString(),
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleDesktopSessionRequest(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  try {
+    const authToken = extractToken(request.headers.get('Authorization'))
+    let email = ''
+    if (authToken) {
+      const payload = await verifyToken(authToken, env.AUTH_SECRET)
+      email = String(payload?.email || '').trim().toLowerCase()
+    }
+
+    if (!email) {
+      const body = await request.json().catch(() => ({}))
+      email = String(body?.email || '').trim().toLowerCase()
+    }
+
+    if (!email || !env.AUTH_SECRET) {
+      return new Response(JSON.stringify({ error: 'Email is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const entitlements = await lookupProductEntitlementsByEmail(email, env)
+    if (!entitlements.terminal_pro.active && !entitlements.matter_intelligence.active) {
+      return new Response(JSON.stringify({
+        error: 'No active subscription found for this account.',
+        entitlements: {
+          terminalPro: entitlements.terminal_pro,
+          matterIntelligence: entitlements.matter_intelligence,
+        },
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+    const sessionToken = await createToken(
+      {
+        email,
+        type: 'desktop_session',
+        terminalProActive: entitlements.terminal_pro.active,
+        matterIntelligenceActive: entitlements.matter_intelligence.active,
+      },
+      env.AUTH_SECRET,
+      60 * 60 * 12
+    )
+
+    return new Response(JSON.stringify({
+      ok: true,
+      email,
+      sessionToken,
+      entitlements: {
+        terminalPro: entitlements.terminal_pro,
+        matterIntelligence: entitlements.matter_intelligence,
+      },
+      accountUrl: 'https://rinawarptech.com/account',
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid request' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+}
+
+async function ensureMatterIntelligenceTables(env: any): Promise<void> {
+  if (matterIntelligenceTablesInitialized) return
+  const db = getDb(env)
+  if (!db) return
+
+  await db.batch([
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS matter_intelligence_matters (
+        id TEXT PRIMARY KEY,
+        owner_email TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        last_synced_at INTEGER
+      )
+    `),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_mi_matters_owner ON matter_intelligence_matters(owner_email)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_mi_matters_owner_status ON matter_intelligence_matters(owner_email, status)`),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS matter_intelligence_connector_state (
+        id TEXT PRIMARY KEY,
+        owner_email TEXT NOT NULL,
+        provider TEXT NOT NULL,
+        status TEXT NOT NULL,
+        config_json TEXT,
+        started_at INTEGER NOT NULL,
+        last_synced_at INTEGER
+      )
+    `),
+    db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_mi_connector_owner_provider ON matter_intelligence_connector_state(owner_email, provider)`),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS matter_intelligence_events (
+        id TEXT PRIMARY KEY,
+        matter_id TEXT NOT NULL,
+        owner_email TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        summary TEXT NOT NULL,
+        citation TEXT,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY (matter_id) REFERENCES matter_intelligence_matters(id) ON DELETE CASCADE
+      )
+    `),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_mi_events_matter ON matter_intelligence_events(matter_id)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_mi_events_owner ON matter_intelligence_events(owner_email)`),
+  ])
+
+  matterIntelligenceTablesInitialized = true
+}
+
+async function requireMatterIntelligenceAccess(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<{ email: string } | Response> {
+  const token = extractToken(request.headers.get('Authorization'))
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'No token provided' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const payload = await verifyToken(token, env.AUTH_SECRET)
+  if (!payload) {
+    return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const email = String(payload.email || '').trim().toLowerCase()
+  if (!email) {
+    return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const entitlements = await lookupProductEntitlementsByEmail(email, env)
+  if (!entitlements.matter_intelligence.active) {
+    return new Response(JSON.stringify({
+      error: 'Matter Intelligence access is not active for this account.',
+      entitlements: {
+        terminalPro: entitlements.terminal_pro,
+        matterIntelligence: entitlements.matter_intelligence,
+      },
+    }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  return { email }
+}
+
+function isMatterStatusAllowed(raw: unknown): boolean {
+  const status = String(raw || '').trim().toLowerCase()
+  return status === 'open' || status === 'in_review' || status === 'closed'
+}
+
+async function handleMatterIntelligenceListMatters(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const access = await requireMatterIntelligenceAccess(request, env, corsHeaders)
+  if (access instanceof Response) return access
+
+  await ensureMatterIntelligenceTables(env)
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database is not configured.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const statusFilter = String(new URL(request.url).searchParams.get('status') || '').trim().toLowerCase()
+  const result = statusFilter && isMatterStatusAllowed(statusFilter)
+    ? await db
+      .prepare(`
+        SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
+        FROM matter_intelligence_matters
+        WHERE owner_email = ? AND status = ?
+        ORDER BY updated_at DESC
+      `)
+      .bind(access.email, statusFilter)
+      .all()
+    : await db
+      .prepare(`
+        SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
+        FROM matter_intelligence_matters
+        WHERE owner_email = ?
+        ORDER BY updated_at DESC
+      `)
+      .bind(access.email)
+      .all()
+
+  return new Response(JSON.stringify(result.results || []), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleMatterIntelligenceCreateMatter(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const access = await requireMatterIntelligenceAccess(request, env, corsHeaders)
+  if (access instanceof Response) return access
+
+  await ensureMatterIntelligenceTables(env)
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database is not configured.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const body = await request.json().catch(() => ({}))
+  const title = String(body?.title || '').trim()
+  const description = String(body?.description || '').trim()
+  const status = String(body?.status || 'open').trim().toLowerCase()
+  if (!title || !description) {
+    return new Response(JSON.stringify({ error: 'Title and description are required.' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+  if (!isMatterStatusAllowed(status)) {
+    return new Response(JSON.stringify({ error: 'Status must be open, in_review, or closed.' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const now = nowSeconds()
+  const matterId = `matter_${crypto.randomUUID()}`
+
+  await db.prepare(`
+    INSERT INTO matter_intelligence_matters (id, owner_email, title, description, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).bind(matterId, access.email, title, description, status, now, now).run()
+
+  await db.prepare(`
+    INSERT INTO matter_intelligence_events (id, matter_id, owner_email, event_type, summary, citation, created_at)
+    VALUES (?, ?, ?, 'matter_created', ?, ?, ?)
+  `).bind(
+    `mievt_${crypto.randomUUID()}`,
+    matterId,
+    access.email,
+    `Matter created: ${title}`,
+    `matter:${matterId}`,
+    now,
+  ).run()
+
+  return new Response(JSON.stringify({
+    id: matterId,
+    title,
+    description,
+    status,
+    createdAt: now,
+    updatedAt: now,
+    lastSyncedAt: null,
+  }), {
+    status: 201,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleMatterIntelligenceGetMatter(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>,
+  matterIdRaw: string
+): Promise<Response> {
+  const access = await requireMatterIntelligenceAccess(request, env, corsHeaders)
+  if (access instanceof Response) return access
+
+  await ensureMatterIntelligenceTables(env)
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database is not configured.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const matterId = String(matterIdRaw || '').trim()
+  if (!matterId) {
+    return new Response(JSON.stringify({ error: 'Matter id is required.' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const matter = await db.prepare(`
+    SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
+    FROM matter_intelligence_matters
+    WHERE id = ? AND owner_email = ?
+  `).bind(matterId, access.email).first()
+
+  if (!matter) {
+    return new Response(JSON.stringify({ error: 'Matter not found.' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const events = await db.prepare(`
+    SELECT id, event_type AS eventType, summary, citation, created_at AS createdAt
+    FROM matter_intelligence_events
+    WHERE matter_id = ? AND owner_email = ?
+    ORDER BY created_at DESC
+    LIMIT 20
+  `).bind(matterId, access.email).all()
+
+  return new Response(JSON.stringify({
+    ...matter,
+    events: events.results || [],
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleMatterIntelligenceMicrosoftStart(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const access = await requireMatterIntelligenceAccess(request, env, corsHeaders)
+  if (access instanceof Response) return access
+
+  await ensureMatterIntelligenceTables(env)
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database is not configured.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const tenant = String(env.MS_TENANT_ID || 'common').trim()
+  const clientId = String(env.MS_CLIENT_ID || '').trim()
+  const redirectUri = String(env.MS_REDIRECT_URI || '').trim()
+  const scope = String(env.MS_SCOPE || 'offline_access User.Read Mail.Read Files.Read.All').trim()
+  const now = nowSeconds()
+  const statePayload = {
+    email: access.email,
+    issuedAt: now,
+  }
+  const encodedState = btoa(JSON.stringify(statePayload))
+
+  let authUrl: string | null = null
+  if (clientId && redirectUri) {
+    const params = new URLSearchParams({
+      client_id: clientId,
+      response_type: 'code',
+      response_mode: 'query',
+      redirect_uri: redirectUri,
+      scope,
+      state: encodedState,
+    })
+    authUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?${params.toString()}`
+  }
+
+  await db.prepare(`
+    INSERT INTO matter_intelligence_connector_state (id, owner_email, provider, status, config_json, started_at, last_synced_at)
+    VALUES (?, ?, 'microsoft', ?, ?, ?, NULL)
+    ON CONFLICT(owner_email, provider) DO UPDATE SET
+      status = excluded.status,
+      config_json = excluded.config_json,
+      started_at = excluded.started_at
+  `).bind(
+    `miconn_${crypto.randomUUID()}`,
+    access.email,
+    authUrl ? 'oauth_ready' : 'not_configured',
+    JSON.stringify({
+      tenant,
+      scope,
+      hasClientId: Boolean(clientId),
+      hasRedirectUri: Boolean(redirectUri),
+    }),
+    now,
+  ).run()
+
+  return new Response(JSON.stringify({
+    ok: true,
+    provider: 'microsoft',
+    status: authUrl ? 'oauth_ready' : 'not_configured',
+    authUrl,
+    message: authUrl
+      ? 'Open the auth URL to connect Outlook and SharePoint.'
+      : 'Microsoft OAuth is not configured yet on the production API.',
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleMatterIntelligenceMicrosoftSync(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const access = await requireMatterIntelligenceAccess(request, env, corsHeaders)
+  if (access instanceof Response) return access
+
+  await ensureMatterIntelligenceTables(env)
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database is not configured.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const body = await request.json().catch(() => ({}))
+  const matterId = String(body?.matterId || '').trim()
+  const now = nowSeconds()
+
+  const connector = await db.prepare(`
+    SELECT status
+    FROM matter_intelligence_connector_state
+    WHERE owner_email = ? AND provider = 'microsoft'
+  `).bind(access.email).first<{ status?: string }>()
+
+  if (!connector) {
+    return new Response(JSON.stringify({
+      error: 'Microsoft connector has not been started. Call /api/connectors/microsoft/start first.',
+    }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  await db.prepare(`
+    UPDATE matter_intelligence_connector_state
+    SET status = 'synced',
+        last_synced_at = ?
+    WHERE owner_email = ? AND provider = 'microsoft'
+  `).bind(now, access.email).run()
+
+  const matter = matterId
+    ? await db.prepare(`
+      SELECT id, title
+      FROM matter_intelligence_matters
+      WHERE id = ? AND owner_email = ?
+    `).bind(matterId, access.email).first<{ id: string; title: string }>()
+    : await db.prepare(`
+      SELECT id, title
+      FROM matter_intelligence_matters
+      WHERE owner_email = ?
+      ORDER BY updated_at DESC
+      LIMIT 1
+    `).bind(access.email).first<{ id: string; title: string }>()
+
+  if (matter) {
+    await db.prepare(`
+      UPDATE matter_intelligence_matters
+      SET last_synced_at = ?, updated_at = ?
+      WHERE id = ? AND owner_email = ?
+    `).bind(now, now, matter.id, access.email).run()
+
+    await db.prepare(`
+      INSERT INTO matter_intelligence_events (id, matter_id, owner_email, event_type, summary, citation, created_at)
+      VALUES (?, ?, ?, 'sync_completed', ?, ?, ?)
+    `).bind(
+      `mievt_${crypto.randomUUID()}`,
+      matter.id,
+      access.email,
+      `Microsoft sync completed for "${matter.title}".`,
+      `matter:${matter.id}`,
+      now,
+    ).run()
+  }
+
+  return new Response(JSON.stringify({
+    ok: true,
+    provider: 'microsoft',
+    syncedAt: now,
+    matterId: matter?.id || null,
+    message: matter
+      ? `Sync recorded for ${matter.title}.`
+      : 'Sync recorded. Create a matter to attach timeline events.',
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleMatterIntelligenceSearch(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const access = await requireMatterIntelligenceAccess(request, env, corsHeaders)
+  if (access instanceof Response) return access
+
+  await ensureMatterIntelligenceTables(env)
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database is not configured.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const url = new URL(request.url)
+  const q = String(url.searchParams.get('q') || '').trim()
+  const matterId = String(url.searchParams.get('matterId') || '').trim()
+  if (!q) {
+    return new Response(JSON.stringify({ error: 'Query parameter q is required.' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const qLike = `%${q.replace(/[%_]/g, '')}%`
+  const matches = matterId
+    ? await db.prepare(`
+      SELECT id, title, description, status, updated_at AS updatedAt
+      FROM matter_intelligence_matters
+      WHERE owner_email = ? AND id = ? AND (title LIKE ? OR description LIKE ?)
+      ORDER BY updated_at DESC
+      LIMIT 10
+    `).bind(access.email, matterId, qLike, qLike).all()
+    : await db.prepare(`
+      SELECT id, title, description, status, updated_at AS updatedAt
+      FROM matter_intelligence_matters
+      WHERE owner_email = ? AND (title LIKE ? OR description LIKE ?)
+      ORDER BY updated_at DESC
+      LIMIT 10
+    `).bind(access.email, qLike, qLike).all()
+
+  const results = (matches.results || []).map((item: any) => ({
+    type: 'matter',
+    matterId: item.id,
+    title: item.title,
+    status: item.status,
+    snippet: String(item.description || '').slice(0, 240),
+    citation: `matter:${item.id}`,
+    updatedAt: item.updatedAt,
+  }))
+
+  return new Response(JSON.stringify({
+    ok: true,
+    query: q,
+    count: results.length,
+    results,
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleMatterIntelligenceStatusMemoDraft(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const access = await requireMatterIntelligenceAccess(request, env, corsHeaders)
+  if (access instanceof Response) return access
+
+  await ensureMatterIntelligenceTables(env)
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database is not configured.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const body = await request.json().catch(() => ({}))
+  const matterId = String(body?.matterId || '').trim()
+  if (!matterId) {
+    return new Response(JSON.stringify({ error: 'matterId is required.' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const matter = await db.prepare(`
+    SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
+    FROM matter_intelligence_matters
+    WHERE id = ? AND owner_email = ?
+  `).bind(matterId, access.email).first<any>()
+
+  if (!matter) {
+    return new Response(JSON.stringify({ error: 'Matter not found.' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const timeline = await db.prepare(`
+    SELECT summary, citation, created_at AS createdAt
+    FROM matter_intelligence_events
+    WHERE matter_id = ? AND owner_email = ?
+    ORDER BY created_at DESC
+    LIMIT 8
+  `).bind(matterId, access.email).all()
+
+  const entries = (timeline.results || []) as Array<{ summary: string; citation: string | null; createdAt: number }>
+  const generatedAt = new Date().toISOString()
+  const timelineLines = entries.length > 0
+    ? entries.map((entry) => `- ${entry.summary} [${entry.citation || `matter:${matterId}`}]`).join('\n')
+    : `- Matter opened and awaiting first timeline event. [matter:${matterId}]`
+
+  const memo = [
+    `Status memo for "${matter.title}" (${generatedAt})`,
+    '',
+    `Current status: ${matter.status}`,
+    `Matter summary: ${matter.description}`,
+    '',
+    'What changed since last review:',
+    timelineLines,
+    '',
+    'Recommended reviewer checks:',
+    '- Confirm open obligations and deadlines are still accurate.',
+    '- Validate connector sync completeness before distribution.',
+    '',
+    `Primary citation: [matter:${matterId}]`,
+  ].join('\n')
+
+  return new Response(JSON.stringify({
+    ok: true,
+    matterId,
+    draft: memo,
+    citations: [`matter:${matterId}`, ...entries.map((entry) => entry.citation).filter(Boolean)],
+    generatedAt,
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+}
+
+async function handleMatterIntelligenceLeadRequest(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  try {
+    const body = await request.json()
+    const email = String(body?.email || '').trim().toLowerCase()
+    const requestType = String(body?.requestType || '').trim().toLowerCase()
+    if (!email || !requestType) {
+      return new Response(JSON.stringify({ error: 'Email and request type are required.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const db = getDb(env)
+    if (db) {
+      const now = nowSeconds()
+      await db.prepare(`
+        INSERT INTO matter_intelligence_leads (
+          id, request_type, name, email, company, team_size, plan_interest, message, source_path, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        `mi_lead_${crypto.randomUUID()}`,
+        requestType,
+        String(body?.name || '').trim() || null,
+        email,
+        String(body?.company || '').trim() || null,
+        String(body?.teamSize || '').trim() || null,
+        String(body?.planInterest || '').trim() || null,
+        String(body?.message || '').trim() || null,
+        String(body?.sourcePath || '').trim() || null,
+        now,
+      ).run()
+    }
+
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid request' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+}
+
 async function handleVscodeEntitlements(
   request: Request,
   env: any,
@@ -3993,7 +6112,16 @@ async function handleCheckoutRequest(
 ): Promise<Response> {
   try {
     const body = await request.json()
-    const { email, tier = 'pro', billingCycle = 'monthly', seats, workspaceId, returnTo, referralCode } = body
+    const {
+      email,
+      tier = 'pro',
+      billingCycle = 'monthly',
+      seats,
+      workspaceId,
+      returnTo,
+      referralCode,
+      product = 'terminal-pro',
+    } = body
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -4008,6 +6136,7 @@ async function handleCheckoutRequest(
     const normalizedBillingCycle = String(billingCycle || 'monthly')
       .trim()
       .toLowerCase()
+    const normalizedProduct = String(product || 'terminal-pro').trim().toLowerCase()
 
     const priceIds: Record<string, string> = {
       pro_monthly: String(env.STRIPE_PRO_MONTHLY_PRICE_ID || env.STRIPE_PRO_PRICE_ID || '').trim(),
@@ -4017,9 +6146,19 @@ async function handleCheckoutRequest(
       creator: String(env.STRIPE_CREATOR_PRICE_ID || '').trim(),
       team: String(env.STRIPE_TEAM_PRICE_ID || '').trim(),
       founder: String(env.STRIPE_FOUNDER_PRICE_ID || '').trim(),
+      mi_solo: String(env.STRIPE_MI_SOLO_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_SOLO_PRICE_ID || '').trim(),
+      mi_team: String(env.STRIPE_MI_TEAM_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_TEAM_PRICE_ID || '').trim(),
+      mi_enterprise: String(env.STRIPE_MI_ENTERPRISE_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_ENTERPRISE_PRICE_ID || '').trim(),
     }
 
-    if (normalizedTier !== 'pro' && normalizedTier !== 'power' && normalizedTier !== 'team' && normalizedTier !== 'fix') {
+    if (normalizedProduct === 'matter-intelligence') {
+      if (normalizedTier !== 'solo' && normalizedTier !== 'team' && normalizedTier !== 'enterprise') {
+        return new Response(JSON.stringify({ error: 'Only Solo, Team, and Enterprise are configured for Matter Intelligence.' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        })
+      }
+    } else if (normalizedTier !== 'pro' && normalizedTier !== 'power' && normalizedTier !== 'team' && normalizedTier !== 'fix') {
       return new Response(JSON.stringify({ error: 'Only Pro, Power, and one-fix checkout are configured right now.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -4027,24 +6166,37 @@ async function handleCheckoutRequest(
     }
 
     const resolvedTierKey =
-      normalizedTier === 'power' || normalizedTier === 'team'
-        ? 'power'
-        : normalizedTier === 'fix'
-          ? 'pay_per_fix'
-          : normalizedBillingCycle === 'annual'
-          ? 'pro_annual'
-          : 'pro_monthly'
+      normalizedProduct === 'matter-intelligence'
+        ? normalizedTier === 'team'
+          ? 'mi_team'
+          : normalizedTier === 'enterprise'
+            ? 'mi_enterprise'
+            : 'mi_solo'
+        : normalizedTier === 'power' || normalizedTier === 'team'
+          ? 'power'
+          : normalizedTier === 'fix'
+            ? 'pay_per_fix'
+            : normalizedBillingCycle === 'annual'
+              ? 'pro_annual'
+              : 'pro_monthly'
     const normalizedReferralCode = normalizeReferralCode(referralCode)
 
-    const successUrl = new URL('https://rinawarptech.com/success/')
+    const successUrl = new URL(
+      normalizedProduct === 'matter-intelligence'
+        ? 'https://rinawarptech.com/matter-intelligence/download/'
+        : 'https://rinawarptech.com/success/'
+    )
     if (String(returnTo || '').trim()) {
       successUrl.searchParams.set('return_to', String(returnTo).trim())
     }
     successUrl.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}')
 
-    const priceId = priceIds[resolvedTierKey] || priceIds.pro_monthly
+    const priceId = normalizedProduct === 'matter-intelligence'
+      ? priceIds[resolvedTierKey]
+      : priceIds[resolvedTierKey] || priceIds.pro_monthly
     const quantity =
-      normalizedTier === 'power' || normalizedTier === 'team'
+      (normalizedProduct === 'matter-intelligence' && normalizedTier === 'team') ||
+      (normalizedProduct !== 'matter-intelligence' && (normalizedTier === 'power' || normalizedTier === 'team'))
         ? String(Math.max(1, Math.min(500, Number(seats || 1) || 1)))
         : '1'
 
@@ -4061,7 +6213,12 @@ async function handleCheckoutRequest(
       referredEmail: email,
       source: 'website_checkout',
       metadata: {
-        tier: normalizedTier === 'team' ? 'power' : normalizedTier,
+        tier: normalizedProduct === 'matter-intelligence'
+          ? normalizedTier
+          : normalizedTier === 'team'
+            ? 'power'
+            : normalizedTier,
+        product: normalizedProduct,
         billingCycle: normalizedBillingCycle,
         seats: Number(quantity),
         workspaceId: String(workspaceId || '').trim() || null,
@@ -4085,16 +6242,25 @@ async function handleCheckoutRequest(
             billing_address_collection: 'required',
             'automatic_tax[enabled]': 'true',
             'tax_id_collection[enabled]': 'true',
-            'metadata[tier]': normalizedTier === 'team' ? 'power' : normalizedTier,
+            'metadata[tier]': normalizedProduct === 'matter-intelligence'
+              ? normalizedTier
+              : normalizedTier === 'team'
+                ? 'power'
+                : normalizedTier,
+            'metadata[product]': normalizedProduct,
             ...(normalizedReferralCode ? { 'metadata[referral_code]': normalizedReferralCode } : {}),
             ...(String(workspaceId || '').trim() ? { 'metadata[workspace_id]': String(workspaceId).trim() } : {}),
-            ...(normalizedTier !== 'fix' && (normalizedTier === 'power' || normalizedTier === 'team') ? { 'subscription_data[metadata][tier]': 'power' } : {}),
+            ...(normalizedTier !== 'fix' ? { 'subscription_data[metadata][product]': normalizedProduct } : {}),
+            ...(normalizedTier !== 'fix' && normalizedProduct !== 'matter-intelligence' && (normalizedTier === 'power' || normalizedTier === 'team') ? { 'subscription_data[metadata][tier]': 'power' } : {}),
+            ...(normalizedTier !== 'fix' && normalizedProduct === 'matter-intelligence' ? { 'subscription_data[metadata][tier]': normalizedTier } : {}),
             ...(normalizedTier !== 'fix' && normalizedReferralCode ? { 'subscription_data[metadata][referral_code]': normalizedReferralCode } : {}),
-            ...(normalizedTier !== 'fix' && (normalizedTier === 'power' || normalizedTier === 'team') && String(workspaceId || '').trim()
+            ...(normalizedTier !== 'fix' && normalizedProduct !== 'matter-intelligence' && (normalizedTier === 'power' || normalizedTier === 'team') && String(workspaceId || '').trim()
               ? { 'subscription_data[metadata][workspace_id]': String(workspaceId).trim() }
               : {}),
             success_url: successUrl.toString(),
-            cancel_url: 'https://rinawarptech.com/pricing/',
+            cancel_url: normalizedProduct === 'matter-intelligence'
+              ? 'https://rinawarptech.com/matter-intelligence/pricing/'
+              : 'https://rinawarptech.com/pricing/',
           }),
         })
 
@@ -4147,14 +6313,27 @@ async function handleCheckoutRequest(
 async function handlePortalRequest(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
   try {
     let email: string | undefined
+    let returnUrl = 'https://rinawarptech.com/account'
 
     if (request.method === 'POST') {
       const body = await request.json()
       email = body.email
+      if (String(body?.product || '').trim().toLowerCase() === 'matter-intelligence') {
+        returnUrl = 'https://rinawarptech.com/matter-intelligence/download'
+      }
+      if (String(body?.returnUrl || '').trim()) {
+        returnUrl = String(body.returnUrl).trim()
+      }
     } else {
       // For GET, try to get email from query param
       const url = new URL(request.url)
       email = url.searchParams.get('email') || undefined
+      if (url.searchParams.get('product') === 'matter-intelligence') {
+        returnUrl = 'https://rinawarptech.com/matter-intelligence/download'
+      }
+      if (url.searchParams.get('return_url')) {
+        returnUrl = String(url.searchParams.get('return_url') || returnUrl)
+      }
     }
 
     // If Stripe secret key is available, create a real portal session
@@ -4205,7 +6384,7 @@ async function handlePortalRequest(request: Request, env: any, corsHeaders: Reco
         },
         body: new URLSearchParams({
           customer: customerId,
-          return_url: 'https://rinawarptech.com/account',
+          return_url: returnUrl,
         }),
       })
 

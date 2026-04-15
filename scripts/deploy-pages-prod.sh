@@ -6,10 +6,28 @@ PROJECT_NAME="${CF_PAGES_PROJECT:-rinawarptech-website}"
 BRANCH="${CF_PAGES_BRANCH:-master}"
 DIST_DIR="$ROOT_DIR/website/.pages-dist"
 VERIFY_DOWNLOADS="${RINAWARP_SKIP_DOWNLOAD_VERIFICATION:-0}"
+VERIFY_MODE="${RINAWARP_DOWNLOAD_VERIFY_MODE:-}"
 
-if [[ "$PROJECT_NAME" == "rinawarptech-website" && "$BRANCH" == "master" && "$VERIFY_DOWNLOADS" != "1" ]]; then
-  echo "[deploy:pages] Verifying release/download bundle before production deploy"
+if [[ -z "$VERIFY_MODE" ]]; then
+  if [[ "$VERIFY_DOWNLOADS" == "1" ]]; then
+    VERIFY_MODE="off"
+  elif [[ "$PROJECT_NAME" == "rinawarptech-website" && "$BRANCH" == "master" ]]; then
+    VERIFY_MODE="strict"
+  else
+    VERIFY_MODE="warn"
+  fi
+fi
+
+if [[ "$VERIFY_MODE" == "strict" ]]; then
+  echo "[deploy:pages] Verifying release/download bundle (strict mode)"
   node "$ROOT_DIR/scripts/verify-download-links.mjs"
+elif [[ "$VERIFY_MODE" == "warn" ]]; then
+  echo "[deploy:pages] Verifying release/download bundle (warn mode)"
+  if ! node "$ROOT_DIR/scripts/verify-download-links.mjs"; then
+    echo "[deploy:pages] WARNING: release/download verification failed, continuing because mode=warn"
+  fi
+else
+  echo "[deploy:pages] Skipping release/download verification (mode=${VERIFY_MODE})"
 fi
 
 echo "[deploy:pages] Building Pages worker bundle"

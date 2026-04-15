@@ -1,0 +1,88 @@
+name: Prod Smoke Monitor
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      site_base:
+        description: "Production base URL to verify"
+        required: false
+        default: "https://www.rinawarptech.com"
+        type: string
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+concurrency:
+  group: prod-smoke-monitor
+  cancel-in-progress: false
+
+jobs:
+  smoke-prod:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install smoke dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep curl
+
+      - name: Run production smoke suite
+        id: smoke
+        shell: bash
+        run: |
+          set +e
+          SITE_BASE_INPUT="${{ github.event.inputs.site_base }}"
+          if [[ -z "${SITE_BASE_INPUT}" ]]; then
+            SITE_BASE_INPUT="https://www.rinawarptech.com"
+          fi
+
+          echo "[workflow] running scripts/smoke-prod.sh ${SITE_BASE_INPUT}" | tee smoke-prod.log
+          status=0
+          for attempt in 1 2; do
+            echo "[workflow] attempt ${attempt}/2" | tee -a smoke-prod.log
+            bash scripts/smoke-prod.sh "${SITE_BASE_INPUT}" 2>&1 | tee -a smoke-prod.log
+            status=${PIPESTATUS[0]}
+            if [[ "${status}" -eq 0 ]]; then
+              break
+            fi
+            if [[ "${attempt}" -lt 2 ]]; then
+              echo "[workflow] attempt ${attempt} failed; retrying after short delay" | tee -a smoke-prod.log
+              sleep 20
+            fi
+          done
+
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Prod Smoke Monitor"
+            echo ""
+            echo "- Target: \`${SITE_BASE_INPUT}\`"
+            echo "- Result: \`$([[ "${status}" -eq 0 ]] && echo PASS || echo FAIL)\`"
+            echo "- Attempts: 2 (retry on transient failure)"
+            echo ""
+            echo "See uploaded \`smoke-prod.log\` artifact for full output."
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ "${status}" -ne 0 ]]; then
+            echo "::error::Production smoke suite failed for ${SITE_BASE_INPUT}"
+            exit "${status}"
+          fi
+
+      - name: Upload smoke log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-smoke-log-${{ github.run_id }}
+          path: smoke-prod.log
+          if-no-files-found: warn

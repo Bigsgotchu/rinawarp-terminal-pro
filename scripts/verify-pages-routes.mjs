@@ -19,19 +19,17 @@ function expectIncludes(haystack, needle, label) {
 const websiteConfig = read(websiteConfigPath);
 const rootConfig = read(rootConfigPath);
 
-expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/download"', "Pages exact download route");
-expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/download/"', "Pages slash download route");
-expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/download/*"', "Pages download route");
-expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/releases/*"', "Pages releases route");
-expectIncludes(websiteConfig, 'binding = "RINAWARP_CDN"', "Pages R2 binding");
+expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/v1/*"', "Website API v1 route");
+expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/releases/*"', "Website releases route");
+expectIncludes(websiteConfig, 'pattern = "rinawarptech.com/agents"', "Website agents route");
+expectIncludes(websiteConfig, 'binding = "RINAWARP_CDN"', "Website R2 binding");
 
 if (
-  rootConfig.includes('pattern = "rinawarptech.com/download"') ||
-  rootConfig.includes('pattern = "rinawarptech.com/download/"') ||
-  rootConfig.includes('pattern = "rinawarptech.com/download/*"') ||
-  rootConfig.includes('pattern = "rinawarptech.com/releases/*"')
+  rootConfig.includes('pattern = "rinawarptech.com/v1/*"') ||
+  rootConfig.includes('pattern = "rinawarptech.com/releases/*"') ||
+  rootConfig.includes('pattern = "rinawarptech.com/agents"')
 ) {
-  throw new Error("Root downloads worker still owns apex download/release routes");
+  throw new Error("Root downloads worker still owns routes now expected on website worker");
 }
 
-console.log("Pages route ownership OK.");
+console.log("Website worker route ownership OK.");

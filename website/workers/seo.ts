@@ -17,11 +17,19 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/': {
     title: 'RinaWarp | Proof-First AI Workbench Platform',
     description:
-      'RinaWarp is a proof-first AI workbench platform with Terminal Pro for serious execution and Companion for the fastest chat-first VS Code start.',
+      'RinaWarp is a proof-first product company with Terminal Pro for broken projects and Matter Intelligence for sensitive matter workflows.',
     canonical: 'https://rinawarptech.com/',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords:
-      'AI workbench, proof-first AI, terminal pro, VS Code companion chat, agent workflow, developer tools, trusted execution, run receipts',
+      'AI workbench, terminal pro, matter intelligence, proof-first AI, developer tools, compliance workflows, trusted execution',
+  },
+  '/products': {
+    title: 'RinaWarp Products | Terminal Pro and Matter Intelligence',
+    description:
+      'Explore RinaWarp Terminal Pro for broken projects and RinaWarp Matter Intelligence for sensitive legal, finance, and compliance workflows.',
+    canonical: 'https://rinawarptech.com/products',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'RinaWarp products, Terminal Pro, Matter Intelligence, AI developer tool, compliance workspace',
   },
   '/agents': {
     title: 'RinaWarp Packs | Capability Packs for RinaWarp Terminal Pro',
@@ -47,11 +55,83 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'download, RinaWarp, verified releases, checksums, AppImage, deb, exe',
   },
-  '/feedback': {
+  '/matter-intelligence': {
+    title: 'RinaWarp Matter Intelligence | Institutional Memory for Sensitive Matters',
+    description:
+      'RinaWarp Matter Intelligence gives legal, finance, and compliance teams cited answers and reviewer-ready drafts grounded in matter evidence.',
+    canonical: 'https://rinawarptech.com/matter-intelligence',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence, legal AI, compliance AI, finance investigations, institutional memory, cited answers',
+  },
+  '/matter-intelligence/pricing': {
+    title: 'Matter Intelligence Pricing | RinaWarp',
+    description:
+      'See Solo, Team, and Enterprise pricing for RinaWarp Matter Intelligence.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/pricing',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence pricing, legal AI pricing, compliance software pricing',
+  },
+  '/matter-intelligence/security': {
+    title: 'Matter Intelligence Security | RinaWarp',
+    description:
+      'Review data sources, access controls, retention expectations, and support contacts for RinaWarp Matter Intelligence.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/security',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence security, legal AI security, compliance data handling',
+  },
+  '/matter-intelligence/demo': {
+    title: 'Request a Matter Intelligence Demo | RinaWarp',
+    description:
+      'Request a RinaWarp Matter Intelligence demo to see cited answers and status memo generation for one sensitive matter workflow.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/demo',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence demo, legal workflow demo, compliance AI demo',
+  },
+  '/matter-intelligence/download': {
+    title: 'Matter Intelligence Access | RinaWarp',
+    description:
+      'Learn how guided access, onboarding, billing, and workspace setup work for RinaWarp Matter Intelligence.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/download',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence access, onboarding, workspace setup',
+  },
+  '/matter-intelligence/docs': {
+    title: 'Matter Intelligence Docs | RinaWarp',
+    description:
+      'Start with one matter, connected evidence, and a cited status memo workflow in RinaWarp Matter Intelligence.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/docs',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence docs, onboarding, legal AI workflow',
+  },
+  '/matter-intelligence/contact': {
+    title: 'Contact Matter Intelligence | RinaWarp',
+    description:
+      'Talk to RinaWarp about Matter Intelligence sales, onboarding, and security review.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/contact',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'contact matter intelligence, sales, onboarding, security review',
+  },
+  '/matter-intelligence/terms': {
+    title: 'Matter Intelligence Terms | RinaWarp',
+    description:
+      'Read the product-specific terms for RinaWarp Matter Intelligence.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/terms',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence terms, product terms',
+  },
+  '/matter-intelligence/privacy': {
+    title: 'Matter Intelligence Privacy | RinaWarp',
+    description:
+      'Read the product-specific privacy summary for RinaWarp Matter Intelligence.',
+    canonical: 'https://rinawarptech.com/matter-intelligence/privacy',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'matter intelligence privacy, legal AI privacy, compliance data privacy',
+  },
+  '/support': {
     title: 'RinaWarp Support | Help, Feedback, and Contact',
     description:
       'Contact RinaWarp for product support, billing help, restore issues, feedback, launch questions, and capability requests.',
-    canonical: 'https://rinawarptech.com/feedback',
+    canonical: 'https://rinawarptech.com/support',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'feedback, support, contact, RinaWarp, bug report, launch support',
   },
@@ -133,7 +213,7 @@ export function injectSeoTags(path: string): string {
   </script>
 
   <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self' https://fonts.gstatic.com;">
   
   <!-- Base URL for relative links -->
   <base href="/">
@@ -143,6 +223,7 @@ export function injectSeoTags(path: string): string {
 }
 
 function buildStructuredData(path: string, seo: SeoData): string {
+  const isMatterPage = path.startsWith('/matter-intelligence')
   const graph: Array<Record<string, unknown>> = [
     {
       '@context': 'https://schema.org',
@@ -154,9 +235,9 @@ function buildStructuredData(path: string, seo: SeoData): string {
     {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      name: 'RinaWarp Terminal Pro',
-      applicationCategory: 'DeveloperApplication',
-      operatingSystem: 'Windows, Linux',
+      name: isMatterPage ? 'RinaWarp Matter Intelligence' : 'RinaWarp Terminal Pro',
+      applicationCategory: isMatterPage ? 'BusinessApplication' : 'DeveloperApplication',
+      operatingSystem: isMatterPage ? 'Web, Desktop' : 'Windows, Linux',
       url: seo.canonical,
       description: seo.description,
       publisher: {

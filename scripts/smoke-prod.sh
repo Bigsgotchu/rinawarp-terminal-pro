@@ -2,6 +2,9 @@
 set -euo pipefail
 
 SITE_BASE="${1:-https://www.rinawarptech.com}"
+CANONICAL_HOST="rinawarptech.com"
+SITE_HOST="$(echo "$SITE_BASE" | sed -E 's#^https?://##' | sed -E 's#/.*##')"
+ROUTE_CONTRACT_FILE="${2:-scripts/route-contract.json}"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -58,8 +61,8 @@ check_content() {
     exit 1
   fi
 
-  if [[ "$final_url" != https://rinawarptech.com/* ]]; then
-    echo "[smoke:prod] ${path} final URL escaped the canonical domain: ${final_url}" >&2
+  if [[ "$final_url" != https://${CANONICAL_HOST}/* && "$final_url" != https://${SITE_HOST}/* ]]; then
+    echo "[smoke:prod] ${path} final URL escaped expected domains (${CANONICAL_HOST}, ${SITE_HOST}): ${final_url}" >&2
     exit 1
   fi
 
@@ -72,12 +75,187 @@ check_content() {
   echo "[smoke:prod] ${path} -> ${final_status} ${final_type} (${final_url})"
 }
 
-echo "[smoke:prod] Verifying canonical download path"
-check_redirect "/downloads" "301" "/download/"
+check_single_hop_redirect() {
+  local path="$1"
+  local expected_location="$2"
+  local headers_file="$tmp_dir/$(echo "$path" | tr '/:' '__').single-hop.headers"
+  curl -fsSI "${SITE_BASE%/}${path}" > "$headers_file"
+  require_header "$headers_file" "^HTTP/[0-9.]+ 301([[:space:]]|\$)" "${path} status 301"
+  require_header "$headers_file" "^location:[[:space:]]*${expected_location}([[:space:]]|\$)" "${path} location ${expected_location}"
+  echo "[smoke:prod] ${path} -> 301 ${expected_location}"
+}
 
-echo "[smoke:prod] Verifying first-party updater feeds"
+check_canonical() {
+  local path="$1"
+  local expected="$2"
+  local body_file="$tmp_dir/$(echo "$path" | tr '/:' '__').canonical.body"
+  curl -fsSL "${SITE_BASE%/}${path}" -o "$body_file"
+  if ! rg -q "<link rel=\"canonical\" href=\"${expected}\">" "$body_file"; then
+    echo "[smoke:prod] canonical mismatch for ${path}; expected ${expected}" >&2
+    rg -n "rel=\"canonical\"" "$body_file" >&2 || true
+    exit 1
+  fi
+  echo "[smoke:prod] canonical ${path} -> ${expected}"
+}
+
+check_robots_and_sitemap() {
+  local robots_file="$tmp_dir/robots.txt"
+  local sitemap_file="$tmp_dir/sitemap.xml"
+  curl -fsSL "${SITE_BASE%/}/robots.txt" -o "$robots_file"
+  curl -fsSL "${SITE_BASE%/}/sitemap.xml" -o "$sitemap_file"
+
+  rg -q "Sitemap: https://rinawarptech.com/sitemap.xml" "$robots_file" || {
+    echo "[smoke:prod] robots.txt missing canonical sitemap directive" >&2
+    cat "$robots_file" >&2
+    exit 1
+  }
+  rg -q "<loc>https://rinawarptech.com/support/</loc>" "$sitemap_file" || {
+    echo "[smoke:prod] sitemap missing /support/" >&2
+    cat "$sitemap_file" >&2
+    exit 1
+  }
+  if rg -q "<loc>https://rinawarptech.com/music-video-creator/?</loc>" "$sitemap_file"; then
+    echo "[smoke:prod] sitemap still includes stale music-video-creator URL" >&2
+    cat "$sitemap_file" >&2
+    exit 1
+  fi
+  if rg -q "<loc>https://rinawarptech.com/team/?</loc>" "$sitemap_file"; then
+    echo "[smoke:prod] sitemap still includes /team/" >&2
+    cat "$sitemap_file" >&2
+    exit 1
+  fi
+  echo "[smoke:prod] robots + sitemap integrity OK"
+}
+
+check_release_contract() {
+  local json_file="$tmp_dir/latest.json"
+  local yml_file="$tmp_dir/latest.yml"
+  local yml_linux_file="$tmp_dir/latest-linux.yml"
+
+  curl -fsSL "${SITE_BASE%/}/releases/latest.json" -o "$json_file"
+  curl -fsSL "${SITE_BASE%/}/releases/latest.yml" -o "$yml_file"
+  curl -fsSL "${SITE_BASE%/}/releases/latest-linux.yml" -o "$yml_linux_file"
+
+  node -e '
+    const fs = require("fs");
+    const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const required = ["version", "pub_date", "files", "platforms"];
+    for (const key of required) {
+      if (!(key in data)) {
+        console.error(`[smoke:prod] latest.json missing key: ${key}`);
+        process.exit(1);
+      }
+    }
+    if (!/^\d+\.\d+\.\d+([-.][A-Za-z0-9]+)?$/.test(String(data.version || ""))) {
+      console.error(`[smoke:prod] latest.json invalid version: ${data.version}`);
+      process.exit(1);
+    }
+    const windowsPath = data?.files?.windows?.path;
+    const linuxPath = data?.files?.linux?.path;
+    if (!windowsPath || !linuxPath) {
+      console.error("[smoke:prod] latest.json missing windows/linux file paths");
+      process.exit(1);
+    }
+    console.log(`[smoke:prod] latest.json contract OK (version ${data.version})`);
+  ' "$json_file"
+
+  for file in "$yml_file" "$yml_linux_file"; do
+    rg -q "^version:[[:space:]]" "$file" || {
+      echo "[smoke:prod] missing version in $(basename "$file")" >&2
+      cat "$file" >&2
+      exit 1
+    }
+    rg -q "^sha512:[[:space:]]" "$file" || {
+      echo "[smoke:prod] missing sha512 in $(basename "$file")" >&2
+      cat "$file" >&2
+      exit 1
+    }
+    rg -q "^path:[[:space:]]" "$file" || {
+      echo "[smoke:prod] missing path in $(basename "$file")" >&2
+      cat "$file" >&2
+      exit 1
+    }
+  done
+  echo "[smoke:prod] release feed contract OK"
+}
+
+load_contract_and_validate_redirects() {
+  if [[ ! -f "$ROUTE_CONTRACT_FILE" ]]; then
+    echo "[smoke:prod] route contract file missing: $ROUTE_CONTRACT_FILE" >&2
+    exit 1
+  fi
+
+  local redirects
+  redirects="$(node -e '
+    const fs = require("fs");
+    const path = process.argv[1];
+    const json = JSON.parse(fs.readFileSync(path, "utf8"));
+    const redirects = json.redirects || {};
+    for (const [from, to] of Object.entries(redirects)) {
+      console.log(`${from}\t${to}`);
+    }
+  ' "$ROUTE_CONTRACT_FILE")"
+
+  while IFS=$'\t' read -r from to; do
+    [[ -z "$from" ]] && continue
+    check_single_hop_redirect "$from" "$to"
+  done <<< "$redirects"
+}
+
+load_contract_and_validate_canonicals() {
+  local canonicals
+  canonicals="$(node -e '
+    const fs = require("fs");
+    const path = process.argv[1];
+    const json = JSON.parse(fs.readFileSync(path, "utf8"));
+    const canonicals = json.canonicals || {};
+    for (const [route, canonical] of Object.entries(canonicals)) {
+      console.log(`${route}\t${canonical}`);
+    }
+  ' "$ROUTE_CONTRACT_FILE")"
+
+  while IFS=$'\t' read -r route canonical; do
+    [[ -z "$route" ]] && continue
+    check_canonical "$route" "$canonical"
+  done <<< "$canonicals"
+}
+
+check_header_for_html_path() {
+  local path="$1"
+  local header_name_regex="$2"
+  local expected_regex="$3"
+  local headers_file="$tmp_dir/$(echo "$path" | tr '/:' '__').headers"
+  curl -fsSI "${SITE_BASE%/}${path}" > "$headers_file"
+  if ! rg -qi "^${header_name_regex}:[[:space:]]*${expected_regex}" "$headers_file"; then
+    echo "[smoke:prod] header assertion failed for ${path}: ${header_name_regex} ~ ${expected_regex}" >&2
+    cat "$headers_file" >&2
+    exit 1
+  fi
+  echo "[smoke:prod] header assertion OK for ${path}: ${header_name_regex}"
+}
+
+echo "[smoke:prod] Verifying route contract redirects"
+load_contract_and_validate_redirects
+
+echo "[smoke:prod] Verifying product-family pages"
+check_content "/products" "200" "text/html" 'RinaWarp Products'
+check_content "/matter-intelligence" "200" "text/html" 'Institutional memory for sensitive matters'
+check_content "/matter-intelligence/pricing" "200" "text/html" 'Pricing for Matter Intelligence'
+check_content "/matter-intelligence/security" "200" "text/html" 'Security and data handling'
+check_content "/support" "200" "text/html" 'RinaWarp Support|Send feedback|Support & feedback'
+
+echo "[smoke:prod] Verifying canonical tags and HTML cache directives"
+load_contract_and_validate_canonicals
+check_header_for_html_path "/" "cache-control" "public,[[:space:]]*max-age=0,[[:space:]]*must-revalidate"
+check_header_for_html_path "/support/" "content-type" "text/html"
+
+echo "[smoke:prod] Verifying robots and sitemap integrity"
+check_robots_and_sitemap
+
+echo "[smoke:prod] Verifying first-party updater feeds and release contract"
 check_content "/releases/latest.json" "200" "application/json" '"version"[[:space:]]*:[[:space:]]*"'
 check_content "/releases/latest.yml" "200" "application/x-yaml" '^version:[[:space:]]'
 check_content "/releases/latest-linux.yml" "200" "application/x-yaml" '^version:[[:space:]]'
+check_release_contract
 
 echo "[smoke:prod] PASS"

@@ -1,0 +1,20 @@
+{
+  "redirects": {
+    "/downloads": "/download/",
+    "/feedback": "/support/",
+    "/feedback/": "/support/",
+    "/team": "/pricing/",
+    "/team/": "/pricing/",
+    "/music-video-creator": "/products/",
+    "/music-video-creator/": "/products/"
+  },
+  "canonicals": {
+    "/": "https://rinawarptech.com/",
+    "/products/": "https://rinawarptech.com/products",
+    "/pricing/": "https://rinawarptech.com/pricing",
+    "/download/": "https://rinawarptech.com/download",
+    "/support/": "https://rinawarptech.com/support",
+    "/terms/": "https://rinawarptech.com/terms",
+    "/privacy/": "https://rinawarptech.com/privacy"
+  }
+}
