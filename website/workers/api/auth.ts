@@ -27,6 +27,7 @@ import {
   generateSecureToken,
   sanitizeUser,
 } from '../lib/auth'
+import type { D1Database } from '../lib/cloudflare-types'
 
 interface Env {
   AUTH_SECRET: string;

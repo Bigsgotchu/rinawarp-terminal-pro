@@ -36,6 +36,10 @@ pattern = "rinawarptech.com/api/me"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/api/me/entitlements"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/api/portal"
 zone_name = "rinawarptech.com"
 
@@ -52,7 +56,15 @@ pattern = "rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/api/auth/desktop-session"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/api/referrals/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/matter-intelligence/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
@@ -84,6 +96,10 @@ pattern = "www.rinawarptech.com/api/me"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "www.rinawarptech.com/api/me/entitlements"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "www.rinawarptech.com/api/portal"
 zone_name = "rinawarptech.com"
 
@@ -100,11 +116,79 @@ pattern = "www.rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "www.rinawarptech.com/api/auth/desktop-session"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "www.rinawarptech.com/api/referrals/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "www.rinawarptech.com/api/matter-intelligence/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "www.rinawarptech.com/api/vscode/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/stripe/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/license/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/health"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/events"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/me"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/me/entitlements"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/portal"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/checkout"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/feedback"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/auth/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/auth/desktop-session"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/referrals/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/matter-intelligence/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "api.rinawarptech.com/api/vscode/*"
 zone_name = "rinawarptech.com"
 
 [[kv_namespaces]]
@@ -127,3 +211,7 @@ bucket_name = "rinawarp-cdn"
 
 # Secrets (set via: wrangler secret put STRIPE_SECRET_KEY)
 # STRIPE_SECRET_KEY - Your Stripe secret key for API calls
+# AUTH_SECRET - Shared auth secret for website and desktop session tokens
+# STRIPE_MI_SOLO_PRICE_ID - Matter Intelligence Solo monthly Stripe price ID
+# STRIPE_MI_TEAM_PRICE_ID - Matter Intelligence Team monthly Stripe price ID
+# STRIPE_MI_ENTERPRISE_PRICE_ID - Matter Intelligence Enterprise Stripe price ID

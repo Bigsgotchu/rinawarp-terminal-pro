@@ -18,6 +18,19 @@ const PBKDF2_ITERATIONS = 100000;
 const HASH_ALGORITHM = 'SHA-256';
 const SALT_BYTES = 16;
 
+function timingSafeEqual(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.length !== right.length) {
+    return false
+  }
+
+  let mismatch = 0
+  for (let index = 0; index < left.length; index += 1) {
+    mismatch |= left[index] ^ right[index]
+  }
+
+  return mismatch === 0
+}
+
 /**
  * Generate a cryptographically secure random string
  */
@@ -104,7 +117,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     const hashArray = new Uint8Array(derivedBits);
     const computedHash = btoa(String.fromCharCode(...hashArray));
     
-    return crypto.subtle.timingSafeEqual(
+    return timingSafeEqual(
       encoder.encode(computedHash),
       encoder.encode(hash)
     );
