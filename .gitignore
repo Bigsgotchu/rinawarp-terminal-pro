@@ -80,6 +80,7 @@ RinaWarp.code-workspace
 
 # Local receipts and caches
 runs/
+artifacts/release-evidence/
 scripts/__pycache__/
 apps/terminal-pro/demo-*.png
 output/demo-recordings/
