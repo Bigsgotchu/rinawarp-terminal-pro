@@ -100,12 +100,11 @@ function renderHero(state: WorkbenchState, hidden = false): void {
 
 function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
-  const retentionCard = buildRetentionLoopCardModel(state)
   if (!workspaceSetup) return el('section', { class: 'rw-agent-empty-state-shell', dataset: { agentSection: 'empty-state' } })
   return el(
     'section',
     {
-      class: ['rw-agent-empty-state-shell', retentionCard ? 'has-secondary-card' : 'is-single-column'].filter(Boolean).join(' '),
+      class: ['rw-agent-empty-state-shell', 'is-single-column'].filter(Boolean).join(' '),
       dataset: { agentSection: 'empty-state' },
     },
     el(
@@ -114,16 +113,7 @@ function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
         class: 'rw-agent-empty-column rw-agent-empty-column-main',
       },
       renderAgentCard(workspaceSetup)
-    ),
-    retentionCard
-      ? el(
-          'div',
-          {
-            class: 'rw-agent-empty-column rw-agent-empty-column-secondary',
-          },
-          renderAgentCard(retentionCard)
-        )
-      : null
+    )
   )
 }
 
@@ -136,9 +126,14 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
   const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
   const hasThreadContent = threadMessages.length > 0
+  const composerInput = document.querySelector<HTMLTextAreaElement>('#agent-input')
+  const hasDraft = Boolean(composerInput?.value.trim())
+  const isStreaming = Boolean(state.thinking.active)
+  const isChatActive = hasThreadContent || isStreaming || hasDraft
   const recoveryFocus = recoveryMessages.length > 0 && !hasThreadContent
   const shouldCompactRecovery = recoveryMessages.length > 0 && !state.ui.recoveryExpanded
-  const shouldShowRecoveryStrip = recoveryMessages.length > 0 && (shouldCompactRecovery || hasThreadContent)
+  // Recovery intro should not persist once the user has started a real chat thread.
+  const shouldShowRecoveryStrip = recoveryMessages.length > 0 && !hasThreadContent
 
   if (recoveryRoot) {
     clear(recoveryRoot)
@@ -148,7 +143,7 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
 
       if (stripModel && shouldShowRecoveryStrip) recoveryShell.appendChild(renderRecoveryStrip(stripModel))
 
-      if (!shouldCompactRecovery) {
+      if (!shouldCompactRecovery && shouldShowRecoveryStrip) {
         for (const message of recoveryMessages) {
           const linkedRuns = state.runs.filter((run) => run.originMessageId === message.id || (message.runIds || []).includes(run.id))
           const unresolvedRunIds = (message.runIds || []).filter((runId) => !linkedRuns.some((run) => run.id === runId))
@@ -166,7 +161,7 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
     }
   }
   renderRecoveryToggle(state)
-  renderHero(state, recoveryFocus)
+  renderHero(state, recoveryFocus || isChatActive)
 
   const shell = document.createDocumentFragment()
   const workspaceSetup = buildWorkspaceSetupCardModel(state)
@@ -214,7 +209,9 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   root.classList.toggle('is-empty-thread', !hasThreadContent)
   agentBody?.classList.toggle('is-empty', !hasThreadContent)
   agentBody?.classList.toggle('has-thread-content', hasThreadContent)
-  agentBody?.classList.toggle('has-recovery-strip', recoveryMessages.length > 0)
+  agentBody?.classList.toggle('is-chat-active', isChatActive)
+  agentBody?.classList.toggle('is-streaming', isStreaming)
+  agentBody?.classList.toggle('has-recovery-strip', shouldShowRecoveryStrip)
   agentBody?.classList.toggle('is-recovery-focus', recoveryFocus)
   root.scrollTop = hasThreadContent ? root.scrollHeight : 0
   renderComposerStarterPrompts(state, hasThreadContent)

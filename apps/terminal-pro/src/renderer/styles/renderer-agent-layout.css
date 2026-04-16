@@ -1,10 +1,10 @@
 .rw-agent-body {
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 24px;
   min-block-size: 0;
   block-size: 100%;
-  padding: 80px 32px 148px;
+  padding: 56px 28px 132px;
   overflow: hidden;
 }
 
@@ -14,34 +14,34 @@
 
 .rw-agent-hero {
   display: grid;
-  gap: 12px;
-  inline-size: min(100%, 720px);
+  gap: 10px;
+  inline-size: min(100%, 860px);
   margin-inline: auto;
-  padding: 18px 22px 20px;
+  padding: 14px 18px 16px;
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 24px;
+  border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(14, 17, 26, 0.94), rgba(10, 13, 20, 0.9)),
-    radial-gradient(circle at top left, rgba(255, 79, 163, 0.09), transparent 42%),
-    radial-gradient(circle at top right, rgba(87, 231, 255, 0.06), transparent 32%);
+    radial-gradient(circle at top left, rgba(255, 79, 163, 0.05), transparent 42%),
+    radial-gradient(circle at top right, rgba(87, 231, 255, 0.04), transparent 32%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .rw-agent-hero h2 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.4rem;
   line-height: 1.08;
   letter-spacing: -0.01em;
   color: rgba(247, 249, 253, 0.96);
-  max-inline-size: 16ch;
+  max-inline-size: 24ch;
 }
 
 .rw-agent-hero p {
   margin: 0;
-  max-inline-size: 52ch;
+  max-inline-size: 58ch;
   color: rgba(192, 204, 219, 0.78);
-  font-size: 1rem;
-  line-height: 1.55;
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
 .rw-agent-welcome-subline {
@@ -57,6 +57,7 @@
 }
 
 .rw-agent-body.has-thread-content .rw-agent-hero,
+.rw-agent-body.is-chat-active .rw-agent-hero,
 .rw-agent-body.has-thread-content #agent-starter-prompts,
 #agent-recovery:empty,
 #agent-plan-container:empty {
@@ -71,7 +72,7 @@
 
 #agent-recovery,
 #agent-plan-container {
-  inline-size: min(100%, 720px);
+  inline-size: min(100%, 860px);
   margin-inline: auto;
 }
 
@@ -171,8 +172,8 @@
 #agent-output {
   display: grid;
   align-content: start;
-  gap: 48px;
-  inline-size: min(100%, 720px);
+  gap: 18px;
+  inline-size: min(100%, 860px);
   margin-inline: auto;
   padding: 0 0 20px;
   border: 0;
@@ -188,7 +189,7 @@
   display: grid;
   align-content: start;
   min-block-size: 0;
-  inline-size: min(100%, 720px);
+  inline-size: min(100%, 860px);
   margin-inline: auto;
   padding: 0;
   border: 0;
@@ -215,18 +216,16 @@
   left: 41px;
   right: 0;
   z-index: 10;
-  background:
-    linear-gradient(180deg, rgba(4, 7, 11, 0.92), rgba(4, 6, 10, 0.97)),
-    radial-gradient(circle at top left, rgba(87, 231, 255, 0.03), transparent 24%);
+  background: linear-gradient(180deg, rgba(4, 7, 11, 0.94), rgba(4, 6, 10, 0.98));
   backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 14px 20px 16px;
+  padding: 12px 20px 16px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .rw-agent-composer > * {
-  inline-size: min(100%, 720px);
+  inline-size: min(100%, 860px);
   margin-inline: auto;
 }
 
@@ -257,11 +256,11 @@
 
 .rw-agent-input {
   flex: 1;
-  min-block-size: 52px;
+  min-block-size: 56px;
   resize: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--rw-fg);
   font: 500 1rem/1.5 var(--font-ui);
   padding: 14px 16px;
@@ -300,7 +299,7 @@
 .rw-agent-send:hover {
   transform: translateY(-1px);
   border-color: rgba(87, 231, 255, 0.34);
-  box-shadow: 0 12px 28px rgba(255, 79, 163, 0.18);
+  box-shadow: 0 8px 20px rgba(255, 79, 163, 0.12);
 }
 
 #status-bar {
@@ -369,9 +368,9 @@
 
 .rw-agent-empty-state-shell {
   display: grid;
-  gap: 32px;
+  gap: 16px;
   align-items: start;
-  max-inline-size: min(100%, 800px);
+  max-inline-size: min(100%, 860px);
   min-block-size: 0;
 }
 
@@ -396,9 +395,9 @@
 
 .rw-agent-empty-card {
   display: grid;
-  gap: 14px;
-  padding: 24px 26px;
-  border-radius: 24px;
+  gap: 12px;
+  padding: 18px 18px;
+  border-radius: 16px;
   border: 1px solid rgba(124, 199, 255, 0.1);
   background:
     linear-gradient(180deg, rgba(21, 28, 40, 0.88), rgba(17, 24, 35, 0.82)),
@@ -427,8 +426,8 @@
 }
 
 .rw-agent-onboarding-card {
-  gap: 18px;
-  padding: 28px 28px 24px;
+  gap: 12px;
+  padding: 16px 16px 14px;
   border-color: rgba(255, 122, 168, 0.22);
   background:
     radial-gradient(circle at top left, rgba(255, 122, 168, 0.16), transparent 42%),
@@ -440,16 +439,16 @@
 }
 
 .rw-agent-onboarding-card .rw-agent-empty-title {
-  font-size: 2rem;
+  font-size: 1.25rem;
   line-height: 1.08;
   letter-spacing: -0.03em;
-  max-inline-size: 16ch;
+  max-inline-size: 28ch;
 }
 
 .rw-agent-onboarding-card .rw-agent-empty-copy {
-  font-size: 1rem;
-  line-height: 1.52;
-  max-inline-size: 60ch;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  max-inline-size: 64ch;
 }
 
 .rw-agent-onboarding-card .rw-agent-empty-stats {

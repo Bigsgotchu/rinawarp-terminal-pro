@@ -76,25 +76,25 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
   const restoredRuns = state.runs.filter((run) => run.restored)
   const heading =
     workspaceState.status === 'missing'
-      ? 'Fix your broken project automatically.'
+      ? 'Ask Rina to inspect, explain, fix, or build.'
       : workspaceState.status === 'weak'
         ? 'This folder may not be the project root yet.'
         : restoredRuns.length > 0
           ? 'Recovered your last session.'
           : lastRun && isRunSuccessWithProof(lastRun)
-            ? 'Ready when you are. I know the workspace, and the last verified run ended cleanly.'
+            ? 'Ready. Workspace is known and the last verified run ended cleanly.'
             : lastRun
-              ? 'Ready when you are. I know where we are, and I can pick up from the last run without pretending.'
-              : 'Open a project and click Fix Project.'
+              ? 'Ready. I can pick up from the last run without guessing.'
+              : 'Open a project and start with Fix Project.'
   const copy =
     workspaceState.status === 'missing'
-      ? 'Open a project and click Fix Project. RinaWarp reads the code, repairs the safest issues first, and verifies the result.'
+      ? 'Open a project, then run one focused action.'
       : workspaceState.status === 'weak'
         ? workspaceState.reason
         : restoredRuns.length > 0
-          ? 'Everything looks safe to continue. Want to pick up where you left off?'
+          ? 'Want to continue where you left off?'
           : lastRun
-            ? `I can build, test, deploy, or inspect what just happened in ${workspaceState.displayValue}. No drama, just proof when it counts.`
+            ? `Build, test, deploy, or inspect what happened in ${workspaceState.displayValue}.`
             : `Build, test, fix, or ship in ${workspaceState.displayValue}.`
 
   const actions =
@@ -139,8 +139,8 @@ export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyC
     return {
       sectionKey: 'guided-fix',
       label: 'Start here',
-      title: 'Click Fix Project to repair this project.',
-      copy: 'No setup tour. No settings maze. Start the guided repair and watch RinaWarp analyze, fix, and verify the project in one flow.',
+      title: 'Run one focused action.',
+      copy: 'Start with a guided repair, then review proof in the thread.',
       className: 'rw-agent-onboarding-card',
       actions: [
         {
@@ -162,11 +162,7 @@ export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyC
           },
         },
       ],
-      stats: [
-        { label: '1', value: 'Open project' },
-        { label: '2', value: 'Click Fix Project' },
-        { label: '3', value: 'Watch it verify' },
-      ],
+      stats: undefined,
       footerCopy: `Current project: ${workspaceState.displayValue}`,
     }
   }
@@ -175,25 +171,18 @@ export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyC
     label: workspaceState.status === 'missing' ? 'First launch' : 'Workspace check',
     title:
       workspaceState.status === 'missing'
-        ? 'Fix your broken project automatically.'
+        ? 'Ask Rina to inspect, explain, fix, or build.'
         : `${workspaceState.displayValue} may not be the right project folder.`,
     copy:
       workspaceState.status === 'missing'
-        ? 'Open your own project or try a demo project. The fastest path to understanding RinaWarp is watching one successful fix.'
+        ? 'Open your project or use a demo project to get the first verified run.'
         : workspaceState.reason,
     className: `rw-agent-workspace-setup rw-agent-onboarding-card is-${workspaceState.status}`,
     actions: [
       { label: 'Open Project', className: actionClass('primary'), dataset: { pickWorkspace: 'workspace-setup' } },
       { label: 'Try Demo Project', className: actionClass('secondary'), dataset: { loadDemoProject: 'workspace-setup' } },
     ],
-    stats:
-      workspaceState.status === 'missing'
-        ? [
-            { label: '30 sec', value: 'First fix target' },
-            { label: 'Live', value: 'Execution proof' },
-            { label: 'Verified', value: 'Success summary' },
-          ]
-        : undefined,
+    stats: undefined,
     footerCopy: workspaceState.rootMarkers.length > 0 ? `Detected project markers: ${workspaceState.rootMarkers.join(', ')}` : 'You can switch projects later. The goal is just to get to the first successful fix quickly.',
   }
 }

@@ -83,6 +83,8 @@ type RecentRunSignal = {
   interrupted?: boolean
 }
 
+type RepairCaseOutcome = 'success' | 'failed'
+
 type OwnerMemoryRecord = {
   ownerId: string
   profile: RinaMemoryProfile
@@ -620,6 +622,29 @@ export function createOwnerMemoryStore(deps: OwnerMemoryStoreDeps) {
     if (normalized.includes('deploy')) return 'deploy'
     if (/\bfix|repair\b/.test(normalized)) return 'fix'
     return 'command'
+  }
+
+  function sanitizeRepairSignature(value: string): string {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[`"'()[\]{}]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 180)
+  }
+
+  function deriveRepairSignature(input: {
+    workspaceId?: string
+    issueSummary: string
+    failureSignature?: string
+    commands?: string[]
+  }): string {
+    const workspaceKey = String(input.workspaceId || '').trim().toLowerCase() || 'global'
+    const explicit = sanitizeRepairSignature(input.failureSignature || '')
+    if (explicit) return `${workspaceKey}:${explicit}`
+    const summaryKey = sanitizeRepairSignature(input.issueSummary || '')
+    const commandKey = sanitizeRepairSignature((input.commands || []).slice(0, 2).join(' && '))
+    return `${workspaceKey}:${summaryKey || commandKey || 'repair-case'}`
   }
 
   function buildSuggestedInferences(record: OwnerMemoryRecord): InferredMemoryEntry[] {
@@ -1288,6 +1313,103 @@ export function createOwnerMemoryStore(deps: OwnerMemoryStoreDeps) {
     return getState()
   }
 
+  function recordRepairCase(input: {
+    workspaceId?: string
+    issueSummary: string
+    failureSignature?: string
+    commands?: string[]
+    outcome: RepairCaseOutcome
+    verification?: string
+    notes?: string
+  }): { owner: OwnerIdentity; memory: OwnerMemoryRecord } {
+    const issueSummary = String(input.issueSummary || '').trim()
+    if (!issueSummary) return getState()
+    const workspaceId = String(input.workspaceId || '').trim() || undefined
+    const commands = Array.isArray(input.commands)
+      ? input.commands.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 6)
+      : []
+    const failureSignature = String(input.failureSignature || '').trim()
+    const verification = String(input.verification || '').trim()
+    const notes = String(input.notes || '').trim()
+    const signature = deriveRepairSignature({
+      workspaceId,
+      issueSummary,
+      failureSignature,
+      commands,
+    })
+
+    const contentParts = [
+      `Repair case (${input.outcome})`,
+      `Issue: ${issueSummary}`,
+      failureSignature ? `Failure signature: ${failureSignature}` : '',
+      commands.length > 0 ? `Commands: ${commands.join(' ; ')}` : '',
+      verification ? `Verification: ${verification}` : '',
+      notes ? `Notes: ${notes}` : '',
+    ].filter(Boolean)
+
+    saveExtractedMemory({
+      scope: workspaceId ? 'project' : 'episode',
+      kind: 'task_outcome',
+      status: input.outcome === 'success' ? 'approved' : 'suggested',
+      content: contentParts.join('\n'),
+      workspaceId: workspaceId || null,
+      sessionId: null,
+      normalizedKey: `repair_case:${signature}`,
+      salience: input.outcome === 'success' ? 0.9 : 0.76,
+      confidence: input.outcome === 'success' ? 0.96 : 0.7,
+      source: 'task_outcome',
+      tags: [
+        'repair-case',
+        `repair:${input.outcome}`,
+        ...(failureSignature ? ['repair-signature'] : []),
+        ...commands.map((command) => `repair-cmd:${command.split(/\s+/)[0] || 'cmd'}`),
+      ],
+      metadata: {
+        category: 'repair_case',
+        outcome: input.outcome,
+        signature,
+        failureSignature: failureSignature || null,
+        commands,
+        verification: verification || null,
+        notes: notes || null,
+        capturedAt: new Date().toISOString(),
+      },
+    })
+
+    return getState()
+  }
+
+  function retrieveRepairKnowledge(input: {
+    query: string
+    workspaceId?: string
+    limit?: number
+  }): OperationalMemoryEntry[] {
+    const limit = Math.max(1, Number(input.limit || 6))
+    const candidates = retrieveRelevantMemory({
+      workspaceId: input.workspaceId,
+      query: input.query,
+      limit: Math.max(limit * 3, 18),
+    })
+
+    return candidates
+      .filter((entry) => {
+        const tags = Array.isArray(entry.tags) ? entry.tags : []
+        const metadata = entry.metadata || {}
+        const category = String((metadata as Record<string, unknown>).category || '').trim().toLowerCase()
+        return category === 'repair_case' || tags.includes('repair-case')
+      })
+      .sort((a, b) => {
+        const aOutcome = String((a.metadata || {}).outcome || '')
+        const bOutcome = String((b.metadata || {}).outcome || '')
+        if (aOutcome !== bOutcome) {
+          if (aOutcome === 'success') return -1
+          if (bOutcome === 'success') return 1
+        }
+        return Number(b.salience || 0) - Number(a.salience || 0)
+      })
+      .slice(0, limit)
+  }
+
   function retrieveRelevantMemory(input: {
     userId?: string
     workspaceId?: string
@@ -1422,6 +1544,8 @@ export function createOwnerMemoryStore(deps: OwnerMemoryStoreDeps) {
     retrieveRelevantMemory,
     recordConversationTurn,
     recordTaskOutcome,
+    recordRepairCase,
+    retrieveRepairKnowledge,
     processTurnMemory,
     getRecentMessages,
   }

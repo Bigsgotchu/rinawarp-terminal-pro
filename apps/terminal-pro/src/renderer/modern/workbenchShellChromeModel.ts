@@ -27,6 +27,12 @@ export type WorkbenchShellChromeModel = {
 
 export function getStatusBarModel(state: WorkbenchState): StatusBarModel {
   const workspaceState = getWorkspaceContextState(state)
+  const restoredRuns = state.runs.filter((run) => run.restored)
+  const rawStatusSummary = String(state.ui.statusSummaryText || '').trim()
+  const hasStaleRecoverySummary =
+    /recovery:/i.test(rawStatusSummary) &&
+    /\b(?:no|none|not available|not found|unknown)\b/i.test(rawStatusSummary)
+  const preferredStatusSummary = restoredRuns.length > 0 && hasStaleRecoverySummary ? '' : rawStatusSummary
   const workspacePickerText =
     workspaceState.status === 'weak'
       ? `Workspace: ${workspaceState.displayValue}`
@@ -36,9 +42,10 @@ export function getStatusBarModel(state: WorkbenchState): StatusBarModel {
 
   let summaryText: string
   if (workspaceState.status !== 'project') summaryText = 'Choose a project folder to give Rina stronger context'
-  else if (state.ui.statusSummaryText && state.ui.statusSummaryText.trim() && state.ui.statusSummaryText.trim().toLowerCase() !== 'ready') {
-    summaryText = state.ui.statusSummaryText
+  else if (preferredStatusSummary && preferredStatusSummary.toLowerCase() !== 'ready') {
+    summaryText = preferredStatusSummary
   } else if (state.thinking.active && state.thinking.message) summaryText = state.thinking.message
+  else if (restoredRuns.length > 0) summaryText = 'Recovered session is ready. Resume task or open receipt.'
   else summaryText = 'Rina is ready to work in this project.'
 
   return {

@@ -248,6 +248,38 @@ export type MemoryIpcDeps = {
   ) => MemoryState;
   deleteOperationalMemory: (id: string) => MemoryState;
   deleteEntry: (args: MemoryDeleteEntryArgs) => MemoryState;
+  recordRepairCase?: (input: {
+    workspaceId?: string;
+    issueSummary: string;
+    failureSignature?: string;
+    commands?: string[];
+    outcome: "success" | "failed";
+    verification?: string;
+    notes?: string;
+  }) => MemoryState;
+  retrieveRepairKnowledge?: (input: {
+    query: string;
+    workspaceId?: string;
+    limit?: number;
+  }) => Array<{
+    id: string;
+    scope: "session" | "user" | "project" | "episode";
+    kind:
+      | "preference"
+      | "constraint"
+      | "project_fact"
+      | "task_outcome"
+      | "conversation_fact";
+    content: string;
+    salience: number;
+    workspaceId?: string;
+    source?: "behavior" | "conversation";
+    tags?: string[];
+    createdAt: string;
+    updatedAt: string;
+    lastUsedAt?: string;
+    metadata?: Record<string, unknown>;
+  }>;
 };
 
 export type OwnerMemoryStore = {
@@ -370,6 +402,38 @@ export type OwnerMemoryStore = {
     role: "user" | "assistant";
     text: string;
     createdAt: string;
+  }>;
+  recordRepairCase?: (input: {
+    workspaceId?: string;
+    issueSummary: string;
+    failureSignature?: string;
+    commands?: string[];
+    outcome: "success" | "failed";
+    verification?: string;
+    notes?: string;
+  }) => MemoryState;
+  retrieveRepairKnowledge?: (input: {
+    query: string;
+    workspaceId?: string;
+    limit?: number;
+  }) => Array<{
+    id: string;
+    scope: "session" | "user" | "project" | "episode";
+    kind:
+      | "preference"
+      | "constraint"
+      | "project_fact"
+      | "task_outcome"
+      | "conversation_fact";
+    content: string;
+    salience: number;
+    workspaceId?: string;
+    source?: "behavior" | "conversation";
+    tags?: string[];
+    createdAt: string;
+    updatedAt: string;
+    lastUsedAt?: string;
+    metadata?: Record<string, unknown>;
   }>;
 };
 

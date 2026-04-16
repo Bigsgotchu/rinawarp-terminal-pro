@@ -97,6 +97,26 @@ describe('Agent Tests', () => {
     assert.doesNotMatch(reply.message, /need one anchor/i)
   })
 
+  it('should treat assistant-name typo greetings like "hi eina" as chat', async () => {
+    const result = routeConversationTurn({
+      rawText: 'hi eina',
+      workspaceId: '/home/karina',
+      latestRun: { runId: 'run_123', sessionId: 'session_456' },
+    })
+
+    assert.strictEqual(result.mode, 'chat')
+    assert.strictEqual(result.allowedNextAction, 'reply_only')
+
+    const reply = await buildConversationReply({
+      routedTurn: result,
+      workspaceLabel: '/home/karina',
+      latestRun: { runId: 'run_123', sessionId: 'session_456' },
+    })
+
+    assert.match(reply.message, /Hi\./)
+    assert.doesNotMatch(reply.message, /need one anchor/i)
+  })
+
   it('should answer check-ins naturally instead of talking about proof first', async () => {
     const result = routeConversationTurn({
       rawText: 'how are you',

@@ -28,6 +28,10 @@ const HELP_WORDS =
   /\b(what can u do|what can you do|what do you do|help me|help\b|what are your capabilities|what can rina do|show capabilities)\b/i
 const QUESTION_WORDS = /^(why|what|how|did|does|is|are|can|could|would|should)\b/i
 const SOCIAL_WORDS = /\b(lol|haha|fair|thanks|thank you|funny|nice|cool|okay|ok)\b/i
+const GENERAL_KNOWLEDGE_WORDS =
+  /\b(what knowledge do you have|what do you know|who are you|what are you|tell me about yourself)\b/i
+const WORKSPACE_FACT_WORDS =
+  /\b(workspace|run|receipt|resume|rerun|file|files|diagnostics?|settings|logs?|task|task history|last run|changed|modif(?:y|ied|ications)|what happened|what broke|what failed)\b/i
 const VAGUE_WORK_WORDS = /\b(make this work|make it work|fix whatever is broken|this is broken|what failed|what's wrong|what is wrong|look into this|inspect this|check this)\b/i
 const FOLLOW_UP_WORDS = /\b(again|last one|last thing|that run|open that run|other workspace|use the other one|make it like before)\b/i
 const MEMORY_WORDS =
@@ -39,26 +43,29 @@ const MIXED_ACTION_WORDS = /\b(and explain|explain what happened|tell me what ha
 const TEST_BOUNDARY_WORDS = /\b(don't touch tests|do not touch tests|don't edit tests|do not edit tests|without touching tests|without editing tests)\b/i
 const PACKAGE_MANAGER_WORDS = /\b(use pnpm|prefer pnpm|use npm|prefer npm|use yarn|prefer yarn|use bun|prefer bun)\b/i
 const VERBOSITY_WORDS = /\b(keep responses short|keep it short|be concise|prefer concise|short answers)\b/i
+const ASSISTANT_ALIAS_WORDS = '(?:rina|eina|reena|rinna)'
+const ASSISTANT_PREFIX_RE = new RegExp(`^${ASSISTANT_ALIAS_WORDS}[\\s,:!-]*`, 'i')
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
 }
 
 function stripAssistantPrefix(value: string): string {
-  return value.replace(/^rina[\s,:-]*/i, '').trim()
+  return value.replace(ASSISTANT_PREFIX_RE, '').trim()
 }
 
 function stripConversationalPrefix(value: string): string {
   return value
     .replace(/^(?:hey|hi|hello|yo|sup)[\s,!.-]*/i, '')
-    .replace(/^rina[\s,:!-]*/i, '')
+    .replace(ASSISTANT_PREFIX_RE, '')
     .trim()
 }
 
 function isGreetingTurn(rawText: string): boolean {
   const normalized = stripAssistantPrefix(normalizeWhitespace(rawText).toLowerCase())
-  if (!normalized) return false
-  return /^(?:hey|hi|hello|yo|sup)(?:\s+(?:there|rina))?[!.?]*$/.test(normalized)
+  if (!normalized) return true
+  if (new RegExp(`^${ASSISTANT_ALIAS_WORDS}[!.?]*$`, 'i').test(normalized)) return true
+  return new RegExp(`^(?:hey|hi|hello|yo|sup)(?:\\s+(?:there|${ASSISTANT_ALIAS_WORDS}))?[!.?]*$`, 'i').test(normalized)
 }
 
 function classifyExecutionGoal(rawText: string): RoutedTurn['executionCandidate'] | null {
@@ -90,6 +97,7 @@ function classifyTurnType(rawText: string, lower: string, latestRun?: RouteConve
   if (SELF_CHECK_TRIGGERS.test(rawText)) return 'diagnose'
   if (!rawText) return 'clarify_needed'
   if (isGreetingTurn(rawText)) return 'greeting'
+  if (GENERAL_KNOWLEDGE_WORDS.test(lower) && !WORKSPACE_FACT_WORDS.test(lower)) return 'help'
   if (HELP_WORDS.test(lower)) return 'help'
   if (RECOVERY_WORDS.test(lower) || FOLLOW_UP_WORDS.test(lower)) return 'follow_up'
   if (MEMORY_WORDS.test(lower) || SETTINGS_WORDS.test(lower)) return 'clarify_needed'
@@ -296,6 +304,28 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
       mode: 'help',
       turnType: 'help',
       confidence: 0.96,
+      workspaceId: args.workspaceId,
+      references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
+      allowedNextAction: 'reply_only',
+      requiresAction: false,
+      constraints,
+      context,
+      replyPlan: buildReplyPlan({
+        turnType: 'help',
+        mode: 'reply_only',
+        workspaceId: args.workspaceId,
+        latestRun,
+        shouldStartRun: false,
+      }),
+    }
+  }
+
+  if (GENERAL_KNOWLEDGE_WORDS.test(lower) && !WORKSPACE_FACT_WORDS.test(lower)) {
+    return {
+      rawText,
+      mode: 'chat',
+      turnType: 'help',
+      confidence: 0.9,
       workspaceId: args.workspaceId,
       references: { runId: latestRun?.runId, receiptId: latestRun?.latestReceiptId },
       allowedNextAction: 'reply_only',

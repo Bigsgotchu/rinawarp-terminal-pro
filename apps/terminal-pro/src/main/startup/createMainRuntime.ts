@@ -60,6 +60,8 @@ function createMemoryIpcDeps(ipcMain: unknown, ownerMemoryStore: OwnerMemoryStor
         setOperationalMemoryStatus: (id, status) => ownerMemoryStore.setOperationalMemoryStatus(id, status),
         deleteOperationalMemory: (id) => ownerMemoryStore.deleteOperationalMemory(id),
         deleteEntry: (input) => ownerMemoryStore.deleteEntry(input),
+        recordRepairCase: (input) => ownerMemoryStore.recordRepairCase?.(input) || ownerMemoryStore.getState(),
+        retrieveRepairKnowledge: (input) => ownerMemoryStore.retrieveRepairKnowledge?.(input) || [],
     };
 }
 

@@ -81,6 +81,14 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
   fixBlockManager: TFixBlockManager,
   deps: WorkbenchActionControllerDeps<TFixBlockManager>
 ): WorkbenchActionCleanup {
+  const syncComposerActiveState = (): void => {
+    const input = root.querySelector<HTMLTextAreaElement>('#agent-input')
+    const agentBody = root.querySelector<HTMLElement>('.rw-agent-body')
+    if (!input || !agentBody) return
+    const hasDraft = input.value.trim().length > 0
+    agentBody.classList.toggle('is-chat-active', hasDraft || agentBody.classList.contains('has-thread-content') || agentBody.classList.contains('is-streaming'))
+  }
+
   const submitUserTurn = createUserTurnSubmitter(store, {
     sendPromptToRina: deps.sendPromptToRina,
     trackRendererEvent: deps.trackRendererEvent,
@@ -94,6 +102,7 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
     const submitted = await submitUserTurn(prompt, source)
     if (submitted) {
       input.value = ''
+      syncComposerActiveState()
     }
   }
   const handleNavigationAction = createNavigationActionHandler(store, {
@@ -179,11 +188,21 @@ export function bindWorkbenchActions<TFixBlockManager extends WorkbenchActionFix
     void submitComposer('keyboard')
   }
 
+  const onInput = (event: Event) => {
+    const target = event.target as HTMLElement | null
+    if (!(target instanceof HTMLTextAreaElement)) return
+    if (target.id !== 'agent-input') return
+    syncComposerActiveState()
+  }
+
   root.addEventListener('click', onClick)
   root.addEventListener('keydown', onKeyDown)
+  root.addEventListener('input', onInput)
+  syncComposerActiveState()
   return () => {
     root.removeEventListener('click', onClick)
     root.removeEventListener('keydown', onKeyDown)
+    root.removeEventListener('input', onInput)
   }
 }
 

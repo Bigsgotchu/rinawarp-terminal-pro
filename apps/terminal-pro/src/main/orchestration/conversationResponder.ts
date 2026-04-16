@@ -78,9 +78,9 @@ export async function buildConversationReply(
     case 'question':
       return {
         intent: 'question',
-        message: /\b(how are you|how's it going|hows it going|what's up|whats up)\b/.test(rawText)
-          ? buildChatReply(rawText, latestRun)
-          : buildVerifiedRunSentence(latestRun, rawText),
+        message: isGeneralQuestion(rawText)
+          ? buildGeneralQuestionReply(rawText, latestRun)
+          : buildWorkspaceResponse(rawText, latestRun),
       }
     case 'help':
       return {
@@ -98,38 +98,20 @@ export async function buildConversationReply(
         }.`,
       }
     case 'mixed': {
-      const constraintText =
-        Array.isArray(routedTurn.constraints) && routedTurn.constraints.length > 0
-          ? ` I\'ll keep ${routedTurn.constraints
-              .map((constraint) =>
-                constraint === 'do_not_touch_tests'
-                  ? 'tests untouched'
-                  : constraint === 'use_pnpm'
-                    ? 'pnpm'
-                    : constraint === 'prefer_concise'
-                      ? 'this short'
-                      : constraint.replace(/_/g, ' ')
-              )
-              .join(', ')}.`
-          : ''
       return {
         intent: 'mixed',
-        message: `Got it.${constraintText} I\'ll execute and show you what happens.`,
+        message: buildMixedResponse(rawText, latestRun),
       }
     }
     case 'follow_up':
       return {
         intent: 'follow_up',
-        message: latestRun?.runId
-          ? 'Following up from the last run. I can inspect what happened or rerun it when you want.'
-          : 'Following up from the last run. I can inspect first or rerun it.',
+        message: buildWorkspaceResponse(rawText, latestRun),
       }
     case 'recovery':
       return {
         intent: 'recovery',
-        message: latestRun?.interrupted
-          ? 'The last run was interrupted. I can show you what happened and resume from there.'
-          : 'I can inspect the last run or the current workspace first.',
+        message: buildActionResponse(rawText, latestRun),
       }
     case 'settings':
       return {
@@ -156,13 +138,22 @@ export async function buildConversationReply(
     default:
       return {
         intent: routedTurn.mode,
-        message: `I understand you want to ${routedTurn.mode}. Let me help with that.`,
+        message: routedTurn.mode === 'execute' ? buildActionResponse(rawText, latestRun) : `I understand you want to ${routedTurn.mode}. Let me help with that.`,
       }
   }
 }
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
+}
+
+function isGeneralQuestion(rawText: string): boolean {
+  if (!rawText) return false
+  if (/\b(how are you|how's it going|hows it going|what's up|whats up)\b/.test(rawText)) return true
+  if (/\b(what knowledge do you have|what do you know|who are you|what are you|tell me about yourself)\b/.test(rawText)) {
+    return !/\b(workspace|run|receipt|files?|logs?|task|history|last run|changed|modified|what happened|what failed|what broke)\b/.test(rawText)
+  }
+  return false
 }
 
 function buildChatReply(rawText: string, latestRun?: ConversationRunReference | null): string {
@@ -180,22 +171,121 @@ function buildChatReply(rawText: string, latestRun?: ConversationRunReference | 
   return "I'm here and ready."
 }
 
-function buildVerifiedRunSentence(latestRun?: ConversationRunReference | null, rawText = ''): string {
-  if (!latestRun?.runId) {
-    if (/\b(why|what happened|what broke|what failed)\b/.test(rawText)) {
-      return "Nothing has run yet. I can inspect the workspace now and tell you what's next."
+function buildGeneralQuestionReply(rawText: string, latestRun?: ConversationRunReference | null): string {
+  if (/\b(what knowledge do you have|what do you know|who are you|what are you|tell me about yourself)\b/.test(rawText)) {
+    return 'I have general coding and reasoning knowledge, plus whatever is visible in this workspace. I do not automatically know uninspected files or hidden run details.'
+  }
+  return buildChatReply(rawText, latestRun)
+}
+
+function buildWorkspaceResponse(rawText: string, latestRun?: ConversationRunReference | null): string {
+  const known: string[] = []
+  const unknown: string[] = []
+
+  if (latestRun?.runId) {
+    known.push(`Last run ID is ${latestRun.runId}`)
+    if (latestRun.interrupted) {
+      known.push('The last run was interrupted')
+    } else if (typeof latestRun.latestExitCode === 'number') {
+      known.push(latestRun.latestExitCode === 0 ? 'Last run finished successfully' : 'Last run failed')
     }
-    return 'I can inspect the workspace now.'
+    if (latestRun.latestReceiptId) {
+      known.push('A receipt reference exists for the run')
+    }
+  } else {
+    known.push('No verified run is available yet')
   }
-  if (latestRun.interrupted) {
-    return 'The last run was interrupted. I can show you what happened.'
+
+  if (/\b(why|what happened|what failed|what broke|last run|changed)\b/.test(rawText)) {
+    unknown.push('Exact root cause and stack trace details')
+    if (!latestRun?.latestReceiptId) unknown.push('Receipt-level execution details')
+  } else {
+    unknown.push('Current workspace state beyond visible run metadata')
   }
-  if (typeof latestRun.latestExitCode === 'number') {
-    return latestRun.latestExitCode === 0
-      ? 'The last run finished. I can show the details or move to the next step.'
-      : 'The last run failed. I can show you what happened.'
+
+  const nextMove = latestRun?.latestReceiptId
+    ? 'Open the latest receipt first, then inspect logs for the exact failure path.'
+    : latestRun?.runId
+      ? 'Inspect the latest run logs to confirm the failure cause and next fix.'
+      : 'Run an inspect pass on the workspace to establish a verified baseline.'
+
+  return `What I can see:
+- ${known.join('\n- ')}
+
+What I haven't verified yet:
+- ${unknown.join('\n- ')}
+
+Best next move:
+- ${nextMove}`
+}
+
+function buildActionResponse(rawText: string, latestRun?: ConversationRunReference | null): string {
+  const resumeIntent = /\b(resume|continue|pick up where we left off)\b/.test(rawText)
+  const rerunIntent = /\b(rerun|run again|retry)\b/.test(rawText)
+  const receiptIntent = /\b(open receipt|show receipt|receipt)\b/.test(rawText)
+
+  if (receiptIntent) {
+    return `Action:
+- Open receipt
+
+Risk:
+- Low risk; read-only verification of prior actions
+
+Recommendation:
+- Open the latest receipt first to verify what already ran before taking any new action.`
   }
-  return "The last run is still settling. I'll check the current state."
+
+  if (rerunIntent) {
+    return `Action:
+- Rerun previous task
+
+Risk:
+- Rerunning may duplicate work or side effects
+
+Recommendation:
+- Check the latest receipt first; rerun only after confirming duplicate effects are acceptable.`
+  }
+
+  if (resumeIntent || latestRun?.interrupted) {
+    return `Action:
+- Resume previous task
+
+Risk:
+- May repeat steps if earlier execution had side effects
+
+Recommendation:
+- Resume if the task was local and idempotent; otherwise check the receipt first.`
+  }
+
+  return `Action:
+- Perform requested workspace action
+
+Risk:
+- May change workspace or repeat prior operations depending on command scope
+
+Recommendation:
+- Start with inspection or receipt review, then execute the smallest safe next step.`
+}
+
+function buildMixedResponse(rawText: string, latestRun?: ConversationRunReference | null): string {
+  const quickAnswer = /\bwhat should i do next\b/.test(rawText)
+    ? 'Start with the smallest high-signal step: verify run state, then execute one focused fix.'
+    : 'I can handle both explanation and execution in one pass.'
+  const workspaceAngle = latestRun?.runId
+    ? 'We have run metadata to anchor decisions, but root-cause details still require receipt/log inspection.'
+    : 'Without a verified run anchor, we should inspect first before executing any high-impact step.'
+  const nextStep = latestRun?.latestReceiptId
+    ? 'Open the latest receipt, then run the chosen fix path.'
+    : 'Run an inspect pass, then execute the selected fix path.'
+
+  return `Quick answer:
+- ${quickAnswer}
+
+Workspace angle:
+- ${workspaceAngle}
+
+Next step:
+- ${nextStep}`
 }
 
 function buildHelpReply(args: { workspaceLabel?: string; canDeploy: boolean }): string {

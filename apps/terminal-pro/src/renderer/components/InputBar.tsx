@@ -10,7 +10,14 @@ export function InputBar() {
 
     setIsLoading(true)
     try {
-      await window.rina.runAgent(input.trim())
+      const prompt = input.trim()
+      if (typeof window.rina.handleConversationTurn === 'function') {
+        await window.rina.handleConversationTurn(prompt)
+      } else if (typeof window.rina.conversationRoute === 'function') {
+        await window.rina.conversationRoute(prompt)
+      } else {
+        await window.rina.runAgent(prompt)
+      }
       setInput('')
     } catch (error) {
       console.error('Failed to send message:', error)

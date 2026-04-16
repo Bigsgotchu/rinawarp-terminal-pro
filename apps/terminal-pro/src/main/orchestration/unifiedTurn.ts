@@ -66,6 +66,17 @@ type MemoryStoreLike = {
     status?: 'approved' | 'suggested' | 'rejected'
     metadata?: Record<string, unknown>
   }>
+  retrieveRepairKnowledge?: (input: {
+    query: string
+    workspaceId?: string
+    limit?: number
+  }) => Array<{
+    id?: string
+    content: string
+    kind: 'preference' | 'constraint' | 'project_fact' | 'task_outcome' | 'conversation_fact'
+    status?: 'approved' | 'suggested' | 'rejected'
+    metadata?: Record<string, unknown>
+  }>
   processTurnMemory?: (input: {
     userId?: string
     workspaceId?: string | null
@@ -109,9 +120,25 @@ const memoryExtractor = createRuleBasedMemoryExtractor()
 const taskController = createInMemoryTaskController()
 
 function retrieveRelevantMemories(rawText: string, memoryStore: MemoryStoreLike, workspaceId?: string, sessionId?: string) {
-  return memoryStore.retrieveRelevantMemory
+  const base = memoryStore.retrieveRelevantMemory
     ? memoryStore.retrieveRelevantMemory({ workspaceId, sessionId, query: rawText, limit: 8 })
     : memoryStore.retrieveRelevantMemories({ query: rawText, workspaceId, limit: 8 })
+
+  const repair = memoryStore.retrieveRepairKnowledge
+    ? memoryStore.retrieveRepairKnowledge({ query: rawText, workspaceId, limit: 5 })
+    : []
+
+  if (repair.length === 0) return base
+
+  const seen = new Set<string>()
+  const merged = [...repair, ...base].filter((entry) => {
+    const key = String(entry.id || entry.content || '').trim().toLowerCase()
+    if (!key) return false
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  return merged.slice(0, 10)
 }
 
 function mergeConstraints(rawText: string, memoryStore: MemoryStoreLike, workspaceId?: string, sessionId?: string): string[] {

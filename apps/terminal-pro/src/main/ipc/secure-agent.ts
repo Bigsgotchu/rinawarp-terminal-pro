@@ -17,6 +17,7 @@ import {
 import { FALLBACK_MARKETPLACE_AGENTS } from '../../rina/capabilities/catalog.js'
 import { listCapabilityPacks } from '../../rina/capabilities/registry.js'
 import { licenseApiUrl } from '../../license.js'
+import { isPremiumTierUnlocked } from './secureAgentTier.js'
 
 function mergeMarketplaceAgents(agents: AgentPackage[]): AgentPackage[] {
   const merged = new Map<string, AgentPackage>()
@@ -192,7 +193,7 @@ export function registerSecureAgentIpc(ipcMain: IpcMain, deps?: { getLicenseTier
         const fallbackAgent = marketplace.agents?.find((agent) => agent.name === options.name)
         if (fallbackAgent) {
           const currentTier = String(deps?.getLicenseTier?.() || 'free').toLowerCase()
-          const premiumUnlocked = currentTier !== 'free' && currentTier !== 'starter'
+          const premiumUnlocked = isPremiumTierUnlocked(currentTier)
           if (fallbackAgent.price && fallbackAgent.price > 0 && !premiumUnlocked) {
             return {
               ok: false,

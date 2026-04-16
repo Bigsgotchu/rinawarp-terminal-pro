@@ -64,9 +64,11 @@ export function ConversationView({ onResumeFix, onViewDetails }: ConversationVie
     }
   }, [])
 
+  const showRecoveryCard = messages.length <= 1 && messages[0]?.id === '1' && messages[0]?.role === 'rina'
+
   return (
     <div id="agent-output" className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-2">
-      <RecoveryCard onResumeFix={onResumeFix} onViewDetails={onViewDetails} />
+      {showRecoveryCard ? <RecoveryCard onResumeFix={onResumeFix} onViewDetails={onViewDetails} /> : null}
       <div className="space-y-1">
         {messages.map((message) => (
           <MessageBubble key={message.id} role={message.role} text={message.text} />

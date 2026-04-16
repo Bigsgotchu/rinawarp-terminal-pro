@@ -88,6 +88,33 @@ export function registerMemoryIpc(deps: {
     value?: string
     key?: string
   }) => MemoryState
+  recordRepairCase?: (input: {
+    workspaceId?: string
+    issueSummary: string
+    failureSignature?: string
+    commands?: string[]
+    outcome: 'success' | 'failed'
+    verification?: string
+    notes?: string
+  }) => MemoryState
+  retrieveRepairKnowledge?: (input: {
+    query: string
+    workspaceId?: string
+    limit?: number
+  }) => Array<{
+    id: string
+    scope: 'session' | 'user' | 'project' | 'episode'
+    kind: 'preference' | 'constraint' | 'project_fact' | 'task_outcome' | 'conversation_fact'
+    content: string
+    salience: number
+    workspaceId?: string
+    source?: 'behavior' | 'conversation'
+    tags?: string[]
+    createdAt: string
+    updatedAt: string
+    lastUsedAt?: string
+    metadata?: Record<string, unknown>
+  }>
 }): void {
   deps.ipcMain.removeHandler('rina:memory:getState')
   deps.ipcMain.removeHandler('rina:memory:updateProfile')
@@ -98,6 +125,8 @@ export function registerMemoryIpc(deps: {
   deps.ipcMain.removeHandler('rina:memory:deleteOperational')
   deps.ipcMain.removeHandler('rina:memory:resetWorkspace')
   deps.ipcMain.removeHandler('rina:memory:resetAll')
+  deps.ipcMain.removeHandler('rina:memory:recordRepairCase')
+  deps.ipcMain.removeHandler('rina:memory:retrieveRepairKnowledge')
 
   deps.ipcMain.handle('rina:memory:getState', async () => deps.getState())
   deps.ipcMain.handle('rina:memory:updateProfile', async (_event, input) => deps.updateProfile(input || {}))
@@ -112,4 +141,24 @@ export function registerMemoryIpc(deps: {
   deps.ipcMain.handle('rina:memory:deleteOperational', async (_event, id) => deps.deleteOperationalMemory(String(id || '')))
   deps.ipcMain.handle('rina:memory:resetWorkspace', async (_event, workspaceId) => deps.resetWorkspace(String(workspaceId || '')))
   deps.ipcMain.handle('rina:memory:resetAll', async () => deps.resetAll())
+  deps.ipcMain.handle('rina:memory:recordRepairCase', async (_event, input) => {
+    if (!deps.recordRepairCase) return deps.getState()
+    return deps.recordRepairCase({
+      workspaceId: String(input?.workspaceId || '').trim() || undefined,
+      issueSummary: String(input?.issueSummary || '').trim(),
+      failureSignature: String(input?.failureSignature || '').trim() || undefined,
+      commands: Array.isArray(input?.commands) ? input.commands.map((value: unknown) => String(value || '').trim()).filter(Boolean) : [],
+      outcome: input?.outcome === 'failed' ? 'failed' : 'success',
+      verification: String(input?.verification || '').trim() || undefined,
+      notes: String(input?.notes || '').trim() || undefined,
+    })
+  })
+  deps.ipcMain.handle('rina:memory:retrieveRepairKnowledge', async (_event, input) => {
+    if (!deps.retrieveRepairKnowledge) return []
+    return deps.retrieveRepairKnowledge({
+      query: String(input?.query || '').trim(),
+      workspaceId: String(input?.workspaceId || '').trim() || undefined,
+      limit: Number(input?.limit || 6),
+    })
+  })
 }

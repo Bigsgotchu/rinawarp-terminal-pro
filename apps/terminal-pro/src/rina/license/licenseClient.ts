@@ -52,31 +52,26 @@ class LicenseClient {
    */
   async validate(key: string): Promise<LicenseInfo> {
     try {
-      // In production, this would call the API
-      // For now, simulate validation
-      const response = await fetch(`${this.apiEndpoint}/license/validate`, {
+      const response = await fetch(`${this.apiEndpoint}/api/license/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key }),
+        body: JSON.stringify({ licenseKey: key, machineId: 'desktop' }),
       })
 
       if (response.ok) {
         const data = await response.json()
         this.license = {
           tier: data.tier || 'starter',
-          valid: true,
+          valid: Boolean(data.valid),
           customerId: data.customerId,
           expiresAt: data.expiresAt,
           features: data.features || [],
         }
+      } else {
+        this.clear()
       }
     } catch {
-      // Demo mode - allow access
-      this.license = {
-        tier: 'enterprise',
-        valid: true,
-        features: ['brain', 'context', 'autonomy', 'workflows', 'multiAgent'],
-      }
+      this.clear()
     }
 
     return this.get()
