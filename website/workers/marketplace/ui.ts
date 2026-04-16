@@ -302,17 +302,18 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
   <div class="site-shell">
   <header>
     <nav aria-label="Main navigation">
-      <a href="/" class="logo" aria-label="RinaWarp Terminal Pro home">
-        <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp Terminal Pro logo">
+      <a href="/" class="logo" aria-label="RinaWarp home">
+        <img class="logo-wordmark" src="/assets/img/rinawarp-logo.png" alt="RinaWarp logo">
       </a>
       <div class="nav-links">
         <a href="/">Home</a>
+        <a href="/products">Products</a>
         <a href="/pricing">Pricing</a>
-        <a href="/team">Team</a>
+        <a href="/pricing">Team</a>
         <a href="/download">Download</a>
         <a href="/docs">Docs</a>
         <a href="/agents" class="active" aria-current="page">Packs</a>
-        <a href="/feedback">Support</a>
+        <a href="/support">Support</a>
         <a href="/account">Account</a>
       </div>
     </nav>
@@ -344,7 +345,7 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
       <div class="cta">
         <h2>Need an agent we do not ship yet?</h2>
         <p>Tell us what broke and what you want Rina to fix. We are prioritizing deploy, diagnostics, security, and repeated code-fix workflows over random breadth.</p>
-        <a href="/feedback">Request an agent</a>
+        <a href="/support">Request an agent</a>
       </div>
     </div>
   </main>
@@ -355,7 +356,7 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
         <a href="/docs">Docs</a>
         <a href="/pricing">Pricing</a>
         <a href="/download">Download</a>
-        <a href="/feedback">Support</a>
+        <a href="/support">Support</a>
         <a href="/terms">Terms</a>
         <a href="/privacy">Privacy</a>
         <a href="/early-access">Early Access</a>

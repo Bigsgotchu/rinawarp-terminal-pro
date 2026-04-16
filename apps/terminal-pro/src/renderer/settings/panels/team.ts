@@ -461,6 +461,6 @@ export async function mountTeamPanel(container: HTMLElement): Promise<void> {
   })
 
   container.querySelector<HTMLButtonElement>('#rw-team-open-page')?.addEventListener('click', async () => {
-    await openExternal('https://rinawarptech.com/team/')
+    await openExternal('https://rinawarptech.com/pricing/')
   })
 }
