@@ -22,21 +22,19 @@ jobs:
       release_ref: ${{ steps.release_ref.outputs.ref }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
+
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Install
         run: pnpm install --frozen-lockfile
@@ -108,7 +106,7 @@ jobs:
         run: bash scripts/release/validate-release.sh "${{ steps.version.outputs.version }}"
 
       - name: Upload release notes
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: release-notes
           path: |
@@ -120,22 +118,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout release ref
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.release_ref }}
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
+
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Install
         run: pnpm install --frozen-lockfile
@@ -153,7 +149,7 @@ jobs:
         run: bash apps/terminal-pro/scripts/run-electron-playwright.sh e2e/policy-diagnostics-proof.spec.ts
 
       - name: Upload Linux installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: desktop-linux-installers
           path: |
@@ -172,22 +168,21 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout release ref
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.release_ref }}
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
+
+      - name: Enable corepack
+        shell: bash
+        run: corepack enable
 
       - name: Install
         shell: bash
@@ -202,7 +197,7 @@ jobs:
         run: npm --workspace apps/terminal-pro run package:win
 
       - name: Upload Windows installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: desktop-windows-installers
           path: |
@@ -219,40 +214,38 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - name: Checkout release ref
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.release_ref }}
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
       - name: Download Linux installers
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: desktop-linux-installers
           path: apps/terminal-pro/dist-electron/installer
 
       - name: Download Windows installers
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: desktop-windows-installers
           path: apps/terminal-pro/dist-electron/installer
 
       - name: Download release notes
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-notes
           path: .
@@ -266,7 +259,7 @@ jobs:
           RINAWARP_ALLOW_DIRTY_RELEASE: 0
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           tag_name: v${{ needs.prepare.outputs.version }}
           name: ${{ needs.prepare.outputs.channel }} release v${{ needs.prepare.outputs.version }}
@@ -284,7 +277,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload final desktop bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: desktop-builds
           path: |
