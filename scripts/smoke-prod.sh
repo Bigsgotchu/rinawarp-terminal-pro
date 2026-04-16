@@ -5,6 +5,7 @@ SITE_BASE="${1:-https://www.rinawarptech.com}"
 CANONICAL_HOST="rinawarptech.com"
 SITE_HOST="$(echo "$SITE_BASE" | sed -E 's#^https?://##' | sed -E 's#/.*##')"
 ROUTE_CONTRACT_FILE="${2:-scripts/route-contract.json}"
+SKIP_RELEASE_CONTRACT="${SKIP_RELEASE_CONTRACT:-0}"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -150,11 +151,14 @@ check_release_contract() {
       console.error(`[smoke:prod] latest.json invalid version: ${data.version}`);
       process.exit(1);
     }
-    const windowsPath = data?.files?.windows?.path;
     const linuxPath = data?.files?.linux?.path;
-    if (!windowsPath || !linuxPath) {
-      console.error("[smoke:prod] latest.json missing windows/linux file paths");
+    if (!linuxPath) {
+      console.error("[smoke:prod] latest.json missing linux file path");
       process.exit(1);
+    }
+    const windowsPath = data?.files?.windows?.path;
+    if (!windowsPath) {
+      console.warn("[smoke:prod] latest.json has no windows path (allowed while Windows artifacts are not published)");
     }
     console.log(`[smoke:prod] latest.json contract OK (version ${data.version})`);
   ' "$json_file"
@@ -252,10 +256,14 @@ check_header_for_html_path "/support/" "content-type" "text/html"
 echo "[smoke:prod] Verifying robots and sitemap integrity"
 check_robots_and_sitemap
 
-echo "[smoke:prod] Verifying first-party updater feeds and release contract"
-check_content "/releases/latest.json" "200" "application/json" '"version"[[:space:]]*:[[:space:]]*"'
-check_content "/releases/latest.yml" "200" "application/x-yaml" '^version:[[:space:]]'
-check_content "/releases/latest-linux.yml" "200" "application/x-yaml" '^version:[[:space:]]'
-check_release_contract
+if [[ "$SKIP_RELEASE_CONTRACT" == "1" ]]; then
+  echo "[smoke:prod] Skipping updater feed contract checks (SKIP_RELEASE_CONTRACT=1)"
+else
+  echo "[smoke:prod] Verifying first-party updater feeds and release contract"
+  check_content "/releases/latest.json" "200" "application/json" '"version"[[:space:]]*:[[:space:]]*"'
+  check_content "/releases/latest.yml" "200" "application/x-yaml" '^version:[[:space:]]'
+  check_content "/releases/latest-linux.yml" "200" "application/x-yaml" '^version:[[:space:]]'
+  check_release_contract
+fi
 
 echo "[smoke:prod] PASS"

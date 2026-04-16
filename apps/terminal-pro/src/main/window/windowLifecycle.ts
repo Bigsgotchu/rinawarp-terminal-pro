@@ -183,12 +183,25 @@ export function createWindowLifecycle(
           })
         }
         const legacyResult = await handleRinaMessage(rawPrompt)
-        if ((legacyResult as { ok?: boolean }).ok === true) {
+        const legacySucceeded = (legacyResult as { ok?: boolean }).ok === true
+        if (legacySucceeded) {
           ownerMemoryStore.recordTaskOutcome({
             workspaceId,
             taskTitle: rawPrompt,
             summary: unified.turn.assistantReply,
-            success: true,
+            success: legacySucceeded,
+          })
+          ownerMemoryStore.recordRepairCase?.({
+            workspaceId,
+            issueSummary: rawPrompt,
+            failureSignature:
+              resolvedLatestRun && Number.isFinite(Number(resolvedLatestRun.latestExitCode))
+                ? `exit_code:${resolvedLatestRun.latestExitCode}`
+                : undefined,
+            commands: resolvedLatestRun?.latestCommand ? [resolvedLatestRun.latestCommand] : [],
+            outcome: 'success',
+            verification: 'Legacy handler returned ok=true',
+            notes: unified.turn.assistantReply,
           })
           safeSend(win.webContents, 'rina:timeline:event', {
             id: `evt_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
@@ -200,6 +213,18 @@ export function createWindowLifecycle(
             summary: unified.turn.assistantReply,
           })
         } else {
+          ownerMemoryStore.recordRepairCase?.({
+            workspaceId,
+            issueSummary: rawPrompt,
+            failureSignature:
+              resolvedLatestRun && Number.isFinite(Number(resolvedLatestRun.latestExitCode))
+                ? `exit_code:${resolvedLatestRun.latestExitCode}`
+                : undefined,
+            commands: resolvedLatestRun?.latestCommand ? [resolvedLatestRun.latestCommand] : [],
+            outcome: 'failed',
+            verification: 'Legacy handler returned ok=false',
+            notes: String((legacyResult as { error?: string })?.error || 'Task failed.'),
+          })
           safeSend(win.webContents, 'rina:timeline:event', {
             id: `evt_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
             type: 'task.failed',

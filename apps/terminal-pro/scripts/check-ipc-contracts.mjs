@@ -43,15 +43,18 @@ function parsePreloadInvokeChannels(source) {
 
 function parseMainHandledChannels(files) {
   const channels = new Map()
-  const pattern = /ipcMain\.(?:handle|on)\(\s*['"`]([^'"`]+)['"`]/g
+  const directPattern = /(?:^|[^\w$])(?:[\w$]+\.)?ipcMain\.(?:handle|on)\(\s*['"`]([^'"`]+)['"`]/g
+  const replacePattern = /replaceHandler\(\s*[^,]+,\s*['"`]([^'"`]+)['"`]/g
   for (const file of files) {
     const relPath = path.relative(projectRoot, file)
     const source = read(file)
-    for (const match of source.matchAll(pattern)) {
-      const channel = match[1]
-      const owners = channels.get(channel) || []
-      owners.push(relPath)
-      channels.set(channel, owners)
+    for (const pattern of [directPattern, replacePattern]) {
+      for (const match of source.matchAll(pattern)) {
+        const channel = match[1]
+        const owners = channels.get(channel) || []
+        owners.push(relPath)
+        channels.set(channel, owners)
+      }
     }
   }
   return channels

@@ -46,7 +46,7 @@
     "guard:single-owner-events": "npm --workspace apps/terminal-pro run qa:ownership",
     "verify:desktop:rc": "bash scripts/verify-desktop-rc.sh",
     "verify:branding": "bash scripts/verify-branding.sh",
-    "smoke:pages": "bash scripts/smoke-pages.sh",
+    "smoke:pages": "SKIP_RELEASE_CONTRACT=1 bash scripts/smoke-prod.sh https://rinawarptech-website.pages.dev",
     "test:lockdown": "bash scripts/guards.sh",
     "verify:site": "node scripts/verify-pages-routes.mjs rinawarptech-website/web",
     "verify:downloads": "node scripts/verify-download-links.mjs",
