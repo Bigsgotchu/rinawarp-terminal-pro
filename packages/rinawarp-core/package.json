@@ -55,6 +55,7 @@
 		"@rinawarp/tools": "workspace:*"
 	},
 	"devDependencies": {
+		"@types/node": "^22.0.0",
 		"tsx": "^4.21.0"
 	}
 }
