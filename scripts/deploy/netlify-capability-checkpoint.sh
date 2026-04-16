@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/tmp/deploy-proof}"
 OUTPUT_FILE="$OUTPUT_DIR/netlify-capability-checkpoint.json"
 SITE_ID="2426365b-fc27-46e6-89a2-34f21fe5f161"
@@ -10,7 +10,7 @@ mkdir -p "$OUTPUT_DIR"
 
 cd "$ROOT_DIR/website"
 rm -rf .pages-dist
-node ../scripts/build-pages-site.mjs >/tmp/netlify-build-proof.log
+node "$ROOT_DIR/scripts/build/build-pages-site.mjs" >/tmp/netlify-build-proof.log
 
 STATUS_OUTPUT="$(netlify status --json 2>&1)"
 DEPLOY_OUTPUT="$(netlify deploy --dir .pages-dist --site "$SITE_ID" --json --no-build 2>&1)"

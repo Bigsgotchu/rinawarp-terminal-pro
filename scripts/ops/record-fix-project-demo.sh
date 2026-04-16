@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OBS_HOME="$ROOT_DIR/output/obs-demo-home"
 OBS_CONFIG_HOME="$OBS_HOME/.config"
 OBS_DIR="$OBS_CONFIG_HOME/obs-studio"
@@ -53,15 +53,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
-python3 "$ROOT_DIR/scripts/obs_websocket.py" wait-ready --port "$OBS_WS_PORT" --timeout 30
-python3 "$ROOT_DIR/scripts/obs_websocket.py" ensure-demo-scene --port "$OBS_WS_PORT"
-python3 "$ROOT_DIR/scripts/obs_websocket.py" start-record --port "$OBS_WS_PORT"
+python3 "$ROOT_DIR/scripts/ops/obs_websocket.py" wait-ready --port "$OBS_WS_PORT" --timeout 30
+python3 "$ROOT_DIR/scripts/ops/obs_websocket.py" ensure-demo-scene --port "$OBS_WS_PORT"
+python3 "$ROOT_DIR/scripts/ops/obs_websocket.py" start-record --port "$OBS_WS_PORT"
 
 node --import "$ROOT_DIR/apps/terminal-pro/node_modules/tsx/dist/loader.mjs" \
   "$ROOT_DIR/apps/terminal-pro/scripts/record-fix-project-demo.ts"
 
 sleep 1
-OUTPUT_PATH="$(python3 "$ROOT_DIR/scripts/obs_websocket.py" stop-record --port "$OBS_WS_PORT" | tail -n 1)"
+OUTPUT_PATH="$(python3 "$ROOT_DIR/scripts/ops/obs_websocket.py" stop-record --port "$OBS_WS_PORT" | tail -n 1)"
 
 if [[ -n "$OUTPUT_PATH" && -f "$OUTPUT_PATH" ]]; then
   ffmpeg -y -i "$OUTPUT_PATH" -c copy "$ARTIFACT_DIR/rinawarp-fix-project-demo-obs.mp4" >/dev/null 2>&1

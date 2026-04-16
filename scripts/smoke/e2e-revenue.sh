@@ -5,11 +5,11 @@ SITE_BASE="${1:-https://www.rinawarptech.com}"
 API_BASE="${2:-https://api.rinawarptech.com}"
 DOWNLOADS_BASE="${3:-https://rinawarp-downloads.rinawarptech.workers.dev}"
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 echo "[e2e:revenue] Running billing smoke"
-bash scripts/smoke-stripe.sh "$API_BASE" "$SITE_BASE"
+bash scripts/smoke/stripe.sh "$API_BASE" "$SITE_BASE"
 
 echo "[e2e:revenue] Checking public release manifest"
 download_tmp="$(mktemp)"

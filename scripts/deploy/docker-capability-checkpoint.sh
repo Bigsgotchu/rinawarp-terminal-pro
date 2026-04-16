@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/tmp/deploy-proof}"
 OUTPUT_FILE="$OUTPUT_DIR/docker-capability-checkpoint.json"
 CONTAINER_NAME="rinawarp-proof-nginx"
@@ -10,7 +10,7 @@ mkdir -p "$OUTPUT_DIR"
 
 cd "$ROOT_DIR/website"
 rm -rf .pages-dist
-node ../scripts/build-pages-site.mjs >/tmp/docker-build-proof.log
+node "$ROOT_DIR/scripts/build/build-pages-site.mjs" >/tmp/docker-build-proof.log
 
 INFO_OUTPUT="$(cd "$ROOT_DIR" && docker info --format '{{.ServerVersion}} {{.OperatingSystem}}' 2>&1)"
 RUN_OUTPUT="$(cd "$ROOT_DIR" && (docker rm -f "$CONTAINER_NAME" 2>/dev/null || true) && docker run -d --name "$CONTAINER_NAME" -p 18080:80 -v "$ROOT_DIR/website/.pages-dist:/usr/share/nginx/html:ro" nginx:alpine 2>&1)"

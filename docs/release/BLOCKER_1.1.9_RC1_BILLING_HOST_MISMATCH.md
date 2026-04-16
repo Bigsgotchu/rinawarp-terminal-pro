@@ -46,7 +46,7 @@ This keeps existing verification behavior intact while allowing checkout and por
 
 Automated verification after the fix:
 
-- `bash scripts/smoke-stripe.sh https://www.rinawarptech.com https://www.rinawarptech.com`
+- `bash scripts/smoke/stripe.sh https://www.rinawarptech.com https://www.rinawarptech.com`
 - `npm run verify:desktop:rc`
 
 Observed live behavior:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/tmp/deploy-proof}"
 OUTPUT_FILE="$OUTPUT_DIR/vps-capability-checkpoint.json"
 OCI_BIN="${OCI_BIN:-/home/karina/lib/oracle-cli/bin/oci}"

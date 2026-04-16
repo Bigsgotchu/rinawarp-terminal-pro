@@ -49,11 +49,11 @@ jobs:
             SITE_BASE_INPUT="https://www.rinawarptech.com"
           fi
 
-          echo "[workflow] running scripts/smoke-prod.sh ${SITE_BASE_INPUT}" | tee smoke-prod.log
+          echo "[workflow] running scripts/smoke/prod.sh ${SITE_BASE_INPUT}" | tee smoke-prod.log
           status=0
           for attempt in 1 2; do
             echo "[workflow] attempt ${attempt}/2" | tee -a smoke-prod.log
-            bash scripts/smoke-prod.sh "${SITE_BASE_INPUT}" 2>&1 | tee -a smoke-prod.log
+            bash scripts/smoke/prod.sh "${SITE_BASE_INPUT}" 2>&1 | tee -a smoke-prod.log
             status=${PIPESTATUS[0]}
             if [[ "${status}" -eq 0 ]]; then
               break

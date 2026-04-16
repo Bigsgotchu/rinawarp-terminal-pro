@@ -20,7 +20,7 @@ That command:
 Primary implementation:
 
 - [`package.json`](../package.json)
-- [`scripts/deploy-pages-prod.sh`](../scripts/deploy-pages-prod.sh)
+- [`scripts/deploy/deploy-pages-prod.sh`](../scripts/deploy/deploy-pages-prod.sh)
 - [`website/workers/router.ts`](../website/workers/router.ts)
 
 ## Required Tooling
@@ -88,7 +88,7 @@ This prevents the website from advertising a new desktop version before the rele
 
 ### Verification Modes
 
-`scripts/deploy-pages-prod.sh` supports explicit download verification modes:
+`scripts/deploy/deploy-pages-prod.sh` supports explicit download verification modes:
 
 - `RINAWARP_DOWNLOAD_VERIFY_MODE=strict`
   Enforce `verify-download-links.mjs` and fail deploy on mismatch.

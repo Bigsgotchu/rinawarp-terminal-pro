@@ -18,6 +18,8 @@ website/.pages-dist/
 !apps/terminal-pro/build/afterSign.cjs
 !apps/terminal-pro/build/entitlements.mac.plist
 !apps/terminal-pro/build/entitlements.mac.inherit.plist
+!scripts/build/
+!scripts/build/*.mjs
 
 # Terminal Pro build artifacts
 apps/terminal-pro/dist/

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ISO_DIR="${HOME}/Downloads/isos"
 VM_DIR="${HOME}/Documents/vms"
 VM_NAME="${1:-rinawarp-cleanwindows}"
@@ -17,7 +17,7 @@ Manual step:
 2. Save it exactly as:
    ${ISO_PATH}
 3. Re-run:
-   bash ${ROOT_DIR}/scripts/prepare-windows-vm.sh ${VM_NAME}
+   bash ${ROOT_DIR}/scripts/ops/prepare-windows-vm.sh ${VM_NAME}
 
 After the ISO is present, this script will create the VirtualBox VM scaffold so clean-machine Windows validation can continue immediately.
 EOF

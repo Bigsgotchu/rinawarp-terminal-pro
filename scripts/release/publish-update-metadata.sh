@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP_DIR="$ROOT_DIR/apps/terminal-pro"
 INSTALLER_DIR="$APP_DIR/dist-electron/installer"
 PUBLIC_INSTALLERS_BASE="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev"

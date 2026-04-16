@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PROJECT_NAME="${CF_PAGES_PROJECT:-rinawarptech-website}"
 BRANCH="${CF_PAGES_BRANCH:-master}"
 DIST_DIR="$ROOT_DIR/website/.pages-dist"
@@ -20,10 +20,10 @@ fi
 
 if [[ "$VERIFY_MODE" == "strict" ]]; then
   echo "[deploy:pages] Verifying release/download bundle (strict mode)"
-  node "$ROOT_DIR/scripts/verify-download-links.mjs"
+  node "$ROOT_DIR/scripts/qa/verify-download-links.mjs"
 elif [[ "$VERIFY_MODE" == "warn" ]]; then
   echo "[deploy:pages] Verifying release/download bundle (warn mode)"
-  if ! node "$ROOT_DIR/scripts/verify-download-links.mjs"; then
+  if ! node "$ROOT_DIR/scripts/qa/verify-download-links.mjs"; then
     echo "[deploy:pages] WARNING: release/download verification failed, continuing because mode=warn"
   fi
 else
@@ -31,7 +31,7 @@ else
 fi
 
 echo "[deploy:pages] Building Pages worker bundle"
-node "$ROOT_DIR/scripts/build-pages-site.mjs"
+node "$ROOT_DIR/scripts/build/build-pages-site.mjs"
 
 COMMIT_HASH="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo local)"
 COMMIT_MSG="$(git -C "$ROOT_DIR" log -1 --pretty=%s 2>/dev/null || echo "Deploy Pages worker")"

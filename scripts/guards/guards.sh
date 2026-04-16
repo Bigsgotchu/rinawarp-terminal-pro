@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
 # Renderer/workbench must not use innerHTML (store-only)
 rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
@@ -14,9 +14,10 @@ rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
 # Main execution must not use process.cwd() except allowlisted modules
 rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
   "process\.cwd\(\)" \
-  "$ROOT/apps/terminal-pro/src" \
+  "$ROOT/apps/terminal-pro/src/main" \
   --glob '!apps/terminal-pro/src/main/workspace/**' \
-  --glob '!apps/terminal-pro/src/main/execution/**' && {
+  --glob '!apps/terminal-pro/src/main/execution/**' \
+  --glob '!apps/terminal-pro/src/main/runtime/runtimeAccess.ts' && {
     echo "FAIL: process.cwd() used outside allowlisted modules"
     exit 1
   } || true

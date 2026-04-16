@@ -49,7 +49,7 @@ This is not a simple fast-forward situation.
 These paths changed on both `main` and `cline-task-1`, so they are the most likely conflict areas:
 
 - `package.json`
-- `scripts/build-pages-site.mjs`
+- `scripts/build/build-pages-site.mjs`
 - `website/workers/marketplace/ui.ts`
 - `website/workers/router.ts`
 - `website/workers/seo.ts`

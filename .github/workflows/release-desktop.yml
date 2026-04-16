@@ -44,7 +44,7 @@ jobs:
       - name: Detect release channel
         id: channel
         shell: bash
-        run: echo "channel=$(bash scripts/detect-release-channel.sh)" >> "$GITHUB_OUTPUT"
+        run: echo "channel=$(bash scripts/release/detect-release-channel.sh)" >> "$GITHUB_OUTPUT"
 
       - name: Resolve release version
         id: version
@@ -58,9 +58,9 @@ jobs:
               exit 1
             fi
           else
-            BUMP_TYPE="$(bash scripts/detect-version-bump.sh)"
-            BASE_VERSION="$(bash scripts/apply-version-bump.sh "$BUMP_TYPE")"
-            VERSION="$(bash scripts/apply-pre-release-version.sh "$BASE_VERSION" "${{ steps.channel.outputs.channel }}")"
+            BUMP_TYPE="$(bash scripts/release/detect-version-bump.sh)"
+            BASE_VERSION="$(bash scripts/release/apply-version-bump.sh "$BUMP_TYPE")"
+            VERSION="$(bash scripts/release/apply-pre-release-version.sh "$BASE_VERSION" "${{ steps.channel.outputs.channel }}")"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -68,11 +68,11 @@ jobs:
 
       - name: Generate changelog
         if: ${{ inputs.release_version == '' }}
-        run: bash scripts/generate-changelog.sh "${{ steps.version.outputs.version }}"
+        run: bash scripts/release/generate-changelog.sh "${{ steps.version.outputs.version }}"
 
       - name: Extract release notes
         shell: bash
-        run: bash scripts/extract-latest-notes.sh > RELEASE_NOTES.md
+        run: bash scripts/release/extract-latest-notes.sh > RELEASE_NOTES.md
 
       - name: Commit release metadata
         if: ${{ inputs.release_version == '' }}
@@ -105,7 +105,7 @@ jobs:
         run: echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Validate release
-        run: bash scripts/validate-release.sh "${{ steps.version.outputs.version }}"
+        run: bash scripts/release/validate-release.sh "${{ steps.version.outputs.version }}"
 
       - name: Upload release notes
         uses: actions/upload-artifact@v4
@@ -258,7 +258,7 @@ jobs:
           path: .
 
       - name: Smoke check artifacts
-        run: bash scripts/release-smoke.sh
+        run: bash scripts/smoke/release.sh
 
       - name: Publish Desktop
         run: npm run release:publish:desktop

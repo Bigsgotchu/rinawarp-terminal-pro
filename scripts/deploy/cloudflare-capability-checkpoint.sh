@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/tmp/deploy-proof}"
 OUTPUT_FILE="$OUTPUT_DIR/cloudflare-capability-checkpoint.json"
 
@@ -48,8 +48,8 @@ push_step() {
   steps_json+=("$1")
 }
 
-push_step "$(run_step workspace_signals bash -lc "cd '$ROOT_DIR' && node scripts/verify-pages-routes.mjs")"
-push_step "$(run_step build_pages_site bash -lc "cd '$ROOT_DIR' && node scripts/build-pages-site.mjs")"
+push_step "$(run_step workspace_signals bash -lc "cd '$ROOT_DIR' && node scripts/qa/verify-pages-routes.mjs")"
+push_step "$(run_step build_pages_site bash -lc "cd '$ROOT_DIR' && node scripts/build/build-pages-site.mjs")"
 push_step "$(run_step cloudflare_auth bash -lc "cd '$ROOT_DIR' && wrangler whoami")"
 push_step "$(run_step production_trust_smoke bash -lc "cd '$ROOT_DIR' && npm run smoke:prod")"
 

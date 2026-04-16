@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const root = process.cwd()
-const routeContractPath = path.join(root, 'scripts', 'route-contract.json')
+const routeContractPath = path.join(root, 'scripts', 'contracts', 'route-contract.json')
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/tmp/deploy-proof}"
 OUTPUT_FILE="$OUTPUT_DIR/vercel-capability-checkpoint.json"
 
@@ -9,7 +9,7 @@ mkdir -p "$OUTPUT_DIR"
 
 cd "$ROOT_DIR/website"
 rm -rf .pages-dist
-node ../scripts/build-pages-site.mjs >/tmp/vercel-build-proof.log
+node "$ROOT_DIR/scripts/build/build-pages-site.mjs" >/tmp/vercel-build-proof.log
 
 AUTH_OUTPUT="$(cd "$ROOT_DIR" && vercel whoami 2>&1)"
 DEPLOY_OUTPUT="$(cd "$ROOT_DIR/website/.pages-dist" && vercel deploy --yes 2>&1)"

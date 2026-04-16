@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP_DIR="$ROOT_DIR/apps/terminal-pro"
 INSTALLER_DIR="$APP_DIR/dist-electron/installer"
 VERSION="$(node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('$APP_DIR/package.json','utf8')); process.stdout.write(pkg.version)")"
@@ -71,6 +71,6 @@ fi
 npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/SHASUMS256.txt" --file "$checksums_file" --remote --content-type "text/plain; charset=utf-8" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
 npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/SHASUMS256.txt" --file "$checksums_file" --remote --content-type "text/plain; charset=utf-8" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
 
-bash "$ROOT_DIR/scripts/publish-update-metadata.sh"
+bash "$ROOT_DIR/scripts/release/publish-update-metadata.sh"
 
 echo "[publish:desktop-release] Published RinaWarp Terminal Pro $VERSION"

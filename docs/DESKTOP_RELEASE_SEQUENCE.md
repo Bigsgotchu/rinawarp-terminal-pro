@@ -14,7 +14,7 @@ The website reads the current Terminal Pro version directly from:
 
 That means a site deploy can advertise a version before its release artifacts exist unless the release bundle is already prepared. Production deploys are now guarded by:
 
-- [verify-download-links.mjs](/home/karina/Documents/rinawarp-terminal-pro/scripts/verify-download-links.mjs)
+- [verify-download-links.mjs](/home/karina/Documents/rinawarp-terminal-pro/scripts/qa/verify-download-links.mjs)
 
 ## Canonical Order
 
@@ -104,8 +104,8 @@ This uploads:
 
 Primary implementation:
 
-- [publish-desktop-release.sh](/home/karina/Documents/rinawarp-terminal-pro/scripts/publish-desktop-release.sh)
-- [publish-update-metadata.sh](/home/karina/Documents/rinawarp-terminal-pro/scripts/publish-update-metadata.sh)
+- [publish-desktop-release.sh](/home/karina/Documents/rinawarp-terminal-pro/scripts/release/publish-desktop-release.sh)
+- [publish-update-metadata.sh](/home/karina/Documents/rinawarp-terminal-pro/scripts/release/publish-update-metadata.sh)
 
 ### 7. Audit the live release endpoints
 

@@ -4,7 +4,7 @@ set -euo pipefail
 SITE_BASE="${1:-https://www.rinawarptech.com}"
 CANONICAL_HOST="rinawarptech.com"
 SITE_HOST="$(echo "$SITE_BASE" | sed -E 's#^https?://##' | sed -E 's#/.*##')"
-ROUTE_CONTRACT_FILE="${2:-scripts/route-contract.json}"
+ROUTE_CONTRACT_FILE="${2:-scripts/contracts/route-contract.json}"
 SKIP_RELEASE_CONTRACT="${SKIP_RELEASE_CONTRACT:-0}"
 REQUIRE_WINDOWS_PATHS="${REQUIRE_WINDOWS_PATHS:-0}"
 
