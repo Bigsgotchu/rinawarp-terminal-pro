@@ -6,6 +6,7 @@ CANONICAL_HOST="rinawarptech.com"
 SITE_HOST="$(echo "$SITE_BASE" | sed -E 's#^https?://##' | sed -E 's#/.*##')"
 ROUTE_CONTRACT_FILE="${2:-scripts/route-contract.json}"
 SKIP_RELEASE_CONTRACT="${SKIP_RELEASE_CONTRACT:-0}"
+REQUIRE_WINDOWS_PATHS="${REQUIRE_WINDOWS_PATHS:-0}"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -140,6 +141,7 @@ check_release_contract() {
   node -e '
     const fs = require("fs");
     const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const requireWindows = process.argv[2] === "1";
     const required = ["version", "pub_date", "files", "platforms"];
     for (const key of required) {
       if (!(key in data)) {
@@ -157,11 +159,15 @@ check_release_contract() {
       process.exit(1);
     }
     const windowsPath = data?.files?.windows?.path;
-    if (!windowsPath) {
+    if (requireWindows && !windowsPath) {
+      console.error("[smoke:prod] latest.json missing windows file path while REQUIRE_WINDOWS_PATHS=1");
+      process.exit(1);
+    }
+    if (!requireWindows && !windowsPath) {
       console.warn("[smoke:prod] latest.json has no windows path (allowed while Windows artifacts are not published)");
     }
     console.log(`[smoke:prod] latest.json contract OK (version ${data.version})`);
-  ' "$json_file"
+  ' "$json_file" "$REQUIRE_WINDOWS_PATHS"
 
   for file in "$yml_file" "$yml_linux_file"; do
     rg -q "^version:[[:space:]]" "$file" || {

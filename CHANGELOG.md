@@ -1,3 +1,11 @@
+## Unreleased
+
+### 🧩 Hardening
+- stale references removed from active UI/script surfaces (legacy `/team` and `/feedback` links, dead npm script targets)
+- smoke contracts aligned to current architecture (`smoke:pages` scoped to Pages preview behavior, release feed checks explicitly gated by `REQUIRE_WINDOWS_PATHS`)
+- runtime fake-success semantics removed from main task outcome recording
+- added `guard:no-legacy-contracts` so old route contracts cannot silently drift back into user-facing links
+
 ## 1.1.12 (2026-04-02)
 
 ### 🚀 Features
@@ -128,4 +136,3 @@ None
 - auto-commit for facf973a-4f41-4982-bf2c-6b582fd1f1ed
 - auto-commit for fae06ec1-4ccc-4af2-8778-02a13b5563b0
 - Initial commit
-
