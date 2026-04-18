@@ -12,5 +12,3 @@ export type AgentPlan = {
   }>
   playbookId?: string
 }
-
-export { registerAgentIpc } from './registerAgentIpc.js'
