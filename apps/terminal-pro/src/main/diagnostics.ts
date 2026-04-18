@@ -1,14 +1,14 @@
+import { redactText } from '@rinawarp/safety/redaction'
+import type { IpcMain } from 'electron'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
-import path from 'node:path'
-import { redactText } from '@rinawarp/safety/redaction'
 import { createRequire } from 'node:module'
+import path from 'node:path'
+import type { AppContext, DiagnosticsPayload } from './context.js'
+import { fileInfoIfExists, resolveResourcePath } from './resources.js'
 const require = createRequire(import.meta.url)
 const electron = require('electron')
 const { app } = electron
-import type { IpcMain } from 'electron'
-import type { AppContext, DiagnosticsPayload } from './context.js'
-import { fileInfoIfExists, resolveResourcePath } from './resources.js'
 
 export function buildDiagnosticsPathsPayload(args: {
   ctx: AppContext

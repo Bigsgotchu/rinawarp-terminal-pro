@@ -1,6 +1,3 @@
-import { ipcMain } from 'electron'
-import { safeHandle } from './safe-handler.js'
-
 // Re-export types and functions expected by registerAllIpc
 export type AgentPlan = {
   id: string
