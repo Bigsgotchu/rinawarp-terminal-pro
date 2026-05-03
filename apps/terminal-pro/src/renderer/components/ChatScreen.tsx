@@ -1,6 +1,7 @@
 import { ConversationView } from './ConversationView'
 import { HeaderBar } from './HeaderBar'
 import { InputBar } from './InputBar'
+import { TerminalPane } from './TerminalPane'
 
 interface ChatScreenProps {
   onResumeFix?: () => void
@@ -12,8 +13,9 @@ export function ChatScreen({ onResumeFix, onViewDetails, showDetailsDrawer }: Ch
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
       <HeaderBar />
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 overflow-hidden grid grid-rows-[minmax(0,0.45fr)_minmax(220px,0.55fr)]">
         <ConversationView onResumeFix={onResumeFix} onViewDetails={onViewDetails} />
+        <TerminalPane />
       </div>
       <InputBar />
       {showDetailsDrawer && (

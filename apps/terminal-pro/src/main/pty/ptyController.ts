@@ -1,12 +1,12 @@
 import { createRequire } from "node:module"
-import { spawn, ChildProcessWithoutNullStreams } from "child_process"
+import { spawn } from "node-pty"
 import { resolveSharedWorkspaceCwd } from "../runtime/runtimeAccess.js"
 
 const require = createRequire(import.meta.url)
 const electron = require("electron")
 const { ipcMain, BrowserWindow } = electron
 
-let shell: ChildProcessWithoutNullStreams | null = null
+let shell: ReturnType<typeof spawn> | null = null
 let lastShellPid: number | null = null
 let lastShellCwd: string | null = null
 let lastShellStartedAt: string | null = null
@@ -16,7 +16,7 @@ function resolvePtyCwd(input?: string): string {
 }
 
 export function registerPtyHandlers() {
-  ipcMain.handle("rina:pty:start", (event: Electron.IpcMainInvokeEvent, payload?: { cwd?: string | null }) => {
+  ipcMain.handle("rina:pty:start", (event: Electron.IpcMainInvokeEvent, payload?: { cols?: number; rows?: number; cwd?: string | null }) => {
     const win = BrowserWindow.fromWebContents(event.sender)
 
     if (shell) {
@@ -28,28 +28,25 @@ export function registerPtyHandlers() {
     lastShellCwd = cwd
     lastShellStartedAt = new Date().toISOString()
     shell = spawn(shellPath, [], {
+      name: "xterm-color",
+      cols: Math.max(20, Number(payload?.cols || 80)),
+      rows: Math.max(5, Number(payload?.rows || 30)),
       cwd,
       env: process.env
     })
     lastShellPid = shell.pid ?? null
 
-    shell.stdout.on("data", (data: Buffer) => {
+    shell.onData((data: string) => {
       if (win && !win.isDestroyed()) {
-        win.webContents.send("rina:pty:data", data.toString())
+        win.webContents.send("rina:pty:data", data)
       }
     })
 
-    shell.stderr.on("data", (data: Buffer) => {
-      if (win && !win.isDestroyed()) {
-        win.webContents.send("rina:pty:data", data.toString())
-      }
-    })
-
-    shell.on("exit", (code: number | null) => {
+    shell.onExit(({ exitCode, signal }) => {
       if (win && !win.isDestroyed()) {
         win.webContents.send("rina:pty:exit", {
-          exitCode: code ?? 0,
-          signal: 0
+          exitCode,
+          signal,
         })
       }
       shell = null
@@ -61,7 +58,7 @@ export function registerPtyHandlers() {
 
   ipcMain.handle("rina:pty:write", (_e: unknown, data: string) => {
     if (shell) {
-      shell.stdin.write(data)
+      shell.write(data)
     }
   })
 
@@ -75,9 +72,12 @@ export function registerPtyHandlers() {
   })
 
   ipcMain.handle("rina:pty:resize", (_e: unknown, cols: number, rows: number) => {
+    if (shell) {
+      shell.resize(Math.max(20, Number(cols || 80)), Math.max(5, Number(rows || 30)))
+    }
     return {
       ok: true,
-      supported: false,
+      supported: true,
       running: Boolean(shell),
       cols: Number(cols || 0),
       rows: Number(rows || 0),
@@ -90,8 +90,8 @@ export function registerPtyHandlers() {
       pid: lastShellPid,
       cwd: lastShellCwd,
       startedAt: lastShellStartedAt,
-      transport: 'child_process',
-      resizeSupported: false,
+      transport: 'node-pty',
+      resizeSupported: true,
     }
   })
 
