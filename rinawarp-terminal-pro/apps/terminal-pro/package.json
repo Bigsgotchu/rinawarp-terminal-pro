@@ -29,6 +29,7 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs --fix",
     "build:all": "npm run build:electron && npm run package:linux && npm run package:win",
+    "dist": "pnpm dist:linux",
     "package:linux": "bash ../../deploy/package-linux.sh",
     "package:win": "electron-builder --win --publish never",
     "dist:mac": "npm run build:electron && electron-builder --mac",
