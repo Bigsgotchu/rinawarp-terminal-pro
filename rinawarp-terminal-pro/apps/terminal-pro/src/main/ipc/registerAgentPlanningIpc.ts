@@ -9,9 +9,11 @@ export function registerAgentPlanningIpc(args: {
 }) {
   const { ipcMain } = args;
 
-  // Minimal local planner endpoint (legacy UI path)
-  ipcMain.handle("agent:plan", async (_event, intent: string) => {
-    return args.makePlan(intent);
+  // Minimal local planner endpoint (legacy UI path / desktop MVP local plan)
+  ipcMain.handle("agent:plan", async (_event, payload: string | { intentText?: string; projectRoot?: string }) => {
+    const intent = typeof payload === "string" ? payload : String(payload?.intentText || "");
+    const projectRoot = typeof payload === "object" && payload !== null ? String(payload.projectRoot || "") : undefined;
+    return args.makePlan(intent, projectRoot);
   });
 
   // Warp-like planner endpoint with remote agentd-first behavior.

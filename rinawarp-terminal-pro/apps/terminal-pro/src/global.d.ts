@@ -1,4 +1,4 @@
-export {};
+export { };
 
 declare global {
   type DiagnosticsFileInfo = {
@@ -120,6 +120,7 @@ declare global {
 
       // Warp-like block APIs
       agentPlan(args: { intentText: string; projectRoot: string }): Promise<any>;
+      agentPlanLocal(args: { intentText: string; projectRoot: string }): Promise<any>;
       executePlanStream(args: {
         plan: any[];
         projectRoot: string;

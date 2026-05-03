@@ -170,7 +170,7 @@
     addBlock(codeThinkingBlock(thinkingId));
 
     try {
-      const plan = await rina.agentPlan({ intentText: input, projectRoot });
+      const plan = await rina.agentPlanLocal({ intentText: input, projectRoot });
       removeBlock(thinkingId);
       const planBlockId = newId("plan");
       currentPlanByBlockId[planBlockId] = plan;

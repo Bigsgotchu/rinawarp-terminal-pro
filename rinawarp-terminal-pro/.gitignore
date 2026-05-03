@@ -60,7 +60,7 @@ npm-debug.log*
 .kilocode/**/node_modules/
 
 # local secrets
-deploy/aws/scripts/cross-account-attestation.env
+_archive/future-cloud-platform/aws/scripts/cross-account-attestation.env
 release/
 dist/
 *.exe

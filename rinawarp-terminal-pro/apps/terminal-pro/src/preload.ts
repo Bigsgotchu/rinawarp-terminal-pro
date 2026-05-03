@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, shell } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("rina", {
   invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
@@ -45,6 +45,8 @@ contextBridge.exposeInMainWorld("rina", {
   // Warp-like block APIs
   agentPlan: (args: { intentText: string; projectRoot: string }) =>
     ipcRenderer.invoke("rina:agent:plan", args),
+  agentPlanLocal: (args: { intentText: string; projectRoot: string }) =>
+    ipcRenderer.invoke("agent:plan", { intentText: args.intentText, projectRoot: args.projectRoot }),
 
   executePlanStream: (args: {
     plan: any[];
