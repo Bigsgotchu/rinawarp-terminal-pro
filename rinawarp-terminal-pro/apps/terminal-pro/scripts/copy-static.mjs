@@ -46,6 +46,10 @@ copyDir(
   path.join(outDir, "assets")
 );
 copyDir(
+  path.join(projectRoot, "src", "renderer"),
+  path.join(outDir, "renderer")
+);
+copyDir(
   path.join(projectRoot, "themes"),
   path.join(outDir, "themes")
 );
@@ -62,17 +66,34 @@ function copyOptional(src, dest) {
   copyFile(src, dest);
 }
 
-copyOptional(
-  path.join(repoRoot, "node_modules", "xterm", "lib", "xterm.js"),
-  path.join(outDir, "vendor", "xterm.js")
-);
-copyOptional(
-  path.join(repoRoot, "node_modules", "xterm", "css", "xterm.css"),
-  path.join(outDir, "vendor", "xterm.css")
-);
-copyOptional(
-  path.join(repoRoot, "node_modules", "xterm-addon-fit", "lib", "xterm-addon-fit.js"),
-  path.join(outDir, "vendor", "xterm-addon-fit.js")
-);
+function resolveNodeModuleFile(...parts) {
+  const candidates = [
+    path.join(projectRoot, "node_modules", ...parts),
+    path.join(repoRoot, "node_modules", ...parts),
+  ];
+  return candidates.find((candidate) => fs.existsSync(candidate));
+}
+
+const xtermJs = resolveNodeModuleFile("xterm", "lib", "xterm.js");
+const xtermCss = resolveNodeModuleFile("xterm", "css", "xterm.css");
+const fitAddonJs = resolveNodeModuleFile("xterm-addon-fit", "lib", "xterm-addon-fit.js");
+
+if (xtermJs) {
+  copyFile(xtermJs, path.join(outDir, "vendor", "xterm.js"));
+} else {
+  console.warn("Optional asset missing: xterm/lib/xterm.js");
+}
+
+if (xtermCss) {
+  copyFile(xtermCss, path.join(outDir, "vendor", "xterm.css"));
+} else {
+  console.warn("Optional asset missing: xterm/css/xterm.css");
+}
+
+if (fitAddonJs) {
+  copyFile(fitAddonJs, path.join(outDir, "vendor", "xterm-addon-fit.js"));
+} else {
+  console.warn("Optional asset missing: xterm-addon-fit/lib/xterm-addon-fit.js");
+}
 
 console.log("Static assets copied to dist-electron/");

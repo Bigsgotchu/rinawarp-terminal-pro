@@ -102,6 +102,34 @@ declare global {
         previewId: string;
       }) => Promise<any>;
       auditExport?: () => Promise<any>;
+      inlineAsk?: (args: {
+        prompt: string;
+        projectRoot?: string;
+        action?: "generateCommand" | "debugCommandFailure" | "explainSelection" | "suggestNextCommand";
+        selectedText?: string;
+        triggerType?: "input" | "failure" | "selection";
+        sourceText?: string;
+      }) => Promise<{
+        runId: string | null;
+        explanation: string;
+        command: string | null;
+        risk: "low" | "medium" | "high";
+        confirmation: boolean;
+      }>;
+      inlineApprove?: (args: { runId?: string; command?: string }) => Promise<{ ok: boolean; error?: string }>;
+      inlineRunsList?: (args?: {
+        triggerType?: "input" | "failure" | "selection" | "";
+        approved?: "yes" | "no" | "";
+        executed?: "yes" | "no" | "";
+        limit?: number;
+      }) => Promise<any[]>;
+      inlineRunsExport?: (args?: {
+        format?: "json" | "csv";
+        triggerType?: "input" | "failure" | "selection" | "";
+        approved?: "yes" | "no" | "";
+        executed?: "yes" | "no" | "";
+        limit?: number;
+      }) => Promise<{ ok: boolean; format: "json" | "csv"; content: string }>;
       codeListFiles?: (args: { projectRoot: string; limit?: number }) => Promise<{ ok: boolean; files?: string[]; error?: string }>;
       codeReadFile?: (args: { projectRoot: string; relativePath: string; maxBytes?: number }) => Promise<{ ok: boolean; content?: string; truncated?: boolean; error?: string }>;
     };

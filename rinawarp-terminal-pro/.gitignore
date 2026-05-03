@@ -23,6 +23,7 @@ apps/terminal-pro/test-results/
 apps/terminal-pro/playwright-report/
 apps/terminal-pro/.playwright/
 apps/terminal-pro/.cache/
+apps/terminal-pro/.rinawarp-test-data/
 
 # OS files
 .DS_Store

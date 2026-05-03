@@ -37,8 +37,8 @@ function parsePrompt(line: string, hint?: ShellKind): { shell: ShellKind; comman
   const compact = clean.trimStart();
   
   // Simple $/# prompt detection
-  if (/^(?:\$|#)\s+\S+/.test(compact)) {
-    return { shell: hint === "bash" ? "bash" : "zsh", command: compact.replace(/^(?:\$|#)\s+/, "").trim() };
+  if (/^(?:[^\w\s]{0,8})?(?:\$|#)\s+\S+/.test(compact)) {
+    return { shell: hint === "bash" ? "bash" : "zsh", command: compact.replace(/^(?:[^\w\s]{0,8})?(?:\$|#)\s+/, "").trim() };
   }
   
   // Matcher lookup table: [test condition, shell type, regex]

@@ -3,8 +3,8 @@ import { withApp } from "./_app";
 
 test("agent mode: submit creates a runnable plan block", async () => {
   await withApp(async ({ page }) => {
-    await page.locator("#modeAgent").click();
-    await expect(page.locator("#modeAgent")).toHaveClass(/active/);
+    await page.evaluate(() => (window as any).setMode("agent"));
+    await expect(page.locator("#modeAgent")).toHaveCount(0);
 
     await page.locator("#intent").fill("Debug failing tests in this workspace");
     await page.locator("#intent").press("Enter");
@@ -18,7 +18,7 @@ test("agent mode: submit creates a runnable plan block", async () => {
 
 test("agent mode: session history records agent run label", async () => {
   await withApp(async ({ page }) => {
-    await page.locator("#modeAgent").click();
+    await page.evaluate(() => (window as any).setMode("agent"));
     await page.locator("#intent").fill("Explain what this project does");
     await page.locator("#intent").press("Enter");
 

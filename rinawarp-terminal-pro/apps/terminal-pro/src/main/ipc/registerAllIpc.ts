@@ -60,10 +60,12 @@ export function registerAllIpc(args: {
   shell: { openExternal: (url: string) => Promise<void> };
   getLicenseState: () => {
     tier: string;
+    plan_id: "free" | "pro_monthly" | "team_seat_monthly";
     has_token: boolean;
     expires_at: number | null;
     customer_id: string | null;
-    status: string;
+    status: "active" | "inactive" | "past_due" | "canceled" | "trial";
+    feature_flags: string[];
   };
   getCurrentLicenseCustomerId: () => string | null;
   currentPolicyEnv: () => string;
@@ -75,6 +77,7 @@ export function registerAllIpc(args: {
     message: string;
     typedPhrase?: string;
     matchedRuleId?: string;
+    policyLoadedFrom?: string | null;
   };
   readTailLines: (filePath: string, maxLines: number) => string;
   rendererErrorsFile: () => string;
@@ -226,6 +229,29 @@ export function registerAllIpc(args: {
     prDryRun?: boolean;
   }) => Promise<any>;
   chatSendForIpc: (text: string, projectRoot?: string) => Promise<unknown>;
+  inlineRinaAskForIpc: (payload: {
+    prompt: string;
+    projectRoot?: string;
+    action?: "generateCommand" | "debugCommandFailure" | "explainSelection" | "suggestNextCommand";
+    selectedText?: string;
+    triggerType?: "input" | "failure" | "selection";
+    sourceText?: string;
+  }, senderId: number) => Promise<unknown>;
+  inlineRinaApproveForIpc: (payload: { runId?: string; command?: string }, senderId: number) => Promise<unknown>;
+  inlineRinaListRunsForIpc: (payload?: {
+    triggerType?: "input" | "failure" | "selection" | "";
+    approved?: "yes" | "no" | "";
+    executed?: "yes" | "no" | "";
+    limit?: number;
+  }) => Promise<unknown>;
+  inlineRinaExportRunsForIpc: (payload?: {
+    format?: "json" | "csv";
+    triggerType?: "input" | "failure" | "selection" | "";
+    approved?: "yes" | "no" | "";
+    executed?: "yes" | "no" | "";
+    limit?: number;
+  }) => Promise<unknown>;
+  getRinaUsageStatusForIpc: () => Promise<unknown>;
   chatExportForIpc: () => Promise<string>;
   doctorPlanForIpc: (args: { projectRoot: string; symptom: string }) => Promise<unknown>;
   doctorInspectForIpc: (intent: string) => Promise<unknown>;
@@ -440,6 +466,11 @@ export function registerAllIpc(args: {
   registerChatIpc({
     ipcMain: args.ipcMain,
     sendChat: args.chatSendForIpc,
+    inlineRinaAsk: args.inlineRinaAskForIpc,
+    inlineRinaApprove: args.inlineRinaApproveForIpc,
+    inlineRinaListRuns: args.inlineRinaListRunsForIpc,
+    inlineRinaExportRuns: args.inlineRinaExportRunsForIpc,
+    getRinaUsageStatus: args.getRinaUsageStatusForIpc,
     exportChatTranscript: args.chatExportForIpc,
   });
 

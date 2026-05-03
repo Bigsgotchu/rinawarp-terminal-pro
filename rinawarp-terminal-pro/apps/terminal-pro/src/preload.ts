@@ -170,6 +170,30 @@ contextBridge.exposeInMainWorld("rina", {
   teamRemoveMember: (email: string) => ipcRenderer.invoke("rina:team:removeMember", email),
   auditExport: () => ipcRenderer.invoke("rina:audit:export"),
   chatSend: (text: string, projectRoot?: string) => ipcRenderer.invoke("rina:chat:send", text, projectRoot),
+  inlineAsk: (payload: {
+    prompt: string;
+    projectRoot?: string;
+    action?: "generateCommand" | "debugCommandFailure" | "explainSelection" | "suggestNextCommand";
+    selectedText?: string;
+    triggerType?: "input" | "failure" | "selection";
+    sourceText?: string;
+  }) => ipcRenderer.invoke("rina:inline:ask", payload),
+  inlineApprove: (payload: { runId?: string; command?: string; approvalKind?: "command" | "file_patch"; patch?: any }) =>
+    ipcRenderer.invoke("rina:inline:approve", payload),
+  inlineRunsList: (payload?: {
+    triggerType?: "input" | "failure" | "selection" | "";
+    approved?: "yes" | "no" | "";
+    executed?: "yes" | "no" | "";
+    limit?: number;
+  }) => ipcRenderer.invoke("rina:inline:runs:list", payload),
+  inlineRunsExport: (payload?: {
+    format?: "json" | "csv";
+    triggerType?: "input" | "failure" | "selection" | "";
+    approved?: "yes" | "no" | "";
+    executed?: "yes" | "no" | "";
+    limit?: number;
+  }) => ipcRenderer.invoke("rina:inline:runs:export", payload),
+  getRinaUsageStatus: () => ipcRenderer.invoke("rina:get-usage-status"),
   chatExport: () => ipcRenderer.invoke("rina:chat:export"),
   themesList: () => ipcRenderer.invoke("rina:themes:list"),
   themesGet: () => ipcRenderer.invoke("rina:themes:get"),

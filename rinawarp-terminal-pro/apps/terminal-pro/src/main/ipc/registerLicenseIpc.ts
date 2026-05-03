@@ -13,10 +13,12 @@ export function registerLicenseIpc(deps: {
   shell: Pick<typeof shell, "openExternal">;
   getLicenseState: () => {
     tier: string;
+    plan_id: "free" | "pro_monthly" | "team_seat_monthly";
     has_token: boolean;
     expires_at: number | null;
     customer_id: string | null;
-    status: string;
+    status: "active" | "inactive" | "past_due" | "canceled" | "trial";
+    feature_flags: string[];
   };
   getCurrentLicenseCustomerId: () => string | null;
 }): void {

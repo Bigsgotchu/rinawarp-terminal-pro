@@ -13,6 +13,7 @@ export function registerPolicyIpc(args: {
     message: string;
     typedPhrase?: string;
     matchedRuleId?: string;
+    policyLoadedFrom?: string | null;
   };
 }) {
   args.ipcMain.handle("rina:policy:env", async () => {

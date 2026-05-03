@@ -3,8 +3,7 @@ import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
 import crypto from "node:crypto";
-import { fileURLToPath } from "node:url";
-import { verifyLicense, type LicenseVerifyResponse } from "./license.js";
+import { verifyLicense } from "./license.js";
 import { featureFlags } from "./feature-flags.js";
 import { StructuredSessionStore } from "./structured-session.js";
 import { PersonalityStore } from "./personality.js";
@@ -12,44 +11,75 @@ import { redactText } from "@rinawarp/safety/redaction";
 import { type ShellKind, detectCommandBoundaries } from "./prompt-boundary.js";
 import { defaultProfileForProject, gateCommandRun, summarizeProfile } from "./agent-profile.js";
 import { loadProjectRules, rulesToSystemBlock } from "./rules-loader.js";
-import { scoreTextMatch } from "./search-ranking.js";
 import { riskFromPlanStep } from "./plan-risk.js";
 import { haltReasonFromFallbackStep } from "./plan-fallback.js";
 import type { AppContext } from "./main/context.js";
 import { registerAllIpc } from "./main/ipc/registerAllIpc.js";
-import { resolveResourcePath as resolveMainResourcePath } from "./main/resources.js";
+import { createAgentdIpcHandlers } from "./main/ipc/agentdIpcHandlers.js";
+import { createMainIpcHandlers } from "./main/ipc/mainIpcHandlers.js";
+import { createThemeRegistryRuntime } from "./main/theme-registry.js";
+import { createUnifiedSearchRuntime } from "./main/unified-search.js";
+import { normalizeProjectRoot, resolveProjectRootSafe } from "./main/project-root.js";
+import { resolveResourcePath as resolveResourcePathFromRoots } from "./main/resource-paths.js";
+import { getCurrentRole as getCurrentRoleFromTeam, getCurrentUserEmail as getCurrentUserEmailFromTeam, hasRoleAtLeast } from "./main/roles.js";
+import { readJsonIfExists, writeJsonFile } from "./main/json-storage.js";
+import { installAppContextMenu } from "./main/app-menu.js";
+import {
+  AGENTD_AUTH_TOKEN,
+  AGENTD_BASE_URL,
+  ALLOW_LOCAL_ENGINE_FALLBACK,
+  IS_E2E,
+  TOP_CPU_CMD_SAFE,
+  TOP_CPU_CMD_SAFE_SHORT,
+  TOP_MEM_CMD_SAFE,
+  createProjectConfig,
+  createUserDataPathBuilders,
+  loadDevEnvFiles,
+} from "./main/project-config.js";
+import {
+  createLicenseEntitlementRuntime,
+  type LicenseRuntimeState,
+} from "./main/license-entitlement.js";
+import { createSupportBundleSaveDialog } from "./main/support-bundle.js";
+import {
+  ensureStructuredSession as ensureStructuredSessionSafe,
+  withStructuredSessionWrite as withStructuredSessionWriteSafe,
+} from "./main/structured-status.js";
+import { defaultMainWindowBounds } from "./main/window-state.js";
+import {
+  createTeamStorage,
+  type Role,
+  type ShareRecord,
+  type TeamActivityAction,
+  type TeamActivityRecord,
+  type TeamInviteRecord,
+} from "./main/team-storage.js";
+import { readTailLines } from "./main/tail-lines.js";
+import { zipFiles } from "./main/zip.js";
 import {
   canonicalizePath,
   isWithinRoot,
-  normalizeProjectRoot as normalizeProjectRootFromSecurity,
-  resolveProjectRootSafe as resolveProjectRootSafeFromSecurity,
 } from "./security/projectRoot.js";
+import {
+  InlineRinaRunStore,
+  type InlineRinaAction as PersistedInlineRinaAction,
+  type InlineRinaTriggerType,
+} from "./main/inline-rina-store.js";
+import { detectTerminalFailure } from "./main/inline-rina.js";
+import { getRinaUsageStatus } from "./main/rina-usage-meter.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const APP_PROJECT_ROOT = path.resolve(__dirname, "..");
-const REPO_ROOT = path.resolve(APP_PROJECT_ROOT, "..", "..");
+const {
+  filename: __filename,
+  dirname: __dirname,
+  appProjectRoot: APP_PROJECT_ROOT,
+  repoRoot: REPO_ROOT,
+} = createProjectConfig(import.meta.url);
 
-// ============================================================
-// SECURITY: Project Root Validation
-// ============================================================
-// Allowed workspace roots - constrain execution to these directories
-const ALLOWED_WORKSPACE_ROOTS: string[] = [];
-
-function normalizeProjectRoot(input: string, workspaceRoot?: string): string {
-  return normalizeProjectRootFromSecurity({
-    input,
-    workspaceRoot,
-    allowedWorkspaceRoots: ALLOWED_WORKSPACE_ROOTS,
-  });
-}
-
-function resolveProjectRootSafe(input?: string): string {
-  return resolveProjectRootSafeFromSecurity({
-    input,
-    allowedWorkspaceRoots: ALLOWED_WORKSPACE_ROOTS,
-  });
-}
+loadDevEnvFiles({
+  appProjectRoot: APP_PROJECT_ROOT,
+  isPackaged: app.isPackaged,
+  isE2E: IS_E2E,
+});
 
 // ============================================================
 // ENGINE EXECUTION LAYER (Security)
@@ -66,6 +96,8 @@ import { buildExecutionContext, executeViaEngine } from "@rinawarp/core/adapters
 const registry = createStandardRegistry();
 const engine = new ExecutionEngine(registry);
 let structuredSessionStore: StructuredSessionStore | null = null;
+let inlineRinaRunStore: InlineRinaRunStore | null = null;
+const pendingInlineRinaRuns = new Map<number, Array<{ runId: string; command: string }>>();
 const personalityStore = new PersonalityStore();
 const ctx: AppContext = {
   structuredSessionStore: null,
@@ -73,45 +105,18 @@ const ctx: AppContext = {
   lastLoadedPolicyPath: null,
 };
 
-type ThemeSpec = {
-  id: string;
-  name: string;
-  group?: string;
-  vars: Record<string, string>;
-  terminal?: {
-    background: string;
-    foreground: string;
-    cursor?: string;
-    selection?: string;
-    ansi: string[];
-  };
-};
-
-type ThemeRegistry = { themes: ThemeSpec[] };
-
 // Runtime entitlement state (authoritative for local execution gating)
-let currentLicenseTier: LicenseTier = "starter";
-let currentLicenseToken: string | null = null;
-let currentLicenseExpiresAt: number | null = null;
-let currentLicenseCustomerId: string | null = null;
-const AGENTD_BASE_URL = process.env.RINAWARP_AGENTD_URL || "http://127.0.0.1:5055";
-const AGENTD_AUTH_TOKEN = process.env.RINAWARP_AGENTD_TOKEN || "";
-const IS_E2E = process.env.RINAWARP_E2E === "1";
+const licenseRuntimeState: LicenseRuntimeState = {
+  tier: "starter",
+  token: null,
+  expiresAt: null,
+  customerId: null,
+  status: "inactive",
+};
 if (app.isPackaged && process.env.ELECTRON_DISABLE_SANDBOX === "1") {
   console.warn("[security] Ignoring ELECTRON_DISABLE_SANDBOX in packaged builds.");
   delete process.env.ELECTRON_DISABLE_SANDBOX;
 }
-const fallbackEnv = process.env.RINAWARP_USE_LOCAL_ENGINE_FALLBACK;
-const ALLOW_LOCAL_ENGINE_FALLBACK =
-  fallbackEnv == null || fallbackEnv === ""
-    ? true
-    : /^(1|true|yes)$/i.test(fallbackEnv);
-const TOP_CPU_CMD_SAFE =
-  "ps -eo pid,pcpu,pmem,comm --sort=-pcpu 2>/dev/null | head -15 || ps aux 2>/dev/null | sort -nrk3 | head -15 || ps aux | head -15";
-const TOP_MEM_CMD_SAFE =
-  "ps -eo pid,pcpu,pmem,comm --sort=-pmem 2>/dev/null | head -15 || ps aux 2>/dev/null | sort -nrk4 | head -15 || ps aux | head -15";
-const TOP_CPU_CMD_SAFE_SHORT =
-  "ps -eo pid,pcpu,pmem,comm --sort=-pcpu 2>/dev/null | head -10 || ps aux 2>/dev/null | sort -nrk3 | head -10 || ps aux | head -10";
 
 type PolicyEnv = "dev" | "staging" | "prod";
 type PolicyAction = "allow" | "deny" | "require_approval" | "require_two_step";
@@ -135,25 +140,13 @@ type ParsedPolicy = {
   };
 };
 
-let cachedPolicy: ParsedPolicy | null | undefined;
-const THEME_SELECTION_FILE = () => path.join(app.getPath("userData"), "theme.json");
-const CUSTOM_THEMES_FILE = () => path.join(app.getPath("userData"), "themes.custom.json");
-const ALLOWED_THEME_VAR_KEYS = new Set([
-  "--rw-bg",
-  "--rw-panel",
-  "--rw-border",
-  "--rw-text",
-  "--rw-muted",
-  "--rw-accent",
-  "--rw-accent2",
-  "--rw-danger",
-  "--rw-success",
-]);
-
+let cachedPolicy: ParsedPolicy | undefined;
+const userDataPaths = createUserDataPathBuilders(() => app.getPath("userData"));
+const THEME_SELECTION_FILE = userDataPaths.themeSelectionFile;
+const CUSTOM_THEMES_FILE = userDataPaths.customThemesFile;
+const INLINE_RINA_RUNS_FILE = userDataPaths.inlineRinaRunsFile;
 function resolveResourcePath(relPath: string, devBase: "repo" | "app"): string {
-  return resolveMainResourcePath({
-    relPath,
-    devBase,
+  return resolveResourcePathFromRoots(relPath, devBase, {
     repoRoot: REPO_ROOT,
     appProjectRoot: APP_PROJECT_ROOT,
     dirname: __dirname,
@@ -170,249 +163,23 @@ function warnIfUnexpectedPackagedResource(resourceName: string, resolvedPath: st
   }
 }
 
-function crc32(buf: Buffer): number {
-  let crc = 0xffffffff;
-  for (const b of buf) {
-    crc ^= b;
-    for (let i = 0; i < 8; i += 1) {
-      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function zipFiles(files: Array<{ name: string; data: Buffer }>): Buffer {
-  const localHeaders: Buffer[] = [];
-  const centralHeaders: Buffer[] = [];
-  let offset = 0;
-
-  for (const f of files) {
-    const nameBuf = Buffer.from(f.name, "utf8");
-    const dataBuf = f.data;
-    const checksum = crc32(dataBuf);
-
-    const local = Buffer.alloc(30);
-    local.writeUInt32LE(0x04034b50, 0);
-    local.writeUInt16LE(20, 4);
-    local.writeUInt16LE(0, 6);
-    local.writeUInt16LE(0, 8);
-    local.writeUInt16LE(0, 10);
-    local.writeUInt16LE(0, 12);
-    local.writeUInt32LE(checksum, 14);
-    local.writeUInt32LE(dataBuf.length, 18);
-    local.writeUInt32LE(dataBuf.length, 22);
-    local.writeUInt16LE(nameBuf.length, 26);
-    local.writeUInt16LE(0, 28);
-
-    const localEntry = Buffer.concat([local, nameBuf, dataBuf]);
-    localHeaders.push(localEntry);
-
-    const central = Buffer.alloc(46);
-    central.writeUInt32LE(0x02014b50, 0);
-    central.writeUInt16LE(20, 4);
-    central.writeUInt16LE(20, 6);
-    central.writeUInt16LE(0, 8);
-    central.writeUInt16LE(0, 10);
-    central.writeUInt16LE(0, 12);
-    central.writeUInt16LE(0, 14);
-    central.writeUInt32LE(checksum, 16);
-    central.writeUInt32LE(dataBuf.length, 20);
-    central.writeUInt32LE(dataBuf.length, 24);
-    central.writeUInt16LE(nameBuf.length, 28);
-    central.writeUInt16LE(0, 30);
-    central.writeUInt16LE(0, 32);
-    central.writeUInt16LE(0, 34);
-    central.writeUInt16LE(0, 36);
-    central.writeUInt32LE(0, 38);
-    central.writeUInt32LE(offset, 42);
-    centralHeaders.push(Buffer.concat([central, nameBuf]));
-
-    offset += localEntry.length;
-  }
-
-  const centralStart = offset;
-  const centralBlob = Buffer.concat(centralHeaders);
-  const eocd = Buffer.alloc(22);
-  eocd.writeUInt32LE(0x06054b50, 0);
-  eocd.writeUInt16LE(0, 4);
-  eocd.writeUInt16LE(0, 6);
-  eocd.writeUInt16LE(files.length, 8);
-  eocd.writeUInt16LE(files.length, 10);
-  eocd.writeUInt32LE(centralBlob.length, 12);
-  eocd.writeUInt32LE(centralStart, 16);
-  eocd.writeUInt16LE(0, 20);
-
-  return Buffer.concat([...localHeaders, centralBlob, eocd]);
-}
-
-function readTailLines(filePath: string, maxLines: number): string {
-  try {
-    if (!fs.existsSync(filePath)) return "";
-    const raw = fs.readFileSync(filePath, "utf8");
-    const lines = raw.split(/\r?\n/);
-    const start = Math.max(0, lines.length - Math.max(1, maxLines));
-    return lines.slice(start).join("\n");
-  } catch {
-    return "";
-  }
-}
-
-async function showSaveDialogForBundle(defaultPath: string) {
-  if (IS_E2E) {
-    return {
-      canceled: false,
-      filePath: path.join(
-        app.getPath("temp"),
-        `rinawarp-support-bundle-e2e-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.zip`,
-      ),
-    };
-  }
-  return dialog.showSaveDialog({
-    title: "Save Support Bundle",
-    defaultPath,
-    filters: [{ name: "Zip", extensions: ["zip"] }],
-  });
-}
-
-function readJsonIfExists<T>(p: string): T | null {
-  try {
-    if (!fs.existsSync(p)) return null;
-    return JSON.parse(fs.readFileSync(p, "utf-8")) as T;
-  } catch {
-    return null;
-  }
-}
-
-function writeJsonFile(p: string, value: unknown) {
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, JSON.stringify(value, null, 2), "utf-8");
-}
-
-function loadSharesDb(): SharesDb {
-  const parsed = readJsonIfExists<SharesDb>(SHARES_FILE()) ?? { shares: [] };
-  const normalized = (parsed.shares || []).map((s) => {
-    const createdAt = s.createdAt || new Date().toISOString();
-    const expiresAt = s.expiresAt || new Date(Date.parse(createdAt) + 7 * 24 * 60 * 60 * 1000).toISOString();
-    return {
-      id: s.id,
-      createdAt,
-      createdBy: s.createdBy || "owner@local",
-      title: s.title,
-      content: s.content || "",
-      revoked: !!s.revoked,
-      expiresAt,
-      requiredRole: s.requiredRole || "viewer",
-    } as ShareRecord;
-  });
-  return { shares: normalized };
-}
-
-function saveSharesDb(db: SharesDb) {
-  writeJsonFile(SHARES_FILE(), db);
-}
-
-function loadTeamDb(): TeamDb {
-  return readJsonIfExists<TeamDb>(TEAM_FILE()) ?? {
-    currentUser: "owner@local",
-    members: [{ email: "owner@local", role: "owner" }],
-  };
-}
-
-function saveTeamDb(db: TeamDb) {
-  writeJsonFile(TEAM_FILE(), db);
-}
-
-function loadTeamInvitesDb(): TeamInvitesDb {
-  const parsed = readJsonIfExists<TeamInvitesDb>(TEAM_INVITES_FILE()) ?? { invites: [] };
-  const nowMs = Date.now();
-  const normalized = (parsed.invites || []).map((inv) => {
-    const expiresAt = inv.expiresAt || new Date(nowMs + 72 * 60 * 60 * 1000).toISOString();
-    const expired = Date.parse(expiresAt) <= nowMs;
-    const status = inv.status === "accepted" || inv.status === "revoked" ? inv.status : expired ? "expired" : "pending";
-    return {
-      id: inv.id || `inv_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
-      token: inv.token || "",
-      email: String(inv.email || "").trim().toLowerCase(),
-      role: inv.role && ["owner", "operator", "viewer"].includes(inv.role) ? inv.role : "viewer",
-      createdAt: inv.createdAt || new Date().toISOString(),
-      createdBy: inv.createdBy || "owner@local",
-      expiresAt,
-      status,
-      acceptedAt: inv.acceptedAt,
-      acceptedBy: inv.acceptedBy,
-    } as TeamInviteRecord;
-  });
-  return { invites: normalized };
-}
-
-function saveTeamInvitesDb(db: TeamInvitesDb) {
-  writeJsonFile(TEAM_INVITES_FILE(), db);
-}
-
-function loadTeamActivity(limit = 200): TeamActivityRecord[] {
-  try {
-    const p = TEAM_ACTIVITY_FILE();
-    if (!fs.existsSync(p)) return [];
-    const raw = fs.readFileSync(p, "utf-8");
-    const lines = raw
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean);
-    const parsed: TeamActivityRecord[] = [];
-    for (const line of lines) {
-      try {
-        const rec = JSON.parse(line) as TeamActivityRecord;
-        if (!rec || !rec.id || !rec.timestamp || !rec.actor || !rec.action || !rec.target) continue;
-        parsed.push(rec);
-      } catch {
-        // skip malformed line
-      }
-    }
-    return parsed.slice(-Math.max(1, Math.floor(limit))).reverse();
-  } catch {
-    return [];
-  }
-}
-
-function appendTeamActivity(action: TeamActivityAction, target: string, details?: TeamActivityRecord["details"]) {
-  try {
-    const rec: TeamActivityRecord = {
-      id: `evt_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
-      timestamp: new Date().toISOString(),
-      actor: getCurrentUserEmail(),
-      actorRole: getCurrentRole(),
-      action,
-      target: String(target || "unknown"),
-      details,
-    };
-    fs.mkdirSync(path.dirname(TEAM_ACTIVITY_FILE()), { recursive: true });
-    fs.appendFileSync(TEAM_ACTIVITY_FILE(), `${JSON.stringify(rec)}\n`, "utf-8");
-  } catch {
-    // swallow activity log write failures
-  }
-}
-
-function getCurrentRole(): Role {
-  const team = loadTeamDb();
-  const user = team.currentUser || "owner@local";
-  const role = team.members.find((m) => m.email === user)?.role;
-  return role || "owner";
-}
-
-function getCurrentUserEmail(): string {
-  const team = loadTeamDb();
-  return team.currentUser || "owner@local";
-}
-
-function roleRank(role: Role): number {
-  if (role === "owner") return 3;
-  if (role === "operator") return 2;
-  return 1;
-}
-
-function hasRoleAtLeast(current: Role, required: Role): boolean {
-  return roleRank(current) >= roleRank(required);
-}
+const showSaveDialogForBundle = createSupportBundleSaveDialog({ isE2E: IS_E2E });
+const themeRegistryRuntime = createThemeRegistryRuntime({
+  customThemesFile: CUSTOM_THEMES_FILE,
+  themeSelectionFile: THEME_SELECTION_FILE,
+  readJsonIfExists,
+  writeJsonFile,
+  resolveResourcePath,
+  warnIfUnexpectedPackagedResource,
+  setLastLoadedThemePath: (themePath) => {
+    ctx.lastLoadedThemePath = themePath;
+  },
+});
+const loadThemeRegistryMerged = themeRegistryRuntime.loadThemeRegistryMerged;
+const loadSelectedThemeId = themeRegistryRuntime.loadSelectedThemeId;
+const saveSelectedThemeId = themeRegistryRuntime.saveSelectedThemeId;
+const loadCustomThemeRegistry = themeRegistryRuntime.loadCustomThemeRegistry;
+const validateTheme = themeRegistryRuntime.validateTheme;
 
 function safeSend(target: WebContents | null | undefined, channel: string, payload?: unknown): boolean {
   if (!target) return false;
@@ -462,146 +229,6 @@ function importShellHistory(limit = 300): { imported: number; commands: string[]
   return { imported: picked.length, commands: picked };
 }
 
-function fallbackThemeRegistry(): ThemeRegistry {
-  return {
-    themes: [
-      {
-        id: "mermaid-teal",
-        name: "Mermaid - Teal",
-        group: "Mermaid",
-        vars: {
-          "--rw-bg": "#061013",
-          "--rw-panel": "rgba(255,255,255,0.03)",
-          "--rw-border": "rgba(255,255,255,0.10)",
-          "--rw-text": "rgba(255,255,255,0.92)",
-          "--rw-muted": "rgba(255,255,255,0.68)",
-          "--rw-accent": "#2de2e6",
-          "--rw-accent2": "#7af3f5",
-          "--rw-danger": "#ff4d6d",
-          "--rw-success": "#3cffb5",
-        },
-        terminal: {
-          background: "#061013",
-          foreground: "#eaffff",
-          cursor: "#2de2e6",
-          selection: "rgba(45, 226, 230, 0.18)",
-          ansi: [
-            "#07161a",
-            "#ff4d6d",
-            "#3cffb5",
-            "#ffd166",
-            "#61a0ff",
-            "#b57bff",
-            "#2de2e6",
-            "#eaffff",
-            "#23454f",
-            "#ff7aa2",
-            "#7bffd9",
-            "#ffe199",
-            "#92c0ff",
-            "#d3a8ff",
-            "#7af3f5",
-            "#ffffff",
-          ],
-        },
-      },
-      {
-        id: "unicorn",
-        name: "Unicorn",
-        group: "Fantasy",
-        vars: {
-          "--rw-bg": "#070614",
-          "--rw-panel": "rgba(255,255,255,0.035)",
-          "--rw-border": "rgba(255,255,255,0.11)",
-          "--rw-text": "rgba(255,255,255,0.93)",
-          "--rw-muted": "rgba(255,255,255,0.70)",
-          "--rw-accent": "#b57bff",
-          "--rw-accent2": "#ff3bbf",
-          "--rw-danger": "#ff4d6d",
-          "--rw-success": "#3cffb5",
-        },
-        terminal: {
-          background: "#070614",
-          foreground: "#f7e9ff",
-          cursor: "#ff3bbf",
-          selection: "rgba(181, 123, 255, 0.20)",
-          ansi: [
-            "#12102a",
-            "#ff4d6d",
-            "#3cffb5",
-            "#ffd166",
-            "#61a0ff",
-            "#b57bff",
-            "#ff3bbf",
-            "#f7e9ff",
-            "#3b2a4a",
-            "#ff7aa2",
-            "#7bffd9",
-            "#ffe199",
-            "#92c0ff",
-            "#d3a8ff",
-            "#ff7ad9",
-            "#ffffff",
-          ],
-        },
-      },
-    ],
-  };
-}
-
-function loadBaseThemeRegistry(): ThemeRegistry {
-  const file = resolveResourcePath("themes/themes.json", "app");
-  warnIfUnexpectedPackagedResource("theme registry", file);
-  const parsed = readJsonIfExists<ThemeRegistry>(file);
-  if (parsed?.themes?.length) {
-    ctx.lastLoadedThemePath = file;
-    return parsed;
-  }
-  ctx.lastLoadedThemePath = null;
-  return fallbackThemeRegistry();
-}
-
-function loadCustomThemeRegistry(): ThemeRegistry {
-  return readJsonIfExists<ThemeRegistry>(CUSTOM_THEMES_FILE()) ?? { themes: [] };
-}
-
-function loadThemeRegistryMerged(): ThemeRegistry {
-  const base = loadBaseThemeRegistry();
-  const custom = loadCustomThemeRegistry();
-  const map = new Map<string, ThemeSpec>();
-  for (const t of base.themes || []) map.set(t.id, t);
-  for (const t of custom.themes || []) map.set(t.id, t);
-  return { themes: Array.from(map.values()) };
-}
-
-function loadSelectedThemeId(): string {
-  const data = readJsonIfExists<{ id?: string }>(THEME_SELECTION_FILE());
-  return data?.id || "mermaid-teal";
-}
-
-function saveSelectedThemeId(id: string) {
-  writeJsonFile(THEME_SELECTION_FILE(), { id });
-}
-
-function validateTheme(theme: ThemeSpec): { ok: boolean; error?: string } {
-  if (!theme?.id || !/^[a-z0-9-]{3,64}$/i.test(theme.id)) return { ok: false, error: "Invalid id" };
-  if (!theme?.name || theme.name.length < 2) return { ok: false, error: "Invalid name" };
-  if (!theme?.vars || typeof theme.vars !== "object") return { ok: false, error: "Missing vars" };
-  for (const key of Object.keys(theme.vars)) {
-    if (!ALLOWED_THEME_VAR_KEYS.has(key)) return { ok: false, error: `Disallowed var: ${key}` };
-    if (typeof theme.vars[key] !== "string") return { ok: false, error: `Var not string: ${key}` };
-  }
-  if (theme.terminal) {
-    if (!theme.terminal.background || !theme.terminal.foreground) {
-      return { ok: false, error: "Terminal bg/fg required" };
-    }
-    if (!Array.isArray(theme.terminal.ansi) || theme.terminal.ansi.length !== 16) {
-      return { ok: false, error: "Terminal ansi must have 16 colors" };
-    }
-  }
-  return { ok: true };
-}
-
 function currentPolicyEnv(): PolicyEnv {
   const raw = (process.env.RINAWARP_ENV || process.env.NODE_ENV || "dev").toLowerCase();
   if (raw.includes("prod")) return "prod";
@@ -611,11 +238,11 @@ function currentPolicyEnv(): PolicyEnv {
 
 function parseRuleBlock(block: string): PolicyRule | null {
   const id = block.match(/-\s+id:\s*([^\n]+)/)?.[1]?.trim();
-  const action = block.match(/\naction:\s*([a-z_]+)/)?.[1]?.trim() as PolicyAction | undefined;
+  const action = block.match(/\n\s*action:\s*([a-z_]+)/)?.[1]?.trim() as PolicyAction | undefined;
   if (!id || !action) return null;
-  const approval = block.match(/\napproval:\s*([a-z_]+)/)?.[1]?.trim() as PolicyApproval | undefined;
-  const typedPhrase = block.match(/\ntyped_phrase:\s*"?([^\n"]+)"?/)?.[1]?.trim();
-  const message = block.match(/\nmessage:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+  const approval = block.match(/\n\s*approval:\s*([a-z_]+)/)?.[1]?.trim() as PolicyApproval | undefined;
+  const typedPhrase = block.match(/\n\s*typed_phrase:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+  const message = block.match(/\n\s*message:\s*"?([^\n"]+)"?/)?.[1]?.trim();
 
   const regexes: RegExp[] = [];
   for (const m of block.matchAll(/-\s*'([^']+)'/g)) {
@@ -636,10 +263,7 @@ function parseRuleBlock(block: string): PolicyRule | null {
 }
 
 function loadPolicy(): ParsedPolicy {
-  if (cachedPolicy !== undefined) return cachedPolicy || {
-    rules: [],
-    fallback: { action: "require_approval", approval: "click", message: "Unclassified command requires approval." },
-  };
+  if (cachedPolicy !== undefined) return cachedPolicy;
 
   let text = "";
   const policyPath = resolveResourcePath("policy/rinawarp-policy.yaml", "repo");
@@ -651,8 +275,7 @@ function loadPolicy(): ParsedPolicy {
     ctx.lastLoadedPolicyPath = null;
   }
   if (!text) {
-    cachedPolicy = null;
-    return loadPolicy();
+    throw new Error(`Command policy file not found: ${policyPath}`);
   }
 
   const rulesSection = text.match(/\nrules:\s*\n([\s\S]*?)\nfallback:\s*\n/)?.[1] || "";
@@ -666,10 +289,10 @@ function loadPolicy(): ParsedPolicy {
   }
 
   const rules = blocks.map(parseRuleBlock).filter((x): x is PolicyRule => !!x);
-  const fallbackAction = (fallbackSection.match(/\naction:\s*([a-z_]+)/)?.[1]?.trim() as PolicyAction | undefined) || "require_approval";
-  const fallbackApproval = fallbackSection.match(/\napproval:\s*([a-z_]+)/)?.[1]?.trim() as PolicyApproval | undefined;
-  const fallbackPhrase = fallbackSection.match(/\ntyped_phrase:\s*"?([^\n"]+)"?/)?.[1]?.trim();
-  const fallbackMessage = fallbackSection.match(/\nmessage:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+  const fallbackAction = (fallbackSection.match(/\n\s*action:\s*([a-z_]+)/)?.[1]?.trim() as PolicyAction | undefined) || "require_approval";
+  const fallbackApproval = fallbackSection.match(/\n\s*approval:\s*([a-z_]+)/)?.[1]?.trim() as PolicyApproval | undefined;
+  const fallbackPhrase = fallbackSection.match(/\n\s*typed_phrase:\s*"?([^\n"]+)"?/)?.[1]?.trim();
+  const fallbackMessage = fallbackSection.match(/\n\s*message:\s*"?([^\n"]+)"?/)?.[1]?.trim();
 
   cachedPolicy = {
     rules,
@@ -734,6 +357,7 @@ function explainPolicy(command: string): {
   message: string;
   typedPhrase?: string;
   matchedRuleId?: string;
+  policyLoadedFrom?: string | null;
 } {
   const policy = loadPolicy();
   const env = currentPolicyEnv();
@@ -748,51 +372,28 @@ function explainPolicy(command: string): {
     message: match?.message || policy.fallback.message || "Unclassified command requires approval.",
     typedPhrase: match?.typedPhrase || policy.fallback.typedPhrase,
     matchedRuleId: match?.id,
+    policyLoadedFrom: ctx.lastLoadedPolicyPath,
   };
 }
 
-function mapApiTierToLicenseTier(apiTier: string): LicenseTier {
-  const t = apiTier.trim().toLowerCase();
-  if (t === "pro") return "pro";
-  if (t === "creator") return "creator";
-  if (t === "pioneer") return "pioneer";
-  if (t === "founder") return "founder";
-  if (t === "enterprise") return "enterprise";
-  // Stripe worker currently emits "team" as the top tier.
-  if (t === "team") return "enterprise";
-  return "starter";
-}
-
-function applyVerifiedLicense(data: LicenseVerifyResponse): LicenseTier {
-  const tier = mapApiTierToLicenseTier(data.tier);
-  currentLicenseTier = tier;
-  currentLicenseToken = data.license_token ?? null;
-  currentLicenseExpiresAt = Number.isFinite(data.expires_at) ? data.expires_at : null;
-  currentLicenseCustomerId = data.customer_id ?? null;
-  currentLicenseStatus = data.status ?? "active";
-  return tier;
-}
-
-function resetLicenseToStarter() {
-  currentLicenseTier = "starter";
-  currentLicenseToken = null;
-  currentLicenseExpiresAt = null;
-  currentLicenseCustomerId = null;
-}
-
-function getLicenseState() {
-  return {
-    tier: currentLicenseTier,
-    has_token: !!currentLicenseToken,
-    expires_at: currentLicenseExpiresAt,
-    customer_id: currentLicenseCustomerId,
-    status: currentLicenseStatus,
-  };
-}
-
-function getCurrentLicenseCustomerId(): string | null {
-  return currentLicenseCustomerId;
-}
+const licenseEntitlementRuntime = createLicenseEntitlementRuntime({
+  state: licenseRuntimeState,
+  getUserDataPath: () => app.getPath("userData"),
+  isPackaged: () => app.isPackaged,
+  readJsonIfExists,
+  writeJsonFile,
+});
+const getCurrentPlanId = licenseEntitlementRuntime.getCurrentPlanId;
+const getCurrentPlanFeatures = licenseEntitlementRuntime.getCurrentPlanFeatures;
+const currentPlanHasFeature = licenseEntitlementRuntime.currentPlanHasFeature;
+const applyVerifiedLicense = licenseEntitlementRuntime.applyVerifiedLicense;
+const resetLicenseToStarter = licenseEntitlementRuntime.resetLicenseToStarter;
+const getLicenseState = licenseEntitlementRuntime.getLicenseState;
+const getCurrentLicenseCustomerId = licenseEntitlementRuntime.getCurrentLicenseCustomerId;
+const saveEntitlements = licenseEntitlementRuntime.saveEntitlements;
+const loadEntitlements = licenseEntitlementRuntime.loadEntitlements;
+const applyStoredEntitlement = licenseEntitlementRuntime.applyStoredEntitlement;
+const isEntitlementStale = licenseEntitlementRuntime.isEntitlementStale;
 
 function buildAgentdHeaders(opts?: { includeLicenseToken?: boolean }): Record<string, string> {
   const headers: Record<string, string> = {
@@ -801,8 +402,8 @@ function buildAgentdHeaders(opts?: { includeLicenseToken?: boolean }): Record<st
   if (AGENTD_AUTH_TOKEN) {
     headers.authorization = `Bearer ${AGENTD_AUTH_TOKEN}`;
   }
-  if (opts?.includeLicenseToken && currentLicenseToken) {
-    headers["x-rinawarp-license-token"] = currentLicenseToken;
+  if (opts?.includeLicenseToken && licenseRuntimeState.token) {
+    headers["x-rinawarp-license-token"] = licenseRuntimeState.token;
   }
   return headers;
 }
@@ -831,314 +432,6 @@ async function agentdJson<T>(
     throw new Error(msg);
   }
   return data as T;
-}
-
-type DaemonTaskStatus = "queued" | "running" | "completed" | "failed" | "canceled";
-
-async function daemonStatus(): Promise<any> {
-  try {
-    return await agentdJson<{ ok: boolean; daemon?: any; tasks?: any }>("/v1/daemon/status", {
-      method: "GET",
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-      daemon: { running: false, pid: null, storeDir: null },
-      tasks: { total: 0, counts: {} },
-    };
-  }
-}
-
-async function daemonTasks(args?: { status?: DaemonTaskStatus; deadLetter?: boolean }): Promise<any> {
-  const q = new URLSearchParams();
-  if (args?.status) q.set("status", args.status);
-  if (args?.deadLetter) q.set("deadLetter", "1");
-  const suffix = q.size > 0 ? `?${q.toString()}` : "";
-  try {
-    return await agentdJson<{ ok: boolean; tasks?: any[]; updatedAt?: string }>(`/v1/daemon/tasks${suffix}`, {
-      method: "GET",
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-      tasks: [],
-    };
-  }
-}
-
-async function daemonTaskAdd(args: { type: string; payload?: Record<string, unknown>; maxAttempts?: number }): Promise<any> {
-  try {
-    return await agentdJson<{ ok: boolean; task?: any }>("/v1/daemon/tasks", {
-      method: "POST",
-      body: {
-        type: args?.type,
-        payload: args?.payload ?? {},
-        maxAttempts: args?.maxAttempts,
-      },
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function daemonStart(): Promise<any> {
-  try {
-    return await agentdJson<{ ok: boolean; started?: boolean; alreadyRunning?: boolean; pid?: number }>("/v1/daemon/start", {
-      method: "POST",
-      body: {},
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function daemonStop(): Promise<any> {
-  try {
-    return await agentdJson<{ ok: boolean; stopped?: boolean; stale?: boolean; pid?: number }>("/v1/daemon/stop", {
-      method: "POST",
-      body: {},
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function fetchRemotePlanForIpc(payload: { intentText: string; projectRoot: string }): Promise<any> {
-  const resp = await agentdJson<{ ok: true; plan: any }>("/v1/plan", {
-    method: "POST",
-    body: payload,
-    includeLicenseToken: false,
-  });
-  return resp.plan;
-}
-
-async function executeRemotePlanForIpc(payload: {
-  plan: any[];
-  projectRoot: string;
-  confirmed: boolean;
-  confirmationText: string;
-}): Promise<{ ok: true; planRunId: string }> {
-  return await agentdJson<{ ok: true; planRunId: string }>("/v1/execute-plan", {
-    method: "POST",
-    body: payload,
-    includeLicenseToken: true,
-  });
-}
-
-async function orchestratorIssueToPrForIpc(args: {
-  issueId: string;
-  repoPath: string;
-  branchName?: string;
-  command?: string;
-  repoSlug?: string;
-  push?: boolean;
-  prDryRun?: boolean;
-  baseBranch?: string;
-  prTitle?: string;
-  prBody?: string;
-  commitMessage?: string;
-}): Promise<any> {
-  try {
-    return await agentdJson("/v1/orchestrator/issue-to-pr", {
-      method: "POST",
-      body: args,
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function orchestratorGraphForIpc(): Promise<any> {
-  try {
-    return await agentdJson("/v1/orchestrator/workspace-graph", {
-      method: "GET",
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-      graph: { nodes: [], edges: [] },
-    };
-  }
-}
-
-async function orchestratorPrepareBranchForIpc(args: {
-  repoPath: string;
-  issueId?: string;
-  branchName?: string;
-}): Promise<any> {
-  try {
-    return await agentdJson("/v1/orchestrator/git/prepare-branch", {
-      method: "POST",
-      body: args,
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function orchestratorCreatePrForIpc(args: {
-  repoSlug: string;
-  head: string;
-  base?: string;
-  title: string;
-  body?: string;
-  draft?: boolean;
-  dryRun?: boolean;
-  workflowId?: string;
-  issueId?: string;
-  branchName?: string;
-}): Promise<any> {
-  try {
-    return await agentdJson("/v1/orchestrator/github/create-pr", {
-      method: "POST",
-      body: args,
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function orchestratorPrStatusForIpc(args: {
-  workflowId: string;
-  status: "planned" | "opened" | "merged" | "closed" | "failed";
-  issueId?: string;
-  branchName?: string;
-  repoSlug?: string;
-  mode?: "dry_run" | "live";
-  number?: number;
-  url?: string;
-  error?: string;
-}): Promise<any> {
-  try {
-    return await agentdJson("/v1/orchestrator/github/pr-status", {
-      method: "POST",
-      body: args,
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function orchestratorWebhookAuditForIpc(args?: {
-  limit?: number;
-  outcome?: "accepted" | "rejected";
-  mapped?: "pr_status" | "ci_status" | "review_revision";
-}): Promise<any> {
-  try {
-    const role = getCurrentRole();
-    if (!hasRoleAtLeast(role, "operator")) {
-      return {
-        ok: false,
-        error: "Only owner/operator can access webhook audit events.",
-        entries: [],
-        count: 0,
-      };
-    }
-    const params = new URLSearchParams();
-    if (typeof args?.limit === "number" && Number.isFinite(args.limit)) params.set("limit", String(args.limit));
-    if (args?.outcome) params.set("outcome", args.outcome);
-    if (args?.mapped) params.set("mapped", args.mapped);
-    const qs = params.toString();
-    const path = qs ? `/v1/orchestrator/github/webhook-audit?${qs}` : "/v1/orchestrator/github/webhook-audit";
-    return await agentdJson(path, {
-      method: "GET",
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-      entries: [],
-      count: 0,
-    };
-  }
-}
-
-async function orchestratorCiStatusForIpc(args: {
-  workflowId: string;
-  provider: string;
-  status: "queued" | "running" | "passed" | "failed";
-  url?: string;
-  autoRetry?: boolean;
-  repoPath?: string;
-  issueId?: string;
-  branchName?: string;
-  command?: string;
-  repoSlug?: string;
-  baseBranch?: string;
-  prDryRun?: boolean;
-}): Promise<any> {
-  try {
-    return await agentdJson("/v1/orchestrator/ci/status", {
-      method: "POST",
-      body: args,
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function orchestratorReviewCommentForIpc(args: {
-  workflowId: string;
-  repoPath: string;
-  issueId: string;
-  branchName: string;
-  comment: string;
-  command?: string;
-  repoSlug?: string;
-  baseBranch?: string;
-  prDryRun?: boolean;
-}): Promise<any> {
-  try {
-    return await agentdJson("/v1/orchestrator/review/comment", {
-      method: "POST",
-      body: args,
-      includeLicenseToken: false,
-    });
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
 }
 
 type Risk = "read" | "safe-write" | "high-impact";
@@ -1458,21 +751,11 @@ const sessionState = {
 };
 
 function withStructuredSessionWrite(fn: () => void): void {
-  if (!structuredSessionStore) return;
-  try {
-    fn();
-  } catch {
-    // Shadow-write path must never break runtime execution.
-  }
+  withStructuredSessionWriteSafe(() => structuredSessionStore, fn);
 }
 
 function ensureStructuredSession(args: { source: string; projectRoot?: string; preferredId?: string }): string | null {
-  if (!structuredSessionStore) return null;
-  try {
-    return structuredSessionStore.startSession(args);
-  } catch {
-    return null;
-  }
+  return ensureStructuredSessionSafe(() => structuredSessionStore, args);
 }
 
 function sanitizeForPersistence<T>(value: T): T {
@@ -1572,174 +855,6 @@ function exportTranscript(format: "json" | "text"): string {
   return redactText(text).redactedText;
 }
 
-type UnifiedSearchSource = "structured" | "transcript" | "share";
-type UnifiedSearchHit = {
-  id: string;
-  source: UnifiedSearchSource;
-  label: string;
-  meta: string;
-  snippet?: string;
-  command?: string;
-  shareId?: string;
-  createdAt: string;
-  score: number;
-};
-
-function recencyBoost(iso: string): number {
-  const ts = Date.parse(String(iso || ""));
-  if (!Number.isFinite(ts)) return 0;
-  const ageHours = Math.max(0, (Date.now() - ts) / (1000 * 60 * 60));
-  if (ageHours <= 1) return 2;
-  if (ageHours <= 24) return 1;
-  if (ageHours <= 24 * 7) return 0.5;
-  return 0;
-}
-
-function searchTranscriptEntries(query: string, limit: number): UnifiedSearchHit[] {
-  const out: UnifiedSearchHit[] = [];
-  const q = String(query || "").trim();
-  const entries = sessionState.entries.slice(-500).reverse();
-  for (const entry of entries) {
-    let label = "";
-    let meta = `transcript • ${entry.type}`;
-    let haystack = "";
-    let command: string | undefined;
-
-    if (entry.type === "execution_start") {
-      label = entry.command;
-      command = entry.command;
-      meta = `transcript • command • ${entry.stepId}`;
-      haystack = `${entry.command} ${entry.stepId}`;
-    } else if (entry.type === "intent") {
-      label = entry.intent;
-      haystack = entry.intent;
-      meta = "transcript • intent";
-    } else if (entry.type === "signal") {
-      label = entry.signal;
-      haystack = `${entry.signal} ${entry.interpretation}`;
-      meta = "transcript • signal";
-    } else if (entry.type === "verification") {
-      label = `${entry.check}: ${entry.status}`;
-      haystack = `${entry.check} ${entry.result} ${entry.status}`;
-      meta = "transcript • verification";
-    } else if (entry.type === "outcome") {
-      label = `Outcome: ${entry.rootCause}`;
-      haystack = `${entry.rootCause} ${entry.changes.join(" ")} ${entry.evidenceBefore} ${entry.evidenceAfter}`;
-      meta = `transcript • outcome • ${entry.confidence}`;
-    } else if (entry.type === "playbook") {
-      label = entry.playbookName;
-      haystack = `${entry.playbookName} ${entry.playbookId}`;
-      meta = "transcript • playbook";
-    } else if (entry.type === "approval") {
-      label = entry.command;
-      command = entry.command;
-      haystack = `${entry.command} ${entry.risk} ${entry.approved ? "approved" : "denied"}`;
-      meta = `transcript • approval • ${entry.risk}`;
-    } else if (entry.type === "memory") {
-      label = `${entry.category}: ${entry.key}`;
-      haystack = `${entry.category} ${entry.key} ${entry.value}`;
-      meta = "transcript • memory";
-    } else if (entry.type === "execution_end") {
-      label = entry.ok ? "Execution success" : `Execution failed: ${entry.error || "unknown"}`;
-      haystack = `${entry.error || ""} ${entry.ok ? "success" : "failed"}`;
-      meta = "transcript • execution end";
-    } else if (entry.type === "plan") {
-      label = entry.plan.intent || entry.plan.reasoning;
-      haystack = `${entry.plan.intent} ${entry.plan.reasoning} ${(entry.plan.steps || []).map((s) => s.command).join(" ")}`;
-      meta = "transcript • plan";
-    }
-
-    if (!label) continue;
-    const score = scoreTextMatch(q, haystack);
-    if (q && score < 0) continue;
-    const total = (score > 0 ? score : 0.05) + recencyBoost(entry.timestamp);
-    out.push({
-      id: `transcript:${entry.timestamp}:${entry.type}:${out.length}`,
-      source: "transcript",
-      label,
-      meta,
-      snippet: haystack.slice(0, 220),
-      command,
-      createdAt: entry.timestamp,
-      score: Number(total.toFixed(4)),
-    });
-    if (out.length >= Math.max(5, limit * 2)) break;
-  }
-  return out;
-}
-
-function searchShareRecords(query: string, limit: number): UnifiedSearchHit[] {
-  const out: UnifiedSearchHit[] = [];
-  const q = String(query || "").trim();
-  const role = getCurrentRole();
-  const shares = loadSharesDb().shares
-    .filter((s) => hasRoleAtLeast(role, s.requiredRole))
-    .slice(0, 250);
-  for (const s of shares) {
-    const label = s.title || `Share ${s.id}`;
-    const summary = `${label}\n${s.content || ""}`;
-    const score = scoreTextMatch(q, summary);
-    if (q && score < 0) continue;
-    const status = s.revoked ? "revoked" : (Date.now() > Date.parse(s.expiresAt) ? "expired" : "active");
-    const total = (score > 0 ? score : 0.05) + recencyBoost(s.createdAt);
-    out.push({
-      id: `share:${s.id}`,
-      source: "share",
-      label,
-      meta: `share • ${status} • ${s.requiredRole}`,
-      snippet: String(s.content || "").slice(0, 220),
-      shareId: s.id,
-      createdAt: s.createdAt,
-      score: Number(total.toFixed(4)),
-    });
-    if (out.length >= Math.max(5, limit * 2)) break;
-  }
-  return out;
-}
-
-function searchStructuredRecords(query: string, limit: number): UnifiedSearchHit[] {
-  if (!structuredSessionStore) return [];
-  const hits = structuredSessionStore.searchCommands(String(query || ""), Math.max(10, limit * 2));
-  return hits.map((h) => {
-    const status = h.ok === true ? "ok" : h.ok === false ? "failed" : "unknown";
-    const meta = `structured • ${status} • ${h.risk || "read"} • ${h.cwd || "(default)"}`;
-    const total = Number((h.score + recencyBoost(h.startedAt)).toFixed(4));
-    return {
-      id: `structured:${h.commandId}`,
-      source: "structured",
-      label: h.command,
-      meta,
-      snippet: h.snippet,
-      command: h.command,
-      createdAt: h.startedAt,
-      score: total,
-    } as UnifiedSearchHit;
-  });
-}
-
-function runUnifiedSearch(query: string, limit = 20): UnifiedSearchHit[] {
-  const safeLimit = Math.max(1, Math.min(Number(limit || 20), 100));
-  const sourceBoost: Record<UnifiedSearchSource, number> = {
-    structured: 0.9,
-    transcript: 0.45,
-    share: 0.25,
-  };
-  const all = [
-    ...searchStructuredRecords(query, safeLimit),
-    ...searchTranscriptEntries(query, safeLimit),
-    ...searchShareRecords(query, safeLimit),
-  ].map((h) => ({
-    ...h,
-    score: Number((h.score + (sourceBoost[h.source] || 0)).toFixed(4)),
-  }));
-  return all
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return Date.parse(b.createdAt) - Date.parse(a.createdAt);
-    })
-    .slice(0, safeLimit);
-}
-
 /**
  * Secure environment filtering - prevents credential bleed into agent execution
  */
@@ -1828,63 +943,47 @@ type PtySession = {
 const ptySessions = new Map<number, PtySession>();
 const ptyResizeTimers = new Map<number, NodeJS.Timeout>();
 let ptyModulePromise: Promise<PtyModule | null> | null = null;
-const SHARES_FILE = () => path.join(app.getPath("userData"), "shares.json");
-const TEAM_FILE = () => path.join(app.getPath("userData"), "team-workspace.json");
-const TEAM_INVITES_FILE = () => path.join(app.getPath("userData"), "team-invites.json");
-const TEAM_ACTIVITY_FILE = () => path.join(app.getPath("userData"), "team-activity.ndjson");
-const RENDERER_ERRORS_FILE = () => path.join(app.getPath("userData"), "renderer-errors.ndjson");
-
-type Role = "owner" | "operator" | "viewer";
-type ShareRecord = {
-  id: string;
-  createdAt: string;
-  createdBy: string;
-  title?: string;
-  content: string;
-  revoked: boolean;
-  expiresAt: string;
-  requiredRole: Role;
-};
-type SharesDb = { shares: ShareRecord[] };
-type TeamDb = {
-  currentUser?: string;
-  members: Array<{ email: string; role: Role }>;
-};
-type TeamActivityAction =
-  | "share_created"
-  | "share_revoked"
-  | "share_accessed"
-  | "share_access_denied"
-  | "invite_created"
-  | "invite_revoked"
-  | "invite_accepted"
-  | "member_upserted"
-  | "member_removed"
-  | "current_user_changed";
-type TeamActivityRecord = {
-  id: string;
-  timestamp: string;
-  actor: string;
-  actorRole: Role;
-  action: TeamActivityAction;
-  target: string;
-  details?: Record<string, string | number | boolean | null>;
-};
-type TeamInviteRecord = {
-  id: string;
-  token: string;
-  email: string;
-  role: Role;
-  createdAt: string;
-  createdBy: string;
-  expiresAt: string;
-  status: "pending" | "accepted" | "revoked" | "expired";
-  acceptedAt?: string;
-  acceptedBy?: string;
-};
-type TeamInvitesDb = {
-  invites: TeamInviteRecord[];
-};
+const SHARES_FILE = userDataPaths.sharesFile;
+const TEAM_FILE = userDataPaths.teamFile;
+const TEAM_INVITES_FILE = userDataPaths.teamInvitesFile;
+const TEAM_ACTIVITY_FILE = userDataPaths.teamActivityFile;
+const RENDERER_ERRORS_FILE = userDataPaths.rendererErrorsFile;
+const teamStorage = createTeamStorage({
+  sharesFile: SHARES_FILE,
+  teamFile: TEAM_FILE,
+  teamInvitesFile: TEAM_INVITES_FILE,
+  teamActivityFile: TEAM_ACTIVITY_FILE,
+});
+const loadSharesDb = teamStorage.loadSharesDb;
+const saveSharesDb = teamStorage.saveSharesDb;
+const loadTeamDb = teamStorage.loadTeamDb;
+const saveTeamDb = teamStorage.saveTeamDb;
+const loadTeamInvitesDb = teamStorage.loadTeamInvitesDb;
+const saveTeamInvitesDb = teamStorage.saveTeamInvitesDb;
+const loadTeamActivity = teamStorage.loadTeamActivity;
+function getCurrentRole(): Role {
+  return getCurrentRoleFromTeam(loadTeamDb);
+}
+function getCurrentUserEmail(): string {
+  return getCurrentUserEmailFromTeam(loadTeamDb);
+}
+function appendTeamActivity(action: TeamActivityAction, target: string, details?: TeamActivityRecord["details"]) {
+  teamStorage.appendTeamActivity({
+    action,
+    target,
+    details,
+    actor: getCurrentUserEmail(),
+    actorRole: getCurrentRole(),
+  });
+}
+const unifiedSearchRuntime = createUnifiedSearchRuntime({
+  getTranscriptEntries: () => sessionState.entries,
+  getStructuredSessionStore: () => structuredSessionStore,
+  loadSharesDb,
+  getCurrentRole,
+  hasRoleAtLeast,
+});
+const runUnifiedSearch = unifiedSearchRuntime.runUnifiedSearch;
 type SharePreviewRecord = {
   id: string;
   createdAtMs: number;
@@ -2108,6 +1207,7 @@ function finalizePtyBoundaries(webContents: Electron.WebContents, session: PtySe
     const b = boundaries[i];
     const command = String(b.command || "").trim();
     if (!command) continue;
+    const failure = detectTerminalFailure(String(b.output || ""));
     const streamId = createStableBoundaryStreamId(webContents.id, i);
     ptyStreamOwners.set(streamId, webContents.id);
     const sid = ensureStructuredSession({ source: "pty_live_capture", projectRoot: session.cwd });
@@ -2124,9 +1224,10 @@ function finalizePtyBoundaries(webContents: Electron.WebContents, session: PtySe
       if (b.output) structuredSessionStore?.appendChunk(streamId, "stdout", redactChunkIfNeeded(b.output));
       structuredSessionStore?.endCommand({
         streamId,
-        ok: true,
+        ok: !failure.failed,
         code: null,
         cancelled: false,
+        error: failure.failed ? failure.summary || null : null,
       });
     });
     addTranscriptEntry({
@@ -2140,7 +1241,27 @@ function finalizePtyBoundaries(webContents: Electron.WebContents, session: PtySe
       type: "execution_end",
       timestamp: new Date().toISOString(),
       streamId,
-      ok: true,
+      ok: !failure.failed,
+    });
+    const pending = pendingInlineRinaRuns.get(webContents.id) || [];
+    const pendingIndex = pending.findIndex((item) => item.command === command);
+    if (pendingIndex !== -1) {
+      const [matched] = pending.splice(pendingIndex, 1);
+      if (matched?.runId) {
+        inlineRinaRunStore?.updateRun(matched.runId, {
+          execution_exit_code: failure.failed ? 1 : 0,
+        });
+      }
+      if (pending.length) pendingInlineRinaRuns.set(webContents.id, pending);
+      else pendingInlineRinaRuns.delete(webContents.id);
+    }
+    safeSend(webContents, "rina:pty:boundary", {
+      streamId,
+      command,
+      cwd: session.cwd,
+      output: String(b.output || ""),
+      failed: failure.failed,
+      failureSummary: failure.summary || "",
     });
   }
   session.finalizedBoundaryCount = limit;
@@ -2241,7 +1362,7 @@ async function runCommandOnceViaEngine(command: string, timeoutMs: number): Prom
     engine,
     plan,
     projectRoot: process.cwd(),
-    license: currentLicenseTier,
+    license: licenseRuntimeState.tier,
   });
 
   const result = report.steps[0]?.result;
@@ -2374,19 +1495,23 @@ function buildStepsForKind(kind: string, projectRoot?: string): ToolStep[] {
 }
 
 function createWindow() {
+  const bounds = defaultMainWindowBounds();
   const win = new BrowserWindow({
-    width: 1400,
-    height: 800,
+    width: bounds.width,
+    height: bounds.height,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      // Chromium renderer sandboxing is kept on in normal app runs, but the
+      // Linux E2E environment here cannot boot Electron reliably with it on.
+      sandbox: !IS_E2E
     }
   });
 
   const webContentsId = win.webContents.id;
   win.loadFile(path.join(__dirname, "renderer.html"));
+  installAppContextMenu(win);
   win.once("closed", () => {
     try {
       closePtyForWebContents(webContentsId);
@@ -2561,7 +1686,7 @@ async function startStreamingStepViaEngine(args: {
     engine,
     plan,
     projectRoot,
-    license: currentLicenseTier,
+    license: licenseRuntimeState.tier,
     confirmationToken,
     emit: (evt: ToolEvent) => {
       const info = running.get(streamId);
@@ -2627,740 +1752,6 @@ async function startStreamingStepViaEngine(args: {
   };
 }
 
-/**
- * Soft cancellation handler (v1).
- * NOTE: We do NOT kill processes here in v1 unless you define a high-impact process.kill tool.
- */
-async function cancelStream(streamId: string): Promise<{ ok: boolean; message: string }> {
-  const id = String(streamId || "").trim();
-  if (!id) return { ok: false, message: "Missing streamId." };
-
-  const mappedPlanRunId = streamToPlanRun.get(id);
-  if (mappedPlanRunId) {
-    const st = runningPlanRuns.get(mappedPlanRunId);
-    if (st) st.stopped = true;
-    if (st?.agentdPlanRunId) {
-      try {
-        await agentdJson("/v1/cancel", {
-          method: "POST",
-          body: { planRunId: st.agentdPlanRunId, streamId: id, reason: "soft" },
-          includeLicenseToken: true,
-        });
-        return { ok: true, message: "Cancellation requested." };
-      } catch (error) {
-        return { ok: false, message: error instanceof Error ? error.message : "Cancellation failed" };
-      }
-    }
-
-    // Cancellation can race plan-run registration; acknowledge and let stop flag halt continuation.
-    return { ok: true, message: "Cancellation queued." };
-  }
-
-  const entry = running.get(id);
-  if (!entry) return { ok: false, message: "No running process for that streamId." };
-
-  entry.cancelled = true;
-
-  return { ok: true, message: "Cancellation requested." };
-}
-
-async function hardKillStream(streamId: string): Promise<{ ok: boolean; message: string }> {
-  const id = String(streamId || "").trim();
-  if (!id) return { ok: false, message: "Missing streamId." };
-
-  const ownerId = ptyStreamOwners.get(id);
-  if (typeof ownerId === "number") {
-    closePtyForWebContents(ownerId);
-    return { ok: true, message: "PTY killed." };
-  }
-
-  const mappedPlanRunId = streamToPlanRun.get(id);
-  if (mappedPlanRunId) {
-    const st = runningPlanRuns.get(mappedPlanRunId);
-    if (st) st.stopped = true;
-    if (st?.agentdPlanRunId) {
-      try {
-        await agentdJson("/v1/cancel", {
-          method: "POST",
-          body: { planRunId: st.agentdPlanRunId, streamId: id, reason: "hard" },
-          includeLicenseToken: true,
-        });
-      } catch (error) {
-        return { ok: false, message: error instanceof Error ? error.message : "Hard cancel failed" };
-      }
-    }
-
-    return { ok: true, message: "Hard cancellation queued." };
-  }
-
-  const entry = running.get(id);
-  if (entry) {
-    entry.cancelled = true;
-    return { ok: true, message: "Marked cancelled." };
-  }
-
-  return { ok: false, message: "No running process for that streamId." };
-}
-
-// IPC Handlers
-
-// ============================================================
-// Entitlement Persistence
-// ============================================================
-const ENTITLEMENT_FILE = () => path.join(app.getPath("userData"), "license-entitlement.json");
-
-type EntitlementData = {
-  tier: LicenseTier;
-  token: string | null;
-  expiresAt: number | null;
-  customerId: string | null;
-  verifiedAt: string;
-  lastVerifiedAt: string; // ISO timestamp of last successful verification
-  status: string; // active, trialing, canceled, expired, etc.
-};
-
-// Current license status (runtime state)
-let currentLicenseStatus: string = "unknown";
-
-/**
- * Tiers that represent lifetime/paid-once licenses (no expiry required)
- */
-const LIFETIME_TIERS: ReadonlySet<LicenseTier> = new Set(["founder", "pioneer"] as const);
-
-/**
- * Validate entitlement expiry with explicit lifetime handling.
- * - Subscription tiers MUST have a finite, future expiresAt
- * - Lifetime tiers (founder, pioneer) MAY have null expiresAt
- * - Rejects missing, non-finite, or past timestamps
- */
-function validateEntitlementExpiry(data: EntitlementData): { ok: boolean; reason?: string } {
-  const { tier, expiresAt } = data;
-  
-  // Lifetime tiers: null expiresAt is valid
-  if (LIFETIME_TIERS.has(tier)) {
-    if (expiresAt === null) return { ok: true };
-    // If lifetime has an expiry, it must be finite and future
-    if (!Number.isFinite(expiresAt)) {
-      return { ok: false, reason: "Lifetime tier has non-finite expiresAt" };
-    }
-    if (Date.now() > expiresAt * 1000) {
-      return { ok: false, reason: "Lifetime tier has expired" };
-    }
-    return { ok: true };
-  }
-  
-  // Subscription tiers: expiresAt is required and must be future
-  if (expiresAt === null) {
-    return { ok: false, reason: "Subscription tier missing expiresAt" };
-  }
-  if (!Number.isFinite(expiresAt)) {
-    return { ok: false, reason: "Subscription tier has non-finite expiresAt" };
-  }
-  if (Date.now() > expiresAt * 1000) {
-    return { ok: false, reason: "Subscription has expired" };
-  }
-  
-  return { ok: true };
-}
-
-/**
- * Check if entitlement needs soft refresh (stale > 24h)
- */
-function isEntitlementStale(data: EntitlementData): boolean {
-  if (!data.lastVerifiedAt) return true;
-  const lastVerified = Date.parse(data.lastVerifiedAt);
-  if (!Number.isFinite(lastVerified)) return true;
-  const hoursSinceVerify = (Date.now() - lastVerified) / (1000 * 60 * 60);
-  return hoursSinceVerify > 24;
-}
-
-function saveEntitlements(): void {
-  try {
-    const data: EntitlementData = {
-      tier: currentLicenseTier,
-      token: currentLicenseToken,
-      expiresAt: currentLicenseExpiresAt,
-      customerId: currentLicenseCustomerId,
-      verifiedAt: new Date().toISOString(),
-      lastVerifiedAt: new Date().toISOString(),
-      status: currentLicenseStatus,
-    };
-    writeJsonFile(ENTITLEMENT_FILE(), data);
-    // Sanitized log - no token/customer_id in production
-    if (app.isPackaged) {
-      console.log("[license] Entitlement saved for tier:", currentLicenseTier);
-    } else {
-      console.log("[license] Entitlement saved:", { tier: currentLicenseTier, status: currentLicenseStatus });
-    }
-  } catch (err) {
-    console.warn("[license] Failed to save entitlements:", err);
-  }
-}
-
-function loadEntitlements(): EntitlementData | null {
-  try {
-    const data = readJsonIfExists<EntitlementData>(ENTITLEMENT_FILE());
-    if (!data) return null;
-    
-    // Validate expiry with explicit lifetime handling
-    const validation = validateEntitlementExpiry(data);
-    if (!validation.ok) {
-      console.log("[license] Stored entitlement invalid:", validation.reason);
-      try {
-        fs.unlinkSync(ENTITLEMENT_FILE());
-      } catch {
-        // ignore
-      }
-      return null;
-    }
-    
-    return data;
-  } catch (err) {
-    console.warn("[license] Failed to load entitlements:", err);
-    return null;
-  }
-}
-
-function applyStoredEntitlement(data: EntitlementData): void {
-  currentLicenseTier = data.tier;
-  currentLicenseToken = data.token;
-  currentLicenseExpiresAt = data.expiresAt;
-  currentLicenseCustomerId = data.customerId;
-  currentLicenseStatus = data.status || "unknown";
-}
-
-async function workspacePickDirectoryForIpc() {
-  const result = await dialog.showOpenDialog({
-    properties: ["openDirectory"],
-    title: "Select Project Root",
-    buttonLabel: "Select Folder"
-  });
-  
-  if (result.canceled || result.filePaths.length === 0) {
-    return null;
-  }
-  
-  return result.filePaths[0];
-}
-
-async function workspacePickForIpc() {
-  const result = await dialog.showOpenDialog({
-    properties: ["openDirectory"],
-    title: "Select Workspace Folder",
-    buttonLabel: "Select"
-  });
-  
-  if (result.canceled || result.filePaths.length === 0) {
-    return { ok: false };
-  }
-  
-  return { ok: true, path: result.filePaths[0] };
-}
-
-async function workspaceDefaultForIpc(senderId: number) {
-  const existing = ptySessions.get(senderId);
-  const path = existing?.cwd || getDefaultPtyCwd();
-  return { ok: true, path };
-}
-
-async function codeListFilesForIpc(args?: { projectRoot?: string; limit?: number }) {
-  try {
-    const projectRoot = resolveProjectRootSafe(args?.projectRoot);
-    const files = listProjectFilesSafe(projectRoot, args?.limit);
-    return { ok: true, files };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : String(error) };
-  }
-}
-
-async function codeReadFileForIpc(args?: { projectRoot?: string; relativePath?: string; maxBytes?: number }) {
-  try {
-    const projectRoot = resolveProjectRootSafe(args?.projectRoot);
-    return readProjectFileSafe({
-      projectRoot,
-      relativePath: String(args?.relativePath || ""),
-      maxBytes: args?.maxBytes,
-    });
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : String(error) };
-  }
-}
-
-async function pingForIpc() {
-  return { pong: true, timestamp: new Date().toISOString() };
-}
-
-async function historyImportForIpc(limit?: number) {
-  try {
-    const data = importShellHistory(Number(limit || 300));
-    return { ok: true, ...data };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : String(error) };
-  }
-}
-
-async function diagnoseHotForIpc() {
-  if (process.platform === "linux") return await diagnoseHotLinux();
-  return { platform: process.platform, message: "Tuned for Kali/Linux." };
-}
-
-async function planForIpc(intent: string) {
-  addTranscriptEntry({ type: "intent", timestamp: new Date().toISOString(), intent });
-  const plan = makePlan(intent);
-  addTranscriptEntry({ type: "plan", timestamp: new Date().toISOString(), plan });
-  return plan;
-}
-
-async function playbooksGetForIpc() {
-  return PLAYBOOKS.map(p => ({
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    category: p.category,
-    signals: p.signals,
-    fixOptions: p.fixOptions.map(f => ({
-      name: f.name,
-      description: f.description,
-      risk: f.risk
-    }))
-  }));
-}
-
-async function playbookExecuteForIpc(playbookId: string, fixIndex: number) {
-  const playbook = PLAYBOOKS.find(p => p.id === playbookId);
-  if (!playbook) throw new Error("Playbook not found");
-
-  const fix = playbook.fixOptions[fixIndex];
-  if (!fix) throw new Error("Fix option not found");
-
-  addTranscriptEntry({ type: "playbook", timestamp: new Date().toISOString(), playbookId, playbookName: playbook.name });
-  
-  return {
-    playbook,
-    fix,
-    steps: fix.commands.map((cmd, i) => ({
-      id: `f${fixIndex}_s${i + 1}`,
-      tool: "terminal",
-      command: cmd,
-      risk: fix.risk,
-      description: fix.verification
-    }))
-  };
-}
-
-async function redactionPreviewForIpc(text: string) {
-  const out = redactText(String(text || ""));
-  return {
-    redactedText: out.redactedText,
-    hits: out.hits,
-    redactionCount: out.hits.length,
-  };
-}
-async function exportPreviewForIpc(args: { kind: ExportPreviewKind; sessionId?: string }) {
-  const kind = String(args?.kind || "") as ExportPreviewKind;
-  let payload = "";
-  let redactionCount = 0;
-  let hits: Array<{ start: number; end: number; kind: string; level: string; preview: string }> = [];
-  let mime = "text/plain";
-  let fileName = `rina-export-${Date.now()}.txt`;
-
-  if (kind === "runbook_markdown") {
-    const markdown = structuredSessionStore
-      ? structuredSessionStore.exportRunbookMarkdown(args?.sessionId)
-      : "# RinaWarp Runbook\n\nStructured session store is disabled.\n";
-    const redacted = redactText(markdown);
-    payload = redacted.redactedText;
-    redactionCount = redacted.hits.length;
-    hits = redacted.hits;
-    mime = "text/markdown";
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    fileName = `rina-structured-runbook-${stamp}.md`;
-  } else if (kind === "audit_json") {
-    payload = buildAuditExportText();
-    redactionCount = (payload.match(/\[REDACTED\]/g) || []).length;
-    hits = [];
-    mime = "application/json";
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    fileName = `rina-audit-${stamp}.json`;
-  } else {
-    return { ok: false, error: "Unsupported export kind" };
-  }
-
-  if (!payload.trim()) return { ok: false, error: "Empty export payload" };
-
-  const now = Date.now();
-  pruneExportPreviewTokens(now);
-  const previewId = newExportPreviewId();
-  const rec: ExportPreviewRecord = {
-    id: previewId,
-    kind,
-    createdAtMs: now,
-    expiresAtMs: now + EXPORT_PREVIEW_TTL_MS,
-    createdBy: getCurrentUserEmail(),
-    payload,
-    mime,
-    fileName,
-    redactionCount,
-    contentHash: hashText(payload),
-  };
-  exportPreviewTokens.set(previewId, rec);
-  return {
-    ok: true,
-    previewId,
-    kind,
-    redactedText: payload,
-    redactionCount,
-    hits,
-    mime,
-    fileName,
-    contentHash: rec.contentHash,
-    expiresAt: new Date(rec.expiresAtMs).toISOString(),
-  };
-}
-
-async function exportPublishForIpc(args: { previewId?: string; typedConfirm?: string; expectedHash?: string }) {
-  const previewId = String(args?.previewId || "").trim();
-  if (!previewId) return { ok: false, error: "Export publish requires previewId." };
-  if (String(args?.typedConfirm || "") !== "PUBLISH") {
-    return { ok: false, error: 'Export publish requires typed confirmation "PUBLISH".' };
-  }
-
-  pruneExportPreviewTokens();
-  const rec = exportPreviewTokens.get(previewId);
-  if (!rec) return { ok: false, error: "Export preview expired. Generate a new preview before publish." };
-  if (rec.createdBy !== getCurrentUserEmail()) {
-    return { ok: false, error: "Export preview is not valid for the active user." };
-  }
-  if (rec.expiresAtMs <= Date.now()) {
-    exportPreviewTokens.delete(previewId);
-    return { ok: false, error: "Export preview expired. Generate a new preview before publish." };
-  }
-  if (args?.expectedHash && String(args.expectedHash) !== rec.contentHash) {
-    return { ok: false, error: "Export payload changed since preview; regenerate preview." };
-  }
-
-  exportPreviewTokens.delete(previewId);
-  return {
-    ok: true,
-    kind: rec.kind,
-    content: rec.payload,
-    mime: rec.mime,
-    fileName: rec.fileName,
-    redactionCount: rec.redactionCount,
-  };
-}
-async function sharePreviewForIpc(args: { content: string }) {
-  const actorRole = getCurrentRole();
-  if (!hasRoleAtLeast(actorRole, "operator")) {
-    return { ok: false, error: "Only owner/operator can preview published shares." };
-  }
-  const content = String(args?.content || "");
-  if (!content.trim()) return { ok: false, error: "Empty share content" };
-  const redacted = redactText(content);
-  const now = Date.now();
-  pruneSharePreviewTokens(now);
-  const previewId = newSharePreviewId();
-  const rec: SharePreviewRecord = {
-    id: previewId,
-    createdAtMs: now,
-    expiresAtMs: now + SHARE_PREVIEW_TTL_MS,
-    createdBy: getCurrentUserEmail(),
-    redactedContent: redacted.redactedText,
-    redactionCount: redacted.hits.length,
-    contentHash: hashText(redacted.redactedText),
-  };
-  sharePreviewTokens.set(previewId, rec);
-  return {
-    ok: true,
-    previewId,
-    redactedText: rec.redactedContent,
-    hits: redacted.hits,
-    redactionCount: rec.redactionCount,
-    expiresAt: new Date(rec.expiresAtMs).toISOString(),
-  };
-}
-
-async function shareCreateForIpc(args: {
-  title?: string;
-  content?: string;
-  expiresDays?: number;
-  requiredRole?: Role;
-  previewId?: string;
-}) {
-  const actorRole = getCurrentRole();
-  if (!hasRoleAtLeast(actorRole, "operator")) {
-    return { ok: false, error: "Only owner/operator can publish shares." };
-  }
-  const previewId = String(args?.previewId || "").trim();
-  if (!previewId) return { ok: false, error: "Publish requires a redaction preview confirmation." };
-  pruneSharePreviewTokens();
-  const preview = sharePreviewTokens.get(previewId);
-  if (!preview) return { ok: false, error: "Share preview expired. Generate a new preview before publish." };
-  if (preview.createdBy !== getCurrentUserEmail()) {
-    return { ok: false, error: "Share preview is not valid for the active user." };
-  }
-  if (preview.expiresAtMs <= Date.now()) {
-    sharePreviewTokens.delete(previewId);
-    return { ok: false, error: "Share preview expired. Generate a new preview before publish." };
-  }
-  if (args?.content && String(args.content).trim()) {
-    const supplied = redactText(String(args.content)).redactedText;
-    if (hashText(supplied) !== preview.contentHash) {
-      return { ok: false, error: "Publish payload does not match the approved preview." };
-    }
-  }
-  const expiresDays = Math.max(1, Math.min(90, Number(args?.expiresDays || 7)));
-  const expiresAt = new Date(Date.now() + expiresDays * 24 * 60 * 60 * 1000).toISOString();
-  const requiredRole =
-    args?.requiredRole && ["owner", "operator", "viewer"].includes(args.requiredRole)
-      ? args.requiredRole
-      : "viewer";
-  const db = loadSharesDb();
-  const rec: ShareRecord = {
-    id: `shr_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
-    createdAt: new Date().toISOString(),
-    createdBy: getCurrentUserEmail(),
-    title: args?.title ? String(args.title).slice(0, 120) : undefined,
-    content: preview.redactedContent,
-    revoked: false,
-    expiresAt,
-    requiredRole,
-  };
-  db.shares.unshift(rec);
-  db.shares = db.shares.slice(0, 500);
-  saveSharesDb(db);
-  sharePreviewTokens.delete(previewId);
-  appendTeamActivity("share_created", rec.id, {
-    requiredRole: rec.requiredRole,
-    expiresAt: rec.expiresAt,
-    title: rec.title || null,
-  });
-  return { ok: true, share: rec };
-}
-
-async function shareListForIpc() {
-  const db = loadSharesDb();
-  const role = getCurrentRole();
-  return db.shares
-    .filter((s) => hasRoleAtLeast(role, s.requiredRole))
-    .map((s) => ({
-      id: s.id,
-      createdAt: s.createdAt,
-      createdBy: s.createdBy,
-      title: s.title,
-      revoked: s.revoked,
-      expiresAt: s.expiresAt,
-      requiredRole: s.requiredRole,
-    }));
-}
-
-async function shareGetForIpc(id: string) {
-  const db = loadSharesDb();
-  const found = db.shares.find((s) => s.id === id);
-  if (!found) return { ok: false, error: "Share not found" };
-  if (found.revoked) return { ok: false, error: "Share revoked" };
-  if (Date.now() > Date.parse(found.expiresAt)) return { ok: false, error: "Share expired" };
-  const role = getCurrentRole();
-  if (!hasRoleAtLeast(role, found.requiredRole)) {
-    appendTeamActivity("share_access_denied", found.id, {
-      requiredRole: found.requiredRole,
-      actorRole: role,
-    });
-    return { ok: false, error: "Insufficient role for share" };
-  }
-  appendTeamActivity("share_accessed", found.id, {
-    requiredRole: found.requiredRole,
-  });
-  return { ok: true, share: found };
-}
-
-async function shareRevokeForIpc(id: string) {
-  const role = getCurrentRole();
-  if (!hasRoleAtLeast(role, "operator")) {
-    return { ok: false, error: "Only owner/operator can revoke shares." };
-  }
-  const db = loadSharesDb();
-  const idx = db.shares.findIndex((s) => s.id === id);
-  if (idx === -1) return { ok: false, error: "Share not found" };
-  db.shares[idx] = { ...db.shares[idx], revoked: true };
-  saveSharesDb(db);
-  appendTeamActivity("share_revoked", id);
-  return { ok: true };
-}
-async function teamGetForIpc() {
-  return loadTeamDb();
-}
-
-async function teamCreateInviteForIpc(args: { email?: string; role?: Role; expiresHours?: number }) {
-  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can create invites" };
-  const email = String(args?.email || "").trim().toLowerCase();
-  if (!email) return { ok: false, error: "Email required" };
-  const role = args?.role;
-  if (!role || !["owner", "operator", "viewer"].includes(role)) return { ok: false, error: "Invalid role" };
-  const expiresHours = Math.max(1, Math.min(24 * 14, Number(args?.expiresHours || 72)));
-  const invites = loadTeamInvitesDb();
-  const token = `rwi_${crypto.randomBytes(18).toString("hex")}`;
-  const rec: TeamInviteRecord = {
-    id: `inv_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
-    token,
-    email,
-    role,
-    createdAt: new Date().toISOString(),
-    createdBy: getCurrentUserEmail(),
-    expiresAt: new Date(Date.now() + expiresHours * 60 * 60 * 1000).toISOString(),
-    status: "pending",
-  };
-  invites.invites.unshift(rec);
-  invites.invites = invites.invites.slice(0, 1000);
-  saveTeamInvitesDb(invites);
-  appendTeamActivity("invite_created", rec.id, { email: rec.email, role: rec.role, expiresAt: rec.expiresAt });
-  return {
-    ok: true,
-    invite: {
-      ...rec,
-      inviteCode: `${rec.id}.${rec.token}`,
-    },
-  };
-}
-
-async function teamListInvitesForIpc(args?: { includeSecrets?: boolean }) {
-  if (!hasRoleAtLeast(getCurrentRole(), "operator")) {
-    return { ok: false, error: "Only owner/operator can list invites." };
-  }
-  const includeSecrets = !!args?.includeSecrets && getCurrentRole() === "owner";
-  const invites = loadTeamInvitesDb().invites.map((inv) => ({
-    id: inv.id,
-    email: inv.email,
-    role: inv.role,
-    createdAt: inv.createdAt,
-    createdBy: inv.createdBy,
-    expiresAt: inv.expiresAt,
-    status: inv.status,
-    acceptedAt: inv.acceptedAt || null,
-    acceptedBy: inv.acceptedBy || null,
-    ...(includeSecrets ? { inviteCode: `${inv.id}.${inv.token}` } : {}),
-  }));
-  return { ok: true, invites };
-}
-
-async function teamAcceptInviteForIpc(args: { inviteCode?: string }) {
-  const inviteCode = String(args?.inviteCode || "").trim();
-  if (!inviteCode.includes(".")) return { ok: false, error: "Invalid invite code format" };
-  const [id, token] = inviteCode.split(".", 2);
-  const invites = loadTeamInvitesDb();
-  const idx = invites.invites.findIndex((inv) => inv.id === id);
-  if (idx === -1) return { ok: false, error: "Invite not found" };
-  const target = invites.invites[idx];
-  if (target.status !== "pending") return { ok: false, error: `Invite is ${target.status}` };
-  if (target.token !== token) return { ok: false, error: "Invite code mismatch" };
-  if (Date.parse(target.expiresAt) <= Date.now()) {
-    invites.invites[idx] = { ...target, status: "expired" };
-    saveTeamInvitesDb(invites);
-    return { ok: false, error: "Invite expired" };
-  }
-  const currentUser = getCurrentUserEmail();
-  if (currentUser !== target.email) {
-    return { ok: false, error: `Invite is for ${target.email}; switch current user first.` };
-  }
-  const team = loadTeamDb();
-  const memberIdx = team.members.findIndex((m) => m.email === currentUser);
-  if (memberIdx >= 0) {
-    team.members[memberIdx] = { email: currentUser, role: target.role };
-  } else {
-    team.members.push({ email: currentUser, role: target.role });
-  }
-  saveTeamDb(team);
-  invites.invites[idx] = {
-    ...target,
-    status: "accepted",
-    acceptedAt: new Date().toISOString(),
-    acceptedBy: currentUser,
-  };
-  saveTeamInvitesDb(invites);
-  appendTeamActivity("invite_accepted", target.id, { email: currentUser, role: target.role });
-  return { ok: true, role: target.role };
-}
-
-async function teamRevokeInviteForIpc(idRaw: string) {
-  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can revoke invites" };
-  const id = String(idRaw || "").trim();
-  if (!id) return { ok: false, error: "Invite id required" };
-  const invites = loadTeamInvitesDb();
-  const idx = invites.invites.findIndex((inv) => inv.id === id);
-  if (idx === -1) return { ok: false, error: "Invite not found" };
-  if (invites.invites[idx].status === "accepted") return { ok: false, error: "Accepted invite cannot be revoked" };
-  invites.invites[idx] = { ...invites.invites[idx], status: "revoked" };
-  saveTeamInvitesDb(invites);
-  appendTeamActivity("invite_revoked", id);
-  return { ok: true };
-}
-
-async function teamSetCurrentUserForIpc(email: string) {
-  const team = loadTeamDb();
-  const normalized = String(email || "").trim().toLowerCase();
-  if (!normalized) return { ok: false, error: "Email required" };
-  if (!team.members.some((m) => m.email === normalized)) {
-    team.members.push({ email: normalized, role: "viewer" });
-  }
-  const previousUser = team.currentUser || null;
-  team.currentUser = normalized;
-  saveTeamDb(team);
-  appendTeamActivity("current_user_changed", normalized, { previousUser });
-  return { ok: true, role: team.members.find((m) => m.email === normalized)?.role || "viewer" };
-}
-
-async function teamUpsertMemberForIpc(member: { email: string; role: Role }) {
-  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can change team roles" };
-  const team = loadTeamDb();
-  const email = String(member?.email || "").trim().toLowerCase();
-  const role = member?.role;
-  if (!email) return { ok: false, error: "Email required" };
-  if (!["owner", "operator", "viewer"].includes(role)) return { ok: false, error: "Invalid role" };
-  const idx = team.members.findIndex((m) => m.email === email);
-  if (idx >= 0) team.members[idx] = { email, role };
-  else team.members.push({ email, role });
-  saveTeamDb(team);
-  appendTeamActivity("member_upserted", email, { role });
-  return { ok: true };
-}
-
-async function teamRemoveMemberForIpc(emailRaw: string) {
-  if (getCurrentRole() !== "owner") return { ok: false, error: "Only owner can remove team members" };
-  const team = loadTeamDb();
-  const email = String(emailRaw || "").trim().toLowerCase();
-  if (!email) return { ok: false, error: "Email required" };
-  const target = team.members.find((m) => m.email === email);
-  if (!target) return { ok: false, error: "Member not found" };
-  if (target.role === "owner") {
-    const ownerCount = team.members.filter((m) => m.role === "owner").length;
-    if (ownerCount <= 1) return { ok: false, error: "Cannot remove last owner" };
-  }
-  team.members = team.members.filter((m) => m.email !== email);
-  if (team.currentUser === email) {
-    team.currentUser = team.members[0]?.email || "owner@local";
-    if (!team.members.some((m) => m.email === team.currentUser)) {
-      team.members.unshift({ email: team.currentUser, role: "owner" });
-    }
-  }
-  saveTeamDb(team);
-  appendTeamActivity("member_removed", email);
-  return { ok: true };
-}
-
-async function teamActivityForIpc(args?: { limit?: number }) {
-  if (!hasRoleAtLeast(getCurrentRole(), "operator")) {
-    return { ok: false, error: "Only owner/operator can access team activity." };
-  }
-  const limit = Math.max(1, Math.min(500, Number(args?.limit || 100)));
-  return { ok: true, events: loadTeamActivity(limit) };
-}
-
-async function auditExportForIpc() {
-  if (!hasRoleAtLeast(getCurrentRole(), "operator")) {
-    return { ok: false, error: "Only owner/operator can export audit logs." };
-  }
-  return buildAuditExportText();
-}
 async function executeStepStreamForIpc(args: {
   eventSender: Electron.WebContents;
   step: ToolStep;
@@ -3815,294 +2206,83 @@ async function planStopForIpc(planRunId: string) {
   return { ok: true };
 }
 
-// --- System Doctor IPC ---
-import {
-  doctorInspect,
-  doctorCollect,
-  doctorInterpret,
-  doctorVerify,
-  doctorExecuteFix,
-  doctorGetTranscript,
-  doctorExportTranscript
-} from "./doctor-bridge.js";
+/**
+ * Soft cancellation handler (v1).
+ * NOTE: We do NOT kill processes here in v1 unless you define a high-impact process.kill tool.
+ */
+async function cancelStream(streamId: string): Promise<{ ok: boolean; message: string }> {
+  const id = String(streamId || "").trim();
+  if (!id) return { ok: false, message: "Missing streamId." };
 
-import { chatRouter } from "./chat-router.js";
-
-async function doctorInspectForIpc(intent: string) {
-  return await doctorInspect(intent);
-}
-
-async function doctorCollectForIpc(steps: any[], _streamCallback?: unknown) {
-  for (const step of Array.isArray(steps) ? steps : []) {
-    const command = step?.input?.command;
-    if (typeof command !== "string" || !command.trim()) continue;
-    const gate = evaluatePolicyGate(command, false, "");
-    if (!gate.ok) {
-      throw new Error(gate.message || `Blocked by policy: ${command}`);
+  const mappedPlanRunId = streamToPlanRun.get(id);
+  if (mappedPlanRunId) {
+    const st = runningPlanRuns.get(mappedPlanRunId);
+    if (st) st.stopped = true;
+    if (st?.agentdPlanRunId) {
+      try {
+        await agentdJson("/v1/cancel", {
+          method: "POST",
+          body: { planRunId: st.agentdPlanRunId, streamId: id, reason: "soft" },
+          includeLicenseToken: true,
+        });
+        return { ok: true, message: "Cancellation requested." };
+      } catch (error) {
+        return { ok: false, message: error instanceof Error ? error.message : "Cancellation failed" };
+      }
     }
+
+    // Cancellation can race plan-run registration; acknowledge and let stop flag halt continuation.
+    return { ok: true, message: "Cancellation queued." };
   }
-  return await doctorCollect(steps, undefined);
+
+  const entry = running.get(id);
+  if (!entry) return { ok: false, message: "No running process for that streamId." };
+
+  entry.cancelled = true;
+
+  return { ok: true, message: "Cancellation requested." };
 }
 
-async function doctorInterpretForIpc(payload: { intent: string; evidence: any }) {
-  const safePayload = {
-    ...payload,
-    intent: redactForModel(payload.intent),
-    evidence: sanitizeForPersistence(payload.evidence),
-  };
-  return await doctorInterpret(safePayload);
-}
+async function hardKillStream(streamId: string): Promise<{ ok: boolean; message: string }> {
+  const id = String(streamId || "").trim();
+  if (!id) return { ok: false, message: "Missing streamId." };
 
-async function doctorVerifyForIpc(payload: { intent: string; before: any; after: any; diagnosis?: any }) {
-  const safePayload = {
-    ...payload,
-    intent: redactForModel(payload.intent),
-    before: sanitizeForPersistence(payload.before),
-    after: sanitizeForPersistence(payload.after),
-    diagnosis: sanitizeForPersistence(payload.diagnosis),
-  };
-  return await doctorVerify(safePayload);
-}
+  const ownerId = ptyStreamOwners.get(id);
+  if (typeof ownerId === "number") {
+    closePtyForWebContents(ownerId);
+    return { ok: true, message: "PTY killed." };
+  }
 
-async function doctorExecuteFixForIpc(plan: any, confirmed: boolean, confirmationText: string) {
-  const steps = Array.isArray(plan?.steps) ? plan.steps : [];
-  const projectRoot = resolveProjectRootSafe(process.cwd());
-  for (const step of steps) {
-    const command = step?.input?.command;
-    if (typeof command !== "string" || !command.trim()) continue;
-    const stepRisk: Risk = step?.risk === "high-impact" ? "high-impact" : step?.risk === "read" ? "read" : "safe-write";
-    const profileGate = gateProfileCommand({
-      projectRoot,
-      command,
-      risk: stepRisk,
-      confirmed,
-      confirmationText: confirmationText ?? "",
-    });
-    if (!profileGate.ok) {
-      return { ok: false, haltedBecause: profileGate.message, steps: [] };
+  const mappedPlanRunId = streamToPlanRun.get(id);
+  if (mappedPlanRunId) {
+    const st = runningPlanRuns.get(mappedPlanRunId);
+    if (st) st.stopped = true;
+    if (st?.agentdPlanRunId) {
+      try {
+        await agentdJson("/v1/cancel", {
+          method: "POST",
+          body: { planRunId: st.agentdPlanRunId, streamId: id, reason: "hard" },
+          includeLicenseToken: true,
+        });
+      } catch (error) {
+        return { ok: false, message: error instanceof Error ? error.message : "Hard cancel failed" };
+      }
     }
-    const gate = evaluatePolicyGate(command, confirmed, confirmationText ?? "");
-    if (!gate.ok) {
-      return { ok: false, haltedBecause: gate.message || "Blocked by policy.", steps: [] };
-    }
+
+    return { ok: true, message: "Hard cancellation queued." };
   }
-  return await doctorExecuteFix(plan, confirmed, confirmationText);
-}
 
-async function doctorTranscriptGetForIpc() {
-  return doctorGetTranscript();
-}
-
-async function doctorTranscriptExportForIpc(format: "json" | "text") {
-  return doctorExportTranscript(format);
-}
-
-// ============================================================
-// Chat-Only Control Protocol - Conversation Orchestrator
-// ============================================================
-
-type ConversationStage =
-  | "idle"
-  | "inspecting"
-  | "interpreting"
-  | "awaiting-fix-choice"
-  | "awaiting-confirmation"
-  | "executing-fix"
-  | "verifying"
-  | "cancelled"
-  | "done";
-
-type ConversationState = {
-  caseId: string;
-  intent: string;
-  stage: ConversationStage;
-  evidenceBefore?: any;
-  diagnosis?: any;
-  fixOptions?: any[];
-  pendingFix?: any;
-  pendingRisk?: "safe-write" | "high-impact";
-  activeStreamId?: string;
-  startTime: string;
-};
-
-// Per-window conversation state
-const conversations = new Map<Electron.BrowserWindow, ConversationState>();
-
-function getConversation(win: Electron.BrowserWindow): ConversationState | null {
-  return conversations.get(win) ?? null;
-}
-
-function setConversation(win: Electron.BrowserWindow, state: ConversationState | null) {
-  if (state) {
-    conversations.set(win, state);
-  } else {
-    conversations.delete(win);
+  const entry = running.get(id);
+  if (entry) {
+    entry.cancelled = true;
+    return { ok: true, message: "Marked cancelled." };
   }
-}
 
-// Helper: classify message intent
-function classifyIntent(text: string): {
-  type: "system-doctor" | "dev-fixer" | "builder" | "chat";
-  confidence: number;
-  intent: string;
-} {
-  const s = text.toLowerCase();
-  
-  // System Doctor keywords
-  const doctorKeywords = [
-    "running hot", "overheat", "slow", "disk", "wifi", "network",
-    "temperature", "cpu", "memory", "fan", "thermal", "disk full",
-    "no space", "connection", "port", "service"
-  ];
-  
-  for (const kw of doctorKeywords) {
-    if (s.includes(kw)) {
-      return { type: "system-doctor", confidence: 0.9, intent: text };
-    }
-  }
-  
-  // Dev fixer keywords
-  const devKeywords = ["build", "compile", "error", "failed", "bug", "crash", "debug"];
-  for (const kw of devKeywords) {
-    if (s.includes(kw)) {
-      return { type: "dev-fixer", confidence: 0.7, intent: text };
-    }
-  }
-  
-  // Builder keywords
-  const builderKeywords = ["create", "scaffold", "project", "setup", "new file"];
-  for (const kw of builderKeywords) {
-    if (s.includes(kw)) {
-      return { type: "builder", confidence: 0.6, intent: text };
-    }
-  }
-  
-  return { type: "chat", confidence: 0.5, intent: text };
-}
-
-// Helper: format findings for chat
-function formatFindingsForChat(findings: any[]): string {
-  if (!findings?.length) return "No significant issues found.";
-  
-  const critical = findings.filter(f => f.severity === "critical");
-  const warnings = findings.filter(f => f.severity === "warn");
-  const info = findings.filter(f => f.severity === "info");
-  
-  let parts: string[] = [];
-  if (critical.length) {
-    parts.push(`🚨 **Critical**: ${critical.map(f => f.title).join(", ")}`);
-  }
-  if (warnings.length) {
-    parts.push(`⚠️ **Warnings**: ${warnings.map(f => f.title).join(", ")}`);
-  }
-  if (info.length) {
-    parts.push(`ℹ️ **Info**: ${info.map(f => f.title).join(", ")}`);
-  }
-  
-  return parts.join("\n");
-}
-
-// Helper: format diagnosis for chat
-function formatDiagnosisForChat(diagnosis: any): string {
-  if (!diagnosis?.primary) return "Unable to determine root cause.";
-  
-  const p = diagnosis.primary;
-  const conf = Math.round(p.probability * 100);
-  let msg = `**Most likely**: ${p.label} (${conf}% confidence)\n`;
-  
-  if (diagnosis.notes) {
-    msg += `\n${diagnosis.notes}`;
-  }
-  
-  if (diagnosis.differential?.length) {
-    msg += `\n\n**Other possibilities**: ${diagnosis.differential.slice(0,3).map((d: any) => `${d.label} (${Math.round(d.probability * 100)}%)`).join(", ")}`;
-  }
-  
-  return msg;
-}
-
-// Helper: format fix options for chat
-function formatFixOptionsForChat(fixOptions: any[]): string {
-  if (!fixOptions?.length) return "No fix options available.";
-  
-  return fixOptions.map((opt, i) => {
-    const riskIcon = opt.risk === "high-impact" ? "🔴" : opt.risk === "safe-write" ? "🟡" : "🟢";
-    return `${i + 1}. ${riskIcon} **${opt.label}** - ${opt.why || ""}\n   Expected: ${opt.expectedOutcome?.join(", ") || "issue resolved"}`;
-  }).join("\n\n");
-}
-
-// Helper: format outcome for chat
-function formatOutcomeForChat(outcome: any, verification: any): string {
-  const status = outcome?.status || (verification?.ok ? "resolved" : "unknown");
-  const statusEmoji = status === "resolved" ? "✅" : status === "improved" ? "📈" : status === "failed" ? "❌" : "⚠️";
-  
-  let msg = `${statusEmoji} **${status.toUpperCase()}**`;
-  
-  if (outcome?.rootCause) {
-    msg += `\nRoot cause: ${outcome.rootCause}`;
-  }
-  
-  if (outcome?.confidence) {
-    msg += `\nConfidence: ${Math.round(outcome.confidence * 100)}%`;
-  }
-  
-  if (outcome?.preventionTips?.length) {
-    msg += `\n\n**Prevention**: ${outcome.preventionTips.join(", ")}`;
-  }
-  
-  return msg;
-}
-
-async function chatSendForIpc(text: string, projectRoot?: string) {
-  const safeText = redactText(String(text || "")).redactedText;
-  const root = resolveProjectRootSafe(projectRoot || getDefaultPtyCwd());
-  const profile = defaultProfileForProject(root);
-  const rules = loadProjectRules(root, { parentLevels: 2 });
-  return await chatRouter.handle(safeText, {
-    projectRoot: root,
-    rulesBlock: rulesToSystemBlock(rules),
-    rulesWarnings: rules.warnings,
-    profileSummary: summarizeProfile(profile),
-  });
-}
-
-async function chatExportForIpc() {
-  return doctorExportTranscript("text");
-}
-
-// ============================================================
-// Warp-like Block Handlers
-// ============================================================
-
-// Doctor v1: Read-only evidence collection for diagnosing system issues
-type DoctorPlanStep = {
-  stepId: string;
-  tool: string;
-  input: any;
-  confirmationScope?: string;
-};
-
-async function doctorPlanForIpc(args: { projectRoot: string; symptom: string }) {
-  // Read-only evidence collection only (safe, no confirmation needed)
-  const steps: DoctorPlanStep[] = [
-    { stepId: "uptime", tool: "terminal.write", input: { command: "uptime", cwd: args.projectRoot } },
-    { stepId: "cpu_top", tool: "terminal.write", input: { command: "ps -Ao pid,ppid,%cpu,%mem,etime,comm --sort=-%cpu | head -n 15", cwd: args.projectRoot } },
-    { stepId: "mem_top", tool: "terminal.write", input: { command: "ps -Ao pid,ppid,%cpu,%mem,etime,comm --sort=-%mem | head -n 15", cwd: args.projectRoot } },
-    { stepId: "disk_df", tool: "terminal.write", input: { command: "df -h", cwd: args.projectRoot } },
-    { stepId: "disk_big", tool: "terminal.write", input: { command: "du -h -d 1 . 2>/dev/null | sort -h | tail -n 12", cwd: args.projectRoot } },
-    { stepId: "sensors", tool: "terminal.write", input: { command: "sensors 2>/dev/null || echo \"sensors not available\"", cwd: args.projectRoot } },
-  ];
-
-  return {
-    id: `doctor_${Date.now()}`,
-    intent: args.symptom,
-    reasoning: "I'll collect read-only evidence first (CPU, memory, disk, sensors). No changes yet.",
-    steps,
-    playbookId: "doctor.running_hot.v1",
-  };
+  return { ok: false, message: "No running process for that streamId." };
 }
 
 app.whenReady().then(() => {
+  inlineRinaRunStore = new InlineRinaRunStore(INLINE_RINA_RUNS_FILE());
   if (featureFlags.structuredSessionV1) {
     const rootDir = path.join(app.getPath("userData"), "structured-session-v1");
     structuredSessionStore = new StructuredSessionStore(rootDir, true);
@@ -4123,7 +2303,7 @@ app.whenReady().then(() => {
           if (data?.ok) {
             applyVerifiedLicense(data);
             saveEntitlements();
-            console.log(`[license] Soft refresh successful: ${currentLicenseTier}`);
+            console.log(`[license] Soft refresh successful: ${licenseRuntimeState.tier}`);
           }
         })
         .catch((err) => {
@@ -4132,6 +2312,57 @@ app.whenReady().then(() => {
         });
     }
   }
+  const mainIpcHandlers = createMainIpcHandlers({
+    ptySessions,
+    getDefaultPtyCwd,
+    resolveProjectRootSafe,
+    listProjectFilesSafe,
+    readProjectFileSafe,
+    importShellHistory,
+    diagnoseHotLinux,
+    addTranscriptEntry,
+    makePlan,
+    PLAYBOOKS,
+    structuredSessionStoreRef: () => structuredSessionStore,
+    buildAuditExportText,
+    pruneExportPreviewTokens,
+    newExportPreviewId,
+    exportPreviewTokens,
+    EXPORT_PREVIEW_TTL_MS,
+    getCurrentUserEmail,
+    hashText,
+    pruneSharePreviewTokens,
+    newSharePreviewId,
+    SHARE_PREVIEW_TTL_MS,
+    sharePreviewTokens,
+    getCurrentRole,
+    hasRoleAtLeast,
+    loadSharesDb,
+    saveSharesDb,
+    appendTeamActivity,
+    currentPlanHasFeature,
+    loadTeamDb,
+    saveTeamDb,
+    loadTeamInvitesDb,
+    saveTeamInvitesDb,
+    loadTeamActivity,
+    gateProfileCommand,
+    evaluatePolicyGate,
+    redactForModel,
+    sanitizeForPersistence,
+    defaultProfileForProject,
+    loadProjectRules,
+    rulesToSystemBlock,
+    summarizeProfile,
+    getCurrentPlanId,
+    inlineRinaRunStoreRef: () => inlineRinaRunStore,
+    pendingInlineRinaRuns,
+  });
+  const agentdIpcHandlers = createAgentdIpcHandlers({
+    agentdJson,
+    getCurrentRole,
+    hasRoleAtLeast,
+  });
   registerAllIpc({
     ipcMain,
     app,
@@ -4179,15 +2410,10 @@ app.whenReady().then(() => {
     closePtyForWebContents,
     safeSend,
     forRendererDisplay,
+    devtoolsToggleForIpc,
     isE2E: IS_E2E,
-    daemonStatus,
-    daemonTasks,
-    daemonTaskAdd,
-    daemonStart,
-    daemonStop,
     makePlan,
     redactTextForPlan: redactText,
-    fetchRemotePlan: fetchRemotePlanForIpc,
     allowLocalEngineFallback: ALLOW_LOCAL_ENGINE_FALLBACK,
     newPlanRunId,
     resolveProjectRootSafe,
@@ -4196,7 +2422,6 @@ app.whenReady().then(() => {
     riskFromPlanStep,
     gateProfileCommand,
     evaluatePolicyGate,
-    executeRemotePlan: executeRemotePlanForIpc,
     pipeAgentdSseToRenderer,
     createStreamId,
     startStreamingStepViaEngine,
@@ -4205,54 +2430,8 @@ app.whenReady().then(() => {
     streamCancelForIpc,
     streamKillForIpc,
     planStopForIpc,
-    orchestratorIssueToPrForIpc,
-    orchestratorGraphForIpc,
-    orchestratorPrepareBranchForIpc,
-    orchestratorCreatePrForIpc,
-    orchestratorPrStatusForIpc,
-    orchestratorWebhookAuditForIpc,
-    orchestratorCiStatusForIpc,
-    orchestratorReviewCommentForIpc,
-    chatSendForIpc,
-    chatExportForIpc,
-    doctorPlanForIpc,
-    doctorInspectForIpc,
-    doctorCollectForIpc,
-    doctorInterpretForIpc,
-    doctorVerifyForIpc,
-    doctorExecuteFixForIpc,
-    doctorTranscriptGetForIpc,
-    doctorTranscriptExportForIpc,
-    workspacePickDirectoryForIpc,
-    workspacePickForIpc,
-    workspaceDefaultForIpc,
-    codeListFilesForIpc,
-    codeReadFileForIpc,
-    historyImportForIpc,
-    sharePreviewForIpc,
-    shareCreateForIpc,
-    shareListForIpc,
-    shareGetForIpc,
-    shareRevokeForIpc,
-    teamGetForIpc,
-    teamActivityForIpc,
-    teamCreateInviteForIpc,
-    teamListInvitesForIpc,
-    teamAcceptInviteForIpc,
-    teamRevokeInviteForIpc,
-    teamSetCurrentUserForIpc,
-    teamUpsertMemberForIpc,
-    teamRemoveMemberForIpc,
-    exportPreviewForIpc,
-    exportPublishForIpc,
-    auditExportForIpc,
-    devtoolsToggleForIpc,
-    pingForIpc,
-    diagnoseHotForIpc,
-    planForIpc,
-    playbooksGetForIpc,
-    playbookExecuteForIpc,
-    redactionPreviewForIpc,
+    ...agentdIpcHandlers,
+    ...mainIpcHandlers,
   });
   createWindow();
   app.on("activate", () => {

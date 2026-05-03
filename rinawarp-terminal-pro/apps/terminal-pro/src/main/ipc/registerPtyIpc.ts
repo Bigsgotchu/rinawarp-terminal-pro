@@ -60,6 +60,7 @@ export function registerPtyIpc(args: {
     message: string;
     typedPhrase?: string;
     matchedRuleId?: string;
+    policyLoadedFrom?: string | null;
   };
 }) {
   args.ipcMain.handle("rina:pty:start", async (event, payload?: { cols?: number; rows?: number; cwd?: string }) => {
@@ -149,9 +150,37 @@ export function registerPtyIpc(args: {
           session.proc.write("\n");
           continue;
         }
-        const ex = args.explainPolicy(cmd);
+        const commandName = cmd.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+        let ex: ReturnType<typeof args.explainPolicy>;
+        try {
+          ex = args.explainPolicy(cmd);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Policy check failed";
+          console.error("[pty-submit-policy-error]", { rawInput: line, commandName, message });
+          args.safeSend(event.sender, "rina:pty:data", `\n[policy] ${message}\n`);
+          return { ok: false, error: message };
+        }
+        if (process.env.RINAWARP_DEBUG_PTY === "1" || process.env.RINAWARP_E2E === "1") {
+          console.info("[pty-submit-debug]", {
+            rawInput: line,
+            normalizedInput: cmd,
+            commandName,
+            action: ex.action,
+            matchedRuleId: ex.matchedRuleId,
+            policyLoadedFrom: ex.policyLoadedFrom,
+          });
+        }
         if (ex.action !== "allow") {
           session.metrics.blockedCommands += 1;
+          console.error("[pty-submit-blocked]", {
+            rawInput: line,
+            normalizedInput: cmd,
+            commandName,
+            action: ex.action,
+            matchedRuleId: ex.matchedRuleId,
+            policyLoadedFrom: ex.policyLoadedFrom,
+            message: ex.message,
+          });
           session.proc.write("\u0003");
           args.safeSend(
             event.sender,

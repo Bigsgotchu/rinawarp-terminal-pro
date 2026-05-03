@@ -1,7 +1,6 @@
+import { redactText } from "@rinawarp/safety/redaction";
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
-import { redactText } from "@rinawarp/safety/redaction";
 
 export type AgentProfile = {
   id: string;
@@ -126,54 +125,8 @@ export function gateCommandRun(args: {
   return { ok: true };
 }
 
-export function gateFileRead(profile: AgentProfile, filePath: string): GateResult {
-  const p = canonicalize(filePath);
-  const ok = profile.fs.allowedReadRoots.some((r) => withinRoot(p, r));
-  if (!ok) return { ok: false, reason: "read_outside_root", message: "Read blocked: outside allowed roots." };
-  return { ok: true };
-}
-
-export function gateFileWrite(args: {
-  profile: AgentProfile;
-  filePath: string;
-  confirmed: boolean;
-  confirmationText: string;
-}): GateResult {
-  const { profile, filePath, confirmed, confirmationText } = args;
-  const p = canonicalize(filePath);
-
-  const inRoot = profile.fs.allowedWriteRoots.some((r) => withinRoot(p, r));
-  if (!inRoot) {
-    return { ok: false, reason: "write_outside_root", message: "Write blocked: outside allowed roots." };
-  }
-  if (matchesDenyGlob(p, profile.fs.denyWriteGlobs)) {
-    return {
-      ok: false,
-      reason: "write_denied_pattern",
-      message: "Write blocked: sensitive file pattern.",
-      requires: { typed_phrase: "I UNDERSTAND SENSITIVE WRITE" },
-    };
-  }
-  if (looksSensitivePath(p) && profile.fs.requireApprovalFor.sensitiveWrites && confirmationText !== "I UNDERSTAND SENSITIVE WRITE") {
-    return {
-      ok: false,
-      reason: "sensitive_write_phrase",
-      message: 'Typed phrase required: "I UNDERSTAND SENSITIVE WRITE"',
-      requires: { typed_phrase: "I UNDERSTAND SENSITIVE WRITE" },
-    };
-  }
-  if (profile.fs.requireApprovalFor.write && !confirmed) {
-    return { ok: false, reason: "write_requires_approval", message: "Write requires approval.", requires: "click" };
-  }
-  return { ok: true };
-}
-
 export function sanitizeRulesText(raw: string): string {
   return redactText(String(raw ?? "")).redactedText;
-}
-
-export function approvalScopeForCommand(command: string): string {
-  return `cmd:${crypto.createHash("sha256").update(command).digest("hex").slice(0, 12)}`;
 }
 
 export function summarizeProfile(profile: AgentProfile): string {

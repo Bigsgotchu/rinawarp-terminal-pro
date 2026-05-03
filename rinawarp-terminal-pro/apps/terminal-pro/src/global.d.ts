@@ -56,10 +56,12 @@ declare global {
       }>;
       licenseState(): Promise<{
         tier: string;
+        plan_id: "free" | "pro_monthly" | "team_seat_monthly";
         has_token: boolean;
         expires_at: number | null;
         customer_id: string | null;
-        status?: string;
+        status: "active" | "inactive" | "past_due" | "canceled" | "trial";
+        feature_flags: string[];
       }>;
       openStripePortal(): Promise<{ ok: boolean; fallback?: boolean }>;
       licenseLookupByEmail(email: string): Promise<{
@@ -246,6 +248,59 @@ declare global {
       teamRemoveMember(email: string): Promise<{ ok: boolean; error?: string }>;
       auditExport(): Promise<string>;
       chatSend(text: string, projectRoot?: string): Promise<Array<{ role: "rina"; text: string }>>;
+      inlineAsk(args: {
+        prompt: string;
+        projectRoot?: string;
+        action?: "generateCommand" | "debugCommandFailure" | "explainSelection" | "suggestNextCommand";
+        selectedText?: string;
+        triggerType?: "input" | "failure" | "selection";
+        sourceText?: string;
+      }): Promise<{
+        runId: string | null;
+        explanation: string;
+        command: string | null;
+        risk: "low" | "medium" | "high";
+        confirmation: boolean;
+      }>;
+      inlineApprove(args: {
+        runId?: string;
+        command?: string;
+        approvalKind?: "command" | "file_patch";
+        patch?: any;
+      }): Promise<{ ok: boolean; error?: string; rerunCommand?: string; rerunOutput?: string }>;
+      inlineRunsList(args?: {
+        triggerType?: "input" | "failure" | "selection" | "";
+        approved?: "yes" | "no" | "";
+        executed?: "yes" | "no" | "";
+        limit?: number;
+      }): Promise<Array<{
+        id: string;
+        workspace_id: string;
+        session_id: string;
+        trigger_type: "input" | "failure" | "selection";
+        action: "generateCommand" | "debugCommandFailure" | "explainSelection" | "suggestNextCommand";
+        source_text: string;
+        explanation: string;
+        command: string | null;
+        risk: "low" | "medium" | "high";
+        confirmation_required: boolean;
+        approved: boolean;
+        executed: boolean;
+        execution_exit_code: number | null;
+        created_at: string;
+      }>>;
+      inlineRunsExport(args?: {
+        format?: "json" | "csv";
+        triggerType?: "input" | "failure" | "selection" | "";
+        approved?: "yes" | "no" | "";
+        executed?: "yes" | "no" | "";
+        limit?: number;
+      }): Promise<{ ok: boolean; format: "json" | "csv"; content: string }>;
+      getRinaUsageStatus(): Promise<{
+        plan: string;
+        remainingAgentRunsToday: number | null;
+        remainingAgentRunsThisMonth: number | null;
+      }>;
       chatExport(): Promise<string>;
       redactionPreview(text: string): Promise<{
         redactedText: string;

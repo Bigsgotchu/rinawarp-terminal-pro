@@ -1,23 +1,23 @@
 /**
  * Doctor Bridge - Adapts @rinawarp/doctor engine to IPC handlers
- * 
+ *
  * SECURITY: This module has been updated to route all execution through the
  * ToolRegistry layer. The legacy regex allowlist is now deprecated and
  * serves only as a mapping reference for the shim below.
  */
 
 import type {
-  AgentPlan,
-  EvidenceBundle,
-  FixOption,
-  Finding,
-  DiagnosisBundle,
-  OutcomeCard,
-  VerificationResult,
-  ToolStep,
-  SessionMetadata
+    AgentPlan,
+    DiagnosisBundle,
+    EvidenceBundle,
+    Finding,
+    FixOption,
+    OutcomeCard,
+    SessionMetadata,
+    ToolStep,
+    VerificationResult
 } from "@rinawarp/doctor";
-import { SystemDoctorEngine, DIAGNOSIS_CANDIDATES } from "@rinawarp/doctor";
+import { DIAGNOSIS_CANDIDATES, SystemDoctorEngine } from "@rinawarp/doctor";
 import os from "node:os";
 
 // ============================================================================
@@ -34,40 +34,6 @@ const LEGACY_ALLOWLIST_REGEX = [
   /^cat\s+\/proc\//i,
   /^sensors$/i,
 ];
-
-// ============================================================================
-// LEGACY-TO-TOOL MAPPING SHIM (Temporary compatibility layer)
-// Converts legacy command patterns to registry tool names
-// ============================================================================
-const LEGACY_TO_TOOL: Array<{ re: RegExp; tool: string; input: (cmd: string) => unknown }> = [
-  { re: /^ps$/i, tool: "doctor.ps", input: () => ({}) },
-  { re: /^top$/i, tool: "doctor.top", input: () => ({}) },
-  { re: /^uptime$/i, tool: "doctor.uptime", input: () => ({}) },
-  { re: /^free$/i, tool: "doctor.free", input: () => ({}) },
-  { re: /^df$/i, tool: "doctor.df", input: () => ({}) },
-  { re: /^sensors$/i, tool: "doctor.sensors", input: () => ({}) },
-  { re: /^cat\s+\/proc\/(.+)$/i, tool: "file.read.proc", input: (cmd) => ({ path: "/" + cmd.split(/\s+/).slice(1).join("/") }) },
-  { re: /^cat\s+\/proc\/loadavg$/i, tool: "doctor.loadavg", input: () => ({}) },
-  { re: /^uptime$/i, tool: "doctor.uptime", input: () => ({}) },
-  { re: /^ps\s+-eo\s+pid.*$/i, tool: "doctor.ps", input: () => ({}) },
-];
-
-/**
- * Convert legacy command string to a PlanStep for the registry
- * Returns null if command doesn't match any legacy pattern
- */
-export function legacyDoctorCommandToPlanStep(cmd: string): { tool: string; input: unknown } | null {
-  const match = LEGACY_TO_TOOL.find((x) => x.re.test(cmd));
-  if (!match) return null;
-  return { tool: match.tool, input: match.input(cmd) };
-}
-
-/**
- * Check if a legacy command is recognized (for validation)
- */
-export function isLegacyCommand(cmd: string): boolean {
-  return LEGACY_TO_TOOL.some((x) => x.re.test(cmd));
-}
 
 // Create engine instance with v1 config
 const sessionMeta: SessionMetadata = {
@@ -112,13 +78,13 @@ export type DoctorFixResult = {
  */
 export async function doctorInspect(intent: string): Promise<{ inspectPlan: AgentPlan }> {
   const plan = engine.buildInspectPlan(intent);
-  
+
   engine.addTranscript({
     ts: new Date().toISOString(),
     type: "plan",
     plan
   });
-  
+
   return { inspectPlan: plan };
 }
 
@@ -142,20 +108,20 @@ export async function doctorInterpret(input: {
 }): Promise<Omit<DoctorRunResult, "inspectPlan">> {
   // Run interpretation
   const findings = engine.interpret(input.evidence);
-  
+
   // Get diagnosis candidates based on intent keywords
   const keywords = input.intent.toLowerCase();
   let candidates = DIAGNOSIS_CANDIDATES.hot; // default
-  
+
   if (keywords.includes("disk") || keywords.includes("space")) {
     candidates = DIAGNOSIS_CANDIDATES.disk;
   } else if (keywords.includes("slow") || keywords.includes("memory")) {
     candidates = DIAGNOSIS_CANDIDATES.slow;
   }
-  
+
   // Generate diagnosis
   const diagnosis = engine.diagnose(findings, candidates);
-  
+
   // Generate fix options
   const fixOptions = engine.recommend(diagnosis, [
     {
@@ -165,7 +131,7 @@ export async function doctorInterpret(input: {
       commands: []
     }
   ]);
-  
+
   return {
     evidence: input.evidence,
     findings,
@@ -193,10 +159,10 @@ export async function doctorVerify(input: {
       }
     }
   ];
-  
+
   const verification = await engine.verify(input.before, input.after, checks);
   const outcome = engine.report(input.diagnosis || {} as DiagnosisBundle, verification, []);
-  
+
   return { verification, outcome };
 }
 
