@@ -157,6 +157,7 @@ rules:
       any_regex:
         - '^\s*ls(\s|$)'
         - '^\s*cat(\s|$)'
+        - '^\s*cd(\s|$)'
         - '^\s*pwd(\s|$)'
         - '^\s*whoami(\s|$)'
         - '^\s*git\s+status\b'

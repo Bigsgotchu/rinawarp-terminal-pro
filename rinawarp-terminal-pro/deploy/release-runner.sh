@@ -132,6 +132,9 @@ echo "== 6) Production audit =="
 bash scripts/audit-site.sh \
   "https://www.rinawarptech.com" \
   "https://rinawarptech-website.pages.dev" \
-  "https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt"
+  "https://rinawarptech.com/download/checksums"
+
+echo "== 6.5) Live release alignment =="
+npm run verify:release-alignment -- "https://rinawarptech.com"
 
 echo "== Release runner complete ✅ =="

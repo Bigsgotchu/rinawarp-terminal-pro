@@ -42,9 +42,7 @@ for (const f of expectedFiles) {
 }
 
 const verifyLinkOptions = [
-  ["/verify/SHASUMS256.txt", "https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt"],
-  ["/verify/SHASUMS256.txt.asc", "https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt.asc"],
-  ["/verify/RINAWARP_GPG_PUBLIC_KEY.asc", "https://rinawarp-downloads.rinawarptech.workers.dev/verify/RINAWARP_GPG_PUBLIC_KEY.asc"],
+  ["/download/checksums", "https://rinawarptech.com/download/checksums"],
 ];
 for (const variants of verifyLinkOptions) {
   const match = variants.find((v) => html.includes(v));

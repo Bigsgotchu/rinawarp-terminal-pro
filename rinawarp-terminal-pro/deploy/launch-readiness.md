@@ -18,8 +18,8 @@ This document provides a comprehensive pre-launch checklist for the RinaWarp Ter
 > Critical parity checks:
 > - `downloads-worker/wrangler.toml` `RELEASE_VERSION` must match the release.
 > - Download/account pages must show the same version as `apps/terminal-pro/package.json`.
-> - `https://www.rinawarptech.com/releases/v{x.y.z}.json` hashes must match
->   `https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt`.
+> - `https://www.rinawarptech.com/releases/latest.json` hashes must match
+>   `https://rinawarptech.com/download/checksums`.
 
 ### ✅ Working
 - **Marketing Pages**: All legal pages deployed

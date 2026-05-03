@@ -3,12 +3,12 @@ set -euo pipefail
 
 BASE="${1:-https://www.rinawarptech.com}"
 PAGES="${2:-https://rinawarptech-website.pages.dev}"
-DL_VERIFY="${3:-https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt}"
+DL_VERIFY="${3:-https://rinawarptech.com/download/checksums}"
 RETRY_PROFILE="${RETRY_PROFILE:-default}"
 if [[ "$RETRY_PROFILE" == "fast" ]]; then
-  CURL_COMMON=(--silent --show-error --connect-timeout 5 --max-time 12 --retry 1 --retry-delay 1 --retry-all-errors)
+  CURL_COMMON=(--silent --show-error --location --connect-timeout 5 --max-time 12 --retry 1 --retry-delay 1 --retry-all-errors)
 else
-  CURL_COMMON=(--silent --show-error --connect-timeout 10 --max-time 30 --retry 3 --retry-delay 1 --retry-all-errors)
+  CURL_COMMON=(--silent --show-error --location --connect-timeout 10 --max-time 30 --retry 3 --retry-delay 1 --retry-all-errors)
 fi
 FORCE_IPV4="${FORCE_IPV4:-0}"
 CURL_RESOLVE_BASE_IP="${CURL_RESOLVE_BASE_IP:-}"
@@ -52,13 +52,17 @@ http_code() {
 DOWNLOAD_HTML="$(curl_with_network "$BASE/download" || true)"
 RELEASE_VER="$(printf '%s' "$DOWNLOAD_HTML" | grep -oE 'RinaWarp-Terminal-Pro-[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | sed -E 's/^RinaWarp-Terminal-Pro-//' || true)"
 if [[ -z "$RELEASE_VER" ]]; then
+  RELEASE_VER="$(curl_with_network "$BASE/releases/latest.json" \
+    | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{try{const j=JSON.parse(d);process.stdout.write(j.version||"")}catch{process.stdout.write("")}})' || true)"
+fi
+if [[ -z "$RELEASE_VER" ]]; then
   RELEASE_VER="$(ls -1 rinawarptech-website/web/releases/v*.json 2>/dev/null | sed -E 's#.*v([0-9]+\.[0-9]+\.[0-9]+)\.json#\1#' | sort -V | tail -n1 || true)"
 fi
 if [[ -z "$RELEASE_VER" ]]; then
   echo "❌ Could not resolve release version from /download or local manifests."
   exit 1
 fi
-MANIFEST_URL="$BASE/releases/v${RELEASE_VER}.json"
+MANIFEST_URL="$BASE/releases/latest.json"
 
 echo "== Audit"
 echo "BASE : $BASE"
@@ -108,7 +112,7 @@ if [[ -z "$MANIFEST_BODY" ]]; then
   echo "❌ manifest body empty"
   FAILED=1
 else
-  if echo "$MANIFEST_BODY" | node -e 'const fs=require("fs"); try { const j = JSON.parse(fs.readFileSync(0, "utf8")); if (!j.version || !j.downloads) process.exit(2); } catch { process.exit(1); }'; then
+  if echo "$MANIFEST_BODY" | node -e 'const fs=require("fs"); try { const j = JSON.parse(fs.readFileSync(0, "utf8")); if (!j.version || !(j.files || j.downloads)) process.exit(2); } catch { process.exit(1); }'; then
     echo "✅ manifest is valid JSON with required keys"
   else
     echo "❌ manifest is not valid expected JSON (likely HTML fallback)"
@@ -117,9 +121,19 @@ else
 fi
 
 echo
+echo "== Checksum content validation"
+SHASUMS_BODY="$(curl_with_network "$DL_VERIFY" || true)"
+if printf '%s\n' "$SHASUMS_BODY" | grep -q "RinaWarp-Terminal-Pro-$RELEASE_VER"; then
+  echo "✅ checksum file references release $RELEASE_VER"
+else
+  echo "❌ checksum endpoint did not return release checksums"
+  FAILED=1
+fi
+
+echo
 echo "== Quick content sanity (manifest + shasums)"
 curl_with_network "$MANIFEST_URL" | head -c 300 || true; echo; echo
-curl_with_network "$DL_VERIFY" | sed 's/  */ /g' || true; echo
+printf '%s\n' "$SHASUMS_BODY" | sed 's/  */ /g' || true; echo
 
 echo
 if [[ "$FAILED" == "1" ]]; then

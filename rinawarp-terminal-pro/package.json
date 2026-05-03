@@ -27,6 +27,7 @@
     "test:lockdown": "node scripts/no-bypass.mjs",
     "verify:site": "node scripts/verify-pages-routes.mjs rinawarptech-website/web",
     "verify:downloads": "node scripts/verify-download-links.mjs",
+    "verify:release-alignment": "node scripts/verify-live-release-alignment.mjs",
     "smoke:web": "bash scripts/smoke-web.sh",
     "pretest": "npm run test:lockdown && npm run guard:contracts && npm run verify:branding",
     "test": "echo 'Run npm run test:never-do && npm run test:unit in packages/rinawarp-core'",
@@ -35,7 +36,7 @@
     "kpi:snapshot": "bash scripts/kpi-snapshot.sh https://www.rinawarptech.com https://api.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
     "watchdog:prod": "bash scripts/prod-watchdog.sh",
     "watchdog:prod:once": "ONCE=1 bash scripts/prod-watchdog.sh",
-    "audit:prod": "bash scripts/audit-site.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt",
+    "audit:prod": "bash scripts/audit-site.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev https://rinawarptech.com/download/checksums",
     "audit:compare": "bash scripts/audit-prod.sh https://www.rinawarptech.com https://rinawarptech-website.pages.dev",
     "smoke:stripe": "bash scripts/smoke-stripe.sh https://api.rinawarptech.com https://www.rinawarptech.com",
     "audit:stripe-success": "bash scripts/stripe-success-audit.sh",
@@ -66,5 +67,12 @@
   },
   "engines": {
     "node": ">=18.19.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "node-pty"
+    ]
   }
 }

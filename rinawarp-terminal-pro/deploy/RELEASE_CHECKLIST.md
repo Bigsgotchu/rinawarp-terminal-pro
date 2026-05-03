@@ -4,6 +4,17 @@
 
 ---
 
+## Canonical Public Verification Paths
+
+- Download page: `https://www.rinawarptech.com/download`
+- Release manifest: `https://www.rinawarptech.com/releases/latest.json`
+- Public checksums: `https://rinawarptech.com/download/checksums`
+- Release alignment gate: `npm run verify:release-alignment`
+
+Treat older `/verify/SHASUMS256.txt` links as stale. Public checksum verification should use `/download/checksums`.
+
+---
+
 ## Pre-Flight (Before Release)
 
 - [ ] All artifacts built for current target platforms (EXE, AppImage, DEB)
@@ -11,11 +22,10 @@
 - [ ] Artifact filenames normalized to canonical format:
   - `RinaWarp-Terminal-Pro-{VERSION}.exe`
   - `RinaWarp-Terminal-Pro-{VERSION}.AppImage`
-  - `RinaWarp-Terminal-Pro-{VERSION}.amd64.deb`
+  - `RinaWarp-Terminal-Pro-{VERSION}.deb`
 - [ ] Cross-platform artifacts collected in `apps/terminal-pro/dist/`
 - [ ] Wrangler authenticated (`npx wrangler whoami`)
 - [ ] D1 database `rinawarp-prod` exists and has schema
-- [ ] `downloads-worker/wrangler.toml` has `RELEASE_VERSION="{VERSION}"`
 - [ ] Website hardcoded version strings updated:
   - `web/download.html`
   - `web/account/index.html`
@@ -119,7 +129,7 @@ TOKEN="$(curl -sS "https://rinawarp-downloads.rinawarptech.workers.dev/api/downl
 - [ ] Visit https://www.rinawarptech.com/download
 - [ ] Verify current version appears on download page and account page
 - [ ] Verify SHA256 hashes match artifacts
-- [ ] Verify `/releases/v{VERSION}.json` hash values match worker `/verify/SHASUMS256.txt`
+- [ ] Verify `/releases/latest.json` hash values match `/download/checksums`
 - [ ] Test one purchase/login/download flow
 
 ---

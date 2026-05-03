@@ -320,23 +320,16 @@
     <section class="verify-section">
         <div class="container">
             <div class="verify-box">
-                <h3>🔐 Verify Your Download (Linux)</h3>
+                <h3>🔐 Verify Your Download</h3>
                 <p style="color: var(--gray); font-size: 14px; margin-bottom: 12px;">
-                    All Linux downloads are GPG-signed. Verify before running.
+                    Compare the published SHA-256 checksums before running an installer.
                 </p>
-                
-                <p><strong>Signing key fingerprint:</strong></p>
-                <div class="fingerprint">BFC6 4346 F392 57B4 9A37 DBA6 9655 B53A 0B3E 6FA4</div>
-                
+
                 <div class="verify-links">
-                    <a href="https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt">SHASUMS256.txt</a>
-                    <a href="https://rinawarp-downloads.rinawarptech.workers.dev/verify/SHASUMS256.txt.asc">SHASUMS256.txt.asc</a>
-                    <a href="https://rinawarp-downloads.rinawarptech.workers.dev/verify/RINAWARP_GPG_PUBLIC_KEY.asc">RINAWARP_GPG_PUBLIC_KEY.asc</a>
+                    <a href="https://rinawarptech.com/download/checksums">SHASUMS256.txt</a>
                 </div>
-                
-                <pre><code>gpg --import RINAWARP_GPG_PUBLIC_KEY.asc
-gpg --verify SHASUMS256.txt.asc SHASUMS256.txt
-sha256sum -c SHASUMS256.txt</code></pre>
+
+                <pre><code>sha256sum -c SHASUMS256.txt</code></pre>
             </div>
         </div>
     </section>

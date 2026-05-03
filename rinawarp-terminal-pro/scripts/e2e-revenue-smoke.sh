@@ -96,12 +96,12 @@ check_status "$MANIFEST_URL" 200
 
 echo
 echo "== 3) Verify checksum endpoint alignment =="
-SHASUMS_URL="$DOWNLOADS/verify/SHASUMS256.txt"
+SHASUMS_URL="${CHECKSUMS_URL:-https://rinawarptech.com/download/checksums}"
 check_status "$SHASUMS_URL" 200
 SHASUMS_BODY="$(curl_with_network "$SHASUMS_URL")"
 for f in \
   "RinaWarp-Terminal-Pro-$VER.AppImage" \
-  "RinaWarp-Terminal-Pro-$VER.amd64.deb" \
+  "RinaWarp-Terminal-Pro-$VER.deb" \
   "RinaWarp-Terminal-Pro-$VER.exe"
 do
   if printf '%s\n' "$SHASUMS_BODY" | grep -q "$f"; then

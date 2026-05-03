@@ -21,8 +21,9 @@ run_step "2) Download link integrity" npm run verify:downloads
 run_step "3) Build fingerprint parity (www vs pages.dev)" npm run smoke:pages
 run_step "4) Production route + API smoke" npm run smoke:prod
 run_step "5) Production audit (routes + manifest + checksums)" npm run audit:prod
-run_step "6) Stripe API smoke" npm run smoke:stripe
-run_step "7) Revenue funnel E2E" npm run e2e:revenue
-run_step "8) Auth local password E2E" npm run e2e:auth-local
+run_step "6) Live release alignment" npm run verify:release-alignment
+run_step "7) Stripe API smoke" npm run smoke:stripe
+run_step "8) Revenue funnel E2E" npm run e2e:revenue
+run_step "9) Auth local password E2E" npm run e2e:auth-local
 
 echo "✅ PASS: full project E2E completed"

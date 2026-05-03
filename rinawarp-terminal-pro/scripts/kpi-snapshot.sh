@@ -24,7 +24,8 @@ fi
 
 build_fp="$(curl -fsS "$BASE/_build.txt" 2>/dev/null || true)"
 manifest_code="$(http_code "$BASE/releases/v$release_ver.json")"
-verify_code="$(http_code "$DOWNLOADS/verify/SHASUMS256.txt")"
+CHECKSUMS_URL="${CHECKSUMS_URL:-https://rinawarptech.com/download/checksums}"
+verify_code="$(http_code "$CHECKSUMS_URL")"
 api_preflight="$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS "$API/api/auth/start" \
   -H "Origin: $BASE" \
   -H "Access-Control-Request-Method: POST" \
@@ -53,7 +54,7 @@ payload="$(cat <<JSON
     "build_fingerprint": $(json_escape "$build_fp"),
     "release_version_detected": "$release_ver",
     "release_manifest_http": "$manifest_code",
-    "verify_shasums_http": "$verify_code",
+    "download_checksums_http": "$verify_code",
     "api_auth_preflight_http": "$api_preflight",
     "download_token_mint_ok": $([[ -n "$token" ]] && echo "true" || echo "false"),
     "gated_download_head_http": "$download_head_code"
