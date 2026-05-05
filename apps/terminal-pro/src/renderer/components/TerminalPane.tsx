@@ -31,6 +31,64 @@ export function TerminalPane() {
     terminalRef.current = terminal
     fitAddonRef.current = fitAddon
 
+    const copySelection = async () => {
+      const selection = terminal.getSelection()
+      if (!selection) return false
+      await navigator.clipboard.writeText(selection)
+      return true
+    }
+
+    const pasteClipboard = async () => {
+      const text = await navigator.clipboard.readText()
+      if (!text) return false
+      await window.rina.ptyWrite(text)
+      return true
+    }
+
+    terminal.attachCustomKeyEventHandler((event) => {
+      const isCopyShortcut =
+        (event.ctrlKey || event.metaKey) &&
+        event.shiftKey &&
+        event.code === 'KeyC'
+      const isPasteShortcut =
+        (event.ctrlKey || event.metaKey) &&
+        event.shiftKey &&
+        event.code === 'KeyV'
+
+      if (event.type === 'keydown' && isCopyShortcut) {
+        copySelection().catch((error) => console.error('Failed to copy terminal selection:', error))
+        return false
+      }
+
+      if (event.type === 'keydown' && isPasteShortcut) {
+        pasteClipboard().catch((error) => console.error('Failed to paste into terminal:', error))
+        return false
+      }
+
+      return true
+    })
+
+    const handlePaste = (event: ClipboardEvent) => {
+      const text = event.clipboardData?.getData('text/plain')
+      if (!text) return
+      event.preventDefault()
+      window.rina.ptyWrite(text).catch((error) => {
+        console.error('Failed to paste event text into terminal:', error)
+      })
+    }
+
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault()
+      const hasSelection = Boolean(terminal.getSelection())
+      const action = hasSelection ? copySelection() : pasteClipboard()
+      action.catch((error) => {
+        console.error(hasSelection ? 'Failed to copy terminal selection:' : 'Failed to paste into terminal:', error)
+      })
+    }
+
+    container.addEventListener('paste', handlePaste)
+    container.addEventListener('contextmenu', handleContextMenu)
+
     let resizeFrame = 0
     let lastSize = { cols: 0, rows: 0 }
     const fitAndResize = () => {
@@ -83,6 +141,8 @@ export function TerminalPane() {
     return () => {
       window.removeEventListener('resize', scheduleFit)
       if (resizeFrame) cancelAnimationFrame(resizeFrame)
+      container.removeEventListener('paste', handlePaste)
+      container.removeEventListener('contextmenu', handleContextMenu)
       dataDisposable.dispose()
       unsubscribeData()
       unsubscribeExit()

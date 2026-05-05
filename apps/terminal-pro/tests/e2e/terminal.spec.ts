@@ -18,4 +18,13 @@ test.describe('Terminal', () => {
       await expect(page.locator('.xterm')).toContainText('hello', { timeout: 10_000 })
     })
   })
+
+  test('pastes clipboard text into terminal', async () => {
+    await withApp(async ({ page }) => {
+      await page.evaluate(() => navigator.clipboard.writeText('echo pasted-from-clipboard\n'))
+      await page.locator('.xterm-screen').click({ force: true })
+      await page.keyboard.press(process.platform === 'darwin' ? 'Meta+Shift+V' : 'Control+Shift+V')
+      await expect(page.locator('.xterm')).toContainText('pasted-from-clipboard', { timeout: 10_000 })
+    })
+  })
 })
