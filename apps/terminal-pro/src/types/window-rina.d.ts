@@ -362,6 +362,8 @@ declare global {
         matchedRuleId?: string
       }>
       diagnosticsPaths(): Promise<DiagnosticsPaths>
+      diskFullDiagnostic(): Promise<unknown>
+      runApprovedCleanup(input: { command: string; approved: boolean }): Promise<unknown>
       supportBundle(snapshot?: unknown): Promise<{ ok: boolean; error?: string; path?: string; bytes?: number }>
       openRunsFolder(): Promise<{ ok: boolean; error?: string; path?: string }>
       runsList(limit?: number): Promise<{

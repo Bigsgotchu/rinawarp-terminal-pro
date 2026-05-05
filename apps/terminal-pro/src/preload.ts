@@ -28,6 +28,8 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'telemetry:quickFix',
   // Diagnostics
   'rina:diagnostics:paths',
+  'rina:diagnostic:diskFull',
+  'rina:diagnostic:runCleanup',
   'rina:support:bundle',
   'rina:openRunsFolder',
   'rina:runs:list',
@@ -306,6 +308,9 @@ contextBridge.exposeInMainWorld('rina', {
 
   // Diagnostics
   diagnosticsPaths: () => ipcRenderer.invoke('rina:diagnostics:paths'),
+  diskFullDiagnostic: () => ipcRenderer.invoke('rina:diagnostic:diskFull'),
+  runApprovedCleanup: (input: { command: string; approved: boolean }) =>
+    ipcRenderer.invoke('rina:diagnostic:runCleanup', input),
   supportBundle: (snapshot?: unknown) => ipcRenderer.invoke('rina:support:bundle', snapshot),
   openRunsFolder: () => ipcRenderer.invoke('rina:openRunsFolder'),
   runsList: (limit?: number) => ipcRenderer.invoke('rina:runs:list', { limit }),

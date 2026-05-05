@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 
-export function InputBar() {
+interface InputBarProps {
+  onSubmitPrompt?: (prompt: string) => Promise<boolean | void>
+}
+
+export function InputBar({ onSubmitPrompt }: InputBarProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -11,14 +15,19 @@ export function InputBar() {
     setIsLoading(true)
     try {
       const prompt = input.trim()
-      if (typeof window.rina.handleConversationTurn === 'function') {
+      const handled = await onSubmitPrompt?.(prompt)
+      if (handled) {
+        setInput('')
+      } else if (typeof window.rina.handleConversationTurn === 'function') {
         await window.rina.handleConversationTurn(prompt)
+        setInput('')
       } else if (typeof window.rina.conversationRoute === 'function') {
         await window.rina.conversationRoute(prompt)
+        setInput('')
       } else {
         await window.rina.runAgent(prompt)
+        setInput('')
       }
-      setInput('')
     } catch (error) {
       console.error('Failed to send message:', error)
     } finally {

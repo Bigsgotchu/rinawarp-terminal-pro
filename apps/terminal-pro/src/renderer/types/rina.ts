@@ -41,6 +41,8 @@ export interface RinaAPI {
 
   // Diagnostics
   diagnosticsPaths(): Promise<any>
+  diskFullDiagnostic(): Promise<any>
+  runApprovedCleanup(input: { command: string; approved: boolean }): Promise<any>
   supportBundle(snapshot?: unknown): Promise<any>
   openRunsFolder(): Promise<any>
   runsList(limit?: number): Promise<any>

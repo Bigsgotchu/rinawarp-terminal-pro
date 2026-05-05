@@ -61,6 +61,7 @@ import { handleRinaMessage, rinaController } from './rina/index.js';
 import { thinkingStream } from './rina/thinking/thinkingStream.js';
 import { listStructuredRunsFromSessionsRoot, readStructuredRunTailFromSessionsRoot, summarizeStructuredRunArtifactsFromSessionsRoot } from './main/runs/structuredRuns.js';
 import { diagnosticsPathsForIpc, supportBundleForIpcWithSnapshot } from './main/diagnostics/supportBundle.js';
+import { registerDiskFullDiagnosticIpc } from './main/diagnostics/diskFullDiagnosticIpc.js';
 import { bindAppLifecycle } from './main/startup/appLifecycleBinder.js';
 import { bootstrapFrameworkRuntime } from './main/startup/bootstrapFrameworkRuntime.js';
 import { createMainRuntime } from './main/startup/createMainRuntime.js';
@@ -108,6 +109,7 @@ const TOP_MEM_CMD_SAFE = 'ps -eo pid,pcpu,pmem,comm --sort=-pmem 2>/dev/null | h
 const TOP_CPU_CMD_SAFE_SHORT = 'ps -eo pid,pcpu,pmem,comm --sort=-pcpu 2>/dev/null | head -10 || ps aux 2>/dev/null | sort -nrk3 | head -10 || ps aux | head -10';
 const e2ePlanPayloads = new Map();
 const bootMilestones: string[] = [];
+registerDiskFullDiagnosticIpc(ipcMain);
 function markBootMilestone(label: string): void {
     if (!IS_E2E)
         return;
