@@ -62,6 +62,7 @@ import { thinkingStream } from './rina/thinking/thinkingStream.js';
 import { listStructuredRunsFromSessionsRoot, readStructuredRunTailFromSessionsRoot, summarizeStructuredRunArtifactsFromSessionsRoot } from './main/runs/structuredRuns.js';
 import { diagnosticsPathsForIpc, supportBundleForIpcWithSnapshot } from './main/diagnostics/supportBundle.js';
 import { registerDiskFullDiagnosticIpc } from './main/diagnostics/diskFullDiagnosticIpc.js';
+import { registerPortConflictDiagnosticIpc } from './main/diagnostics/portConflictDiagnosticIpc.js';
 import { bindAppLifecycle } from './main/startup/appLifecycleBinder.js';
 import { bootstrapFrameworkRuntime } from './main/startup/bootstrapFrameworkRuntime.js';
 import { createMainRuntime } from './main/startup/createMainRuntime.js';
@@ -110,6 +111,7 @@ const TOP_CPU_CMD_SAFE_SHORT = 'ps -eo pid,pcpu,pmem,comm --sort=-pcpu 2>/dev/nu
 const e2ePlanPayloads = new Map();
 const bootMilestones: string[] = [];
 registerDiskFullDiagnosticIpc(ipcMain);
+registerPortConflictDiagnosticIpc(ipcMain);
 function markBootMilestone(label: string): void {
     if (!IS_E2E)
         return;

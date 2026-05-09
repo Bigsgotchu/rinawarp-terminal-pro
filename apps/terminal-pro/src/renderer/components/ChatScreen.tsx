@@ -14,6 +14,7 @@ interface ChatScreenProps {
 export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
   const [diagnosticStatus, setDiagnosticStatus] = useState<'idle' | 'checking' | 'ready' | 'error'>('idle')
   const [diagnostic, setDiagnostic] = useState<any>(null)
+  const [portDiagnostic, setPortDiagnostic] = useState<any>(null)
   const [diagnosticError, setDiagnosticError] = useState<string | undefined>()
   const [isChatBusy, setIsChatBusy] = useState(false)
   const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'rina'; text: string }>>([
@@ -27,9 +28,26 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
   const runDiskDiagnostic = useCallback(async (): Promise<any> => {
     setDiagnosticStatus('checking')
     setDiagnosticError(undefined)
+    setPortDiagnostic(null)
     try {
       const result = await window.rina.diskFullDiagnostic()
       setDiagnostic(result)
+      setDiagnosticStatus('ready')
+      return result
+    } catch (caught) {
+      setDiagnosticStatus('error')
+      setDiagnosticError(caught instanceof Error ? caught.message : String(caught))
+      throw caught
+    }
+  }, [])
+
+  const runPortDiagnostic = useCallback(async (port: number): Promise<any> => {
+    setDiagnosticStatus('checking')
+    setDiagnosticError(undefined)
+    setDiagnostic(null)
+    try {
+      const result = await window.rina.portConflictDiagnostic({ port })
+      setPortDiagnostic(result)
       setDiagnosticStatus('ready')
       return result
     } catch (caught) {
@@ -73,11 +91,66 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
     ])
   }, [])
 
+  const extractPort = useCallback((prompt: string): number | null => {
+    const match = prompt.match(/\b([1-9]\d{1,4})\b/)
+    if (!match) return null
+    const port = Number(match[1])
+    return Number.isInteger(port) && port <= 65_535 ? port : null
+  }, [])
+
+  const isPortPrompt = useCallback((prompt: string): boolean => {
+    return /\bport\b/i.test(prompt) || /\bkill\b/i.test(prompt) || /won.?t.*start/i.test(prompt)
+  }, [])
+
+  const runPortRecoveryTask = useCallback(
+    async (request: RinaTaskRequest & { port: number }): Promise<RinaTaskResult> => {
+      const result = await runPortDiagnostic(request.port)
+      const process = result?.process
+      return {
+        status: process ? 'needs_approval' : 'completed',
+        summary: [
+          result?.summary || `I checked port ${request.port} with read-only commands.`,
+          process
+            ? 'Stop option is ready. Review the exact command, risk, expected effect, and rollback notes before approving anything.'
+            : 'No stop action is needed because the port is already free.',
+        ].join('\n\n'),
+        evidence: result,
+        actions: result?.stopPlan || [],
+      }
+    },
+    [runPortDiagnostic]
+  )
+
   const handlePrompt = useCallback(
     async (prompt: string) => {
       const trimmed = prompt.trim()
       if (!trimmed) return true
       appendMessage('user', trimmed)
+      if (isPortPrompt(trimmed)) {
+        const port = extractPort(trimmed)
+        if (!port) {
+          appendMessage('rina', 'Which port should I inspect? Send a port number, for example: "What is using port 3000?"')
+          return true
+        }
+        setIsChatBusy(true)
+        appendMessage(
+          'rina',
+          `I'll check what is listening on port ${port}. This is read-only and won't stop or change anything.`
+        )
+        try {
+          const taskResult = await runPortRecoveryTask({ message: trimmed, port })
+          appendMessage('rina', taskResult.summary)
+        } catch (caught) {
+          appendMessage(
+            'rina',
+            `I could not finish the port inspection. ${caught instanceof Error ? caught.message : String(caught)}`
+          )
+        } finally {
+          setIsChatBusy(false)
+        }
+        return true
+      }
+
       if (
         /^(rina\s+)?(why\s+is\s+my\s+)?disk\s+(is\s+)?full\??$/i.test(trimmed) ||
         /disk.*full|full.*disk|disk space/i.test(trimmed)
@@ -103,11 +176,11 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
 
       appendMessage(
         'rina',
-        'I can run chat-first disk recovery right now. Try: "Why is my disk full?" I will inspect first and ask before any cleanup.'
+        'I can run chat-first disk or port recovery right now. Try: "Why is my disk full?" or "What is using port 3000?" I will inspect first and ask before any action.'
       )
       return true
     },
-    [appendMessage, runDiskRecoveryTask]
+    [appendMessage, extractPort, isPortPrompt, runDiskRecoveryTask, runPortRecoveryTask]
   )
 
   const handleRunDiskDiagnostic = useCallback(async () => {
@@ -141,11 +214,13 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
         <RinaPanel
           status={diagnosticStatus}
           diagnostic={diagnostic}
+          portDiagnostic={portDiagnostic}
           error={diagnosticError}
           messages={messages}
           isChatBusy={isChatBusy}
           onSubmitPrompt={handlePrompt}
           onRunDiskDiagnostic={handleRunDiskDiagnostic}
+          onPortActionResult={(message) => appendMessage('rina', message)}
         />
       </div>
       <InputBar onSubmitPrompt={handleBottomPrompt} />

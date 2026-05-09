@@ -30,6 +30,8 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:diagnostics:paths',
   'rina:diagnostic:diskFull',
   'rina:diagnostic:runCleanup',
+  'rina:diagnostic:portConflict',
+  'rina:diagnostic:stopPortProcess',
   'rina:support:bundle',
   'rina:openRunsFolder',
   'rina:runs:list',
@@ -311,6 +313,9 @@ contextBridge.exposeInMainWorld('rina', {
   diskFullDiagnostic: () => ipcRenderer.invoke('rina:diagnostic:diskFull'),
   runApprovedCleanup: (input: { command: string; approved: boolean }) =>
     ipcRenderer.invoke('rina:diagnostic:runCleanup', input),
+  portConflictDiagnostic: (input: { port: number }) => ipcRenderer.invoke('rina:diagnostic:portConflict', input),
+  stopPortProcess: (input: { port: number; pid: number; command: string; approved: boolean }) =>
+    ipcRenderer.invoke('rina:diagnostic:stopPortProcess', input),
   supportBundle: (snapshot?: unknown) => ipcRenderer.invoke('rina:support:bundle', snapshot),
   openRunsFolder: () => ipcRenderer.invoke('rina:openRunsFolder'),
   runsList: (limit?: number) => ipcRenderer.invoke('rina:runs:list', { limit }),

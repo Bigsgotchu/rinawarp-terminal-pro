@@ -364,6 +364,8 @@ declare global {
       diagnosticsPaths(): Promise<DiagnosticsPaths>
       diskFullDiagnostic(): Promise<unknown>
       runApprovedCleanup(input: { command: string; approved: boolean }): Promise<unknown>
+      portConflictDiagnostic(input: { port: number }): Promise<unknown>
+      stopPortProcess(input: { port: number; pid: number; command: string; approved: boolean }): Promise<unknown>
       supportBundle(snapshot?: unknown): Promise<{ ok: boolean; error?: string; path?: string; bytes?: number }>
       openRunsFolder(): Promise<{ ok: boolean; error?: string; path?: string }>
       runsList(limit?: number): Promise<{
