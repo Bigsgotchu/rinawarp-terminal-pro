@@ -7,11 +7,14 @@ test.describe('Rina disk diagnostic', () => {
       async ({ page }) => {
         await expect(page.locator('[data-testid="rina-panel"]')).toBeVisible()
 
-        const input = page.getByPlaceholder('Ask Rina anything...')
-        await input.fill('rina why is my disk full')
+        const input = page.getByTestId('rina-chat-input')
+        await input.fill('Why is my disk full?')
         await input.press('Enter')
 
+        await expect(page.locator('[data-testid="rina-chat-history"]')).toContainText('Why is my disk full?')
+        await expect(page.locator('[data-testid="rina-chat-history"]')).toContainText('read-only', { timeout: 10_000 })
         await expect(page.locator('[data-testid="rina-panel"]')).toContainText('ready', { timeout: 30_000 })
+        await expect(page.locator('[data-testid="rina-chat-history"]')).toContainText('Cleanup options are ready')
         await expect(page.locator('[data-testid="rina-panel"]')).toContainText('No cleanup has run')
         await expect(page.locator('[data-testid="rina-panel"]')).toContainText('Before:')
         await expect(page.locator('[data-testid="rina-panel"]')).toContainText('measured before any cleanup approval')

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent, type KeyboardEvent } from 'react'
 
 type RiskLevel = 'read' | 'safe-write' | 'destructive'
 
@@ -49,6 +49,9 @@ interface RinaPanelProps {
   status: 'idle' | 'checking' | 'ready' | 'error'
   diagnostic: DiskDiagnostic | null
   error?: string
+  messages: Array<{ id: string; role: 'user' | 'rina'; text: string }>
+  isChatBusy: boolean
+  onSubmitPrompt: (prompt: string) => Promise<boolean | void>
   onRunDiskDiagnostic: () => Promise<void>
 }
 
@@ -76,8 +79,32 @@ function rollbackLabel(action: CommandPlan): string {
   return 'Rollback boundary not declared'
 }
 
-export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: RinaPanelProps) {
+export function RinaPanel({
+  status,
+  diagnostic,
+  error,
+  messages,
+  isChatBusy,
+  onSubmitPrompt,
+  onRunDiskDiagnostic,
+}: RinaPanelProps) {
   const [cleanupStates, setCleanupStates] = useState<Record<string, CleanupState>>({})
+  const [draft, setDraft] = useState('')
+
+  const submitDraft = async (event?: FormEvent) => {
+    event?.preventDefault()
+    const prompt = draft.trim()
+    if (!prompt || isChatBusy) return
+    setDraft('')
+    await onSubmitPrompt(prompt)
+  }
+
+  const handleDraftKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      void submitDraft()
+    }
+  }
 
   const denyAction = (action: CommandPlan) => {
     setCleanupStates((current) => ({
@@ -137,11 +164,65 @@ export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: Ri
       </div>
 
       <div className="min-h-0 flex-1 space-y-5 overflow-auto px-4 py-4">
+        <section data-testid="rina-chat" className="space-y-3">
+          <div>
+            <h3 className="text-xs font-semibold uppercase text-zinc-500">Rina chat</h3>
+            <p className="mt-1 text-sm text-zinc-200">
+              Tell Rina what is broken. She will inspect safely first and ask before changing anything.
+            </p>
+          </div>
+
+          <div data-testid="rina-chat-history" className="space-y-2">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={
+                  message.role === 'user'
+                    ? 'border border-cyan-500/30 bg-cyan-500/10 p-3'
+                    : 'border border-zinc-800 bg-zinc-900/70 p-3'
+                }
+              >
+                <div className="text-[11px] font-semibold uppercase text-zinc-500">
+                  {message.role === 'user' ? 'You' : 'Rina'}
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-100">{message.text}</p>
+              </div>
+            ))}
+            {isChatBusy && (
+              <div data-testid="rina-chat-thinking" className="border border-zinc-800 bg-zinc-900/70 p-3">
+                <div className="text-[11px] font-semibold uppercase text-zinc-500">Rina</div>
+                <p className="mt-1 text-sm text-zinc-100">Inspecting safely...</p>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={submitDraft} className="space-y-2">
+            <textarea
+              data-testid="rina-chat-input"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={handleDraftKeyDown}
+              placeholder="Tell Rina what is broken..."
+              rows={3}
+              disabled={isChatBusy}
+              className="min-h-[84px] w-full resize-none border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-cyan-500 disabled:cursor-wait disabled:text-zinc-500"
+            />
+            <button
+              data-testid="rina-chat-send"
+              type="submit"
+              disabled={!draft.trim() || isChatBusy}
+              className="w-full rounded border border-cyan-500/40 bg-cyan-500/15 px-3 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-500/25 disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-500"
+            >
+              {isChatBusy ? 'Inspecting...' : 'Send'}
+            </button>
+          </form>
+        </section>
+
         <section className="space-y-3">
           <div>
             <h3 className="text-xs font-semibold uppercase text-zinc-500">Current flow</h3>
             <p className="mt-1 text-sm text-zinc-200">
-              {status === 'idle' && 'Ask "rina why is my disk full" to start a safe disk check.'}
+              {status === 'idle' && 'Ask "Why is my disk full?" to start a safe disk check.'}
               {status === 'checking' && 'Inspecting disk usage with read-only commands. No cleanup is running.'}
               {status === 'ready' && (diagnostic?.summary || 'Disk inspection complete. Review evidence before approving cleanup.')}
               {status === 'error' && (error || 'Disk inspection failed before any cleanup ran.')}
