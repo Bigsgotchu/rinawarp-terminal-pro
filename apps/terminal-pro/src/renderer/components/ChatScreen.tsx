@@ -3,7 +3,11 @@ import { HeaderBar } from './HeaderBar'
 import { InputBar } from './InputBar'
 import { RinaPanel } from './RinaPanel'
 import { TerminalPane } from './TerminalPane'
-import type { RinaTaskRequest, RinaTaskResult } from '../rina-task-contract'
+import { planRinaTask } from '../../rina-agent/agentPlanner'
+import { summarizeTaskResult } from '../../rina-agent/summarizer'
+import { extractPort, routeRinaTask } from '../../rina-agent/taskRouter'
+import { verifyTaskResult } from '../../rina-agent/verifier'
+import type { RinaTaskRequest } from '../../rina-agent/types'
 
 interface ChatScreenProps {
   onResumeFix?: () => void
@@ -24,6 +28,14 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
       text: 'Tell me what is broken. I will inspect safely first, explain what I find, and ask before changing anything.',
     },
   ])
+
+  const createTaskRequest = useCallback((message: string): RinaTaskRequest => {
+    return {
+      id: `task:${Date.now()}`,
+      message,
+      cwd: '/',
+    }
+  }, [])
 
   const runDiskDiagnostic = useCallback(async (): Promise<any> => {
     setDiagnosticStatus('checking')
@@ -58,24 +70,24 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
   }, [])
 
   const runDiskRecoveryTask = useCallback(
-    async (_request: RinaTaskRequest): Promise<RinaTaskResult> => {
+    async (request: RinaTaskRequest) => {
+      const plan = planRinaTask(request, 'disk_recovery')
       const result = await runDiskDiagnostic()
       const findings = Array.isArray(result?.findings) ? result.findings.slice(0, 3) : []
       const actions = Array.isArray(result?.cleanupPlan) ? result.cleanupPlan : []
-      return {
-        status: actions.length ? 'needs_approval' : 'completed',
-        summary: [
-          result?.summary || 'I inspected disk usage with read-only checks.',
-          findings.length ? `I found: ${findings.join(' ')}` : '',
-          actions.length
-            ? 'Cleanup options are ready. Review the exact command, risk, expected effect, and rollback notes before approving anything.'
-            : 'No cleanup action is recommended right now.',
-        ]
-          .filter(Boolean)
-          .join('\n\n'),
-        evidence: result?.evidence,
-        actions,
-      }
+      return verifyTaskResult({
+        taskId: request.id,
+        kind: 'disk_recovery',
+        needsApproval: actions.length > 0,
+        summary: summarizeTaskResult({
+          kind: 'disk_recovery',
+          plan,
+          summary: result?.summary || 'I inspected disk usage with read-only checks.',
+          findings,
+          hasProposedActions: actions.length > 0,
+        }),
+        evidence: { diagnostic: result, actions },
+      })
     },
     [runDiskDiagnostic]
   )
@@ -91,32 +103,23 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
     ])
   }, [])
 
-  const extractPort = useCallback((prompt: string): number | null => {
-    const match = prompt.match(/\b([1-9]\d{1,4})\b/)
-    if (!match) return null
-    const port = Number(match[1])
-    return Number.isInteger(port) && port <= 65_535 ? port : null
-  }, [])
-
-  const isPortPrompt = useCallback((prompt: string): boolean => {
-    return /\bport\b/i.test(prompt) || /\bkill\b/i.test(prompt) || /won.?t.*start/i.test(prompt)
-  }, [])
-
   const runPortRecoveryTask = useCallback(
-    async (request: RinaTaskRequest & { port: number }): Promise<RinaTaskResult> => {
+    async (request: RinaTaskRequest & { port: number }) => {
+      const plan = planRinaTask(request, 'port_conflict', { port: request.port })
       const result = await runPortDiagnostic(request.port)
       const process = result?.process
-      return {
-        status: process ? 'needs_approval' : 'completed',
-        summary: [
-          result?.summary || `I checked port ${request.port} with read-only commands.`,
-          process
-            ? 'Stop option is ready. Review the exact command, risk, expected effect, and rollback notes before approving anything.'
-            : 'No stop action is needed because the port is already free.',
-        ].join('\n\n'),
-        evidence: result,
-        actions: result?.stopPlan || [],
-      }
+      return verifyTaskResult({
+        taskId: request.id,
+        kind: 'port_conflict',
+        needsApproval: Boolean(process),
+        summary: summarizeTaskResult({
+          kind: 'port_conflict',
+          plan,
+          summary: result?.summary || `I checked port ${request.port} with read-only commands.`,
+          hasProposedActions: Boolean(process),
+        }),
+        evidence: { diagnostic: result, actions: result?.stopPlan || [] },
+      })
     },
     [runPortDiagnostic]
   )
@@ -125,8 +128,10 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
     async (prompt: string) => {
       const trimmed = prompt.trim()
       if (!trimmed) return true
+      const taskRequest = createTaskRequest(trimmed)
+      const taskKind = routeRinaTask(trimmed)
       appendMessage('user', trimmed)
-      if (isPortPrompt(trimmed)) {
+      if (taskKind === 'port_conflict') {
         const port = extractPort(trimmed)
         if (!port) {
           appendMessage('rina', 'Which port should I inspect? Send a port number, for example: "What is using port 3000?"')
@@ -138,7 +143,7 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
           `I'll check what is listening on port ${port}. This is read-only and won't stop or change anything.`
         )
         try {
-          const taskResult = await runPortRecoveryTask({ message: trimmed, port })
+          const taskResult = await runPortRecoveryTask({ ...taskRequest, port })
           appendMessage('rina', taskResult.summary)
         } catch (caught) {
           appendMessage(
@@ -151,17 +156,14 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
         return true
       }
 
-      if (
-        /^(rina\s+)?(why\s+is\s+my\s+)?disk\s+(is\s+)?full\??$/i.test(trimmed) ||
-        /disk.*full|full.*disk|disk space/i.test(trimmed)
-      ) {
+      if (taskKind === 'disk_recovery') {
         setIsChatBusy(true)
         appendMessage(
           'rina',
           "I'll inspect disk usage, Downloads, Docker, and npm cache. This is read-only and will not change anything."
         )
         try {
-          const taskResult = await runDiskRecoveryTask({ message: trimmed })
+          const taskResult = await runDiskRecoveryTask(taskRequest)
           appendMessage('rina', taskResult.summary)
         } catch (caught) {
           appendMessage(
@@ -180,7 +182,7 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
       )
       return true
     },
-    [appendMessage, extractPort, isPortPrompt, runDiskRecoveryTask, runPortRecoveryTask]
+    [appendMessage, createTaskRequest, runDiskRecoveryTask, runPortRecoveryTask]
   )
 
   const handleRunDiskDiagnostic = useCallback(async () => {
@@ -188,12 +190,12 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
     appendMessage('user', 'Why is my disk full?')
     appendMessage('rina', "I'll inspect disk usage with read-only checks first. No cleanup will run without your approval.")
     try {
-      const taskResult = await runDiskRecoveryTask({ message: 'Why is my disk full?' })
+      const taskResult = await runDiskRecoveryTask(createTaskRequest('Why is my disk full?'))
       appendMessage('rina', taskResult.summary)
     } finally {
       setIsChatBusy(false)
     }
-  }, [appendMessage, runDiskRecoveryTask])
+  }, [appendMessage, createTaskRequest, runDiskRecoveryTask])
 
   const handleBottomPrompt = useCallback(
     async (prompt: string) => {

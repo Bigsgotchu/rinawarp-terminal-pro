@@ -61,6 +61,7 @@ test-results/
 *.test.ts
 *.spec.js
 *.spec.ts
+!apps/terminal-pro/src/renderer/rina-agent-core.test.ts
 !apps/terminal-pro/tests/e2e/*.test.ts
 !apps/terminal-pro/tests/e2e/*.spec.ts
 coverage/

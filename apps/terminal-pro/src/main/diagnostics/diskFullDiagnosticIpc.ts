@@ -1,6 +1,9 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import type { IpcMain } from 'electron'
+import { executeApprovedCommand, executeUserApprovedCommand } from '../../rina-agent/executionController.js'
+import { applySafety } from '../../rina-agent/safetyGate.js'
+import type { RinaCommandPlan } from '../../rina-agent/types.js'
 
 const execAsync = promisify(exec)
 
@@ -99,13 +102,42 @@ type DiskEvidence = {
 }
 
 function plan(item: CommandPlan): CommandPlan {
+  const safePlan = applySafety({
+    id: item.command,
+    command: item.command,
+    reason: item.reason,
+    risk: item.risk,
+    requiresApproval: item.requiresApproval,
+    expectedEffect: item.expectedEffect || 'Not declared',
+    rollbackAwareness: item.rollbackAwareness || 'Rollback boundary not declared.',
+    verificationHint: item.risk === 'read' ? 'Use this as read-only evidence.' : 'Verify disk usage after execution.',
+    label: item.label,
+  })
+  return fromRinaPlan(safePlan)
+}
+
+function toRinaPlan(item: CommandPlan): RinaCommandPlan {
+  return {
+    id: item.command,
+    command: item.command,
+    reason: item.reason,
+    risk: item.risk,
+    requiresApproval: item.requiresApproval,
+    expectedEffect: item.expectedEffect || 'Not declared',
+    rollbackAwareness: item.rollbackAwareness || 'Rollback boundary not declared.',
+    verificationHint: item.risk === 'read' ? 'Use this as read-only evidence.' : 'Verify disk usage after execution.',
+    label: item.label,
+  }
+}
+
+function fromRinaPlan(item: RinaCommandPlan): CommandPlan {
   return {
     command: item.command,
     reason: item.reason,
     risk: item.risk,
-    requiresApproval: item.risk !== 'read',
+    requiresApproval: item.requiresApproval,
     expectedEffect: item.expectedEffect,
-    rollbackAwareness: item.rollbackAwareness,
+    rollbackAwareness: item.rollbackAwareness as CommandPlan['rollbackAwareness'],
     label: item.label,
   }
 }
@@ -142,11 +174,17 @@ async function runCommand(item: CommandPlan, options?: { verifyDiskAfter?: boole
       ? 'printf "y\\n" | docker system prune'
       : item.command
 
-  const result = await runShell(command)
+  const runner = () => runShell(command)
+  const safePlan = applySafety(toRinaPlan(item))
+  const result = safePlan.requiresApproval
+    ? await executeUserApprovedCommand(safePlan, true, runner)
+    : await executeApprovedCommand(safePlan, runner)
   const evidence = options?.verifyDiskAfter ? await collectDiskEvidence() : undefined
   return {
     ...item,
-    ...result,
+    ok: Boolean(result.ok),
+    output: result.output || '',
+    error: result.error,
     evidence,
   }
 }

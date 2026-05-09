@@ -1,6 +1,10 @@
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import type { IpcMain } from 'electron'
+import { createPortStopPlan, planRinaTask } from '../../rina-agent/agentPlanner.js'
+import { executeApprovedCommand, executeUserApprovedCommand } from '../../rina-agent/executionController.js'
+import { applySafety } from '../../rina-agent/safetyGate.js'
+import type { RinaCommandPlan, RinaTaskRequest } from '../../rina-agent/types.js'
 
 const execAsync = promisify(exec)
 
@@ -59,48 +63,47 @@ function validatePort(input: unknown): number {
 }
 
 function readPlan(port: number): PortCommandPlan[] {
-  return [
-    {
-      command: `lsof -i :${port} -P -n`,
-      reason: `Check which process is listening on port ${port}. This does not stop or change anything.`,
-      risk: 'read',
-      requiresApproval: false,
-      expectedEffect: `Show the process using port ${port}, if one is present.`,
-      rollbackAwareness: 'No change; nothing to roll back.',
-    },
-    {
-      command: `ss -ltnp "sport = :${port}"`,
-      reason: `Use ss as a read-only listener check for port ${port} when available.`,
-      risk: 'read',
-      requiresApproval: false,
-      expectedEffect: `Confirm whether port ${port} is listening and expose PID details when available.`,
-      rollbackAwareness: 'No change; nothing to roll back.',
-    },
-    {
-      command: `netstat -tulpn | grep :${port}`,
-      reason: `Use netstat as a read-only fallback for port ${port} when available.`,
-      risk: 'read',
-      requiresApproval: false,
-      expectedEffect: `Confirm whether port ${port} appears in listening network sockets.`,
-      rollbackAwareness: 'No change; nothing to roll back.',
-    },
-  ]
+  return planRinaTask(taskRequest(`What is using port ${port}?`), 'port_conflict', { port }).readOnlyCommands.map(toPortPlan)
 }
 
 function stopPlan(port: number, process: PortProcess): PortCommandPlan[] {
-  return [
-    {
-      label: `Stop ${process.processName} on port ${port}`,
-      command: `kill ${process.pid}`,
-      reason: `Stop PID ${process.pid}, which is currently using port ${port}.`,
-      risk: 'safe-write',
-      requiresApproval: true,
-      expectedEffect: `Stops the process currently using port ${port}.`,
-      rollbackAwareness:
-        'This cannot resume the exact process automatically, but you can usually restart it from the project/app that launched it.',
-      verificationHint: `Re-check port ${port} after stopping the process.`,
-    },
-  ]
+  return [toPortPlan(createPortStopPlan(port, process.pid, process.processName))]
+}
+
+function taskRequest(message: string): RinaTaskRequest {
+  return {
+    id: `port:${Date.now()}`,
+    message,
+    cwd: process.cwd(),
+  }
+}
+
+function toPortPlan(item: RinaCommandPlan): PortCommandPlan {
+  const safePlan = applySafety(item)
+  return {
+    label: safePlan.label,
+    command: safePlan.command,
+    reason: safePlan.reason,
+    risk: safePlan.risk,
+    requiresApproval: safePlan.requiresApproval,
+    expectedEffect: safePlan.expectedEffect,
+    rollbackAwareness: safePlan.rollbackAwareness,
+    verificationHint: safePlan.verificationHint,
+  }
+}
+
+function toRinaPlan(item: PortCommandPlan): RinaCommandPlan {
+  return {
+    id: item.command,
+    command: item.command,
+    reason: item.reason,
+    risk: item.risk,
+    requiresApproval: item.requiresApproval,
+    expectedEffect: item.expectedEffect || 'Not declared',
+    rollbackAwareness: item.rollbackAwareness || 'Rollback boundary not declared.',
+    verificationHint: item.verificationHint || 'Verify after execution.',
+    label: item.label,
+  }
 }
 
 async function runShell(command: string): Promise<{ ok: boolean; output: string; error?: string }> {
@@ -126,10 +129,16 @@ async function runShell(command: string): Promise<{ ok: boolean; output: string;
 }
 
 async function runCommand(item: PortCommandPlan): Promise<PortCommandResult> {
-  const result = await runShell(item.command)
+  const safePlan = applySafety(toRinaPlan(item))
+  const runner = () => runShell(item.command)
+  const result = safePlan.requiresApproval
+    ? await executeUserApprovedCommand(safePlan, true, runner)
+    : await executeApprovedCommand(safePlan, runner)
   return {
     ...item,
-    ...result,
+    ok: Boolean(result.ok),
+    output: result.output || '',
+    error: result.error,
   }
 }
 
