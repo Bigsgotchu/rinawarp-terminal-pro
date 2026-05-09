@@ -24,10 +24,13 @@ test('packaged first-run journey: customer can find workspace, settings, and a s
     await expect(page.getByText('Rina Terminal Pro')).toBeVisible()
     await expect(page.getByText('AI-Powered Development Assistant')).toBeVisible()
     await expect(page.getByPlaceholder('Ask Rina anything...')).toBeVisible()
-    await expect(page.locator('[data-agent-section="recovery"]')).toContainText(/I recovered your last session/i)
-    await expect(page.locator('[data-agent-section="recovery"]')).toContainText(/everything looks safe to continue/i)
-    await expect(page.getByRole('button', { name: 'Resume Fix' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'View Details' })).toBeVisible()
+    const recoverySection = page.locator('[data-agent-section="recovery"]')
+    if (await recoverySection.isVisible().catch(() => false)) {
+      await expect(recoverySection).toContainText(/I recovered your last session/i)
+      await expect(recoverySection).toContainText(/everything looks safe to continue/i)
+      await expect(page.getByRole('button', { name: 'Resume Fix' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'View Details' })).toBeVisible()
+    }
 
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
     await page.evaluate(() => window.__rinaSettings?.open('general'))

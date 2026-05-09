@@ -12,18 +12,22 @@ export type CommandPlan = {
   reason: string
   risk: RiskLevel
   requiresApproval: boolean
+  expectedEffect?: string
+  rollbackAwareness?: 'not-applicable' | 'regenerable' | 're-downloadable' | 'irreversible'
 }
 
 type CommandResult = CommandPlan & {
   ok: boolean
   output: string
   error?: string
+  evidence?: DiskEvidence
 }
 
 type DiskFullDiagnosticResult = {
   ok: boolean
   title: string
   summary: string
+  evidence?: DiskEvidence
   plan: CommandPlan[]
   results: CommandResult[]
   findings: string[]
@@ -33,27 +37,35 @@ type DiskFullDiagnosticResult = {
 const readPlan: CommandPlan[] = [
   {
     command: 'df -h',
-    reason: 'Check mounted filesystem usage and find disks near capacity.',
+    reason: 'Inspect mounted filesystem usage. This does not change anything.',
     risk: 'read',
     requiresApproval: false,
+    expectedEffect: 'Show current disk pressure before any cleanup is proposed.',
+    rollbackAwareness: 'not-applicable',
   },
   {
     command: 'du -sh ~/Downloads/* 2>/dev/null | sort -h',
-    reason: 'Estimate the largest visible items in Downloads without deleting anything.',
+    reason: 'Inspect the largest visible Downloads items without deleting anything.',
     risk: 'read',
     requiresApproval: false,
+    expectedEffect: 'Identify large files that may need manual review.',
+    rollbackAwareness: 'not-applicable',
   },
   {
     command: 'docker system df',
-    reason: 'Check Docker image, container, volume, and build-cache usage.',
+    reason: 'Inspect Docker image, container, volume, and build-cache usage.',
     risk: 'read',
     requiresApproval: false,
+    expectedEffect: 'Estimate whether Docker cleanup could recover meaningful space.',
+    rollbackAwareness: 'not-applicable',
   },
   {
     command: 'npm cache verify',
-    reason: 'Check npm cache health and size without changing cache contents.',
+    reason: 'Inspect npm cache health and size without changing cache contents.',
     risk: 'read',
     requiresApproval: false,
+    expectedEffect: 'Estimate whether npm cache cleanup is worth approving.',
+    rollbackAwareness: 'not-applicable',
   },
 ]
 
@@ -61,41 +73,48 @@ const cleanupPlan: CommandPlan[] = [
   {
     label: 'Clean npm cache',
     command: 'npm cache clean --force',
-    reason: 'Remove npm cache files after you approve the cleanup.',
+    reason: 'Remove npm cache files only after you approve this action.',
     risk: 'safe-write',
     requiresApproval: true,
+    expectedEffect: 'Recover space used by npm cache files. npm can recreate this cache later.',
+    rollbackAwareness: 'regenerable',
   },
   {
     label: 'Remove Docker unused data',
     command: 'docker system prune',
-    reason: 'Remove unused Docker images, containers, networks, and build cache after you approve.',
+    reason: 'Remove unused Docker images, containers, networks, and build cache only after you approve this action.',
     risk: 'destructive',
     requiresApproval: true,
+    expectedEffect: 'Recover space used by Docker data that is not currently attached to running containers.',
+    rollbackAwareness: 're-downloadable',
   },
 ]
 
-function plan(command: string, reason: string, risk: RiskLevel): CommandPlan {
-  return {
-    command,
-    reason,
-    risk,
-    requiresApproval: risk !== 'read',
-  }
+type DiskEvidence = {
+  percent?: string
+  size?: string
+  used?: string
+  available?: string
+  raw?: string
 }
 
-function normalizePlan(item: CommandPlan): CommandPlan {
+function plan(item: CommandPlan): CommandPlan {
   return {
-    ...plan(item.command, item.reason, item.risk),
+    command: item.command,
+    reason: item.reason,
+    risk: item.risk,
+    requiresApproval: item.risk !== 'read',
+    expectedEffect: item.expectedEffect,
+    rollbackAwareness: item.rollbackAwareness,
     label: item.label,
   }
 }
 
-async function runCommand(item: CommandPlan): Promise<CommandResult> {
-  const command =
-    item.command === 'docker system prune'
-      ? 'printf "y\\n" | docker system prune'
-      : item.command
+function normalizePlan(item: CommandPlan): CommandPlan {
+  return plan(item)
+}
 
+async function runShell(command: string): Promise<{ ok: boolean; output: string; error?: string }> {
   try {
     const { stdout, stderr } = await execAsync(command, {
       timeout: 15_000,
@@ -104,14 +123,12 @@ async function runCommand(item: CommandPlan): Promise<CommandResult> {
       env: process.env,
     })
     return {
-      ...item,
       ok: true,
       output: [stdout, stderr].filter(Boolean).join('\n').trim(),
     }
   } catch (error) {
     const err = error as { stdout?: string; stderr?: string; message?: string }
     return {
-      ...item,
       ok: false,
       output: [err.stdout, err.stderr].filter(Boolean).join('\n').trim(),
       error: err.message || 'Command failed',
@@ -119,7 +136,22 @@ async function runCommand(item: CommandPlan): Promise<CommandResult> {
   }
 }
 
-function findRootDiskUsage(dfOutput: string): string | null {
+async function runCommand(item: CommandPlan, options?: { verifyDiskAfter?: boolean }): Promise<CommandResult> {
+  const command =
+    item.command === 'docker system prune'
+      ? 'printf "y\\n" | docker system prune'
+      : item.command
+
+  const result = await runShell(command)
+  const evidence = options?.verifyDiskAfter ? await collectDiskEvidence() : undefined
+  return {
+    ...item,
+    ...result,
+    evidence,
+  }
+}
+
+function parseRootDiskUsage(dfOutput: string): DiskEvidence | null {
   const lines = dfOutput.split('\n').map((line) => line.trim()).filter(Boolean)
   const rootLine = lines.find((line) => /\s\/$/.test(line)) || lines.find((line) => /\d+%/.test(line))
   if (!rootLine) return null
@@ -128,8 +160,20 @@ function findRootDiskUsage(dfOutput: string): string | null {
   const size = parts[1]
   const used = parts[2]
   const available = parts[3]
-  if (!percent) return rootLine
-  return `Main disk is ${percent} full (${used || 'unknown'} used, ${available || 'unknown'} available of ${size || 'unknown'}).`
+  if (!percent) return { raw: rootLine }
+  return { percent, used, available, size, raw: rootLine }
+}
+
+async function collectDiskEvidence(): Promise<DiskEvidence | undefined> {
+  const result = await runShell('df -h')
+  if (!result.output) return undefined
+  return parseRootDiskUsage(result.output) || { raw: result.output.split('\n').find(Boolean) }
+}
+
+function formatDiskEvidence(evidence?: DiskEvidence): string | null {
+  if (!evidence) return null
+  if (!evidence.percent) return evidence.raw || null
+  return `Main disk is ${evidence.percent} full (${evidence.used || 'unknown'} used, ${evidence.available || 'unknown'} available of ${evidence.size || 'unknown'}).`
 }
 
 function summarizeDownloads(duOutput: string): string | null {
@@ -158,7 +202,7 @@ function buildFindings(results: CommandResult[]): string[] {
   const npm = results.find((result) => result.command === 'npm cache verify')
 
   return [
-    df?.output ? findRootDiskUsage(df.output) : null,
+    df?.output ? formatDiskEvidence(parseRootDiskUsage(df.output) || undefined) : null,
     downloads?.output ? summarizeDownloads(downloads.output) : 'Downloads did not show readable large files.',
     docker ? summarizeDocker(docker.output, docker.ok) : null,
     npm ? summarizeNpm(npm.output, npm.ok) : null,
@@ -168,15 +212,19 @@ function buildFindings(results: CommandResult[]): string[] {
 export function registerDiskFullDiagnosticIpc(ipcMain: IpcMain): void {
   ipcMain.handle('rina:diagnostic:diskFull', async (): Promise<DiskFullDiagnosticResult> => {
     const normalizedPlan = readPlan.map(normalizePlan)
-    const results = await Promise.all(normalizedPlan.map(runCommand))
+    const results = await Promise.all(normalizedPlan.map((item) => runCommand(item)))
     const findings = buildFindings(results)
+    const evidence = results.find((result) => result.command === 'df -h')?.output
+      ? parseRootDiskUsage(results.find((result) => result.command === 'df -h')?.output || '') || undefined
+      : undefined
 
     return {
       ok: true,
       title: 'Disk full diagnostic',
       summary:
         findings[0] ||
-        'I checked disk usage, Downloads, Docker, and npm cache. Review the command output before approving any cleanup.',
+        'Rina inspected disk usage, Downloads, Docker, and npm cache with read-only checks. No cleanup has run.',
+      evidence,
       plan: normalizedPlan,
       results,
       findings,
@@ -196,7 +244,7 @@ export function registerDiskFullDiagnosticIpc(ipcMain: IpcMain): void {
         throw new Error('Cleanup command is not in the approved diagnostic plan.')
       }
 
-      return runCommand(normalizePlan(item))
+      return runCommand(normalizePlan(item), { verifyDiskAfter: true })
     }
   )
 }

@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "test": "jest"
+    "test": "jest",
+    "test:trust": "npm run build && node test/trust-loop.test.mjs"
   },
   "dependencies": {},
   "devDependencies": {

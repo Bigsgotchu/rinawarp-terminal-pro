@@ -1,7 +1,7 @@
 {
   "name": "rinawarp-terminal-pro",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1-beta",
   "type": "module",
   "main": "dist-electron/main.js",
   "description": "RinaWarp agent-first desktop app for build, test, deploy, and system workflows",

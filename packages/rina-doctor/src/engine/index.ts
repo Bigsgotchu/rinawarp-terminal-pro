@@ -61,6 +61,7 @@ export class SystemDoctorEngine {
    * Stage 1: Intake - Capture user intent
    */
   intake(intent: string): void {
+    this.addState('inspect', 'Rina is starting with read-only inspection. No changes yet.')
     this.addTranscript({
       ts: new Date().toISOString(),
       type: 'intent',
@@ -126,14 +127,17 @@ export class SystemDoctorEngine {
   buildInspectPlan(intent: string, playbookId?: string): AgentPlan {
     const triage = this.triage(intent)
 
-    return {
+    const plan: AgentPlan = {
       id: `inspect_${Date.now()}`,
       intent,
       playbookId: playbookId || triage.matchedPlaybook,
       stage: 'inspect',
-      reasoning: `Inspecting system to diagnose: ${triage.symptomKeywords.join(', ') || 'general check'}`,
+      reasoning: `Inspecting with read-only checks to diagnose: ${triage.symptomKeywords.join(', ') || 'general check'}. No changes will be made during inspection.`,
       steps: triage.suggestedSteps,
     }
+
+    this.addState('inspect', 'Inspecting system signals with read-only checks.')
+    return plan
   }
 
   /**
@@ -146,6 +150,7 @@ export class SystemDoctorEngine {
     const outputs: Record<string, { stdout: string; stderr: string; exitCode: number | null }> = {}
 
     for (const step of steps) {
+      this.addState('inspect', `Collecting evidence: ${step.description || step.id}.`)
       const normalized = normalizeCommand(step.command)
 
       if (!isAllowed(step.command, this.config.allowlist)) {
@@ -201,6 +206,7 @@ export class SystemDoctorEngine {
    * Stage 5: Interpret - Run rules
    */
   interpret(evidence: EvidenceBundle, rules?: Rule[]): Finding[] {
+    this.addState('explain', 'Analyzing evidence before proposing any change.')
     const applicableRules = rules || ruleRegistry.getAllRules()
     const stepOutputs: Record<string, { stdout: string; stderr: string }> = {}
 
@@ -231,6 +237,7 @@ export class SystemDoctorEngine {
     findings: Finding[],
     candidates: Array<{ causeId: string; label: string; supporting: string[]; disconfirming?: string[] }>
   ): DiagnosisBundle {
+    this.addState('explain', 'Explaining likely cause from collected evidence.')
     const scored = scoreDiagnoses(
       findings,
       candidates.map((c) => ({
@@ -280,6 +287,7 @@ export class SystemDoctorEngine {
       commands: string[]
     }>
   ): FixOption[] {
+    this.addState('propose', 'Preparing fix options with risk and recovery boundaries.')
     const options: FixOption[] = fixOptions.map((opt, i) => ({
       id: `fix_${i}`,
       label: opt.label,
@@ -297,6 +305,9 @@ export class SystemDoctorEngine {
           command: cmd,
           risk: opt.risk,
           description: opt.label,
+          expectedEffect: opt.why,
+          rollbackAwareness: this.rollbackAwarenessForCommand(cmd, opt.risk),
+          verificationHint: `Verify that ${diagnosis.primary.label} improved after this action.`,
         })),
       },
       expectedOutcome: [`Resolve ${diagnosis.primary.label}`],
@@ -330,22 +341,50 @@ export class SystemDoctorEngine {
     const results: Record<string, { stdout: string; stderr: string; exitCode: number | null }> = {}
 
     for (const step of plan.steps) {
+      if (step.risk !== 'read') {
+        this.addState('approve', `Waiting for approval before changing anything for: ${step.description || step.id}.`)
+        this.addTranscript({
+          ts: new Date().toISOString(),
+          type: 'approval',
+          stepId: step.id,
+          approved: false,
+          requested: true,
+          risk: step.risk,
+          command: step.command,
+          expectedEffect: step.expectedEffect,
+          rollbackAwareness: step.rollbackAwareness || this.rollbackAwarenessForCommand(step.command, step.risk),
+        })
+      }
+
       if (!this.gate(step, options.confirmed, options.confirmationText)) {
         this.addTranscript({
           ts: new Date().toISOString(),
           type: 'approval',
           stepId: step.id,
           approved: false,
+          requested: false,
+          risk: step.risk,
+          command: step.command,
+          reason:
+            step.risk === 'high-impact'
+              ? 'Typed YES is required before high-impact actions.'
+              : 'Approval is required before this action can change the machine.',
         })
         throw new Error(`Gate denied for step ${step.id}: ${step.risk} risk requires confirmation`)
       }
 
+      this.addState('execute', `Running approved action: ${step.description || step.id}.`)
       this.addTranscript({
         ts: new Date().toISOString(),
         type: 'approval',
         stepId: step.id,
         approved: true,
+        requested: false,
+        risk: step.risk,
+        command: step.command,
         typed: options.confirmationText,
+        expectedEffect: step.expectedEffect,
+        rollbackAwareness: step.rollbackAwareness || this.rollbackAwarenessForCommand(step.command, step.risk),
       })
 
       try {
@@ -382,12 +421,16 @@ export class SystemDoctorEngine {
   async verify(
     before: EvidenceBundle,
     after: EvidenceBundle,
-    checks: Array<{ label: string; validate: (b: EvidenceBundle, a: EvidenceBundle) => boolean }>
+    checks: Array<{ label: string; validate: (b: EvidenceBundle, a: EvidenceBundle) => boolean | { ok: boolean; details?: string } }>
   ): Promise<VerificationResult> {
-    const checkResults = checks.map((check) => ({
-      label: check.label,
-      ok: check.validate(before, after),
-    }))
+    this.addState('verify', 'Verifying before and after evidence.')
+    const checkResults = checks.map((check) => {
+      const checked = check.validate(before, after)
+      if (typeof checked === 'boolean') {
+        return { label: check.label, ok: checked }
+      }
+      return { label: check.label, ok: checked.ok, details: checked.details }
+    })
 
     const result: VerificationResult = {
       ok: checkResults.every((r) => r.ok),
@@ -413,6 +456,7 @@ export class SystemDoctorEngine {
     verification: VerificationResult,
     actions: Array<{ label: string; risk: Risk }>
   ): OutcomeCard {
+    this.addState('report', 'Preparing recovery summary with evidence and residual risk.')
     let status: OutcomeCard['status'] = 'resolved'
     let confidence = diagnosis.primary.probability
 
@@ -428,7 +472,7 @@ export class SystemDoctorEngine {
       status,
       rootCause: diagnosis.primary.label,
       actionsTaken: actions,
-      results: verification.checks.map((c) => `${c.label}: ${c.ok ? 'OK' : 'Failed'}`),
+      results: verification.checks.map((c) => `${c.label}: ${c.ok ? 'OK' : 'Failed'}${c.details ? ` (${c.details})` : ''}`),
       preventionTips: this.generatePreventionTips(diagnosis),
       confidence,
     }
@@ -445,6 +489,15 @@ export class SystemDoctorEngine {
   // Transcript Management
   addTranscript(event: TranscriptEvent): void {
     this.transcript.push(event)
+  }
+
+  addState(stage: string, message: string): void {
+    this.addTranscript({
+      ts: new Date().toISOString(),
+      type: 'state',
+      stage,
+      message,
+    })
   }
 
   getTranscript(): TranscriptEvent[] {
@@ -479,17 +532,25 @@ export class SystemDoctorEngine {
   // Private helpers
   private getBaseInspectSteps(): ToolStep[] {
     return [
-      { id: 'uptime', tool: 'terminal', command: 'uptime', risk: 'read', description: 'Load average' },
-      { id: 'loadavg', tool: 'terminal', command: 'cat /proc/loadavg', risk: 'read', description: 'Load details' },
+      { id: 'uptime', tool: 'terminal', command: 'uptime', risk: 'read', description: 'Load average', rollbackAwareness: 'not-applicable' },
+      {
+        id: 'loadavg',
+        tool: 'terminal',
+        command: 'cat /proc/loadavg',
+        risk: 'read',
+        description: 'Load details',
+        rollbackAwareness: 'not-applicable',
+      },
       {
         id: 'ps',
         tool: 'terminal',
         command: 'ps -eo pid,ppid,pcpu,pmem,comm --sort=-pcpu | head -n 20',
         risk: 'read',
         description: 'Top processes',
+        rollbackAwareness: 'not-applicable',
       },
-      { id: 'free', tool: 'terminal', command: 'free -h', risk: 'read', description: 'Memory usage' },
-      { id: 'df', tool: 'terminal', command: 'df -h', risk: 'read', description: 'Disk usage' },
+      { id: 'free', tool: 'terminal', command: 'free -h', risk: 'read', description: 'Memory usage', rollbackAwareness: 'not-applicable' },
+      { id: 'df', tool: 'terminal', command: 'df -h', risk: 'read', description: 'Disk usage', rollbackAwareness: 'not-applicable' },
     ]
   }
 
@@ -537,6 +598,17 @@ export class SystemDoctorEngine {
     }
 
     return tips
+  }
+
+  private rollbackAwarenessForCommand(command: string, risk: Risk): ToolStep['rollbackAwareness'] {
+    if (risk === 'read') return 'not-applicable'
+    const lower = command.toLowerCase()
+    if (/cache|tmp|temp/.test(lower)) return 'regenerable'
+    if (/docker\s+(image|builder|system)\s+prune|npm\s+cache|pnpm\s+store|yarn\s+cache/.test(lower)) {
+      return 're-downloadable'
+    }
+    if (/rm\s+-rf|delete|unlink|trash/.test(lower)) return 'irreversible'
+    return risk === 'high-impact' ? 'irreversible' : 'reversible'
   }
 }
 

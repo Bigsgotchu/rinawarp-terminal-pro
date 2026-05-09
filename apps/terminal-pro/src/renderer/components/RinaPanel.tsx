@@ -8,18 +8,30 @@ type CommandPlan = {
   reason: string
   risk: RiskLevel
   requiresApproval: boolean
+  expectedEffect?: string
+  rollbackAwareness?: 'not-applicable' | 'regenerable' | 're-downloadable' | 'irreversible'
 }
 
 type CommandResult = CommandPlan & {
   ok: boolean
   output: string
   error?: string
+  evidence?: DiskEvidence
+}
+
+type DiskEvidence = {
+  percent?: string
+  size?: string
+  used?: string
+  available?: string
+  raw?: string
 }
 
 type DiskDiagnostic = {
   ok: boolean
   title: string
   summary: string
+  evidence?: DiskEvidence
   plan: CommandPlan[]
   results: CommandResult[]
   findings: string[]
@@ -30,6 +42,7 @@ type CleanupState = {
   status: 'approved' | 'denied' | 'running' | 'done' | 'error'
   output?: string
   error?: string
+  evidence?: DiskEvidence
 }
 
 interface RinaPanelProps {
@@ -47,6 +60,20 @@ function riskClass(risk: RiskLevel): string {
 
 function actionKey(action: CommandPlan): string {
   return action.command
+}
+
+function formatEvidence(evidence?: DiskEvidence): string {
+  if (!evidence) return 'Not measured yet'
+  if (!evidence.percent) return evidence.raw || 'Measured'
+  return `${evidence.percent} full | ${evidence.used || 'unknown'} used | ${evidence.available || 'unknown'} available`
+}
+
+function rollbackLabel(action: CommandPlan): string {
+  if (action.rollbackAwareness === 'not-applicable') return 'No change; nothing to roll back'
+  if (action.rollbackAwareness === 'regenerable') return 'Regenerable cache data'
+  if (action.rollbackAwareness === 're-downloadable') return 'Can be re-downloaded, not restored by Rina'
+  if (action.rollbackAwareness === 'irreversible') return 'Irreversible; Rina cannot restore it automatically'
+  return 'Rollback boundary not declared'
 }
 
 export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: RinaPanelProps) {
@@ -77,6 +104,7 @@ export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: Ri
           status: result.ok ? 'done' : 'error',
           output: result.output,
           error: result.error,
+          evidence: result.evidence,
         },
       }))
     } catch (caught) {
@@ -114,10 +142,13 @@ export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: Ri
             <h3 className="text-xs font-semibold uppercase text-zinc-500">Current flow</h3>
             <p className="mt-1 text-sm text-zinc-200">
               {status === 'idle' && 'Ask "rina why is my disk full" to start a safe disk check.'}
-              {status === 'checking' && "I'll check disk usage with read-only commands first."}
-              {status === 'ready' && (diagnostic?.summary || 'Disk check complete.')}
-              {status === 'error' && (error || 'Disk diagnostic failed.')}
+              {status === 'checking' && 'Inspecting disk usage with read-only commands. No cleanup is running.'}
+              {status === 'ready' && (diagnostic?.summary || 'Disk inspection complete. Review evidence before approving cleanup.')}
+              {status === 'error' && (error || 'Disk inspection failed before any cleanup ran.')}
             </p>
+            {status === 'ready' && (
+              <p className="mt-2 text-xs text-cyan-100">No cleanup has run. Rina is waiting for your approval.</p>
+            )}
           </div>
 
           <button
@@ -127,12 +158,20 @@ export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: Ri
             disabled={status === 'checking'}
             className="w-full rounded border border-purple-500/40 bg-purple-500/15 px-3 py-2 text-sm font-medium text-purple-100 transition hover:bg-purple-500/25 disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-500"
           >
-            {status === 'checking' ? 'Checking disk usage...' : 'Run disk check'}
+            {status === 'checking' ? 'Inspecting disk usage...' : 'Run disk check'}
           </button>
         </section>
 
         {diagnostic && (
           <>
+            <section className="space-y-2">
+              <h3 className="text-xs font-semibold uppercase text-zinc-500">Before evidence</h3>
+              <div className="border border-cyan-500/30 bg-cyan-500/5 p-3">
+                <p className="text-sm font-medium text-cyan-100">Before: {formatEvidence(diagnostic.evidence)}</p>
+                <p className="mt-1 text-xs text-zinc-400">This was measured before any cleanup approval.</p>
+              </div>
+            </section>
+
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase text-zinc-500">Read checks</h3>
               <div className="space-y-2">
@@ -179,6 +218,15 @@ export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: Ri
                         </span>
                       </div>
                       <p className="mt-2 text-xs text-zinc-400">{action.reason}</p>
+                      <div className="mt-3 grid gap-2 text-xs text-zinc-300">
+                        <p>
+                          <span className="text-zinc-500">Expected effect:</span>{' '}
+                          {action.expectedEffect || 'Not declared'}
+                        </p>
+                        <p>
+                          <span className="text-zinc-500">Rollback awareness:</span> {rollbackLabel(action)}
+                        </p>
+                      </div>
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <button
                           type="button"
@@ -187,7 +235,7 @@ export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: Ri
                           disabled={busy}
                           className="rounded border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-100 hover:bg-emerald-500/20 disabled:cursor-wait disabled:border-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-500"
                         >
-                          {busy ? 'Running...' : 'Approve'}
+                          {busy ? 'Cleaning selected item...' : 'Approve cleanup'}
                         </button>
                         <button
                           type="button"
@@ -201,7 +249,12 @@ export function RinaPanel({ status, diagnostic, error, onRunDiskDiagnostic }: Ri
                       </div>
                       {state && (
                         <div data-testid={`cleanup-state-${action.risk}`} className="mt-3 text-xs text-zinc-300">
-                          <p className="font-medium capitalize">{state.status}</p>
+                          <p className="font-medium capitalize">
+                            {state.status === 'running' ? 'Cleaning selected item' : state.status}
+                          </p>
+                          {state.status === 'done' && (
+                            <p className="mt-1 text-cyan-100">After: {formatEvidence(state.evidence)}</p>
+                          )}
                           {(state.output || state.error) && (
                             <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap border border-zinc-800 bg-black p-2 text-[11px] text-zinc-300">
                               {state.output || state.error}

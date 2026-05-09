@@ -182,10 +182,21 @@ export async function doctorVerify(input: {
   // Simple verification: compare key metrics
   const checks = [
     {
-      label: 'Issue resolved',
+      label: 'Before/after evidence captured',
       validate: (b: EvidenceBundle, a: EvidenceBundle) => {
-        // Simple check: metrics should be different or better
-        return Object.keys(a.metrics).length >= Object.keys(b.metrics).length
+        const beforeDisk = Number(b.metrics?.diskUsePercent)
+        const afterDisk = Number(a.metrics?.diskUsePercent)
+        if (Number.isFinite(beforeDisk) && Number.isFinite(afterDisk)) {
+          const delta = beforeDisk - afterDisk
+          return {
+            ok: afterDisk <= beforeDisk,
+            details: `Disk usage ${beforeDisk}% -> ${afterDisk}%${delta > 0 ? `, improved by ${delta}%` : ''}`,
+          }
+        }
+        return {
+          ok: Object.keys(a.metrics).length >= Object.keys(b.metrics).length,
+          details: 'Verification kept the after snapshot available for the recovery report.',
+        }
       },
     },
   ]

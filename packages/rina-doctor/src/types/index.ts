@@ -33,6 +33,9 @@ export interface ToolStep {
   command: string
   risk: Risk
   description?: string
+  expectedEffect?: string
+  rollbackAwareness?: 'regenerable' | 're-downloadable' | 'reversible' | 'irreversible' | 'not-applicable'
+  verificationHint?: string
   timeoutMs?: number // default: 15000 for read, 60000 for safe-write
   maxBytes?: number // output cap, default: 1MB
   normalize?: 'kv' | 'table' | 'json' | 'raw'
@@ -160,6 +163,7 @@ export interface OutcomeCard {
 
 export type TranscriptType =
   | 'intent'
+  | 'state'
   | 'plan'
   | 'approval'
   | 'exec'
