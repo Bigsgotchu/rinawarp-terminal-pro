@@ -1,212 +1,2364 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta
-    http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.rinawarptech.com https://agentd.rinawarptech.com http://127.0.0.1:8787;"
-  >
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RinaWarp Terminal Pro</title>
-  <link rel="stylesheet" href="./renderer.css">
-  <link rel="stylesheet" href="./styles/components.css">
-  <link rel="stylesheet" href="./styles/workbench.css">
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline';
+                 style-src 'self' 'unsafe-inline';
+                 img-src 'self' data:;" />
+   <title>Rina — AI Terminal Assistant</title>
+   <link rel="stylesheet" href="./vendor/xterm.css" />
+   <link rel="stylesheet" href="./renderer/styles/renderer.css" />
+   <style>
+     .app-subtitle {
+       font-size: 11px;
+       color: var(--rw-muted);
+       margin-top: 2px;
+       line-height: 1.2;
+       white-space: nowrap;
+       overflow: hidden;
+       text-overflow: ellipsis;
+       max-width: 600px;
+     }
+     .terminal-pane-helper {
+       font-size: 11px;
+       color: var(--rw-muted);
+       margin-top: 2px;
+       line-height: 1.2;
+     }
+     .first-run-card {
+       background: rgba(124,199,255,0.07);
+       border: 1px solid rgba(124,199,255,0.25);
+       border-radius: 8px;
+       padding: 18px;
+       margin-bottom: 10px;
+     }
+     .first-run-title {
+       font-size: 17px;
+       font-weight: 700;
+       color: var(--rw-text);
+       margin-bottom: 8px;
+     }
+     .first-run-body {
+       font-size: 13px;
+       line-height: 1.5;
+       color: var(--rw-muted);
+       margin-bottom: 12px;
+     }
+     .first-run-actions {
+       display: flex;
+       gap: 8px;
+       flex-wrap: wrap;
+     }
+     .first-run-actions .suggestion-btn {
+       font-size: 12px;
+       padding: 6px 10px;
+     }
+   </style>
 </head>
+
 <body>
-  <div id="rw-app">
-    <aside class="rw-activitybar" aria-label="Workbench activity">
-      <div class="rw-activitybar-logo" aria-hidden="true">
-        <img class="rw-activitybar-logo-img" src="../assets/rinawarp-logo.png" alt="">
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-title">
+          <div class="name">RinaWarp</div>
+          <div class="sub">Sessions and diagnostics</div>
+        </div>
       </div>
+
+      <div class="tabbar" role="tablist" aria-label="Sidebar tabs">
+        <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="navSettings"
+                onclick="setSidebarTab('settings')" aria-label="Settings" title="Settings" data-testid="tab-settings">
+          <span class="tab-ico">⚙️</span>
+        </button>
+      </div>
+
+      <section class="pane">
+        <div class="pane-header">
+          <div class="title" id="paneTitle">Sessions</div>
+          <div class="pane-meta" id="paneMeta">0</div>
+        </div>
+        <div class="pane-body" id="paneBody" data-testid="panel-sessions"></div>
+      </section>
     </aside>
 
-    <main class="rw-workbench-shell">
-      <header class="rw-workbench-topbar">
-        <nav class="rw-workbench-tabs" aria-label="Workbench">
-          <button class="rw-workbench-tab rw-workbench-tab-primary active" data-tab="agent" type="button" aria-label="Rina workbench">Rina</button>
-          <button class="rw-workbench-tab rw-workbench-tab-secondary" data-tab="runs" type="button" aria-label="Run history">History</button>
-        </nav>
-        <div class="rw-workbench-topbar-workspace">
-          <button
-            id="workspace-picker"
-            class="rw-topbar-workspace"
-            data-pick-workspace="topbar"
-            type="button"
-            aria-label="Choose workspace"
-            title="Choose workspace"
-          >
-            Choose workspace
-          </button>
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="workspace">
+        <div class="app-title-area">
+          <div class="app-title">Rina — AI Terminal Assistant</div>
+          <div class="app-subtitle">Tell Rina what’s broken. She’ll inspect, explain, ask permission, and use the terminal safely.</div>
         </div>
-        <div class="rw-workbench-topbar-actions">
-          <button id="recovery-toggle" class="rw-topbar-action rw-topbar-action-secondary" data-tab="runs" type="button" hidden>Recovered work</button>
-          <button class="rw-topbar-action" data-tab="settings" data-action="open-settings" type="button" aria-label="Settings" hidden aria-hidden="true">Settings</button>
-        </div>
-      </header>
-
-      <section class="rw-workbench">
-        <section class="rw-center">
-        <section class="rw-center-stack">
-        <section id="panel-execution-trace" class="rw-panel rw-view" data-view="execution-trace">
-          <div class="rw-panel-head">
-            <div class="rw-panel-title-group">
-              <span class="rw-panel-title">Execution Trace</span>
-              <span class="rw-panel-subtitle">Background-only execution stream. Rina uses this internally while the thread stays primary.</span>
-            </div>
-            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
-            <div id="thinking-indicator" class="rw-thinking" style="display:none;">
-              <div class="rw-thinking-dots">
-                <span class="rw-thinking-dot"></span>
-                <span class="rw-thinking-dot"></span>
-                <span class="rw-thinking-dot"></span>
-              </div>
-              <span>Rina is figuring it out</span>
-            </div>
-          </div>
-          <div id="execution-trace-output" class="rw-execution-trace-body" data-testid="execution-trace-output"></div>
-          <div id="thinking-stream" class="rw-stream-strip"></div>
-        </section>
-
-        <section id="panel-code" class="rw-panel rw-view" data-view="code">
-          <div class="rw-panel-head">
-            <div class="rw-panel-title-group">
-              <span class="rw-panel-title">Workspace Inspector</span>
-              <span class="rw-panel-subtitle">Project files and code context when you want to inspect them</span>
-            </div>
-            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
-          </div>
-          <div class="rw-panel-body" id="workspace-files"></div>
-        </section>
-
-        <section id="panel-runs" class="rw-panel rw-view" data-view="runs">
-          <div class="rw-panel-head">
-            <div class="rw-panel-title-group">
-              <span class="rw-panel-title">Runs Inspector</span>
-              <span class="rw-panel-subtitle">Receipts, sessions, and proof when you want to inspect execution.</span>
-            </div>
-            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
-          </div>
-          <div class="rw-panel-body" id="runs-output"></div>
-        </section>
-
-        <section id="panel-receipt" class="rw-panel rw-view" data-view="receipt">
-          <div class="rw-panel-head">
-            <div class="rw-panel-title-group">
-              <span class="rw-panel-title">Receipt Viewer</span>
-              <span class="rw-panel-subtitle">Detailed proof of execution with commands, timestamps, and next actions.</span>
-            </div>
-            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
-          </div>
-          <div class="rw-panel-body" id="receipt-output"></div>
-        </section>
-
-        <section id="panel-marketplace" class="rw-panel rw-view" data-view="marketplace">
-          <div class="rw-panel-head">
-            <div class="rw-panel-title-group">
-              <span class="rw-panel-title">Marketplace</span>
-              <span class="rw-panel-subtitle">Capability packs and installable workflows when you need to expand what Rina can do</span>
-            </div>
-            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
-          </div>
-          <div class="rw-panel-body" id="marketplace-output"></div>
-        </section>
-
-        <section id="panel-brain" class="rw-panel rw-view" data-view="brain">
-          <div class="rw-panel-head">
-            <div class="rw-panel-title-group">
-              <span class="rw-panel-title">Brain Inspector</span>
-              <span class="rw-panel-subtitle">Planning, tools, memory, and results</span>
-            </div>
-            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
-            <div id="brain-stats" class="rw-brain-stats"></div>
-          </div>
-          <div class="rw-panel-body" id="brain-visualization"></div>
-        </section>
-
-        </section>
-        </section>
-
-        <aside class="rw-inspector">
-        <aside class="rw-right-stack">
-          <section id="panel-agent" class="rw-panel rw-view active rw-agent-panel" data-view="agent">
-          <div class="rw-panel-body rw-agent-body">
-            <section class="rw-agent-hero">
-              <div class="rw-agent-hero-copy">
-                <div class="rw-agent-kicker">Rina-first developer workflow</div>
-                <h2>Tell Rina what to do. She can diagnose, build, test, deploy, and leave proof behind.</h2>
-                <p>
-                  Start with what feels off, what failed, or what you want to ship. Rina will explain the plan, take action through the trusted runner,
-                  and keep proof attached to the thread when real work happens.
-                </p>
-              </div>
-            </section>
-            <div id="agent-recovery"></div>
-            <div id="agent-output"></div>
-            <div id="agent-plan-container"></div>
-            <div class="rw-agent-composer">
-              <textarea
-                id="agent-input"
-                class="rw-agent-input"
-                rows="3"
-                placeholder="Ask anything…"
-                spellcheck="false"
-              ></textarea>
-              <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
-              <div class="rw-agent-composer-actions">
-                <div class="rw-agent-hint">Try Fix my project or Check project health. Enter sends.</div>
-                <button id="agent-send" class="rw-agent-send" type="button">Ask Rina</button>
-              </div>
-            </div>
-          </div>
-          </section>
-
-          <section id="panel-diagnostics" class="rw-panel rw-view" data-view="diagnostics">
-          <div class="rw-panel-head">
-            <div class="rw-panel-title-group">
-              <span class="rw-panel-title">Diagnostics Inspector</span>
-              <span class="rw-panel-subtitle">Open this drawer when you want health, status, and observability details.</span>
-            </div>
-            <button class="rw-panel-close" data-close-drawer type="button" aria-label="Close inspector drawer">Close</button>
-          </div>
-          <div class="rw-panel-body" id="diagnostics-output"></div>
-          </section>
-        </aside>
-        </aside>
-      </section>
-    </main>
-  </div>
-
-  <div id="status-bar" class="rw-statusbar">
-    <span class="rw-status-item">
-      <span class="status-dot disconnected" id="autonomy-dot"></span>
-      <span id="mode-status-bar">Mode: assist</span>
-    </span>
-    <span class="rw-status-item" id="workspace-status">Workspace: -</span>
-    <span class="rw-status-item" id="activity-status">0 commands · 0 tools</span>
-    <span class="rw-status-item rw-status-item-right" id="status-summary">Starting…</span>
-  </div>
-
-  <div id="command-palette" class="rw-palette" role="dialog" aria-modal="true" aria-label="Command palette">
-    <div class="palette-inner">
-      <div class="palette-header">
-        <input
-          type="text"
-          id="palette-input"
-          class="rw-palette-input"
-          placeholder="Quick actions: ask Rina or open an inspector…"
-          autocomplete="off"
-          spellcheck="false"
-        >
+        <button class="ws-path" id="wsPath" onclick="pickWorkspace()" style="cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <span id="wsPathText">(not set)</span>
+          <span style="opacity:0.6">⌄</span>
+        </button>
       </div>
-      <div class="suggestions" id="palette-results"></div>
-      <div class="palette-footer">
-        <span>Ctrl+K quick actions</span>
-        <span>Enter ask Rina</span>
-        <span>Esc close</span>
+
+      <div class="workspace-nav" aria-label="Primary navigation" data-testid="workspace-nav">
+        <button class="nav-btn" onclick="openSidebarPanel('sessions')" data-testid="nav-sessions">Sessions</button>
+        <button class="nav-btn" onclick="openDiagnosticsFromTop()" data-testid="nav-diagnostics">Diagnostics</button>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="work-col">
+        <section id="timeline" class="timeline stream" data-testid="activity-stream-panel" data-testid-block-list="block-list"></section>
+        <details id="terminalDrawer" class="terminal-pane terminal-panel--secondary">
+          <summary>
+            <div class="terminal-pane-head">
+              <div>
+                <span class="terminal-pane-label">Rina’s Terminal</span>
+                <div class="terminal-pane-helper">Commands Rina runs appear here for transparency.</div>
+              </div>
+              <div class="terminal-pane-actions">
+                <span id="selectionSummary" class="selection-pill" style="display:none;"></span>
+                <button id="selectionAskBtn" class="chat-btn" style="display:none;" onclick="askRinaAboutSelection()" data-testid="ask-rina-selection">Ask Rina</button>
+                <span id="ptyStatus" style="display:none;"></span>
+              </div>
+            </div>
+          </summary>
+          <div id="ptyTerminal" data-testid="terminal-root"></div>
+        </details>
+      </div>
+      <aside id="chatPanel" class="chat-panel">
+        <div class="chat-panel-head">
+          <span>Chat Thread</span>
+          <div class="chat-head-actions">
+            <button id="chatClearBtn" class="chat-btn" onclick="clearChatThread()">Clear</button>
+            <button id="chatToggleBtn" class="chat-btn" onclick="toggleChatPanel()">Close</button>
+          </div>
+        </div>
+        <div id="chatThread" class="chat-thread"></div>
+      </aside>
+      <aside id="codePanel" class="code-panel" style="display:none;">
+        <div class="chat-panel-head">
+          <span>Code Workspace</span>
+          <div class="chat-head-actions">
+            <button class="chat-btn" onclick="refreshCodeWorkspace()">Refresh</button>
+          </div>
+        </div>
+        <div class="code-toolbar">
+          <input id="codeSearch" class="code-search" placeholder="Filter files (e.g. main.ts)" oninput="renderCodeFiles()" />
+        </div>
+        <div class="code-body">
+          <div id="codeFiles" class="code-files"></div>
+          <pre id="codePreview" class="code-preview">Select a file to preview.</pre>
+          <textarea id="codeEditor" class="code-editor" placeholder="Draft edits in this file..."></textarea>
+          <div style="min-height:0;display:flex;flex-direction:column;">
+            <div class="code-diff-head">
+              <button class="chat-btn" onclick="resetCodeDraft()">Reset Draft</button>
+              <button class="chat-btn" onclick="previewCodePatch()">Preview Patch</button>
+              <button class="chat-btn" onclick="useDraftInPrompt()">Use Draft In Prompt</button>
+            </div>
+            <pre id="codeDiff" class="code-diff"><span class="meta">Patch preview appears here.</span></pre>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Input -->
+    <div class="input-area">
+      <input id="projectRoot" class="input-project" placeholder="projectRoot (workspace folder)" style="display:none;" />
+      <div class="composer">
+        <div id="composerStack" class="input-stack">
+          <textarea id="composerInput" class="input-intent" rows="1" placeholder="Ask Rina to fix something…" data-testid="terminal-input"></textarea>
+        </div>
+        <div class="composer-actions">
+          <button id="composerSend" class="btn-send" onclick="submitInput()" data-testid="composer-send">Send</button>
+        </div>
+      </div>
+      <div id="usageLine" class="composer-usage"></div>
+    </div>
+  </div>
+  <div class="sidebar-backdrop" onclick="closeSidebarPanel()"></div>
+
+  <!-- Command Palette (hidden by default) -->
+  <div id="paletteOverlay" class="palette-overlay" style="display:none" onclick="closePalette(event)">
+    <div class="palette" onclick="event.stopPropagation()">
+      <div class="palette-input-wrap">
+        <span style="color:var(--rw-muted)">›</span>
+        <input id="paletteInput" class="palette-input" placeholder="Type a command or search…" autocomplete="off" />
+        <span class="palette-shortcut">ESC</span>
+      </div>
+      <div class="palette-body">
+        <div id="paletteResults" class="palette-results"></div>
+        <div id="palettePreview" class="palette-preview">
+          <div class="palette-preview-title">Quick Preview</div>
+          <div class="palette-preview-meta">Use ↑/↓ to browse results</div>
+          <div class="palette-preview-snippet">Select a command or search hit to preview details here.</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <script type="module" src="./index.js"></script>
+  <script src="./vendor/xterm.js"></script>
+  <script src="./vendor/xterm-addon-fit.js"></script>
+  <script src="./renderer/renderer-utils.js"></script>
+  <script src="./renderer/renderer-ipc.js"></script>
+  <script src="./renderer/renderer-approval-controller.js"></script>
+  <script src="./renderer/renderer-stream.js"></script>
+  <script src="./renderer/renderer-drawer.js"></script>
+  <script src="./renderer/renderer-settings.js"></script>
+  <script src="./renderer/renderer-diagnostics.js"></script>
+  <script src="./renderer/renderer-diagnostics-controller.js"></script>
+  <script src="./renderer/renderer-diagnostics-panel-controller.js"></script>
+  <script src="./renderer/renderer-usage.js"></script>
+  <script src="./renderer/renderer-usage-controller.js"></script>
+  <script src="./renderer/renderer-sidebar-controller.js"></script>
+  <script src="./renderer/renderer-navigation-controller.js"></script>
+  <script src="./renderer/renderer-workflow-controller.js"></script>
+  <script src="./renderer/renderer-team-controller.js"></script>
+  <script src="./renderer/renderer-palette-controller.js"></script>
+  <script src="./renderer/renderer-theme-editor-controller.js"></script>
+  <script src="./renderer/renderer-terminal-narration-controller.js"></script>
+  <script src="./renderer/renderer-downloads-session-controller.js"></script>
+  <script src="./renderer/renderer-code-workspace-controller.js"></script>
+  <script src="./renderer/renderer-activation-controller.js"></script>
+  <script src="./renderer/renderer-structured-search-controller.js"></script>
+  <script src="./renderer/renderer-chat-panel-controller.js"></script>
+  <script src="./renderer/renderer-assistant-actions-controller.js"></script>
+  <script src="./renderer/renderer-selection-controller.js"></script>
+  <script src="./renderer/renderer-theme-runtime-controller.js"></script>
+  <script src="./renderer/renderer-session-snapshot-controller.js"></script>
+  <script src="./renderer/renderer-ui-mode-controller.js"></script>
+  <script src="./renderer/renderer-render-loop-controller.js"></script>
+  <script src="./renderer/renderer-workspace-picker-controller.js"></script>
+  <script src="./renderer/renderer-terminal-state-controller.js"></script>
+  <script src="./renderer/renderer-stream-state-controller.js"></script>
+  <script src="./renderer/renderer-qa-controller.js"></script>
+  <script src="./renderer/renderer-formatters.js"></script>
+  <script src="./renderer/renderer-normalizers.js"></script>
+  <script src="./renderer/renderer-composer-classifier-controller.js"></script>
+  <script src="./renderer/renderer-composer-actions-controller.js"></script>
+
+  <script>
+    // -----------------------------
+    // State
+    // -----------------------------
+    let blocks = [];
+    let streamToBlock = {};
+    let planRunToPlanBlock = {};
+    let planRunMeta = {};
+    let streamToPlanBlock = {};
+    let autoRepairStateByPlanBlock = {};
+    let runtimePolicyEnv = "dev";
+     let mode = "terminal"; // "terminal" | "agent" | "code"
+    let rinaContext = "general";
+    let ptyConnected = false;
+    let ptyStartPromise = null;
+    let ptyTerm = null;
+    let ptyFit = null;
+    let ptyFallbackBuffer = "";
+    let themeRegistry = { themes: [] };
+    let activeThemeId = "mermaid-teal";
+    let currentPlanByBlockId = {};
+    let sessions = [];
+    let activeSidebarTab = "sessions";
+    let ptyBoundaryCaptured = 0;
+    let lastFailureSignature = "";
+    let currentSelectionText = "";
+    let currentSelectionSource = "";
+    let submitInFlight = false;
+    let pendingTerminalNarrations = [];
+    let pendingTerminalChunk = "";
+    let pendingTerminalFlushTimer = null;
+    let lastTerminalCommand = null;
+    let currentSettingsTab = "general";
+    let chatPanelVisible = true;
+    let structuredStatusCache = {
+      loaded: false,
+      enabled: false,
+      latestSessionId: null,
+      error: ""
+    };
+    let diagnosticsCache = null;
+    let diagnosticsLoading = false;
+    let daemonDiagnosticsCache = null;
+    let daemonTasksCache = [];
+    let diagnosticsPollTimer = null;
+    let diagnosticsAutoRefreshEnabled = true;
+    let diagnosticsPollIntervalMs = 3000;
+    let inlineRunsInspectorCache = [];
+    let workflowGraphCache = { nodes: [], edges: [] };
+    let workflowTasksCache = [];
+    let workflowWebhookAuditCache = [];
+    let workflowWebhookAuditError = "";
+    let workflowWebhookOutcomeFilter = "";
+    let workflowWebhookMappedFilter = "";
+    let workflowLoading = false;
+    let workflowPollTimer = null;
+    let sharedObjectsCache = [];
+    let workflowTemplatesCache = [];
+    let runtimeTasksCache = [];
+    let runtimeTasksLoading = false;
+    let paletteHistory = [];
+    let blockCollapsed = {};
+    let structuredSearchQuery = "";
+    let structuredSearchSaved = [];
+    let codeFileList = [];
+    let codeSelectedPath = "";
+    const codeFileContents = {};
+    const codeFileDrafts = {};
+    let _lastRender = 0;
+    const RENDER_THROTTLE = 50; // ms between renders
+    const SESSION_SNAPSHOT_KEY = "rinawarp:ui_snapshot:v1";
+    const SEARCH_SAVED_KEY = "rinawarp:structured_searches:v1";
+    const ONBOARD_DONE_KEY = "rinawarp:onboard_done:v1";
+    const ACTIVATION_STATE_KEY = "rinawarp:activation:v1";
+    const AGENT_EVAL_KEY = "rinawarp:agent_eval:v1";
+    const DIAGNOSTICS_AUTO_REFRESH_KEY = "rinawarp:diagnostics:auto_refresh:v1";
+    const DIAGNOSTICS_POLL_INTERVAL_KEY = "rinawarp:diagnostics:poll_interval_ms:v1";
+    const ACTIVATION_EVENT_API = "https://api.rinawarptech.com/api/events";
+    const THEME_VAR_KEYS = {
+      bg: "--rw-bg",
+      panel: "--rw-panel",
+      border: "--rw-border",
+      text: "--rw-text",
+      muted: "--rw-muted",
+      accent: "--rw-accent",
+      accent2: "--rw-accent2",
+      danger: "--rw-danger",
+      success: "--rw-success",
+    };
+
+    // -----------------------------
+    // Helpers
+    // -----------------------------
+    const {
+      newId,
+      escapeHtml,
+      trimSelectionText,
+      formatBytes,
+      getComposerInput,
+      autosizeTextarea,
+      getOrCreateLocalStorageId,
+    } = window.RinaRendererUtils;
+    const {
+      suggestionButtonsHtml,
+      renderConversationStream,
+    } = window.RinaRendererStream;
+    const {
+      renderEmptyListRow,
+      renderPlanRunRow,
+      renderRuntimeTaskRow,
+      renderSessionsList,
+      renderWorkflowList,
+      renderSharedObjectList,
+      renderSharesList,
+      renderTeamList,
+      renderTeamInviteList,
+      renderTeamActivityList,
+      workflowIssueTasks,
+      workflowMonitorSummary,
+      renderWorkflowIssueTaskList,
+      renderWorkflowWebhookAuditList,
+    } = window.RinaRendererDrawer;
+    const {
+      renderThemeTiles,
+      renderSavedSearchChips,
+      renderStructuredSearchHits,
+    } = window.RinaRendererSettings;
+    const {
+      renderDiagnosticsWarnings,
+      renderDiagnosticsRuntime,
+      renderDiagnosticsAgent,
+      renderDiagnosticsFiles,
+    } = window.RinaRendererDiagnostics;
+    const {
+      renderDiagnosticsPanel: renderDiagnosticsPanelController,
+      refreshDiagnosticsPanel: refreshDiagnosticsPanelController,
+      applyDiagnosticsAutoRefreshButton: applyDiagnosticsAutoRefreshButtonController,
+      applyDiagnosticsPollIntervalSelect: applyDiagnosticsPollIntervalSelectController,
+    } = window.RinaRendererDiagnosticsController;
+    const {
+      activationStatusText,
+      activationStepsHtml,
+    } = window.RinaRendererUsage;
+    const {
+      getAppShell,
+      openSidebarPanel,
+      closeSidebarPanel,
+      updateTerminalTimelineVisibility,
+      updatePrimaryNav,
+    } = window.RinaRendererSidebarController;
+    const {
+      approveInlineCommand,
+      approveFilePatch,
+      inlineAsk,
+      sendChatMessage,
+      loadDiagnostics,
+      openDirectory,
+      workspaceDefault,
+      listShares,
+      revokeShare,
+      teamGet,
+      teamListInvites,
+      teamActivity,
+      inlineRunsList,
+      inlineRunsExport,
+      daemonTaskAdd,
+      daemonTasks,
+      daemonStart,
+      daemonStop,
+      redactionPreview,
+      runtimeTasks,
+    } = window.RinaRendererIpc;
+    const {
+      createApprovalHandlers,
+    } = window.RinaWarpApprovalController;
+    const {
+      hexToRgba,
+      toXtermTheme,
+      paletteIconGlyph,
+      getChatFallbackReply,
+      inlineFailurePrompt,
+      inlineFailureTitle,
+      buildHandoffBriefFromParts,
+    } = window.RinaRendererFormatters;
+    const {
+      applyRunbookParams,
+      extractRunbookParams,
+      sortStructuredHits,
+      structuredSearchParts,
+    } = window.RinaRendererNormalizers;
+    const {
+      classifyInput: classifyComposerInput,
+      sessionNameForInput,
+      inlineRinaSuccessLabel,
+      userBlock: composerUserBlock,
+      assistantMarkdownBlock,
+      developerModeBlock,
+      emptyRinaPromptBlock,
+      terminalUnavailableBlock,
+      inlineThinkingBlock,
+      inlineFailureBlock,
+      ambiguousChoiceBlock,
+      orchestratorErrorBlock,
+      orchestratorStartedBlock,
+      codeThinkingBlock,
+      planBlock: composerPlanBlock,
+      codeErrorBlock,
+    } = window.RinaWarpComposerClassifierController;
+    const {
+      handleDirectChatInput,
+      handleTerminalCommandInput,
+      handleAgentIntentInput,
+      handleCodeIntentInput,
+      handleRunbookIntentInput,
+    } = window.RinaWarpComposerActionsController;
+
+    const readAgentEval = window.RinaWarpActivationController.readAgentEval;
+    const writeAgentEval = window.RinaWarpActivationController.writeAgentEval;
+    const recordAgentEval = window.RinaWarpActivationController.recordAgentEval;
+    const summarizeAgentEval = window.RinaWarpActivationController.summarizeAgentEval;
+    const getActivationState = window.RinaWarpActivationController.getState;
+    const saveActivationState = window.RinaWarpActivationController.saveState;
+    const trackActivationEvent = window.RinaWarpActivationController.trackEvent;
+    const renderActivationChecklist = window.RinaWarpActivationController.renderChecklist;
+    const markActivationStep = window.RinaWarpActivationController.markStep;
+    Object.assign(window, {
+      readAgentEval,
+      writeAgentEval,
+      recordAgentEval,
+      summarizeAgentEval,
+      getActivationState,
+      saveActivationState,
+      trackActivationEvent,
+      renderActivationChecklist,
+      markActivationStep,
+    });
+
+    const renderChatThread = window.RinaWarpChatPanelController.renderThread;
+    const applySidePanelsVisibility = window.RinaWarpChatPanelController.applyVisibility;
+    const toggleChatPanel = window.RinaWarpChatPanelController.toggle;
+    const clearChatThread = window.RinaWarpChatPanelController.clear;
+    Object.assign(window, {
+      renderChatThread,
+      applySidePanelsVisibility,
+      toggleChatPanel,
+      clearChatThread,
+    });
+
+    const copySuggestedCommand = window.RinaWarpAssistantActionsController.copySuggestedCommand;
+    const findBlockById = window.RinaWarpAssistantActionsController.findBlockById;
+    const runInlineFailureAction = window.RinaWarpAssistantActionsController.runInlineFailureAction;
+    const runInlineRinaPrompt = window.RinaWarpAssistantActionsController.runInlineRinaPrompt;
+    const runSuggestedCommand = window.RinaWarpAssistantActionsController.runSuggestedCommand;
+    Object.assign(window, {
+      copySuggestedCommand,
+      findBlockById,
+      runInlineFailureAction,
+      runInlineRinaPrompt,
+      runSuggestedCommand,
+    });
+
+    const downloadReport = window.RinaWarpDownloadsSessionController.downloadReport;
+    const downloadFullReport = window.RinaWarpDownloadsSessionController.downloadFullReport;
+    const buildHandoffBrief = window.RinaWarpDownloadsSessionController.buildHandoffBrief;
+    const downloadHandoffBrief = window.RinaWarpDownloadsSessionController.downloadHandoffBrief;
+    const downloadAgentEvalReport = window.RinaWarpDownloadsSessionController.downloadAgentEvalReport;
+    const workspaceKey = window.RinaWarpDownloadsSessionController.workspaceKey;
+    const saveSession = window.RinaWarpDownloadsSessionController.saveSession;
+    const loadSession = window.RinaWarpDownloadsSessionController.loadSession;
+    const toast = window.RinaWarpDownloadsSessionController.toast;
+    Object.assign(window, {
+      downloadReport,
+      downloadFullReport,
+      buildHandoffBrief,
+      downloadHandoffBrief,
+      downloadAgentEvalReport,
+      workspaceKey,
+      saveSession,
+      loadSession,
+      toast,
+    });
+
+    const createTerminalNarration = window.RinaWarpTerminalNarrationController.create;
+    const completeTerminalNarration = window.RinaWarpTerminalNarrationController.complete;
+    const appendTerminalNarrationChunk = window.RinaWarpTerminalNarrationController.appendChunk;
+    const writeTerminalCommandToPty = window.RinaWarpTerminalNarrationController.writeCommandToPty;
+    const flushPendingTerminalChunk = window.RinaWarpTerminalNarrationController.flushPendingChunk;
+    const queueTerminalOutput = window.RinaWarpTerminalNarrationController.queueOutput;
+    Object.assign(window, {
+      createTerminalNarration,
+      completeTerminalNarration,
+      appendTerminalNarrationChunk,
+      writeTerminalCommandToPty,
+      flushPendingTerminalChunk,
+      queueTerminalOutput,
+    });
+
+    const setPtyStatusText = window.RinaWarpTerminalStateController.setPtyStatusText;
+    const markPtyReady = window.RinaWarpTerminalStateController.markPtyReady;
+    const markPtyOffline = window.RinaWarpTerminalStateController.markPtyOffline;
+    Object.assign(window, {
+      setPtyStatusText,
+      markPtyReady,
+      markPtyOffline,
+    });
+
+    const approvalHandlers = createApprovalHandlers({
+      findBlockById,
+      updateBlock,
+      addBlock,
+      newId,
+      toast,
+      isPtyConnected: () => ptyConnected,
+      ensurePty,
+      createTerminalNarration,
+      setLastTerminalCommand: (command) => { lastTerminalCommand = command; },
+      removePendingTerminalNarration: (id) => {
+        pendingTerminalNarrations = pendingTerminalNarrations.filter((item) => item.id !== id);
+      },
+      approveInlineCommand,
+      approveFilePatch,
+      refreshUsageLine: () => window.RinaRendererUsageController.refreshUsageLine(),
+    });
+    const copyInlineRinaCommand = approvalHandlers.copyInlineRinaCommand;
+    const approveInlineRinaCommand = approvalHandlers.approveInlineRinaCommand;
+    window.copyInlineRinaCommand = copyInlineRinaCommand;
+    window.approveInlineRinaCommand = approveInlineRinaCommand;
+
+    const refreshSelectionAffordance = window.RinaWarpSelectionController.refreshAffordance;
+    const refreshCurrentSelection = window.RinaWarpSelectionController.refreshCurrentSelection;
+    const askRinaAboutSelection = window.RinaWarpSelectionController.askRinaAboutSelection;
+    Object.assign(window, {
+      refreshSelectionAffordance,
+      refreshCurrentSelection,
+      askRinaAboutSelection,
+    });
+
+    async function resolveIntentDecision(blockId, modeChoice) {
+      const block = findBlockById(blockId);
+      const pendingInput = String(block?.pendingInput || "").trim();
+      if (!pendingInput) return;
+      if (modeChoice === "terminal") {
+        const sent = await writeTerminalCommandToPty(
+          pendingInput,
+          (document.getElementById("projectRoot")?.value || "").trim() || undefined,
+        );
+        if (!sent) return;
+        updateBlock(blockId, {
+          status: "ok",
+          markdown: `Ran in terminal: \`${pendingInput}\``,
+          inputDecision: "terminal",
+          pendingInput: undefined,
+        });
+        return;
+      }
+      try {
+        await runInlineRinaPrompt(pendingInput, {
+          blockId,
+          triggerType: "input",
+          sourceText: pendingInput,
+          loadingMessage: "Letting Rina interpret that request...",
+          successLabel: `Rina interpreted: ${pendingInput}`,
+        });
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "Inline Rina failed");
+        updateBlock(blockId, {
+          status: "failed",
+          markdown: `Inline Rina failed.\n\n${msg}`,
+        });
+      }
+    }
+
+    const renderCodeFiles = window.RinaWarpCodeWorkspaceController.renderFiles;
+    const lcsLineDiff = window.RinaWarpCodeWorkspaceController.lcsLineDiff;
+    const renderCodeDiff = window.RinaWarpCodeWorkspaceController.renderDiff;
+    const previewCodePatch = window.RinaWarpCodeWorkspaceController.previewPatch;
+    const resetCodeDraft = window.RinaWarpCodeWorkspaceController.resetDraft;
+    const useDraftInPrompt = window.RinaWarpCodeWorkspaceController.useDraftInPrompt;
+    const refreshCodeWorkspace = window.RinaWarpCodeWorkspaceController.refresh;
+    const openCodeFile = window.RinaWarpCodeWorkspaceController.openFile;
+    Object.assign(window, {
+      renderCodeFiles,
+      lcsLineDiff,
+      renderCodeDiff,
+      previewCodePatch,
+      resetCodeDraft,
+      useDraftInPrompt,
+      refreshCodeWorkspace,
+      openCodeFile,
+    });
+
+    const applyCssVars = window.RinaWarpThemeRuntimeController.applyCssVars;
+    const findThemeById = window.RinaWarpThemeRuntimeController.findThemeById;
+    const loadThemeState = window.RinaWarpThemeRuntimeController.loadThemeState;
+    const applyThemeSpec = window.RinaWarpThemeRuntimeController.applyThemeSpec;
+    const applyThemeById = window.RinaWarpThemeRuntimeController.applyThemeById;
+    Object.assign(window, {
+      applyCssVars,
+      findThemeById,
+      loadThemeState,
+      applyThemeSpec,
+      applyThemeById,
+    });
+
+    async function ensurePty() {
+      if (ptyConnected) return true;
+      if (ptyStartPromise) return await ptyStartPromise;
+      ptyStartPromise = startPtySession();
+      try {
+        return await ptyStartPromise;
+      } finally {
+        ptyStartPromise = null;
+      }
+    }
+
+    async function startPtySession() {
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+
+      if (!ptyTerm && window.Terminal) {
+        const termEl = document.getElementById("ptyTerminal");
+        const active = findThemeById(activeThemeId);
+        const mappedTheme = toXtermTheme(active?.terminal);
+        ptyTerm = new window.Terminal({
+          cursorBlink: true,
+          fontSize: 13,
+          scrollback: 5000,
+          theme: mappedTheme || { background: "#0b0f17", foreground: "#e6e6e6" }
+        });
+        window.__term = ptyTerm;
+        ptyFit = window.FitAddon ? new window.FitAddon.FitAddon() : null;
+        if (ptyFit) ptyTerm.loadAddon(ptyFit);
+        ptyTerm.open(termEl);
+        ptyTerm.onSelectionChange?.(() => refreshCurrentSelection());
+        if (ptyFit) ptyFit.fit();
+        ptyTerm.focus();
+        ptyTerm.attachCustomKeyEventHandler((ev) => {
+          const key = String(ev?.key || "").toLowerCase();
+          const accel = !!(ev?.ctrlKey || ev?.metaKey);
+          const shift = !!ev?.shiftKey;
+          if (accel && shift && key === "c") {
+            const selected = ptyTerm?.getSelection?.() || "";
+            if (selected) {
+              navigator.clipboard?.writeText(selected).catch(() => {});
+              toast("Copied selection");
+            }
+            return false;
+          }
+          if (accel && shift && key === "v") {
+            navigator.clipboard?.readText?.().then((txt) => {
+              if (txt) window.rina.ptyWrite?.(txt);
+            }).catch(() => {});
+            return false;
+          }
+          return true;
+        });
+        ptyTerm.onData((data) => {
+          window.rina.ptyWrite?.(data);
+        });
+      } else if (!window.Terminal) {
+        const termEl = document.getElementById("ptyTerminal");
+        if (!termEl.querySelector(".terminal-fallback")) {
+          const pre = document.createElement("pre");
+          pre.className = "terminal-fallback";
+          pre.textContent = "xterm.js unavailable. Using fallback PTY view.\n";
+          termEl.appendChild(pre);
+        }
+      }
+
+      const cols = ptyTerm?.cols ?? 120;
+      const rows = ptyTerm?.rows ?? 30;
+      const res = await window.rina.ptyStart?.({ cols, rows, cwd: projectRoot || undefined });
+      if (!res?.ok) {
+        toast(`PTY start failed: ${res?.error || "unknown error"}`);
+        return false;
+      }
+      markPtyReady();
+      if (ptyFit) ptyFit.fit();
+      if (ptyTerm) window.rina.ptyResize?.(ptyTerm.cols, ptyTerm.rows);
+      return true;
+    }
+
+    const renderBlocks = window.RinaWarpRenderLoopController.renderBlocks;
+    const _renderBlocksImpl = window.RinaWarpRenderLoopController.renderBlocksImpl;
+    Object.assign(window, {
+      renderBlocks,
+      _renderBlocksImpl,
+    });
+
+    const {
+      getBlockById,
+      appendBlockState,
+      mapStreamToBlock,
+      getBlockIdForStream,
+      mapStreamToPlanBlock,
+      clearStreamMapping,
+      mapPlanRun,
+      getPlanBlockIdForRun,
+      getPlanRunMeta,
+      clearPlanRunMapping,
+      setAutoRepairRetry,
+      getAutoRepairState,
+      consumeAutoRepairRetry,
+      toggleBlockCollapsed,
+    } = window.RinaWarpStreamStateController;
+
+    function addBlock(block) {
+      window.RinaWarpStreamStateController.addBlockState(block);
+    }
+
+    function removeBlock(id) {
+      window.RinaWarpStreamStateController.removeBlockState(id);
+    }
+
+    function updateBlock(id, updates) {
+      window.RinaWarpStreamStateController.updateBlockState(id, updates);
+    }
+
+    function getActivePlanRunIdForBlock(blockId) {
+      return window.RinaWarpStreamStateController.getActivePlanRunIdForBlock(blockId);
+    }
+
+    function clearRunningStreamLocally(streamId, opts = {}) {
+      return window.RinaWarpStreamStateController.clearRunningStreamLocally(streamId, opts);
+    }
+
+    Object.assign(window, {
+      addBlock,
+      removeBlock,
+      updateBlock,
+      clearRunningStreamLocally,
+      getActivePlanRunIdForBlock,
+    });
+
+    let reportingRuntimeError = false;
+    function reportRuntimeError(kind, message, extra = "") {
+      if (reportingRuntimeError) {
+        console.error(`[${kind}]`, message, extra);
+        return;
+      }
+      reportingRuntimeError = true;
+      try {
+        window.rina?.reportRendererError?.({ kind, message, extra });
+        addBlock({
+          id: newId("runtime"),
+          type: "assistant",
+          status: "failed",
+          createdAt: Date.now(),
+          title: "Rina — Runtime Error",
+          markdown: `${kind}: ${message}${extra ? `\n\n${extra}` : ""}`,
+        });
+        toast(`${kind}: ${message}`);
+      } finally {
+        reportingRuntimeError = false;
+      }
+    }
+
+    const persistUiSnapshot = window.RinaWarpSessionSnapshotController.persist;
+    const restoreUiSnapshot = window.RinaWarpSessionSnapshotController.restore;
+    Object.assign(window, {
+      persistUiSnapshot,
+      restoreUiSnapshot,
+    });
+
+    // -----------------------------
+    // Sidebar
+    // -----------------------------
+    const {
+      summarizePlanRuns,
+      focusBlock,
+      setTab: setSidebarTab,
+    } = window.RinaWarpNavigationController;
+    window.focusBlock = focusBlock;
+    window.setSidebarTab = setSidebarTab;
+
+    function setSettingsTab(tab) {
+      currentSettingsTab = tab;
+      document.getElementById("paneMeta")?.replaceChildren(document.createTextNode(tab));
+      document.querySelectorAll(".sttab").forEach((btn) => {
+        const on = btn.getAttribute("data-st") === tab;
+        btn.classList.toggle("active", on);
+        btn.setAttribute("aria-selected", String(on));
+        btn.tabIndex = on ? 0 : -1;
+      });
+      document.querySelectorAll(".stpanel").forEach((panel) => {
+        panel.style.display = panel.getAttribute("data-stpanel") === tab ? "" : "none";
+      });
+      if (tab === "appearance") {
+        renderThemeGrid().catch((err) => console.warn("theme grid render failed", err));
+      } else if (tab === "runs") {
+        void refreshRuntimeTasks().then(() => {
+          const run = summarizePlanRuns();
+          const rt = runtimeTasksCache || [];
+          const rtRunning = rt.filter((t) => t.status === "running" || t.status === "pending").length;
+          const panel = document.getElementById("settingsRunsPanel");
+          if (!panel) return;
+          panel.innerHTML = `
+            <div>Total: <b>${run.plans.length}</b> • Running: <b>${run.running.length}</b> • Failed: <b>${run.failed.length}</b> • Completed: <b>${run.completed.length}</b></div>
+            <div class="settings-summary">Background active: <b>${rtRunning}</b></div>
+            <div class="settings-stack">
+              ${
+                run.plans.length
+                  ? run.plans.slice(0, 10).map(renderPlanRunRow).join("")
+                  : renderEmptyListRow("No runs yet", "Switch to Agent mode to start your first run.")
+              }
+              ${
+                rt.length
+                  ? rt.slice(0, 10).map(renderRuntimeTaskRow).join("")
+                  : renderEmptyListRow("No background runs yet", "Queued backend work will appear here.")
+              }
+            </div>
+          `;
+        });
+      } else if (tab === "shares") {
+        refreshSharesPanel();
+      } else if (tab === "workflows") {
+        void refreshSharedObjects().then(() => {
+          const wfs = listWorkflows();
+          const sharedObjects = listSharedObjects();
+          const savedList = document.getElementById("savedWorkflowList");
+          const sharedList = document.getElementById("sharedObjectList");
+          if (savedList) {
+            savedList.innerHTML = wfs.length
+              ? renderWorkflowList(wfs)
+              : renderEmptyListRow("No saved workflows yet", "Save a plan block to reuse it here.");
+          }
+          if (sharedList) {
+            sharedList.innerHTML = sharedObjects.length
+              ? renderSharedObjectList(sharedObjects)
+              : renderEmptyListRow("No shared objects yet", "Save a prompt or snippet to reuse it across runs.");
+          }
+        });
+        refreshWorkflowPanel();
+      } else if (tab === "team") {
+        refreshTeamSummary();
+        refreshTeamInvites();
+        refreshTeamActivity();
+      } else if (tab === "diagnostics") {
+        applyDiagnosticsAutoRefreshButton();
+        applyDiagnosticsPollIntervalSelect();
+        refreshDiagnosticsPanel();
+        refreshInlineRunsInspector();
+      }
+    }
+
+    const diagnosticsRenderArgs = window.RinaWarpDiagnosticsPanelController.renderArgs;
+    const renderDiagnosticsPanel = window.RinaWarpDiagnosticsPanelController.renderPanel;
+    const refreshDiagnosticsPanel = window.RinaWarpDiagnosticsPanelController.refresh;
+    const {
+      copyDiagnosticsPanel,
+      currentInlineRunsFilters,
+      renderInlineRunsInspector,
+      refreshInlineRunsInspector,
+      exportInlineRuns,
+      enqueueDaemonSmokeTask,
+      startDaemonFromUi,
+      stopDaemonFromUi,
+      saveSupportBundle,
+      previewCurrentInputRedaction,
+    } = window.RinaWarpDiagnosticsPanelController;
+    Object.assign(window, window.RinaWarpDiagnosticsPanelController, {
+      diagnosticsRenderArgs,
+      renderDiagnosticsPanel,
+      refreshDiagnosticsPanel,
+    });
+
+    function isDiagnosticsTabVisible() {
+      if (activeSidebarTab !== "settings") return false;
+      const activeSettingsTab = document.querySelector(".sttab.active");
+      return activeSettingsTab?.getAttribute("data-st") === "diagnostics";
+    }
+
+    function startDiagnosticsPolling() {
+      if (diagnosticsPollTimer) clearInterval(diagnosticsPollTimer);
+      diagnosticsPollTimer = setInterval(() => {
+        if (!diagnosticsAutoRefreshEnabled) return;
+        if (!isDiagnosticsTabVisible()) return;
+        void refreshDiagnosticsPanel();
+      }, diagnosticsPollIntervalMs);
+    }
+
+    function applyDiagnosticsAutoRefreshButton() {
+      applyDiagnosticsAutoRefreshButtonController(diagnosticsAutoRefreshEnabled);
+    }
+
+    function loadDiagnosticsAutoRefresh() {
+      try {
+        const raw = localStorage.getItem(DIAGNOSTICS_AUTO_REFRESH_KEY);
+        diagnosticsAutoRefreshEnabled = raw == null ? true : raw !== "0";
+      } catch {
+        diagnosticsAutoRefreshEnabled = true;
+      }
+    }
+
+    function loadDiagnosticsPollInterval() {
+      try {
+        const raw = localStorage.getItem(DIAGNOSTICS_POLL_INTERVAL_KEY);
+        const parsed = Number(raw);
+        if (parsed === 2000 || parsed === 5000 || parsed === 10000) {
+          diagnosticsPollIntervalMs = parsed;
+          return;
+        }
+        diagnosticsPollIntervalMs = 3000;
+      } catch {
+        diagnosticsPollIntervalMs = 3000;
+      }
+    }
+
+    function persistDiagnosticsAutoRefresh() {
+      try {
+        localStorage.setItem(DIAGNOSTICS_AUTO_REFRESH_KEY, diagnosticsAutoRefreshEnabled ? "1" : "0");
+      } catch {
+        // ignore storage issues
+      }
+    }
+
+    function toggleDiagnosticsAutoRefresh() {
+      diagnosticsAutoRefreshEnabled = !diagnosticsAutoRefreshEnabled;
+      persistDiagnosticsAutoRefresh();
+      applyDiagnosticsAutoRefreshButton();
+      toast(`Diagnostics auto-refresh ${diagnosticsAutoRefreshEnabled ? "enabled" : "disabled"}`);
+    }
+
+    function applyDiagnosticsPollIntervalSelect() {
+      applyDiagnosticsPollIntervalSelectController(diagnosticsPollIntervalMs);
+    }
+
+    function setDiagnosticsPollInterval(raw) {
+      const parsed = Number(raw);
+      if (!(parsed === 2000 || parsed === 5000 || parsed === 10000)) {
+        toast("Invalid diagnostics interval");
+        return;
+      }
+      diagnosticsPollIntervalMs = parsed;
+      try {
+        localStorage.setItem(DIAGNOSTICS_POLL_INTERVAL_KEY, String(parsed));
+      } catch {
+        // ignore storage issues
+      }
+      startDiagnosticsPolling();
+      toast(`Diagnostics interval set to ${Math.round(parsed / 1000)}s`);
+    }
+
+    function showPolicyPath() {
+      toast("Policy: policy/rinawarp-policy.yaml");
+    }
+
+    function showPolicyPath() {
+      toast("Policy: policy/rinawarp-policy.yaml");
+    }
+
+    const ensureAnsiGrid = window.RinaWarpThemeEditorController.ensureAnsiGrid;
+    const themeEditorReadFromUI = window.RinaWarpThemeEditorController.readFromUI;
+    const themeEditorFillUI = window.RinaWarpThemeEditorController.fillUI;
+    const renderThemeGrid = window.RinaWarpThemeEditorController.renderGrid;
+    const themeEditorApplyPreview = window.RinaWarpThemeEditorController.applyPreview;
+    const themeEditorSave = window.RinaWarpThemeEditorController.save;
+    const themeEditorDelete = window.RinaWarpThemeEditorController.deleteTheme;
+    const themeEditorExport = window.RinaWarpThemeEditorController.exportTheme;
+    const themeEditorImport = window.RinaWarpThemeEditorController.importTheme;
+    const themeEditorClear = window.RinaWarpThemeEditorController.clear;
+    Object.assign(window, {
+      ensureAnsiGrid,
+      themeEditorReadFromUI,
+      themeEditorFillUI,
+      renderThemeGrid,
+      themeEditorApplyPreview,
+      themeEditorSave,
+      themeEditorDelete,
+      themeEditorExport,
+      themeEditorImport,
+      themeEditorClear,
+    });
+
+    const openWorkspace = window.RinaWarpUiModeController.openWorkspace;
+    const openDiagnosticsFromTop = window.RinaWarpUiModeController.openDiagnosticsFromTop;
+    const setRinaContext = window.RinaWarpUiModeController.setRinaContext;
+    const setMode = window.RinaWarpUiModeController.setMode;
+    const updatePrimaryRunStatus = window.RinaWarpUiModeController.updatePrimaryRunStatus;
+    Object.assign(window, {
+      openWorkspace,
+      openDiagnosticsFromTop,
+      setRinaContext,
+      setMode,
+      updatePrimaryRunStatus,
+    });
+
+    const pickWorkspace = window.RinaWarpWorkspacePickerController.pickWorkspace;
+    const saveWorkspaceToHistory = window.RinaWarpWorkspacePickerController.saveWorkspaceToHistory;
+    const loadWorkspaceHistory = window.RinaWarpWorkspacePickerController.loadWorkspaceHistory;
+    const ensureWorkspaceRoot = window.RinaWarpWorkspacePickerController.ensureWorkspaceRoot;
+    Object.assign(window, {
+      pickWorkspace,
+      saveWorkspaceToHistory,
+      loadWorkspaceHistory,
+      ensureWorkspaceRoot,
+    });
+
+    async function refreshStructuredStatus() {
+      try {
+        const st = await window.rina?.structuredStatus?.();
+        structuredStatusCache = {
+          loaded: true,
+          enabled: !!st?.enabled,
+          latestSessionId: st?.latestSessionId || null,
+          error: ""
+        };
+      } catch (err) {
+        structuredStatusCache = {
+          loaded: true,
+          enabled: false,
+          latestSessionId: null,
+          error: (err && err.message) ? err.message : String(err || "status failed")
+        };
+      }
+      if (activeSidebarTab === "structured") setSidebarTab("structured");
+    }
+
+    async function refreshPtyMetrics() {
+      try {
+        const res = await window.rina?.ptyMetrics?.();
+        const node = document.getElementById("ptyMetricsSummary");
+        if (!node) return;
+        if (!res?.ok || !res?.metrics) {
+          node.textContent = `PTY metrics: ${res?.error || "unavailable"}`;
+          return;
+        }
+        const m = res.metrics;
+        node.textContent =
+          `PTY metrics: ${m.durationSec}s in:${m.bytesIn}B out:${m.bytesOut}B ` +
+          `resize:${m.resizeCount} blocked:${m.blockedCommands} boundaries:${m.boundaries}`;
+      } catch (err) {
+        const node = document.getElementById("ptyMetricsSummary");
+        if (node) node.textContent = `PTY metrics: error ${err?.message || err}`;
+      }
+    }
+
+    async function refreshPolicyStatus() {
+      try {
+        const st = await window.rina?.policyEnv?.();
+        runtimePolicyEnv = st?.env || "dev";
+        updatePrimaryRunStatus();
+      } catch {
+        runtimePolicyEnv = "dev";
+        updatePrimaryRunStatus();
+      }
+    }
+
+    const {
+      qaSetOutput,
+      qaStartLongRun,
+      qaShowRunningStreams,
+      qaDumpStructuredLast20,
+    } = window.RinaWarpQaController;
+    Object.assign(window, {
+      qaSetOutput,
+      qaStartLongRun,
+      qaShowRunningStreams,
+      qaDumpStructuredLast20,
+    });
+
+    async function exportStructuredRunbook(sessionId) {
+      try {
+        const preview = await window.rina?.exportPreview?.({ kind: "runbook_markdown", sessionId });
+        if (!preview?.ok || !preview.previewId) {
+          throw new Error(preview?.error || "Failed to prepare runbook export preview");
+        }
+        const redactionCount = Number(preview?.redactionCount || 0);
+        const typed = prompt(
+          `Share/Publish control:\n` +
+          `- Redactions applied: ${redactionCount}\n` +
+          `- Preview expires: ${preview.expiresAt || "soon"}\n` +
+          `Type "PUBLISH" to download the redacted runbook.`
+        ) ?? "";
+        if (typed !== "PUBLISH") {
+          toast("Publish cancelled");
+          return;
+        }
+        const published = await window.rina?.exportPublish?.({
+          previewId: preview.previewId,
+          typedConfirm: typed,
+          expectedHash: preview.contentHash,
+        });
+        if (!published?.ok || !published.content) {
+          throw new Error(published?.error || "Runbook publish failed");
+        }
+
+        const blob = new Blob([published.content], { type: published.mime || "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = published.fileName || `rina-structured-runbook-${new Date().toISOString().replace(/[:.]/g, "-")}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast("Structured runbook published (local download)");
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "runbook export failed");
+        toast(`Runbook export failed: ${msg}`);
+      }
+    }
+
+    const quickFindStructured = window.RinaWarpStructuredSearchController.quickFind;
+    const loadSavedSearches = window.RinaWarpStructuredSearchController.loadSaved;
+    const persistSavedSearches = window.RinaWarpStructuredSearchController.persistSaved;
+    const renderSavedSearches = window.RinaWarpStructuredSearchController.renderSaved;
+    const performStructuredSearch = window.RinaWarpStructuredSearchController.perform;
+    const runStructuredSearchFromInput = window.RinaWarpStructuredSearchController.runFromInput;
+    const applyStructuredSearchChip = window.RinaWarpStructuredSearchController.applyChip;
+    const saveStructuredSearch = window.RinaWarpStructuredSearchController.saveSearch;
+    Object.assign(window, {
+      quickFindStructured,
+      loadSavedSearches,
+      persistSavedSearches,
+      renderSavedSearches,
+      performStructuredSearch,
+      runStructuredSearchFromInput,
+      applyStructuredSearchChip,
+      saveStructuredSearch,
+    });
+
+    async function preflightPolicy(command, opts = {}) {
+      const riskHint = opts.risk || "safe-write";
+      try {
+        const ex = await window.rina?.policyExplain?.(command);
+        if (!ex) return { ok: true, confirmed: true, confirmationText: "", explanation: null };
+        if (ex.action === "deny") {
+          toast(`Policy deny: ${ex.message}`);
+          return { ok: false, confirmed: false, confirmationText: "", explanation: ex };
+        }
+        if (ex.action === "allow") {
+          return { ok: true, confirmed: true, confirmationText: "", explanation: ex };
+        }
+        const approval = ex.approval || (riskHint === "high-impact" ? "typed_yes" : "click");
+        if (approval === "click") {
+          const proceed = confirm(ex.message || "Proceed with this command?");
+          return { ok: proceed, confirmed: proceed, confirmationText: "", explanation: ex };
+        }
+        if (approval === "typed_phrase") {
+          const phrase = String(ex.typedPhrase || "YES");
+          const typed = prompt(`${ex.message || "Confirmation required"}\nType exactly: ${phrase}`) ?? "";
+          const pass = typed === phrase;
+          if (!pass) toast("Policy confirmation phrase mismatch");
+          return { ok: pass, confirmed: pass, confirmationText: typed, explanation: ex };
+        }
+        const typed = prompt(`${ex.message || "Confirmation required"}\nType YES to continue`) ?? "";
+        const pass = typed === "YES";
+        if (!pass) toast("Policy confirmation failed");
+        return { ok: pass, confirmed: pass, confirmationText: typed, explanation: ex };
+      } catch {
+        return { ok: true, confirmed: true, confirmationText: "", explanation: null };
+      }
+    }
+
+    async function preflightPlanPolicy(plan) {
+      const steps = Array.isArray(plan?.steps) ? plan.steps : [];
+      const checks = [];
+      for (const s of steps) {
+        const cmd = s?.input?.command;
+        if (!cmd) continue;
+        const ex = await window.rina?.policyExplain?.(cmd);
+        if (!ex) continue;
+        if (ex.action === "deny") {
+          toast(`Policy deny: ${ex.message}`);
+          return { ok: false, confirmed: false, confirmationText: "" };
+        }
+        checks.push(ex);
+      }
+      const phraseSet = new Set(checks.filter((c) => c.approval === "typed_phrase").map((c) => c.typedPhrase || "YES"));
+      if (phraseSet.size > 1) {
+        toast("Plan uses conflicting policy phrases. Split into smaller plans.");
+        return { ok: false, confirmed: false, confirmationText: "" };
+      }
+      if (phraseSet.size === 1) {
+        const phrase = Array.from(phraseSet)[0];
+        const typed = prompt(`Policy confirmation required for this plan.\nType exactly: ${phrase}`) ?? "";
+        const pass = typed === phrase;
+        if (!pass) toast("Policy confirmation phrase mismatch");
+        return { ok: pass, confirmed: pass, confirmationText: typed };
+      }
+      if (checks.some((c) => c.approval === "typed_yes")) {
+        const typed = prompt("Policy confirmation required for this plan.\nType YES to continue") ?? "";
+        const pass = typed === "YES";
+        if (!pass) toast("Policy confirmation failed");
+        return { ok: pass, confirmed: pass, confirmationText: typed };
+      }
+      if (checks.some((c) => c.action === "require_approval" || c.action === "require_two_step")) {
+        const proceed = confirm("Policy approval required for this plan. Continue?");
+        return { ok: proceed, confirmed: proceed, confirmationText: "" };
+      }
+      return { ok: true, confirmed: true, confirmationText: "" };
+    }
+
+    async function replayLatestRunbook() {
+      try {
+        await handleRunbookIntentInput({
+          addBlock,
+          applyRunbookParams,
+          classification: { isRunbookIntent: true },
+          extractRunbookParams,
+          fallbackProjectRoot: (document.getElementById("projectRoot")?.value || "").trim(),
+          input: "replay latest runbook",
+          newId,
+          prompt: window.prompt.bind(window),
+          rina: window.rina,
+          toast,
+        });
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "replay failed");
+        toast(`Runbook replay failed: ${msg}`);
+      }
+    }
+
+    const {
+      shareLatestRunbook,
+      manageShares,
+      openShareDetails,
+      revokeShareById,
+      refreshSharesPanel,
+      exportAuditLog,
+      refreshTeamSummary,
+      refreshTeamInvites,
+      createTeamInvite,
+      acceptTeamInvitePrompt,
+      revokeTeamInvite,
+      copyInviteCodePrompt,
+      refreshTeamActivity,
+      setTeamMemberRole,
+      removeTeamMember,
+      switchTeamUser,
+      upsertTeamMember,
+    } = window.RinaWarpTeamController;
+    Object.assign(window, window.RinaWarpTeamController);
+
+    async function importShellHistory() {
+      try {
+        const res = await window.rina?.importShellHistory?.(300);
+        if (!res?.ok) {
+          toast(res?.error || "History import failed");
+          return;
+        }
+        let hist = JSON.parse(localStorage.getItem("rinawarp:palette_history") || "[]");
+        if (!Array.isArray(hist)) hist = [];
+        for (const cmd of res.commands || []) {
+          if (!hist.includes(cmd)) hist.push(cmd);
+        }
+        localStorage.setItem("rinawarp:palette_history", JSON.stringify(hist.slice(-200)));
+        toast(`Imported ${res.imported || 0} history commands`);
+      } catch (err) {
+        toast(`History import failed: ${err?.message || err}`);
+      }
+    }
+
+    function resetOnboarding() {
+      localStorage.removeItem(ONBOARD_DONE_KEY);
+      localStorage.removeItem(ACTIVATION_STATE_KEY);
+      renderActivationChecklist();
+      toast("Onboarding reset");
+    }
+
+    function runRenderStressTest() {
+      const sample = "x".repeat(200);
+      const lines = [];
+      for (let i = 0; i < 4000; i += 1) lines.push(`[${i}] ${sample}`);
+      const started = performance.now();
+      addBlock({
+        id: newId("assistant"),
+        type: "assistant",
+        status: "ok",
+        createdAt: Date.now(),
+        title: "Rina — Render Stress",
+        markdown: "Rendering 4k lines for stress diagnostics.",
+        stdout: lines.join("\n"),
+      });
+      const elapsed = Math.round(performance.now() - started);
+      toast(`Render stress complete in ${elapsed}ms`);
+    }
+
+    async function runOnboarding(force = false) {
+      if (!force && localStorage.getItem(ONBOARD_DONE_KEY) === "1") return;
+      if (force) {
+        localStorage.removeItem(ACTIVATION_STATE_KEY);
+      }
+      localStorage.setItem(ONBOARD_DONE_KEY, "1");
+      trackActivationEvent("desktop_activation_started", { force });
+      renderActivationChecklist();
+      toast("Onboarding is ready in Settings.");
+    }
+
+    async function runActivationSafeCommand() {
+      try {
+        setMode("terminal");
+        const projectRoot = (document.getElementById("projectRoot").value || "").trim() || (await ensureWorkspaceRoot());
+        await runTerminalCommand("pwd", projectRoot, { activationTag: "safe_command" });
+      } catch (err) {
+        toast(`Safe command failed: ${err?.message || err}`);
+      }
+    }
+
+    async function runActivationPlan() {
+      try {
+        setMode("agent");
+        const intentEl = getComposerInput();
+        if (!intentEl) return;
+        intentEl.value = "Inspect this workspace and suggest the next safe action.";
+        autosizeIntentInput();
+        await submitInput();
+        const planBlock = [...blocks].reverse().find((b) => b.type === "plan" && b.status === "queued");
+        if (!planBlock) {
+          toast("No queued plan found to run.");
+          return;
+        }
+        await runPlan(planBlock.id, "plan_run");
+      } catch (err) {
+        toast(`Activation plan failed: ${err?.message || err}`);
+      }
+    }
+
+    async function downloadActivationReport() {
+      try {
+        const preview = await window.rina?.exportPreview?.({ kind: "audit_json" });
+        if (!preview?.ok || !preview.previewId) {
+          throw new Error(preview?.error || "Failed to prepare report");
+        }
+        const published = await window.rina?.exportPublish?.({
+          previewId: preview.previewId,
+          typedConfirm: "PUBLISH",
+          expectedHash: preview.contentHash,
+        });
+        if (!published?.ok) {
+          throw new Error(published?.error || "Report export failed");
+        }
+        const blob = new Blob([published.content || ""], { type: published.mime || "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = published.fileName || `rina-activation-report-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        markActivationStep("report_download", { kind: "audit_json" });
+        toast("Activation report downloaded");
+      } catch (err) {
+        toast(`Report download failed: ${err?.message || err}`);
+      }
+    }
+
+    // -----------------------------
+    // Command Palette
+    // -----------------------------
+    let paletteRefreshSeq = 0;
+    let paletteSelectedIndex = -1;
+    let paletteItems = [];
+    let paletteActions = [];
+    let paletteModels = [];
+
+    const renderPaletteItems = window.RinaWarpPaletteController.renderItems;
+    const renderPalettePreview = window.RinaWarpPaletteController.renderPreview;
+    const setPaletteSelectedIndex = window.RinaWarpPaletteController.setSelectedIndex;
+    const actionForUnifiedHit = window.RinaWarpPaletteController.actionForUnifiedHit;
+    const openPalette = window.RinaWarpPaletteController.open;
+    const closePalette = window.RinaWarpPaletteController.close;
+    const refreshPaletteResults = window.RinaWarpPaletteController.refreshResults;
+    const executePaletteItem = window.RinaWarpPaletteController.executeItem;
+    const runPaletteCommand = window.RinaWarpPaletteController.runCommand;
+    Object.assign(window, {
+      renderPaletteItems,
+      renderPalettePreview,
+      setPaletteSelectedIndex,
+      actionForUnifiedHit,
+      openPalette,
+      closePalette,
+      refreshPaletteResults,
+      executePaletteItem,
+      runPaletteCommand,
+    });
+
+    function applyIntentHint(text) {
+      const input = getComposerInput();
+      input.value = text;
+      autosizeIntentInput();
+      input.focus();
+    }
+
+    function getChatUserId() {
+      return getOrCreateLocalStorageId("rinawarp:chat_user_id");
+    }
+
+    async function getSmallTalkReply(text, isTaskContext) {
+      const fallback = getChatFallbackReply();
+      if (!window.rina?.personalityReply) {
+        return fallback;
+      }
+      try {
+        const reply = await window.rina.personalityReply({
+          userId: getChatUserId(),
+          message: text || "",
+          isTaskContext: !!isTaskContext,
+        });
+        return reply?.shouldSmallTalk && reply?.text ? reply.text : fallback;
+      } catch (err) {
+        console.warn("personalityReply failed", err);
+        return fallback;
+      }
+    }
+
+    async function getWorkPrefix(text) {
+      if (!window.rina?.personalityPrefix) return "";
+      try {
+        const result = await window.rina.personalityPrefix({
+          userId: getChatUserId(),
+          message: text || "",
+        });
+        return result?.prefix ? String(result.prefix).trim() : "";
+      } catch (err) {
+        console.warn("personalityPrefix failed", err);
+        return "";
+      }
+    }
+
+    function autosizeIntentInput() {
+      autosizeTextarea(getComposerInput(), { min: 44, max: 160 });
+    }
+
+    // -----------------------------
+    // Streaming handlers
+    // -----------------------------
+    if (!window.rina) {
+      reportRuntimeError(
+        "Preload Error",
+        "window.rina bridge is unavailable.",
+        "Reopen from /home/karina/Applications/RinaWarp-Terminal-Pro-1.0.3.AppImage",
+      );
+    }
+
+    window.rina?.onPlanStepStart?.((p) => {
+      const blockId = newId("step");
+      const step = p.step;
+      const cmd = (step?.input?.command) ?? "(unknown)";
+      const planBlockId = getPlanBlockIdForRun(p.planRunId);
+
+      const block = {
+        id: blockId,
+        type: "step",
+        status: "running",
+        createdAt: Date.now(),
+        title: step.stepId ?? "step",
+        streamId: p.streamId,
+        stepId: step.stepId,
+        tool: step.tool,
+        command: cmd,
+        planBlockId,
+        risk: step.confirmationScope ? "high-impact" : "safe-write",
+        stdout: "",
+        stderr: ""
+      };
+
+      appendBlockState(block);
+      mapStreamToBlock(p.streamId, blockId);
+      mapStreamToPlanBlock(p.streamId, planBlockId);
+    });
+
+    window.rina?.onStreamChunk?.((p) => {
+      const blockId = getBlockIdForStream(p.streamId);
+      if (!blockId) return;
+      const block = getBlockById(blockId);
+      if (!block) return;
+
+      if (p.stream === "stdout" || p.stream === "meta") {
+        block.stdout = (block.stdout || "") + p.data;
+      } else if (p.stream === "stderr") {
+        block.stderr = (block.stderr || "") + p.data;
+      }
+      renderBlocks();
+    });
+
+    window.rina?.onStreamEnd?.((p) => {
+      const blockId = getBlockIdForStream(p.streamId);
+      if (!blockId) return;
+      const block = getBlockById(blockId);
+      if (!block) return;
+
+      block.status = p.cancelled ? "cancelled" : (p.ok ? "ok" : "failed");
+      block.report = p.report;
+      if (p.ok && block.activationTag) {
+        markActivationStep(block.activationTag, { source: "stream_end" });
+      }
+      clearStreamMapping(p.streamId);
+      renderBlocks();
+    });
+
+    window.rina.onPlanRunStart?.((p) => {
+      // No-op here: runPlan() already owns the active plan block.
+      // This avoids duplicate "Rina — Plan" cards in the timeline.
+    });
+
+    window.rina.onPlanRunEnd?.(async (p) => {
+      const planBlockId = getPlanBlockIdForRun(p.planRunId);
+      const runMeta = getPlanRunMeta(p.planRunId);
+      if (planBlockId) {
+        const block = getBlockById(planBlockId);
+        if (block) {
+          const plan = p.plan;
+          block.status = p.haltedBecause ? "cancelled" : (p.ok ? "queued" : "failed");
+          block.title = "Rina — Plan";
+          block.markdown = `${plan?.reasoning || ""}\n\nSteps:\n${(plan?.steps || []).map(s =>
+            `- ${s.stepId ?? ""} \`${(s.input?.command ?? "").replaceAll("`","")}\``
+          ).join("\n")}`;
+          block.plan = plan;
+          if (p.ok && block.activationTag) {
+            markActivationStep(block.activationTag, { source: "plan_end" });
+          }
+        }
+        clearPlanRunMapping(p.planRunId);
+        renderBlocks();
+      }
+      if (runMeta) {
+        recordAgentEval({
+          ok: !!p.ok && !p.haltedBecause,
+          haltedBecause: p.haltedBecause || "",
+          durationMs: Date.now() - Number(runMeta.startedAt || Date.now()),
+          stepCount: Number(runMeta.stepCount || 0),
+          intent: runMeta.intent || "",
+        });
+      }
+      const didAutoRepair = await maybeAutoRepairPlan(planBlockId, p.haltedBecause || "");
+      if (didAutoRepair) return;
+      if (p.ok) {
+        toast("Plan ready");
+      } else if (p.haltedBecause) {
+        toast(`Plan stopped (${p.haltedBecause})`);
+      } else {
+        toast("Planning failed");
+      }
+    });
+
+    window.rina?.onCustomEvent?.("rina:add:block", (data) => {
+      const allowed = new Set(["queued","running","ok","failed","cancelled","planning"]);
+      const safeStatus = allowed.has(data.status) ? data.status : "ok";
+
+      addBlock({
+        id: newId("assistant"),
+        type: data.type || "assistant",
+        status: safeStatus,
+        createdAt: Date.now(),
+        title: data.title || "Rina",
+        markdown: data.markdown || ""
+      });
+    });
+
+    async function submitInput() {
+      if (submitInFlight) return;
+      submitInFlight = true;
+      try {
+        const intentEl = getComposerInput();
+        const projectRootEl = document.getElementById("projectRoot");
+
+        const text = (intentEl.value || "").trim();
+        const projectRoot = (projectRootEl.value || "").trim() || (await ensureWorkspaceRoot());
+        if (!text) return;
+        const inputRoute = classifyComposerInput(text, mode);
+        const userDisplay = text;
+
+        // persist workspace display
+        document.getElementById("wsPathText").textContent = projectRoot || "(not set)";
+
+        // add to palette history
+        if (text) {
+          let hist = JSON.parse(localStorage.getItem("rinawarp:palette_history") || "[]");
+          hist = hist.filter(c => c !== text);
+          hist.unshift(text);
+          if (hist.length > 20) hist.pop();
+          localStorage.setItem("rinawarp:palette_history", JSON.stringify(hist));
+        }
+
+        // Create a session record
+        sessions.unshift({
+          name: sessionNameForInput(mode, text),
+          when: new Date().toLocaleString(),
+          blocks: JSON.parse(JSON.stringify(blocks))
+        });
+        saveSession();
+        setSidebarTab("sessions");
+
+        // user block
+        addBlock(composerUserBlock(newId("user"), userDisplay));
+
+        intentEl.value = "";
+        autosizeIntentInput();
+
+        const routeCtx = {
+          addBlock,
+          applyRunbookParams,
+          assistantMarkdownBlock,
+          classification: inputRoute,
+          codeErrorBlock,
+          codeThinkingBlock,
+          currentPlanByBlockId,
+          emptyRinaPromptBlock,
+          ensurePty,
+          extractRunbookParams,
+          fallbackProjectRoot: projectRoot,
+          getSmallTalkReply,
+          getWorkPrefix,
+          inlineFailureBlock,
+          inlineRinaSuccessLabel,
+          inlineThinkingBlock,
+          input: text,
+          isPtyConnected: () => ptyConnected,
+          newId,
+          orchestratorErrorBlock,
+          orchestratorStartedBlock,
+          planBlock: composerPlanBlock,
+          projectRoot,
+          prompt: window.prompt.bind(window),
+          removeBlock,
+          rina: window.rina,
+          runInlineRinaPrompt,
+          runTerminalCommand,
+          sendChatMessage,
+          terminalUnavailableBlock,
+          toast,
+          updateBlock,
+          writeTerminalCommandToPty,
+        };
+
+        if (inputRoute.isDeveloperModeToggle) {
+          const res = await window.rina?.toggleDevtools?.();
+          addBlock(developerModeBlock(newId("assistant"), res));
+          return;
+        }
+
+        if (await handleRunbookIntentInput(routeCtx)) {
+          return;
+        }
+
+        if (await handleAgentIntentInput(routeCtx)) {
+          return;
+        }
+
+        if (inputRoute.isAmbiguousTerminalIntent) {
+          addBlock(ambiguousChoiceBlock(newId("choice"), text, inputRoute.ambiguousReason));
+          return;
+        }
+
+        if (inputRoute.isTerminalCommand) {
+          await handleTerminalCommandInput(routeCtx);
+          return;
+        }
+
+        if (inputRoute.shouldRouteToChat) {
+          await handleDirectChatInput({ ...routeCtx, input: inputRoute.chatText });
+          return;
+        }
+
+        await handleCodeIntentInput(routeCtx);
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "submit failed");
+        reportRuntimeError("Submit Error", msg);
+      } finally {
+        submitInFlight = false;
+        renderBlocks();
+        persistUiSnapshot();
+      }
+    }
+
+    async function runTerminalCommand(command, projectRoot, opts = {}) {
+      try {
+      // Create a step block immediately (single-step execution)
+      const stepBlockId = newId("step");
+      addBlock({
+        id: stepBlockId,
+        type: "step",
+        status: "queued",
+        createdAt: Date.now(),
+        title: "terminal",
+        command,
+        activationTag: opts.activationTag || null,
+        risk: "safe-write",
+        stdout: "",
+        stderr: ""
+      });
+
+      const looksHighImpact = /\b(rm\s+-rf|mkfs|shutdown|reboot|dd\s+if=|docker\s+system\s+prune)\b/i.test(command);
+      const policy = await preflightPolicy(command, { risk: looksHighImpact ? "high-impact" : "safe-write" });
+      if (!policy.ok) {
+        updateBlock(stepBlockId, { status: "cancelled", stderr: "Cancelled by policy.\n" });
+        return null;
+      }
+
+      // Execute via engine-backed step stream
+      const step = {
+        id: `terminal_${stepBlockId}`,
+        tool: "terminal",
+        command,
+        risk: looksHighImpact ? "high-impact" : "safe-write"
+      };
+
+      const { streamId } = await window.rina.executeStepStream({
+        step,
+        projectRoot,
+        confirmed: policy.confirmed,
+        confirmationText: policy.confirmationText
+      });
+
+      updateBlock(stepBlockId, { status: "running", streamId, stdout: "", stderr: "" });
+      mapStreamToBlock(streamId, stepBlockId);
+      renderBlocks();
+      return stepBlockId;
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "terminal command failed");
+        reportRuntimeError("Terminal Error", msg);
+        return null;
+      }
+    }
+
+    // -----------------------------
+    // Doctor v1: Read-only evidence collection
+    // -----------------------------
+    async function runDoctor() {
+      try {
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+      if (!projectRoot) {
+        toast("Pick a workspace first");
+        return;
+      }
+
+      const symptom = (getComposerInput()?.value || "").trim() || "computer running hot";
+      addBlock({
+        id: newId("user"),
+        type: "user",
+        status: "ok",
+        createdAt: Date.now(),
+        title: "You",
+        markdown: `🩺 ${symptom}`,
+      });
+
+      const plan = await window.rina.doctorPlan({ projectRoot, symptom });
+
+      const planBlockId = newId("plan");
+      addBlock({
+        id: planBlockId,
+        type: "plan",
+        status: "queued",
+        createdAt: Date.now(),
+        title: "Rina — Doctor Plan",
+        markdown: `${plan.reasoning}\n\nSteps:\n${plan.steps.map(s =>
+          `- ${s.stepId} \`${(s.input?.command ?? "").replaceAll("`","")}\``
+        ).join("\n")}`,
+        plan: { ...plan, steps: plan.steps },
+      });
+
+      // Auto-run (read-only doctor is safe)
+      await runPlan(planBlockId);
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "doctor failed");
+        reportRuntimeError("Doctor Error", msg);
+      }
+    }
+
+    // -----------------------------
+    // Plan execution
+    // -----------------------------
+    async function maybeAutoRepairPlan(blockId, haltedBecause) {
+      if (!blockId) return false;
+      const state = getAutoRepairState(blockId);
+      if (!state || Number(state.retriesLeft || 0) <= 0) return false;
+      const block = getBlockById(blockId);
+      if (!block?.plan) return false;
+      consumeAutoRepairRetry(blockId);
+
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+      const failedSteps = blocks
+        .filter((b) => b.type === "step" && b.planBlockId === blockId && (b.status === "failed" || b.status === "cancelled"))
+        .slice(-4)
+        .map((b) => `${b.stepId || b.id}: ${(b.stderr || b.stdout || "").slice(0, 240)}`)
+        .join("\n");
+      const repairIntent = `${block.plan.intent || "Fix the task"}\n\nPrevious plan halted because: ${haltedBecause || "unknown"}\n\nRecent failing output:\n${failedSteps || "(none)"}\n\nGenerate a revised plan with safer, verifiable steps.`;
+      try {
+        const repairedPlan = await window.rina.agentPlan({ intentText: repairIntent, projectRoot });
+        updateBlock(blockId, {
+          status: "queued",
+          markdown: `${repairedPlan.reasoning || ""}\n\nAuto-repair attempt applied.\n\nSteps:\n${(repairedPlan.steps || []).map((s) =>
+            `- ${s.stepId ?? ""} \`${(s.input?.command ?? "").replaceAll("`", "")}\``
+          ).join("\n")}`,
+          plan: repairedPlan,
+        });
+        toast("Auto-repair generated a revised plan");
+        await runPlan(blockId);
+        return true;
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "auto-repair failed");
+        updateBlock(blockId, {
+          status: "failed",
+          stderr: `${block.stderr || ""}\nAuto-repair failed: ${msg}\n`,
+        });
+        return false;
+      }
+    }
+
+    async function runPlanWithAutoRepair(blockId) {
+      setAutoRepairRetry(blockId, 1);
+      toast("Auto-fix run enabled (1 repair retry)");
+      await runPlan(blockId);
+    }
+
+    async function runPlan(blockId, activationTag = null) {
+      try {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block?.plan) return;
+      if (activationTag) block.activationTag = activationTag;
+
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+      const policy = await preflightPlanPolicy(block.plan);
+      if (!policy.ok) return;
+
+      updateBlock(blockId, { status: "running" });
+
+      try {
+        const { planRunId } = await window.rina.executePlanStream({
+          plan: block.plan.steps,
+          projectRoot,
+          confirmed: policy.confirmed,
+          confirmationText: policy.confirmationText
+        });
+        mapPlanRun(planRunId, blockId, {
+          startedAt: Date.now(),
+          intent: block.plan.intent || "",
+          stepCount: Array.isArray(block.plan.steps) ? block.plan.steps.length : 0,
+        });
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "Plan execution failed");
+        updateBlock(blockId, {
+          status: "failed",
+          stderr: (block.stderr || "") + `${msg}\n`,
+          markdown: `${block.markdown || ""}\n\nExecution error: ${msg}`,
+        });
+        recordAgentEval({
+          ok: false,
+          haltedBecause: msg,
+          durationMs: 0,
+          stepCount: Array.isArray(block.plan?.steps) ? block.plan.steps.length : 0,
+          intent: block.plan?.intent || "",
+        });
+        toast(`Run plan failed: ${msg}`);
+      }
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "run plan failed");
+        reportRuntimeError("Plan Error", msg);
+      }
+    }
+
+    async function stopPlan(blockId, force = false) {
+      try {
+        const block = blocks.find(b => b.id === blockId);
+        if (!block?.plan) return;
+        const planRunId = getActivePlanRunIdForBlock(blockId) || block.plan.id;
+        await window.rina?.stopPlan?.(planRunId);
+
+        const runningStreams = blocks
+          .filter((b) => b.type === "step" && b.status === "running" && b.streamId && b.planBlockId === blockId)
+          .map((b) => b.streamId);
+
+        for (const sid of runningStreams) {
+          clearRunningStreamLocally(sid, { note: "Stop requested." });
+        }
+
+        let doForce = !!force;
+        if (!doForce) {
+          const wantsForce = confirm("Plan stop requested.\nUse force stop to kill currently running step streams?");
+          doForce = !!wantsForce;
+        }
+
+        if (doForce) {
+          if (runningStreams.length) {
+            await Promise.all(runningStreams.map((sid) => window.rina?.killStream?.(sid)));
+            toast(`Force-stopped ${runningStreams.length} stream(s).`);
+          } else {
+            toast("No active step streams to force stop.");
+          }
+        } else {
+          toast("Stopping plan...");
+        }
+        updateBlock(blockId, { status: "cancelled" });
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "stop failed");
+        reportRuntimeError("Stop Error", msg);
+      }
+    }
+
+    async function runStep(blockId) {
+      try {
+        const block = blocks.find(b => b.id === blockId);
+        if (!block?.command) return;
+
+      const projectRoot = (document.getElementById("projectRoot").value || "").trim();
+      const step = {
+        id: block.stepId ?? `step_${blockId}`,
+        tool: "terminal",
+        command: block.command,
+        risk: block.risk ?? "safe-write"
+      };
+
+      const policy = await preflightPolicy(block.command, { risk: step.risk });
+      if (!policy.ok) return;
+
+        const { streamId } = await window.rina.executeStepStream({
+          step,
+          projectRoot,
+          confirmed: policy.confirmed,
+          confirmationText: policy.confirmationText
+        });
+
+        updateBlock(blockId, { status: "running", streamId, stdout: "", stderr: "" });
+        mapStreamToBlock(streamId, blockId);
+        renderBlocks();
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "step failed");
+        reportRuntimeError("Step Error", msg);
+      }
+    }
+
+    function rerunStep(blockId) { runStep(blockId); }
+    function toggleBlockCollapse(blockId) {
+      toggleBlockCollapsed(blockId);
+    }
+    async function rerunStepEdited(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block?.command) return;
+      const edited = prompt("Edit command before re-run:", block.command);
+      if (!edited || !edited.trim()) return;
+      updateBlock(blockId, { command: edited.trim() });
+      await runStep(blockId);
+    }
+    function editStepInComposer(blockId) {
+      const block = blocks.find((b) => b.id === blockId);
+      if (!block?.command) return;
+      const input = getComposerInput();
+      if (!input) return;
+      input.value = block.command;
+      autosizeIntentInput();
+      input.focus();
+      toast("Loaded step command into composer");
+    }
+    async function rerunStepWithCwdEnv(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block?.command) return;
+      const cwdDefault = (document.getElementById("projectRoot")?.value || "").trim() || "/";
+      const cwd = (prompt("Run with cwd:", cwdDefault) || "").trim();
+      if (!cwd) return;
+      const envRaw = (prompt("Optional env (KEY=V KEY2=V2):", "") || "").trim();
+      const prefixed = envRaw ? `env ${envRaw} ${block.command}` : block.command;
+      updateBlock(blockId, { command: prefixed });
+      const prevRoot = document.getElementById("projectRoot");
+      const original = prevRoot?.value || "";
+      if (prevRoot) prevRoot.value = cwd;
+      try {
+        await runStep(blockId);
+      } finally {
+        if (prevRoot) prevRoot.value = original;
+      }
+    }
+    function copyCommand(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (block?.command) {
+        navigator.clipboard.writeText(block.command);
+        toast("Command copied");
+      }
+    }
+    function copyOutput(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block) return;
+      const text = `${block.stdout || ""}${block.stderr ? `\n${block.stderr}` : ""}`.trim();
+      if (!text) {
+        toast("No output to copy");
+        return;
+      }
+      navigator.clipboard.writeText(text);
+      toast("Output copied");
+    }
+    function copyOutputAnsi(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block) return;
+      const ansi = `${block.stdout || ""}${block.stderr ? `\n${block.stderr}` : ""}`;
+      if (!ansi.trim()) {
+        toast("No output to copy");
+        return;
+      }
+      navigator.clipboard.writeText(ansi);
+      toast("Output (ANSI/raw) copied");
+    }
+    function jumpToPrevError(blockId) {
+      const idx = blocks.findIndex((b) => b.id === blockId);
+      if (idx <= 0) return;
+      const prior = [...blocks.slice(0, idx)].reverse().find((b) =>
+        b.type === "step" && (b.status === "failed" || String(b.stderr || "").trim())
+      );
+      if (!prior) {
+        toast("No previous error block");
+        return;
+      }
+      const el = document.querySelector(`.block[data-id="${prior.id}"]`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("pulse");
+      setTimeout(() => el.classList.remove("pulse"), 900);
+    }
+    function jumpToNextError(blockId) {
+      const idx = blocks.findIndex((b) => b.id === blockId);
+      if (idx < 0) return;
+      const target = blocks.slice(idx + 1).find((b) =>
+        b.type === "step" && (b.status === "failed" || String(b.stderr || "").trim())
+      );
+      if (!target) {
+        toast("No next error block");
+        return;
+      }
+      const el = document.querySelector(`.block[data-id="${target.id}"]`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("pulse");
+      setTimeout(() => el.classList.remove("pulse"), 900);
+    }
+    async function cancelStream(streamId, force = false) {
+      try {
+        const localStop = (note = "") => {
+          const changed = clearRunningStreamLocally(streamId, { note });
+          if (changed) renderBlocks();
+          return changed;
+        };
+
+        if (force) {
+          const ok = confirm("Force kill this running stream?");
+          if (!ok) return;
+          const changed = localStop("Force kill requested.");
+          const res = await window.rina?.killStream?.(streamId);
+          if (!res?.ok && !changed) {
+            toast(res?.message || "Force kill failed");
+            return;
+          }
+          toast("Force kill requested");
+          return;
+        }
+        const changed = localStop("Cancellation requested.");
+        const res = await window.rina.cancelStream(streamId);
+        if (!res?.ok && !changed) {
+          toast(res?.message || "Cancel failed");
+        }
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : String(err || "cancel failed");
+        reportRuntimeError("Cancel Error", msg);
+      }
+    }
+
+    // -----------------------------
+    // Workflows
+    // -----------------------------
+    const {
+      renderWorkflowMonitorPanel,
+      refreshWorkflowPanel,
+      onWorkflowWebhookFilterChange,
+      startWorkflowPolling,
+      findWorkflowTask,
+      openWorkflowBranch,
+      retryWorkflowTask,
+      listWorkflows,
+      listSharedObjects,
+      refreshSharedObjects,
+      saveSharedObjectFromInputs,
+      saveSharedObjectFromComposer,
+      insertSharedObjectInComposer,
+      deleteSharedObject,
+      runWorkflow,
+      refreshRuntimeTasks,
+      renderRuntimeTasksPanel,
+      createPrForWorkflow,
+      markWorkflowCiPassed,
+      markWorkflowCiFailed,
+      addWorkflowReviewComment,
+      markWorkflowPrStatus,
+      markWorkflowPrMerged,
+      markWorkflowPrClosed,
+      persistWorkflow,
+      saveWorkflowFromPlanBlock,
+    } = window.RinaWarpWorkflowController;
+    Object.assign(window, window.RinaWarpWorkflowController);
+
+    // Initialize shared objects on load
+    void refreshSharedObjects();
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      if (e.defaultPrevented) return;
+      if (e.altKey) {
+        if (e.key === "1") { e.preventDefault(); setSidebarTab("sessions"); return; }
+        if (e.key === "2") { e.preventDefault(); setSidebarTab("runs"); return; }
+        if (e.key === "3") { e.preventDefault(); setSidebarTab("structured"); return; }
+        if (e.key === "4") { e.preventDefault(); setSidebarTab("workflows"); return; }
+        if (e.key === "5") { e.preventDefault(); setSidebarTab("settings"); return; }
+        if (e.key === "6") { e.preventDefault(); setSidebarTab("about"); return; }
+      }
+      // Command palette
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        openPalette();
+        return;
+      }
+      // Structured quick-find
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "F" || e.key === "f")) {
+        e.preventDefault();
+        quickFindStructured();
+        return;
+      }
+      // Escape closes palette
+      if (e.key === "Escape") {
+        const overlay = document.getElementById("paletteOverlay");
+        if (overlay.style.display !== "none") {
+          overlay.style.display = "none";
+          return;
+        }
+      }
+    });
+
+    // PTY output listeners
+    document.addEventListener("selectionchange", () => {
+      refreshCurrentSelection();
+    });
+
+    document.getElementById("ptyTerminal")?.addEventListener("paste", async (e) => {
+      if (mode !== "terminal") return;
+      const text = e?.clipboardData?.getData("text/plain");
+      if (!text) return;
+      e.preventDefault();
+      await window.rina?.ptyWrite?.(text);
+    });
+
+    window.rina.onPtyData?.((data) => {
+      window.__ptyTranscript = `${window.__ptyTranscript || ""}${String(data || "")}`.slice(-200000);
+      appendTerminalNarrationChunk(data);
+      queueTerminalOutput(data);
+      if (ptyTerm) {
+        ptyTerm.write(data);
+      } else {
+        ptyFallbackBuffer += data;
+        const pre = document.querySelector("#ptyTerminal .terminal-fallback");
+        if (pre) pre.textContent = ptyFallbackBuffer.slice(-200_000);
+      }
+    });
+
+    window.rina.onPtyExit?.((payload) => {
+      flushPendingTerminalChunk();
+      markPtyOffline();
+      addBlock({
+        id: newId("terminal"),
+        type: "terminal_output",
+        status: payload?.exitCode === 0 ? "ok" : "failed",
+        createdAt: Date.now(),
+        title: "Terminal",
+        command: lastTerminalCommand || undefined,
+        markdown: payload?.exitCode === 0 ? "Completed successfully." : "Command finished with errors.",
+        exitCode: payload?.exitCode ?? null,
+      });
+      toast("Terminal offline");
+    });
+
+    window.addEventListener("resize", () => {
+      if (!ptyConnected) return;
+      if (window.__ptyResizeTimer) clearTimeout(window.__ptyResizeTimer);
+      window.__ptyResizeTimer = setTimeout(() => {
+        if (ptyFit) ptyFit.fit();
+        if (ptyTerm) window.rina.ptyResize?.(ptyTerm.cols, ptyTerm.rows);
+      }, 80);
+    });
+
+    window.rina.onCustomEvent?.("rina:pty:boundaryStats", (payload) => {
+      ptyBoundaryCaptured = Number(payload?.captured || 0);
+      if (activeSidebarTab === "structured") setSidebarTab("structured");
+    });
+
+    window.rina.onCustomEvent?.("rina:pty:boundary", (payload) => {
+      completeTerminalNarration(payload);
+      if (!payload?.failed) return;
+      const command = String(payload?.command || "").trim();
+      if (!command) return;
+      const signature = `${command}::${String(payload?.failureSummary || "")}`;
+      if (signature === lastFailureSignature) return;
+      lastFailureSignature = signature;
+      addBlock({
+        id: newId("assistant"),
+        type: "assistant",
+        status: "queued",
+        createdAt: Date.now(),
+        title: "Rina",
+        markdown: `That command failed: \`${command}\`${payload?.failureSummary ? `\n\n${payload.failureSummary}` : ""}`,
+        failureContext: {
+          command,
+          output: String(payload?.output || ""),
+          cwd: String(payload?.cwd || ""),
+        },
+      });
+      toast("Rina noticed a failed command");
+    });
+
+    // Palette input listener
+    document.getElementById("paletteInput")?.addEventListener("input", refreshPaletteResults);
+    document.getElementById("codeEditor")?.addEventListener("input", (e) => {
+      if (!codeSelectedPath) return;
+      const target = e.target;
+      if (!target || typeof target.value !== "string") return;
+      codeFileDrafts[codeSelectedPath] = target.value;
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const active = document.activeElement;
+      if (active && active.id === "structuredSearchInput") {
+        e.preventDefault();
+        runStructuredSearchFromInput().catch(() => {});
+      }
+    });
+    getComposerInput()?.addEventListener("input", autosizeIntentInput);
+
+    // Global renderer error capture so failures are visible in-app.
+    window.addEventListener("error", (event) => {
+      const msg = event?.message || "Unknown error";
+      const src = event?.filename ? `${event.filename}:${event.lineno || 0}` : "";
+      window.rina?.reportRendererError?.({ kind: "error", message: msg, extra: src });
+      reportRuntimeError("JavaScript Error", msg, src);
+    });
+    window.addEventListener("unhandledrejection", (event) => {
+      const reason = event?.reason;
+      const msg = (reason && reason.message) ? reason.message : String(reason || "Unhandled promise rejection");
+      window.rina?.reportRendererError?.({ kind: "unhandledrejection", message: msg });
+      reportRuntimeError("Unhandled Rejection", msg);
+    });
+
+    // Enter submits input area
+    getComposerInput()?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        submitInput().catch((err) => {
+          const msg = (err && err.message) ? err.message : String(err || "submit failed");
+          reportRuntimeError("Submit Error", msg);
+        });
+      }
+    });
+
+    // Palette keyboard nav
+    document.getElementById("paletteOverlay")?.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setPaletteSelectedIndex(paletteSelectedIndex + 1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setPaletteSelectedIndex(paletteSelectedIndex - 1);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (paletteSelectedIndex >= 0) {
+          executePaletteItem(paletteSelectedIndex);
+        }
+      }
+    });
+
+    // Load workspace history on start
+    loadWorkspaceHistory();
+    ensureWorkspaceRoot().catch(() => {});
+    loadSavedSearches();
+    loadDiagnosticsAutoRefresh();
+    loadDiagnosticsPollInterval();
+    restoreUiSnapshot();
+    loadThemeState()
+      .then(() => {
+        const initial = findThemeById(activeThemeId) || (themeRegistry?.themes || [])[0];
+        if (initial) {
+          activeThemeId = initial.id;
+          applyThemeSpec(initial);
+        }
+      })
+      .catch((err) => console.warn("theme init failed", err));
+    refreshStructuredStatus();
+    refreshPolicyStatus();
+    runOnboarding(false);
+     renderActivationChecklist();
+     autosizeIntentInput();
+     applySidePanelsVisibility();
+     // Initial sidebar tab
+     setSidebarTab("sessions");
+     startDiagnosticsPolling();
+     startWorkflowPolling();
+     window.RinaRendererUsageController.refreshUsageLine().catch(() => {});
+     // Render empty state for chat panel on first launch
+     renderBlocks();
+
+    window.addEventListener("beforeunload", () => {
+      if (diagnosticsPollTimer) clearInterval(diagnosticsPollTimer);
+      if (workflowPollTimer) clearInterval(workflowPollTimer);
+      persistUiSnapshot();
+    });
+  </script>
+
+  <!-- Settings host (Warp-style vertical tabs) -->
+  <div id="rw-settings"></div>
+
+  <!-- Command Palette host (modular) -->
+  <div id="rw-palette-backdrop" class="rw-palette-backdrop" style="display:none" aria-hidden="true">
+    <div id="rw-palette" class="rw-palette" role="dialog" aria-modal="true" aria-label="Command Palette"></div>
+  </div>
+
+  <script type="module">
+    import { classifyTerminalInput } from "./terminal-input-classifier.js";
+    window.RinaWarpInputClassifier = { classifyTerminalInput };
+  </script>
+
+  <script type="module">
+    import { initSettingsUi } from "./renderer/settings/bootstrap.js";
+    import { bootstrapPalette } from "./renderer/palette/bootstrap.js";
+    const initUiShell = () => {
+      try { initSettingsUi(); } catch (e) { console.warn("settings init failed", e); }
+      try { bootstrapPalette(); } catch (e) { console.warn("palette init failed", e); }
+    };
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", initUiShell, { once: true });
+    } else {
+      initUiShell();
+    }
+  </script>
 </body>
 </html>
