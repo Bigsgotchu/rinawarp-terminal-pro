@@ -106,6 +106,65 @@ function portReadPlans(port: number): RinaCommandPlan[] {
   ]
 }
 
+function failedBuildReadPlans(packageManager: 'pnpm' | 'npm' = 'npm'): RinaCommandPlan[] {
+  const buildCommand = packageManager === 'pnpm' ? 'pnpm build' : 'npm run build'
+  return [
+    commandPlan({
+      id: 'build-read-pwd',
+      command: 'pwd',
+      reason: 'Confirm the working directory before diagnosing the failed build.',
+      risk: 'read',
+      expectedEffect: 'Show the project directory Rina is inspecting.',
+      rollbackAwareness: 'No change; nothing to roll back.',
+      verificationHint: 'Use this as the workspace anchor for the recovery.',
+    }),
+    commandPlan({
+      id: 'build-read-ls',
+      command: 'ls',
+      reason: 'Inspect the top-level project files before choosing a package-manager command.',
+      risk: 'read',
+      expectedEffect: 'Reveal package manager and project metadata files.',
+      rollbackAwareness: 'No change; nothing to roll back.',
+      verificationHint: 'Confirm package.json and lockfiles are present.',
+    }),
+    commandPlan({
+      id: 'build-read-package',
+      command: 'cat package.json',
+      reason: 'Inspect package scripts before running the build.',
+      risk: 'read',
+      expectedEffect: 'Show available scripts and dependency metadata.',
+      rollbackAwareness: 'No change; nothing to roll back.',
+      verificationHint: 'Use package.json to explain the likely failing script path.',
+    }),
+    commandPlan({
+      id: 'build-read-run-build',
+      command: buildCommand,
+      reason: `Run the safest supported Node build diagnostic for this package manager: ${buildCommand}.`,
+      risk: 'read',
+      expectedEffect: 'Capture the first concrete build error for diagnosis.',
+      rollbackAwareness: 'This is a diagnostic build command; Rina still will not edit files or install packages without approval.',
+      verificationHint: `After an approved fix, rerun ${buildCommand} to verify recovery.`,
+    }),
+  ]
+}
+
+function failedBuildActionPlans(packageManager: 'pnpm' | 'npm' = 'npm'): RinaCommandPlan[] {
+  const installCommand = packageManager === 'pnpm' ? 'pnpm install' : 'npm install'
+  const buildCommand = packageManager === 'pnpm' ? 'pnpm build' : 'npm run build'
+  return [
+    commandPlan({
+      id: 'build-action-install',
+      label: 'Restore dependencies',
+      command: installCommand,
+      reason: `If the parsed build error points to missing local packages or binaries, restore dependencies with ${installCommand} only after approval.`,
+      risk: 'safe-write',
+      expectedEffect: 'Restore declared packages and local build binaries for the current Node project.',
+      rollbackAwareness: 'This changes node_modules and may update package-manager metadata depending on the install tool.',
+      verificationHint: `Rerun ${buildCommand} after the approved install.`,
+    }),
+  ]
+}
+
 export function createPortStopPlan(port: number, pid: number, processName = 'process'): RinaCommandPlan {
   return commandPlan({
     id: `port-${port}-action-kill-${pid}`,
@@ -123,7 +182,7 @@ export function createPortStopPlan(port: number, pid: number, processName = 'pro
 export function planRinaTask(
   request: RinaTaskRequest,
   kind: RinaTaskKind,
-  options?: { port?: number }
+  options?: { port?: number; packageManager?: 'pnpm' | 'npm' }
 ): RinaTaskPlan {
   if (kind === 'disk_recovery') {
     return {
@@ -142,6 +201,18 @@ export function planRinaTask(
       explanation: `I will check what is listening on port ${options.port}. This is read-only and will not stop or change anything.`,
       readOnlyCommands: applySafetyToPlans(portReadPlans(options.port)),
       proposedActions: [],
+    }
+  }
+
+  if (kind === 'failed_build') {
+    const packageManager = options?.packageManager || 'npm'
+    return {
+      taskId: request.id,
+      kind,
+      explanation:
+        'I will inspect this Node project, run one safe build diagnostic, parse the failure, and stop at one approval-gated fix.',
+      readOnlyCommands: applySafetyToPlans(failedBuildReadPlans(packageManager)),
+      proposedActions: applySafetyToPlans(failedBuildActionPlans(packageManager)),
     }
   }
 

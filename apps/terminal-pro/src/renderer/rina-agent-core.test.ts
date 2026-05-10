@@ -56,6 +56,18 @@ describe('Rina Agent Core', () => {
     expect(port.readOnlyCommands.every((plan) => !plan.requiresApproval)).toBe(true)
   })
 
+  it('plans failed build recovery as inspect, build diagnostic, then one approval-gated fix', () => {
+    const plan = planRinaTask({ ...request, message: 'My build is failing' }, 'failed_build', { packageManager: 'pnpm' })
+
+    expect(plan.explanation).toMatch(/one safe build diagnostic/i)
+    expect(plan.readOnlyCommands.map((step) => step.command)).toEqual(['pwd', 'ls', 'cat package.json', 'pnpm build'])
+    expect(plan.readOnlyCommands.every((step) => step.risk === 'read' && !step.requiresApproval)).toBe(true)
+    expect(plan.proposedActions).toHaveLength(1)
+    expect(plan.proposedActions[0].command).toBe('pnpm install')
+    expect(plan.proposedActions[0].requiresApproval).toBe(true)
+    expect(plan.proposedActions[0].verificationHint).toContain('pnpm build')
+  })
+
   it('blocks approval-required commands on the read-only execution path', async () => {
     await expect(executeApprovedCommand(applySafety(command('safe-write')), async () => ({ ok: true }))).rejects.toThrow(
       'Command requires explicit user approval before execution.'

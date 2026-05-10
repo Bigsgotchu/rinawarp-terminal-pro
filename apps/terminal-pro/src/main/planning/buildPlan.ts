@@ -1,4 +1,6 @@
 // @ts-nocheck
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { hasSharedWorkspaceFile, readSharedWorkspaceTextFile } from '../runtime/runtimeAccess.js'
 import type { BuildPlanHelperDeps } from '../startup/runtimeTypes.js'
 
@@ -32,10 +34,26 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
     }
     let projectRootCache = '';
     async function hasProjectFile(projectRoot, relativePath) {
-        return hasSharedWorkspaceFile(projectRoot, relativePath);
+        if (await hasSharedWorkspaceFile(projectRoot, relativePath))
+            return true;
+        try {
+            await fs.access(path.join(projectRoot, relativePath));
+            return true;
+        }
+        catch {
+            return false;
+        }
     }
     async function readProjectTextFile(projectRoot, relativePath) {
-        return readSharedWorkspaceTextFile(projectRoot, relativePath);
+        const sharedText = await readSharedWorkspaceTextFile(projectRoot, relativePath);
+        if (sharedText != null)
+            return sharedText;
+        try {
+            return await fs.readFile(path.join(projectRoot, relativePath), 'utf8');
+        }
+        catch {
+            return null;
+        }
     }
     async function detectBuildKind(projectRoot) {
         if (await hasProjectFile(projectRoot, 'package.json'))
@@ -68,6 +86,56 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 return candidate;
         }
         return null;
+    }
+    async function detectNodePackageManager(projectRoot) {
+        if (await hasProjectFile(projectRoot, 'pnpm-lock.yaml'))
+            return 'pnpm';
+        return 'npm';
+    }
+    async function failedBuildSteps(projectRoot) {
+        projectRootCache = projectRoot || '';
+        const packageManager = await detectNodePackageManager(projectRoot);
+        const buildCommand = packageManager === 'pnpm' ? 'pnpm build' : 'npm run build';
+        const installCommand = packageManager === 'pnpm' ? 'pnpm install' : 'npm install';
+        return [
+            toPlanStep({
+                stepId: 'inspect_pwd',
+                command: 'pwd',
+                cwd: projectRoot,
+                risk: 'inspect',
+                description: 'Confirm the working directory before diagnosing the failed build',
+            }),
+            toPlanStep({
+                stepId: 'inspect_files',
+                command: 'ls',
+                cwd: projectRoot,
+                risk: 'inspect',
+                description: 'Inspect package manager and project files',
+            }),
+            toPlanStep({
+                stepId: 'inspect_package_json',
+                command: 'cat package.json',
+                cwd: projectRoot,
+                risk: 'inspect',
+                description: 'Inspect package scripts and dependency metadata',
+            }),
+            toPlanStep({
+                stepId: 'run_failed_build',
+                command: buildCommand,
+                cwd: projectRoot,
+                risk: 'inspect',
+                description: 'Run one safe Node build diagnostic and capture the first concrete error',
+                timeoutMs: 120_000,
+            }),
+            toPlanStep({
+                stepId: 'approval_gated_install_fix',
+                command: installCommand,
+                cwd: projectRoot,
+                risk: 'safe-write',
+                description: `Approval-gated fix only if the parsed error points to missing declared dependencies or local build binaries. Verify by rerunning ${buildCommand}.`,
+                timeoutMs: 120_000,
+            }),
+        ];
     }
     async function buildStepsForKind(kind, projectRoot, workflow = 'build') {
         projectRootCache = projectRoot || '';
@@ -241,6 +309,17 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                     steps: [
                     toPlanStep({ stepId: 's1', tool: 'selfCheck', command: 'executeSelfCheck', cwd: projectRoot, risk: 'inspect', description: 'Run self-check tool' }),
                 ],
+            };
+        }
+        if (/\b(?:my\s+)?build\s+(?:is\s+)?(?:failing|failed|broken|erroring)\b/.test(intent) || /\b(?:fix|diagnose|debug)\s+(?:the\s+)?(?:failed\s+)?build\b/.test(intent)) {
+            const steps = buildKind === 'node' ? await failedBuildSteps(projectRoot) : await buildStepsForKind(buildKind, projectRoot, 'build');
+            return {
+                id,
+                intent: intentRaw,
+                reasoning: buildKind === 'node'
+                    ? "Detected Node project. I'll inspect package metadata, run one safe build diagnostic, parse the failure, and stop at one approval-gated fix."
+                    : `Detected ${buildKind} project. I'll run the safest available build diagnostic before proposing any fix.`,
+                steps,
             };
         }
         if (intent.includes('build') || intent.includes('test') || intent.includes('broken') || intent.includes('fix')) {

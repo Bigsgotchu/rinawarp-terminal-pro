@@ -142,7 +142,8 @@ describe('unified conversation turn', () => {
       memoryStore,
     })
 
-    expect(result.turn.assistantReply).toMatch(/Got it\. I’m on it\.|Got it\. I'm on it\./)
+    expect(result.turn.assistantReply).toMatch(/Action:/)
+    expect(result.turn.assistantReply).toMatch(/smallest safe next step/i)
     expect(result.turn.assistantReply).toMatch(/avoid touching tests/i)
   })
 })
@@ -162,6 +163,30 @@ describe('build plan helpers', () => {
     expect(plan.steps[0]?.input?.command).toBeTruthy()
     expect(plan.steps[0]?.risk_level).toBeTruthy()
     expect(typeof plan.steps[0]?.requires_confirmation).toBe('boolean')
+  })
+
+  it('builds the chat-first failed build recovery plan for pnpm projects', async () => {
+    const helpers = createBuildPlanHelpers({
+      fs: {},
+      path: {},
+      playbooks: [],
+      topCpuCmdSafeShort: 'ps aux',
+    } as any)
+
+    const projectRoot = process.cwd().replace(/\/apps\/terminal-pro$/, '')
+    const plan = await helpers.makePlan('My build is failing', projectRoot)
+
+    expect(plan.reasoning).toMatch(/one safe build diagnostic/i)
+    expect(plan.steps.map((step: any) => step.input.command)).toEqual([
+      'pwd',
+      'ls',
+      'cat package.json',
+      'pnpm build',
+      'pnpm install',
+    ])
+    expect(plan.steps.slice(0, 4).every((step: any) => step.requires_confirmation === false)).toBe(true)
+    expect(plan.steps[4]?.requires_confirmation).toBe(true)
+    expect(plan.steps[4]?.description).toContain('Verify by rerunning pnpm build')
   })
 })
 

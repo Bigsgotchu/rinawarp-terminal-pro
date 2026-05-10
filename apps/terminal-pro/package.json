@@ -1,7 +1,7 @@
 {
   "name": "rinawarp-terminal-pro",
   "private": true,
-  "version": "1.3.2-beta",
+  "version": "1.3.3-beta",
   "type": "module",
   "main": "dist-electron/main.js",
   "description": "RinaWarp agent-first desktop app for build, test, deploy, and system workflows",
@@ -26,6 +26,7 @@
     "test:fix-project-flow": "npm run build:electron && node --test test/fix-project-flow.test.mjs",
     "test:policy-gate": "npm run build:electron && node --test test/policy-gate-loading.test.mjs",
     "test:agent": "npm run build:electron && node --test tests/agent.test.mjs",
+    "test:rina-runtime": "vitest run rina-agent-core.test.ts --root src/renderer --passWithNoTests && vitest run tests/unit/unified-turn.test.ts --root . --passWithNoTests",
     "test:cli": "node --test tests/cli.test.mjs",
     "test:streaming": "node --test tests/streaming.test.mjs",
     "test:unit": "vitest run tests/unit --passWithNoTests",
