@@ -89,6 +89,11 @@ declare global {
         error?: string
       }>
       authToken(): Promise<{ token?: string | null }>
+      rinaCloudAccount(): Promise<any>
+      rinaCloudAuthSave(payload: { token?: string }): Promise<any>
+      rinaCloudAuthClear(): Promise<any>
+      rinaCloudCheckout(payload?: { email?: string }): Promise<{ ok: boolean; url?: string; sessionId?: string; error?: string }>
+      rinaCloudPortal(): Promise<{ ok: boolean; url?: string; error?: string }>
       teamState(): Promise<{
         ok: boolean
         workspaceId?: string

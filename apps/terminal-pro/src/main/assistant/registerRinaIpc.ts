@@ -1,6 +1,8 @@
 import type { IpcMain, IpcMainInvokeEvent } from 'electron'
 import {
   clearStoredRinaAuthToken,
+  createRinaCloudCheckoutSession,
+  createRinaCloudPortalSession,
   getRinaCloudAccountStatus,
   saveStoredRinaAuthToken,
 } from '../rina-cloud-account.js'
@@ -9,6 +11,7 @@ type DiagnosticsBundleDeps = unknown
 
 type RegisterRinaIpcDeps = {
   ipcMain: IpcMain
+  shell?: { openExternal(url: string): Promise<void> }
   openRunsFolderForIpc: () => Promise<unknown> | unknown
   revealRunReceiptForIpc: (receiptId: unknown) => Promise<unknown> | unknown
   fixProjectForIpc: (projectRoot: unknown) => Promise<unknown> | unknown
@@ -39,6 +42,7 @@ function replaceHandler(
 export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
   const {
     ipcMain,
+    shell,
     openRunsFolderForIpc,
     revealRunReceiptForIpc,
     fixProjectForIpc,
@@ -98,5 +102,28 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
   replaceHandler(ipcMain, 'rina:cloud:auth:clear', async () => {
     await clearStoredRinaAuthToken()
     return getRinaCloudAccountStatus()
+  })
+
+  replaceHandler(ipcMain, 'rina:cloud:checkout', async (_event: IpcMainInvokeEvent, payload: unknown) => {
+    try {
+      const email = String((payload as { email?: string } | null)?.email || '').trim().toLowerCase()
+      const session = await createRinaCloudCheckoutSession({ email })
+      if (!session?.url) return { ok: false, error: 'No Stripe checkout URL returned.' }
+      await shell?.openExternal(session.url)
+      return { ok: true, url: session.url, sessionId: session.sessionId }
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : 'Could not open Stripe checkout.' }
+    }
+  })
+
+  replaceHandler(ipcMain, 'rina:cloud:portal', async () => {
+    try {
+      const session = await createRinaCloudPortalSession()
+      if (!session?.url) return { ok: false, error: 'No Stripe portal URL returned.' }
+      await shell?.openExternal(session.url)
+      return { ok: true, url: session.url }
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : 'Could not open Stripe billing portal.' }
+    }
   })
 }

@@ -113,6 +113,11 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'secure-agent:marketplace',
   'secure-agent:install',
   'rina:capabilities:list',
+  'rina:cloud:account',
+  'rina:cloud:auth:save',
+  'rina:cloud:auth:clear',
+  'rina:cloud:checkout',
+  'rina:cloud:portal',
 ])
 
 const ALLOWED_ON_CHANNELS = new Set([
@@ -407,6 +412,8 @@ contextBridge.exposeInMainWorld('rina', {
   rinaCloudAccount: () => ipcRenderer.invoke('rina:cloud:account'),
   rinaCloudAuthSave: (payload: { token?: string }) => ipcRenderer.invoke('rina:cloud:auth:save', payload),
   rinaCloudAuthClear: () => ipcRenderer.invoke('rina:cloud:auth:clear'),
+  rinaCloudCheckout: (payload?: { email?: string }) => ipcRenderer.invoke('rina:cloud:checkout', payload || {}),
+  rinaCloudPortal: () => ipcRenderer.invoke('rina:cloud:portal'),
   teamState: () => ipcRenderer.invoke('team:state'),
   teamPlan: () => ipcRenderer.invoke('team:plan'),
   teamWorkspaceCreate: (args: { name: string; region?: string }) => ipcRenderer.invoke('team:workspace:create', args),

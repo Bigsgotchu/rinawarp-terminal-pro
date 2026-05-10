@@ -65,6 +65,14 @@ export async function getRinaCloudAccountUsage(): Promise<RinaCloudAccountUsageR
   return await getRinaCloudClientWithStoredToken().usage();
 }
 
+export async function createRinaCloudCheckoutSession(args: { email?: string } = {}) {
+  return await getRinaCloudClientWithStoredToken().createCheckoutSession(args);
+}
+
+export async function createRinaCloudPortalSession() {
+  return await getRinaCloudClientWithStoredToken().createPortalSession();
+}
+
 export async function getRinaCloudAccountStatus(): Promise<{
   ok: boolean;
   configured: boolean;

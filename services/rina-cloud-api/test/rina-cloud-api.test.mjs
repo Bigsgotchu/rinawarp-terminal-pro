@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
+import { createHmac } from "node:crypto";
 import { createRinaCloudApiServer } from "../dist/index.js";
 import { resolveOpenAiApiKey } from "../dist/openaiProvider.js";
 
@@ -13,6 +14,10 @@ async function withServer(provider, fn, options = {}) {
       subscriptionStatus: "active",
     } : null),
     dailyUsageLimit: options.dailyUsageLimit,
+    stripeSecretKey: options.stripeSecretKey,
+    stripeWebhookSecret: options.stripeWebhookSecret,
+    stripePriceId: options.stripePriceId,
+    stripeRequest: options.stripeRequest,
     logger: {
       log() {},
       warn() {},
@@ -29,6 +34,13 @@ async function withServer(provider, fn, options = {}) {
     server.close();
     await once(server, "close");
   }
+}
+
+function stripeSignature(payload, secret) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const body = typeof payload === "string" ? payload : JSON.stringify(payload);
+  const signature = createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+  return { body, header: `t=${timestamp},v1=${signature}` };
 }
 
 function chatPayload() {
@@ -85,7 +97,7 @@ test("POST /v1/agent/chat rejects oversized requests", async () => {
   });
 });
 
-test("GET /v1/account/usage returns metering placeholder", async () => {
+test("GET /v1/account/usage returns account usage and billing surface", async () => {
   await withServer({
     async complete() {
       return {
@@ -111,7 +123,126 @@ test("GET /v1/account/usage returns metering placeholder", async () => {
     assert.equal(body.usage.limit, 100);
     assert.equal(body.usage.inputTokens, 3);
     assert.equal(body.usage.outputTokens, 4);
-    assert.equal(body.billing.placeholder, true);
+    assert.equal(body.billing.placeholder, false);
+  });
+});
+
+test("POST /v1/billing/checkout creates a Stripe Checkout Session", async () => {
+  const calls = [];
+  await withServer({
+    async complete() {
+      throw new Error("provider should not be called");
+    },
+  }, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/v1/billing/checkout`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer checkout-token" },
+      body: JSON.stringify({ email: "pay@example.com" }),
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.url, "https://checkout.stripe.test/session");
+    assert.equal(calls[0].endpoint, "checkout/sessions");
+    assert.equal(calls[0].params.get("mode"), "subscription");
+    assert.equal(calls[0].params.get("line_items[0][price]"), "price_rina_pro");
+    assert.equal(calls[0].params.get("metadata[userId]"), "checkout-token");
+    assert.equal(calls[0].params.get("customer_email"), "pay@example.com");
+  }, {
+    stripeSecretKey: "sk_test_123",
+    stripePriceId: "price_rina_pro",
+    stripeRequest: async (endpoint, params) => {
+      calls.push({ endpoint, params });
+      return { id: "cs_test_123", url: "https://checkout.stripe.test/session" };
+    },
+  });
+});
+
+test("POST /v1/billing/portal creates a Stripe Customer Portal Session", async () => {
+  const calls = [];
+  await withServer({
+    async complete() {
+      throw new Error("provider should not be called");
+    },
+  }, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/v1/billing/portal`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer portal-token" },
+      body: JSON.stringify({}),
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.url, "https://billing.stripe.test/session");
+    assert.equal(calls[0].endpoint, "billing_portal/sessions");
+    assert.equal(calls[0].params.get("customer"), "cus_123");
+  }, {
+    authenticate: () => ({
+      userId: "portal-user",
+      plan: "pro",
+      subscriptionStatus: "active",
+      stripeCustomerId: "cus_123",
+    }),
+    stripeSecretKey: "sk_test_123",
+    stripeRequest: async (endpoint, params) => {
+      calls.push({ endpoint, params });
+      return { id: "bps_test_123", url: "https://billing.stripe.test/session" };
+    },
+  });
+});
+
+test("Stripe webhook updates subscription state and unlocks cloud AI", async () => {
+  const webhookSecret = "whsec_test";
+  await withServer({
+    async complete() {
+      return {
+        reply: "unlocked",
+        suggestedActions: [],
+        usage: { inputTokens: 1, outputTokens: 1 },
+      };
+    },
+  }, async (baseUrl) => {
+    const before = await fetch(`${baseUrl}/v1/agent/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer paid-token" },
+      body: JSON.stringify(chatPayload()),
+    });
+    assert.equal(before.status, 402);
+
+    const event = {
+      id: "evt_123",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_123",
+          customer: "cus_paid",
+          subscription: "sub_paid",
+          customer_details: { email: "paid@example.com" },
+          metadata: { userId: "paid-user" },
+        },
+      },
+    };
+    const signed = stripeSignature(event, webhookSecret);
+    const webhook = await fetch(`${baseUrl}/v1/billing/webhook`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "stripe-signature": signed.header },
+      body: signed.body,
+    });
+    assert.equal(webhook.status, 200);
+    assert.equal((await webhook.json()).updated, true);
+
+    const after = await fetch(`${baseUrl}/v1/agent/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer paid-token" },
+      body: JSON.stringify(chatPayload()),
+    });
+    assert.equal(after.status, 200);
+    assert.equal((await after.json()).reply, "unlocked");
+  }, {
+    authenticate: () => ({
+      userId: "paid-user",
+      plan: "pro",
+      subscriptionStatus: "none",
+    }),
+    stripeWebhookSecret: webhookSecret,
   });
 });
 

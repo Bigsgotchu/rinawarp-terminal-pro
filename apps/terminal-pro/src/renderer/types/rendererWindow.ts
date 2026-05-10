@@ -159,6 +159,11 @@ export interface RinaRendererWindow {
     }) => Promise<{ ok: boolean; error?: string; url?: string; sessionId?: string }>
     licenseCachedEmail?: () => Promise<{ email?: string | null }>
     openStripePortal: (email?: string) => Promise<{ ok: boolean; fallback?: boolean; error?: string }>
+    rinaCloudAccount?: () => Promise<any>
+    rinaCloudAuthSave?: (payload: { token?: string }) => Promise<any>
+    rinaCloudAuthClear?: () => Promise<any>
+    rinaCloudCheckout?: (payload?: { email?: string }) => Promise<{ ok: boolean; url?: string; sessionId?: string; error?: string }>
+    rinaCloudPortal?: () => Promise<{ ok: boolean; url?: string; error?: string }>
     marketplaceList?: () => Promise<{
       ok: boolean
       source?: string

@@ -6,6 +6,7 @@ import type {
   MemoryIpcDeps,
   PlanRunRegistry,
   PlanExecutionHelpers,
+  PlatformDeps,
   PolicyGateHelpers,
   RegisterPostStartupIpcAndServicesDeps,
   RegisterAnalyticsIpcDeps,
@@ -166,6 +167,7 @@ export function buildRuntimeSurfaces(args: {
 export function buildRegistrationRuntime(args: {
   deps: IpcRegistrationDeps & {
     ipcMain: unknown;
+    shell: PlatformDeps["shell"];
     resolveProjectRootSafe: ProjectRootResolver;
     riskFromPlanStep: AnyFn;
     gateProfileCommand: AnyFn;
@@ -246,6 +248,7 @@ export function buildRegistrationRuntime(args: {
     registerRinaIpc: args.deps.registerRinaIpc,
     rinaIpcDeps: {
       ipcMain: args.deps.ipcMain,
+      shell: args.deps.shell,
       openRunsFolderForIpc: args.runs.openRunsFolderForIpc,
       revealRunReceiptForIpc: args.runs.revealRunReceiptForIpc,
       fixProjectForIpc: (projectRoot: unknown) =>

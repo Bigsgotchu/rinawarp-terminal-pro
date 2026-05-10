@@ -701,6 +701,9 @@ export type WorkspaceRuntimeHelperDeps = WorkspaceServiceConfig;
 
 export type RegisterRinaIpcDeps = {
   ipcMain: unknown;
+  shell?: {
+    openExternal(url: string): Promise<void>;
+  };
   openRunsFolderForIpc: () => Promise<unknown> | unknown;
   revealRunReceiptForIpc: (receiptId: unknown) => Promise<unknown> | unknown;
   fixProjectForIpc: (projectRoot: unknown) => Promise<unknown> | unknown;

@@ -39,8 +39,10 @@ export type RinaCloudAccountUsageResponse = {
     userId: string;
     email?: string;
     plan: "free" | "pro" | "team";
-    subscriptionStatus: "active" | "trialing" | "past_due" | "unpaid" | "none";
+    subscriptionStatus: "active" | "trialing" | "past_due" | "unpaid" | "canceled" | "incomplete" | "none";
     stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionCurrentPeriodEnd?: number;
   };
   usage: {
     day: string;
@@ -64,9 +66,19 @@ export type RinaCloudConfig = {
   authToken: string | null;
 };
 
+export type RinaCloudBillingSessionResponse = {
+  ok: boolean;
+  url?: string;
+  sessionId?: string;
+  error?: string;
+  message?: string;
+};
+
 export type RinaCloudClientLike = {
   chat(request: RinaCloudChatRequest): Promise<RinaCloudChatResponse>;
   usage?(): Promise<RinaCloudAccountUsageResponse>;
+  createCheckoutSession?(args?: { email?: string }): Promise<RinaCloudBillingSessionResponse>;
+  createPortalSession?(): Promise<RinaCloudBillingSessionResponse>;
 };
 
 export function getRinaCloudConfig(env: NodeJS.ProcessEnv = process.env): RinaCloudConfig {
@@ -164,6 +176,34 @@ export class RinaCloudClient implements RinaCloudClientLike {
     if (!payload?.account || !payload?.usage || !payload?.billing) {
       throw new Error("Rina Cloud returned an invalid account response.");
     }
+    return payload;
+  }
+
+  async createCheckoutSession(args: { email?: string } = {}): Promise<RinaCloudBillingSessionResponse> {
+    if (!this.apiBase) {
+      throw new Error("RINA_CLOUD_API_BASE is not configured.");
+    }
+    const response = await fetch(`${this.apiBase}/v1/billing/checkout`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ email: args.email || "" }),
+    });
+    const payload = await this.parseOrThrow(response) as RinaCloudBillingSessionResponse;
+    if (!payload?.url) throw new Error("Rina Cloud did not return a checkout URL.");
+    return payload;
+  }
+
+  async createPortalSession(): Promise<RinaCloudBillingSessionResponse> {
+    if (!this.apiBase) {
+      throw new Error("RINA_CLOUD_API_BASE is not configured.");
+    }
+    const response = await fetch(`${this.apiBase}/v1/billing/portal`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({}),
+    });
+    const payload = await this.parseOrThrow(response) as RinaCloudBillingSessionResponse;
+    if (!payload?.url) throw new Error("Rina Cloud did not return a billing portal URL.");
     return payload;
   }
 }

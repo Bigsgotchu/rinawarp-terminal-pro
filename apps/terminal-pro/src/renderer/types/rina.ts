@@ -148,6 +148,11 @@ export interface RinaAPI {
   authResetPassword(args: { token: string; password: string }): Promise<any>
   authState(): Promise<any>
   authToken(): Promise<any>
+  rinaCloudAccount(): Promise<any>
+  rinaCloudAuthSave(payload: { token?: string }): Promise<any>
+  rinaCloudAuthClear(): Promise<any>
+  rinaCloudCheckout(payload?: { email?: string }): Promise<any>
+  rinaCloudPortal(): Promise<any>
 
   // Marketplace
   marketplaceList(): Promise<any>

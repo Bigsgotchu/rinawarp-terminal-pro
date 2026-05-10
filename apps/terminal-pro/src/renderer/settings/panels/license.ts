@@ -48,6 +48,16 @@ async function fetchCloudAccountState(): Promise<CloudAccountState> {
   }
 }
 
+function escapeAttr(value: unknown): string {
+  return String(value || '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char] || char))
+}
+
 function buildCloudAccountCard(state: CloudAccountState): string {
   const usage = state.usage?.usage
   const account = state.usage?.account
@@ -80,11 +90,12 @@ function buildCloudAccountCard(state: CloudAccountState): string {
         <button id="rw-cloud-clear-token-btn" type="button" class="rw-btn rw-btn-ghost">Sign Out</button>
       </div>
       <div class="rw-row" style="display:flex;gap:8px;margin-top:10px;">
+        <input id="rw-cloud-email" type="email" placeholder="Billing email" value="${escapeAttr(account?.email)}" style="flex:1;padding:8px 12px;border:1px solid #374151;border-radius:6px;background:#1f2937;color:#f9fafb;font-size:14px;" />
         <button id="rw-cloud-upgrade-btn" type="button" class="rw-btn">Upgrade</button>
         <button id="rw-cloud-portal-btn" type="button" class="rw-btn rw-btn-ghost">Billing Portal</button>
       </div>
       <div id="rw-cloud-status" class="rw-muted" style="margin-top:8px;">${state.error || 'Cloud calls are blocked when the account is unpaid or over the daily limit.'}</div>
-      <div class="rw-muted" style="margin-top:8px;">Stripe subscription wiring is a placeholder for this beta. Checkout and portal URLs come from Rina Cloud.</div>
+      <div class="rw-muted" style="margin-top:8px;">Stripe checkout and customer portal are opened through Rina Cloud.</div>
       <span id="rw-cloud-upgrade-url" data-url="${billing?.upgradeUrl || 'https://www.rinawarptech.com/pricing'}" style="display:none;"></span>
       <span id="rw-cloud-portal-url" data-url="${billing?.portalUrl || 'https://www.rinawarptech.com/account'}" style="display:none;"></span>
     </div>
@@ -114,13 +125,28 @@ function attachCloudAccountHandlers(container: HTMLElement): void {
     await (window as any).rina.rinaCloudAuthClear?.()
     reload()
   })
-  container.querySelector('#rw-cloud-upgrade-btn')?.addEventListener('click', () => {
-    const url = (container.querySelector('#rw-cloud-upgrade-url') as HTMLElement | null)?.dataset.url
-    if (url) window.open(url, '_blank')
+  container.querySelector('#rw-cloud-upgrade-btn')?.addEventListener('click', async () => {
+    const email = String(container.querySelector<HTMLInputElement>('#rw-cloud-email')?.value || '').trim().toLowerCase()
+    if (status) status.textContent = 'Opening Stripe checkout...'
+    const result = await (window as any).rina.rinaCloudCheckout?.({ email })
+    if (result?.ok) {
+      if (status) status.textContent = 'Stripe checkout opened. Refresh after payment completes.'
+      return
+    }
+    const fallback = (container.querySelector('#rw-cloud-upgrade-url') as HTMLElement | null)?.dataset.url
+    if (fallback) window.open(fallback, '_blank')
+    if (status) status.textContent = result?.error || 'Checkout could not be opened. Opened pricing fallback.'
   })
-  container.querySelector('#rw-cloud-portal-btn')?.addEventListener('click', () => {
-    const url = (container.querySelector('#rw-cloud-portal-url') as HTMLElement | null)?.dataset.url
-    if (url) window.open(url, '_blank')
+  container.querySelector('#rw-cloud-portal-btn')?.addEventListener('click', async () => {
+    if (status) status.textContent = 'Opening Stripe customer portal...'
+    const result = await (window as any).rina.rinaCloudPortal?.()
+    if (result?.ok) {
+      if (status) status.textContent = 'Stripe customer portal opened.'
+      return
+    }
+    const fallback = (container.querySelector('#rw-cloud-portal-url') as HTMLElement | null)?.dataset.url
+    if (fallback) window.open(fallback, '_blank')
+    if (status) status.textContent = result?.error || 'Billing portal could not be opened. Opened account fallback.'
   })
 }
 
