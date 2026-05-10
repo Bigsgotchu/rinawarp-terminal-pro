@@ -5,6 +5,7 @@ import { createOpenAiProvider } from "./openaiProvider.js";
 import type { ModelProvider, ProviderRequest, ProviderResponse } from "./modelProvider.js";
 
 export const MAX_REQUEST_BYTES = 64 * 1024;
+export const SERVICE_VERSION = "1.4.3-beta";
 const DAILY_USAGE_LIMIT = 100;
 const DEFAULT_UPGRADE_URL = "https://www.rinawarptech.com/pricing";
 const DEFAULT_BILLING_PORTAL_URL = "https://www.rinawarptech.com/account";
@@ -12,6 +13,15 @@ const DEFAULT_CHECKOUT_SUCCESS_URL = "https://www.rinawarptech.com/success?sessi
 const DEFAULT_CHECKOUT_CANCEL_URL = "https://www.rinawarptech.com/pricing";
 const DEFAULT_PORTAL_RETURN_URL = "https://www.rinawarptech.com/account";
 const STRIPE_API_VERSION = "2026-02-25.clover";
+const REQUIRED_PRODUCTION_ENV = [
+  "OPENAI_API_KEY",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+  "STRIPE_PRICE_ID_PRO",
+  "RINA_AUTH_SECRET",
+  "RINA_CLOUD_PUBLIC_BASE_URL",
+  "RINA_ALLOWED_ORIGINS",
+] as const;
 
 type SubscriptionStatus = "active" | "trialing" | "past_due" | "unpaid" | "canceled" | "incomplete" | "none";
 type CloudPlan = "free" | "pro" | "team";
@@ -50,6 +60,7 @@ type ApiOptions = {
   billingPortalReturnUrl?: string;
   accountStoreFile?: string;
   stripeRequest?: (endpoint: string, params: URLSearchParams, secretKey: string) => Promise<any>;
+  env?: NodeJS.ProcessEnv;
 };
 
 const usageByUser = new Map<string, UsageRecord>();
@@ -75,6 +86,26 @@ function jsonResponse(response: http.ServerResponse, status: number, payload: un
   response.end(JSON.stringify(payload));
 }
 
+function parseAllowedOrigins(raw: string | undefined): Set<string> {
+  return new Set(String(raw || "").split(",").map((origin) => origin.trim()).filter(Boolean));
+}
+
+function applyCors(request: http.IncomingMessage, response: http.ServerResponse, allowedOrigins: Set<string>): boolean {
+  const origin = String(request.headers.origin || "").trim();
+  if (origin && allowedOrigins.has(origin)) {
+    response.setHeader("access-control-allow-origin", origin);
+    response.setHeader("vary", "origin");
+  }
+  response.setHeader("access-control-allow-methods", "GET,POST,OPTIONS");
+  response.setHeader("access-control-allow-headers", "authorization,content-type,stripe-signature,x-rina-client");
+  if (request.method === "OPTIONS") {
+    response.statusCode = origin && !allowedOrigins.has(origin) ? 403 : 204;
+    response.end();
+    return true;
+  }
+  return false;
+}
+
 function bearerTokenFromRequest(request: http.IncomingMessage): string {
   const auth = String(request.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
   return auth;
@@ -82,6 +113,13 @@ function bearerTokenFromRequest(request: http.IncomingMessage): string {
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex").slice(0, 16);
+}
+
+function accountForAuthSecret(token: string, env: NodeJS.ProcessEnv): RinaCloudAccount | null {
+  const secret = String(env.RINA_AUTH_SECRET || "").trim();
+  if (!token || !secret) return null;
+  const userId = `user_${createHmac("sha256", secret).update(token).digest("hex").slice(0, 24)}`;
+  return { userId, plan: "free", subscriptionStatus: "none" };
 }
 
 function normalizeSubscriptionStatus(value: unknown): SubscriptionStatus {
@@ -200,9 +238,10 @@ async function authenticateToken(
   token: string,
   authenticate: ApiOptions["authenticate"] | undefined,
   accountStore: AccountRecordStore,
+  env: NodeJS.ProcessEnv = process.env,
 ): Promise<RinaCloudAccount | null> {
   if (!token) return null;
-  const account = authenticate ? await authenticate(token) : envTokenAccounts().get(token) || null;
+  const account = authenticate ? await authenticate(token) : envTokenAccounts(env).get(token) || accountForAuthSecret(token, env);
   return account ? accountStore.merge(account) : null;
 }
 
@@ -221,8 +260,9 @@ function isSubscriptionActive(account: RinaCloudAccount): boolean {
 }
 
 function usagePayload(account: RinaCloudAccount, usage: UsageRecord, limit: number, options: ApiOptions) {
-  const checkoutUrl = options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL;
-  const portalUrl = options.billingPortalUrl || process.env.RINA_STRIPE_PORTAL_URL || DEFAULT_BILLING_PORTAL_URL;
+  const env = options.env || process.env;
+  const checkoutUrl = options.checkoutUrl || env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL;
+  const portalUrl = options.billingPortalUrl || env.RINA_STRIPE_PORTAL_URL || DEFAULT_BILLING_PORTAL_URL;
   return {
     account: {
       userId: account.userId,
@@ -245,17 +285,18 @@ function usagePayload(account: RinaCloudAccount, usage: UsageRecord, limit: numb
       checkoutUrl,
       portalUrl,
       upgradeUrl: checkoutUrl,
-      stripePriceId: options.stripePriceId || process.env.STRIPE_RINA_PRO_PRICE_ID || null,
+      stripePriceId: options.stripePriceId || env.STRIPE_PRICE_ID_PRO || env.STRIPE_RINA_PRO_PRICE_ID || null,
       placeholder: false,
     },
   };
 }
 
 function authErrorPayload(options: ApiOptions) {
+  const env = options.env || process.env;
   return {
     error: "auth_required",
     message: "Sign in to Rina Cloud to use cloud-backed chat.",
-    upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+    upgradeUrl: options.checkoutUrl || env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
   };
 }
 
@@ -323,11 +364,13 @@ async function readRawBody(request: http.IncomingMessage, maxBytes: number): Pro
 }
 
 function stripeSecretKey(options: ApiOptions): string {
-  return String(options.stripeSecretKey || process.env.STRIPE_SECRET_KEY || "").trim();
+  const env = options.env || process.env;
+  return String(options.stripeSecretKey || env.STRIPE_SECRET_KEY || "").trim();
 }
 
 function stripePriceId(options: ApiOptions): string {
-  return String(options.stripePriceId || process.env.STRIPE_RINA_PRO_PRICE_ID || "").trim();
+  const env = options.env || process.env;
+  return String(options.stripePriceId || env.STRIPE_PRICE_ID_PRO || env.STRIPE_RINA_PRO_PRICE_ID || "").trim();
 }
 
 async function defaultStripeRequest(endpoint: string, params: URLSearchParams, secretKey: string): Promise<any> {
@@ -436,21 +479,38 @@ function cleanProviderResponse(response: ProviderResponse): ProviderResponse {
   };
 }
 
+export function validateProductionConfig(env: NodeJS.ProcessEnv = process.env): { ok: boolean; missing: string[] } {
+  const production = env.NODE_ENV === "production" || env.RINA_CLOUD_ENV === "production";
+  if (!production) return { ok: true, missing: [] };
+  const missing = REQUIRED_PRODUCTION_ENV.filter((key) => !String(env[key] || "").trim());
+  return { ok: missing.length === 0, missing };
+}
+
 export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server {
+  const env = options.env || process.env;
+  const productionConfig = validateProductionConfig(env);
+  if (!productionConfig.ok) {
+    throw new Error(`Missing production Rina Cloud env vars: ${productionConfig.missing.join(", ")}`);
+  }
   const provider = options.provider || createOpenAiProvider();
   const maxBytes = options.maxRequestBytes || MAX_REQUEST_BYTES;
   const dailyLimit = options.dailyUsageLimit || DAILY_USAGE_LIMIT;
   const logger = options.logger || console;
-  const accountStore = createAccountRecordStore(options.accountStoreFile || process.env.RINA_CLOUD_ACCOUNT_STORE_FILE);
+  const allowedOrigins = parseAllowedOrigins(env.RINA_ALLOWED_ORIGINS);
+  const accountStore = createAccountRecordStore(options.accountStoreFile || env.RINA_CLOUD_ACCOUNT_STORE_FILE);
 
   return http.createServer(async (request, response) => {
     const requestId = randomUUID();
+    const startedAt = Date.now();
     const url = new URL(request.url || "/", "http://localhost");
+    if (applyCors(request, response, allowedOrigins)) return;
     const token = bearerTokenFromRequest(request);
-    const account = await authenticateToken(token, options.authenticate, accountStore);
+    const account = await authenticateToken(token, options.authenticate, accountStore, env);
     const userId = account?.userId || "unauthenticated";
 
     logger.log(JSON.stringify({
+      level: "info",
+      event: "request",
       requestId,
       route: url.pathname,
       method: request.method,
@@ -458,12 +518,30 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
     }));
 
     if (request.method === "GET" && url.pathname === "/v1/health") {
-      jsonResponse(response, 200, { ok: true, service: "rina-cloud-api", version: "1.4.2-beta" });
+      jsonResponse(response, 200, { ok: true, service: "rina-cloud-api", version: SERVICE_VERSION, env: env.NODE_ENV || "development" });
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/v1/health/deep") {
+      jsonResponse(response, 200, {
+        ok: true,
+        service: "rina-cloud-api",
+        version: SERVICE_VERSION,
+        checks: {
+          provider: { configured: !!String(env.OPENAI_API_KEY || "").trim() },
+          stripe: {
+            secretKeyConfigured: !!stripeSecretKey({ ...options, env }),
+            webhookSecretConfigured: !!String(options.stripeWebhookSecret || env.STRIPE_WEBHOOK_SECRET || "").trim(),
+            priceIdConfigured: !!stripePriceId({ ...options, env }),
+          },
+          cors: { configuredOrigins: allowedOrigins.size },
+        },
+      });
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/v1/billing/webhook") {
-      const webhookSecret = String(options.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET || "").trim();
+      const webhookSecret = String(options.stripeWebhookSecret || env.STRIPE_WEBHOOK_SECRET || "").trim();
       if (!webhookSecret) {
         jsonResponse(response, 503, { error: "stripe_webhook_not_configured" });
         return;
@@ -480,6 +558,8 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
         jsonResponse(response, 200, { received: true, updated });
       } catch (error) {
         logger.error(JSON.stringify({
+          level: "error",
+          event: "webhook_error",
           requestId,
           route: url.pathname,
           error: error instanceof Error ? error.message : "unknown",
@@ -516,8 +596,8 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
         params.set("mode", "subscription");
         params.set("line_items[0][price]", priceId);
         params.set("line_items[0][quantity]", "1");
-        params.set("success_url", options.checkoutSuccessUrl || process.env.RINA_STRIPE_CHECKOUT_SUCCESS_URL || DEFAULT_CHECKOUT_SUCCESS_URL);
-        params.set("cancel_url", options.checkoutCancelUrl || process.env.RINA_STRIPE_CHECKOUT_CANCEL_URL || DEFAULT_CHECKOUT_CANCEL_URL);
+        params.set("success_url", options.checkoutSuccessUrl || env.STRIPE_CHECKOUT_SUCCESS_URL || env.RINA_STRIPE_CHECKOUT_SUCCESS_URL || DEFAULT_CHECKOUT_SUCCESS_URL);
+        params.set("cancel_url", options.checkoutCancelUrl || env.STRIPE_CHECKOUT_CANCEL_URL || env.RINA_STRIPE_CHECKOUT_CANCEL_URL || DEFAULT_CHECKOUT_CANCEL_URL);
         params.set("client_reference_id", account.userId);
         params.set("metadata[userId]", account.userId);
         params.set("subscription_data[metadata][userId]", account.userId);
@@ -541,14 +621,14 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
         jsonResponse(response, 409, {
           error: "stripe_customer_required",
           message: "Upgrade first so Rina Cloud can create your Stripe customer record.",
-          upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+          upgradeUrl: options.checkoutUrl || env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
         });
         return;
       }
       try {
         const params = new URLSearchParams();
         params.set("customer", account.stripeCustomerId);
-        params.set("return_url", options.billingPortalReturnUrl || process.env.RINA_STRIPE_PORTAL_RETURN_URL || DEFAULT_PORTAL_RETURN_URL);
+        params.set("return_url", options.billingPortalReturnUrl || env.STRIPE_PORTAL_RETURN_URL || env.RINA_STRIPE_PORTAL_RETURN_URL || DEFAULT_PORTAL_RETURN_URL);
         const session = await stripeRequest(options, "billing_portal/sessions", params);
         jsonResponse(response, 200, { ok: true, url: session.url });
       } catch (error) {
@@ -573,7 +653,7 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
         error: "subscription_required",
         message: "Upgrade to Rina Pro to use cloud-backed chat.",
         usage: usagePayload(account, getUsage(account.userId), account.dailyLimit || dailyLimit, options).usage,
-        upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+        upgradeUrl: options.checkoutUrl || env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
       });
       return;
     }
@@ -585,7 +665,7 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
         error: "daily_usage_limit_reached",
         message: "You've reached today's Rina Cloud usage limit.",
         usage: usagePayload(account, usage, limit, options).usage,
-        upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+        upgradeUrl: options.checkoutUrl || env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
       });
       return;
     }
@@ -613,11 +693,22 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
         return;
       }
       logger.error(JSON.stringify({
+        level: "error",
+        event: "provider_error",
         requestId,
         route: url.pathname,
         error: error instanceof Error ? error.message : "unknown",
       }));
       jsonResponse(response, 500, { error: "provider_error" });
+    } finally {
+      logger.log(JSON.stringify({
+        level: "info",
+        event: "request_complete",
+        requestId,
+        route: url.pathname,
+        status: response.statusCode,
+        durationMs: Date.now() - startedAt,
+      }));
     }
   });
 }

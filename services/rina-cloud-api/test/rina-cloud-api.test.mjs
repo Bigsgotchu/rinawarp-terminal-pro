@@ -2,22 +2,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { createHmac } from "node:crypto";
-import { createRinaCloudApiServer } from "../dist/index.js";
+import { createRinaCloudApiServer, validateProductionConfig } from "../dist/index.js";
 import { resolveOpenAiApiKey } from "../dist/openaiProvider.js";
 
 async function withServer(provider, fn, options = {}) {
   const server = createRinaCloudApiServer({
     provider,
-    authenticate: options.authenticate || ((token) => token ? {
+    authenticate: options.authenticate === undefined ? ((token) => token ? {
       userId: token,
       plan: "pro",
       subscriptionStatus: "active",
-    } : null),
+    } : null) : (options.authenticate || undefined),
     dailyUsageLimit: options.dailyUsageLimit,
     stripeSecretKey: options.stripeSecretKey,
     stripeWebhookSecret: options.stripeWebhookSecret,
     stripePriceId: options.stripePriceId,
     stripeRequest: options.stripeRequest,
+    env: options.env,
     logger: {
       log() {},
       warn() {},
@@ -35,6 +36,48 @@ async function withServer(provider, fn, options = {}) {
     await once(server, "close");
   }
 }
+
+test("production config validation rejects missing required env vars", () => {
+  const result = validateProductionConfig({ NODE_ENV: "production" });
+  assert.equal(result.ok, false);
+  assert.ok(result.missing.includes("OPENAI_API_KEY"));
+  assert.ok(result.missing.includes("STRIPE_WEBHOOK_SECRET"));
+  assert.throws(() => createRinaCloudApiServer({ env: { NODE_ENV: "production" } }), /Missing production Rina Cloud env vars/);
+});
+
+test("GET /v1/health returns service status", async () => {
+  await withServer({ async complete() { throw new Error("unused"); } }, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/v1/health`);
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.ok, true);
+    assert.equal(body.service, "rina-cloud-api");
+    assert.equal(body.version, "1.4.3-beta");
+  });
+});
+
+test("GET /v1/health/deep hides secrets", async () => {
+  await withServer({ async complete() { throw new Error("unused"); } }, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/v1/health/deep`);
+    assert.equal(response.status, 200);
+    const text = await response.text();
+    assert.equal(text.includes("sk-secret-test"), false);
+    const body = JSON.parse(text);
+    assert.equal(body.checks.provider.configured, true);
+    assert.equal(body.checks.stripe.secretKeyConfigured, true);
+    assert.equal(body.checks.stripe.webhookSecretConfigured, true);
+    assert.equal(body.checks.stripe.priceIdConfigured, true);
+  }, {
+    env: {
+      OPENAI_API_KEY: "sk-secret-test",
+      STRIPE_SECRET_KEY: "sk_stripe",
+      STRIPE_WEBHOOK_SECRET: "whsec_test",
+      STRIPE_PRICE_ID_PRO: "price_pro",
+      RINA_AUTH_SECRET: "auth-secret",
+      RINA_ALLOWED_ORIGINS: "https://www.rinawarptech.com",
+    },
+  });
+});
 
 function stripeSignature(payload, secret) {
   const timestamp = Math.floor(Date.now() / 1000);

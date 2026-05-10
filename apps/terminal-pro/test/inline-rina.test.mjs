@@ -234,7 +234,7 @@ test("cloud parse error falls back safely to explanation-only", async () => {
         }),
     );
 
-    assert.match(result.explanation, /could not generate a reliable inline result|more specific request/i);
+    assert.match(result.explanation, /Rina Cloud is unavailable\. Local recovery workflows still work\./i);
     assert.equal(result.command, null);
     assert.equal(result.risk, "low");
     assert.equal(result.confirmation, false);
@@ -271,7 +271,7 @@ test("cloud error path returns a safe explanation-only result", async () => {
         }),
     );
 
-    assert.match(result.explanation, /could not generate a reliable inline result/i);
+    assert.match(result.explanation, /Rina Cloud is unavailable\. Local recovery workflows still work\./i);
     assert.equal(result.command, null);
     assert.equal(result.risk, "low");
     assert.equal(result.confirmation, false);

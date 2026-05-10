@@ -85,7 +85,13 @@ export async function getRinaCloudAccountStatus(): Promise<{
   const config = getRinaCloudConfig();
   const hasToken = !!getStoredRinaAuthToken();
   if (!config.apiBase) {
-    return { ok: false, configured: false, hasToken, error: "RINA_CLOUD_API_BASE is not configured." };
+    return {
+      ok: false,
+      configured: false,
+      hasToken,
+      code: "unavailable",
+      error: "Rina Cloud is unavailable. Local recovery workflows still work.",
+    };
   }
   try {
     const usage = await getRinaCloudAccountUsage();

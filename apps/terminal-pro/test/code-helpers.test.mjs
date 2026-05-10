@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const { createWorkspaceService } = await import('../../../packages/runtime-feature-workspace/src/index.js')
+const { createWorkspaceService } = await import('../../../packages/runtime-feature-workspace/dist/index.js')
 
 function createTempWorkspace(structure) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-code-helpers-'))

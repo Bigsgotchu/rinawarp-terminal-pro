@@ -26,6 +26,8 @@ type CloudAccountState = {
   configured: boolean
   hasToken: boolean
   error?: string
+  code?: string
+  status?: number
   usage?: {
     account: { plan: string; subscriptionStatus: string; email?: string }
     usage: { requests: number; limit: number; remaining: number; inputTokens: number; outputTokens: number }
@@ -41,11 +43,26 @@ async function fetchCloudAccountState(): Promise<CloudAccountState> {
       configured: !!state?.configured,
       hasToken: !!state?.hasToken,
       error: state?.error,
+      code: state?.code,
+      status: state?.status,
       usage: state?.usage,
     }
   } catch (err: any) {
     return { ok: false, configured: false, hasToken: false, error: err?.message || 'Rina Cloud account check failed.' }
   }
+}
+
+function cloudStatusKind(state: CloudAccountState): 'connected' | 'unauthorized' | 'unpaid' | 'over limit' | 'unavailable' {
+  if (!state.configured || state.code === 'unavailable') return 'unavailable'
+  if (state.ok) {
+    const status = state.usage?.account.subscriptionStatus
+    if (status === 'active' || status === 'trialing') return 'connected'
+    return 'unpaid'
+  }
+  if (!state.hasToken || state.status === 401 || state.code === 'auth_required') return 'unauthorized'
+  if (state.status === 402 || state.code === 'subscription_required') return 'unpaid'
+  if (state.status === 429 || state.code === 'daily_usage_limit_reached') return 'over limit'
+  return 'unavailable'
 }
 
 function escapeAttr(value: unknown): string {
@@ -62,13 +79,10 @@ function buildCloudAccountCard(state: CloudAccountState): string {
   const usage = state.usage?.usage
   const account = state.usage?.account
   const billing = state.usage?.billing
-  const status = !state.configured
-    ? 'Cloud API not configured'
-    : state.ok
-      ? `${account?.plan || 'unknown'} / ${account?.subscriptionStatus || 'unknown'}`
-      : state.hasToken
-        ? state.error || 'Account unavailable'
-        : 'Not signed in'
+  const status = cloudStatusKind(state)
+  const statusDetail = state.ok
+    ? `${account?.plan || 'unknown'} / ${account?.subscriptionStatus || 'unknown'}`
+    : state.error || 'Rina Cloud is unavailable. Local recovery workflows still work.'
   const remaining = usage ? `${usage.remaining} of ${usage.limit} requests left today` : 'Usage unavailable'
   return `
     <div class="rw-card" style="margin-bottom: 16px;">
@@ -80,7 +94,7 @@ function buildCloudAccountCard(state: CloudAccountState): string {
         <button id="rw-cloud-refresh-btn" class="rw-btn rw-btn-ghost" type="button">Refresh</button>
       </div>
       <div class="rw-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;">
-        <div><div class="rw-label">Status</div><div class="rw-value">${status}</div></div>
+        <div><div class="rw-label">Status</div><div class="rw-value">${status}</div><div class="rw-muted">${statusDetail}</div></div>
         <div><div class="rw-label">Daily Usage</div><div class="rw-value">${remaining}</div></div>
         <div><div class="rw-label">Tokens</div><div class="rw-value">${usage ? `${usage.inputTokens} in / ${usage.outputTokens} out` : 'Unavailable'}</div></div>
       </div>

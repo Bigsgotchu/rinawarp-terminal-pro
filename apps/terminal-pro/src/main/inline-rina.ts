@@ -1007,7 +1007,7 @@ export async function runInlineRina(args: {
     const fallback = fallbackGenerateResponse(prompt);
     return {
       ...fallback,
-      explanation: `Rina could not generate a reliable inline result. ${message}`,
+      explanation: `Rina Cloud is unavailable. Local recovery workflows still work.\n\n${message}`,
     };
   }
 }

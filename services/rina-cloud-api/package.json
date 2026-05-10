@@ -1,12 +1,14 @@
 {
   "name": "@rinawarp/rina-cloud-api",
   "private": true,
-  "version": "1.4.2-beta",
+  "version": "1.4.3-beta",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node test/rina-cloud-api.test.mjs",
+    "test:prod-config": "npm run build && NODE_ENV=production node -e \"import('./dist/index.js').then(({ createRinaCloudApiServer }) => { try { createRinaCloudApiServer(); process.exit(1); } catch (err) { if (!String(err && err.message || err).includes('Missing production Rina Cloud env vars')) process.exit(1); } })\"",
+    "start": "node dist/index.js",
     "dev": "npm run build && node dist/index.js"
   },
   "devDependencies": {

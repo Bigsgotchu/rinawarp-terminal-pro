@@ -641,5 +641,6 @@ test("cloud failure falls back safely", async () => {
   assert.equal(result.command, null);
   assert.equal(result.risk, "low");
   assert.equal(result.confirmation, false);
-  assert.match(result.explanation, /could not generate a reliable inline result|invalid cloud response/i);
+  assert.match(result.explanation, /Rina Cloud is unavailable\. Local recovery workflows still work\./);
+  assert.match(result.explanation, /invalid cloud response/i);
 });
