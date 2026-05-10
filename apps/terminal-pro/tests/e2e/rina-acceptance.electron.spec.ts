@@ -23,7 +23,7 @@ const SELECTORS = {
 };
 
 test.describe("RinaWarp Terminal Pro acceptance gate", () => {
-  test("mocked OpenAI inline Rina result renders and approves end-to-end", async () => {
+  test("mocked inline Rina result renders and approves end-to-end", async () => {
     const mockedInlineResult = JSON.stringify({
       explanation: "Check git status first before making changes.",
       command: "git status --short --branch",
@@ -55,7 +55,7 @@ test.describe("RinaWarp Terminal Pro acceptance gate", () => {
     );
   });
 
-  test("missing OPENAI_API_KEY shows a clear inline configuration message", async () => {
+  test("missing Rina Cloud configuration shows a clear inline configuration message", async () => {
     await withApp(
       async ({ page }) => {
         await focusTerminalComposer(page);
@@ -64,14 +64,14 @@ test.describe("RinaWarp Terminal Pro acceptance gate", () => {
 
         const inlineResult = page.locator(SELECTORS.inlineRinaResult).last();
         await expect(inlineResult).toBeVisible({ timeout: 8_000 });
-        await expect(inlineResult).toContainText("Rina is not configured yet.");
-        await expect(inlineResult).toContainText("Set OPENAI_API_KEY");
+        await expect(inlineResult).toContainText("Rina Cloud is not configured yet.");
+        await expect(inlineResult).toContainText("Set RINA_CLOUD_API_BASE");
         await expect(inlineResult).toContainText("Risk: low");
         await expect(inlineResult).toContainText("No command proposed");
         await expect(page.locator(SELECTORS.approveButton)).toHaveCount(0);
       },
       {
-        OPENAI_API_KEY: "",
+        RINA_CLOUD_API_BASE: "",
         RINAWARP_INLINE_RINA_TEST_JSON: "",
       },
     );
@@ -134,7 +134,7 @@ test.describe("RinaWarp Terminal Pro acceptance gate", () => {
     }
   });
 
-  test("malformed model output falls back safely to explanation-only", async () => {
+  test("cloud model exception returns a safe explanation-only result", async () => {
     await withApp(
       async ({ page }) => {
         await focusTerminalComposer(page);
@@ -144,16 +144,16 @@ test.describe("RinaWarp Terminal Pro acceptance gate", () => {
         const inlineResult = page.locator(SELECTORS.inlineRinaResult).last();
         await expect(inlineResult).toBeVisible({ timeout: 8_000 });
         await expect(inlineResult).toContainText("Rina could not generate a reliable inline result.");
-        await expect(inlineResult).toContainText("Model returned invalid JSON.");
+        await expect(inlineResult).toContainText("Synthetic model failure");
         await expect(inlineResult).toContainText("Risk: low");
         await expect(inlineResult).toContainText("No command proposed");
         await expect(page.locator(SELECTORS.approveButton)).toHaveCount(0);
       },
       {
-        OPENAI_API_KEY: "test-key",
+        RINA_CLOUD_API_BASE: "https://rina-cloud.invalid",
         RINAWARP_INLINE_RINA_TEST_JSON: "",
-        RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "not valid json",
-        RINAWARP_INLINE_RINA_TEST_ERROR: "",
+        RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        RINAWARP_INLINE_RINA_TEST_ERROR: "Synthetic model failure",
       },
     );
   });
@@ -174,7 +174,7 @@ test.describe("RinaWarp Terminal Pro acceptance gate", () => {
         await expect(page.locator(SELECTORS.approveButton)).toHaveCount(0);
       },
       {
-        OPENAI_API_KEY: "test-key",
+        RINA_CLOUD_API_BASE: "https://rina-cloud.invalid",
         RINAWARP_INLINE_RINA_TEST_JSON: "",
         RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
         RINAWARP_INLINE_RINA_TEST_ERROR: "Synthetic model failure",

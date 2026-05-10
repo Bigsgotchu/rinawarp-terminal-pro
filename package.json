@@ -5,7 +5,8 @@
   "description": "RinaWarp - Persistent Agent Platform",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "services/*"
   ],
   "scripts": {
     "start": "npm run agent:daemon:start && npm run dev:terminal",

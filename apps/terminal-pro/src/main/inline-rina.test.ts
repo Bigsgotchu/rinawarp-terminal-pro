@@ -59,7 +59,6 @@ test("simple one-shot request stays on inline help path", async () => {
 
   const result = await withEnv(
     {
-      OPENAI_API_KEY: "test-key",
       RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "{\"explanation\":\"Check the port owner first.\",\"command\":\"lsof -i :3000\",\"risk\":\"low\"}",
       RINAWARP_INLINE_RINA_TEST_JSON: "",
       RINAWARP_INLINE_RINA_TEST_ERROR: "",
@@ -67,19 +66,19 @@ test("simple one-shot request stays on inline help path", async () => {
     () =>
       runInlineRina({
         request: {
-          prompt: "what is using port 3000",
+          prompt: "explain this odd shell output",
           action: "suggestNextCommand",
         },
         session: {
           cwd: process.cwd(),
           transcriptBuffer: "$ pwd\n",
-        },
+          },
       }),
   );
 
   assert.equal(result.explanation, "Check the port owner first.");
   assert.equal(result.command, "lsof -i :3000");
-  assert.equal(result.usage?.model, "gpt-4.1-mini");
+  assert.equal(result.usage?.model, "env-mock");
   assert.equal(result.agentEvents, undefined);
 });
 
@@ -96,7 +95,6 @@ test("fix this repo routes to agent path", async () => {
       const result = await withUsageFileEnv(() =>
         withEnv(
           {
-            OPENAI_API_KEY: "",
             RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
             RINAWARP_INLINE_RINA_TEST_JSON: "",
             RINAWARP_INLINE_RINA_TEST_ERROR: "",
@@ -127,10 +125,10 @@ test("failed build prompt routes to agent path", () => {
   assert.equal(chooseInlineRinaRoute("My build is failing"), "agent");
 });
 
-test("first-run inspect prompts stay useful without OPENAI_API_KEY", async () => {
+test("first-run inspect prompts stay useful without cloud configuration", async () => {
   await withEnv(
     {
-      OPENAI_API_KEY: "",
+      RINA_CLOUD_API_BASE: "",
       RINAWARP_INLINE_RINA_TEST_JSON: "",
       RINAWARP_INLINE_RINA_TEST_ERROR: "",
       RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
@@ -171,6 +169,177 @@ test("first-run inspect prompts stay useful without OPENAI_API_KEY", async () =>
   );
 });
 
+test("project overview question inspects package metadata and shallow files", async () => {
+  await withTempRepo(
+    "rina-project-overview-",
+    (dir) => {
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+        name: "demo-app",
+        description: "A demo app for testing project understanding.",
+        scripts: {
+          dev: "vite --host 0.0.0.0",
+          build: "vite build",
+          test: "vitest run",
+        },
+        dependencies: { vite: "^5.0.0" },
+        devDependencies: { vitest: "^1.0.0", typescript: "^5.0.0" },
+      }, null, 2));
+      fs.writeFileSync(path.join(dir, "README.md"), "# Demo App\n\nThis app shows project-aware Rina answers.");
+      fs.writeFileSync(path.join(dir, "tsconfig.json"), "{}");
+    },
+    async (dir) => {
+      const result = await withEnv(
+        {
+          RINAWARP_INLINE_RINA_TEST_JSON: "",
+          RINAWARP_INLINE_RINA_TEST_ERROR: "",
+          RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        },
+        () =>
+          runInlineRina({
+            request: {
+              prompt: "What does this project do?",
+              projectRoot: dir,
+              action: "suggestNextCommand",
+            },
+            session: {
+              cwd: dir,
+              transcriptBuffer: "$ pwd\n",
+            },
+          }),
+      );
+
+      assert.match(result.explanation, /demo-app/);
+      assert.match(result.explanation, /demo app for testing project understanding/i);
+      assert.match(result.explanation, /Scripts include/);
+      assert.equal(result.command, null);
+      assert.equal(result.risk, "low");
+    },
+  );
+});
+
+test("run-app project question proposes the package run command with approval", async () => {
+  await withTempRepo(
+    "rina-project-run-",
+    (dir) => {
+      fs.writeFileSync(path.join(dir, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+        name: "runner",
+        scripts: {
+          dev: "vite",
+          build: "vite build",
+        },
+      }, null, 2));
+    },
+    async (dir) => {
+      const result = await withEnv(
+        {
+          RINAWARP_INLINE_RINA_TEST_JSON: "",
+          RINAWARP_INLINE_RINA_TEST_ERROR: "",
+          RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        },
+        () =>
+          runInlineRina({
+            request: {
+              prompt: "How do I run this app?",
+              projectRoot: dir,
+              action: "suggestNextCommand",
+            },
+            session: {
+              cwd: dir,
+              transcriptBuffer: "$ pwd\n",
+            },
+          }),
+      );
+
+      assert.match(result.explanation, /dev/);
+      assert.equal(result.command, "pnpm dev");
+      assert.equal(result.risk, "medium");
+      assert.equal(result.confirmation, true);
+    },
+  );
+});
+
+test("build-script project question answers from package.json without running anything", async () => {
+  await withTempRepo(
+    "rina-project-build-",
+    (dir) => {
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+        name: "builder",
+        scripts: {
+          build: "tsc -b",
+        },
+      }, null, 2));
+    },
+    async (dir) => {
+      const result = await withEnv(
+        {
+          RINAWARP_INLINE_RINA_TEST_JSON: "",
+          RINAWARP_INLINE_RINA_TEST_ERROR: "",
+          RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        },
+        () =>
+          runInlineRina({
+            request: {
+              prompt: "Where is the build script?",
+              projectRoot: dir,
+              action: "suggestNextCommand",
+            },
+            session: {
+              cwd: dir,
+              transcriptBuffer: "$ pwd\n",
+            },
+          }),
+      );
+
+      assert.match(result.explanation, /package\.json/);
+      assert.match(result.explanation, /tsc -b/);
+      assert.equal(result.command, null);
+      assert.equal(result.confirmation, false);
+    },
+  );
+});
+
+test("tests-failing project question asks to run the existing test script first", async () => {
+  await withTempRepo(
+    "rina-project-tests-",
+    (dir) => {
+      fs.writeFileSync(path.join(dir, "package-lock.json"), "{}");
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+        name: "tester",
+        scripts: {
+          test: "node --test test/*.mjs",
+        },
+      }, null, 2));
+    },
+    async (dir) => {
+      const result = await withEnv(
+        {
+          RINAWARP_INLINE_RINA_TEST_JSON: "",
+          RINAWARP_INLINE_RINA_TEST_ERROR: "",
+          RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        },
+        () =>
+          runInlineRina({
+            request: {
+              prompt: "Why are tests failing?",
+              projectRoot: dir,
+              action: "suggestNextCommand",
+            },
+            session: {
+              cwd: dir,
+              transcriptBuffer: "$ pwd\n",
+            },
+          }),
+      );
+
+      assert.match(result.explanation, /don't have a failing test log yet/i);
+      assert.equal(result.command, "npm run test");
+      assert.equal(result.risk, "medium");
+      assert.equal(result.confirmation, true);
+    },
+  );
+});
+
 test("fix this repo consumes one agent run", async () => {
   await withTempRepo(
     "rina-inline-usage-consume-",
@@ -202,7 +371,6 @@ test("normal chat does not consume an agent run", async () => {
   await withUsageFileEnv(async () => {
     await withEnv(
       {
-        OPENAI_API_KEY: "test-key",
         RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "{\"explanation\":\"Hello.\",\"command\":null,\"risk\":\"low\"}",
         RINAWARP_INLINE_RINA_TEST_JSON: "",
         RINAWARP_INLINE_RINA_TEST_ERROR: "",
@@ -222,6 +390,108 @@ test("normal chat does not consume an agent run", async () => {
     const usage = await getRinaUsageStatus("free");
     assert.equal(usage.remainingAgentRunsToday, 10);
   });
+});
+
+test("general prompt calls Rina Cloud client", async () => {
+  let calls = 0;
+  const result = await withTempRepo(
+    "rina-cloud-general-",
+    (dir) => {
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "cloud-demo" }, null, 2));
+    },
+    (dir) =>
+      runInlineRina({
+        request: {
+          prompt: "What does this project do?",
+          projectRoot: dir,
+          action: "suggestNextCommand",
+        },
+        session: {
+          cwd: dir,
+          transcriptBuffer: "$ pwd\n",
+        },
+      }, {
+        cloudClient: {
+          async chat(request) {
+            calls += 1;
+            assert.equal(request.message, "What does this project do?");
+            assert.equal(request.workspace.name, "cloud-demo");
+            return {
+              reply: "This is a cloud-backed project answer.",
+              suggestedActions: [],
+              usage: { inputTokens: 12, outputTokens: 8 },
+            };
+          },
+        },
+      }),
+  );
+
+  assert.equal(calls, 1);
+  assert.equal(result.explanation, "This is a cloud-backed project answer.");
+  assert.equal(result.command, null);
+  assert.equal(result.usage?.model, "rina-cloud");
+});
+
+test("known local workflows do not call Rina Cloud", async () => {
+  let calls = 0;
+  const result = await runInlineRina({
+    request: {
+      prompt: "Why is my disk full?",
+      action: "suggestNextCommand",
+    },
+    session: {
+      cwd: process.cwd(),
+      transcriptBuffer: "$ pwd\n",
+    },
+  }, {
+    cloudClient: {
+      async chat() {
+        calls += 1;
+        throw new Error("cloud should not be called for disk inspection");
+      },
+    },
+  });
+
+  assert.equal(calls, 0);
+  assert.match(String(result.command), /df -h/);
+  assert.equal(result.risk, "low");
+});
+
+test("cloud suggested destructive command is never auto-executed", async () => {
+  const result = await runInlineRina({
+    request: {
+      prompt: "clean this project",
+      projectRoot: process.cwd(),
+      action: "suggestNextCommand",
+    },
+    session: {
+      cwd: process.cwd(),
+      transcriptBuffer: "$ pwd\n",
+    },
+  }, {
+    cloudClient: {
+      async chat() {
+        return {
+          reply: "I can suggest a cleanup, but local approval is required.",
+          suggestedActions: [{
+            label: "Remove build artifacts",
+            command: "rm -rf dist",
+            risk: "destructive",
+            expectedEffect: "Deletes generated build output.",
+            rollbackAwareness: "Regenerate with the build script.",
+            verificationHint: "List the directory after approval.",
+          }],
+          usage: { inputTokens: 20, outputTokens: 15 },
+        };
+      },
+    },
+  });
+
+  assert.equal(result.command, "rm -rf dist");
+  assert.equal(result.risk, "high");
+  assert.equal(result.confirmation, true);
+  assert.equal(result.pendingApproval?.kind, "command");
+  assert.match(String(result.confirmationMessage), /classify it locally/i);
 });
 
 test("limit hit returns upgrade message", async () => {
@@ -265,7 +535,7 @@ test("limit hit returns upgrade message", async () => {
   );
 });
 
-test("missing OPENAI_API_KEY still allows the inspection agent slice", async () => {
+test("missing cloud configuration still allows the inspection agent slice", async () => {
   await withTempRepo(
     "rina-inline-no-key-",
     (dir) => {
@@ -276,7 +546,6 @@ test("missing OPENAI_API_KEY still allows the inspection agent slice", async () 
       const result = await withUsageFileEnv(() =>
         withEnv(
           {
-            OPENAI_API_KEY: "",
             RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
             RINAWARP_INLINE_RINA_TEST_JSON: "",
             RINAWARP_INLINE_RINA_TEST_ERROR: "",
@@ -303,23 +572,29 @@ test("missing OPENAI_API_KEY still allows the inspection agent slice", async () 
   );
 });
 
-test("malformed model output falls back safely", async () => {
+test("cloud failure falls back safely", async () => {
   const result = await withEnv(
     {
-      OPENAI_API_KEY: "test-key",
-      RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "not valid json",
+      RINA_CLOUD_API_BASE: "https://rina-cloud.invalid",
+      RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
       RINAWARP_INLINE_RINA_TEST_JSON: "",
       RINAWARP_INLINE_RINA_TEST_ERROR: "",
     },
     () =>
       runInlineRina({
         request: {
-          prompt: "what is using port 3000",
+          prompt: "explain this odd shell output",
           action: "suggestNextCommand",
         },
         session: {
           cwd: process.cwd(),
           transcriptBuffer: "$ pwd\n",
+        },
+      }, {
+        cloudClient: {
+          async chat() {
+            throw new Error("invalid cloud response");
+          },
         },
       }),
   );
@@ -327,5 +602,5 @@ test("malformed model output falls back safely", async () => {
   assert.equal(result.command, null);
   assert.equal(result.risk, "low");
   assert.equal(result.confirmation, false);
-  assert.match(result.explanation, /could not generate a reliable inline result|invalid json/i);
+  assert.match(result.explanation, /could not generate a reliable inline result|invalid cloud response/i);
 });

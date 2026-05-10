@@ -3,7 +3,13 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import OpenAI from "openai";
+import { buildRinaCloudWorkspace } from "./rina-cloud-context.js";
+import {
+  cloudResponseToInlineResult,
+  getRinaCloudConfig,
+  RinaCloudClient,
+  type RinaCloudClientLike,
+} from "./rina-cloud-client.js";
 import { runRinaAgent, type RinaAgentResult, type RinaAgentStreamEvent } from "./rina-agent.js";
 import { getRinaUsageStatus, recordAgentRunStarted } from "./rina-usage-meter.js";
 import type { RinaPlan } from "./rina-usage-limits.js";
@@ -66,6 +72,23 @@ type RepoContext = {
   selectedText: string | null;
 };
 
+type ProjectPackageInfo = {
+  name?: string;
+  description?: string;
+  scripts: Record<string, string>;
+  dependencies: string[];
+  devDependencies: string[];
+};
+
+type ProjectSnapshot = {
+  cwd: string;
+  packageManager: RepoContext["packageManager"];
+  packageInfo: ProjectPackageInfo | null;
+  importantFiles: string[];
+  shallowFiles: string[];
+  readmeSummary: string | null;
+};
+
 type ModelOutput = {
   explanation: string;
   command: string | null;
@@ -78,7 +101,6 @@ type EnvMockOutput = Partial<ModelOutput> & {
 
 export type InlineRinaRoute = "direct_chat" | "inline_help" | "agent";
 
-const DEFAULT_MODEL = String(process.env.RINAWARP_OPENAI_MODEL || "gpt-4.1-mini").trim();
 const DIRECT_CHAT_PATTERNS = [
   /^(?:hi|hello|hey)(?:\s+rina)?[!.?]*$/i,
   /^help[!.?]*$/i,
@@ -86,27 +108,6 @@ const DIRECT_CHAT_PATTERNS = [
   /^can you help me[?.!]*$/i,
   /^who are you[?.!]*$/i,
 ];
-
-const SYSTEM_PROMPT = [
-  "You are Rina, a terminal-native AI assistant inside RinaWarp Terminal Pro.",
-  "You help users operate and repair real developer environments safely.",
-  "Return JSON only.",
-  "Prefer one concrete next step over broad advice.",
-  "Only propose a command when it is likely to work in the current repo context.",
-  "Do not invent scripts, files, package managers, or tools that are not supported by the visible context.",
-  "Use command=null when explanation is more appropriate than execution.",
-  "Risk rules:",
-  "- low: read-only inspection or clearly safe local checks",
-  "- medium: install/build/test/change-local-state commands",
-  "- high: destructive, networked, privileged, or irreversible commands",
-  "Keep the explanation concise and actionable.",
-].join("\n");
-
-function getOpenAiClient(): OpenAI {
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
 
 function stripAnsi(value: string): string {
   return String(value || "")
@@ -191,12 +192,23 @@ function detectPackageManager(projectRoot?: string): RepoContext["packageManager
   return "unknown";
 }
 
+function packageManagerRunCommand(packageManager: RepoContext["packageManager"], script: string): string {
+  if (packageManager === "pnpm") return `pnpm ${script}`;
+  if (packageManager === "yarn") return `yarn ${script}`;
+  if (packageManager === "bun") return `bun run ${script}`;
+  return `npm run ${script}`;
+}
+
 async function defaultReadFileText(filePath: string): Promise<string> {
   return fsp.readFile(filePath, "utf8");
 }
 
 async function defaultListDir(dirPath: string): Promise<string[]> {
   return fsp.readdir(dirPath);
+}
+
+async function defaultListDirEntries(dirPath: string): Promise<fs.Dirent[]> {
+  return fsp.readdir(dirPath, { withFileTypes: true });
 }
 
 async function defaultExecText(command: string, cwd?: string): Promise<string> {
@@ -252,6 +264,121 @@ async function listImportantFiles(
   } catch {
     return [];
   }
+}
+
+async function listProjectFilesMaxDepth(
+  cwd: string,
+  maxDepth = 2,
+  limit = 80,
+  listDirEntries: (dirPath: string) => Promise<fs.Dirent[]> = defaultListDirEntries,
+): Promise<string[]> {
+  const ignoredDirs = new Set([
+    ".git",
+    "node_modules",
+    "dist",
+    "dist-electron",
+    "out",
+    "build",
+    ".vite",
+    "coverage",
+    "test-results",
+    "output",
+  ]);
+  const files: string[] = [];
+
+  async function walk(relativeDir: string, depth: number): Promise<void> {
+    if (files.length >= limit || depth > maxDepth) return;
+    const absoluteDir = path.join(cwd, relativeDir);
+    let entries: fs.Dirent[];
+    try {
+      entries = await listDirEntries(absoluteDir);
+    } catch {
+      return;
+    }
+
+    entries.sort((a, b) => {
+      if (a.isDirectory() !== b.isDirectory()) return a.isDirectory() ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    for (const entry of entries) {
+      if (files.length >= limit) return;
+      if (entry.name.startsWith(".") && entry.name !== ".env.example") continue;
+      const relativePath = relativeDir ? path.join(relativeDir, entry.name) : entry.name;
+      if (entry.isDirectory()) {
+        if (!ignoredDirs.has(entry.name)) await walk(relativePath, depth + 1);
+        continue;
+      }
+      if (entry.isFile()) files.push(relativePath.replaceAll(path.sep, "/"));
+    }
+  }
+
+  await walk("", 0);
+  return files;
+}
+
+function parsePackageInfo(text: string): ProjectPackageInfo | null {
+  try {
+    const pkg = JSON.parse(text) as {
+      name?: string;
+      description?: string;
+      scripts?: Record<string, string>;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    return {
+      name: typeof pkg.name === "string" ? pkg.name : undefined,
+      description: typeof pkg.description === "string" ? pkg.description : undefined,
+      scripts: pkg.scripts && typeof pkg.scripts === "object" ? pkg.scripts : {},
+      dependencies: Object.keys(pkg.dependencies || {}),
+      devDependencies: Object.keys(pkg.devDependencies || {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function summarizeReadme(text: string): string | null {
+  const lines = stripAnsi(text)
+    .split(/\r?\n/g)
+    .map((line) => line.trim())
+    .filter((line) => line && !/^[-=*`#]+$/.test(line));
+  const heading = lines.find((line) => /^#\s+/.test(line))?.replace(/^#\s+/, "").trim();
+  const body = lines.find((line) => !line.startsWith("#") && line.length > 24);
+  const summary = [heading, body].filter(Boolean).join(": ");
+  return summary ? summary.slice(0, 260) : null;
+}
+
+async function buildProjectSnapshot(projectRoot: string): Promise<ProjectSnapshot> {
+  const packageManager = detectPackageManager(projectRoot);
+  const importantFiles = await listImportantFiles(projectRoot, defaultListDir);
+  const shallowFiles = await listProjectFilesMaxDepth(projectRoot);
+  let packageInfo: ProjectPackageInfo | null = null;
+  let readmeSummary: string | null = null;
+
+  try {
+    packageInfo = parsePackageInfo(await defaultReadFileText(path.join(projectRoot, "package.json")));
+  } catch {
+    packageInfo = null;
+  }
+
+  for (const readmeName of ["README.md", "readme.md", "README"]) {
+    try {
+      readmeSummary = summarizeReadme(await defaultReadFileText(path.join(projectRoot, readmeName)));
+      if (readmeSummary) break;
+    } catch {
+      // Try the next README variant.
+    }
+  }
+
+  return {
+    cwd: projectRoot,
+    packageManager,
+    packageInfo,
+    importantFiles,
+    shallowFiles,
+    readmeSummary,
+  };
 }
 
 function summarizeFile(fileName: string, text: string): string {
@@ -507,11 +634,12 @@ export function chooseInlineRinaRoute(input: string): InlineRinaRoute {
 
 function mockInlineRinaFromEnv(): InlineRinaResult | null {
   const raw = String(process.env.RINAWARP_INLINE_RINA_TEST_JSON || "").trim();
-  if (!raw) return null;
+  const textRaw = String(process.env.RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT || "").trim();
+  if (!raw && !textRaw) return null;
 
-  const parsed = parseJsonObject<EnvMockOutput>(raw);
+  const parsed = parseJsonObject<EnvMockOutput>(raw || textRaw);
   if (!parsed) {
-    throw new Error("RINAWARP_INLINE_RINA_TEST_JSON did not contain valid JSON.");
+    throw new Error("RINAWARP inline Rina test output did not contain valid JSON.");
   }
 
   return normalizeLlmResult(
@@ -529,77 +657,27 @@ function mockInlineRinaFromEnv(): InlineRinaResult | null {
   );
 }
 
-async function callOpenAiJson(prompt: string, modelOverride?: string): Promise<InlineRinaResult> {
-  const model = String(modelOverride || DEFAULT_MODEL).trim() || DEFAULT_MODEL;
+async function callRinaCloud(args: {
+  prompt: string;
+  projectRoot: string;
+  cloudClient?: RinaCloudClientLike;
+}): Promise<InlineRinaResult> {
   const forcedError = String(process.env.RINAWARP_INLINE_RINA_TEST_ERROR || "").trim();
   if (forcedError) {
     throw new Error(forcedError);
   }
 
-  const forcedOutputText = process.env.RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT;
-  if (typeof forcedOutputText === "string" && forcedOutputText.length > 0) {
-    const parsed = parseJsonObject<ModelOutput>(forcedOutputText);
-    if (!parsed) {
-      throw new Error("Model returned invalid JSON.");
-    }
-
-    return normalizeLlmResult(parsed, {
-      model,
-      promptTokens: null,
-      responseTokens: null,
-      totalTokens: null,
-    });
-  }
-
-  const response = await getOpenAiClient().responses.create({
-    model,
-    temperature: 0.2,
-    text: {
-      format: {
-        type: "json_schema",
-        name: "inline_rina_result",
-        strict: true,
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            explanation: { type: "string" },
-            command: {
-              anyOf: [{ type: "string" }, { type: "null" }],
-            },
-            risk: {
-              type: "string",
-              enum: ["low", "medium", "high"],
-            },
-          },
-          required: ["explanation", "command", "risk"],
-        },
-      },
+  const cloudClient = args.cloudClient || new RinaCloudClient();
+  const workspace = await buildRinaCloudWorkspace(args.projectRoot);
+  const response = await cloudClient.chat({
+    message: args.prompt,
+    workspace,
+    client: {
+      appVersion: process.env.npm_package_version || "unknown",
+      platform: process.platform,
     },
-    input: [
-      {
-        role: "system",
-        content: [{ type: "input_text", text: SYSTEM_PROMPT }],
-      },
-      {
-        role: "user",
-        content: [{ type: "input_text", text: prompt }],
-      },
-    ],
   });
-
-  const rawText = response.output_text || "";
-  const parsed = parseJsonObject<ModelOutput>(rawText);
-  if (!parsed) {
-    throw new Error("Model returned invalid JSON.");
-  }
-
-  return normalizeLlmResult(parsed, {
-    model,
-    promptTokens: response.usage?.input_tokens ?? null,
-    responseTokens: response.usage?.output_tokens ?? null,
-    totalTokens: response.usage?.total_tokens ?? null,
-  });
+  return cloudResponseToInlineResult(response);
 }
 
 function fallbackDebugResponse(args: {
@@ -684,6 +762,88 @@ function fallbackGenerateResponse(prompt: string): InlineRinaResult {
   };
 }
 
+function isProjectQuestion(prompt: string): boolean {
+  const value = String(prompt || "").trim();
+  return [
+    /\bwhat does (?:this|the) project do\b/i,
+    /\bwhat is (?:this|the) project\b/i,
+    /\bhow do i run (?:this|the) (?:app|project)\b/i,
+    /\bhow (?:to|do i) start (?:this|the) (?:app|project)\b/i,
+    /\bwhere is (?:the )?build script\b/i,
+    /\bwhy are tests failing\b/i,
+    /\bwhy (?:are|do) (?:the )?tests fail\b/i,
+  ].some((pattern) => pattern.test(value));
+}
+
+function scriptNamesMatching(scripts: Record<string, string>, patterns: RegExp[]): string[] {
+  return Object.keys(scripts).filter((name) => patterns.some((pattern) => pattern.test(name)));
+}
+
+function pickScriptName(scripts: Record<string, string>, exactNames: string[], fuzzyPatterns: RegExp[]): string | null {
+  const names = Object.keys(scripts);
+  for (const exact of exactNames) {
+    if (names.includes(exact)) return exact;
+  }
+  return names.find((name) => fuzzyPatterns.some((pattern) => pattern.test(name))) || null;
+}
+
+async function deterministicProjectQuestionResponse(prompt: string, projectRoot: string): Promise<InlineRinaResult | null> {
+  if (!isProjectQuestion(prompt)) return null;
+
+  const snapshot = await buildProjectSnapshot(projectRoot);
+  const pkg = snapshot.packageInfo;
+  const scripts = pkg?.scripts || {};
+  const scriptNames = Object.keys(scripts);
+  const usage = { model: null, promptTokens: null, responseTokens: null, totalTokens: null };
+  const value = prompt.toLowerCase();
+
+  if (/\bwhere is (?:the )?build script\b/.test(value)) {
+    const buildScripts = scriptNamesMatching(scripts, [/^build$/, /build/i]);
+    const explanation = buildScripts.length
+      ? `The build script is in \`package.json\` under \`scripts\`: ${buildScripts.map((name) => `\`${name}\` -> \`${scripts[name]}\``).join(", ")}. I inspected the workspace root, package manifest, and shallow file list before answering.`
+      : `I inspected the workspace root, package manifest, and shallow file list, but I don't see a build script in \`package.json\`. Visible scripts: ${scriptNames.length ? scriptNames.map((name) => `\`${name}\``).join(", ") : "none"}.`;
+    return { explanation, command: null, risk: "low", confirmation: false, usage };
+  }
+
+  if (/\bhow (?:do i|to) (?:run|start)\b/.test(value)) {
+    const primary = pickScriptName(scripts, ["dev", "start", "serve", "preview"], [/^dev[:_-]/, /^start[:_-]/, /serve/i, /preview/i]);
+    const command = primary ? packageManagerRunCommand(snapshot.packageManager, primary) : null;
+    const explanation = primary
+      ? `This looks like ${pkg?.name ? `\`${pkg.name}\`` : "a Node-style app"}. To run it locally, use the \`${primary}\` script from \`package.json\`: \`${scripts[primary]}\`. I found ${snapshot.packageManager === "unknown" ? "no lockfile, so npm is the safest default" : `a ${snapshot.packageManager} workspace`}.`
+      : `I inspected the project files but couldn't find a clear \`dev\`, \`start\`, \`serve\`, or \`preview\` script in \`package.json\`. Visible scripts: ${scriptNames.length ? scriptNames.map((name) => `\`${name}\``).join(", ") : "none"}.`;
+    return { explanation, command, risk: command ? "medium" : "low", confirmation: !!command, usage };
+  }
+
+  if (/\btests? fail|tests? failing\b/.test(value)) {
+    const primary = pickScriptName(scripts, ["test"], [/^test[:_-]/, /test/i]);
+    const command = primary ? packageManagerRunCommand(snapshot.packageManager, primary) : null;
+    const explanation = primary
+      ? `I don't have a failing test log yet, but I found the test entry point in \`package.json\`: \`${primary}\` -> \`${scripts[primary]}\`. Run it first so Rina can inspect the exact failure output before suggesting any edit.`
+      : `I don't have a failing test log yet, and I don't see a test script in \`package.json\`. I inspected the shallow file list and found ${snapshot.shallowFiles.slice(0, 12).map((file) => `\`${file}\``).join(", ") || "no obvious test files"}.`;
+    return { explanation, command, risk: command ? "medium" : "low", confirmation: !!command, usage };
+  }
+
+  const languageHints = [
+    pkg ? "Node/JavaScript package manifest" : null,
+    snapshot.importantFiles.includes("tsconfig.json") ? "TypeScript config" : null,
+    snapshot.importantFiles.includes("vite.config.ts") ? "Vite config" : null,
+    snapshot.importantFiles.includes("playwright.config.ts") ? "Playwright config" : null,
+    snapshot.importantFiles.includes("pyproject.toml") ? "Python project config" : null,
+    snapshot.importantFiles.includes("Cargo.toml") ? "Rust project config" : null,
+    snapshot.importantFiles.includes("go.mod") ? "Go module" : null,
+  ].filter(Boolean);
+  const scriptSummary = scriptNames.length ? `Scripts include ${scriptNames.slice(0, 8).map((name) => `\`${name}\``).join(", ")}.` : "I didn't find package scripts.";
+  const fileSummary = snapshot.shallowFiles.slice(0, 12).map((file) => `\`${file}\``).join(", ");
+  const explanation = [
+    pkg?.name ? `This project appears to be \`${pkg.name}\`.` : "I inspected this workspace to understand what it is.",
+    pkg?.description ? pkg.description : snapshot.readmeSummary,
+    languageHints.length ? `Signals: ${languageHints.join(", ")}.` : null,
+    scriptSummary,
+    fileSummary ? `Notable files near the top: ${fileSummary}.` : null,
+  ].filter(Boolean).join(" ");
+  return { explanation, command: null, risk: "low", confirmation: false, usage };
+}
+
 function deterministicFirstRunResponse(prompt: string): InlineRinaResult | null {
   const value = String(prompt || "").trim().toLowerCase();
   const usage = { model: null, promptTokens: null, responseTokens: null, totalTokens: null };
@@ -716,7 +876,9 @@ function deterministicFirstRunResponse(prompt: string): InlineRinaResult | null 
 export async function runInlineRina(args: {
   request: InlineRinaRequest;
   session: PtySessionLike | undefined;
-}): Promise<InlineRinaResult> {
+}, deps: {
+  cloudClient?: RinaCloudClientLike;
+} = {}): Promise<InlineRinaResult> {
   const prompt = String(args.request.prompt || "").trim();
   if (!prompt) {
     return {
@@ -737,7 +899,7 @@ export async function runInlineRina(args: {
   const projectRoot = args.request.projectRoot || args.session?.cwd || process.cwd();
 
   const firstRunFallback = deterministicFirstRunResponse(prompt);
-  if (firstRunFallback && !String(process.env.OPENAI_API_KEY || "").trim()) {
+  if (firstRunFallback) {
     return firstRunFallback;
   }
 
@@ -770,25 +932,29 @@ export async function runInlineRina(args: {
     return normalizeAgentResult(result);
   }
 
-  if (!String(process.env.OPENAI_API_KEY || "").trim()) {
+  try {
+    if (deps.cloudClient || getRinaCloudConfig().apiBase) {
+      return await callRinaCloud({ prompt, projectRoot, cloudClient: deps.cloudClient });
+    }
+
+    const projectQuestionFallback = await deterministicProjectQuestionResponse(prompt, projectRoot);
+    if (projectQuestionFallback) {
+      return projectQuestionFallback;
+    }
+
     return {
-      explanation: "Rina is not configured yet. Set OPENAI_API_KEY in the main-process environment to enable model-backed inline help.",
+      explanation: "Rina Cloud is not configured yet. Set RINA_CLOUD_API_BASE for model-backed chat. Local disk, port, and failed-build workflows are still available.",
       command: null,
       risk: "low",
       confirmation: false,
       usage: { model: null, promptTokens: null, responseTokens: null, totalTokens: null },
     };
-  }
-
-  try {
-    const context = await buildRepoContext({
-      request: args.request,
-      projectRoot,
-      transcript,
-    });
-
-    return await callOpenAiJson(buildPrompt(prompt, context));
   } catch (error) {
+    const projectQuestionFallback = await deterministicProjectQuestionResponse(prompt, projectRoot);
+    if (projectQuestionFallback) {
+      return projectQuestionFallback;
+    }
+
     const debugPrompt = /\b(why|fail|failed|failure|broken|error|debug|fix)\b/i.test(prompt);
     if (debugPrompt || detectTerminalFailure(transcript).failed) {
       return fallbackDebugResponse({
