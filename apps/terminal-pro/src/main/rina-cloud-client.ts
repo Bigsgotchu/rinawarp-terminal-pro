@@ -34,6 +34,31 @@ export type RinaCloudChatResponse = {
   };
 };
 
+export type RinaCloudAccountUsageResponse = {
+  account: {
+    userId: string;
+    email?: string;
+    plan: "free" | "pro" | "team";
+    subscriptionStatus: "active" | "trialing" | "past_due" | "unpaid" | "none";
+    stripeCustomerId?: string;
+  };
+  usage: {
+    day: string;
+    requests: number;
+    limit: number;
+    remaining: number;
+    inputTokens: number;
+    outputTokens: number;
+  };
+  billing: {
+    checkoutUrl: string;
+    portalUrl: string;
+    upgradeUrl: string;
+    stripePriceId?: string | null;
+    placeholder: boolean;
+  };
+};
+
 export type RinaCloudConfig = {
   apiBase: string;
   authToken: string | null;
@@ -41,6 +66,7 @@ export type RinaCloudConfig = {
 
 export type RinaCloudClientLike = {
   chat(request: RinaCloudChatRequest): Promise<RinaCloudChatResponse>;
+  usage?(): Promise<RinaCloudAccountUsageResponse>;
 };
 
 export function getRinaCloudConfig(env: NodeJS.ProcessEnv = process.env): RinaCloudConfig {
@@ -48,6 +74,24 @@ export function getRinaCloudConfig(env: NodeJS.ProcessEnv = process.env): RinaCl
     apiBase: String(env.RINA_CLOUD_API_BASE || "").trim().replace(/\/+$/g, ""),
     authToken: String(env.RINA_AUTH_TOKEN || "").trim() || null,
   };
+}
+
+export class RinaCloudError extends Error {
+  readonly status: number;
+  readonly code: string;
+  readonly messageForUser: string;
+  readonly upgradeUrl: string | null;
+  readonly body: unknown;
+
+  constructor(args: { status: number; code?: string; message?: string; upgradeUrl?: string | null; body?: unknown }) {
+    super(args.message || `Rina Cloud returned ${args.status}`);
+    this.name = "RinaCloudError";
+    this.status = args.status;
+    this.code = args.code || "cloud_error";
+    this.messageForUser = args.message || this.message;
+    this.upgradeUrl = args.upgradeUrl || null;
+    this.body = args.body;
+  }
 }
 
 export class RinaCloudClient implements RinaCloudClientLike {
@@ -59,31 +103,66 @@ export class RinaCloudClient implements RinaCloudClientLike {
     this.authToken = config.authToken;
   }
 
-  async chat(request: RinaCloudChatRequest): Promise<RinaCloudChatResponse> {
-    if (!this.apiBase) {
-      throw new Error("RINA_CLOUD_API_BASE is not configured.");
-    }
-
+  private headers(): Record<string, string> {
     const headers: Record<string, string> = {
       "content-type": "application/json",
       "x-rina-client": "terminal-pro",
     };
     if (this.authToken) headers.authorization = `Bearer ${this.authToken}`;
+    return headers;
+  }
+
+  private async parseOrThrow(response: Response): Promise<unknown> {
+    const text = await response.text().catch(() => "");
+    let payload: any = null;
+    if (text) {
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        payload = { message: text.slice(0, 180) };
+      }
+    }
+    if (!response.ok) {
+      throw new RinaCloudError({
+        status: response.status,
+        code: typeof payload?.error === "string" ? payload.error : "cloud_error",
+        message: typeof payload?.message === "string" ? payload.message : `Rina Cloud returned ${response.status}`,
+        upgradeUrl: typeof payload?.upgradeUrl === "string" ? payload.upgradeUrl : null,
+        body: payload,
+      });
+    }
+    return payload;
+  }
+
+  async chat(request: RinaCloudChatRequest): Promise<RinaCloudChatResponse> {
+    if (!this.apiBase) {
+      throw new Error("RINA_CLOUD_API_BASE is not configured.");
+    }
 
     const response = await fetch(`${this.apiBase}/v1/agent/chat`, {
       method: "POST",
-      headers,
+      headers: this.headers(),
       body: JSON.stringify(request),
     });
 
-    if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      throw new Error(`Rina Cloud returned ${response.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
-    }
-
-    const payload = await response.json() as RinaCloudChatResponse;
+    const payload = await this.parseOrThrow(response) as RinaCloudChatResponse;
     if (!payload || typeof payload.reply !== "string" || !Array.isArray(payload.suggestedActions)) {
       throw new Error("Rina Cloud returned an invalid agent response.");
+    }
+    return payload;
+  }
+
+  async usage(): Promise<RinaCloudAccountUsageResponse> {
+    if (!this.apiBase) {
+      throw new Error("RINA_CLOUD_API_BASE is not configured.");
+    }
+    const response = await fetch(`${this.apiBase}/v1/account/usage`, {
+      method: "GET",
+      headers: this.headers(),
+    });
+    const payload = await this.parseOrThrow(response) as RinaCloudAccountUsageResponse;
+    if (!payload?.account || !payload?.usage || !payload?.billing) {
+      throw new Error("Rina Cloud returned an invalid account response.");
     }
     return payload;
   }

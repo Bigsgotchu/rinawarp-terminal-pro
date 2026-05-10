@@ -5,6 +5,20 @@ import type { ModelProvider, ProviderRequest, ProviderResponse } from "./modelPr
 
 export const MAX_REQUEST_BYTES = 64 * 1024;
 const DAILY_USAGE_LIMIT = 100;
+const DEFAULT_UPGRADE_URL = "https://www.rinawarptech.com/pricing";
+const DEFAULT_BILLING_PORTAL_URL = "https://www.rinawarptech.com/account";
+
+type SubscriptionStatus = "active" | "trialing" | "past_due" | "unpaid" | "none";
+type CloudPlan = "free" | "pro" | "team";
+
+export type RinaCloudAccount = {
+  userId: string;
+  email?: string;
+  plan: CloudPlan;
+  subscriptionStatus: SubscriptionStatus;
+  dailyLimit?: number;
+  stripeCustomerId?: string;
+};
 
 type UsageRecord = {
   day: string;
@@ -18,6 +32,10 @@ type ApiOptions = {
   maxRequestBytes?: number;
   dailyUsageLimit?: number;
   logger?: Pick<Console, "log" | "warn" | "error">;
+  authenticate?: (token: string) => Promise<RinaCloudAccount | null> | RinaCloudAccount | null;
+  checkoutUrl?: string;
+  billingPortalUrl?: string;
+  stripePriceId?: string;
 };
 
 const usageByUser = new Map<string, UsageRecord>();
@@ -34,10 +52,39 @@ function jsonResponse(response: http.ServerResponse, status: number, payload: un
   response.end(JSON.stringify(payload));
 }
 
-function userFromRequest(request: http.IncomingMessage): string {
+function bearerTokenFromRequest(request: http.IncomingMessage): string {
   const auth = String(request.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
-  if (!auth) return "anonymous";
-  return createHash("sha256").update(auth).digest("hex").slice(0, 16);
+  return auth;
+}
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex").slice(0, 16);
+}
+
+function envTokenAccounts(env: NodeJS.ProcessEnv = process.env): Map<string, RinaCloudAccount> {
+  const records = new Map<string, RinaCloudAccount>();
+  const raw = String(env.RINA_CLOUD_DEV_TOKENS || "").trim();
+  if (!raw) return records;
+  for (const item of raw.split(",")) {
+    const [tokenRaw, userIdRaw, planRaw, statusRaw, dailyLimitRaw, emailRaw] = item.split(":");
+    const token = String(tokenRaw || "").trim();
+    if (!token) continue;
+    const userId = String(userIdRaw || `user_${hashToken(token)}`).trim();
+    const plan = planRaw === "team" || planRaw === "free" ? planRaw : "pro";
+    const subscriptionStatus = statusRaw === "trialing" || statusRaw === "past_due" || statusRaw === "unpaid" || statusRaw === "none"
+      ? statusRaw
+      : "active";
+    const dailyLimit = Number(dailyLimitRaw || 0) || undefined;
+    const email = String(emailRaw || "").trim() || undefined;
+    records.set(token, { userId, plan, subscriptionStatus, dailyLimit, email });
+  }
+  return records;
+}
+
+async function authenticateToken(token: string, authenticate?: ApiOptions["authenticate"]): Promise<RinaCloudAccount | null> {
+  if (!token) return null;
+  if (authenticate) return await authenticate(token);
+  return envTokenAccounts().get(token) || null;
 }
 
 function getUsage(userId: string): UsageRecord {
@@ -47,6 +94,46 @@ function getUsage(userId: string): UsageRecord {
   const next = { day: currentDay, requests: 0, inputTokens: 0, outputTokens: 0 };
   usageByUser.set(userId, next);
   return next;
+}
+
+function isSubscriptionActive(account: RinaCloudAccount): boolean {
+  if (account.plan === "free") return false;
+  return account.subscriptionStatus === "active" || account.subscriptionStatus === "trialing";
+}
+
+function usagePayload(account: RinaCloudAccount, usage: UsageRecord, limit: number, options: ApiOptions) {
+  return {
+    account: {
+      userId: account.userId,
+      email: account.email,
+      plan: account.plan,
+      subscriptionStatus: account.subscriptionStatus,
+      stripeCustomerId: account.stripeCustomerId,
+    },
+    usage: {
+      day: usage.day,
+      requests: usage.requests,
+      limit,
+      remaining: Math.max(0, limit - usage.requests),
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    },
+    billing: {
+      checkoutUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+      portalUrl: options.billingPortalUrl || process.env.RINA_STRIPE_PORTAL_URL || DEFAULT_BILLING_PORTAL_URL,
+      upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+      stripePriceId: options.stripePriceId || process.env.STRIPE_RINA_PRO_PRICE_ID || null,
+      placeholder: true,
+    },
+  };
+}
+
+function authErrorPayload(options: ApiOptions) {
+  return {
+    error: "auth_required",
+    message: "Sign in to Rina Cloud to use cloud-backed chat.",
+    upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+  };
 }
 
 function validateChatRequest(value: unknown): ProviderRequest | null {
@@ -136,7 +223,9 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
   return http.createServer(async (request, response) => {
     const requestId = randomUUID();
     const url = new URL(request.url || "/", "http://localhost");
-    const userId = userFromRequest(request);
+    const token = bearerTokenFromRequest(request);
+    const account = await authenticateToken(token, options.authenticate);
+    const userId = account?.userId || "unauthenticated";
 
     logger.log(JSON.stringify({
       requestId,
@@ -146,19 +235,17 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
     }));
 
     if (request.method === "GET" && url.pathname === "/v1/health") {
-      jsonResponse(response, 200, { ok: true, service: "rina-cloud-api", version: "1.4.0-beta" });
+      jsonResponse(response, 200, { ok: true, service: "rina-cloud-api", version: "1.4.1-beta" });
       return;
     }
 
     if (request.method === "GET" && url.pathname === "/v1/account/usage") {
-      const usage = getUsage(userId);
-      jsonResponse(response, 200, {
-        day: usage.day,
-        requests: usage.requests,
-        limit: dailyLimit,
-        inputTokens: usage.inputTokens,
-        outputTokens: usage.outputTokens,
-      });
+      if (!account) {
+        jsonResponse(response, 401, authErrorPayload(options));
+        return;
+      }
+      const limit = account.dailyLimit || dailyLimit;
+      jsonResponse(response, 200, usagePayload(account, getUsage(account.userId), limit, options));
       return;
     }
 
@@ -167,9 +254,30 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
       return;
     }
 
-    const usage = getUsage(userId);
-    if (usage.requests >= dailyLimit) {
-      jsonResponse(response, 429, { error: "daily_usage_limit_reached" });
+    if (!account) {
+      jsonResponse(response, 401, authErrorPayload(options));
+      return;
+    }
+
+    if (!isSubscriptionActive(account)) {
+      jsonResponse(response, 402, {
+        error: "subscription_required",
+        message: "Upgrade to Rina Pro to use cloud-backed chat.",
+        usage: usagePayload(account, getUsage(account.userId), account.dailyLimit || dailyLimit, options).usage,
+        upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+      });
+      return;
+    }
+
+    const limit = account.dailyLimit || dailyLimit;
+    const usage = getUsage(account.userId);
+    if (usage.requests >= limit) {
+      jsonResponse(response, 429, {
+        error: "daily_usage_limit_reached",
+        message: "You've reached today's Rina Cloud usage limit.",
+        usage: usagePayload(account, usage, limit, options).usage,
+        upgradeUrl: options.checkoutUrl || process.env.RINA_STRIPE_CHECKOUT_URL || DEFAULT_UPGRADE_URL,
+      });
       return;
     }
 

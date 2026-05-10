@@ -4,9 +4,15 @@ import { once } from "node:events";
 import { createRinaCloudApiServer } from "../dist/index.js";
 import { resolveOpenAiApiKey } from "../dist/openaiProvider.js";
 
-async function withServer(provider, fn) {
+async function withServer(provider, fn, options = {}) {
   const server = createRinaCloudApiServer({
     provider,
+    authenticate: options.authenticate || ((token) => token ? {
+      userId: token,
+      plan: "pro",
+      subscriptionStatus: "active",
+    } : null),
+    dailyUsageLimit: options.dailyUsageLimit,
     logger: {
       log() {},
       warn() {},
@@ -71,7 +77,7 @@ test("POST /v1/agent/chat rejects oversized requests", async () => {
   }, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/v1/agent/chat`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", authorization: "Bearer test-user-token" },
       body: JSON.stringify({ ...chatPayload(), message: "x".repeat(80_000) }),
     });
     assert.equal(response.status, 413);
@@ -99,11 +105,82 @@ test("GET /v1/account/usage returns metering placeholder", async () => {
     });
     assert.equal(response.status, 200);
     const body = await response.json();
-    assert.equal(body.requests, 1);
-    assert.equal(body.limit, 100);
-    assert.equal(body.inputTokens, 3);
-    assert.equal(body.outputTokens, 4);
+    assert.equal(body.account.userId, "usage-token");
+    assert.equal(body.account.plan, "pro");
+    assert.equal(body.usage.requests, 1);
+    assert.equal(body.usage.limit, 100);
+    assert.equal(body.usage.inputTokens, 3);
+    assert.equal(body.usage.outputTokens, 4);
+    assert.equal(body.billing.placeholder, true);
   });
+});
+
+test("POST /v1/agent/chat rejects missing auth token", async () => {
+  await withServer({
+    async complete() {
+      throw new Error("provider should not be called");
+    },
+  }, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/v1/agent/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(chatPayload()),
+    });
+    assert.equal(response.status, 401);
+    const body = await response.json();
+    assert.equal(body.error, "auth_required");
+  });
+});
+
+test("POST /v1/agent/chat blocks unpaid accounts before provider", async () => {
+  await withServer({
+    async complete() {
+      throw new Error("provider should not be called");
+    },
+  }, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/v1/agent/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer unpaid-token" },
+      body: JSON.stringify(chatPayload()),
+    });
+    assert.equal(response.status, 402);
+    const body = await response.json();
+    assert.equal(body.error, "subscription_required");
+  }, {
+    authenticate: () => ({
+      userId: "unpaid-user",
+      plan: "pro",
+      subscriptionStatus: "unpaid",
+    }),
+  });
+});
+
+test("POST /v1/agent/chat blocks over daily usage limit", async () => {
+  await withServer({
+    async complete() {
+      return {
+        reply: "ok",
+        suggestedActions: [],
+        usage: { inputTokens: 1, outputTokens: 1 },
+      };
+    },
+  }, async (baseUrl) => {
+    const headers = { "content-type": "application/json", authorization: "Bearer limited-token" };
+    const first = await fetch(`${baseUrl}/v1/agent/chat`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(chatPayload()),
+    });
+    assert.equal(first.status, 200);
+    const second = await fetch(`${baseUrl}/v1/agent/chat`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(chatPayload()),
+    });
+    assert.equal(second.status, 429);
+    const body = await second.json();
+    assert.equal(body.error, "daily_usage_limit_reached");
+  }, { dailyUsageLimit: 1 });
 });
 
 test("provider key is resolved only from backend environment", () => {

@@ -1,4 +1,9 @@
 import type { IpcMain, IpcMainInvokeEvent } from 'electron'
+import {
+  clearStoredRinaAuthToken,
+  getRinaCloudAccountStatus,
+  saveStoredRinaAuthToken,
+} from '../rina-cloud-account.js'
 
 type DiagnosticsBundleDeps = unknown
 
@@ -80,4 +85,18 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
   replaceHandler(ipcMain, 'rina:workspace:default', async (event: IpcMainInvokeEvent) =>
     workspaceDefaultForIpc(event.sender.id),
   )
+
+  replaceHandler(ipcMain, 'rina:cloud:account', async () => getRinaCloudAccountStatus())
+
+  replaceHandler(ipcMain, 'rina:cloud:auth:save', async (_event: IpcMainInvokeEvent, payload: unknown) => {
+    const token = String((payload as { token?: string } | null)?.token || '').trim()
+    if (!token) return { ok: false, error: 'Missing Rina Cloud auth token.' }
+    await saveStoredRinaAuthToken(token)
+    return getRinaCloudAccountStatus()
+  })
+
+  replaceHandler(ipcMain, 'rina:cloud:auth:clear', async () => {
+    await clearStoredRinaAuthToken()
+    return getRinaCloudAccountStatus()
+  })
 }

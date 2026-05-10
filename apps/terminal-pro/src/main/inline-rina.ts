@@ -7,9 +7,10 @@ import { buildRinaCloudWorkspace } from "./rina-cloud-context.js";
 import {
   cloudResponseToInlineResult,
   getRinaCloudConfig,
-  RinaCloudClient,
+  RinaCloudError,
   type RinaCloudClientLike,
 } from "./rina-cloud-client.js";
+import { getRinaCloudClientWithStoredToken } from "./rina-cloud-account.js";
 import { runRinaAgent, type RinaAgentResult, type RinaAgentStreamEvent } from "./rina-agent.js";
 import { getRinaUsageStatus, recordAgentRunStarted } from "./rina-usage-meter.js";
 import type { RinaPlan } from "./rina-usage-limits.js";
@@ -667,7 +668,7 @@ async function callRinaCloud(args: {
     throw new Error(forcedError);
   }
 
-  const cloudClient = args.cloudClient || new RinaCloudClient();
+  const cloudClient = args.cloudClient || getRinaCloudClientWithStoredToken();
   const workspace = await buildRinaCloudWorkspace(args.projectRoot);
   const response = await cloudClient.chat({
     message: args.prompt,
@@ -678,6 +679,41 @@ async function callRinaCloud(args: {
     },
   });
   return cloudResponseToInlineResult(response);
+}
+
+function cloudAccountErrorResult(error: unknown): InlineRinaResult | null {
+  if (!(error instanceof RinaCloudError)) return null;
+  const upgradeLine = error.upgradeUrl ? `\n\nUpgrade: ${error.upgradeUrl}` : "";
+  if (error.status === 401) {
+    return {
+      explanation: `Sign in to Rina Cloud to use cloud-backed chat. Open Settings -> License, paste your Rina auth token, then try again.${upgradeLine}`,
+      command: null,
+      risk: "low",
+      confirmation: false,
+      usage: { model: "rina-cloud", promptTokens: null, responseTokens: null, totalTokens: null },
+    };
+  }
+  if (error.status === 402) {
+    return {
+      explanation: `Your Rina Cloud subscription is not active. Upgrade to Rina Pro to continue using cloud-backed chat.${upgradeLine}`,
+      command: null,
+      risk: "low",
+      confirmation: false,
+      confirmationMessage: "Upgrade required before Rina Cloud can answer.",
+      usage: { model: "rina-cloud", promptTokens: null, responseTokens: null, totalTokens: null },
+    };
+  }
+  if (error.status === 429) {
+    return {
+      explanation: `You've reached today's Rina Cloud usage limit. Upgrade to Rina Pro for more usage, or try again tomorrow.${upgradeLine}`,
+      command: null,
+      risk: "low",
+      confirmation: false,
+      confirmationMessage: "Usage limit reached.",
+      usage: { model: "rina-cloud", promptTokens: null, responseTokens: null, totalTokens: null },
+    };
+  }
+  return null;
 }
 
 function fallbackDebugResponse(args: {
@@ -950,6 +986,9 @@ export async function runInlineRina(args: {
       usage: { model: null, promptTokens: null, responseTokens: null, totalTokens: null },
     };
   } catch (error) {
+    const accountError = cloudAccountErrorResult(error);
+    if (accountError) return accountError;
+
     const projectQuestionFallback = await deterministicProjectQuestionResponse(prompt, projectRoot);
     if (projectQuestionFallback) {
       return projectQuestionFallback;

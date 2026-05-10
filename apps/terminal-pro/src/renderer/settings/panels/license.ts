@@ -21,8 +21,111 @@ import {
   updateUsageBars,
 } from './licenseRuntime.js'
 
+type CloudAccountState = {
+  ok: boolean
+  configured: boolean
+  hasToken: boolean
+  error?: string
+  usage?: {
+    account: { plan: string; subscriptionStatus: string; email?: string }
+    usage: { requests: number; limit: number; remaining: number; inputTokens: number; outputTokens: number }
+    billing: { upgradeUrl: string; portalUrl: string }
+  }
+}
+
+async function fetchCloudAccountState(): Promise<CloudAccountState> {
+  try {
+    const state = await (window as any).rina.rinaCloudAccount?.()
+    return {
+      ok: !!state?.ok,
+      configured: !!state?.configured,
+      hasToken: !!state?.hasToken,
+      error: state?.error,
+      usage: state?.usage,
+    }
+  } catch (err: any) {
+    return { ok: false, configured: false, hasToken: false, error: err?.message || 'Rina Cloud account check failed.' }
+  }
+}
+
+function buildCloudAccountCard(state: CloudAccountState): string {
+  const usage = state.usage?.usage
+  const account = state.usage?.account
+  const billing = state.usage?.billing
+  const status = !state.configured
+    ? 'Cloud API not configured'
+    : state.ok
+      ? `${account?.plan || 'unknown'} / ${account?.subscriptionStatus || 'unknown'}`
+      : state.hasToken
+        ? state.error || 'Account unavailable'
+        : 'Not signed in'
+  const remaining = usage ? `${usage.remaining} of ${usage.limit} requests left today` : 'Usage unavailable'
+  return `
+    <div class="rw-card" style="margin-bottom: 16px;">
+      <div class="rw-row" style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+        <div>
+          <div class="rw-label">Rina Cloud Account</div>
+          <div class="rw-muted">Sign in with a Rina auth token. Model keys stay on the backend.</div>
+        </div>
+        <button id="rw-cloud-refresh-btn" class="rw-btn rw-btn-ghost" type="button">Refresh</button>
+      </div>
+      <div class="rw-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;">
+        <div><div class="rw-label">Status</div><div class="rw-value">${status}</div></div>
+        <div><div class="rw-label">Daily Usage</div><div class="rw-value">${remaining}</div></div>
+        <div><div class="rw-label">Tokens</div><div class="rw-value">${usage ? `${usage.inputTokens} in / ${usage.outputTokens} out` : 'Unavailable'}</div></div>
+      </div>
+      <div class="rw-row" style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+        <input type="password" id="rw-cloud-token" placeholder="Rina auth token" style="flex:1;padding:8px 12px;border:1px solid #374151;border-radius:6px;background:#1f2937;color:#f9fafb;font-size:14px;" />
+        <button id="rw-cloud-save-token-btn" type="button" class="rw-btn">Save Token</button>
+        <button id="rw-cloud-clear-token-btn" type="button" class="rw-btn rw-btn-ghost">Sign Out</button>
+      </div>
+      <div class="rw-row" style="display:flex;gap:8px;margin-top:10px;">
+        <button id="rw-cloud-upgrade-btn" type="button" class="rw-btn">Upgrade</button>
+        <button id="rw-cloud-portal-btn" type="button" class="rw-btn rw-btn-ghost">Billing Portal</button>
+      </div>
+      <div id="rw-cloud-status" class="rw-muted" style="margin-top:8px;">${state.error || 'Cloud calls are blocked when the account is unpaid or over the daily limit.'}</div>
+      <div class="rw-muted" style="margin-top:8px;">Stripe subscription wiring is a placeholder for this beta. Checkout and portal URLs come from Rina Cloud.</div>
+      <span id="rw-cloud-upgrade-url" data-url="${billing?.upgradeUrl || 'https://www.rinawarptech.com/pricing'}" style="display:none;"></span>
+      <span id="rw-cloud-portal-url" data-url="${billing?.portalUrl || 'https://www.rinawarptech.com/account'}" style="display:none;"></span>
+    </div>
+  `
+}
+
+function attachCloudAccountHandlers(container: HTMLElement): void {
+  const status = container.querySelector('#rw-cloud-status') as HTMLElement | null
+  const tokenInput = container.querySelector('#rw-cloud-token') as HTMLInputElement | null
+  const reload = () => mountLicensePanel(container)
+  container.querySelector('#rw-cloud-refresh-btn')?.addEventListener('click', () => void reload())
+  container.querySelector('#rw-cloud-save-token-btn')?.addEventListener('click', async () => {
+    const token = tokenInput?.value.trim() || ''
+    if (!token) {
+      if (status) status.textContent = 'Paste your Rina auth token first.'
+      return
+    }
+    if (status) status.textContent = 'Saving token and checking account...'
+    const result = await (window as any).rina.rinaCloudAuthSave?.({ token })
+    if (!result?.ok) {
+      if (status) status.textContent = result?.error || 'Token saved, but account check failed.'
+      return
+    }
+    reload()
+  })
+  container.querySelector('#rw-cloud-clear-token-btn')?.addEventListener('click', async () => {
+    await (window as any).rina.rinaCloudAuthClear?.()
+    reload()
+  })
+  container.querySelector('#rw-cloud-upgrade-btn')?.addEventListener('click', () => {
+    const url = (container.querySelector('#rw-cloud-upgrade-url') as HTMLElement | null)?.dataset.url
+    if (url) window.open(url, '_blank')
+  })
+  container.querySelector('#rw-cloud-portal-btn')?.addEventListener('click', () => {
+    const url = (container.querySelector('#rw-cloud-portal-url') as HTMLElement | null)?.dataset.url
+    if (url) window.open(url, '_blank')
+  })
+}
+
 export async function mountLicensePanel(container: HTMLElement): Promise<void> {
-  const licenseState = await fetchLicenseState()
+  const [licenseState, cloudState] = await Promise.all([fetchLicenseState(), fetchCloudAccountState()])
   const cachedEmail = String(((window as any).rina.licenseCachedEmail ? await (window as any).rina.licenseCachedEmail() : { email: '' })?.email || '')
     .trim()
     .toLowerCase()
@@ -41,6 +144,7 @@ export async function mountLicensePanel(container: HTMLElement): Promise<void> {
       <h2>License</h2>
       <p class="rw-sub">Manage your Rinawarp Pro subscription.</p>
     </div>
+    ${buildCloudAccountCard(cloudState)}
     ${buildStatusCard({ isPro, tierText, statusText, expiryText, expiresAt: licenseState.expires_at })}
     ${!isPro ? buildUsageCard(cachedEmail) : ''}
     ${buildRestoreCard()}
@@ -61,6 +165,7 @@ export async function mountLicensePanel(container: HTMLElement): Promise<void> {
     attachRestoreHandler({ container, restoreBtn, emailInput, statusDiv }, mountLicensePanel)
   }
 
+  attachCloudAccountHandlers(container)
   attachToggleHandlers(container, buildCustomerIdCard, buildRestoreCard, mountLicensePanel)
   attachManageHandler()
 }

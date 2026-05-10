@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { chooseInlineRinaRoute, runInlineRina } from "./inline-rina.js";
+import { RinaCloudError } from "./rina-cloud-client.js";
 import { getRinaUsageStatus } from "./rina-usage-meter.js";
 
 function makeTempRepo(prefix: string): string {
@@ -492,6 +493,44 @@ test("cloud suggested destructive command is never auto-executed", async () => {
   assert.equal(result.confirmation, true);
   assert.equal(result.pendingApproval?.kind, "command");
   assert.match(String(result.confirmationMessage), /classify it locally/i);
+});
+
+test("cloud auth and billing errors render clear account messages", async () => {
+  const cases = [
+    { status: 401, code: "auth_required", match: /Sign in to Rina Cloud/i },
+    { status: 402, code: "subscription_required", match: /subscription is not active|Upgrade to Rina Pro/i },
+    { status: 429, code: "daily_usage_limit_reached", match: /usage limit/i },
+  ];
+
+  for (const item of cases) {
+    const result = await runInlineRina({
+      request: {
+        prompt: "What does this project do?",
+        projectRoot: process.cwd(),
+        action: "suggestNextCommand",
+      },
+      session: {
+        cwd: process.cwd(),
+        transcriptBuffer: "$ pwd\n",
+      },
+    }, {
+      cloudClient: {
+        async chat() {
+          throw new RinaCloudError({
+            status: item.status,
+            code: item.code,
+            message: item.code,
+            upgradeUrl: "https://www.rinawarptech.com/pricing",
+          });
+        },
+      },
+    });
+
+    assert.equal(result.command, null);
+    assert.equal(result.confirmation, false);
+    assert.match(result.explanation, item.match);
+    assert.match(result.explanation, /rinawarptech\.com\/pricing/);
+  }
 });
 
 test("limit hit returns upgrade message", async () => {
