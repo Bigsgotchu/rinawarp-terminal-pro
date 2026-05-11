@@ -260,6 +260,97 @@ test("run-app project question proposes the package run command with approval", 
   );
 });
 
+test("main-packages project question answers from dependency metadata", async () => {
+  await withTempRepo(
+    "rina-project-packages-",
+    (dir) => {
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+        name: "package-demo",
+        dependencies: {
+          react: "^18.0.0",
+          vite: "^5.0.0",
+        },
+        devDependencies: {
+          typescript: "^5.0.0",
+          vitest: "^1.0.0",
+        },
+      }, null, 2));
+    },
+    async (dir) => {
+      const result = await withEnv(
+        {
+          RINAWARP_INLINE_RINA_TEST_JSON: "",
+          RINAWARP_INLINE_RINA_TEST_ERROR: "",
+          RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        },
+        () =>
+          runInlineRina({
+            request: {
+              prompt: "What are the main packages?",
+              projectRoot: dir,
+              action: "suggestNextCommand",
+            },
+            session: {
+              cwd: dir,
+              transcriptBuffer: "$ pwd\n",
+            },
+          }),
+      );
+
+      assert.match(result.explanation, /react/);
+      assert.match(result.explanation, /typescript/);
+      assert.equal(result.command, null);
+      assert.equal(result.confirmation, false);
+    },
+  );
+});
+
+test("architecture project question summarizes top-level project structure", async () => {
+  await withTempRepo(
+    "rina-project-architecture-",
+    (dir) => {
+      fs.mkdirSync(path.join(dir, "src", "renderer"), { recursive: true });
+      fs.mkdirSync(path.join(dir, "services", "api"), { recursive: true });
+      fs.writeFileSync(path.join(dir, "src", "renderer", "App.tsx"), "export function App() { return null }\n");
+      fs.writeFileSync(path.join(dir, "services", "api", "index.ts"), "export {}\n");
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+        name: "architecture-demo",
+        scripts: { build: "tsc -b" },
+        dependencies: { react: "^18.0.0" },
+        devDependencies: { typescript: "^5.0.0" },
+      }, null, 2));
+      fs.writeFileSync(path.join(dir, "tsconfig.json"), "{}");
+    },
+    async (dir) => {
+      const result = await withEnv(
+        {
+          RINAWARP_INLINE_RINA_TEST_JSON: "",
+          RINAWARP_INLINE_RINA_TEST_ERROR: "",
+          RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        },
+        () =>
+          runInlineRina({
+            request: {
+              prompt: "Explain the architecture.",
+              projectRoot: dir,
+              action: "suggestNextCommand",
+            },
+            session: {
+              cwd: dir,
+              transcriptBuffer: "$ pwd\n",
+            },
+          }),
+      );
+
+      assert.match(result.explanation, /architecture-demo/);
+      assert.match(result.explanation, /src\//);
+      assert.match(result.explanation, /services\//);
+      assert.equal(result.command, null);
+      assert.equal(result.risk, "low");
+    },
+  );
+});
+
 test("build-script project question answers from package.json without running anything", async () => {
   await withTempRepo(
     "rina-project-build-",
@@ -417,6 +508,9 @@ test("general prompt calls Rina Cloud client", async () => {
             calls += 1;
             assert.equal(request.message, "What does this project do?");
             assert.equal(request.workspace.name, "cloud-demo");
+            assert.ok(request.workspace.tree?.includes("package.json"));
+            assert.equal(request.workspace.scripts?.build, undefined);
+            assert.deepEqual(request.workspace.dependencies, []);
             return {
               reply: "This is a cloud-backed project answer.",
               suggestedActions: [],

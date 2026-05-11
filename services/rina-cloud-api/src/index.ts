@@ -5,7 +5,7 @@ import { createOpenAiProvider } from "./openaiProvider.js";
 import type { ModelProvider, ProviderRequest, ProviderResponse } from "./modelProvider.js";
 
 export const MAX_REQUEST_BYTES = 64 * 1024;
-export const SERVICE_VERSION = "1.4.3-beta";
+export const SERVICE_VERSION = "1.5.0-beta";
 const DAILY_USAGE_LIMIT = 100;
 const DEFAULT_UPGRADE_URL = "https://www.rinawarptech.com/pricing";
 const DEFAULT_BILLING_PORTAL_URL = "https://www.rinawarptech.com/account";
@@ -317,6 +317,33 @@ function validateChatRequest(value: unknown): ProviderRequest | null {
         path: String(file.path || "").slice(0, 500),
         summary: typeof file.summary === "string" ? file.summary.slice(0, 1_500) : undefined,
       })),
+      tree: Array.isArray(body.workspace.tree)
+        ? body.workspace.tree.slice(0, 120).map((file) => String(file || "").slice(0, 500)).filter(Boolean)
+        : undefined,
+      readme: body.workspace.readme && typeof body.workspace.readme === "object"
+        ? {
+          path: String(body.workspace.readme.path || "").slice(0, 500),
+          summary: String(body.workspace.readme.summary || "").slice(0, 1_800),
+        }
+        : undefined,
+      docs: Array.isArray(body.workspace.docs)
+        ? body.workspace.docs.slice(0, 8).map((doc) => ({
+          path: String(doc.path || "").slice(0, 500),
+          summary: String(doc.summary || "").slice(0, 1_800),
+        })).filter((doc) => doc.path && doc.summary)
+        : undefined,
+      scripts: body.workspace.scripts && typeof body.workspace.scripts === "object" && !Array.isArray(body.workspace.scripts)
+        ? Object.fromEntries(Object.entries(body.workspace.scripts).slice(0, 40).map(([key, command]) => [
+          String(key).slice(0, 120),
+          String(command || "").slice(0, 300),
+        ]))
+        : undefined,
+      dependencies: Array.isArray(body.workspace.dependencies)
+        ? body.workspace.dependencies.slice(0, 40).map((name) => String(name || "").slice(0, 120)).filter(Boolean)
+        : undefined,
+      devDependencies: Array.isArray(body.workspace.devDependencies)
+        ? body.workspace.devDependencies.slice(0, 40).map((name) => String(name || "").slice(0, 120)).filter(Boolean)
+        : undefined,
       packageJson: body.workspace.packageJson && typeof body.workspace.packageJson === "object"
         ? body.workspace.packageJson
         : undefined,

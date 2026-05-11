@@ -2,12 +2,23 @@ import type { InlineRinaResult } from "./inline-rina.js";
 
 export type RinaCloudPackageManager = "npm" | "pnpm" | "yarn" | "unknown";
 
+export type RinaCloudWorkspaceDoc = {
+  path: string;
+  summary: string;
+};
+
 export type RinaCloudChatRequest = {
   message: string;
   workspace: {
     name: string;
     packageManager: RinaCloudPackageManager;
     files: Array<{ path: string; summary?: string }>;
+    tree?: string[];
+    readme?: RinaCloudWorkspaceDoc;
+    docs?: RinaCloudWorkspaceDoc[];
+    scripts?: Record<string, string>;
+    dependencies?: string[];
+    devDependencies?: string[];
     packageJson?: object;
   };
   client: {

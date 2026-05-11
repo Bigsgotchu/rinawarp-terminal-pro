@@ -806,6 +806,10 @@ function isProjectQuestion(prompt: string): boolean {
     /\bhow do i run (?:this|the) (?:app|project)\b/i,
     /\bhow (?:to|do i) start (?:this|the) (?:app|project)\b/i,
     /\bwhere is (?:the )?build script\b/i,
+    /\bwhat are (?:the )?main packages\b/i,
+    /\bwhat packages does (?:this|the) project use\b/i,
+    /\bexplain (?:the )?architecture\b/i,
+    /\bhow is (?:this|the) project structured\b/i,
     /\bwhy are tests failing\b/i,
     /\bwhy (?:are|do) (?:the )?tests fail\b/i,
   ].some((pattern) => pattern.test(value));
@@ -841,6 +845,28 @@ async function deterministicProjectQuestionResponse(prompt: string, projectRoot:
     return { explanation, command: null, risk: "low", confirmation: false, usage };
   }
 
+  if (/\bmain packages|packages does\b/.test(value)) {
+    const dependencyNames = (pkg?.dependencies || []).slice(0, 10);
+    const devDependencyNames = (pkg?.devDependencies || []).slice(0, 10);
+    const dependencyLine = dependencyNames.length
+      ? `Runtime packages: ${dependencyNames.map((name) => `\`${name}\``).join(", ")}.`
+      : "I don't see runtime dependencies in `package.json`.";
+    const devDependencyLine = devDependencyNames.length
+      ? `Development packages: ${devDependencyNames.map((name) => `\`${name}\``).join(", ")}.`
+      : "I don't see development dependencies in `package.json`.";
+    return {
+      explanation: [
+        pkg?.name ? `For \`${pkg.name}\`, I inspected \`package.json\` for package usage.` : "I inspected `package.json` for package usage.",
+        dependencyLine,
+        devDependencyLine,
+      ].join(" "),
+      command: null,
+      risk: "low",
+      confirmation: false,
+      usage,
+    };
+  }
+
   if (/\bhow (?:do i|to) (?:run|start)\b/.test(value)) {
     const primary = pickScriptName(scripts, ["dev", "start", "serve", "preview"], [/^dev[:_-]/, /^start[:_-]/, /serve/i, /preview/i]);
     const command = primary ? packageManagerRunCommand(snapshot.packageManager, primary) : null;
@@ -869,7 +895,25 @@ async function deterministicProjectQuestionResponse(prompt: string, projectRoot:
     snapshot.importantFiles.includes("go.mod") ? "Go module" : null,
   ].filter(Boolean);
   const scriptSummary = scriptNames.length ? `Scripts include ${scriptNames.slice(0, 8).map((name) => `\`${name}\``).join(", ")}.` : "I didn't find package scripts.";
+  const topLevelDirs = Array.from(new Set(snapshot.shallowFiles
+    .filter((file) => file.includes("/"))
+    .map((file) => file.split("/")[0])
+    .filter(Boolean)))
+    .slice(0, 8);
   const fileSummary = snapshot.shallowFiles.slice(0, 12).map((file) => `\`${file}\``).join(", ");
+
+  if (/\barchitecture|structured\b/.test(value)) {
+    const explanation = [
+      pkg?.name ? `Architecture overview for \`${pkg.name}\`.` : "Architecture overview from the visible workspace files.",
+      languageHints.length ? `Stack signals: ${languageHints.join(", ")}.` : null,
+      topLevelDirs.length ? `Main top-level areas: ${topLevelDirs.map((dir) => `\`${dir}/\``).join(", ")}.` : null,
+      scriptSummary,
+      fileSummary ? `Representative files: ${fileSummary}.` : null,
+      "This is a read-only project explanation; no files were changed.",
+    ].filter(Boolean).join(" ");
+    return { explanation, command: null, risk: "low", confirmation: false, usage };
+  }
+
   const explanation = [
     pkg?.name ? `This project appears to be \`${pkg.name}\`.` : "I inspected this workspace to understand what it is.",
     pkg?.description ? pkg.description : snapshot.readmeSummary,

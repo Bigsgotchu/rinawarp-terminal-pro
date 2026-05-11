@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { once } from "node:events";
 import { createHmac } from "node:crypto";
 import { createRinaCloudApiServer, validateProductionConfig } from "../dist/index.js";
+import { buildAgentPrompt } from "../dist/modelProvider.js";
 import { resolveOpenAiApiKey } from "../dist/openaiProvider.js";
 
 async function withServer(provider, fn, options = {}) {
@@ -52,7 +53,7 @@ test("GET /v1/health returns service status", async () => {
     const body = await response.json();
     assert.equal(body.ok, true);
     assert.equal(body.service, "rina-cloud-api");
-    assert.equal(body.version, "1.4.3-beta");
+    assert.equal(body.version, "1.5.0-beta");
   });
 });
 
@@ -93,6 +94,12 @@ function chatPayload() {
       name: "demo",
       packageManager: "pnpm",
       files: [{ path: "package.json", summary: "scripts=build, test" }],
+      tree: ["package.json", "README.md", "src/main.ts", "src/ui/App.tsx"],
+      readme: { path: "README.md", summary: "Demo app README summary." },
+      docs: [{ path: "docs/architecture.md", summary: "Renderer talks to main through safe IPC." }],
+      scripts: { dev: "vite", build: "vite build", test: "vitest run" },
+      dependencies: ["react", "vite"],
+      devDependencies: ["typescript", "vitest"],
       packageJson: { name: "demo" },
     },
     client: {
@@ -102,10 +109,22 @@ function chatPayload() {
   };
 }
 
+test("cloud prompt includes repo tree, scripts, docs, and dependency context", () => {
+  const prompt = buildAgentPrompt(chatPayload());
+  assert.match(prompt, /Scripts:\n- dev: vite/);
+  assert.match(prompt, /Dependencies:\nreact, vite, typescript \(dev\), vitest \(dev\)/);
+  assert.match(prompt, /Docs:\n- README\.md: Demo app README summary/);
+  assert.match(prompt, /File tree:\n- package\.json\n- README\.md\n- src\/main\.ts/);
+  assert.match(prompt, /prefer explanation-only responses with no command/i);
+});
+
 test("POST /v1/agent/chat does not require a user OpenAI key", async () => {
   await withServer({
     async complete(request) {
       assert.equal(request.message, "What does this project do?");
+      assert.deepEqual(request.workspace.tree?.slice(0, 2), ["package.json", "README.md"]);
+      assert.equal(request.workspace.scripts?.build, "vite build");
+      assert.equal(request.workspace.readme?.path, "README.md");
       return {
         reply: "This project is a demo.",
         suggestedActions: [],

@@ -56,6 +56,20 @@ function mockFetchError(message) {
   };
 }
 
+function mockFetchJsonWithRequest(assertRequest, payload) {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, init) => {
+    assertRequest(JSON.parse(String(init?.body || "{}")));
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  return () => {
+    globalThis.fetch = previousFetch;
+  };
+}
+
 test("test override path returns the mocked inline result", async () => {
   const repo = withTempRepo((dir) => {
     fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "demo" }, null, 2));
@@ -201,6 +215,149 @@ test("cloud safe-write action maps to medium risk and approval", async () => {
     assert.equal(result.command, "npm test");
     assert.equal(result.risk, "medium");
     assert.equal(result.confirmation, true);
+  } finally {
+    restoreFetch();
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("project package question answers locally from dependency metadata", async () => {
+  const repo = withTempRepo((dir) => {
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+      name: "package-demo",
+      dependencies: { react: "^18.0.0", vite: "^5.0.0" },
+      devDependencies: { typescript: "^5.0.0", vitest: "^1.0.0" },
+    }, null, 2));
+  });
+
+  try {
+    const result = await withEnv(
+      {
+        RINA_CLOUD_API_BASE: "",
+        RINAWARP_INLINE_RINA_TEST_JSON: "",
+      },
+      () =>
+        runInlineRina({
+          request: {
+            prompt: "What are the main packages?",
+            projectRoot: repo,
+            action: "suggestNextCommand",
+          },
+          session: {
+            cwd: repo,
+            transcriptBuffer: "$ pwd\n",
+          },
+        }),
+    );
+
+    assert.match(result.explanation, /react/);
+    assert.match(result.explanation, /typescript/);
+    assert.equal(result.command, null);
+    assert.equal(result.confirmation, false);
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("project architecture question answers locally from file tree", async () => {
+  const repo = withTempRepo((dir) => {
+    fs.mkdirSync(path.join(dir, "src", "renderer"), { recursive: true });
+    fs.mkdirSync(path.join(dir, "services", "api"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "src", "renderer", "App.tsx"), "export function App() { return null }\n");
+    fs.writeFileSync(path.join(dir, "services", "api", "index.ts"), "export {}\n");
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+      name: "architecture-demo",
+      scripts: { build: "tsc -b" },
+      dependencies: { react: "^18.0.0" },
+      devDependencies: { typescript: "^5.0.0" },
+    }, null, 2));
+    fs.writeFileSync(path.join(dir, "tsconfig.json"), "{}");
+  });
+
+  try {
+    const result = await withEnv(
+      {
+        RINA_CLOUD_API_BASE: "",
+        RINAWARP_INLINE_RINA_TEST_JSON: "",
+      },
+      () =>
+        runInlineRina({
+          request: {
+            prompt: "Explain the architecture.",
+            projectRoot: repo,
+            action: "suggestNextCommand",
+          },
+          session: {
+            cwd: repo,
+            transcriptBuffer: "$ pwd\n",
+          },
+        }),
+    );
+
+    assert.match(result.explanation, /architecture-demo/);
+    assert.match(result.explanation, /src\//);
+    assert.match(result.explanation, /services\//);
+    assert.equal(result.command, null);
+    assert.equal(result.risk, "low");
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("cloud request includes repo tree, README, scripts, and packages", async () => {
+  let calls = 0;
+  const repo = withTempRepo((dir) => {
+    fs.mkdirSync(path.join(dir, "docs"), { recursive: true });
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "src", "main.ts"), "export {}\n");
+    fs.writeFileSync(path.join(dir, "docs", "architecture.md"), "# Architecture\n\nRenderer talks to main through safe IPC.");
+    fs.writeFileSync(path.join(dir, "README.md"), "# Cloud Demo\n\nThis app is used for repo understanding.");
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+      name: "cloud-demo",
+      scripts: { dev: "vite", build: "vite build" },
+      dependencies: { react: "^18.0.0" },
+      devDependencies: { typescript: "^5.0.0" },
+    }, null, 2));
+  });
+
+  const restoreFetch = mockFetchJsonWithRequest((request) => {
+    calls += 1;
+    assert.equal(request.workspace.name, "cloud-demo");
+    assert.ok(request.workspace.tree.includes("src/main.ts"));
+    assert.equal(request.workspace.readme.path, "README.md");
+    assert.equal(request.workspace.docs[0].path, "docs/architecture.md");
+    assert.equal(request.workspace.scripts.build, "vite build");
+    assert.deepEqual(request.workspace.dependencies, ["react"]);
+    assert.deepEqual(request.workspace.devDependencies, ["typescript"]);
+  }, {
+    reply: "This is a cloud-backed project answer.",
+    suggestedActions: [],
+    usage: { inputTokens: 12, outputTokens: 8 },
+  });
+
+  try {
+    const result = await withEnv(
+      {
+        RINA_CLOUD_API_BASE: "https://rina-cloud.test",
+        RINAWARP_INLINE_RINA_TEST_JSON: "",
+      },
+      () =>
+        runInlineRina({
+          request: {
+            prompt: "What does this project do?",
+            projectRoot: repo,
+            action: "suggestNextCommand",
+          },
+          session: {
+            cwd: repo,
+            transcriptBuffer: "$ pwd\n",
+          },
+        }),
+    );
+
+    assert.equal(calls, 1);
+    assert.equal(result.explanation, "This is a cloud-backed project answer.");
+    assert.equal(result.usage?.model, "rina-cloud");
   } finally {
     restoreFetch();
     fs.rmSync(repo, { recursive: true, force: true });
