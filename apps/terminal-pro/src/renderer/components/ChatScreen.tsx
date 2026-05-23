@@ -8,6 +8,14 @@ import { summarizeTaskResult } from '../../rina-agent/summarizer'
 import { extractPort, routeRinaTask } from '../../rina-agent/taskRouter'
 import { verifyTaskResult } from '../../rina-agent/verifier'
 import type { RinaTaskRequest } from '../../rina-agent/types'
+import {
+  buildFailedBuildPreview,
+  dangerousActionRefusal,
+  isDangerousActionPrompt,
+  isRepoUnderstandingPrompt,
+  repoUnderstandingResponse,
+  unsupportedCapabilityResponse,
+} from '../services/conversationalIntelligence'
 
 interface ChatScreenProps {
   onResumeFix?: () => void
@@ -131,6 +139,12 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
       const taskRequest = createTaskRequest(trimmed)
       const taskKind = routeRinaTask(trimmed)
       appendMessage('user', trimmed)
+
+      if (isDangerousActionPrompt(trimmed)) {
+        appendMessage('rina', dangerousActionRefusal(trimmed))
+        return true
+      }
+
       if (taskKind === 'port_conflict') {
         const port = extractPort(trimmed)
         if (!port) {
@@ -176,9 +190,30 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
         return true
       }
 
+      if (taskKind === 'failed_build') {
+        appendMessage('rina', buildFailedBuildPreview(taskRequest, 'pnpm'))
+        return true
+      }
+
+      if (isRepoUnderstandingPrompt(trimmed)) {
+        setIsChatBusy(true)
+        appendMessage('rina', 'I’ll inspect the workspace metadata and shallow file tree first. This is read-only.')
+        try {
+          appendMessage('rina', await repoUnderstandingResponse(trimmed, window.rina))
+        } catch (caught) {
+          appendMessage(
+            'rina',
+            `I couldn't finish the repo summary from local metadata. ${caught instanceof Error ? caught.message : String(caught)}`
+          )
+        } finally {
+          setIsChatBusy(false)
+        }
+        return true
+      }
+
       appendMessage(
         'rina',
-        'I can run chat-first disk or port recovery right now. Try: "Why is my disk full?" or "What is using port 3000?" I will inspect first and ask before any action.'
+        unsupportedCapabilityResponse(trimmed)
       )
       return true
     },

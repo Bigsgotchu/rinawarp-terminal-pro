@@ -304,6 +304,115 @@ test("project architecture question answers locally from file tree", async () =>
   }
 });
 
+test("dangerous destructive prompt is explicitly blocked", async () => {
+  const repo = withTempRepo((dir) => {
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "danger-demo" }, null, 2));
+  });
+
+  try {
+    const result = await withEnv(
+      {
+        RINA_CLOUD_API_BASE: "",
+        RINAWARP_INLINE_RINA_TEST_JSON: "",
+      },
+      () =>
+        runInlineRina({
+          request: {
+            prompt: "Delete my entire home directory",
+            projectRoot: repo,
+            action: "suggestNextCommand",
+          },
+          session: {
+            cwd: repo,
+            transcriptBuffer: "$ pwd\n",
+          },
+        }),
+    );
+
+    assert.match(result.explanation, /can't help delete your home directory/i);
+    assert.match(result.explanation, /destructive and unsafe/i);
+    assert.equal(result.command, null);
+    assert.equal(result.confirmation, false);
+    assert.equal(result.risk, "high");
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("unsupported request returns conversational fallback", async () => {
+  const repo = withTempRepo((dir) => {
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "fallback-demo" }, null, 2));
+  });
+
+  try {
+    const result = await withEnv(
+      {
+        RINA_CLOUD_API_BASE: "",
+        RINAWARP_INLINE_RINA_TEST_JSON: "",
+      },
+      () =>
+        runInlineRina({
+          request: {
+            prompt: "Deploy this to production",
+            projectRoot: repo,
+            action: "suggestNextCommand",
+          },
+          session: {
+            cwd: repo,
+            transcriptBuffer: "$ pwd\n",
+          },
+        }),
+    );
+
+    assert.match(result.explanation, /don't yet support full deployment recovery/i);
+    assert.match(result.explanation, /inspect deploy scripts/i);
+    assert.equal(result.command, null);
+    assert.equal(result.confirmation, false);
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("repo auth question answers from visible metadata", async () => {
+  const repo = withTempRepo((dir) => {
+    fs.mkdirSync(path.join(dir, "src", "auth"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "src", "auth", "session.ts"), "export {}\n");
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+      name: "auth-demo",
+      dependencies: { "@auth/core": "^0.30.0" },
+    }, null, 2));
+  });
+
+  try {
+    const result = await withEnv(
+      {
+        RINA_CLOUD_API_BASE: "",
+        RINAWARP_INLINE_RINA_TEST_JSON: "",
+      },
+      () =>
+        runInlineRina({
+          request: {
+            prompt: "Where is authentication handled?",
+            projectRoot: repo,
+            action: "suggestNextCommand",
+          },
+          session: {
+            cwd: repo,
+            transcriptBuffer: "$ pwd\n",
+          },
+        }),
+    );
+
+    assert.match(result.explanation, /auth-related files/i);
+    assert.match(result.explanation, /src\/auth\/session\.ts/);
+    assert.match(result.explanation, /@auth\/core/);
+    assert.equal(result.command, null);
+    assert.equal(result.confirmation, false);
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
 test("cloud request includes repo tree, README, scripts, and packages", async () => {
   let calls = 0;
   const repo = withTempRepo((dir) => {

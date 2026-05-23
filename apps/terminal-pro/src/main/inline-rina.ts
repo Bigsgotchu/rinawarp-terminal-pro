@@ -790,12 +790,55 @@ function fallbackDebugResponse(args: {
 
 function fallbackGenerateResponse(prompt: string): InlineRinaResult {
   return {
-    explanation: `Rina could not generate a reliable inline result for "${prompt}". Try a more specific request like "why did this fail?" or "what is using port 3000".`,
+    explanation: unsupportedCapabilityResponse(prompt),
     command: null,
     risk: "low",
     confirmation: false,
     usage: { model: null, promptTokens: null, responseTokens: null, totalTokens: null },
   };
+}
+
+function isDangerousActionPrompt(prompt: string): boolean {
+  return [
+    /\bdelete\b.*\b(?:home directory|home folder|entire home|~\/?|\/home)\b/i,
+    /\bremove\b.*\b(?:home directory|home folder|entire home|~\/?|\/home)\b/i,
+    /\brm\s+-rf\s+(?:\/|~|~\/|\$HOME|\/home\b)/i,
+    /\bsudo\s+rm\s+-rf\b/i,
+    /\b(?:wipe|format|erase)\b.*\b(?:disk|drive|filesystem|computer|machine)\b/i,
+    /\bmkfs(?:\.[a-z0-9]+)?\b/i,
+    /\bdd\s+if=.*\bof=\/dev\//i,
+    /\bdocker\s+(?:volume|system)\s+prune\b.*\b(?:--force|-f)\b/i,
+    /\bdestroy\b.*\b(?:docker volumes|database|production|all data)\b/i,
+    /\b(?:steal|exfiltrate|dump|print)\b.*\b(?:credentials|passwords|tokens|secrets|ssh keys|api keys)\b/i,
+  ].some((pattern) => pattern.test(prompt));
+}
+
+function dangerousActionRefusal(prompt: string): InlineRinaResult {
+  const lower = prompt.toLowerCase();
+  const explanation = /\bhome\b|~|\$HOME|\/home/.test(lower)
+    ? "I can't help delete your home directory because that would be destructive and unsafe.\n\nRina only performs approved actions intended to recover or improve your development environment safely."
+    : /\bcredentials|passwords|tokens|secrets|ssh keys|api keys\b/.test(lower)
+      ? "I can't help extract credentials, tokens, passwords, or secrets. That would put your accounts and systems at risk.\n\nI can help inspect configuration safely, redact sensitive values, or explain how to rotate exposed credentials."
+      : "I can't help with that destructive action because it could permanently damage your system or data.\n\nRina only performs approved actions intended to recover or improve your development environment safely.";
+  return {
+    explanation,
+    command: null,
+    risk: "high",
+    confirmation: false,
+    confirmationMessage: "Destructive action blocked.",
+    usage: { model: null, promptTokens: null, responseTokens: null, totalTokens: null },
+  };
+}
+
+function unsupportedCapabilityResponse(prompt: string): string {
+  const lower = prompt.toLowerCase();
+  if (/\bbuild\b|\bnpm run\b|\bpnpm build\b|\btest failed\b/.test(lower)) {
+    return "I don't yet support full build recovery in this workflow, but I can still help safely.\n\nShare or rerun the exact build log and I can inspect the failure, identify the likely script, and propose the next approval-gated fix without changing files automatically.";
+  }
+  if (/\bdeploy|release|publish|rollback\b/.test(lower)) {
+    return "I don't yet support full deployment recovery in this workflow.\n\nI can still inspect deploy scripts and configuration, then explain the safest next step before anything changes.";
+  }
+  return `I don't have a complete workflow for "${prompt}" yet, but I can still stay useful.\n\nI can inspect disk usage, check a port, summarize this repo, explain how to run it, or inspect build logs before suggesting any safe next step.`;
 }
 
 function isProjectQuestion(prompt: string): boolean {
@@ -808,6 +851,7 @@ function isProjectQuestion(prompt: string): boolean {
     /\bwhere is (?:the )?build script\b/i,
     /\bwhat are (?:the )?main packages\b/i,
     /\bwhat packages does (?:this|the) project use\b/i,
+    /\bwhere is (?:authentication|auth) handled\b/i,
     /\bexplain (?:the )?architecture\b/i,
     /\bhow is (?:this|the) project structured\b/i,
     /\bwhy are tests failing\b/i,
@@ -874,6 +918,27 @@ async function deterministicProjectQuestionResponse(prompt: string, projectRoot:
       ? `This looks like ${pkg?.name ? `\`${pkg.name}\`` : "a Node-style app"}. To run it locally, use the \`${primary}\` script from \`package.json\`: \`${scripts[primary]}\`. I found ${snapshot.packageManager === "unknown" ? "no lockfile, so npm is the safest default" : `a ${snapshot.packageManager} workspace`}.`
       : `I inspected the project files but couldn't find a clear \`dev\`, \`start\`, \`serve\`, or \`preview\` script in \`package.json\`. Visible scripts: ${scriptNames.length ? scriptNames.map((name) => `\`${name}\``).join(", ") : "none"}.`;
     return { explanation, command, risk: command ? "medium" : "low", confirmation: !!command, usage };
+  }
+
+  if (/\bwhere is (?:authentication|auth) handled\b/.test(value)) {
+    const authFiles = snapshot.shallowFiles
+      .filter((file) => /\bauth\b|login|session|token|license/i.test(file))
+      .slice(0, 12);
+    const authPackages = [
+      ...(pkg?.dependencies || []),
+      ...(pkg?.devDependencies || []),
+    ].filter((name) => /auth|oauth|passport|clerk|next-auth|supabase|firebase|stripe|jwt/i.test(name));
+    const explanation = [
+      "I inspected the visible file tree and package metadata for authentication signals.",
+      authFiles.length
+        ? `Likely auth-related files: ${authFiles.map((file) => `\`${file}\``).join(", ")}.`
+        : "I don't see obvious auth-named files in the shallow file list.",
+      authPackages.length
+        ? `Auth-adjacent packages: ${authPackages.map((name) => `\`${name}\``).join(", ")}.`
+        : "I don't see obvious auth packages in `package.json`.",
+      "I did not open secrets or execute anything.",
+    ].join(" ");
+    return { explanation, command: null, risk: "low", confirmation: false, usage };
   }
 
   if (/\btests? fail|tests? failing\b/.test(value)) {
@@ -978,6 +1043,10 @@ export async function runInlineRina(args: {
   const transcript = tailLines(String(args.session?.transcriptBuffer || ""), 24);
   const projectRoot = args.request.projectRoot || args.session?.cwd || process.cwd();
 
+  if (isDangerousActionPrompt(prompt)) {
+    return dangerousActionRefusal(prompt);
+  }
+
   const firstRunFallback = deterministicFirstRunResponse(prompt);
   if (firstRunFallback) {
     return firstRunFallback;
@@ -1022,13 +1091,7 @@ export async function runInlineRina(args: {
       return projectQuestionFallback;
     }
 
-    return {
-      explanation: "Rina Cloud is not configured yet. Set RINA_CLOUD_API_BASE for model-backed chat. Local disk, port, and failed-build workflows are still available.",
-      command: null,
-      risk: "low",
-      confirmation: false,
-      usage: { model: null, promptTokens: null, responseTokens: null, totalTokens: null },
-    };
+    return fallbackGenerateResponse(prompt);
   } catch (error) {
     const accountError = cloudAccountErrorResult(error);
     if (accountError) return accountError;
