@@ -1,50 +1,38 @@
 {
-  "name": "@rinawarp/agentd",
-  "private": true,
+  "name": "@rinawarp/rinawarp-agentd",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "bin": {
-    "rinawarp-agent": "dist/daemon/cli.js",
-    "rinawarp": "dist/cli/rinawarp.js",
-    "rinawarp-runtime-controller": "dist/platform/runtime-controller.js",
-    "rinawarp-attestation-verifier": "dist/platform/attestation-verifier.js"
+  "description": "RinaWarp Agent Daemon - manages agent lifecycle, task processing, and health monitoring",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./models": {
+      "import": "./dist/models/index.js",
+      "types": "./dist/models/index.d.ts"
+    }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "node --watch dist/index.js",
-    "start": "node dist/index.js",
-    "telemetry:start": "tsx src/telemetry/server.ts",
-    "daemon:start": "node dist/daemon/cli.js start",
-    "daemon:stop": "node dist/daemon/cli.js stop",
-    "daemon:status": "node dist/daemon/cli.js status",
-    "daemon:task:list": "node dist/daemon/cli.js task list",
-    "daemon:task:dlq": "node dist/daemon/cli.js task dlq",
-    "runtime:controller": "node dist/platform/runtime-controller.js",
-    "attestation:verify": "node dist/platform/attestation-verifier.js",
-    "test": "npm run build && node --test test/*.test.mjs"
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "tsx test/**/*.test.ts"
   },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.1021.0",
-    "@rinawarp/core": "workspace:*",
-    "better-sqlite3": "^11.0.0",
-    "express": "^4.21.0",
-    "node-pty": "^1.0.0",
-    "openai": "^4.77.0",
-    "posthog-node": "^4.0.0",
-    "stripe": "^18.5.0",
-    "ws": "^8.20.0"
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
-    "@types/express": "^4.17.21",
-    "@types/ws": "^8.5.0",
-    "typescript": "^5.4.0"
+    "@types/node": "^22.0.0",
+    "tsx": "^4.6.0",
+    "typescript": "^5.4.2"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
+  "dependencies": {
+    "@rinawarp/rina-runtime": "workspace:*",
+    "@rinawarp/context": "workspace:*",
+    "@rinawarp/core": "workspace:*"
   }
 }

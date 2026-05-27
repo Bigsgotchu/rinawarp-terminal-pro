@@ -32,4 +32,13 @@ rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
     exit 1
   } || true
 
+# Prevent direct LLM calls outside rina-cloud-api service
+rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
+  'fetch\s*\(\s*["\x27`][^"\x27`]*\/chat\/completions["\x27`]' \
+  "$ROOT/apps/terminal-pro/src" \
+  --glob '!apps/terminal-pro/src/main/inline-rina.ts' && {
+    echo "FAIL: Direct LLM calls (chat/completions) outside rina-cloud-api"
+    exit 1
+  } || true
+
 echo "guards OK"

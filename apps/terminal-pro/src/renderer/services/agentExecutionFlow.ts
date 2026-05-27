@@ -1,4 +1,6 @@
+import { applyExecutionRecordToWorkbench } from '../execution/executionDisplay.js'
 import { bubbleBlock, copyBlock } from '../replies/renderFragments.js'
+import { shouldRoutePromptThroughIngress, submitAnalyzeIntent } from './rinaIngressClient.js'
 import type { FixPlanResponse, FixPlanStep, PlanCapabilityRequirement } from '../replies/renderPlanReplies.js'
 import type { RinaReplyResult } from '../replies/renderRinaReply.js'
 import { type WorkbenchStore, type WorkbenchState, type MessageBlock } from '../workbench/store.js'
@@ -322,6 +324,21 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
             return
           }
         }
+      }
+
+      if (
+        workspaceRoot &&
+        typeof rina.submitIntent === 'function' &&
+        shouldRoutePromptThroughIngress(trimmed) &&
+        executionAllowed
+      ) {
+        const record = await submitAnalyzeIntent(rina, trimmed, workspaceRoot)
+        applyExecutionRecordToWorkbench(store, record, {
+          prompt: trimmed,
+          workspaceKey,
+          workspaceRoot,
+        })
+        return
       }
 
       if (workspaceRoot && deps.isExecutionPrompt(trimmed) && executionAllowed) {

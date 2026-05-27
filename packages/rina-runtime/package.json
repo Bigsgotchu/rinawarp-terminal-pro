@@ -1,0 +1,68 @@
+{
+  "name": "@rinawarp/rina-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Rina Runtime Core - Transaction, diff, and approval engine for controlled state changes",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./transactions": {
+      "import": "./dist/transactions/index.js",
+      "types": "./dist/transactions/index.d.ts"
+    },
+    "./diffs": {
+      "import": "./dist/diffs/index.js",
+      "types": "./dist/diffs/index.d.ts"
+    },
+    "./approvals": {
+      "import": "./dist/approvals/index.js",
+      "types": "./dist/approvals/index.d.ts"
+    },
+    "./execute": {
+      "import": "./dist/execute/index.js",
+      "types": "./dist/execute/index.d.ts"
+    },
+    "./execution/sandbox": {
+      "import": "./dist/execution/sandbox.js",
+      "types": "./dist/execution/sandbox.d.ts"
+    },
+    "./execution/executionRecord": {
+      "import": "./dist/execution/executionRecord.js",
+      "types": "./dist/execution/executionRecord.d.ts"
+    },
+    "./errors": {
+      "import": "./dist/errors/index.js",
+      "types": "./dist/errors/index.d.ts"
+    },
+    "./ipc": {
+      "import": "./dist/ipc/index.js",
+      "types": "./dist/ipc/index.d.ts"
+    },
+    "./ipc/handleIngress": {
+      "import": "./dist/ipc/handleIngress.js",
+      "types": "./dist/ipc/handleIngress.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "tsx test/layer2.test.ts"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@rinawarp/rina-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.4.2"
+  }
+}

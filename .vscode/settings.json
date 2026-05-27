@@ -5,7 +5,7 @@
   "deno.enable": false,
   "deno.lint": false,
   "deno.unstable": false,
-  "npm.packageManager": "npm",
+  "npm.packageManager": "pnpm",
   "typescript.tsserver.useSyntaxServer": "auto",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "workbench.editor.enablePreview": false,
@@ -33,9 +33,10 @@
     "**/dist": true,
     "**/build": true
   },
-  "kilocode.singleAIAgentMode": true,
-  "kilocode.enableErrorGuard": true,
-  "kilocode.autoExplainErrors": true,
-  "kilocode.replayLastCommandOnError": true,
+  "kilo-code.new.model.providerID": "kilo",
+  "kilo-code.new.model.modelID": "kilo-auto/free",
+  "kilo-code.new.autocomplete.provider": "kilo",
+  "kilo-code.new.autocomplete.model": "mistralai/codestral-2508",
+  "kilo-code.new.autocomplete.enableAutoTrigger": false,
   "chatgpt.openOnStartup": true
 }

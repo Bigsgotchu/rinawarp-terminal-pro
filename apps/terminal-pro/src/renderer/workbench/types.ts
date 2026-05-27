@@ -1,3 +1,5 @@
+import type { ExecutionReceipt, RunBlock } from '../../workbench/runBlocks/types.js'
+
 export type CenterView = 'execution-trace' | 'runs' | 'marketplace' | 'code' | 'brain' | 'receipt'
 export type RightView = 'agent' | 'diagnostics'
 export type TabKey = CenterView | RightView | 'settings'
@@ -105,9 +107,17 @@ export type ReplyCardKind =
   | 'recovery'
   | 'execution-halt'
 
+export type CognitionLine = {
+  ts: number
+  eventType: string
+  label: string
+}
+
 export type MessageBlock =
   | { type: 'bubble'; text: string }
   | { type: 'section-label'; text: string }
+  | { type: 'cognition'; lines: CognitionLine[] }
+  | { type: 'memory-note'; text: string }
   | {
       type: 'reply-card'
       kind?: ReplyCardKind
@@ -294,11 +304,16 @@ export type WorkbenchState = {
     lastCheckedAt?: number | null
   }
   chat: ChatMessage[]
+  /** Canonical product thread — sole rendering truth when populated. */
+  thread: import('../../workbench/store/threadTypes.js').ThreadItem[]
   executionTrace: {
     blocks: ExecutionTraceBlock[]
   }
   fixBlocks: FixBlockModel[]
   runs: RunModel[]
+  runBlocksById: Record<string, RunBlock>
+  executionReceiptsByRunId: Record<string, ExecutionReceipt>
+  liveCognitionByRunId: Record<string, CognitionLine[]>
   receipt: ReceiptData | null
   deployment: DeploymentState
   code: {
@@ -320,6 +335,7 @@ export type WorkbenchState = {
     lastInspector?: string
     firstStarterIntentAt?: number
     firstProofBackedRunAt?: number
+    executionMetrics: import('../../workbench/store/executionMetrics.js').ExecutionMetrics
   }
   brain: {
     stats: {
@@ -387,7 +403,9 @@ export type WorkbenchAction =
   | { type: 'ui/setStatusSummary'; text: string | null }
   | { type: 'workspace/set'; workspaceKey: string }
   | { type: 'license/set'; tier: LicenseTier; lastCheckedAt?: number | null }
-  | { type: 'chat/add'; msg: ChatMessage }
+  | { type: 'thread/append'; items: WorkbenchState['thread'] }
+  | { type: 'thread/replace'; items: WorkbenchState['thread'] }
+  | { type: 'chat/add'; msg: ChatMessage; syncThread?: boolean }
   | { type: 'chat/removeByPrefix'; prefix: string }
   | { type: 'chat/linkRun'; messageId: string; runId: string }
   | { type: 'executionTrace/blockUpsert'; block: ExecutionTraceBlock }
@@ -395,6 +413,9 @@ export type WorkbenchAction =
   | { type: 'fix/upsert'; fix: FixBlockModel }
   | { type: 'runs/set'; runs: WorkbenchState['runs'] }
   | { type: 'runs/upsert'; run: RunModel }
+  | { type: 'runBlocks/upsert'; block: WorkbenchState['runBlocksById'][string] }
+  | { type: 'executionReceipts/upsert'; receipt: WorkbenchState['executionReceiptsByRunId'][string] }
+  | { type: 'cognition/append'; runId: string; line: CognitionLine }
   | { type: 'runs/appendOutputTail'; runId: string; chunk: string }
   | { type: 'runs/setOutputTail'; runId: string; tail: string }
   | { type: 'runs/setArtifactSummary'; runId: string; summary: RunArtifactSummary }

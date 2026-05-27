@@ -97,6 +97,11 @@ export async function initProductionRenderer(): Promise<void> {
     }
   }
   store.dispatch({ type: 'workspace/set', workspaceKey: initialWorkspaceKey })
+  const { hydrateCanonicalThread } = await import('../../workbench/store/hydrateThread.js')
+  const hydrated = hydrateCanonicalThread(store.getState(), initialWorkspaceKey)
+  if (hydrated.length > 0 && store.getState().thread.length === 0) {
+    store.dispatch({ type: 'thread/replace', items: hydrated })
+  }
   const unbindDebugEvidence = await installDebugEvidenceBridge({
     getState: () => store.getState(),
   })

@@ -1,77 +1,37 @@
 /**
- * RinaWarp Error Explainer
- *
- * Uses AI to explain developer errors and provide fixes.
+ * LEGACY COMPATIBILITY — error explanation adapter only.
+ * Forwards to canonical runtime via RinaRuntimeBridge (no direct LLM calls).
  */
 
+import { legacyExplainErrorAsText } from '../runtime/bridge/RinaRuntimeBridge.js'
+
+const DEFAULT_PROJECT_ROOT = process.cwd()
+
 /**
- * Explain an error using AI
+ * Explain an error via canonical runtime (pattern match first, then ingress).
  */
-export async function explainError(errorText: string, context?: string): Promise<string> {
-  // Check for pattern-based explanations first
+export async function explainError(
+  errorText: string,
+  context?: string,
+  projectRoot: string = DEFAULT_PROJECT_ROOT,
+): Promise<string> {
   const patternMatch = explainErrorPattern(errorText)
   if (patternMatch) {
     return patternMatch
   }
 
-  // Try to get API key from environment
-  const apiKey = process.env.OPENAI_API_KEY
-
-  if (!apiKey) {
-    return `Error: OpenAI API key not configured.
-    
-To enable AI error explanations:
-1. Set OPENAI_API_KEY environment variable
-2. Or use pattern matching for common errors
-
-Also try 'rina doctor' for automatic diagnostics.`
-  }
-
   try {
-    const systemPrompt = `You are RinaWarp, an AI developer assistant. Your job is to explain developer errors and provide clear, actionable fixes.
-
-Guidelines:
-- Explain the error in simple terms
-- Provide specific commands to fix it
-- If multiple solutions exist, list them
-- Keep responses concise but informative
-- Use code blocks for commands`
-
-    const userMessage = context ? `Context: ${context}\n\nError:\n${errorText}` : `Error:\n${errorText}`
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-      }),
-    })
-
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`OpenAI API error: ${error}`)
-    }
-
-    const data = (await response.json()) as any
-    return data.choices[0].message.content
-  } catch (error: any) {
-    return `Failed to explain error: ${error.message}
+    return await legacyExplainErrorAsText({ errorText, context }, projectRoot)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    return `Failed to explain error: ${message}
 
 Try running 'rina doctor' for automatic diagnostics.`
   }
 }
 
 /**
- * Quick error patterns - no API needed
+ * Quick error patterns — no runtime call required.
  */
 export function explainErrorPattern(errorText: string): string | null {
   const patterns: Record<string, { title: string; fix: string }> = {

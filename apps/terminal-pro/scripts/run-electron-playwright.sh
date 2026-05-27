@@ -36,12 +36,23 @@ fi
 
 cd "$app_root"
 
+playwright_config="${PLAYWRIGHT_CONFIG:-tests/playwright.config.ts}"
+playwright_args=("${normalized_args[@]}")
+if [[ "${#playwright_args[@]}" -eq 0 ]]; then
+  playwright_args=(tests/e2e)
+fi
+
 if [[ "$(uname -s)" == "Linux" ]] && command -v xvfb-run >/dev/null 2>&1; then
-  env -u ELECTRON_RUN_AS_NODE \
+  xvfb-run -a env -u ELECTRON_RUN_AS_NODE \
     CI="${CI:-1}" \
+    RINAWARP_E2E="${RINAWARP_E2E:-1}" \
     ELECTRON_DISABLE_SANDBOX="${ELECTRON_DISABLE_SANDBOX:-1}" \
-    xvfb-run -a npx playwright test "${normalized_args[@]}" -c tests/playwright.config.ts --reporter=line
+    npx playwright test "${playwright_args[@]}" -c "$playwright_config" --reporter=line
   exit 0
 fi
 
-env -u ELECTRON_RUN_AS_NODE npx playwright test "${normalized_args[@]}" -c tests/playwright.config.ts --reporter=line
+env -u ELECTRON_RUN_AS_NODE \
+  CI="${CI:-1}" \
+  RINAWARP_E2E="${RINAWARP_E2E:-1}" \
+  ELECTRON_DISABLE_SANDBOX="${ELECTRON_DISABLE_SANDBOX:-1}" \
+  npx playwright test "${playwright_args[@]}" -c "$playwright_config" --reporter=line

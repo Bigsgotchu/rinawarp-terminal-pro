@@ -10,6 +10,7 @@ import type { RinaTool, ToolContext, ToolResult } from './registry.js'
 import type { RinaTask } from '../brain.js'
 import fs from 'fs/promises'
 import path from 'path'
+import { forwardLegacyPrompt } from '../controller/legacyInputAdapter.js'
 
 /**
  * Standalone safe filesystem functions for direct use in development
@@ -117,20 +118,22 @@ export const filesystemTool: RinaTool = {
       }
     }
 
-    // Auto mode - execute filesystem operations
+    // Auto mode — mutations forward to runtime; reads stay local
     try {
       switch (action) {
         case 'write': {
           if (!targetPath || !content) {
             return { ok: false, error: 'Path and content are required for write' }
           }
-          // Ensure directory exists
-          const dir = path.dirname(targetPath)
-          await fs.mkdir(dir, { recursive: true })
-          await fs.writeFile(targetPath, content, 'utf-8')
+          const response = await forwardLegacyPrompt(
+            `Write file through runtime.\nPath: ${targetPath}\nContent:\n${content}`,
+            context.workspaceRoot || process.cwd(),
+            'mutate',
+          )
           return {
-            ok: true,
-            output: { action: 'written', path: targetPath, success: true },
+            ok: response.ok,
+            output: { action: 'forwarded-write', path: targetPath, message: response.output },
+            error: response.error,
           }
         }
         case 'read': {
@@ -157,10 +160,15 @@ export const filesystemTool: RinaTool = {
           if (!targetPath) {
             return { ok: false, error: 'Path is required for delete' }
           }
-          await fs.unlink(targetPath)
+          const response = await forwardLegacyPrompt(
+            `Delete file through runtime.\nPath: ${targetPath}`,
+            context.workspaceRoot || process.cwd(),
+            'mutate',
+          )
           return {
-            ok: true,
-            output: { action: 'deleted', path: targetPath, success: true },
+            ok: response.ok,
+            output: { action: 'forwarded-delete', path: targetPath, message: response.output },
+            error: response.error,
           }
         }
         default: {

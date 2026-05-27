@@ -78,6 +78,7 @@ test("test override path returns the mocked inline result", async () => {
   try {
     const result = await withEnv(
       {
+        RINAWARP_E2E: "1",
         RINAWARP_INLINE_RINA_TEST_JSON: JSON.stringify({
           explanation: "Use git status first.",
           command: "git status --short --branch",

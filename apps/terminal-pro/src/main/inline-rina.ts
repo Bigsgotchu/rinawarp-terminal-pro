@@ -11,8 +11,10 @@ import {
   type RinaCloudClientLike,
 } from "./rina-cloud-client.js";
 import { getRinaCloudClientWithStoredToken } from "./rina-cloud-account.js";
-import { runRinaAgent, type RinaAgentResult, type RinaAgentStreamEvent } from "./rina-agent.js";
-import { getRinaUsageStatus, recordAgentRunStarted } from "./rina-usage-meter.js";
+import type { RinaExecutionRecord } from "@rinawarp/rina-core";
+import type { RinaAgentStreamEvent } from "./rina-agent.js";
+import { submitUiPrompt } from "./assistant/rinaIntentLoop.js";
+import { recordAgentRunStarted } from "./rina-usage-meter.js";
 import type { RinaPlan } from "./rina-usage-limits.js";
 
 const execFileAsync = promisify(execFile);
@@ -586,17 +588,36 @@ function normalizeLlmResult(
   };
 }
 
-function normalizeAgentResult(result: RinaAgentResult): InlineRinaResult {
+function inlineResultFromExecutionRecord(record: RinaExecutionRecord): InlineRinaResult {
+  const outcome = record.outcome;
+  if (!outcome) {
+    return {
+      explanation: "This request did not produce an execution outcome.",
+      command: null,
+      risk: "low",
+      confirmation: false,
+      usage: { model: "rina-runtime", promptTokens: null, responseTokens: null, totalTokens: null },
+    };
+  }
+
+  const agentEvents = record.events
+    .filter((event) => event.type === "execution.progress")
+    .map(
+      (event): RinaAgentStreamEvent => ({
+        type: "assistant_message",
+        text: String(event.message || "Execution progress"),
+      }),
+    );
+
   return {
-    explanation: result.explanation,
-    command: result.command ?? null,
-    risk: result.risk,
-    confirmation: !!result.command || !!result.pendingApproval,
-    confirmationMessage: result.confirmation,
-    pendingApproval: result.pendingApproval,
-    agentEvents: result.events,
+    explanation: outcome.explanation,
+    command: outcome.command ?? null,
+    risk: outcome.risk || "medium",
+    confirmation: Boolean(outcome.command || outcome.pendingApproval),
+    pendingApproval: outcome.pendingApproval,
+    agentEvents,
     usage: {
-      model: "rina-agent",
+      model: "rina-runtime",
       promptTokens: null,
       responseTokens: null,
       totalTokens: null,
@@ -613,6 +634,8 @@ function normalizePlan(entitlement: string | undefined): RinaPlan {
 function shouldUseAgent(input: string): boolean {
   return [
     /fix this repo/i,
+    /\b(?:fix|diagnose|debug)\s+(?:the\s+)?typescript\s+error\b/i,
+    /\btypescript\s+(?:build\s+)?(?:error|failure|failing|broken)\b/i,
     /\b(?:my\s+)?build\s+(?:is\s+)?(?:failing|failed|broken|erroring)\b/i,
     /\b(?:fix|diagnose|debug)\s+(?:the\s+)?(?:failed\s+)?build\b/i,
     /find why/i,
@@ -634,6 +657,11 @@ export function chooseInlineRinaRoute(input: string): InlineRinaRoute {
 }
 
 function mockInlineRinaFromEnv(): InlineRinaResult | null {
+  const allowEnvMock =
+    String(process.env.RINAWARP_E2E || "").trim() === "1" ||
+    String(process.env.NODE_ENV || "").trim() === "test";
+  if (!allowEnvMock) return null;
+
   const raw = String(process.env.RINAWARP_INLINE_RINA_TEST_JSON || "").trim();
   const textRaw = String(process.env.RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT || "").trim();
   if (!raw && !textRaw) return null;
@@ -1065,20 +1093,11 @@ export async function runInlineRina(args: {
         usage: { model: "rina-agent", promptTokens: null, responseTokens: null, totalTokens: null },
       };
     }
-    const usage = await getRinaUsageStatus(plan);
-    const result = await runRinaAgent({
+    const record = await submitUiPrompt(prompt, projectRoot, {
+      projectRoot,
       sessionId: args.request.triggerType || "inline",
-      userMessage: prompt,
-      cwd: projectRoot,
-      recentTranscript: stripAnsi(transcript).split(/\r?\n/g).filter(Boolean).slice(-20),
-      recentCommands: recentCommandsFromTranscript(transcript),
-      lastError: lastErrorFromTranscript(transcript),
-      limits: usage.limits,
-    }, {
-      cwd: projectRoot,
-      execText: defaultExecText,
     });
-    return normalizeAgentResult(result);
+    return inlineResultFromExecutionRecord(record);
   }
 
   try {

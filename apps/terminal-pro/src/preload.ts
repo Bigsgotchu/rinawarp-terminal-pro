@@ -51,6 +51,9 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:pty:metrics',
   // Canonical plan/run/proof path. New renderer work should use these channels.
   'rina:agent:plan',
+  'rina:ingress',
+  'rina:agent:run',
+  'rina:agent:approvePatch',
   'rina:fixProject',
   'rina:executePlanStream',
   'rina:capabilities:execute',
@@ -125,6 +128,7 @@ const ALLOWED_ON_CHANNELS = new Set([
   'rina:pty:exit',
   'rina:stream:chunk',
   'rina:stream:end',
+  'rina:stream',
   'rina:plan:stepStart',
   'rina:plan:run:start',
   'rina:plan:run:end',
@@ -301,6 +305,7 @@ contextBridge.exposeInMainWorld('rina', {
   // Stream events
   onStreamChunk: (cb: (data: any) => void) => subscribe('rina:stream:chunk', cb),
   onStreamEnd: (cb: (data: any) => void) => subscribe('rina:stream:end', cb),
+  onRuntimeStream: (cb: (event: { type?: string; plan?: string; id?: string }) => void) => subscribe('rina:stream', cb),
 
   // Plan events
   onPlanStepStart: (cb: (evt: any) => void) => subscribe('rina:plan:stepStart', cb),
@@ -338,6 +343,9 @@ contextBridge.exposeInMainWorld('rina', {
   trackQuickFix: () => ipcRenderer.invoke('telemetry:quickFix'),
 
   agentPlan: (args: { intentText: string; projectRoot: string }) => ipcRenderer.invoke('rina:agent:plan', args),
+  submitIntent: (args: unknown) => ipcRenderer.invoke('rina:ingress', args),
+  agentRun: (args: { prompt: string; projectRoot: string }) => ipcRenderer.invoke('rina:agent:run', args),
+  agentApprovePatch: (args: { request: any; payload: any }) => ipcRenderer.invoke('rina:agent:approvePatch', args),
   fixProject: (projectRoot: string) => ipcRenderer.invoke('rina:fixProject', projectRoot),
   executePlanStream: (args: {
     plan: any[]

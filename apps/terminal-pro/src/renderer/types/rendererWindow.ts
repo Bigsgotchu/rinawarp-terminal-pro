@@ -85,6 +85,9 @@ export interface RinaRendererWindow {
       }
     }>
     agentPlan: (args: { intentText: string; projectRoot: string }) => Promise<FixPlanResponse>
+    submitIntent?: (args: unknown) => Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
+    agentRun?: (args: { prompt: string; projectRoot: string }) => Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
+    agentApprovePatch?: (args: { request: any; payload: any }) => Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
     fixProject: (projectRoot: string) => Promise<FixProjectResult>
     executePlanStream: (args: {
       plan: FixPlanStep[]

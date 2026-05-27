@@ -23,6 +23,12 @@ export class AgentPanel extends BasePanel {
     )
 
     this.registerCleanup(
+      window.rina.on('rina:stream', (event: any) => {
+        this.showStreamEvent(event)
+      })
+    )
+
+    this.registerCleanup(
       window.rina.onPlanStepStart((step) => {
         this.showAgentStep(step)
       })
@@ -42,6 +48,52 @@ export class AgentPanel extends BasePanel {
     if (!narration) return
     const statusClass = entry.type === 'task.failed' || entry.type === 'permission.required' || entry.type === 'task.completed' ? 'end' : 'start'
     this.appendAgentOutput([this.deps.renderAgentStepBlock(statusClass, narration)])
+  }
+
+  showStreamEvent(event: unknown): void {
+    const e = event as { type?: string; plan?: string; id?: string }
+    if (!e?.type) return
+
+    const type = e.type
+    let statusClass: 'start' | 'running' | 'end' = 'start'
+    let narration: string | null = null
+
+    switch (type) {
+      case 'intent.received':
+        narration = 'Understanding your request...'
+        statusClass = 'start'
+        break
+      case 'policy.checking':
+        narration = 'Checking safety constraints...'
+        statusClass = 'start'
+        break
+      case 'plan.generated':
+        narration = e.plan || 'Adjusting approach based on past runs...'
+        statusClass = 'running'
+        break
+      case 'transaction.created':
+        narration = 'Preparing safe changes...'
+        statusClass = 'start'
+        break
+      case 'execution.running':
+        narration = 'Applying changes...'
+        statusClass = 'running'
+        break
+      case 'execution.complete':
+        narration = 'Completed successfully'
+        statusClass = 'end'
+        break
+      case 'rollback.triggered':
+        narration = 'Reverting unsafe changes...'
+        statusClass = 'end'
+        break
+      default:
+        narration = null
+    }
+
+    if (!narration) return
+    // Keep raw events (do not remove); we just render a narrative string over them.
+    this.appendAgentOutput([this.deps.renderAgentStepBlock(statusClass, `${narration}`)])
   }
 
   appendAgentOutput(content?: MessageBlock[]): void {

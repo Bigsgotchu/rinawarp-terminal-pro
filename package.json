@@ -2,13 +2,14 @@
   "name": "rinawarp-monorepo",
   "version": "1.7.1-beta",
   "private": true,
-  "description": "RinaWarp - Persistent Agent Platform",
   "workspaces": [
     "apps/*",
     "packages/*",
     "services/*"
   ],
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "dev": "corepack pnpm --filter rinawarp-terminal-pro dev:e2e",
     "start": "npm run agent:daemon:start && npm run dev:terminal",
     "dev:terminal": "cd apps/terminal-pro && npm run dev",
     "build:vscode-companion": "npm --workspace apps/rinawarp-companion run build",
@@ -16,6 +17,8 @@
     "test:extensions": "npm run test:companion",
     "package:vscode-companion": "npm --workspace apps/rinawarp-companion run package:vsix",
     "build": "npm --workspace apps/terminal-pro run build:electron",
+    "build:desktop": "pnpm --filter rinawarp-terminal-pro build",
+    "dist:desktop": "pnpm --filter rinawarp-terminal-pro dist",
     "build:all": "npm run build --workspaces",
     "agent:daemon:start": "npm --workspace packages/rinawarp-agentd run daemon:start",
     "agent:daemon:status": "npm --workspace packages/rinawarp-agentd run daemon:status",
@@ -33,6 +36,8 @@
     "proof:vps": "bash scripts/deploy/vps-capability-checkpoint.sh",
     "proof:all": "bash scripts/deploy/deploy-capability-proof-all.sh",
     "e2e:smoke": "npm --workspace apps/terminal-pro run e2e:smoke",
+    "test:e2e": "corepack pnpm exec playwright test -c apps/terminal-pro/e2e/playwright.config.ts",
+    "test:e2e:ui": "corepack pnpm exec playwright test -c apps/terminal-pro/e2e/playwright.config.ts --ui",
     "test:e2e:core": "npm --workspace apps/terminal-pro run test:e2e:core",
     "qa:release-candidate": "npm --workspace apps/terminal-pro run qa:release-candidate",
     "qa:stabilization-core": "npm --workspace apps/terminal-pro run qa:stabilization-core",
@@ -43,6 +48,8 @@
     "guard:runtime-integrity": "node scripts/guards/check-no-stubs.mjs",
     "guard:no-fake-success": "node scripts/guards/check-no-fake-success.mjs",
     "guard:feature-reality": "node scripts/guards/check-feature-reality-matrix.mjs",
+    "guard:product-constraint-contract": "node scripts/guards/check-product-constraint-contract.mjs",
+    "guard:rina-legacy": "node scripts/guards/check-rina-legacy.mjs",
     "guard:intent-contracts": "npm --workspace apps/terminal-pro run qa:intents",
     "guard:single-owner-events": "npm --workspace apps/terminal-pro run qa:ownership",
     "verify:desktop:rc": "bash scripts/qa/verify-desktop-rc.sh",
@@ -50,8 +57,10 @@
     "test:lockdown": "bash scripts/guards/guards.sh",
     "verify:site": "node scripts/qa/verify-pages-routes.mjs rinawarptech-website/web",
     "verify:downloads": "node scripts/qa/verify-download-links.mjs",
-    "pretest": "npm run test:lockdown && npm run guard:no-stubs && npm run guard:no-legacy-contracts && npm run guard:no-fake-success",
+    "pretest": "npm run test:lockdown && npm run guard:no-stubs && npm run guard:no-legacy-contracts && npm run guard:no-fake-success && npm run guard:product-constraint-contract && npm run guard:rina-legacy",
     "test": "npm run test:companion && npm --workspace apps/terminal-pro run test:unit && npm --workspace apps/terminal-pro run test:agent && npm --workspace apps/terminal-pro run test:cli",
+    "test:safety": "npm --workspace packages/rinawarp-deploy-capabilities run test:safety",
+    "test:failure": "npm --workspace packages/rinawarp-deploy-capabilities run test:failure",
     "release:readiness": "npm run test:companion && npm --workspace apps/terminal-pro run release:readiness",
     "smoke:prod": "bash scripts/smoke/prod.sh https://www.rinawarptech.com",
     "smoke:prod:windows-required": "REQUIRE_WINDOWS_PATHS=1 bash scripts/smoke/prod.sh https://www.rinawarptech.com",
@@ -69,6 +78,7 @@
     "release:bump": "bash deploy/bump-release-version.sh",
     "release:publish:desktop": "bash scripts/release/publish-desktop-release.sh",
     "release:publish:metadata": "bash scripts/release/publish-update-metadata.sh",
+    "check:updater": "bash scripts/check-updater.sh",
     "cli:list-agents": "node --import ./apps/terminal-pro/node_modules/tsx/dist/loader.mjs tools/list-agents.ts",
     "cli:install-agent": "node --import ./apps/terminal-pro/node_modules/tsx/dist/loader.mjs tools/install-agent.ts",
     "lint": "npm --workspace apps/terminal-pro run lint",
@@ -91,11 +101,12 @@
   "license": "MIT",
   "resolutions": {
     "typescript": "5.4.2",
-    "electron": ">=35.7.5",
+    "electron": "35.7.5",
     "playwright": ">=1.55.1"
   },
   "pnpm": {
     "overrides": {
+      "electron": "35.7.5",
       "tar": ">=7.5.11",
       "minimatch": ">=10.2.3",
       "yauzl": ">=3.2.1",
@@ -114,13 +125,16 @@
     ]
   },
   "dependencies": {
-    "electron": "28.3.0"
+    "posthog-node": "^4.0.0"
   },
   "engines": {
-    "node": ">=18.19.0"
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.0",
     "cspell": "^9.7.0",
+    "only-allow": "^1.2.2",
     "prettier": "^3.8.1"
   },
   "packageManager": "pnpm@10.0.0+sha512.b8fef5494bd3fe4cbd4edabd0745df2ee5be3e4b0b8b08fa643aa3e4c6702ccc0f00d68fa8a8c9858a735a0032485a44990ed2810526c875e416f001b17df12b"

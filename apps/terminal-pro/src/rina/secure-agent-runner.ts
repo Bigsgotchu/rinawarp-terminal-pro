@@ -1,25 +1,17 @@
 /**
- * Secure Agent Runner
- *
- * Integrates security layers (permissions, sandbox, signature verification)
- * into the RinaWarp Terminal Pro agent execution.
+ * Secure agent manifest validation + runtime forward (no legacy shell).
  */
 
-import fs from 'fs'
-import path from 'path'
-import crypto from 'crypto'
-import { execCommandSync } from './execution/legacyShell.js'
+import fs from 'node:fs'
+import path from 'node:path'
+import crypto from 'node:crypto'
+import { loadInstalledAgentCommand } from './agents/installed-agent-manifest.js'
+import { executionRecordToLegacyText, legacyPlanToRuntime } from '../runtime/bridge/RinaRuntimeBridge.js'
 
 const AGENTS_DIR = path.join(process.env.HOME || '.', '.rinawarp', 'agents')
 
-/**
- * Permission types
- */
 type Permission = 'terminal' | 'filesystem:read' | 'filesystem:write' | 'network' | 'git' | 'docker' | 'process'
 
-/**
- * Valid permissions
- */
 const VALID_PERMISSIONS: Permission[] = [
   'terminal',
   'filesystem:read',
@@ -38,9 +30,6 @@ function resolveSecureWorkspaceDir(explicit?: string): string {
   return candidate
 }
 
-/**
- * Agent manifest with security fields
- */
 interface SecureAgentManifest {
   name: string
   version: string
@@ -50,21 +39,9 @@ interface SecureAgentManifest {
   author?: string
   signature?: string
   signedAt?: string
+  commands: Array<{ name: string; steps: string[] }>
 }
 
-/**
- * Check if agent has required permission
- */
-function checkPermission(permissions: string[], required: string): void {
-  const normalized = required.toLowerCase()
-  if (!permissions.map((p) => p.toLowerCase()).includes(normalized)) {
-    throw new Error(`Permission denied: ${required}. Agent has: ${permissions.join(', ') || 'none'}`)
-  }
-}
-
-/**
- * Verify agent signature (simplified - in production use proper key management)
- */
 function verifySignature(data: string, signature: string, publicKey: string): boolean {
   try {
     const verify = crypto.createVerify('SHA256')
@@ -76,31 +53,14 @@ function verifySignature(data: string, signature: string, publicKey: string): bo
   }
 }
 
-/**
- * Safe terminal execution with permission checks
- */
-function safeExec(cmd: string, permissions: Permission[], cwd: string): string {
-  checkPermission(permissions, 'terminal')
-
-  // Block dangerous commands
-  const blockedPatterns = [/rm\s+-rf\s+\//i, /:\(\)\{.*:\|:\&\}/i, /dd\s+if=.*of=/i, />\s*\/dev\//i]
-
-  for (const pattern of blockedPatterns) {
-    if (pattern.test(cmd)) {
-      throw new Error(`Blocked dangerous command: ${cmd}`)
-    }
+function readManifest(name: string): SecureAgentManifest {
+  const agentPath = path.join(AGENTS_DIR, `${name}.json`)
+  if (!fs.existsSync(agentPath)) {
+    throw new Error(`Agent "${name}" is not installed. Run "rina install ${name}" first.`)
   }
-
-  return execCommandSync(cmd, {
-    cwd,
-    timeout: 30000,
-    maxBuffer: 10 * 1024 * 1024,
-  })
+  return JSON.parse(fs.readFileSync(agentPath, 'utf8')) as SecureAgentManifest
 }
 
-/**
- * Run a secure agent
- */
 export async function runSecureAgent(
   name: string,
   commandName?: string,
@@ -108,84 +68,42 @@ export async function runSecureAgent(
     workspaceDir?: string
     verifySignature?: boolean
     publicKey?: string
-  }
+  },
 ): Promise<string> {
-  const agentPath = path.join(AGENTS_DIR, `${name}.json`)
+  const agent = readManifest(name)
 
-  if (!fs.existsSync(agentPath)) {
-    throw new Error(`Agent "${name}" is not installed. Run "rina install ${name}" first.`)
-  }
-
-  // Load agent
-  let agent: SecureAgentManifest & { commands: Array<{ name: string; steps: string[] }> }
-  try {
-    const content = fs.readFileSync(agentPath, 'utf8')
-    agent = JSON.parse(content)
-  } catch (error) {
-    throw new Error(`Failed to read agent "${name}": ${error}`)
-  }
-
-  // Verify signature if required
   if (options?.verifySignature && agent.signature && options.publicKey) {
     const manifestWithoutSig = { ...agent }
     delete (manifestWithoutSig as Record<string, unknown>).signature
     delete (manifestWithoutSig as Record<string, unknown>).signedAt
-
-    const isValid = verifySignature(JSON.stringify(manifestWithoutSig), agent.signature, options.publicKey)
-
-    if (!isValid) {
+    if (!verifySignature(JSON.stringify(manifestWithoutSig), agent.signature, options.publicKey)) {
       throw new Error('Agent signature verification failed')
     }
-    console.log('[Secure Runner] Signature verified')
   }
 
-  // Validate permissions exist
-  if (!agent.permissions || !Array.isArray(agent.permissions)) {
-    console.warn('[Secure Runner] No permissions defined, defaulting to terminal only')
+  if (!agent.permissions?.length) {
     agent.permissions = ['terminal']
   }
 
-  // Validate each permission is valid
   for (const perm of agent.permissions) {
     if (!VALID_PERMISSIONS.includes(perm as Permission)) {
       throw new Error(`Invalid permission: ${perm}`)
     }
   }
 
-  // Find command to run
-  const command = commandName ? agent.commands?.find((c) => c.name === commandName) : agent.commands?.[0]
-
-  if (!command) {
-    throw new Error(`Command "${commandName || 'default'}" not found`)
-  }
-
-  // Execute in workspace
+  const { manifest, command } = loadInstalledAgentCommand(name, commandName)
   const workspaceDir = resolveSecureWorkspaceDir(options?.workspaceDir)
-  console.log(`[Secure Runner] Running "${name}" with permissions: ${agent.permissions.join(', ')}`)
 
-  const outputs: string[] = []
+  const prompt = [
+    `Execute secure agent "${manifest.name}" command "${command.name}".`,
+    `Permissions: ${agent.permissions.join(', ')}`,
+    ...command.steps.map((step, index) => `${index + 1}. ${step}`),
+  ].join('\n')
 
-  for (let i = 0; i < command.steps.length; i++) {
-    const step = command.steps[i]
-    console.log(`[Secure Runner] Step ${i + 1}/${command.steps.length}: ${step}`)
-
-    try {
-      const output = safeExec(step, agent.permissions, workspaceDir)
-      if (output) {
-        outputs.push(output)
-      }
-    } catch (error) {
-      const err = error as { message?: string }
-      throw new Error(`Step ${i + 1} failed: ${err.message}`)
-    }
-  }
-
-  return outputs.join('\n')
+  const record = await legacyPlanToRuntime(prompt, workspaceDir)
+  return executionRecordToLegacyText(record)
 }
 
-/**
- * Get agent info with permission details
- */
 export function getSecureAgentInfo(name: string): {
   name: string
   version: string
@@ -193,15 +111,8 @@ export function getSecureAgentInfo(name: string): {
   signature?: string
   signedAt?: string
 } | null {
-  const agentPath = path.join(AGENTS_DIR, `${name}.json`)
-
-  if (!fs.existsSync(agentPath)) {
-    return null
-  }
-
   try {
-    const content = fs.readFileSync(agentPath, 'utf8')
-    const agent = JSON.parse(content)
+    const agent = readManifest(name)
     return {
       name: agent.name,
       version: agent.version,
@@ -214,9 +125,6 @@ export function getSecureAgentInfo(name: string): {
   }
 }
 
-/**
- * Validate agent manifest
- */
 export function validateAgentManifest(manifest: unknown): string[] {
   const errors: string[] = []
   const m = manifest as Record<string, unknown>

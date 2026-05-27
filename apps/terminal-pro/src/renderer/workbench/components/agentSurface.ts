@@ -149,6 +149,26 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
     )
   }
 
+  if (model.memoryNote) {
+    article.appendChild(el('div', { class: 'rw-memory-note rw-inline-runblock-memory' }, model.memoryNote))
+  }
+
+  if (model.cognitionLines.length > 0) {
+    const cognition = el('ol', { class: 'rw-cognition-stream rw-inline-runblock-cognition', 'aria-live': 'polite' })
+    for (const line of model.cognitionLines.slice(-8)) {
+      cognition.appendChild(
+        el('li', { class: 'rw-cognition-line', dataset: { eventType: line.eventType } }, el('span', { class: 'rw-cognition-label' }, line.label)),
+      )
+    }
+    article.appendChild(cognition)
+  }
+
+  if (model.verificationSummary) {
+    article.appendChild(
+      el('div', { class: 'rw-inline-runblock-verification' }, el('span', { class: 'rw-inline-label' }, 'verification'), el('code', undefined, model.verificationSummary)),
+    )
+  }
+
   const meta = el('div', { class: 'rw-inline-runblock-meta' })
   meta.appendChild(el('div', { class: 'rw-inline-runblock-title' }, model.title))
   meta.appendChild(

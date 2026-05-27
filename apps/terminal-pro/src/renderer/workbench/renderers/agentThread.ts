@@ -1,18 +1,17 @@
 import type { RunModel, WorkbenchState } from '../store.js'
 import { clear, el, mount } from '../dom.js'
-import { renderLinkedRunsNode } from './linkedRuns.js'
 import { appendMessageContent } from './messageBlocks.js'
+import { hasCanonicalThreadContent, renderCanonicalThread } from './threadSurface.js'
 import {
   clearStarterPromptMount,
   mountAgentHero,
   mountStarterPromptMount,
   renderAgentCard,
-  renderInlineRunBlock,
 } from '../components/agentSurface.js'
 import { renderRecoveryStrip, renderRecoveryToggleButton } from '../components/recoverySurface.js'
+import { renderTruthHud } from '../components/truthHud.js'
 import {
   buildAgentHeroViewModel,
-  buildInlineRunViewModel,
   buildRetentionLoopCardModel,
   buildWorkspaceSetupCardModel,
 } from '../view-models/agentThreadModel.js'
@@ -58,18 +57,6 @@ function dedupeAdjacentThreadMessages(messages: WorkbenchState['chat']): Workben
   return deduped
 }
 
-function renderInlineRunBlocksNode(state: WorkbenchState, linkedRuns: RunModel[]): HTMLElement | null {
-  if (linkedRuns.length === 0) return null
-  const orderedRuns = [...linkedRuns].sort((left, right) => {
-    const leftRunning = left.status === 'running' ? 0 : 1
-    const rightRunning = right.status === 'running' ? 0 : 1
-    if (leftRunning !== rightRunning) return leftRunning - rightRunning
-    return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
-  })
-  const root = el('div', { class: 'rw-inline-runs' })
-  for (const run of orderedRuns) root.appendChild(renderInlineRunBlock(buildInlineRunViewModel(state, run)))
-  return root
-}
 
 function renderComposerStarterPrompts(state: WorkbenchState, hasThreadContent: boolean): void {
   const container = document.getElementById('agent-starter-prompts')
@@ -122,10 +109,11 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const root = document.getElementById('agent-output')
   if (!root) return
   const agentBody = document.querySelector<HTMLElement>('.rw-agent-body')
+  const useCanonicalThread = hasCanonicalThreadContent(state)
   const visibleMessages = state.chat.filter((message) => message.workspaceKey === state.workspaceKey).slice(-200)
   const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
   const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
-  const hasThreadContent = threadMessages.length > 0
+  const hasThreadContent = useCanonicalThread || threadMessages.length > 0
   const composerInput = document.querySelector<HTMLTextAreaElement>('#agent-input')
   const hasDraft = Boolean(composerInput?.value.trim())
   const isStreaming = Boolean(state.thinking.active)
@@ -145,15 +133,11 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
 
       if (!shouldCompactRecovery && shouldShowRecoveryStrip) {
         for (const message of recoveryMessages) {
-          const linkedRuns = state.runs.filter((run) => run.originMessageId === message.id || (message.runIds || []).includes(run.id))
-          const unresolvedRunIds = (message.runIds || []).filter((runId) => !linkedRuns.some((run) => run.id === runId))
           const node = el('div', {
             class: ['rw-thread-message', message.role, 'is-recovery-message'].filter(Boolean).join(' '),
             dataset: { msgId: message.id },
           })
           appendMessageContent(node, message)
-          const linkedRunsNode = renderLinkedRunsNode(state, message.id, linkedRuns, unresolvedRunIds)
-          if (linkedRunsNode) node.appendChild(linkedRunsNode)
           recoveryShell.appendChild(node)
         }
       }
@@ -175,33 +159,27 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
     if (retentionCard) shell.appendChild(renderAgentCard(retentionCard))
   }
   if (hasThreadContent) {
-    for (const message of dedupeAdjacentThreadMessages(threadMessages)) {
-      const isRecoveryMessage = message.id.startsWith('system:runs:restore:')
-      const linkedRuns = state.runs.filter((run) => run.originMessageId === message.id || (message.runIds || []).includes(run.id))
-      const unresolvedRunIds = (message.runIds || []).filter((runId) => !linkedRuns.some((run) => run.id === runId))
-      const hasRunningRun = linkedRuns.some((run) => run.status === 'running')
-      const node = el('div', {
-        class: [
-          'rw-thread-message',
-          'rw-thread-message',
-          message.role,
-          linkedRuns.length > 0 && message.role === 'rina' ? 'has-inline-runs' : '',
-          hasRunningRun ? 'has-live-inline-run' : '',
-        ]
-          .filter(Boolean)
-          .join(' '),
-        dataset: { msgId: message.id },
-      })
-      appendMessageContent(node, message)
-      if (message.role === 'rina' && linkedRuns.length > 0 && !isRecoveryMessage) {
-        const inlineRuns = renderInlineRunBlocksNode(state, linkedRuns)
-        if (inlineRuns) node.appendChild(inlineRuns)
+    shell.appendChild(renderTruthHud(state))
+    if (useCanonicalThread) {
+      shell.appendChild(renderCanonicalThread(state))
+    } else {
+      for (const message of dedupeAdjacentThreadMessages(threadMessages)) {
+        const linkedRuns = state.runs.filter((run) => run.originMessageId === message.id || (message.runIds || []).includes(run.id))
+        const hasRunningRun = linkedRuns.some((run) => run.status === 'running')
+        const node = el('div', {
+          class: [
+            'rw-thread-message',
+            message.role,
+            linkedRuns.length > 0 && message.role === 'rina' ? 'has-inline-runs' : '',
+            hasRunningRun ? 'has-live-inline-run' : '',
+          ]
+            .filter(Boolean)
+            .join(' '),
+          dataset: { msgId: message.id },
+        })
+        appendMessageContent(node, message)
+        shell.appendChild(node)
       }
-      if (message.role === 'rina' && !isRecoveryMessage) {
-        const linkedRunsNode = renderLinkedRunsNode(state, message.id, linkedRuns, unresolvedRunIds)
-        if (linkedRunsNode) node.appendChild(linkedRunsNode)
-      }
-      shell.appendChild(node)
     }
   }
 

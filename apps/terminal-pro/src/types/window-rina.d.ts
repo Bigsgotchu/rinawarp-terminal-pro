@@ -257,6 +257,9 @@ declare global {
       onPtyData(cb: (data: string) => void): () => void
       onPtyExit(cb: (p: { exitCode: number; signal: number }) => void): () => void
       agentPlan(args: { intentText: string; projectRoot: string }): Promise<any>
+      submitIntent(args: unknown): Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
+      agentRun(args: { prompt: string; projectRoot: string }): Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
+      agentApprovePatch(args: { request: any; payload: any }): Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
       executePlanStream(args: {
         plan: any[]
         projectRoot: string

@@ -7,6 +7,7 @@ import { evaluateToolCall } from "./rina-policy.js";
 import { executeTool, type RinaToolCall, type RinaToolDeps, type RinaToolResult } from "./rina-tools.js";
 import { recordPatchBytes, recordToolCall } from "./rina-usage-meter.js";
 import type { UsageLimit } from "./rina-usage-limits.js";
+import type { ExecutionSandbox } from "@rinawarp/rina-runtime/execution/sandbox";
 
 export type RinaAgentRequest = {
   sessionId: string;
@@ -29,6 +30,7 @@ export type RinaAgentResult = {
   explanation: string;
   command?: string;
   risk: "low" | "medium" | "high";
+  transactionOutcome?: "applied" | "rolled_back" | "failed";
   confirmation?: string;
   pendingApproval?: {
     kind: "command" | "file_patch";
@@ -39,6 +41,8 @@ export type RinaAgentResult = {
 
 export type RinaAgentDeps = RinaToolDeps & {
   proposePatchForFailure?: typeof proposePatchForFailure;
+  executionSandbox?: ExecutionSandbox;
+  transactionId?: string;
 };
 
 type CommandApprovalPayload = {
@@ -47,6 +51,31 @@ type CommandApprovalPayload = {
   cwd?: string;
   rerunCommand?: string;
   previousDiagnostic?: string;
+};
+
+type FilePatchApprovalPayload = {
+  path: string;
+  summary: string;
+  newContent: string;
+  currentContent: string;
+  rerunCommand?: string | null;
+  previousDiagnostic?: string;
+  unifiedDiff?: string;
+  riskLabel?: "safe-write";
+  rollbackNotes?: string;
+  verificationCommand?: string | null;
+  filesTouched?: string[];
+  failureExplanation?: {
+    file: string | null;
+    line: number | null;
+    cause: string;
+    plainEnglish: string;
+  };
+  diffSummary?: string;
+  approvalBoundaryMessage?: string;
+  reviewActions?: string[];
+  trustIndicators?: string[];
+  minimalPatchPolicy?: string;
 };
 
 const requireForNode = createRequire(import.meta.url);
@@ -106,7 +135,9 @@ function detectPackageManager(cwd: string): AgentModelState["packageManager"] {
 
 function isFailedBuildRecoveryPrompt(input: string): boolean {
   return /\b(?:my\s+)?build\s+(?:is\s+)?(?:failing|failed|broken|erroring)\b/i.test(input)
-    || /\b(?:fix|diagnose|debug)\s+(?:the\s+)?(?:failed\s+)?build\b/i.test(input);
+    || /\b(?:fix|diagnose|debug)\s+(?:the\s+)?(?:failed\s+)?build\b/i.test(input)
+    || /\b(?:fix|diagnose|debug)\s+(?:the\s+)?typescript\s+error\b/i.test(input)
+    || /\btypescript\s+(?:build\s+)?(?:error|failure|failing|broken)\b/i.test(input);
 }
 
 function summarizeToolResult(result: RinaToolResult): string {
@@ -133,6 +164,115 @@ function commandApprovalPayload(state: AgentState, command: string): CommandAppr
     cwd: state.cwd,
     rerunCommand: state.rerunCommand,
     previousDiagnostic: String(state.diagnosticOutput || "").trim() || undefined,
+  };
+}
+
+function formatUnifiedDiff(filePath: string, currentContent: string, newContent: string): string {
+  const before = String(currentContent || "").split(/\r?\n/g);
+  const after = String(newContent || "").split(/\r?\n/g);
+  const lines = [
+    `--- a/${filePath}`,
+    `+++ b/${filePath}`,
+    "@@",
+  ];
+  const maxLines = Math.max(before.length, after.length);
+  for (let index = 0; index < maxLines; index += 1) {
+    const oldLine = before[index];
+    const newLine = after[index];
+    if (oldLine === newLine) {
+      if (oldLine !== undefined) lines.push(` ${oldLine}`);
+      continue;
+    }
+    if (oldLine !== undefined) lines.push(`-${oldLine}`);
+    if (newLine !== undefined) lines.push(`+${newLine}`);
+  }
+  return lines.join("\n");
+}
+
+function changedLineCount(currentContent: string, newContent: string): number {
+  const before = String(currentContent || "").split(/\r?\n/g);
+  const after = String(newContent || "").split(/\r?\n/g);
+  const maxLines = Math.max(before.length, after.length);
+  let changed = 0;
+  for (let index = 0; index < maxLines; index += 1) {
+    if (before[index] !== after[index]) changed += 1;
+  }
+  return changed;
+}
+
+function compactDiagnosticMessage(diagnostic: string): string {
+  return String(diagnostic || "")
+    .split(/\r?\n/g)
+    .map((line) => line.trim())
+    .filter(Boolean)[0]
+    ?.replace(/^Command failed:\s*/i, "")
+    .replace(/^error\s+TS\d+:\s*/i, "")
+    .trim() || "TypeScript reported a build failure.";
+}
+
+function summarizeTypescriptCause(diagnostic: string): string {
+  const text = compactDiagnosticMessage(diagnostic);
+  const assignability = text.match(/Type ['"`]([^'"`]+)['"`] is not assignable to type ['"`]([^'"`]+)['"`]/i);
+  if (assignability?.[1] && assignability?.[2]) {
+    return `A ${assignability[1]} value is not assignable to a ${assignability[2]} type.`;
+  }
+  const moduleResolution = text.match(/moduleResolution['"`]?\s+(?:option\s+)?(?:must be set to|to)\s+['"`]?([A-Za-z0-9_-]+)['"`]?/i);
+  if (moduleResolution?.[1]) {
+    return `The TypeScript module resolution setting needs to be ${moduleResolution[1]}.`;
+  }
+  const missingModule = text.match(/Cannot find module ['"`]([^'"`]+)['"`]/i);
+  if (missingModule?.[1]) {
+    return `TypeScript cannot resolve the module ${missingModule[1]}.`;
+  }
+  const missingTypes = text.match(/Cannot find type definition file for ['"`]([^'"`]+)['"`]/i);
+  if (missingTypes?.[1]) {
+    return `TypeScript cannot resolve the ${missingTypes[1]} type definitions.`;
+  }
+  return text.replace(/^.*?\berror\s+TS\d+:\s*/i, "");
+}
+
+function explainTypescriptFailure(diagnostic: string): FilePatchApprovalPayload["failureExplanation"] {
+  const firstLine = compactDiagnosticMessage(diagnostic);
+  const fileLineMatch = firstLine.match(/([^:()\n]+\.(?:ts|tsx|mts|cts|js|jsx|mjs|cjs|json))(?:\((\d+),\d+\)|:(?:\s*)error|\s+error)/i)
+    || String(diagnostic || "").match(/([^:()\n]+\.(?:ts|tsx|mts|cts|js|jsx|mjs|cjs|json))(?:\((\d+),\d+\)|:(?:\s*)error|\s+error)/i);
+  const file = fileLineMatch?.[1]?.trim() || null;
+  const line = fileLineMatch?.[2] ? Number(fileLineMatch[2]) : null;
+  const cause = summarizeTypescriptCause(diagnostic);
+  const location = file ? `${file}${line ? ` line ${line}` : ""}` : "the TypeScript build";
+  return {
+    file,
+    line,
+    cause,
+    plainEnglish: `TypeScript found a problem in ${location}. ${cause}`,
+  };
+}
+
+function filePatchApprovalPayload(args: {
+  path: string;
+  summary: string;
+  newContent: string;
+  currentContent: string;
+  rerunCommand?: string | null;
+  previousDiagnostic?: string;
+}): FilePatchApprovalPayload {
+  return {
+    path: args.path,
+    summary: args.summary,
+    newContent: args.newContent,
+    currentContent: args.currentContent,
+    rerunCommand: args.rerunCommand,
+    previousDiagnostic: args.previousDiagnostic,
+    unifiedDiff: formatUnifiedDiff(args.path, args.currentContent, args.newContent),
+    riskLabel: "safe-write",
+    rollbackNotes: `Rina will save the previous contents before applying this patch. If verification fails, Rina will restore \`${args.path}\` from that backup and keep the backup for review.`,
+    verificationCommand: args.rerunCommand || null,
+    filesTouched: [args.path],
+    failureExplanation: explainTypescriptFailure(args.previousDiagnostic || ""),
+    diffSummary: `1 file, ${changedLineCount(args.currentContent, args.newContent)} changed line(s): ${args.path}`,
+    approvalBoundaryMessage: "No files have been modified yet.",
+    reviewActions: ["Approve Patch", "Deny", "View Full Diff"],
+    trustIndicators: ["Read-only inspection", "Awaiting approval"],
+    minimalPatchPolicy: "Smallest practical edit only; no unrelated refactors or formatting churn.",
   };
 }
 
@@ -1308,25 +1448,33 @@ async function maybeProposePatch(state: AgentState, deps: RinaAgentDeps, events:
       await recordPatchBytes(patchBytes);
       const approval = {
         kind: "file_patch" as const,
-        payload: {
+        payload: filePatchApprovalPayload({
           path: deterministicPatch.path,
           summary: deterministicPatch.summary,
           newContent: deterministicPatch.newContent,
           currentContent,
           rerunCommand: deterministicPatch.rerunCommand || state.rerunCommand,
           previousDiagnostic: diagnostic,
-        },
+        }),
       };
+      const failureText = approval.payload.failureExplanation?.plainEnglish || "TypeScript reported a build failure.";
+      const proposalText = [
+        failureText,
+        `Proposed patch: change \`${deterministicPatch.path}\` because ${deterministicPatch.summary}`,
+        "Risk level: safe-write, limited to one workspace file.",
+        approval.payload.rollbackNotes,
+        approval.payload.approvalBoundaryMessage,
+      ].join("\n\n");
       events.push({
         type: "approval_requested",
         action: "Apply file patch",
-        details: deterministicPatch.summary,
+        details: proposalText,
         payload: approval.payload,
       });
       return {
-        explanation: deterministicPatch.summary,
+        explanation: proposalText,
         risk: "medium",
-        confirmation: "Approve this patch to apply it and rerun the check.",
+        confirmation: "Approve Patch to apply this exact diff and rerun verification, or Deny to leave files unchanged.",
         pendingApproval: approval,
         events,
       };
@@ -1369,25 +1517,33 @@ async function maybeProposePatch(state: AgentState, deps: RinaAgentDeps, events:
 
   const approval = {
     kind: "file_patch" as const,
-    payload: {
+    payload: filePatchApprovalPayload({
       path: patch.path,
       summary: patch.summary,
       newContent: patch.newContent,
       currentContent: currentFile.content,
       rerunCommand: patch.rerunCommand || state.rerunCommand,
       previousDiagnostic: diagnostic,
-    },
+    }),
   };
+  const failureText = approval.payload.failureExplanation?.plainEnglish || "TypeScript reported a build failure.";
+  const proposalText = [
+    failureText,
+    `Proposed patch: change \`${patch.path}\` because ${patch.summary}`,
+    "Risk level: safe-write, limited to one workspace file.",
+    approval.payload.rollbackNotes,
+    approval.payload.approvalBoundaryMessage,
+  ].join("\n\n");
   events.push({
     type: "approval_requested",
     action: "Apply file patch",
-    details: patch.summary,
+    details: proposalText,
     payload: approval.payload,
   });
   return {
-    explanation: patch.summary,
+    explanation: proposalText,
     risk: "medium",
-    confirmation: "Approve this patch to apply it and rerun the check.",
+    confirmation: "Approve Patch to apply this exact diff and rerun verification, or Deny to leave files unchanged.",
     pendingApproval: approval,
     events,
   };
@@ -1597,14 +1753,14 @@ export async function continueRinaAgentAfterCommandApproval(
             await recordPatchBytes(patchBytes);
             const approval = {
               kind: "file_patch" as const,
-              payload: {
+              payload: filePatchApprovalPayload({
                 path: "package.json",
                 summary,
                 newContent,
                 currentContent: packageJsonText,
                 rerunCommand: command,
                 previousDiagnostic: commandError,
-              },
+              }),
             };
             events.push({
               type: "approval_requested",
@@ -1647,4 +1803,183 @@ export async function continueRinaAgentAfterCommandApproval(
     ...followUp,
     events: [...events, ...followUp.events],
   };
+}
+
+async function resolveWorkspacePath(cwd: string, relativePath: string): Promise<string> {
+  const pathValue = String(relativePath || "").trim();
+  if (!pathValue || pathValue.includes("\0")) {
+    throw new Error("Patch path is invalid.");
+  }
+  const segments = pathValue.split(/[\\/]+/g);
+  if (path.isAbsolute(pathValue) || segments.includes("..")) {
+    throw new Error("Patch path must be a workspace-relative path without traversal.");
+  }
+
+  const workspaceRoot = path.resolve(cwd);
+  const resolved = path.resolve(workspaceRoot, pathValue);
+  const relative = path.relative(workspaceRoot, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error("Patch path is outside the current workspace.");
+  }
+
+  const realWorkspaceRoot = await fsp.realpath(workspaceRoot);
+  let realTarget: string;
+  try {
+    realTarget = await fsp.realpath(resolved);
+  } catch {
+    const realParent = await fsp.realpath(path.dirname(resolved));
+    realTarget = path.join(realParent, path.basename(resolved));
+  }
+  const realRelative = path.relative(realWorkspaceRoot, realTarget);
+  if (realRelative.startsWith("..") || path.isAbsolute(realRelative)) {
+    throw new Error("Patch path escapes the current workspace through a symlink.");
+  }
+
+  return resolved;
+}
+
+export async function continueRinaAgentAfterFilePatchApproval(
+  request: RinaAgentRequest,
+  payload: FilePatchApprovalPayload,
+  deps: RinaAgentDeps = {},
+): Promise<RinaAgentResult> {
+  const cwd = request.cwd || deps.cwd || process.cwd();
+  const relativePath = String(payload.path || "").trim();
+  const newContent = String(payload.newContent ?? "");
+  const expectedCurrentContent = String(payload.currentContent ?? "");
+  const rerunCommand = String(payload.rerunCommand || "").trim();
+  const executionSandbox = deps.executionSandbox;
+  const transactionId = deps.transactionId;
+  const events: RinaAgentStreamEvent[] = [
+    {
+      type: "assistant_message",
+      text: `Applying approved patch to \`${relativePath}\`...`,
+    },
+  ];
+
+  if (!relativePath || !newContent) {
+    const explanation = "The approved patch payload was missing a file path or replacement content, so I did not change anything.";
+    events.push({ type: "task_complete", summary: explanation });
+    return { explanation, risk: "high", transactionOutcome: "failed", events };
+  }
+
+  try {
+    await resolveWorkspacePath(cwd, relativePath);
+    const readResult = await executeTool({ tool: "readFile", path: relativePath }, { ...deps, cwd });
+    if (!readResult.ok) {
+      const explanation = `I could not reread \`${relativePath}\` before patching, so I did not change it. ${readResult.error}`;
+      events.push({ type: "task_complete", summary: explanation });
+      return { explanation, risk: "medium", transactionOutcome: "failed", events };
+    }
+
+    const currentContent = String((readResult.output as { content?: string } | null)?.content || "");
+    if (currentContent !== expectedCurrentContent) {
+      const explanation = `I stopped before applying the patch because \`${relativePath}\` changed after the diff was generated. Rerun the fix so I can propose a fresh patch.`;
+      events.push({ type: "task_complete", summary: explanation });
+      return { explanation, risk: "medium", transactionOutcome: "failed", events };
+    }
+
+    if (!executionSandbox || !transactionId) {
+      const explanation = "Approved file mutation requires an active runtime transaction sandbox, so I did not change anything.";
+      events.push({ type: "task_complete", summary: explanation });
+      return { explanation, risk: "high", transactionOutcome: "failed", events };
+    }
+    executionSandbox.beginTransaction(transactionId);
+    events.push({
+      type: "tool_started",
+      tool: "applyPatch",
+      summary: `Applying approved patch: ${relativePath}`,
+    });
+    const patchResult = await executeTool(
+      { tool: "applyPatch", path: relativePath, newContent },
+      { ...deps, cwd, executionSandbox },
+    );
+    events.push({
+      type: "tool_result",
+      tool: "applyPatch",
+      summary: summarizeToolResult(patchResult),
+      output: patchResult.ok ? summarizeToolResult(patchResult) : patchResult.error,
+    });
+    const backupPath = executionSandbox.getSnapshots(transactionId)[0]?.backupPath || "transaction snapshot";
+
+    if (!patchResult.ok) {
+      await executionSandbox.rollbackTransaction(transactionId);
+      const explanation = `I created backup \`${backupPath}\`, but applying the patch failed: ${patchResult.error}`;
+      events.push({ type: "task_complete", summary: explanation });
+      return { explanation, risk: "medium", transactionOutcome: "failed", events };
+    }
+
+    if (!rerunCommand) {
+      const explanation = `Partial recovery: applied the approved patch to \`${relativePath}\` and saved rollback backup \`${backupPath}\`, but no verification command was attached. I cannot claim the build is fixed without verification evidence.`;
+      events.push({ type: "task_complete", summary: explanation });
+      executionSandbox.commitTransaction(transactionId);
+      return { explanation, risk: "medium", transactionOutcome: "applied", events };
+    }
+
+    events.push({
+      type: "assistant_message",
+      text: `Verifying build with \`${rerunCommand}\`...`,
+    });
+    events.push({
+      type: "tool_started",
+      tool: "runCommand",
+      summary: `Rerun verification: ${rerunCommand}`,
+    });
+    const verification = await executeTool(
+      { tool: "runCommand", command: rerunCommand, cwd },
+      { ...deps, cwd, timeoutMs: request.limits?.maxCommandMs },
+    );
+    events.push({
+      type: "tool_result",
+      tool: "runCommand",
+      summary: summarizeToolResult(verification),
+      output: verification.ok ? summarizeToolResult(verification) : verification.error,
+    });
+
+    if (!verification.ok) {
+      let rollbackResult: { ok: true; tool: "applyPatch"; output: string } | { ok: false; tool: "applyPatch"; error: string };
+      try {
+        await executionSandbox.rollbackTransaction(transactionId);
+        rollbackResult = { ok: true, tool: "applyPatch", output: `Restored ${relativePath} from transaction snapshot` };
+      } catch (rollbackError) {
+        rollbackResult = {
+          ok: false,
+          tool: "applyPatch",
+          error: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+        };
+      }
+      events.push({
+        type: "tool_result",
+        tool: "applyPatch",
+        summary: rollbackResult.ok
+          ? `Recovery complete: restored ${relativePath} from backup`
+          : `Rollback failed for ${relativePath}`,
+        output: rollbackResult.ok ? summarizeToolResult(rollbackResult) : rollbackResult.error,
+      });
+      const explanation = rollbackResult.ok
+        ? `Verification failed with \`${rerunCommand}\`, so I restored \`${relativePath}\` from backup \`${backupPath}\`. Recovery complete: the failed patch was rolled back and the backup is preserved for review.`
+        : `Verification failed with \`${rerunCommand}\`, and rollback also failed. Backup \`${backupPath}\` is preserved; restore it manually before continuing.`;
+      events.push({ type: "task_complete", summary: explanation });
+      return {
+        explanation,
+        risk: "medium",
+        transactionOutcome: rollbackResult.ok ? "rolled_back" : "failed",
+        events,
+      };
+    }
+
+    const explanation = `Verification passed: applied the approved patch to \`${relativePath}\`, saved rollback backup \`${backupPath}\`, and \`${rerunCommand}\` completed successfully.`;
+    events.push({ type: "task_complete", summary: explanation });
+    executionSandbox.commitTransaction(transactionId);
+    return {
+      explanation,
+      risk: "low",
+      transactionOutcome: "applied",
+      events,
+    };
+  } catch (error) {
+    const explanation = error instanceof Error ? error.message : "The approved patch could not be applied safely.";
+    events.push({ type: "task_complete", summary: explanation });
+    return { explanation, risk: "high", transactionOutcome: "failed", events };
+  }
 }

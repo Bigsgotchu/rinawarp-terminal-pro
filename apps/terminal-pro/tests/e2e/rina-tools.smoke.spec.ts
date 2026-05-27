@@ -15,6 +15,7 @@ import { safeShutdown, safeRestart, setMode, getMode } from "../../src/rina/tool
 test.describe("Rina Tools - Smoke Tests (Dev Mode)", () => {
 
   test("Terminal: safeExec executes allowed commands", async () => {
+    process.env.RINAWARP_TOOL_SMOKE = "1";
     const result = await safeExec("echo RinaTest");
     expect(result.success).toBe(true);
     expect(result.stdout.trim()).toBe("RinaTest");

@@ -1,16 +1,11 @@
 /**
- * Rina OS Control Layer - Terminal Tool
- *
- * Safe terminal command execution with safety guardrails.
- * Integrates with the existing PTY system.
- *
- * Additive architecture - does not modify existing core functionality.
+ * LEGACY terminal tool — forwards execution to canonical runtime.
  */
 
 import type { RinaTool, ToolContext, ToolResult } from './registry.js'
 import type { RinaTask } from '../brain.js'
 import { safetyCheck } from '../safety.js'
-import { execCommand } from '../execution/legacyShell.js'
+import { forwardLegacyPrompt } from '../controller/legacyInputAdapter.js'
 
 export interface TerminalResult {
   stdout: string
@@ -23,8 +18,17 @@ function normalizeCwd(context: ToolContext): string | undefined {
   return cwd || undefined
 }
 
+function responseToTerminalResult(output: unknown, error?: string, ok = true): TerminalResult {
+  const text = typeof output === 'string' ? output : output == null ? '' : JSON.stringify(output)
+  return {
+    stdout: ok ? text : '',
+    stderr: ok ? '' : error || text,
+    success: ok,
+  }
+}
+
 /**
- * Standalone safe exec function for direct use in development
+ * Dev-only direct shell for tool smoke tests (`RINAWARP_TOOL_SMOKE=1`).
  */
 export async function safeExec(command: string, cwd?: string): Promise<TerminalResult> {
   const safety = safetyCheck(command, 'assist')
@@ -32,28 +36,28 @@ export async function safeExec(command: string, cwd?: string): Promise<TerminalR
     return { stdout: '', stderr: `Blocked: ${safety.reason}`, success: false }
   }
 
-  return new Promise((resolve) => {
-    execCommand(command, { shell: '/bin/bash', timeout: 30000, cwd })
-      .then(({ stdout, stderr }) =>
-        resolve({
-          stdout,
-          stderr,
-          success: true,
-        })
-      )
-      .catch((error: any) =>
-        resolve({
-          stdout: error?.stdout || '',
-          stderr: error?.stderr || error?.message || '',
-          success: false,
-        })
-      )
-  })
+  if (process.env.RINAWARP_TOOL_SMOKE === '1') {
+    try {
+      const { execCommand } = await import('../execution/legacyShell.js')
+      const { stdout, stderr } = await execCommand(command, { shell: '/bin/bash', timeout: 30000, cwd })
+      return { stdout, stderr, success: true }
+    } catch (error: unknown) {
+      const err = error as { stdout?: string; stderr?: string; message?: string }
+      return {
+        stdout: err.stdout || '',
+        stderr: err.stderr || err.message || '',
+        success: false,
+      }
+    }
+  }
+
+  const response = await forwardLegacyPrompt(command, cwd || process.cwd(), 'execute')
+  return responseToTerminalResult(response.output, response.error, response.ok)
 }
 
 export const terminalTool: RinaTool = {
   name: 'terminal',
-  description: 'Execute terminal commands safely',
+  description: 'Forward terminal commands to canonical runtime',
 
   canHandle(task: RinaTask): boolean {
     return task.tool === 'terminal' && !!task.input.command
@@ -61,15 +65,12 @@ export const terminalTool: RinaTool = {
 
   validate(input: Record<string, unknown>): { valid: boolean; error?: string } {
     const command = input.command
-
     if (!command || typeof command !== 'string') {
       return { valid: false, error: 'Command is required' }
     }
-
     if (command.length > 10000) {
       return { valid: false, error: 'Command too long (max 10000 chars)' }
     }
-
     return { valid: true }
   },
 
@@ -78,9 +79,7 @@ export const terminalTool: RinaTool = {
     const mode = (task.input.mode as string) || context.mode
     const cwd = normalizeCwd(context)
 
-    // Safety check
     const safety = safetyCheck(command, mode as 'explain' | 'assist' | 'auto')
-
     if (safety.blocked) {
       return {
         ok: false,
@@ -90,50 +89,26 @@ export const terminalTool: RinaTool = {
       }
     }
 
-    // Explain mode - show what would be executed
     if (mode === 'explain') {
       return {
         ok: true,
-        output: {
-          message: `Would run: ${command}`,
-          command,
-          mode,
-          cwd,
-        },
+        output: { message: `Would forward to runtime: ${command}`, command, mode, cwd },
       }
     }
 
     if (!cwd) {
       return {
         ok: false,
-        output: {
-          message: 'Command blocked: missing workspace root',
-          command,
-          success: false,
-        },
+        output: { message: 'Command blocked: missing workspace root', command, success: false },
         error: 'Missing workspace root',
       }
     }
 
-    try {
-      const result = await safeExec(command, cwd)
-
-      return {
-        ok: result.success,
-        output: {
-          stdout: result.stdout,
-          stderr: result.stderr,
-          command,
-          cwd,
-          success: result.success,
-        },
-        error: result.success ? undefined : result.stderr || 'Command failed',
-      }
-    } catch (err) {
-      return {
-        ok: false,
-        error: err instanceof Error ? err.message : String(err),
-      }
+    const result = await safeExec(command, cwd)
+    return {
+      ok: result.success,
+      output: { stdout: result.stdout, stderr: result.stderr, command, cwd, success: result.success },
+      error: result.success ? undefined : result.stderr || 'Command failed',
     }
   },
 }

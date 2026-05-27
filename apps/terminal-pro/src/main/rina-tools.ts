@@ -1,7 +1,7 @@
-import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { execFile } from "node:child_process";
+import type { ExecutionSandbox } from "@rinawarp/rina-runtime/execution/sandbox";
 
 export type RinaToolCall =
   | { tool: "listFiles"; path: string }
@@ -20,6 +20,7 @@ export type RinaToolDeps = {
   maxFileBytes?: number;
   timeoutMs?: number;
   execText?: (command: string, cwd?: string, timeoutMs?: number) => Promise<string>;
+  executionSandbox?: Pick<ExecutionSandbox, "readFile" | "writeFile">;
 };
 
 const DEFAULT_MAX_FILE_BYTES = 128 * 1024;
@@ -97,6 +98,10 @@ async function defaultExecText(command: string, cwd?: string, timeoutMs?: number
 function resolveWithinCwd(targetPath: string, deps?: RinaToolDeps): string {
   const root = defaultCwd(deps);
   const resolved = path.resolve(root, targetPath);
+  const relative = path.relative(root, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error("Path is outside the current workspace");
+  }
   return resolved;
 }
 
@@ -239,14 +244,16 @@ async function runCommand(call: Extract<RinaToolCall, { tool: "runCommand" }>, d
 
 async function applyPatch(call: Extract<RinaToolCall, { tool: "applyPatch" }>, deps?: RinaToolDeps): Promise<RinaToolResult> {
   try {
-    const target = resolveWithinCwd(call.path, deps);
-    const previousContent = fs.existsSync(target) ? await fsp.readFile(target, "utf8") : "";
-    await fsp.writeFile(target, call.newContent, "utf8");
+    if (!deps?.executionSandbox) {
+      throw new Error("File mutation requires the runtime execution sandbox.");
+    }
+    const previousContent = await deps.executionSandbox.readFile(call.path).catch(() => "");
+    await deps.executionSandbox.writeFile(call.path, call.newContent);
     return {
       ok: true,
       tool: call.tool,
       output: {
-        path: path.relative(defaultCwd(deps), target),
+        path: call.path,
         previousContent,
         newContent: call.newContent,
       },

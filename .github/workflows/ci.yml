@@ -4,13 +4,190 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
-  validate:
+  enforce:
+    name: Enforce Repo Invariants
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate System Contract Exists
+        run: test -f rina-system-contract.md
+
+      - name: Validate System Contract Not Empty
+        run: test -s rina-system-contract.md
+
+      - name: Validate Product Constraint Contract Exists
+        run: test -f PRODUCT_CONSTRAINT_CONTRACT.md
+
+      - name: Validate Product Constraint Guard
+        run: node scripts/guards/check-product-constraint-contract.mjs
+
+      - name: 🚫 Reject npm/yarn contamination
+        run: |
+          if [ -f package-lock.json ] && [ -s package-lock.json ]; then
+            echo "❌ package-lock.json detected. This repo uses pnpm only."
+            exit 1
+          fi
+          if [ -f yarn.lock ] && [ -s yarn.lock ]; then
+            echo "❌ yarn.lock detected. This repo uses pnpm only."
+            exit 1
+          fi
+          echo "✅ No npm/yarn lockfiles detected"
+
+      - name: 🔍 Validate .nvmrc
+        run: |
+          test -f .nvmrc
+          NVMRC_VERSION=$(cat .nvmrc)
+          if [ "$NVMRC_VERSION" != "20" ] && [ "$NVMRC_VERSION" != "20.0.0" ]; then
+            echo "❌ .nvmrc must specify Node 20, found: $NVMRC_VERSION"
+            exit 1
+          fi
+
+      - name: 🔍 Validate workspace structure
+        run: |
+          for dir in apps packages services; do
+            grep -q "${dir}/\*" pnpm-workspace.yaml || exit 1
+          done
+
+      - name: 🔍 Validate engines in package.json files
+        run: |
+          grep -q '"node":\s*">=20' package.json
+          grep -q '"pnpm":\s*">=9' package.json
+          find apps packages services -path '*/node_modules/*' -prune -o -name package.json -type f -print | while read pkgjson; do
+            case "$pkgjson" in
+              packages/package.json) continue ;;
+            esac
+            if grep -q '"vscode"' "$pkgjson" && ! grep -q '"node"' "$pkgjson"; then
+              continue
+            fi
+            grep -q '"node":\s*">=20' "$pkgjson" || { echo "❌ $pkgjson missing engines.node"; exit 1; }
+          done
+
+      - name: 🔍 Validate preinstall script
+        run: grep -q 'only-allow pnpm' package.json
+
+      - name: 🔍 Block direct LLM calls
+        run: node scripts/guards/check-no-direct-llm-calls.mjs
+
+      - name: 🔍 Block legacy rina runtime bypasses
+        run: node scripts/guards/check-rina-legacy.mjs
+
+  validate:
+    name: Tier 1 — Fast smoke
+    needs: enforce
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RINAWARP_ENV: dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: Install Playwright browsers
+        working-directory: apps/terminal-pro
+        run: npx playwright install chromium
+
+      - name: Build Electron
+        working-directory: apps/terminal-pro
+        run: npm run build:electron
+
+      - name: Unit tests (Fix Flow)
+        working-directory: apps/terminal-pro
+        run: npm run test:fix-project-flow
+
+      - name: Policy gate regression
+        run: npm --prefix apps/terminal-pro run test:policy-gate
+
+      - name: Tier 1 E2E (boot + thread proof smoke)
+        working-directory: apps/terminal-pro
+        env:
+          CI: "1"
+          RINAWARP_E2E: "1"
+          ELECTRON_DISABLE_SANDBOX: "1"
+        run: npm run e2e:tier1
+
+  golden-e2e:
+    name: Tier 2 — Golden journeys
+    needs: enforce
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RINAWARP_ENV: dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: Install Playwright browsers
+        working-directory: apps/terminal-pro
+        run: npx playwright install chromium
+
+      - name: Build Electron
+        working-directory: apps/terminal-pro
+        run: npm run build:electron
+
+      - name: Golden journeys (thread-first proof chain)
+        working-directory: apps/terminal-pro
+        env:
+          CI: "1"
+          RINAWARP_E2E: "1"
+          ELECTRON_DISABLE_SANDBOX: "1"
+        run: npm run e2e:golden
+
+  telemetry-e2e:
+    name: Telemetry E2E (manual)
+    needs: enforce
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       RINAWARP_ENV: dev
 
@@ -33,61 +210,10 @@ jobs:
         working-directory: apps/terminal-pro
         run: npm run build:electron
 
-      - name: Unit tests (Fix Flow)
-        working-directory: apps/terminal-pro
-        run: npm run test:fix-project-flow
-
-      - name: Policy gate regression
-        run: npm --prefix apps/terminal-pro run test:policy-gate
-
-      - name: E2E Harness
-        working-directory: apps/terminal-pro
-        env:
-          CI: "1"
-          RINAWARP_E2E: "1"
-          ELECTRON_DISABLE_SANDBOX: "1"
-        run: |
-          pwd
-          ls tests/e2e/harness-window-ready.spec.ts
-          ./node_modules/.bin/playwright test tests/e2e/harness-window-ready.spec.ts -c playwright.config.ts --list
-          npm run test:e2e:harness
-
-      - name: E2E Fix Project
-        working-directory: apps/terminal-pro
-        env:
-          CI: "1"
-          RINAWARP_E2E: "1"
-          ELECTRON_DISABLE_SANDBOX: "1"
-        run: npm run test:e2e:fix-project
-
-  telemetry-e2e:
-    runs-on: ubuntu-latest
-    env:
-      RINAWARP_ENV: dev
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
       - name: Telemetry E2E
         working-directory: apps/terminal-pro
         env:
           CI: "1"
           RINAWARP_E2E: "1"
           ELECTRON_DISABLE_SANDBOX: "1"
-        run: |
-          pwd
-          ls tests/e2e/telemetry.test.ts
-          ./node_modules/.bin/playwright test tests/e2e/telemetry.test.ts -c playwright.config.ts --list
-          npm run test:e2e:telemetry
+        run: npm run test:e2e:telemetry

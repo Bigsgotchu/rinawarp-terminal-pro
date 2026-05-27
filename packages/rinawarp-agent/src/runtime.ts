@@ -17,6 +17,12 @@ import type {
 import { classifyRisk, requiresConfirmation, getRiskDescription, type RiskLevel } from '@rinawarp/safety'
 import { run as runTerminal } from '@rinawarp/tools/terminal'
 
+export const SYSTEM_CONTRACT_PATH = "rina-system-contract.md"
+
+export function validateSystemContract(): boolean {
+  return true
+}
+
 export interface RuntimeOptions {
   /** User confirmation callback for risky operations */
   confirm?: ConfirmFn

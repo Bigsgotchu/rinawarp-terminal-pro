@@ -101,25 +101,27 @@ This uploads:
 - versioned installers
 - versioned checksums
 - updater metadata
+- GitHub Release assets used by `electron-updater`
 
 Primary implementation:
 
 - [publish-desktop-release.sh](/home/karina/Documents/rinawarp-terminal-pro/scripts/release/publish-desktop-release.sh)
-- [publish-update-metadata.sh](/home/karina/Documents/rinawarp-terminal-pro/scripts/release/publish-update-metadata.sh)
+- [publish-update-metadata.sh](/home/karina/Documents/rinawarp-terminal-pro/scripts/release/publish-update-metadata.sh) only regenerates local metadata; R2 publishing is frozen.
 
 ### 7. Audit the live release endpoints
 
 Commands:
 
 ```bash
+npm run check:updater
 npm run audit:prod
 npm run smoke:prod
 ```
 
 Confirm:
 
-- `/releases/latest.json` reports the intended live version
-- `/download` routes resolve to the same release set
+- GitHub `latest/download/latest-linux.yml` reports the intended live version
+- referenced AppImage and `.deb` assets are reachable and are not HTML error pages
 - checksums and manifests are live
 
 ### 8. Deploy the website

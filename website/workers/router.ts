@@ -4,12 +4,12 @@
  * Routes requests to API or Marketplace UI handlers
  */
 
-import { apiRouter } from './api/index'
-import { marketplaceUI } from './marketplace/ui'
-import { injectSeoTags } from './seo'
 import { handleAuthRequest } from './api/auth'
+import { apiRouter } from './api/index'
 import { createToken, extractToken, verifyToken } from './lib/auth'
 import type { D1Database } from './lib/cloudflare-types'
+import { marketplaceUI } from './marketplace/ui'
+import { injectSeoTags } from './seo'
 
 const LOGO_SVG = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -64,6 +64,19 @@ function getDb(env: any): D1Database | null {
   return env.RINAWARP_DB || null
 }
 
+function getR2Bucket(env: any): any | null {
+  try {
+    const bucket = env?.RINAWARP_CDN
+    if (!bucket || typeof bucket.get !== 'function') {
+      return null
+    }
+    return bucket
+  } catch (error) {
+    console.error('[R2] binding unavailable', error)
+    return null
+  }
+}
+
 let matterIntelligenceTablesInitialized = false
 
 function nowSeconds(): number {
@@ -85,16 +98,23 @@ function normalizeReferralCode(value: unknown): string {
 }
 
 function isReferralAdminEmail(email: string): boolean {
-  const normalized = String(email || '').trim().toLowerCase()
+  const normalized = String(email || '')
+    .trim()
+    .toLowerCase()
   return normalized === 'support@rinawarptech.com' || normalized === 'hello@rinawarptech.com'
 }
 
-async function getAuthenticatedUserFromRequest(request: Request, env: any): Promise<{ userId: string; email: string } | null> {
+async function getAuthenticatedUserFromRequest(
+  request: Request,
+  env: any
+): Promise<{ userId: string; email: string } | null> {
   const token = extractToken(request.headers.get('Authorization'))
   if (!token || !env.AUTH_SECRET) return null
   const payload = await verifyToken(token, env.AUTH_SECRET)
   const userId = String(payload?.userId || '').trim()
-  const email = String(payload?.email || '').trim().toLowerCase()
+  const email = String(payload?.email || '')
+    .trim()
+    .toLowerCase()
   if (!userId || !email) return null
   return { userId, email }
 }
@@ -103,9 +123,10 @@ async function ensureReferralIdentity(env: any, userId: string): Promise<{ code:
   const db = getDb(env)
   if (!db) return null
   try {
-    const existing = await db.prepare(
-      'SELECT code FROM referral_codes WHERE user_id = ?'
-    ).bind(userId).first<{ code: string }>()
+    const existing = await db
+      .prepare('SELECT code FROM referral_codes WHERE user_id = ?')
+      .bind(userId)
+      .first<{ code: string }>()
 
     if (existing?.code) {
       return {
@@ -118,9 +139,10 @@ async function ensureReferralIdentity(env: any, userId: string): Promise<{ code:
       const code = generateReferralCode()
       try {
         const ts = nowSeconds()
-        await db.prepare(
-          'INSERT INTO referral_codes (id, user_id, code, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
-        ).bind(`refcode_${crypto.randomUUID()}`, userId, code, ts, ts).run()
+        await db
+          .prepare('INSERT INTO referral_codes (id, user_id, code, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')
+          .bind(`refcode_${crypto.randomUUID()}`, userId, code, ts, ts)
+          .run()
 
         return {
           code,
@@ -137,7 +159,10 @@ async function ensureReferralIdentity(env: any, userId: string): Promise<{ code:
   return null
 }
 
-async function getReferralSummary(env: any, userId: string): Promise<{
+async function getReferralSummary(
+  env: any,
+  userId: string
+): Promise<{
   code: string
   inviteUrl: string
   stats: { clicks: number; checkouts: number; conversions: number }
@@ -146,14 +171,19 @@ async function getReferralSummary(env: any, userId: string): Promise<{
   const db = getDb(env)
   if (!identity || !db) return null
   try {
-    const stats = await db.prepare(`
+    const stats = await db
+      .prepare(
+        `
       SELECT
         SUM(CASE WHEN event_type = 'checkout_started' THEN 1 ELSE 0 END) AS checkouts,
         SUM(CASE WHEN event_type = 'checkout_completed' THEN 1 ELSE 0 END) AS conversions,
         COUNT(*) AS clicks
       FROM referral_events
       WHERE referrer_user_id = ?
-    `).bind(userId).first<{ checkouts?: number; conversions?: number; clicks?: number }>()
+    `
+      )
+      .bind(userId)
+      .first<{ checkouts?: number; conversions?: number; clicks?: number }>()
 
     return {
       code: identity.code,
@@ -174,27 +204,33 @@ async function getReferralSummary(env: any, userId: string): Promise<{
   }
 }
 
-async function maybeTrackReferralEvent(env: any, input: {
-  referralCode?: string | null
-  eventType: 'checkout_started' | 'checkout_completed'
-  referredEmail?: string | null
-  checkoutSessionId?: string | null
-  source?: string | null
-  metadata?: Record<string, unknown>
-}): Promise<void> {
+async function maybeTrackReferralEvent(
+  env: any,
+  input: {
+    referralCode?: string | null
+    eventType: 'checkout_started' | 'checkout_completed'
+    referredEmail?: string | null
+    checkoutSessionId?: string | null
+    source?: string | null
+    metadata?: Record<string, unknown>
+  }
+): Promise<void> {
   const db = getDb(env)
   const code = normalizeReferralCode(input.referralCode)
   if (!db || !code) return
   try {
-    const referral = await db.prepare(
-      'SELECT user_id FROM referral_codes WHERE code = ?'
-    ).bind(code).first<{ user_id: string }>()
+    const referral = await db
+      .prepare('SELECT user_id FROM referral_codes WHERE code = ?')
+      .bind(code)
+      .first<{ user_id: string }>()
 
     if (!referral?.user_id) return
 
     const ts = nowSeconds()
     if (input.eventType === 'checkout_completed' && input.checkoutSessionId) {
-      const updated = await db.prepare(`
+      const updated = await db
+        .prepare(
+          `
       UPDATE referral_events
       SET event_type = 'checkout_completed',
           checkout_session_id = COALESCE(checkout_session_id, ?),
@@ -207,38 +243,50 @@ async function maybeTrackReferralEvent(env: any, input: {
           checkout_session_id = ?
           OR (checkout_session_id IS NULL AND event_type = 'checkout_started')
         )
-    `).bind(
-      input.checkoutSessionId,
-      JSON.stringify(input.metadata || {}),
-      ts,
-      String(input.referredEmail || '').trim().toLowerCase() || null,
-      code,
-      referral.user_id,
-      input.checkoutSessionId,
-    ).run()
+    `
+        )
+        .bind(
+          input.checkoutSessionId,
+          JSON.stringify(input.metadata || {}),
+          ts,
+          String(input.referredEmail || '')
+            .trim()
+            .toLowerCase() || null,
+          code,
+          referral.user_id,
+          input.checkoutSessionId
+        )
+        .run()
 
       if (Number(updated.meta?.changes || 0) > 0) {
         return
       }
     }
 
-    await db.prepare(`
+    await db
+      .prepare(
+        `
       INSERT INTO referral_events (
         id, referral_code, referrer_user_id, referred_email, event_type,
         checkout_session_id, source, metadata_json, created_at, converted_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      `refevt_${crypto.randomUUID()}`,
-      code,
-      referral.user_id,
-      String(input.referredEmail || '').trim().toLowerCase() || null,
-      input.eventType,
-      input.checkoutSessionId || null,
-      String(input.source || 'website').trim() || 'website',
-      JSON.stringify(input.metadata || {}),
-      ts,
-      input.eventType === 'checkout_completed' ? ts : null,
-    ).run()
+    `
+      )
+      .bind(
+        `refevt_${crypto.randomUUID()}`,
+        code,
+        referral.user_id,
+        String(input.referredEmail || '')
+          .trim()
+          .toLowerCase() || null,
+        input.eventType,
+        input.checkoutSessionId || null,
+        String(input.source || 'website').trim() || 'website',
+        JSON.stringify(input.metadata || {}),
+        ts,
+        input.eventType === 'checkout_completed' ? ts : null
+      )
+      .run()
   } catch (error) {
     console.warn('[referrals] referral event tracking unavailable', error)
   }
@@ -273,18 +321,36 @@ function normalizeArtifactKind(rawKind: string): string {
 }
 
 async function getReleaseManifest(env: any): Promise<any | null> {
-  const object = await env.RINAWARP_CDN?.get('releases/latest.json')
-  if (!object) return null
-  return JSON.parse(await object.text())
+  try {
+    const bucket = getR2Bucket(env)
+    if (!bucket) return null
+    const object = await bucket.get('releases/latest.json')
+    if (!object) return null
+    return JSON.parse(await object.text())
+  } catch (error) {
+    console.error('[releases] failed to load latest.json', error)
+    return null
+  }
 }
 
 async function getChannelReleaseManifest(env: any, channel: 'stable' | 'beta' | 'alpha'): Promise<any | null> {
-  const object = await env.RINAWARP_CDN?.get(`releases/${channel}/latest.json`)
-  if (!object) return null
-  return JSON.parse(await object.text())
+  try {
+    const bucket = getR2Bucket(env)
+    if (!bucket) return null
+    const object = await bucket.get(`releases/${channel}/latest.json`)
+    if (!object) return null
+    return JSON.parse(await object.text())
+  } catch (error) {
+    console.error(`[releases] failed to load ${channel}/latest.json`, error)
+    return null
+  }
 }
 
-function buildChannelDownloadSummary(origin: string, channel: 'stable' | 'beta' | 'alpha', manifest: any): {
+function buildChannelDownloadSummary(
+  origin: string,
+  channel: 'stable' | 'beta' | 'alpha',
+  manifest: any
+): {
   version: string
   url: string
   manifestUrl: string
@@ -369,7 +435,7 @@ function compareReleaseVersions(a: string, b: string): number {
 }
 
 async function findLatestArtifactPath(env: any, kind: string): Promise<string | null> {
-  const bucket = env.RINAWARP_CDN
+  const bucket = getR2Bucket(env)
   if (!bucket || !['windows', 'linux-deb', 'linux'].includes(kind)) return null
 
   const extensions: Record<string, string> = {
@@ -427,40 +493,65 @@ function contentTypeFor(key: string): string {
 }
 
 async function serveReleaseObject(env: any, objectKey: string): Promise<Response | null> {
-  const object = await env.RINAWARP_CDN?.get(objectKey)
-  if (!object) return null
+  try {
+    const bucket = getR2Bucket(env)
+    if (!bucket) return null
+    const object = await bucket.get(objectKey)
+    if (!object) return null
 
-  const headers = rwHeaders()
-  object.writeHttpMetadata(headers)
-  headers.set('ETag', object.httpEtag)
-  headers.set('Content-Type', contentTypeFor(objectKey))
+    const headers = rwHeaders()
+    object.writeHttpMetadata(headers)
+    headers.set('ETag', object.httpEtag)
+    headers.set('Content-Type', contentTypeFor(objectKey))
 
-  if (objectKey === 'releases/latest.json' || objectKey.endsWith('/latest.json')) {
-    headers.set('Cache-Control', 'public, max-age=60, must-revalidate')
-  } else if (objectKey.startsWith('releases/')) {
-    headers.set('Cache-Control', 'public, max-age=31536000, immutable')
-  } else {
-    headers.set('Cache-Control', 'public, max-age=86400')
+    if (objectKey === 'releases/latest.json' || objectKey.endsWith('/latest.json')) {
+      headers.set('Cache-Control', 'public, max-age=60, must-revalidate')
+    } else if (objectKey.startsWith('releases/')) {
+      headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+    } else {
+      headers.set('Cache-Control', 'public, max-age=86400')
+    }
+
+    return new Response(object.body, { headers })
+  } catch (error) {
+    console.error(`[releases] failed to serve ${objectKey}`, error)
+    return null
   }
-
-  return new Response(object.body, { headers })
 }
 
 async function serveDownloadObject(env: any, objectKey: string): Promise<Response | null> {
-  const object = await env.RINAWARP_CDN?.get(objectKey)
-  if (!object) return null
+  try {
+    const bucket = getR2Bucket(env)
+    if (!bucket) return null
+    const object = await bucket.get(objectKey)
+    if (!object) return null
 
-  const headers = rwHeaders()
-  object.writeHttpMetadata(headers)
-  headers.set('ETag', object.httpEtag)
-  headers.set('Content-Type', contentTypeFor(objectKey))
-  headers.set('Cache-Control', 'public, max-age=31536000, immutable')
-  headers.set('Content-Disposition', `attachment; filename="${objectKey.split('/').pop() || 'download'}"`)
+    const headers = rwHeaders()
+    object.writeHttpMetadata(headers)
+    headers.set('ETag', object.httpEtag)
+    headers.set('Content-Type', contentTypeFor(objectKey))
+    headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+    headers.set('Content-Disposition', `attachment; filename="${objectKey.split('/').pop() || 'download'}"`)
 
-  return new Response(object.body, { headers })
+    return new Response(object.body, { headers })
+  } catch (error) {
+    console.error(`[downloads] failed to serve ${objectKey}`, error)
+    return null
+  }
 }
 
-type SitePage = 'home' | 'products' | 'pricing' | 'download' | 'docs' | 'agents' | 'feedback' | 'legal' | 'login' | 'register' | 'account'
+type SitePage =
+  | 'home'
+  | 'products'
+  | 'pricing'
+  | 'download'
+  | 'docs'
+  | 'agents'
+  | 'feedback'
+  | 'legal'
+  | 'login'
+  | 'register'
+  | 'account'
 
 type SiteAnalyticsEvent =
   | 'site_home_viewed'
@@ -3221,11 +3312,11 @@ function renderLogin(returnTo: string = ''): Response {
         <div class="auth-card">
           <h2 class="auth-title">Sign In</h2>
           <p class="auth-subtitle">Use your email and password to reconnect the desktop flow or manage your account in the browser.</p>
-          
+
           <div id="login-error" class="alert alert-error" style="display:none;"></div>
           <div id="login-success" class="alert alert-success" style="display:none;"></div>
           <div id="login-return" style="display:none; margin-top:12px;"></div>
-          
+
           <form id="login-form">
             <label for="email">Email
               <input type="email" id="email" name="email" placeholder="you@company.com" required autocomplete="email">
@@ -3235,9 +3326,9 @@ function renderLogin(returnTo: string = ''): Response {
             </label>
             <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Sign In</button>
           </form>
-          
+
           <div class="auth-divider">or</div>
-          
+
           <p style="text-align:center; margin-bottom:16px;">
             <a href="/register" style="color:var(--accent);">Create an account</a>
           </p>
@@ -3329,43 +3420,43 @@ function renderLogin(returnTo: string = ''): Response {
         window.location.href = returnTarget;
       }, 250);
     }
-    
+
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorDiv.style.display = 'none';
       successDiv.style.display = 'none';
-      
+
       const email = document.getElementById('email')?.value?.trim();
       const password = document.getElementById('password')?.value;
       const submitBtn = form.querySelector('button[type="submit"]');
-      
+
       if (!email || !password) {
         errorDiv.textContent = 'Please fill in all fields';
         errorDiv.style.display = 'block';
         return;
       }
-      
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Signing in...';
-      
+
       try {
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
           throw new Error(data.error || 'Login failed');
         }
-        
+
         // Store token
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('user_email', data.user?.email || email);
         rememberReturnTarget(returnTo);
-        
+
         const returnTarget = buildReturnTarget(returnTo, data.token);
         const isExternalAppReturn = Boolean(returnTo);
 
@@ -3377,7 +3468,7 @@ function renderLogin(returnTo: string = ''): Response {
         if (isExternalAppReturn) {
           showReturnButton(returnTarget);
         }
-        
+
         setTimeout(() => {
           window.location.href = returnTarget;
         }, 500);
@@ -3408,10 +3499,10 @@ function renderRegister(returnTo: string = ''): Response {
         <div class="auth-card">
           <h2 class="auth-title">Create Account</h2>
           <p class="auth-subtitle">Sign up with your email</p>
-          
+
           <div id="register-error" class="alert alert-error" style="display:none;"></div>
           <div id="register-success" class="alert alert-success" style="display:none;"></div>
-          
+
           <form id="register-form">
             <label for="name">Name (optional)
               <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name">
@@ -3434,7 +3525,7 @@ function renderRegister(returnTo: string = ''): Response {
             </label>
             <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Create Account</button>
           </form>
-          
+
           <p style="text-align:center; margin-top:20px; color:var(--muted); font-size:0.9rem;">
             Already have an account? <a href="/login" style="color:var(--accent);">Sign in</a>
           </p>
@@ -3448,7 +3539,7 @@ function renderRegister(returnTo: string = ''): Response {
     const successDiv = document.getElementById('register-success');
     const passwordInput = document.getElementById('password');
     const returnTo = ${JSON.stringify(returnTo)};
-    
+
     // Password validation
     const reqs = {
       length: document.getElementById('req-length'),
@@ -3457,7 +3548,7 @@ function renderRegister(returnTo: string = ''): Response {
       number: document.getElementById('req-number'),
       special: document.getElementById('req-special'),
     };
-    
+
     passwordInput?.addEventListener('input', () => {
       const pwd = passwordInput.value;
       reqs.length.classList.toggle('valid', pwd.length >= 8);
@@ -3466,57 +3557,57 @@ function renderRegister(returnTo: string = ''): Response {
       reqs.number.classList.toggle('valid', /[0-9]/.test(pwd));
       reqs.special.classList.toggle('valid', /[!@#$%^&*(),.?\":{}|<>]/.test(pwd));
     });
-    
+
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorDiv.style.display = 'none';
       successDiv.style.display = 'none';
-      
+
       const name = document.getElementById('name')?.value?.trim();
       const email = document.getElementById('email')?.value?.trim();
       const password = document.getElementById('password')?.value;
       const confirmPassword = document.getElementById('confirm-password')?.value;
       const submitBtn = form.querySelector('button[type="submit"]');
-      
+
       if (!email || !password || !confirmPassword) {
         errorDiv.textContent = 'Please fill in all required fields';
         errorDiv.style.display = 'block';
         return;
       }
-      
+
       if (password !== confirmPassword) {
         errorDiv.textContent = 'Passwords do not match';
         errorDiv.style.display = 'block';
         return;
       }
-      
-      if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || 
+
+      if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) ||
           !/[0-9]/.test(password) || !/[!@#$%^&*(),.?\":{}|<>]/.test(password)) {
         errorDiv.textContent = 'Password does not meet requirements';
         errorDiv.style.display = 'block';
         return;
       }
-      
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Creating account...';
-      
+
       try {
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name: name || undefined }),
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
           throw new Error(data.error || 'Registration failed');
         }
-        
+
         successDiv.textContent = data.message || 'Account created! Please check your email.';
         successDiv.style.display = 'block';
         form.reset();
-        
+
         setTimeout(() => {
           window.location.href = returnTo ? '/login?return_to=' + encodeURIComponent(returnTo) : '/login';
         }, 2000);
@@ -3546,17 +3637,17 @@ function renderForgotPassword(): Response {
         <div class="auth-card">
           <h2 class="auth-title">Reset Password</h2>
           <p class="auth-subtitle">We'll email you a reset link</p>
-          
+
           <div id="reset-error" class="alert alert-error" style="display:none;"></div>
           <div id="reset-success" class="alert alert-success" style="display:none;"></div>
-          
+
           <form id="forgot-form">
             <label for="email">Email
               <input type="email" id="email" name="email" placeholder="you@company.com" required autocomplete="email">
             </label>
             <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Send Reset Link</button>
           </form>
-          
+
           <p style="text-align:center; margin-top:20px; color:var(--muted); font-size:0.9rem;">
             Remember your password? <a href="/login" style="color:var(--accent);">Sign in</a>
           </p>
@@ -3568,37 +3659,37 @@ function renderForgotPassword(): Response {
     const form = document.getElementById('forgot-form');
     const errorDiv = document.getElementById('reset-error');
     const successDiv = document.getElementById('reset-success');
-    
+
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorDiv.style.display = 'none';
       successDiv.style.display = 'none';
-      
+
       const email = document.getElementById('email')?.value?.trim();
       const submitBtn = form.querySelector('button[type="submit"]');
-      
+
       if (!email) {
         errorDiv.textContent = 'Please enter your email';
         errorDiv.style.display = 'block';
         return;
       }
-      
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending...';
-      
+
       try {
         const response = await fetch('/api/auth/forgot-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email }),
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
           throw new Error(data.error || 'Request failed');
         }
-        
+
         successDiv.textContent = data.message;
         successDiv.style.display = 'block';
         form.reset();
@@ -3628,10 +3719,10 @@ function renderResetPassword(): Response {
         <div class="auth-card">
           <h2 class="auth-title">New Password</h2>
           <p class="auth-subtitle">Enter your new password</p>
-          
+
           <div id="reset-error" class="alert alert-error" style="display:none;"></div>
           <div id="reset-success" class="alert alert-success" style="display:none;"></div>
-          
+
           <form id="reset-form">
             <input type="hidden" id="token" name="token">
             <label for="password">New Password
@@ -3658,18 +3749,18 @@ function renderResetPassword(): Response {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     document.getElementById('token').value = token || '';
-    
+
     if (!token) {
       document.getElementById('reset-error').textContent = 'Invalid reset token. Please request a new password reset.';
       document.getElementById('reset-error').style.display = 'block';
       document.querySelector('button[type="submit"]').disabled = true;
     }
-    
+
     const form = document.getElementById('reset-form');
     const errorDiv = document.getElementById('reset-error');
     const successDiv = document.getElementById('reset-success');
     const passwordInput = document.getElementById('password');
-    
+
     // Password validation
     const reqs = {
       length: document.getElementById('req-length'),
@@ -3678,7 +3769,7 @@ function renderResetPassword(): Response {
       number: document.getElementById('req-number'),
       special: document.getElementById('req-special'),
     };
-    
+
     passwordInput?.addEventListener('input', () => {
       const pwd = passwordInput.value;
       reqs.length.classList.toggle('valid', pwd.length >= 8);
@@ -3687,61 +3778,61 @@ function renderResetPassword(): Response {
       reqs.number.classList.toggle('valid', /[0-9]/.test(pwd));
       reqs.special.classList.toggle('valid', /[!@#$%^&*(),.?\":{}|<>]/.test(pwd));
     });
-    
+
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorDiv.style.display = 'none';
       successDiv.style.display = 'none';
-      
+
       const tokenVal = document.getElementById('token')?.value;
       const password = document.getElementById('password')?.value;
       const confirmPassword = document.getElementById('confirm-password')?.value;
       const submitBtn = form.querySelector('button[type="submit"]');
-      
+
       if (!tokenVal) {
         errorDiv.textContent = 'Invalid reset token';
         errorDiv.style.display = 'block';
         return;
       }
-      
+
       if (!password || !confirmPassword) {
         errorDiv.textContent = 'Please fill in all fields';
         errorDiv.style.display = 'block';
         return;
       }
-      
+
       if (password !== confirmPassword) {
         errorDiv.textContent = 'Passwords do not match';
         errorDiv.style.display = 'block';
         return;
       }
-      
-      if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || 
+
+      if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) ||
           !/[0-9]/.test(password) || !/[!@#$%^&*(),.?\":{}|<>]/.test(password)) {
         errorDiv.textContent = 'Password does not meet requirements';
         errorDiv.style.display = 'block';
         return;
       }
-      
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Resetting...';
-      
+
       try {
         const response = await fetch('/api/auth/reset-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: tokenVal, password }),
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
           throw new Error(data.error || 'Reset failed');
         }
-        
+
         successDiv.textContent = 'Password reset successful! Redirecting to login...';
         successDiv.style.display = 'block';
-        
+
         setTimeout(() => {
           window.location.href = '/login';
         }, 1500);
@@ -4070,282 +4161,300 @@ function renderAccount(authToken: string | null): Response {
 
 export default {
   async fetch(request: Request, env: any): Promise<Response> {
-    const url = new URL(request.url)
-    const path = url.pathname
-    const downloadPath =
-      path === '/v1/download' || path === '/v1/download/'
-        ? '/download/'
-        : path.startsWith('/v1/download/')
-          ? `/download/${path.slice('/v1/download/'.length)}`
-          : path
-    const host = url.hostname.toLowerCase()
+    try {
+      const url = new URL(request.url)
+      const path = url.pathname
+      const downloadPath =
+        path === '/v1/download' || path === '/v1/download/'
+          ? '/download/'
+          : path.startsWith('/v1/download/')
+            ? `/download/${path.slice('/v1/download/'.length)}`
+            : path
+      const host = url.hostname.toLowerCase()
 
-    if (host === 'www.rinawarptech.com' && !path.startsWith('/api/')) {
-      const redirectUrl = new URL(request.url)
-      redirectUrl.hostname = 'rinawarptech.com'
-      return rwRedirect(redirectUrl.toString(), 301)
-    }
-
-    const legacyRedirects: Record<string, string> = {
-      '/terminal-pro': '/',
-      '/terminal-pro.html': '/',
-      '/contact': '/support/',
-      '/contact.html': '/support/',
-      '/feedback': '/support/',
-      '/feedback/': '/support/',
-      '/team': '/pricing/',
-      '/team/': '/pricing/',
-      '/about': '/products/',
-      '/about/': '/products/',
-      '/about-rinawarp': '/products/',
-      '/about-rinawarp/': '/products/',
-      '/affiliates.html': '/pricing/',
-    }
-
-    const legacyTarget = legacyRedirects[path]
-    if (legacyTarget) {
-      return rwRedirect(`${url.origin}${legacyTarget}`, 301)
-    }
-
-    // CORS headers for API responses
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, stripe-signature',
-    }
-
-    // Handle CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders,
-      })
-    }
-
-    // API routes: /api/*
-    if (path.startsWith('/api/')) {
-      return handleApiRequest(request, env, path, corsHeaders)
-    }
-
-    if (path === '/assets/img/rinawarp-mark.svg' || path === '/assets/img/rinawarp-logo.svg') {
-      return rwSvg(LOGO_SVG)
-    }
-
-    if (path === '/robots.txt') {
-      return renderRobotsTxt(url.origin)
-    }
-
-    if (path === '/sitemap.xml') {
-      return renderSitemapXml(url.origin)
-    }
-
-    if (path === '/releases.json') {
-      return renderReleasesJson(env, url.origin)
-    }
-
-    if (path.startsWith('/downloads/terminal-pro/')) {
-      const artifactName = path.split('/').pop()
-      if (artifactName?.endsWith('.AppImage')) {
-        return rwRedirect(`${url.origin}/download/linux`, 301)
-      }
-      if (artifactName?.endsWith('.deb')) {
-        return rwRedirect(`${url.origin}/download/linux/deb`, 301)
-      }
-      if (artifactName?.endsWith('.exe')) {
-        return rwRedirect(`${url.origin}/download/windows`, 301)
-      }
-      return rwRedirect(`${url.origin}/download/`, 301)
-    }
-
-    if (path === '/downloads' || path === '/downloads/') {
-      return rwRedirect(`${url.origin}/download`, 301)
-    }
-
-    if (path.startsWith('/downloads/')) {
-      return rwRedirect(`${url.origin}/download/${path.slice('/downloads/'.length)}`, 301)
-    }
-
-    if (downloadPath === '/download' || downloadPath === '/download/') {
-      return await renderDownload(env, url.origin)
-    }
-
-    if (downloadPath.startsWith('/download/')) {
-      const manifest = await getReleaseManifest(env)
-      if (!manifest) {
-        return rwText(404, 'latest.json not found')
+      if (host === 'www.rinawarptech.com' && !path.startsWith('/api/')) {
+        const redirectUrl = new URL(request.url)
+        redirectUrl.hostname = 'rinawarptech.com'
+        return rwRedirect(redirectUrl.toString(), 301)
       }
 
-      const kind = normalizeArtifactKind(downloadPath.slice('/download/'.length))
-      const artifactPath = pickArtifactPath(manifest, kind) ?? await findLatestArtifactPath(env, kind)
-      if (!artifactPath) {
-        return rwText(404, 'Artifact not available')
+      const legacyRedirects: Record<string, string> = {
+        '/terminal-pro': '/',
+        '/terminal-pro.html': '/',
+        '/contact': '/support/',
+        '/contact.html': '/support/',
+        '/feedback': '/support/',
+        '/feedback/': '/support/',
+        '/team': '/pricing/',
+        '/team/': '/pricing/',
+        '/about': '/products/',
+        '/about/': '/products/',
+        '/about-rinawarp': '/products/',
+        '/about-rinawarp/': '/products/',
+        '/affiliates.html': '/pricing/',
       }
 
-      if (kind === 'checksums') {
-        const checksumObject = await env.RINAWARP_CDN?.get(artifactPath)
-        if (!checksumObject) {
+      const legacyTarget = legacyRedirects[path]
+      if (legacyTarget) {
+        return rwRedirect(`${url.origin}${legacyTarget}`, 301)
+      }
+
+      // CORS headers for API responses
+      const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, stripe-signature',
+      }
+
+      // Handle CORS preflight
+      if (request.method === 'OPTIONS') {
+        return new Response(null, {
+          status: 204,
+          headers: corsHeaders,
+        })
+      }
+
+      // API routes: /api/*
+      if (path.startsWith('/api/')) {
+        return handleApiRequest(request, env, path, corsHeaders)
+      }
+
+      if (path === '/assets/img/rinawarp-mark.svg' || path === '/assets/img/rinawarp-logo.svg') {
+        return rwSvg(LOGO_SVG)
+      }
+
+      if (path === '/robots.txt') {
+        return renderRobotsTxt(url.origin)
+      }
+
+      if (path === '/sitemap.xml') {
+        return renderSitemapXml(url.origin)
+      }
+
+      if (path === '/releases.json') {
+        return renderReleasesJson(env, url.origin)
+      }
+
+      if (path.startsWith('/downloads/terminal-pro/')) {
+        const artifactName = path.split('/').pop()
+        if (artifactName?.endsWith('.AppImage')) {
+          return rwRedirect(`${url.origin}/download/linux`, 301)
+        }
+        if (artifactName?.endsWith('.deb')) {
+          return rwRedirect(`${url.origin}/download/linux/deb`, 301)
+        }
+        if (artifactName?.endsWith('.exe')) {
+          return rwRedirect(`${url.origin}/download/windows`, 301)
+        }
+        return rwRedirect(`${url.origin}/download/`, 301)
+      }
+
+      if (path === '/downloads' || path === '/downloads/') {
+        return rwRedirect(`${url.origin}/download`, 301)
+      }
+
+      if (path.startsWith('/downloads/')) {
+        return rwRedirect(`${url.origin}/download/${path.slice('/downloads/'.length)}`, 301)
+      }
+
+      if (downloadPath === '/download' || downloadPath === '/download/') {
+        return await renderDownload(env, url.origin)
+      }
+
+      if (downloadPath.startsWith('/download/')) {
+        const manifest = await getReleaseManifest(env)
+        if (!manifest) {
+          return rwText(404, 'latest.json not found')
+        }
+
+        const kind = normalizeArtifactKind(downloadPath.slice('/download/'.length))
+        const artifactPath = pickArtifactPath(manifest, kind) ?? (await findLatestArtifactPath(env, kind))
+        if (!artifactPath) {
           return rwText(404, 'Artifact not available')
         }
+
+        if (kind === 'checksums') {
+          const bucket = getR2Bucket(env)
+          const checksumObject = bucket ? await bucket.get(artifactPath) : null
+          if (!checksumObject) {
+            return rwText(404, 'Artifact not available')
+          }
+        }
+
+        const location = toAbsoluteArtifactUrl(url.origin, artifactPath)
+        const firstPartyDownload = await serveDownloadObject(env, artifactPath.replace(/^\/+/, ''))
+        if (firstPartyDownload) {
+          return firstPartyDownload
+        }
+
+        if (!location) {
+          return rwText(404, 'Artifact not available')
+        }
+
+        return rwRedirect(location)
       }
 
-      const location = toAbsoluteArtifactUrl(url.origin, artifactPath)
-      const firstPartyDownload = await serveDownloadObject(env, artifactPath.replace(/^\/+/, ''))
-      if (firstPartyDownload) {
-        return firstPartyDownload
+      if (path.startsWith('/releases/')) {
+        const response = await serveReleaseObject(env, path.slice(1))
+        if (response) return response
+        return rwText(404, 'Not found')
       }
 
-      if (!location) {
-        return rwText(404, 'Artifact not available')
+      // Homepage
+      if (path === '/' || path === '') {
+        return renderHomepage()
       }
 
-      return rwRedirect(location)
-    }
+      if (path === '/products' || path === '/products/') {
+        return renderProducts()
+      }
 
-    if (path.startsWith('/releases/')) {
-      const response = await serveReleaseObject(env, path.slice(1))
-      if (response) return response
+      if (path === '/matter-intelligence' || path === '/matter-intelligence/') {
+        return renderMatterIntelligenceOverview()
+      }
+
+      if (path === '/matter-intelligence/pricing' || path === '/matter-intelligence/pricing/') {
+        return renderMatterIntelligencePricing()
+      }
+
+      if (path === '/matter-intelligence/security' || path === '/matter-intelligence/security/') {
+        return renderMatterIntelligenceSecurity()
+      }
+
+      if (path === '/matter-intelligence/demo' || path === '/matter-intelligence/demo/') {
+        return renderMatterIntelligenceDemo()
+      }
+
+      if (path === '/matter-intelligence/download' || path === '/matter-intelligence/download/') {
+        return renderMatterIntelligenceDownload()
+      }
+
+      if (path === '/matter-intelligence/docs' || path === '/matter-intelligence/docs/') {
+        return renderMatterIntelligenceDocs()
+      }
+
+      if (path === '/matter-intelligence/contact' || path === '/matter-intelligence/contact/') {
+        return renderMatterIntelligenceContact()
+      }
+
+      if (path === '/matter-intelligence/terms' || path === '/matter-intelligence/terms/') {
+        return renderMatterIntelligenceTerms()
+      }
+
+      if (path === '/matter-intelligence/privacy' || path === '/matter-intelligence/privacy/') {
+        return renderMatterIntelligencePrivacy()
+      }
+
+      // Pricing page
+      if (path === '/pricing' || path === '/pricing/') {
+        return renderPricing()
+      }
+
+      // Support page
+      if (path === '/support' || path === '/support/') {
+        return renderFeedback()
+      }
+
+      // Auth pages
+      if (path === '/login' || path === '/login/') {
+        return renderLogin(url.searchParams.get('return_to') || '')
+      }
+
+      if (path === '/register' || path === '/register/') {
+        return renderRegister(url.searchParams.get('return_to') || '')
+      }
+
+      if (path === '/forgot-password' || path === '/forgot-password/') {
+        return renderForgotPassword()
+      }
+
+      if (path === '/reset-password' || path === '/reset-password/') {
+        return renderResetPassword()
+      }
+
+      if (path === '/account' || path === '/account/') {
+        // Check for auth token in localStorage via client-side or Authorization header
+        const authHeader = request.headers.get('Authorization')
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+        return renderAccount(token)
+      }
+
+      if (path === '/success' || path === '/success/') {
+        return renderSuccess(url.searchParams.get('return_to') || '', url.searchParams.get('session_id') || '')
+      }
+
+      if (path === '/verify/companion-purchase' || path === '/verify/companion-purchase/') {
+        return renderCompanionPurchaseVerification(url.searchParams.get('return_to') || '')
+      }
+
+      if (path === '/docs' || path === '/docs/') {
+        return renderDocs()
+      }
+
+      if (path === '/terms' || path === '/terms/') {
+        return renderTerms()
+      }
+
+      if (path === '/privacy' || path === '/privacy/') {
+        return renderPrivacy()
+      }
+
+      if (path === '/early-access' || path === '/early-access/') {
+        const manifest = await getReleaseManifest(env)
+        return renderEarlyAccess(manifest?.version ? String(manifest.version) : undefined)
+      }
+
+      // Feedback API (POST)
+      if ((path === '/api/feedback' || path === '/v1/feedback') && request.method === 'POST') {
+        return handleFeedbackSubmit(request, env, corsHeaders)
+      }
+
+      // API routes: /v1/*
+      if (path.startsWith('/v1')) {
+        return apiRouter(request, env)
+      }
+
+      // Marketplace UI: /agents
+      if (path.startsWith('/agents')) {
+        return marketplaceUI(request, env)
+      }
+
+      const lowerPath = path.toLowerCase()
+      const staleGonePaths = new Set<string>([
+        '/music-video-creator',
+        '/music-video-creator/',
+        '/music-video-creator.html',
+      ])
+      if (staleGonePaths.has(lowerPath)) {
+        return rwText(410, 'Gone')
+      }
+
+      const passThroughPrefixes = ['/assets/', '/favicon', '/.well-known/', '/apple-touch-icon']
+      const passThroughExtensions = [
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.svg',
+        '.webp',
+        '.gif',
+        '.css',
+        '.js',
+        '.ico',
+        '.txt',
+        '.xml',
+      ]
+      if (
+        passThroughPrefixes.some((prefix) => lowerPath.startsWith(prefix)) ||
+        passThroughExtensions.some((extension) => lowerPath.endsWith(extension))
+      ) {
+        return fetch(request)
+      }
+
       return rwText(404, 'Not found')
+    } catch (error) {
+      console.error('[worker] request failed', error)
+      return rwText(500, 'Internal server error')
     }
-
-    // Homepage
-    if (path === '/' || path === '') {
-      return renderHomepage()
-    }
-
-    if (path === '/products' || path === '/products/') {
-      return renderProducts()
-    }
-
-    if (path === '/matter-intelligence' || path === '/matter-intelligence/') {
-      return renderMatterIntelligenceOverview()
-    }
-
-    if (path === '/matter-intelligence/pricing' || path === '/matter-intelligence/pricing/') {
-      return renderMatterIntelligencePricing()
-    }
-
-    if (path === '/matter-intelligence/security' || path === '/matter-intelligence/security/') {
-      return renderMatterIntelligenceSecurity()
-    }
-
-    if (path === '/matter-intelligence/demo' || path === '/matter-intelligence/demo/') {
-      return renderMatterIntelligenceDemo()
-    }
-
-    if (path === '/matter-intelligence/download' || path === '/matter-intelligence/download/') {
-      return renderMatterIntelligenceDownload()
-    }
-
-    if (path === '/matter-intelligence/docs' || path === '/matter-intelligence/docs/') {
-      return renderMatterIntelligenceDocs()
-    }
-
-    if (path === '/matter-intelligence/contact' || path === '/matter-intelligence/contact/') {
-      return renderMatterIntelligenceContact()
-    }
-
-    if (path === '/matter-intelligence/terms' || path === '/matter-intelligence/terms/') {
-      return renderMatterIntelligenceTerms()
-    }
-
-    if (path === '/matter-intelligence/privacy' || path === '/matter-intelligence/privacy/') {
-      return renderMatterIntelligencePrivacy()
-    }
-
-    // Pricing page
-    if (path === '/pricing' || path === '/pricing/') {
-      return renderPricing()
-    }
-
-    // Support page
-    if (path === '/support' || path === '/support/') {
-      return renderFeedback()
-    }
-
-    // Auth pages
-    if (path === '/login' || path === '/login/') {
-      return renderLogin(url.searchParams.get('return_to') || '')
-    }
-
-    if (path === '/register' || path === '/register/') {
-      return renderRegister(url.searchParams.get('return_to') || '')
-    }
-
-    if (path === '/forgot-password' || path === '/forgot-password/') {
-      return renderForgotPassword()
-    }
-
-    if (path === '/reset-password' || path === '/reset-password/') {
-      return renderResetPassword()
-    }
-
-    if (path === '/account' || path === '/account/') {
-      // Check for auth token in localStorage via client-side or Authorization header
-      const authHeader = request.headers.get('Authorization')
-      const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
-      return renderAccount(token)
-    }
-
-    if (path === '/success' || path === '/success/') {
-      return renderSuccess(url.searchParams.get('return_to') || '', url.searchParams.get('session_id') || '')
-    }
-
-    if (path === '/verify/companion-purchase' || path === '/verify/companion-purchase/') {
-      return renderCompanionPurchaseVerification(url.searchParams.get('return_to') || '')
-    }
-
-    if (path === '/docs' || path === '/docs/') {
-      return renderDocs()
-    }
-
-    if (path === '/terms' || path === '/terms/') {
-      return renderTerms()
-    }
-
-    if (path === '/privacy' || path === '/privacy/') {
-      return renderPrivacy()
-    }
-
-    if (path === '/early-access' || path === '/early-access/') {
-      const manifest = await getReleaseManifest(env)
-      return renderEarlyAccess(manifest?.version ? String(manifest.version) : undefined)
-    }
-
-    // Feedback API (POST)
-    if ((path === '/api/feedback' || path === '/v1/feedback') && request.method === 'POST') {
-      return handleFeedbackSubmit(request, env, corsHeaders)
-    }
-
-    // API routes: /v1/*
-    if (path.startsWith('/v1')) {
-      return apiRouter(request, env)
-    }
-
-    // Marketplace UI: /agents
-    if (path.startsWith('/agents')) {
-      return marketplaceUI(request, env)
-    }
-
-    const lowerPath = path.toLowerCase()
-    const staleGonePaths = new Set<string>([
-      '/music-video-creator',
-      '/music-video-creator/',
-      '/music-video-creator.html',
-    ])
-    if (staleGonePaths.has(lowerPath)) {
-      return rwText(410, 'Gone')
-    }
-
-    const passThroughPrefixes = ['/assets/', '/favicon', '/.well-known/', '/apple-touch-icon']
-    const passThroughExtensions = ['.png', '.jpg', '.jpeg', '.svg', '.webp', '.gif', '.css', '.js', '.ico', '.txt', '.xml']
-    if (
-      passThroughPrefixes.some((prefix) => lowerPath.startsWith(prefix)) ||
-      passThroughExtensions.some((extension) => lowerPath.endsWith(extension))
-    ) {
-      return fetch(request)
-    }
-
-    return rwText(404, 'Not found')
   },
 }
 
@@ -4375,7 +4484,9 @@ async function handleApiRequest(
       const properties =
         body && typeof body.properties === 'object' && body.properties && !Array.isArray(body.properties)
           ? Object.fromEntries(
-              Object.entries(body.properties as Record<string, unknown>).slice(0, 12).map(([key, value]) => [key, String(value ?? '').slice(0, 120)])
+              Object.entries(body.properties as Record<string, unknown>)
+                .slice(0, 12)
+                .map(([key, value]) => [key, String(value ?? '').slice(0, 120)])
             )
           : {}
       const pathName = typeof body?.path === 'string' ? body.path.slice(0, 120) : ''
@@ -4601,7 +4712,11 @@ async function handleStripeWebhook(request: Request, env: any, corsHeaders: Reco
   }
 }
 
-async function handleReferralMeRequest(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
+async function handleReferralMeRequest(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
   const user = await getAuthenticatedUserFromRequest(request, env)
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -4618,18 +4733,25 @@ async function handleReferralMeRequest(request: Request, env: any, corsHeaders: 
     })
   }
 
-  return new Response(JSON.stringify({
-    ok: true,
-    email: user.email,
-    code: summary.code,
-    inviteUrl: summary.inviteUrl,
-    stats: summary.stats,
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      email: user.email,
+      code: summary.code,
+      inviteUrl: summary.inviteUrl,
+      stats: summary.stats,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
-async function handleReferralAdminRequest(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
+async function handleReferralAdminRequest(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
   const user = await getAuthenticatedUserFromRequest(request, env)
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -4654,25 +4776,117 @@ async function handleReferralAdminRequest(request: Request, env: any, corsHeader
 
   const url = new URL(request.url)
   const code = normalizeReferralCode(url.searchParams.get('code'))
-  const email = String(url.searchParams.get('email') || '').trim().toLowerCase()
+  const email = String(url.searchParams.get('email') || '')
+    .trim()
+    .toLowerCase()
 
   try {
     if (!code && !email) {
-      const stats = await db.prepare(`
+      const stats = await db
+        .prepare(
+          `
         SELECT
           SUM(CASE WHEN event_type = 'checkout_started' THEN 1 ELSE 0 END) AS checkouts,
           SUM(CASE WHEN event_type = 'checkout_completed' THEN 1 ELSE 0 END) AS conversions,
           COUNT(*) AS events
         FROM referral_events
-      `).first<{ checkouts?: number; conversions?: number; events?: number }>()
+      `
+        )
+        .first<{ checkouts?: number; conversions?: number; events?: number }>()
 
-      const events = await db.prepare(`
+      const events = await db
+        .prepare(
+          `
         SELECT referral_code, event_type, referred_email, checkout_session_id, source, created_at, converted_at
         FROM referral_events
         ORDER BY created_at DESC
         LIMIT 20
-      `).all<{
-        referral_code?: string
+      `
+        )
+        .all<{
+          referral_code?: string
+          event_type: string
+          referred_email?: string
+          checkout_session_id?: string
+          source?: string
+          created_at: number
+          converted_at?: number
+        }>()
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          found: true,
+          mode: 'recent',
+          stats: {
+            events: Number(stats?.events || 0),
+            checkouts: Number(stats?.checkouts || 0),
+            conversions: Number(stats?.conversions || 0),
+          },
+          events: Array.isArray(events.results) ? events.results : [],
+        }),
+        {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      )
+    }
+
+    const referral = code
+      ? await db
+          .prepare(
+            `
+          SELECT rc.code, rc.user_id, u.email, u.name
+          FROM referral_codes rc
+          LEFT JOIN users u ON u.id = rc.user_id
+          WHERE rc.code = ?
+        `
+          )
+          .bind(code)
+          .first<{ code: string; user_id: string; email?: string; name?: string }>()
+      : await db
+          .prepare(
+            `
+          SELECT rc.code, rc.user_id, u.email, u.name
+          FROM referral_codes rc
+          LEFT JOIN users u ON u.id = rc.user_id
+          WHERE lower(u.email) = ?
+        `
+          )
+          .bind(email)
+          .first<{ code: string; user_id: string; email?: string; name?: string }>()
+
+    if (!referral?.code) {
+      return new Response(JSON.stringify({ ok: true, found: false }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const stats = await db
+      .prepare(
+        `
+      SELECT
+        SUM(CASE WHEN event_type = 'checkout_started' THEN 1 ELSE 0 END) AS checkouts,
+        SUM(CASE WHEN event_type = 'checkout_completed' THEN 1 ELSE 0 END) AS conversions,
+        COUNT(*) AS events
+      FROM referral_events
+      WHERE referral_code = ?
+    `
+      )
+      .bind(referral.code)
+      .first<{ checkouts?: number; conversions?: number; events?: number }>()
+
+    const events = await db
+      .prepare(
+        `
+      SELECT event_type, referred_email, checkout_session_id, source, created_at, converted_at
+      FROM referral_events
+      WHERE referral_code = ?
+      ORDER BY created_at DESC
+      LIMIT 10
+    `
+      )
+      .bind(referral.code)
+      .all<{
         event_type: string
         referred_email?: string
         checkout_session_id?: string
@@ -4681,83 +4895,27 @@ async function handleReferralAdminRequest(request: Request, env: any, corsHeader
         converted_at?: number
       }>()
 
-      return new Response(JSON.stringify({
+    return new Response(
+      JSON.stringify({
         ok: true,
         found: true,
-        mode: 'recent',
+        referral: {
+          code: referral.code,
+          userId: referral.user_id,
+          email: referral.email || null,
+          name: referral.name || null,
+        },
         stats: {
           events: Number(stats?.events || 0),
           checkouts: Number(stats?.checkouts || 0),
           conversions: Number(stats?.conversions || 0),
         },
         events: Array.isArray(events.results) ? events.results : [],
-      }), {
+      }),
+      {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
-    }
-
-    const referral = code
-      ? await db.prepare(`
-          SELECT rc.code, rc.user_id, u.email, u.name
-          FROM referral_codes rc
-          LEFT JOIN users u ON u.id = rc.user_id
-          WHERE rc.code = ?
-        `).bind(code).first<{ code: string; user_id: string; email?: string; name?: string }>()
-      : await db.prepare(`
-          SELECT rc.code, rc.user_id, u.email, u.name
-          FROM referral_codes rc
-          LEFT JOIN users u ON u.id = rc.user_id
-          WHERE lower(u.email) = ?
-        `).bind(email).first<{ code: string; user_id: string; email?: string; name?: string }>()
-
-    if (!referral?.code) {
-      return new Response(JSON.stringify({ ok: true, found: false }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
-    }
-
-    const stats = await db.prepare(`
-      SELECT
-        SUM(CASE WHEN event_type = 'checkout_started' THEN 1 ELSE 0 END) AS checkouts,
-        SUM(CASE WHEN event_type = 'checkout_completed' THEN 1 ELSE 0 END) AS conversions,
-        COUNT(*) AS events
-      FROM referral_events
-      WHERE referral_code = ?
-    `).bind(referral.code).first<{ checkouts?: number; conversions?: number; events?: number }>()
-
-    const events = await db.prepare(`
-      SELECT event_type, referred_email, checkout_session_id, source, created_at, converted_at
-      FROM referral_events
-      WHERE referral_code = ?
-      ORDER BY created_at DESC
-      LIMIT 10
-    `).bind(referral.code).all<{
-      event_type: string
-      referred_email?: string
-      checkout_session_id?: string
-      source?: string
-      created_at: number
-      converted_at?: number
-    }>()
-
-    return new Response(JSON.stringify({
-      ok: true,
-      found: true,
-      referral: {
-        code: referral.code,
-        userId: referral.user_id,
-        email: referral.email || null,
-        name: referral.name || null,
-      },
-      stats: {
-        events: Number(stats?.events || 0),
-        checkouts: Number(stats?.checkouts || 0),
-        conversions: Number(stats?.conversions || 0),
-      },
-      events: Array.isArray(events.results) ? events.results : [],
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+      }
+    )
   } catch (error) {
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Referral lookup failed.' }), {
       status: 500,
@@ -4817,14 +4975,19 @@ async function handleLicenseRequest(
   })
 }
 
-async function lookupLicenseByEmail(email: string, env: any): Promise<{
-  customerId?: string;
-  email: string;
-  ok: boolean;
-  status: string;
-  tier: string | null;
+async function lookupLicenseByEmail(
+  email: string,
+  env: any
+): Promise<{
+  customerId?: string
+  email: string
+  ok: boolean
+  status: string
+  tier: string | null
 }> {
-  const normalizedEmail = String(email || '').trim().toLowerCase()
+  const normalizedEmail = String(email || '')
+    .trim()
+    .toLowerCase()
 
   if (!normalizedEmail) {
     return {
@@ -4852,17 +5015,21 @@ async function lookupLicenseByEmail(email: string, env: any): Promise<{
     if (customers.length > 0) {
       const customer = customers[0]
 
-      const subscriptionsResponse = await fetch('https://api.stripe.com/v1/subscriptions?' + new URLSearchParams({
-        customer: String(customer.id),
-        status: 'all',
-        limit: '10',
-      }).toString(), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      })
+      const subscriptionsResponse = await fetch(
+        'https://api.stripe.com/v1/subscriptions?' +
+          new URLSearchParams({
+            customer: String(customer.id),
+            status: 'all',
+            limit: '10',
+          }).toString(),
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      )
 
       const subscriptionsData = await subscriptionsResponse.json()
       const subscriptions = Array.isArray(subscriptionsData.data)
@@ -4917,12 +5084,17 @@ async function lookupLicenseByEmail(email: string, env: any): Promise<{
   }
 }
 
-async function lookupProductEntitlementsByEmail(email: string, env: any): Promise<{
+async function lookupProductEntitlementsByEmail(
+  email: string,
+  env: any
+): Promise<{
   email: string
   terminal_pro: { active: boolean; plan: string | null; status: string }
   matter_intelligence: { active: boolean; plan: string | null; status: string }
 }> {
-  const normalizedEmail = String(email || '').trim().toLowerCase()
+  const normalizedEmail = String(email || '')
+    .trim()
+    .toLowerCase()
   const empty = {
     email: normalizedEmail,
     terminal_pro: { active: false, plan: null, status: 'not_found' },
@@ -4944,17 +5116,21 @@ async function lookupProductEntitlementsByEmail(email: string, env: any): Promis
   const customer = Array.isArray(customerData.data) ? customerData.data[0] : null
   if (!customer?.id) return empty
 
-  const subscriptionsResponse = await fetch('https://api.stripe.com/v1/subscriptions?' + new URLSearchParams({
-    customer: String(customer.id),
-    status: 'all',
-    limit: '20',
-  }).toString(), {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  })
+  const subscriptionsResponse = await fetch(
+    'https://api.stripe.com/v1/subscriptions?' +
+      new URLSearchParams({
+        customer: String(customer.id),
+        status: 'all',
+        limit: '20',
+      }).toString(),
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  )
 
   const subscriptionsData = await subscriptionsResponse.json()
   const subscriptions = Array.isArray(subscriptionsData.data) ? subscriptionsData.data : []
@@ -4973,11 +5149,16 @@ async function lookupProductEntitlementsByEmail(email: string, env: any): Promis
     enterprise: [env.STRIPE_MI_ENTERPRISE_PRICE_ID, env.STRIPE_MATTER_INTELLIGENCE_ENTERPRISE_PRICE_ID],
   }
 
-  for (const priceId of terminalPrices.pro.map((value: unknown) => String(value || '').trim()).filter(Boolean)) terminalPriceToPlan[priceId] = 'pro'
-  for (const priceId of terminalPrices.team.map((value: unknown) => String(value || '').trim()).filter(Boolean)) terminalPriceToPlan[priceId] = 'team'
-  for (const priceId of matterPrices.solo.map((value: unknown) => String(value || '').trim()).filter(Boolean)) matterPriceToPlan[priceId] = 'solo'
-  for (const priceId of matterPrices.team.map((value: unknown) => String(value || '').trim()).filter(Boolean)) matterPriceToPlan[priceId] = 'team'
-  for (const priceId of matterPrices.enterprise.map((value: unknown) => String(value || '').trim()).filter(Boolean)) matterPriceToPlan[priceId] = 'enterprise'
+  for (const priceId of terminalPrices.pro.map((value: unknown) => String(value || '').trim()).filter(Boolean))
+    terminalPriceToPlan[priceId] = 'pro'
+  for (const priceId of terminalPrices.team.map((value: unknown) => String(value || '').trim()).filter(Boolean))
+    terminalPriceToPlan[priceId] = 'team'
+  for (const priceId of matterPrices.solo.map((value: unknown) => String(value || '').trim()).filter(Boolean))
+    matterPriceToPlan[priceId] = 'solo'
+  for (const priceId of matterPrices.team.map((value: unknown) => String(value || '').trim()).filter(Boolean))
+    matterPriceToPlan[priceId] = 'team'
+  for (const priceId of matterPrices.enterprise.map((value: unknown) => String(value || '').trim()).filter(Boolean))
+    matterPriceToPlan[priceId] = 'enterprise'
 
   const result = {
     email: normalizedEmail,
@@ -5032,7 +5213,9 @@ async function handleMeEntitlements(
     })
   }
 
-  const email = String(payload.email || '').trim().toLowerCase()
+  const email = String(payload.email || '')
+    .trim()
+    .toLowerCase()
   if (!email) {
     return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
       status: 400,
@@ -5042,18 +5225,20 @@ async function handleMeEntitlements(
 
   const entitlements = await lookupProductEntitlementsByEmail(email, env)
 
-  return new Response(JSON.stringify({
-    email,
-    entitlements: {
-      terminalPro: entitlements.terminal_pro,
-      matterIntelligence: entitlements.matter_intelligence,
-    },
-    active:
-      Boolean(entitlements.terminal_pro.active) || Boolean(entitlements.matter_intelligence.active),
-    updatedAt: new Date().toISOString(),
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      email,
+      entitlements: {
+        terminalPro: entitlements.terminal_pro,
+        matterIntelligence: entitlements.matter_intelligence,
+      },
+      active: Boolean(entitlements.terminal_pro.active) || Boolean(entitlements.matter_intelligence.active),
+      updatedAt: new Date().toISOString(),
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
 async function handleDesktopSessionRequest(
@@ -5066,12 +5251,16 @@ async function handleDesktopSessionRequest(
     let email = ''
     if (authToken) {
       const payload = await verifyToken(authToken, env.AUTH_SECRET)
-      email = String(payload?.email || '').trim().toLowerCase()
+      email = String(payload?.email || '')
+        .trim()
+        .toLowerCase()
     }
 
     if (!email) {
       const body = await request.json().catch(() => ({}))
-      email = String(body?.email || '').trim().toLowerCase()
+      email = String(body?.email || '')
+        .trim()
+        .toLowerCase()
     }
 
     if (!email || !env.AUTH_SECRET) {
@@ -5083,16 +5272,19 @@ async function handleDesktopSessionRequest(
 
     const entitlements = await lookupProductEntitlementsByEmail(email, env)
     if (!entitlements.terminal_pro.active && !entitlements.matter_intelligence.active) {
-      return new Response(JSON.stringify({
-        error: 'No active subscription found for this account.',
-        entitlements: {
-          terminalPro: entitlements.terminal_pro,
-          matterIntelligence: entitlements.matter_intelligence,
-        },
-      }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
+      return new Response(
+        JSON.stringify({
+          error: 'No active subscription found for this account.',
+          entitlements: {
+            terminalPro: entitlements.terminal_pro,
+            matterIntelligence: entitlements.matter_intelligence,
+          },
+        }),
+        {
+          status: 403,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      )
     }
     const sessionToken = await createToken(
       {
@@ -5105,18 +5297,21 @@ async function handleDesktopSessionRequest(
       60 * 60 * 12
     )
 
-    return new Response(JSON.stringify({
-      ok: true,
-      email,
-      sessionToken,
-      entitlements: {
-        terminalPro: entitlements.terminal_pro,
-        matterIntelligence: entitlements.matter_intelligence,
-      },
-      accountUrl: 'https://rinawarptech.com/account',
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        email,
+        sessionToken,
+        entitlements: {
+          terminalPro: entitlements.terminal_pro,
+          matterIntelligence: entitlements.matter_intelligence,
+        },
+        accountUrl: 'https://rinawarptech.com/account',
+      }),
+      {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid request' }), {
       status: 400,
@@ -5144,7 +5339,9 @@ async function ensureMatterIntelligenceTables(env: any): Promise<void> {
       )
     `),
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_mi_matters_owner ON matter_intelligence_matters(owner_email)`),
-    db.prepare(`CREATE INDEX IF NOT EXISTS idx_mi_matters_owner_status ON matter_intelligence_matters(owner_email, status)`),
+    db.prepare(
+      `CREATE INDEX IF NOT EXISTS idx_mi_matters_owner_status ON matter_intelligence_matters(owner_email, status)`
+    ),
     db.prepare(`
       CREATE TABLE IF NOT EXISTS matter_intelligence_connector_state (
         id TEXT PRIMARY KEY,
@@ -5156,7 +5353,9 @@ async function ensureMatterIntelligenceTables(env: any): Promise<void> {
         last_synced_at INTEGER
       )
     `),
-    db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_mi_connector_owner_provider ON matter_intelligence_connector_state(owner_email, provider)`),
+    db.prepare(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_mi_connector_owner_provider ON matter_intelligence_connector_state(owner_email, provider)`
+    ),
     db.prepare(`
       CREATE TABLE IF NOT EXISTS matter_intelligence_events (
         id TEXT PRIMARY KEY,
@@ -5197,7 +5396,9 @@ async function requireMatterIntelligenceAccess(
     })
   }
 
-  const email = String(payload.email || '').trim().toLowerCase()
+  const email = String(payload.email || '')
+    .trim()
+    .toLowerCase()
   if (!email) {
     return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
       status: 400,
@@ -5207,23 +5408,28 @@ async function requireMatterIntelligenceAccess(
 
   const entitlements = await lookupProductEntitlementsByEmail(email, env)
   if (!entitlements.matter_intelligence.active) {
-    return new Response(JSON.stringify({
-      error: 'Matter Intelligence access is not active for this account.',
-      entitlements: {
-        terminalPro: entitlements.terminal_pro,
-        matterIntelligence: entitlements.matter_intelligence,
-      },
-    }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return new Response(
+      JSON.stringify({
+        error: 'Matter Intelligence access is not active for this account.',
+        entitlements: {
+          terminalPro: entitlements.terminal_pro,
+          matterIntelligence: entitlements.matter_intelligence,
+        },
+      }),
+      {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
   }
 
   return { email }
 }
 
 function isMatterStatusAllowed(raw: unknown): boolean {
-  const status = String(raw || '').trim().toLowerCase()
+  const status = String(raw || '')
+    .trim()
+    .toLowerCase()
   return status === 'open' || status === 'in_review' || status === 'closed'
 }
 
@@ -5244,26 +5450,33 @@ async function handleMatterIntelligenceListMatters(
     })
   }
 
-  const statusFilter = String(new URL(request.url).searchParams.get('status') || '').trim().toLowerCase()
-  const result = statusFilter && isMatterStatusAllowed(statusFilter)
-    ? await db
-      .prepare(`
+  const statusFilter = String(new URL(request.url).searchParams.get('status') || '')
+    .trim()
+    .toLowerCase()
+  const result =
+    statusFilter && isMatterStatusAllowed(statusFilter)
+      ? await db
+          .prepare(
+            `
         SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
         FROM matter_intelligence_matters
         WHERE owner_email = ? AND status = ?
         ORDER BY updated_at DESC
-      `)
-      .bind(access.email, statusFilter)
-      .all()
-    : await db
-      .prepare(`
+      `
+          )
+          .bind(access.email, statusFilter)
+          .all()
+      : await db
+          .prepare(
+            `
         SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
         FROM matter_intelligence_matters
         WHERE owner_email = ?
         ORDER BY updated_at DESC
-      `)
-      .bind(access.email)
-      .all()
+      `
+          )
+          .bind(access.email)
+          .all()
 
   return new Response(JSON.stringify(result.results || []), {
     headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -5290,7 +5503,9 @@ async function handleMatterIntelligenceCreateMatter(
   const body = await request.json().catch(() => ({}))
   const title = String(body?.title || '').trim()
   const description = String(body?.description || '').trim()
-  const status = String(body?.status || 'open').trim().toLowerCase()
+  const status = String(body?.status || 'open')
+    .trim()
+    .toLowerCase()
   if (!title || !description) {
     return new Response(JSON.stringify({ error: 'Title and description are required.' }), {
       status: 400,
@@ -5307,35 +5522,41 @@ async function handleMatterIntelligenceCreateMatter(
   const now = nowSeconds()
   const matterId = `matter_${crypto.randomUUID()}`
 
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     INSERT INTO matter_intelligence_matters (id, owner_email, title, description, status, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).bind(matterId, access.email, title, description, status, now, now).run()
+  `
+    )
+    .bind(matterId, access.email, title, description, status, now, now)
+    .run()
 
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     INSERT INTO matter_intelligence_events (id, matter_id, owner_email, event_type, summary, citation, created_at)
     VALUES (?, ?, ?, 'matter_created', ?, ?, ?)
-  `).bind(
-    `mievt_${crypto.randomUUID()}`,
-    matterId,
-    access.email,
-    `Matter created: ${title}`,
-    `matter:${matterId}`,
-    now,
-  ).run()
+  `
+    )
+    .bind(`mievt_${crypto.randomUUID()}`, matterId, access.email, `Matter created: ${title}`, `matter:${matterId}`, now)
+    .run()
 
-  return new Response(JSON.stringify({
-    id: matterId,
-    title,
-    description,
-    status,
-    createdAt: now,
-    updatedAt: now,
-    lastSyncedAt: null,
-  }), {
-    status: 201,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      id: matterId,
+      title,
+      description,
+      status,
+      createdAt: now,
+      updatedAt: now,
+      lastSyncedAt: null,
+    }),
+    {
+      status: 201,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
 async function handleMatterIntelligenceGetMatter(
@@ -5364,11 +5585,16 @@ async function handleMatterIntelligenceGetMatter(
     })
   }
 
-  const matter = await db.prepare(`
+  const matter = await db
+    .prepare(
+      `
     SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
     FROM matter_intelligence_matters
     WHERE id = ? AND owner_email = ?
-  `).bind(matterId, access.email).first()
+  `
+    )
+    .bind(matterId, access.email)
+    .first()
 
   if (!matter) {
     return new Response(JSON.stringify({ error: 'Matter not found.' }), {
@@ -5377,20 +5603,28 @@ async function handleMatterIntelligenceGetMatter(
     })
   }
 
-  const events = await db.prepare(`
+  const events = await db
+    .prepare(
+      `
     SELECT id, event_type AS eventType, summary, citation, created_at AS createdAt
     FROM matter_intelligence_events
     WHERE matter_id = ? AND owner_email = ?
     ORDER BY created_at DESC
     LIMIT 20
-  `).bind(matterId, access.email).all()
+  `
+    )
+    .bind(matterId, access.email)
+    .all()
 
-  return new Response(JSON.stringify({
-    ...matter,
-    events: events.results || [],
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      ...matter,
+      events: events.results || [],
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
 async function handleMatterIntelligenceMicrosoftStart(
@@ -5434,37 +5668,45 @@ async function handleMatterIntelligenceMicrosoftStart(
     authUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?${params.toString()}`
   }
 
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     INSERT INTO matter_intelligence_connector_state (id, owner_email, provider, status, config_json, started_at, last_synced_at)
     VALUES (?, ?, 'microsoft', ?, ?, ?, NULL)
     ON CONFLICT(owner_email, provider) DO UPDATE SET
       status = excluded.status,
       config_json = excluded.config_json,
       started_at = excluded.started_at
-  `).bind(
-    `miconn_${crypto.randomUUID()}`,
-    access.email,
-    authUrl ? 'oauth_ready' : 'not_configured',
-    JSON.stringify({
-      tenant,
-      scope,
-      hasClientId: Boolean(clientId),
-      hasRedirectUri: Boolean(redirectUri),
-    }),
-    now,
-  ).run()
+  `
+    )
+    .bind(
+      `miconn_${crypto.randomUUID()}`,
+      access.email,
+      authUrl ? 'oauth_ready' : 'not_configured',
+      JSON.stringify({
+        tenant,
+        scope,
+        hasClientId: Boolean(clientId),
+        hasRedirectUri: Boolean(redirectUri),
+      }),
+      now
+    )
+    .run()
 
-  return new Response(JSON.stringify({
-    ok: true,
-    provider: 'microsoft',
-    status: authUrl ? 'oauth_ready' : 'not_configured',
-    authUrl,
-    message: authUrl
-      ? 'Open the auth URL to connect Outlook and SharePoint.'
-      : 'Microsoft OAuth is not configured yet on the production API.',
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      provider: 'microsoft',
+      status: authUrl ? 'oauth_ready' : 'not_configured',
+      authUrl,
+      message: authUrl
+        ? 'Open the auth URL to connect Outlook and SharePoint.'
+        : 'Microsoft OAuth is not configured yet on the production API.',
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
 async function handleMatterIntelligenceMicrosoftSync(
@@ -5488,73 +5730,109 @@ async function handleMatterIntelligenceMicrosoftSync(
   const matterId = String(body?.matterId || '').trim()
   const now = nowSeconds()
 
-  const connector = await db.prepare(`
+  const connector = await db
+    .prepare(
+      `
     SELECT status
     FROM matter_intelligence_connector_state
     WHERE owner_email = ? AND provider = 'microsoft'
-  `).bind(access.email).first<{ status?: string }>()
+  `
+    )
+    .bind(access.email)
+    .first<{ status?: string }>()
 
   if (!connector) {
-    return new Response(JSON.stringify({
-      error: 'Microsoft connector has not been started. Call /api/connectors/microsoft/start first.',
-    }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return new Response(
+      JSON.stringify({
+        error: 'Microsoft connector has not been started. Call /api/connectors/microsoft/start first.',
+      }),
+      {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
   }
 
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     UPDATE matter_intelligence_connector_state
     SET status = 'synced',
         last_synced_at = ?
     WHERE owner_email = ? AND provider = 'microsoft'
-  `).bind(now, access.email).run()
+  `
+    )
+    .bind(now, access.email)
+    .run()
 
   const matter = matterId
-    ? await db.prepare(`
+    ? await db
+        .prepare(
+          `
       SELECT id, title
       FROM matter_intelligence_matters
       WHERE id = ? AND owner_email = ?
-    `).bind(matterId, access.email).first<{ id: string; title: string }>()
-    : await db.prepare(`
+    `
+        )
+        .bind(matterId, access.email)
+        .first<{ id: string; title: string }>()
+    : await db
+        .prepare(
+          `
       SELECT id, title
       FROM matter_intelligence_matters
       WHERE owner_email = ?
       ORDER BY updated_at DESC
       LIMIT 1
-    `).bind(access.email).first<{ id: string; title: string }>()
+    `
+        )
+        .bind(access.email)
+        .first<{ id: string; title: string }>()
 
   if (matter) {
-    await db.prepare(`
+    await db
+      .prepare(
+        `
       UPDATE matter_intelligence_matters
       SET last_synced_at = ?, updated_at = ?
       WHERE id = ? AND owner_email = ?
-    `).bind(now, now, matter.id, access.email).run()
+    `
+      )
+      .bind(now, now, matter.id, access.email)
+      .run()
 
-    await db.prepare(`
+    await db
+      .prepare(
+        `
       INSERT INTO matter_intelligence_events (id, matter_id, owner_email, event_type, summary, citation, created_at)
       VALUES (?, ?, ?, 'sync_completed', ?, ?, ?)
-    `).bind(
-      `mievt_${crypto.randomUUID()}`,
-      matter.id,
-      access.email,
-      `Microsoft sync completed for "${matter.title}".`,
-      `matter:${matter.id}`,
-      now,
-    ).run()
+    `
+      )
+      .bind(
+        `mievt_${crypto.randomUUID()}`,
+        matter.id,
+        access.email,
+        `Microsoft sync completed for "${matter.title}".`,
+        `matter:${matter.id}`,
+        now
+      )
+      .run()
   }
 
-  return new Response(JSON.stringify({
-    ok: true,
-    provider: 'microsoft',
-    syncedAt: now,
-    matterId: matter?.id || null,
-    message: matter
-      ? `Sync recorded for ${matter.title}.`
-      : 'Sync recorded. Create a matter to attach timeline events.',
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      provider: 'microsoft',
+      syncedAt: now,
+      matterId: matter?.id || null,
+      message: matter
+        ? `Sync recorded for ${matter.title}.`
+        : 'Sync recorded. Create a matter to attach timeline events.',
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
 async function handleMatterIntelligenceSearch(
@@ -5586,20 +5864,30 @@ async function handleMatterIntelligenceSearch(
 
   const qLike = `%${q.replace(/[%_]/g, '')}%`
   const matches = matterId
-    ? await db.prepare(`
+    ? await db
+        .prepare(
+          `
       SELECT id, title, description, status, updated_at AS updatedAt
       FROM matter_intelligence_matters
       WHERE owner_email = ? AND id = ? AND (title LIKE ? OR description LIKE ?)
       ORDER BY updated_at DESC
       LIMIT 10
-    `).bind(access.email, matterId, qLike, qLike).all()
-    : await db.prepare(`
+    `
+        )
+        .bind(access.email, matterId, qLike, qLike)
+        .all()
+    : await db
+        .prepare(
+          `
       SELECT id, title, description, status, updated_at AS updatedAt
       FROM matter_intelligence_matters
       WHERE owner_email = ? AND (title LIKE ? OR description LIKE ?)
       ORDER BY updated_at DESC
       LIMIT 10
-    `).bind(access.email, qLike, qLike).all()
+    `
+        )
+        .bind(access.email, qLike, qLike)
+        .all()
 
   const results = (matches.results || []).map((item: any) => ({
     type: 'matter',
@@ -5611,14 +5899,17 @@ async function handleMatterIntelligenceSearch(
     updatedAt: item.updatedAt,
   }))
 
-  return new Response(JSON.stringify({
-    ok: true,
-    query: q,
-    count: results.length,
-    results,
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      query: q,
+      count: results.length,
+      results,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
 async function handleMatterIntelligenceStatusMemoDraft(
@@ -5647,11 +5938,16 @@ async function handleMatterIntelligenceStatusMemoDraft(
     })
   }
 
-  const matter = await db.prepare(`
+  const matter = await db
+    .prepare(
+      `
     SELECT id, title, description, status, created_at AS createdAt, updated_at AS updatedAt, last_synced_at AS lastSyncedAt
     FROM matter_intelligence_matters
     WHERE id = ? AND owner_email = ?
-  `).bind(matterId, access.email).first<any>()
+  `
+    )
+    .bind(matterId, access.email)
+    .first<any>()
 
   if (!matter) {
     return new Response(JSON.stringify({ error: 'Matter not found.' }), {
@@ -5660,19 +5956,25 @@ async function handleMatterIntelligenceStatusMemoDraft(
     })
   }
 
-  const timeline = await db.prepare(`
+  const timeline = await db
+    .prepare(
+      `
     SELECT summary, citation, created_at AS createdAt
     FROM matter_intelligence_events
     WHERE matter_id = ? AND owner_email = ?
     ORDER BY created_at DESC
     LIMIT 8
-  `).bind(matterId, access.email).all()
+  `
+    )
+    .bind(matterId, access.email)
+    .all()
 
   const entries = (timeline.results || []) as Array<{ summary: string; citation: string | null; createdAt: number }>
   const generatedAt = new Date().toISOString()
-  const timelineLines = entries.length > 0
-    ? entries.map((entry) => `- ${entry.summary} [${entry.citation || `matter:${matterId}`}]`).join('\n')
-    : `- Matter opened and awaiting first timeline event. [matter:${matterId}]`
+  const timelineLines =
+    entries.length > 0
+      ? entries.map((entry) => `- ${entry.summary} [${entry.citation || `matter:${matterId}`}]`).join('\n')
+      : `- Matter opened and awaiting first timeline event. [matter:${matterId}]`
 
   const memo = [
     `Status memo for "${matter.title}" (${generatedAt})`,
@@ -5690,15 +5992,18 @@ async function handleMatterIntelligenceStatusMemoDraft(
     `Primary citation: [matter:${matterId}]`,
   ].join('\n')
 
-  return new Response(JSON.stringify({
-    ok: true,
-    matterId,
-    draft: memo,
-    citations: [`matter:${matterId}`, ...entries.map((entry) => entry.citation).filter(Boolean)],
-    generatedAt,
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      matterId,
+      draft: memo,
+      citations: [`matter:${matterId}`, ...entries.map((entry) => entry.citation).filter(Boolean)],
+      generatedAt,
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
 async function handleMatterIntelligenceLeadRequest(
@@ -5708,8 +6013,12 @@ async function handleMatterIntelligenceLeadRequest(
 ): Promise<Response> {
   try {
     const body = await request.json()
-    const email = String(body?.email || '').trim().toLowerCase()
-    const requestType = String(body?.requestType || '').trim().toLowerCase()
+    const email = String(body?.email || '')
+      .trim()
+      .toLowerCase()
+    const requestType = String(body?.requestType || '')
+      .trim()
+      .toLowerCase()
     if (!email || !requestType) {
       return new Response(JSON.stringify({ error: 'Email and request type are required.' }), {
         status: 400,
@@ -5720,22 +6029,27 @@ async function handleMatterIntelligenceLeadRequest(
     const db = getDb(env)
     if (db) {
       const now = nowSeconds()
-      await db.prepare(`
+      await db
+        .prepare(
+          `
         INSERT INTO matter_intelligence_leads (
           id, request_type, name, email, company, team_size, plan_interest, message, source_path, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        `mi_lead_${crypto.randomUUID()}`,
-        requestType,
-        String(body?.name || '').trim() || null,
-        email,
-        String(body?.company || '').trim() || null,
-        String(body?.teamSize || '').trim() || null,
-        String(body?.planInterest || '').trim() || null,
-        String(body?.message || '').trim() || null,
-        String(body?.sourcePath || '').trim() || null,
-        now,
-      ).run()
+      `
+        )
+        .bind(
+          `mi_lead_${crypto.randomUUID()}`,
+          requestType,
+          String(body?.name || '').trim() || null,
+          email,
+          String(body?.company || '').trim() || null,
+          String(body?.teamSize || '').trim() || null,
+          String(body?.planInterest || '').trim() || null,
+          String(body?.message || '').trim() || null,
+          String(body?.sourcePath || '').trim() || null,
+          now
+        )
+        .run()
     }
 
     return new Response(JSON.stringify({ ok: true }), {
@@ -5770,7 +6084,9 @@ async function handleVscodeEntitlements(
     })
   }
 
-  const email = String(payload.email || '').trim().toLowerCase()
+  const email = String(payload.email || '')
+    .trim()
+    .toLowerCase()
   if (!email) {
     return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
       status: 400,
@@ -5779,7 +6095,12 @@ async function handleVscodeEntitlements(
   }
 
   const license = await lookupLicenseByEmail(email, env)
-  const plan = license.tier === 'pro' || license.tier === 'team' || license.tier === 'power' ? (license.tier === 'power' ? 'team' : license.tier) : 'free'
+  const plan =
+    license.tier === 'pro' || license.tier === 'team' || license.tier === 'power'
+      ? license.tier === 'power'
+        ? 'team'
+        : license.tier
+      : 'free'
   const packs =
     plan === 'team'
       ? ['docker-repair', 'system-diagnostics', 'npm-audit', 'security-audit', 'test-runner']
@@ -5787,22 +6108,21 @@ async function handleVscodeEntitlements(
         ? ['docker-repair', 'system-diagnostics', 'npm-audit', 'security-audit']
         : ['system-diagnostics']
 
-  return new Response(JSON.stringify({
-    email,
-    plan,
-    packs,
-    status: license.status,
-    updatedAt: new Date().toISOString(),
-  }), {
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
+  return new Response(
+    JSON.stringify({
+      email,
+      plan,
+      packs,
+      status: license.status,
+      updatedAt: new Date().toISOString(),
+    }),
+    {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    }
+  )
 }
 
-async function handleVscodeChat(
-  request: Request,
-  env: any,
-  corsHeaders: Record<string, string>
-): Promise<Response> {
+async function handleVscodeChat(request: Request, env: any, corsHeaders: Record<string, string>): Promise<Response> {
   const token = extractToken(request.headers.get('Authorization'))
   if (!token) {
     return new Response(JSON.stringify({ error: 'No token provided' }), {
@@ -5819,7 +6139,9 @@ async function handleVscodeChat(
     })
   }
 
-  const email = String(payload.email || '').trim().toLowerCase()
+  const email = String(payload.email || '')
+    .trim()
+    .toLowerCase()
   if (!email) {
     return new Response(JSON.stringify({ error: 'Authenticated email is required' }), {
       status: 400,
@@ -5827,7 +6149,7 @@ async function handleVscodeChat(
     })
   }
 
-  const body = await request.json().catch(() => null) as {
+  const body = (await request.json().catch(() => null)) as {
     client?: { product?: string; extensionVersion?: string }
     messages?: Array<{ role?: string; content?: string }>
     workspaceContext?: {
@@ -5851,13 +6173,19 @@ async function handleVscodeChat(
 
   const messages = Array.isArray(body?.messages)
     ? body!.messages
-        .filter((message): message is { role: 'user' | 'assistant'; content: string } =>
-          (message?.role === 'user' || message?.role === 'assistant') && typeof message.content === 'string' && message.content.trim().length > 0
+        .filter(
+          (message): message is { role: 'user' | 'assistant'; content: string } =>
+            (message?.role === 'user' || message?.role === 'assistant') &&
+            typeof message.content === 'string' &&
+            message.content.trim().length > 0
         )
         .slice(-10)
     : []
 
-  const latestUserMessage = [...messages].reverse().find((message) => message.role === 'user')?.content?.trim()
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === 'user')
+    ?.content?.trim()
   if (!latestUserMessage) {
     return new Response(JSON.stringify({ error: 'A user message is required' }), {
       status: 400,
@@ -5865,9 +6193,14 @@ async function handleVscodeChat(
     })
   }
 
-  const plan = body?.workspaceContext?.plan === 'pro' || body?.workspaceContext?.plan === 'team' || body?.workspaceContext?.plan === 'power'
-    ? (body.workspaceContext.plan === 'power' ? 'team' : body.workspaceContext.plan)
-    : 'free'
+  const plan =
+    body?.workspaceContext?.plan === 'pro' ||
+    body?.workspaceContext?.plan === 'team' ||
+    body?.workspaceContext?.plan === 'power'
+      ? body.workspaceContext.plan === 'power'
+        ? 'team'
+        : body.workspaceContext.plan
+      : 'free'
   const diagnostic = body?.workspaceContext?.diagnostic
   const fallback = buildCompanionChatFallback({
     diagnostic,
@@ -5877,13 +6210,16 @@ async function handleVscodeChat(
   })
 
   if (!env.OPENAI_API_KEY) {
-    return new Response(JSON.stringify({
-      actions: fallback.actions,
-      message: fallback.message,
-      mode: 'fallback',
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return new Response(
+      JSON.stringify({
+        actions: fallback.actions,
+        message: fallback.message,
+        mode: 'fallback',
+      }),
+      {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
   }
 
   try {
@@ -5903,16 +6239,28 @@ async function handleVscodeChat(
       `Workspace open: ${body?.workspaceContext?.hasWorkspace ? 'yes' : 'no'}`,
       body?.workspaceContext?.workspaceName ? `Workspace: ${body.workspaceContext.workspaceName}` : null,
       body?.workspaceContext?.workspaceSummary ? `Workspace summary: ${body.workspaceContext.workspaceSummary}` : null,
-      Array.isArray(body?.workspaceContext?.markers) && body?.workspaceContext?.markers?.length ? `Markers: ${body.workspaceContext.markers.join(', ')}` : null,
+      Array.isArray(body?.workspaceContext?.markers) && body?.workspaceContext?.markers?.length
+        ? `Markers: ${body.workspaceContext.markers.join(', ')}`
+        : null,
       body?.workspaceContext?.packageName ? `Package name: ${body.workspaceContext.packageName}` : null,
-      body?.workspaceContext?.packageManagerHint ? `Package manager: ${body.workspaceContext.packageManagerHint}` : null,
-      Array.isArray(body?.workspaceContext?.packageScripts) && body?.workspaceContext?.packageScripts?.length ? `Package scripts: ${body.workspaceContext.packageScripts.join(', ')}` : null,
-      Array.isArray(body?.workspaceContext?.topLevelEntries) && body?.workspaceContext?.topLevelEntries?.length ? `Top level entries: ${body.workspaceContext.topLevelEntries.join(', ')}` : null,
+      body?.workspaceContext?.packageManagerHint
+        ? `Package manager: ${body.workspaceContext.packageManagerHint}`
+        : null,
+      Array.isArray(body?.workspaceContext?.packageScripts) && body?.workspaceContext?.packageScripts?.length
+        ? `Package scripts: ${body.workspaceContext.packageScripts.join(', ')}`
+        : null,
+      Array.isArray(body?.workspaceContext?.topLevelEntries) && body?.workspaceContext?.topLevelEntries?.length
+        ? `Top level entries: ${body.workspaceContext.topLevelEntries.join(', ')}`
+        : null,
       diagnostic?.workspaceName ? `Last diagnostic workspace: ${diagnostic.workspaceName}` : null,
       diagnostic?.recommendedPack ? `Recommended pack: ${diagnostic.recommendedPack}` : null,
       diagnostic?.recommendedReason ? `Recommended reason: ${diagnostic.recommendedReason}` : null,
-      Array.isArray(diagnostic?.findings) && diagnostic?.findings?.length ? `Findings: ${diagnostic.findings.join('; ')}` : null,
-    ].filter(Boolean).join('\n')
+      Array.isArray(diagnostic?.findings) && diagnostic?.findings?.length
+        ? `Findings: ${diagnostic.findings.join('; ')}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join('\n')
 
     const llmMessages = [
       { role: 'system', content: systemPrompt },
@@ -5937,27 +6285,33 @@ async function handleVscodeChat(
       throw new Error(`OpenAI returned ${response.status}`)
     }
 
-    const json = await response.json() as {
+    const json = (await response.json()) as {
       choices?: Array<{ message?: { content?: string } }>
     }
     const content = json.choices?.[0]?.message?.content?.trim() || fallback.message
 
-    return new Response(JSON.stringify({
-      actions: fallback.actions,
-      message: content,
-      mode: 'model',
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return new Response(
+      JSON.stringify({
+        actions: fallback.actions,
+        message: content,
+        mode: 'model',
+      }),
+      {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
   } catch (error) {
     console.warn('[vscode/chat] model-backed response failed, falling back', error)
-    return new Response(JSON.stringify({
-      actions: fallback.actions,
-      message: fallback.message,
-      mode: 'fallback',
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return new Response(
+      JSON.stringify({
+        actions: fallback.actions,
+        message: fallback.message,
+        mode: 'fallback',
+      }),
+      {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
   }
 }
 
@@ -5979,7 +6333,8 @@ function buildCompanionChatFallback(input: {
   if (!input.hasWorkspace) {
     return {
       actions,
-      message: 'Open a workspace folder first if you want project-specific guidance. You can still ask about plans, packs, or how Companion works.',
+      message:
+        'Open a workspace folder first if you want project-specific guidance. You can still ask about plans, packs, or how Companion works.',
     }
   }
 
@@ -5994,7 +6349,11 @@ function buildCompanionChatFallback(input: {
   }
 
   if (/\bpack|docker|security|audit|test|npm\b/.test(normalized)) {
-    actions.push({ command: 'rinawarp.openPack', label: `Open ${recommendedPack}`, args: [recommendedPack, 'chat_recommended_pack'] })
+    actions.push({
+      command: 'rinawarp.openPack',
+      label: `Open ${recommendedPack}`,
+      args: [recommendedPack, 'chat_recommended_pack'],
+    })
     actions.push({ command: 'rinawarp.openPacks', label: 'Open All Packs' })
     return {
       actions,
@@ -6007,7 +6366,8 @@ function buildCompanionChatFallback(input: {
       actions.push({ command: 'rinawarp.upgradeToPro', label: 'Upgrade to Pro' })
       return {
         actions,
-        message: 'You are currently on the free plan. Pro is the next step if you want richer pack coverage and higher-velocity workflows from Companion.',
+        message:
+          'You are currently on the free plan. Pro is the next step if you want richer pack coverage and higher-velocity workflows from Companion.',
       }
     }
     return {
@@ -6017,7 +6377,11 @@ function buildCompanionChatFallback(input: {
   }
 
   actions.push({ command: 'rinawarp.runFreeDiagnostic', label: 'Run Free Diagnostic' })
-  actions.push({ command: 'rinawarp.openPack', label: `Open ${recommendedPack}`, args: [recommendedPack, 'chat_default_pack'] })
+  actions.push({
+    command: 'rinawarp.openPack',
+    label: `Open ${recommendedPack}`,
+    args: [recommendedPack, 'chat_default_pack'],
+  })
   return {
     actions,
     message: input.diagnostic
@@ -6136,7 +6500,9 @@ async function handleCheckoutRequest(
     const normalizedBillingCycle = String(billingCycle || 'monthly')
       .trim()
       .toLowerCase()
-    const normalizedProduct = String(product || 'terminal-pro').trim().toLowerCase()
+    const normalizedProduct = String(product || 'terminal-pro')
+      .trim()
+      .toLowerCase()
 
     const priceIds: Record<string, string> = {
       pro_monthly: String(env.STRIPE_PRO_MONTHLY_PRICE_ID || env.STRIPE_PRO_PRICE_ID || '').trim(),
@@ -6148,21 +6514,34 @@ async function handleCheckoutRequest(
       founder: String(env.STRIPE_FOUNDER_PRICE_ID || '').trim(),
       mi_solo: String(env.STRIPE_MI_SOLO_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_SOLO_PRICE_ID || '').trim(),
       mi_team: String(env.STRIPE_MI_TEAM_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_TEAM_PRICE_ID || '').trim(),
-      mi_enterprise: String(env.STRIPE_MI_ENTERPRISE_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_ENTERPRISE_PRICE_ID || '').trim(),
+      mi_enterprise: String(
+        env.STRIPE_MI_ENTERPRISE_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_ENTERPRISE_PRICE_ID || ''
+      ).trim(),
     }
 
     if (normalizedProduct === 'matter-intelligence') {
       if (normalizedTier !== 'solo' && normalizedTier !== 'team' && normalizedTier !== 'enterprise') {
-        return new Response(JSON.stringify({ error: 'Only Solo, Team, and Enterprise are configured for Matter Intelligence.' }), {
+        return new Response(
+          JSON.stringify({ error: 'Only Solo, Team, and Enterprise are configured for Matter Intelligence.' }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        )
+      }
+    } else if (
+      normalizedTier !== 'pro' &&
+      normalizedTier !== 'power' &&
+      normalizedTier !== 'team' &&
+      normalizedTier !== 'fix'
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'Only Pro, Power, and one-fix checkout are configured right now.' }),
+        {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        })
-      }
-    } else if (normalizedTier !== 'pro' && normalizedTier !== 'power' && normalizedTier !== 'team' && normalizedTier !== 'fix') {
-      return new Response(JSON.stringify({ error: 'Only Pro, Power, and one-fix checkout are configured right now.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
+        }
+      )
     }
 
     const resolvedTierKey =
@@ -6191,9 +6570,10 @@ async function handleCheckoutRequest(
     }
     successUrl.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}')
 
-    const priceId = normalizedProduct === 'matter-intelligence'
-      ? priceIds[resolvedTierKey]
-      : priceIds[resolvedTierKey] || priceIds.pro_monthly
+    const priceId =
+      normalizedProduct === 'matter-intelligence'
+        ? priceIds[resolvedTierKey]
+        : priceIds[resolvedTierKey] || priceIds.pro_monthly
     const quantity =
       (normalizedProduct === 'matter-intelligence' && normalizedTier === 'team') ||
       (normalizedProduct !== 'matter-intelligence' && (normalizedTier === 'power' || normalizedTier === 'team'))
@@ -6201,10 +6581,15 @@ async function handleCheckoutRequest(
         : '1'
 
     if (!priceId) {
-      return new Response(JSON.stringify({ error: `Checkout is not configured for ${normalizedTier}${normalizedTier === 'pro' ? ` (${normalizedBillingCycle})` : ''}.` }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      })
+      return new Response(
+        JSON.stringify({
+          error: `Checkout is not configured for ${normalizedTier}${normalizedTier === 'pro' ? ` (${normalizedBillingCycle})` : ''}.`,
+        }),
+        {
+          status: 503,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      )
     }
 
     await maybeTrackReferralEvent(env, {
@@ -6213,11 +6598,12 @@ async function handleCheckoutRequest(
       referredEmail: email,
       source: 'website_checkout',
       metadata: {
-        tier: normalizedProduct === 'matter-intelligence'
-          ? normalizedTier
-          : normalizedTier === 'team'
-            ? 'power'
-            : normalizedTier,
+        tier:
+          normalizedProduct === 'matter-intelligence'
+            ? normalizedTier
+            : normalizedTier === 'team'
+              ? 'power'
+              : normalizedTier,
         product: normalizedProduct,
         billingCycle: normalizedBillingCycle,
         seats: Number(quantity),
@@ -6242,25 +6628,38 @@ async function handleCheckoutRequest(
             billing_address_collection: 'required',
             'automatic_tax[enabled]': 'true',
             'tax_id_collection[enabled]': 'true',
-            'metadata[tier]': normalizedProduct === 'matter-intelligence'
-              ? normalizedTier
-              : normalizedTier === 'team'
-                ? 'power'
-                : normalizedTier,
+            'metadata[tier]':
+              normalizedProduct === 'matter-intelligence'
+                ? normalizedTier
+                : normalizedTier === 'team'
+                  ? 'power'
+                  : normalizedTier,
             'metadata[product]': normalizedProduct,
             ...(normalizedReferralCode ? { 'metadata[referral_code]': normalizedReferralCode } : {}),
             ...(String(workspaceId || '').trim() ? { 'metadata[workspace_id]': String(workspaceId).trim() } : {}),
             ...(normalizedTier !== 'fix' ? { 'subscription_data[metadata][product]': normalizedProduct } : {}),
-            ...(normalizedTier !== 'fix' && normalizedProduct !== 'matter-intelligence' && (normalizedTier === 'power' || normalizedTier === 'team') ? { 'subscription_data[metadata][tier]': 'power' } : {}),
-            ...(normalizedTier !== 'fix' && normalizedProduct === 'matter-intelligence' ? { 'subscription_data[metadata][tier]': normalizedTier } : {}),
-            ...(normalizedTier !== 'fix' && normalizedReferralCode ? { 'subscription_data[metadata][referral_code]': normalizedReferralCode } : {}),
-            ...(normalizedTier !== 'fix' && normalizedProduct !== 'matter-intelligence' && (normalizedTier === 'power' || normalizedTier === 'team') && String(workspaceId || '').trim()
+            ...(normalizedTier !== 'fix' &&
+            normalizedProduct !== 'matter-intelligence' &&
+            (normalizedTier === 'power' || normalizedTier === 'team')
+              ? { 'subscription_data[metadata][tier]': 'power' }
+              : {}),
+            ...(normalizedTier !== 'fix' && normalizedProduct === 'matter-intelligence'
+              ? { 'subscription_data[metadata][tier]': normalizedTier }
+              : {}),
+            ...(normalizedTier !== 'fix' && normalizedReferralCode
+              ? { 'subscription_data[metadata][referral_code]': normalizedReferralCode }
+              : {}),
+            ...(normalizedTier !== 'fix' &&
+            normalizedProduct !== 'matter-intelligence' &&
+            (normalizedTier === 'power' || normalizedTier === 'team') &&
+            String(workspaceId || '').trim()
               ? { 'subscription_data[metadata][workspace_id]': String(workspaceId).trim() }
               : {}),
             success_url: successUrl.toString(),
-            cancel_url: normalizedProduct === 'matter-intelligence'
-              ? 'https://rinawarptech.com/matter-intelligence/pricing/'
-              : 'https://rinawarptech.com/pricing/',
+            cancel_url:
+              normalizedProduct === 'matter-intelligence'
+                ? 'https://rinawarptech.com/matter-intelligence/pricing/'
+                : 'https://rinawarptech.com/pricing/',
           }),
         })
 
@@ -6269,15 +6668,18 @@ async function handleCheckoutRequest(
         if (session.error) {
           const stripeMessage = String(session.error.message || 'Checkout could not be created.')
           const inactivePrice = /price specified is inactive|only accepts active prices/i.test(stripeMessage)
-          return new Response(JSON.stringify({
-            error: inactivePrice
-              ? 'Checkout is temporarily unavailable because the configured Stripe price is inactive. Update the live Stripe price ID and try again.'
-              : stripeMessage,
-            code: inactivePrice ? 'stripe_price_inactive' : 'stripe_checkout_failed',
-          }), {
-            status: 502,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          })
+          return new Response(
+            JSON.stringify({
+              error: inactivePrice
+                ? 'Checkout is temporarily unavailable because the configured Stripe price is inactive. Update the live Stripe price ID and try again.'
+                : stripeMessage,
+              code: inactivePrice ? 'stripe_price_inactive' : 'stripe_checkout_failed',
+            }),
+            {
+              status: 502,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            }
+          )
         }
 
         return new Response(JSON.stringify({ checkoutUrl: session.url }), {
@@ -6318,7 +6720,11 @@ async function handlePortalRequest(request: Request, env: any, corsHeaders: Reco
     if (request.method === 'POST') {
       const body = await request.json()
       email = body.email
-      if (String(body?.product || '').trim().toLowerCase() === 'matter-intelligence') {
+      if (
+        String(body?.product || '')
+          .trim()
+          .toLowerCase() === 'matter-intelligence'
+      ) {
         returnUrl = 'https://rinawarptech.com/matter-intelligence/download'
       }
       if (String(body?.returnUrl || '').trim()) {

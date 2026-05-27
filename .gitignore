@@ -5,9 +5,12 @@
 **/.wf_secrets
 **/wrangler/state/
 **/.wrangler/state/
+**/.sentry.properties
 
 # Dependency directories
 node_modules/
+package-lock.json
+yarn.lock
 website/.pages-dist/
 .pnp/
 .pnp.js/
@@ -43,10 +46,21 @@ apps/terminal-pro/.cache/
 analytics-funnel.json
 analytics-usage.json
 analytics-device-id.txt
+.rinawarp-test-data/
+
+# Playwright / E2E artifacts (source specs only)
+apps/terminal-pro/e2e/videos/
+apps/terminal-pro/e2e/screenshots/*
+!apps/terminal-pro/e2e/screenshots/.gitkeep
+
+# Wrangler local cache (never commit account metadata)
+website/.wrangler/cache/
+website/wrangler.toml.bak
 
 # Package-specific build artifacts
 packages/*/dist/
 packages/*/tsconfig.tsbuildinfo
+apps/terminal-pro/tsconfig.tsbuildinfo
 packages/*/.turbo/
 packages/*/coverage/
 
@@ -65,6 +79,7 @@ test-results/
 !apps/terminal-pro/src/renderer/rina-agent-core.test.ts
 !apps/terminal-pro/tests/e2e/*.test.ts
 !apps/terminal-pro/tests/e2e/*.spec.ts
+!apps/terminal-pro/e2e/golden/**/*.spec.ts
 coverage/
 RinaWarp-Terminal-Pro-*.AppImage
 *.deb
@@ -78,6 +93,7 @@ RinaWarp-Terminal-Pro-*.AppImage
 .kilocode/
 .kilocodemodes
 .kilocodeignore
+kilo.jsonc
 RinaWarp.code-workspace
 
 # Local receipts and caches

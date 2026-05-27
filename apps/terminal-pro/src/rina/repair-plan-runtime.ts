@@ -1,6 +1,5 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { execCommand } from './execution/legacyShell.js'
 import type { ErrorDetection, ProjectContext, RepairPlan, RepairStep } from './repair-planner.js'
 import { hasSharedWorkspaceFile, readSharedWorkspaceTextFile } from '../main/runtime/runtimeAccess.js'
 
@@ -67,12 +66,7 @@ export async function scanProjectContext(projectRoot: string): Promise<ProjectCo
     context.type = 'docker'
   }
 
-  try {
-    await execCommand('git rev-parse --git-dir', { cwd: projectRoot, timeout: 5000 })
-    context.hasGitRepo = true
-  } catch {
-    context.hasGitRepo = false
-  }
+  context.hasGitRepo = fs.existsSync(path.join(projectRoot, '.git'))
 
   context.hasNodeModules = fs.existsSync(path.join(projectRoot, 'node_modules'))
   return context
@@ -98,26 +92,11 @@ export async function analyzeErrors(projectRoot: string): Promise<ErrorDetection
     if (await hasProjectFile(projectRoot, 'package.json')) {
       const packageJsonText = await readProjectTextFile(projectRoot, 'package.json')
       const packageJson = packageJsonText ? JSON.parse(packageJsonText) : {}
-      const buildCmd = packageJson.scripts?.build || packageJson.scripts?.build
-      if (buildCmd && (await hasProjectFile(projectRoot, 'tsconfig.json'))) {
-        try {
-          const tscOutput = await execCommand('npx tsc --noEmit 2>&1', {
-            cwd: projectRoot,
-            timeout: 60000,
-          })
-          if (tscOutput.stdout || tscOutput.stderr) {
-            const output = tscOutput.stdout + tscOutput.stderr
-            errors.push(...parseTypeScriptErrors(output))
-            severity = 'high'
-          }
-        } catch (e: any) {
-          const output = e.stdout || e.stderr || e.message
-          const tsErrors = parseTypeScriptErrors(output)
-          if (tsErrors.length > 0) {
-            errors.push(...tsErrors)
-            severity = 'high'
-            suggestions.push('Run: npx tsc --noEmit to see detailed errors')
-          }
+      const buildCmd = packageJson.scripts?.build
+      if (await hasProjectFile(projectRoot, 'tsconfig.json')) {
+        suggestions.push('TypeScript project detected — run build or tsc via runtime to collect compiler errors')
+        if (buildCmd) {
+          severity = severity === 'low' ? 'medium' : severity
         }
       }
     }
@@ -236,14 +215,7 @@ export async function buildRepairPlan(projectRoot: string): Promise<RepairPlan> 
   }
 
   if (context.hasGitRepo) {
-    try {
-      const gitStatus = await execCommand('git status --porcelain', { cwd: projectRoot, timeout: 5000 })
-      if (gitStatus.stdout.trim()) {
-        errorAnalysis.suggestions.push('You have uncommitted changes - consider committing or stashing before rebuild')
-      }
-    } catch {
-      // ignore
-    }
+    errorAnalysis.suggestions.push('Git repository detected — review uncommitted changes before applying repair steps')
   }
 
   const autoExecutable = steps.length > 0 && steps.every((s) => s.risk !== 'high')

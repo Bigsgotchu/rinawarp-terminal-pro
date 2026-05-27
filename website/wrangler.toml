@@ -2,6 +2,7 @@
 name = "rinawarp-marketplace"
 main = "workers/router.ts"
 compatibility_date = "2024-01-01"
+account_id = "ba2f14cefa19dbdc42ff88d772410689"
 
 [[routes]]
 pattern = "rinawarptech.com/v1/*"
@@ -17,6 +18,26 @@ zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "rinawarptech.com/releases/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/releases.json"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/download"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/download/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/downloads"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/downloads/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
@@ -77,6 +98,26 @@ zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "www.rinawarptech.com/releases/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/releases.json"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/download"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/download/*"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/downloads"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/downloads/*"
 zone_name = "rinawarptech.com"
 
 [[routes]]
@@ -200,9 +241,9 @@ binding = "RINAWARP_DB"
 database_name = "rinawarp-users"
 database_id = "ca5efe98-909b-4bb5-9182-29cc9dd1fba2"
 
-[[r2_buckets]]
-binding = "RINAWARP_CDN"
-bucket_name = "rinawarp-cdn"
+# BLOCKER: R2 not enabled on this Cloudflare account.
+# Enable at: https://dash.cloudflare.com/?to=/:account/r2
+# Remove this note after enabling.
 
 # Future: Add more KV namespaces for ratings and purchases
 # [[kv_namespaces]]
@@ -215,3 +256,5 @@ bucket_name = "rinawarp-cdn"
 # STRIPE_MI_SOLO_PRICE_ID - Matter Intelligence Solo monthly Stripe price ID
 # STRIPE_MI_TEAM_PRICE_ID - Matter Intelligence Team monthly Stripe price ID
 # STRIPE_MI_ENTERPRISE_PRICE_ID - Matter Intelligence Enterprise Stripe price ID
+[build]
+command = ""
