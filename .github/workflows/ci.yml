@@ -160,6 +160,14 @@ jobs:
           ELECTRON_DISABLE_SANDBOX: "1"
         run: npm run test:e2e:fix-project
 
+      - name: E2E Golden journeys (thread-first proof chain)
+        working-directory: apps/terminal-pro
+        env:
+          CI: "1"
+          RINAWARP_E2E: "1"
+          ELECTRON_DISABLE_SANDBOX: "1"
+        run: npm run e2e:golden
+
   telemetry-e2e:
     runs-on: ubuntu-latest
     env:
