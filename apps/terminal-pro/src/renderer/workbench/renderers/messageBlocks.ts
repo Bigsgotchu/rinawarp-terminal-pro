@@ -9,6 +9,22 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
   if (block.type === 'section-label') {
     return el('div', { class: 'rw-card-section-label' }, block.text)
   }
+  if (block.type === 'cognition') {
+    const list = el('ol', { class: 'rw-cognition-stream', 'aria-live': 'polite' })
+    for (const line of block.lines) {
+      list.appendChild(
+        el(
+          'li',
+          { class: 'rw-cognition-line', dataset: { eventType: line.eventType } },
+          el('span', { class: 'rw-cognition-label' }, line.label),
+        ),
+      )
+    }
+    return list
+  }
+  if (block.type === 'memory-note') {
+    return el('div', { class: 'rw-memory-note', role: 'note' }, block.text)
+  }
   if (block.type === 'agent-step') {
     return el('div', { class: `agent-step ${block.statusClass}` }, block.text)
   }

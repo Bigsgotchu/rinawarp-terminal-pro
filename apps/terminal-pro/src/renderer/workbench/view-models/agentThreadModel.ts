@@ -56,6 +56,9 @@ export type InlineRunViewModel = {
   hasOutput: boolean
   outputText: string
   outputPlaceholder: string
+  cognitionLines: Array<{ label: string; eventType: string }>
+  memoryNote?: string
+  verificationSummary?: string
   banner?: { tone: 'running' | 'attention' | 'verifying'; text: string }
   nextLabel?: string
   topActions: Array<{ label: string; className: string; dataset: Record<string, string | undefined> }>
@@ -242,6 +245,15 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
   const artifactSummary = state.runArtifactSummaryByRunId[run.id] || null
   const receiptId = run.latestReceiptId || run.sessionId || run.id
   const recovery = getRecoveryGuidance(run)
+  const canonicalBlock = state.runBlocksById[run.id]
+  const persistedReceipt = state.executionReceiptsByRunId[run.id]
+  const liveCognition = state.liveCognitionByRunId[run.id] || []
+  const cognitionLines = [
+    ...(canonicalBlock?.timeline
+      .filter((event) => event.cognitionLabel)
+      .map((event) => ({ label: String(event.cognitionLabel), eventType: String(event.type) })) || []),
+    ...liveCognition.map((line) => ({ label: line.label, eventType: line.eventType })),
+  ].filter((line, index, lines) => lines.findIndex((entry) => entry.eventType === line.eventType && entry.label === line.label) === index)
 
   let banner: InlineRunViewModel['banner']
   if (run.status === 'running') {
@@ -284,13 +296,18 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
       : run.status === 'running'
         ? 'Live proof is coming in. Expand this when you want to inspect it.'
         : 'Output is tucked away until you want to inspect it.',
+    cognitionLines,
+    memoryNote: canonicalBlock?.memoryNote,
+    verificationSummary: persistedReceipt?.verificationResults.join(' · '),
     banner,
     nextLabel: run.status === 'failed' || run.status === 'interrupted' ? recovery.bestNextActionLabel : undefined,
     topActions: [
+      { label: 'View logs', className: 'rw-link-btn', dataset: { runToggleOutput: run.id } },
+      { label: 'View receipt', className: 'rw-link-btn', dataset: { runReveal: receiptId } },
       ...(run.status === 'interrupted'
         ? [{ label: recovery.resumeLabel, className: 'rw-link-btn', dataset: { runResume: run.id } }]
         : []),
-      { label: recovery.rerunLabel, className: 'rw-link-btn', dataset: { runRerun: run.id } },
+      { label: 'Replay run', className: 'rw-link-btn', dataset: { runRerun: run.id } },
       ...(run.status === 'failed' || run.status === 'interrupted'
         ? [{ label: 'Fix & retry', className: 'rw-link-btn', dataset: { runFix: run.id } }]
         : []),
@@ -319,9 +336,11 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
       { label: 'Inspect run', className: actionClass('quiet'), dataset: { openRun: run.id } },
     ],
     overflowActions: [
-      { label: 'Open receipt', dataset: { runReveal: receiptId } },
-      { label: 'Open runs folder', dataset: { runFolder: '' } },
-      { label: 'Show diff', dataset: { runDiff: run.id } },
+      { label: 'View diff', dataset: { runDiff: run.id } },
+      { label: 'View receipt', dataset: { runReveal: receiptId } },
+      { label: 'View logs', dataset: { runToggleOutput: run.id } },
+      { label: 'Open workspace folder', dataset: { runFolder: run.projectRoot || run.cwd || '' } },
+      { label: 'Replay run', dataset: { runRerun: run.id } },
     ],
   }
 }

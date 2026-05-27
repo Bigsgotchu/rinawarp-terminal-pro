@@ -2,6 +2,7 @@ export type {
   CapabilityPackModel,
   CenterView,
   ChatMessage,
+  CognitionLine,
   DeploymentState,
   DrawerView,
   ExecutionTraceBlock,
@@ -34,6 +35,15 @@ import type { WorkbenchAction, WorkbenchState } from './types.js'
 import { deriveDeploymentState } from './deploymentState.js'
 import { withFixConfidence } from './fixConfidence.js'
 import { withFixSummary } from './fixSummary.js'
+import {
+  appendThreadItems,
+  chatMessageToThreadItems,
+  threadItemsFromExecutionRecord,
+  upsertThreadCognition,
+  upsertThreadRunBlock,
+} from '../../workbench/store/threadMutations.js'
+import { MAX_THREAD_ITEMS } from '../../workbench/store/threadTypes.js'
+import { recordExecutionMetrics } from '../../workbench/store/executionMetrics.js'
 
 type Listener = (state: WorkbenchState) => void
 
@@ -203,8 +213,20 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
     case 'license/set':
       return { ...state, license: { tier: action.tier, lastCheckedAt: action.lastCheckedAt ?? null } }
 
-    case 'chat/add':
-      return { ...state, chat: [...state.chat, action.msg].slice(-200) }
+    case 'thread/append':
+      return { ...state, thread: [...state.thread, ...action.items].slice(-MAX_THREAD_ITEMS) }
+
+    case 'thread/replace':
+      return { ...state, thread: action.items.slice(-MAX_THREAD_ITEMS) }
+
+    case 'chat/add': {
+      const chat = [...state.chat, action.msg].slice(-200)
+      if (action.syncThread === false) {
+        return { ...state, chat }
+      }
+      const withThread = appendThreadItems(state, chatMessageToThreadItems(action.msg))
+      return { ...state, chat, thread: withThread.thread }
+    }
 
     case 'chat/removeByPrefix':
       return {
@@ -303,12 +325,67 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
       })
     }
 
+    case 'runBlocks/upsert': {
+      const next = {
+        ...state,
+        runBlocksById: {
+          ...state.runBlocksById,
+          [action.block.id]: action.block,
+        },
+      }
+      const withThread = upsertThreadRunBlock(next, action.block, state.workspaceKey)
+      return { ...next, thread: withThread.thread }
+    }
+
+    case 'executionReceipts/upsert': {
+      const runBlock = state.runBlocksById[action.receipt.runId]
+      const nextReceipts = {
+        ...state.executionReceiptsByRunId,
+        [action.receipt.runId]: action.receipt,
+      }
+      const alreadyRecorded = Boolean(state.executionReceiptsByRunId[action.receipt.runId])
+      const executionMetrics = alreadyRecorded
+        ? state.analytics.executionMetrics
+        : recordExecutionMetrics(state.analytics.executionMetrics, action.receipt, runBlock)
+      return {
+        ...state,
+        executionReceiptsByRunId: nextReceipts,
+        analytics: {
+          ...state.analytics,
+          executionMetrics,
+        },
+      }
+    }
+
+    case 'cognition/append': {
+      const previous = state.liveCognitionByRunId[action.runId] || []
+      const duplicate = previous.some(
+        (line) => line.eventType === action.line.eventType && line.label === action.line.label,
+      )
+      if (duplicate) return state
+      const withLive = {
+        ...state,
+        liveCognitionByRunId: {
+          ...state.liveCognitionByRunId,
+          [action.runId]: [...previous, action.line].slice(-32),
+        },
+      }
+      const withThread = upsertThreadCognition(withLive, action.runId, state.workspaceKey, action.line)
+      return { ...withLive, thread: withThread.thread }
+    }
+
     case 'runs/upsert': {
       const index = state.runs.findIndex((run) => run.id === action.run.id)
       const runs = [...state.runs]
       if (index >= 0) runs[index] = { ...runs[index], ...action.run }
       else runs.unshift(action.run)
-      return withDerivedDeployment({ ...state, runs: runs.slice(0, 50) })
+      let next = withDerivedDeployment({ ...state, runs: runs.slice(0, 50) })
+      const block = next.runBlocksById[action.run.id]
+      if (block) {
+        const withThread = upsertThreadRunBlock(next, block, state.workspaceKey)
+        next = { ...next, thread: withThread.thread }
+      }
+      return next
     }
 
     case 'runs/appendOutputTail':

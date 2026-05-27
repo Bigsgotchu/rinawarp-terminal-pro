@@ -67,7 +67,7 @@ export function buildWorkbenchShellChromeModel(state: WorkbenchState): Workbench
   const recoveryFocused = state.activeTab === 'agent' && recoveryMessages.length > 0 && threadMessages.length === 0
   const drawerOpen = state.activeTab === 'agent' && Boolean(state.ui.openDrawer)
   const activeTabs: Record<string, boolean> = {}
-  const tabCandidates: TabKey[] = ['agent', 'runs', 'settings']
+  const tabCandidates: TabKey[] = ['agent', 'settings']
   for (const tab of tabCandidates) {
     activeTabs[tab] = tab === state.activeTab || (tab !== 'agent' && tab !== 'settings' && tab === state.ui.openDrawer)
   }

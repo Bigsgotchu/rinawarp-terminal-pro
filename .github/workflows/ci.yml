@@ -9,6 +9,106 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  enforce:
+    name: Enforce Repo Invariants
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate System Contract Exists
+        run: |
+          test -f rina-system-contract.md
+
+      - name: Validate System Contract Not Empty
+        run: |
+          test -s rina-system-contract.md
+
+      - name: Validate Product Constraint Contract Exists
+        run: |
+          test -f PRODUCT_CONSTRAINT_CONTRACT.md
+
+      - name: Validate Product Constraint Guard
+        run: |
+          node scripts/guards/check-product-constraint-contract.mjs
+
+      - name: 🚫 Reject npm/yarn contamination
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "❌ package-lock.json detected. This repo uses pnpm only."
+            exit 1
+          fi
+          if [ -f yarn.lock ]; then
+            echo "❌ yarn.lock detected. This repo uses pnpm only."
+            exit 1
+          fi
+          echo "✅ No npm/yarn lockfiles detected"
+
+      - name: 🔍 Validate .nvmrc
+        run: |
+          if [ ! -f .nvmrc ]; then
+            echo "❌ .nvmrc missing at repo root"
+            exit 1
+          fi
+          NVMRC_VERSION=$(cat .nvmrc)
+          if [ "$NVMRC_VERSION" != "20" ] && [ "$NVMRC_VERSION" != "20.0.0" ]; then
+            echo "❌ .nvmrc must specify Node 20, found: $NVMRC_VERSION"
+            exit 1
+          fi
+          echo "✅ .nvmrc is correctly set to Node 20"
+
+      - name: 🔍 Validate workspace structure
+        run: |
+          # Check that pnpm-workspace.yaml includes required directories
+          for dir in "apps" "packages" "services"; do
+            if ! grep -q "\"$dir/\\*\"" pnpm-workspace.yaml; then
+              echo "❌ pnpm-workspace.yaml missing workspace entry for $dir/*"
+              exit 1
+            fi
+          done
+          echo "✅ Workspace structure is valid"
+
+      - name: 🔍 Validate engines in package.json files
+        run: |
+          # Check root package.json
+          if ! grep -q '"node":\s*">=20' package.json; then
+            echo "❌ Root package.json missing or incorrect engines.node"
+            exit 1
+          fi
+          if ! grep -q '"pnpm":\s*">=9' package.json; then
+            echo "❌ Root package.json missing or incorrect engines.pnpm"
+            exit 1
+          fi
+
+          # Check all workspace package.json files
+          find apps packages services -name package.json -type f | while read pkgjson; do
+            # Skip if this is a vscode extension (they only need vscode engine)
+            if grep -q '"vscode"' "$pkgjson" && ! grep -q '"node"' "$pkgjson"; then
+              echo "⚠️  $pkgjson is VSCode extension, skipping node check"
+              continue
+            fi
+            if ! grep -q '"node":\s*">=20' "$pkgjson"; then
+              echo "❌ $pkgjson missing or incorrect engines.node"
+              exit 1
+            fi
+          done
+          echo "✅ All package.json files have correct engine constraints"
+
+- name: 🔍 Validate preinstall script
+         run: |
+           if ! grep -q 'only-allow pnpm' package.json; then
+             echo "❌ Root package.json missing preinstall: only-allow pnpm"
+             exit 1
+           fi
+           echo "✅ Preinstall enforcement script is in place"
+
+       - name: 🔍 Block direct LLM calls
+         run: node scripts/guards/check-no-direct-llm-calls.mjs
+
+       - name: 🔍 Block legacy rina runtime bypasses
+         run: node scripts/guards/check-rina-legacy.mjs
+
   validate:
     runs-on: ubuntu-latest
     env:

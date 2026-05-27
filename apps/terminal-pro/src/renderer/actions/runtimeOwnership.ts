@@ -3,6 +3,7 @@ import { recordDebugEvent } from '../services/debugEvidence.js'
 
 export type RuntimeMode = 'auto' | 'assist' | 'explain'
 
+// Everything shown in UI is a reflection of RinaRuntime state, never source of truth.
 export function createRuntimeModeOwner(store: WorkbenchStore) {
   return async (mode: RuntimeMode, options?: { source?: string }): Promise<void> => {
     const source = options?.source || 'unknown'

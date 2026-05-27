@@ -154,7 +154,7 @@ export function TerminalPane() {
   }, [])
 
   return (
-    <section data-testid="terminal" className="flex min-h-0 flex-1 flex-col border-t border-zinc-800 bg-black">
+    <section data-testid="terminal-surface" className="flex min-h-0 flex-1 flex-col border-t border-zinc-800 bg-black">
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950 px-4 text-xs text-zinc-400">
         <span className="font-medium text-zinc-300">Terminal</span>
         <span className="capitalize">{status}</span>

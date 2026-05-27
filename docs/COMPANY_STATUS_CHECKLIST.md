@@ -12,6 +12,7 @@ Use this document to separate:
 
 Related docs:
 
+- [COMPANY_READINESS_CHECKLIST.md](./COMPANY_READINESS_CHECKLIST.md)
 - [COMPANY_STRATEGY_2026-03-29.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STRATEGY_2026-03-29.md)
 - [COMPANY_OPERATING_SYSTEM.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_OPERATING_SYSTEM.md)
 - [BUSINESS_LAUNCH_READINESS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/BUSINESS_LAUNCH_READINESS_CHECKLIST.md)

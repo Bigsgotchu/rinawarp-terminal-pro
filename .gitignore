@@ -5,6 +5,7 @@
 **/.wf_secrets
 **/wrangler/state/
 **/.wrangler/state/
+**/.sentry.properties
 
 # Dependency directories
 node_modules/
@@ -43,6 +44,16 @@ apps/terminal-pro/.cache/
 analytics-funnel.json
 analytics-usage.json
 analytics-device-id.txt
+.rinawarp-test-data/
+
+# Playwright / E2E artifacts (source specs only)
+apps/terminal-pro/e2e/videos/
+apps/terminal-pro/e2e/screenshots/*
+!apps/terminal-pro/e2e/screenshots/.gitkeep
+
+# Wrangler local cache (never commit account metadata)
+website/.wrangler/cache/
+website/wrangler.toml.bak
 
 # Package-specific build artifacts
 packages/*/dist/

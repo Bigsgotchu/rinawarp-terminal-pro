@@ -1,0 +1,43 @@
+name: Safety Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  run-safety-tests:
+    name: Run safety, chaos, and failure tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install deps (package)
+        run: |
+          cd packages/rinawarp-deploy-capabilities
+          pnpm install --frozen-lockfile
+
+      - name: Run chaos tests
+        run: |
+          cd packages/rinawarp-deploy-capabilities
+          pnpm run test:chaos
+
+      - name: Run failure-mode tests
+        run: |
+          cd packages/rinawarp-deploy-capabilities
+          pnpm run test:failure
+
+      - name: Run safety unit tests
+        run: |
+          cd packages/rinawarp-deploy-capabilities
+          pnpm run test:safety

@@ -3,6 +3,7 @@ import { WorkbenchStore } from '../workbench/store.js'
 import type { UserTurnSource } from './conversationOwner.js'
 import { recordDebugEvent } from '../services/debugEvidence.js'
 import { revealReceiptInWorkbench } from '../state/receiptOwnership.js'
+import { copyReceiptSummary, replayRunFromReceipt } from '../state/executionReplay.js'
 import { openRunsFolderOwned } from './utilityOwnership.js'
 
 export function createRunActionHandler(
@@ -201,6 +202,42 @@ export function createRunActionHandler(
         )
       } else {
         store.dispatch({ type: 'ui/setStatusSummary', text: 'Run diff context not available' })
+      }
+      return true
+    }
+
+    const receiptReplayBtn = target.closest<HTMLElement>('[data-receipt-replay]')
+    if (receiptReplayBtn?.dataset.receiptReplay) {
+      recordDebugEvent('ui', 'receipt.replay', { runId: receiptReplayBtn.dataset.receiptReplay })
+      replayRunFromReceipt(store, receiptReplayBtn.dataset.receiptReplay)
+      return true
+    }
+
+    const receiptViewLogsBtn = target.closest<HTMLElement>('[data-receipt-view-logs]')
+    if (receiptViewLogsBtn?.dataset.receiptViewLogs) {
+      recordDebugEvent('ui', 'receipt.view_logs', { runId: receiptViewLogsBtn.dataset.receiptViewLogs })
+      replayRunFromReceipt(store, receiptViewLogsBtn.dataset.receiptViewLogs)
+      return true
+    }
+
+    const receiptViewDiffBtn = target.closest<HTMLElement>('[data-receipt-view-diff]')
+    if (receiptViewDiffBtn?.dataset.receiptViewDiff) {
+      const runId = receiptViewDiffBtn.dataset.receiptViewDiff
+      recordDebugEvent('ui', 'receipt.view_diff', { runId })
+      store.dispatch({ type: 'view/centerSet', view: 'code' })
+      store.dispatch({ type: 'ui/openDrawer', view: 'code' })
+      store.dispatch({ type: 'ui/setStatusSummary', text: `Inspecting diff context for run ${runId}` })
+      return true
+    }
+
+    const receiptCopyBtn = target.closest<HTMLElement>('[data-receipt-copy]')
+    if (receiptCopyBtn?.dataset.receiptCopy) {
+      const summary = copyReceiptSummary(store, receiptCopyBtn.dataset.receiptCopy)
+      if (summary) {
+        void navigator.clipboard.writeText(summary)
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Receipt summary copied.' })
+      } else {
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Receipt summary unavailable.' })
       }
       return true
     }

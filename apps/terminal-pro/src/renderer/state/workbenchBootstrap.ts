@@ -1,5 +1,6 @@
 import { WorkbenchStore, type WorkbenchState } from '../workbench/store.js'
 import { deriveDeploymentState } from '../workbench/deploymentState.js'
+import { EMPTY_EXECUTION_METRICS } from '../../workbench/store/executionMetrics.js'
 
 const WORKBENCH_STORAGE_KEY = 'rinawarp.workbench.state.v1'
 
@@ -56,16 +57,13 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
   const initialState: WorkbenchState = {
     activeTab: 'agent',
     activeCenterView:
-      snapshotActiveCenterView === 'runs' ||
       snapshotActiveCenterView === 'marketplace' ||
       snapshotActiveCenterView === 'code' ||
       snapshotActiveCenterView === 'brain' ||
       snapshotActiveCenterView === 'execution-trace' ||
-      snapshotActiveCenterView === 'terminal'
-        ? snapshotActiveCenterView === 'terminal'
-          ? 'execution-trace'
-          : snapshotActiveCenterView
-        : 'runs',
+      snapshotActiveCenterView === 'receipt'
+        ? snapshotActiveCenterView
+        : 'execution-trace',
     activeRightView: 'agent',
     ui: {
       expandedRunLinksByMessageId:
@@ -92,6 +90,10 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     executionTrace: { blocks: [] },
     fixBlocks: [],
     runs: [],
+    thread: [],
+    runBlocksById: {},
+    executionReceiptsByRunId: {},
+    liveCognitionByRunId: {},
     receipt: null,
     deployment: {
       target: null,
@@ -138,6 +140,9 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
         typeof restoredAnalytics?.firstStarterIntentAt === 'number' ? restoredAnalytics.firstStarterIntentAt : undefined,
       firstProofBackedRunAt:
         typeof restoredAnalytics?.firstProofBackedRunAt === 'number' ? restoredAnalytics.firstProofBackedRunAt : undefined,
+      executionMetrics: restoredAnalytics?.executionMetrics
+        ? { ...EMPTY_EXECUTION_METRICS, ...restoredAnalytics.executionMetrics }
+        : { ...EMPTY_EXECUTION_METRICS },
     },
     brain: { stats: null, events: [] },
     thinking: { active: false, message: '', stream: '' },

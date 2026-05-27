@@ -5,7 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP_DIR="$ROOT_DIR/apps/terminal-pro"
 INSTALLER_DIR="$APP_DIR/dist-electron/installer"
 VERSION="$(node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('$APP_DIR/package.json','utf8')); process.stdout.write(pkg.version)")"
-PUBLIC_INSTALLERS_BUCKET="rinawarp-installers"
+TAG="v$VERSION"
+REPO="${GITHUB_REPOSITORY:-Bigsgotchu/rinawarp-terminal-pro}"
 ALLOW_DIRTY_RELEASE="${RINAWARP_ALLOW_DIRTY_RELEASE:-0}"
 
 cd "$ROOT_DIR"
@@ -35,42 +36,41 @@ if command -v git >/dev/null 2>&1; then
   fi
 fi
 
-corepack pnpm --filter rinawarp-terminal-pro run release:metadata
-
-linux_file="$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.AppImage"
-linux_deb_file="$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.deb"
-windows_file="$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.exe"
-windows_blockmap="$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap"
-checksums_file="$INSTALLER_DIR/SHASUMS256.txt"
-
-if [[ ! -f "$linux_file" ]]; then
-  echo "[publish:desktop-release] Missing $linux_file" >&2
+if ! command -v gh >/dev/null 2>&1; then
+  echo "[publish:desktop-release] GitHub CLI is required for GitHub Releases publishing." >&2
   exit 1
 fi
 
-npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage" --file "$linux_file" --remote --content-type "application/vnd.appimage" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.AppImage" --file "$linux_file" --remote --content-type "application/vnd.appimage" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+corepack pnpm --filter rinawarp-terminal-pro run release:metadata
 
-if [[ -f "$linux_deb_file" ]]; then
-  npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.deb" --file "$linux_deb_file" --remote --content-type "application/vnd.debian.binary-package" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-  npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.deb" --file "$linux_deb_file" --remote --content-type "application/vnd.debian.binary-package" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-fi
+artifacts=(
+  "$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.AppImage"
+  "$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.deb"
+  "$INSTALLER_DIR/latest-linux.yml"
+  "$INSTALLER_DIR/latest.yml"
+  "$INSTALLER_DIR/latest.json"
+  "$INSTALLER_DIR/SHASUMS256.txt"
+)
 
-if [[ -f "$windows_file" ]]; then
-  npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe" --file "$windows_file" --remote --content-type "application/x-msdownload" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-  npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe" --file "$windows_file" --remote --content-type "application/x-msdownload" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-
-  if [[ -f "$windows_blockmap" ]]; then
-    npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap" --file "$windows_blockmap" --remote --content-type "application/octet-stream" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-    npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap" --file "$windows_blockmap" --remote --content-type "application/octet-stream" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+for artifact in "${artifacts[@]}"; do
+  if [[ ! -f "$artifact" ]]; then
+    echo "[publish:desktop-release] Missing required release artifact: $artifact" >&2
+    exit 1
   fi
-else
-  echo "[publish:desktop-release] No Windows installer for v$VERSION on this host; preserving previous Windows download metadata."
+done
+
+release_notes_args=(--notes "RinaWarp Terminal Pro $VERSION desktop release.")
+if [[ -f "$ROOT_DIR/RELEASE_NOTES.md" ]]; then
+  release_notes_args=(--notes-file "$ROOT_DIR/RELEASE_NOTES.md")
 fi
 
-npx wrangler r2 object put "rinawarp-cdn/releases/$VERSION/SHASUMS256.txt" --file "$checksums_file" --remote --content-type "text/plain; charset=utf-8" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
-npx wrangler r2 object put "$PUBLIC_INSTALLERS_BUCKET/releases/$VERSION/SHASUMS256.txt" --file "$checksums_file" --remote --content-type "text/plain; charset=utf-8" --cache-control "public, max-age=31536000, immutable" --config website/wrangler.toml
+if ! gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+  gh release create "$TAG" \
+    --repo "$REPO" \
+    --title "RinaWarp Terminal Pro $VERSION" \
+    "${release_notes_args[@]}"
+fi
 
-bash "$ROOT_DIR/scripts/release/publish-update-metadata.sh"
+gh release upload "$TAG" "${artifacts[@]}" --repo "$REPO" --clobber
 
-echo "[publish:desktop-release] Published RinaWarp Terminal Pro $VERSION"
+echo "[publish:desktop-release] Published RinaWarp Terminal Pro $VERSION to GitHub Release $TAG"

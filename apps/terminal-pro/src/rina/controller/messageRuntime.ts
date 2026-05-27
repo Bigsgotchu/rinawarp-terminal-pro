@@ -1,16 +1,20 @@
+/**
+ * LEGACY INPUT ADAPTER — no tool execution, no CLI, no agent loops.
+ * All execution-shaped requests forward to canonical runtime ingress.
+ */
+
 import type { EventEmitter } from 'events'
 import type { AgentPlan } from '../types.js'
-import type { ReflectionResult } from '../reflection.js'
 import { buildRepairPlan, formatRepairPlan, scanProjectContext, type RepairPlan } from '../repair-planner.js'
-import { explainError } from '../error-explainer.js'
+import { explainError, explainErrorPattern } from '../error-explainer.js'
 import { brainEvents } from '../brain/brainEvents.js'
 import { thinkingStream } from '../thinking/thinkingStream.js'
-import type { RinaResponse, RinaToolsInterface } from '../rina-controller.js'
+import type { RinaResponse } from '../rina-controller.js'
+import { forwardLegacyPrompt, repairPlanExecutionPrompt } from './legacyInputAdapter.js'
 
 type RunAgentRuntimeDeps = {
   planOrCommand: string | AgentPlan
-  mode: 'auto' | 'assist' | 'explain'
-  tools: RinaToolsInterface
+  workspaceRoot: string
   emitter: EventEmitter
   setRunning: (running: boolean) => void
   setCurrentTaskId: (taskId: string | null) => void
@@ -22,12 +26,7 @@ type HandleMessageRuntimeDeps = {
   parseIntent: (message: string) => string
   currentRepairPlan: RepairPlan | null
   setCurrentRepairPlan: (plan: RepairPlan | null) => void
-  executeCurrentRepairPlan: () => Promise<RinaResponse>
-  executeRepairStep: (stepId: string) => Promise<RinaResponse>
-  executeIntentCommand: (intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze') => Promise<RinaResponse>
   getStatus: () => unknown
-  mode: 'auto' | 'assist' | 'explain'
-  tools: RinaToolsInterface
 }
 
 export async function runAgentRuntime(deps: RunAgentRuntimeDeps) {
@@ -35,85 +34,35 @@ export async function runAgentRuntime(deps: RunAgentRuntimeDeps) {
   const taskId = `task-${Date.now()}`
   deps.setCurrentTaskId(taskId)
 
-  thinkingStream.stream(`Starting agent: ${typeof deps.planOrCommand === 'string' ? deps.planOrCommand : deps.planOrCommand.id}`)
+  const label =
+    typeof deps.planOrCommand === 'string' ? deps.planOrCommand : deps.planOrCommand.id || 'agent-plan'
+  thinkingStream.stream(`Forwarding agent request to runtime: ${label}`)
 
   try {
-    deps.emitter.emit('agent:event', { type: 'stepStarted', step: 'initializing', taskId })
+    deps.emitter.emit('agent:event', { type: 'stepStarted', step: 'runtime.forward', taskId })
+    brainEvents.emitEvent('intent', `Forwarding to runtime: ${label}`, { taskId })
 
-    let result
+    const prompt =
+      typeof deps.planOrCommand === 'string'
+        ? deps.planOrCommand
+        : (deps.planOrCommand.steps || []).map((step) => String(step)).join('\n')
 
-    if (typeof deps.planOrCommand === 'string') {
-      brainEvents.emitEvent('intent', `Executing: ${deps.planOrCommand}`, { taskId })
-      const terminalResult = await deps.tools.terminal.runCommand(deps.planOrCommand, deps.mode)
-      result = {
-        ok: terminalResult.ok,
-        output: terminalResult.output,
-        error: terminalResult.error,
-      }
-    } else {
-      const steps = deps.planOrCommand.steps || []
-      const reflections: ReflectionResult['insights'] = []
+    const response = await forwardLegacyPrompt(prompt, deps.workspaceRoot, 'agent')
 
-      for (let i = 0; i < steps.length; i += 1) {
-        const step = steps[i]
-        deps.emitter.emit('agent:event', { type: 'stepStarted', step, taskId })
-        brainEvents.emitEvent('execution', `Step ${i + 1}/${steps.length}: ${step}`, { taskId, step })
+    deps.emitter.emit('agent:event', {
+      type: response.ok ? 'stepCompleted' : 'stepFailed',
+      step: 'runtime.forward',
+      taskId,
+      error: response.error,
+    })
+    brainEvents.emitEvent('result', `Runtime forward completed: ${label}`, {
+      taskId,
+      success: response.ok,
+    })
 
-        try {
-          const stepResult = await deps.tools.terminal.runCommand(String(step), deps.mode)
-          reflections.push({
-            stepId: step,
-            stepDescription: step,
-            feedback: [String(stepResult.output || stepResult.error || '')],
-            severity: 'info',
-          })
-          deps.emitter.emit('agent:event', { type: 'stepCompleted', step, taskId })
-        } catch (stepError) {
-          deps.emitter.emit('agent:event', { type: 'stepFailed', step, error: stepError, taskId })
-          brainEvents.emitEvent('error', `Step failed: ${step}`, { taskId, step, error: stepError })
-          reflections.push({
-            stepId: step,
-            stepDescription: step,
-            feedback: [stepError instanceof Error ? stepError.message : String(stepError)],
-            severity: 'error',
-          })
-        }
-      }
-
-      const reflection: ReflectionResult = {
-        taskId,
-        insights: reflections,
-        nextActions: ['Review results', 'Continue or abort'],
-        success: reflections.every((entry) => entry.severity !== 'error'),
-        performanceMetrics: {
-          totalDurationMs: steps.length * 1000,
-          expectedDurationMs: steps.length * 800,
-          stepsOverExpected: 0,
-        },
-      }
-
-      result = {
-        reflection,
-        success: reflection.success,
-        summary: {
-          totalSteps: steps.length,
-          successfulSteps: reflections.filter((entry) => entry.severity !== 'error').length,
-          failedSteps: reflections.filter((entry) => entry.severity === 'error').length,
-          durationMs: steps.length * 1000,
-        },
-        ok: reflection.success,
-      }
-    }
-
-    brainEvents.emitEvent(
-      'result',
-      `Agent completed: ${typeof deps.planOrCommand === 'string' ? deps.planOrCommand : deps.planOrCommand.id}`,
-      { taskId, success: result && 'ok' in result ? result.ok : true },
-    )
-
-    return result
+    return response
   } catch (error) {
-    brainEvents.emitEvent('error', 'Agent execution failed', { taskId, error })
+    brainEvents.emitEvent('error', 'Runtime forward failed', { taskId, error })
     throw error
   } finally {
     deps.setRunning(false)
@@ -124,11 +73,12 @@ export async function runAgentRuntime(deps: RunAgentRuntimeDeps) {
 export async function handleMessageRuntime(deps: HandleMessageRuntimeDeps): Promise<RinaResponse> {
   thinkingStream.stream(`Processing: ${deps.message}`)
   const intent = deps.parseIntent(deps.message)
+  const root = deps.workspaceRoot
 
   try {
     switch (intent) {
       case 'fix':
-        if (!deps.workspaceRoot) {
+        if (!root) {
           return {
             ok: false,
             intent,
@@ -137,8 +87,8 @@ export async function handleMessageRuntime(deps: HandleMessageRuntimeDeps): Prom
         }
 
         try {
-          const context = await scanProjectContext(deps.workspaceRoot)
-          const plan = await buildRepairPlan(deps.workspaceRoot)
+          const context = await scanProjectContext(root)
+          const plan = await buildRepairPlan(root)
           deps.setCurrentRepairPlan(plan)
           return {
             ok: true,
@@ -159,27 +109,45 @@ export async function handleMessageRuntime(deps: HandleMessageRuntimeDeps): Prom
         }
 
       case 'fix-run':
-        return deps.executeCurrentRepairPlan()
+        if (!deps.currentRepairPlan) {
+          return {
+            ok: false,
+            intent,
+            error: 'No repair plan available. Run "rina fix" first.',
+          }
+        }
+        if (!root) {
+          return { ok: false, intent, error: 'No workspace set.' }
+        }
+        return forwardLegacyPrompt(repairPlanExecutionPrompt(deps.currentRepairPlan), root, intent)
 
       case 'fix-step': {
         const stepIdMatch = deps.message.match(/fix[\s-]step[\s-](\d+)/i)
-        if (stepIdMatch) {
-          const stepIndex = parseInt(stepIdMatch[1]) - 1
-          if (deps.currentRepairPlan && stepIndex >= 0 && stepIndex < deps.currentRepairPlan.steps.length) {
-            const step = deps.currentRepairPlan.steps[stepIndex]
-            return deps.executeRepairStep(step.id)
-          }
+        if (!stepIdMatch) {
+          return { ok: false, intent, error: 'Usage: rina fix step <number>' }
+        }
+        if (!deps.currentRepairPlan) {
+          return { ok: false, intent, error: 'No repair plan available. Run "rina fix" first.' }
+        }
+        if (!root) {
+          return { ok: false, intent, error: 'No workspace set.' }
+        }
+
+        const stepIndex = parseInt(stepIdMatch[1], 10) - 1
+        const step = deps.currentRepairPlan.steps[stepIndex]
+        if (!step) {
           return {
             ok: false,
             intent,
             error: `Step ${stepIdMatch[1]} not found in repair plan.`,
           }
         }
-        return {
-          ok: false,
+
+        return forwardLegacyPrompt(
+          repairPlanExecutionPrompt(deps.currentRepairPlan, step),
+          root,
           intent,
-          error: 'Usage: rina fix step <number>',
-        }
+        )
       }
 
       case 'explain': {
@@ -195,15 +163,21 @@ export async function handleMessageRuntime(deps: HandleMessageRuntimeDeps): Prom
           }
         }
 
-        try {
-          const explanation = await explainError(errorText, deps.workspaceRoot)
+        const pattern = explainErrorPattern(errorText)
+        if (pattern) {
           return {
             ok: true,
             intent,
-            output: {
-              message: explanation,
-              originalError: errorText,
-            },
+            output: { message: pattern, originalError: errorText },
+          }
+        }
+
+        try {
+          const explanation = await explainError(errorText, root)
+          return {
+            ok: true,
+            intent,
+            output: { message: explanation, originalError: errorText },
           }
         } catch (error) {
           return {
@@ -219,14 +193,10 @@ export async function handleMessageRuntime(deps: HandleMessageRuntimeDeps): Prom
       case 'deploy':
       case 'analyze':
       case 'lint':
-        return deps.executeIntentCommand(intent)
+        return forwardLegacyPrompt(`Run workspace ${intent} for this project.`, root || process.cwd(), intent)
 
       case 'status':
-        return {
-          ok: true,
-          intent,
-          output: deps.getStatus(),
-        }
+        return { ok: true, intent, output: deps.getStatus() }
 
       case 'help':
         return {
@@ -236,21 +206,14 @@ export async function handleMessageRuntime(deps: HandleMessageRuntimeDeps): Prom
             commands: ['build', 'test', 'deploy', 'analyze', 'lint', 'status', 'help', 'fix', 'explain'],
             description: 'Available commands',
             newCommands: {
-              fix: 'Automatically detect and fix project errors',
-              explain: 'Explain an error message in plain English',
+              fix: 'Plan repairs via runtime (run with fix-run)',
+              explain: 'Explain an error message via runtime',
             },
           },
         }
 
-      default: {
-        const execResult = await deps.tools.terminal.runCommand(deps.message, deps.mode)
-        return {
-          ok: execResult.ok,
-          intent: 'execute',
-          output: execResult.output,
-          error: execResult.error,
-        }
-      }
+      default:
+        return forwardLegacyPrompt(deps.message, root || process.cwd(), 'execute')
     }
   } catch (error) {
     return {

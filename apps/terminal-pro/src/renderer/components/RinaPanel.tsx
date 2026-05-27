@@ -1,4 +1,5 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import type { RuntimeEvent } from '@rinawarp/rina-runtime/ipc'
 
 type RiskLevel = 'read' | 'safe-write' | 'destructive'
 
@@ -68,16 +69,57 @@ type CleanupState = {
   verification?: PortDiagnostic
 }
 
+type AgentPatchProposal = {
+  request?: any
+  payload?: {
+    path?: string
+    summary?: string
+    unifiedDiff?: string
+    riskLabel?: string
+    rollbackNotes?: string
+    verificationCommand?: string
+    filesTouched?: string[]
+    failureExplanation?: {
+      file?: string | null
+      line?: number | null
+      cause?: string
+      plainEnglish?: string
+    }
+    diffSummary?: string
+    approvalBoundaryMessage?: string
+    trustIndicators?: string[]
+    minimalPatchPolicy?: string
+  }
+}
+
 interface RinaPanelProps {
   status: 'idle' | 'checking' | 'ready' | 'error'
   diagnostic: DiskDiagnostic | null
   portDiagnostic: PortDiagnostic | null
+  agentPatchProposal?: AgentPatchProposal | null
+  agentPatchOutcome?: 'approval-completed' | 'denied' | null
+  runtimeEvents?: RuntimeEvent[]
+  runBlocks?: Array<{
+    runId: string
+    intent: string
+    status: 'planned' | 'running' | 'success' | 'failed'
+    steps: string[]
+    logs?: string
+    diff?: string
+    exitCode?: number
+    receipt: {
+      artifacts: string[]
+      rollback?: boolean
+    }
+  }>
   error?: string
   messages: Array<{ id: string; role: 'user' | 'rina'; text: string }>
   isChatBusy: boolean
   onSubmitPrompt: (prompt: string) => Promise<boolean | void>
   onRunDiskDiagnostic: () => Promise<void>
   onPortActionResult: (message: string) => void
+  onApprovePatch?: () => Promise<void>
+  onDenyPatch?: () => void
 }
 
 function riskClass(risk: RiskLevel): string {
@@ -105,20 +147,57 @@ function rollbackLabel(action: CommandPlan): string {
   return 'Rollback boundary not declared'
 }
 
+function runtimeEventLabel(event: RuntimeEvent): string {
+  switch (event.type) {
+    case 'intent.created':
+      return 'Intent received'
+    case 'intent.resolved':
+      return 'Intent resolved'
+    case 'policy.evaluated':
+      return `Policy evaluated: ${event.decision}`
+    case 'transaction.created':
+      return 'Transaction created'
+    case 'execution.started':
+      return 'Execution started'
+    case 'execution.progress':
+      return event.message
+    case 'execution.completed':
+      return 'Execution completed'
+    case 'execution.failed':
+      return `Execution failed: ${event.error}`
+    case 'transaction.rolled_back':
+      return 'Rollback completed'
+  }
+}
+
 export function RinaPanel({
   status,
   diagnostic,
   portDiagnostic,
+  agentPatchProposal,
+  agentPatchOutcome,
+  runtimeEvents = [],
+  runBlocks = [],
   error,
   messages,
   isChatBusy,
   onSubmitPrompt,
   onRunDiskDiagnostic,
   onPortActionResult,
+  onApprovePatch,
+  onDenyPatch,
 }: RinaPanelProps) {
   const [cleanupStates, setCleanupStates] = useState<Record<string, CleanupState>>({})
   const [portActionStates, setPortActionStates] = useState<Record<string, CleanupState>>({})
   const [draft, setDraft] = useState('')
+  const [showFullAgentDiff, setShowFullAgentDiff] = useState(false)
+  const patchProposalRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (agentPatchProposal?.payload) {
+      patchProposalRef.current?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [agentPatchProposal])
 
   const submitDraft = async (event?: FormEvent) => {
     event?.preventDefault()
@@ -298,21 +377,179 @@ export function RinaPanel({
           </form>
         </section>
 
+        {runtimeEvents.length > 0 && (
+          <section data-testid="lifecycle-timeline" className="space-y-2 border border-zinc-800 bg-zinc-950/70 p-3">
+            <h3 className="text-xs font-semibold uppercase text-zinc-500">Runtime lifecycle</h3>
+            <div className="space-y-1.5">
+              {runtimeEvents.map((event, index) => (
+                <div
+                  key={`${event.type}-${index}`}
+                  data-testid={event.type === 'transaction.rolled_back' ? 'rollback-indicator' : `runtime-event-${event.type}`}
+                  className={`flex items-start justify-between gap-2 border px-2 py-1.5 text-xs ${
+                    event.type === 'transaction.rolled_back'
+                      ? 'border-cyan-500/35 bg-cyan-500/10 text-cyan-100'
+                      : 'border-zinc-800 bg-zinc-900/50 text-zinc-200'
+                  }`}
+                >
+                  <span>{runtimeEventLabel(event)}</span>
+                  {'transactionId' in event && (
+                    <code data-testid="transaction-id" className="shrink-0 text-[11px] text-zinc-400">
+                      {event.transactionId}
+                    </code>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {runBlocks.length > 0 && (
+          <section data-testid="run-blocks" className="space-y-2 border border-zinc-800 bg-zinc-950/70 p-3">
+            <h3 className="text-xs font-semibold uppercase text-zinc-500">Run blocks</h3>
+            <div className="space-y-2">
+              {runBlocks.map((block) => (
+                <details key={block.runId} className="border border-zinc-800 bg-zinc-900/50 p-2 text-xs text-zinc-200">
+                  <summary className="cursor-pointer">
+                    <span className="font-medium">{block.intent}</span>
+                    <span className="ml-2 text-zinc-400">[{block.status}] runId={block.runId}</span>
+                  </summary>
+                  <div className="mt-2 space-y-1">
+                    <div>exitCode: {typeof block.exitCode === 'number' ? block.exitCode : 'n/a'}</div>
+                    <div>rollback: {block.receipt.rollback ? 'yes' : 'no'}</div>
+                    <div>artifacts: {block.receipt.artifacts.join(', ') || 'none'}</div>
+                    <div className="text-zinc-400">steps: {block.steps.join(' -> ')}</div>
+                    {block.logs && <pre className="whitespace-pre-wrap border border-zinc-800 bg-black p-2">{block.logs}</pre>}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {agentPatchProposal?.payload && (
+          <section ref={patchProposalRef} data-testid="agent-patch-proposal" className="space-y-2">
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-zinc-500">Patch proposal</h3>
+              <p className="mt-1 text-sm text-zinc-200">
+                {agentPatchProposal.payload.failureExplanation?.plainEnglish ||
+                  'Rina found a TypeScript build fix. Review the diff before approving any file change.'}
+              </p>
+            </div>
+            <div className="border border-amber-500/30 bg-amber-500/5 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h4 className="text-sm font-medium text-zinc-100">{agentPatchProposal.payload.path || 'Workspace file'}</h4>
+                  <p className="mt-1 text-xs text-zinc-400">{agentPatchProposal.payload.summary || 'Proposed safe patch'}</p>
+                  {agentPatchProposal.payload.diffSummary && (
+                    <p className="mt-1 text-xs text-cyan-100">{agentPatchProposal.payload.diffSummary}</p>
+                  )}
+                </div>
+                <span className="shrink-0 rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-200">
+                  {agentPatchProposal.payload.riskLabel || 'safe-write'}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                {(agentPatchProposal.payload.trustIndicators || ['Read-only inspection', 'Awaiting approval']).map((indicator) => (
+                  <span key={indicator} className="border border-cyan-500/25 bg-cyan-500/10 px-2 py-1 text-cyan-100">
+                    {indicator}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-3 border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-100">
+                {agentPatchProposal.payload.approvalBoundaryMessage || 'No files have been modified yet.'}
+              </p>
+              <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap border border-zinc-800 bg-black p-2 text-[11px] text-zinc-200">
+                {(agentPatchProposal.payload.unifiedDiff || 'No diff preview available.')
+                  .split('\n')
+                  .slice(0, showFullAgentDiff ? undefined : 80)
+                  .map((line, index) => {
+                    const color = line.startsWith('+') && !line.startsWith('+++')
+                      ? 'text-emerald-200'
+                      : line.startsWith('-') && !line.startsWith('---')
+                        ? 'text-red-200'
+                        : 'text-zinc-300'
+                    return <span key={`${index}-${line}`} className={`block ${color}`}>{line || ' '}</span>
+                  })}
+              </pre>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  data-testid="approve-agent-patch"
+                  onClick={() => void onApprovePatch?.()}
+                  disabled={isChatBusy}
+                  className="rounded border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-100 hover:bg-emerald-500/20 disabled:cursor-wait disabled:border-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-500"
+                >
+                  {isChatBusy ? 'Applying approved patch...' : 'Approve Patch'}
+                </button>
+                <button
+                  type="button"
+                  data-testid="deny-agent-patch"
+                  onClick={() => onDenyPatch?.()}
+                  disabled={isChatBusy}
+                  className="rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800 disabled:cursor-wait disabled:text-zinc-500"
+                >
+                  Deny
+                </button>
+                <button
+                  type="button"
+                  data-testid="view-full-agent-diff"
+                  onClick={() => setShowFullAgentDiff((current) => !current)}
+                  className="rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
+                >
+                  {showFullAgentDiff ? 'Hide Full Diff' : 'View Full Diff'}
+                </button>
+              </div>
+              <div className="mt-3 grid gap-2 text-xs text-zinc-300">
+                <p>
+                  <span className="text-zinc-500">Verification:</span>{' '}
+                  {agentPatchProposal.payload.verificationCommand || 'No verification command attached'}
+                </p>
+                <p>
+                  <span className="text-zinc-500">Rollback:</span>{' '}
+                  {agentPatchProposal.payload.rollbackNotes || 'Rina will not apply anything until you approve.'}
+                </p>
+                <p>
+                  <span className="text-zinc-500">Patch scope:</span>{' '}
+                  {agentPatchProposal.payload.minimalPatchPolicy || 'Smallest practical edit only.'}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="space-y-3">
           <div>
             <h3 className="text-xs font-semibold uppercase text-zinc-500">Current flow</h3>
-            <p className="mt-1 text-sm text-zinc-200">
+            <p
+              data-testid={
+                agentPatchOutcome === 'denied'
+                  ? 'mutation-denied-message'
+                  : agentPatchOutcome === 'approval-completed'
+                    ? 'mutation-approved-message'
+                    : undefined
+              }
+              className="mt-1 text-sm text-zinc-200"
+            >
               {status === 'idle' && 'Ask "Why is my disk full?" or "What is using port 3000?" to start a safe check.'}
               {status === 'checking' && 'Inspecting disk usage with read-only commands. No cleanup is running.'}
               {status === 'ready' &&
                 (portDiagnostic?.summary ||
                   diagnostic?.summary ||
-                  'Inspection complete. Review evidence before approving any action.')}
+                  (agentPatchOutcome === 'approval-completed'
+                    ? 'Approval decision completed. Review the result and rollback evidence above.'
+                    : agentPatchOutcome === 'denied'
+                      ? 'Patch denied. No file mutation occurred.'
+                      : 'Inspection complete. Review evidence before approving any action.'))}
               {status === 'error' && (error || 'Inspection failed before any action ran.')}
             </p>
-            {status === 'ready' && (
+            {status === 'ready' && !agentPatchOutcome && (
               <p className="mt-2 text-xs text-cyan-100">
                 No cleanup has run. No action has run. Rina is waiting for your approval.
+              </p>
+            )}
+            {status === 'ready' && agentPatchOutcome === 'approval-completed' && (
+              <p className="mt-2 text-xs text-cyan-100">
+                Rina is no longer waiting for approval for this proposal.
               </p>
             )}
           </div>

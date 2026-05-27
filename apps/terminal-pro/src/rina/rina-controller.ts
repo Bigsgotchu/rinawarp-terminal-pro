@@ -14,7 +14,6 @@ import {
   buildDeviceId,
   buildStats,
   getPlansForWorkspace,
-  getProjectCommand,
   parseIntent,
 } from './controller/projectRuntime.js'
 import {
@@ -110,34 +109,10 @@ class RinaController {
     return getPlansForWorkspace(this.workspaceRoot, projectMemory)
   }
 
-  private async getProjectCommand(intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'): Promise<string> {
-    return await getProjectCommand({
-      workspaceRoot: this.workspaceRoot,
-      intent,
-      projectMemory,
-    })
-  }
-
-  private async executeIntentCommand(intent: 'build' | 'test' | 'lint' | 'deploy' | 'analyze'): Promise<RinaResponse> {
-    const command = await this.getProjectCommand(intent)
-    const result = await this.tools.terminal.runCommand(command, this.mode)
-    return {
-      ok: result.ok,
-      intent,
-      output: {
-        command,
-        output: result.output,
-        success: result.ok,
-      },
-      error: result.error,
-    }
-  }
-
   async runAgent(planOrCommand: string | AgentPlan) {
     return runAgentRuntime({
       planOrCommand,
-      mode: this.mode,
-      tools: this.tools,
+      workspaceRoot: this.workspaceRoot,
       emitter: this.emitter,
       setRunning: (running) => {
         this.isRunning = running
@@ -157,12 +132,7 @@ class RinaController {
       setCurrentRepairPlan: (plan) => {
         this.currentRepairPlan = plan
       },
-      executeCurrentRepairPlan: () => this.executeCurrentRepairPlan(),
-      executeRepairStep: (stepId) => this.executeRepairStep(stepId),
-      executeIntentCommand: (intent) => this.executeIntentCommand(intent),
       getStatus: () => this.getStatus(),
-      mode: this.mode,
-      tools: this.tools,
     })
   }
 

@@ -64,4 +64,4 @@ artifactName: "RinaWarp-Terminal-Pro-${version}.${ext}"
 
 publish:
   provider: generic
-  url: https://rinawarptech.com/releases
+  url: https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/latest/download

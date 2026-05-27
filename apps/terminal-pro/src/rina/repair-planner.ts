@@ -1,12 +1,10 @@
 /**
- * RinaWarp Repair Planner
- *
- * Analyzes project errors and builds automated repair plans.
- * Core component of the "Autonomous Dev Fix" viral feature.
+ * Repair planning — read-only analysis and plan shaping (no shell execution).
  */
 
 export { analyzeErrors, buildRepairPlan, scanProjectContext } from './repair-plan-runtime.js'
-export { executeRepairPlan, executeRepairStep, formatRepairPlan } from './repair-execution.js'
+export { formatRepairPlan } from './repair-format.js'
+
 export interface ProjectContext {
   root: string
   type: 'node' | 'python' | 'rust' | 'go' | 'docker' | 'unknown'

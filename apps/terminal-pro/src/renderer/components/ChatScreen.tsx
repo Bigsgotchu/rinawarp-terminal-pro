@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import type { RinaExecutionEvent, RinaExecutionRecord } from '@rinawarp/rina-core'
 import { HeaderBar } from './HeaderBar'
 import { InputBar } from './InputBar'
 import { RinaPanel } from './RinaPanel'
@@ -16,6 +17,12 @@ import {
   repoUnderstandingResponse,
   unsupportedCapabilityResponse,
 } from '../services/conversationalIntelligence'
+import {
+  receiptSummaryLine,
+  runBlockFromExecutionRecord,
+  type RunBlock,
+} from '../execution/executionDisplay'
+import { submitAnalyzeIntent } from '../services/rinaIngressClient'
 
 interface ChatScreenProps {
   onResumeFix?: () => void
@@ -27,6 +34,10 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
   const [diagnosticStatus, setDiagnosticStatus] = useState<'idle' | 'checking' | 'ready' | 'error'>('idle')
   const [diagnostic, setDiagnostic] = useState<any>(null)
   const [portDiagnostic, setPortDiagnostic] = useState<any>(null)
+  const [agentPatchProposal, setAgentPatchProposal] = useState<any>(null)
+  const [agentPatchOutcome, setAgentPatchOutcome] = useState<'approval-completed' | 'denied' | null>(null)
+  const [runtimeEvents, setRuntimeEvents] = useState<RinaExecutionEvent[]>([])
+  const [runBlocks, setRunBlocks] = useState<RunBlock[]>([])
   const [diagnosticError, setDiagnosticError] = useState<string | undefined>()
   const [isChatBusy, setIsChatBusy] = useState(false)
   const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'rina'; text: string }>>([
@@ -146,6 +157,7 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
       }
 
       if (taskKind === 'port_conflict') {
+        setAgentPatchProposal(null)
         const port = extractPort(trimmed)
         if (!port) {
           appendMessage('rina', 'Which port should I inspect? Send a port number, for example: "What is using port 3000?"')
@@ -171,6 +183,7 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
       }
 
       if (taskKind === 'disk_recovery') {
+        setAgentPatchProposal(null)
         setIsChatBusy(true)
         appendMessage(
           'rina',
@@ -191,7 +204,40 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
       }
 
       if (taskKind === 'failed_build') {
-        appendMessage('rina', buildFailedBuildPreview(taskRequest, 'pnpm'))
+        setIsChatBusy(true)
+        setAgentPatchProposal(null)
+        setAgentPatchOutcome(null)
+        setRuntimeEvents([])
+        setDiagnosticStatus('checking')
+        appendMessage('rina', 'I’ll inspect the repo and run the safest TypeScript build diagnostic first. I will stop at a diff and ask before changing anything.')
+        try {
+          const workspace = await window.rina.workspaceDefault?.()
+          const projectRoot = workspace?.path || taskRequest.cwd
+          const record = await submitAnalyzeIntent(window.rina, trimmed, projectRoot, taskRequest.id)
+          setRuntimeEvents(record.events)
+          setRunBlocks((current) => [...current, runBlockFromExecutionRecord(record, trimmed)])
+          if (!record.outcome) {
+            appendMessage('rina', buildFailedBuildPreview(taskRequest, 'pnpm'))
+            setDiagnosticStatus('ready')
+            return true
+          }
+          appendMessage('rina', record.outcome.explanation || 'I inspected the build and prepared the next safe step.')
+          if (record.outcome.pendingApproval?.kind === 'file_patch') {
+            setAgentPatchProposal({
+              request: record.outcome.request,
+              payload: record.outcome.pendingApproval.payload,
+            })
+          }
+          setDiagnosticStatus('ready')
+        } catch (caught) {
+          setDiagnosticStatus('error')
+          appendMessage(
+            'rina',
+            `I could not finish the build inspection. ${caught instanceof Error ? caught.message : String(caught)}`
+          )
+        } finally {
+          setIsChatBusy(false)
+        }
         return true
       }
 
@@ -219,6 +265,32 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
     },
     [appendMessage, createTaskRequest, runDiskRecoveryTask, runPortRecoveryTask]
   )
+
+  const handleApprovePatch = useCallback(async () => {
+    if (!agentPatchProposal) return
+    setIsChatBusy(true)
+    try {
+      appendMessage('rina', 'Applying approved patch...')
+      const record = (await window.rina.agentApprovePatch?.(agentPatchProposal)) as RinaExecutionRecord
+      setRuntimeEvents((events) => [...events, ...record.events])
+      setRunBlocks((current) => [...current, runBlockFromExecutionRecord(record, 'approved patch mutation')])
+      appendMessage('rina', record.outcome?.explanation || 'Patch approval completed.')
+      const receiptLine = receiptSummaryLine(record)
+      if (receiptLine) appendMessage('rina', receiptLine)
+      setAgentPatchOutcome('approval-completed')
+      setAgentPatchProposal(null)
+    } catch (caught) {
+      appendMessage('rina', `I could not apply the approved patch. ${caught instanceof Error ? caught.message : String(caught)}`)
+    } finally {
+      setIsChatBusy(false)
+    }
+  }, [agentPatchProposal, appendMessage])
+
+  const handleDenyPatch = useCallback(() => {
+    setAgentPatchProposal(null)
+    setAgentPatchOutcome('denied')
+    appendMessage('rina', 'Patch denied. No file mutation occurred.')
+  }, [appendMessage])
 
   const handleRunDiskDiagnostic = useCallback(async () => {
     setIsChatBusy(true)
@@ -252,12 +324,18 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
           status={diagnosticStatus}
           diagnostic={diagnostic}
           portDiagnostic={portDiagnostic}
+          agentPatchProposal={agentPatchProposal}
+          agentPatchOutcome={agentPatchOutcome}
+          runtimeEvents={runtimeEvents}
+          runBlocks={runBlocks}
           error={diagnosticError}
           messages={messages}
           isChatBusy={isChatBusy}
           onSubmitPrompt={handlePrompt}
           onRunDiskDiagnostic={handleRunDiskDiagnostic}
           onPortActionResult={(message) => appendMessage('rina', message)}
+          onApprovePatch={handleApprovePatch}
+          onDenyPatch={handleDenyPatch}
         />
       </div>
       <InputBar onSubmitPrompt={handleBottomPrompt} />

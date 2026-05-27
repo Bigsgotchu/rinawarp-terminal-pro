@@ -1,37 +1,47 @@
-import { terminalTool } from '../tools/terminal.js'
-import { filesystemTool } from '../tools/filesystem.js'
 import { commandMemory } from '../learning/commandMemory.js'
 import { thinkingStream } from '../thinking/thinkingStream.js'
 import { brainEvents } from '../brain/brainEvents.js'
 import { safetyCheck, type ExecutionMode } from '../safety.js'
 import type { CreateRinaToolsDeps, RinaToolsInterface, ToolResult } from './types.js'
+import { forwardLegacyPrompt } from './legacyInputAdapter.js'
+
+function responseOutputText(output: unknown): string {
+  if (typeof output === 'string') return output
+  if (output == null) return ''
+  try {
+    return JSON.stringify(output)
+  } catch {
+    return String(output)
+  }
+}
 
 export async function executeTerminalCommandRuntime(
   command: string,
   _args: string[],
   mode: ExecutionMode,
-  workspaceRoot: string
+  workspaceRoot: string,
 ): Promise<ToolResult> {
   const safety = safetyCheck(command, mode)
   if (safety.blocked) {
     return { ok: false, error: safety.reason }
   }
 
-  thinkingStream.stream(`Executing: ${command}`)
+  if (mode === 'explain') {
+    return { ok: true, output: `Would run via runtime: ${command}` }
+  }
+
+  thinkingStream.stream(`Forwarding command to runtime: ${command}`)
 
   try {
-    const result = await terminalTool.execute(
-      { intent: 'terminal-execute', tool: 'terminal', input: { command, mode } },
-      { mode, workspaceRoot }
-    )
-
-    commandMemory.record(command, result.ok)
-    brainEvents.emitEvent('execution', `Command executed: ${command}`, { success: result.ok })
+    const response = await forwardLegacyPrompt(command, workspaceRoot || process.cwd(), 'execute')
+    const ok = response.ok
+    commandMemory.record(command, ok)
+    brainEvents.emitEvent('execution', `Command forwarded: ${command}`, { success: ok })
 
     return {
-      ok: result.ok,
-      output: result.output,
-      error: result.error,
+      ok,
+      output: responseOutputText(response.output),
+      error: response.error,
     }
   } catch (err) {
     commandMemory.record(command, false)
@@ -44,20 +54,36 @@ export async function executeFilesystemOperationRuntime(
   path: string,
   content: string | undefined,
   mode: 'auto' | 'assist' | 'explain',
-  workspaceRoot: string
+  workspaceRoot: string,
 ): Promise<ToolResult> {
-  thinkingStream.stream(`Filesystem: ${action} ${path}`)
+  thinkingStream.stream(`Filesystem ${action}: ${path}`)
+
+  if (mode === 'explain') {
+    return { ok: true, output: `Would ${action} ${path} via runtime` }
+  }
+
+  if (mode === 'assist') {
+    return {
+      ok: true,
+      output: `Ready to ${action} ${path} through runtime after approval`,
+      requiresConfirmation: true,
+    } as ToolResult
+  }
+
+  const prompt = [
+    `Filesystem ${action} request.`,
+    `Path: ${path}`,
+    content != null ? `Content length: ${content.length} chars` : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
 
   try {
-    const result = await filesystemTool.execute(
-      { intent: 'filesystem-operation', tool: 'filesystem', input: { action, path, content } },
-      { mode, workspaceRoot }
-    )
-
+    const response = await forwardLegacyPrompt(prompt, workspaceRoot || process.cwd(), 'mutate')
     return {
-      ok: result.ok,
-      output: result.output,
-      error: result.error,
+      ok: response.ok,
+      output: responseOutputText(response.output),
+      error: response.error,
     }
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
@@ -98,10 +124,10 @@ export function createRinaTools(deps: CreateRinaToolsDeps): RinaToolsInterface {
     },
     system: {
       getSystemInfo: () => deps.getSystemInfo(),
-      rebootSystem: async (_mode: string) => ({ ok: false, error: 'System commands disabled for safety' }),
-      shutdownSystem: async (_mode: string) => ({ ok: false, error: 'System commands disabled for safety' }),
-      runSafeCommand: async (command: string, _args: string[], mode: string) => {
-        return deps.executeTerminalCommand(command, [], mode as ExecutionMode)
+      rebootSystem: async () => ({ ok: false, error: 'System reboot is not available in legacy tools layer' }),
+      shutdownSystem: async () => ({ ok: false, error: 'System shutdown is not available in legacy tools layer' }),
+      runSafeCommand: async (command: string, args: string[], mode: string) => {
+        return deps.executeTerminalCommand(command, args, mode as ExecutionMode)
       },
     },
   }

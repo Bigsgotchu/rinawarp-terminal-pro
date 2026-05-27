@@ -4,6 +4,7 @@ import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto
 import { createOpenAiProvider } from "./openaiProvider.js";
 import type { ModelProvider, ProviderRequest, ProviderResponse } from "./modelProvider.js";
 
+// Everything shown in UI is a reflection of RinaRuntime state, never source of truth.
 export const MAX_REQUEST_BYTES = 64 * 1024;
 export const SERVICE_VERSION = "1.5.0-beta";
 const DAILY_USAGE_LIMIT = 100;
@@ -300,6 +301,34 @@ function authErrorPayload(options: ApiOptions) {
   };
 }
 
+function sanitizeRinaIntent(value: unknown): ProviderRequest["intent"] {
+  if (!value || typeof value !== "object") return undefined;
+  const intent = value as ProviderRequest["intent"];
+  if (!intent || typeof intent.id !== "string") return undefined;
+  if (!["ui", "mcp", "cloud", "agent", "system"].includes(intent.source)) return undefined;
+  if (!["read", "analyze", "mutate", "execute"].includes(intent.kind)) return undefined;
+  if (typeof intent.target !== "string") return undefined;
+  if (typeof intent.createdAt !== "number") return undefined;
+  return {
+    id: intent.id.slice(0, 200),
+    source: intent.source,
+    kind: intent.kind,
+    target: intent.target.slice(0, 500),
+    payload: intent.payload,
+    createdAt: intent.createdAt,
+  };
+}
+
+function sanitizeTrace(value: unknown): ProviderRequest["trace"] {
+  if (!value || typeof value !== "object") return undefined;
+  const trace = value as ProviderRequest["trace"];
+  return {
+    requestId: typeof trace?.requestId === "string" ? trace.requestId.slice(0, 200) : undefined,
+    intentId: typeof trace?.intentId === "string" ? trace.intentId.slice(0, 200) : undefined,
+    transactionId: typeof trace?.transactionId === "string" ? trace.transactionId.slice(0, 200) : undefined,
+  };
+}
+
 function validateChatRequest(value: unknown): ProviderRequest | null {
   if (!value || typeof value !== "object") return null;
   const body = value as ProviderRequest;
@@ -308,7 +337,11 @@ function validateChatRequest(value: unknown): ProviderRequest | null {
   if (!["npm", "pnpm", "yarn", "unknown"].includes(body.workspace.packageManager)) return null;
   if (!Array.isArray(body.workspace.files)) return null;
   if (!body.client || typeof body.client.appVersion !== "string" || typeof body.client.platform !== "string") return null;
+  const intent = sanitizeRinaIntent(body.intent);
+  const trace = sanitizeTrace(body.trace);
   return {
+    intent,
+    trace: trace || (intent ? { intentId: intent.id } : undefined),
     message: body.message.slice(0, 8_000),
     workspace: {
       name: String(body.workspace.name || "workspace").slice(0, 200),
@@ -704,6 +737,11 @@ export function createRinaCloudApiServer(options: ApiOptions = {}): http.Server 
         jsonResponse(response, 400, { error: "invalid_request" });
         return;
       }
+      chatRequest.trace = {
+        ...chatRequest.trace,
+        requestId,
+        intentId: chatRequest.trace?.intentId || chatRequest.intent?.id,
+      };
 
       const providerResponse = cleanProviderResponse(await provider.complete(chatRequest));
       usage.requests += 1;

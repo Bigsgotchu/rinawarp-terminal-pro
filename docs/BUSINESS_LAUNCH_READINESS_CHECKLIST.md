@@ -2,6 +2,7 @@
 
 Related operating docs:
 
+- [COMPANY_READINESS_CHECKLIST.md](./COMPANY_READINESS_CHECKLIST.md)
 - [COMPANY_OPERATING_SYSTEM.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_OPERATING_SYSTEM.md)
 - [COMPANY_STATUS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STATUS_CHECKLIST.md)
 - [SUPPORT_OPERATING_MODEL.md](/home/karina/Documents/rinawarp-terminal-pro/docs/SUPPORT_OPERATING_MODEL.md)

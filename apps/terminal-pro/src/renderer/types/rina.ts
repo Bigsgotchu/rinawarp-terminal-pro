@@ -28,6 +28,7 @@ export interface RinaAPI {
   // Event subscriptions
   on(channel: string, handler: (...args: any[]) => void): () => void
   onThinking(cb: (step: { time: number; message: string }) => void): () => void
+  onRuntimeStream?(cb: (event: { type?: string; plan?: string; id?: string }) => void): () => void
   onStreamChunk(cb: (data: any) => void): () => void
   onStreamEnd(cb: (data: any) => void): () => void
   onPlanStepStart(cb: (evt: any) => void): () => void
@@ -61,6 +62,9 @@ export interface RinaAPI {
 
   // Agent actions
   agentPlan(args: { intentText: string; projectRoot: string }): Promise<any>
+  submitIntent(args: unknown): Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
+  agentRun(args: { prompt: string; projectRoot: string }): Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
+  agentApprovePatch(args: { request: any; payload: any }): Promise<import('@rinawarp/rina-core').RinaExecutionRecord>
   fixProject(projectRoot: string): Promise<any>
   executePlanStream(args: {
     plan: any[]

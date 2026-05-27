@@ -1,0 +1,45 @@
+{
+  "name": "@rinawarp/rina-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "RinaWarp MCP Translation Layer - MCP becomes a capability provider, not an executor",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./adapters": {
+      "import": "./dist/adapters/index.js",
+      "types": "./dist/adapters/index.d.ts"
+    },
+    "./schema": {
+      "import": "./dist/schema/index.js",
+      "types": "./dist/schema/index.d.ts"
+    },
+    "./bridge": {
+      "import": "./dist/bridge/index.js",
+      "types": "./dist/bridge/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b ../rina-core tsconfig.json",
+    "dev": "tsc -b --watch ../rina-core tsconfig.json",
+    "test": "tsx test/**/*.test.ts"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.6.0",
+    "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "@rinawarp/rina-core": "workspace:*",
+    "@rinawarp/rina-runtime": "workspace:*"
+  }
+}

@@ -10,6 +10,9 @@ Do not put banking records, tax filings, passwords, legal identity paperwork, or
 
 Related docs:
 
+- [COMPANY_READINESS_CHECKLIST.md](./COMPANY_READINESS_CHECKLIST.md)
+- [NOW_COMPANY_EXECUTION_PLAN.md](./NOW_COMPANY_EXECUTION_PLAN.md)
+- [REAL_BUSINESS_VALIDATION_PLAN.md](./REAL_BUSINESS_VALIDATION_PLAN.md)
 - [COMPANY_STRATEGY_2026-03-29.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STRATEGY_2026-03-29.md)
 - [REVENUE_LAUNCH_PLAN.md](/home/karina/Documents/rinawarp-terminal-pro/docs/REVENUE_LAUNCH_PLAN.md)
 - [BUSINESS_LAUNCH_READINESS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/BUSINESS_LAUNCH_READINESS_CHECKLIST.md)
@@ -136,12 +139,12 @@ Primary question:
 
 ## Current Recommended Focus Order
 
-1. release and installer reliability
+1. production Rina Cloud deployment
 2. billing and entitlement reliability
-3. first-run activation quality
-4. support responsiveness
-5. conversion clarity
-6. repeatable acquisition
+3. repo understanding
+4. daily dogfood usage
+5. observed sessions with 5 real developers
+6. repeat usage and paid usage metrics
 
 ## Exit Criteria For “Operating Company”
 

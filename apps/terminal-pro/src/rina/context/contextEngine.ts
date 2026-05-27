@@ -7,7 +7,6 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { execCommandSync } from '../execution/legacyShell.js'
 
 export interface ProjectContext {
   root: string
@@ -96,15 +95,22 @@ export class ContextEngine {
    */
   getGitStatus(): GitContext | null {
     try {
-      const status = execCommandSync('git status --porcelain', { cwd: this.root }).trimEnd()
-      const branch = execCommandSync('git branch --show-current', { cwd: this.root }).trim()
-      const lastCommit = execCommandSync('git log -1 --oneline', { cwd: this.root }).trim()
+      const gitDir = path.join(this.root, '.git')
+      if (!fs.existsSync(gitDir)) return null
+
+      const headPath = path.join(gitDir, 'HEAD')
+      if (!fs.existsSync(headPath)) return null
+
+      const head = fs.readFileSync(headPath, 'utf8').trim()
+      const branch = head.startsWith('ref: refs/heads/')
+        ? head.replace('ref: refs/heads/', '')
+        : head.slice(0, 12)
 
       return {
-        status: status || 'clean',
+        status: 'read-only snapshot',
         branch,
-        hasChanges: !!status.trim(),
-        lastCommit,
+        hasChanges: false,
+        lastCommit: '',
       }
     } catch {
       return null

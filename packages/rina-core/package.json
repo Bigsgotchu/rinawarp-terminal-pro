@@ -1,0 +1,54 @@
+{
+  "name": "@rinawarp/rina-core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Rina canonical semantic vocabulary shared by runtime, MCP, cloud, UI, and agents",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./action": {
+      "import": "./dist/action/index.js",
+      "types": "./dist/action/index.d.ts"
+    },
+    "./intent": {
+      "import": "./dist/intent/index.js",
+      "types": "./dist/intent/index.d.ts"
+    },
+    "./transaction": {
+      "import": "./dist/transaction/index.js",
+      "types": "./dist/transaction/index.d.ts"
+    },
+    "./policy": {
+      "import": "./dist/policy/index.js",
+      "types": "./dist/policy/index.d.ts"
+    },
+    "./execution": {
+      "import": "./dist/execution/index.js",
+      "types": "./dist/execution/index.d.ts"
+    },
+    "./events": {
+      "import": "./dist/events/index.js",
+      "types": "./dist/events/index.d.ts"
+    },
+    "./ownership": {
+      "import": "./dist/ownership/index.js",
+      "types": "./dist/ownership/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  }
+}

@@ -6,7 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test:safety": "node ./tests/run-safety-tests.js",
+    "test:chaos": "node ./tests/chaos-tests.js"
+    ,"test:failure": "node ./tests/failure-mode-tests.js"
   },
   "dependencies": {
     "@rinawarp/agent": "workspace:*",
@@ -17,5 +20,8 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

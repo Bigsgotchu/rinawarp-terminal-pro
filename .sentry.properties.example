@@ -1,0 +1,7 @@
+# Sentry source-maps upload config
+# Copy this file to .sentry.properties and fill in your real values.
+# .sentry.properties is ignored by .gitignore.
+
+defaults.url=https://sentry.io/
+defaults.org=your-org
+defaults.project=rinawarp-terminal-pro

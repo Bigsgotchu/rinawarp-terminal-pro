@@ -6,8 +6,8 @@ Current updater model:
 
 - library: `electron-updater`
 - provider style: self-hosted / generic HTTP(S) feed
-- metadata hosted by RinaWarp
-- binaries hosted by RinaWarp
+- metadata hosted by GitHub Releases
+- binaries hosted by GitHub Releases
 
 This is the supported model for:
 
@@ -30,14 +30,14 @@ It is not the same thing as package-manager-native updates.
 
 ### Published metadata
 
-- `https://rinawarptech.com/releases/latest.json`
-- `https://rinawarptech.com/releases/latest.yml`
-- `https://rinawarptech.com/releases/latest-linux.yml`
+- `https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/latest/download/latest.json`
+- `https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/latest/download/latest.yml`
+- `https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/latest/download/latest-linux.yml`
 
 ### Published binaries
 
-- public R2 installer/update artifacts
-- release download routes on `rinawarptech.com`
+- GitHub Release assets attached to the current release tag
+- `latest/download` GitHub release URLs used by the Electron updater
 
 ## Required Truths
 
@@ -46,7 +46,8 @@ It is not the same thing as package-manager-native updates.
 - [ ] The version in the app matches the published version metadata.
 - [ ] The metadata artifact URLs match the actual uploaded binaries.
 - [ ] The metadata hashes match the uploaded binaries.
-- [ ] The website download routes and updater feed refer to the same release set.
+- [ ] `npm run check:updater` passes against GitHub Releases.
+- [ ] R2 is not required for updater correctness.
 
 ## App Wiring Checks
 
@@ -108,6 +109,7 @@ It is not the same thing as package-manager-native updates.
 - [ ] update UI smoke exists for supported targets
 - [ ] release metadata smoke runs against live endpoints
 - [ ] installer/download smoke runs against live routes
+- [ ] updater smoke fails hard on missing assets, HTML responses, stale versions, or unreachable binaries
 - [ ] updater logs are easy to inspect after a failure
 - [ ] support can tell whether a user is on stale build, wrong channel, or failed update
 

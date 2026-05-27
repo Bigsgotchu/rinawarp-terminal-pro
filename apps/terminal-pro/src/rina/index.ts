@@ -1,11 +1,15 @@
 /**
- * Rina OS - Main Export File
+ * LEGACY COMPATIBILITY LAYER ONLY (`src/rina/`)
  *
- * Central export point for all Rina OS modules.
- * This enables convenient imports like:
+ * - Adapters and re-exports for backward compatibility
+ * - MUST NOT call LLMs, run tools, or own agent loops
+ * - Execution MUST forward via `../runtime/bridge/RinaRuntimeBridge.ts` → handleIngress
+ *
+ * See: docs/LEGACY_RINA_ISOLATION_PROTOCOL.md
+ *      docs/LEGACY_TO_RUNTIME_BRIDGE.md
+ *
+ * Central export point for legacy modules:
  *   import { rinaController, rinaPersona, handleRinaMessage } from "../../src/rina/index.js";
- *
- * Additive architecture - does not modify existing core functionality.
  */
 
 // Controller and main entry points
@@ -92,7 +96,6 @@ export { initDevDiagnostics } from './dev-diagnostics.js'
 export {
   scanProjectContext,
   buildRepairPlan,
-  executeRepairPlan,
   formatRepairPlan,
   type ProjectContext,
   type RepairPlan,

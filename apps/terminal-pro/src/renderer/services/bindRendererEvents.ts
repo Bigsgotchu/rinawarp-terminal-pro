@@ -1,4 +1,5 @@
 import { appendNarration, describeFixStep, interpretExecutionOutput } from '../fixes/fixNarration.js'
+import { cognitionLabelForRuntimeEvent } from '../../workbench/runBlocks/cognitionStream.js'
 import { hasRunProof } from '../workbench/proof.js'
 import { type WorkbenchState, WorkbenchStore } from '../workbench/store.js'
 
@@ -68,7 +69,39 @@ export function bindRendererEvents(args: {
     }
   }
 
+  function activeRunIdForStream(): string | null {
+    const runs = store.getState().runs
+    const running = runs.find((run) => run.status === 'running')
+    return running?.id || runs[0]?.id || null
+  }
+
   const cleanup = [
+    typeof window.rina.onRuntimeStream === 'function'
+      ? window.rina.onRuntimeStream((event) => {
+          const eventType = String(event?.type || '')
+          const label = cognitionLabelForRuntimeEvent(eventType, {
+            plan: typeof event?.plan === 'string' ? event.plan : undefined,
+            message: typeof event?.message === 'string' ? event.message : undefined,
+          })
+          if (!label) return
+
+          const runId = activeRunIdForStream()
+          if (runId) {
+            store.dispatch({
+              type: 'cognition/append',
+              runId,
+              line: { ts: Date.now(), eventType, label },
+            })
+          }
+
+          store.dispatch({
+            type: 'thinking/set',
+            active: true,
+            message: label,
+            stream: store.getState().thinking.stream,
+          })
+        })
+      : () => {},
     window.rina.onThinking((step) => {
       store.dispatch({
         type: 'thinking/set',

@@ -1,3 +1,5 @@
+import type { RinaIntent } from '@rinawarp/rina-core'
+
 export type RinaTaskKind = 'disk_recovery' | 'port_conflict' | 'failed_build' | 'unknown'
 
 export type RiskLevel = 'read' | 'safe-write' | 'destructive'
@@ -9,6 +11,7 @@ export type RinaTaskRequest = {
 }
 
 export type RinaCommandPlan = {
+  intent?: RinaIntent
   id: string
   command: string
   reason: string

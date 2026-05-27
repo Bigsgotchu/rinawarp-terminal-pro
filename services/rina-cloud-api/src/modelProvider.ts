@@ -1,3 +1,11 @@
+import type { RinaIntent } from "@rinawarp/rina-core";
+
+export type RinaRequestTrace = {
+  requestId?: string;
+  intentId?: string;
+  transactionId?: string;
+};
+
 export type ProviderSuggestedAction = {
   label: string;
   command: string;
@@ -8,6 +16,8 @@ export type ProviderSuggestedAction = {
 };
 
 export type ProviderRequest = {
+  intent?: RinaIntent;
+  trace?: RinaRequestTrace;
   message: string;
   workspace: {
     name: string;

@@ -5,7 +5,8 @@
  */
 
 import { installAgent } from '../agent-manager'
-import { runAgent } from '../agent-runner'
+import { loadInstalledAgentCommand } from '../agents/installed-agent-manifest.js'
+import { executionRecordToLegacyText, legacyPlanToRuntime } from '../../runtime/bridge/RinaRuntimeBridge.js'
 import { listInstalledAgents as listPlugins } from '../plugin-registry'
 import { explainError, explainErrorPattern } from '../error-explainer'
 import { runDoctor, runDoctorFix } from '../doctor'
@@ -177,8 +178,14 @@ commandRouter.register('run', async (cmd) => {
     return 'Usage: rina run <agent-name> [command]\nExample: rina run docker-repair fix'
   }
   try {
-    const output = await runAgent(agentName, commandName)
-    return `✓ Agent "${agentName}" completed\n${output}`
+    const { manifest, command } = loadInstalledAgentCommand(agentName, commandName)
+    const prompt = [
+      `Execute installed agent "${manifest.name}" command "${command.name}":`,
+      ...command.steps.map((step, index) => `${index + 1}. ${step}`),
+    ].join('\n')
+    const record = await legacyPlanToRuntime(prompt, process.cwd())
+    const output = executionRecordToLegacyText(record)
+    return `✓ Agent "${agentName}" forwarded to runtime\n${output}`
   } catch (error) {
     return `✗ Failed to run agent: ${error}`
   }
