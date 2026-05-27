@@ -56,9 +56,16 @@ export async function launchPackagedApp(extraEnv?: Record<string, string>): Prom
   }
 
   if (isLinux) {
+    const linuxArgs = [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-software-rasterizer',
+    ]
     return electron.launch({
       executablePath: PACKAGED_EXECUTABLE_LINUX,
-      args: [],
+      args: linuxArgs,
       cwd: APP_ROOT,
       env,
     })
