@@ -161,3 +161,43 @@ npm run check:updater
 - [ ] updater hardening
 
 Use GitHub Releases for beta updater validation. Do not move back to R2 until GitHub has several successful update cycles.
+
+## v1.8.0-beta Daily Driver Entry — 2026-05-27
+
+### Category
+
+- Runtime test
+- Trust test
+- Verification improvement
+
+### Task
+
+Run the immediate release-readiness baseline for the current packaged desktop build before the first real `1.7.1-beta` to `1.8.0-beta` updater cycle.
+
+### Result
+
+- `npm --workspace apps/terminal-pro run test:rina-runtime`
+  - Passed.
+- `npm --workspace packages/rina-doctor run test:trust`
+  - Passed (`trust-loop checks passed`).
+- `corepack pnpm build`
+  - Passed.
+- `corepack pnpm --filter rinawarp-terminal-pro dist`
+  - Initially failed because the app-level `dist` script invoked bare `pnpm`.
+  - Passed after changing the app-level `dist` script to call `npm run dist:linux && npm run release:metadata && npm run verify:update-artifacts`.
+  - Produced AppImage and `.deb` artifacts for `1.7.1-beta`.
+  - Generated `latest.yml` and `latest-linux.yml`.
+  - Verified updater metadata freshness for `1.7.1-beta`.
+
+### Trust Impact
+
+The runtime, trust loop, build, Linux packaging, and updater metadata checks all pass locally. The remaining trust gap is still the real installed-customer updater path from `1.7.1-beta` to `1.8.0-beta`.
+
+### Expected Behavior
+
+Release-readiness commands should not depend on a globally installed `pnpm`; they should run through the repo's package-manager path and produce fresh updater metadata.
+
+### Engineering Outcome
+
+- verification improvement
+- updater hardening
