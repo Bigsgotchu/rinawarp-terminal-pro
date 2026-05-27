@@ -56,7 +56,7 @@ jobs:
       - name: 🔍 Validate workspace structure
         run: |
           for dir in apps packages services; do
-            grep -q "\"$dir/\\*\"" pnpm-workspace.yaml || exit 1
+            grep -q "${dir}/\*" pnpm-workspace.yaml || exit 1
           done
 
       - name: 🔍 Validate engines in package.json files
