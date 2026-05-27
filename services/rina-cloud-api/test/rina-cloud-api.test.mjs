@@ -53,7 +53,7 @@ test("GET /v1/health returns service status", async () => {
     const body = await response.json();
     assert.equal(body.ok, true);
     assert.equal(body.service, "rina-cloud-api");
-    assert.equal(body.version, "1.5.0-beta");
+    assert.equal(body.version, "1.7.1-beta");
   });
 });
 
