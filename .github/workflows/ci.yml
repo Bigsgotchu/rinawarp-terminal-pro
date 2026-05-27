@@ -63,11 +63,14 @@ jobs:
         run: |
           grep -q '"node":\s*">=20' package.json
           grep -q '"pnpm":\s*">=9' package.json
-          find apps packages services -name package.json -type f | while read pkgjson; do
+          find apps packages services -path '*/node_modules/*' -prune -o -name package.json -type f -print | while read pkgjson; do
+            case "$pkgjson" in
+              packages/package.json) continue ;;
+            esac
             if grep -q '"vscode"' "$pkgjson" && ! grep -q '"node"' "$pkgjson"; then
               continue
             fi
-            grep -q '"node":\s*">=20' "$pkgjson" || exit 1
+            grep -q '"node":\s*">=20' "$pkgjson" || { echo "❌ $pkgjson missing engines.node"; exit 1; }
           done
 
       - name: 🔍 Validate preinstall script
