@@ -5,7 +5,7 @@ import { createOpenAiProvider } from "./openaiProvider.js";
 import type { ModelProvider, ProviderRequest, ProviderResponse } from "./modelProvider.js";
 
 export const MAX_REQUEST_BYTES = 64 * 1024;
-export const SERVICE_VERSION = "1.5.0-beta";
+export const SERVICE_VERSION = "1.7.1-beta";
 const DAILY_USAGE_LIMIT = 100;
 const DEFAULT_UPGRADE_URL = "https://www.rinawarptech.com/pricing";
 const DEFAULT_BILLING_PORTAL_URL = "https://www.rinawarptech.com/account";
