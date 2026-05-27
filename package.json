@@ -99,11 +99,12 @@
   "license": "MIT",
   "resolutions": {
     "typescript": "5.4.2",
-    "electron": ">=35.7.5",
+    "electron": "35.7.5",
     "playwright": ">=1.55.1"
   },
   "pnpm": {
     "overrides": {
+      "electron": "35.7.5",
       "tar": ">=7.5.11",
       "minimatch": ">=10.2.3",
       "yauzl": ">=3.2.1",
