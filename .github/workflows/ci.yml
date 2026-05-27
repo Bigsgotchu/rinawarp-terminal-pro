@@ -95,19 +95,19 @@ jobs:
           done
           echo "✅ All package.json files have correct engine constraints"
 
-- name: 🔍 Validate preinstall script
-         run: |
-           if ! grep -q 'only-allow pnpm' package.json; then
-             echo "❌ Root package.json missing preinstall: only-allow pnpm"
-             exit 1
-           fi
-           echo "✅ Preinstall enforcement script is in place"
+      - name: 🔍 Validate preinstall script
+        run: |
+          if ! grep -q 'only-allow pnpm' package.json; then
+            echo "❌ Root package.json missing preinstall: only-allow pnpm"
+            exit 1
+          fi
+          echo "✅ Preinstall enforcement script is in place"
 
-       - name: 🔍 Block direct LLM calls
-         run: node scripts/guards/check-no-direct-llm-calls.mjs
+      - name: 🔍 Block direct LLM calls
+        run: node scripts/guards/check-no-direct-llm-calls.mjs
 
-       - name: 🔍 Block legacy rina runtime bypasses
-         run: node scripts/guards/check-rina-legacy.mjs
+      - name: 🔍 Block legacy rina runtime bypasses
+        run: node scripts/guards/check-rina-legacy.mjs
 
   validate:
     runs-on: ubuntu-latest

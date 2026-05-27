@@ -166,6 +166,15 @@ export async function seedGoldenThreadJourney(page: Page, kind: GoldenJourneyKin
         runId,
         tail: verified ? 'Build completed successfully.\n' : 'Verification failed — rollback applied.\n',
       })
+
+      try {
+        const storeKey = 'rinawarp.execution-receipts.v1'
+        const existing = JSON.parse(localStorage.getItem(storeKey) || '{}') as Record<string, unknown>
+        existing[runId] = receipt
+        localStorage.setItem(storeKey, JSON.stringify(existing))
+      } catch {
+        // persistence is best-effort for e2e reload checks
+      }
     },
     { runId, kind },
   )
