@@ -308,7 +308,7 @@ function rwSvg(svg: string): Response {
 }
 
 const GITHUB_RELEASES_BASE = 'https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases'
-const BETA_RELEASE_VERSION = '1.8.0-beta'
+const BETA_RELEASE_VERSION = '1.8.1-beta'
 const BETA_RELEASE_TAG = `v${BETA_RELEASE_VERSION}`
 const BETA_RELEASE_DOWNLOAD_BASE = `${GITHUB_RELEASES_BASE}/download/${BETA_RELEASE_TAG}`
 
@@ -392,7 +392,7 @@ function buildGitHubBetaReleaseSummary(): {
     version: BETA_RELEASE_VERSION,
     url: `${GITHUB_RELEASES_BASE}/tag/${BETA_RELEASE_TAG}`,
     manifestUrl: `${BETA_RELEASE_DOWNLOAD_BASE}/latest.json`,
-    publishedAt: '2026-05-29T00:37:28.845Z',
+    publishedAt: '2026-05-29T02:09:11.000Z',
     downloads: {
       linux: `${BETA_RELEASE_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${BETA_RELEASE_VERSION}.AppImage`,
       deb: `${BETA_RELEASE_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${BETA_RELEASE_VERSION}.deb`,
@@ -3197,14 +3197,14 @@ function renderEarlyAccess(version?: string): Response {
 }
 
 async function renderDownload(env: any, origin: string): Promise<Response> {
-  const manifest = await getReleaseManifest(env)
-  const linuxAppImageUrl = primaryDownloadUrl(origin, 'linux')
-  const linuxDebUrl = primaryDownloadUrl(origin, 'linux/deb')
-  const windowsUrl = primaryDownloadUrl(origin, 'windows')
-  const checksumsUrl = primaryDownloadUrl(origin, 'checksums')
-  const latestJsonUrl = primaryReleaseUrl(origin, 'latest.json')
-  const latestYmlUrl = primaryReleaseUrl(origin, 'latest.yml')
-  const latestLinuxYmlUrl = primaryReleaseUrl(origin, 'latest-linux.yml')
+  void env
+  const publicBeta = buildGitHubBetaReleaseSummary()
+  const linuxAppImageUrl = publicBeta.downloads.linux || primaryDownloadUrl(origin, 'linux')
+  const linuxDebUrl = publicBeta.downloads.deb || primaryDownloadUrl(origin, 'linux/deb')
+  const checksumsUrl = `${BETA_RELEASE_DOWNLOAD_BASE}/SHASUMS256.txt`
+  const latestJsonUrl = publicBeta.manifestUrl
+  const latestYmlUrl = `${BETA_RELEASE_DOWNLOAD_BASE}/latest.yml`
+  const latestLinuxYmlUrl = `${BETA_RELEASE_DOWNLOAD_BASE}/latest-linux.yml`
   const hero = `
     <section class="hero">
       <span class="eyebrow">Early Access releases</span>
@@ -3223,8 +3223,8 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
       <div class="grid three-up">
         <article class="card">
           <div class="kicker">Current release</div>
-          <h3>${manifest?.version ? `Version ${String(manifest.version)}` : 'Live release'}</h3>
-          <p>The website, installers, and updater feeds are expected to point at the same public release truth.</p>
+          <h3>Version ${publicBeta.version}</h3>
+          <p>Public beta installers and updater metadata point at the same GitHub release assets.</p>
         </article>
         <article class="card">
           <div class="kicker">Best Linux path</div>
@@ -3254,12 +3254,12 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
         </article>
         <article class="card platform-card">
           <span class="pill">Windows</span>
-          <h3>.exe installer</h3>
-          <p>Windows Early Access builds use the same release flow and are the main automatic-update path on Windows.</p>
+          <h3>Not in this public beta</h3>
+          <p>The current public beta release only includes Linux installers. Windows should come back once a matching <code>.exe</code> artifact is published and verified.</p>
           <div class="link-row">
-            <a href="${windowsUrl}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a>
+            <a href="/support/" class="btn btn-secondary">Ask about Windows</a>
           </div>
-          <p class="note"><strong>Plain trust note:</strong> Windows signing is still a follow-up investment. Depending on your system, SmartScreen may ask for extra confirmation before the installer runs. We would rather say that directly than pretend the trust path is finished.</p>
+          <p class="note"><strong>Plain trust note:</strong> The website should not offer a Windows download until the release actually contains a Windows installer.</p>
         </article>
         <article class="card platform-card">
           <span class="pill">macOS</span>
@@ -4268,7 +4268,7 @@ export default {
           return rwRedirect(`${url.origin}/download/linux/deb`, 301)
         }
         if (artifactName?.endsWith('.exe')) {
-          return rwRedirect(`${url.origin}/download/windows`, 301)
+          return rwRedirect(`${url.origin}/download/`, 301)
         }
         return rwRedirect(`${url.origin}/download/`, 301)
       }
@@ -4292,6 +4292,10 @@ export default {
         }
 
         const kind = normalizeArtifactKind(downloadPath.slice('/download/'.length))
+        if (kind === 'windows') {
+          return rwText(404, 'Windows artifact not available in this public beta')
+        }
+
         const artifactPath = pickArtifactPath(manifest, kind) ?? (await findLatestArtifactPath(env, kind))
         if (!artifactPath) {
           return rwText(404, 'Artifact not available')

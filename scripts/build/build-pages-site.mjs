@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(__dirname, "..", "..");
 const outdir = path.join(repoRoot, "website", ".pages-dist");
 const packageJson = JSON.parse(await readFile(path.join(repoRoot, "apps", "terminal-pro", "package.json"), "utf8"));
 
@@ -15,6 +15,15 @@ const DEMO_MP4_URL = `${INSTALLERS_BASE}/demo/rinawarp-fix-project-demo.mp4`;
 const DEMO_WEBM_URL = `${INSTALLERS_BASE}/demo/rinawarp-fix-project-demo.webm`;
 const DEMO_POSTER_URL = `${INSTALLERS_BASE}/demo/rinawarp-fix-project-demo-poster.jpg`;
 const VERSION = String(packageJson.version);
+const GITHUB_RELEASES_BASE = "https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases";
+const PUBLIC_BETA_TAG = `v${VERSION}`;
+const PUBLIC_BETA_DOWNLOAD_BASE = `${GITHUB_RELEASES_BASE}/download/${PUBLIC_BETA_TAG}`;
+const PUBLIC_BETA_DEB_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${VERSION}.deb`;
+const PUBLIC_BETA_APPIMAGE_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${VERSION}.AppImage`;
+const PUBLIC_BETA_CHECKSUMS_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/SHASUMS256.txt`;
+const PUBLIC_BETA_LATEST_JSON_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.json`;
+const PUBLIC_BETA_LATEST_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.yml`;
+const PUBLIC_BETA_LATEST_LINUX_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest-linux.yml`;
 const ASSET_VERSION = "20260329-brand-refresh";
 const GA_MEASUREMENT_ID = "G-YGX1R0MEB6";
 const SCREENSHOT_SOURCES = [
@@ -1537,8 +1546,8 @@ const pages = [
     heading: "Fix your project in under 30 seconds.",
     copy: "Download RinaWarp and let it fix your code automatically. Open the broken repo, click Fix Project, and see the proof.",
     heroActions: `
-      <a href="/download/windows" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download for Windows</a>
-      <a href="/download/linux/deb" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download for Linux</a>
+      <a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
+      <a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
       <a href="/pricing/" class="btn btn-secondary">See pricing</a>
     `,
     heroSupport: "Use the live download routes below. Checksums and release manifests stay published so the trust story remains explicit.",
@@ -1559,7 +1568,7 @@ const pages = [
       <section class="section"><div class="panel stack">
         <h2 class="section-title">How it works</h2>
         <div class="grid three-up">
-          <article class="card"><div class="kicker">1</div><h3>Download</h3><p>Install RinaWarp on Windows or Linux and open the repo that is blocking you.</p></article>
+          <article class="card"><div class="kicker">1</div><h3>Download</h3><p>Install the Linux public beta and open the repo that is blocking you.</p></article>
           <article class="card"><div class="kicker">2</div><h3>Open the project</h3><p>Let the app inspect the actual workspace instead of explaining the problem from memory.</p></article>
           <article class="card"><div class="kicker">3</div><h3>Click Fix Project</h3><p>Watch the repair happen, then check the proof to confirm the project is working again.</p></article>
         </div>
@@ -1570,11 +1579,11 @@ const pages = [
         <div class="screenshot-frame"><img src="/assets/img/proof-after-fixed-project.png" alt="Project after RinaWarp repair showing verified success" width="1356" height="697" loading="lazy" decoding="async"></div>
       </div></section>
       <section class="section"><div class="download-grid">
-        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the fastest way to get running on Debian and Ubuntu. <strong>AppImage</strong> is the better choice if you want the in-app update path later.</p><div class="link-row"><a href="/download/linux/deb" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="/download/linux" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="/releases/latest.json" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Update note:</strong> If you install with <code>.deb</code>, update with the next <code>.deb</code>. If you want automatic in-app updates, use AppImage and keep that as your main install.</p></article>
-        <article class="card platform-card"><span class="pill">Windows</span><h3>.exe installer</h3><p>Windows is the simplest path if you want to download, open the repo, and try the repair flow right away.</p><div class="link-row"><a href="/download/windows" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_windows" data-analytics-prop-platform="windows" data-analytics-prop-artifact="exe">Download Windows</a></div><p class="note"><strong>Trust note:</strong> Windows signing is still a follow-up investment. SmartScreen may ask for extra confirmation, and we would rather say that plainly than hide it.</p></article>
+        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the fastest way to get running on Debian and Ubuntu. <strong>AppImage</strong> is the better choice if you want the in-app update path later.</p><div class="link-row"><a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Update note:</strong> If you install with <code>.deb</code>, update with the next <code>.deb</code>. If you want automatic in-app updates, use AppImage and keep that as your main install.</p></article>
+        <article class="card platform-card"><span class="pill">Windows</span><h3>Not in this public beta</h3><p>The current public beta release only includes Linux installers. Windows should come back once a matching <code>.exe</code> artifact is published and verified.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about Windows</a></div><p class="note"><strong>Trust note:</strong> The website should not offer a Windows download until the release actually contains a Windows installer.</p></article>
         <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS is not live yet because we do not want to ship a rough installer path we cannot support well.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
-      <section class="section"><div class="panel stack"><div class="card trust-note"><h3>Verification matters more than vibes</h3><p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p></div><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="/releases/${VERSION}/SHASUMS256.txt" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="/releases/latest.json" class="btn btn-secondary">Open latest.json</a><a href="/releases/latest.yml" class="btn btn-secondary">Open latest.yml</a><a href="/releases/latest-linux.yml" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The canonical updater feed lives on <code>rinawarptech.com/releases/*</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
+      <section class="section"><div class="panel stack"><div class="card trust-note"><h3>Verification matters more than vibes</h3><p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p></div><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="${PUBLIC_BETA_CHECKSUMS_URL}" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">Open latest.json</a><a href="${PUBLIC_BETA_LATEST_YML_URL}" class="btn btn-secondary">Open latest.yml</a><a href="${PUBLIC_BETA_LATEST_LINUX_YML_URL}" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The public beta updater feed lives on the GitHub release for <code>${PUBLIC_BETA_TAG}</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
     `
   },
   {
@@ -1959,7 +1968,7 @@ const pages = [
     copy: "Stripe payment succeeded. The next step is simple: install the app, open Account inside the app, and restore the purchase with the same billing email you just used.",
     content: `
       <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">1. Install</div><h3>Download the app</h3><p>Use the Windows installer or choose the Linux path that matches how you want updates to work: <strong>.deb</strong> for the easiest Debian/Ubuntu install, or <strong>AppImage</strong> if you want Linux in-app updates.</p><div class="link-row"><a href="/download/" class="btn btn-primary">Open download page</a></div></article>
+        <article class="card"><div class="kicker">1. Install</div><h3>Download the app</h3><p>Install the Linux public beta: <strong>.deb</strong> for the easiest Debian/Ubuntu install, or <strong>AppImage</strong> if you want Linux in-app updates. Windows is not available in this beta.</p><div class="link-row"><a href="/download/" class="btn btn-primary">Open download page</a></div></article>
         <article class="card"><div class="kicker">2. Restore</div><h3>Use your billing email</h3><p>Open Account in the app and restore paid access using <strong data-success-email>the billing email you used at checkout</strong>.</p><div class="link-row"><a id="success-restore-link" href="/account/" class="btn btn-secondary">Open account help</a></div></article>
         <article class="card"><div class="kicker">3. Verify</div><h3>Make sure the tier shows up</h3><p>Your plan should show as <strong id="success-plan">Pro</strong>. If it does not, use billing restore or contact support.</p><div class="link-row"><a href="/support/?topic=billing" class="btn btn-secondary">Get billing help</a></div></article>
       </div></section>
@@ -1986,8 +1995,6 @@ async function writeRoute(route, html) {
 }
 
 const REDIRECTS = `
-/download/windows /v1/download/windows 302
-/download/windows/ /v1/download/windows 302
 /download/linux /v1/download/linux 302
 /download/linux/ /v1/download/linux 302
 /download/linux/deb /v1/download/linux/deb 302
@@ -1996,7 +2003,7 @@ const REDIRECTS = `
 /download/checksums/ /v1/download/checksums 302
 /downloads/terminal-pro/linux/*.AppImage /download/linux 301
 /downloads/terminal-pro/linux/*.deb /download/linux/deb 301
-/downloads/terminal-pro/windows/*.exe /download/windows 301
+/downloads/terminal-pro/windows/*.exe /download/ 301
 /downloads /download/ 301
 /downloads/ /download/ 301
 /downloads/* /download/:splat 301

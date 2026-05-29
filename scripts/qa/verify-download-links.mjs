@@ -48,7 +48,9 @@ function main() {
 
   const appImagePath = requireFile(path.join(installerDir, appImageName), 'AppImage artifact')
   const debPath = requireFile(path.join(installerDir, debName), '.deb artifact')
-  const exePath = requireFile(path.join(installerDir, exeName), '.exe artifact')
+  const exePath = fs.existsSync(path.join(installerDir, exeName))
+    ? path.join(installerDir, exeName)
+    : null
   const checksumsPath = requireFile(path.join(installerDir, 'SHASUMS256.txt'), 'checksum manifest')
   const latestJsonPath = requireFile(path.join(installerDir, 'latest.json'), 'latest.json metadata')
   const latestYmlPath = requireFile(path.join(installerDir, 'latest.yml'), 'latest.yml metadata')
@@ -58,7 +60,7 @@ function main() {
   const expectedArtifacts = [
     [appImageName, appImagePath],
     [debName, debPath],
-    [exeName, exePath],
+    ...(exePath ? [[exeName, exePath]] : []),
   ]
 
   for (const [artifactName, artifactPath] of expectedArtifacts) {
@@ -80,13 +82,17 @@ function main() {
   if (String(latestJson.files?.deb?.name || '') !== debName) {
     fail(`latest.json deb artifact does not match ${debName}`)
   }
-  if (String(latestJson.files?.windows?.name || '') !== exeName) {
+  if (exePath && String(latestJson.files?.windows?.name || '') !== exeName) {
     fail(`latest.json windows artifact does not match ${exeName}`)
+  }
+  if (!exePath && latestJson.files?.windows) {
+    fail(`latest.json advertises Windows but ${exeName} is missing`)
   }
 
   const latestYml = fs.readFileSync(latestYmlPath, 'utf8')
-  if (!latestYml.includes(`version: ${version}`) || !latestYml.includes(`path: ${exeName}`)) {
-    fail(`latest.yml does not match version ${version} and artifact ${exeName}`)
+  const latestYmlArtifact = exePath ? exeName : appImageName
+  if (!latestYml.includes(`version: ${version}`) || !latestYml.includes(`path: ${latestYmlArtifact}`)) {
+    fail(`latest.yml does not match version ${version} and artifact ${latestYmlArtifact}`)
   }
 
   const latestLinuxYml = fs.readFileSync(latestLinuxYmlPath, 'utf8')
