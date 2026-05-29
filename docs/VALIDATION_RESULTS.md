@@ -385,3 +385,66 @@ Telemetry failures should never block app launch, runtime execution, approval fl
 - runtime test
 - trust test
 - verification improvement
+
+## v1.8.0-beta Packaged Telemetry Validation — 2026-05-28
+
+### Category
+
+- Runtime test
+- Trust test
+- Verification improvement
+
+### Task
+
+Validate the rebuilt packaged AppImage sends privacy-safe operational telemetry from a clean profile, avoids duplicate install pings, sends daily active pings, and honors opt-out state.
+
+### Result
+
+- Rebuilt desktop artifacts from commit `b3e5a523` with `corepack pnpm dist:desktop`.
+- Packaging passed and regenerated:
+  - `RinaWarp-Terminal-Pro-1.7.2-beta.AppImage`
+  - `RinaWarp-Terminal-Pro-1.7.2-beta.deb`
+  - `latest-linux.yml`
+  - `latest.yml`
+  - `latest.json`
+  - `SHASUMS256.txt`
+- Confirmed built main process telemetry code uses `https://rinawarptech.com` and `/v1/telemetry/*`.
+- Launched the rebuilt AppImage with a clean temporary profile and local telemetry capture server.
+- First clean launch sent:
+  - `POST /v1/telemetry/install`
+  - `POST /v1/telemetry/active`
+- Relaunch with the same profile sent no duplicate install ping and no same-day duplicate active ping.
+- Simulated next-day relaunch by setting the temporary profile `lastActivePingDate` to the previous day; relaunch sent only:
+  - `POST /v1/telemetry/active`
+- Simulated opt-out by setting the temporary profile telemetry `enabled` field to `false`; relaunch sent no install, active, or event telemetry.
+
+### Payload Audit
+
+Observed packaged-app payloads contained only:
+
+- `installId`
+- `version`
+- `platform`
+- `arch`
+
+No prompts, repo names, repo paths, source code, terminal output, file contents, usernames, tokens, or secrets were present in the telemetry request bodies.
+
+### Notes
+
+- The first AppImage launch attempt inherited `ELECTRON_RUN_AS_NODE=1` from the shell and did not start the app. The validation rerun explicitly cleared `ELECTRON_RUN_AS_NODE`.
+- The AppImage did start under the normal desktop session and reached Electron startup; each validation run was ended by timeout after telemetry capture.
+- The first launch currently sends both install and active pings. This is acceptable for daily-active counting, but product analytics should interpret first-day active users accordingly.
+
+### Trust Impact
+
+The packaged app now proves the privacy contract at runtime: install and activity telemetry leave the machine only as anonymous operational fields, and opt-out prevents telemetry from being sent.
+
+### Expected Behavior
+
+Clean installs should send one install ping, active pings should be daily, and opt-out should suppress all operational telemetry.
+
+### Engineering Outcome
+
+- runtime test
+- trust test
+- verification improvement
