@@ -132,16 +132,10 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
         className: 'rw-agent-panel',
         includeCloseButton: false,
         bodyMarkup: `
-          <div class="rw-panel-body rw-agent-body">
-            <section class="rw-agent-hero">
-              <div class="rw-agent-hero-copy">
-                <div class="rw-agent-kicker">Rina-first developer workflow</div>
-                <h2>Tell Rina what to do. She can diagnose, build, test, deploy, and leave proof behind.</h2>
-                <p>
-                  Start with what feels off, what failed, or what you want to ship. Rina will explain the plan, take action through the trusted runner,
-                  and keep proof attached to the thread when real work happens.
-                </p>
-              </div>
+          <div class="rw-panel-body rw-agent-body is-empty">
+            <section class="rw-agent-launch-empty" data-agent-section="empty-state" aria-label="RinaWarp launch">
+              <h1 class="rw-agent-launch-title">RinaWarp Terminal Pro</h1>
+              <p class="rw-agent-launch-subtitle">What would you like me to do?</p>
             </section>
             <div id="agent-recovery"></div>
             <div id="agent-output"></div>
@@ -151,13 +145,13 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
                 id="agent-input"
                 class="rw-agent-input"
                 rows="3"
-                placeholder="Ask anything…"
+                placeholder="Tell Rina what you want done."
+                data-testid="rina-chat-input"
                 spellcheck="false"
               ></textarea>
               <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
               <div class="rw-agent-composer-actions">
-                <div class="rw-agent-hint">Try Fix my project or Check project health. Enter sends.</div>
-                <button id="agent-send" class="rw-agent-send" type="button">Ask Rina</button>
+                <button id="agent-send" class="rw-agent-send" type="button" data-testid="rina-chat-send">Send</button>
               </div>
             </div>
           </div>

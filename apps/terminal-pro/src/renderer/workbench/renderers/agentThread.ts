@@ -2,34 +2,15 @@ import type { RunModel, WorkbenchState } from '../store.js'
 import { clear, el, mount } from '../dom.js'
 import { appendMessageContent } from './messageBlocks.js'
 import { hasCanonicalThreadContent, renderCanonicalThread } from './threadSurface.js'
-import {
-  clearStarterPromptMount,
-  mountAgentHero,
-  mountStarterPromptMount,
-  renderAgentCard,
-} from '../components/agentSurface.js'
+import { clearStarterPromptMount, mountStarterPromptMount } from '../components/agentSurface.js'
+import { hasAgentThreadContent, hasAgentRecoveryOnly } from '../agentLaunchState.js'
 import { renderRecoveryStrip, renderRecoveryToggleButton } from '../components/recoverySurface.js'
 import { renderTruthHud } from '../components/truthHud.js'
-import {
-  buildAgentHeroViewModel,
-  buildRetentionLoopCardModel,
-  buildWorkspaceSetupCardModel,
-} from '../view-models/agentThreadModel.js'
+import { EMPTY_STATE_PROMPTS } from '../emptyStatePrompts.js'
 import { buildRecoveryStripViewModel } from '../view-models/recoveryViewModel.js'
-import { getStarterPromptViewModels } from '../view-models/suggestedActionsViewModel.js'
 
-function syncStarterPromptChips(state: WorkbenchState): void {
-  const chips = Array.from(document.querySelectorAll<HTMLElement>('.rw-prompt-chip[data-intent-key]'))
-  for (const chip of chips) {
-    const intent = chip.dataset.intentKey as 'build' | 'test' | 'deploy' | 'fix' | undefined
-    if (!intent) continue
-    const meta = getStarterPromptViewModels(state).find((entry) => entry.intent === intent)
-    if (!meta) continue
-    chip.dataset.tierHint = meta.hint
-    chip.dataset.tierTone = meta.tone
-    const metaNode = chip.querySelector<HTMLElement>('.rw-prompt-chip-meta')
-    if (metaNode) metaNode.textContent = meta.hint
-  }
+function syncStarterPromptChips(): void {
+  // Launch chips are static; no tier/meta sync on empty state.
 }
 
 function blocksSignature(content: WorkbenchState['chat'][number]['content']): string {
@@ -58,15 +39,14 @@ function dedupeAdjacentThreadMessages(messages: WorkbenchState['chat']): Workben
 }
 
 
-function renderComposerStarterPrompts(state: WorkbenchState, hasThreadContent: boolean): void {
+function renderComposerStarterPrompts(hasThreadContent: boolean): void {
   const container = document.getElementById('agent-starter-prompts')
   if (!container) return
-  const workspaceSetup = buildWorkspaceSetupCardModel(state)
-  if (hasThreadContent || workspaceSetup) {
+  if (hasThreadContent) {
     clearStarterPromptMount(container)
     return
   }
-  mountStarterPromptMount(container, getStarterPromptViewModels(state))
+  mountStarterPromptMount(container, EMPTY_STATE_PROMPTS)
 }
 
 function renderRecoveryToggle(state: WorkbenchState): void {
@@ -75,33 +55,10 @@ function renderRecoveryToggle(state: WorkbenchState): void {
   renderRecoveryToggleButton(button, state.runs.filter((run) => run.restored).length, state.ui.recoveryExpanded)
 }
 
-function renderHero(state: WorkbenchState, hidden = false): void {
+function renderHero(hidden = false): void {
   const hero = document.querySelector<HTMLElement>('.rw-agent-hero')
   if (!hero) return
-  if (hidden) {
-    clear(hero)
-    return
-  }
-  mountAgentHero(hero, buildAgentHeroViewModel(state))
-}
-
-function buildEmptyStateNode(state: WorkbenchState): HTMLElement {
-  const workspaceSetup = buildWorkspaceSetupCardModel(state)
-  if (!workspaceSetup) return el('section', { class: 'rw-agent-empty-state-shell', dataset: { agentSection: 'empty-state' } })
-  return el(
-    'section',
-    {
-      class: ['rw-agent-empty-state-shell', 'is-single-column'].filter(Boolean).join(' '),
-      dataset: { agentSection: 'empty-state' },
-    },
-    el(
-      'div',
-      {
-        class: 'rw-agent-empty-column rw-agent-empty-column-main',
-      },
-      renderAgentCard(workspaceSetup)
-    )
-  )
+  if (hidden) clear(hero)
 }
 
 export function renderAgentThreadSurface(state: WorkbenchState): void {
@@ -113,12 +70,12 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const visibleMessages = state.chat.filter((message) => message.workspaceKey === state.workspaceKey).slice(-200)
   const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
   const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
-  const hasThreadContent = useCanonicalThread || threadMessages.length > 0
+  const hasThreadContent = hasAgentThreadContent(state)
   const composerInput = document.querySelector<HTMLTextAreaElement>('#agent-input')
   const hasDraft = Boolean(composerInput?.value.trim())
   const isStreaming = Boolean(state.thinking.active)
   const isChatActive = hasThreadContent || isStreaming || hasDraft
-  const recoveryFocus = recoveryMessages.length > 0 && !hasThreadContent
+  const recoveryFocus = hasAgentRecoveryOnly(state)
   const shouldCompactRecovery = recoveryMessages.length > 0 && !state.ui.recoveryExpanded
   // Recovery intro should not persist once the user has started a real chat thread.
   const shouldShowRecoveryStrip = recoveryMessages.length > 0 && !hasThreadContent
@@ -145,14 +102,13 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
     }
   }
   renderRecoveryToggle(state)
-  renderHero(state, recoveryFocus || isChatActive)
+  renderHero(recoveryFocus || isChatActive)
 
   const shell = document.createDocumentFragment()
+  const launchEmpty = document.querySelector<HTMLElement>('.rw-agent-launch-empty')
 
-  if (!hasThreadContent && !recoveryFocus) {
-    shell.appendChild(buildEmptyStateNode(state))
-  }
   if (hasThreadContent) {
+    launchEmpty?.setAttribute('hidden', 'hidden')
     shell.appendChild(renderTruthHud(state))
     if (useCanonicalThread) {
       shell.appendChild(renderCanonicalThread(state))
@@ -179,15 +135,18 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
 
   mount(root, shell)
   root.classList.toggle('is-empty-thread', !hasThreadContent)
-  agentBody?.classList.toggle('is-empty', !hasThreadContent)
+  agentBody?.classList.toggle('is-empty', !hasThreadContent && !recoveryFocus)
   agentBody?.classList.toggle('has-thread-content', hasThreadContent)
   agentBody?.classList.toggle('is-chat-active', isChatActive)
   agentBody?.classList.toggle('is-streaming', isStreaming)
   agentBody?.classList.toggle('has-recovery-strip', shouldShowRecoveryStrip)
   agentBody?.classList.toggle('is-recovery-focus', recoveryFocus)
+  if (!hasThreadContent && !recoveryFocus) {
+    launchEmpty?.removeAttribute('hidden')
+  }
   root.scrollTop = hasThreadContent ? root.scrollHeight : 0
-  renderComposerStarterPrompts(state, hasThreadContent)
-  syncStarterPromptChips(state)
+  renderComposerStarterPrompts(hasThreadContent)
+  syncStarterPromptChips()
 }
 
 export function renderAgent(state: WorkbenchState): void {

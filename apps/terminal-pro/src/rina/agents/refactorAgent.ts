@@ -9,8 +9,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { brainEvents } from '../brain/brainEvents.js'
 
-// LLM client placeholder - would be replaced with actual implementation
-// import { openai } from '../ai/client.js';
+const MUTATION_BLOCKED_MESSAGE =
+  'Refactor mutation is blocked in this legacy agent. Use the approved runtime sandbox path.'
 
 /**
  * Refactor options
@@ -49,8 +49,6 @@ export class RefactorAgent {
 
     const code = fs.readFileSync(filePath, 'utf-8')
 
-    // In production, this would call LLM
-    // For now, return basic analysis
     const suggestions: string[] = []
 
     // Simple heuristics
@@ -87,22 +85,19 @@ export class RefactorAgent {
 
     brainEvents.execution(`Reading ${path.basename(filePath)}`, 20)
 
-    // In production, this would call LLM with a refactoring prompt
-    // For demo, apply basic transformations
     let improved = code
 
-    // Basic transformations (demo purposes)
     improved = this.applyBasicRefactoring(improved)
 
     brainEvents.execution('Applying improvements', 70)
 
     if (!options.dryRun) {
-      const backupPath = filePath + '.bak'
-      fs.writeFileSync(backupPath, code)
-      brainEvents.memory(`Created backup: ${path.basename(backupPath)}`)
-
-      fs.writeFileSync(filePath, improved)
-      brainEvents.memory(`Saved refactored file`)
+      brainEvents.error(MUTATION_BLOCKED_MESSAGE)
+      return {
+        success: false,
+        improved,
+        message: MUTATION_BLOCKED_MESSAGE,
+      }
     }
 
     brainEvents.result(`Refactored ${path.basename(filePath)}`)
@@ -234,11 +229,9 @@ export class RefactorAgent {
       const stats = fs.statSync(target)
 
       if (stats.isFile()) {
-        const result = await this.refactorFile(target)
-        return result.message
+        return MUTATION_BLOCKED_MESSAGE
       } else if (stats.isDirectory()) {
-        const result = await this.refactorDirectory(target)
-        return `Refactored ${result.filesProcessed} files`
+        return MUTATION_BLOCKED_MESSAGE
       }
     }
 

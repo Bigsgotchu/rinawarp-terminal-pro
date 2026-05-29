@@ -25,13 +25,9 @@ test("smoke: agent home + settings persistence", async () => {
     await waitForAppReady(page);
 
     await expect(page.locator("#panel-agent")).toBeVisible();
-    await expect(page.locator(".rw-agent-welcome-card")).toBeVisible();
-    await expect(page.locator(".rw-agent-welcome-card")).toContainText(
-      /Fix your broken project automatically\.|Open a project and click Fix Project|This folder may not be the project root yet/i,
-    );
-    const welcomeCard = page.locator(".rw-agent-welcome-card");
-    await expect(welcomeCard.getByRole('button', { name: 'Open Project' })).toBeVisible();
-    await expect(welcomeCard.getByRole('button', { name: 'Try Demo Project' })).toBeVisible();
+    await expect(page.locator(".rw-agent-launch-title")).toHaveText("RinaWarp Terminal Pro");
+    await expect(page.locator(".rw-agent-launch-subtitle")).toHaveText("What would you like me to do?");
+    await expect(page.locator("#agent-starter-prompts .rw-prompt-chip")).toHaveCount(3);
 
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === "function");
     await page.keyboard.press(modKey(","));

@@ -24,7 +24,7 @@ export function renderStarterPromptChip(model: StarterPromptViewModel): HTMLElem
       },
     },
     el('span', { class: 'rw-prompt-chip-label' }, model.label),
-    el('span', { class: 'rw-prompt-chip-meta' }, model.hint)
+    model.hint ? el('span', { class: 'rw-prompt-chip-meta' }, model.hint) : null
   )
 }
 

@@ -33,6 +33,7 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   if (app) {
     app.classList.toggle('drawer-open', model.drawerOpen)
     app.classList.toggle('recovery-focused', model.recoveryFocused)
+    app.classList.toggle('agent-launch-empty', model.agentLaunchEmpty)
     if (model.drawer) app.dataset.drawer = model.drawer
     else delete app.dataset.drawer
   }
@@ -41,7 +42,7 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   if (shell) shell.classList.toggle('recovery-focused', model.recoveryFocused)
 
   const statusBar = doc.getElementById('status-bar')
-  if (statusBar) statusBar.hidden = model.recoveryFocused
+  if (statusBar) statusBar.hidden = model.recoveryFocused || model.agentLaunchEmpty
 
   for (const [name, active] of Object.entries(model.activeCenterViews)) {
     doc.querySelector<HTMLElement>(`[data-view="${name}"]`)?.classList.toggle('active', active)
@@ -64,6 +65,7 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
 
   const workspacePicker = doc.getElementById('workspace-picker')
   if (workspacePicker) {
+    workspacePicker.hidden = model.agentLaunchEmpty
     workspacePicker.textContent = model.status.workspacePickerText
     workspacePicker.setAttribute('title', model.status.workspacePickerTitle)
     workspacePicker.classList.toggle('is-weak', model.status.workspacePickerWeak)

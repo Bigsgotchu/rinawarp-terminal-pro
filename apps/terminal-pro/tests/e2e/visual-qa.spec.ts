@@ -107,7 +107,7 @@ async function ensureProjectContext(page: Page): Promise<void> {
 test('visual QA captures empty state, active thread, runs, diagnostics, and settings surfaces', async () => {
   await withApp(async ({ page }) => {
     await agentTopbarTab(page).click()
-    await expect(page.locator('.rw-agent-welcome-card')).toBeVisible()
+    await expect(page.locator('.rw-agent-launch-title')).toBeVisible()
     await capture(page, 'agent-empty-state')
 
     await ensureProjectContext(page)
@@ -156,7 +156,7 @@ test('visual QA captures recovery state', async () => {
 test('visual QA verifies skin and density variants render intentionally', async () => {
   await withApp(async ({ page }) => {
     await agentTopbarTab(page).click()
-    await expect(page.locator('.rw-agent-welcome-card')).toBeVisible()
+    await expect(page.locator('.rw-agent-launch-title')).toBeVisible()
 
     await page.evaluate(() => {
       localStorage.setItem('rinawarp-skin', 'vscode')
@@ -183,10 +183,10 @@ test('visual QA verifies skin and density variants render intentionally', async 
 test('accessibility smoke keeps focus visibility and compact hit targets usable', async () => {
   await withApp(async ({ page }) => {
     await agentTopbarTab(page).click()
-    const primaryWelcomeButton = page.locator('.rw-agent-welcome-card').getByRole('button', { name: 'Open Project' })
-    await primaryWelcomeButton.focus()
+    const primaryChip = page.locator('#agent-starter-prompts .rw-prompt-chip').first()
+    await primaryChip.focus()
 
-    const focusStyles = await primaryWelcomeButton.evaluate((node) => {
+    const focusStyles = await primaryChip.evaluate((node) => {
       const styles = getComputedStyle(node)
       return {
         outlineStyle: styles.outlineStyle,

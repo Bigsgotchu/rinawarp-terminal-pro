@@ -9,8 +9,9 @@
 import type { RinaTool, ToolContext, ToolResult } from './registry.js'
 import type { RinaTask } from '../brain.js'
 import fs from 'fs/promises'
-import path from 'path'
-import { forwardLegacyPrompt } from '../controller/legacyInputAdapter.js'
+
+const MUTATION_BLOCKED_MESSAGE =
+  'Filesystem mutation is blocked in this legacy tool. Use the approved runtime sandbox path.'
 
 /**
  * Standalone safe filesystem functions for direct use in development
@@ -28,31 +29,14 @@ export async function safeRead(filePath: string): Promise<string | null> {
 }
 
 export async function safeWrite(filePath: string, content: string): Promise<boolean> {
-  // Safety check for dangerous paths
-  if (filePath.includes('/dev/') || filePath.includes('/sys/') || filePath.startsWith('/proc/')) {
-    return false
-  }
-  try {
-    const dir = path.dirname(filePath)
-    await fs.mkdir(dir, { recursive: true })
-    await fs.writeFile(filePath, content, 'utf-8')
-    return true
-  } catch {
-    return false
-  }
+  void filePath
+  void content
+  return false
 }
 
 export async function safeDelete(filePath: string): Promise<boolean> {
-  // Safety check for dangerous paths
-  if (filePath === '/' || filePath === '/home' || filePath.startsWith('/usr/') || filePath.startsWith('/bin/')) {
-    return false
-  }
-  try {
-    await fs.rm(filePath, { recursive: true, force: true })
-    return true
-  } catch {
-    return false
-  }
+  void filePath
+  return false
 }
 
 export async function safeListDir(dirPath: string): Promise<string[] | null> {
@@ -118,22 +102,18 @@ export const filesystemTool: RinaTool = {
       }
     }
 
-    // Auto mode — mutations forward to runtime; reads stay local
+    // Auto mode — legacy mutations fail closed; reads stay local.
     try {
       switch (action) {
         case 'write': {
           if (!targetPath || !content) {
             return { ok: false, error: 'Path and content are required for write' }
           }
-          const response = await forwardLegacyPrompt(
-            `Write file through runtime.\nPath: ${targetPath}\nContent:\n${content}`,
-            context.workspaceRoot || process.cwd(),
-            'mutate',
-          )
           return {
-            ok: response.ok,
-            output: { action: 'forwarded-write', path: targetPath, message: response.output },
-            error: response.error,
+            ok: false,
+            error: MUTATION_BLOCKED_MESSAGE,
+            blocked: true,
+            output: { action: 'blocked-write', path: targetPath },
           }
         }
         case 'read': {
@@ -160,15 +140,11 @@ export const filesystemTool: RinaTool = {
           if (!targetPath) {
             return { ok: false, error: 'Path is required for delete' }
           }
-          const response = await forwardLegacyPrompt(
-            `Delete file through runtime.\nPath: ${targetPath}`,
-            context.workspaceRoot || process.cwd(),
-            'mutate',
-          )
           return {
-            ok: response.ok,
-            output: { action: 'forwarded-delete', path: targetPath, message: response.output },
-            error: response.error,
+            ok: false,
+            error: MUTATION_BLOCKED_MESSAGE,
+            blocked: true,
+            output: { action: 'blocked-delete', path: targetPath },
           }
         }
         default: {

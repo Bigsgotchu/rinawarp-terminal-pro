@@ -19,26 +19,17 @@ export function renderExecutionTraceBlock(block: ExecutionTraceBlock): HTMLEleme
 export function renderExecutionTrace(state: WorkbenchState): void {
   const root = document.getElementById('execution-trace-output')
   if (!root) return
-  const shell =
-    state.executionTrace.blocks.length > 0
-      ? el('div')
-      : el(
-          'div',
-          { class: 'rw-execution-trace-empty' },
-          el('div', { class: 'rw-execution-trace-empty-title' }, 'Execution trace'),
-          el(
-            'div',
-            { class: 'rw-execution-trace-empty-copy' },
-            'Rina can build, test, and fix in the background. This stream exists only as low-level proof when you need command details.'
-          )
-        )
-  if (state.executionTrace.blocks.length > 0) {
+
+  if (state.executionTrace.blocks.length === 0) {
+    mount(root, el('div'))
+  } else {
+    const shell = el('div')
     for (const block of state.executionTrace.blocks.slice(-60)) {
       shell.appendChild(renderExecutionTraceBlock(block))
     }
+    mount(root, shell)
+    root.scrollTop = root.scrollHeight
   }
-  mount(root, shell)
-  root.scrollTop = root.scrollHeight
 
   const thinkingIndicator = document.getElementById('thinking-indicator')
   if (thinkingIndicator) {

@@ -12,6 +12,40 @@
   padding-inline: 28px;
 }
 
+.rw-agent-launch-empty {
+  display: grid;
+  gap: 12px;
+  inline-size: min(100%, 720px);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.rw-agent-launch-empty[hidden] {
+  display: none !important;
+}
+
+.rw-agent-launch-title {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: rgba(247, 249, 253, 0.98);
+}
+
+.rw-agent-launch-subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(192, 204, 219, 0.82);
+}
+
+.rw-agent-body.is-empty .rw-agent-composer {
+  margin-block-start: 8px;
+}
+
+#rw-app.agent-launch-empty .rw-agent-hero {
+  display: none;
+}
+
 .rw-agent-hero {
   display: grid;
   gap: 10px;

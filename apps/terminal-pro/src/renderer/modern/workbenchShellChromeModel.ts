@@ -1,4 +1,5 @@
 import type { DrawerView, TabKey, WorkbenchState } from '../workbench/store.js'
+import { isAgentLaunchEmpty } from '../workbench/agentLaunchState.js'
 import { getWorkspaceContextState } from '../workbench/renderers/selectors.js'
 
 export type StatusBarModel = {
@@ -18,6 +19,7 @@ export type WorkbenchShellChromeModel = {
   activeCenterViews: Record<string, boolean>
   activeRightViews: Record<string, boolean>
   agentFocused: boolean
+  agentLaunchEmpty: boolean
   drawerOpen: boolean
   drawer: DrawerView | null
   recoveryFocused: boolean
@@ -25,7 +27,20 @@ export type WorkbenchShellChromeModel = {
   autonomyEnabled: boolean
 }
 
-export function getStatusBarModel(state: WorkbenchState): StatusBarModel {
+export function getStatusBarModel(state: WorkbenchState, options: { launchEmpty?: boolean } = {}): StatusBarModel {
+  if (options.launchEmpty) {
+    return {
+      modeText: '',
+      workspaceText: '',
+      workspaceTitle: '',
+      workspacePickerText: '',
+      workspacePickerTitle: '',
+      workspacePickerWeak: false,
+      activityText: '',
+      summaryText: '',
+    }
+  }
+
   const workspaceState = getWorkspaceContextState(state)
   const restoredRuns = state.runs.filter((run) => run.restored)
   const rawStatusSummary = String(state.ui.statusSummaryText || '').trim()
@@ -61,6 +76,7 @@ export function getStatusBarModel(state: WorkbenchState): StatusBarModel {
 }
 
 export function buildWorkbenchShellChromeModel(state: WorkbenchState): WorkbenchShellChromeModel {
+  const agentLaunchEmpty = isAgentLaunchEmpty(state)
   const visibleMessages = state.chat.filter((message) => message.workspaceKey === state.workspaceKey).slice(-200)
   const recoveryMessages = visibleMessages.filter((message) => message.id.startsWith('system:runs:restore:'))
   const threadMessages = visibleMessages.filter((message) => !message.id.startsWith('system:runs:restore:'))
@@ -97,7 +113,8 @@ export function buildWorkbenchShellChromeModel(state: WorkbenchState): Workbench
     drawerOpen,
     drawer: state.ui.openDrawer,
     recoveryFocused,
-    status: getStatusBarModel(state),
+    agentLaunchEmpty,
+    status: getStatusBarModel(state, { launchEmpty: agentLaunchEmpty }),
     autonomyEnabled: Boolean(state.runtime.autonomyEnabled),
   }
 }
