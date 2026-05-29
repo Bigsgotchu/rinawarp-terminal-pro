@@ -65,7 +65,7 @@ type CreateUpdateServiceDeps = {
 }
 
 const SITE_BASE = 'https://rinawarptech.com'
-const UPDATES_BASE = 'https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev'
+const UPDATES_BASE = 'https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/latest/download'
 const CHANNELS_MANIFEST_URL = `${SITE_BASE}/releases.json`
 
 function compareVersions(left: string, right: string): number {
@@ -86,17 +86,10 @@ function compareVersions(left: string, right: string): number {
 }
 
 function urlsForChannel(channel: UpdateChannel): { manifestUrl: string; feedUrl: string; releaseUrl: string } {
-  if (channel === 'stable') {
-    return {
-      manifestUrl: `${UPDATES_BASE}/latest.json`,
-      feedUrl: UPDATES_BASE,
-      releaseUrl: `${SITE_BASE}/download`,
-    }
-  }
   return {
-    manifestUrl: `${UPDATES_BASE}/${channel}/latest.json`,
-    feedUrl: `${UPDATES_BASE}/${channel}`,
-    releaseUrl: `${SITE_BASE}/download/?channel=${channel}`,
+    manifestUrl: `${UPDATES_BASE}/latest.json`,
+    feedUrl: UPDATES_BASE,
+    releaseUrl: channel === 'stable' ? `${SITE_BASE}/download` : `${SITE_BASE}/download/?channel=${channel}`,
   }
 }
 

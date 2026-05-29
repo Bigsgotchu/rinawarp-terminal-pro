@@ -31,7 +31,15 @@
       "import": "./dist/execution/sandbox.js",
       "types": "./dist/execution/sandbox.d.ts"
     },
+    "./execution/sandbox.js": {
+      "import": "./dist/execution/sandbox.js",
+      "types": "./dist/execution/sandbox.d.ts"
+    },
     "./execution/executionRecord": {
+      "import": "./dist/execution/executionRecord.js",
+      "types": "./dist/execution/executionRecord.d.ts"
+    },
+    "./execution/executionRecord.js": {
       "import": "./dist/execution/executionRecord.js",
       "types": "./dist/execution/executionRecord.d.ts"
     },

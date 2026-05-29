@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
 import type { RinaExecutionEvent, RinaExecutionRecord } from '@rinawarp/rina-core'
 import { HeaderBar } from './HeaderBar'
-import { InputBar } from './InputBar'
 import { RinaPanel } from './RinaPanel'
 import { TerminalPane } from './TerminalPane'
 import { planRinaTask } from '../../rina-agent/agentPlanner'
@@ -304,22 +303,10 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
     }
   }, [appendMessage, createTaskRequest, runDiskRecoveryTask])
 
-  const handleBottomPrompt = useCallback(
-    async (prompt: string) => {
-      const handled = await handlePrompt(prompt)
-      if (handled) {
-        return true
-      }
-      return false
-    },
-    [handlePrompt]
-  )
-
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
+    <div className="h-screen flex flex-col bg-zinc-950 text-white">
       <HeaderBar />
-      <div className="flex-1 min-h-0 overflow-hidden grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px]">
-        <TerminalPane />
+      <div className="flex-1 min-h-0 overflow-hidden grid grid-rows-[minmax(0,1fr)_auto] bg-zinc-950">
         <RinaPanel
           status={diagnosticStatus}
           diagnostic={diagnostic}
@@ -337,8 +324,8 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
           onApprovePatch={handleApprovePatch}
           onDenyPatch={handleDenyPatch}
         />
+        <TerminalPane />
       </div>
-      <InputBar onSubmitPrompt={handleBottomPrompt} />
       {showDetailsDrawer && (
         <div className="fixed right-0 top-0 h-full w-80 bg-zinc-900/95 border-l border-zinc-700/50 p-6 backdrop-blur-sm shadow-2xl">
           <h3 className="text-lg font-semibold mb-4 text-white">Session Details</h3>

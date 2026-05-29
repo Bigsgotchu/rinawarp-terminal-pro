@@ -8,11 +8,12 @@ export function TerminalPane() {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
+  const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<'starting' | 'ready' | 'exited' | 'error'>('starting')
 
   useEffect(() => {
     const container = containerRef.current
-    if (!container) return
+    if (!open || !container) return
 
     const terminal = new Terminal({
       cursorBlink: true,
@@ -151,15 +152,32 @@ export function TerminalPane() {
       terminalRef.current = null
       fitAddonRef.current = null
     }
-  }, [])
+  }, [open])
 
   return (
-    <section data-testid="terminal-surface" className="flex min-h-0 flex-1 flex-col border-t border-zinc-800 bg-black">
-      <div className="flex h-9 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950 px-4 text-xs text-zinc-400">
-        <span className="font-medium text-zinc-300">Terminal</span>
-        <span className="capitalize">{status}</span>
-      </div>
-      <div ref={containerRef} className="min-h-0 flex-1 overflow-hidden p-2" />
+    <section
+      data-testid="terminal-surface"
+      className="shrink-0 border-t border-zinc-800 bg-zinc-950/95"
+      aria-label="Terminal / Execution Trace"
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex h-11 w-full items-center justify-between px-5 text-left text-xs text-zinc-400 hover:bg-zinc-900"
+        aria-expanded={open}
+        aria-controls="terminal-execution-trace"
+      >
+        <span>
+          <span className="font-semibold text-zinc-200">Terminal / Execution Trace</span>
+          <span className="ml-3 text-zinc-500">secondary inspector</span>
+        </span>
+        <span className="capitalize text-zinc-500">{open ? status : 'collapsed'}</span>
+      </button>
+      {open && (
+        <div id="terminal-execution-trace" className="h-56 border-t border-zinc-800 bg-black">
+          <div ref={containerRef} className="h-full overflow-hidden p-2" />
+        </div>
+      )}
     </section>
   )
 }

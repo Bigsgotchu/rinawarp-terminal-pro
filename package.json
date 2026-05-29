@@ -1,6 +1,6 @@
 {
   "name": "rinawarp-monorepo",
-  "version": "1.7.1-beta",
+  "version": "1.7.2-beta",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -17,8 +17,8 @@
     "test:extensions": "npm run test:companion",
     "package:vscode-companion": "npm --workspace apps/rinawarp-companion run package:vsix",
     "build": "npm --workspace apps/terminal-pro run build:electron",
-    "build:desktop": "pnpm --filter rinawarp-terminal-pro build",
-    "dist:desktop": "pnpm --filter rinawarp-terminal-pro dist",
+    "build:desktop": "corepack pnpm --filter rinawarp-terminal-pro build",
+    "dist:desktop": "corepack pnpm --filter rinawarp-terminal-pro dist",
     "build:all": "npm run build --workspaces",
     "agent:daemon:start": "npm --workspace packages/rinawarp-agentd run daemon:start",
     "agent:daemon:status": "npm --workspace packages/rinawarp-agentd run daemon:status",
@@ -85,10 +85,7 @@
     "lint:fix": "npm --workspace apps/terminal-pro run lint:fix",
     "format": "prettier --write 'apps/**/*.{ts,tsx,js,cjs,mjs}' 'packages/**/*.{ts,tsx,js,cjs,mjs}' 'tools/**/*.{ts,tsx,js,cjs,mjs}'",
     "format:check": "prettier --check 'apps/**/*.{ts,tsx,js,cjs,mjs}' 'packages/**/*.{ts,tsx,js,cjs,mjs}' 'tools/**/*.{ts,tsx,js,cjs,mjs}'",
-    "spellcheck": "cspell 'apps/**/*.{ts,tsx,js,cjs,mjs}' 'packages/**/*.{ts,tsx,js,cjs,mjs}' 'tools/**/*.{ts,tsx,js,cjs,mjs}'",
-    "build:desktop": "pnpm --filter rinawarp-terminal-pro build",
-    "dist:desktop": "pnpm --filter rinawarp-terminal-pro dist",
-    "check:updater": "bash scripts/check-updater.sh"
+    "spellcheck": "cspell 'apps/**/*.{ts,tsx,js,cjs,mjs}' 'packages/**/*.{ts,tsx,js,cjs,mjs}' 'tools/**/*.{ts,tsx,js,cjs,mjs}'"
   },
   "keywords": [
     "rinawarp",

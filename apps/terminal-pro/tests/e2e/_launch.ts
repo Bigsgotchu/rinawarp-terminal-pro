@@ -50,6 +50,8 @@ export async function launchPackagedApp(extraEnv?: Record<string, string>): Prom
   })
   delete env.ELECTRON_RUN_AS_NODE
   if (isLinux) {
+    env.ELECTRON_DISABLE_SANDBOX = '1'
+    env.ELECTRON_NO_SANDBOX = '1'
     env.HOME = env.HOME || process.env.HOME
     env.XDG_CONFIG_HOME = env.XDG_CONFIG_HOME || path.join(String(env.HOME), '.config')
     env.XDG_DATA_HOME = env.XDG_DATA_HOME || path.join(String(env.HOME), '.local', 'share')
@@ -62,6 +64,7 @@ export async function launchPackagedApp(extraEnv?: Record<string, string>): Prom
       '--disable-dev-shm-usage',
       '--disable-gpu',
       '--disable-software-rasterizer',
+      '--no-zygote',
     ]
     return electron.launch({
       executablePath: PACKAGED_EXECUTABLE_LINUX,

@@ -2,12 +2,12 @@ export function HeaderBar() {
   return (
     <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-sm">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+        <div className="w-8 h-8 bg-cyan-600 rounded flex items-center justify-center">
           <span className="text-white font-bold text-sm">R</span>
         </div>
         <div>
-          <h1 className="text-lg font-semibold text-white">Rina Terminal Pro</h1>
-          <p className="text-xs text-zinc-400">AI-Powered Development Assistant</p>
+          <h1 className="text-lg font-semibold text-white">RinaWarp Terminal Pro</h1>
+          <p className="text-xs text-zinc-400">Agent Thread first. Terminal output stays inspect-only.</p>
         </div>
       </div>
       <div className="flex items-center gap-4">

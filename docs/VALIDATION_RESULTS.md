@@ -201,3 +201,125 @@ Release-readiness commands should not depend on a globally installed `pnpm`; the
 
 - verification improvement
 - updater hardening
+
+## v1.8.0-beta Daily Driver Entry — 2026-05-27 Customer Journey Harness
+
+### Category
+
+- Runtime test
+- UX refinement
+- Verification improvement
+
+### Task
+
+Add and run a customer journey Playwright suite covering launch, Agent Thread visibility, composer visibility, repo understanding, dangerous prompt refusal, and TypeScript patch approval before mutation.
+
+### Result
+
+- Added `apps/terminal-pro/tests/e2e/customer-journey.spec.ts`.
+- Customer journey blocker in sandbox:
+  - Packaged Electron starts, but no BrowserWindow appears.
+  - Likely environment/sandbox display issue.
+  - Requires validation on normal desktop session.
+- Packaged launch/window creation needs explicit customer-machine validation.
+- Attempted:
+
+```bash
+bash apps/terminal-pro/scripts/run-electron-playwright.sh \
+  apps/terminal-pro/tests/e2e/customer-journey.spec.ts \
+  --headed
+```
+
+  - This runner still did not behave like a normal desktop session.
+  - Electron started, but `mainLoaded=false` and no BrowserWindow appeared.
+  - Stopped the run to avoid treating an environment/windowing limitation as product failure.
+
+### Trust Impact
+
+This is not a product failure by itself. It means the automated harness cannot prove the packaged-window journey from this sandboxed environment, so the real customer-machine launch check must happen on a normal desktop session.
+
+### Expected Behavior
+
+On a normal desktop session, `RinaWarp-Terminal-Pro-1.7.1-beta.AppImage` should open a visible window, show Agent Thread, expose the composer, and allow the customer journey suite to capture launch, repo answer, refusal, and patch approval screenshots.
+
+### Engineering Outcome
+
+- verification improvement
+- UX refinement
+
+## v1.8.0-beta Daily Driver Entry — 2026-05-27 Packaged AppImage Export Fix
+
+### Category
+
+- Runtime test
+- Verification improvement
+- Updater hardening
+
+### Task
+
+Fix packaged AppImage startup failure caused by `@rinawarp/rina-runtime/execution/executionRecord.js` not being exported from `@rinawarp/rina-runtime`.
+
+### Result
+
+- Added explicit `.js` package exports for runtime execution subpaths.
+- Confirmed the built runtime package contains `dist/execution/executionRecord.js`.
+- Rebuilt Electron and desktop artifacts.
+- Launched the rebuilt AppImage outside the sandbox with `ELECTRON_RUN_AS_NODE` removed.
+- The packaged app stayed alive until the validation timeout and did not throw `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+- During launch, updater validation exposed a separate blocker: runtime updater code was still pointing at the old R2 feed and received HTTP 403.
+- Updated runtime updater feed configuration to use GitHub Releases `latest/download`, matching the beta updater strategy.
+
+### Trust Impact
+
+This found a real packaged-only failure before customers hit it. Source tests were not enough because package `exports` are enforced inside `app.asar`; manual packaged validation caught the customer-impacting startup path.
+
+### Expected Behavior
+
+The packaged AppImage should open without package export errors and should check GitHub Releases for updater metadata, not the frozen R2 path.
+
+### Engineering Outcome
+
+- runtime test
+- verification improvement
+- updater hardening
+
+## v1.7.2-beta Daily Driver Entry — 2026-05-27 Agent Thread Primary UI Fix
+
+### Category
+
+- UX refinement
+- Trust test
+- Verification improvement
+
+### Task
+
+Fix the packaged app hierarchy so Agent Thread is the primary product surface and Terminal becomes secondary/inspect-only.
+
+### Result
+
+- Moved the active React renderer to an Agent Thread-first layout.
+- Removed the duplicate bottom composer from the first viewport.
+- Added the first-launch prompt: “Tell Rina what you want done.”
+- Added example prompts for project repair, test explanation, repo understanding, and system diagnosis.
+- Collapsed the terminal behind a secondary “Terminal / Execution Trace” inspector.
+- Rina responses now render as inline thread blocks for understanding, plan, execution, verification, and receipt-style proof.
+- Built the Electron renderer successfully.
+- Static rendered screenshot check showed Agent Thread as the dominant first viewport and terminal collapsed to a 45px inspector.
+- Rebuilt desktop artifacts for `1.7.2-beta`.
+- Launched `RinaWarp-Terminal-Pro-1.7.2-beta.AppImage` outside the sandbox with `ELECTRON_RUN_AS_NODE` removed.
+- Packaged app stayed alive until the validation timeout and did not throw the previous package export startup error.
+- Updater check now uses GitHub Releases; the old R2 403 did not recur.
+
+### Trust Impact
+
+The app now communicates the actual product: users talk to Rina first, review plans/proof in the thread, and inspect terminal output only when needed. This reduces the “terminal with a sidebar” trust gap.
+
+### Expected Behavior
+
+On launch, users should immediately understand they should ask Rina for work. Terminal remains accessible, but it does not dominate the product surface.
+
+### Engineering Outcome
+
+- UX refinement
+- trust test
+- verification improvement
