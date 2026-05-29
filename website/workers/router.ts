@@ -4409,6 +4409,102 @@ export default {
         return handleFeedbackSubmit(request, env, corsHeaders)
       }
 
+      if (path.startsWith('/v1/telemetry/') && request.method === 'POST') {
+        try {
+          const body = await request.json()
+          const endpoint = path.slice('/v1/telemetry/'.length).replace(/\/+$/, '')
+          const installId = typeof body?.installId === 'string' ? body.installId.slice(0, 80) : ''
+          const version = typeof body?.version === 'string' ? body.version.slice(0, 40) : 'unknown'
+          const platform = typeof body?.platform === 'string' ? body.platform.slice(0, 30) : 'unknown'
+          const arch = typeof body?.arch === 'string' ? body.arch.slice(0, 30) : 'unknown'
+          const rawEvent = typeof body?.event === 'string' ? body.event : ''
+          const forbiddenKeys = new Set([
+            'prompt',
+            'promptText',
+            'repo',
+            'repoName',
+            'repoPath',
+            'repository',
+            'sourceCode',
+            'terminalOutput',
+            'fileContents',
+            'fileContent',
+            'shellHistory',
+            'username',
+            'userName',
+            'token',
+            'secret',
+          ])
+          const containsForbiddenKey = Object.keys(body || {}).some((key) => forbiddenKeys.has(key))
+          const allowedEvents = new Set([
+            'task_started',
+            'task_completed',
+            'task_failed',
+            'rollback_triggered',
+            'approval_denied',
+          ])
+
+          const eventName =
+            endpoint === 'install'
+              ? 'desktop_install'
+              : endpoint === 'active'
+                ? 'desktop_active'
+                : endpoint === 'event' && allowedEvents.has(rawEvent)
+                  ? `desktop_${rawEvent}`
+                  : ''
+
+          if (!installId || !eventName || containsForbiddenKey) {
+            return new Response(JSON.stringify({ error: 'Invalid telemetry payload' }), {
+              status: 400,
+              headers: { 'Content-Type': 'application/json', ...corsHeaders },
+            })
+          }
+
+          const properties = {
+            version,
+            platform,
+            arch,
+            source: 'desktop',
+          }
+
+          console.log('Desktop telemetry received:', {
+            event: eventName,
+            installId: `${installId.slice(0, 8)}...`,
+            properties,
+          })
+
+          const posthogKey = String(env.RINAWARP_POSTHOG_KEY || env.POSTHOG_API_KEY || '').trim()
+          const posthogHost = String(env.RINAWARP_POSTHOG_HOST || env.POSTHOG_HOST || 'https://app.posthog.com').trim()
+
+          if (posthogKey) {
+            try {
+              await fetch(`${posthogHost.replace(/\/+$/, '')}/capture/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: posthogKey,
+                  event: eventName,
+                  distinct_id: installId,
+                  properties,
+                  timestamp: new Date().toISOString(),
+                }),
+              })
+            } catch (error) {
+              console.error('Desktop telemetry forward failed:', error)
+            }
+          }
+
+          return new Response(JSON.stringify({ ok: true }), {
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          })
+        } catch {
+          return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          })
+        }
+      }
+
       // API routes: /v1/*
       if (path.startsWith('/v1')) {
         return apiRouter(request, env)

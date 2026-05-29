@@ -31,6 +31,7 @@ import { registerSecureAgentIpc } from './main/ipc/secure-agent.js';
 import { registerAgentExecutionIpc } from './main/ipc/registerAgentExecutionIpc.js';
 import { registerMemoryIpc } from './main/ipc/registerMemoryIpc.js';
 import { registerAnalyticsIpc } from './main/ipc/registerAnalyticsIpc.js';
+import { registerOperationalTelemetryIpc } from './main/ipc/registerOperationalTelemetryIpc.js';
 import { registerUpdateIpc } from './main/ipc/registerUpdateIpc.js';
 import { resolveResourcePath as resolveMainResourcePath } from './main/resources.js';
 import { createAgentdIpcWrappers } from './main/agentd/ipcWrappers.js';
@@ -70,6 +71,7 @@ import { registerPostStartupIpcAndServices } from './main/startup/registerPostSt
 import { createAnalyticsSessionInitializer, createAuthBootstrap, createDaemonAutoStarter, createEntitlementRestore, runStartupSequence, } from './main/startup/startupSequence.js';
 import { canonicalizePath, isWithinRoot, normalizeProjectRoot as normalizeProjectRootFromSecurity, resolveProjectRootSafe as resolveProjectRootSafeFromSecurity, } from './security/projectRoot.js';
 import { setFrameworkRuntime } from './main/runtime/runtimeAccess.js';
+import { initOperationalTelemetry, startOperationalTelemetrySession } from './main/telemetry/operationalTelemetry.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const APP_PROJECT_ROOT = path.resolve(__dirname, '..');
@@ -335,6 +337,10 @@ app.whenReady().then(async () => {
         runtime.state.structuredSessionStore = startup.structuredSessionStore;
         runtime.registration.registerPostStartupIpcAndServices();
         markBootMilestone('post-startup IPC registered');
+        initOperationalTelemetry({ app, fetchImpl: fetch });
+        registerOperationalTelemetryIpc(ipcMain);
+        startOperationalTelemetrySession();
+        markBootMilestone('operational telemetry initialized');
         runtime.windows.createWindow();
         markBootMilestone('createWindow scheduled');
     }

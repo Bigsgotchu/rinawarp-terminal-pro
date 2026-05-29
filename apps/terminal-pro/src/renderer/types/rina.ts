@@ -59,6 +59,9 @@ export interface RinaAPI {
   trackCommandRun(): Promise<any>
   trackAiMessage(): Promise<any>
   trackQuickFix(): Promise<any>
+  telemetryPrivacyGet(): Promise<any>
+  telemetryPrivacySet(input: { enabled: boolean }): Promise<any>
+  recordOperationalTelemetry(event: string): Promise<any>
 
   // Agent actions
   agentPlan(args: { intentText: string; projectRoot: string }): Promise<any>

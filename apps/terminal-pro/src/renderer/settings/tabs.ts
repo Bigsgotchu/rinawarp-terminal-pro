@@ -15,6 +15,7 @@ export type SettingsTabId =
   | 'retrieval'
   | 'research'
   | 'updates'
+  | 'privacyTelemetry'
 
 export type SettingsTab = {
   id: SettingsTabId
@@ -78,7 +79,8 @@ function readStoredTab(storageKey: string): SettingsTabId | null {
       raw === 'about' ||
       raw === 'retrieval' ||
       raw === 'research' ||
-      raw === 'updates'
+      raw === 'updates' ||
+      raw === 'privacyTelemetry'
     )
       return raw
     return null

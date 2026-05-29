@@ -4,6 +4,7 @@ import { mountDiagnosticsPanel } from './panels/diagnostics.js'
 import { mountGeneralPanel } from './panels/general.js'
 import { mountLicensePanel } from './panels/license.js'
 import { mountMemoryPanel } from './panels/memory.js'
+import { mountPrivacyTelemetryPanel } from './panels/privacyTelemetry.js'
 import { mountResearchPanel } from './panels/research.js'
 import { mountRetrievalPanel } from './panels/retrieval.js'
 import { mountTeamPanel } from './panels/team.js'
@@ -20,6 +21,7 @@ export const SETTINGS_TABS: SettingsTab[] = [
   { id: 'retrieval', label: 'Retrieval', icon: '🔍', mount: (el: HTMLElement) => void mountRetrievalPanel(el) },
   { id: 'research', label: 'Research', icon: '🌐', mount: (el: HTMLElement) => void mountResearchPanel(el) },
   { id: 'updates', label: 'Updates', icon: '🔄', mount: (el: HTMLElement) => void mountUpdatesPanel(el) },
+  { id: 'privacyTelemetry', label: 'Privacy & Telemetry', icon: '🛡️', mount: (el: HTMLElement) => void mountPrivacyTelemetryPanel(el) },
   { id: 'license', label: 'License', icon: '🔑', mount: (el: HTMLElement) => void mountLicensePanel(el) },
   { id: 'diagnostics', label: 'Diagnostics', icon: '🧪', mount: (el: HTMLElement) => void mountDiagnosticsPanel(el) },
   { id: 'about', label: 'About', icon: 'ℹ️', mount: (el: HTMLElement) => void mountAboutPanel(el) },

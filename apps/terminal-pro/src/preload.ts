@@ -26,6 +26,9 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'telemetry:commandRun',
   'telemetry:aiMessage',
   'telemetry:quickFix',
+  'telemetry:privacy:get',
+  'telemetry:privacy:set',
+  'telemetry:operational:record',
   // Diagnostics
   'rina:diagnostics:paths',
   'rina:diagnostic:diskFull',
@@ -341,6 +344,9 @@ contextBridge.exposeInMainWorld('rina', {
   trackCommandRun: () => ipcRenderer.invoke('telemetry:commandRun'),
   trackAiMessage: () => ipcRenderer.invoke('telemetry:aiMessage'),
   trackQuickFix: () => ipcRenderer.invoke('telemetry:quickFix'),
+  telemetryPrivacyGet: () => ipcRenderer.invoke('telemetry:privacy:get'),
+  telemetryPrivacySet: (input: { enabled: boolean }) => ipcRenderer.invoke('telemetry:privacy:set', input),
+  recordOperationalTelemetry: (event: string) => ipcRenderer.invoke('telemetry:operational:record', event),
 
   agentPlan: (args: { intentText: string; projectRoot: string }) => ipcRenderer.invoke('rina:agent:plan', args),
   submitIntent: (args: unknown) => ipcRenderer.invoke('rina:ingress', args),

@@ -1,17 +1,28 @@
 import MetricsStore from './metrics-store.js'
 import type { MetricType } from './metrics-events.js'
+import { getOperationalTelemetry, isOperationalTelemetryEvent } from '../telemetry/operationalTelemetry.js'
+
+function recordOperationalTelemetry(type: MetricType): void {
+  if (!isOperationalTelemetryEvent(type)) return
+  const telemetry = getOperationalTelemetry()
+  if (!telemetry) return
+  void telemetry.recordCounter(type)
+}
 
 export class MetricsRecorder {
   recordTaskStarted() {
     MetricsStore.recordIncrement('task_started')
+    recordOperationalTelemetry('task_started')
   }
 
   recordTaskCompleted() {
     MetricsStore.recordIncrement('task_completed')
+    recordOperationalTelemetry('task_completed')
   }
 
   recordTaskFailed() {
     MetricsStore.recordIncrement('task_failed')
+    recordOperationalTelemetry('task_failed')
   }
 
   recordTaskRefused() {
@@ -30,10 +41,12 @@ export class MetricsRecorder {
   // Rollback and approval
   recordRollbackTriggered() {
     MetricsStore.recordIncrement('rollback_triggered')
+    recordOperationalTelemetry('rollback_triggered')
   }
 
   recordApprovalDenied() {
     MetricsStore.recordIncrement('approval_denied')
+    recordOperationalTelemetry('approval_denied')
   }
 
   // Duration metrics

@@ -323,3 +323,65 @@ On launch, users should immediately understand they should ask Rina for work. Te
 - UX refinement
 - trust test
 - verification improvement
+
+## v1.8.0-beta Operational Telemetry Validation — 2026-05-28
+
+### Category
+
+- Runtime test
+- Trust test
+- Verification improvement
+
+### Task
+
+Deploy and verify minimal anonymous operational telemetry for installs, daily activity, and approved trust-flow counters.
+
+### Result
+
+- Implemented anonymous install ID generation and first-launch install ping.
+- Implemented daily active ping and approved operational counters:
+  - `task_started`
+  - `task_completed`
+  - `task_failed`
+  - `rollback_triggered`
+  - `approval_denied`
+- Added `Settings -> Privacy & Telemetry` with opt-out.
+- Added `PRIVACY.md` and `TELEMETRY.md`.
+- Deployed telemetry receiver to Cloudflare Worker.
+- Initial live check against `https://api.rinawarptech.com/v1/telemetry/*` returned `404`, so the app default was changed to the verified route at `https://rinawarptech.com/v1/telemetry/*`.
+- Live synthetic payload checks against `https://rinawarptech.com/v1/telemetry/*` passed:
+  - install payload returned `200`
+  - active payload returned `200`
+  - approved `task_completed` counter returned `200`
+  - unapproved event returned `400`
+  - payload containing forbidden `prompt` field returned `400`
+
+### Payload Audit
+
+Allowed install and active payload fields:
+
+- `installId`
+- `version`
+- `platform`
+- `arch`
+
+Allowed event payload adds:
+
+- `event`
+- `count`
+
+The receiver rejects sensitive field names including prompts, repo paths, source code, terminal output, file contents, usernames, tokens, and secrets.
+
+### Trust Impact
+
+Telemetry is now scoped to operational reliability rather than behavioral surveillance. It can answer install, activity, and task-success questions without sending project content or user prompts.
+
+### Expected Behavior
+
+Telemetry failures should never block app launch, runtime execution, approval flows, verification, or updates. Users can opt out in settings.
+
+### Engineering Outcome
+
+- runtime test
+- trust test
+- verification improvement
