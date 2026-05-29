@@ -245,9 +245,12 @@ binding = "RINAWARP_DB"
 database_name = "rinawarp-users"
 database_id = "ca5efe98-909b-4bb5-9182-29cc9dd1fba2"
 
-[[r2_buckets]]
-binding = "RINAWARP_CDN"
-bucket_name = "rinawarp-cdn"
+# BLOCKER: R2 not enabled on this Cloudflare account.
+# Enable at: https://dash.cloudflare.com/?to=/:account/r2
+# Uncomment after enabling:
+# [[r2_buckets]]
+# binding = "RINAWARP_CDN"
+# bucket_name = "rinawarp-cdn"
 
 # Future: Add more KV namespaces for ratings and purchases
 # [[kv_namespaces]]
