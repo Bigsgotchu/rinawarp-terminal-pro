@@ -386,6 +386,81 @@ Telemetry failures should never block app launch, runtime execution, approval fl
 - trust test
 - verification improvement
 
+## v1.8.0-beta Baseline Install Entry — 2026-05-29
+
+### Category
+
+- Runtime test
+- Verification improvement
+
+### Task
+
+Confirm the existing `v1.7.2-beta` AppImage exists and can launch as the installed-user baseline before preparing `v1.8.0-beta`.
+
+### Result
+
+- Confirmed `RinaWarp-Terminal-Pro-1.7.2-beta.AppImage` exists.
+- Launched the AppImage with a temporary profile and telemetry disabled.
+- App reached Electron startup and registered PTY, analytics IPC, consolidated IPC, auth IPC, and secure-agent IPC handlers.
+- Validation run was ended by timeout after startup.
+- Updater check during launch reported no newer update because the public feed still resolved to `1.6.0-beta` at this point.
+
+### Trust Impact
+
+The `1.7.2-beta` packaged app is a usable baseline for installed-user updater validation, but the live updater feed still needs the `v1.8.0-beta` GitHub Release before update detection can be proven.
+
+### Expected Behavior
+
+Before release publication, `1.7.2-beta` should launch cleanly and should not detect `1.8.0-beta`.
+
+### Engineering Outcome
+
+- runtime test
+- verification improvement
+
+## v1.8.0-beta Release Prep Validation — 2026-05-29
+
+### Category
+
+- Runtime test
+- Trust test
+- Verification improvement
+
+### Task
+
+Prepare `v1.8.0-beta` as a validation-led release for real-user and installed-updater validation.
+
+### Result
+
+- Bumped root package version to `1.8.0-beta`.
+- Bumped `apps/terminal-pro` package version to `1.8.0-beta`.
+- Ran `npm --workspace apps/terminal-pro run test:rina-runtime`: passed.
+- Ran `npm --workspace packages/rina-doctor run test:trust`: passed.
+- Ran `corepack pnpm build`: passed.
+- Ran `corepack pnpm dist:desktop`: passed.
+- Confirmed release artifacts exist:
+  - `RinaWarp-Terminal-Pro-1.8.0-beta.AppImage`
+  - `RinaWarp-Terminal-Pro-1.8.0-beta.deb`
+  - `latest-linux.yml`
+  - `latest.yml`
+  - `latest.json`
+  - `SHASUMS256.txt`
+- Confirmed `latest-linux.yml` reports `version: 1.8.0-beta`.
+
+### Trust Impact
+
+The release is prepared as a validation checkpoint, not a feature release. Runtime, trust, build, packaging, and updater metadata gates passed before any GitHub release publication.
+
+### Expected Behavior
+
+The GitHub prerelease should publish these artifacts so installed `1.7.2-beta` users can attempt the first real update cycle to `1.8.0-beta`.
+
+### Engineering Outcome
+
+- runtime test
+- trust test
+- verification improvement
+
 ## v1.8.0-beta Packaged Telemetry Validation — 2026-05-28
 
 ### Category
