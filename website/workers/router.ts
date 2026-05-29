@@ -307,6 +307,11 @@ function rwSvg(svg: string): Response {
   return new Response(svg, { status: 200, headers })
 }
 
+const GITHUB_RELEASES_BASE = 'https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases'
+const BETA_RELEASE_VERSION = '1.8.0-beta'
+const BETA_RELEASE_TAG = `v${BETA_RELEASE_VERSION}`
+const BETA_RELEASE_DOWNLOAD_BASE = `${GITHUB_RELEASES_BASE}/download/${BETA_RELEASE_TAG}`
+
 function normalizeArtifactKind(rawKind: string): string {
   const kind = (rawKind || '').toLowerCase().trim()
 
@@ -376,6 +381,25 @@ function buildChannelDownloadSummary(
   }
 }
 
+function buildGitHubBetaReleaseSummary(): {
+  version: string
+  url: string
+  manifestUrl: string
+  publishedAt: string | null
+  downloads: { linux?: string; deb?: string; windows?: string }
+} {
+  return {
+    version: BETA_RELEASE_VERSION,
+    url: `${GITHUB_RELEASES_BASE}/tag/${BETA_RELEASE_TAG}`,
+    manifestUrl: `${BETA_RELEASE_DOWNLOAD_BASE}/latest.json`,
+    publishedAt: '2026-05-29T00:37:28.845Z',
+    downloads: {
+      linux: `${BETA_RELEASE_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${BETA_RELEASE_VERSION}.AppImage`,
+      deb: `${BETA_RELEASE_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${BETA_RELEASE_VERSION}.deb`,
+    },
+  }
+}
+
 async function renderReleasesJson(env: any, origin: string): Promise<Response> {
   const [stable, beta, alpha] = await Promise.all([
     getChannelReleaseManifest(env, 'stable'),
@@ -384,7 +408,7 @@ async function renderReleasesJson(env: any, origin: string): Promise<Response> {
   ])
   const payload = {
     stable: buildChannelDownloadSummary(origin, 'stable', stable),
-    beta: buildChannelDownloadSummary(origin, 'beta', beta),
+    beta: buildChannelDownloadSummary(origin, 'beta', beta) ?? buildGitHubBetaReleaseSummary(),
     alpha: buildChannelDownloadSummary(origin, 'alpha', alpha),
   }
   const headers = rwHeaders()

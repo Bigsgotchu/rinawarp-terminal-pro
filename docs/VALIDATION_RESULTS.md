@@ -386,6 +386,39 @@ Telemetry failures should never block app launch, runtime execution, approval fl
 - trust test
 - verification improvement
 
+## v1.8.0-beta Updater Discovery Validation — 2026-05-29
+
+### Category
+
+- Runtime test
+- Verification improvement
+
+### Task
+
+Validate whether installed `1.7.2-beta` users can discover the published `v1.8.0-beta` release through the live beta updater feed.
+
+### Result
+
+- Published `v1.8.0-beta` GitHub prerelease with AppImage, `.deb`, `latest-linux.yml`, `latest.yml`, `latest.json`, and `SHASUMS256.txt`.
+- Confirmed the tag-specific updater feed passed:
+  - `UPDATER_BASE_URL=https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases/download/v1.8.0-beta npm run check:updater`
+- Found installed-user discovery blocker:
+  - GitHub `releases/latest/download/latest.json` still resolved to `v1.6.0-beta`.
+  - `https://rinawarptech.com/releases.json` returned `beta: null`.
+- Added a narrow beta-channel fallback so `/releases.json` advertises `1.8.0-beta` GitHub Release artifacts when no channel manifest is available.
+
+### Trust Impact
+
+This prevents a false green updater result. The release assets are valid, but installed users also need a discoverable beta channel before the real customer-update path can be proven.
+
+### Expected Behavior
+
+Installed `1.7.2-beta` users on the beta channel should discover `1.8.0-beta` from GitHub Releases without R2 and without manually reinstalling.
+
+### Engineering Outcome
+
+- verification improvement
+
 ## v1.8.0-beta Baseline Install Entry — 2026-05-29
 
 ### Category
