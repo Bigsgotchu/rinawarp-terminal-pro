@@ -7,7 +7,6 @@ export function HeaderBar() {
         </div>
         <div>
           <h1 className="text-lg font-semibold text-white">RinaWarp Terminal Pro</h1>
-          <p className="text-xs text-zinc-400">Agent Thread first. Terminal output stays inspect-only.</p>
         </div>
       </div>
       <div className="flex items-center gap-4">

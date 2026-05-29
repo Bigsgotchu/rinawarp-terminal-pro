@@ -158,7 +158,7 @@ export function TerminalPane() {
     <section
       data-testid="terminal-surface"
       className="shrink-0 border-t border-zinc-800 bg-zinc-950/95"
-      aria-label="Terminal / Execution Trace"
+      aria-label="Execution Details"
     >
       <button
         type="button"
@@ -168,8 +168,7 @@ export function TerminalPane() {
         aria-controls="terminal-execution-trace"
       >
         <span>
-          <span className="font-semibold text-zinc-200">Terminal / Execution Trace</span>
-          <span className="ml-3 text-zinc-500">secondary inspector</span>
+          <span className="font-semibold text-zinc-200">Execution Details</span>
         </span>
         <span className="capitalize text-zinc-500">{open ? status : 'collapsed'}</span>
       </button>

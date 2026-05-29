@@ -39,13 +39,7 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
   const [runBlocks, setRunBlocks] = useState<RunBlock[]>([])
   const [diagnosticError, setDiagnosticError] = useState<string | undefined>()
   const [isChatBusy, setIsChatBusy] = useState(false)
-  const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'rina'; text: string }>>([
-    {
-      id: 'rina:intro',
-      role: 'rina',
-      text: 'Tell me what is broken. I will inspect safely first, explain what I find, and ask before changing anything.',
-    },
-  ])
+  const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'rina'; text: string }>>([])
 
   const createTaskRequest = useCallback((message: string): RinaTaskRequest => {
     return {
@@ -303,6 +297,12 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
     }
   }, [appendMessage, createTaskRequest, runDiskRecoveryTask])
 
+  const hasExecutionActivity =
+    runBlocks.length > 0 ||
+    runtimeEvents.some((event) =>
+      String(event.type).toLowerCase().includes('execution')
+    )
+
   return (
     <div className="h-screen flex flex-col bg-zinc-950 text-white">
       <HeaderBar />
@@ -324,7 +324,7 @@ export function ChatScreen({ showDetailsDrawer }: ChatScreenProps) {
           onApprovePatch={handleApprovePatch}
           onDenyPatch={handleDenyPatch}
         />
-        <TerminalPane />
+        {hasExecutionActivity && <TerminalPane />}
       </div>
       {showDetailsDrawer && (
         <div className="fixed right-0 top-0 h-full w-80 bg-zinc-900/95 border-l border-zinc-700/50 p-6 backdrop-blur-sm shadow-2xl">

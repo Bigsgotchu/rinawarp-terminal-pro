@@ -148,15 +148,9 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   renderHero(state, recoveryFocus || isChatActive)
 
   const shell = document.createDocumentFragment()
-  const workspaceSetup = buildWorkspaceSetupCardModel(state)
-  const retentionCard = buildRetentionLoopCardModel(state)
 
   if (!hasThreadContent && !recoveryFocus) {
     shell.appendChild(buildEmptyStateNode(state))
-  }
-  if (hasThreadContent && workspaceSetup) {
-    shell.appendChild(renderAgentCard(workspaceSetup))
-    if (retentionCard) shell.appendChild(renderAgentCard(retentionCard))
   }
   if (hasThreadContent) {
     shell.appendChild(renderTruthHud(state))

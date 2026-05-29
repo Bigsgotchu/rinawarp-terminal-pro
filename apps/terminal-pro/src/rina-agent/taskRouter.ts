@@ -3,7 +3,7 @@ import type { RinaTaskKind } from './types.js'
 export function routeRinaTask(message: string): RinaTaskKind {
   const text = message.toLowerCase()
 
-  if (text.includes('disk') || text.includes('space') || text.includes('storage')) {
+  if (text.includes('disk') || text.includes('space') || text.includes('storage') || text.includes('system')) {
     return 'disk_recovery'
   }
 
@@ -11,7 +11,7 @@ export function routeRinaTask(message: string): RinaTaskKind {
     return 'port_conflict'
   }
 
-  if (text.includes('build') || text.includes('npm run') || text.includes('test failed')) {
+  if (text.includes('build') || text.includes('npm run') || text.includes('test failed') || text.includes('run tests') || text.includes('fix my project')) {
     return 'failed_build'
   }
 

@@ -172,39 +172,9 @@ function runtimeEventLabel(event: RuntimeEvent): string {
 
 const EXAMPLE_PROMPTS = [
   'Fix my project',
-  'Run tests and explain failures',
-  'What does this project do?',
+  'Run tests',
   "What's wrong with my system?",
 ]
-
-function responseBlockLabels(text: string): Array<{ label: string; body: string }> {
-  const normalized = text.toLowerCase()
-  if (normalized.includes("can't help") || normalized.includes('destructive') || normalized.includes('unsafe')) {
-    return [
-      { label: 'understanding', body: text },
-      { label: 'plan', body: 'Refuse the unsafe request and keep the workspace unchanged.' },
-      { label: 'verification', body: 'No command was run and no mutation was attempted.' },
-      { label: 'receipt', body: 'Refusal recorded in the thread.' },
-    ]
-  }
-  if (normalized.includes('applying approved patch') || normalized.includes('patch approval completed')) {
-    return [
-      { label: 'execution', body: text },
-      { label: 'verification', body: 'Rina will report the verification result and receipt when the approved action completes.' },
-      { label: 'receipt', body: 'Approved mutation stays tied to this thread.' },
-    ]
-  }
-  if (normalized.includes('runid=') || normalized.includes('receipt')) {
-    return [{ label: 'receipt', body: text }]
-  }
-  return [
-    { label: 'understanding', body: text },
-    { label: 'plan', body: 'Rina will inspect first, explain the next safe step, and ask before changing files or processes.' },
-    { label: 'execution', body: 'No command is running from this message.' },
-    { label: 'verification', body: 'Verification appears here after Rina runs an approved check or action.' },
-    { label: 'receipt', body: 'Receipts and proof stay attached to this thread.' },
-  ]
-}
 
 export function RinaPanel({
   status,
@@ -228,6 +198,12 @@ export function RinaPanel({
   const [draft, setDraft] = useState('')
   const [showFullAgentDiff, setShowFullAgentDiff] = useState(false)
   const patchProposalRef = useRef<HTMLElement>(null)
+  const hasConversation = messages.length > 0
+  const hasExecutionActivity =
+    runBlocks.length > 0 ||
+    runtimeEvents.some((event) =>
+      String(event.type).toLowerCase().includes('execution')
+    )
 
   useEffect(() => {
     if (agentPatchProposal?.payload) {
@@ -253,6 +229,36 @@ export function RinaPanel({
   const useExamplePrompt = (prompt: string) => {
     setDraft(prompt)
   }
+
+  const renderPromptForm = (variant: 'empty' | 'thread') => (
+    <form
+      onSubmit={submitDraft}
+      className={
+        variant === 'empty'
+          ? 'mx-auto w-full max-w-2xl space-y-3'
+          : 'sticky bottom-0 space-y-2 border-t border-zinc-800 bg-zinc-950/95 pt-4'
+      }
+    >
+      <textarea
+        data-testid="rina-chat-input"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={handleDraftKeyDown}
+        placeholder="Tell Rina what you want done."
+        rows={variant === 'empty' ? 2 : 3}
+        disabled={isChatBusy}
+        className="min-h-[88px] w-full resize-none rounded border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-cyan-500 disabled:cursor-wait disabled:text-zinc-500"
+      />
+      <button
+        data-testid="rina-chat-send"
+        type="submit"
+        disabled={!draft.trim() || isChatBusy}
+        className="w-full rounded border border-cyan-500/40 bg-cyan-500/15 px-3 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-500/25 disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-500"
+      >
+        {isChatBusy ? 'Inspecting...' : 'Send'}
+      </button>
+    </form>
+  )
 
   const denyAction = (action: CommandPlan) => {
     setCleanupStates((current) => ({
@@ -348,36 +354,32 @@ export function RinaPanel({
     <main
       data-testid="rina-panel"
       className="mx-auto flex min-h-0 w-full max-w-6xl flex-col bg-zinc-950"
-      aria-label="Rina Agent Thread"
+      aria-label="RinaWarp Terminal Pro"
     >
-      <div className="shrink-0 border-b border-zinc-800 px-5 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Agent Thread</p>
-            <h2 className="mt-2 text-3xl font-semibold text-white">Tell Rina what you want done.</h2>
-            <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-              Rina explains the understanding, plan, execution, verification, and receipt in this thread. Terminal output stays in the execution trace when you need to inspect it.
-            </p>
-          </div>
-          <span className="rounded border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-[11px] uppercase tracking-wide text-zinc-300">
-            {status}
-          </span>
+      {!hasConversation && (
+        <div className="flex min-h-0 flex-1 items-center px-5 py-8">
+          <section className="mx-auto w-full max-w-3xl text-center" data-testid="rina-empty-state">
+            <h1 className="text-3xl font-semibold text-white">RinaWarp Terminal Pro</h1>
+            <p className="mt-3 text-lg text-zinc-300">What would you like me to do?</p>
+            <div className="mt-6">{renderPromptForm('empty')}</div>
+            <div className="mx-auto mt-4 flex max-w-2xl flex-wrap justify-center gap-2" aria-label="Example actions">
+              {EXAMPLE_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => useExamplePrompt(prompt)}
+                  className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 hover:border-cyan-500/60 hover:bg-cyan-500/10"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </section>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2" aria-label="Example prompts">
-          {EXAMPLE_PROMPTS.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={() => useExamplePrompt(prompt)}
-              className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 hover:border-cyan-500/60 hover:bg-cyan-500/10"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
-      <div className="min-h-0 flex-1 space-y-5 overflow-auto px-5 py-5">
+      {hasConversation && (
+        <div className="min-h-0 flex-1 space-y-5 overflow-auto px-5 py-5">
         <section data-testid="rina-chat" className="space-y-4">
           <div data-testid="rina-chat-history" className="space-y-3">
             {messages.map((message) => (
@@ -392,104 +394,72 @@ export function RinaPanel({
                 <div className="text-[11px] font-semibold uppercase text-zinc-500">
                   {message.role === 'user' ? 'You' : 'Rina'}
                 </div>
-                {message.role === 'user' ? (
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-100">{message.text}</p>
-                ) : (
-                  <div className="mt-2 grid gap-2">
-                    {responseBlockLabels(message.text).map((block) => (
-                      <div
-                        key={`${message.id}-${block.label}`}
-                        data-testid={`thread-block-${block.label}`}
-                        className="rounded border border-zinc-800 bg-zinc-950/70 px-3 py-2"
-                      >
-                        <div className="text-[11px] font-semibold uppercase tracking-wide text-cyan-300">{block.label}</div>
-                        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-zinc-100">{block.body}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-zinc-100">{message.text}</p>
               </div>
             ))}
             {isChatBusy && (
               <div data-testid="rina-chat-thinking" className="max-w-4xl rounded border border-zinc-800 bg-zinc-900/70 p-4">
                 <div className="text-[11px] font-semibold uppercase text-zinc-500">Rina</div>
-                <div className="mt-2 rounded border border-zinc-800 bg-zinc-950/70 px-3 py-2">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-cyan-300">execution</div>
-                  <p className="mt-1 text-sm text-zinc-100">Inspecting safely...</p>
-                </div>
+                <p className="mt-1 text-sm text-zinc-100">Inspecting safely...</p>
               </div>
             )}
           </div>
 
-          <form onSubmit={submitDraft} className="sticky bottom-0 space-y-2 border-t border-zinc-800 bg-zinc-950/95 pt-4">
-            <textarea
-              data-testid="rina-chat-input"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={handleDraftKeyDown}
-              placeholder="Tell Rina what you want done."
-              rows={3}
-              disabled={isChatBusy}
-              className="min-h-[96px] w-full resize-none rounded border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-cyan-500 disabled:cursor-wait disabled:text-zinc-500"
-            />
-            <button
-              data-testid="rina-chat-send"
-              type="submit"
-              disabled={!draft.trim() || isChatBusy}
-              className="w-full rounded border border-cyan-500/40 bg-cyan-500/15 px-3 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-500/25 disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-500"
-            >
-              {isChatBusy ? 'Inspecting...' : 'Send'}
-            </button>
-          </form>
+          {renderPromptForm('thread')}
         </section>
 
-        {runtimeEvents.length > 0 && (
-          <section data-testid="lifecycle-timeline" className="space-y-2 border border-zinc-800 bg-zinc-950/70 p-3">
-            <h3 className="text-xs font-semibold uppercase text-zinc-500">Runtime lifecycle</h3>
-            <div className="space-y-1.5">
-              {runtimeEvents.map((event, index) => (
-                <div
-                  key={`${event.type}-${index}`}
-                  data-testid={event.type === 'transaction.rolled_back' ? 'rollback-indicator' : `runtime-event-${event.type}`}
-                  className={`flex items-start justify-between gap-2 border px-2 py-1.5 text-xs ${
-                    event.type === 'transaction.rolled_back'
-                      ? 'border-cyan-500/35 bg-cyan-500/10 text-cyan-100'
-                      : 'border-zinc-800 bg-zinc-900/50 text-zinc-200'
-                  }`}
-                >
-                  <span>{runtimeEventLabel(event)}</span>
-                  {'transactionId' in event && (
-                    <code data-testid="transaction-id" className="shrink-0 text-[11px] text-zinc-400">
-                      {event.transactionId}
-                    </code>
-                  )}
+        {hasExecutionActivity && (
+          <details data-testid="execution-details" className="border border-zinc-800 bg-zinc-950/70 p-3">
+            <summary className="cursor-pointer text-xs font-semibold uppercase text-zinc-500">Execution Details</summary>
+            {runtimeEvents.length > 0 && (
+              <section data-testid="lifecycle-timeline" className="mt-3 space-y-2">
+                <h3 className="text-xs font-semibold uppercase text-zinc-500">Runtime lifecycle</h3>
+                <div className="space-y-1.5">
+                  {runtimeEvents.map((event, index) => (
+                    <div
+                      key={`${event.type}-${index}`}
+                      data-testid={event.type === 'transaction.rolled_back' ? 'rollback-indicator' : `runtime-event-${event.type}`}
+                      className={`flex items-start justify-between gap-2 border px-2 py-1.5 text-xs ${
+                        event.type === 'transaction.rolled_back'
+                          ? 'border-cyan-500/35 bg-cyan-500/10 text-cyan-100'
+                          : 'border-zinc-800 bg-zinc-900/50 text-zinc-200'
+                      }`}
+                    >
+                      <span>{runtimeEventLabel(event)}</span>
+                      {'transactionId' in event && (
+                        <code data-testid="transaction-id" className="shrink-0 text-[11px] text-zinc-400">
+                          {event.transactionId}
+                        </code>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              </section>
+            )}
 
-        {runBlocks.length > 0 && (
-          <section data-testid="run-blocks" className="space-y-2 border border-zinc-800 bg-zinc-950/70 p-3">
-            <h3 className="text-xs font-semibold uppercase text-zinc-500">Run blocks</h3>
-            <div className="space-y-2">
-              {runBlocks.map((block) => (
-                <details key={block.runId} className="border border-zinc-800 bg-zinc-900/50 p-2 text-xs text-zinc-200">
-                  <summary className="cursor-pointer">
-                    <span className="font-medium">{block.intent}</span>
-                    <span className="ml-2 text-zinc-400">[{block.status}] runId={block.runId}</span>
-                  </summary>
-                  <div className="mt-2 space-y-1">
-                    <div>exitCode: {typeof block.exitCode === 'number' ? block.exitCode : 'n/a'}</div>
-                    <div>rollback: {block.receipt.rollback ? 'yes' : 'no'}</div>
-                    <div>artifacts: {block.receipt.artifacts.join(', ') || 'none'}</div>
-                    <div className="text-zinc-400">steps: {block.steps.join(' -> ')}</div>
-                    {block.logs && <pre className="whitespace-pre-wrap border border-zinc-800 bg-black p-2">{block.logs}</pre>}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </section>
+            {runBlocks.length > 0 && (
+              <section data-testid="run-blocks" className="mt-3 space-y-2">
+                <h3 className="text-xs font-semibold uppercase text-zinc-500">Run blocks</h3>
+                <div className="space-y-2">
+                  {runBlocks.map((block) => (
+                    <details key={block.runId} className="border border-zinc-800 bg-zinc-900/50 p-2 text-xs text-zinc-200">
+                      <summary className="cursor-pointer">
+                        <span className="font-medium">{block.intent}</span>
+                        <span className="ml-2 text-zinc-400">[{block.status}] runId={block.runId}</span>
+                      </summary>
+                      <div className="mt-2 space-y-1">
+                        <div>exitCode: {typeof block.exitCode === 'number' ? block.exitCode : 'n/a'}</div>
+                        <div>rollback: {block.receipt.rollback ? 'yes' : 'no'}</div>
+                        <div>artifacts: {block.receipt.artifacts.join(', ') || 'none'}</div>
+                        <div className="text-zinc-400">steps: {block.steps.join(' -> ')}</div>
+                        {block.logs && <pre className="whitespace-pre-wrap border border-zinc-800 bg-black p-2">{block.logs}</pre>}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+          </details>
         )}
 
         {agentPatchProposal?.payload && (
@@ -583,7 +553,8 @@ export function RinaPanel({
           </section>
         )}
 
-        <section className="space-y-3">
+        {(status !== 'idle' || agentPatchOutcome) && (
+          <section className="space-y-3">
           <div>
             <h3 className="text-xs font-semibold uppercase text-zinc-500">Current flow</h3>
             <p
@@ -629,7 +600,8 @@ export function RinaPanel({
           >
             {status === 'checking' ? 'Inspecting disk usage...' : 'Run disk check'}
           </button>
-        </section>
+          </section>
+        )}
 
         {portDiagnostic && (
           <>
@@ -848,7 +820,8 @@ export function RinaPanel({
             </section>
           </>
         )}
-      </div>
+        </div>
+      )}
     </main>
   )
 }
