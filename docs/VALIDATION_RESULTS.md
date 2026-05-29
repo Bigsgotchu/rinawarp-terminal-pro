@@ -406,6 +406,8 @@ Validate whether installed `1.7.2-beta` users can discover the published `v1.8.0
   - GitHub `releases/latest/download/latest.json` still resolved to `v1.6.0-beta`.
   - `https://rinawarptech.com/releases.json` returned `beta: null`.
 - Added a narrow beta-channel fallback so `/releases.json` advertises `1.8.0-beta` GitHub Release artifacts when no channel manifest is available.
+- Deployed the Worker route and confirmed live `https://rinawarptech.com/releases.json` now returns `beta.version: 1.8.0-beta` with GitHub Release download URLs.
+- Launched the `1.7.2-beta` AppImage with a clean beta-channel profile. The app reached main-process startup; the full visible update/download/restart flow still requires normal desktop validation because the beta-channel manual check does not emit a terminal update log.
 
 ### Trust Impact
 
@@ -413,7 +415,7 @@ This prevents a false green updater result. The release assets are valid, but in
 
 ### Expected Behavior
 
-Installed `1.7.2-beta` users on the beta channel should discover `1.8.0-beta` from GitHub Releases without R2 and without manually reinstalling.
+Installed `1.7.2-beta` users on the beta channel should discover `1.8.0-beta` from GitHub Releases without R2 and without manually reinstalling. The remaining validation must confirm the user-visible detection, download, restart, and post-update Agent Thread smoke.
 
 ### Engineering Outcome
 
