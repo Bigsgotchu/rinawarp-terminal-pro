@@ -312,6 +312,13 @@ const BETA_RELEASE_VERSION = '1.8.2-beta'
 const BETA_RELEASE_TAG = `v${BETA_RELEASE_VERSION}`
 const BETA_RELEASE_DOWNLOAD_BASE = `${GITHUB_RELEASES_BASE}/download/${BETA_RELEASE_TAG}`
 
+const GITHUB_BETA_RELEASE_ASSETS: Record<string, string> = {
+  'releases/latest.json': 'latest.json',
+  'releases/latest.yml': 'latest.yml',
+  'releases/latest-linux.yml': 'latest-linux.yml',
+  'releases/SHASUMS256.txt': 'SHASUMS256.txt',
+}
+
 function normalizeArtifactKind(rawKind: string): string {
   const kind = (rawKind || '').toLowerCase().trim()
 
@@ -398,6 +405,13 @@ function buildGitHubBetaReleaseSummary(): {
       deb: `${BETA_RELEASE_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${BETA_RELEASE_VERSION}.deb`,
     },
   }
+}
+
+function pickGitHubBetaArtifactUrl(kind: string): string | null {
+  if (kind === 'linux') return `${BETA_RELEASE_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${BETA_RELEASE_VERSION}.AppImage`
+  if (kind === 'linux-deb') return `${BETA_RELEASE_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${BETA_RELEASE_VERSION}.deb`
+  if (kind === 'checksums') return `${BETA_RELEASE_DOWNLOAD_BASE}/SHASUMS256.txt`
+  return null
 }
 
 async function renderReleasesJson(env: any, origin: string): Promise<Response> {
@@ -519,9 +533,19 @@ function contentTypeFor(key: string): string {
 async function serveReleaseObject(env: any, objectKey: string): Promise<Response | null> {
   try {
     const bucket = getR2Bucket(env)
-    if (!bucket) return null
-    const object = await bucket.get(objectKey)
-    if (!object) return null
+    const object = bucket ? await bucket.get(objectKey) : null
+    if (!object) {
+      const githubAsset = GITHUB_BETA_RELEASE_ASSETS[objectKey]
+      if (!githubAsset) return null
+      const upstream = await fetch(`${BETA_RELEASE_DOWNLOAD_BASE}/${githubAsset}`, {
+        headers: { Accept: '*/*' },
+      })
+      if (!upstream.ok || !upstream.body) return null
+      const headers = rwHeaders()
+      headers.set('Content-Type', contentTypeFor(objectKey))
+      headers.set('Cache-Control', objectKey.endsWith('.json') ? 'public, max-age=60, must-revalidate' : 'public, max-age=300, must-revalidate')
+      return new Response(upstream.body, { status: 200, headers })
+    }
 
     const headers = rwHeaders()
     object.writeHttpMetadata(headers)
@@ -4288,7 +4312,12 @@ export default {
       if (downloadPath.startsWith('/download/')) {
         const manifest = await getReleaseManifest(env)
         if (!manifest) {
-          return rwText(404, 'latest.json not found')
+          const kind = normalizeArtifactKind(downloadPath.slice('/download/'.length))
+          if (kind === 'windows') {
+            return rwText(404, 'Windows artifact not available in this public beta')
+          }
+          const githubArtifactUrl = pickGitHubBetaArtifactUrl(kind)
+          return githubArtifactUrl ? rwRedirect(githubArtifactUrl) : rwText(404, 'Artifact not available')
         }
 
         const kind = normalizeArtifactKind(downloadPath.slice('/download/'.length))
