@@ -81,9 +81,21 @@ check_single_hop_redirect() {
   local path="$1"
   local expected_location="$2"
   local headers_file="$tmp_dir/$(echo "$path" | tr '/:' '__').single-hop.headers"
+  local actual_location
   curl -fsSI "${SITE_BASE%/}${path}" > "$headers_file"
   require_header "$headers_file" "^HTTP/[0-9.]+ 301([[:space:]]|\$)" "${path} status 301"
-  require_header "$headers_file" "^location:[[:space:]]*${expected_location}([[:space:]]|\$)" "${path} location ${expected_location}"
+  actual_location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[Ll]ocation:[[:space:]]*/, ""); sub(/[[:space:]]*$/, ""); print; exit}' "$headers_file")"
+  if [[ "$actual_location" != "$expected_location" ]]; then
+    local canonical_hop="https://${CANONICAL_HOST}${path}"
+    if [[ "$SITE_HOST" != "$CANONICAL_HOST" && "$actual_location" == "$canonical_hop" ]]; then
+      curl -fsSI "$canonical_hop" > "$headers_file.canonical"
+      require_header "$headers_file.canonical" "^HTTP/[0-9.]+ 301([[:space:]]|\$)" "${path} canonical status 301"
+      require_header "$headers_file.canonical" "^location:[[:space:]]*${expected_location}([[:space:]]|\$)" "${path} canonical location ${expected_location}"
+      echo "[smoke:prod] ${path} -> 301 ${actual_location} -> 301 ${expected_location}"
+      return
+    fi
+    require_header "$headers_file" "^location:[[:space:]]*${expected_location}([[:space:]]|\$)" "${path} location ${expected_location}"
+  fi
   echo "[smoke:prod] ${path} -> 301 ${expected_location}"
 }
 

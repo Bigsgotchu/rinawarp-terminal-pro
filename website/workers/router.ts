@@ -4274,7 +4274,7 @@ export default {
       }
 
       if (path === '/downloads' || path === '/downloads/') {
-        return rwRedirect(`${url.origin}/download`, 301)
+        return rwRedirect(`${url.origin}/download/`, 301)
       }
 
       if (path.startsWith('/downloads/')) {
