@@ -119,6 +119,7 @@ export interface RinaAPI {
   appVersion(): Promise<any>
   updateState(): Promise<any>
   checkForUpdate(): Promise<any>
+  downloadUpdate(): Promise<any>
   openUpdateDownload(): Promise<any>
   installUpdate(): Promise<any>
   updateConfig(): Promise<any>

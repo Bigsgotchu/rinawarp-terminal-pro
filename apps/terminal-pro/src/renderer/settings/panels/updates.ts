@@ -6,6 +6,7 @@ import {
   renderReleaseInfo,
   renderRuntimeState,
   renderUpdateConfig,
+  renderUpdatesSummary,
   renderUpdatesPanelShell,
 } from './updatesSurface.js'
 import type { ReleaseInfo, UpdateConfig, UpdateState } from './updatesModel.js'
@@ -19,24 +20,29 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
 
   const rina = getRina()
   const checkBtn = container.querySelector<HTMLButtonElement>('#rw-updates-check')
+  const downloadBtn = container.querySelector<HTMLButtonElement>('#rw-updates-download')
   const installBtn = container.querySelector<HTMLButtonElement>('#rw-updates-install')
   const verifyBtn = container.querySelector<HTMLButtonElement>('#rw-updates-verify')
   const saveBtn = container.querySelector<HTMLButtonElement>('#rw-updates-save')
   const statusEl = container.querySelector<HTMLElement>('#rw-updates-status')
+  const summaryEl = container.querySelector<HTMLElement>('#rw-updates-summary')
   const configEl = container.querySelector<HTMLElement>('#rw-updates-config')
   const runtimeEl = container.querySelector<HTMLElement>('#rw-updates-runtime')
   const releaseEl = container.querySelector<HTMLElement>('#rw-updates-release')
 
-  if (!checkBtn || !installBtn || !verifyBtn || !saveBtn || !statusEl || !configEl || !runtimeEl || !releaseEl) {
+  if (!checkBtn || !downloadBtn || !installBtn || !verifyBtn || !saveBtn || !statusEl || !summaryEl || !configEl || !runtimeEl || !releaseEl) {
     return
   }
 
   let currentConfig: UpdateConfig = { channel: 'stable', autoCheck: true, autoDownload: false }
   let releaseInfo: ReleaseInfo | null = null
   let updateState: UpdateState | null = null
+  let currentVersion = 'unknown'
 
   const syncRuntime = () => {
+    summaryEl.innerHTML = renderUpdatesSummary(currentConfig, updateState, currentVersion)
     runtimeEl.innerHTML = renderRuntimeState(updateState)
+    downloadBtn.disabled = updateState?.status !== 'update_available'
     installBtn.disabled = !updateState?.installReady
   }
 
@@ -49,14 +55,17 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
       // Use defaults
     }
     configEl.innerHTML = renderUpdateConfig(currentConfig)
+    syncRuntime()
   }
 
   const loadReleaseInfo = async () => {
     try {
       if (rina?.releaseInfo) {
         releaseInfo = await rina.releaseInfo()
+        currentVersion = releaseInfo?.version || currentVersion
       } else {
         const version = (await rina?.appVersion?.()) || 'unknown'
+        currentVersion = version
         releaseInfo = {
           version,
           platform: navigator.platform,
@@ -71,12 +80,14 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
       releaseInfo = null
     }
     releaseEl.innerHTML = renderReleaseInfo(releaseInfo)
+    syncRuntime()
   }
 
   const loadUpdateState = async () => {
     try {
       if (rina?.updateState) {
         updateState = await rina.updateState()
+        currentVersion = updateState?.currentVersion || currentVersion
       }
     } catch {
       updateState = null
@@ -135,6 +146,36 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
     }
   }
 
+  const downloadUpdate = async () => {
+    statusEl.textContent = 'Downloading update...'
+    downloadBtn.disabled = true
+
+    try {
+      if (rina?.downloadUpdate) {
+        const result = await rina.downloadUpdate()
+        updateState = result?.state || updateState
+        syncRuntime()
+        statusEl.textContent =
+          result?.ok === false
+            ? `Download unavailable: ${result?.error || 'Unknown error'}`
+            : updateState?.status === 'downloaded'
+              ? `Update downloaded: ${updateState.latestVersion || 'new version'}. Restart when ready.`
+              : updateState?.status === 'downloading'
+                ? `Downloading update: ${Math.round(updateState.downloadProgress || 0)}%`
+                : 'Download started.'
+      } else if (rina?.openUpdateDownload) {
+        const result = await rina.openUpdateDownload()
+        statusEl.textContent = result?.ok ? 'Opened the update download.' : result?.error || 'Could not open update download.'
+      } else {
+        statusEl.textContent = 'Download API not available.'
+      }
+    } catch (e) {
+      statusEl.textContent = `Download failed: ${String(e)}`
+    } finally {
+      await loadUpdateState()
+    }
+  }
+
   const verifyRelease = async () => {
     statusEl.textContent = 'Verifying release...'
     verifyBtn.disabled = true
@@ -187,6 +228,7 @@ export async function mountUpdatesPanel(container: HTMLElement): Promise<void> {
   }
 
   checkBtn.addEventListener('click', () => void checkForUpdates())
+  downloadBtn.addEventListener('click', () => void downloadUpdate())
   installBtn.addEventListener('click', () => void installUpdate())
   verifyBtn.addEventListener('click', () => void verifyRelease())
   saveBtn.addEventListener('click', () => void saveConfig())

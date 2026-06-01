@@ -77,6 +77,14 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
             ${renderTab(model.tabs[0])}
             ${model.tabs.slice(1).map(renderTab).join('')}
           </nav>
+          <div class="rw-workbench-brand" aria-label="Application version">
+            <div class="rw-workbench-brand-name">RinaWarp Terminal Pro</div>
+            <div class="rw-workbench-brand-meta">
+              <span id="rw-chrome-version">v...</span>
+              <span aria-hidden="true">·</span>
+              <span id="rw-chrome-channel">channel ...</span>
+            </div>
+          </div>
           <div class="rw-workbench-topbar-workspace">
             <button
               id="workspace-picker"

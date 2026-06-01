@@ -53,6 +53,7 @@ import {
 import { createRefreshActions } from './services/refreshData.js'
 import { initRetentionLoop } from './services/retentionLoop.js'
 import { initUpdateNotice } from './services/updateNotice.js'
+import { initOperationalChrome } from './services/operationalChrome.js'
 import { didExecutionStart, isExecutionPrompt, normalizePlanSteps } from './services/planHelpers.js'
 import {
   bindRendererTelemetrySessionEnd,
@@ -125,6 +126,7 @@ export async function initProductionRenderer(): Promise<void> {
     getAgentWorkspaceRoot: getAgentWorkspaceRootFromStore,
   })
   initSettingsUi()
+  void initOperationalChrome()
   initUpdateNotice()
   const unbindRetentionLoop = initRetentionLoop(store)
   installDensityBridge()

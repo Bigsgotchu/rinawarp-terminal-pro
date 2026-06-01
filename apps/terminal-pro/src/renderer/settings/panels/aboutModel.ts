@@ -21,6 +21,9 @@ export type AboutPanelModel = {
   lastCheckedLabel: string
   canOpenDownload: boolean
   canInstall: boolean
+  buildDate: string
+  platform: string
+  channel: string
 }
 
 export function formatAboutUpdateStatus(state: AboutUpdateState | null): string {
@@ -54,5 +57,8 @@ export function buildAboutPanelModel(version: string, state: AboutUpdateState | 
     lastCheckedLabel: state?.checkedAt ? new Date(state.checkedAt).toLocaleString() : 'never',
     canOpenDownload: state?.status === 'update_available' || state?.status === 'unsupported',
     canInstall: Boolean(state?.installReady),
+    buildDate: document.lastModified || 'Unknown',
+    platform: navigator.platform || 'Unknown',
+    channel: state?.channel || 'stable',
   }
 }

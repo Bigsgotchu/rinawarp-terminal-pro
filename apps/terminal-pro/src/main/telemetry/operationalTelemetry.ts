@@ -9,6 +9,11 @@ export type OperationalTelemetryEvent =
   | 'task_failed'
   | 'rollback_triggered'
   | 'approval_denied'
+  | 'update_check_started'
+  | 'update_available'
+  | 'update_downloaded'
+  | 'update_restart_requested'
+  | 'update_success'
 
 export type OperationalTelemetrySettings = {
   enabled: boolean
@@ -223,7 +228,12 @@ export function isOperationalTelemetryEvent(event: string): event is Operational
     event === 'task_completed' ||
     event === 'task_failed' ||
     event === 'rollback_triggered' ||
-    event === 'approval_denied'
+    event === 'approval_denied' ||
+    event === 'update_check_started' ||
+    event === 'update_available' ||
+    event === 'update_downloaded' ||
+    event === 'update_restart_requested' ||
+    event === 'update_success'
   )
 }
 

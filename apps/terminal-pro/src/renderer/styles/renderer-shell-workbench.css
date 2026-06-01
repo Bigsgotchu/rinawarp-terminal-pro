@@ -13,9 +13,9 @@
 
 .rw-workbench-topbar {
   display: grid;
-  grid-template-columns: auto minmax(220px, 420px) auto;
+  grid-template-columns: auto minmax(150px, 240px) minmax(180px, 360px) auto;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   min-inline-size: 0;
   padding: 8px 14px;
   border-block-end: 1px solid rgba(255, 255, 255, 0.04);
@@ -45,6 +45,32 @@
 
 .rw-workbench-tabs::-webkit-scrollbar {
   display: none;
+}
+
+.rw-workbench-brand {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.rw-workbench-brand-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(240, 245, 249, 0.92);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.rw-workbench-brand-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-inline-size: 0;
+  color: rgba(154, 164, 178, 0.74);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .rw-workbench-tab,
@@ -109,6 +135,12 @@
   flex: 0 0 auto;
   opacity: 0.9;
   min-inline-size: 0;
+}
+
+.rw-topbar-action[data-action="open-settings"] {
+  color: rgba(240, 245, 249, 0.94);
+  background: rgba(87, 231, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(87, 231, 255, 0.18);
 }
 
 .rw-workbench-topbar-workspace {
@@ -185,6 +217,31 @@
   background: rgba(255,255,255,0.07);
   color: var(--rw-fg);
   transform: translateY(-1px);
+}
+
+@media (max-width: 860px) {
+  .rw-workbench-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand actions"
+      "workspace workspace";
+  }
+
+  .rw-workbench-tabs {
+    display: none;
+  }
+
+  .rw-workbench-brand {
+    grid-area: brand;
+  }
+
+  .rw-workbench-topbar-workspace {
+    grid-area: workspace;
+  }
+
+  .rw-workbench-topbar-actions {
+    grid-area: actions;
+  }
 }
 
 .rw-workbench {

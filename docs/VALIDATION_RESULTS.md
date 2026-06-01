@@ -558,3 +558,111 @@ Clean installs should send one install ping, active pings should be daily, and o
 - runtime test
 - trust test
 - verification improvement
+
+## v1.8.1-beta Public Beta + Updater Pre-Flight — 2026-05-29
+
+### Category
+
+- Runtime test
+- Verification improvement
+
+### Task
+
+After public beta download/deploy honesty shipped, validate the `1.7.2-beta` → `1.8.1-beta` AppImage upgrade path before sharing the public beta link.
+
+### Result
+
+**Infrastructure (automated, pass)**
+
+- `git push origin main` and Worker/Pages deploy completed; live `/download/` shows GitHub Linux links and honest Windows-unavailable messaging.
+- `npm run check:updater` passed against `releases/latest/download` for `1.8.1-beta`.
+- `node scripts/qa/verify-updater-upgrade-path.mjs` passed:
+  - `v1.7.2-beta` AppImage reachable on GitHub
+  - `releases/latest/download/latest-linux.yml` reports `1.8.1-beta`
+  - `compareVersions('1.8.1-beta', '1.7.2-beta') > 0`
+  - `https://rinawarptech.com/releases.json` beta channel advertises `1.8.1-beta` with GitHub artifact URLs
+
+**Operational proof (manual, still required)**
+
+- [ ] Install `RinaWarp-Terminal-Pro-1.7.2-beta.AppImage` (not `.deb`)
+- [ ] Settings → Updates → **Beta** channel → Check for updates
+- [ ] Detect / download `1.8.1-beta` → restart → About shows `1.8.1-beta`
+- [ ] Agent Thread smoke on a real repo after update
+
+### Trust Impact
+
+Feed and channel metadata are aligned for discovery; only the installed-user detect/download/restart/Agent Thread cycle remains unproven.
+
+### Expected Behavior
+
+On **Beta** channel, `1.7.2-beta` AppImage should offer `1.8.1-beta` from GitHub `latest/download`. Stable channel may not offer prerelease builds (`allowPrerelease=false`).
+
+### Engineering Outcome
+
+- verification improvement
+
+## v1.8.1-beta Installed Updater Cycle - 2026-06-01
+
+### Goal
+
+Prove installed-user update path from 1.7.2-beta to 1.8.1-beta.
+
+### Automated Preflight
+
+- check:updater: PASS
+- check:updater:upgrade: PASS
+
+### Manual Update Cycle
+
+- 1.7.2-beta AppImage launched: PASS
+- update to 1.8.1-beta detected: PARTIAL PASS
+- update downloaded: FAIL
+- restart offered: FAIL
+- app reopened: FAIL
+- version shows 1.8.1-beta: FAIL
+- Agent Thread still works: FAIL
+
+### Result
+
+FAIL
+
+### Notes
+
+- First launch attempt inherited `ELECTRON_RUN_AS_NODE=1` and opened a Node REPL instead of the desktop app; rerun used `env -u ELECTRON_RUN_AS_NODE`.
+- Baseline `RinaWarp-Terminal-Pro-1.7.2-beta.AppImage` launched successfully from `/tmp/rina-updater-proof`.
+- Baseline UI was confirmed as the old 1.7.2-beta workbench with busy fake Agent Thread blocks, which is expected before applying the 1.8.1-beta update.
+- App logs showed the updater detected `1.8.1-beta`: `Found version 1.8.1-beta (url: RinaWarp-Terminal-Pro-1.8.1-beta.AppImage)`.
+- Manual installed-user proof was blocked because Settings/About/Updates is not discoverable from the visible main screen. A customer cannot reliably find the version or complete Check for updates within the current 1.7.2-beta UI.
+- No successful download, restart, post-update version confirmation, or post-update Agent Thread smoke was completed.
+
+### Engineering Outcome
+
+- UX refinement
+- updater hardening
+- release process fix
+
+## v1.8.2-beta Updater Discoverability Fix
+
+### Goal
+
+Make version, channel, Settings, Updates, and About discoverable from the main app screen.
+
+### Result
+
+- Version visible: PASS
+- Settings visible: PASS
+- Updates visible: PASS
+- About visible: PASS
+- Check for Updates visible: PASS
+
+### Status
+
+PASS
+
+### Notes
+
+- Scope is customer trust and operational UX only.
+- No Agent Thread redesign, updater provider change, runtime architecture change, or React-only E2E cleanup is included in this task.
+- `npm --workspace apps/terminal-pro run build:electron`: PASS
+- `bash scripts/run-electron-playwright.sh updater-discoverability.spec.ts`: PASS after rerun outside the sandbox; first run failed on Electron sandbox launch (`sandbox_host_linux.cc ... Operation not permitted`).
+- `bash scripts/run-electron-playwright.sh updates.spec.ts`: PASS outside the sandbox.

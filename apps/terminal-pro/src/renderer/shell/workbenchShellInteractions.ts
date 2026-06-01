@@ -20,6 +20,21 @@ export function createWorkbenchShellInteractions(args: WorkbenchShellInteraction
     const shellOwnedTarget = target.closest<HTMLElement>('[data-shell-owned="true"]')
     if (!shellOwnedTarget) return
 
+    const action = shellOwnedTarget.closest<HTMLElement>('[data-action]')
+    if (action?.dataset.action === 'open-updates') {
+      event.preventDefault()
+      event.stopPropagation()
+      window.__rinaSettings?.open('updates')
+      return
+    }
+
+    if (action?.dataset.action === 'open-settings') {
+      event.preventDefault()
+      event.stopPropagation()
+      window.__rinaSettings?.open()
+      return
+    }
+
     const shellNav = shellOwnedTarget.closest<HTMLElement>('[data-shell-nav]')
     if (shellNav?.dataset.shellNav) {
       event.preventDefault()

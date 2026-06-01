@@ -15,15 +15,12 @@ export function renderAboutPanel(version: string, updateState: AboutUpdateState 
       <p class="rw-sub">${esc(model.productName)}</p>
     </div>
     <div class="rw-card">
-      <div class="rw-row rw-space">
-        <div class="rw-label">Version</div>
-        <div class="rw-pill">${esc(model.version)}</div>
-      </div>
-      <div class="rw-row">
-        <div class="rw-muted">
-          ${esc(model.productTagline)}
-        </div>
-      </div>
+      <div class="rw-kv"><div class="rw-k">Version</div><div class="rw-v" id="rw-about-version">${esc(model.version)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Build date</div><div class="rw-v" id="rw-about-build-date">${esc(model.buildDate)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Platform</div><div class="rw-v" id="rw-about-platform">${esc(model.platform)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Channel</div><div class="rw-v" id="rw-about-channel">${esc(model.channel)}</div></div>
+      <div class="rw-row"><div class="rw-muted">${esc(model.productTagline)}</div></div>
+      <div class="rw-row"><button id="rw-copy-version-info" class="rw-btn">Copy Version Info</button><div id="rw-copy-version-status" class="rw-muted"></div></div>
     </div>
     <div class="rw-card rw-flex rw-gap">
       <div class="rw-row rw-space">

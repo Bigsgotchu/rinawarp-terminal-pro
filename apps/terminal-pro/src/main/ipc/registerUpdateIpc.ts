@@ -71,6 +71,9 @@ export function registerUpdateIpc(deps: RegisterUpdateIpcDeps): void {
   deps.ipcMain.removeHandler('app:checkForUpdate')
   deps.ipcMain.handle('app:checkForUpdate', async () => updateService.checkForUpdate())
 
+  deps.ipcMain.removeHandler('app:downloadUpdate')
+  deps.ipcMain.handle('app:downloadUpdate', async () => updateService.downloadUpdate())
+
   deps.ipcMain.removeHandler('app:openUpdateDownload')
   deps.ipcMain.handle('app:openUpdateDownload', async () => updateService.openUpdateDownload())
 

@@ -1,6 +1,9 @@
 import type { App } from 'electron'
 import type { shell } from 'electron'
 import electronUpdater from 'electron-updater'
+import fs from 'node:fs'
+import path from 'node:path'
+import { getOperationalTelemetry, type OperationalTelemetryEvent } from '../telemetry/operationalTelemetry.js'
 
 export type UpdateChannel = 'stable' | 'beta' | 'alpha'
 
@@ -149,6 +152,40 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
   let cachedReleaseManifest: ReleaseManifest | null = null
   let cachedChannelsManifest: ReleaseChannelsManifest | null = null
   const updater = electronUpdater.autoUpdater
+  const successMarkerPath = path.join(deps.app.getPath('userData'), 'update-success-marker.json')
+
+  function recordUpdateTelemetry(event: OperationalTelemetryEvent): void {
+    const telemetry = getOperationalTelemetry()
+    if (!telemetry) return
+    void telemetry.recordCounter(event)
+  }
+
+  function recordUpdateSuccessIfMarked(): void {
+    try {
+      const raw = fs.readFileSync(successMarkerPath, 'utf8')
+      const marker = JSON.parse(raw) as { targetVersion?: string }
+      if (marker?.targetVersion === deps.app.getVersion()) {
+        recordUpdateTelemetry('update_success')
+        fs.rmSync(successMarkerPath, { force: true })
+      }
+    } catch {
+      // Missing or malformed update markers should never block startup.
+    }
+  }
+
+  function markPendingUpdateSuccess(): void {
+    try {
+      fs.writeFileSync(
+        successMarkerPath,
+        JSON.stringify({ targetVersion: state.latestVersion, requestedAt: new Date().toISOString() }, null, 2),
+        'utf8'
+      )
+    } catch {
+      // Operational telemetry must never block update installation.
+    }
+  }
+
+  recordUpdateSuccessIfMarked()
 
   updater.autoInstallOnAppQuit = true
   updater.allowDowngrade = false
@@ -223,6 +260,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
         downloadProgress: null,
         downloadedAt: null,
       }
+      if (hasUpdate) recordUpdateTelemetry('update_available')
       return state
     }
 
@@ -251,6 +289,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
       downloadProgress: null,
       downloadedAt: null,
     }
+    if (hasUpdate) recordUpdateTelemetry('update_available')
     return state
   }
 
@@ -266,6 +305,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
   })
 
   updater.on('update-available', (info) => {
+    recordUpdateTelemetry('update_available')
     refreshStaticState()
     state = {
       ...state,
@@ -303,6 +343,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
   })
 
   updater.on('update-downloaded', (info) => {
+    recordUpdateTelemetry('update_downloaded')
     refreshStaticState()
     state = {
       ...state,
@@ -346,6 +387,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
   }
 
   async function checkForUpdate(): Promise<UpdateState> {
+    recordUpdateTelemetry('update_check_started')
     refreshStaticState()
 
     if (config.channel !== 'stable') {
@@ -368,6 +410,42 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
         error: error instanceof Error ? error.message : String(error),
       }
       return getState()
+    }
+  }
+
+  async function downloadUpdate(): Promise<{ ok: boolean; state: UpdateState; error?: string }> {
+    refreshStaticState()
+
+    if (config.channel !== 'stable') {
+      const result = await openUpdateDownload()
+      return { ok: result.ok, state: getState(), error: result.error }
+    }
+
+    if (!state.supported) {
+      return { ok: false, state: getState(), error: state.error || 'Automatic download is not available for this install type.' }
+    }
+
+    if (state.status !== 'update_available' && state.status !== 'downloading') {
+      return { ok: false, state: getState(), error: 'No update is available to download yet.' }
+    }
+
+    try {
+      state = {
+        ...state,
+        status: 'downloading',
+        downloadProgress: state.downloadProgress ?? 0,
+        error: null,
+      }
+      await updater.downloadUpdate()
+      return { ok: true, state: getState() }
+    } catch (error) {
+      state = {
+        ...state,
+        status: 'error',
+        checkedAt: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error),
+      }
+      return { ok: false, state: getState(), error: state.error || 'Download failed.' }
     }
   }
 
@@ -396,6 +474,8 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
       return { ok: false, immediate: false, error: 'No downloaded update is ready to install yet.' }
     }
     try {
+      recordUpdateTelemetry('update_restart_requested')
+      markPendingUpdateSuccess()
       updater.quitAndInstall(false, true)
       return { ok: true, immediate: true }
     } catch (error) {
@@ -453,6 +533,7 @@ export function createUpdateService(deps: CreateUpdateServiceDeps) {
     setConfig,
     getState,
     checkForUpdate,
+    downloadUpdate,
     openUpdateDownload,
     installUpdate,
     getReleaseInfo,

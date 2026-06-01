@@ -1,6 +1,6 @@
 {
   "name": "rinawarp-monorepo",
-  "version": "1.8.0-beta",
+  "version": "1.8.2-beta",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -79,6 +79,7 @@
     "release:publish:desktop": "bash scripts/release/publish-desktop-release.sh",
     "release:publish:metadata": "bash scripts/release/publish-update-metadata.sh",
     "check:updater": "bash scripts/check-updater.sh",
+    "check:updater:upgrade": "node scripts/qa/verify-updater-upgrade-path.mjs",
     "cli:list-agents": "node --import ./apps/terminal-pro/node_modules/tsx/dist/loader.mjs tools/list-agents.ts",
     "cli:install-agent": "node --import ./apps/terminal-pro/node_modules/tsx/dist/loader.mjs tools/install-agent.ts",
     "lint": "npm --workspace apps/terminal-pro run lint",

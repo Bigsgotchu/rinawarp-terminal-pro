@@ -50,7 +50,9 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
   const checkBtn = container.querySelector<HTMLButtonElement>('#rw-update-check')
   const downloadBtn = container.querySelector<HTMLButtonElement>('#rw-update-download')
   const installBtn = container.querySelector<HTMLButtonElement>('#rw-update-install')
-  if (!statusEl || !metaEl || !checkBtn || !downloadBtn || !installBtn) return
+  const copyBtn = container.querySelector<HTMLButtonElement>('#rw-copy-version-info')
+  const copyStatus = container.querySelector<HTMLElement>('#rw-copy-version-status')
+  if (!statusEl || !metaEl || !checkBtn || !downloadBtn || !installBtn || !copyBtn || !copyStatus) return
 
   const renderUpdateState = (state: AboutUpdateState | null) => {
     const model = buildAboutPanelModel(version, state)
@@ -78,9 +80,12 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
 
   downloadBtn.addEventListener('click', async () => {
     try {
-      const result = await rina?.openUpdateDownload?.()
+      const result = await rina?.downloadUpdate?.()
       if (result && result.ok === false) {
-        statusEl.textContent = result.error || 'Could not open download page.'
+        const fallback = await rina?.openUpdateDownload?.()
+        statusEl.textContent = fallback?.ok ? 'Opened the update download.' : result.error || 'Could not start update download.'
+      } else {
+        statusEl.textContent = 'Download started.'
       }
     } catch {
       statusEl.textContent = 'Could not open download page.'
@@ -93,6 +98,17 @@ export async function mountAboutPanel(container: HTMLElement): Promise<void> {
       statusEl.textContent = result?.ok ? 'Installing update and restarting…' : result?.error || 'Install unavailable.'
     } catch {
       statusEl.textContent = 'Could not start the install.'
+    }
+  })
+
+  copyBtn.addEventListener('click', async () => {
+    const model = buildAboutPanelModel(version, updateState)
+    const text = [`Version: ${model.version}`, `Platform: ${model.platform}`, `Channel: ${model.channel}`].join('\n')
+    try {
+      await navigator.clipboard.writeText(text)
+      copyStatus.textContent = 'Version info copied.'
+    } catch {
+      copyStatus.textContent = text
     }
   })
 }

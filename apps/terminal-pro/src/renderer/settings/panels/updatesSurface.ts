@@ -27,8 +27,10 @@ export function renderUpdatesPanelShell(): string {
     </div>
 
     <div class="rw-card">
+      <div id="rw-updates-summary"></div>
       <div class="rw-row rw-gap">
         <button id="rw-updates-check" class="rw-btn">Check for Updates</button>
+        <button id="rw-updates-download" class="rw-btn rw-btn-ghost" disabled>Download Update</button>
         <button id="rw-updates-install" class="rw-btn rw-btn-primary" disabled>Install & Restart</button>
         <button id="rw-updates-verify" class="rw-btn rw-btn-ghost">Verify Release</button>
         <button id="rw-updates-save" class="rw-btn">Save Settings</button>
@@ -123,6 +125,28 @@ export function renderRuntimeState(state: UpdateState | null): string {
       <div class="rw-kv"><div class="rw-k">Last checked</div><div class="rw-v">${esc(model.lastChecked)}</div></div>
       ${model.downloadLabel ? `<div class="rw-kv"><div class="rw-k">Download</div><div class="rw-v">${esc(model.downloadLabel)}</div></div>` : ''}
       ${model.note ? `<div class="rw-kv"><div class="rw-k">Note</div><div class="rw-v">${esc(model.note)}</div></div>` : ''}
+    </div>
+  `
+}
+
+export function renderUpdatesSummary(config: UpdateConfig, state: UpdateState | null, fallbackVersion = 'unknown'): string {
+  const currentVersion = state?.currentVersion || fallbackVersion
+  const channel = state?.channel || config.channel || 'stable'
+  const status =
+    state?.status === 'update_available'
+      ? `New version available: v${state.latestVersion || 'new version'}`
+      : state?.status === 'downloaded'
+        ? `Restart to Update: v${state.latestVersion || 'new version'} is ready`
+        : state?.status === 'downloading'
+          ? `Downloading update: ${Math.round(state.downloadProgress || 0)}%`
+          : state?.status
+            ? state.status.replaceAll('_', ' ')
+            : 'Not checked yet'
+  return `
+    <div class="rw-updates-summary" aria-label="Update summary">
+      <div class="rw-kv"><div class="rw-k">Current Version</div><div class="rw-v">${esc(currentVersion)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Channel</div><div class="rw-v">${esc(channel)}</div></div>
+      <div class="rw-kv"><div class="rw-k">Update Status</div><div class="rw-v" id="rw-updates-summary-status">${esc(status)}</div></div>
     </div>
   `
 }

@@ -58,12 +58,18 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
     actions: [
       { id: 'recovery-toggle', tab: 'runs', label: 'Recovered work', ariaLabel: 'Recovered work', tone: 'secondary', hidden: true },
       {
+        action: 'open-updates',
+        tab: 'settings',
+        label: 'Updates',
+        ariaLabel: 'Open update settings',
+        tone: 'secondary',
+      },
+      {
         action: 'open-settings',
         tab: 'settings',
-        label: 'Settings',
-        ariaLabel: 'Settings',
+        label: '⚙ Settings',
+        ariaLabel: 'Open settings',
         tone: 'primary',
-        hidden: true,
       },
     ],
     centerPanels: [

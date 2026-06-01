@@ -308,7 +308,7 @@ function rwSvg(svg: string): Response {
 }
 
 const GITHUB_RELEASES_BASE = 'https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases'
-const BETA_RELEASE_VERSION = '1.8.1-beta'
+const BETA_RELEASE_VERSION = '1.8.2-beta'
 const BETA_RELEASE_TAG = `v${BETA_RELEASE_VERSION}`
 const BETA_RELEASE_DOWNLOAD_BASE = `${GITHUB_RELEASES_BASE}/download/${BETA_RELEASE_TAG}`
 
