@@ -266,9 +266,6 @@ load_contract_and_validate_redirects
 
 echo "[smoke:prod] Verifying product-family pages"
 check_content "/products" "200" "text/html" 'RinaWarp Products'
-check_content "/matter-intelligence" "200" "text/html" 'Institutional memory for sensitive matters'
-check_content "/matter-intelligence/pricing" "200" "text/html" 'Pricing for Matter Intelligence'
-check_content "/matter-intelligence/security" "200" "text/html" 'Security and data handling'
 check_content "/support" "200" "text/html" 'RinaWarp Support|Send feedback|Support & feedback'
 
 echo "[smoke:prod] Verifying canonical tags and HTML cache directives"

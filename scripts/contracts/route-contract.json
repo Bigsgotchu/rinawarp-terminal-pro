@@ -6,7 +6,13 @@
     "/team": "/pricing/",
     "/team/": "/pricing/",
     "/music-video-creator": "/products/",
-    "/music-video-creator/": "/products/"
+    "/music-video-creator/": "/products/",
+    "/matter-intelligence": "/products/",
+    "/matter-intelligence/": "/products/",
+    "/matter-intelligence/pricing": "/products/",
+    "/matter-intelligence/pricing/": "/products/",
+    "/matter-intelligence/security": "/products/",
+    "/matter-intelligence/security/": "/products/"
   },
   "canonicals": {
     "/": "https://rinawarptech.com/",
