@@ -3,6 +3,8 @@
  * Dynamically injects SEO meta tags for all pages
  */
 
+import { SEO_LANDING_PAGES } from '../seo-landings.mjs'
+
 export interface SeoData {
   title: string
   description: string
@@ -15,21 +17,21 @@ const GA_MEASUREMENT_ID = 'G-YGX1R0MEB6'
 
 export const SEO_CONFIG: Record<string, SeoData> = {
   '/': {
-    title: 'RinaWarp | Proof-First AI Workbench Platform',
+    title: 'Your Project Is Broken. RinaWarp Fixes It. | Terminal Pro',
     description:
-      'RinaWarp is a proof-first product company with Terminal Pro for broken projects and Matter Intelligence for sensitive matter workflows.',
+      'RinaWarp analyzes your codebase, repairs errors, runs verification, and explains every change. Try free on a broken project.',
     canonical: 'https://rinawarptech.com/',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords:
-      'AI workbench, terminal pro, matter intelligence, proof-first AI, developer tools, compliance workflows, trusted execution',
+      'fix broken project, developer debugging, terminal pro, proof-backed repair, automated fixes, verify build',
   },
   '/products': {
-    title: 'RinaWarp Products | Terminal Pro and Matter Intelligence',
+    title: 'RinaWarp Products | Terminal Pro',
     description:
-      'Explore RinaWarp Terminal Pro for broken projects and RinaWarp Matter Intelligence for sensitive legal, finance, and compliance workflows.',
+      'RinaWarp Terminal Pro detects, repairs, and verifies broken developer projects automatically.',
     canonical: 'https://rinawarptech.com/products',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'RinaWarp products, Terminal Pro, Matter Intelligence, AI developer tool, compliance workspace',
+    keywords: 'RinaWarp products, Terminal Pro, AI developer tool',
   },
   '/agents': {
     title: 'RinaWarp Packs | Capability Packs for RinaWarp Terminal Pro',
@@ -42,7 +44,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/pricing': {
     title: 'RinaWarp Pricing | Fix Your Broken Project Automatically',
     description:
-      'See RinaWarp pricing for Free, Pro, Power, and one-fix checkout plans built around one promise: fix your broken project automatically with proof.',
+      'See RinaWarp pricing for Free, Pro ($15/mo), Team ($40/user/mo), and One Fix ($3) checkout plans built around one promise: fix your broken project automatically with proof.',
     canonical: 'https://rinawarptech.com/pricing',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'pricing, fix project, developer tool pricing, RinaWarp, AI repair, proof-backed fixes',
@@ -54,78 +56,6 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     canonical: 'https://rinawarptech.com/download',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'download, RinaWarp, verified releases, checksums, AppImage, deb, exe',
-  },
-  '/matter-intelligence': {
-    title: 'RinaWarp Matter Intelligence | Institutional Memory for Sensitive Matters',
-    description:
-      'RinaWarp Matter Intelligence gives legal, finance, and compliance teams cited answers and reviewer-ready drafts grounded in matter evidence.',
-    canonical: 'https://rinawarptech.com/matter-intelligence',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence, legal AI, compliance AI, finance investigations, institutional memory, cited answers',
-  },
-  '/matter-intelligence/pricing': {
-    title: 'Matter Intelligence Pricing | RinaWarp',
-    description:
-      'See Solo, Team, and Enterprise pricing for RinaWarp Matter Intelligence.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/pricing',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence pricing, legal AI pricing, compliance software pricing',
-  },
-  '/matter-intelligence/security': {
-    title: 'Matter Intelligence Security | RinaWarp',
-    description:
-      'Review data sources, access controls, retention expectations, and support contacts for RinaWarp Matter Intelligence.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/security',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence security, legal AI security, compliance data handling',
-  },
-  '/matter-intelligence/demo': {
-    title: 'Request a Matter Intelligence Demo | RinaWarp',
-    description:
-      'Request a RinaWarp Matter Intelligence demo to see cited answers and status memo generation for one sensitive matter workflow.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/demo',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence demo, legal workflow demo, compliance AI demo',
-  },
-  '/matter-intelligence/download': {
-    title: 'Matter Intelligence Access | RinaWarp',
-    description:
-      'Learn how guided access, onboarding, billing, and workspace setup work for RinaWarp Matter Intelligence.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/download',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence access, onboarding, workspace setup',
-  },
-  '/matter-intelligence/docs': {
-    title: 'Matter Intelligence Docs | RinaWarp',
-    description:
-      'Start with one matter, connected evidence, and a cited status memo workflow in RinaWarp Matter Intelligence.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/docs',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence docs, onboarding, legal AI workflow',
-  },
-  '/matter-intelligence/contact': {
-    title: 'Contact Matter Intelligence | RinaWarp',
-    description:
-      'Talk to RinaWarp about Matter Intelligence sales, onboarding, and security review.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/contact',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'contact matter intelligence, sales, onboarding, security review',
-  },
-  '/matter-intelligence/terms': {
-    title: 'Matter Intelligence Terms | RinaWarp',
-    description:
-      'Read the product-specific terms for RinaWarp Matter Intelligence.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/terms',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence terms, product terms',
-  },
-  '/matter-intelligence/privacy': {
-    title: 'Matter Intelligence Privacy | RinaWarp',
-    description:
-      'Read the product-specific privacy summary for RinaWarp Matter Intelligence.',
-    canonical: 'https://rinawarptech.com/matter-intelligence/privacy',
-    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'matter intelligence privacy, legal AI privacy, compliance data privacy',
   },
   '/support': {
     title: 'RinaWarp Support | Help, Feedback, and Contact',
@@ -159,6 +89,18 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'RinaWarp vs Warp, AI terminal comparison, proof-first AI terminal, developer terminal tools',
   },
+  ...Object.fromEntries(
+    SEO_LANDING_PAGES.map((page) => [
+      page.path,
+      {
+        title: page.title,
+        description: page.description,
+        canonical: `https://rinawarptech.com${page.path}`,
+        ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+        keywords: page.keywords,
+      } satisfies SeoData,
+    ])
+  ),
 }
 
 export function injectSeoTags(path: string): string {

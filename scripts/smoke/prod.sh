@@ -264,6 +264,11 @@ check_header_for_html_path() {
 echo "[smoke:prod] Verifying route contract redirects"
 load_contract_and_validate_redirects
 
+echo "[smoke:prod] Verifying matter-intelligence redirects"
+check_redirect "/matter-intelligence" "301" "/products/"
+check_redirect "/matter-intelligence/pricing" "301" "/products/"
+check_redirect "/matter-intelligence/security" "301" "/products/"
+
 echo "[smoke:prod] Verifying product-family pages"
 check_content "/products" "200" "text/html" 'RinaWarp Products'
 check_content "/support" "200" "text/html" 'RinaWarp Support|Send feedback|Support & feedback'
