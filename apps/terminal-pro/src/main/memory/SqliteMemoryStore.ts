@@ -314,4 +314,16 @@ export class SqliteMemoryStore implements MemoryStore {
       },
     })
   }
+
+  async clearWorkspaceMemory(workspaceId: string): Promise<{ success: boolean; count: number }> {
+    const stmt = this.db.prepare('DELETE FROM memory_entries WHERE workspace_id = ?')
+    const result = stmt.run(workspaceId)
+    return { success: true, count: result.changes }
+  }
+
+  async clearAllMemory(): Promise<{ success: boolean; count: number }> {
+    const stmt = this.db.prepare('DELETE FROM memory_entries')
+    const result = stmt.run()
+    return { success: true, count: result.changes }
+  }
 }

@@ -20,6 +20,39 @@ type ExtractedMemory = {
   metadata?: Record<string, unknown>
 }
 
+// Patterns for sensitive data that should never be stored in memory
+const SENSITIVE_PATTERNS = [
+  /sk_live_[a-zA-Z0-9]+/,
+  /sk_test_[a-zA-Z0-9]+/,
+  /sk__[a-zA-Z0-9]+/,
+  /api[_-]?key\s*[=:]\s*[a-zA-Z0-9_\-]+/i,
+  /bearer\s+[a-zA-Z0-9_\-\.]+/i,
+  /password\s*[=:]\s*\S+/i,
+  /secret\s*[=:]\s*\S+/i,
+  /token\s*[=:]\s*[a-zA-Z0-9_\-]+/i,
+  /aws[_-]?access[_-]?key[_-]?id/i,
+  /aws[_-]?secret[_-]?access[_-]?key/i,
+  /private[_-]?key/i,
+]
+
+/**
+ * Checks if content contains sensitive data that should be redacted
+ */
+function containsSensitiveData(content: string): boolean {
+  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(content))
+}
+
+/**
+ * Redacts sensitive data from content while preserving context
+ */
+function redactContent(content: string): string {
+  let redacted = content
+  for (const pattern of SENSITIVE_PATTERNS) {
+    redacted = redacted.replace(pattern, '[REDACTED]')
+  }
+  return redacted
+}
+
 export interface MemoryExtractor {
   extract(input: ExtractMemoryInput): ExtractedMemory[]
 }
@@ -31,6 +64,11 @@ export function createRuleBasedMemoryExtractor(): MemoryExtractor {
       const assistantMessage = String(input.assistantMessage || '').trim()
       const lower = userMessage.toLowerCase()
       const memories: ExtractedMemory[] = []
+
+      // Never store sensitive data
+      if (containsSensitiveData(userMessage)) {
+        return memories
+      }
 
       if (/\b(use pnpm|prefer pnpm)\b/.test(lower)) {
         memories.push({
@@ -64,10 +102,15 @@ export function createRuleBasedMemoryExtractor(): MemoryExtractor {
       }
 
       if (input.taskResult?.summary) {
+        // Redact sensitive data from task result summary
+        const safeSummary = containsSensitiveData(input.taskResult.summary)
+          ? redactContent(input.taskResult.summary)
+          : input.taskResult.summary
+
         memories.push({
           scope: 'episode',
           kind: 'task_outcome',
-          content: `${input.taskResult.title || 'Task'}: ${input.taskResult.summary}`,
+          content: `${input.taskResult.title || 'Task'}: ${safeSummary}`,
           workspaceId: input.workspaceId,
           salience: input.taskResult.success ? 0.72 : 0.82,
           tags: ['task-outcome', input.taskResult.success ? 'success' : 'failure'],

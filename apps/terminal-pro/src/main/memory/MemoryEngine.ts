@@ -37,4 +37,6 @@ export interface MemoryEngine {
     text: string
     createdAt: string
   }>>
+  clearWorkspaceMemory(workspaceId: string): Promise<{ success: boolean; count: number }>
+  clearAllMemory(): Promise<{ success: boolean; count: number }>
 }
